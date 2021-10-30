@@ -1,6 +1,6 @@
-const { ESLint } = require('eslint')
+const { CLIEngine } = require('eslint')
 
-const eslint = new ESLint({})
+const cli = new CLIEngine({})
 
 const tsPackages = ['packages/server/', 'packages/client/']
 
@@ -10,7 +10,7 @@ module.exports = {
   '*.{j,t}s?(x)': files =>
     [
       'eslint --max-warnings=0 --fix ' +
-        files.filter(file => !eslint.isPathIgnored(file)).join(' '),
+        files.filter(file => !cli.isPathIgnored(file)).join(' '),
       'jest --ci --forceExit --findRelatedTests ' + files.join(' '),
     ].filter(Boolean),
   'packages/*/**/*.ts?(x)': files =>

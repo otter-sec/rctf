@@ -24,7 +24,7 @@
     "@typescript-eslint/parser": "5.2.0",
     "babel-plugin-const-enum": "1.1.0",
     "concurrently": "6.3.0",
-    "eslint": "8.1.0",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-config-standard": "16.0.3",
     "eslint-config-standard-jsx": "10.0.0",
