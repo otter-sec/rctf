@@ -22,7 +22,6 @@ module.exports = api => {
         '@babel/preset-react',
         {
           runtime: 'automatic',
-          importSource: 'theme-ui',
           development: env === 'development',
         },
       ],

@@ -13,6 +13,7 @@ module.exports = {
     radix: 'off',
     'react/react-in-jsx-scope': 'off', // We use ProvidePlugin
     'react/prop-types': 'off', // We have TypeScript and don't care about JS interop
+    'react/jsx-handler-names': 'off', // no
   },
   parserOptions: {
     tsconfigRootDir: __dirname,
