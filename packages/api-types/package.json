@@ -18,12 +18,12 @@
     "prepack": "yarn build"
   },
   "devDependencies": {
-    "@babel/core": "7.14.3",
-    "@babel/preset-env": "7.14.2",
-    "ajv": "8.5.0",
+    "@babel/core": "7.16.0",
+    "@babel/preset-env": "7.16.0",
+    "ajv": "8.6.3",
     "deepmerge": "4.2.2",
-    "json-schema-to-typescript": "10.1.4",
-    "prettier": "2.3.0",
+    "json-schema-to-typescript": "10.1.5",
+    "prettier": "2.4.1",
     "walkdir": "0.4.1",
     "yaml": "1.10.2"
   },

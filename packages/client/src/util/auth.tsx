@@ -18,7 +18,7 @@ const AuthContext = createContext<AuthContextValue>(
 
 const AuthProvider: FunctionComponent = ({ children }) => {
   const [authToken, setAuthToken] = useState<string | null>(
-    localStorage.token ?? null
+    (localStorage.token as string | undefined) ?? null
   )
   const handleSetAuthToken = useCallback((newAuthToken: string | null) => {
     if (newAuthToken === null) {

@@ -125,5 +125,5 @@ test('misc theme properties are kept', () => {
 
 test('does not die when outside of ThemeProvider', () => {
   render(<Card data-testid='card' />)
-  expect(screen.queryByTestId('card')).toBeInTheDocument()
+  expect(screen.getByTestId('card')).toBeInTheDocument()
 })

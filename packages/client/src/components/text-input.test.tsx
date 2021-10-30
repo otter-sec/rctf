@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/extend-expect'
 
-import { render, act, fireEvent, screen } from '@testing-library/preact'
+import { render, fireEvent, screen } from '@testing-library/preact'
 
 import { createRef } from 'react'
 
@@ -56,13 +56,11 @@ test('native error message is visible', async () => {
 
   render(<TextInput ref={ref} showError />)
 
-  await act(() => {
-    expect(ref.current).not.toBeNull()
-    if (ref.current === null) throw new Error()
+  expect(ref.current).not.toBeNull()
+  if (ref.current === null) throw new Error()
 
-    ref.current.setCustomValidity(errorMessage)
-    fireEvent.input(ref.current)
-  })
+  ref.current.setCustomValidity(errorMessage)
+  fireEvent.input(ref.current)
 
   expect(screen.getByText(errorMessage)).toBeVisible()
 })
@@ -73,13 +71,11 @@ test('reacts to "invalid" event', async () => {
 
   render(<TextInput ref={ref} showError />)
 
-  await act(() => {
-    expect(ref.current).not.toBeNull()
-    if (ref.current === null) throw new Error()
+  expect(ref.current).not.toBeNull()
+  if (ref.current === null) throw new Error()
 
-    ref.current.setCustomValidity(errorMessage)
-    fireEvent.invalid(ref.current)
-  })
+  ref.current.setCustomValidity(errorMessage)
+  fireEvent.invalid(ref.current)
 
   expect(screen.getByText(errorMessage)).toBeVisible()
 })
@@ -91,13 +87,11 @@ test('custom error message has precedence', async () => {
 
   render(<TextInput ref={ref} showError error={propErrorMessage} />)
 
-  await act(() => {
-    expect(ref.current).not.toBeNull()
-    if (ref.current === null) throw new Error()
+  expect(ref.current).not.toBeNull()
+  if (ref.current === null) throw new Error()
 
-    ref.current.setCustomValidity(validationMessage)
-    fireEvent.input(ref.current)
-  })
+  ref.current.setCustomValidity(validationMessage)
+  fireEvent.input(ref.current)
 
   expect(screen.queryByText(validationMessage)).not.toBeInTheDocument()
   expect(screen.getByText(propErrorMessage)).toBeVisible()

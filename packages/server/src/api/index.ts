@@ -35,6 +35,7 @@ export default async (fastify: HTTPFastifyInstance): Promise<void> => {
   const responseFactories = makeResponseFactories(
     widenConcat(implicitResponseKinds, ['badEndpoint'])
   )
+  // @ts-expect-error Fastify types are broken :(
   fastify.setErrorHandler(async (error, req, reply) => {
     try {
       if (error.validation) {

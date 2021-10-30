@@ -18,12 +18,11 @@ export type UserSolvesData = Pick<
     createdAt: number
   }
 
-export type UserScoreData = Pick<NonNullable<GetScoreResponse>, 'score'> &
-  {
-    [K in 'globalPlace' | 'divisionPlace']:
-      | NonNullable<GetScoreResponse>[K]
-      | null
-  }
+export type UserScoreData = Pick<NonNullable<GetScoreResponse>, 'score'> & {
+  [K in 'globalPlace' | 'divisionPlace']:
+    | NonNullable<GetScoreResponse>[K]
+    | null
+}
 
 export type UserData = Pick<User, 'name' | 'ctftimeId' | 'division'> &
   UserScoreData & {

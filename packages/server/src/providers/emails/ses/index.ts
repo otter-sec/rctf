@@ -65,7 +65,8 @@ export default class SesProvider implements Provider {
         Source: mail.from,
       })
     } catch (e) {
-      throw new SesError(e)
+      // TODO: remove cast? (since e could technically not be Error)
+      throw new SesError(e as Error)
     }
   }
 }
