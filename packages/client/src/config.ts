@@ -1,5 +1,6 @@
+// TODO: share
 interface ClientConfig {
-  ctfTitle: string
+  ctfName: string
 }
 
 // config will not be null by the time the app is mounted
