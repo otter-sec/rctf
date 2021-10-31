@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'preact/hooks'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import config from '../config'
 import withStyles from '../components/jss'
 import Pagination from '../components/pagination'
@@ -50,12 +50,16 @@ const Scoreboard = withStyles(
     },
   },
   ({ classes }) => {
+    const location = useLocation()
+    const navigate = useNavigate()
+
     const loggedIn = useMemo(() => localStorage.getItem('token') !== null, [])
     const scoreboardPageState = useMemo(() => {
       const localStorageState = JSON.parse(
         localStorage.getItem('scoreboardPageState') || '{}'
       )
 
+      // TODO: use history state
       const queryParams = new URLSearchParams(location.search)
       const queryState = {}
       if (queryParams.has('page')) {
@@ -75,7 +79,7 @@ const Scoreboard = withStyles(
       }
 
       return { ...localStorageState, ...queryState }
-    }, [])
+    }, [location.search])
     const [profile, setProfile] = useState(null)
     const [pageSize, _setPageSize] = useState(
       scoreboardPageState.pageSize || 100
@@ -117,15 +121,14 @@ const Scoreboard = withStyles(
     }, [pageSize, division])
     useEffect(() => {
       if (page !== 1 || location.search !== '') {
-        history.replaceState(
-          {},
-          '',
+        navigate(
           `?page=${page}&division=${encodeURIComponent(
             division
-          )}&pageSize=${pageSize}`
+          )}&pageSize=${pageSize}`,
+          { replace: true }
         )
       }
-    }, [pageSize, division, page])
+    }, [pageSize, division, page, location.search, navigate])
 
     const divisionChangeHandler = useCallback(
       e => setDivision(e.target.value),
