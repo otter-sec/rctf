@@ -1,4 +1,4 @@
-FROM node:14.8.0-buster-slim AS prepare
+FROM node:14.18.1-buster-slim AS prepare
 WORKDIR /app
 
 COPY packages ./packages
@@ -8,7 +8,7 @@ COPY .yarn /prepared/.yarn
 RUN find packages -maxdepth 2 -mindepth 2 -name package.json -exec dirname /prepared/'{}' ';' | xargs mkdir -p && \
     find packages -maxdepth 2 -mindepth 2 -name package.json -exec cp '{}' /prepared/'{}' ';'
 
-FROM node:14.8.0-buster-slim AS build
+FROM node:14.18.1-buster-slim AS build
 WORKDIR /build
 
 COPY --from=prepare /prepared ./
@@ -23,7 +23,7 @@ RUN mkdir -p /app/packages && \
 WORKDIR /app
 RUN yarn workspaces focus --production --all
 
-FROM node:14.8.0-buster-slim AS run
+FROM node:14.18.1-buster-slim AS run
 WORKDIR /app
 
 COPY --from=build /app/node_modules /app/node_modules
