@@ -268,27 +268,31 @@ const Scoreboard = withStyles(
         <div className='col-3'>
           <div className={`frame ${classes.frame}`}>
             <div className='frame__body'>
-              <div className='frame__subtitle'>Filter by division</div>
-              <div className='input-control'>
-                <select
-                  required
-                  className='select'
-                  name='division'
-                  value={division}
-                  onChange={divisionChangeHandler}
-                >
-                  <option value='all' selected>
-                    All
-                  </option>
-                  {Object.entries(config.divisions).map(([code, name]) => {
-                    return (
-                      <option key={code} value={code}>
-                        {name}
+              {Object.keys(config.divisions).length > 1 && (
+                <>
+                  <div className='frame__subtitle'>Filter by division</div>
+                  <div className='input-control'>
+                    <select
+                      required
+                      className='select'
+                      name='division'
+                      value={division}
+                      onChange={divisionChangeHandler}
+                    >
+                      <option value='all' selected>
+                        All
                       </option>
-                    )
-                  })}
-                </select>
-              </div>
+                      {Object.entries(config.divisions).map(([code, name]) => {
+                        return (
+                          <option key={code} value={code}>
+                            {name}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                </>
+              )}
               <div className='frame__subtitle'>Teams per page</div>
               <div className='input-control'>
                 <select
