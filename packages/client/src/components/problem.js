@@ -192,6 +192,9 @@ export default withStyles(
       '& pre': {
         whiteSpace: 'pre-wrap',
       },
+      '& blockquote': {
+        background: 'transparent !important',
+      },
     },
     divider: {
       margin: '0.625em',
