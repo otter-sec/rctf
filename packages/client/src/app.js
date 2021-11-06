@@ -52,7 +52,7 @@ function App({ classes }) {
 
   const loggedInPaths = [
     {
-      element: <Profile />,
+      element: <Profile key='profile-private' />,
       path: '/profile',
       name: 'Profile',
     },
@@ -83,7 +83,7 @@ function App({ classes }) {
       name: 'Scoreboard',
     },
     {
-      element: <Profile />,
+      element: <Profile key='profile-public' />,
       path: '/profile/:uuid',
     },
     {
