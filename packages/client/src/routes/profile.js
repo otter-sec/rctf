@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'preact/hooks'
 import { memo } from 'preact/compat'
 import config from '../config'
 import withStyles from '../components/jss'
+import { useParams } from 'react-router-dom'
 
 import {
   privateProfile,
@@ -370,11 +371,13 @@ const UpdateCard = withStyles(
   }
 )
 
-const Profile = ({ uuid, classes }) => {
+const Profile = ({ classes }) => {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(null)
   const [data, setData] = useState({})
   const { toast } = useToast()
+
+  const { uuid } = useParams()
 
   const {
     name,
