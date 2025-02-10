@@ -88,10 +88,6 @@ test('token expiration edge case', async () => {
     userId: 'user123',
     email: 'user@example.com',
   })
-  console.log('Generated Token:', token)
-
-  const extractedBefore = await getData(tokenKinds.verify, token)
-  console.log('Extracted Before Expiration:', extractedBefore)
 
   jest.advanceTimersByTime(config.loginTimeout * 1000 - 1)
   expect(await getData(tokenKinds.verify, token)).not.toBeNull()
