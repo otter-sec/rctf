@@ -65,3 +65,44 @@ test('garbage token is invalid', async () => {
   const extracted = await getData(tokenKinds.team, token)
   expect(extracted).toBeNull()
 })
+test('token tampering is detected', async () => {
+  const token = await getToken(tokenKinds.team, 'data')
+
+  const tamperedToken = token.substring(0, token.length - 5) + 'xxxxx'
+
+  const extracted = await getData(tokenKinds.team, tamperedToken)
+  expect(extracted).toBeNull()
+})
+
+test('empty token is invalid', async () => {
+  const extracted = await getData(tokenKinds.team, '')
+  expect(extracted).toBeNull()
+})
+
+test('token expiration edge case', async () => {
+  jest.useFakeTimers()
+
+  const token = await getToken(tokenKinds.verify, {
+    kind: 'recover',
+    verifyId: 'id',
+    userId: 'user123',
+    email: 'user@example.com',
+  })
+  console.log('Generated Token:', token)
+
+  const extractedBefore = await getData(tokenKinds.verify, token)
+  console.log('Extracted Before Expiration:', extractedBefore)
+
+  jest.advanceTimersByTime(config.loginTimeout * 1000 - 1)
+  expect(await getData(tokenKinds.verify, token)).not.toBeNull()
+
+  jest.useRealTimers()
+})
+
+test('invalid token kind returns null', async () => {
+  const token = await getToken(tokenKinds.team, 'data')
+
+  const extracted = await getData('invalidKind' as unknown as tokenKinds, token)
+
+  expect(extracted).toBeNull()
+})
