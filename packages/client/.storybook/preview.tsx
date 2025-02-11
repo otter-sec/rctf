@@ -1,19 +1,7 @@
-import { ComponentType } from 'react'
 import { withKnobs } from '@storybook/addon-knobs'
-import { ThemeProvider } from 'theme-ui'
-import theme from '../src/util/theme'
 
 export const decorators =
-  process.env.NODE_ENV !== 'test'
-    ? [
-        withKnobs,
-        (Story: ComponentType) => (
-          <ThemeProvider theme={theme}>
-            <Story />
-          </ThemeProvider>
-        ),
-      ]
-    : []
+  (process.env as Record<string, string>).NODE_ENV !== 'test' ? [withKnobs] : []
 
 export const parameters = {
   layout: 'centered',

@@ -35,7 +35,7 @@ export const serveIndex: FastifyPluginAsync<{ indexPath: string }> = async (
 
 const getFastifyIp = (req: FastifyRequest): string =>
   // Use `get` on req.__proto__ since this function is used in req's getter
-  Reflect.get(Object.getPrototypeOf(req), 'ip', req) as typeof req.ip
+  Reflect.get(Object.getPrototypeOf(req) as object, 'ip', req) as typeof req.ip
 
 // Parse Cloudflare CF-Connecting-IP header
 const getCloudflareIp = (req: FastifyRequest): string | undefined =>

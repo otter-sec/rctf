@@ -51,10 +51,7 @@ module.exports = () => {
       }),
       new ForkTsCheckerWebpackPlugin(),
       ...(env === 'development'
-        ? [
-            new PrefreshWebpackPlugin(),
-            new webpack.HotModuleReplacementPlugin(),
-          ]
+        ? [new PrefreshWebpackPlugin()]
         : [
             new SizePlugin({
               writeFile: false,
@@ -84,6 +81,18 @@ module.exports = () => {
             },
           ],
         },
+        {
+          test: /\.svg$/,
+          use: [
+            {
+              loader: 'svg-react-loader',
+            },
+          ],
+        },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
+        },
       ],
     },
     resolve: {
@@ -95,10 +104,12 @@ module.exports = () => {
     },
     devServer: {
       host: '0.0.0.0',
-      disableHostCheck: true,
-      overlay: {
-        errors: true,
-        warnings: true,
+      allowedHosts: 'all',
+      client: {
+        overlay: {
+          errors: true,
+          warnings: true,
+        },
       },
       hot: true,
       historyApiFallback: true,
