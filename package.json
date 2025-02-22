@@ -55,5 +55,9 @@
   "bugs": {
     "url": "https://github.com/redpwn/rctf/issues"
   },
-  "homepage": "https://rctf.redpwn.net"
+  "homepage": "https://rctf.redpwn.net",
+  "resolutions": {
+    "json-schema": "^0.4.0",
+    "loader-utils": "^1.4.1"
+  }
 }
