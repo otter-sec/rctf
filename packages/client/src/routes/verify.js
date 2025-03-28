@@ -3,6 +3,7 @@ import Error from './error'
 import config from '../config'
 import { verify } from '../api/auth'
 import PendingToken from '../components/pending-token'
+import { Fragment } from 'preact'
 
 const Verify = () => {
   const [authToken, setAuthToken] = useState(null)
@@ -25,7 +26,7 @@ const Verify = () => {
         setError(verifyRes.verifyToken)
       }
     } else {
-      setError("No verification token provided.")
+      setError('No verification token provided.')
     }
   }
 
@@ -42,11 +43,13 @@ const Verify = () => {
   if (authToken == null) {
     return (
       <Fragment>
-        <div class='row u-center'>
+        <div className='row u-center'>
           <h3>Verify email?</h3>
         </div>
-        <div class='row u-center'>
-          <button class='btn-info' onClick={handleVerifyClick}>Verify</button>
+        <div className='row u-center'>
+          <button className='btn-info' onClick={handleVerifyClick}>
+            Verify
+          </button>
         </div>
       </Fragment>
     )
