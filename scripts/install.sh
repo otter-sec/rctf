@@ -45,7 +45,7 @@ do_install() {
   if [ -d "$RCTF_INSTALL_PATH" ]; then
     error "rCTF appears to already be installed in ${RCTF_INSTALL_PATH}"
 
-    info "... If you're trying to start rCTF, run 'docker-compose up -d'."
+    info "... If you're trying to start rCTF, run 'docker compose up -d'."
     info "... If you're trying to reinstall rCTF, 'rm -rf $RCTF_INSTALL_PATH' then re-run this script."
 
     exit 1
@@ -60,16 +60,11 @@ do_install() {
     curl -fsS https://get.docker.com | sh
   fi
 
-  if [ ! -x "$(command -v docker-compose)" ]; then
-    curl -fsSLo /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)"
-    chmod +x /usr/local/bin/docker-compose
-  fi
-
   info "Configuring rCTF..."
 
   RCTF_GIT_REF="${RCTF_GIT_REF:-"master"}"
 
-  mkdir -p rctf.d data/rctf-postgres data/rctf-redis
+  mkdir -p conf.d data/rctf-postgres data/rctf-redis
 
   printf "%s\n" \
   "RCTF_DATABASE_PASSWORD=$(get_key)" \
@@ -83,7 +78,7 @@ do_install() {
   "  description: 'A description of your CTF'" \
   "  imageUrl: 'https://example.com'" \
   "homeContent: 'A description of your CTF. Markdown supported.'" \
-  > rctf.d/01-ui.yaml
+  > conf.d/01-ui.yaml
 
   printf "%s\n" \
   "origin: http://127.0.0.1:8080" \
@@ -92,7 +87,7 @@ do_install() {
   "tokenKey: '$(get_key)'" \
   "startTime: $(date +%s)000" \
   "endTime: $(date -d +1week +%s)000" \
-  > rctf.d/02-ctf.yaml
+  > conf.d/02-ctf.yaml
 
   printf "%s\n" \
   "database:" \
@@ -103,12 +98,12 @@ do_install() {
   "  redis:" \
   "    host: redis" \
   "  migrate: before" \
-  > rctf.d/03-db.yaml
+  > conf.d/03-db.yaml
 
   info "Downloading rCTF..."
 
   curl -fsSO "https://raw.githubusercontent.com/redpwn/rctf/$RCTF_GIT_REF/docker-compose.yml"
-  docker-compose pull
+  docker compose pull
 
   info "Finished installation to ${RCTF_INSTALL_PATH}."
 
@@ -117,12 +112,12 @@ do_install() {
   read -r result </dev/tty
 
   if [ "$result" = "y" ]; then
-    info "Running 'docker-compose up -d'..."
-    docker-compose up -d
+    info "Running 'docker compose up -d'..."
+    docker compose up -d
     info "rCTF is now running at 127.0.0.1:8080."
     exit 0
   else
-    info "If you would like to start rCTF, run 'docker-compose up -d' in $RCTF_INSTALL_PATH."
+    info "If you would like to start rCTF, run 'docker compose up -d' in $RCTF_INSTALL_PATH."
     exit 0
   fi
 }
