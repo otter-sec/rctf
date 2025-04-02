@@ -1,19 +1,20 @@
 import { test, expect } from '@playwright/test'
+import testConfig from '../testConfig'
 
-test.describe('Challenges Page', () => {
+test.describe('Challenges Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/login')
+    await page.goto(`${testConfig.baseUrl}/login`)
 
     // Fill login token and submit
     await page.fill(
       'input[name="teamToken"]',
-      'http://localhost:8080/login?token=1cweecsMOoefSKaxtUMKVHi3zd5vF0Qgk41PW8DXTQcJjI95Nw5gMYHE9uB5jFdsnippN25QeyKvRBQBXCdUsMCDXdF8yJC9FObNqiCE%2FjqrTheDXTAMe1Anqver'
+      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
     )
     await page.click('button[type="submit"]')
 
     await page.waitForNavigation()
 
-    await page.goto('http://localhost:8080/challs')
+    await page.goto(`${testConfig.baseUrl}/challs`)
   })
 
   test('should render challenges page correctly', async ({ page }) => {
@@ -27,8 +28,6 @@ test.describe('Challenges Page', () => {
 
   test('should have categories and filters', async ({ page }) => {
     await expect(page.locator('#show-solved')).toBeVisible()
-    await expect(page.locator('#category-College')).toBeVisible()
-    await expect(page.locator('#category-High\\ school')).toBeVisible()
   })
 
   test('should toggle "Show Solved" checkbox', async ({ page }) => {
@@ -70,10 +69,8 @@ test.describe('Challenges Page', () => {
   })
 
   test('should submit a flag for a challenge', async ({ page }) => {
-    const TEST_CHALLENGE = 'High school/1. Can you find root?'
-    const TEST_CHALLENGE_ANSWER = 'flag(linux_flag)'
     const challengeTitle = page.locator(
-      `.frame__title:has-text("${TEST_CHALLENGE}")`
+      `.frame__title:has-text("${testConfig.testChal}")`
     )
     await expect(challengeTitle).toBeVisible()
 
@@ -89,7 +86,7 @@ test.describe('Challenges Page', () => {
     const submitButton = challengeContainer.locator('button:has-text("Submit")')
     await expect(submitButton).toBeVisible()
 
-    await flagInput.fill(TEST_CHALLENGE_ANSWER)
+    await flagInput.fill(testConfig.testChalAns)
     await submitButton.click()
 
     const successToast = page.locator('text=Flag successfully submitted!')

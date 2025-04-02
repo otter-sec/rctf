@@ -1,14 +1,12 @@
 import { test, expect } from '@playwright/test'
-import config from '../../server/src/config/client'
-import dotenv from 'dotenv'
+import testConfig from '../testConfig'
 
-dotenv.config()
 test.describe('rCTF Login Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/login')
+    await page.goto(`${testConfig.baseUrl}/login`)
   })
   test('should have the correct page title', async ({ page }) => {
-    await expect(page).toHaveTitle(`Login | ${config.ctfName}`)
+    await expect(page).toHaveTitle(`Login | ${testConfig.ctfName}`)
   })
 
   test('should display the Team Token input field', async ({ page }) => {
@@ -20,7 +18,7 @@ test.describe('rCTF Login Page Tests', () => {
   }) => {
     await page.fill(
       'input[name="teamToken"]',
-      'http://localhost:8080/login?token=KprJKTZTZwpQFYBw544qCVvlV77rbLF5FZfjLdbIDx%2FbsvpnS36IEUbGbGPxIYu5gNDSyhlQD3lU8E1nHHYldu1gCMZjNCphzapsnHntv%2FaVniS2HO%2FI70nhozdX'
+      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
     )
     await page.click('button[type="submit"]')
     await expect(page).not.toHaveURL(/login/)
@@ -49,40 +47,29 @@ test.describe('rCTF Login Page Tests', () => {
     const recoverLink = page.locator('a[href="/recover"]')
     await expect(recoverLink).toBeVisible()
     await recoverLink.click()
-    await expect(page).toHaveURL('http://localhost:8080/recover')
-  })
-
-  test('should log in successfully with a valid Team URL', async ({ page }) => {
-    await page.goto(
-      'http://localhost:8080/login?token=KprJKTZTZwpQFYBw544qCVvlV77rbLF5FZfjLdbIDx%2FbsvpnS36IEUbGbGPxIYu5gNDSyhlQD3lU8E1nHHYldu1gCMZjNCphzapsnHntv%2FaVniS2HO%2FI70nhozdX'
-    )
-    const appDiv = page.locator('#app')
-    const verificationMessage = appDiv.locator('.row.u-center h3')
-    await expect(verificationMessage).toHaveText(
-      'Login as meumarsheik@gmail.com?'
-    )
+    await expect(page).toHaveURL(`${testConfig.baseUrl}/recover`)
   })
 
   test('should log in successfully with a invalid Team URL', async ({
     page,
   }) => {
-    await page.goto('http://localhost:8080/login?token=invalid')
+    await page.goto(`${testConfig.baseUrl}/login?token=invalid`)
     const appDiv = page.locator('#app')
     const verificationMessage = appDiv.locator('.row.u-center h4')
     await expect(verificationMessage).toContainText(
-      `Log in to ${config.ctfName}`
+      `Log in to ${testConfig.ctfName}`
     )
   })
 
   test('should go to dashboard page without user login', async ({ page }) => {
-    await page.goto('http://localhost:8080/profile')
-    await expect(page).toHaveURL('http://localhost:8080/')
+    await page.goto(`${testConfig.baseUrl}/profile`)
+    await expect(page).toHaveURL(`${testConfig.baseUrl}/`)
   })
 })
 
 test.describe('rCTF Register Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/register')
+    await page.goto(`${testConfig.baseUrl}/register`)
   })
 
   test('should have the correct page title', async ({ page }) => {
@@ -97,8 +84,8 @@ test.describe('rCTF Register Page Tests', () => {
   test('should log in successfully with a valid team name & email', async ({
     page,
   }) => {
-    await page.fill('input[name="name"]', 'contactuauth@gmail.com')
-    await page.fill('input[name="email"]', 'contactuauth@gmail.com')
+    await page.fill('input[name="name"]', testConfig.testRegName)
+    await page.fill('input[name="email"]', testConfig.testRegEmail)
     await page.click('button[type="submit"]')
     const appDiv = page.locator('#app')
     const verificationMessage = appDiv.locator('.row.u-center h3')

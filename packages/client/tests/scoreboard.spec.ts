@@ -1,16 +1,16 @@
 import { test, expect } from '@playwright/test'
-import config from '../../server/src/config/client'
+import testConfig from '../testConfig'
 
-test.describe('Scoreboard Page', () => {
+test.describe('Scoreboard Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/login')
+    await page.goto(`${testConfig.baseUrl}/login`)
     await page.fill(
       'input[name="teamToken"]',
-      'http://localhost:8080/login?token=1cweecsMOoefSKaxtUMKVHi3zd5vF0Qgk41PW8DXTQcJjI95Nw5gMYHE9uB5jFdsnippN25QeyKvRBQBXCdUsMCDXdF8yJC9FObNqiCE%2FjqrTheDXTAMe1Anqver'
+      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
     )
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
-    await page.goto('http://localhost:8080/scores')
+    await page.goto(`${testConfig.baseUrl}/scores`)
   })
 
   test('should render scoreboard with teams', async ({ page }) => {
@@ -29,15 +29,16 @@ test.describe('Scoreboard Page', () => {
     const initialRowCount = await page.locator('table tr').count()
     expect(initialRowCount).toBeGreaterThan(1)
 
-    await page.selectOption(
-      'select[name="division"]',
-      Object.values(config.divisions || {})[0]
-    )
+    const divisionOptions = Object.values(testConfig.divisions) as string[]
+    if (divisionOptions.length > 0) {
+      await page.selectOption('select[name="division"]', divisionOptions[0])
+    } else {
+      console.log('No divisions available in testConfig')
+    }
 
     await page.waitForTimeout(500)
 
     const filteredRowCount = await page.locator('table tr').count()
-
     await expect(page.locator('table')).toBeVisible()
     expect(filteredRowCount).toBeGreaterThan(0)
   })

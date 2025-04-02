@@ -19,6 +19,7 @@ node_modules
 
 dist
 /.env
+/.env.*
 /data
 /rctf.d/*
 !/rctf.d/.keep

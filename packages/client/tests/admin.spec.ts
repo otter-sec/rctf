@@ -1,17 +1,16 @@
 import { test, expect } from '@playwright/test'
+import testConfig from '../testConfig'
 
 test.describe('Admin Challenges Page', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/login')
-
+    await page.goto(`${testConfig.baseUrl}/login`)
     await page.fill(
       'input[name="teamToken"]',
-      'http://localhost:8080/login?token=1cweecsMOoefSKaxtUMKVHi3zd5vF0Qgk41PW8DXTQcJjI95Nw5gMYHE9uB5jFdsnippN25QeyKvRBQBXCdUsMCDXdF8yJC9FObNqiCE%2FjqrTheDXTAMe1Anqver'
+      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
     )
-
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
-    await page.goto('http://localhost:8080/admin/challs')
+    await page.goto(`${testConfig.baseUrl}/admin/challs`)
   })
 
   test('should display challenge form fields', async ({ page }) => {
@@ -42,11 +41,6 @@ test.describe('Admin Challenges Page', () => {
   })
 
   test('should allow filling challenge details', async ({ page }) => {
-    const randomName = `Challenge-${Math.random().toString(36).substring(7)}`
-    const randomAuthor = `Author-${Math.random().toString(36).substring(5)}`
-    const testDescription = 'this is testing challenge'
-    const testFlag = 'flag(test_flag)'
-
     const problemInput = page
       .locator('input[placeholder="Problem Name"]')
       .nth(0)
@@ -58,10 +52,10 @@ test.describe('Admin Challenges Page', () => {
 
     const flagInput = page.locator('input[placeholder="Flag"]').nth(0)
 
-    await problemInput.fill(randomName)
-    await authorInput.fill(randomAuthor)
-    await descriptionInput.fill(testDescription)
-    await flagInput.fill(testFlag)
+    await problemInput.fill(testConfig.testNewChalName)
+    await authorInput.fill(testConfig.testNewChalAuthor)
+    await descriptionInput.fill(testConfig.testNewChalDes)
+    await flagInput.fill(testConfig.testNewChalFlag)
 
     const tiebreakCheckbox = page.locator('input[type="checkbox"]').nth(0)
     if (!(await tiebreakCheckbox.isChecked())) {

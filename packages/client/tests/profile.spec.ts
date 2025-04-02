@@ -1,15 +1,16 @@
 import { test, expect } from '@playwright/test'
+import testConfig from '../testConfig'
 
-test.describe('Profile Page', () => {
+test.describe('Profile Page Tests', () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto('http://localhost:8080/login')
+    await page.goto(`${testConfig.baseUrl}/login`)
     await page.fill(
       'input[name="teamToken"]',
-      'http://localhost:8080/login?token=1cweecsMOoefSKaxtUMKVHi3zd5vF0Qgk41PW8DXTQcJjI95Nw5gMYHE9uB5jFdsnippN25QeyKvRBQBXCdUsMCDXdF8yJC9FObNqiCE%2FjqrTheDXTAMe1Anqver'
+      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
     )
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
-    await page.goto('http://localhost:8080/profile')
+    await page.goto(`${testConfig.baseUrl}/profile`)
   })
 
   test('Verify profile page is rendered correctly', async ({ page }) => {
@@ -74,9 +75,6 @@ test.describe('Profile Page', () => {
   })
 
   test('should allow updating team information', async ({ page }) => {
-    const TEST_EMAIL = 'contactuauth@gmail.com'
-    const TEST_NAME = `Test Team ${Math.random().toString(36).substring(7)}`
-
     const teamNameInput = page.locator('input[name="name"]')
     const emailInput = page.locator('input[name="email"]').nth(0)
     const divisionSelect = page.locator('select[name="division"]')
@@ -92,7 +90,7 @@ test.describe('Profile Page', () => {
     await updateButton.click()
     await expect(teamNameInput).toBeFocused()
 
-    await teamNameInput.fill(TEST_NAME)
+    await teamNameInput.fill(testConfig.testUpdateName)
 
     // Check empty email
     await emailInput.fill('')
@@ -102,7 +100,7 @@ test.describe('Profile Page', () => {
     await expect(errorToast).toBeVisible()
 
     // Successfull profile update
-    await emailInput.fill(TEST_EMAIL)
+    await emailInput.fill(testConfig.testUpdateEmail)
     await updateButton.click()
     await page.waitForTimeout(1000)
     const successToast = page.locator('.toast--undefined')
@@ -112,9 +110,6 @@ test.describe('Profile Page', () => {
   })
 
   test('should allow add & delete new team member', async ({ page }) => {
-    const TEST_EMAIL = 'contactuauth@gmail.com'
-    const TEST_NAME = `Test Team ${Math.random().toString(36).substring(7)}`
-
     const emailInput = page.locator('input[name="email"]').nth(1)
     const updateButton = page.locator('button:has-text("Add member")')
 
@@ -126,10 +121,10 @@ test.describe('Profile Page', () => {
     await updateButton.click()
     await expect(emailInput).toBeFocused()
 
-    await emailInput.fill(TEST_EMAIL)
+    await emailInput.fill(testConfig.testNewEmail)
 
     // Successfull profile update
-    await emailInput.fill(TEST_EMAIL)
+    await emailInput.fill(testConfig.testNewEmail)
     await updateButton.click()
     await page.waitForTimeout(1000)
     const addSuccessToast = page.locator('.toast--undefined')
