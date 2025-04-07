@@ -301,7 +301,7 @@ describe('optimizeSchema', () => {
       oneOf: [
         makeStandardResponse('goodLogin', 'The login was successful.', {
           type: 'object',
-          properties: { authToken: { type: 'string' } },
+          properties: { authToken: { type: 'string' }, perms: { type: 'number' } },
           required: ['authToken'],
           additionalProperties: false,
         }),

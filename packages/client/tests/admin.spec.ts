@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import testConfig from '../testConfig'
 
-test.describe('Admin Challenges Page', () => {
+test.describe('Admin Challenges Page Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login`)
     await page.fill(
@@ -88,5 +88,17 @@ test.describe('Admin Challenges Page', () => {
     const successToast = page.locator('.toast--success')
     await expect(successToast).toBeVisible()
     await expect(successToast).toContainText('successfully deleted')
+  })
+})
+
+
+test.describe('Admin Challenges Page Access Control Tests', () => {
+  test('should redirect unauthorized user to home page', async ({ page }) => {
+    await page.goto(`${testConfig.baseUrl}/login`)
+    await page.fill('input[name="teamToken"]', testConfig.regularUserToken)
+    await page.click('button[type="submit"]')
+    await page.waitForNavigation()
+    await page.goto(`${testConfig.baseUrl}/admin/challs`)
+    await expect(page).toHaveURL(`${testConfig.baseUrl}/`)
   })
 })

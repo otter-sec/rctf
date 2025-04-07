@@ -24,7 +24,10 @@ const testConfig = {
   testNewChalName: process.env.TEST_NEW_CHAL_NAME || '',
   testNewChalAuthor: process.env.TEST_NEW_CHAL_AUTHOR || '',
   testNewChalDes: process.env.TEST_NEW_CHAL_DES || '',
-  testNewChalFlag: process.env.TEST_NEW_CHAL_FLAG || ''
+  testNewChalFlag: process.env.TEST_NEW_CHAL_FLAG || '',
+
+
+  regularUserToken: process.env.REGULAR_USER_TOKEN || ''
 
 };
 
