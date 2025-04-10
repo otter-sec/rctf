@@ -32,7 +32,7 @@ const LoggedInRedir = <Navigate to='/profile' />
 
 function App({ classes }) {
   const loggedOut = !localStorage.token
-  const hasPerms = localStorage.perms == 0
+  const hasPerms = localStorage.perms === '3'
 
   const loggedOutPaths = [
     {
