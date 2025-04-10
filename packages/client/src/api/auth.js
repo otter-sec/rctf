@@ -1,8 +1,9 @@
 import { request } from './util'
 import { route } from '../history-hack'
 
-export const setAuthToken = ({ authToken }) => {
+export const setAuthToken = ({ authToken, perms }) => {
   localStorage.token = authToken
+  localStorage.setItem('perms', perms)
   route('/profile')
 }
 
@@ -15,6 +16,7 @@ export const login = async ({ teamToken, ctftimeToken }) => {
     case 'goodLogin':
       return {
         authToken: resp.data.authToken,
+        perms: resp.data.perms,
       }
     case 'badTokenVerification':
       return {
