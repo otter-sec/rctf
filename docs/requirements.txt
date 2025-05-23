@@ -52,7 +52,7 @@ six==1.15.0
     # via
     #   livereload
     #   lunr
-tornado==6.0.4
+tornado==6.5.1
     # via
     #   livereload
     #   mkdocs
