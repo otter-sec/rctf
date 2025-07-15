@@ -2,17 +2,51 @@
 
 ## Workflow
 
-Development primarily occurs with `yarn`. While there are docker containers avalible, these are meant more for production environments.
+Development primarily occurs with `yarn`. While there are docker containers available, these are meant more for production environments.
 
-You should first clone the repository and run:
+You should first clone the repository and perform first-time setup:
+
+```bash
+cat <<EOT > rctf.d/00-development.yaml
+ctfName: rCTF Development
+meta:
+  description: 'Example rCTF instance'
+  imageUrl: 'https://example.com'
+homeContent: 'A description of your CTF. Markdown supported.'
+
+origin: http://127.0.0.1:8080
+divisions:
+  open: Open
+tokenKey: DO_NOT_USE_ME
+startTime: 0
+endTime: 99999999999999
+
+database:
+  sql:
+    host: 127.0.0.1
+    user: rctf
+    password: DO_NOT_USE_ME
+    database: rctf
+  redis:
+    host: 127.0.0.1
+    password: DO_NOT_USE_ME
+  migrate: before
+EOT
+```
+
+Then, build all the packages once so that all the required bundles get created:
 
 ```bash
 yarn
+yarn workspace @rctf/api-types build
+yarn workspace @rctf/server build
+yarn workspace @rctf/client build
 ```
 
-The frontend and backend need to be built separately. You can do run these two operations concurrently for development by running `yarn dev`.
+After that, you can start up a local development environment in the future by running the following commands:
 
 ```bash
+docker compose -f docker-compose.development.yml up -d
 yarn dev
 ```
 
@@ -20,15 +54,14 @@ These will automatically watch the filesystem for changes, and restart when need
 
 **Note that this will start two servers**. The API listens on `http://localhost:3000` by default while the frontend is served by Preact on `http://localhost:8080`.
 
-There are also two development settings you have to change to develop the frontend.
+Before committing your changes, please:
 
-Before commiting your changes, you should run `yarn lint` and `yarn lint --fix` to fix any linting errors.
-
-You should also use `yarn test` to ensure there are no regressions.
+- run `yarn lint` and `yarn lint --fix` to fix any linting errors
+- run `yarn test` to ensure there are no regressions
 
 ## Commits
 
-Finally when it's all done, you can commit with `git commit`.
+Finally, when it's all done, you can commit with `git commit`.
 
 Make sure to follow the [commit message guidelines](https://github.com/angular/angular.js/blob/master/DEVELOPERS.md#-git-commit-guidelines).
 

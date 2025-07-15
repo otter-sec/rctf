@@ -24,6 +24,7 @@ dist
 !/rctf.d/.keep
 /docs/site
 /packages/server/uploads
+!/packages/server/uploads/.keep
 
 .DS_Store
 Thumbs.db
@@ -31,6 +32,7 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN
 /package-lock.json
+.idea
 
 *.swp
 
