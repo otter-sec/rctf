@@ -17,7 +17,7 @@ homeContent: 'A description of your CTF. Markdown supported.'
 origin: http://127.0.0.1:8080
 divisions:
   open: Open
-tokenKey: DO_NOT_USE_ME
+tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
 startTime: 0
 endTime: 99999999999999
 

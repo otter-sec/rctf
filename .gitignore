@@ -23,6 +23,7 @@ dist
 /rctf.d/*
 !/rctf.d/.keep
 /docs/site
+/docs/.venv
 /packages/server/uploads
 !/packages/server/uploads/.keep
 
