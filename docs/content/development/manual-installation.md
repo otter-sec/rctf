@@ -10,16 +10,4 @@ Clone the rCTF repository:
 git clone https://github.com/redpwn/rctf
 ```
 
-After cloning, you will need to setup the configuration files in the `rctf.d` directory. [An example `rctf.d`](https://github.com/redpwn/rctf/blob/next/server/test/data/rctf.d/conf-test.yaml) is used for testing.
-
-To develop rCTF, run:
-
-```bash
-yarn dev
-```
-
-To simulate a full production build, run:
-
-```bash
-yarn build && yarn start
-```
+Then, follow instructions in the [CONTRIBUTING.md file](https://github.com/otter-sec/rctf/blob/main/CONTRIBUTING.md) on how to run rCTF in development mode.
