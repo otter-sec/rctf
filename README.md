@@ -3,11 +3,11 @@
 [![CI](https://github.com/otter-sec/rctf/actions/workflows/ci.yml/badge.svg)](https://github.com/otter-sec/rctf/actions/workflows/ci.yml)
 [![Code Coverage](https://img.shields.io/codecov/c/github/otter-sec/rctf.svg)](https://codecov.io/github/otter-sec/rctf/)
 
-rCTF is redpwnCTF's CTF platform. It is developed and maintained by the [redpwn](https://redpwn.net) CTF team.
+rCTF is redpwnCTF's CTF platform. It is now developed and maintained by the [OtterSec](https://osec.io) team.
 
 ## Getting Started
 
-To get started with rCTF, visit the docs at [rctf.redpwn.net](https://rctf.redpwn.net/installation/)
+To get started with rCTF, visit the docs at [rctf.osec.io](https://rctf.osec.io/installation/)
 
 If you need help with rCTF, join the [redpwnCTF Discord server](https://discord.gg/NkDNEE2) and ask questions in the `#rctf-help` channel.
 
