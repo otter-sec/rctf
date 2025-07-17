@@ -7,7 +7,7 @@ To run rCTF locally, you'll need [node](https://nodejs.org/) and [yarn](https://
 Clone the rCTF repository:
 
 ```bash
-git clone https://github.com/redpwn/rctf
+git clone https://github.com/otter-sec/rctf
 ```
 
 Then, follow instructions in the [CONTRIBUTING.md file](https://github.com/otter-sec/rctf/blob/main/CONTRIBUTING.md) on how to run rCTF in development mode.
