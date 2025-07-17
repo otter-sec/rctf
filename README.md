@@ -1,6 +1,6 @@
-<img src="https://raw.githubusercontent.com/otter-sec/rctf/master/docs/content/assets/rctf-logotype-dark-1024.png" width="350px">
+<img src="https://raw.githubusercontent.com/otter-sec/rctf/main/docs/content/assets/rctf-logotype-dark-1024.png" width="350px">
 
-[![Build Status](https://github.com/otter-sec/rctf/workflows/CI/badge.svg?branch=master)](https://github.com/otter-sec/rctf/actions?query=workflow%3ACI+branch%3Amaster)
+[![CI](https://github.com/otter-sec/rctf/actions/workflows/ci.yml/badge.svg)](https://github.com/otter-sec/rctf/actions/workflows/ci.yml)
 [![Code Coverage](https://img.shields.io/codecov/c/github/otter-sec/rctf.svg)](https://codecov.io/github/otter-sec/rctf/)
 
 rCTF is redpwnCTF's CTF platform. It is developed and maintained by the [redpwn](https://redpwn.net) CTF team.

@@ -62,7 +62,7 @@ do_install() {
 
   info "Configuring rCTF..."
 
-  RCTF_GIT_REF="${RCTF_GIT_REF:-"master"}"
+  RCTF_GIT_REF="${RCTF_GIT_REF:-"main"}"
 
   mkdir -p conf.d data/rctf-postgres data/rctf-redis
 
@@ -102,7 +102,7 @@ do_install() {
 
   info "Downloading rCTF..."
 
-  curl -fsSO "https://raw.githubusercontent.com/redpwn/rctf/$RCTF_GIT_REF/docker-compose.yml"
+  curl -fsSO "https://raw.githubusercontent.com/otter-sec/rctf/$RCTF_GIT_REF/docker-compose.yml"
   docker compose pull
 
   info "Finished installation to ${RCTF_INSTALL_PATH}."
