@@ -59,5 +59,6 @@
   "resolutions": {
     "json-schema": "^0.4.0",
     "loader-utils": "^1.4.1"
-  }
+  },
+  "packageManager": "yarn@4.9.2"
 }

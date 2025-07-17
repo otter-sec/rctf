@@ -1,4 +1,4 @@
-FROM node:14.18.1-buster-slim AS prepare
+FROM node:24-slim AS prepare
 WORKDIR /app
 
 COPY packages ./packages
@@ -8,7 +8,7 @@ COPY .yarn /prepared/.yarn
 RUN find packages -maxdepth 2 -mindepth 2 -name package.json -exec dirname /prepared/'{}' ';' | xargs mkdir -p && \
     find packages -maxdepth 2 -mindepth 2 -name package.json -exec cp '{}' /prepared/'{}' ';'
 
-FROM node:14.18.1-buster-slim AS build
+FROM node:24-slim AS build
 WORKDIR /build
 
 COPY --from=prepare /prepared ./
@@ -23,14 +23,14 @@ RUN mkdir -p /app/packages && \
 WORKDIR /app
 RUN yarn workspaces focus --production --all
 
-FROM node:14.18.1-buster-slim AS run
+FROM node:24-slim AS run
 WORKDIR /app
 
 COPY --from=build /app/node_modules /app/node_modules
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
-ENV RCTF_CONF_PATH /app/rctf.d
+ENV RCTF_CONF_PATH=/app/rctf.d
 VOLUME /app/rctf.d
-ENV PORT 80
+ENV PORT=80
 EXPOSE 80
 CMD ["node", "--enable-source-maps", "--unhandled-rejections=strict", "/app/node_modules/.bin/rctf"]

@@ -1,0 +1,20 @@
+services:
+  redis:
+    image: redis:6.0.6
+    restart: always
+    command: ['redis-server', '--requirepass', 'DO_NOT_USE_ME']
+    ports:
+      - '127.0.0.1:6379:6379'
+    volumes:
+      - ./data/redis:/data
+  postgres:
+    image: postgres:12.3
+    restart: always
+    ports:
+      - '127.0.0.1:5432:5432'
+    environment:
+      - POSTGRES_PASSWORD=DO_NOT_USE_ME
+      - POSTGRES_USER=rctf
+      - POSTGRES_DB=rctf
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data

@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14]
+        node: [24]
     steps:
       - uses: actions/checkout@v2
 
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [14, 15]
+        node: [24]
         postgres: [12]
         redis: [6]
     services:
@@ -142,6 +142,10 @@ jobs:
       - lint
       - test
 
+    permissions:
+      packages: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v2
 
@@ -158,23 +162,17 @@ jobs:
         with:
           args: build
           path: .
-          repository: redpwn/rctf
+          repository: ghcr.io/otter-sec/rctf
           tags: ${{ github.sha }}
-          cache_froms: redpwn/rctf:master
+          cache_froms: ghcr.io/otter-sec/rctf:master
 
-      - name: Login
-        # TODO: handle tagging releases correctly
-        if: github.ref == 'refs/heads/master'
-        uses: docker://docker/github-actions:v1
-        with:
-          args: build
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASS }}
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Push
         # TODO: handle tagging releases correctly
         if: github.ref == 'refs/heads/master'
         run: |
-          docker tag redpwn/rctf:${{ github.sha }} redpwn/rctf:master
-          docker push redpwn/rctf:${{ github.sha }}
-          docker push redpwn/rctf:master
+          docker tag ghcr.io/otter-sec/rctf:${{ github.sha }} ghcr.io/otter-sec/rctf:master
+          docker push ghcr.io/otter-sec/rctf:${{ github.sha }}
+          docker push ghcr.io/otter-sec/rctf:master
