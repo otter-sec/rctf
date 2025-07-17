@@ -2,7 +2,7 @@
 
 The GCS upload provider uploads challenge resources to Google Cloud Storage. To use it, specify `uploads/gcs` for the upload provider name.
 
-The key specified must have the `storage.objects.create`, `storage.objects.get`, and `storage.objects.list` permissions.
+The key specified must have the `storage.objects.create`, `storage.objects.get`, and `storage.objects.list` permissions. The bucket itself does not need to be publicly accessible, as the attachments are individually marked as publicly accessible during their creation.
 
 ## Configuration Options
 
