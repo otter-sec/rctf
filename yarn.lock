@@ -3629,7 +3629,7 @@ __metadata:
     jest: "npm:27.3.1"
     mustache: "npm:4.2.0"
     node-pg-migrate: "npm:6.0.0"
-    nodemailer: "npm:6.7.0"
+    nodemailer: "npm:7.0.7"
     nodemon: "npm:2.0.14"
     pg: "npm:8.7.1"
     pino-pretty: "npm:7.1.0"
@@ -16696,10 +16696,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nodemailer@npm:6.7.0":
-  version: 6.7.0
-  resolution: "nodemailer@npm:6.7.0"
-  checksum: 10/f23832636dd725c2b36fd01d7aaeb9a0d6d842b1da4ebabdf72b09d6bd4d5519b8f9788fa6a42e93ab6f2e51ca87e4b42c62d22cd5815a31a426dfd6e9e73581
+"nodemailer@npm:7.0.7":
+  version: 7.0.7
+  resolution: "nodemailer@npm:7.0.7"
+  checksum: 10/903d4e0a8320c0e4a2bede6737a9b4996048ddc2e010befc406c8953dcec96ef0e2c17e8b7639654e8bf46844cf7d26f017d8bf9fd629588637b699e09547222
   languageName: node
   linkType: hard
 
