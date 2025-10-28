@@ -8,8 +8,9 @@ import {
   badNotStarted,
   goodChallenges,
 } from '@rctf/api-types/responses'
+import Permissions from '../../src/util/perms'
 
-let uuid, testUserData
+let uuid, testUserData, adminUuid, testAdminUserData
 
 beforeAll(async () => {
   await app.ready()
@@ -18,6 +19,9 @@ beforeAll(async () => {
 beforeAll(async () => {
   testUserData = await util.generateRealTestUser()
   uuid = testUserData.user.id
+
+  testAdminUserData = await util.generateRealTestUser(Permissions.challsRead)
+  adminUuid = testAdminUserData.user.id
 })
 
 afterAll(async () => {
@@ -57,4 +61,23 @@ test('succeeds with goodChallenges', async () => {
 
   expect(resp.body.kind).toBe('goodChallenges')
   expect(Array.isArray(resp.body.data)).toBe(true)
+})
+
+test('succeds with goodChallenges for admin', async () => {
+  const oldTime = config.startTime
+  // Choose a time 10 minutes in the future
+  config.startTime = Date.now() + 10 * 60 * 1000
+
+  const authToken = await auth.token.getToken(
+    auth.token.tokenKinds.auth,
+    adminUuid
+  )
+  const resp = await request(app.server)
+    .get(process.env.API_ENDPOINT + '/challs')
+    .set('Authorization', ' Bearer ' + authToken)
+    .expect(goodChallenges.status)
+
+  expect(resp.body.kind).toBe('goodChallenges')
+
+  config.startTime = oldTime
 })
