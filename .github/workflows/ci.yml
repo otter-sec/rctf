@@ -137,6 +137,7 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.repository == 'otter-sec/rctf'
     needs:
       - shellcheck
       - lint
