@@ -91,7 +91,6 @@ test.describe('Admin Challenges Page Tests', () => {
   })
 })
 
-
 test.describe('Admin Challenges Page Access Control Tests', () => {
   test('should redirect unauthorized user to home page', async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login`)

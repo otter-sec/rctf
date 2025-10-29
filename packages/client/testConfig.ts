@@ -2,7 +2,6 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: '.env.test' })
 
-
 const testConfig = {
   baseUrl: process.env.BASE_URL || 'http://localhost:8080',
   ctfName: process.env.NAME,
@@ -26,9 +25,7 @@ const testConfig = {
   testNewChalDes: process.env.TEST_NEW_CHAL_DES || '',
   testNewChalFlag: process.env.TEST_NEW_CHAL_FLAG || '',
 
-
-  regularUserToken: process.env.REGULAR_USER_TOKEN || ''
-
-};
+  regularUserToken: process.env.REGULAR_USER_TOKEN || '',
+}
 
 export default testConfig
