@@ -5,4 +5,6 @@ data:
   properties:
     authToken:
       type: string
-  required: ['authToken']
+    perms:
+      type: integer
+  required: ['authToken', 'perms']

@@ -10,6 +10,7 @@ import {
   goodRegister,
   goodToken,
   goodUserUpdate,
+  goodLogin,
 } from '@rctf/api-types/responses'
 
 import * as auth from '../../src/auth'
@@ -138,4 +139,40 @@ test('succeeds with goodUserUpdate', async () => {
   expect(respUser.name).toBe(nextUser.name)
   expect(respUser.email).toBe(testUser.email)
   expect(respUser.division).toBe(nextUser.division)
+})
+
+test('register returns perms field', async () => {
+  config.email = null
+
+  const newTestUser = generateTestUser()
+  const resp = await request(app.server)
+    .post(process.env.API_ENDPOINT + '/auth/register')
+    .send(newTestUser)
+    .expect(goodRegister.status)
+
+  expect(resp.body.kind).toBe('goodRegister')
+  expect(resp.body.data.perms).toBe(0)
+  expect(typeof resp.body.data.authToken === 'string').toBe(true)
+})
+
+test('login returns perms field', async () => {
+  config.email = null
+
+  const user = await database.users.getUserByEmail({
+    email: testUser.email,
+  })
+
+  const teamToken = await auth.token.getToken(
+    auth.token.tokenKinds.team,
+    user.id
+  )
+
+  const resp = await request(app.server)
+    .post(process.env.API_ENDPOINT + '/auth/login')
+    .send({ teamToken })
+    .expect(goodLogin.status)
+
+  expect(resp.body.kind).toBe('goodLogin')
+  expect(resp.body.data.perms).toBe(user.perms)
+  expect(typeof resp.body.data.authToken === 'string').toBe(true)
 })

@@ -26,6 +26,7 @@ import AdminChallenges from './routes/admin/challs'
 import { ToastProvider } from './components/toast'
 
 import { navigateRef } from './history-hack'
+import { getStoredPermissions, isAdmin } from './util/permissions'
 
 const LoggedOutRedir = <Navigate to='/' />
 const LoggedInRedir = <Navigate to='/profile' />
@@ -61,11 +62,14 @@ function App({ classes }) {
       path: '/challs',
       name: 'Challenges',
     },
-    {
+  ]
+  // Check if the user has admin permissions
+  if (isAdmin(getStoredPermissions())) {
+    loggedInPaths.push({
       element: <AdminChallenges />,
       path: '/admin/challs',
-    },
-  ]
+    })
+  }
 
   const allPaths = [
     {

@@ -47,5 +47,5 @@ export const register = async (
     throw e
   }
   const authToken = await getToken(tokenKinds.auth, userUuid)
-  return res.goodRegister({ authToken })
+  return res.goodRegister({ authToken, perms: 0 })
 }

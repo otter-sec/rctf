@@ -7,6 +7,7 @@ import { Fragment } from 'preact'
 
 const Verify = () => {
   const [authToken, setAuthToken] = useState(null)
+  const [perms, setPerms] = useState(0)
   const [emailSet, setEmailSet] = useState(false)
   const [error, setError] = useState(null)
 
@@ -20,6 +21,7 @@ const Verify = () => {
       const verifyRes = await verify({ verifyToken: qs.get('token') })
       if (verifyRes.authToken) {
         setAuthToken(verifyRes.authToken)
+        setPerms(verifyRes.perms)
       } else if (verifyRes.emailSet) {
         setEmailSet(true)
       } else {
@@ -54,7 +56,7 @@ const Verify = () => {
       </Fragment>
     )
   }
-  return <PendingToken authToken={authToken} />
+  return <PendingToken authToken={authToken} perms={perms} />
 }
 
 export default Verify

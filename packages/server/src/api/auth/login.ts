@@ -29,6 +29,6 @@ export default makeFastifyRoute(
       return res.badUnknownUser()
     }
     const authToken = await getToken(tokenKinds.auth, user.id)
-    return res.goodLogin({ authToken })
+    return res.goodLogin({ authToken, perms: user.perms })
   }
 )
