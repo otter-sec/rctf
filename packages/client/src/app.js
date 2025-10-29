@@ -32,7 +32,6 @@ const LoggedInRedir = <Navigate to='/profile' />
 
 function App({ classes }) {
   const loggedOut = !localStorage.token
-  const hasPerms = localStorage.perms === '3'
 
   const loggedOutPaths = [
     {
@@ -62,11 +61,8 @@ function App({ classes }) {
       path: '/challs',
       name: 'Challenges',
     },
-  ]
-
-  const adminPaths = [
     {
-      element: hasPerms ? <AdminChallenges /> : LoggedOutRedir,
+      element: <AdminChallenges />,
       path: '/admin/challs',
     },
   ]
@@ -112,7 +108,6 @@ function App({ classes }) {
   const currentPaths = [
     ...allPaths,
     ...(loggedOut ? loggedOutPaths : loggedInPaths),
-    ...adminPaths,
   ]
   const headerPaths = currentPaths.filter(route => route.name !== undefined)
 

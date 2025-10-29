@@ -142,7 +142,7 @@ export default withStyles(
       })
       const loginRes = await login({ ctftimeToken })
       if (loginRes.authToken) {
-        setAuthToken({ authToken: loginRes.authToken, perms: loginRes.perms })
+        setAuthToken({ authToken: loginRes.authToken })
       }
       if (loginRes && loginRes.badUnknownUser) {
         this.setState({
@@ -175,7 +175,7 @@ export default withStyles(
         teamToken,
       })
       if (result.authToken) {
-        setAuthToken({ authToken: result.authToken, perms: result.perms })
+        setAuthToken({ authToken: result.authToken })
         return
       }
       this.setState({
