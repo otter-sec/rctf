@@ -10,6 +10,7 @@ import {
   goodRegister,
   goodToken,
   goodUserUpdate,
+  badRegistrationsDisabled,
 } from '@rctf/api-types/responses'
 
 import * as auth from '../../src/auth'
@@ -138,4 +139,19 @@ test('succeeds with goodUserUpdate', async () => {
   expect(respUser.name).toBe(nextUser.name)
   expect(respUser.email).toBe(testUser.email)
   expect(respUser.division).toBe(nextUser.division)
+})
+
+test('fails with badRegistrationsDisabled', async () => {
+  const oldRegistrations = config.registrationsEnabled
+  config.registrationsEnabled = false
+
+  const resp = await request(app.server)
+    .post(process.env.API_ENDPOINT + '/auth/register')
+    .send({
+      ...testUser,
+    })
+    .expect(badRegistrationsDisabled.status)
+
+  expect(resp.body.kind).toBe('badRegistrationsDisabled')
+  config.registrationsEnabled = oldRegistrations
 })

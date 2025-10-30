@@ -15,6 +15,7 @@ const config: ClientConfig = {
   faviconUrl: server.faviconUrl,
   emailEnabled: server.email != null,
   userMembers: server.userMembers,
+  registrationsEnabled: server.registrationsEnabled,
   ctftime:
     server.ctftime == null
       ? undefined

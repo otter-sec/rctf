@@ -82,6 +82,7 @@ export const register = async ({
     case 'badEmail':
     case 'badKnownEmail':
     case 'badCompetitionNotAllowed':
+    case 'badRegistrationsDisabled':
       return {
         errors: {
           email: resp.message,

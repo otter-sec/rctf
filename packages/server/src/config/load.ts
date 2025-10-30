@@ -131,6 +131,7 @@ export const defaultConfig: PartialDeep<ServerConfig> = {
   },
   instanceType: 'all',
   userMembers: true,
+  registrationsEnabled: true,
   sponsors: [],
   homeContent: '',
   faviconUrl: 'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico',
