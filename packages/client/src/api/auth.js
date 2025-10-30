@@ -34,7 +34,7 @@ export const login = async ({ teamToken, ctftimeToken }) => {
 
 export const logout = () => {
   localStorage.removeItem('token')
-
+  localStorage.removeItem('userPerms')
   return route('/')
 }
 
@@ -74,7 +74,6 @@ export const register = async ({
   switch (resp.kind) {
     case 'goodRegister':
       localStorage.setItem('token', resp.data.authToken)
-
       return route('/profile')
     case 'goodVerifySent':
       return {
