@@ -10,6 +10,10 @@ import { getUserByNameOrEmail } from '../../database/users'
 import { sendVerification } from '../../email'
 
 export default makeFastifyRoute(authRegisterPost, async ({ req, res }) => {
+  if (!config.registrationsEnabled) {
+    return res.badRegistrationsDisabled()
+  }
+
   let email
   let ctftimeId
   if (req.body.ctftimeToken !== undefined) {

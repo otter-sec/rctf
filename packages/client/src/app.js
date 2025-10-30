@@ -27,19 +27,25 @@ import { ToastProvider } from './components/toast'
 
 import { navigateRef } from './history-hack'
 import { hasChallsReadPermission } from './util/permissions'
+import config from './config'
 
 const LoggedOutRedir = <Navigate to='/' />
 const LoggedInRedir = <Navigate to='/profile' />
 
 function App({ classes }) {
   const loggedOut = !localStorage.token
+  const registerItems = config.registrationsEnabled
+    ? [
+        {
+          element: <Register />,
+          path: '/register',
+          name: 'Register',
+        },
+      ]
+    : []
 
   const loggedOutPaths = [
-    {
-      element: <Register />,
-      path: '/register',
-      name: 'Register',
-    },
+    ...registerItems,
     {
       element: <Login />,
       path: '/login',

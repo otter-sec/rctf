@@ -49,6 +49,8 @@ data:
       type: string
     emailEnabled:
       type: boolean
+    registrationsEnabled:
+      type: boolean
     ctftime:
       type: object
       properties:
