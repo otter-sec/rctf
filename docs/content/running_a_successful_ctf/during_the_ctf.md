@@ -27,5 +27,5 @@ as a factor when deciding on when a hint is released.
 
 It is common to receive multiple different types of support tickets during the CTF. Although not strictly required,
 you should aim to have a couple of different people (preferably in different timezones) that are able to assist with the
-tickets. Additionally, some people should also have access and the required knowledge to the infrastructure in case a remote
-is experiencing issues.
+tickets. Additionally, some people should also have access and the required knowledge to the infrastructure in case challenge's
+remote is experiencing issues.
