@@ -57,6 +57,8 @@ data:
       type: array
       items:
         type: string
+    perms:
+      type: integer
   required:
     - id
     - name

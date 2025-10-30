@@ -154,7 +154,7 @@ export default withStyles(
         ctftimeToken,
       })
       if (loginRes.authToken) {
-        setAuthToken({ authToken: loginRes.authToken, perms: loginRes.perms })
+        setAuthToken({ authToken: loginRes.authToken })
       }
       if (loginRes.badUnknownUser) {
         this.setState({

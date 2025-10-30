@@ -1,10 +1,8 @@
 import { request } from './util'
 import { route } from '../history-hack'
 
-export const setAuthToken = ({ authToken, perms }) => {
+export const setAuthToken = ({ authToken }) => {
   localStorage.token = authToken
-  // Set the user permissions in local storage
-  localStorage.userPerms = perms
   route('/profile')
 }
 
@@ -17,7 +15,6 @@ export const login = async ({ teamToken, ctftimeToken }) => {
     case 'goodLogin':
       return {
         authToken: resp.data.authToken,
-        perms: resp.data.perms,
       }
     case 'badTokenVerification':
       return {
@@ -38,7 +35,6 @@ export const login = async ({ teamToken, ctftimeToken }) => {
 export const logout = () => {
   localStorage.removeItem('token')
   localStorage.removeItem('userPerms')
-
   return route('/')
 }
 
@@ -51,7 +47,6 @@ export const verify = async ({ verifyToken }) => {
     case 'goodVerify':
       return {
         authToken: resp.data.authToken,
-        perms: resp.data.perms,
       }
     case 'goodEmailSet':
       return {
@@ -79,8 +74,6 @@ export const register = async ({
   switch (resp.kind) {
     case 'goodRegister':
       localStorage.setItem('token', resp.data.authToken)
-      localStorage.setItem('userPerms', resp.data.perms || 0)
-
       return route('/profile')
     case 'goodVerifySent':
       return {

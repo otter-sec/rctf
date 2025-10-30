@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'preact/hooks'
 import { setAuthToken } from '../api/auth'
 import { pendingPrivateProfile } from '../api/profile'
 
-const PendingToken = ({ authToken, perms }) => {
+const PendingToken = ({ authToken }) => {
   const [user, setUser] = useState(null)
   useEffect(() => {
     ;(async () => {
@@ -15,8 +15,8 @@ const PendingToken = ({ authToken, perms }) => {
     })()
   }, [authToken])
   const handleLoginClick = useCallback(() => {
-    setAuthToken({ authToken, perms })
-  }, [authToken, perms])
+    setAuthToken({ authToken })
+  }, [authToken])
   if (!user) {
     return null
   }

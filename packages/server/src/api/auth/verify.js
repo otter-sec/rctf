@@ -39,7 +39,7 @@ export default makeFastifyRoute(authVerifyPost, async ({ req, res }) => {
       auth.token.tokenKinds.auth,
       user.id
     )
-    return res.goodVerify({ authToken, perms: user.perms })
+    return res.goodVerify({ authToken })
   } else if (tokenData.kind === 'update') {
     let result
     try {

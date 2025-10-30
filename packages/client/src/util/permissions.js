@@ -2,8 +2,12 @@ export const hasPermission = (userPerms, requiredPerms) => {
   return (userPerms & requiredPerms) === requiredPerms
 }
 
-export const isAdmin = userPerms => {
-  return userPerms > 0
+export const hasChallsReadPermission = () => {
+  return getStoredPermissions() > 0
+}
+
+export const hasChallsWritePermission = () => {
+  return getStoredPermissions() > 1
 }
 
 export const getStoredPermissions = () => {

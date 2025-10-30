@@ -18,5 +18,6 @@ export default makeFastifyRoute(usersMeGet, async ({ user, res }) => {
     allowedDivisions,
     id: uuid,
     email: user.email,
+    perms: user.perms,
   })
 })
