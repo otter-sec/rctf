@@ -1,4 +1,4 @@
-site_name: rCTF
+site_name: rCTF Documentation
 site_description: rCTF Documentation
 site_author: redpwn
 site_url: https://rctf.osec.io
@@ -14,6 +14,7 @@ theme:
   language: en
   features:
     - instant
+    - navigation.sections
   palette:
     scheme: slate
     primary: blue
@@ -26,5 +27,6 @@ plugins:
 markdown_extensions:
   - admonition
   - codehilite
+  - def_list
   - toc:
       permalink: '#'
