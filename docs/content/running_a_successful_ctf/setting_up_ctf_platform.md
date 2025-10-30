@@ -14,7 +14,7 @@ For this guide, you'll need at least the following:
 
 - domain name to host your CTF platform and challenges on (e.g. example.com)
 - a VPS to host the CTF platform from any provider (Hetzner, Vultr, DigitalOcean, GCP, AWS, etc.), preferably with at least
-  2 cores and 4 GiB RAM. The guide uses Ubuntu 24.04 but you are free to also use any other preferred OS of choice.
+  2 cores and 4 GiB RAM. The guide uses Ubuntu 24.04, but you are free to also use any other preferred OS of choice.
 
 Additionally, you'll want a TLS certificate either by using something like [Cloudflare](https://cloudflare.com) with proxied
 host or [certbot](https://certbot.eff.org/instructions) to manually provision it.
@@ -37,7 +37,12 @@ When prompted if rCTF should be started, answer `y`. The installation script con
 which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
 
 The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more
-instructions [here](../rctf/configuration.md).
+instructions [here](../rctf/configuration.md). Consider configuring at least the following things:
+
+- CTF name, description, image, origin, home content, start and end time
+- Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
+- `proxy.cloudflare` if behind Cloudflare
+- GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](../rctf/providers/uploads/gcs.md))
 
 After each configuration change, you need to restart rCTF by running the following command:
 
@@ -85,7 +90,7 @@ map $http_upgrade $connection_upgrade {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
     server_name ctf.example.com; # TODO: update me to CTF platform domain name
     ssl_certificate /etc/ssl/cf_fullchain.pem;
     ssl_certificate_key /etc/ssl/cf_privkey.pem;
@@ -146,7 +151,7 @@ map $http_upgrade $connection_upgrade {
 }
 
 server {
-    listen 443 ssl http2;
+    listen 443 ssl;
     server_name ctf.example.com; # TODO: update me to CTF platform domain name
     ssl_certificate /etc/letsencrypt/live/ctf.example.com/fullchain.pem; # TODO: update path to CTF platform domain name
     ssl_certificate_key /etc/letsencrypt/live/ctf.example.com/privkey.pem; # TODO: update path to CTF platform domain name

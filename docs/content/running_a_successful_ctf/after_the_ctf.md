@@ -26,7 +26,7 @@ curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
 ```
 
 Finally, you can submit the output of the command in the CTFtime event dashboard. Do note that it may take around an hour for points to be
-awarded for previously organized CTFs, and new CTFs will award points only after a week since it was organized when the weight voting
+awarded for previously organized CTFs, and new CTFs will award points only after a week from the moment it was organized when the weight voting
 period for it ends.
 
 ## Prize Distribution
@@ -61,13 +61,13 @@ There are a couple of factors that decide when the infrastructure should be torn
 
 - Budget
 
-- Desire for writeup (as competitors compare their solution against the remote)
+- Desire for writeups (as competitors compare their solution against the remote)
 
-- Willingness to check that it's still functional
+- Willingness to check that challenge remotes are still functional, or alternatively running them until they break
 
 Most CTFs scale down the infrastructure right after the CTF and aim to have at least a couple of days when instances
-are still accessible but with no maintenance. In the case of infrastructure being sponsored by Google, usually all the
-credits are used.
+are still accessible but with minimal maintenance. In the case of infrastructure being sponsored by Google, usually one can leave
+it running until most of the credits are used.
 
 Here is a checklist of things to make sure have been deleted:
 
@@ -75,4 +75,4 @@ Here is a checklist of things to make sure have been deleted:
 
 - remote instances (kCTF, VPSes, instancer, instancer GKE)
 
-- various other cloud resources (IP addresses, domain configuration, and so on)
+- various other cloud resources (IP addresses, DNS records, and so on)
