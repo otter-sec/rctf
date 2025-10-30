@@ -3,9 +3,10 @@ import { makeFastifyRoute } from '../helpers'
 import config from '../../config/server'
 import { getCleanedChallenges } from '../../challenges'
 import { getChallengeInfo } from '../../cache/leaderboard'
+import Permissions from '../../util/perms'
 
-export default makeFastifyRoute(challsGet, async ({ res }) => {
-  if (Date.now() < config.startTime) {
+export default makeFastifyRoute(challsGet, async ({ res, user }) => {
+  if (Date.now() < config.startTime && !(user.perms & Permissions.challsRead)) {
     return res.badNotStarted()
   }
 

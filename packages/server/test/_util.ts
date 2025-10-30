@@ -4,21 +4,23 @@ import * as db from '../src/database'
 import { Challenge } from '../src/challenges/types'
 
 // Generate only valid parameters
-export const generateTestUser = (): Omit<db.users.User, 'id'> => ({
+export const generateTestUser = (perms = 0): Omit<db.users.User, 'id'> => ({
   email: uuidv4() + '@test.com',
   name: uuidv4(),
   division: Object.keys(config.divisions)[0],
-  perms: 0,
+  perms: perms,
 })
 
 // Generate a real user, adding to database
-export const generateRealTestUser = async (): Promise<{
+export const generateRealTestUser = async (
+  perms = 0
+): Promise<{
   user: db.users.User
   cleanup: () => Promise<void>
 }> => {
   const id = uuidv4()
 
-  const userData = generateTestUser()
+  const userData = generateTestUser(perms)
   const user = await db.users.makeUser({
     ...userData,
     id,
