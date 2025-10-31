@@ -75,3 +75,28 @@ fix/bug-description
 refactor/some-component
 docs/some-component
 ```
+
+## E2E Tests
+
+rCTF uses [Playwright](https://playwright.dev/) for end-to-end testing. The `.env.test` file in the repository root contains the test configuration variables. See `packages/client/testConfig.ts` for the complete list.
+
+### Running E2E Tests
+
+1. **Install Playwright browsers** (first time only):
+
+```bash
+cd packages/client
+npx playwright install
+```
+
+2. **Run all E2E tests**:
+
+```bash
+npx playwright test
+```
+
+3. **Run a specific test file**:
+
+```bash
+npx playwright test tests/auth.spec.ts
+```

@@ -6,10 +6,7 @@ test.describe('Challenges Page Tests', () => {
     await page.goto(`${testConfig.baseUrl}/login`)
 
     // Fill login token and submit
-    await page.fill(
-      'input[name="teamToken"]',
-      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
-    )
+    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
     await page.click('button[type="submit"]')
 
     await page.waitForNavigation()
@@ -28,19 +25,6 @@ test.describe('Challenges Page Tests', () => {
 
   test('should have categories and filters', async ({ page }) => {
     await expect(page.locator('#show-solved')).toBeVisible()
-  })
-
-  test('should toggle "Show Solved" checkbox', async ({ page }) => {
-    const showSolvedCheckbox = page.locator('#show-solved')
-
-    const showSolvedLabel = page.locator('label[for="show-solved"]')
-
-    await expect(showSolvedCheckbox).not.toBeChecked()
-    await showSolvedLabel.click() // Click the label instead
-    await expect(showSolvedCheckbox).toBeChecked()
-
-    await showSolvedLabel.click()
-    await expect(showSolvedCheckbox).not.toBeChecked()
   })
 
   test('should toggle all category filters', async ({ page }) => {
@@ -91,5 +75,33 @@ test.describe('Challenges Page Tests', () => {
 
     const successToast = page.locator('text=Flag successfully submitted!')
     await expect(successToast).toBeVisible()
+  })
+
+  test('should toggle "Show Solved" checkbox', async ({ page }) => {
+    const showSolvedCheckbox = page.locator('#show-solved')
+
+    const showSolvedLabel = page.locator('label[for="show-solved"]')
+    await expect(showSolvedCheckbox).not.toBeChecked()
+
+    await showSolvedLabel.click() // Click the label instead
+    await expect(showSolvedCheckbox).toBeChecked()
+
+    const challengeTitle = page.locator(
+      `.frame__title:has-text("${testConfig.testChal}")`
+    )
+    await expect(challengeTitle).toBeVisible()
+
+    const challengeContainer = challengeTitle.locator(
+      'xpath=ancestor::div[contains(@class, "frame__body")]'
+    )
+    await expect(challengeContainer).toBeVisible()
+
+    const flagInput = challengeContainer.locator(
+      'input[placeholder="Flag (solved)"]'
+    )
+    await flagInput.waitFor({ state: 'visible' })
+
+    await showSolvedLabel.click()
+    await expect(showSolvedCheckbox).not.toBeChecked()
   })
 })

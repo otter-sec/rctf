@@ -236,13 +236,15 @@ const Problem = ({ classes, problem, update: updateClient }) => {
 
   const ProblemActions = hasChallsWritePermission() ? (
     <Fragment>
-      <button className='btn-small btn-info'>Update</button>
+      <button type='submit' className='btn-small btn-info'>
+        Update Challenge
+      </button>
       <button
+        type='button'
         className='btn-small btn-danger'
         onClick={openDeleteModal}
-        type='button'
       >
-        Delete
+        Delete Challenge
       </button>
     </Fragment>
   ) : null
@@ -387,30 +389,9 @@ const Problem = ({ classes, problem, update: updateClient }) => {
                   className={`form-section ${classes.controls}`}
                   style={{ marginTop: '1.5em' }}
                 >
-                  <button type='submit' className='btn-small btn-info'>
-                    Update Challenge
-                  </button>
-                  <button
-                    type='button'
-                    className='btn-small btn-danger'
-                    onClick={openDeleteModal}
-                  >
-                    Delete Challenge
-                  </button>
+                  {ProblemActions}
                 </div>
               </div>
-            )}
-
-            <div className='input-control'>
-              <input
-                className='form-group-input input-small'
-                type='file'
-                multiple
-                onChange={handleFileUpload}
-              />
-            </div>
-            <div className={`form-section ${classes.controls}`}>
-              {ProblemActions}
             </div>
           </form>
         </div>

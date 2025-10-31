@@ -16,11 +16,10 @@ test.describe('rCTF Login Page Tests', () => {
   test('should log in successfully with a valid Team Token', async ({
     page,
   }) => {
-    await page.fill(
-      'input[name="teamToken"]',
-      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
-    )
-    await page.click('button[type="submit"]')
+    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
+    const submitButton = page.locator('button[type="submit"]')
+    await submitButton.click()
+    await page.waitForNavigation()
     await expect(page).not.toHaveURL(/login/)
   })
 
@@ -50,9 +49,7 @@ test.describe('rCTF Login Page Tests', () => {
     await expect(page).toHaveURL(`${testConfig.baseUrl}/recover`)
   })
 
-  test('should log in successfully with a invalid Team URL', async ({
-    page,
-  }) => {
+  test('should not log in with a invalid Team URL', async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login?token=invalid`)
     const appDiv = page.locator('#app')
     const verificationMessage = appDiv.locator('.row.u-center h4')

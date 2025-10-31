@@ -4,10 +4,7 @@ import testConfig from '../testConfig'
 test.describe('Profile Page Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login`)
-    await page.fill(
-      'input[name="teamToken"]',
-      `${testConfig.baseUrl}/login?token=${testConfig.loginToken}`
-    )
+    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
     await page.goto(`${testConfig.baseUrl}/profile`)
