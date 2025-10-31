@@ -1,0 +1,8 @@
+title: Running a Successful CTF
+
+arrange:
+- preparations.md
+- setting_up_ctf_platform.md
+- deploying_challenges.md
+- during_the_ctf.md
+- after_the_ctf.md

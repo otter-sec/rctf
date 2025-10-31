@@ -2,7 +2,7 @@ import { request, handleResponse } from './util'
 
 export const privateProfile = async () => {
   const resp = await request('GET', '/users/me')
-
+  localStorage.setItem('userPerms', resp?.data?.perms || 0)
   return handleResponse({ resp, valid: ['goodUserSelfData'] })
 }
 
@@ -14,7 +14,7 @@ export const pendingPrivateProfile = async ({ authToken }) => {
       },
     })
   ).json()
-
+  localStorage.setItem('userPerms', data.perms || 0)
   return data
 }
 

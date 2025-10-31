@@ -1,5 +1,6 @@
+title: rCTF
+
 arrange:
-  - index.md
   - installation.md
   - configuration.md
   - management

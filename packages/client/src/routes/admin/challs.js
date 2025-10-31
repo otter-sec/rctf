@@ -6,6 +6,7 @@ import withStyles from '../../components/jss'
 import Problem from '../../components/admin/problem'
 
 import { getChallenges } from '../../api/admin/challs'
+import { hasChallsWritePermission } from '../../util/permissions'
 
 const SAMPLE_PROBLEM = {
   name: '',
@@ -26,10 +27,15 @@ const Challenges = ({ classes }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const newId = useMemo(() => uuid(), [problems])
 
-  const completeProblems = problems.concat({
-    ...SAMPLE_PROBLEM,
-    id: newId,
-  })
+  // Check if the user has write permissions for challenges
+  // if not, don't show the sample problem
+  const hasChallsWritePerm = hasChallsWritePermission()
+  const completeProblems = hasChallsWritePerm
+    ? problems.concat({
+        ...SAMPLE_PROBLEM,
+        id: newId,
+      })
+    : problems
 
   useEffect(() => {
     document.title = `Admin Challenges | ${config.ctfName}`
@@ -69,6 +75,11 @@ const Challenges = ({ classes }) => {
   return (
     <div className={`row ${classes.row}`}>
       <div className='col-9'>
+        {completeProblems.length === 0 && (
+          <div className='alert alert-info' style={{ textAlign: 'center' }}>
+            <p>No challenges found</p>
+          </div>
+        )}
         {completeProblems.map(problem => {
           return (
             <Problem

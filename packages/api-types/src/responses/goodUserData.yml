@@ -47,6 +47,8 @@ data:
           - solves
           - id
           - createdAt
+    perms:
+      type: integer
   required:
     - name
     - division

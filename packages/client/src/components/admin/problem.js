@@ -11,6 +11,8 @@ import {
 import { useToast } from '../../components/toast'
 import { encodeFile } from '../../util'
 
+import { hasChallsWritePermission } from '../../util/permissions'
+
 const DeleteModal = withStyles(
   {
     modalBody: {
@@ -179,6 +181,13 @@ const Problem = ({ classes, problem, update: updateClient }) => {
 
   const handleUpdate = async e => {
     e.preventDefault()
+    if (!hasChallsWritePermission()) {
+      toast({
+        body: 'You do not have permission to update challenges',
+        type: 'error',
+      })
+      return
+    }
 
     const data = await updateChallenge({
       id: problem.id,
@@ -224,6 +233,19 @@ const Problem = ({ classes, problem, update: updateClient }) => {
     }
     action()
   }, [problem, toast, closeDeleteModal])
+
+  const ProblemActions = hasChallsWritePermission() ? (
+    <Fragment>
+      <button className='btn-small btn-info'>Update</button>
+      <button
+        className='btn-small btn-danger'
+        onClick={openDeleteModal}
+        type='button'
+      >
+        Delete
+      </button>
+    </Fragment>
+  ) : null
 
   return (
     <Fragment>
@@ -377,6 +399,18 @@ const Problem = ({ classes, problem, update: updateClient }) => {
                   </button>
                 </div>
               </div>
+            )}
+
+            <div className='input-control'>
+              <input
+                className='form-group-input input-small'
+                type='file'
+                multiple
+                onChange={handleFileUpload}
+              />
+            </div>
+            <div className={`form-section ${classes.controls}`}>
+              {ProblemActions}
             </div>
           </form>
         </div>

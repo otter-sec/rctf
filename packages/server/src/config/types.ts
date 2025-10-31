@@ -49,6 +49,8 @@ export interface ServerConfig {
   }
 
   userMembers: boolean
+  registrationsEnabled: boolean
+
   sponsors: Sponsor[]
   homeContent: string
   ctfName: string
@@ -98,6 +100,7 @@ export type ClientConfig = Pick<
   | 'startTime'
   | 'endTime'
   | 'userMembers'
+  | 'registrationsEnabled'
   | 'faviconUrl'
 > & {
   emailEnabled: boolean

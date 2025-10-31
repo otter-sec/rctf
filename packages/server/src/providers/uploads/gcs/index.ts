@@ -3,8 +3,9 @@ import crypto from 'crypto'
 import { Provider } from '../../../uploads/provider'
 
 interface GcsProviderOptions {
-  credentials: Record<string, unknown>
+  projectId: string
   bucketName: string
+  credentials: Record<string, unknown>
 }
 
 export default class GcsProvider implements Provider {
@@ -13,17 +14,19 @@ export default class GcsProvider implements Provider {
 
   constructor(_options: Partial<GcsProviderOptions>) {
     const options = {
+      projectId: process.env.RCTF_GCS_PROJECT_ID ?? _options.projectId,
+      bucketName: process.env.RCTF_GCS_BUCKET ?? _options.bucketName,
       credentials:
         process.env.RCTF_GCS_CREDENTIALS === undefined
           ? _options.credentials
           : (JSON.parse(
               process.env.RCTF_GCS_CREDENTIALS
             ) as GcsProviderOptions['credentials']),
-      bucketName: process.env.RCTF_GCS_BUCKET ?? _options.bucketName,
     } as GcsProviderOptions
     // TODO: validate that all options are indeed provided
 
     const storage = new Storage({
+      projectId: options.projectId,
       credentials: options.credentials,
     })
     this.bucket = new Bucket(storage, options.bucketName)

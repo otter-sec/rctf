@@ -9,7 +9,7 @@ curl -L https://get.rctf.osec.io | sh
 This installs rCTF into the `/opt/rctf` folder, where `/opt/rctf/rctf.d` contains all the configuration and the instance itself can be (re)started with the command:
 
 ```bash
-docker compose up --force-recreate --build -d
+docker compose up -d --force-recreate --build
 ```
 
 The instance is accessible by default only from localhost:8080, and can be changed in `/opt/rctf/docker-compose.yml` and applying the changes by restarting the instance.

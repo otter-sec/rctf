@@ -8,9 +8,10 @@ The key specified must have the `storage.objects.create`, `storage.objects.get`,
 
 | YAML/JSON name             | environment name       | required | default value | type                                                       | description                                                                   |
 | -------------------------- | ---------------------- | -------- | ------------- | ---------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `projectId`                | `RCTF_GCS_PROJECT_ID`  | yes      | _(none)_      | Google Cloud Project ID                                    |
+| `bucketName`               | `RCTF_GCS_BUCKET`      | yes      | _(none)_      | name of the GCS bucket                                     |
 | `credentials.private_key`  | `RCTF_GCS_CREDENTIALS` | yes      | _(none)_      | string                                                     | PEM-encoded private key for the service account with access to the GCS bucket |
-| `credentials.client_email` | yes                    | _(none)_ | string        | email of the service account with access to the GCS bucket |
-| `bucketName`               | yes                    | _(none)_ | string        | name of the GCS bucket                                     |
+| `credentials.client_email` | `RCTF_GCS_CREDENTIALS` | yes      | _(none)_      | email of the service account with access to the GCS bucket |
 
 If available, the `RCTF_GCS_CREDENTIALS` environment variable is parsed as JSON. It should contain the `private_key` and `client_email` properties
 
@@ -20,6 +21,7 @@ If available, the `RCTF_GCS_CREDENTIALS` environment variable is parsed as JSON.
 uploadProvider:
   name: 'uploads/gcs'
   options:
+    projectId: my-ctf-123456
     bucketName: example
     credentials:
       private_key: |-
@@ -32,7 +34,8 @@ uploadProvider:
 ## Terraform Deployment Example
 
 ```terraform
-# terraform apply -var="project_id=[...]" -var="region=europe-west1" -var="bucket_name=[...]"
+# terraform init && terraform apply -var="project_id=[...]" -var="region=europe-west1" -var="bucket_name=[...]"
+# cat gcs-sa-key.json | jq '.private_key' | xargs printf
 
 terraform {
     required_providers {
