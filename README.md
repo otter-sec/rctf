@@ -1,6 +1,6 @@
 <picture>
-  <source srcset="https://raw.githubusercontent.com/otter-sec/rctf/main/docs/content/assets/rctf-logotype-light-1024.png" media="(prefers-color-scheme: light)">
-  <img src="https://raw.githubusercontent.com/otter-sec/rctf/main/docs/content/assets/rctf-logotype-dark-1024.png" width="350px" alt="rCTF logo">
+  <source srcset="https://raw.githubusercontent.com/otter-sec/rctf/main/docs/content/assets/rctf-logotype-dark-1024.png" media="(prefers-color-scheme: light)">
+  <img src="https://raw.githubusercontent.com/otter-sec/rctf/main/docs/content/assets/rctf-logotype-light-1024.png" width="350px" alt="rCTF logo">
 </picture>
 
 [![CI](https://github.com/otter-sec/rctf/actions/workflows/ci.yml/badge.svg)](https://github.com/otter-sec/rctf/actions/workflows/ci.yml)
@@ -22,4 +22,4 @@ Optionally, you can use [rCDS](https://github.com/redpwn/rcds) to deploy challen
 
 ## Contributing
 
-We would love your help! Please see [our CONTRIBUTING.md](CONTRIBUTING.md).
+We would love your help! Please see [our CONTRIBUTING.md](.github/CONTRIBUTING.md).
