@@ -236,13 +236,15 @@ const Problem = ({ classes, problem, update: updateClient }) => {
 
   const ProblemActions = hasChallsWritePermission() ? (
     <Fragment>
-      <button className='btn-small btn-info'>Update</button>
+      <button type='submit' className='btn-small btn-info'>
+        Update Challenge
+      </button>
       <button
+        type='button'
         className='btn-small btn-danger'
         onClick={openDeleteModal}
-        type='button'
       >
-        Delete
+        Delete Challenge
       </button>
     </Fragment>
   ) : null
@@ -251,129 +253,145 @@ const Problem = ({ classes, problem, update: updateClient }) => {
     <Fragment>
       <div className={`frame ${classes.frame}`}>
         <div className='frame__body'>
-          <form onSubmit={handleUpdate}>
-            <div className='row u-no-padding'>
-              <div className={`col-6 ${classes.header}`}>
-                <input
-                  autoComplete='off'
-                  autoCorrect='off'
-                  required
-                  className='form-group-input input-small'
-                  placeholder='Category'
-                  value={category}
-                  onChange={handleCategoryChange}
-                />
-                <input
-                  autoComplete='off'
-                  autoCorrect='off'
-                  required
-                  className='form-group-input input-small'
-                  placeholder='Problem Name'
-                  value={name}
-                  onChange={handleNameChange}
-                />
-                <div className='form-ext-control form-ext-checkbox'>
-                  <input
-                    id={`chall-${problem.id}-tiebreak-eligible`}
-                    type='checkbox'
-                    className='form-ext-input'
-                    checked={tiebreakEligible}
-                    onChange={handleTiebreakEligibleChange}
+          <form onSubmit={handleUpdate} style={{ marginTop: '1em' }}>
+            <div
+              className={`frame ${classes.frame}`}
+              style={{ boxShadow: 'none' }}
+            >
+              <div className='frame__body'>
+                {/* Section: Basic Info */}
+                <div className='row u-no-padding'>
+                  <div className='col-6'>
+                    <label>Category</label>
+                    <input
+                      className='form-group-input input-small'
+                      placeholder='Category'
+                      value={category}
+                      onChange={handleCategoryChange}
+                      required
+                    />
+                    <label>Problem Name</label>
+                    <input
+                      className='form-group-input input-small'
+                      placeholder='Problem Name'
+                      value={name}
+                      onChange={handleNameChange}
+                      required
+                    />
+                    <label>Author</label>
+                    <input
+                      className='form-group-input input-small'
+                      placeholder='Author'
+                      value={author}
+                      onChange={handleAuthorChange}
+                      required
+                    />
+                  </div>
+
+                  <div className='col-6'>
+                    <label>Minimum Points</label>
+                    <input
+                      type='number'
+                      className='form-group-input input-small'
+                      value={minPoints}
+                      onChange={handleMinPointsChange}
+                      required
+                    />
+                    <label>Maximum Points</label>
+                    <input
+                      type='number'
+                      className='form-group-input input-small'
+                      value={maxPoints}
+                      onChange={handleMaxPointsChange}
+                      required
+                    />
+                    <div
+                      className='form-ext-control form-ext-checkbox'
+                      style={{ marginTop: '1em' }}
+                    >
+                      <input
+                        id={`chall-${problem.id}-tiebreak-eligible`}
+                        type='checkbox'
+                        className='form-ext-input'
+                        checked={tiebreakEligible}
+                        onChange={handleTiebreakEligibleChange}
+                      />
+                      <label
+                        htmlFor={`chall-${problem.id}-tiebreak-eligible`}
+                        className='form-ext-label'
+                      >
+                        Eligible for tiebreaks?
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Section: Description */}
+                <div className='input-control' style={{ marginTop: '1em' }}>
+                  <label>Description</label>
+                  <textarea
+                    placeholder='Describe the problem'
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    required
+                    className='form-group-input input-small'
                   />
-                  <label
-                    htmlFor={`chall-${problem.id}-tiebreak-eligible`}
-                    className='form-ext-label'
-                  >
-                    Eligible for tiebreaks?
-                  </label>
                 </div>
-              </div>
-              <div className={`col-6 ${classes.header}`}>
-                <input
-                  autoComplete='off'
-                  autoCorrect='off'
-                  required
-                  className='form-group-input input-small'
-                  placeholder='Author'
-                  value={author}
-                  onChange={handleAuthorChange}
-                />
-                <input
-                  className='form-group-input input-small'
-                  type='number'
-                  required
-                  value={minPoints}
-                  onChange={handleMinPointsChange}
-                />
-                <input
-                  className='form-group-input input-small'
-                  type='number'
-                  required
-                  value={maxPoints}
-                  onChange={handleMaxPointsChange}
-                />
-              </div>
-            </div>
 
-            <div className='content-no-padding u-center'>
-              <div className={`divider ${classes.divider}`} />
-            </div>
+                {/* Section: Flag */}
+                <div className='input-control'>
+                  <label>Flag</label>
+                  <input
+                    placeholder='Flag'
+                    value={flag}
+                    onChange={handleFlagChange}
+                    className='form-group-input input-small'
+                    required
+                  />
+                </div>
 
-            <textarea
-              autoComplete='off'
-              autoCorrect='off'
-              placeholder='Description'
-              value={description}
-              onChange={handleDescriptionChange}
-            />
-            <div className='input-control'>
-              <input
-                autoComplete='off'
-                autoCorrect='off'
-                required
-                className='form-group-input input-small'
-                placeholder='Flag'
-                value={flag}
-                onChange={handleFlagChange}
-              />
-            </div>
-
-            {problem.files.length !== 0 && (
-              <div>
-                <p
-                  className={`frame__subtitle u-no-margin ${classes.downloadsHeader}`}
-                >
-                  Downloads
-                </p>
-                <div className='tag-container'>
-                  {problem.files.map(file => {
-                    return (
-                      <div className={`tag ${classes.tag}`} key={file.url}>
-                        <a download href={file.url}>
-                          {file.name}
-                        </a>
-                        <div
-                          className='tag tag--delete'
-                          style='margin: 0; margin-left: 3px'
-                          onClick={handleRemoveFile(file)}
-                        />
+                {/* Section: Files */}
+                <div style={{ marginTop: '1em' }}>
+                  <label>Challenge Files</label>
+                  <input
+                    type='file'
+                    multiple
+                    onChange={handleFileUpload}
+                    className='form-group-input input-small'
+                  />
+                  {problem.files.length > 0 && (
+                    <div>
+                      <p
+                        className={`frame__subtitle u-no-margin ${classes.downloadsHeader}`}
+                      >
+                        Existing Files
+                      </p>
+                      <div className='tag-container'>
+                        {problem.files.map(file => (
+                          <div className={`tag ${classes.tag}`} key={file.url}>
+                            <a download href={file.url}>
+                              {file.name}
+                            </a>
+                            <div
+                              className='tag tag--delete'
+                              style='margin: 0; margin-left: 3px'
+                              onClick={handleRemoveFile(file)}
+                            />
+                          </div>
+                        ))}
                       </div>
-                    )
-                  })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Section: Actions */}
+                <div
+                  className={`form-section ${classes.controls}`}
+                  style={{ marginTop: '1.5em' }}
+                >
+                  {ProblemActions}
                 </div>
               </div>
-            )}
-
-            <div className='input-control'>
-              <input
-                className='form-group-input input-small'
-                type='file'
-                multiple
-                onChange={handleFileUpload}
-              />
-            </div>
-            <div className={`form-section ${classes.controls}`}>
-              {ProblemActions}
             </div>
           </form>
         </div>

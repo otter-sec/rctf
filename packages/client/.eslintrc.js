@@ -17,7 +17,7 @@ module.exports = {
   },
   parserOptions: {
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.json'],
+    project: ['./tsconfig.json', './tsconfig.playwright.json'],
   },
   overrides: [
     {
