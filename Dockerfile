@@ -2,7 +2,7 @@ FROM node:24-slim AS prepare
 WORKDIR /app
 
 COPY packages ./packages
-COPY package.json yarn.lock .yarnrc.yml lerna.json /prepared/
+COPY package.json yarn.lock .yarnrc.yml /prepared/
 COPY .yarn /prepared/.yarn
 
 RUN find packages -maxdepth 2 -mindepth 2 -name package.json -exec dirname /prepared/'{}' ';' | xargs mkdir -p && \
