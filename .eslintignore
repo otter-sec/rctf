@@ -3,9 +3,6 @@
 
 # Re-add default ignore patterns
 node_modules/
-**/node_modules/**
-**/node_modules/**/*.mjs
-**/node_modules/**/*.js
 .git/
 
 # Ignore yarn 2 stuff
