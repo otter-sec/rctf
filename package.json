@@ -57,15 +57,6 @@
     "bracketSameLine": false,
     "arrowParens": "avoid"
   },
-  "lint-staged": {
-    "*.{j,t}s?(x)": [
-      "eslint --max-warnings=0 --fix",
-      "jest --ci --forceExit --findRelatedTests --passWithNoTests"
-    ],
-    "packages/*/**/*.ts?(x)": "tsc -b",
-    "*.{js,ts,jsx,tsx,md,mdx,json,yml,yaml}": "prettier --write",
-    "yarn.lock": "yarn dedupe"
-  },
   "description": "rCTF is redpwnCTF's CTF platform. It is developed and maintained by the [redpwn](https://redpwn.net) CTF team.",
   "repository": {
     "type": "git",
