@@ -4,7 +4,7 @@ import testConfig from '../testConfig'
 test.describe('Scoreboard Page Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login`)
-    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
+    await page.fill('input[name="teamToken"]', testConfig.loginToken)
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
     await page.goto(`${testConfig.baseUrl}/scores`)
@@ -26,7 +26,7 @@ test.describe('Scoreboard Page Tests', () => {
     const initialRowCount = await page.locator('table tr').count()
     expect(initialRowCount).toBeGreaterThan(1)
 
-    const divisionOptions = Object.values(testConfig.divisions) as string[]
+    const divisionOptions: string[] = Object.values(testConfig.divisions)
     if (divisionOptions.length > 0) {
       await page.selectOption('select[name="division"]', divisionOptions[0])
     } else {
@@ -68,13 +68,13 @@ test.describe('Scoreboard Page Tests', () => {
 
     const isEnabled = await button.isEnabled()
     if (isEnabled) {
-      const initialScrollY = await page.evaluate(() => window.scrollY)
+      const initialScrollY = await page.evaluate<number>(() => window.scrollY)
 
       await button.click()
 
       await page.waitForTimeout(500)
 
-      const newScrollY = await page.evaluate(() => window.scrollY)
+      const newScrollY = await page.evaluate<number>(() => window.scrollY)
 
       expect(newScrollY).toBeGreaterThanOrEqual(initialScrollY)
     } else {

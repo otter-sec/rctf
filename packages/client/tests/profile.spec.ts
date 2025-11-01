@@ -1,10 +1,16 @@
 import { test, expect } from '@playwright/test'
 import testConfig from '../testConfig'
 
+interface ClipboardMock {
+  _text: string
+  writeText: (text: string) => Promise<void>
+  readText: () => Promise<string>
+}
+
 test.describe('Profile Page Tests', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto(`${testConfig.baseUrl}/login`)
-    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
+    await page.fill('input[name="teamToken"]', testConfig.loginToken)
     await page.click('button[type="submit"]')
     await page.waitForNavigation()
     await page.goto(`${testConfig.baseUrl}/profile`)
@@ -28,28 +34,28 @@ test.describe('Profile Page Tests', () => {
     const copyButton = page.locator('button:has-text("Copy")')
     await expect(copyButton).toBeVisible()
 
-    const clipboardHandle = await page.evaluateHandle(() => {
-      return {
+    await page.evaluate(() => {
+      const clipboard: ClipboardMock = {
         _text: '',
-        writeText: function (text) {
+        async writeText(text: string) {
           this._text = text
         },
-        readText: function () {
+        async readText() {
           return this._text
         },
       }
-    })
 
-    await page.evaluate(clipboard => {
       Object.defineProperty(navigator, 'clipboard', {
         value: clipboard,
         configurable: true,
       })
-    }, clipboardHandle)
+    })
 
     await copyButton.click()
 
-    const copiedText = await page.evaluate(() => navigator.clipboard.readText())
+    const copiedText = await page.evaluate<string>(async () =>
+      navigator.clipboard.readText()
+    )
     expect(copiedText).toContain('/login?token=')
   })
 

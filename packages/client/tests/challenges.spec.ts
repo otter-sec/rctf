@@ -6,7 +6,7 @@ test.describe('Challenges Page Tests', () => {
     await page.goto(`${testConfig.baseUrl}/login`)
 
     // Fill login token and submit
-    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
+    await page.fill('input[name="teamToken"]', testConfig.loginToken)
     await page.click('button[type="submit"]')
 
     await page.waitForNavigation()
@@ -36,9 +36,10 @@ test.describe('Challenges Page Tests', () => {
     for (let i = 0; i < count; i++) {
       const checkbox = categoryCheckboxes.nth(i)
 
-      const label = page.locator(
-        `label[for="${await checkbox.getAttribute('id')}"]`
-      )
+      const checkboxId = await checkbox.getAttribute('id')
+      expect(checkboxId).toBeTruthy()
+
+      const label = page.locator(`label[for="${checkboxId as string}"]`)
 
       const categoryName = await label.innerText()
       console.log(`Toggling filter: ${categoryName}`)

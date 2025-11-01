@@ -16,7 +16,7 @@ test.describe('rCTF Login Page Tests', () => {
   test('should log in successfully with a valid Team Token', async ({
     page,
   }) => {
-    await page.fill('input[name="teamToken"]', `${testConfig.loginToken}`)
+    await page.fill('input[name="teamToken"]', testConfig.loginToken)
     const submitButton = page.locator('button[type="submit"]')
     await submitButton.click()
     await page.waitForNavigation()

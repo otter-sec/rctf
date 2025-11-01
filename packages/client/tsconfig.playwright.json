@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig-base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es2020",
+    "lib": ["es2020", "dom"],
+    "types": ["node", "@playwright/test"],
+    "noEmit": true
+  },
+  "include": ["tests/**/*.ts", "testConfig.ts", "playwright.config.ts"]
+}

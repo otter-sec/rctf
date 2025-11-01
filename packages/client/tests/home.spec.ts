@@ -10,8 +10,6 @@ test.describe('rCTF Home Page Tests', () => {
     const appDiv = page.locator('#app')
     const pageDescription = appDiv.locator('.markup p')
 
-    const expectedText = testConfig.homeContent || ''
-
-    await expect(pageDescription).toHaveText(expectedText)
+    await expect(pageDescription).toHaveText(testConfig.homeContent)
   })
 })

@@ -59,9 +59,10 @@ test.describe('Admin Challenges Page Tests', () => {
 
     const tiebreakCheckbox = page.locator('input[type="checkbox"]').nth(0)
     if (!(await tiebreakCheckbox.isChecked())) {
-      const label = page.locator(
-        `label[for="${await tiebreakCheckbox.getAttribute('id')}"]`
-      )
+      const checkboxId = await tiebreakCheckbox.getAttribute('id')
+      expect(checkboxId).toBeTruthy()
+
+      const label = page.locator(`label[for="${checkboxId as string}"]`)
       await label.click()
     }
 
