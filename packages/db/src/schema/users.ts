@@ -1,4 +1,11 @@
-import { pgTable, text, integer, timestamp, uniqueIndex, index } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  text,
+  integer,
+  timestamp,
+  uniqueIndex,
+  index,
+} from 'drizzle-orm/pg-core'
 
 export const users = pgTable(
   'users',
@@ -11,7 +18,7 @@ export const users = pgTable(
     ctftimeId: integer('ctftime_id').unique(),
     createdAt: timestamp('created_at').notNull().defaultNow(),
   },
-  (table) => [
+  table => [
     uniqueIndex('users_name_idx').on(table.name),
     index('users_division_idx').on(table.division),
     index('users_perms_idx').on(table.perms),

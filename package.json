@@ -13,6 +13,7 @@
     "dev:web": "bun --filter '@rctf/web' run dev",
     "build": "bun run --filter '*' build",
     "test": "bun test",
+    "prettier": "prettier --write . --ignore-path .gitignore",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun --filter '@rctf/db' run generate",
     "db:migrate": "bun --filter '@rctf/db' run migrate",
@@ -21,9 +22,22 @@
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prettier": "2.4.1"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "prettier": {
+    "tabWidth": 2,
+    "useTabs": false,
+    "semi": false,
+    "singleQuote": true,
+    "jsxSingleQuote": true,
+    "quoteProps": "as-needed",
+    "trailingComma": "es5",
+    "bracketSpacing": true,
+    "bracketSameLine": false,
+    "arrowParens": "avoid"
   }
 }

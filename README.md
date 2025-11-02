@@ -21,18 +21,29 @@ rctf/
 
 ## Prerequisites and setup
 
-- [Bun](https://bun.sh) v1.0+
+- Bun v1.0+
 - PostgreSQL 12+
 - Redis 6+ (for caching)
 
 ```bash
 bun install
-cp .env.example .env
 bun run db:generate
 bun run db:migrate
 bun run db:push # dev only
 bun run dev
 ```
+
+## Environment variables
+
+Place project secrets alongside `package.json` as `.env` (checked-in template `.env.example`).
+
+| Name            | Required | Default | Description                                                 |
+| --------------- | -------- | ------- | ----------------------------------------------------------- |
+| `DATABASE_URL`  | Yes      |         | Postgres connection string (`postgres://user:pass@host/db`) |
+| `REDIS_URL`     | No       |         | Redis connection string for caching                         |
+| `TOKEN_KEY`     | Yes      |         | Base64-encoded 32-byte secret for auth                      |
+| `PORT`          | No       | `3000`  | API listen port                                             |
+| `LOGIN_TIMEOUT` | No       | `3600`  | Token expiry in seconds for verify/CTFtime tokens           |
 
 ## Workspace commands
 
