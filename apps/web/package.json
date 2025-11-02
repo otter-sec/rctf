@@ -1,0 +1,19 @@
+{
+  "name": "@rctf/web",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "echo 'SvelteKit dev wip'",
+    "build": "echo 'SvelteKit build wip'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rctf/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

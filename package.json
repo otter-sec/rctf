@@ -1,0 +1,29 @@
+{
+  "name": "rctf",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun --filter '@rctf/api' run dev",
+    "dev:api": "bun --filter '@rctf/api' run dev",
+    "dev:web": "bun --filter '@rctf/web' run dev",
+    "build": "bun run --filter '*' build",
+    "test": "bun test",
+    "typecheck": "bun run --filter '*' typecheck",
+    "db:generate": "bun --filter '@rctf/db' run generate",
+    "db:migrate": "bun --filter '@rctf/db' run migrate",
+    "db:studio": "bun --filter '@rctf/db' run studio",
+    "db:push": "bun --filter '@rctf/db' run push",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
