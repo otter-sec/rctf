@@ -13,6 +13,7 @@
     "dev:web": "bun --filter '@rctf/web' run dev",
     "build": "bun run --filter '*' build",
     "test": "bun test",
+    "test:coverage": "bun test --coverage",
     "prettier": "prettier --write . --ignore-path .gitignore",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun --filter '@rctf/db' run generate",

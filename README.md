@@ -47,19 +47,20 @@ Place project secrets alongside `package.json` as `.env` (checked-in template `.
 
 ## Workspace commands
 
-| Command               | Description               |
-| --------------------- | ------------------------- |
-| `bun run dev`         | Start API dev server      |
-| `bun run dev:api`     | Start API only            |
-| `bun run dev:web`     | Start web frontend only   |
-| `bun run db:generate` | Generate migration files  |
-| `bun run db:migrate`  | Run migrations            |
-| `bun run db:push`     | Push schema (dev only)    |
-| `bun run db:studio`   | Open Drizzle Studio       |
-| `bun run build`       | Build all packages        |
-| `bun run test`        | Run all tests             |
-| `bun run typecheck`   | Type-check all packages   |
-| `bun run clean`       | Remove all `node_modules` |
+| Command                 | Description                    |
+| ----------------------- | ------------------------------ |
+| `bun run dev`           | Start API dev server           |
+| `bun run dev:api`       | Start API only                 |
+| `bun run dev:web`       | Start web frontend only        |
+| `bun run db:generate`   | Generate migration files       |
+| `bun run db:migrate`    | Run migrations                 |
+| `bun run db:push`       | Push schema (dev only)         |
+| `bun run db:studio`     | Open Drizzle Studio            |
+| `bun run build`         | Build all packages             |
+| `bun run test`          | Run all tests                  |
+| `bun run test:coverage` | Run tests with coverage report |
+| `bun run typecheck`     | Type-check all packages        |
+| `bun run clean`         | Remove all `node_modules`      |
 
 ## Tech stack
 

@@ -1,6 +1,8 @@
 import { HTTPException } from 'hono/http-exception'
 import type { MiddlewareHandler } from 'hono'
 
+import { getRedisClient } from '../lib/redis'
+
 interface RateLimitOptions {
   limit: number
   windowMs: number
@@ -46,6 +48,27 @@ export const rateLimit = (options: RateLimitOptions): MiddlewareHandler => {
     const now = Date.now()
     const cutoff = now - windowMs
 
+    const redis = await getRedisClient()
+    if (redis) {
+      const redisKey = `ratelimit:${limit}:${windowMs}:${key}`
+
+      await redis.zremrangebyscore(redisKey, 0, cutoff)
+      const current = await redis.zcard(redisKey)
+
+      if (current >= limit) {
+        throw new HTTPException(429, {
+          message: message ?? 'Too many requests, please slow down.',
+        })
+      }
+
+      const member = `${now}:${crypto.randomUUID()}`
+      await redis.zadd(redisKey, now, member)
+      await redis.expire(redisKey, Math.ceil(windowMs / 1000) + 1)
+
+      await next()
+      return
+    }
+
     const store = stores.get(key) ?? { timestamps: [] }
 
     store.timestamps = store.timestamps.filter(ts => ts > cutoff)
@@ -73,6 +96,13 @@ export const rateLimit = (options: RateLimitOptions): MiddlewareHandler => {
   }
 }
 
-export const resetRateLimitStores = (): void => {
+export const resetRateLimitStores = async (): Promise<void> => {
   stores.clear()
+  const redis = await getRedisClient()
+  if (redis) {
+    const keys = await redis.keys('ratelimit:*')
+    if (keys.length > 0) {
+      await redis.del(keys)
+    }
+  }
 }
