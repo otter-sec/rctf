@@ -2,8 +2,6 @@
 
 ## Package structure
 
-This is a monorepo using Bun workspaces:
-
 ```
 rctf/
 ├── apps/
@@ -21,15 +19,11 @@ rctf/
 | `@rctf/api`   | API backend (Hono)          |
 | `@rctf/web`   | Frontend (SvelteKit)        |
 
-## Getting started
-
-### Prerequisites
+## Prerequisites and setup
 
 - [Bun](https://bun.sh) v1.0+
 - PostgreSQL 12+
 - Redis 6+ (for caching)
-
-### Setup
 
 ```bash
 bun install
@@ -56,7 +50,7 @@ bun run dev
 | `bun run typecheck`   | Type-check all packages   |
 | `bun run clean`       | Remove all `node_modules` |
 
-### Tech stack
+## Tech stack
 
 | Component     | Technology  |
 | ------------- | ----------- |
