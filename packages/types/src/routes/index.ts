@@ -1,1 +1,7 @@
 export * from './register-route-example'
+export * from './admin'
+export * from './auth'
+export * from './challenges'
+export * from './integrations'
+export * from './leaderboard'
+export * from './users'
