@@ -1,12 +1,9 @@
-import type { Database, InferSelectModel } from '@rctf/db'
-import { users } from '@rctf/db'
-
-export type DatabaseClient = Database
-
-export type DbUser = InferSelectModel<typeof users>
+import type { Context } from 'hono'
+import type { Database } from '@rctf/db'
 
 export type AppEnv = {
   Variables: {
-    db: DatabaseClient
+    db: Database
   }
 }
+export type ApiContext = Context<AppEnv>

@@ -11,7 +11,7 @@ mock.module('../lib/redis', () => ({
   closeRedisClient: closeRedisClientMock,
 }))
 
-const { rateLimit, resetRateLimitStores } = await import('./rate-limit')
+const { rateLimit, resetRateLimitStores } = await import('./ratelimit')
 
 afterEach(async () => {
   redisClient = null

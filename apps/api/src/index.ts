@@ -1,62 +1,44 @@
 import { Hono } from 'hono'
-import { logger } from 'hono/logger'
-import { prettyJSON } from 'hono/pretty-json'
-
-import { config } from './config'
 import type { AppEnv } from './types'
-import { authRoutes } from './routes/auth'
-import { usersRoutes } from './routes/users'
-import { createDatabase } from '@rctf/db'
-
-const { db, client } = createDatabase({
-  url: config.database.url,
-  max_connections: 10,
-  idle_timeout_sec: 20,
-  connect_timeout_sec: 10,
-})
+import { routeModules } from './routes'
 
 const app = new Hono<AppEnv>()
 
-app.use('*', logger())
-app.use('*', prettyJSON())
+// TODO(es3n1n): all this stuff should moved to some setup function
+for (const { router, handler } of routeModules) {
+  app.on(router.definition.method, router.definition.path, handler)
+}
 
-app.use('*', async (c, next) => {
-  c.set('db', db)
-  return next()
-})
+// TODO(es3n1n): should use the actual schema
+app.notFound(c =>
+  c.json(
+    {
+      kind: 'NotFound',
+      message: 'Resource not found',
+    },
+    404
+  )
+)
 
-app.get('/healthz', c => c.json({ ok: true }))
-
-app.route('/auth', authRoutes)
-app.route('/users', usersRoutes)
-
-app.notFound(c => c.json({ message: 'Not Found' }, 404))
-
+// TODO(es3n1n): should use the actual schema
 app.onError((err, c) => {
   console.error(err)
-  return c.json({ message: err.message ?? 'Internal Server Error' }, 500)
+  return c.json(
+    {
+      kind: 'InternalError',
+      message: 'Internal Server Error',
+    },
+    500
+  )
 })
 
 export default app
 
 if (import.meta.main) {
-  const port = config.server.port
-  console.log(`Starting API server on port ${port}`)
+  const port = Number(process.env.PORT ?? 3000)
+  console.log(`API listening on http://localhost:${port}`)
   Bun.serve({
     port,
     fetch: app.fetch,
-  })
-
-  const shutdown = async () => {
-    await client.end({ timeout: 5 }).catch(() => {
-      /* noop */
-    })
-  }
-
-  process.on('SIGINT', () => {
-    void shutdown().finally(() => process.exit(0))
-  })
-  process.on('SIGTERM', () => {
-    void shutdown().finally(() => process.exit(0))
   })
 }

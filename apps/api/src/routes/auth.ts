@@ -1,3 +1,4 @@
+// TODO(es3n1n): refactor this to the new routes thing once we merged all of them
 import { users } from '@rctf/db'
 import type { InferSelectModel } from '@rctf/db'
 import { Hono } from 'hono'
@@ -7,7 +8,7 @@ import { zValidator } from '@hono/zod-validator'
 
 import type { AppEnv } from '../types'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
-import { rateLimit } from '../middleware/rate-limit'
+import { rateLimit } from '../middleware/ratelimit'
 
 const NAME_REGEX = /^[ -~]{2,64}$/
 const BASE64_REGEX = /^[A-Za-z0-9+/=]+$/

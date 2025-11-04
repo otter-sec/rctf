@@ -1,12 +1,12 @@
 import { HTTPException } from 'hono/http-exception'
 import type { Context } from 'hono'
 
-import type { AppEnv, DbUser } from '../types'
+import type { AppEnv } from '../types'
 import { parseToken, TokenKind } from './tokens'
 
 const AUTH_HEADER_PREFIX = 'bearer '
 
-export const requireAuth = async (c: Context<AppEnv>): Promise<DbUser> => {
+export const requireAuth = async (c: Context<AppEnv>): Promise<any> => {
   const header = c.req.header('authorization') ?? ''
 
   if (!header || !header.toLowerCase().startsWith(AUTH_HEADER_PREFIX)) {
@@ -24,13 +24,6 @@ export const requireAuth = async (c: Context<AppEnv>): Promise<DbUser> => {
 
   const db = c.get('db')
 
-  const user = await db.query.users.findFirst({
-    where: (table, { eq }) => eq(table.id, userId),
-  })
-
-  if (!user) {
-    throw new HTTPException(401, { message: 'Unknown user' })
-  }
-
-  return user
+  /// TODO(es3n1n): actual logic
+  throw new HTTPException(401, { message: 'Unknown user' })
 }

@@ -62,6 +62,9 @@
     "packages/types": {
       "name": "@rctf/types",
       "version": "0.0.0",
+      "dependencies": {
+        "zod": "^3.23.8",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },

@@ -1,3 +1,4 @@
+// TODO(es3n1n): Something more robust, probably worth looking into the v1 implementation
 const parseInteger = (value: string | undefined, fallback: number): number => {
   if (!value) {
     return fallback
