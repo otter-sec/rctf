@@ -2,12 +2,13 @@ import { Hono } from 'hono'
 import { logger } from 'hono/logger'
 import { prettyJSON } from 'hono/pretty-json'
 
-import { db } from '@rctf/db'
-
 import { config } from './config'
 import type { AppEnv } from './types'
 import { authRoutes } from './routes/auth'
 import { usersRoutes } from './routes/users'
+import { createDatabase } from './lib/db'
+
+const { db, client } = createDatabase({ url: config.database.url })
 
 const app = new Hono<AppEnv>()
 
@@ -34,10 +35,23 @@ app.onError((err, c) => {
 export default app
 
 if (import.meta.main) {
-  const port = config.port
+  const port = config.server.port
   console.log(`Starting API server on port ${port}`)
   Bun.serve({
     port,
     fetch: app.fetch,
+  })
+
+  const shutdown = async () => {
+    await client.end({ timeout: 5 }).catch(() => {
+      /* noop */
+    })
+  }
+
+  process.on('SIGINT', () => {
+    void shutdown().finally(() => process.exit(0))
+  })
+  process.on('SIGTERM', () => {
+    void shutdown().finally(() => process.exit(0))
   })
 }

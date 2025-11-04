@@ -5,16 +5,16 @@ import { config } from '../config'
 let client: Redis | null | undefined
 
 const connectRedis = async (): Promise<Redis | null> => {
-  if (!config.redisUrl) {
+  if (!config.redis.url) {
     return null
   }
 
-  const redis = new Redis(config.redisUrl, {
+  const redis = new Redis(config.redis.url, {
     lazyConnect: true,
     maxRetriesPerRequest: 1,
   })
 
-  redis.on('error', (error) => {
+  redis.on('error', error => {
     console.error('[redis] connection error', error)
   })
 
@@ -47,4 +47,3 @@ export const closeRedisClient = async (): Promise<void> => {
   }
   client = null
 }
-

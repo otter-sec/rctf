@@ -1,10 +1,11 @@
 import { afterEach, expect, setSystemTime, test } from 'bun:test'
 
 const tokenSeed = Buffer.alloc(32, 1).toString('base64')
-process.env.TOKEN_KEY = process.env.TOKEN_KEY ?? tokenSeed
-process.env.LOGIN_TIMEOUT = process.env.LOGIN_TIMEOUT ?? '3600'
-process.env.DATABASE_URL =
-  process.env.DATABASE_URL ?? 'postgres://local:local@localhost:5432/rctf_test'
+process.env.RCTF_TOKEN_KEY = process.env.RCTF_TOKEN_KEY ?? tokenSeed
+process.env.RCTF_LOGIN_TIMEOUT = process.env.RCTF_LOGIN_TIMEOUT ?? '3600'
+process.env.RCTF_DATABASE_URL =
+  process.env.RCTF_DATABASE_URL ??
+  'postgres://local:local@localhost:5432/rctf_test'
 
 const tokensModule = await import('./tokens')
 const configModule = await import('../config')
@@ -42,10 +43,10 @@ test('tampering with the payload invalidates the token', async () => {
 })
 
 test('verify tokens expire according to configuration', async () => {
-  const originalTimeout = config.loginTimeoutSeconds
+  const originalTimeout = config.auth.loginTimeoutSeconds
 
   try {
-    config.loginTimeoutSeconds = 1
+    config.auth.loginTimeoutSeconds = 1
 
     const issuedAt = new Date('2024-01-01T00:00:00.000Z')
     setSystemTime(issuedAt)
@@ -63,6 +64,6 @@ test('verify tokens expire according to configuration', async () => {
     const parsed = await parseToken(TokenKind.Verify, verifyToken)
     expect(parsed).toBeNull()
   } finally {
-    config.loginTimeoutSeconds = originalTimeout
+    config.auth.loginTimeoutSeconds = originalTimeout
   }
 })
