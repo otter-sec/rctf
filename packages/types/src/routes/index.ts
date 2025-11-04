@@ -1,1 +1,1 @@
-export * from './RegisterRouteExample'
+export * from './register-route-example'

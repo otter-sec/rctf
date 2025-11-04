@@ -1,2 +1,2 @@
-export * from './GoodResponseExample'
-export * from './BadResponseExample'
+export * from './good-response-example'
+export * from './bad-response-example'

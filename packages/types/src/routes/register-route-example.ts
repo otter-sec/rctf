@@ -1,5 +1,5 @@
 import { defineRoute } from '../dsl'
-import { InUser } from '../models/InUserExample'
+import { InUser } from '../models/in-user-example'
 import { BadResponse, GoodResponse } from '../responses'
 
 export const RegisterRoute = defineRoute({

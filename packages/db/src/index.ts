@@ -2,11 +2,11 @@ import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 
 import * as schema from './schema'
+export * from './schema'
 
 export type Database = PostgresJsDatabase<typeof schema>
 export type PostgresClient = ReturnType<typeof postgres>
 export type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
-export * from './schema'
 
 export interface DatabaseCreationConfig {
   url: string

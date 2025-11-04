@@ -1,5 +1,5 @@
 import { response } from '../dsl'
-import { OutUser } from '../models/OutUserExample'
+import { OutUser } from '../models/out-user-example'
 
 export const GoodResponse = response('GoodResponse', {
   status: 200,

@@ -1,5 +1,5 @@
-import { createHonoRuntime } from '../lib/honoRuntime'
-import type { RouteModule } from '../lib/routeModule'
+import { createHonoRuntime } from '../lib/hono-runtime'
+import type { RouteModule } from '../lib/route-module'
 import type { ApiContext } from '../types'
 
 import registerRouter from './register'

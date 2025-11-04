@@ -1,2 +1,2 @@
-export * from './InUserExample'
-export * from './OutUserExample'
+export * from './in-user-example'
+export * from './out-user-example'
