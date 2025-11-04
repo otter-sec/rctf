@@ -37,13 +37,13 @@ bun run dev
 
 Place project secrets alongside `package.json` as `.env` (checked-in template `.env.example`).
 
-| Name            | Required | Default | Description                                                 |
-| --------------- | -------- | ------- | ----------------------------------------------------------- |
-| `DATABASE_URL`  | Yes      |         | Postgres connection string (`postgres://user:pass@host/db`) |
-| `REDIS_URL`     | No       |         | Redis connection string for caching                         |
-| `TOKEN_KEY`     | Yes      |         | Base64-encoded 32-byte secret for auth                      |
-| `PORT`          | No       | `3000`  | API listen port                                             |
-| `LOGIN_TIMEOUT` | No       | `3600`  | Token expiry in seconds for verify/CTFtime tokens           |
+| Name                 | Required | Default | Description                                                 |
+| -------------------- | -------- | ------- | ----------------------------------------------------------- |
+| `RCTF_DATABASE_URL`  | Yes      |         | Postgres connection string (`postgres://user:pass@host/db`) |
+| `RCTF_REDIS_URL`     | No       |         | Redis connection string for caching                         |
+| `RCTF_TOKEN_KEY`     | Yes      |         | Base64-encoded 32-byte secret for auth                      |
+| `RCTF_PORT`          | No       | `3000`  | API listen port                                             |
+| `RCTF_LOGIN_TIMEOUT` | No       | `3600`  | Token expiry in seconds for verify/CTFtime tokens           |
 
 ## Workspace commands
 

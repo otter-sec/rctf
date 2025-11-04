@@ -5,7 +5,7 @@
       "name": "rctf-new",
       "devDependencies": {
         "@types/bun": "latest",
-        "prettier": "2.4.1",
+        "prettier": "^3.6.2",
       },
       "peerDependencies": {
         "typescript": "^5",
@@ -18,8 +18,10 @@
         "@hono/zod-validator": "^0.2.1",
         "@rctf/db": "workspace:*",
         "@rctf/types": "workspace:*",
+        "drizzle-orm": "^0.36.4",
         "hono": "^4.6.14",
         "ioredis": "^5.4.1",
+        "postgres": "^3.4.5",
         "zod": "^3.23.8",
       },
       "devDependencies": {
@@ -174,7 +176,7 @@
 
     "postgres": ["postgres@3.4.7", "", {}, "sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw=="],
 
-    "prettier": ["prettier@2.4.1", "", { "bin": { "prettier": "bin-prettier.js" } }, "sha512-9fbDAXSBcc6Bs1mZrDYb3XKzDLm4EXXL9sC1LqKP5rZkT6KRr/rf9amVUcODVXgguK/isJz0d0hP72WeaKWsvA=="],
+    "prettier": ["prettier@3.6.2", "", { "bin": { "prettier": "bin/prettier.cjs" } }, "sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ=="],
 
     "redis-errors": ["redis-errors@1.2.0", "", {}, "sha512-1qny3OExCf0UvUV/5wpYKf2YwPcOqXzkwKKSmKHiE6ZMQs5heeE/c8eXK+PNllPvmjgAbfnsbpkGZWy8cBpn9w=="],
 

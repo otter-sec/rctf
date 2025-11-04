@@ -36,13 +36,10 @@ test('rateLimit falls back to in-memory store when Redis unavailable', async () 
   const limiter = rateLimit({
     limit: 2,
     windowMs: 1_000,
+    keyGenerator: () => 'client-memory',
   })
 
-  const ctx = {
-    req: {
-      header: (name: string) => (name === 'cf-connecting-ip' ? '203.0.113.1' : undefined),
-    },
-  }
+  const ctx = makeContext()
 
   await limiter(ctx as never, noop)
   await limiter(ctx as never, noop)
@@ -108,11 +105,12 @@ test('rateLimit uses Redis store when available', async () => {
   await limiter(ctx as never, noop)
   await expect(limiter(ctx as never, noop)).rejects.toThrow(HTTPException)
   await resetRateLimitStores()
-  expect(redisStub.deletedKeys.some(key => key.startsWith('ratelimit:'))).toBe(true)
+  expect(redisStub.deletedKeys.some(key => key.startsWith('ratelimit:'))).toBe(
+    true
+  )
 })
 
 test('rateLimit validates configuration inputs', async () => {
   expect(() => rateLimit({ limit: 0, windowMs: 1_000 })).toThrow()
   expect(() => rateLimit({ limit: 1, windowMs: 0 })).toThrow()
 })
-
