@@ -1,5 +1,5 @@
 import { defineRoute } from '../dsl'
-import { SubmitFlagBody } from '../models/challenges'
+import { SubmitFlagBody } from '../models'
 import {
   BadAlreadySolvedChallenge,
   BadChallenge,

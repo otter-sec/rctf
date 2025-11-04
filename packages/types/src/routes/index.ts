@@ -1,4 +1,3 @@
-export * from './register-route-example'
 export * from './admin'
 export * from './auth'
 export * from './challenges'

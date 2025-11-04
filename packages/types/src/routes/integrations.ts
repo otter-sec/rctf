@@ -1,5 +1,5 @@
 import { defineRoute } from '../dsl'
-import { CtftimeCallbackBody } from '../models/integrations'
+import { CtftimeCallbackBody } from '../models'
 import {
   BadCtftimeCode,
   BadEndpoint,

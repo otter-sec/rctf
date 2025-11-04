@@ -4,7 +4,7 @@ import {
   SetCtftimeBody,
   SetEmailBody,
   UpdateUserBody,
-} from '../models/users'
+} from '../models'
 import {
   BadCtftimeNoExists,
   BadCtftimeToken,

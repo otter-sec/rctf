@@ -3,7 +3,7 @@ import {
   QueryUploadsBody,
   UpdateChallengeBody,
   UploadFilesBody,
-} from '../models/admin'
+} from '../models'
 import {
   BadChallenge,
   BadDataUri,

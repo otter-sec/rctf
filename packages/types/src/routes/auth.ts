@@ -4,7 +4,7 @@ import {
   RecoverBody,
   RegisterBody,
   VerifyBody,
-} from '../models/auth'
+} from '../models'
 import {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
