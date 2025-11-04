@@ -13,7 +13,7 @@ const serializeUser = (user: InferSelectModel<typeof users>) => ({
   division: user.division,
   perms: user.perms,
   ctftimeId: user.ctftimeId,
-  createdAt: user.createdAt.toISOString(),
+  createdAt: user.createdAt,
 })
 
 export const usersRoutes = new Hono<AppEnv>()

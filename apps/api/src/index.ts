@@ -6,9 +6,14 @@ import { config } from './config'
 import type { AppEnv } from './types'
 import { authRoutes } from './routes/auth'
 import { usersRoutes } from './routes/users'
-import { createDatabase } from './lib/db'
+import { createDatabase } from '@rctf/db'
 
-const { db, client } = createDatabase({ url: config.database.url })
+const { db, client } = createDatabase({
+  url: config.database.url,
+  max_connections: 10,
+  idle_timeout_sec: 20,
+  connect_timeout_sec: 10,
+})
 
 const app = new Hono<AppEnv>()
 
