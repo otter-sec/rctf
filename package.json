@@ -8,18 +8,17 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun --filter '@rctf/api' run dev",
-    "dev:api": "bun --filter '@rctf/api' run dev",
-    "dev:web": "bun --filter '@rctf/web' run dev",
-    "build": "bun run --filter '*' build",
+    "dev": "bun run --elide-lines=0 --filter '@rctf/api' dev",
+    "dev:api": "bun run --elide-lines=0 --filter '@rctf/api' dev",
+    "dev:web": "bun run --elide-lines=0 --filter '@rctf/web' dev",
+    "build": "bun run --elide-lines=0 --filter '*' build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "prettier": "prettier --write . --ignore-path .gitignore",
-    "typecheck": "bun run --filter '*' typecheck",
-    "db:generate": "bun --filter '@rctf/db' run generate",
-    "db:migrate": "bun --filter '@rctf/db' run migrate",
-    "db:studio": "bun --filter '@rctf/db' run studio",
-    "db:push": "bun --filter '@rctf/db' run push",
+    "typecheck": "bun run --elide-lines=0 --filter '*' typecheck",
+    "db:generate": "bun run --elide-lines=0 --filter '@rctf/db' generate",
+    "db:migrate": "bun run --elide-lines=0 --filter '@rctf/db' migrate",
+    "db:pull": "bun run --elide-lines=0 --filter '@rctf/db' pull",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules"
   },
   "devDependencies": {

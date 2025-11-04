@@ -3,24 +3,54 @@ import {
   text,
   integer,
   timestamp,
-  uniqueIndex,
+  unique,
+  foreignKey,
+  check,
   index,
 } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { citext } from '../db-types'
 
 export const users = pgTable(
   'users',
   {
-    id: text('id').primaryKey(),
-    name: text('name').notNull(),
-    email: text('email').unique(),
-    division: text('division').notNull(),
-    perms: integer('perms').notNull().default(0),
-    ctftimeId: integer('ctftime_id').unique(),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    id: text().primaryKey().notNull(),
+    name: citext('name').notNull(),
+    email: text(),
+    division: text().notNull(),
+    perms: integer().notNull(),
+    ctftimeId: text('ctftime_id'),
+    createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
+      .defaultNow()
+      .notNull(),
   },
   table => [
-    uniqueIndex('users_name_idx').on(table.name),
-    index('users_division_idx').on(table.division),
-    index('users_perms_idx').on(table.perms),
+    unique('users_name_key').on(table.name),
+    unique('users_email_key').on(table.email),
+    unique('users_ctftime_id_key').on(table.ctftimeId),
+    check(
+      'require_email_or_ctftime_id',
+      sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL)`
+    ),
+  ]
+)
+
+export const userMembers = pgTable(
+  'user_members',
+  {
+    id: text().primaryKey().notNull(),
+    userid: text().notNull(),
+    email: text().notNull(),
+  },
+  table => [
+    index().using('btree', table.userid.asc().nullsLast().op('text_ops')),
+    foreignKey({
+      columns: [table.userid],
+      foreignColumns: [users.id],
+      name: 'uuid_fkey',
+    })
+      .onUpdate('cascade')
+      .onDelete('cascade'),
+    unique('user_members_email_key').on(table.email),
   ]
 )

@@ -12,6 +12,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.test.local
 .env.production.local
 .env.local
+.env.fish
 .eslintcache
 .cache
 *.tsbuildinfo
@@ -24,3 +25,4 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 uploads/
 tmp/
 temp/
+.data/

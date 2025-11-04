@@ -63,10 +63,7 @@ const config: AppConfig = {
   },
   auth: {
     tokenKey: rawTokenKey,
-    loginTimeoutSeconds: parseInteger(
-      process.env.RCTF_LOGIN_TIMEOUT,
-      3600
-    ),
+    loginTimeoutSeconds: parseInteger(process.env.RCTF_LOGIN_TIMEOUT, 3600),
   },
   database: {
     url: databaseUrl,
@@ -75,12 +72,8 @@ const config: AppConfig = {
     url: process.env.RCTF_REDIS_URL ?? null,
   },
   schedule: {
-    startTime: parseOptionalInteger(
-      process.env.RCTF_START_TIME
-    ),
-    endTime: parseOptionalInteger(
-      process.env.RCTF_END_TIME
-    ),
+    startTime: parseOptionalInteger(process.env.RCTF_START_TIME),
+    endTime: parseOptionalInteger(process.env.RCTF_END_TIME),
   },
 }
 

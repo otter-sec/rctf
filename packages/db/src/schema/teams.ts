@@ -6,40 +6,24 @@ import {
   uniqueIndex,
   index,
 } from 'drizzle-orm/pg-core'
-import { users } from './users'
+// import { users } from './users'
 
-export const teams = pgTable(
-  'teams',
+export const userMembers = pgTable(
+  'user_members',
   {
-    id: text('id').primaryKey(),
-    name: text('name').notNull(),
-    division: text('division').notNull(),
-    owner: text('owner')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
+    id: text().primaryKey().notNull(),
+    userid: text().notNull(),
+    email: text().notNull(),
   },
   table => [
-    uniqueIndex('teams_name_division_idx').on(table.name, table.division),
-    index('teams_division_idx').on(table.division),
-    index('teams_owner_idx').on(table.owner),
-  ]
-)
-
-export const teamMembers = pgTable(
-  'team_members',
-  {
-    teamId: text('team_id')
-      .notNull()
-      .references(() => teams.id, { onDelete: 'cascade' }),
-    userId: text('user_id')
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    joinedAt: timestamp('joined_at').notNull().defaultNow(),
-  },
-  table => [
-    primaryKey({ columns: [table.teamId, table.userId] }),
-    index('team_members_team_id_idx').on(table.teamId),
-    index('team_members_user_id_idx').on(table.userId),
+    index().using('btree', table.userid.asc().nullsLast().op('text_ops')),
+    foreignKey({
+      columns: [table.userid],
+      foreignColumns: [users.id],
+      name: 'uuid_fkey',
+    })
+      .onUpdate('cascade')
+      .onDelete('cascade'),
+    unique('user_members_email_key').on(table.email),
   ]
 )
