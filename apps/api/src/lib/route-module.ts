@@ -1,11 +1,57 @@
 import type { Handler } from 'hono'
-import type { AnyRouteDefinition, DeclaredRoute } from '@rctf/types'
+import { declareRouter as baseDeclareRouter } from '@rctf/types'
+import type {
+  AnyRouteDefinition,
+  DeclaredRoute,
+  RouteHandler,
+} from '@rctf/types'
 
+import { createTypesRuntime } from './types-runtime'
 import type { ApiContext, AppEnv } from '../types'
+
+export type ApiDeclaredRoute<
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+> = DeclaredRoute<ApiContext, Response, TRoute>
 
 export interface RouteModule<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > {
-  router: DeclaredRoute<ApiContext, Response, TRoute>
+  router: ApiDeclaredRoute<TRoute>
   handler: Handler<AppEnv>
 }
+
+export interface RouterGroup {
+  readonly routers: ApiDeclaredRoute<any>[]
+  declareRouter: <TRoute extends AnyRouteDefinition>(
+    definition: TRoute,
+    handler: RouteHandler<ApiContext, TRoute>
+  ) => ApiDeclaredRoute<TRoute>
+}
+
+export const createRouterGroup = (): RouterGroup => {
+  const routers: ApiDeclaredRoute<any>[] = []
+  return {
+    routers,
+    declareRouter: <TRoute extends AnyRouteDefinition>(
+      definition: TRoute,
+      handler: RouteHandler<ApiContext, TRoute>
+    ) => {
+      const router = baseDeclareRouter<ApiContext, Response, TRoute>(
+        definition,
+        handler
+      )
+      routers.push(router)
+      return router
+    },
+  }
+}
+
+export const createModule = <TRoute extends AnyRouteDefinition>(
+  router: ApiDeclaredRoute<TRoute>
+): RouteModule<TRoute> => ({
+  router,
+  handler: router.createHandler(createTypesRuntime<ApiContext, TRoute>()),
+})
+
+export const createModules = (group: RouterGroup): RouteModule[] =>
+  group.routers.map(router => createModule(router))

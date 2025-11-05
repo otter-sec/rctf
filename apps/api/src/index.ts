@@ -2,12 +2,13 @@ import { Hono } from 'hono'
 import type { AppEnv } from './types'
 import { routeModules } from './routes'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
+import type { ContentfulStatusCode } from 'hono/utils/http-status'
 
 const app = new Hono<AppEnv>()
 
 // TODO(es3n1n): all this stuff should moved to some setup function
 for (const { router, handler } of routeModules) {
-  app.on(router.definition.method, router.definition.path, handler)
+  app.on(router.definition.method, `/api${router.definition.path}`, handler)
 }
 
 // TODO(es3n1n): we need some util to do this instead of manually writing
@@ -18,7 +19,7 @@ app.notFound(c =>
       message: BadEndpoint.message,
       data: null,
     },
-    404
+    BadEndpoint.status as ContentfulStatusCode
   )
 )
 
@@ -30,7 +31,7 @@ app.onError((err, c) => {
       message: ErrorInternal.message,
       data: null,
     },
-    500
+    ErrorInternal.status as ContentfulStatusCode
   )
 })
 
