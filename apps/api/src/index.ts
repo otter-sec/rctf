@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { AppEnv } from './types'
 import { routeModules } from './routes'
+import { BadEndpoint, ErrorInternal } from '@rctf/types'
 
 const app = new Hono<AppEnv>()
 
@@ -9,24 +10,25 @@ for (const { router, handler } of routeModules) {
   app.on(router.definition.method, router.definition.path, handler)
 }
 
-// TODO(es3n1n): should use the actual schema
+// TODO(es3n1n): we need some util to do this instead of manually writing
 app.notFound(c =>
   c.json(
     {
-      kind: 'NotFound',
-      message: 'Resource not found',
+      kind: BadEndpoint.kind,
+      message: BadEndpoint.message,
+      data: null,
     },
     404
   )
 )
 
-// TODO(es3n1n): should use the actual schema
 app.onError((err, c) => {
   console.error(err)
   return c.json(
     {
-      kind: 'InternalError',
-      message: 'Internal Server Error',
+      kind: ErrorInternal.kind,
+      message: ErrorInternal.message,
+      data: null,
     },
     500
   )

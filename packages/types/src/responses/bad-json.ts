@@ -1,0 +1,6 @@
+import { response } from '../internal'
+
+export const BadJson = response('badJson', {
+  status: 400,
+  message: 'The request JSON body is malformed.',
+})
