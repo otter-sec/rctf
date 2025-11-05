@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createModel, model } from '../dsl'
+import { createModel, model } from '../internal'
 
 const RegisterSchema = z
   .object({

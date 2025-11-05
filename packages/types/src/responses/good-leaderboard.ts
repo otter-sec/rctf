@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const GoodLeaderboard = response('goodLeaderboard', {
   status: 200,

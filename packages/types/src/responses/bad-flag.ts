@@ -1,4 +1,4 @@
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const BadFlag = response('badFlag', {
   status: 400,

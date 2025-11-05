@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { defineRoute } from '../dsl'
+import { defineRoute } from '../internal'
 import {
   BadNotStarted,
   GoodLeaderboard,

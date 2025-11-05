@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const GoodChallenges = response('goodChallenges', {
   status: 200,

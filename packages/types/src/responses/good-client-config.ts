@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const GoodClientConfig = response('goodClientConfig', {
   status: 200,

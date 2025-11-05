@@ -4,7 +4,7 @@ import type { ApiContext } from '../types'
 
 export default declareRouter<ApiContext, Response, typeof RegisterRoute>(
   RegisterRoute,
-  async (res, body, _context) => {
+  async ({ res, body }) => {
     if (!body.email && !body.ctftimeToken) {
       return res.badEmail()
     }

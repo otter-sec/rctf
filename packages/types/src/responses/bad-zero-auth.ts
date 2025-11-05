@@ -1,4 +1,4 @@
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const BadZeroAuth = response('badZeroAuth', {
   status: 409,

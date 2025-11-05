@@ -1,4 +1,4 @@
-import { defineRoute } from '../dsl'
+import { defineRoute } from '../internal'
 import { LoginBody, RecoverBody, RegisterBody, VerifyBody } from '../models'
 import {
   BadCompetitionNotAllowed,
