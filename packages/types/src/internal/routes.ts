@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import type { Permissions } from '../enums'
 import type {
   ResponseDefinition,

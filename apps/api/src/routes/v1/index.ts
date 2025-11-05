@@ -1,5 +1,4 @@
 import { createModules } from '../../lib/route-module'
-
 import adminGroup from './admin'
 import authGroup from './auth'
 import challsGroup from './challs'

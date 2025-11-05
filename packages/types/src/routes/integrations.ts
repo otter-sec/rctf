@@ -1,5 +1,5 @@
-import { defineRoute } from '../internal'
 import { Permissions } from '../enums/permissions'
+import { defineRoute } from '../internal'
 import { CtftimeCallbackBody } from '../models'
 import {
   BadCtftimeCode,

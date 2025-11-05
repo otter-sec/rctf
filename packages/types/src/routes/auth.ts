@@ -2,10 +2,10 @@ import { defineRoute } from '../internal'
 import { LoginBody, RecoverBody, RegisterBody, VerifyBody } from '../models'
 import {
   BadCompetitionNotAllowed,
-  BadEndpoint,
   BadCtftimeToken,
   BadEmail,
   BadEmailChangeDivision,
+  BadEndpoint,
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,

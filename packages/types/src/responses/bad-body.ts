@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import { response } from '../internal'
 
 export const BadBody = response('badBody', {

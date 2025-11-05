@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import { defineRoute } from '../internal'
 import { SubmitFlagBody } from '../models'
 import {
@@ -10,8 +9,8 @@ import {
   BadNotStarted,
   BadRateLimit,
   BadUnknownUser,
-  GoodChallengeSolves,
   GoodChallenges,
+  GoodChallengeSolves,
   GoodFlag,
 } from '../responses'
 

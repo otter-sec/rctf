@@ -1,10 +1,10 @@
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-
 import * as schema from './schema'
+
 export * from './schema'
 
-export type Database = PostgresJsDatabase<typeof schema>
+export type DatabaseClient = PostgresJsDatabase<typeof schema>
 export type PostgresClient = ReturnType<typeof postgres>
 export type { InferSelectModel, InferInsertModel } from 'drizzle-orm'
 
@@ -21,6 +21,6 @@ export const createDatabase = (params: DatabaseCreationConfig) => {
     idle_timeout: params.idle_timeout_sec,
     connect_timeout: params.connect_timeout_sec,
   })
-  const db: Database = drizzle(client, { schema })
+  const db: DatabaseClient = drizzle(client, { schema })
   return { client, db }
 }

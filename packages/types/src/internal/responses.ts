@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import type { StatusCode } from './utils'
 
 export interface ResponseDefinition<

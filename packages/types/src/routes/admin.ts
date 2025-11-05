@@ -1,7 +1,6 @@
 import { z } from 'zod'
-
-import { defineRoute } from '../internal'
 import { Permissions } from '../enums/permissions'
+import { defineRoute } from '../internal'
 import {
   QueryUploadsBody,
   UpdateChallengeBody,

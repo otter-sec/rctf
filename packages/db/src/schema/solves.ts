@@ -1,11 +1,11 @@
 import {
+  foreignKey,
+  index,
   pgTable,
+  primaryKey,
   text,
   timestamp,
-  primaryKey,
-  foreignKey,
   unique,
-  index,
 } from 'drizzle-orm/pg-core'
 import { users } from './users'
 

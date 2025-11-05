@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import type { SchemaLike } from './utils'
 
 export interface ModelOptions {

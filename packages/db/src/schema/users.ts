@@ -1,14 +1,14 @@
+import { sql } from 'drizzle-orm'
 import {
+  check,
+  foreignKey,
+  index,
+  integer,
   pgTable,
   text,
-  integer,
   timestamp,
   unique,
-  foreignKey,
-  check,
-  index,
 } from 'drizzle-orm/pg-core'
-import { sql } from 'drizzle-orm'
 import { citext } from '../db-types'
 
 export const users = pgTable(

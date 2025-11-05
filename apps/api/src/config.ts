@@ -32,6 +32,9 @@ export interface AppConfig {
   }
   database: {
     url: string
+    maxConnections: number
+    idleTimeoutSeconds: number
+    connectTimeoutSeconds: number
   }
   redis: {
     url: string | null
@@ -68,6 +71,15 @@ const config: AppConfig = {
   },
   database: {
     url: databaseUrl,
+    maxConnections: parseInteger(process.env.RCTF_DATABASE_MAX_CONNECTIONS, 10),
+    idleTimeoutSeconds: parseInteger(
+      process.env.RCTF_DATABASE_IDLE_TIMEOUT,
+      30
+    ),
+    connectTimeoutSeconds: parseInteger(
+      process.env.RCTF_DATABASE_CONNECT_TIMEOUT,
+      15
+    ),
   },
   redis: {
     url: process.env.RCTF_REDIS_URL ?? null,

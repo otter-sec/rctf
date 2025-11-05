@@ -1,5 +1,4 @@
 import { z } from 'zod'
-
 import { response } from '../internal'
 
 export const GoodCtftimeLeaderboard = response('goodCtftimeLeaderboard', {

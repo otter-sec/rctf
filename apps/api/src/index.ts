@@ -1,10 +1,11 @@
-import { Hono } from 'hono'
-import type { AppEnv } from './types'
-import { routeModules } from './routes'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
-import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import { Hono } from 'hono'
 import { pinoLogger } from 'hono-pino'
+import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
+import type { AppEnv } from './lib/app-env'
+import { appEnvMiddleware } from './middlewares/app-env'
+import { routeModules } from './routes'
 
 const app = new Hono<AppEnv>()
 
@@ -23,6 +24,7 @@ app.use(
     pino: pinoObject,
   })
 )
+app.use(appEnvMiddleware)
 
 // TODO(es3n1n): all this stuff should moved to some setup function
 for (const { router, handler } of routeModules) {

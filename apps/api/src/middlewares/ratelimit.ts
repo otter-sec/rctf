@@ -1,6 +1,5 @@
-import { HTTPException } from 'hono/http-exception'
 import type { MiddlewareHandler } from 'hono'
-
+import { HTTPException } from 'hono/http-exception'
 import { getRedisClient } from '../lib/redis'
 
 interface RateLimitOptions {

@@ -1,5 +1,5 @@
-import { HTTPException } from 'hono/http-exception'
 import { afterEach, expect, mock, test } from 'bun:test'
+import { HTTPException } from 'hono/http-exception'
 
 let redisClient: RedisStub | null = null
 
