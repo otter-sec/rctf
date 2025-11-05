@@ -3,7 +3,7 @@ import { config } from '../config'
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
-const keyBytes = Buffer.from(config.auth.tokenKey, 'base64')
+const keyBytes = Buffer.from(config.tokenKey, 'base64')
 
 let cryptoKeyPromise: Promise<CryptoKey> | null = null
 
@@ -86,7 +86,7 @@ const getTokenExpiry = (kind: TokenKind): number => {
   switch (kind) {
     case TokenKind.Verify:
     case TokenKind.CtftimeAuth:
-      return config.auth.loginTimeoutSeconds
+      return config.loginTimeout
     default:
       return Number.POSITIVE_INFINITY
   }

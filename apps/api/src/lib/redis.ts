@@ -4,14 +4,22 @@ import { config } from '../config'
 let client: Redis | null | undefined
 
 const connectRedis = async (): Promise<Redis | null> => {
-  if (!config.redis.url) {
+  if (!config.database.redis) {
     return null
   }
 
-  const redis = new Redis(config.redis.url, {
-    lazyConnect: true,
-    maxRetriesPerRequest: 1,
-  })
+  let redis: Redis
+
+  if (typeof config.database.redis == 'string') {
+    redis = new Redis(config.database.redis)
+  } else {
+    redis = new Redis({
+      host: config.database.redis.host,
+      port: config.database.redis.port,
+      password: config.database.redis.password,
+      db: config.database.redis.database,
+    })
+  }
 
   redis.on('error', error => {
     console.error('[redis] connection error', error)

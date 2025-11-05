@@ -43,10 +43,10 @@ test('tampering with the payload invalidates the token', async () => {
 })
 
 test('verify tokens expire according to configuration', async () => {
-  const originalTimeout = config.auth.loginTimeoutSeconds
+  const originalTimeout = config.loginTimeout
 
   try {
-    config.auth.loginTimeoutSeconds = 1
+    config.loginTimeout = 1
 
     const issuedAt = new Date('2024-01-01T00:00:00.000Z')
     setSystemTime(issuedAt)
@@ -64,6 +64,6 @@ test('verify tokens expire according to configuration', async () => {
     const parsed = await parseToken(TokenKind.Verify, verifyToken)
     expect(parsed).toBeNull()
   } finally {
-    config.auth.loginTimeoutSeconds = originalTimeout
+    config.loginTimeout = originalTimeout
   }
 })
