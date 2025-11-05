@@ -23,7 +23,7 @@ import {
 } from '../responses'
 
 export const RegisterRoute = defineRoute({
-  path: '/auth/register',
+  path: '/v1/auth/register',
   method: 'POST',
   body: RegisterBody,
   responses: [
@@ -42,7 +42,7 @@ export const RegisterRoute = defineRoute({
 })
 
 export const LoginRoute = defineRoute({
-  path: '/auth/login',
+  path: '/v1/auth/login',
   method: 'POST',
   body: LoginBody,
   responses: [GoodLogin, BadUnknownUser, BadTokenVerification, BadCtftimeToken],
@@ -50,7 +50,7 @@ export const LoginRoute = defineRoute({
 })
 
 export const RecoverRoute = defineRoute({
-  path: '/auth/recover',
+  path: '/v1/auth/recover',
   method: 'POST',
   body: RecoverBody,
   responses: [GoodVerifySent, BadEndpoint, BadEmail, BadUnknownEmail],
@@ -58,7 +58,7 @@ export const RecoverRoute = defineRoute({
 })
 
 export const VerifyRoute = defineRoute({
-  path: '/auth/verify',
+  path: '/v1/auth/verify',
   method: 'POST',
   body: VerifyBody,
   responses: [
@@ -76,7 +76,7 @@ export const VerifyRoute = defineRoute({
 })
 
 export const TestAuthRoute = defineRoute({
-  path: '/auth/test',
+  path: '/v1/auth/test',
   method: 'GET',
   responses: [GoodToken],
   authRequired: true,

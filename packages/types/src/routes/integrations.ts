@@ -10,14 +10,14 @@ import {
 } from '../responses'
 
 export const GetClientConfigRoute = defineRoute({
-  path: '/integrations/client/config',
+  path: '/v1/integrations/client/config',
   method: 'GET',
   responses: [GoodClientConfig],
   authRequired: false,
 })
 
 export const GetCtftimeLeaderboardRoute = defineRoute({
-  path: '/integrations/ctftime/leaderboard',
+  path: '/v1/integrations/ctftime/leaderboard',
   method: 'GET',
   responses: [GoodCtftimeLeaderboard],
   authRequired: true,
@@ -25,7 +25,7 @@ export const GetCtftimeLeaderboardRoute = defineRoute({
 })
 
 export const CtftimeCallbackRoute = defineRoute({
-  path: '/integrations/ctftime/callback',
+  path: '/v1/integrations/ctftime/callback',
   method: 'POST',
   body: CtftimeCallbackBody,
   responses: [GoodCtftimeToken, BadEndpoint, BadCtftimeCode],

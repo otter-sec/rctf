@@ -45,7 +45,7 @@ const MemberIdParams = z.object({
 })
 
 export const GetUserRoute = defineRoute({
-  path: '/users/:id',
+  path: '/v1/users/:id',
   method: 'GET',
   responses: [GoodUserData, BadUnknownUser],
   authRequired: false,
@@ -53,14 +53,14 @@ export const GetUserRoute = defineRoute({
 })
 
 export const GetUserSelfRoute = defineRoute({
-  path: '/users/me',
+  path: '/v1/users/me',
   method: 'GET',
   responses: [GoodUserSelfData],
   authRequired: true,
 })
 
 export const UpdateUserRoute = defineRoute({
-  path: '/users/me',
+  path: '/v1/users/me',
   method: 'PATCH',
   body: UpdateUserBody,
   responses: [
@@ -75,14 +75,14 @@ export const UpdateUserRoute = defineRoute({
 })
 
 export const GetMembersRoute = defineRoute({
-  path: '/users/me/members',
+  path: '/v1/users/me/members',
   method: 'GET',
   responses: [GoodMemberData, BadEndpoint],
   authRequired: true,
 })
 
 export const CreateMemberRoute = defineRoute({
-  path: '/users/me/members',
+  path: '/v1/users/me/members',
   method: 'POST',
   body: CreateMemberBody,
   responses: [GoodMemberCreate, BadEndpoint, BadEnded, BadEmail, BadKnownEmail],
@@ -90,7 +90,7 @@ export const CreateMemberRoute = defineRoute({
 })
 
 export const DeleteMemberRoute = defineRoute({
-  path: '/users/me/members/:id',
+  path: '/v1/users/me/members/:id',
   method: 'DELETE',
   responses: [GoodMemberDelete, BadEnded, BadEndpoint],
   authRequired: true,
@@ -98,7 +98,7 @@ export const DeleteMemberRoute = defineRoute({
 })
 
 export const SetEmailRoute = defineRoute({
-  path: '/users/me/auth/email',
+  path: '/v1/users/me/auth/email',
   method: 'PUT',
   body: SetEmailBody,
   responses: [
@@ -113,14 +113,14 @@ export const SetEmailRoute = defineRoute({
 })
 
 export const DeleteEmailRoute = defineRoute({
-  path: '/users/me/auth/email',
+  path: '/v1/users/me/auth/email',
   method: 'DELETE',
   responses: [GoodEmailRemoved, BadEndpoint, BadZeroAuth, BadEmailNoExists],
   authRequired: true,
 })
 
 export const SetCtftimeRoute = defineRoute({
-  path: '/users/me/auth/ctftime',
+  path: '/v1/users/me/auth/ctftime',
   method: 'PUT',
   body: SetCtftimeBody,
   responses: [
@@ -134,7 +134,7 @@ export const SetCtftimeRoute = defineRoute({
 })
 
 export const DeleteCtftimeRoute = defineRoute({
-  path: '/users/me/auth/ctftime',
+  path: '/v1/users/me/auth/ctftime',
   method: 'DELETE',
   responses: [GoodCtftimeRemoved, BadEndpoint, BadZeroAuth, BadCtftimeNoExists],
   authRequired: true,

@@ -23,7 +23,7 @@ const AdminChallengeParams = z.object({
 })
 
 export const GetAdminChallengesRoute = defineRoute({
-  path: '/admin/challs',
+  path: '/v1/admin/challs',
   method: 'GET',
   responses: [GoodAdminChallenges],
   authRequired: true,
@@ -31,7 +31,7 @@ export const GetAdminChallengesRoute = defineRoute({
 })
 
 export const GetAdminChallengeRoute = defineRoute({
-  path: '/admin/challs/:id',
+  path: '/v1/admin/challs/:id',
   method: 'GET',
   responses: [GoodAdminChallenge, BadChallenge],
   authRequired: true,
@@ -40,7 +40,7 @@ export const GetAdminChallengeRoute = defineRoute({
 })
 
 export const UpdateChallengeRoute = defineRoute({
-  path: '/admin/challs/:id',
+  path: '/v1/admin/challs/:id',
   method: 'PUT',
   body: UpdateChallengeBody,
   responses: [GoodChallengeUpdate],
@@ -50,7 +50,7 @@ export const UpdateChallengeRoute = defineRoute({
 })
 
 export const DeleteChallengeRoute = defineRoute({
-  path: '/admin/challs/:id',
+  path: '/v1/admin/challs/:id',
   method: 'DELETE',
   responses: [GoodChallengeDelete],
   authRequired: true,
@@ -59,7 +59,7 @@ export const DeleteChallengeRoute = defineRoute({
 })
 
 export const UploadFilesRoute = defineRoute({
-  path: '/admin/upload',
+  path: '/v1/admin/upload',
   method: 'POST',
   body: UploadFilesBody,
   responses: [GoodFilesUpload, BadDataUri],
@@ -68,7 +68,7 @@ export const UploadFilesRoute = defineRoute({
 })
 
 export const QueryUploadsRoute = defineRoute({
-  path: '/admin/upload/query',
+  path: '/v1/admin/upload/query',
   method: 'POST',
   body: QueryUploadsBody,
   responses: [GoodUploadsQuery],

@@ -19,7 +19,7 @@ const LeaderboardGraphQuery = z.object({
 })
 
 export const GetLeaderboardRoute = defineRoute({
-  path: '/leaderboard/now',
+  path: '/v1/leaderboard/now',
   method: 'GET',
   responses: [GoodLeaderboard, BadNotStarted],
   authRequired: false,
@@ -27,7 +27,7 @@ export const GetLeaderboardRoute = defineRoute({
 })
 
 export const GetLeaderboardGraphRoute = defineRoute({
-  path: '/leaderboard/graph',
+  path: '/v1/leaderboard/graph',
   method: 'GET',
   responses: [GoodLeaderboardGraph, BadNotStarted],
   authRequired: false,

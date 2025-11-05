@@ -25,14 +25,14 @@ const ChallengeSolvesQuery = z.object({
 })
 
 export const GetChallengesRoute = defineRoute({
-  path: '/challs',
+  path: '/v1/challs',
   method: 'GET',
   responses: [GoodChallenges, BadNotStarted],
   authRequired: true,
 })
 
 export const SubmitFlagRoute = defineRoute({
-  path: '/challs/:id/submit',
+  path: '/v1/challs/:id/submit',
   method: 'POST',
   body: SubmitFlagBody,
   responses: [
@@ -50,7 +50,7 @@ export const SubmitFlagRoute = defineRoute({
 })
 
 export const GetChallengeSolvesRoute = defineRoute({
-  path: '/challs/:id/solves',
+  path: '/v1/challs/:id/solves',
   method: 'GET',
   responses: [GoodChallengeSolves, BadNotStarted, BadChallenge],
   authRequired: false,
