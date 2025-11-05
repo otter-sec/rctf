@@ -1,4 +1,6 @@
-import { defineRoute } from '../dsl'
+import { z } from 'zod'
+
+import { defineRoute } from '../internal'
 import {
   CreateMemberBody,
   SetCtftimeBody,
@@ -34,11 +36,20 @@ import {
   GoodVerifySent,
 } from '../responses'
 
+const UserIdParams = z.object({
+  id: z.string(),
+})
+
+const MemberIdParams = z.object({
+  id: z.string(),
+})
+
 export const GetUserRoute = defineRoute({
   path: '/users/:id',
   method: 'GET',
   responses: [GoodUserData, BadUnknownUser],
   authRequired: false,
+  params: UserIdParams,
 })
 
 export const GetUserSelfRoute = defineRoute({
@@ -83,6 +94,7 @@ export const DeleteMemberRoute = defineRoute({
   method: 'DELETE',
   responses: [GoodMemberDelete, BadEnded, BadEndpoint],
   authRequired: true,
+  params: MemberIdParams,
 })
 
 export const SetEmailRoute = defineRoute({

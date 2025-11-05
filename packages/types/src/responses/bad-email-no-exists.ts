@@ -1,4 +1,4 @@
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const BadEmailNoExists = response('badEmailNoExists', {
   status: 404,

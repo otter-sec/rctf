@@ -1,4 +1,5 @@
-import { defineRoute } from '../dsl'
+import { defineRoute } from '../internal'
+import { Permissions } from '../enums/permissions'
 import { CtftimeCallbackBody } from '../models'
 import {
   BadCtftimeCode,
@@ -20,6 +21,7 @@ export const GetCtftimeLeaderboardRoute = defineRoute({
   method: 'GET',
   responses: [GoodCtftimeLeaderboard],
   authRequired: true,
+  permissions: Permissions.leaderboardRead,
 })
 
 export const CtftimeCallbackRoute = defineRoute({

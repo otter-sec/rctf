@@ -4,15 +4,15 @@ import type { ApiContext } from '../types'
 
 export default declareRouter<ApiContext, Response, typeof RegisterRoute>(
   RegisterRoute,
-  async (res, body) => {
-    if (!body.id) {
-      return res.BadResponse()
+  async ({ res, body }) => {
+    if (!body.email && !body.ctftimeToken) {
+      return res.badEmail()
     }
 
-    return res.GoodResponse({
-      id: body.id,
-      name: body.name,
-      code: 1337,
-    })
+    if (body.ctftimeToken) {
+      return res.goodRegister({ authToken: 'example-token' })
+    }
+
+    return res.goodVerifySent()
   }
 )

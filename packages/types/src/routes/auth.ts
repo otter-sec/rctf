@@ -1,12 +1,8 @@
-import { defineRoute } from '../dsl'
-import {
-  LoginBody,
-  RecoverBody,
-  RegisterBody,
-  VerifyBody,
-} from '../models'
+import { defineRoute } from '../internal'
+import { LoginBody, RecoverBody, RegisterBody, VerifyBody } from '../models'
 import {
   BadCompetitionNotAllowed,
+  BadEndpoint,
   BadCtftimeToken,
   BadEmail,
   BadEmailChangeDivision,
@@ -57,7 +53,7 @@ export const RecoverRoute = defineRoute({
   path: '/auth/recover',
   method: 'POST',
   body: RecoverBody,
-  responses: [GoodVerifySent, BadEmail, BadUnknownEmail],
+  responses: [GoodVerifySent, BadEndpoint, BadEmail, BadUnknownEmail],
   authRequired: false,
 })
 

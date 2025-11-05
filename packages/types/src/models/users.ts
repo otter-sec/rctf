@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { model } from '../dsl'
+import { model } from '../internal'
 
 export const UpdateUserBody = model('UpdateUserBody', {
   name: z.string().optional(),

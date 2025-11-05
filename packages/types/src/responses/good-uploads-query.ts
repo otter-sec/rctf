@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const GoodUploadsQuery = response('goodUploadsQuery', {
   status: 200,

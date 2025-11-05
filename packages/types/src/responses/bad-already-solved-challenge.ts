@@ -1,4 +1,4 @@
-import { response } from '../dsl'
+import { response } from '../internal'
 
 export const BadAlreadySolvedChallenge = response('badAlreadySolvedChallenge', {
   status: 409,
