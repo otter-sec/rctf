@@ -1,3 +1,5 @@
+import { z } from 'zod'
+
 import { defineRoute } from '../dsl'
 import { SubmitFlagBody } from '../models'
 import {
@@ -12,6 +14,15 @@ import {
   GoodChallenges,
   GoodFlag,
 } from '../responses'
+
+const ChallengeIdParams = z.object({
+  id: z.string(),
+})
+
+const ChallengeSolvesQuery = z.object({
+  limit: z.coerce.number().int().min(1),
+  offset: z.coerce.number().int().min(0),
+})
 
 export const GetChallengesRoute = defineRoute({
   path: '/challs',
@@ -35,6 +46,7 @@ export const SubmitFlagRoute = defineRoute({
     BadUnknownUser,
   ],
   authRequired: true,
+  params: ChallengeIdParams,
 })
 
 export const GetChallengeSolvesRoute = defineRoute({
@@ -42,4 +54,6 @@ export const GetChallengeSolvesRoute = defineRoute({
   method: 'GET',
   responses: [GoodChallengeSolves, BadNotStarted, BadChallenge],
   authRequired: false,
+  params: ChallengeIdParams,
+  query: ChallengeSolvesQuery,
 })

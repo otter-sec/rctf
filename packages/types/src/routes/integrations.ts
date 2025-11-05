@@ -20,6 +20,7 @@ export const GetCtftimeLeaderboardRoute = defineRoute({
   method: 'GET',
   responses: [GoodCtftimeLeaderboard],
   authRequired: true,
+  permissions: ['leaderboardRead'],
 })
 
 export const CtftimeCallbackRoute = defineRoute({

@@ -38,6 +38,11 @@ export const createHonoRuntime = <
   options?: HonoRuntimeOptions<TContext>
 ): RouteRuntime<TContext, Response, TRoute> => ({
   readBody: async context => context.req.json(),
+  readParams: async context => context.req.param(),
+  readQuery: async context => {
+    const url = new URL(context.req.url)
+    return Object.fromEntries(url.searchParams.entries())
+  },
   handleMalformedBody: async (context, error) =>
     options?.onMalformedJson?.(context, error) ??
     context.json(defaultMalformedJson(), 400),
