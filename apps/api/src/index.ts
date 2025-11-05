@@ -3,8 +3,26 @@ import type { AppEnv } from './types'
 import { routeModules } from './routes'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import { pinoLogger } from 'hono-pino'
+import pino from 'pino'
 
 const app = new Hono<AppEnv>()
+
+// TODO(es3n1n): this is for dev env, for production see
+//  https://github.com/maou-shonen/hono-pino#usage
+const pinoObject = pino({
+  base: null,
+  level: 'trace',
+  transport: {
+    target: 'hono-pino/debug-log',
+  },
+  timestamp: pino.stdTimeFunctions.epochTime,
+})
+app.use(
+  pinoLogger({
+    pino: pinoObject,
+  })
+)
 
 // TODO(es3n1n): all this stuff should moved to some setup function
 for (const { router, handler } of routeModules) {
@@ -39,7 +57,7 @@ export default app
 
 if (import.meta.main) {
   const port = Number(process.env.PORT ?? 3000)
-  console.log(`API listening on http://localhost:${port}`)
+  pinoObject.info(`Listening on :${port}`)
   Bun.serve({
     port,
     fetch: app.fetch,

@@ -9,13 +9,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@rctf/types": "workspace:*",
-    "@rctf/db": "workspace:*",
-    "hono": "^4.6.14",
     "@hono/zod-validator": "^0.2.1",
-    "zod": "^3.23.8",
+    "@rctf/db": "workspace:*",
+    "@rctf/types": "workspace:*",
+    "hono": "^4.10.4",
+    "hono-pino": "^0.10.3",
     "ioredis": "^5.4.1",
-    "postgres": "^3.4.5"
+    "pino": "^10.1.0",
+    "postgres": "^3.4.5",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bun": "latest"

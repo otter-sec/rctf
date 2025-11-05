@@ -3,7 +3,6 @@ import {
   GetChallengesRoute,
   SubmitFlagRoute,
 } from '@rctf/types'
-
 import { createRouterGroup } from '../../lib/route-module'
 
 const group = createRouterGroup()

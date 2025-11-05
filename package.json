@@ -26,7 +26,7 @@
     "prettier": "2.4.1"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   },
   "prettier": {
     "tabWidth": 2,

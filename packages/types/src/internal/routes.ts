@@ -122,7 +122,7 @@ export interface RouteHandlerArgs<
   params: RouteParams<TRoute>
   query: RouteQuery<TRoute>
   auth: RouteHandlerContext<TContext, TRoute>['auth']
-  context: RouteHandlerContext<TContext, TRoute>
+  ctx: TContext
   permissions: RoutePermissions<TRoute>
 }
 
@@ -336,7 +336,7 @@ export const declareRouter = <
         params: parsedParams,
         query: parsedQuery,
         auth: executionContext.auth,
-        context: executionContext,
+        ctx: executionContext.context,
         permissions: executionContext.permissions,
       }
 

@@ -1,5 +1,4 @@
 import { GetLeaderboardGraphRoute, GetLeaderboardRoute } from '@rctf/types'
-
 import { createRouterGroup } from '../../lib/route-module'
 
 const group = createRouterGroup()
