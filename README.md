@@ -5,11 +5,11 @@
 ```
 rctf/
 ├── apps/
-│   ├── api/          # Hono
-│   └── web/          # SvelteKit
+  ├── api/          # Hono
+  └── web/          # SvelteKit
 ├── packages/
-│   ├── types/        # Types
-│   └── db/           # Drizzle
+  ├── types/        # Types
+  └── db/           # Drizzle
 ```
 
 | Package       | Description                 |
@@ -73,3 +73,40 @@ Place project secrets alongside `package.json` as `.env` (checked-in template `.
 | ORM           | Drizzle ORM |
 | Caching       | Redis       |
 | Language      | TypeScript  |
+
+## Roadmap
+
+[ ] `/api/v1/auth/register`
+[ ] `/api/v1/auth/login`
+[ ] `/api/v1/auth/recover`
+[ ] `/api/v1/auth/verify`
+[ ] `/api/v1/auth/test`
+
+[ ] `/api/v1/users/me`
+[ ] `/api/v1/users/:id`
+[ ] `/api/v1/users/me`
+[ ] `/api/v1/users/me/members`
+[ ] `/api/v1/users/me/members`
+[ ] `/api/v1/users/me/members/:id`
+[ ] `/api/v1/users/me/auth/email`
+[ ] `/api/v1/users/me/auth/email`
+[ ] `/api/v1/users/me/auth/ctftime`
+[ ] `/api/v1/users/me/auth/ctftime`
+
+[ ] `/api/v1/admin/challs`
+[ ] `/api/v1/admin/challs/:id`
+[ ] `/api/v1/admin/challs/:id`
+[ ] `/api/v1/admin/challs/:id`
+[ ] `/api/v1/admin/upload`
+[ ] `/api/v1/admin/upload/query`
+
+[ ] `/api/v1/challs`
+[ ] `/api/v1/challs/:id/submit`
+[ ] `/api/v1/challs/:id/solves`
+
+[ ] `/api/v1/integrations/client/config`
+[ ] `/api/v1/integrations/ctftime/leaderboard`
+[ ] `/api/v1/integrations/ctftime/callback`
+
+[ ] `/api/v1/leaderboard/now`
+[ ] `/api/v1/leaderboard/graph`
