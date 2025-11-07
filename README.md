@@ -79,7 +79,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/challs/:id/submit`
 - [ ] `/api/v1/challs/:id/solves`
 
-- [ ] `/api/v1/integrations/client/config`
+- [x] `/api/v1/integrations/client/config`
 - [ ] `/api/v1/integrations/ctftime/leaderboard`
 - [ ] `/api/v1/integrations/ctftime/callback`
 
