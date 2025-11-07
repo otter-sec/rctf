@@ -13,17 +13,21 @@
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/types": "workspace:*",
+    "aws-sdk": "2.1018.0",
     "drizzle-orm": "^0.44.7",
     "email-validator": "^2.0.4",
     "hono": "^4.10.4",
     "hono-pino": "^0.10.3",
-    "ioredis": "^5.4.1",
+    "mustache": "^4.2.0",
+    "nodemailer": "^7.0.10",
     "pino": "^10.1.0",
     "postgres": "^3.4.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/mustache": "^4.2.6",
+    "@types/nodemailer": "^7.0.3"
   },
   "peerDependencies": {
     "typescript": "^5"

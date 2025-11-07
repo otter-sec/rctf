@@ -8,7 +8,7 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { eq } from 'drizzle-orm'
+import { eq, or } from 'drizzle-orm'
 import { createToken, TokenKind } from '../lib/tokens'
 
 type CreateUserResponseHelpers = ResponseHelpers<
@@ -27,7 +27,7 @@ export const createUser = async (
 ): Promise<
   ReturnType<CreateUserResponseHelpers[keyof CreateUserResponseHelpers]>
 > => {
-  let created: { id: string }
+  let created
 
   try {
     created = (
@@ -68,6 +68,26 @@ export const getUser = async (
     .select()
     .from(users)
     .where(eq(users.id, id))
+    .limit(1)
+    .then(takeUnique)
+}
+
+export const getUserByNameOrEmail = async (
+  db: DatabaseClient,
+  options: {
+    name: string
+    email: string | undefined
+  }
+): Promise<User | undefined> => {
+  return await db
+    .select()
+    .from(users)
+    .where(
+      or(
+        eq(users.name, options.name),
+        options.email ? eq(users.email, options.email) : undefined
+      )
+    )
     .limit(1)
     .then(takeUnique)
 }

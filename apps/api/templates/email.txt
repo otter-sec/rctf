@@ -1,0 +1,24 @@
+{{ #register }}
+Verify your email for {{{ ctf_name }}}
+
+Before you and your team start capturing flags, we need a verified email.
+Verify your email to register for {{{ ctf_name }}}.
+{{ /register }}
+{{ #recover }}
+Recover your account for {{{ ctf_name }}}
+
+Before we recover your account, we need to make sure it's actually you.
+Verify your email to recover your {{{ ctf_name }}} account.
+{{ /recover }}
+{{ #update }}
+Update your {{{ ctf_name }}} email
+
+Before we add this email to your account, we need to make sure it's actually you.
+Verify this email to add it to your {{{ ctf_name }}} account.
+{{ /update }}
+
+{{{ origin }}}/verify?token={{{ token }}}
+
+If you didn't attempt this, you can safely ignore this email.
+
+Sent by {{{ ctf_name }}} ({{{ origin }}})

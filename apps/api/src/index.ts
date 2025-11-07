@@ -10,14 +10,9 @@ import { routeModules } from './routes'
 const app = new Hono<AppEnv>()
 
 // TODO(es3n1n): this is for dev env, for production see
-//  https://github.com/maou-shonen/hono-pino#usage
 const pinoObject = pino({
   base: null,
   level: 'trace',
-  transport: {
-    target: 'hono-pino/debug-log',
-  },
-  timestamp: pino.stdTimeFunctions.epochTime,
 })
 app.use(
   pinoLogger({
@@ -44,7 +39,8 @@ app.notFound(c =>
 )
 
 app.onError((err, c) => {
-  console.error(err)
+  // Logging the exception for the second time to make sure we capture the stacktrace :shrug:
+  c.var.logger.error({ err })
   return c.json(
     {
       kind: ErrorInternal.kind,

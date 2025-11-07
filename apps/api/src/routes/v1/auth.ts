@@ -7,7 +7,10 @@ import {
   VerifyRoute,
 } from '@rctf/types'
 import { createRouterGroup } from '../../lib/route-module'
-import { createUser } from '../../services/users'
+import { createToken, TokenKind } from '../../lib/tokens'
+import { storeLoginVerification } from '../../services/auth-cache'
+import { sendVerificationEmail } from '../../services/emails'
+import { createUser, getUserByNameOrEmail } from '../../services/users'
 import * as v1Validators from '../../util/v1-validators'
 
 const group = createRouterGroup()
@@ -18,17 +21,13 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badRegistrationsDisabled()
   }
 
-  if (body.ctftimeToken) {
-    return res.badCtftimeToken()
-  }
-
   // Normalize the same way v1 does it
   body.name = v1Validators.normalizeName(body.name)
   if (body.email) {
     body.email = v1Validators.normalizeEmail(body.email)
   }
 
-  // TODO(es3n1n): Ideally these should be checked with zod, but this will be a breaking change :)
+  // TODO(es3n1n): Ideally these should be checked with zod, but that would be a breaking change :)
   if (!v1Validators.validateName(body.name)) {
     ctx.var.logger.error(`${body.name} not valid`)
     return res.badName()
@@ -37,15 +36,43 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badEmail()
   }
 
-  if (config.email) {
-    // Unsupported atm
+  const division = config.defaultDivision || Object.keys(config.divisions)[0]
+  if (!division) {
+    throw new Error('No divisions provided')
+  }
+
+  if (config.email && body.email) {
+    // TODO(es3n1n): divisions ACL
+
+    // Prior to sending the verification email we need to make sure there are no conflicts
+    const conflict = await getUserByNameOrEmail(ctx.var.db, {
+      name: body.name,
+      email: body.email,
+    })
+    if (conflict) {
+      if (conflict.name === body.name) {
+        return res.badKnownName()
+      }
+      return res.badKnownEmail()
+    }
+
+    const verificationId = crypto.randomUUID()
+    await storeLoginVerification(ctx.var.redis, { id: verificationId })
+    const verificationToken = await createToken(TokenKind.Verify, {
+      kind: 'register',
+      verifyId: verificationId,
+      email: body.email,
+      name: body.name,
+      division: division,
+    })
+
+    await sendVerificationEmail(body.email, 'register', verificationToken)
     return res.goodVerifySent()
   }
 
-  const division = config.defaultDivision || Object.keys(config.divisions)[0]
-  if (!division) {
-    // TODO(es3n1n): proper error
-    return res.badCompetitionNotAllowed()
+  if (body.ctftimeToken) {
+    // Unsupported atm
+    return res.badCtftimeToken()
   }
 
   return await createUser(res, ctx.var.db, {
