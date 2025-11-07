@@ -27,5 +27,5 @@ const AdminChallengeSchema = z.object({
 export const GoodChallengeUpdate = response('goodChallengeUpdate', {
   status: 200,
   message: 'Challenge successfully updated.',
-  data: AdminChallengeSchema.extend({}).passthrough(),
+  data: AdminChallengeSchema,
 })

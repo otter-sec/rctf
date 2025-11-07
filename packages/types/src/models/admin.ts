@@ -2,31 +2,29 @@ import { z } from 'zod'
 import { model } from '../internal'
 
 export const UpdateChallengeBody = model('UpdateChallengeBody', {
-  data: z
-    .object({
-      author: z.string().optional(),
-      category: z.string().optional(),
-      description: z.string().optional(),
-      flag: z.string().optional(),
-      name: z.string().optional(),
-      points: z
-        .object({
-          max: z.number().int(),
-          min: z.number().int(),
+  data: z.object({
+    author: z.string().optional(),
+    category: z.string().optional(),
+    description: z.string().optional(),
+    flag: z.string().optional(),
+    name: z.string().optional(),
+    points: z
+      .object({
+        max: z.number().int(),
+        min: z.number().int(),
+      })
+      .optional(),
+    tiebreakEligible: z.boolean().optional(),
+    files: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
         })
-        .optional(),
-      tiebreakEligible: z.boolean().optional(),
-      files: z
-        .array(
-          z.object({
-            name: z.string(),
-            url: z.string(),
-          })
-        )
-        .optional(),
-      sortWeight: z.number().optional(),
-    })
-    .passthrough(),
+      )
+      .optional(),
+    sortWeight: z.number().optional(),
+  }),
 })
 
 export const UploadFilesBody = model('UploadFilesBody', {
