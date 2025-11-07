@@ -63,11 +63,14 @@ rCTF v1 frontend with rCTF v2 backend:
   - [ ] CTFTime login
   - [ ] Divisions ACL
   - [ ] Email verification:
-    - [ ] `/api/v1/auth/verify`
     - [x] SMTP
     - [x] SES (untested) - TODO: bump aws sdk to v3
     - [x] Postmark (untested)
     - [x] Mailgun (untested)
+- [ ] `/api/v1/auth/verify`:
+  - [x] Register
+  - [ ] Recover
+  - [ ] Update
 - [ ] `/api/v1/auth/login`
 - [ ] `/api/v1/auth/recover`
 - [x] `/api/v1/auth/test`

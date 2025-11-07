@@ -7,8 +7,11 @@ import {
   VerifyRoute,
 } from '@rctf/types'
 import { createRouterGroup } from '../../lib/route-module'
-import { createToken, TokenKind } from '../../lib/tokens'
-import { storeLoginVerification } from '../../services/auth-cache'
+import { createToken, parseToken, TokenKind } from '../../lib/tokens'
+import {
+  checkLoginVerification,
+  storeLoginVerification,
+} from '../../services/auth-cache'
 import { sendVerificationEmail } from '../../services/emails'
 import { createUser, getUserByNameOrEmail } from '../../services/users'
 import * as v1Validators from '../../util/v1-validators'
@@ -83,8 +86,29 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
   })
 })
 
-group.declareRouter(VerifyRoute, async ({ res }) => {
-  return res.goodVerify({ authToken: 'dummy-verified-token' })
+group.declareRouter(VerifyRoute, async ({ ctx, body, res }) => {
+  const tokenData = await parseToken(TokenKind.Verify, body.verifyToken)
+  if (tokenData === null) {
+    return res.badTokenVerification()
+  }
+
+  const tokenUnused = await checkLoginVerification(ctx.var.redis, {
+    id: tokenData.verifyId,
+  })
+  if (!tokenUnused) {
+    return res.badTokenVerification()
+  }
+
+  if (tokenData.kind !== 'register') {
+    throw new Error(`Unsupported kind: ${tokenData.kind}`)
+  }
+
+  return await createUser(res, ctx.var.db, {
+    division: tokenData.division,
+    email: tokenData.email,
+    name: tokenData.name,
+    ctftimeId: null,
+  })
 })
 
 group.declareRouter(LoginRoute, async ({ res }) => {
