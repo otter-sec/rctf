@@ -1,3 +1,4 @@
+import path from 'node:path'
 import { config } from '@rctf/config'
 import mustache from 'mustache'
 import { emailProvider } from '../providers'
@@ -7,9 +8,11 @@ export type EmailKind = 'register' | 'recover' | 'update'
 // FIXME(es3n1n): this is sketchy
 // TODO(es3n1n): we might want to migrate to eta/handlebars, but that's unfortunately a breaking change
 const emailHTML = await Bun.file(
-  __dirname + '/../../templates/email.html'
+  path.join(__dirname, '/../../templates/email.html')
 ).text()
-const emailTXT = await Bun.file(__dirname + '/../../templates/email.txt').text()
+const emailTXT = await Bun.file(
+  path.join(__dirname, '/../../templates/email.txt')
+).text()
 
 export const sendVerificationEmail = async (
   to: string,

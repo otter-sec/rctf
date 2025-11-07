@@ -30,7 +30,6 @@ const validationError = (
   error: ZodError<unknown>
 ): [JsonLike, ContentfulStatusCode] => [
   {
-    // TODO(es3n1n): show src (body/query/params)
     // TODO(es3n1n): also return a list of all issues (which is technically a breaking change compared to rctf v1)
     kind: BadBody.kind,
     message: BadBody.message,

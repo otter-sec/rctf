@@ -23,16 +23,18 @@ export interface RouteDefinition<
   TBody extends SchemaLike | undefined = undefined,
   TResponses extends ResponseCollection = ResponseCollection,
   TParams extends SchemaLike | undefined = undefined,
-  TQuery extends SchemaLike | undefined = undefined
+  TQuery extends SchemaLike | undefined = undefined,
+  TAuthRequired extends boolean = boolean,
+  TPermissions extends Permissions | undefined = Permissions | undefined
 > {
   readonly method: TMethod
   readonly path: string
   readonly body: TBody
   readonly responses: TResponses
-  readonly authRequired: boolean
+  readonly authRequired: TAuthRequired
   readonly params: TParams
   readonly query: TQuery
-  readonly permissions: Permissions | undefined
+  readonly permissions: TPermissions
 }
 
 type RouteConfig = {
@@ -46,6 +48,16 @@ type RouteConfig = {
   permissions?: Permissions
 }
 
+type NormalizedAuthRequired<TDefinition extends RouteConfig> =
+  TDefinition['authRequired'] extends boolean
+    ? TDefinition['authRequired']
+    : false
+
+type NormalizedPermissions<TDefinition extends RouteConfig> =
+  TDefinition['permissions'] extends Permissions
+    ? TDefinition['permissions']
+    : undefined
+
 export function defineRoute<TDefinition extends RouteConfig>(
   definition: TDefinition
 ): RouteDefinition<
@@ -53,7 +65,9 @@ export function defineRoute<TDefinition extends RouteConfig>(
   OptionalSchema<TDefinition['body']>,
   TDefinition['responses'],
   OptionalSchema<TDefinition['params']>,
-  OptionalSchema<TDefinition['query']>
+  OptionalSchema<TDefinition['query']>,
+  NormalizedAuthRequired<TDefinition>,
+  NormalizedPermissions<TDefinition>
 > {
   const {
     method,
@@ -70,11 +84,13 @@ export function defineRoute<TDefinition extends RouteConfig>(
     method,
     path,
     responses,
-    authRequired,
+    authRequired: (authRequired ??
+      false) as NormalizedAuthRequired<TDefinition>,
     body: (body ?? undefined) as OptionalSchema<TDefinition['body']>,
     params: (params ?? undefined) as OptionalSchema<TDefinition['params']>,
     query: (query ?? undefined) as OptionalSchema<TDefinition['query']>,
-    permissions: permissions ?? undefined,
+    permissions: (permissions ??
+      undefined) as NormalizedPermissions<TDefinition>,
   }
 }
 
@@ -101,31 +117,53 @@ export type RouteQuery<TRoute extends AnyRouteDefinition> = SchemaOutput<
 export type RoutePermissions<TRoute extends AnyRouteDefinition> =
   TRoute['permissions']
 
-export interface RouteHandlerContext<
+type RouteRequiresAuth<TRoute extends AnyRouteDefinition> =
+  TRoute['authRequired'] extends true
+    ? true
+    : TRoute['permissions'] extends Permissions
+    ? true
+    : false
+
+type RouteAuthFields<
+  TRoute extends AnyRouteDefinition,
+  TUser
+> = RouteRequiresAuth<TRoute> extends true ? { user: TUser } : {}
+
+export type RouteHandlerContext<
   TContext,
   TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
-> {
+> = {
   context: TContext
-  auth?: TUser
+  params: RouteParams<TRoute>
+  query: RouteQuery<TRoute>
+  permissions: RoutePermissions<TRoute>
+} & RouteAuthFields<TRoute, TUser>
+
+type MutableRouteHandlerContext<
+  TContext,
+  TUser,
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+> = {
+  context: TContext
+  user?: TUser
   params: RouteParams<TRoute>
   query: RouteQuery<TRoute>
   permissions: RoutePermissions<TRoute>
 }
 
-export interface RouteHandlerArgs<
+export type RouteHandlerArgs<
   TContext,
   TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
-> {
+> = {
   res: ResponseHelpers<TRoute['responses']>
   body: RouteBody<TRoute>
   params: RouteParams<TRoute>
   query: RouteQuery<TRoute>
-  auth: RouteHandlerContext<TContext, TUser, TRoute>['auth']
   ctx: TContext
   permissions: RoutePermissions<TRoute>
-}
+} & RouteAuthFields<TRoute, TUser>
 
 export type RouteHandler<
   TContext,
@@ -242,7 +280,7 @@ export const declareRouter = <
       runtime: RouteRuntime<TContext, TResult, TUser, TRoute>
     ): RouteExecutor<TContext, TResult> =>
     async context => {
-      const executionContext: RouteHandlerContext<
+      const executionContext: MutableRouteHandlerContext<
         TContext,
         TUser,
         typeof definition
@@ -253,15 +291,21 @@ export const declareRouter = <
         permissions: definition.permissions ?? undefined,
       }
 
-      if (definition.authRequired || (definition.permissions ?? 0) != 0) {
-        executionContext.auth = await runtime.ensureAuth(context)
-        if (!executionContext.auth) {
+      const requiresAuth =
+        definition.authRequired || (definition.permissions ?? 0) != 0
+
+      if (requiresAuth) {
+        executionContext.user = await runtime.ensureAuth(context)
+        if (!executionContext.user) {
           return await runtime.handleUnauthorized(context)
         }
 
         if (
           definition.permissions &&
-          !runtime.ensurePerms(executionContext.auth, definition.permissions)
+          !(await runtime.ensurePerms(
+            executionContext.user,
+            definition.permissions
+          ))
         ) {
           return await runtime.handleAccessDenied(context)
         }
@@ -344,16 +388,20 @@ export const declareRouter = <
       executionContext.params = parsedParams
       executionContext.query = parsedQuery
 
-      const handlerArgs: RouteHandlerArgs<TContext, TUser, typeof definition> =
-        {
-          res: responders,
-          body: parsedBody,
-          params: parsedParams,
-          query: parsedQuery,
-          auth: executionContext.auth,
-          ctx: executionContext.context,
-          permissions: executionContext.permissions,
-        }
+      const handlerArgsBase = {
+        res: responders,
+        body: parsedBody,
+        params: parsedParams,
+        query: parsedQuery,
+        ctx: executionContext.context,
+        permissions: executionContext.permissions,
+      }
+
+      const handlerArgs = (
+        requiresAuth
+          ? { ...handlerArgsBase, user: executionContext.user as TUser }
+          : handlerArgsBase
+      ) as RouteHandlerArgs<TContext, TUser, typeof definition>
 
       const routeResult = await handler(handlerArgs)
       return await runtime.send(context, routeResult)

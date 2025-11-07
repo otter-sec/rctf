@@ -14,6 +14,7 @@ import {
 } from '../../services/auth-cache'
 import { sendVerificationEmail } from '../../services/emails'
 import { createUser, getUserByNameOrEmail } from '../../services/users'
+import { allowedDivisions } from '../../util/acl'
 import * as v1Validators from '../../util/v1-validators'
 
 const group = createRouterGroup()
@@ -39,14 +40,15 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badEmail()
   }
 
-  const division = config.defaultDivision || Object.keys(config.divisions)[0]
+  const division =
+    config.divisionACLs && body.email && config.email
+      ? allowedDivisions(body.email)[0]
+      : config.defaultDivision || Object.keys(config.divisions)[0]
   if (!division) {
-    throw new Error('No divisions provided')
+    return res.badCompetitionNotAllowed()
   }
 
   if (config.email && body.email) {
-    // TODO(es3n1n): divisions ACL
-
     // Prior to sending the verification email we need to make sure there are no conflicts
     const conflict = await getUserByNameOrEmail(ctx.var.db, {
       name: body.name,

@@ -61,8 +61,8 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/auth/register`:
   - [x] User creation
   - [ ] CTFTime login
-  - [ ] Divisions ACL
-  - [ ] Email verification:
+  - [x] Divisions ACL
+  - [x] Email verification:
     - [x] SMTP
     - [x] SES (untested) - TODO: bump aws sdk to v3
     - [x] Postmark (untested)

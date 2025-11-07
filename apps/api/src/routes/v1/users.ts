@@ -37,41 +37,39 @@ const exampleUserData = {
   perms: 1,
 }
 
-const exampleSelfData = {
-  id: 'id',
-  name: 'es3n1n',
-  email: 'me@es3n1n.eu',
-  ctftimeId: '12345',
-  division: 'open',
-  score: 4_200,
-  globalPlace: 1,
-  divisionPlace: 1,
-  solves: exampleSolves,
-  teamToken: 'team-token',
-  allowedDivisions: ['open', 'student'],
-  perms: 1,
-}
-
 const exampleMember = {
   id: 'member-1',
   userid: 'user-1',
   email: 'teammate@example.com',
 }
 
-group.declareRouter(GetUserSelfRoute, async ({ res }) => {
-  return res.goodUserSelfData(exampleSelfData)
+group.declareRouter(GetUserSelfRoute, async ({ ctx, user, res }) => {
+  return res.goodUserSelfData({
+    id: user.id,
+    name: user.name,
+    email: user.email ?? undefined,
+    ctftimeId: user.ctftimeId ?? undefined,
+    division: user.division,
+    score: 4_200,
+    globalPlace: 1,
+    divisionPlace: 1,
+    solves: exampleSolves,
+    teamToken: 'team-token',
+    allowedDivisions: ['open', 'student'],
+    perms: 1,
+  })
 })
 
 group.declareRouter(GetUserRoute, async ({ res }) => {
   return res.goodUserData(exampleUserData)
 })
 
-group.declareRouter(UpdateUserRoute, async ({ res }) => {
+group.declareRouter(UpdateUserRoute, async ({ user, res }) => {
   return res.goodUserUpdate({
     user: {
-      name: exampleSelfData.name,
-      email: exampleSelfData.email,
-      division: exampleSelfData.division,
+      name: user.name,
+      email: user.email ?? undefined,
+      division: user.division,
     },
   })
 })
