@@ -1,13 +1,18 @@
+import type { InferInsertModel, User, users } from '@rctf/db'
 import type {
   AnyRouteDefinition,
+  Permissions,
   RouteRuntime,
   RouteValidationSource,
 } from '@rctf/types'
-import { BadBody, BadJson } from '@rctf/types'
-import type { Context } from 'hono'
+import { BadBody, BadJson, BadPerms, BadToken } from '@rctf/types'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import type { ZodError } from 'zod'
+import { getUser } from '../services/users'
+import type { ApiContext } from './app-env'
+import { parseToken, TokenKind } from './tokens'
 
+const AUTH_PREFIX = 'Bearer '
 type JsonLike = Record<string, unknown>
 
 // TODO(es3n1n): we need an util for this
@@ -41,18 +46,59 @@ const validationError = (
   BadBody.status as ContentfulStatusCode,
 ]
 
-const authGuard = () => undefined
+const accessDenied = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadPerms.kind,
+    message: BadPerms.message,
+    data: null,
+  },
+  BadPerms.status as ContentfulStatusCode,
+]
+
+const unauthorized = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadToken.kind,
+    message: BadToken.message,
+    data: null,
+  },
+  BadToken.status as ContentfulStatusCode,
+]
+
+const ensureAuth = async (
+  context: ApiContext
+): Promise<InferInsertModel<typeof users> | undefined> => {
+  const authHeader = context.req.header('Authorization')
+  if (!authHeader || !authHeader.startsWith(AUTH_PREFIX)) {
+    return undefined
+  }
+
+  const userId = await parseToken(
+    TokenKind.Auth,
+    authHeader.slice(AUTH_PREFIX.length)
+  )
+  if (!userId) {
+    return undefined
+  }
+
+  return await getUser(context.var.db, userId)
+}
+
+const ensurePerms = async (user: User, permissions: Permissions) => {
+  return (user.perms & permissions) !== 0
+}
 
 export const createTypesRuntime = <
-  TContext extends Context,
   TRoute extends AnyRouteDefinition
->(): RouteRuntime<TContext, Response, TRoute> => ({
+>(): RouteRuntime<ApiContext, Response, User, TRoute> => ({
   readBody: async context => context.req.json(),
   readParams: async context => context.req.param(),
   readQuery: async context => context.req.query(),
   handleMalformedBody: async context => context.json(...malformedJson()),
   handleValidationError: async (src, context, error) =>
     context.json(...validationError(src, error)),
-  ensureAuth: async (context, permissions) => authGuard(),
+  ensureAuth: ensureAuth,
+  ensurePerms: ensurePerms,
+  handleAccessDenied: async context => context.json(...accessDenied()),
+  handleUnauthorized: async context => context.json(...unauthorized()),
   send: (context, result) => context.json(result.body, result.status as never),
 })

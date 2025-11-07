@@ -89,23 +89,3 @@ export interface ServerConfig {
   }
   loginTimeout: number
 }
-
-export type ClientConfig = Pick<
-  ServerConfig,
-  | 'meta'
-  | 'homeContent'
-  | 'sponsors'
-  | 'globalSiteTag'
-  | 'ctfName'
-  | 'divisions'
-  | 'defaultDivision'
-  | 'origin'
-  | 'startTime'
-  | 'endTime'
-  | 'userMembers'
-  | 'registrationsEnabled'
-  | 'faviconUrl'
-> & {
-  emailEnabled: boolean
-  ctftime?: Pick<NonNullable<ServerConfig['ctftime']>, 'clientId'>
-}

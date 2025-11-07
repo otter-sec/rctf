@@ -1,26 +1,9 @@
+import crypto from 'crypto'
+import { promisify } from 'util'
 import { config } from '@rctf/config'
 
-const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
-const keyBytes = Buffer.from(config.tokenKey, 'base64')
-
-let cryptoKeyPromise: Promise<CryptoKey> | null = null
-
-const getCryptoKey = (): Promise<CryptoKey> => {
-  if (!cryptoKeyPromise) {
-    cryptoKeyPromise = crypto.subtle.importKey(
-      'raw',
-      keyBytes,
-      { name: 'AES-GCM' },
-      false,
-      ['encrypt', 'decrypt']
-    )
-  }
-  return cryptoKeyPromise
-}
-
-const nowInSeconds = () => Math.floor(Date.now() / 1000)
+const randomBytes = promisify(crypto.randomBytes)
+const tokenKey = Buffer.from(config.tokenKey, 'base64')
 
 export enum TokenKind {
   Auth = 0,
@@ -29,19 +12,18 @@ export enum TokenKind {
   CtftimeAuth = 4,
 }
 
+export type VerifyTokenKinds = 'update' | 'register' | 'recover'
 export type AuthTokenData = string
 export type TeamTokenData = string
 
-export type VerifyTokenKinds = 'register' | 'update' | 'recover'
-
-export interface BaseVerifyTokenData {
+interface BaseVerifyTokenData {
   verifyId: string
   kind: VerifyTokenKinds
 }
 
 export interface RegisterVerifyTokenData extends BaseVerifyTokenData {
   kind: 'register'
-  email: string
+  email: NonNullable<string>
   name: string
   division: string
 }
@@ -49,115 +31,107 @@ export interface RegisterVerifyTokenData extends BaseVerifyTokenData {
 export interface UpdateVerifyTokenData extends BaseVerifyTokenData {
   kind: 'update'
   userId: string
-  email: string
+  email: NonNullable<string>
   division: string
 }
 
-export interface RecoverVerifyTokenData extends BaseVerifyTokenData {
+export interface RecoverTokenData extends BaseVerifyTokenData {
   kind: 'recover'
   userId: string
-  email: string
+  email: NonNullable<string>
 }
 
 export type VerifyTokenData =
   | RegisterVerifyTokenData
   | UpdateVerifyTokenData
-  | RecoverVerifyTokenData
+  | RecoverTokenData
 
 export interface CtftimeAuthTokenData {
   name: string
-  ctftimeId: number
+  ctftimeId: NonNullable<string>
 }
 
-interface TokenPayloadMap {
+// Internal map of type definitions for typing purposes only -
+// this type does not describe a real data-structure
+interface TokenDataTypes {
   [TokenKind.Auth]: AuthTokenData
   [TokenKind.Team]: TeamTokenData
   [TokenKind.Verify]: VerifyTokenData
   [TokenKind.CtftimeAuth]: CtftimeAuthTokenData
 }
 
-type InternalTokenData<Kind extends TokenKind> = {
-  k: Kind
-  t: number
-  d: TokenPayloadMap[Kind]
-}
-
-const getTokenExpiry = (kind: TokenKind): number => {
-  switch (kind) {
-    case TokenKind.Verify:
-    case TokenKind.CtftimeAuth:
-      return config.loginTimeout
-    default:
-      return Number.POSITIVE_INFINITY
-  }
-}
-
-const concatBytes = (a: Uint8Array, b: ArrayBuffer): Uint8Array => {
-  const buffer = new Uint8Array(a.length + b.byteLength)
-  buffer.set(a, 0)
-  buffer.set(new Uint8Array(b), a.length)
-  return buffer
-}
-
 export type Token = string
 
-export const createToken = async <Kind extends TokenKind>(
-  kind: Kind,
-  data: TokenPayloadMap[Kind]
+interface InternalTokenData<Kind extends TokenKind> {
+  k: Kind
+  t: number
+  d: TokenDataTypes[Kind]
+}
+
+export const tokenExpiries: Record<TokenKind, number> = {
+  [TokenKind.Auth]: Infinity,
+  [TokenKind.Team]: Infinity,
+  [TokenKind.Verify]: config.loginTimeout,
+  [TokenKind.CtftimeAuth]: config.loginTimeout,
+}
+
+const timeNow = () => Math.floor(Date.now() / 1000)
+
+const encryptToken = async <Kind extends TokenKind>(
+  content: InternalTokenData<Kind>
 ): Promise<Token> => {
-  const content: InternalTokenData<Kind> = {
-    k: kind,
-    t: nowInSeconds(),
-    d: data,
+  const iv = await randomBytes(12)
+  const cipher = crypto.createCipheriv('aes-256-gcm', tokenKey, iv)
+  const cipherText = cipher.update(JSON.stringify(content))
+  cipher.final()
+  const tokenContent = Buffer.concat([iv, cipherText, cipher.getAuthTag()])
+  return tokenContent.toString('base64')
+}
+
+const decryptToken = async <Kind extends TokenKind>(
+  token: Token
+): Promise<InternalTokenData<Kind> | null> => {
+  try {
+    const tokenContent = Buffer.from(token, 'base64')
+    const iv = tokenContent.subarray(0, 12)
+    const authTag = tokenContent.subarray(tokenContent.length - 16)
+    const cipher = crypto.createDecipheriv('aes-256-gcm', tokenKey, iv)
+    cipher.setAuthTag(authTag)
+    const plainText = cipher.update(
+      tokenContent.subarray(12, tokenContent.length - 16)
+    )
+    cipher.final()
+    return JSON.parse(plainText.toString()) as InternalTokenData<Kind>
+  } catch (e) {
+    return null
   }
-
-  const plaintext = encoder.encode(JSON.stringify(content))
-  const iv = crypto.getRandomValues(new Uint8Array(12))
-  const key = await getCryptoKey()
-
-  const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv, tagLength: 128 },
-    key,
-    plaintext
-  )
-
-  const payload = concatBytes(iv, ciphertext)
-  return Buffer.from(payload).toString('base64')
 }
 
 export const parseToken = async <Kind extends TokenKind>(
-  expectedKind: Kind,
+  expectedTokenKind: Kind,
   token: Token
-): Promise<TokenPayloadMap[Kind] | null> => {
-  try {
-    const raw = Buffer.from(token, 'base64')
-    if (raw.byteLength <= 12) {
-      return null
-    }
-    const iv = raw.subarray(0, 12)
-    const ciphertext = raw.subarray(12)
-    const key = await getCryptoKey()
-
-    const plaintext = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv, tagLength: 128 },
-      key,
-      ciphertext
-    )
-
-    const json = decoder.decode(new Uint8Array(plaintext))
-    const parsed = JSON.parse(json) as InternalTokenData<TokenKind>
-
-    if (parsed.k !== expectedKind) {
-      return null
-    }
-
-    const expiry = getTokenExpiry(parsed.k)
-    if (Number.isFinite(expiry) && parsed.t + expiry < nowInSeconds()) {
-      return null
-    }
-
-    return parsed.d as TokenPayloadMap[Kind]
-  } catch (error) {
+): Promise<TokenDataTypes[Kind] | null> => {
+  const content = await decryptToken<Kind>(token)
+  if (content === null) {
     return null
   }
+  const { k: kind, t: createdAt, d: data } = content
+  if (kind !== expectedTokenKind) {
+    return null
+  }
+  if (createdAt + tokenExpiries[kind] < timeNow()) {
+    return null
+  }
+  return data
+}
+
+export const createToken = async <Kind extends TokenKind>(
+  tokenKind: Kind,
+  data: TokenDataTypes[Kind]
+): Promise<Token> => {
+  return await encryptToken({
+    k: tokenKind,
+    t: timeNow(),
+    d: data,
+  })
 }

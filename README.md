@@ -24,6 +24,13 @@ tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
 startTime: 0
 endTime: 99999999999999
 
+# email:
+#   from: no-reply@example.com
+#   provider:
+#     name: 'emails/smtp'
+#     options:
+#       smtpUrl: 'smtp://username:password@example.com'
+
 database:
   sql:
     host: 127.0.0.1
@@ -55,7 +62,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/auth/login`
 - [ ] `/api/v1/auth/recover`
 - [ ] `/api/v1/auth/verify`
-- [ ] `/api/v1/auth/test`
+- [x] `/api/v1/auth/test`
 
 - [ ] `/api/v1/users/me`
 - [ ] `/api/v1/users/:id`

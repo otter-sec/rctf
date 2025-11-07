@@ -1,3 +1,4 @@
+import type { User } from '@rctf/db'
 import { declareRouter as baseDeclareRouter } from '@rctf/types'
 import type {
   AnyRouteDefinition,
@@ -10,7 +11,7 @@ import { createTypesRuntime } from './types-runtime'
 
 export type ApiDeclaredRoute<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
-> = DeclaredRoute<ApiContext, Response, TRoute>
+> = DeclaredRoute<ApiContext, Response, User, TRoute>
 
 export interface RouteModule<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
@@ -23,7 +24,7 @@ export interface RouterGroup {
   readonly routers: ApiDeclaredRoute<any>[]
   declareRouter: <TRoute extends AnyRouteDefinition>(
     definition: TRoute,
-    handler: RouteHandler<ApiContext, TRoute>
+    handler: RouteHandler<ApiContext, User, TRoute>
   ) => ApiDeclaredRoute<TRoute>
 }
 
@@ -33,9 +34,9 @@ export const createRouterGroup = (): RouterGroup => {
     routers,
     declareRouter: <TRoute extends AnyRouteDefinition>(
       definition: TRoute,
-      handler: RouteHandler<ApiContext, TRoute>
+      handler: RouteHandler<ApiContext, User, TRoute>
     ) => {
-      const router = baseDeclareRouter<ApiContext, Response, TRoute>(
+      const router = baseDeclareRouter<ApiContext, Response, User, TRoute>(
         definition,
         handler
       )
@@ -49,7 +50,7 @@ export const createModule = <TRoute extends AnyRouteDefinition>(
   router: ApiDeclaredRoute<TRoute>
 ): RouteModule<TRoute> => ({
   router,
-  handler: router.createHandler(createTypesRuntime<ApiContext, TRoute>()),
+  handler: router.createHandler(createTypesRuntime<TRoute>()),
 })
 
 export const createModules = (group: RouterGroup): RouteModule[] =>

@@ -103,10 +103,11 @@ export type RoutePermissions<TRoute extends AnyRouteDefinition> =
 
 export interface RouteHandlerContext<
   TContext,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > {
   context: TContext
-  auth?: unknown
+  auth?: TUser
   params: RouteParams<TRoute>
   query: RouteQuery<TRoute>
   permissions: RoutePermissions<TRoute>
@@ -114,22 +115,24 @@ export interface RouteHandlerContext<
 
 export interface RouteHandlerArgs<
   TContext,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > {
   res: ResponseHelpers<TRoute['responses']>
   body: RouteBody<TRoute>
   params: RouteParams<TRoute>
   query: RouteQuery<TRoute>
-  auth: RouteHandlerContext<TContext, TRoute>['auth']
+  auth: RouteHandlerContext<TContext, TUser, TRoute>['auth']
   ctx: TContext
   permissions: RoutePermissions<TRoute>
 }
 
 export type RouteHandler<
   TContext,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > = (
-  args: RouteHandlerArgs<TContext, TRoute>
+  args: RouteHandlerArgs<TContext, TUser, TRoute>
 ) => RouteHandlerResult<TRoute> | Promise<RouteHandlerResult<TRoute>>
 
 export type RouteHandlerResult<
@@ -141,6 +144,7 @@ export type RouteValidationSource = 'body' | 'query' | 'params'
 export interface RouteRuntime<
   TContext,
   TResult,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > {
   readBody: (context: TContext) => Promise<unknown>
@@ -155,10 +159,10 @@ export interface RouteRuntime<
     context: TContext,
     error: z.ZodError<unknown>
   ) => TResult | Promise<TResult>
-  ensureAuth: (
-    context: TContext,
-    permissions: Permissions | undefined
-  ) => Promise<unknown>
+  ensureAuth: (context: TContext) => Promise<TUser | undefined>
+  ensurePerms: (user: TUser, permissions: Permissions) => Promise<boolean>
+  handleUnauthorized: (context: TContext) => Promise<TResult>
+  handleAccessDenied: (context: TContext) => Promise<TResult>
   send: (
     context: TContext,
     result: RouteHandlerResult<TRoute>
@@ -172,12 +176,13 @@ export type RouteExecutor<TContext, TResult> = (
 export interface DeclaredRoute<
   TContext,
   TResult,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 > {
   readonly definition: TRoute
-  readonly handler: RouteHandler<TContext, TRoute>
+  readonly handler: RouteHandler<TContext, TUser, TRoute>
   createHandler(
-    runtime: RouteRuntime<TContext, TResult, TRoute>
+    runtime: RouteRuntime<TContext, TResult, TUser, TRoute>
   ): RouteExecutor<TContext, TResult>
 }
 
@@ -224,31 +229,42 @@ type ParseOutcome<TSchema extends SchemaLike | undefined, TResult> =
 export const declareRouter = <
   TContext,
   TResult,
+  TUser,
   TRoute extends AnyRouteDefinition = AnyRouteDefinition
 >(
   definition: TRoute,
-  handler: RouteHandler<TContext, TRoute>
-): DeclaredRoute<TContext, TResult, TRoute> => {
+  handler: RouteHandler<TContext, TUser, TRoute>
+): DeclaredRoute<TContext, TResult, TUser, TRoute> => {
   const responders = buildResponders(definition.responses)
 
   const createHandler =
     (
-      runtime: RouteRuntime<TContext, TResult, TRoute>
+      runtime: RouteRuntime<TContext, TResult, TUser, TRoute>
     ): RouteExecutor<TContext, TResult> =>
     async context => {
-      const executionContext: RouteHandlerContext<TContext, typeof definition> =
-        {
-          context,
-          params: undefined as RouteParams<typeof definition>,
-          query: undefined as RouteQuery<typeof definition>,
-          permissions: definition.permissions ?? undefined,
-        }
+      const executionContext: RouteHandlerContext<
+        TContext,
+        TUser,
+        typeof definition
+      > = {
+        context,
+        params: undefined as RouteParams<typeof definition>,
+        query: undefined as RouteQuery<typeof definition>,
+        permissions: definition.permissions ?? undefined,
+      }
 
       if (definition.authRequired || (definition.permissions ?? 0) != 0) {
-        executionContext.auth = await runtime.ensureAuth(
-          context,
-          definition.permissions
-        )
+        executionContext.auth = await runtime.ensureAuth(context)
+        if (!executionContext.auth) {
+          return await runtime.handleUnauthorized(context)
+        }
+
+        if (
+          definition.permissions &&
+          !runtime.ensurePerms(executionContext.auth, definition.permissions)
+        ) {
+          return await runtime.handleAccessDenied(context)
+        }
       }
 
       const parseSection = async <TSchema extends SchemaLike | undefined>(
@@ -293,12 +309,11 @@ export const declareRouter = <
         }
       }
 
-      const malformedBodyHandler = runtime.handleMalformedBody
       const bodyOutcome = await parseSection(
         'body',
         definition.body,
         runtime.readBody,
-        error => malformedBodyHandler(context, error)
+        error => runtime.handleMalformedBody(context, error)
       )
       if (bodyOutcome.state === ParseState.Error) {
         return bodyOutcome.result
@@ -329,15 +344,16 @@ export const declareRouter = <
       executionContext.params = parsedParams
       executionContext.query = parsedQuery
 
-      const handlerArgs: RouteHandlerArgs<TContext, typeof definition> = {
-        res: responders,
-        body: parsedBody,
-        params: parsedParams,
-        query: parsedQuery,
-        auth: executionContext.auth,
-        ctx: executionContext.context,
-        permissions: executionContext.permissions,
-      }
+      const handlerArgs: RouteHandlerArgs<TContext, TUser, typeof definition> =
+        {
+          res: responders,
+          body: parsedBody,
+          params: parsedParams,
+          query: parsedQuery,
+          auth: executionContext.auth,
+          ctx: executionContext.context,
+          permissions: executionContext.permissions,
+        }
 
       const routeResult = await handler(handlerArgs)
       return await runtime.send(context, routeResult)
