@@ -1,4 +1,4 @@
-import { config } from '../config'
+import { config } from '@rctf/config'
 
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()

@@ -8,7 +8,7 @@ process.env.RCTF_DATABASE_URL =
   'postgres://local:local@localhost:5432/rctf_test'
 
 const tokensModule = await import('./tokens')
-const configModule = await import('../config')
+const configModule = await import('@rctf/config')
 
 const { createToken, parseToken, TokenKind } = tokensModule
 const { config } = configModule

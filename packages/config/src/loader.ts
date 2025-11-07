@@ -1,7 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { ServerConfig } from '@rctf/types'
-import deepMerge from 'deepmerge'
 import type { PartialDeep } from 'type-fest'
 import yaml from 'yaml'
 
@@ -12,32 +11,25 @@ const DEFAULT_SEARCH_ROOT = path.resolve(__dirname, '../../')
 
 const TRUTHY_ENV_VALUES = new Set(['true', 'yes', 'y', '1'])
 
-const toInteger = (value: string | undefined): number | undefined => {
-  if (!value) {
-    return undefined
-  }
-  const trimmed = value.trim()
-  if (trimmed === '') {
-    return undefined
-  }
-  const parsed = Number.parseInt(trimmed, 10)
-  return Number.isNaN(parsed) ? undefined : parsed
-}
-
-const toBoolean = (value: string | undefined): boolean | undefined => {
-  if (!value) {
-    return undefined
-  }
-  return TRUTHY_ENV_VALUES.has(value.trim().toLowerCase())
-}
-
 const getString = (key: string): string | undefined => process.env[key]
 const getInteger = (key: string): number | undefined =>
-  toInteger(process.env[key])
+  process.env[key] ? Number.parseInt(process.env[key].trim()) : undefined
 const getBoolean = (key: string): boolean | undefined =>
-  toBoolean(process.env[key])
+  process.env[key]
+    ? TRUTHY_ENV_VALUES.has(process.env[key].trim().toLowerCase())
+    : undefined
 
-export const loadFile = (filePath: string): ConfigLayer | undefined => {
+const optionalObjectFrom = (entries: Array<[string, unknown | undefined]>) => {
+  const result: Record<string, unknown> = {}
+  for (const [key, value] of entries) {
+    if (value !== undefined) {
+      result[key] = value
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined
+}
+
+const loadFile = (filePath: string): ConfigLayer | undefined => {
   const raw = readFileSync(filePath, { encoding: 'utf8' })
   const ext = path.extname(filePath).slice(1).toLowerCase()
 
@@ -52,7 +44,7 @@ export const loadFile = (filePath: string): ConfigLayer | undefined => {
   return undefined
 }
 
-export const findConfigDir = (start: string = DEFAULT_SEARCH_ROOT): string => {
+const findConfigDir = (start: string = DEFAULT_SEARCH_ROOT): string => {
   for (let current = path.resolve(start); ; ) {
     const candidate = path.join(current, CONFIG_DIRECTORY_NAME)
     if (existsSync(candidate)) {
@@ -80,16 +72,6 @@ export const loadFileConfigs = (configPath?: string): ConfigLayer[] => {
     .sort((a, b) => a.localeCompare(b))
     .map(loadFile)
     .filter((config): config is ConfigLayer => config !== undefined)
-}
-
-const optionalObjectFrom = (entries: Array<[string, unknown | undefined]>) => {
-  const result: Record<string, unknown> = {}
-  for (const [key, value] of entries) {
-    if (value !== undefined) {
-      result[key] = value
-    }
-  }
-  return Object.keys(result).length > 0 ? result : undefined
 }
 
 export const loadEnvConfig = (): ConfigLayer => {
@@ -193,9 +175,3 @@ export const defaultConfig: PartialDeep<ServerConfig> = {
   },
   loginTimeout: 3600000,
 }
-
-export const config: ServerConfig = deepMerge.all([
-  defaultConfig,
-  ...loadFileConfigs(),
-  loadEnvConfig(),
-]) as ServerConfig

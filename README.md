@@ -1,78 +1,53 @@
 # rCTF
 
-## Package structure
-
-```
-rctf/
-├── apps/
-  ├── api/          # Hono
-  └── web/          # SvelteKit
-├── packages/
-  ├── types/        # Types
-  └── db/           # Drizzle
-```
-
-| Package       | Description                 |
-| ------------- | --------------------------- |
-| `@rctf/types` | Shared TypeScript types     |
-| `@rctf/db`    | Database schema and helpers |
-| `@rctf/api`   | API backend (Hono)          |
-| `@rctf/web`   | Frontend (SvelteKit)        |
-
 ## Prerequisites and setup
 
 - Bun v1.0+
-- PostgreSQL 12+
-- Redis 6+ (for caching)
 
 ```bash
-bun install
-bun run db:generate
+# db and dependencies
+docker compose -f compose.dev.yml up -d
+bun i
+
+# config
+cat <<EOT > rctf.d/00-development.yaml
+ctfName: rCTF Development
+meta:
+  description: 'Example rCTF instance'
+  imageUrl: 'https://example.com'
+homeContent: 'A description of your CTF. Markdown supported.'
+
+origin: http://127.0.0.1:8080
+divisions:
+  open: Open
+tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+startTime: 0
+endTime: 99999999999999
+
+database:
+  sql:
+    host: 127.0.0.1
+    user: rctf
+    password: DO_NOT_USE_ME
+    database: rctf
+  redis:
+    host: 127.0.0.1
+    password: DO_NOT_USE_ME
+  migrate: before
+EOT
+
+# migrate the database
 bun run db:migrate
-bun run db:push # dev only
+
+# run the thing
 bun run dev
 ```
 
-## Environment variables
+rCTF v1 frontend with rCTF v2 backend:
 
-Place project secrets alongside `package.json` as `.env` (checked-in template `.env.example`).
-
-| Name                 | Required | Default | Description                                                 |
-| -------------------- | -------- | ------- | ----------------------------------------------------------- |
-| `RCTF_DATABASE_URL`  | Yes      |         | Postgres connection string (`postgres://user:pass@host/db`) |
-| `RCTF_REDIS_URL`     | No       |         | Redis connection string for caching                         |
-| `RCTF_TOKEN_KEY`     | Yes      |         | Base64-encoded 32-byte secret for auth                      |
-| `RCTF_PORT`          | No       | `3000`  | API listen port                                             |
-| `RCTF_LOGIN_TIMEOUT` | No       | `3600`  | Token expiry in seconds for verify/CTFtime tokens           |
-
-## Workspace commands
-
-| Command                 | Description                    |
-| ----------------------- | ------------------------------ |
-| `bun run dev`           | Start API dev server           |
-| `bun run dev:api`       | Start API only                 |
-| `bun run dev:web`       | Start web frontend only        |
-| `bun run db:generate`   | Generate migration files       |
-| `bun run db:migrate`    | Run migrations                 |
-| `bun run db:push`       | Push schema (dev only)         |
-| `bun run db:studio`     | Open Drizzle Studio            |
-| `bun run build`         | Build all packages             |
-| `bun run test`          | Run all tests                  |
-| `bun run test:coverage` | Run tests with coverage report |
-| `bun run typecheck`     | Type-check all packages        |
-| `bun run clean`         | Remove all `node_modules`      |
-
-## Tech stack
-
-| Component     | Technology  |
-| ------------- | ----------- |
-| Runtime       | Bun         |
-| API Framework | Hono        |
-| Web Framework | SvelteKit   |
-| Database      | PostgreSQL  |
-| ORM           | Drizzle ORM |
-| Caching       | Redis       |
-| Language      | TypeScript  |
+- `bun run dev` in this repo
+- `yarn workspace @rctf/client dev` in the old repo
+- access [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
 ## Roadmap
 

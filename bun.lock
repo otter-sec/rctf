@@ -17,15 +17,14 @@
       "version": "0.0.0",
       "dependencies": {
         "@hono/zod-validator": "^0.2.1",
+        "@rctf/config": "workspace:*",
         "@rctf/db": "workspace:*",
         "@rctf/types": "workspace:*",
-        "deepmerge": "^4.3.1",
         "hono": "^4.10.4",
         "hono-pino": "^0.10.3",
         "ioredis": "^5.4.1",
         "pino": "^10.1.0",
         "postgres": "^3.4.5",
-        "type-fest": "^5.2.0",
         "yaml": "^2.8.1",
         "zod": "^3.23.8",
       },
@@ -49,10 +48,24 @@
         "typescript": "^5",
       },
     },
+    "packages/config": {
+      "name": "@rctf/config",
+      "version": "0.0.0",
+      "dependencies": {
+        "@rctf/types": "workspace:*",
+        "deepmerge": "^4.3.1",
+        "type-fest": "^5.2.0",
+        "yaml": "^2.8.1",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/db": {
       "name": "@rctf/db",
       "version": "0.0.0",
       "dependencies": {
+        "@rctf/config": "workspace:*",
         "@rctf/types": "workspace:*",
         "drizzle-orm": "^0.44.7",
         "postgres": "^3.4.5",
@@ -173,6 +186,8 @@
     "@pinojs/redact": ["@pinojs/redact@0.4.0", "", {}, "sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg=="],
 
     "@rctf/api": ["@rctf/api@workspace:apps/api"],
+
+    "@rctf/config": ["@rctf/config@workspace:packages/config"],
 
     "@rctf/db": ["@rctf/db@workspace:packages/db"],
 

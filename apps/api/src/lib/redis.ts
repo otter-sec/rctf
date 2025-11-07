@@ -1,5 +1,5 @@
+import { config } from '@rctf/config'
 import Redis from 'ioredis'
-import { config } from '../config'
 
 let client: Redis | null | undefined
 
