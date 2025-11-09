@@ -1,10 +1,6 @@
 import { config } from '@rctf/config'
+import type { ProviderConfig } from '@rctf/config'
 import { emailProviders } from './emails'
-
-interface ProviderConfig {
-  name: string
-  options: unknown
-}
 
 const loadProvider = <Base>(
   providers: Record<string, (options: any) => Base>,
