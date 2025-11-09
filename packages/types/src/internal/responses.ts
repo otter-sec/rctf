@@ -3,7 +3,7 @@ import type { StatusCode } from './utils'
 
 export interface ResponseDefinition<
   TKind extends string,
-  TDataSchema extends z.ZodTypeAny | undefined = undefined
+  TDataSchema extends z.ZodTypeAny | undefined = undefined,
 > {
   readonly kind: TKind
   readonly status: StatusCode
@@ -21,7 +21,7 @@ type ResponseOptions<TDataSchema extends z.ZodTypeAny | undefined = undefined> =
 
 export function response<
   TKind extends string,
-  TDataSchema extends z.ZodTypeAny | undefined = undefined
+  TDataSchema extends z.ZodTypeAny | undefined = undefined,
 >(
   kind: TKind,
   options: ResponseOptions<TDataSchema>
@@ -43,7 +43,7 @@ export function response<
 }
 
 export type ResponseResult<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>
+  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
 > = {
   status: TDefinition['status']
   body: z.infer<TDefinition['schema']>
@@ -51,7 +51,7 @@ export type ResponseResult<
 }
 
 export type ResponseHelper<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>
+  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
 > = TDefinition['dataSchema'] extends z.ZodTypeAny
   ? (
       payload: z.input<NonNullable<TDefinition['dataSchema']>>
@@ -62,7 +62,7 @@ export type ResponseHelpers<
   TResponses extends readonly ResponseDefinition<
     string,
     z.ZodTypeAny | undefined
-  >[]
+  >[],
 > = {
   [R in TResponses[number] as R['kind']]: ResponseHelper<R>
 }

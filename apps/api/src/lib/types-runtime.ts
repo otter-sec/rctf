@@ -87,7 +87,7 @@ const ensurePerms = async (user: User, permissions: Permissions) => {
 }
 
 export const createTypesRuntime = <
-  TRoute extends AnyRouteDefinition
+  TRoute extends AnyRouteDefinition,
 >(): RouteRuntime<ApiContext, Response, User, TRoute> => ({
   readBody: async context => context.req.json(),
   readParams: async context => context.req.param(),

@@ -16,7 +16,7 @@ type CreateUserResponseHelpers = ResponseHelpers<
     typeof BadKnownCtftimeId,
     typeof BadKnownEmail,
     typeof BadKnownName,
-    typeof GoodRegister
+    typeof GoodRegister,
   ]
 >
 

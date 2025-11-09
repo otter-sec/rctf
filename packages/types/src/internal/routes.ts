@@ -25,7 +25,7 @@ export interface RouteDefinition<
   TParams extends SchemaLike | undefined = undefined,
   TQuery extends SchemaLike | undefined = undefined,
   TAuthRequired extends boolean = boolean,
-  TPermissions extends Permissions | undefined = Permissions | undefined
+  TPermissions extends Permissions | undefined = Permissions | undefined,
 > {
   readonly method: TMethod
   readonly path: string
@@ -121,18 +121,16 @@ type RouteRequiresAuth<TRoute extends AnyRouteDefinition> =
   TRoute['authRequired'] extends true
     ? true
     : TRoute['permissions'] extends Permissions
-    ? true
-    : false
+      ? true
+      : false
 
-type RouteAuthFields<
-  TRoute extends AnyRouteDefinition,
-  TUser
-> = RouteRequiresAuth<TRoute> extends true ? { user: TUser } : {}
+type RouteAuthFields<TRoute extends AnyRouteDefinition, TUser> =
+  RouteRequiresAuth<TRoute> extends true ? { user: TUser } : {}
 
 export type RouteHandlerContext<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = {
   context: TContext
   params: RouteParams<TRoute>
@@ -143,7 +141,7 @@ export type RouteHandlerContext<
 type MutableRouteHandlerContext<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = {
   context: TContext
   user?: TUser
@@ -155,7 +153,7 @@ type MutableRouteHandlerContext<
 export type RouteHandlerArgs<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = {
   res: ResponseHelpers<TRoute['responses']>
   body: RouteBody<TRoute>
@@ -168,13 +166,13 @@ export type RouteHandlerArgs<
 export type RouteHandler<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = (
   args: RouteHandlerArgs<TContext, TUser, TRoute>
 ) => RouteHandlerResult<TRoute> | Promise<RouteHandlerResult<TRoute>>
 
 export type RouteHandlerResult<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = ResponseResult<TRoute['responses'][number]>
 
 export type RouteValidationSource = 'body' | 'query' | 'params'
@@ -183,7 +181,7 @@ export interface RouteRuntime<
   TContext,
   TResult,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > {
   readBody: (context: TContext) => Promise<unknown>
   readParams: (context: TContext) => Promise<unknown>
@@ -215,7 +213,7 @@ export interface DeclaredRoute<
   TContext,
   TResult,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > {
   readonly definition: TRoute
   readonly handler: RouteHandler<TContext, TUser, TRoute>
@@ -268,7 +266,7 @@ export const declareRouter = <
   TContext,
   TResult,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 >(
   definition: TRoute,
   handler: RouteHandler<TContext, TUser, TRoute>

@@ -10,11 +10,11 @@ import type { ApiContext, AppEnv } from './app-env'
 import { createTypesRuntime } from './types-runtime'
 
 export type ApiDeclaredRoute<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > = DeclaredRoute<ApiContext, Response, User, TRoute>
 
 export interface RouteModule<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
 > {
   router: ApiDeclaredRoute<TRoute>
   handler: Handler<AppEnv>
