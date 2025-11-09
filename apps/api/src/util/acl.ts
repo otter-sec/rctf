@@ -45,18 +45,36 @@ const compileACLs = (): CompiledACL[] => {
 
 export const compiledACLs = compileACLs()
 
-export const allowedDivisions = (email: string | undefined): string[] => {
+export const allDivisions = Object.keys(config.divisions)
+export const defaultDivision = config.defaultDivision || allDivisions[0]
+
+export const allowedDivisions = ({
+  email,
+  defaultOnly,
+}: {
+  email: string | undefined
+  defaultOnly: boolean
+}): (string | undefined)[] => {
+  if (!config.divisionACLs || !email || !config.email) {
+    return defaultOnly ? [defaultDivision] : allDivisions
+  }
+
+  let result: string[] = []
   for (const acl of compiledACLs) {
     if (acl.check(email)) {
-      return acl.divisions
+      result = result.concat(acl.divisions)
     }
   }
-  return []
+
+  return result
 }
 
 export const divisionAllowed = (
   email: string | undefined,
   division: string
 ): boolean => {
-  return allowedDivisions(email).includes(division)
+  return allowedDivisions({
+    email,
+    defaultOnly: false,
+  }).includes(division)
 }

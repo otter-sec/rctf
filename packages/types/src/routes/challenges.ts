@@ -1,6 +1,5 @@
 import { z } from 'zod'
 import { defineRoute } from '../internal'
-import { SubmitFlagBody } from '../models'
 import {
   BadAlreadySolvedChallenge,
   BadChallenge,
@@ -14,15 +13,7 @@ import {
   GoodFlag,
 } from '../responses'
 
-const ChallengeIdParams = z.object({
-  id: z.string(),
-})
-
-const ChallengeSolvesQuery = z.object({
-  limit: z.coerce.number().int().min(1),
-  offset: z.coerce.number().int().min(0),
-})
-
+// TODO(es3n1n): i dont like the idea of loginwalling challenges
 export const GetChallengesRoute = defineRoute({
   path: '/v1/challs',
   method: 'GET',
@@ -33,7 +24,9 @@ export const GetChallengesRoute = defineRoute({
 export const SubmitFlagRoute = defineRoute({
   path: '/v1/challs/:id/submit',
   method: 'POST',
-  body: SubmitFlagBody,
+  body: z.object({
+    flag: z.string(),
+  }),
   responses: [
     GoodFlag,
     BadFlag,
@@ -45,7 +38,9 @@ export const SubmitFlagRoute = defineRoute({
     BadUnknownUser,
   ],
   authRequired: true,
-  params: ChallengeIdParams,
+  params: z.object({
+    id: z.string(),
+  }),
 })
 
 export const GetChallengeSolvesRoute = defineRoute({
@@ -53,6 +48,11 @@ export const GetChallengeSolvesRoute = defineRoute({
   method: 'GET',
   responses: [GoodChallengeSolves, BadNotStarted, BadChallenge],
   authRequired: false,
-  params: ChallengeIdParams,
-  query: ChallengeSolvesQuery,
+  params: z.object({
+    id: z.string(),
+  }),
+  query: z.object({
+    limit: z.coerce.number().int().min(1),
+    offset: z.coerce.number().int().min(0),
+  }),
 })

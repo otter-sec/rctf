@@ -15,7 +15,6 @@ import {
 import { sendVerificationEmail } from '../../services/emails'
 import { createUser, getUserByNameOrEmail } from '../../services/users'
 import { allowedDivisions } from '../../util/acl'
-import * as v1Validators from '../../util/v1-validators'
 
 const group = createRouterGroup()
 export default group
@@ -25,25 +24,10 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badRegistrationsDisabled()
   }
 
-  // Normalize the same way v1 does it
-  body.name = v1Validators.normalizeName(body.name)
-  if (body.email) {
-    body.email = v1Validators.normalizeEmail(body.email)
-  }
-
-  // TODO(es3n1n): Ideally these should be checked with zod, but that would be a breaking change :)
-  if (!v1Validators.validateName(body.name)) {
-    ctx.var.logger.error(`${body.name} not valid`)
-    return res.badName()
-  }
-  if (body.email && !v1Validators.validateEmail(body.email)) {
-    return res.badEmail()
-  }
-
-  const division =
-    config.divisionACLs && body.email && config.email
-      ? allowedDivisions(body.email)[0]
-      : config.defaultDivision || Object.keys(config.divisions)[0]
+  const division = allowedDivisions({
+    email: body.email,
+    defaultOnly: true,
+  })[0]
   if (!division) {
     return res.badCompetitionNotAllowed()
   }

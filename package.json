@@ -32,8 +32,8 @@
   },
   "prettier": {
     "plugins": [
-      "@ianvs/prettier-plugin-sort-imports",
-      "prettier-plugin-tailwindcss"
+      "prettier-plugin-tailwindcss",
+      "@ianvs/prettier-plugin-sort-imports"
     ],
     "tabWidth": 2,
     "useTabs": false,

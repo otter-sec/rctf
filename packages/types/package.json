@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "email-validator": "^2.0.4",
     "zod": "^3.23.8"
   },
   "devDependencies": {

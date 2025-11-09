@@ -1,6 +1,6 @@
+import { z } from 'zod'
 import { Permissions } from '../enums/permissions'
 import { defineRoute } from '../internal'
-import { CtftimeCallbackBody } from '../models'
 import {
   BadCtftimeCode,
   BadEndpoint,
@@ -27,7 +27,9 @@ export const GetCtftimeLeaderboardRoute = defineRoute({
 export const CtftimeCallbackRoute = defineRoute({
   path: '/v1/integrations/ctftime/callback',
   method: 'POST',
-  body: CtftimeCallbackBody,
+  body: z.object({
+    ctftimeCode: z.string(),
+  }),
   responses: [GoodCtftimeToken, BadEndpoint, BadCtftimeCode],
   authRequired: false,
 })

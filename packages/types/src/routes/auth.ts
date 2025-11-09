@@ -1,5 +1,5 @@
+import { z } from 'zod'
 import { defineRoute } from '../internal'
-import { LoginBody, RecoverBody, RegisterBody, VerifyBody } from '../models'
 import {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
@@ -21,11 +21,26 @@ import {
   GoodVerify,
   GoodVerifySent,
 } from '../responses'
+import { UserEmail, UserName } from '../util'
 
 export const RegisterRoute = defineRoute({
   path: '/v1/auth/register',
   method: 'POST',
-  body: RegisterBody,
+  body: z
+    .object({
+      email: UserEmail.optional(),
+      name: UserName,
+      ctftimeToken: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.email && !data.ctftimeToken) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Either email or ctftimeToken must be provided.',
+          path: ['email'],
+        })
+      }
+    }),
   responses: [
     GoodVerifySent,
     GoodRegister,
@@ -44,7 +59,20 @@ export const RegisterRoute = defineRoute({
 export const LoginRoute = defineRoute({
   path: '/v1/auth/login',
   method: 'POST',
-  body: LoginBody,
+  body: z
+    .object({
+      teamToken: z.string().optional(),
+      ctftimeToken: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      if (!data.teamToken && !data.ctftimeToken) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Either teamToken or ctftimeToken must be provided.',
+          path: ['teamToken'],
+        })
+      }
+    }),
   responses: [GoodLogin, BadUnknownUser, BadTokenVerification, BadCtftimeToken],
   authRequired: false,
 })
@@ -52,7 +80,9 @@ export const LoginRoute = defineRoute({
 export const RecoverRoute = defineRoute({
   path: '/v1/auth/recover',
   method: 'POST',
-  body: RecoverBody,
+  body: z.object({
+    email: UserEmail,
+  }),
   responses: [GoodVerifySent, BadEndpoint, BadEmail, BadUnknownEmail],
   authRequired: false,
 })
@@ -60,7 +90,9 @@ export const RecoverRoute = defineRoute({
 export const VerifyRoute = defineRoute({
   path: '/v1/auth/verify',
   method: 'POST',
-  body: VerifyBody,
+  body: z.object({
+    verifyToken: z.string(),
+  }),
   responses: [
     GoodVerify,
     GoodEmailSet,

@@ -2,11 +2,6 @@ import { z } from 'zod'
 import { Permissions } from '../enums/permissions'
 import { defineRoute } from '../internal'
 import {
-  QueryUploadsBody,
-  UpdateChallengeBody,
-  UploadFilesBody,
-} from '../models'
-import {
   BadChallenge,
   BadDataUri,
   GoodAdminChallenge,
@@ -41,7 +36,29 @@ export const GetAdminChallengeRoute = defineRoute({
 export const UpdateChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'PUT',
-  body: UpdateChallengeBody,
+  body: z.object({
+    author: z.string().optional(),
+    category: z.string().optional(),
+    description: z.string().optional(),
+    flag: z.string().optional(),
+    name: z.string().optional(),
+    points: z
+      .object({
+        max: z.number().int(),
+        min: z.number().int(),
+      })
+      .optional(),
+    tiebreakEligible: z.boolean().optional(),
+    files: z
+      .array(
+        z.object({
+          name: z.string(),
+          url: z.string(),
+        })
+      )
+      .optional(),
+    sortWeight: z.number().optional(),
+  }),
   responses: [GoodChallengeUpdate],
   authRequired: true,
   params: AdminChallengeParams,
@@ -60,7 +77,12 @@ export const DeleteChallengeRoute = defineRoute({
 export const UploadFilesRoute = defineRoute({
   path: '/v1/admin/upload',
   method: 'POST',
-  body: UploadFilesBody,
+  body: z.array(
+    z.object({
+      name: z.string(),
+      data: z.string(),
+    })
+  ),
   responses: [GoodFilesUpload, BadDataUri],
   authRequired: true,
   permissions: Permissions.challsWrite,
@@ -69,7 +91,12 @@ export const UploadFilesRoute = defineRoute({
 export const QueryUploadsRoute = defineRoute({
   path: '/v1/admin/upload/query',
   method: 'POST',
-  body: QueryUploadsBody,
+  body: z.array(
+    z.object({
+      sha256: z.string(),
+      name: z.string(),
+    })
+  ),
   responses: [GoodUploadsQuery],
   authRequired: true,
   permissions: Permissions.challsRead,

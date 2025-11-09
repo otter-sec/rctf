@@ -1,12 +1,6 @@
 import { z } from 'zod'
 import { defineRoute } from '../internal'
 import {
-  CreateMemberBody,
-  SetCtftimeBody,
-  SetEmailBody,
-  UpdateUserBody,
-} from '../models'
-import {
   BadCtftimeNoExists,
   BadCtftimeToken,
   BadDivisionNotAllowed,
@@ -34,21 +28,16 @@ import {
   GoodUserUpdate,
   GoodVerifySent,
 } from '../responses'
-
-const UserIdParams = z.object({
-  id: z.string(),
-})
-
-const MemberIdParams = z.object({
-  id: z.string(),
-})
+import { UserEmail, UserName } from '../util'
 
 export const GetUserRoute = defineRoute({
   path: '/v1/users/:id',
   method: 'GET',
   responses: [GoodUserData, BadUnknownUser],
   authRequired: false,
-  params: UserIdParams,
+  params: z.object({
+    id: z.string(),
+  }),
 })
 
 export const GetUserSelfRoute = defineRoute({
@@ -61,7 +50,10 @@ export const GetUserSelfRoute = defineRoute({
 export const UpdateUserRoute = defineRoute({
   path: '/v1/users/me',
   method: 'PATCH',
-  body: UpdateUserBody,
+  body: z.object({
+    name: UserName.optional(),
+    division: z.string().optional(),
+  }),
   responses: [
     GoodUserUpdate,
     BadEnded,
@@ -83,7 +75,9 @@ export const GetMembersRoute = defineRoute({
 export const CreateMemberRoute = defineRoute({
   path: '/v1/users/me/members',
   method: 'POST',
-  body: CreateMemberBody,
+  body: z.object({
+    email: UserEmail,
+  }),
   responses: [GoodMemberCreate, BadEndpoint, BadEnded, BadEmail, BadKnownEmail],
   authRequired: true,
 })
@@ -93,13 +87,17 @@ export const DeleteMemberRoute = defineRoute({
   method: 'DELETE',
   responses: [GoodMemberDelete, BadEnded, BadEndpoint],
   authRequired: true,
-  params: MemberIdParams,
+  params: z.object({
+    id: z.string(),
+  }),
 })
 
 export const SetEmailRoute = defineRoute({
   path: '/v1/users/me/auth/email',
   method: 'PUT',
-  body: SetEmailBody,
+  body: z.object({
+    email: UserEmail,
+  }),
   responses: [
     GoodEmailSet,
     GoodVerifySent,
@@ -121,7 +119,9 @@ export const DeleteEmailRoute = defineRoute({
 export const SetCtftimeRoute = defineRoute({
   path: '/v1/users/me/auth/ctftime',
   method: 'PUT',
-  body: SetCtftimeBody,
+  body: z.object({
+    ctftimeToken: z.string(),
+  }),
   responses: [
     GoodCtftimeAuthSet,
     BadEndpoint,

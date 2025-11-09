@@ -15,7 +15,6 @@
     "@rctf/types": "workspace:*",
     "aws-sdk": "2.1018.0",
     "drizzle-orm": "^0.44.7",
-    "email-validator": "^2.0.4",
     "hono": "^4.10.4",
     "hono-pino": "^0.10.3",
     "mustache": "^4.2.0",

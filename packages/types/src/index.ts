@@ -1,6 +1,6 @@
 export * from './enums'
 export * from './internal'
-export * from './models'
 export * from './responses'
 export * from './routes'
 export * from './config'
+export * from './v1-validators'

@@ -309,6 +309,38 @@ export const declareRouter = <
         }
       }
 
+      const handleResponseIssue = async (
+        error: z.ZodError<unknown>
+      ): Promise<TResult | undefined> => {
+        for (const issue of error.issues) {
+          const scopedIssue = issue as z.ZodIssue & {
+            params?: Record<string, unknown>
+          }
+          if (!scopedIssue.params) {
+            continue
+          }
+
+          const response = scopedIssue.params.response
+          if (!response) {
+            continue
+          }
+
+          const kind = (response as { kind: string })
+            .kind as keyof typeof responders
+          const responder = responders[kind]
+          if (!responder) {
+            continue
+          }
+
+          const routeResult = (
+            responder as () => ResponseResult<any>
+          )() as ResponseResult<any>
+          return await runtime.send(context, routeResult)
+        }
+
+        return undefined
+      }
+
       const parseSection = async <TSchema extends SchemaLike | undefined>(
         source: RouteValidationSource,
         schema: TSchema,
@@ -335,6 +367,14 @@ export const declareRouter = <
 
         const result = schema.safeParse(raw)
         if (!result.success) {
+          const responseResult = await handleResponseIssue(result.error)
+          if (responseResult !== undefined) {
+            return {
+              state: ParseState.Error,
+              result: responseResult,
+            }
+          }
+
           return {
             state: ParseState.Error,
             result: await runtime.handleValidationError(
