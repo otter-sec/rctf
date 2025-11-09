@@ -46,7 +46,7 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
     }
 
     const verificationId = crypto.randomUUID()
-    await storeLoginVerification(ctx.var.redis, { id: verificationId })
+    await storeLoginVerification(ctx.var.redis, verificationId)
     const verificationToken = await createToken(TokenKind.Verify, {
       kind: 'register',
       verifyId: verificationId,
@@ -78,9 +78,10 @@ group.declareRouter(VerifyRoute, async ({ ctx, body, res }) => {
     return res.badTokenVerification()
   }
 
-  const tokenUnused = await checkLoginVerification(ctx.var.redis, {
-    id: tokenData.verifyId,
-  })
+  const tokenUnused = await checkLoginVerification(
+    ctx.var.redis,
+    tokenData.verifyId
+  )
   if (!tokenUnused) {
     return res.badTokenVerification()
   }
