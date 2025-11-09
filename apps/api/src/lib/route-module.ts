@@ -1,17 +1,13 @@
 import type { User } from '@rctf/db'
-import { declareRouter as baseDeclareRouter } from '@rctf/types'
-import type {
-  AnyRouteDefinition,
-  DeclaredRoute,
-  RouteHandler,
-} from '@rctf/types'
+import type { AnyRouteDefinition, RouteHandler } from '@rctf/types'
 import type { Handler } from 'hono'
 import type { ApiContext, AppEnv } from './app-env'
-import { createTypesRuntime } from './types-runtime'
+import type { DeclaredRoute } from './router'
+import { declareRouter } from './router'
 
 export type ApiDeclaredRoute<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = DeclaredRoute<ApiContext, Response, User, TRoute>
+> = DeclaredRoute<TRoute>
 
 export interface RouteModule<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,
@@ -36,10 +32,7 @@ export const createRouterGroup = (): RouterGroup => {
       definition: TRoute,
       handler: RouteHandler<ApiContext, User, TRoute>
     ) => {
-      const router = baseDeclareRouter<ApiContext, Response, User, TRoute>(
-        definition,
-        handler
-      )
+      const router = declareRouter<TRoute>(definition, handler)
       routers.push(router)
       return router
     },
@@ -50,7 +43,7 @@ export const createModule = <TRoute extends AnyRouteDefinition>(
   router: ApiDeclaredRoute<TRoute>
 ): RouteModule<TRoute> => ({
   router,
-  handler: router.createHandler(createTypesRuntime<TRoute>()),
+  handler: router.createHandler(),
 })
 
 export const createModules = (group: RouterGroup): RouteModule[] =>
