@@ -60,7 +60,6 @@
       "name": "@rctf/config",
       "version": "0.0.0",
       "dependencies": {
-        "@rctf/types": "workspace:*",
         "deepmerge": "^4.3.1",
         "type-fest": "^5.2.0",
         "yaml": "^2.8.1",

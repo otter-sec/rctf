@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import type { ServerConfig } from '@rctf/types'
 import type { PartialDeep } from 'type-fest'
 import yaml from 'yaml'
+import type { ServerConfig } from './types'
 
 type ConfigLayer = PartialDeep<ServerConfig>
 

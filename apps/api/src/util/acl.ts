@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import type { ServerConfig } from '@rctf/types'
+import type { ServerConfig } from '@rctf/config'
 
 type ACLCheck = (email: string | undefined) => boolean
 
