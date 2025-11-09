@@ -43,7 +43,7 @@ const exampleMember = {
   email: 'teammate@example.com',
 }
 
-group.declareRouter(GetUserSelfRoute, async ({ ctx, user, res }) => {
+group.route(GetUserSelfRoute, async ({ ctx, user, res }) => {
   return res.goodUserSelfData({
     id: user.id,
     name: user.name,
@@ -60,11 +60,11 @@ group.declareRouter(GetUserSelfRoute, async ({ ctx, user, res }) => {
   })
 })
 
-group.declareRouter(GetUserRoute, async ({ res }) => {
+group.route(GetUserRoute, async ({ res }) => {
   return res.goodUserData(exampleUserData)
 })
 
-group.declareRouter(UpdateUserRoute, async ({ user, res }) => {
+group.route(UpdateUserRoute, async ({ user, res }) => {
   return res.goodUserUpdate({
     user: {
       name: user.name,
@@ -74,30 +74,30 @@ group.declareRouter(UpdateUserRoute, async ({ user, res }) => {
   })
 })
 
-group.declareRouter(GetMembersRoute, async ({ res }) => {
+group.route(GetMembersRoute, async ({ res }) => {
   return res.goodMemberData([exampleMember])
 })
 
-group.declareRouter(CreateMemberRoute, async ({ res }) => {
+group.route(CreateMemberRoute, async ({ res }) => {
   return res.goodMemberCreate(exampleMember)
 })
 
-group.declareRouter(DeleteMemberRoute, async ({ res }) => {
+group.route(DeleteMemberRoute, async ({ res }) => {
   return res.goodMemberDelete()
 })
 
-group.declareRouter(SetEmailRoute, async ({ res }) => {
+group.route(SetEmailRoute, async ({ res }) => {
   return res.goodEmailSet()
 })
 
-group.declareRouter(DeleteEmailRoute, async ({ res }) => {
+group.route(DeleteEmailRoute, async ({ res }) => {
   return res.goodEmailRemoved()
 })
 
-group.declareRouter(SetCtftimeRoute, async ({ res }) => {
+group.route(SetCtftimeRoute, async ({ res }) => {
   return res.goodCtftimeAuthSet()
 })
 
-group.declareRouter(DeleteCtftimeRoute, async ({ res }) => {
+group.route(DeleteCtftimeRoute, async ({ res }) => {
   return res.goodCtftimeRemoved()
 })

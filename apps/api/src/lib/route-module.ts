@@ -18,7 +18,7 @@ export interface RouteModule<
 
 export interface RouterGroup {
   readonly routers: ApiDeclaredRoute<any>[]
-  declareRouter: <TRoute extends AnyRouteDefinition>(
+  route: <TRoute extends AnyRouteDefinition>(
     definition: TRoute,
     handler: RouteHandler<ApiContext, User, TRoute>
   ) => ApiDeclaredRoute<TRoute>
@@ -28,7 +28,7 @@ export const createRouterGroup = (): RouterGroup => {
   const routers: ApiDeclaredRoute<any>[] = []
   return {
     routers,
-    declareRouter: <TRoute extends AnyRouteDefinition>(
+    route: <TRoute extends AnyRouteDefinition>(
       definition: TRoute,
       handler: RouteHandler<ApiContext, User, TRoute>
     ) => {

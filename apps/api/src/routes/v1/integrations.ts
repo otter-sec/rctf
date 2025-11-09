@@ -9,14 +9,14 @@ import { createRouterGroup } from '../../lib/route-module'
 const group = createRouterGroup()
 export default group
 
-group.declareRouter(GetClientConfigRoute, async ({ res }) => {
+group.route(GetClientConfigRoute, async ({ res }) => {
   return res.goodClientConfig({
     ...config,
     emailEnabled: Boolean(config.email),
   })
 })
 
-group.declareRouter(GetCtftimeLeaderboardRoute, async ({ res }) => {
+group.route(GetCtftimeLeaderboardRoute, async ({ res }) => {
   return res.goodCtftimeLeaderboard({
     standings: [
       {
@@ -33,7 +33,7 @@ group.declareRouter(GetCtftimeLeaderboardRoute, async ({ res }) => {
   })
 })
 
-group.declareRouter(CtftimeCallbackRoute, async ({ res }) => {
+group.route(CtftimeCallbackRoute, async ({ res }) => {
   return res.goodCtftimeToken({
     ctftimeToken: 'ctftime-token',
     ctftimeName: 'Example Team',

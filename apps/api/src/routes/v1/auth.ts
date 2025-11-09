@@ -19,7 +19,7 @@ import { allowedDivisions } from '../../util/acl'
 const group = createRouterGroup()
 export default group
 
-group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
+group.route(RegisterRoute, async ({ res, body, ctx }) => {
   if (!config.registrationsEnabled) {
     return res.badRegistrationsDisabled()
   }
@@ -72,7 +72,7 @@ group.declareRouter(RegisterRoute, async ({ res, body, ctx }) => {
   })
 })
 
-group.declareRouter(VerifyRoute, async ({ ctx, body, res }) => {
+group.route(VerifyRoute, async ({ ctx, body, res }) => {
   const tokenData = await parseToken(TokenKind.Verify, body.verifyToken)
   if (tokenData === null) {
     return res.badTokenVerification()
@@ -98,15 +98,15 @@ group.declareRouter(VerifyRoute, async ({ ctx, body, res }) => {
   })
 })
 
-group.declareRouter(LoginRoute, async ({ res }) => {
+group.route(LoginRoute, async ({ res }) => {
   return res.goodLogin({ authToken: 'dummy-auth-token' })
 })
 
-group.declareRouter(RecoverRoute, async ({ res }) => {
+group.route(RecoverRoute, async ({ res }) => {
   return res.goodVerifySent()
 })
 
-group.declareRouter(TestAuthRoute, async ({ res }) => {
+group.route(TestAuthRoute, async ({ res }) => {
   // We will not reach this callback if unauthorized
   return res.goodToken()
 })

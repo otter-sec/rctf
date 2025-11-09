@@ -3,7 +3,6 @@ import { afterEach, expect, setSystemTime, test } from 'bun:test'
 const { createToken, parseToken, TokenKind, tokenExpiries } = await import(
   './tokens'
 )
-const { config } = await import('@rctf/config')
 
 afterEach(() => {
   setSystemTime()

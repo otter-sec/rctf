@@ -9,9 +9,7 @@ import { routeModules } from './routes'
 
 const app = new Hono<AppEnv>()
 
-// TODO(es3n1n): this is for dev env, for production see
 const pinoObject = pino({
-  base: null,
   level: 'trace',
 })
 app.use(
