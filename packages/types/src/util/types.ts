@@ -20,3 +20,13 @@ export const UserName = z
   .refine(validateName, {
     params: { response: BadName },
   })
+
+export const NumericString = z.preprocess(item => {
+  if (typeof item === 'string') {
+    return item
+  }
+  if (typeof item === 'number') {
+    return item.toString()
+  }
+  return undefined
+}, z.string())

@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { response } from '../internal'
+import { NumericString } from '../util'
 
 export const GoodClientConfig = response('goodClientConfig', {
   status: 200,
@@ -31,7 +32,7 @@ export const GoodClientConfig = response('goodClientConfig', {
     registrationsEnabled: z.boolean().optional(),
     ctftime: z
       .object({
-        clientId: z.string(),
+        clientId: NumericString,
       })
       .optional(),
   }),
