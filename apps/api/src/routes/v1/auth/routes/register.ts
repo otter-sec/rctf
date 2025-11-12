@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
+import type { User } from '@rctf/db'
 import { RegisterRoute } from '@rctf/types'
-import { createToken, TokenKind } from '../../../../lib/tokens'
+import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
 import { storeLoginVerification } from '../../../../services/auth-cache'
 import { sendVerificationEmail } from '../../../../services/emails'
 import { createUser, getUserByNameOrEmail } from '../../../../services/users'
@@ -20,6 +21,7 @@ authGroup.route(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badCompetitionNotAllowed()
   }
 
+  // Registration with email:
   if (config.email && body.email) {
     // Prior to sending the verification email we need to make sure there are no conflicts
     const conflict = await getUserByNameOrEmail(ctx.var.db, {
@@ -47,15 +49,27 @@ authGroup.route(RegisterRoute, async ({ res, body, ctx }) => {
     return res.goodVerifySent()
   }
 
+  const userToCreate: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'> =
+    {
+      division,
+      email: body.email,
+      name: body.name,
+      ctftimeId: null,
+    }
+
+  // Registration with ctftime
   if (body.ctftimeToken) {
-    // Unsupported atm
-    return res.badCtftimeToken()
+    const ctftimeToken = await parseToken(
+      TokenKind.CtftimeAuth,
+      body.ctftimeToken
+    )
+    if (!ctftimeToken) {
+      return res.badCtftimeToken()
+    }
+
+    userToCreate.ctftimeId = ctftimeToken.ctftimeId
   }
 
-  return await createUser(res, ctx.var.db, {
-    division,
-    email: body.email,
-    name: body.name,
-    ctftimeId: null,
-  })
+  // Registration without any verification, or if ctftime token was successfully resolved:
+  return await createUser(res, ctx.var.db, userToCreate)
 })

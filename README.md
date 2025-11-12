@@ -58,9 +58,9 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ## Roadmap
 
-- [ ] `/api/v1/auth/register`:
+- [x] `/api/v1/auth/register`:
   - [x] User creation
-  - [ ] CTFTime login
+  - [x] CTFTime login
   - [x] Divisions ACL
   - [x] Email verification:
     - [x] SMTP
@@ -71,7 +71,7 @@ rCTF v1 frontend with rCTF v2 backend:
   - [x] Register
   - [ ] Recover
   - [ ] Update
-- [ ] `/api/v1/auth/login`
+- [x] `/api/v1/auth/login`
 - [ ] `/api/v1/auth/recover`
 - [x] `/api/v1/auth/test`
 
@@ -99,7 +99,7 @@ rCTF v1 frontend with rCTF v2 backend:
 
 - [x] `/api/v1/integrations/client/config`
 - [ ] `/api/v1/integrations/ctftime/leaderboard`
-- [ ] `/api/v1/integrations/ctftime/callback`
+- [x] `/api/v1/integrations/ctftime/callback`
 
 - [ ] `/api/v1/leaderboard/now`
 - [ ] `/api/v1/leaderboard/graph`

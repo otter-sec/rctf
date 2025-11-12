@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { response } from '../internal'
+import { NumericString } from '../util'
 
 export const GoodCtftimeToken = response('goodCtftimeToken', {
   status: 200,
@@ -7,6 +8,6 @@ export const GoodCtftimeToken = response('goodCtftimeToken', {
   data: z.object({
     ctftimeToken: z.string(),
     ctftimeName: z.string(),
-    ctftimeId: z.string(),
+    ctftimeId: NumericString,
   }),
 })

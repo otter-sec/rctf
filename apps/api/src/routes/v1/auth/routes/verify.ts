@@ -6,7 +6,7 @@ import authGroup from '../group'
 
 authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
   const tokenData = await parseToken(TokenKind.Verify, body.verifyToken)
-  if (tokenData === null) {
+  if (!tokenData) {
     return res.badTokenVerification()
   }
 

@@ -52,7 +52,7 @@ export const allowedDivisions = ({
   email,
   defaultOnly,
 }: {
-  email: string | undefined
+  email: string | null | undefined
   defaultOnly: boolean
 }): (string | undefined)[] => {
   if (!config.divisionACLs || !email || !config.email) {
