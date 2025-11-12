@@ -1,7 +1,7 @@
 import { VerifyRoute } from '@rctf/types'
-import { parseToken, TokenKind } from '../../../../lib/tokens'
+import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
 import { checkLoginVerification } from '../../../../services/auth-cache'
-import { createUser } from '../../../../services/users'
+import { createUser, getUserByEmail } from '../../../../services/users'
 import authGroup from '../group'
 
 authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
@@ -18,14 +18,24 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
     return res.badTokenVerification()
   }
 
-  if (tokenData.kind !== 'register') {
-    throw new Error(`Unsupported kind: ${tokenData.kind}`)
+  if (tokenData.kind === 'register') {
+    return await createUser(res, ctx.var.db, {
+      division: tokenData.division,
+      email: tokenData.email,
+      name: tokenData.name,
+      ctftimeId: null,
+    })
   }
 
-  return await createUser(res, ctx.var.db, {
-    division: tokenData.division,
-    email: tokenData.email,
-    name: tokenData.name,
-    ctftimeId: null,
-  })
+  if (tokenData.kind === 'recover') {
+    const user = await getUserByEmail(ctx.var.db, tokenData.email)
+    if (!user) {
+      return res.badUnknownUser()
+    }
+
+    const authToken = await createToken(TokenKind.Auth, user.id)
+    return res.goodVerify({ authToken })
+  }
+
+  throw new Error(`Unsupported kind: ${tokenData.kind}`)
 })

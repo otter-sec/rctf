@@ -53,7 +53,7 @@ export interface CtftimeAuthTokenData {
 
 // Internal map of type definitions for typing purposes only -
 // this type does not describe a real data-structure
-interface TokenDataTypes {
+export interface TokenDataTypes {
   [TokenKind.Auth]: AuthTokenData
   [TokenKind.Team]: TeamTokenData
   [TokenKind.Verify]: VerifyTokenData

@@ -1,8 +1,8 @@
 import { config } from '@rctf/config'
 import type { User } from '@rctf/db'
 import { RegisterRoute } from '@rctf/types'
-import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
-import { storeLoginVerification } from '../../../../services/auth-cache'
+import { parseToken, TokenKind } from '../../../../lib/tokens'
+import { createLoginVerification } from '../../../../services/auth-cache'
 import { sendVerificationEmail } from '../../../../services/emails'
 import { createUser, getUserByNameOrEmail } from '../../../../services/users'
 import { allowedDivisions } from '../../../../util/acl'
@@ -35,11 +35,8 @@ authGroup.route(RegisterRoute, async ({ res, body, ctx }) => {
       return res.badKnownEmail()
     }
 
-    const verificationId = crypto.randomUUID()
-    await storeLoginVerification(ctx.var.redis, verificationId)
-    const verificationToken = await createToken(TokenKind.Verify, {
+    const verificationToken = await createLoginVerification(ctx.var.redis, {
       kind: 'register',
-      verifyId: verificationId,
       email: body.email,
       name: body.name,
       division: division,

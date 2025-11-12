@@ -69,10 +69,10 @@ rCTF v1 frontend with rCTF v2 backend:
     - [x] Mailgun (untested)
 - [ ] `/api/v1/auth/verify`:
   - [x] Register
-  - [ ] Recover
+  - [x] Recover
   - [ ] Update
 - [x] `/api/v1/auth/login`
-- [ ] `/api/v1/auth/recover`
+- [x] `/api/v1/auth/recover`
 - [x] `/api/v1/auth/test`
 
 - [ ] `/api/v1/users/me`

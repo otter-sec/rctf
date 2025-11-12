@@ -92,6 +92,18 @@ export const getUserByNameOrEmail = async (
     .then(takeUnique)
 }
 
+export const getUserByEmail = async (
+  db: DatabaseClient,
+  email: string
+): Promise<User | undefined> => {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+    .then(takeUnique)
+}
+
 export const getUserByCtftimeId = async (
   db: DatabaseClient,
   ctftimeId: string
