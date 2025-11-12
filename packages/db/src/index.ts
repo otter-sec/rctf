@@ -10,6 +10,8 @@ export type PostgresClient = ReturnType<typeof postgres>
 export type { InferSelectModel, InferInsertModel }
 
 // Common types
+export type Challenge = InferInsertModel<typeof schema.challenges>
+export type Solve = InferInsertModel<typeof schema.solves>
 export type User = InferInsertModel<typeof schema.users>
 
 // FIXME(es3n1n): shared type for db config

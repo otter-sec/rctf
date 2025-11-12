@@ -75,6 +75,24 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/auth/recover`
 - [x] `/api/v1/auth/test`
 
+- [ ] `/api/v1/challs`
+- [ ] `/api/v1/challs/:id/submit`
+- [ ] `/api/v1/challs/:id/solves`
+
+- [ ] `/api/v1/admin/challs`
+- [ ] `/api/v1/admin/challs/:id`
+- [ ] `/api/v1/admin/challs/:id`
+- [ ] `/api/v1/admin/challs/:id`
+- [ ] `/api/v1/admin/upload`
+- [ ] `/api/v1/admin/upload/query`
+
+- [ ] `/api/v1/leaderboard/now`
+- [ ] `/api/v1/leaderboard/graph`
+
+- [x] `/api/v1/integrations/client/config`
+- [ ] `/api/v1/integrations/ctftime/leaderboard`
+- [x] `/api/v1/integrations/ctftime/callback`
+
 - [ ] `/api/v1/users/me`
 - [ ] `/api/v1/users/:id`
 - [ ] `/api/v1/users/me`
@@ -85,21 +103,3 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/users/me/auth/email`
 - [ ] `/api/v1/users/me/auth/ctftime`
 - [ ] `/api/v1/users/me/auth/ctftime`
-
-- [ ] `/api/v1/admin/challs`
-- [ ] `/api/v1/admin/challs/:id`
-- [ ] `/api/v1/admin/challs/:id`
-- [ ] `/api/v1/admin/challs/:id`
-- [ ] `/api/v1/admin/upload`
-- [ ] `/api/v1/admin/upload/query`
-
-- [ ] `/api/v1/challs`
-- [ ] `/api/v1/challs/:id/submit`
-- [ ] `/api/v1/challs/:id/solves`
-
-- [x] `/api/v1/integrations/client/config`
-- [ ] `/api/v1/integrations/ctftime/leaderboard`
-- [x] `/api/v1/integrations/ctftime/callback`
-
-- [ ] `/api/v1/leaderboard/now`
-- [ ] `/api/v1/leaderboard/graph`
