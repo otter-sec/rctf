@@ -1,6 +1,8 @@
 -- rCTF v1 schema:
 
 --> statement-breakpoint
+CREATE EXTENSION IF NOT EXISTS citext;
+--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"name" "citext" NOT NULL,
@@ -57,6 +59,8 @@ EXCEPTION WHEN duplicate_object THEN
   NULL;
 END$$;
 --> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "solves_createdat_index" ON "solves" USING btree ("createdat" timestamptz_ops);--> statement-breakpoint
-CREATE INDEX IF NOT EXISTS "solves_userid_index" ON "solves" USING btree ("userid" text_ops);--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "solves_createdat_index" ON "solves" USING btree ("createdat" timestamptz_ops);
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "solves_userid_index" ON "solves" USING btree ("userid" text_ops);
+--> statement-breakpoint
 CREATE INDEX IF NOT EXISTS "user_members_userid_index" ON "user_members" USING btree ("userid" text_ops);
