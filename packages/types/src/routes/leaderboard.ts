@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Permissions } from '../enums'
 import { defineRoute } from '../internal'
 import {
   BadNotStarted,
@@ -16,6 +17,8 @@ export const GetLeaderboardRoute = defineRoute({
     offset: z.coerce.number().int().min(0),
     division: z.string().optional(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
 })
 
 export const GetLeaderboardGraphRoute = defineRoute({
@@ -27,4 +30,6 @@ export const GetLeaderboardGraphRoute = defineRoute({
     limit: z.coerce.number().int().min(1),
     division: z.string().optional(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
 })

@@ -1,23 +1,17 @@
 import { GetChallengesRoute } from '@rctf/types'
+import { getChallenges } from '../../../../services/challenges'
 import challsGroup from '../group'
 
-challsGroup.route(GetChallengesRoute, async ({ res }) => {
-  return res.goodChallenges([
-    {
-      id: 'chal-1',
-      name: 'Warmup',
-      description: 'test test',
-      category: 'misc',
-      author: 'es3n1n',
-      files: [
-        {
-          name: 'challenge.txt',
-          url: 'https://google.com',
-        },
-      ],
-      points: 100,
-      solves: 7,
-      sortWeight: 0,
-    },
-  ])
+challsGroup.route(GetChallengesRoute, async ({ res, ctx }) => {
+  const challenges = await getChallenges(ctx.var.db)
+  return res.goodChallenges(
+    challenges.map(item => {
+      return {
+        id: item.id,
+        ...item.data,
+        points: item.data.points.min, // TODO(es3n1n): points calculation
+        solves: item.solves,
+      }
+    })
+  )
 })

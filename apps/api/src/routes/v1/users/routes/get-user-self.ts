@@ -1,10 +1,14 @@
 import { GetUserSelfRoute } from '@rctf/types'
 import { createToken, TokenKind } from '../../../../lib/tokens'
+import { getUserChallengeSolves } from '../../../../services/challenges'
 import { allowedDivisions } from '../../../../util/acl'
 import usersGroup from '../group'
 
-usersGroup.route(GetUserSelfRoute, async ({ user, res }) => {
-  const teamToken = await createToken(TokenKind.Team, user.id)
+usersGroup.route(GetUserSelfRoute, async ({ ctx, user, res }) => {
+  const [teamToken, solves] = await Promise.all([
+    createToken(TokenKind.Team, user.id),
+    getUserChallengeSolves(ctx.var.db, user.id),
+  ])
   const allowedDivs = allowedDivisions({
     email: user.email,
     defaultOnly: false,
@@ -16,21 +20,19 @@ usersGroup.route(GetUserSelfRoute, async ({ user, res }) => {
     email: user.email ?? undefined,
     ctftimeId: user.ctftimeId ?? undefined,
     division: user.division,
-    score: 4_200,
+    score: 4_200, // TODO(es3n1n): scores
     globalPlace: 1,
     divisionPlace: 1,
-    solves: [
-      {
-        category: 'misc',
-        name: 'Warmup',
-        points: 100,
-        solves: 42,
-        id: 'chal-1',
-        createdAt: 1_700_000_000,
-      },
-    ],
+    solves: solves.map(item => ({
+      id: item.solve.challengeid,
+      createdAt: new Date(item.solve.createdat).getTime(),
+      name: item.challengeData.name,
+      category: item.challengeData.category,
+      solves: item.challengeSolves,
+      points: 100, // TODO(es3n1n): scores
+    })),
     teamToken: teamToken,
     allowedDivisions: allowedDivs,
-    perms: 1,
+    perms: user.perms,
   })
 })

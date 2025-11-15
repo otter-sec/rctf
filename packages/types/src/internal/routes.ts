@@ -25,6 +25,10 @@ export interface RouteDefinition<
   TQuery extends SchemaLike | undefined = undefined,
   TAuthRequired extends boolean = boolean,
   TPermissions extends Permissions | undefined = Permissions | undefined,
+  TOnlyWhenStarted extends boolean = boolean,
+  TOnlyWhenStartedPermissionsBypass extends Permissions | undefined =
+    | Permissions
+    | undefined,
 > {
   readonly method: TMethod
   readonly path: string
@@ -34,6 +38,8 @@ export interface RouteDefinition<
   readonly params: TParams
   readonly query: TQuery
   readonly permissions: TPermissions
+  readonly onlyWhenStarted: TOnlyWhenStarted
+  readonly onlyWhenStartedPermissionsBypass: TOnlyWhenStartedPermissionsBypass
 }
 
 type RouteConfig = {
@@ -45,6 +51,8 @@ type RouteConfig = {
   params?: SchemaLike
   query?: SchemaLike
   permissions?: Permissions
+  onlyWhenStarted?: boolean
+  onlyWhenStartedPermissionsBypass?: Permissions
 }
 
 type NormalizedAuthRequired<TDefinition extends RouteConfig> =
@@ -57,6 +65,17 @@ type NormalizedPermissions<TDefinition extends RouteConfig> =
     ? TDefinition['permissions']
     : undefined
 
+type NormalizedOnlyWhenStarted<TDefinition extends RouteConfig> =
+  TDefinition['onlyWhenStarted'] extends boolean
+    ? TDefinition['onlyWhenStarted']
+    : false
+
+type NormalizedOnlyWhenStartedPermissionsBypass<
+  TDefinition extends RouteConfig,
+> = TDefinition['onlyWhenStartedPermissionsBypass'] extends Permissions
+  ? TDefinition['onlyWhenStartedPermissionsBypass']
+  : undefined
+
 export function defineRoute<TDefinition extends RouteConfig>(
   definition: TDefinition
 ): RouteDefinition<
@@ -66,7 +85,9 @@ export function defineRoute<TDefinition extends RouteConfig>(
   OptionalSchema<TDefinition['params']>,
   OptionalSchema<TDefinition['query']>,
   NormalizedAuthRequired<TDefinition>,
-  NormalizedPermissions<TDefinition>
+  NormalizedPermissions<TDefinition>,
+  NormalizedOnlyWhenStarted<TDefinition>,
+  NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>
 > {
   const {
     method,
@@ -77,12 +98,18 @@ export function defineRoute<TDefinition extends RouteConfig>(
     params,
     query,
     permissions,
+    onlyWhenStarted,
+    onlyWhenStartedPermissionsBypass,
   } = definition
 
   return {
     method,
     path,
     responses,
+    onlyWhenStarted: (onlyWhenStarted ??
+      false) as NormalizedOnlyWhenStarted<TDefinition>,
+    onlyWhenStartedPermissionsBypass: (onlyWhenStartedPermissionsBypass ??
+      undefined) as NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
     authRequired: (authRequired ??
       false) as NormalizedAuthRequired<TDefinition>,
     body: (body ?? undefined) as OptionalSchema<TDefinition['body']>,

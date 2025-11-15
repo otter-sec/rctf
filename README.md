@@ -75,14 +75,14 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/auth/recover`
 - [x] `/api/v1/auth/test`
 
-- [ ] `/api/v1/challs`
-- [ ] `/api/v1/challs/:id/submit`
-- [ ] `/api/v1/challs/:id/solves`
+- [x] `/api/v1/challs`
+- [x] `/api/v1/challs/:id/submit`
+- [x] `/api/v1/challs/:id/solves`
 
-- [ ] `/api/v1/admin/challs`
-- [ ] `/api/v1/admin/challs/:id`
-- [ ] `/api/v1/admin/challs/:id`
-- [ ] `/api/v1/admin/challs/:id`
+- [x] `/api/v1/admin/challs`
+- [x] `/api/v1/admin/challs/:id` DELETE
+- [x] `/api/v1/admin/challs/:id` GET
+- [x] `/api/v1/admin/challs/:id` POST
 - [ ] `/api/v1/admin/upload`
 - [ ] `/api/v1/admin/upload/query`
 

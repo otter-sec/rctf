@@ -37,27 +37,29 @@ export const UpdateChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'PUT',
   body: z.object({
-    author: z.string().optional(),
-    category: z.string().optional(),
-    description: z.string().optional(),
-    flag: z.string().optional(),
-    name: z.string().optional(),
-    points: z
-      .object({
-        max: z.number().int(),
-        min: z.number().int(),
-      })
-      .optional(),
-    tiebreakEligible: z.boolean().optional(),
-    files: z
-      .array(
-        z.object({
-          name: z.string(),
-          url: z.string(),
+    data: z.object({
+      author: z.string().optional(),
+      category: z.string().optional(),
+      description: z.string().optional(),
+      flag: z.string().optional(),
+      name: z.string().optional(),
+      points: z
+        .object({
+          max: z.number().int(),
+          min: z.number().int(),
         })
-      )
-      .optional(),
-    sortWeight: z.number().optional(),
+        .optional(),
+      tiebreakEligible: z.boolean().optional(),
+      files: z
+        .array(
+          z.object({
+            name: z.string(),
+            url: z.string(),
+          })
+        )
+        .optional(),
+      sortWeight: z.number().optional(),
+    }),
   }),
   responses: [GoodChallengeUpdate],
   authRequired: true,

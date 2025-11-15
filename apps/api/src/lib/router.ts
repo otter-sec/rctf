@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import type { User } from '@rctf/db'
 import type {
   AnyRouteDefinition,
@@ -15,7 +16,13 @@ import type {
   RouteValidationSource,
   SchemaLike,
 } from '@rctf/types'
-import { BadBody, BadJson, BadPerms, BadToken } from '@rctf/types'
+import {
+  BadBody,
+  BadJson,
+  BadNotStarted,
+  BadPerms,
+  BadToken,
+} from '@rctf/types'
 import type { Handler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod'
@@ -145,6 +152,15 @@ const unauthorized = (): [JsonLike, ContentfulStatusCode] => [
   BadToken.status as ContentfulStatusCode,
 ]
 
+const notStarted = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadNotStarted.kind,
+    message: BadNotStarted.message,
+    data: null,
+  },
+  BadNotStarted.status as ContentfulStatusCode,
+]
+
 const ensureAuth = async (context: ApiContext): Promise<User | undefined> => {
   const authHeader = context.req.header('Authorization')
   if (!authHeader || !authHeader.startsWith(AUTH_PREFIX)) {
@@ -162,8 +178,19 @@ const ensureAuth = async (context: ApiContext): Promise<User | undefined> => {
   return await getUser(context.var.db, userId)
 }
 
-const ensurePerms = async (user: User, permissions: Permissions) => {
+const ensurePerms = (user: User, permissions: Permissions) => {
   return (user.perms & permissions) !== 0
+}
+
+const ensureStarted = (
+  user: User | undefined,
+  bypassPermissions: Permissions | undefined
+): boolean => {
+  if (bypassPermissions && user && ensurePerms(user, bypassPermissions)) {
+    return true
+  }
+
+  return Date.now() >= config.startTime
 }
 
 export const declareRouter = <
@@ -193,10 +220,20 @@ export const declareRouter = <
 
       if (
         definition.permissions &&
-        !(await ensurePerms(executionContext.user, definition.permissions))
+        !ensurePerms(executionContext.user, definition.permissions)
       ) {
         return context.json(...accessDenied())
       }
+    }
+
+    if (
+      definition.onlyWhenStarted &&
+      !ensureStarted(
+        executionContext.user,
+        definition.onlyWhenStartedPermissionsBypass
+      )
+    ) {
+      return context.json(...notStarted())
     }
 
     const handleResponseIssue = async (

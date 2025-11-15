@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Permissions } from '../enums'
 import { defineRoute } from '../internal'
 import {
   BadAlreadySolvedChallenge,
@@ -19,6 +20,8 @@ export const GetChallengesRoute = defineRoute({
   method: 'GET',
   responses: [GoodChallenges, BadNotStarted],
   authRequired: true,
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const SubmitFlagRoute = defineRoute({
@@ -41,18 +44,22 @@ export const SubmitFlagRoute = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsWrite,
 })
 
 export const GetChallengeSolvesRoute = defineRoute({
   path: '/v1/challs/:id/solves',
   method: 'GET',
   responses: [GoodChallengeSolves, BadNotStarted, BadChallenge],
-  authRequired: false,
+  authRequired: true,
   params: z.object({
     id: z.string(),
   }),
   query: z.object({
-    limit: z.coerce.number().int().min(1),
+    limit: z.coerce.number().int().min(1), // TODO(es3n1n): add max, but its a breaking change
     offset: z.coerce.number().int().min(0),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })

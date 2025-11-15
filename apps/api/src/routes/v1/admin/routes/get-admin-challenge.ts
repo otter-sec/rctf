@@ -1,22 +1,15 @@
 import { GetAdminChallengeRoute } from '@rctf/types'
+import { getChallenge } from '../../../../services/challenges'
 import adminGroup from '../group'
 
-adminGroup.route(GetAdminChallengeRoute, async ({ res }) => {
+adminGroup.route(GetAdminChallengeRoute, async ({ res, ctx, params }) => {
+  const data = await getChallenge(ctx.var.db, params.id)
+  if (!data) {
+    return res.badChallenge()
+  }
+
   return res.goodAdminChallenge({
-    id: 'chal-1',
-    name: 'Warmup',
-    description: 'Test description',
-    category: 'misc',
-    author: 'es3n1n',
-    files: [
-      {
-        name: 'challenge.txt',
-        url: 'https://google.com/',
-      },
-    ],
-    points: { min: 100, max: 500 },
-    flag: 'rctf{example}',
-    tiebreakEligible: true,
-    sortWeight: 0,
+    id: data.id,
+    ...data.data,
   })
 })

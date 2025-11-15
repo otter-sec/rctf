@@ -43,14 +43,14 @@ export const createUser = async (
         })
     )[0]!
   } catch (error) {
-    const constraint_name = getErrorConstraint(error)
-    if (constraint_name === 'users_ctftime_id_key') {
+    const contraintName = getErrorConstraint(error)
+    if (contraintName === 'users_ctftime_id_key') {
       return res.badKnownCtftimeId()
     }
-    if (constraint_name === 'users_email_key') {
+    if (contraintName === 'users_email_key') {
       return res.badKnownEmail()
     }
-    if (constraint_name === 'users_name_key') {
+    if (contraintName === 'users_name_key') {
       return res.badKnownName()
     }
     throw error
