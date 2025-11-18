@@ -1,7 +1,11 @@
 import { VerifyRoute } from '@rctf/types'
 import { checkLoginVerification } from '../../../../cache/auth-cache'
 import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
-import { createUser, getUserByEmail } from '../../../../services/users'
+import {
+  createUser,
+  getUserByEmail,
+  updateUserEmail,
+} from '../../../../services/users'
 import authGroup from '../group'
 
 authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
@@ -37,5 +41,11 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
     return res.goodVerify({ authToken })
   }
 
-  throw new Error(`Unsupported kind: ${tokenData.kind}`)
+  if (tokenData.kind === 'update') {
+    return await updateUserEmail(res, ctx.var.db, tokenData.userId, {
+      email: tokenData.email,
+    })
+  }
+
+  throw new Error(`Unsupported kind: ${tokenData}`)
 })

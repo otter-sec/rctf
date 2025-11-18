@@ -32,7 +32,6 @@ export interface UpdateVerifyTokenData extends BaseVerifyTokenData {
   kind: 'update'
   userId: string
   email: NonNullable<string>
-  division: string
 }
 
 export interface RecoverTokenData extends BaseVerifyTokenData {
