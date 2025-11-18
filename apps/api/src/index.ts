@@ -6,6 +6,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { appEnvMiddleware } from './middlewares/app-env'
+import { uploadProvider } from './providers'
 import { routeModules } from './routes'
 import { startLeaderboardWorker } from './workers'
 
@@ -51,7 +52,9 @@ app.onError((err, c) => {
   )
 })
 
-const main = () => {
+const main = async () => {
+  await uploadProvider.startupWebPart(app)
+
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(pinoObject)
   }

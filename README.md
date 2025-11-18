@@ -83,8 +83,10 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/admin/challs/:id` DELETE
 - [x] `/api/v1/admin/challs/:id` GET
 - [x] `/api/v1/admin/challs/:id` POST
-- [ ] `/api/v1/admin/upload`
-- [ ] `/api/v1/admin/upload/query`
+- [x] `/api/v1/admin/upload`
+  - [x] Local
+  - [x] GCS
+- [x] `/api/v1/admin/upload/query`
 
 - [x] `/api/v1/leaderboard/now`
 - [x] `/api/v1/leaderboard/graph`

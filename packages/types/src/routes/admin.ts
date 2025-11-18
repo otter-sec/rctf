@@ -79,12 +79,14 @@ export const DeleteChallengeRoute = defineRoute({
 export const UploadFilesRoute = defineRoute({
   path: '/v1/admin/upload',
   method: 'POST',
-  body: z.array(
-    z.object({
-      name: z.string(),
-      data: z.string(),
-    })
-  ),
+  body: z.object({
+    files: z.array(
+      z.object({
+        name: z.string(),
+        data: z.string(),
+      })
+    ),
+  }),
   responses: [GoodFilesUpload, BadDataUri],
   authRequired: true,
   permissions: Permissions.challsWrite,
@@ -93,12 +95,14 @@ export const UploadFilesRoute = defineRoute({
 export const QueryUploadsRoute = defineRoute({
   path: '/v1/admin/upload/query',
   method: 'POST',
-  body: z.array(
-    z.object({
-      sha256: z.string(),
-      name: z.string(),
-    })
-  ),
+  body: z.object({
+    uploads: z.array(
+      z.object({
+        sha256: z.string(),
+        name: z.string(),
+      })
+    ),
+  }),
   responses: [GoodUploadsQuery],
   authRequired: true,
   permissions: Permissions.challsRead,

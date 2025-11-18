@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
 import { emailProviders } from './emails'
+import { uploadProviders } from './uploads'
 
 const loadProvider = <Base>(
   providers: Record<string, (options: any) => Base>,
@@ -26,3 +27,8 @@ export const emailProvider = loadProvider(
   emailProviders,
   config.email?.provider
 )
+
+export const uploadProvider = loadProvider(
+  uploadProviders,
+  config.uploadProvider
+)!

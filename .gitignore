@@ -23,6 +23,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 *.db
 *.db-journal
 uploads/
+!apps/api/src/providers/uploads/
 tmp/
 temp/
 .data/
