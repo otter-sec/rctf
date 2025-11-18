@@ -1,6 +1,6 @@
 import { VerifyRoute } from '@rctf/types'
+import { checkLoginVerification } from '../../../../cache/auth-cache'
 import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
-import { checkLoginVerification } from '../../../../services/auth-cache'
 import { createUser, getUserByEmail } from '../../../../services/users'
 import authGroup from '../group'
 

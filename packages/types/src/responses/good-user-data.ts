@@ -15,12 +15,11 @@ export const GoodUserData = response('goodUserData', {
   message: 'The user data was successfully retrieved.',
   data: z.object({
     name: z.string(),
-    ctftimeId: z.string().optional(),
+    ctftimeId: z.string().nullable(),
     division: z.string(),
     score: z.number().int(),
     globalPlace: z.number().int().nullable(),
     divisionPlace: z.number().int().nullable(),
     solves: z.array(SolveSchema),
-    perms: z.number().int().optional(),
   }),
 })

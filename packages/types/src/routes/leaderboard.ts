@@ -13,7 +13,7 @@ export const GetLeaderboardRoute = defineRoute({
   responses: [GoodLeaderboard, BadNotStarted],
   authRequired: false,
   query: z.object({
-    limit: z.coerce.number().int().min(0),
+    limit: z.coerce.number().int().min(1),
     offset: z.coerce.number().int().min(0),
     division: z.string().optional(),
   }),
@@ -27,7 +27,7 @@ export const GetLeaderboardGraphRoute = defineRoute({
   responses: [GoodLeaderboardGraph, BadNotStarted],
   authRequired: false,
   query: z.object({
-    limit: z.coerce.number().int().min(1),
+    limit: z.coerce.number().int().min(1).max(10), // NOTE(es3n1n): .max(10) is a breaking change
     division: z.string().optional(),
   }),
   onlyWhenStarted: true,

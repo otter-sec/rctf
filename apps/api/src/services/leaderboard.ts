@@ -1,0 +1,221 @@
+import { config } from '@rctf/config'
+import type { DatabaseClient } from '@rctf/db'
+import { challenges, solves, users } from '@rctf/db'
+import { asc } from 'drizzle-orm'
+import type {
+  CalculatedLeaderboard,
+  InternalChallengeInfo,
+  InternalUserInfo,
+} from '../cache/leaderboard'
+import { getClassicScore } from '../providers/scores/classic'
+
+const getUsers = async (
+  db: DatabaseClient
+): Promise<Map<string, InternalUserInfo>> => {
+  const dbUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      division: users.division,
+    })
+    .from(users)
+
+  const result = new Map<string, InternalUserInfo>()
+  for (let i = 0; i < dbUsers.length; i++) {
+    const u = dbUsers[i]
+    if (!u) {
+      continue
+    }
+
+    result.set(u.id, {
+      id: u.id,
+      name: u.name,
+      division: u.division ?? null,
+      score: 0,
+      lastSolve: undefined,
+      lastTiebreakEligibleSolve: undefined,
+      solvedChallengeIds: [],
+    })
+  }
+  return result
+}
+
+const getChallenges = async (
+  db: DatabaseClient
+): Promise<Map<string, InternalChallengeInfo>> => {
+  const dbChalls = await db
+    .select({
+      id: challenges.id,
+      data: challenges.data,
+    })
+    .from(challenges)
+
+  const result = new Map<string, InternalChallengeInfo>()
+  for (let i = 0; i < dbChalls.length; i++) {
+    const ch = dbChalls[i]
+    if (!ch) {
+      continue
+    }
+
+    const points = ch.data.points ?? { min: 0, max: 0 }
+    result.set(ch.id, {
+      id: ch.id,
+      tiebreakEligible: ch.data.tiebreakEligible ?? false,
+      solves: 0,
+      score: 0,
+      minPoints: points.min ?? 0,
+      maxPoints: points.max ?? 0,
+    })
+  }
+  return result
+}
+
+export const calculateLeaderboard = async (
+  db: DatabaseClient
+): Promise<CalculatedLeaderboard> => {
+  const now = Date.now()
+  const userInfos = await getUsers(db)
+  const challengeInfos = await getChallenges(db)
+
+  const dbSolves = await db
+    .select({
+      challengeid: solves.challengeid,
+      userid: solves.userid,
+      createdat: solves.createdat,
+    })
+    .from(solves)
+    .orderBy(asc(solves.createdat))
+
+  let solveIndex = 0
+  const applySolvesUntil = (untilEpochMs: number): boolean => {
+    let changed = false
+
+    for (; solveIndex < dbSolves.length; solveIndex++) {
+      const s = dbSolves[solveIndex]
+      if (!s) {
+        continue
+      }
+
+      const createdAtMs = new Date(s.createdat).valueOf()
+      if (createdAtMs > untilEpochMs) {
+        break
+      }
+
+      const chal = challengeInfos.get(s.challengeid)
+      const user = userInfos.get(s.userid)
+      if (!chal || !user) {
+        continue
+      }
+
+      chal.solves++
+      user.lastSolve = createdAtMs
+      if (chal.tiebreakEligible) {
+        user.lastTiebreakEligibleSolve = createdAtMs
+      }
+      user.solvedChallengeIds.push(s.challengeid)
+      changed = true
+    }
+
+    if (!changed) {
+      return false
+    }
+
+    // recompute challenge dynamic scores
+    const maxSolves = Math.max(
+      ...Array.from(challengeInfos.values()).map(ch => ch.solves)
+    )
+    for (const [, ch] of challengeInfos) {
+      ch.score = getClassicScore(
+        ch.minPoints,
+        ch.maxPoints,
+        maxSolves,
+        ch.solves
+      )
+    }
+
+    // recompute user scores
+    for (const [, u] of userInfos) {
+      u.score = 0
+
+      for (let i = 0; i < u.solvedChallengeIds.length; i++) {
+        const ch = challengeInfos.get(u.solvedChallengeIds[i] ?? '')
+        if (!ch) {
+          continue
+        }
+
+        u.score += ch.score
+      }
+    }
+
+    return true
+  }
+
+  const samples: CalculatedLeaderboard['samples'] = []
+  const runSample = (t: number): boolean => {
+    const result = applySolvesUntil(t)
+    samples.push({
+      time: t,
+      userScores: Array.from(userInfos.entries()).map(([id, u]) => ({
+        id,
+        score: u.score,
+      })),
+    })
+    return result || !samples.length
+  }
+
+  // Run samples
+  const graphSampleTime = config.leaderboard.graphSampleTime
+  if (graphSampleTime > 0) {
+    const start =
+      Math.ceil(config.startTime / graphSampleTime) * graphSampleTime
+    const end = Math.floor(config.endTime / graphSampleTime) * graphSampleTime
+
+    for (let i = start; i <= end && i <= now; i += graphSampleTime) {
+      // Stop once there are no more changes
+      if (!runSample(i) && solveIndex >= dbSolves.length) {
+        break
+      }
+    }
+  }
+
+  // Recompute scores up to now even if they're outside of the sample range
+  runSample(now)
+
+  const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
+    // 1. Score difference
+    const scoreDiff = b.score - a.score
+    if (scoreDiff !== 0) {
+      return scoreDiff
+    }
+
+    // 2. Last tiebreak eligible solve difference
+    const lastTiebreakEligibleSolveDiff =
+      (a.lastTiebreakEligibleSolve ?? Infinity) -
+      (b.lastTiebreakEligibleSolve ?? Infinity)
+    if (
+      !isNaN(lastTiebreakEligibleSolveDiff) &&
+      lastTiebreakEligibleSolveDiff !== 0
+    ) {
+      return lastTiebreakEligibleSolveDiff
+    }
+
+    // 3. Last solve difference
+    return (a.lastSolve ?? Infinity) - (b.lastSolve ?? Infinity)
+  }
+
+  return {
+    leaderboardUpdate: now,
+    users: Array.from(userInfos.values())
+      .filter(u => u.lastSolve !== undefined)
+      .sort(compareUsers)
+      .map(u => ({
+        id: u.id,
+        name: u.name,
+        division: u.division,
+        score: u.score,
+        hadAnySolve: true,
+      })),
+    challengeInfos: challengeInfos,
+    samples,
+  }
+}

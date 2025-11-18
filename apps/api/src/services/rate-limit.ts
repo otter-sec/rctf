@@ -1,7 +1,7 @@
-import type { RedisClient } from 'bun'
+import type { TypedRedis } from '../cache/scripts'
 
 export const rateLimit = async (
-  redis: RedisClient,
+  redis: TypedRedis,
   key: string,
   limit: number,
   ttlMilliseconds: number

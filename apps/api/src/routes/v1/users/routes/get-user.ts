@@ -19,6 +19,5 @@ usersGroup.route(GetUserRoute, async ({ res }) => {
         createdAt: 1_700_000_000,
       },
     ],
-    perms: 1,
   })
 })

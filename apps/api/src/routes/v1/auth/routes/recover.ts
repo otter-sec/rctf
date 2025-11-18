@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import { RecoverRoute } from '@rctf/types'
-import { createLoginVerification } from '../../../../services/auth-cache'
+import { createLoginVerification } from '../../../../cache/auth-cache'
 import { sendVerificationEmail } from '../../../../services/emails'
 import { getUserByEmail } from '../../../../services/users'
 import authGroup from '../group'

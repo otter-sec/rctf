@@ -43,7 +43,7 @@ integrationsGroup.route(CtftimeCallbackRoute, async ({ res, body }) => {
 
   if (!response.ok) {
     throw new Error(
-      `Failed to get ctftime code: ${response.status}: ${response.statusText}`
+      `Failed to get ctftime code: ${response.status}: ${await response.text()}`
     )
   }
 

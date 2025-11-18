@@ -37,7 +37,7 @@ export interface ServerConfig {
         }
     migrate: string
   }
-  instanceType: string
+  instanceType: 'leaderboard' | 'all' | 'frontend'
   tokenKey: string
   origin: string
 

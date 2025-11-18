@@ -86,16 +86,16 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/admin/upload`
 - [ ] `/api/v1/admin/upload/query`
 
-- [ ] `/api/v1/leaderboard/now`
-- [ ] `/api/v1/leaderboard/graph`
+- [x] `/api/v1/leaderboard/now`
+- [x] `/api/v1/leaderboard/graph`
 
 - [x] `/api/v1/integrations/client/config`
-- [ ] `/api/v1/integrations/ctftime/leaderboard`
+- [x] `/api/v1/integrations/ctftime/leaderboard`
 - [x] `/api/v1/integrations/ctftime/callback`
 
-- [ ] `/api/v1/users/me`
+- [x] `/api/v1/users/me`
+- [ ] `/api/v1/users/me` PATCH
 - [ ] `/api/v1/users/:id`
-- [ ] `/api/v1/users/me`
 - [ ] `/api/v1/users/me/members`
 - [ ] `/api/v1/users/me/members`
 - [ ] `/api/v1/users/me/members/:id`

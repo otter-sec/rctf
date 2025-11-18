@@ -11,5 +11,6 @@ adminGroup.route(GetAdminChallengeRoute, async ({ res, ctx, params }) => {
   return res.goodAdminChallenge({
     id: data.id,
     ...data.data,
+    sortWeight: data.data.sortWeight ?? null,
   })
 })

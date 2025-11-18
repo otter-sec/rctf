@@ -16,8 +16,8 @@ export const GoodUserSelfData = response('goodUserSelfData', {
   data: z.object({
     id: z.string(),
     name: z.string(),
-    email: z.string().optional(),
-    ctftimeId: z.string().optional(),
+    email: z.string().nullable(),
+    ctftimeId: z.string().nullable(),
     division: z.string(),
     score: z.number().int(),
     globalPlace: z.number().int().nullable(),
@@ -25,6 +25,6 @@ export const GoodUserSelfData = response('goodUserSelfData', {
     solves: z.array(SolveSchema),
     teamToken: z.string(),
     allowedDivisions: z.array(z.string()),
-    perms: z.number().int().optional(),
+    perms: z.number().int().nullable(),
   }),
 })

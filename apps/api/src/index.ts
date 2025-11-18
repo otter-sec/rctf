@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
 import { Hono } from 'hono'
 import { pinoLogger } from 'hono-pino'
@@ -6,6 +7,7 @@ import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { appEnvMiddleware } from './middlewares/app-env'
 import { routeModules } from './routes'
+import { startLeaderboardWorker } from './workers'
 
 const app = new Hono<AppEnv>()
 
@@ -49,13 +51,22 @@ app.onError((err, c) => {
   )
 })
 
-export default app
+const main = () => {
+  if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
+    startLeaderboardWorker(pinoObject)
+  }
 
+  if (config.instanceType === 'frontend' || config.instanceType === 'all') {
+    const port = Number(process.env.PORT ?? 3000)
+    pinoObject.info(`Listening on :${port}`)
+    Bun.serve({
+      port,
+      fetch: app.fetch,
+    })
+  }
+}
+
+export default main
 if (import.meta.main) {
-  const port = Number(process.env.PORT ?? 3000)
-  pinoObject.info(`Listening on :${port}`)
-  Bun.serve({
-    port,
-    fetch: app.fetch,
-  })
+  main()
 }

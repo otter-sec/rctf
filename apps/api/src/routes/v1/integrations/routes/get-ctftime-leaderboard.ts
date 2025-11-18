@@ -1,19 +1,15 @@
 import { GetCtftimeLeaderboardRoute } from '@rctf/types'
+import { getFullLeaderboard } from '../../../../cache/leaderboard'
 import integrationsGroup from '../group'
 
-integrationsGroup.route(GetCtftimeLeaderboardRoute, async ({ res }) => {
+integrationsGroup.route(GetCtftimeLeaderboardRoute, async ({ ctx, res }) => {
+  const { leaderboard } = await getFullLeaderboard(ctx.var.redis)
+
   return res.goodCtftimeLeaderboard({
-    standings: [
-      {
-        pos: 1,
-        team: 'Example Team',
-        score: 1_234,
-      },
-      {
-        pos: 2,
-        team: 'Second Team',
-        score: 987,
-      },
-    ],
+    standings: leaderboard.map((item, index) => ({
+      pos: index + 1,
+      team: item.name,
+      score: item.score,
+    })),
   })
 })

@@ -1,5 +1,4 @@
 import { config } from '@rctf/config'
-import type { RedisClient } from 'bun'
 import {
   createToken,
   TokenKind,
@@ -8,16 +7,17 @@ import {
   type UpdateVerifyTokenData,
   type VerifyTokenData,
 } from '../lib/tokens'
+import type { TypedRedis } from './scripts'
 
 export const storeLoginVerification = async (
-  client: RedisClient,
+  client: TypedRedis,
   id: VerifyTokenData['verifyId']
 ): Promise<void> => {
   await client.set(`login:${id}`, '0', 'PX', config.loginTimeout)
 }
 
 export const checkLoginVerification = async (
-  client: RedisClient,
+  client: TypedRedis,
   id: VerifyTokenData['verifyId']
 ): Promise<boolean> => {
   const result = await client.del(`login:${id}`)
@@ -25,7 +25,7 @@ export const checkLoginVerification = async (
 }
 
 export const createLoginVerification = async (
-  client: RedisClient,
+  client: TypedRedis,
   data:
     | Omit<RegisterVerifyTokenData, 'verifyId'>
     | Omit<UpdateVerifyTokenData, 'verifyId'>

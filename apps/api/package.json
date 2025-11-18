@@ -17,6 +17,7 @@
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.4",
     "hono-pino": "^0.10.3",
+    "ioredis": "^5.8.2",
     "mustache": "^4.2.0",
     "nodemailer": "^7.0.10",
     "pino": "^10.1.0",

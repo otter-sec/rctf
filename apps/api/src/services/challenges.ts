@@ -1,4 +1,3 @@
-import { config } from '@rctf/config'
 import type { Challenge, ChallengeData, DatabaseClient, Solve } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
@@ -11,10 +10,10 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import type { RedisClient } from 'bun'
-import { asc, count, desc, eq, sql } from 'drizzle-orm'
-import type { ApiContext } from '../lib/app-env'
+import { asc, desc, eq, sql } from 'drizzle-orm'
+import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
+import { forceLeaderboardUpdate } from '../workers'
 import { rateLimit } from './rate-limit'
 
 type SubmitResponseHelpers = ResponseHelpers<
@@ -30,20 +29,13 @@ type SubmitResponseHelpers = ResponseHelpers<
 
 export const getChallenges = async (
   db: DatabaseClient
-): Promise<
-  (Challenge & {
-    solves: number
-  })[]
-> => {
+): Promise<Challenge[]> => {
   return await db
     .select({
       id: challenges.id,
       data: challenges.data,
-      solves: count(solves.id).as('solves'),
     })
     .from(challenges)
-    .leftJoin(solves, eq(solves.challengeid, challenges.id))
-    .groupBy(challenges.id, challenges.data)
     .orderBy(
       sql`((${challenges.data} ->> 'sortWeight')::int) NULLS LAST`,
       desc(challenges.id)
@@ -127,16 +119,11 @@ export const getChallengeSolves = async (
 export const getUserChallengeSolves = async (
   db: DatabaseClient,
   userId: string
-): Promise<
-  { solve: Solve; challengeData: ChallengeData; challengeSolves: number }[]
-> => {
+): Promise<{ solve: Solve; challengeData: ChallengeData }[]> => {
   return await db
     .select({
       solve: solves,
       challengeData: challenges.data,
-      challengeSolves: sql<number>`
-        (SELECT COUNT(*)::int FROM ${solves} s2 WHERE s2.challengeid = ${solves.challengeid})
-      `.as('challengeSolves'),
     })
     .from(solves)
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
@@ -147,7 +134,7 @@ export const getUserChallengeSolves = async (
 export const submitFlag = async (
   res: SubmitResponseHelpers,
   db: DatabaseClient,
-  redis: RedisClient,
+  redis: TypedRedis,
   params: { userId: string; challengeId: string; flag: string }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
   const challenge = await db
@@ -193,5 +180,6 @@ export const submitFlag = async (
     throw error
   }
 
+  forceLeaderboardUpdate()
   return res.goodFlag()
 }

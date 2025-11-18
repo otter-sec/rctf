@@ -7,5 +7,6 @@ adminGroup.route(UpdateChallengeRoute, async ({ res, ctx, params, body }) => {
   return res.goodChallengeUpdate({
     id: updated.id,
     ...updated.data,
+    sortWeight: updated.data.sortWeight ?? null,
   })
 })
