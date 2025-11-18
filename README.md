@@ -94,7 +94,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/integrations/ctftime/callback`
 
 - [x] `/api/v1/users/me`
-- [ ] `/api/v1/users/me` PATCH
+- [x] `/api/v1/users/me` PATCH
 - [ ] `/api/v1/users/:id`
 - [ ] `/api/v1/users/me/members`
 - [ ] `/api/v1/users/me/members`
@@ -103,3 +103,6 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] `/api/v1/users/me/auth/email`
 - [ ] `/api/v1/users/me/auth/ctftime`
 - [ ] `/api/v1/users/me/auth/ctftime`
+
+- [ ] Run migrations programatically
+- [ ] Go through all config vars and check that all of them are used

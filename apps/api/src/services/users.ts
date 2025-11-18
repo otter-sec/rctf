@@ -1,7 +1,11 @@
 import type { DatabaseClient, User } from '@rctf/db'
 import { users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
-import type { ResponseHelpers } from '@rctf/types'
+import type {
+  BadDivisionNotAllowed,
+  GoodUserUpdate,
+  ResponseHelpers,
+} from '@rctf/types'
 import {
   BadKnownCtftimeId,
   BadKnownEmail,
@@ -18,6 +22,10 @@ type CreateUserResponseHelpers = ResponseHelpers<
     typeof BadKnownName,
     typeof GoodRegister,
   ]
+>
+
+type UpdateUserResponseHelpers = ResponseHelpers<
+  [typeof BadDivisionNotAllowed, typeof BadKnownName, typeof GoodUserUpdate]
 >
 
 export const createUser = async (
@@ -58,6 +66,40 @@ export const createUser = async (
 
   const authToken = await createToken(TokenKind.Auth, created.id)
   return res.goodRegister({ authToken })
+}
+
+export const updateUser = async (
+  res: UpdateUserResponseHelpers,
+  db: DatabaseClient,
+  id: string,
+  user: Pick<User, 'division' | 'name'>
+): Promise<
+  ReturnType<UpdateUserResponseHelpers[keyof UpdateUserResponseHelpers]>
+> => {
+  let updated
+
+  try {
+    updated = await db
+      .update(users)
+      .set(user)
+      .where(eq(users.id, id))
+      .returning()
+      .then(takeUnique)
+  } catch (error) {
+    const contraintName = getErrorConstraint(error)
+    if (contraintName === 'users_name_key') {
+      return res.badKnownName()
+    }
+    throw error
+  }
+
+  return res.goodUserUpdate({
+    user: {
+      name: updated!.name,
+      division: updated!.division,
+      email: updated!.email ?? undefined,
+    },
+  })
 }
 
 export const getUser = async (
