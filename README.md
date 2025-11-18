@@ -95,7 +95,7 @@ rCTF v1 frontend with rCTF v2 backend:
 
 - [x] `/api/v1/users/me`
 - [x] `/api/v1/users/me` PATCH
-- [ ] `/api/v1/users/:id`
+- [x] `/api/v1/users/:id`
 - [ ] `/api/v1/users/me/members`
 - [ ] `/api/v1/users/me/members`
 - [ ] `/api/v1/users/me/members/:id`

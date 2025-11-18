@@ -1,23 +1,11 @@
 import { GetUserRoute } from '@rctf/types'
+import { getFullUserFromId } from '../../../../services/full-user'
 import usersGroup from '../group'
 
-usersGroup.route(GetUserRoute, async ({ res }) => {
-  return res.goodUserData({
-    name: 'es3n1n',
-    ctftimeId: '12345',
-    division: 'open',
-    score: 4_200,
-    globalPlace: 1,
-    divisionPlace: 1,
-    solves: [
-      {
-        category: 'misc',
-        name: 'Warmup',
-        points: 100,
-        solves: 42,
-        id: 'chal-1',
-        createdAt: 1_700_000_000,
-      },
-    ],
-  })
+usersGroup.route(GetUserRoute, async ({ ctx, res, params: { id } }) => {
+  const fullUser = await getFullUserFromId(ctx.var.db, ctx.var.redis, id)
+  if (!fullUser) {
+    return res.badUnknownUser()
+  }
+  return res.goodUserData(fullUser)
 })
