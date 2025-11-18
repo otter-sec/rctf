@@ -101,8 +101,8 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/users/me/members/:id`
 - [x] `/api/v1/users/me/auth/email`
 - [x] `/api/v1/users/me/auth/email`
-- [ ] `/api/v1/users/me/auth/ctftime`
-- [ ] `/api/v1/users/me/auth/ctftime`
+- [x] `/api/v1/users/me/auth/ctftime`
+- [x] `/api/v1/users/me/auth/ctftime`
 
 - [ ] Run migrations programatically
 - [ ] Go through all config vars and check that all of them are used

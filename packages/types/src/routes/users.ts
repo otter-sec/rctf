@@ -112,7 +112,13 @@ export const SetEmailRoute = defineRoute({
 export const DeleteEmailRoute = defineRoute({
   path: '/v1/users/me/auth/email',
   method: 'DELETE',
-  responses: [GoodEmailRemoved, BadEndpoint, BadZeroAuth, BadEmailNoExists],
+  responses: [
+    GoodEmailRemoved,
+    BadEndpoint,
+    BadZeroAuth,
+    BadEmailNoExists,
+    BadUnknownUser,
+  ],
   authRequired: true,
 })
 
@@ -135,6 +141,12 @@ export const SetCtftimeRoute = defineRoute({
 export const DeleteCtftimeRoute = defineRoute({
   path: '/v1/users/me/auth/ctftime',
   method: 'DELETE',
-  responses: [GoodCtftimeRemoved, BadEndpoint, BadZeroAuth, BadCtftimeNoExists],
+  responses: [
+    GoodCtftimeRemoved,
+    BadEndpoint,
+    BadZeroAuth,
+    BadCtftimeNoExists,
+    BadUnknownUser,
+  ],
   authRequired: true,
 })

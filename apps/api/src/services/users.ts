@@ -5,6 +5,9 @@ import type {
   BadDivisionNotAllowed,
   BadEmailNoExists,
   BadUnknownUser,
+  BadZeroAuth,
+  GoodCtftimeAuthSet,
+  GoodCtftimeRemoved,
   GoodEmailRemoved,
   GoodEmailSet,
   GoodUserUpdate,
@@ -36,8 +39,21 @@ type UpdateUserEmailResponseHelpers = ResponseHelpers<
   [typeof BadUnknownUser, typeof BadKnownEmail, typeof GoodEmailSet]
 >
 
+type UpdateCtftimeIdResponseHelpers = ResponseHelpers<
+  [typeof BadKnownCtftimeId, typeof GoodCtftimeAuthSet, typeof BadUnknownUser]
+>
+
 type DeleteEmailResponseHelpers = ResponseHelpers<
-  [typeof BadEmailNoExists, typeof GoodEmailRemoved]
+  [
+    typeof BadEmailNoExists,
+    typeof GoodEmailRemoved,
+    typeof BadUnknownUser,
+    typeof BadZeroAuth,
+  ]
+>
+
+type DeleteCtftimeIdResponseHelpers = ResponseHelpers<
+  [typeof GoodCtftimeRemoved, typeof BadUnknownUser, typeof BadZeroAuth]
 >
 
 export const createUser = async (
@@ -148,6 +164,97 @@ export const updateUserEmail = async (
   return res.goodEmailSet()
 }
 
+export const deleteEmail = async (
+  res: DeleteEmailResponseHelpers,
+  db: DatabaseClient,
+  id: string
+): Promise<
+  ReturnType<DeleteEmailResponseHelpers[keyof DeleteEmailResponseHelpers]>
+> => {
+  let updated
+
+  try {
+    updated = await db
+      .update(users)
+      .set({ email: null })
+      .where(eq(users.id, id))
+      .returning()
+      .then(takeUnique)
+  } catch (error) {
+    const contraintName = getErrorConstraint(error)
+    if (contraintName === 'require_email_or_ctftime_id') {
+      return res.badZeroAuth()
+    }
+    throw error
+  }
+
+  if (!updated) {
+    return res.badUnknownUser()
+  }
+
+  return res.goodEmailRemoved()
+}
+
+export const updateCtftimeId = async (
+  res: UpdateCtftimeIdResponseHelpers,
+  db: DatabaseClient,
+  id: string,
+  ctftimeId: string
+): Promise<
+  ReturnType<
+    UpdateCtftimeIdResponseHelpers[keyof UpdateCtftimeIdResponseHelpers]
+  >
+> => {
+  let updated
+
+  try {
+    updated = await db.update(users).set({ ctftimeId }).where(eq(users.id, id))
+  } catch (error) {
+    const contraintName = getErrorConstraint(error)
+    if (contraintName === 'users_ctftime_id_key') {
+      return res.badKnownCtftimeId()
+    }
+    throw error
+  }
+
+  if (!updated) {
+    return res.badUnknownUser()
+  }
+
+  return res.goodCtftimeAuthSet()
+}
+
+export const deleteCtftimeId = async (
+  res: DeleteCtftimeIdResponseHelpers,
+  db: DatabaseClient,
+  id: string
+): Promise<
+  ReturnType<
+    DeleteCtftimeIdResponseHelpers[keyof DeleteCtftimeIdResponseHelpers]
+  >
+> => {
+  let updated
+
+  try {
+    updated = await db
+      .update(users)
+      .set({ ctftimeId: null })
+      .where(eq(users.id, id))
+  } catch (error) {
+    const contraintName = getErrorConstraint(error)
+    if (contraintName === 'require_email_or_ctftime_id') {
+      return res.badZeroAuth()
+    }
+    throw error
+  }
+
+  if (!updated) {
+    return res.badUnknownUser()
+  }
+
+  return res.goodCtftimeRemoved()
+}
+
 export const getUser = async (
   db: DatabaseClient,
   id: string
@@ -202,28 +309,4 @@ export const getUserByCtftimeId = async (
     .where(eq(users.ctftimeId, ctftimeId))
     .limit(1)
     .then(takeUnique)
-}
-
-export const deleteEmail = async (
-  res: DeleteEmailResponseHelpers,
-  db: DatabaseClient,
-  id: string
-): Promise<
-  ReturnType<DeleteEmailResponseHelpers[keyof DeleteEmailResponseHelpers]>
-> => {
-  try {
-    await db
-      .update(users)
-      .set({ email: null })
-      .where(eq(users.id, id))
-      .returning()
-      .then(takeUnique)
-  } catch (error) {
-    const contraintName = getErrorConstraint(error)
-    if (contraintName === 'require_email_or_ctftime_id') {
-      return res.badEmailNoExists()
-    }
-    throw error
-  }
-  return res.goodEmailRemoved()
 }
