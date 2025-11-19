@@ -1,0 +1,112 @@
+import {
+  HeadObjectCommand,
+  PutObjectCommand,
+  S3Client,
+  type ObjectCannedACL,
+} from '@aws-sdk/client-s3'
+import type { Hono } from 'hono'
+import type { AppEnv } from '../../lib/app-env'
+import type { UploadProvider } from './base'
+
+interface S3ProviderOptions {
+  bucketName: string
+  awsKeyId: string
+  awsKeySecret: string
+  awsRegion: string
+}
+
+export default class S3Provider implements UploadProvider {
+  private readonly client: S3Client
+  private readonly bucketName: string
+  private readonly region: string
+
+  constructor(_options: Partial<S3ProviderOptions>) {
+    const options = {
+      bucketName: process.env.RCTF_S3_BUCKET ?? _options.bucketName,
+      awsKeyId: process.env.RCTF_S3_KEY_ID ?? _options.awsKeyId,
+      awsKeySecret: process.env.RCTF_S3_KEY_SECRET ?? _options.awsKeySecret,
+      awsRegion: process.env.RCTF_S3_REGION ?? _options.awsRegion,
+    } as S3ProviderOptions
+
+    if (
+      !options.bucketName ||
+      !options.awsKeyId ||
+      !options.awsKeySecret ||
+      !options.awsRegion
+    ) {
+      throw new Error(
+        'Missing one of the bucketName, awsKeyId, awsKeySecret or awsRegion for the S3 upload provider.'
+      )
+    }
+
+    this.client = new S3Client({
+      region: options.awsRegion,
+      credentials: {
+        accessKeyId: options.awsKeyId,
+        secretAccessKey: options.awsKeySecret,
+      },
+    })
+    this.bucketName = options.bucketName
+    this.region = options.awsRegion
+  }
+
+  async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
+
+  private getKey(hash: string, name: string): string {
+    return `uploads/${hash}/${name}`
+  }
+
+  private async objectExists(key: string): Promise<boolean> {
+    try {
+      await this.client.send(
+        new HeadObjectCommand({ Bucket: this.bucketName, Key: key })
+      )
+      return true
+    } catch (error: any) {
+      if (
+        error?.$metadata?.httpStatusCode === 404 ||
+        error?.name === 'NotFound' ||
+        error?.$metadata?.httpStatusCode === 403 ||
+        error?.$metadata?.httpStatusCode === 301 // bucket redirect due to not existing
+      ) {
+        return false
+      }
+      throw error
+    }
+  }
+
+  private toUrl(hash: string, name: string): string {
+    return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/uploads/${hash}/${encodeURIComponent(
+      name
+    )}`
+  }
+
+  async upload(data: Buffer, name: string): Promise<string> {
+    const hash = new Bun.SHA256().update(data).digest('hex')
+    const key = this.getKey(hash, name)
+
+    if (!(await this.objectExists(key))) {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucketName,
+          Key: key,
+          Body: data,
+          ACL: 'public-read',
+          CacheControl: 'public, max-age=31557600, immutable',
+          ContentDisposition: 'attachment',
+        })
+      )
+    }
+
+    return this.toUrl(hash, name)
+  }
+
+  async getUrl(sha256: string, name: string): Promise<string | null> {
+    const key = this.getKey(sha256, name)
+    const exists = await this.objectExists(key)
+    if (!exists) {
+      return null
+    }
+    return this.toUrl(sha256, name)
+  }
+}

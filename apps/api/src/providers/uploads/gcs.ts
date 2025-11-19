@@ -1,8 +1,5 @@
-import fs from 'fs'
-import path from 'path'
 import { Bucket, File, Storage } from '@google-cloud/storage'
 import type { Hono } from 'hono'
-import { serveStatic } from 'hono/bun'
 import type { AppEnv } from '../../lib/app-env'
 import type { UploadProvider } from './base'
 
@@ -46,8 +43,7 @@ export default class GcsProvider implements UploadProvider {
 
   private readonly getGcsFile = (sha256: string, name: string): File => {
     const key = `uploads/${sha256}/${name}`
-    const file = this.bucket.file(key)
-    return file
+    return this.bucket.file(key)
   }
 
   async upload(data: Buffer, name: string): Promise<string> {
@@ -76,10 +72,10 @@ export default class GcsProvider implements UploadProvider {
 
   async getUrl(sha256: string, name: string): Promise<string | null> {
     const file = this.getGcsFile(sha256, name)
-
     const exists = (await file.exists())[0]
-    if (!exists) return null
-
+    if (!exists) {
+      return null
+    }
     return this.toUrl(sha256, name)
   }
 }
