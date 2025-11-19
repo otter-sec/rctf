@@ -66,7 +66,7 @@ rCTF v1 frontend with rCTF v2 backend:
     - [x] SMTP
     - [x] SES (untested) - TODO: bump aws sdk to v3
     - [x] Postmark (untested)
-    - [x] Mailgun (untested)
+    - [x] Mailgun
 - [x] `/api/v1/auth/verify`:
   - [x] Register
   - [x] Recover

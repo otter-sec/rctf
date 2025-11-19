@@ -20,18 +20,24 @@ export default class MailgunProvider implements MailProvider {
   }
 
   async send(mail: Mail): Promise<void> {
-    await fetch(`https://api.mailgun.net/v3/${this.domain}/messages`, {
-      method: 'POST',
-      headers: {
-        Authorization: Buffer.from(`api:${this.apiKey}`).toString('base64'),
-      },
-      body: new URLSearchParams({
-        from: mail.from,
-        to: mail.to,
-        subject: mail.subject,
-        html: mail.html,
-        text: mail.text,
-      }),
-    })
+    const resp = await fetch(
+      `https://api.mailgun.net/v3/${this.domain}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Basic ${Buffer.from(`api:${this.apiKey}`).toString('base64')}`,
+        },
+        body: new URLSearchParams({
+          from: mail.from,
+          to: mail.to,
+          subject: mail.subject,
+          html: mail.html,
+          text: mail.text,
+        }),
+      }
+    )
+    if (resp.status != 200) {
+      throw new Error(`Mailgun error ${resp.status}: ${await resp.text()}`)
+    }
   }
 }
