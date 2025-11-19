@@ -9,12 +9,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.934.0",
     "@google-cloud/storage": "^7.17.3",
     "@hono/zod-validator": "^0.2.1",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/types": "workspace:*",
-    "aws-sdk": "2.1018.0",
     "data-uri-to-buffer": "^6.0.2",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.4",

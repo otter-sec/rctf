@@ -1,5 +1,5 @@
 import { promisify } from 'util'
-import AWS from 'aws-sdk'
+import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses'
 import type { Mail, MailProvider } from './base'
 
 interface SesProviderOptions {
@@ -17,9 +17,7 @@ export class SesError extends Error {
 }
 
 export default class SesProvider implements MailProvider {
-  private readonly sesSend: (
-    params: AWS.SES.Types.SendEmailRequest
-  ) => Promise<AWS.SES.Types.SendEmailResponse>
+  private readonly client: SESClient
 
   constructor(_options: any) {
     const options = {
@@ -34,41 +32,41 @@ export default class SesProvider implements MailProvider {
       )
     }
 
-    const credentials = new AWS.Credentials({
-      accessKeyId: options.awsKeyId,
-      secretAccessKey: options.awsKeySecret,
-    })
-    const ses = new AWS.SES({
-      credentials,
+    this.client = new SESClient({
       region: options.awsRegion,
+      credentials: {
+        accessKeyId: options.awsKeyId,
+        secretAccessKey: options.awsKeySecret,
+      },
     })
-    this.sesSend = promisify(ses.sendEmail.bind(ses))
   }
 
   async send(mail: Mail): Promise<void> {
     try {
-      await this.sesSend({
-        Destination: {
-          ToAddresses: [mail.to],
-        },
-        Message: {
-          Body: {
-            Html: {
-              Charset: 'UTF-8',
-              Data: mail.html,
+      await this.client.send(
+        new SendEmailCommand({
+          Destination: {
+            ToAddresses: [mail.to],
+          },
+          Message: {
+            Body: {
+              Html: {
+                Charset: 'UTF-8',
+                Data: mail.html,
+              },
+              Text: {
+                Charset: 'UTF-8',
+                Data: mail.text,
+              },
             },
-            Text: {
+            Subject: {
               Charset: 'UTF-8',
-              Data: mail.text,
+              Data: mail.subject,
             },
           },
-          Subject: {
-            Charset: 'UTF-8',
-            Data: mail.subject,
-          },
-        },
-        Source: mail.from,
-      })
+          Source: mail.from,
+        })
+      )
     } catch (e) {
       throw new SesError(e as Error)
     }
