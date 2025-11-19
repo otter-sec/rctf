@@ -16,10 +16,11 @@ export default class PostmarkProvider implements MailProvider {
   }
 
   async send(mail: Mail): Promise<void> {
-    await fetch('https://api.postmarkapp.com/email', {
+    const resp = await fetch('https://api.postmarkapp.com/email', {
       method: 'POST',
       headers: {
         'x-postmark-server-token': this.serverToken,
+        'content-type': 'application/json',
       },
       body: JSON.stringify({
         From: mail.from,
@@ -29,5 +30,9 @@ export default class PostmarkProvider implements MailProvider {
         TextBody: mail.text,
       }),
     })
+
+    if (resp.status != 200) {
+      throw new Error(`Postmark error ${resp.status}: ${await resp.text()}`)
+    }
   }
 }
