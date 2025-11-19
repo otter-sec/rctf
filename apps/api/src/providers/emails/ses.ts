@@ -1,4 +1,3 @@
-import { promisify } from 'util'
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses'
 import type { Mail, MailProvider } from './base'
 

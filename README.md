@@ -85,7 +85,8 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] `/api/v1/admin/challs/:id` POST
 - [x] `/api/v1/admin/upload`
   - [x] Local
-  - [x] GCS (untested)
+  - [x] GCS
+  - [ ] AWS
 - [x] `/api/v1/admin/upload/query`
 
 - [x] `/api/v1/leaderboard/now`
