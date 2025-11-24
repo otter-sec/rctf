@@ -66,3 +66,6 @@ export type ResponseHelpers<
 > = {
   [R in TResponses[number] as R['kind']]: ResponseHelper<R>
 }
+
+export type ResponseData<T extends ResponseDefinition<string, z.ZodTypeAny>> =
+  T['dataSchema'] extends z.ZodTypeAny ? z.infer<T['dataSchema']> : never
