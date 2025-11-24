@@ -75,11 +75,14 @@ type ResponseDataShape<
 
 export type ResponseBody<
   TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
-> = {
-  kind: TDefinition['kind']
-  message: TDefinition['message']
-  data: ResponseDataShape<TDefinition>
-}
+> =
+  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>
+    ? {
+        kind: TDefinition['kind']
+        message: TDefinition['message']
+        data: ResponseDataShape<TDefinition>
+      }
+    : never
 
 export type ResponseData<T extends ResponseDefinition<string, z.ZodTypeAny>> =
   z.output<T['dataSchema']>
