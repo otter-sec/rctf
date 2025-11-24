@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { LeaderboardEntry } from '$lib/types'
+  import type { LeaderboardEntry } from '$lib/api'
 
   let { entries, total }: { entries: LeaderboardEntry[]; total: number } = $props()
 </script>

@@ -226,4 +226,5 @@ output "bucket" {
   value = aws_s3_bucket.challenges.bucket_regional_domain_name
 }
 ```
+
 </details>

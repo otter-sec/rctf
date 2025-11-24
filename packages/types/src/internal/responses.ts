@@ -46,7 +46,7 @@ export type ResponseResult<
   TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
 > = {
   status: TDefinition['status']
-  body: z.infer<TDefinition['schema']>
+  body: ResponseBody<TDefinition>
   definition: TDefinition
 }
 
@@ -67,5 +67,19 @@ export type ResponseHelpers<
   [R in TResponses[number] as R['kind']]: ResponseHelper<R>
 }
 
+type ResponseDataShape<
+  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
+> = TDefinition['dataSchema'] extends z.ZodTypeAny
+  ? z.output<NonNullable<TDefinition['dataSchema']>>
+  : null
+
+export type ResponseBody<
+  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
+> = {
+  kind: TDefinition['kind']
+  message: TDefinition['message']
+  data: ResponseDataShape<TDefinition>
+}
+
 export type ResponseData<T extends ResponseDefinition<string, z.ZodTypeAny>> =
-  T['dataSchema'] extends z.ZodTypeAny ? z.infer<T['dataSchema']> : never
+  z.output<T['dataSchema']>

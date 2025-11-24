@@ -19,7 +19,7 @@ export const GoodChallenges = response('goodChallenges', {
       ),
       points: z.number().int().nullable(),
       solves: z.number().int().nullable(),
-      sortWeight: z.number().nullable(),
+      sortWeight: z.number().nullable().optional(),
     })
   ),
 })

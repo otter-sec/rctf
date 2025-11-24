@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge } from '$lib/types'
+  import type { Challenge } from '$lib/api'
   import { marked } from 'marked'
 
   let { challenges }: { challenges: Challenge[] } = $props()

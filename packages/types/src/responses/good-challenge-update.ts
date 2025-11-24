@@ -21,7 +21,7 @@ const AdminChallengeSchema = z.object({
   points: ChallengePointsSchema,
   flag: z.string(),
   tiebreakEligible: z.boolean(),
-  sortWeight: z.number().nullable(),
+  sortWeight: z.number().nullable().optional(),
 })
 
 export const GoodChallengeUpdate = response('goodChallengeUpdate', {

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Section } from '$lib'
-  import type { UserProfile } from '$lib/types'
+  import type { UserProfile } from '$lib/api'
 
   let { user }: { user: UserProfile } = $props()
 </script>

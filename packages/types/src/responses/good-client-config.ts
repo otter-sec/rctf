@@ -19,21 +19,22 @@ export const GoodClientConfig = response('goodClientConfig', {
         small: z.boolean().optional(),
       })
     ),
-    globalSiteTag: z.string().nullable(),
+    globalSiteTag: z.string().nullable().optional(),
     ctfName: z.string(),
     divisions: z.record(z.string()),
-    defaultDivision: z.string().nullable(),
+    defaultDivision: z.string().nullable().optional(),
     origin: z.string(),
     startTime: z.number().int(),
     endTime: z.number().int(),
     userMembers: z.boolean(),
-    faviconUrl: z.string().nullable(),
+    faviconUrl: z.string().nullable().optional(),
     emailEnabled: z.boolean(),
-    registrationsEnabled: z.boolean().nullable(),
+    registrationsEnabled: z.boolean().nullable().optional(),
     ctftime: z
       .object({
         clientId: NumericString,
       })
-      .nullable(),
+      .nullable()
+      .optional(),
   }),
 })

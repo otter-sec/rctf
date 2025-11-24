@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { Permissions } from '../enums'
 import type {
+  ResponseBody,
   ResponseDefinition,
   ResponseHelpers,
   ResponseResult,
@@ -15,6 +16,9 @@ type ResponseCollection = readonly ResponseDefinition<
 type OptionalSchema<T> = T extends SchemaLike ? T : undefined
 type SchemaOutput<T extends SchemaLike | undefined> = T extends SchemaLike
   ? z.output<T>
+  : undefined
+type SchemaInput<T extends SchemaLike | undefined> = T extends SchemaLike
+  ? z.input<T>
   : undefined
 
 export interface RouteDefinition<
@@ -132,11 +136,23 @@ export type RouteBody<TRoute extends AnyRouteDefinition> = SchemaOutput<
   TRoute['body']
 >
 
+export type RouteBodyInput<TRoute extends AnyRouteDefinition> = SchemaInput<
+  TRoute['body']
+>
+
 export type RouteParams<TRoute extends AnyRouteDefinition> = SchemaOutput<
   TRoute['params']
 >
 
+export type RouteParamsInput<TRoute extends AnyRouteDefinition> = SchemaInput<
+  TRoute['params']
+>
+
 export type RouteQuery<TRoute extends AnyRouteDefinition> = SchemaOutput<
+  TRoute['query']
+>
+
+export type RouteQueryInput<TRoute extends AnyRouteDefinition> = SchemaInput<
   TRoute['query']
 >
 
@@ -190,3 +206,23 @@ export type RouteHandlerResult<
 > = ResponseResult<TRoute['responses'][number]>
 
 export type RouteValidationSource = 'body' | 'query' | 'params'
+
+type ExtractSuccessResponse<TResponses extends ResponseCollection> = Extract<
+  TResponses[number],
+  ResponseDefinition<`good${string}`, z.ZodTypeAny | undefined>
+>
+
+type SuccessResponseData<TDefinition> =
+  TDefinition extends ResponseDefinition<string, infer TSchema>
+    ? TSchema extends z.ZodTypeAny
+      ? z.output<TSchema>
+      : void
+    : void
+
+export type RouteResponseData<
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+> = SuccessResponseData<ExtractSuccessResponse<TRoute['responses']>>
+
+export type RouteResponse<
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseBody<TRoute['responses'][number]>

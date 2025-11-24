@@ -65,25 +65,6 @@
         "vite": "^7.1.10",
       },
     },
-    "apps/web-test": {
-      "name": "@rctf/web-test",
-      "version": "0.0.1",
-      "dependencies": {
-        "@rctf/types": "workspace:*",
-      },
-      "devDependencies": {
-        "@sveltejs/adapter-auto": "^7.0.0",
-        "@sveltejs/kit": "^2.47.1",
-        "@sveltejs/vite-plugin-svelte": "^6.2.1",
-        "@tailwindcss/vite": "^4.1.14",
-        "prettier-plugin-tailwindcss": "^0.7.1",
-        "svelte": "^5.41.0",
-        "svelte-check": "^4.3.3",
-        "tailwindcss": "^4.1.14",
-        "typescript": "^5.9.3",
-        "vite": "^7.1.10",
-      },
-    },
     "packages/config": {
       "name": "@rctf/config",
       "version": "0.0.0",
@@ -324,8 +305,6 @@
     "@rctf/types": ["@rctf/types@workspace:packages/types"],
 
     "@rctf/web": ["@rctf/web@workspace:apps/web"],
-
-    "@rctf/web-test": ["@rctf/web-test@workspace:apps/web-test"],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.53.1", "", { "os": "android", "cpu": "arm" }, "sha512-bxZtughE4VNVJlL1RdoSE545kc4JxL7op57KKoi59/gwuU5rV6jLWFXXc8jwgFoT6vtj+ZjO+Z2C5nrY0Cl6wA=="],
 
