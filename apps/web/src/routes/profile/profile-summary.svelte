@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Check from '@iconify-svelte/tabler/check'
-  import Copy from '@iconify-svelte/tabler/copy'
+  import Check from '@iconify-svelte/tabler/circle-check-filled'
+  import Copy from '@iconify-svelte/tabler/copy-plus-filled'
   import EyeClosed from '@iconify-svelte/tabler/eye-closed'
   import Eye from '@iconify-svelte/tabler/eye-filled'
   import { toast } from '$lib'

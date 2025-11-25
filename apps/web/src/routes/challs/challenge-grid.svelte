@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Check from '@iconify-svelte/tabler/check'
+  import Check from '@iconify-svelte/tabler/circle-check-filled'
   import {
     BadAlreadySolvedChallenge,
     GoodFlag,
