@@ -15,7 +15,7 @@
 
 <label class="flex flex-col gap-1">
   <span>{label}</span>
-  <input bind:value {...inputProps} />
+  <input class="border p-2" bind:value {...inputProps} />
   {#if error}
     <span role="alert">{error}</span>
   {/if}

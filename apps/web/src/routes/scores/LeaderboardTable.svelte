@@ -11,7 +11,7 @@
   <p>Showing {entries.length} of {total}</p>
   <ol class="flex flex-col gap-1">
     {#each entries as entry, index (entry.id)}
-      <li class="flex items-center gap-4">
+      <li class="flex items-center gap-4 border p-3">
         <span>#{index + 1}</span>
         <span class="flex-1">{entry.name}</span>
         <span>{entry.score.toLocaleString()}</span>

@@ -18,9 +18,13 @@
       }
       grouped.get(category)!.push(challenge)
     }
-    // Sort challenges within each category by points
     for (const challs of grouped.values()) {
-      challs.sort((a, b) => (a.points ?? 0) - (b.points ?? 0))
+      challs.sort((a, b) => {
+        if (a.solves !== b.solves) {
+          return (b.solves ?? 0) - (a.solves ?? 0)
+        }
+        return (b.sortWeight ?? 0) - (a.sortWeight ?? 0)
+      })
     }
     return Array.from(grouped.entries()).sort((a, b) =>
       a[0].localeCompare(b[0])
@@ -48,7 +52,7 @@
       <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
         {#each entries as challenge (challenge.id)}
           {@const isSolved = solvedIds.has(challenge.id)}
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 border p-3">
             <div class="flex items-start justify-between gap-2">
               <h4>
                 {#if isSolved}
@@ -62,7 +66,7 @@
             </div>
             <p><small>by {challenge.author}</small></p>
             <div>
-              {@html marked.parse(challenge.description)}
+              {@html marked(challenge.description)}
             </div>
             <p>
               <small>

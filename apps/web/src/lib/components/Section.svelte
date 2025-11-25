@@ -12,7 +12,7 @@
   } = $props()
 </script>
 
-<section class="flex flex-col gap-3">
+<section class="flex flex-col gap-3 border p-4">
   {#if title}
     <header class="flex flex-col gap-1">
       <h2>{title}</h2>

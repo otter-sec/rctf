@@ -13,8 +13,5 @@
     />
   {:else if data.error}
     <div role="alert">{data.error}</div>
-  {:else}
-    <p>You need to be logged in to view the leaderboard.</p>
-    <a href="/login">Login</a>
   {/if}
 </Section>

@@ -1,14 +1,10 @@
 import { GetLeaderboardRoute, GoodLeaderboard } from '@rctf/types'
-import { apiRequest, isAuthenticated } from '$lib'
+import { apiRequest } from '$lib'
 import type { PageLoad } from './$types'
 
 export const ssr = false
 
 export const load: PageLoad = async () => {
-  if (!isAuthenticated()) {
-    return { leaderboard: null }
-  }
-
   const response = await apiRequest(GetLeaderboardRoute, {
     limit: 100,
     offset: 0,

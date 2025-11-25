@@ -19,7 +19,7 @@
 </svelte:head>
 
 <div class="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-8">
-  <nav class="flex items-center justify-between">
+  <nav class="flex items-center justify-between border p-3">
     <ul class="flex flex-wrap gap-4">
       <li><NavLink href="/">Overview</NavLink></li>
       <li><NavLink href="/challs">Challenges</NavLink></li>
