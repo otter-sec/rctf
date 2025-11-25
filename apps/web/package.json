@@ -15,6 +15,8 @@
   "dependencies": {
     "@lucide/svelte": "^0.544.0",
     "@rctf/types": "workspace:*",
+    "@types/d3-array": "^3.2.2",
+    "d3-array": "^3.2.4",
     "marked": "^17.0.1"
   },
   "devDependencies": {
@@ -25,6 +27,7 @@
     "@tailwindcss/vite": "^4.1.14",
     "bits-ui": "^2.11.0",
     "clsx": "^2.1.1",
+    "layerchart": "2.0.0-next.27",
     "mode-watcher": "^1.1.0",
     "prettier-plugin-tailwindcss": "^0.7.1",
     "svelte": "^5.41.0",

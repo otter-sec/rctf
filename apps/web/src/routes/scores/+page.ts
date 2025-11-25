@@ -1,21 +1,36 @@
-import { GetLeaderboardRoute, GoodLeaderboard } from '@rctf/types'
+import {
+  GetLeaderboardRoute,
+  GetLeaderboardGraphRoute,
+  GoodLeaderboard,
+  GoodLeaderboardGraph,
+} from '@rctf/types'
 import { apiRequest } from '$lib'
 import type { PageLoad } from './$types'
 
 export const ssr = false
 
 export const load: PageLoad = async () => {
-  const response = await apiRequest(GetLeaderboardRoute, {
-    limit: 100,
-    offset: 0,
-    division: 'open',
-  })
+  const [leaderboardResponse, graphResponse] = await Promise.all([
+    apiRequest(GetLeaderboardRoute, {
+      limit: 100,
+      offset: 0,
+      division: 'open',
+    }),
+    apiRequest(GetLeaderboardGraphRoute, {
+      limit: 10,
+      division: 'open',
+    }),
+  ])
 
-  if (response.kind !== GoodLeaderboard.kind) {
-    return { leaderboard: null, error: response.message }
+  if (leaderboardResponse.kind !== GoodLeaderboard.kind) {
+    return { leaderboard: null, graph: null, error: leaderboardResponse.message }
   }
 
+  const graph =
+    graphResponse.kind === GoodLeaderboardGraph.kind ? graphResponse.data.graph : null
+
   return {
-    leaderboard: response.data,
+    leaderboard: leaderboardResponse.data,
+    graph,
   }
 }
