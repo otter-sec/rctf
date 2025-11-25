@@ -1,5 +1,5 @@
 <script lang="ts">
-  import * as Card from '$lib/components/ui/card'
+  import { Card } from '$lib/components'
   import { marked } from 'marked'
 
   let { data } = $props()

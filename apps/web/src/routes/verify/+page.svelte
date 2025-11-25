@@ -10,9 +10,7 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
-  import { Button } from '$lib/components/ui/button'
-  import * as Card from '$lib/components/ui/card'
-  import { Spinner } from '$lib/components/ui/spinner'
+  import { Button, Card, Spinner } from '$lib/components'
 
   let { data } = $props()
 
@@ -79,7 +77,7 @@
   {:else if emailSet}
     <Card.Header>
       <Card.Title
-        class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500"
+        class="flex items-center gap-2 text-2xl text-success"
       >
         <Check class="size-6" />
         Email Verified
@@ -93,7 +91,7 @@
   {:else if verified}
     <Card.Header>
       <Card.Title
-        class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500"
+        class="flex items-center gap-2 text-2xl text-success"
       >
         <Check class="size-6" />
         Verified!

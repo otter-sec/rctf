@@ -5,10 +5,7 @@
   import EyeOff from '@lucide/svelte/icons/eye-off'
   import { toast } from '$lib'
   import type { UserProfile } from '$lib/api'
-  import { Badge } from '$lib/components/ui/badge'
-  import { Button } from '$lib/components/ui/button'
-  import * as Card from '$lib/components/ui/card'
-  import { Separator } from '$lib/components/ui/separator'
+  import { Badge, Button, Card, Separator } from '$lib/components'
 
   let { user }: { user: UserProfile } = $props()
 
@@ -27,7 +24,7 @@
   <!-- Profile Header -->
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">{user.name}</Card.Title>
+      <Card.Title class="text-2xl wrap-anywhere">{user.name}</Card.Title>
       {#if user.email}
         <Card.Description>{user.email}</Card.Description>
       {/if}
@@ -114,7 +111,7 @@
           aria-label="Copy token"
         >
           {#if copied}
-            <Check class="size-4 text-green-600" />
+            <Check class="size-4 text-success" />
           {:else}
             <Copy class="size-4" />
           {/if}

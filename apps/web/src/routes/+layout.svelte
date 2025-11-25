@@ -3,8 +3,7 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { clearToken, NavLink, ThemeToggle } from '$lib'
   import favicon from '$lib/assets/favicon.svg'
-  import { Button } from '$lib/components/ui/button'
-  import { Toaster } from '$lib/components/ui/sonner'
+  import { Button, Toaster } from '$lib/components'
 
   let { data, children } = $props()
 

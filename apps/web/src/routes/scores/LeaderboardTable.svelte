@@ -25,7 +25,7 @@
           <Table.Cell class="text-muted-foreground tabular-nums">
             #{index + 1}
           </Table.Cell>
-          <Table.Cell class="font-medium">
+          <Table.Cell class="font-medium wrap-anywhere">
             <a href="/profile/{entry.id}" class="hover:underline">
               {entry.name}
             </a>

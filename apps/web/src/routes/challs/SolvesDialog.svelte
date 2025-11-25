@@ -1,9 +1,7 @@
 <script lang="ts">
   import { GetChallengeSolvesRoute, GoodChallengeSolves } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
-  import { Button } from '$lib/components/ui/button'
-  import * as Dialog from '$lib/components/ui/dialog'
-  import { Spinner } from '$lib/components/ui/spinner'
+  import { Button, Dialog, ScrollArea, Spinner } from '$lib/components'
 
   const PAGE_SIZE = 10
 
@@ -77,7 +75,7 @@
       </Dialog.Description>
     </Dialog.Header>
 
-    <div class="flex-1 overflow-y-auto py-4">
+    <ScrollArea class="max-h-[50vh] py-4">
       {#if loading && solves.length === 0}
         <div class="flex items-center justify-center py-8">
           <Spinner class="size-6" />
@@ -85,7 +83,7 @@
       {:else if solves.length === 0}
         <p class="text-muted-foreground text-center py-8">No solves yet</p>
       {:else}
-        <ul class="flex flex-col gap-2">
+        <ul class="flex flex-col gap-2 pr-4">
           {#each solves as solve, index (solve.id)}
             <li
               class="flex items-center justify-between gap-4 rounded-md border p-3"
@@ -96,7 +94,7 @@
                 </span>
                 <a
                   href="/profile/{solve.userId}"
-                  class="font-medium hover:underline"
+                  class="font-medium hover:underline wrap-anywhere"
                 >
                   {solve.userName}
                 </a>
@@ -111,7 +109,7 @@
           {/each}
         </ul>
       {/if}
-    </div>
+    </ScrollArea>
 
     {#if totalPages > 1}
       <Dialog.Footer

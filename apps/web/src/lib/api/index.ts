@@ -73,7 +73,7 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
     throw new Error(`Unknown response kind: ${JSON.stringify(envelope)}`)
   }
 
-  // API returns undefined for data on error responses, but schema expects null
+  // TODO(enscribe, es3n1n): fix
   const normalizedPayload = {
     ...envelope,
     data: envelope.data === undefined ? null : envelope.data,

@@ -150,7 +150,7 @@
                 class="h-2.5 w-2.5 rounded-sm"
                 style="background-color: {data.color}"
               ></div>
-              <span class="font-medium">{data.teamName}</span>
+              <span class="font-medium wrap-anywhere">{data.teamName}</span>
               <span class="text-muted-foreground ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts
               </span>

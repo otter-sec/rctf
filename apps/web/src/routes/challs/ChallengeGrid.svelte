@@ -8,11 +8,7 @@
   import { invalidateAll } from '$app/navigation'
   import { apiRequest, toast } from '$lib'
   import type { Challenge, Solve } from '$lib/api'
-  import { Badge } from '$lib/components/ui/badge'
-  import { Button } from '$lib/components/ui/button'
-  import * as Card from '$lib/components/ui/card'
-  import { Input } from '$lib/components/ui/input'
-  import { Spinner } from '$lib/components/ui/spinner'
+  import { Badge, Button, Card, Input, Spinner } from '$lib/components'
   import { marked } from 'marked'
   import SolvesDialog from './SolvesDialog.svelte'
 
@@ -115,9 +111,7 @@
           {@const error = errors[challenge.id]}
 
           <Card.Root
-            class={isSolved
-              ? 'border-green-600/50 bg-green-950/10 dark:border-green-500/30 dark:bg-green-950/20'
-              : ''}
+            class={isSolved ? 'border-success/50 bg-success/10' : ''}
           >
             <Card.Header class="pb-3">
               <div class="flex items-start justify-between gap-3">
@@ -126,7 +120,7 @@
                     {#if isSolved}
                       <Check
                         size={16}
-                        class="text-green-600 dark:text-green-500"
+                        class="text-success"
                         aria-label="Solved"
                       />
                     {/if}
@@ -204,9 +198,7 @@
                   <p class="text-sm text-destructive" role="alert">{error}</p>
                 {/if}
               {:else}
-                <p
-                  class="flex items-center gap-1 text-sm text-green-600 dark:text-green-500"
-                >
+                <p class="flex items-center gap-1 text-sm text-success">
                   <Check size={16} /> Solved
                 </p>
               {/if}
