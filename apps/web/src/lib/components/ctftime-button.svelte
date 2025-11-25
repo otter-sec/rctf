@@ -3,6 +3,7 @@
   import { apiRequest, toast } from '$lib'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { onDestroy, onMount } from 'svelte'
+  import { Button } from './ui/button'
   import { Spinner } from './ui/spinner'
 
   interface Props {
@@ -95,9 +96,11 @@
   })
 </script>
 
-<button
+<Button
   type="button"
-  class="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#222] px-4 py-2 text-white transition-colors hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
+  variant="outline"
+  size="lg"
+  class="w-full [&_svg:not([class*='size-'])]:w-auto [&_svg:not([class*='size-'])]:h-6 py-0"
   onclick={openPopup}
   disabled={disabled || loading}
 >
@@ -105,8 +108,8 @@
     <Spinner class="size-4" />
     <span>Connecting...</span>
   {:else}
-    <span class="inline-flex h-5 items-center [&>svg]:h-full [&>svg]:w-auto">
+    <span class="inline-flex">
       {@html CtftimeIcon}
     </span>
   {/if}
-</button>
+</Button>

@@ -12,7 +12,7 @@
 </script>
 
 {#if !data.user}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Admin access required</Card.Title>
     </Card.Header>
@@ -24,7 +24,7 @@
     </Card.Content>
   </Card.Root>
 {:else if !hasReadPerms}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Access denied</Card.Title>
     </Card.Header>

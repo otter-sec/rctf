@@ -11,7 +11,7 @@
     solves={data.user?.solves ?? []}
   />
 {:else if data.error}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Challenges</Card.Title>
     </Card.Header>
@@ -25,7 +25,7 @@
     </Card.Content>
   </Card.Root>
 {:else}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Challenges</Card.Title>
     </Card.Header>

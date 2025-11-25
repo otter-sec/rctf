@@ -102,7 +102,7 @@
     </Card.Root>
   </div>
 {:else}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Profile not found</Card.Title>
     </Card.Header>

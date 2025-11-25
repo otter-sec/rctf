@@ -20,7 +20,7 @@
     </div>
   </div>
 {:else}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Profile</Card.Title>
     </Card.Header>

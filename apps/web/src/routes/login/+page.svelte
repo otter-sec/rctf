@@ -106,7 +106,7 @@
   <title>Login | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
-<Card.Root class="mx-auto max-w-md">
+<Card.Root>
   <Card.Header>
     <Card.Title class="text-2xl">Login</Card.Title>
     <Card.Description>Log in to {data.clientConfig.ctfName}</Card.Description>

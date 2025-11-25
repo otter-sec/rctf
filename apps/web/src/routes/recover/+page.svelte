@@ -33,7 +33,7 @@
 </svelte:head>
 
 {#if verifySent}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Recovery email sent</Card.Title>
     </Card.Header>
@@ -55,7 +55,7 @@
     </Card.Content>
   </Card.Root>
 {:else}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Recover account</Card.Title>
       <Card.Description>

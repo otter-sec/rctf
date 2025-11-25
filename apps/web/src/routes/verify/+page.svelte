@@ -56,7 +56,7 @@
   <title>Verify | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
-<Card.Root class="mx-auto max-w-md">
+<Card.Root>
   {#if error}
     <Card.Header>
       <Card.Title

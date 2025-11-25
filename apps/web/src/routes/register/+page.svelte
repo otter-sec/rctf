@@ -131,7 +131,7 @@
 </svelte:head>
 
 {#if verifySent}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Verification email sent</Card.Title>
     </Card.Header>
@@ -153,7 +153,7 @@
     </Card.Content>
   </Card.Root>
 {:else if ctftimeToken}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Complete Registration</Card.Title>
       <Card.Description>Registering with CTFtime</Card.Description>
@@ -207,7 +207,7 @@
     </Card.Footer>
   </Card.Root>
 {:else}
-  <Card.Root class="mx-auto max-w-md">
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl">Register</Card.Title>
       <Card.Description>

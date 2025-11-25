@@ -26,7 +26,7 @@
   <title>{data.clientConfig.ctfName}</title>
 </svelte:head>
 
-<div class="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-8">
+<div class="mx-auto flex min-h-screen max-w-3xl flex-col gap-6 px-4 py-8">
   <nav class="flex items-center justify-between rounded-lg border p-3">
     <ul class="flex flex-wrap gap-1">
       <li><NavLink href="/">Overview</NavLink></li>
