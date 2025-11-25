@@ -7,18 +7,19 @@
   import { tv, type VariantProps } from 'tailwind-variants'
 
   export const buttonVariants = tv({
-    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none transition-all focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground shadow-xs hover:bg-primary/90',
+          'bg-background-accent text-foreground-accent shadow-xs hover:bg-background-accent/90',
         destructive:
-          'bg-destructive shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white',
+          'bg-background-destructive text-foreground-destructive shadow-xs hover:bg-background-destructive/90 focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
         outline:
-          'bg-background shadow-xs hover:bg-muted hover:text-foreground dark:bg-muted/30 dark:hover:bg-muted/50 border',
-        secondary: 'bg-muted text-foreground shadow-xs hover:bg-muted/80',
-        ghost: 'hover:bg-muted hover:text-foreground dark:hover:bg-muted/50',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'bg-background-l1 shadow-xs hover:bg-background-l2 text-foreground-l1 border',
+        secondary:
+          'bg-background-l2 text-foreground-l1 shadow-xs hover:bg-background-l2/80',
+        ghost: 'hover:bg-background-l2 text-foreground-l1',
+        link: 'text-foreground-prose-link underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',

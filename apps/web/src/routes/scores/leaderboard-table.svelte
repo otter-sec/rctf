@@ -7,7 +7,7 @@
 </script>
 
 <div class="flex flex-col gap-4">
-  <p class="text-muted-foreground text-sm">
+  <p class="text-foreground-l3 text-sm">
     Showing {entries.length} of {total} teams
   </p>
 
@@ -22,7 +22,7 @@
     <Table.Body>
       {#each entries as entry, index (entry.id)}
         <Table.Row>
-          <Table.Cell class="text-muted-foreground tabular-nums">
+          <Table.Cell class="text-foreground-l3 tabular-nums">
             #{index + 1}
           </Table.Cell>
           <Table.Cell class="font-medium wrap-anywhere">

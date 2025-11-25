@@ -122,7 +122,7 @@
   <Card.Content>
     {#if errors.form}
       <div
-        class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm"
+        class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
         role="alert"
       >
         {errors.form}

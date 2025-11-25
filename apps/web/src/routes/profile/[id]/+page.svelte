@@ -26,7 +26,7 @@
               href="https://ctftime.org/team/{user.ctftimeId}"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-primary hover:underline"
+              class="text-foreground-prose-link hover:underline"
             >
               {user.ctftimeId}
             </a>
@@ -36,28 +36,28 @@
       <Card.Content>
         <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div class="flex flex-col gap-1">
-            <span class="text-muted-foreground text-sm">Division</span>
-            <span class="font-semibold">
+            <span class="text-foreground-l3 text-sm">Division</span>
+            <span class="font-medium">
               {data.clientConfig.divisions[user.division] ?? user.division}
             </span>
           </div>
           <div class="flex flex-col gap-1">
-            <span class="text-muted-foreground text-sm">Score</span>
-            <span class="font-semibold tabular-nums">
+            <span class="text-foreground-l3 text-sm">Score</span>
+            <span class="font-medium tabular-nums">
               {user.score.toLocaleString()}
             </span>
           </div>
           {#if user.globalPlace !== null}
             <div class="flex flex-col gap-1">
-              <span class="text-muted-foreground text-sm">Global Rank</span>
-              <span class="font-semibold tabular-nums">#{user.globalPlace}</span
+              <span class="text-foreground-l3 text-sm">Global Rank</span>
+              <span class="font-medium tabular-nums">#{user.globalPlace}</span
               >
             </div>
           {/if}
           {#if user.divisionPlace !== null}
             <div class="flex flex-col gap-1">
-              <span class="text-muted-foreground text-sm">Division Rank</span>
-              <span class="font-semibold tabular-nums">
+              <span class="text-foreground-l3 text-sm">Division Rank</span>
+              <span class="font-medium tabular-nums">
                 #{user.divisionPlace}
               </span>
             </div>
@@ -82,7 +82,7 @@
               >
                 <div class="flex flex-col gap-1">
                   <span class="font-medium">{solve.name}</span>
-                  <span class="text-muted-foreground text-sm">
+                  <span class="text-foreground-l3 text-sm">
                     {solve.category} • {new Date(
                       solve.createdAt
                     ).toLocaleString()}
@@ -95,7 +95,7 @@
             {/each}
           </ul>
         {:else}
-          <p class="text-muted-foreground">
+          <p class="text-foreground-l3">
             This team hasn't solved any challenges yet.
           </p>
         {/if}
@@ -108,7 +108,7 @@
       <Card.Title class="text-2xl">Profile Not Found</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         {data.error ?? 'The requested profile could not be found.'}
       </p>
       <Button href="/scores">View Leaderboard</Button>

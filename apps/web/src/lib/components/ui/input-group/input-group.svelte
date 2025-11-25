@@ -15,7 +15,7 @@
   data-slot="input-group"
   role="group"
   class={cn(
-    'group/input-group border-border dark:bg-muted/30 shadow-xs relative flex w-full items-center rounded-md border outline-none transition-[color,box-shadow]',
+    'group/input-group bg-background-l1 shadow-xs relative flex w-full items-center rounded-md border outline-none',
     'h-9 has-[>textarea]:h-auto',
 
     // Variants based on alignment.
@@ -28,7 +28,7 @@
     'has-[[data-slot=input-group-control]:focus-visible]:border-ring has-[[data-slot=input-group-control]:focus-visible]:ring-ring/50 has-[[data-slot=input-group-control]:focus-visible]:ring-[3px]',
 
     // Error state.
-    'has-[[data-slot][aria-invalid=true]]:ring-destructive/20 has-[[data-slot][aria-invalid=true]]:border-destructive dark:has-[[data-slot][aria-invalid=true]]:ring-destructive/40',
+    'has-[[data-slot][aria-invalid=true]]:ring-foreground-destructive/20 has-[[data-slot][aria-invalid=true]]:border-foreground-destructive',
 
     className
   )}

@@ -98,7 +98,7 @@
 
       {#if data.clientConfig.emailEnabled}
         <p class="text-sm">
-          <a href="/recover" class="text-primary hover:underline"
+          <a href="/recover" class="text-foreground-prose-link hover:underline"
             >Lost your team token?</a
           >
         </p>
@@ -113,9 +113,11 @@
     </form>
   </Card.Content>
   <Card.Footer>
-    <p class="text-muted-foreground text-sm">
+    <p class="text-foreground-l3 text-sm">
       Don't have an account?
-      <a href="/register" class="text-primary hover:underline">Register</a>
+      <a href="/register" class="text-foreground-prose-link hover:underline"
+        >Register</a
+      >
     </p>
   </Card.Footer>
 </Card.Root>

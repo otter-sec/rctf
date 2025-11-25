@@ -90,7 +90,7 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  <p class="text-muted-foreground">
+  <p class="text-foreground-l3">
     {stats.solved} / {stats.total} solved
   </p>
 
@@ -98,8 +98,8 @@
     {@const categorySolved = entries.filter(c => solvedIds.has(c.id)).length}
     <section class="flex flex-col gap-4">
       <header class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-lg font-semibold">{category}</h3>
-        <span class="text-muted-foreground text-sm">
+        <h3 class="text-lg font-medium">{category}</h3>
+        <span class="text-foreground-l3 text-sm">
           {categorySolved}/{entries.length}
         </span>
       </header>
@@ -110,7 +110,11 @@
           {@const isSubmitting = submitting[challenge.id] ?? false}
           {@const error = errors[challenge.id]}
 
-          <Card.Root class={isSolved ? 'border-success/50 bg-success/10' : ''}>
+          <Card.Root
+            class={isSolved
+              ? 'border-foreground-success/50 bg-background-success'
+              : ''}
+          >
             <Card.Header class="pb-3">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-col gap-1">
@@ -118,7 +122,7 @@
                     {#if isSolved}
                       <Check
                         size={16}
-                        class="text-success"
+                        class="text-foreground-success"
                         aria-label="Solved"
                       />
                     {/if}
@@ -152,17 +156,17 @@
 
                 {#if challenge.files.length > 0}
                   <span class="flex items-center gap-2">
-                    <span class="text-muted-foreground">Files:</span>
+                    <span class="text-foreground-l3">Files:</span>
                     {#each challenge.files as file, i}
                       <a
                         href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="text-primary hover:underline"
+                        class="text-foreground-prose-link hover:underline"
                       >
                         {file.name}</a
                       >{#if i < challenge.files.length - 1}<span
-                          class="text-muted-foreground">,</span
+                          class="text-foreground-l3">,</span
                         >{/if}
                     {/each}
                   </span>
@@ -193,10 +197,14 @@
                   </Button>
                 </form>
                 {#if error}
-                  <p class="text-sm text-destructive" role="alert">{error}</p>
+                  <p class="text-sm text-foreground-destructive" role="alert">
+                    {error}
+                  </p>
                 {/if}
               {:else}
-                <p class="flex items-center gap-1 text-sm text-success">
+                <p
+                  class="flex items-center gap-1 text-sm text-foreground-success"
+                >
                   <Check size={16} /> Solved
                 </p>
               {/if}

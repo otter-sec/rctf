@@ -42,7 +42,7 @@
         We've sent a recovery email to <strong>{email}</strong>. Please check
         your inbox and click the link to access your account.
       </p>
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         Didn't receive the email? Check your spam folder or
         <Button
           variant="link"
@@ -90,9 +90,11 @@
       </form>
     </Card.Content>
     <Card.Footer>
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         Remember your token?
-        <a href="/login" class="text-primary hover:underline">Login</a>
+        <a href="/login" class="text-foreground-prose-link hover:underline"
+          >Login</a
+        >
       </p>
     </Card.Footer>
   </Card.Root>

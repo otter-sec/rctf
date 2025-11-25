@@ -81,7 +81,7 @@
           <Spinner class="size-6" />
         </div>
       {:else if solves.length === 0}
-        <p class="text-muted-foreground text-center py-8">No solves yet</p>
+        <p class="text-foreground-l3 text-center py-8">No solves yet</p>
       {:else}
         <ul class="flex flex-col gap-2 pr-4">
           {#each solves as solve, index (solve.id)}
@@ -89,7 +89,7 @@
               class="flex items-center justify-between gap-4 rounded-md border p-3"
             >
               <div class="flex items-center gap-3">
-                <span class="text-muted-foreground tabular-nums">
+                <span class="text-foreground-l3 tabular-nums">
                   #{(page - 1) * PAGE_SIZE + index + 1}
                 </span>
                 <a
@@ -101,7 +101,7 @@
               </div>
               <time
                 datetime={new Date(solve.createdAt).toISOString()}
-                class="text-muted-foreground text-sm"
+                class="text-foreground-l3 text-sm"
               >
                 {formatTime(solve.createdAt)}
               </time>
@@ -123,7 +123,7 @@
         >
           Previous
         </Button>
-        <span class="text-muted-foreground text-sm">
+        <span class="text-foreground-l3 text-sm">
           Page {page} of {totalPages}
         </span>
         <Button

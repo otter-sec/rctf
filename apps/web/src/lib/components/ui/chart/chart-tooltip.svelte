@@ -95,7 +95,7 @@
 <TooltipPrimitive.Root variant="none">
   <div
     class={cn(
-      'border-border/50 bg-background grid min-w-36 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
+      'border-border/50 bg-background-l1 grid min-w-36 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
       className
     )}
     {...restProps}
@@ -114,7 +114,7 @@
         {@const indicatorColor = color || item.payload?.color || item.color}
         <div
           class={cn(
-            '[&>svg]:text-muted-foreground flex w-full flex-wrap items-stretch gap-2 [&>svg]:size-2.5',
+            '[&>svg]:text-foreground-l3 flex w-full flex-wrap items-stretch gap-2 [&>svg]:size-2.5',
             indicator === 'dot' && 'items-center'
           )}
         >
@@ -154,13 +154,13 @@
                 {#if nestLabel}
                   {@render TooltipLabel()}
                 {/if}
-                <span class="text-muted-foreground">
+                <span class="text-foreground-l3">
                   {itemConfig?.label || item.name}
                 </span>
               </div>
               {#if item.value !== undefined}
                 <span
-                  class="text-foreground font-mono font-medium tabular-nums"
+                  class="text-foreground-l0 font-mono font-medium tabular-nums"
                 >
                   {item.value.toLocaleString()}
                 </span>

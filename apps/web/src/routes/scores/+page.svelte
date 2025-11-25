@@ -31,7 +31,7 @@
         />
       {:else if data.error}
         <div
-          class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+          class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
           role="alert"
         >
           {data.error}

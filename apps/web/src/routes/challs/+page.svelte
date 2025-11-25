@@ -17,7 +17,7 @@
     </Card.Header>
     <Card.Content>
       <div
-        class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+        class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
         role="alert"
       >
         {data.error}
@@ -30,7 +30,7 @@
       <Card.Title class="text-2xl">Challenges</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         You need to be logged in to view challenges.
       </p>
       <Button href="/login">Login</Button>

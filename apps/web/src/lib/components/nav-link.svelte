@@ -13,7 +13,7 @@
   aria-current={isActive ? 'page' : undefined}
   class={cn(
     buttonVariants({ variant: 'ghost', size: 'sm' }),
-    isActive && 'bg-muted'
+    isActive && 'bg-background-l2'
   )}
 >
   {@render children()}

@@ -147,14 +147,14 @@
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}
-                <Trash2 class="text-destructive size-4" />
+                <Trash2 class="text-foreground-destructive size-4" />
               {/if}
             </Button>
           </li>
         {/each}
       </ul>
     {:else}
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         No team members added yet. Add your teammates' emails above.
       </p>
     {/if}

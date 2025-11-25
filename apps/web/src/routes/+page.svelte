@@ -25,7 +25,7 @@
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
           <article class="flex flex-col gap-2 rounded-md border p-4">
-            <h3 class="font-semibold">{sponsor.name}</h3>
+            <h3 class="font-medium">{sponsor.name}</h3>
             <div class="prose prose-sm dark:prose-invert max-w-none">
               {@html marked(sponsor.description)}
             </div>

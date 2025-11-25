@@ -28,16 +28,16 @@
   )
 
   const teamColors: string[] = [
-    'var(--chart-1)',
-    'var(--chart-2)',
-    'var(--chart-3)',
-    'var(--chart-4)',
-    'var(--chart-5)',
-    'var(--chart-6)',
-    'var(--chart-7)',
-    'var(--chart-8)',
-    'var(--chart-9)',
-    'var(--chart-10)',
+    'var(--foreground-first-l0)',
+    'var(--foreground-second-l0)',
+    'var(--foreground-third-l0)',
+    'var(--foreground-fourth)',
+    'var(--foreground-fifth)',
+    'var(--foreground-sixth)',
+    'var(--foreground-seventh)',
+    'var(--foreground-eighth)',
+    'var(--foreground-ninth)',
+    'var(--foreground-tenth)',
   ]
 
   const chartConfig = $derived(
@@ -139,9 +139,9 @@
       <Tooltip.Root>
         {#snippet children({ data })}
           <div
-            class="border-border/50 bg-background rounded-lg border px-3 py-2 text-xs shadow-xl"
+            class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl"
           >
-            <div class="text-muted-foreground mb-1.5">
+            <div class="text-foreground-l3 mb-1.5">
               <div>{formatTooltipRelative(data.time)}</div>
               <div class="text-[10px]">{formatDateTime(data.time)}</div>
             </div>
@@ -151,7 +151,7 @@
                 style="background-color: {data.color}"
               ></div>
               <span class="font-medium wrap-anywhere">{data.teamName}</span>
-              <span class="text-muted-foreground ml-auto tabular-nums">
+              <span class="text-foreground-l3 ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts
               </span>
             </div>

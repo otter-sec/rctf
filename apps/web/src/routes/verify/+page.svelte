@@ -59,14 +59,16 @@
 <Card.Root class="mx-auto max-w-md">
   {#if error}
     <Card.Header>
-      <Card.Title class="flex items-center gap-2 text-2xl text-destructive">
+      <Card.Title
+        class="flex items-center gap-2 text-2xl text-foreground-destructive"
+      >
         <X class="size-6" />
         Verification Failed
       </Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <div
-        class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+        class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
         role="alert"
       >
         {error}
@@ -75,25 +77,29 @@
     </Card.Content>
   {:else if emailSet}
     <Card.Header>
-      <Card.Title class="flex items-center gap-2 text-2xl text-success">
+      <Card.Title
+        class="flex items-center gap-2 text-2xl text-foreground-success"
+      >
         <Check class="size-6" />
         Email Verified
       </Card.Title>
     </Card.Header>
     <Card.Content>
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         Your email has been verified. You can now close this tab.
       </p>
     </Card.Content>
   {:else if verified}
     <Card.Header>
-      <Card.Title class="flex items-center gap-2 text-2xl text-success">
+      <Card.Title
+        class="flex items-center gap-2 text-2xl text-foreground-success"
+      >
         <Check class="size-6" />
         Verified!
       </Card.Title>
     </Card.Header>
     <Card.Content>
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         Your account has been verified. Redirecting you to the home page...
       </p>
     </Card.Content>
@@ -105,7 +111,7 @@
       </Card.Description>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         Click the button below to verify your email address.
       </p>
       <Button onclick={handleVerify} disabled={loading} class="w-full">

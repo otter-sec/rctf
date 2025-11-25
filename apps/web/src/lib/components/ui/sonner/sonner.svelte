@@ -35,6 +35,6 @@
 <Sonner
   {theme}
   class="toaster group"
-  style="--normal-bg: var(--background); --normal-text: var(--foreground); --normal-border: var(--border);"
+  style="--normal-bg: var(--background-l1); --normal-text: var(--foreground-l0); --normal-border: var(--border);"
   {...restProps}
 />

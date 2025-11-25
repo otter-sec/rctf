@@ -34,8 +34,8 @@
 <div class="flex flex-col gap-6">
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-bold">Challenge Management</h1>
-      <p class="text-muted-foreground">
+      <h1 class="text-2xl font-medium">Challenge Management</h1>
+      <p class="text-foreground-l3">
         {data.challenges.length} challenge{data.challenges.length === 1
           ? ''
           : 's'}
@@ -51,7 +51,7 @@
 
   {#if data.error}
     <div
-      class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+      class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
       role="alert"
     >
       {data.error}
@@ -61,7 +61,7 @@
   {#if data.challenges.length === 0}
     <Card.Root>
       <Card.Content class="py-12 text-center">
-        <p class="text-muted-foreground">No challenges found.</p>
+        <p class="text-foreground-l3">No challenges found.</p>
         {#if hasWritePerms}
           <Button href="/admin/challs/new" class="mt-4">
             <Plus class="size-4" />
@@ -94,7 +94,7 @@
               {#each challenges as challenge (challenge.id)}
                 <Table.Row>
                   <Table.Cell class="font-medium">{challenge.name}</Table.Cell>
-                  <Table.Cell class="text-muted-foreground">
+                  <Table.Cell class="text-foreground-l3">
                     {challenge.author}
                   </Table.Cell>
                   <Table.Cell class="text-right tabular-nums">

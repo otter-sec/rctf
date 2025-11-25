@@ -17,7 +17,7 @@
       <Card.Title class="text-2xl">Admin Access Required</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         You need to be logged in to access the admin panel.
       </p>
       <Button href="/login">Login</Button>
@@ -29,7 +29,7 @@
       <Card.Title class="text-2xl">Access Denied</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         You don't have permission to access the admin panel.
       </p>
       <Button href="/">Go Home</Button>

@@ -25,7 +25,7 @@
       <Card.Title class="text-2xl">Profile</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <p class="text-muted-foreground">
+      <p class="text-foreground-l3">
         You need to be logged in to view your profile.
       </p>
       <Button href="/login">Login</Button>

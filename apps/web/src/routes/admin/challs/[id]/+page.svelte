@@ -164,11 +164,11 @@
       <ArrowLeft class="size-4" />
     </Button>
     <div>
-      <h1 class="text-2xl font-bold">
+      <h1 class="text-2xl font-medium">
         {data.isNew ? 'New Challenge' : 'Edit Challenge'}
       </h1>
       {#if !data.isNew && data.challenge}
-        <p class="text-muted-foreground text-sm">{data.challenge.id}</p>
+        <p class="text-foreground-l3 text-sm">{data.challenge.id}</p>
       {/if}
     </div>
   </div>
@@ -177,7 +177,7 @@
     <Card.Root>
       <Card.Content class="py-6">
         <div
-          class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+          class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
           role="alert"
         >
           {data.error}
@@ -189,7 +189,7 @@
     <form onsubmit={handleSubmit} class="flex flex-col gap-6">
       {#if errors.form}
         <div
-          class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+          class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
           role="alert"
         >
           {errors.form}
@@ -352,7 +352,7 @@
                       href={file.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="text-muted-foreground truncate text-sm hover:underline"
+                      class="text-foreground-l3 truncate text-sm hover:underline"
                     >
                       {file.url}
                     </a>
@@ -371,7 +371,7 @@
               {/each}
             </ul>
           {:else}
-            <p class="text-muted-foreground text-sm">No files attached.</p>
+            <p class="text-foreground-l3 text-sm">No files attached.</p>
           {/if}
 
           {#if hasWritePerms}

@@ -55,7 +55,7 @@
         We've sent a verification email to <strong>{email}</strong>. Please
         check your inbox and click the link to complete registration.
       </p>
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         Didn't receive the email? Check your spam folder or
         <Button
           variant="link"
@@ -76,13 +76,13 @@
       </Card.Description>
     </Card.Header>
     <Card.Content>
-      <p class="text-muted-foreground mb-4 text-sm">
+      <p class="text-foreground-l3 mb-4 text-sm">
         Please register one account per team.
       </p>
 
       {#if errors.form}
         <div
-          class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm"
+          class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
           role="alert"
         >
           {errors.form}
@@ -136,9 +136,11 @@
       </form>
     </Card.Content>
     <Card.Footer>
-      <p class="text-muted-foreground text-sm">
+      <p class="text-foreground-l3 text-sm">
         Already have an account?
-        <a href="/login" class="text-primary hover:underline">Login</a>
+        <a href="/login" class="text-foreground-prose-link hover:underline"
+          >Login</a
+        >
       </p>
     </Card.Footer>
   </Card.Root>
