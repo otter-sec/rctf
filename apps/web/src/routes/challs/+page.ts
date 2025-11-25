@@ -6,11 +6,13 @@ export const ssr = false
 export const load: PageLoad = async () => {
   const response = await apiRequest(GetChallengesRoute)
 
-  if (response.kind !== GoodChallenges.kind) {
-    return { challenges: null, error: response.message }
+  if (response.kind === GoodChallenges.kind) {
+    return { challenges: response.data }
   }
 
-  return {
-    challenges: response.data,
+  if ((response as { kind: string }).kind === 'badToken') {
+    return { challenges: null }
   }
+
+  return { challenges: null, error: response.message }
 }

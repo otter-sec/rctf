@@ -60,10 +60,18 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
 ): RouteResponse<TRoute> => {
   const envelope = payload as ApiResponseShape
 
-  // Special handling of the dynamic unauthorized response
-  if (envelope.kind === BadToken.kind && browser) {
-    localStorage.removeItem('token')
-    window.location.href = '/login'
+  if (envelope.kind === BadToken.kind) {
+    if (browser) {
+      localStorage.removeItem('token')
+    }
+    const parsed = BadToken.schema.safeParse({
+      ...envelope,
+      data: envelope.data === undefined ? null : envelope.data,
+    })
+    if (!parsed.success) {
+      throw new Error(`Failed to parse BadToken response: ${parsed.error}`)
+    }
+    return parsed.data as RouteResponse<TRoute>
   }
 
   const definition = route.responses.find(
