@@ -76,9 +76,13 @@ const applyQuery = (url: URL, query: Record<string, unknown> | undefined) => {
 
 const parseResponse = <TRoute extends AnyRouteDefinition>(
   route: TRoute,
-  payload: unknown
+  payload: any
 ): RouteResponse<TRoute> => {
-  const envelope = payload as ApiResponseShape
+  const envelope: ApiResponseShape = {
+    kind: payload?.kind ?? 'unknown',
+    message: payload?.message ?? 'Unknown error',
+    data: payload?.data ?? null,
+  }
 
   if (envelope.kind === BadToken.kind) {
     clearToken()
@@ -88,16 +92,10 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
     definition => definition.kind === envelope.kind
   )
   if (!definition) {
-    throw new Error(`Unknown response kind: ${JSON.stringify(envelope)}`)
+    throw new Error(`Unknown response kind: ${JSON.stringify(payload)}`)
   }
 
-  // TODO(enscribe, es3n1n): fix
-  const normalizedPayload = {
-    ...envelope,
-    data: envelope.data === undefined ? null : envelope.data,
-  }
-
-  const parsed = definition.schema.safeParse(normalizedPayload)
+  const parsed = definition.schema.safeParse(envelope)
   if (!parsed.success) {
     throw new Error(
       `Failed to validate API response for ${route.method} ${route.path}: ${parsed.error}`
