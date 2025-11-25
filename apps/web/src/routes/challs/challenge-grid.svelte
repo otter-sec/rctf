@@ -10,7 +10,7 @@
   import type { Challenge, Solve } from '$lib/api'
   import { Badge, Button, Card, Input, Spinner } from '$lib/components'
   import { marked } from 'marked'
-  import SolvesDialog from './SolvesDialog.svelte'
+  import SolvesDialog from './solves-dialog.svelte'
 
   let {
     challenges,

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
-  import ProfileSummary from './ProfileSummary.svelte'
+  import ProfileSummary from './profile-summary.svelte'
 
   let { data } = $props()
 </script>

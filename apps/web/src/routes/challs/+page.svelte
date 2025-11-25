@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
-  import ChallengeGrid from './ChallengeGrid.svelte'
+  import ChallengeGrid from './challenge-grid.svelte'
 
   let { data } = $props()
 </script>

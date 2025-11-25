@@ -5,8 +5,8 @@ import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
 import * as Table from './ui/table'
 
-export { default as NavLink } from './NavLink.svelte'
-export { default as ThemeToggle } from './ThemeToggle.svelte'
+export { default as NavLink } from './nav-link.svelte'
+export { default as ThemeToggle } from './theme-toggle.svelte'
 
 export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'
 export {
