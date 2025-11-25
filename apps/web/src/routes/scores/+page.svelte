@@ -6,8 +6,15 @@
 </script>
 
 <Section title="Leaderboard">
-  <LeaderboardTable
-    entries={data.leaderboard.leaderboard}
-    total={data.leaderboard.total}
-  />
+  {#if data.leaderboard}
+    <LeaderboardTable
+      entries={data.leaderboard.leaderboard}
+      total={data.leaderboard.total}
+    />
+  {:else if data.error}
+    <div role="alert">{data.error}</div>
+  {:else}
+    <p>You need to be logged in to view the leaderboard.</p>
+    <a href="/login">Login</a>
+  {/if}
 </Section>

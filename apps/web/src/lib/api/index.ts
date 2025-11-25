@@ -6,6 +6,7 @@ import {
   type RouteQueryInput,
   type RouteResponse,
 } from '@rctf/types'
+import { browser } from '$app/environment'
 
 export * from './types'
 
@@ -59,10 +60,10 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
 ): RouteResponse<TRoute> => {
   const envelope = payload as ApiResponseShape
 
-  /// Special handling of the dynamic unauthorized response
-  if (envelope.kind === BadToken.kind) {
+  // Special handling of the dynamic unauthorized response
+  if (envelope.kind === BadToken.kind && browser) {
     localStorage.removeItem('token')
-    window.location.reload()
+    window.location.href = '/login'
   }
 
   const definition = route.responses.find(
@@ -72,7 +73,13 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
     throw new Error(`Unknown response kind: ${JSON.stringify(envelope)}`)
   }
 
-  const parsed = definition.schema.safeParse(payload)
+  // API returns undefined for data on error responses, but schema expects null
+  const normalizedPayload = {
+    ...envelope,
+    data: envelope.data === undefined ? null : envelope.data,
+  }
+
+  const parsed = definition.schema.safeParse(normalizedPayload)
   if (!parsed.success) {
     throw new Error(
       `Failed to validate API response for ${route.method} ${route.path}: ${parsed.error}`
@@ -94,26 +101,44 @@ const pickArgs = <TRoute extends AnyRouteDefinition>(
   }
 }
 
+function getToken(): string | null {
+  if (!browser) return null
+  return localStorage.getItem('token')
+}
+
+export function setToken(token: string): void {
+  if (browser) {
+    localStorage.setItem('token', token)
+  }
+}
+
+export function clearToken(): void {
+  if (browser) {
+    localStorage.removeItem('token')
+  }
+}
+
+export function isAuthenticated(): boolean {
+  return getToken() !== null
+}
+
 export async function apiRequest<TRoute extends AnyRouteDefinition>(
   route: TRoute,
   args?: InlineArgs<TRoute>
 ): Promise<RouteResponse<TRoute>> {
   const { params, query, body } = pickArgs(route, args)
 
-  const url = new URL(`${base}api/${applyPath(route.path, params)}`)
+  const path = applyPath(route.path, params).replace(/^\//, '')
+  const url = new URL(`${base}api/${path}`)
   applyQuery(url, query as Record<string, unknown> | undefined)
-
-  // TODO: Remove once we have actual authorization logic
-  if (!localStorage.token) {
-    localStorage.token =
-      'mMnAUAKo8YKQ0jReAMBq226mH2DPPs8IAWbD7ZeymBpHInswQ6DM5M6FPfc6J2+QoAy/ZVTsxjzsNOHf/NipqP9fQMkMgBwddGQfBT49ZUq4YIIZufqCToAHMbaF'
-  }
 
   const headers: Record<string, string> = {
     Accept: 'application/json',
   }
-  if (localStorage.token) {
-    headers['Authorization'] = `Bearer ${localStorage.token}`
+
+  const token = getToken()
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
   }
 
   let requestBody: string | undefined

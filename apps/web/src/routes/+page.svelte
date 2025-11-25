@@ -15,8 +15,8 @@
   <Section title="Sponsors">
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
       {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
-        <article class="border p-3">
-          <p>{sponsor.name}</p>
+        <article>
+          <p><strong>{sponsor.name}</strong></p>
           <p>{sponsor.description}</p>
         </article>
       {/each}
