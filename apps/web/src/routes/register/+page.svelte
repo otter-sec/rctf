@@ -1,11 +1,11 @@
 <script lang="ts">
+  import { GoodRegister, GoodVerifySent, RegisterRoute } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
-  import { RegisterRoute, GoodRegister, GoodVerifySent } from '@rctf/types'
   import { apiRequest, setToken, toast } from '$lib'
+  import { Button } from '$lib/components/ui/button'
   import * as Card from '$lib/components/ui/card'
   import * as Field from '$lib/components/ui/field'
   import { Input } from '$lib/components/ui/input'
-  import { Button } from '$lib/components/ui/button'
   import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
@@ -61,7 +61,11 @@
       </p>
       <p class="text-muted-foreground text-sm">
         Didn't receive the email? Check your spam folder or
-        <Button variant="link" class="h-auto p-0" onclick={() => (verifySent = false)}>
+        <Button
+          variant="link"
+          class="h-auto p-0"
+          onclick={() => (verifySent = false)}
+        >
           try again
         </Button>.
       </p>
@@ -81,7 +85,10 @@
       </p>
 
       {#if errors.form}
-        <div class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm" role="alert">
+        <div
+          class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm"
+          role="alert"
+        >
           {errors.form}
         </div>
       {/if}

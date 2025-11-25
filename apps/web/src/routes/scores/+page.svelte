@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Card from '$lib/components/ui/card'
-  import LeaderboardTable from './LeaderboardTable.svelte'
   import LeaderboardGraph from './LeaderboardGraph.svelte'
+  import LeaderboardTable from './LeaderboardTable.svelte'
 
   let { data } = $props()
 </script>

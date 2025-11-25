@@ -1,8 +1,8 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import type { Snippet } from 'svelte'
   import { buttonVariants } from '$lib/components/ui/button'
   import { cn } from '$lib/utils'
+  import type { Snippet } from 'svelte'
 
   let { href, children }: { href: string; children: Snippet } = $props()
   const isActive = $derived(page.url.pathname === href)

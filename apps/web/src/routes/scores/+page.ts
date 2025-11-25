@@ -1,6 +1,6 @@
 import {
-  GetLeaderboardRoute,
   GetLeaderboardGraphRoute,
+  GetLeaderboardRoute,
   GoodLeaderboard,
   GoodLeaderboardGraph,
 } from '@rctf/types'
@@ -23,11 +23,17 @@ export const load: PageLoad = async () => {
   ])
 
   if (leaderboardResponse.kind !== GoodLeaderboard.kind) {
-    return { leaderboard: null, graph: null, error: leaderboardResponse.message }
+    return {
+      leaderboard: null,
+      graph: null,
+      error: leaderboardResponse.message,
+    }
   }
 
   const graph =
-    graphResponse.kind === GoodLeaderboardGraph.kind ? graphResponse.data.graph : null
+    graphResponse.kind === GoodLeaderboardGraph.kind
+      ? graphResponse.data.graph
+      : null
 
   return {
     leaderboard: leaderboardResponse.data,

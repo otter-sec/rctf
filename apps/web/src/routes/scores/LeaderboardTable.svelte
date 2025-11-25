@@ -2,10 +2,8 @@
   import type { LeaderboardEntry } from '$lib/api'
   import * as Table from '$lib/components/ui/table'
 
-  let {
-    entries,
-    total,
-  }: { entries: LeaderboardEntry[]; total: number } = $props()
+  let { entries, total }: { entries: LeaderboardEntry[]; total: number } =
+    $props()
 </script>
 
 <div class="flex flex-col gap-4">

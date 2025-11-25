@@ -3,12 +3,12 @@
   import * as Chart from '$lib/components/ui/chart'
   import { flatGroup } from 'd3-array'
   import {
-    Chart as LayerChart,
     Axis,
-    Spline,
     Highlight,
-    Tooltip,
     Layer,
+    Chart as LayerChart,
+    Spline,
+    Tooltip,
   } from 'layerchart'
 
   let { graph }: { graph: LeaderboardGraphEntry[] } = $props()
@@ -19,23 +19,25 @@
 
   // TEMPORARY: Filter graph data to only include points before the cutoff
   const filteredGraph = $derived(
-    graph.map(entry => ({
-      ...entry,
-      points: entry.points.filter(point => point.time <= cutoffTimestamp),
-    })).filter(entry => entry.points.length > 0)
+    graph
+      .map(entry => ({
+        ...entry,
+        points: entry.points.filter(point => point.time <= cutoffTimestamp),
+      }))
+      .filter(entry => entry.points.length > 0)
   )
 
   const teamColors: string[] = [
-    'oklch(0.65 0.25 30)',   // red-orange
-    'oklch(0.65 0.22 145)',  // green
-    'oklch(0.60 0.25 260)',  // blue
-    'oklch(0.70 0.20 50)',   // orange
-    'oklch(0.55 0.25 300)',  // purple
-    'oklch(0.65 0.20 180)',  // teal
-    'oklch(0.75 0.18 90)',   // yellow-green
-    'oklch(0.60 0.22 330)',  // magenta
-    'oklch(0.55 0.20 220)',  // indigo
-    'oklch(0.70 0.15 60)',   // gold
+    'oklch(0.65 0.25 30)', // red-orange
+    'oklch(0.65 0.22 145)', // green
+    'oklch(0.60 0.25 260)', // blue
+    'oklch(0.70 0.20 50)', // orange
+    'oklch(0.55 0.25 300)', // purple
+    'oklch(0.65 0.20 180)', // teal
+    'oklch(0.75 0.18 90)', // yellow-green
+    'oklch(0.60 0.22 330)', // magenta
+    'oklch(0.55 0.20 220)', // indigo
+    'oklch(0.70 0.15 60)', // gold
   ]
 
   const chartConfig = $derived(
@@ -72,7 +74,9 @@
     )
   )
 
-  const dataByTeam = $derived(flatGroup(flatData, (d: FlatDataPoint) => d.teamId))
+  const dataByTeam = $derived(
+    flatGroup(flatData, (d: FlatDataPoint) => d.teamId)
+  )
 
   const startTime = $derived(
     flatData.length > 0 ? Math.min(...flatData.map(d => d.time)) : 0
@@ -126,11 +130,7 @@
         {#each dataByTeam as [teamId, teamData]}
           {@const teamIndex = filteredGraph.findIndex(e => e.id === teamId)}
           {@const color = teamColors[teamIndex % teamColors.length]}
-          <Spline
-            data={teamData}
-            class="stroke-[2.5]"
-            stroke={color}
-          />
+          <Spline data={teamData} class="stroke-[2.5]" stroke={color} />
         {/each}
 
         <Highlight points lines />
@@ -161,4 +161,3 @@
     {/snippet}
   </LayerChart>
 </Chart.Container>
-

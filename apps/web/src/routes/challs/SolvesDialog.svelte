@@ -1,8 +1,8 @@
 <script lang="ts">
   import { GetChallengeSolvesRoute, GoodChallengeSolves } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
-  import * as Dialog from '$lib/components/ui/dialog'
   import { Button } from '$lib/components/ui/button'
+  import * as Dialog from '$lib/components/ui/dialog'
   import { Spinner } from '$lib/components/ui/spinner'
 
   const PAGE_SIZE = 10
@@ -114,7 +114,9 @@
     </div>
 
     {#if totalPages > 1}
-      <Dialog.Footer class="flex-row items-center justify-between sm:justify-between">
+      <Dialog.Footer
+        class="flex-row items-center justify-between sm:justify-between"
+      >
         <Button
           variant="outline"
           size="sm"

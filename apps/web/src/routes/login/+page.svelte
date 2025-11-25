@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { GoodLogin, LoginRoute } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
-  import { LoginRoute, GoodLogin } from '@rctf/types'
   import { apiRequest, setToken, toast } from '$lib'
+  import { Button } from '$lib/components/ui/button'
   import * as Card from '$lib/components/ui/card'
   import * as Field from '$lib/components/ui/field'
   import { Input } from '$lib/components/ui/input'
-  import { Button } from '$lib/components/ui/button'
   import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()

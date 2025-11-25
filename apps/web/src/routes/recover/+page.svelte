@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { RecoverRoute, GoodVerifySent } from '@rctf/types'
+  import { GoodVerifySent, RecoverRoute } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
+  import { Button } from '$lib/components/ui/button'
   import * as Card from '$lib/components/ui/card'
   import * as Field from '$lib/components/ui/field'
   import { Input } from '$lib/components/ui/input'
-  import { Button } from '$lib/components/ui/button'
   import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
@@ -48,7 +48,11 @@
       </p>
       <p class="text-muted-foreground text-sm">
         Didn't receive the email? Check your spam folder or
-        <Button variant="link" class="h-auto p-0" onclick={() => (verifySent = false)}>
+        <Button
+          variant="link"
+          class="h-auto p-0"
+          onclick={() => (verifySent = false)}
+        >
           try again
         </Button>.
       </p>

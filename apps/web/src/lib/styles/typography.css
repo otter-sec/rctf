@@ -114,9 +114,7 @@
       @apply text-left [[align=center]]:text-center [[align=right]]:text-right;
     }
 
-    :where(img, video, figure):not(
-        :where(.not-prose, .not-prose *)
-      ) {
+    :where(img, video, figure):not(:where(.not-prose, .not-prose *)) {
       @apply mx-auto my-6;
     }
 

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { onMount } from 'svelte'
-  import Sun from '@lucide/svelte/icons/sun'
   import Moon from '@lucide/svelte/icons/moon'
+  import Sun from '@lucide/svelte/icons/sun'
   import { Button } from '$lib/components/ui/button'
+  import { onMount } from 'svelte'
 
   let theme = $state<'light' | 'dark'>('light')
 

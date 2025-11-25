@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { toast } from '$lib'
-  import type { UserProfile } from '$lib/api'
-  import * as Card from '$lib/components/ui/card'
-  import { Button } from '$lib/components/ui/button'
-  import { Badge } from '$lib/components/ui/badge'
-  import { Separator } from '$lib/components/ui/separator'
+  import Check from '@lucide/svelte/icons/check'
+  import Copy from '@lucide/svelte/icons/copy'
   import Eye from '@lucide/svelte/icons/eye'
   import EyeOff from '@lucide/svelte/icons/eye-off'
-  import Copy from '@lucide/svelte/icons/copy'
-  import Check from '@lucide/svelte/icons/check'
+  import { toast } from '$lib'
+  import type { UserProfile } from '$lib/api'
+  import { Badge } from '$lib/components/ui/badge'
+  import { Button } from '$lib/components/ui/button'
+  import * as Card from '$lib/components/ui/card'
+  import { Separator } from '$lib/components/ui/separator'
 
   let { user }: { user: UserProfile } = $props()
 
@@ -141,7 +141,9 @@
               <div class="flex flex-col gap-1">
                 <span class="font-medium">{solve.name}</span>
                 <span class="text-muted-foreground text-sm">
-                  {solve.category} • {new Date(solve.createdAt).toLocaleString()}
+                  {solve.category} • {new Date(
+                    solve.createdAt
+                  ).toLocaleString()}
                 </span>
               </div>
               {#if solve.points !== null}

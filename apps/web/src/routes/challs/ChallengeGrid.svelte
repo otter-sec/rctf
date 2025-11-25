@@ -1,19 +1,19 @@
 <script lang="ts">
-  import { invalidateAll } from '$app/navigation'
+  import Check from '@lucide/svelte/icons/check'
   import {
-    SubmitFlagRoute,
-    GoodFlag,
     BadAlreadySolvedChallenge,
+    GoodFlag,
+    SubmitFlagRoute,
   } from '@rctf/types'
+  import { invalidateAll } from '$app/navigation'
   import { apiRequest, toast } from '$lib'
   import type { Challenge, Solve } from '$lib/api'
-  import { marked } from 'marked'
-  import Check from '@lucide/svelte/icons/check'
-  import { Button } from '$lib/components/ui/button'
   import { Badge } from '$lib/components/ui/badge'
+  import { Button } from '$lib/components/ui/button'
+  import * as Card from '$lib/components/ui/card'
   import { Input } from '$lib/components/ui/input'
   import { Spinner } from '$lib/components/ui/spinner'
-  import * as Card from '$lib/components/ui/card'
+  import { marked } from 'marked'
   import SolvesDialog from './SolvesDialog.svelte'
 
   let {
@@ -204,7 +204,9 @@
                   <p class="text-sm text-destructive" role="alert">{error}</p>
                 {/if}
               {:else}
-                <p class="flex items-center gap-1 text-sm text-green-600 dark:text-green-500">
+                <p
+                  class="flex items-center gap-1 text-sm text-green-600 dark:text-green-500"
+                >
                   <Check size={16} /> Solved
                 </p>
               {/if}

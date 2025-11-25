@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { goto, invalidateAll } from '$app/navigation'
-  import { page } from '$app/state'
-  import {
-    VerifyRoute,
-    GoodVerify,
-    GoodRegister,
-    GoodEmailSet,
-  } from '@rctf/types'
-  import { apiRequest, setToken, toast } from '$lib'
-  import * as Card from '$lib/components/ui/card'
-  import { Button } from '$lib/components/ui/button'
-  import { Spinner } from '$lib/components/ui/spinner'
   import Check from '@lucide/svelte/icons/check'
   import X from '@lucide/svelte/icons/x'
+  import {
+    GoodEmailSet,
+    GoodRegister,
+    GoodVerify,
+    VerifyRoute,
+  } from '@rctf/types'
+  import { goto, invalidateAll } from '$app/navigation'
+  import { page } from '$app/state'
+  import { apiRequest, setToken, toast } from '$lib'
+  import { Button } from '$lib/components/ui/button'
+  import * as Card from '$lib/components/ui/card'
+  import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
 
@@ -68,14 +68,19 @@
       </Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
-      <div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm" role="alert">
+      <div
+        class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+        role="alert"
+      >
         {error}
       </div>
       <Button variant="outline" href="/login">Back to login</Button>
     </Card.Content>
   {:else if emailSet}
     <Card.Header>
-      <Card.Title class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500">
+      <Card.Title
+        class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500"
+      >
         <Check class="size-6" />
         Email Verified
       </Card.Title>
@@ -87,7 +92,9 @@
     </Card.Content>
   {:else if verified}
     <Card.Header>
-      <Card.Title class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500">
+      <Card.Title
+        class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500"
+      >
         <Check class="size-6" />
         Verified!
       </Card.Title>
