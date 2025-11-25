@@ -1,7 +1,12 @@
 <script lang="ts">
   import { goto, invalidateAll } from '$app/navigation'
   import { RegisterRoute, GoodRegister, GoodVerifySent } from '@rctf/types'
-  import { Section, FormField, Button, apiRequest, setToken, toast } from '$lib'
+  import { apiRequest, setToken, toast } from '$lib'
+  import * as Card from '$lib/components/ui/card'
+  import * as Field from '$lib/components/ui/field'
+  import { Input } from '$lib/components/ui/input'
+  import { Button } from '$lib/components/ui/button'
+  import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
 
@@ -45,61 +50,93 @@
 </svelte:head>
 
 {#if verifySent}
-  <Section title="Verification Email Sent">
-    <p>
-      We've sent a verification email to <strong>{email}</strong>. Please check
-      your inbox and click the link to complete registration.
-    </p>
-    <p class="mt-4">
-      Didn't receive the email? Check your spam folder or
-      <button type="button" onclick={() => (verifySent = false)}>
-        try again </button
-      >.
-    </p>
-  </Section>
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Verification Email Sent</Card.Title>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <p>
+        We've sent a verification email to <strong>{email}</strong>. Please
+        check your inbox and click the link to complete registration.
+      </p>
+      <p class="text-muted-foreground text-sm">
+        Didn't receive the email? Check your spam folder or
+        <Button variant="link" class="h-auto p-0" onclick={() => (verifySent = false)}>
+          try again
+        </Button>.
+      </p>
+    </Card.Content>
+  </Card.Root>
 {:else}
-  <Section
-    title="Register"
-    description="Create an account for {data.clientConfig.ctfName}"
-  >
-    <p class="mb-4">Please register one account per team.</p>
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Register</Card.Title>
+      <Card.Description>
+        Create an account for {data.clientConfig.ctfName}
+      </Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <p class="text-muted-foreground mb-4 text-sm">
+        Please register one account per team.
+      </p>
 
-    {#if errors.form}
-      <div class="mb-4" role="alert">{errors.form}</div>
-    {/if}
+      {#if errors.form}
+        <div class="bg-destructive/10 text-destructive mb-4 rounded-md p-3 text-sm" role="alert">
+          {errors.form}
+        </div>
+      {/if}
 
-    <form onsubmit={handleSubmit} class="flex max-w-md flex-col gap-4">
-      <FormField
-        label="Team Name"
-        name="name"
-        type="text"
-        placeholder="Enter your team name"
-        autocomplete="username"
-        autocorrect="off"
-        minlength={2}
-        maxlength={64}
-        required
-        bind:value={name}
-        error={errors.name}
-      />
+      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
+        <Field.Field data-invalid={!!errors.name || undefined}>
+          <Field.Label for="name">Team Name</Field.Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="Enter your team name"
+            autocomplete="username"
+            autocorrect="off"
+            minlength={2}
+            maxlength={64}
+            required
+            bind:value={name}
+            aria-invalid={!!errors.name}
+          />
+          {#if errors.name}
+            <Field.Error>{errors.name}</Field.Error>
+          {/if}
+        </Field.Field>
 
-      <FormField
-        label="Email"
-        name="email"
-        type="email"
-        placeholder="Enter your email"
-        autocomplete="email"
-        required
-        bind:value={email}
-        error={errors.email}
-      />
+        <Field.Field data-invalid={!!errors.email || undefined}>
+          <Field.Label for="email">Email</Field.Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+            bind:value={email}
+            aria-invalid={!!errors.email}
+          />
+          {#if errors.email}
+            <Field.Error>{errors.email}</Field.Error>
+          {/if}
+        </Field.Field>
 
-      <Button type="submit" {loading}>Register</Button>
-    </form>
-
-    <p class="mt-6">
-      Already have an account?
-      <a href="/login">Login</a>
-    </p>
-  </Section>
+        <Button type="submit" disabled={loading} class="w-full">
+          {#if loading}
+            <Spinner class="size-4" />
+          {/if}
+          Register
+        </Button>
+      </form>
+    </Card.Content>
+    <Card.Footer>
+      <p class="text-muted-foreground text-sm">
+        Already have an account?
+        <a href="/login" class="text-primary hover:underline">Login</a>
+      </p>
+    </Card.Footer>
+  </Card.Root>
 {/if}

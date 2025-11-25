@@ -1,20 +1,40 @@
 <script lang="ts">
-  import { Section } from '$lib'
+  import * as Card from '$lib/components/ui/card'
+  import { Button } from '$lib/components/ui/button'
   import ChallengeGrid from './ChallengeGrid.svelte'
 
   let { data } = $props()
 </script>
 
-<Section title="Challenges">
-  {#if data.challenges}
-    <ChallengeGrid
-      challenges={data.challenges}
-      solves={data.user?.solves ?? []}
-    />
-  {:else if data.error}
-    <div role="alert">{data.error}</div>
-  {:else}
-    <p>You need to be logged in to view challenges.</p>
-    <a href="/login">Login</a>
-  {/if}
-</Section>
+{#if data.challenges}
+  <ChallengeGrid
+    challenges={data.challenges}
+    solves={data.user?.solves ?? []}
+  />
+{:else if data.error}
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Challenges</Card.Title>
+    </Card.Header>
+    <Card.Content>
+      <div
+        class="bg-destructive/10 text-destructive rounded-md p-3 text-sm"
+        role="alert"
+      >
+        {data.error}
+      </div>
+    </Card.Content>
+  </Card.Root>
+{:else}
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Challenges</Card.Title>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <p class="text-muted-foreground">
+        You need to be logged in to view challenges.
+      </p>
+      <Button href="/login">Login</Button>
+    </Card.Content>
+  </Card.Root>
+{/if}

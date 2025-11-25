@@ -7,7 +7,12 @@
     GoodRegister,
     GoodEmailSet,
   } from '@rctf/types'
-  import { Section, Button, apiRequest, setToken, toast } from '$lib'
+  import { apiRequest, setToken, toast } from '$lib'
+  import * as Card from '$lib/components/ui/card'
+  import { Button } from '$lib/components/ui/button'
+  import { Spinner } from '$lib/components/ui/spinner'
+  import Check from '@lucide/svelte/icons/check'
+  import X from '@lucide/svelte/icons/x'
 
   let { data } = $props()
 
@@ -37,8 +42,8 @@
       verified = true
       toast.success('Verified successfully!')
       await invalidateAll()
-      // Redirect after a short delay
-      setTimeout(() => goto('/'), 2000)
+      // Short delay
+      setTimeout(() => goto('/'), 500)
     } else if (response.kind === GoodEmailSet.kind) {
       emailSet = true
       toast.success('Email verified!')
@@ -54,24 +59,61 @@
   <title>Verify | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
-{#if error}
-  <Section title="Verification Failed">
-    <div role="alert">{error}</div>
-    <p class="mt-4">
-      <a href="/login">Back to login</a>
-    </p>
-  </Section>
-{:else if emailSet}
-  <Section title="Email Verified">
-    <p>Your email has been verified. You can now close this tab.</p>
-  </Section>
-{:else if verified}
-  <Section title="Verified!">
-    <p>Your account has been verified. Redirecting you to the home page...</p>
-  </Section>
-{:else}
-  <Section title="Verify Email">
-    <p class="mb-4">Click the button below to verify your email address.</p>
-    <Button onclick={handleVerify} {loading}>Verify Email</Button>
-  </Section>
-{/if}
+<Card.Root class="mx-auto max-w-md">
+  {#if error}
+    <Card.Header>
+      <Card.Title class="flex items-center gap-2 text-2xl text-destructive">
+        <X class="size-6" />
+        Verification Failed
+      </Card.Title>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm" role="alert">
+        {error}
+      </div>
+      <Button variant="outline" href="/login">Back to login</Button>
+    </Card.Content>
+  {:else if emailSet}
+    <Card.Header>
+      <Card.Title class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500">
+        <Check class="size-6" />
+        Email Verified
+      </Card.Title>
+    </Card.Header>
+    <Card.Content>
+      <p class="text-muted-foreground">
+        Your email has been verified. You can now close this tab.
+      </p>
+    </Card.Content>
+  {:else if verified}
+    <Card.Header>
+      <Card.Title class="flex items-center gap-2 text-2xl text-green-600 dark:text-green-500">
+        <Check class="size-6" />
+        Verified!
+      </Card.Title>
+    </Card.Header>
+    <Card.Content>
+      <p class="text-muted-foreground">
+        Your account has been verified. Redirecting you to the home page...
+      </p>
+    </Card.Content>
+  {:else}
+    <Card.Header>
+      <Card.Title class="text-2xl">Verify Email</Card.Title>
+      <Card.Description>
+        Complete your registration by verifying your email address
+      </Card.Description>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <p class="text-muted-foreground text-sm">
+        Click the button below to verify your email address.
+      </p>
+      <Button onclick={handleVerify} disabled={loading} class="w-full">
+        {#if loading}
+          <Spinner class="size-4" />
+        {/if}
+        Verify Email
+      </Button>
+    </Card.Content>
+  {/if}
+</Card.Root>

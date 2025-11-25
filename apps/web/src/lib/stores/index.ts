@@ -1,1 +1,2 @@
-export { toast, type Toast, type ToastType } from './toast.svelte'
+// Re-export toast from svelte-sonner (replaces custom toast store)
+export { toast } from 'svelte-sonner'

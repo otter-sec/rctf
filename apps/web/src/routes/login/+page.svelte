@@ -2,7 +2,12 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import { LoginRoute, GoodLogin } from '@rctf/types'
-  import { Section, FormField, Button, apiRequest, setToken, toast } from '$lib'
+  import { apiRequest, setToken, toast } from '$lib'
+  import * as Card from '$lib/components/ui/card'
+  import * as Field from '$lib/components/ui/field'
+  import { Input } from '$lib/components/ui/input'
+  import { Button } from '$lib/components/ui/button'
+  import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
 
@@ -69,31 +74,51 @@
   <title>Login | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
-<Section title="Login" description="Log in to {data.clientConfig.ctfName}">
-  <form onsubmit={handleSubmit} class="flex max-w-md flex-col gap-4">
-    <FormField
-      label="Team Token"
-      name="teamToken"
-      type="text"
-      placeholder="Enter your team token"
-      autocomplete="off"
-      autocorrect="off"
-      required
-      bind:value={teamToken}
-      error={errors.teamToken}
-    />
+<Card.Root class="mx-auto max-w-md">
+  <Card.Header>
+    <Card.Title class="text-2xl">Login</Card.Title>
+    <Card.Description>Log in to {data.clientConfig.ctfName}</Card.Description>
+  </Card.Header>
+  <Card.Content>
+    <form onsubmit={handleSubmit} class="flex flex-col gap-4">
+      <Field.Field data-invalid={!!errors.teamToken || undefined}>
+        <Field.Label for="teamToken">Team Token</Field.Label>
+        <Input
+          id="teamToken"
+          name="teamToken"
+          type="text"
+          placeholder="Enter your team token"
+          autocomplete="off"
+          autocorrect="off"
+          required
+          bind:value={teamToken}
+          aria-invalid={!!errors.teamToken}
+        />
+        {#if errors.teamToken}
+          <Field.Error>{errors.teamToken}</Field.Error>
+        {/if}
+      </Field.Field>
 
-    {#if data.clientConfig.emailEnabled}
-      <p>
-        <a href="/recover">Lost your team token?</a>
-      </p>
-    {/if}
+      {#if data.clientConfig.emailEnabled}
+        <p class="text-sm">
+          <a href="/recover" class="text-primary hover:underline"
+            >Lost your team token?</a
+          >
+        </p>
+      {/if}
 
-    <Button type="submit" {loading}>Login</Button>
-  </form>
-
-  <p class="mt-6">
-    Don't have an account?
-    <a href="/register">Register</a>
-  </p>
-</Section>
+      <Button type="submit" disabled={loading} class="w-full">
+        {#if loading}
+          <Spinner class="size-4" />
+        {/if}
+        Login
+      </Button>
+    </form>
+  </Card.Content>
+  <Card.Footer>
+    <p class="text-muted-foreground text-sm">
+      Don't have an account?
+      <a href="/register" class="text-primary hover:underline">Register</a>
+    </p>
+  </Card.Footer>
+</Card.Root>

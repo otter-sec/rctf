@@ -1,7 +1,9 @@
 <script lang="ts">
   import '../app.css'
   import { goto, invalidateAll } from '$app/navigation'
-  import { NavLink, Toast, clearToken } from '$lib'
+  import { NavLink, ThemeToggle, clearToken } from '$lib'
+  import { Toaster } from '$lib/components/ui/sonner'
+  import { Button } from '$lib/components/ui/button'
   import favicon from '$lib/assets/favicon.svg'
 
   let { data, children } = $props()
@@ -19,25 +21,26 @@
 </svelte:head>
 
 <div class="mx-auto flex min-h-screen max-w-5xl flex-col gap-6 px-4 py-8">
-  <nav class="flex items-center justify-between border p-3">
-    <ul class="flex flex-wrap gap-4">
+  <nav class="flex items-center justify-between rounded-lg border p-3">
+    <ul class="flex flex-wrap gap-1">
       <li><NavLink href="/">Overview</NavLink></li>
       <li><NavLink href="/challs">Challenges</NavLink></li>
       <li><NavLink href="/scores">Leaderboard</NavLink></li>
       <li><NavLink href="/profile">Profile</NavLink></li>
     </ul>
-    <div class="flex gap-4">
+    <div class="flex items-center gap-2">
+      <ThemeToggle />
       {#if data.user}
-        <button type="button" onclick={handleLogout}>Logout</button>
+        <Button variant="ghost" size="sm" onclick={handleLogout}>Logout</Button>
       {:else}
-        <a href="/login">Login</a>
+        <Button variant="ghost" size="sm" href="/login">Login</Button>
       {/if}
     </div>
   </nav>
 
-  <main class="flex flex-col gap-4">
+  <main class="flex flex-col gap-6">
     {@render children()}
   </main>
 </div>
 
-<Toast />
+<Toaster />

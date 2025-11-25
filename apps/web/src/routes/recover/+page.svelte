@@ -1,6 +1,11 @@
 <script lang="ts">
   import { RecoverRoute, GoodVerifySent } from '@rctf/types'
-  import { Section, FormField, Button, apiRequest, toast } from '$lib'
+  import { apiRequest, toast } from '$lib'
+  import * as Card from '$lib/components/ui/card'
+  import * as Field from '$lib/components/ui/field'
+  import { Input } from '$lib/components/ui/input'
+  import { Button } from '$lib/components/ui/button'
+  import { Spinner } from '$lib/components/ui/spinner'
 
   let { data } = $props()
 
@@ -32,41 +37,63 @@
 </svelte:head>
 
 {#if verifySent}
-  <Section title="Recovery Email Sent">
-    <p>
-      We've sent a recovery email to <strong>{email}</strong>. Please check your
-      inbox and click the link to access your account.
-    </p>
-    <p class="mt-4">
-      Didn't receive the email? Check your spam folder or
-      <button type="button" onclick={() => (verifySent = false)}>
-        try again </button
-      >.
-    </p>
-  </Section>
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Recovery Email Sent</Card.Title>
+    </Card.Header>
+    <Card.Content class="flex flex-col gap-4">
+      <p>
+        We've sent a recovery email to <strong>{email}</strong>. Please check
+        your inbox and click the link to access your account.
+      </p>
+      <p class="text-muted-foreground text-sm">
+        Didn't receive the email? Check your spam folder or
+        <Button variant="link" class="h-auto p-0" onclick={() => (verifySent = false)}>
+          try again
+        </Button>.
+      </p>
+    </Card.Content>
+  </Card.Root>
 {:else}
-  <Section
-    title="Recover Account"
-    description="Get a new team token sent to your email"
-  >
-    <form onsubmit={handleSubmit} class="flex max-w-md flex-col gap-4">
-      <FormField
-        label="Email"
-        name="email"
-        type="email"
-        placeholder="Enter your email"
-        autocomplete="email"
-        required
-        bind:value={email}
-        error={errors.email}
-      />
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Recover Account</Card.Title>
+      <Card.Description>
+        Get a new team token sent to your email
+      </Card.Description>
+    </Card.Header>
+    <Card.Content>
+      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
+        <Field.Field data-invalid={!!errors.email || undefined}>
+          <Field.Label for="email">Email</Field.Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+            bind:value={email}
+            aria-invalid={!!errors.email}
+          />
+          {#if errors.email}
+            <Field.Error>{errors.email}</Field.Error>
+          {/if}
+        </Field.Field>
 
-      <Button type="submit" {loading}>Recover</Button>
-    </form>
-
-    <p class="mt-6">
-      Remember your token?
-      <a href="/login">Login</a>
-    </p>
-  </Section>
+        <Button type="submit" disabled={loading} class="w-full">
+          {#if loading}
+            <Spinner class="size-4" />
+          {/if}
+          Recover
+        </Button>
+      </form>
+    </Card.Content>
+    <Card.Footer>
+      <p class="text-muted-foreground text-sm">
+        Remember your token?
+        <a href="/login" class="text-primary hover:underline">Login</a>
+      </p>
+    </Card.Footer>
+  </Card.Root>
 {/if}

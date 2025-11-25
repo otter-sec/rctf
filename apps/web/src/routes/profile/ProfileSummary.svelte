@@ -1,109 +1,162 @@
 <script lang="ts">
-  import { Section, toast } from '$lib'
+  import { toast } from '$lib'
   import type { UserProfile } from '$lib/api'
+  import * as Card from '$lib/components/ui/card'
+  import { Button } from '$lib/components/ui/button'
+  import { Badge } from '$lib/components/ui/badge'
+  import { Separator } from '$lib/components/ui/separator'
+  import Eye from '@lucide/svelte/icons/eye'
+  import EyeOff from '@lucide/svelte/icons/eye-off'
+  import Copy from '@lucide/svelte/icons/copy'
+  import Check from '@lucide/svelte/icons/check'
 
   let { user }: { user: UserProfile } = $props()
 
   let showToken = $state(false)
+  let copied = $state(false)
 
   async function copyToken() {
     await navigator.clipboard.writeText(user.teamToken)
     toast.success('Team token copied to clipboard!')
+    copied = true
+    setTimeout(() => (copied = false), 2000)
   }
 </script>
 
-<Section title="Profile">
-  <div class="flex flex-col gap-6">
-    <div class="flex flex-col gap-2">
-      <h3>{user.name}</h3>
+<div class="flex flex-col gap-6">
+  <!-- Profile Header -->
+  <Card.Root>
+    <Card.Header>
+      <Card.Title class="text-2xl">{user.name}</Card.Title>
       {#if user.email}
-        <p>{user.email}</p>
+        <Card.Description>{user.email}</Card.Description>
       {/if}
       {#if user.ctftimeId}
-        <p>
-          CTFtime ID: <a
+        <Card.Description>
+          CTFtime:
+          <a
             href="https://ctftime.org/team/{user.ctftimeId}"
             target="_blank"
-            rel="noopener noreferrer">{user.ctftimeId}</a
+            rel="noopener noreferrer"
+            class="text-primary hover:underline"
           >
-        </p>
+            {user.ctftimeId}
+          </a>
+        </Card.Description>
       {/if}
-    </div>
-
-    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
-      <div class="border p-3">
-        <p><small>Division</small></p>
-        <p>{user.division}</p>
-      </div>
-      <div class="border p-3">
-        <p><small>Score</small></p>
-        <p>{user.score.toLocaleString()}</p>
-      </div>
-      {#if user.globalPlace !== null}
-        <div class="border p-3">
-          <p><small>Global Rank</small></p>
-          <p>#{user.globalPlace}</p>
+    </Card.Header>
+    <Card.Content>
+      <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div class="flex flex-col gap-1">
+          <span class="text-muted-foreground text-sm">Division</span>
+          <span class="font-semibold">{user.division}</span>
         </div>
-      {/if}
-      {#if user.divisionPlace !== null}
-        <div class="border p-3">
-          <p><small>Division Rank</small></p>
-          <p>#{user.divisionPlace}</p>
+        <div class="flex flex-col gap-1">
+          <span class="text-muted-foreground text-sm">Score</span>
+          <span class="font-semibold tabular-nums">
+            {user.score.toLocaleString()}
+          </span>
         </div>
-      {/if}
-    </div>
+        {#if user.globalPlace !== null}
+          <div class="flex flex-col gap-1">
+            <span class="text-muted-foreground text-sm">Global Rank</span>
+            <span class="font-semibold tabular-nums">#{user.globalPlace}</span>
+          </div>
+        {/if}
+        {#if user.divisionPlace !== null}
+          <div class="flex flex-col gap-1">
+            <span class="text-muted-foreground text-sm">Division Rank</span>
+            <span class="font-semibold tabular-nums">
+              #{user.divisionPlace}
+            </span>
+          </div>
+        {/if}
+      </div>
+    </Card.Content>
+  </Card.Root>
 
-    <div class="flex flex-col gap-2">
-      <h4>Team Token</h4>
-      <p>
-        <small
-          >Share this token with your teammates so they can login to the same
-          account.</small
-        >
-      </p>
+  <!-- Team Token -->
+  <Card.Root>
+    <Card.Header>
+      <Card.Title>Team Token</Card.Title>
+      <Card.Description>
+        Share this token with your teammates so they can login to the same
+        account.
+      </Card.Description>
+    </Card.Header>
+    <Card.Content>
       <div class="flex items-center gap-2">
-        <code class="flex-1 overflow-hidden text-ellipsis border p-2">
+        <code
+          class="bg-muted flex-1 overflow-hidden text-ellipsis rounded-md border px-3 py-2 font-mono text-sm"
+        >
           {#if showToken}
             {user.teamToken}
           {:else}
             {'•'.repeat(32)}
           {/if}
         </code>
-        <button type="button" onclick={() => (showToken = !showToken)}>
-          {showToken ? 'Hide' : 'Show'}
-        </button>
-        <button type="button" onclick={copyToken}>Copy</button>
+        <Button
+          variant="outline"
+          size="icon"
+          onclick={() => (showToken = !showToken)}
+          aria-label={showToken ? 'Hide token' : 'Show token'}
+        >
+          {#if showToken}
+            <EyeOff class="size-4" />
+          {:else}
+            <Eye class="size-4" />
+          {/if}
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onclick={copyToken}
+          aria-label="Copy token"
+        >
+          {#if copied}
+            <Check class="size-4 text-green-600" />
+          {:else}
+            <Copy class="size-4" />
+          {/if}
+        </Button>
       </div>
-    </div>
+    </Card.Content>
+  </Card.Root>
 
-    {#if user.solves.length > 0}
-      <div class="flex flex-col gap-3">
-        <h4>Solves ({user.solves.length})</h4>
+  <!-- Solves -->
+  <Card.Root>
+    <Card.Header>
+      <Card.Title>
+        Solves
+        <Badge variant="secondary" class="ml-2">{user.solves.length}</Badge>
+      </Card.Title>
+    </Card.Header>
+    <Card.Content>
+      {#if user.solves.length > 0}
         <ul class="flex flex-col gap-2">
           {#each user.solves as solve (solve.id)}
-            <li class="flex items-start justify-between gap-4 border p-3">
+            <li
+              class="flex items-start justify-between gap-4 rounded-md border p-3"
+            >
               <div class="flex flex-col gap-1">
-                <p><strong>{solve.name}</strong></p>
-                <p>
-                  <small>
-                    {solve.category} • {new Date(
-                      solve.createdAt
-                    ).toLocaleString()}
-                  </small>
-                </p>
+                <span class="font-medium">{solve.name}</span>
+                <span class="text-muted-foreground text-sm">
+                  {solve.category} • {new Date(solve.createdAt).toLocaleString()}
+                </span>
               </div>
               {#if solve.points !== null}
-                <span>{solve.points} pts</span>
+                <Badge variant="secondary">{solve.points} pts</Badge>
               {/if}
             </li>
           {/each}
         </ul>
-      </div>
-    {:else}
-      <p>
-        No solves yet. Head over to the
-        <a href="/challs">challenges</a> page to get started!
-      </p>
-    {/if}
-  </div>
-</Section>
+      {:else}
+        <p class="text-muted-foreground">
+          No solves yet. Head over to the
+          <a href="/challs" class="text-primary hover:underline">challenges</a>
+          page to get started!
+        </p>
+      {/if}
+    </Card.Content>
+  </Card.Root>
+</div>

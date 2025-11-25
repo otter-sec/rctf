@@ -1,5 +1,5 @@
 export { default as NavLink } from './NavLink.svelte'
 export { default as Section } from './Section.svelte'
-export { default as Toast } from './Toast.svelte'
 export { default as FormField } from './FormField.svelte'
 export { default as Button } from './Button.svelte'
+export { default as ThemeToggle } from './ThemeToggle.svelte'

@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import type { HTMLButtonAttributes } from 'svelte/elements'
+  import LoaderCircle from '@lucide/svelte/icons/loader-circle'
 
   let {
     loading = false,
@@ -15,7 +16,7 @@
 <button disabled={loading} {...buttonProps}>
   {#if loading}
     <span class="inline-flex items-center gap-2">
-      <span aria-hidden="true">⏳</span>
+      <LoaderCircle size={16} class="animate-spin" />
       {@render children()}
     </span>
   {:else}
