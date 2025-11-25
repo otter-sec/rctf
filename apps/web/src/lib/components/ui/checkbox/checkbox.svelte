@@ -1,6 +1,5 @@
 <script lang="ts">
-  import Check from '@iconify-svelte/tabler/check'
-  import Minus from '@iconify-svelte/tabler/minus'
+  import { IconCheck, IconMinus } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Checkbox as CheckboxPrimitive } from 'bits-ui'
 
@@ -27,9 +26,9 @@
   {#snippet children({ checked, indeterminate })}
     <div data-slot="checkbox-indicator" class="text-current transition-none">
       {#if checked}
-        <Check class="size-3.5" />
+        <IconCheck class="size-3.5" />
       {:else if indeterminate}
-        <Minus class="size-3.5" />
+        <IconMinus class="size-3.5" />
       {/if}
     </div>
   {/snippet}

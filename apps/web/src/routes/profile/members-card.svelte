@@ -1,6 +1,5 @@
 <script lang="ts">
-  import Trash from '@iconify-svelte/tabler/trash-filled'
-  import UsersPlus from '@iconify-svelte/tabler/users-plus'
+  import { IconTrash, IconUsersPlus } from '$lib/icons'
   import {
     CreateMemberRoute,
     DeleteMemberRoute,
@@ -116,7 +115,7 @@
             {#if loading}
               <Spinner class="size-4" />
             {:else}
-              <UsersPlus class="size-4" />
+              <IconUsersPlus class="size-4" />
             {/if}
           </Button>
         </div>
@@ -147,7 +146,7 @@
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}
-                <Trash class="text-foreground-destructive size-4" />
+                <IconTrash class="text-foreground-destructive size-4" />
               {/if}
             </Button>
           </li>

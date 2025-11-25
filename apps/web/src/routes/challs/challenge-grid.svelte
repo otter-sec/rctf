@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Check from '@iconify-svelte/tabler/circle-check-filled'
+  import { IconCheckFilled } from '$lib/icons'
   import {
     BadAlreadySolvedChallenge,
     GoodFlag,
@@ -120,7 +120,7 @@
                 <div class="flex flex-col gap-1">
                   <Card.Title class="flex items-center gap-2">
                     {#if isSolved}
-                      <Check
+                      <IconCheckFilled
                         class="size-4 text-foreground-success"
                         aria-label="Solved"
                       />
@@ -204,7 +204,7 @@
                 <p
                   class="flex items-center gap-1 text-sm text-foreground-success"
                 >
-                  <Check class="size-4" /> Solved
+                  <IconCheckFilled class="size-4" /> Solved
                 </p>
               {/if}
             </Card.Footer>

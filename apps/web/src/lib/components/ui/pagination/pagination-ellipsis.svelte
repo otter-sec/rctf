@@ -1,5 +1,5 @@
 <script lang="ts">
-  import EllipsisIcon from '@iconify-svelte/tabler/dots'
+  import { IconDots } from '$lib/icons'
   import { cn, type WithElementRef, type WithoutChildren } from '$lib/utils.js'
   import type { HTMLAttributes } from 'svelte/elements'
 
@@ -17,6 +17,6 @@
   class={cn('flex size-9 items-center justify-center', className)}
   {...restProps}
 >
-  <EllipsisIcon class="size-4" />
+  <IconDots class="size-4" />
   <span class="sr-only">More pages</span>
 </span>

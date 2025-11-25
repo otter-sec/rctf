@@ -1,5 +1,5 @@
 <script lang="ts">
-  import X from '@iconify-svelte/tabler/x'
+  import { IconX } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Dialog as DialogPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
@@ -35,7 +35,7 @@
       <DialogPrimitive.Close
         class="focus:ring-ring rounded-xs focus:outline-hidden absolute end-4 top-4 opacity-70 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-l1 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0"
       >
-        <X />
+        <IconX />
         <span class="sr-only">Close</span>
       </DialogPrimitive.Close>
     {/if}

@@ -1,11 +1,11 @@
 <script lang="ts">
-  import Loader from '@iconify-svelte/tabler/loader'
+  import { IconLoader } from '$lib/icons'
   import { cn } from '$lib/utils.js'
 
   let { class: className }: { class?: string } = $props()
 </script>
 
-<Loader
+<IconLoader
   role="status"
   aria-label="Loading"
   class={cn('size-4 animate-spin', className)}

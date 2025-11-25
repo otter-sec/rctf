@@ -14,7 +14,7 @@
 {#if !data.user}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Admin access required</Card.Title>
+      <Card.Title class="text-xl">Admin access required</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
@@ -26,7 +26,7 @@
 {:else if !hasReadPerms}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Access denied</Card.Title>
+      <Card.Title class="text-xl">Access denied</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">

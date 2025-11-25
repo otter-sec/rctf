@@ -1,8 +1,5 @@
 <script lang="ts">
-  import ArrowLeft from '@iconify-svelte/tabler/arrow-big-left-filled'
-  import Upload from '@iconify-svelte/tabler/file-upload-filled'
-  import Trash from '@iconify-svelte/tabler/trash-filled'
-  import X from '@iconify-svelte/tabler/x'
+  import { IconArrowLeft, IconTrash, IconUpload, IconX } from '$lib/icons'
   import {
     DeleteChallengeRoute,
     GoodChallengeDelete,
@@ -163,7 +160,7 @@
 <div class="flex flex-col gap-6">
   <div class="flex items-center gap-4">
     <Button variant="ghost" size="icon" href="/admin/challs">
-      <ArrowLeft class="size-4" />
+      <IconArrowLeft class="size-4" />
     </Button>
     <div>
       <h1 class="text-2xl font-medium">
@@ -177,7 +174,7 @@
 
   {#if data.error}
     <Card.Root>
-      <Card.Content class="py-6">
+      <Card.Content>
         <div
           class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
           role="alert"
@@ -360,7 +357,7 @@
                       size="icon-sm"
                       onclick={() => removeFile(index)}
                     >
-                      <X class="size-4" />
+                      <IconX class="size-4" />
                     </Button>
                   {/if}
                 </li>
@@ -389,7 +386,7 @@
                 {#if uploading}
                   <Spinner class="size-4" />
                 {:else}
-                  <Upload class="size-4" />
+                  <IconUpload class="size-4" />
                 {/if}
                 Upload files
               </Button>
@@ -411,7 +408,7 @@
                 {#if deleting}
                   <Spinner class="size-4" />
                 {:else}
-                  <Trash class="size-4" />
+                  <IconTrash class="size-4" />
                 {/if}
                 Delete challenge
               </Button>

@@ -1,6 +1,8 @@
+import * as Avatar from './ui/avatar'
 import * as Card from './ui/card'
 import * as Chart from './ui/chart'
 import * as Dialog from './ui/dialog'
+import * as DropdownMenu from './ui/dropdown-menu'
 import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
 import * as Pagination from './ui/pagination'
@@ -8,6 +10,8 @@ import * as Select from './ui/select'
 import * as Table from './ui/table'
 
 export { default as CtftimeButton } from './ctftime-button.svelte'
+export { default as Header } from './header.svelte'
+export { default as NavButton } from './nav-button.svelte'
 export { default as NavLink } from './nav-link.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 
@@ -28,6 +32,17 @@ export { Spinner } from './ui/spinner'
 export { Textarea } from './ui/textarea'
 export { Toaster } from './ui/sonner'
 
-export { Card, Chart, Dialog, Field, InputGroup, Pagination, Select, Table }
+export {
+  Avatar,
+  Card,
+  Chart,
+  Dialog,
+  DropdownMenu,
+  Field,
+  InputGroup,
+  Pagination,
+  Select,
+  Table,
+}
 
 export { type ChartConfig } from './ui/chart'

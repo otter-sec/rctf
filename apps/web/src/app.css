@@ -266,7 +266,7 @@
   --foreground-gray-l0: var(--foreground-l1);
   --foreground-gray-l1: var(--foreground-l2);
 
-  --radius: 0rem;
+  --radius: 0.625rem;
   --border: var(--background-l4);
   --ring: var(--foreground-l4);
 }

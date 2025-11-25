@@ -7,7 +7,7 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title class="text-2xl">Overview</Card.Title>
+    <Card.Title class="text-xl">Overview</Card.Title>
   </Card.Header>
   <Card.Content>
     <div class="prose prose-sm dark:prose-invert max-w-none">
@@ -19,7 +19,7 @@
 {#if data.clientConfig.sponsors.length > 0}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Sponsors</Card.Title>
+      <Card.Title class="text-xl">Sponsors</Card.Title>
     </Card.Header>
     <Card.Content>
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">

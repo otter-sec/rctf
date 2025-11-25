@@ -1,5 +1,5 @@
 <script lang="ts">
-  import ArrowRight from '@iconify-svelte/tabler/arrow-big-right-filled'
+  import { IconArrowRight } from '$lib/icons'
   import { buttonVariants } from '$lib/components/ui/button/index.js'
   import { cn } from '$lib/utils.js'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
@@ -14,7 +14,7 @@
 
 {#snippet Fallback()}
   <span>Next</span>
-  <ArrowRight class="size-4" />
+  <IconArrowRight class="size-4" />
 {/snippet}
 
 <PaginationPrimitive.NextButton

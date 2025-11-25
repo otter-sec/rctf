@@ -133,7 +133,7 @@
 {#if verifySent}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Verification email sent</Card.Title>
+      <Card.Title class="text-xl">Verification email sent</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p>
@@ -155,7 +155,7 @@
 {:else if ctftimeToken}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Complete Registration</Card.Title>
+      <Card.Title class="text-xl">Complete Registration</Card.Title>
       <Card.Description>Registering with CTFtime</Card.Description>
     </Card.Header>
     <Card.Content>
@@ -209,7 +209,7 @@
 {:else}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Register</Card.Title>
+      <Card.Title class="text-xl">Register</Card.Title>
       <Card.Description>
         Create an account for {data.clientConfig.ctfName}
       </Card.Description>

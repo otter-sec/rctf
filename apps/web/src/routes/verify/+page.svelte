@@ -1,6 +1,5 @@
 <script lang="ts">
-  import Check from '@iconify-svelte/tabler/circle-check-filled'
-  import X from '@iconify-svelte/tabler/x'
+  import { IconCheckFilled, IconX } from '$lib/icons'
   import {
     GoodEmailSet,
     GoodRegister,
@@ -62,7 +61,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-destructive"
       >
-        <X class="size-6" />
+        <IconX class="size-6" />
         Verification failed
       </Card.Title>
     </Card.Header>
@@ -80,7 +79,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <Check class="size-6" />
+        <IconCheckFilled class="size-6" />
         Email verified
       </Card.Title>
     </Card.Header>
@@ -94,7 +93,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <Check class="size-6" />
+        <IconCheckFilled class="size-6" />
         Verified!
       </Card.Title>
     </Card.Header>
@@ -105,7 +104,7 @@
     </Card.Content>
   {:else}
     <Card.Header>
-      <Card.Title class="text-2xl">Verify email</Card.Title>
+      <Card.Title class="text-xl">Verify email</Card.Title>
       <Card.Description>
         Complete your registration by verifying your email address
       </Card.Description>

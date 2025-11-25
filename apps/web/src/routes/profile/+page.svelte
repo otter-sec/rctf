@@ -22,7 +22,7 @@
 {:else}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-2xl">Profile</Card.Title>
+      <Card.Title class="text-xl">Profile</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
