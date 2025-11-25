@@ -3,6 +3,7 @@ import * as Chart from './ui/chart'
 import * as Dialog from './ui/dialog'
 import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
+import * as Select from './ui/select'
 import * as Table from './ui/table'
 
 export { default as NavLink } from './nav-link.svelte'
@@ -24,6 +25,6 @@ export { Spinner } from './ui/spinner'
 export { Textarea } from './ui/textarea'
 export { Toaster } from './ui/sonner'
 
-export { Card, Chart, Dialog, Field, InputGroup, Table }
+export { Card, Chart, Dialog, Field, InputGroup, Select, Table }
 
 export { type ChartConfig } from './ui/chart'

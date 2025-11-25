@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Permissions } from '@rctf/types'
   import '../app.css'
   import { goto, invalidateAll } from '$app/navigation'
   import { clearToken, NavLink, ThemeToggle } from '$lib'
@@ -6,6 +7,12 @@
   import { Button, Toaster } from '$lib/components'
 
   let { data, children } = $props()
+
+  const isAdmin = $derived(
+    data.user?.perms !== null &&
+      data.user?.perms !== undefined &&
+      (data.user.perms & Permissions.challsRead) !== 0
+  )
 
   function handleLogout() {
     clearToken()
@@ -26,6 +33,9 @@
       <li><NavLink href="/challs">Challenges</NavLink></li>
       <li><NavLink href="/scores">Leaderboard</NavLink></li>
       <li><NavLink href="/profile">Profile</NavLink></li>
+      {#if isAdmin}
+        <li><NavLink href="/admin/challs">Admin</NavLink></li>
+      {/if}
     </ul>
     <div class="flex items-center gap-2">
       <ThemeToggle />

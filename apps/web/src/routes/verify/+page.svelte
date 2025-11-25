@@ -76,9 +76,7 @@
     </Card.Content>
   {:else if emailSet}
     <Card.Header>
-      <Card.Title
-        class="flex items-center gap-2 text-2xl text-success"
-      >
+      <Card.Title class="flex items-center gap-2 text-2xl text-success">
         <Check class="size-6" />
         Email Verified
       </Card.Title>
@@ -90,9 +88,7 @@
     </Card.Content>
   {:else if verified}
     <Card.Header>
-      <Card.Title
-        class="flex items-center gap-2 text-2xl text-success"
-      >
+      <Card.Title class="flex items-center gap-2 text-2xl text-success">
         <Check class="size-6" />
         Verified!
       </Card.Title>

@@ -58,54 +58,66 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ## Roadmap
 
-- [x] `/api/v1/auth/register`:
-  - [x] User creation
-  - [x] CTFTime login
-  - [x] Divisions ACL
-  - [x] Email verification:
-    - [x] SMTP
-    - [x] SES
-    - [x] Postmark
-    - [x] Mailgun
-- [x] `/api/v1/auth/verify`:
-  - [x] Register
-  - [x] Recover
-  - [x] Update
-- [x] `/api/v1/auth/login`
-- [x] `/api/v1/auth/recover`
-- [x] `/api/v1/auth/test`
+### Authentication
 
-- [x] `/api/v1/challs`
-- [x] `/api/v1/challs/:id/submit`
-- [x] `/api/v1/challs/:id/solves`
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `POST /api/v1/auth/register` | ✅ | ✅ |
+| `POST /api/v1/auth/verify` | ✅ | ✅ |
+| `POST /api/v1/auth/login` | ✅ | ✅ |
+| `POST /api/v1/auth/recover` | ✅ | ✅ |
+| `GET /api/v1/auth/test` | ✅ | — |
 
-- [x] `/api/v1/admin/challs`
-- [x] `/api/v1/admin/challs/:id` DELETE
-- [x] `/api/v1/admin/challs/:id` GET
-- [x] `/api/v1/admin/challs/:id` POST
-- [x] `/api/v1/admin/upload`
-  - [x] Local
-  - [x] GCS
-  - [x] S3
-- [x] `/api/v1/admin/upload/query`
+### Challenges
 
-- [x] `/api/v1/leaderboard/now`
-- [x] `/api/v1/leaderboard/graph`
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `GET /api/v1/challs` | ✅ | ✅ |
+| `POST /api/v1/challs/:id/submit` | ✅ | ✅ |
+| `GET /api/v1/challs/:id/solves` | ✅ | ✅ |
 
-- [x] `/api/v1/integrations/client/config`
-- [x] `/api/v1/integrations/ctftime/leaderboard`
-- [x] `/api/v1/integrations/ctftime/callback`
+### Admin
 
-- [x] `/api/v1/users/me`
-- [x] `/api/v1/users/me` PATCH
-- [x] `/api/v1/users/:id`
-- [x] `/api/v1/users/me/members`
-- [x] `/api/v1/users/me/members`
-- [x] `/api/v1/users/me/members/:id`
-- [x] `/api/v1/users/me/auth/email`
-- [x] `/api/v1/users/me/auth/email`
-- [x] `/api/v1/users/me/auth/ctftime`
-- [x] `/api/v1/users/me/auth/ctftime`
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `GET /api/v1/admin/challs` | ✅ | ✅ |
+| `GET /api/v1/admin/challs/:id` | ✅ | ✅ |
+| `PUT /api/v1/admin/challs/:id` | ✅ | ✅ |
+| `DELETE /api/v1/admin/challs/:id` | ✅ | ✅ |
+| `POST /api/v1/admin/upload` | ✅ | ✅ |
+| `POST /api/v1/admin/upload/query` | ✅ | — |
+
+### Leaderboard
+
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `GET /api/v1/leaderboard/now` | ✅ | ✅ |
+| `GET /api/v1/leaderboard/graph` | ✅ | ✅ |
+
+### Integrations
+
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `GET /api/v1/integrations/client/config` | ✅ | ✅ |
+| `GET /api/v1/integrations/ctftime/leaderboard` | ✅ | — |
+| `GET /api/v1/integrations/ctftime/callback` | ✅ | ❌ |
+
+### Users
+
+| Endpoint | Backend | Frontend |
+|----------|:-------:|:--------:|
+| `GET /api/v1/users/me` | ✅ | ✅ |
+| `PATCH /api/v1/users/me` | ✅ | ✅ |
+| `GET /api/v1/users/:id` | ✅ | ✅ |
+| `GET /api/v1/users/me/members` | ✅ | ✅ |
+| `POST /api/v1/users/me/members` | ✅ | ✅ |
+| `DELETE /api/v1/users/me/members/:id` | ✅ | ✅ |
+| `PUT /api/v1/users/me/auth/email` | ✅ | ✅ |
+| `DELETE /api/v1/users/me/auth/email` | ✅ | ✅ |
+| `PUT /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
+| `DELETE /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
+
+### Other Tasks
 
 - [ ] Run migrations programatically
 - [ ] Go through all config vars and check that all of them are used

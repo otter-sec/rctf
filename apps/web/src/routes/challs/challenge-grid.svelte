@@ -110,9 +110,7 @@
           {@const isSubmitting = submitting[challenge.id] ?? false}
           {@const error = errors[challenge.id]}
 
-          <Card.Root
-            class={isSolved ? 'border-success/50 bg-success/10' : ''}
-          >
+          <Card.Root class={isSolved ? 'border-success/50 bg-success/10' : ''}>
             <Card.Header class="pb-3">
               <div class="flex items-start justify-between gap-3">
                 <div class="flex flex-col gap-1">

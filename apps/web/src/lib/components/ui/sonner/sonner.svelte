@@ -7,7 +7,6 @@
 
   let { ...restProps }: SonnerProps = $props()
 
-  // Get theme from data-theme attribute (synced with ThemeToggle)
   let theme = $state<'light' | 'dark'>('light')
 
   $effect(() => {
@@ -20,7 +19,6 @@
 
     theme = getTheme()
 
-    // Watch for changes
     const observer = new MutationObserver(() => {
       theme = getTheme()
     })

@@ -4,10 +4,13 @@
   import Eye from '@lucide/svelte/icons/eye'
   import EyeOff from '@lucide/svelte/icons/eye-off'
   import { toast } from '$lib'
-  import type { UserProfile } from '$lib/api'
+  import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
 
-  let { user }: { user: UserProfile } = $props()
+  let {
+    user,
+    clientConfig,
+  }: { user: UserProfile; clientConfig: ClientConfig } = $props()
 
   let showToken = $state(false)
   let copied = $state(false)
@@ -21,7 +24,6 @@
 </script>
 
 <div class="flex flex-col gap-6">
-  <!-- Profile Header -->
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-2xl wrap-anywhere">{user.name}</Card.Title>
@@ -46,7 +48,9 @@
       <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div class="flex flex-col gap-1">
           <span class="text-muted-foreground text-sm">Division</span>
-          <span class="font-semibold">{user.division}</span>
+          <span class="font-semibold">
+            {clientConfig.divisions[user.division] ?? user.division}
+          </span>
         </div>
         <div class="flex flex-col gap-1">
           <span class="text-muted-foreground text-sm">Score</span>
@@ -72,7 +76,6 @@
     </Card.Content>
   </Card.Root>
 
-  <!-- Team Token -->
   <Card.Root>
     <Card.Header>
       <Card.Title>Team Token</Card.Title>
@@ -120,7 +123,6 @@
     </Card.Content>
   </Card.Root>
 
-  <!-- Solves -->
   <Card.Root>
     <Card.Header>
       <Card.Title>

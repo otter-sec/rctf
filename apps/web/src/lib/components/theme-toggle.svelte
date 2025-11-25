@@ -21,8 +21,6 @@
 
     document.documentElement.classList.add('[&_*]:transition-none!')
     document.documentElement.setAttribute('data-theme', newTheme)
-
-    // Force reflow
     document.documentElement.offsetHeight
 
     requestAnimationFrame(() => {
