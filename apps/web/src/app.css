@@ -103,17 +103,33 @@
   --foreground-l5: var(--color-neutral-500);
   --background-accent: var(--color-neutral-700);
   --foreground-accent: var(--color-neutral-50);
-  
-  --background-first: color-mix(in oklch, var(--color-yellow-950) 20%, transparent);
+
+  --background-first: color-mix(
+    in oklch,
+    var(--color-yellow-950) 20%,
+    transparent
+  );
   --foreground-first-l0: var(--color-yellow-400);
   --foreground-first-l1: var(--color-yellow-700);
-  --background-second: color-mix(in oklch, var(--color-slate-700) 20%, transparent);
+  --background-second: color-mix(
+    in oklch,
+    var(--color-slate-700) 20%,
+    transparent
+  );
   --foreground-second-l0: var(--color-slate-300);
   --foreground-second-l1: var(--color-slate-500);
-  --background-third: color-mix(in oklch, var(--color-amber-950) 20%, transparent);
+  --background-third: color-mix(
+    in oklch,
+    var(--color-amber-950) 20%,
+    transparent
+  );
   --foreground-third-l0: var(--color-amber-500);
   --foreground-third-l1: var(--color-amber-800);
-  --background-self: color-mix(in oklch, var(--color-emerald-900) 20%, transparent);
+  --background-self: color-mix(
+    in oklch,
+    var(--color-emerald-900) 20%,
+    transparent
+  );
   --foreground-self-l0: var(--color-emerald-400);
   --foreground-self-l1: var(--color-emerald-700);
   --background-nth: var(--background-l3);
@@ -128,9 +144,17 @@
   --foreground-ninth: var(--color-fuchsia-300);
   --foreground-tenth: var(--color-rose-300);
 
-  --background-destructive: color-mix(in oklch, var(--color-red-950) 50%, transparent);
+  --background-destructive: color-mix(
+    in oklch,
+    var(--color-red-950) 50%,
+    transparent
+  );
   --foreground-destructive: var(--color-red-400);
-  --background-success: color-mix(in oklch, var(--color-emerald-900) 10%, transparent);
+  --background-success: color-mix(
+    in oklch,
+    var(--color-emerald-900) 10%,
+    transparent
+  );
   --foreground-success: var(--color-emerald-300);
 
   --foreground-prose: var(--foreground-l2);
@@ -138,43 +162,107 @@
   --foreground-prose-inline-code: var(--color-red-100);
   --foreground-prose-callout-note: var(--color-sky-300);
 
-  --background-red-l0: color-mix(in oklch, var(--color-red-950) 30%, transparent);
-  --background-red-l1: color-mix(in oklch, var(--color-red-950) 5%, transparent);
+  --background-red-l0: color-mix(
+    in oklch,
+    var(--color-red-950) 30%,
+    transparent
+  );
+  --background-red-l1: color-mix(
+    in oklch,
+    var(--color-red-950) 5%,
+    transparent
+  );
   --foreground-red-l0: var(--color-red-100);
   --foreground-red-l1: var(--color-red-300);
 
-  --background-orange-l0: color-mix(in oklch, var(--color-orange-950) 30%, transparent);
-  --background-orange-l1: color-mix(in oklch, var(--color-orange-950) 5%, transparent);
+  --background-orange-l0: color-mix(
+    in oklch,
+    var(--color-orange-950) 30%,
+    transparent
+  );
+  --background-orange-l1: color-mix(
+    in oklch,
+    var(--color-orange-950) 5%,
+    transparent
+  );
   --foreground-orange-l0: var(--color-orange-100);
   --foreground-orange-l1: var(--color-orange-300);
 
-  --background-yellow-l0: color-mix(in oklch, var(--color-yellow-950) 30%, transparent);
-  --background-yellow-l1: color-mix(in oklch, var(--color-yellow-950) 5%, transparent);
+  --background-yellow-l0: color-mix(
+    in oklch,
+    var(--color-yellow-950) 30%,
+    transparent
+  );
+  --background-yellow-l1: color-mix(
+    in oklch,
+    var(--color-yellow-950) 5%,
+    transparent
+  );
   --foreground-yellow-l0: var(--color-yellow-100);
   --foreground-yellow-l1: var(--color-yellow-300);
 
-  --background-green-l0: color-mix(in oklch, var(--color-green-950) 30%, transparent);
-  --background-green-l1: color-mix(in oklch, var(--color-green-950) 5%, transparent);
+  --background-green-l0: color-mix(
+    in oklch,
+    var(--color-green-950) 30%,
+    transparent
+  );
+  --background-green-l1: color-mix(
+    in oklch,
+    var(--color-green-950) 5%,
+    transparent
+  );
   --foreground-green-l0: var(--color-green-100);
   --foreground-green-l1: var(--color-green-300);
 
-  --background-teal-l0: color-mix(in oklch, var(--color-teal-950) 30%, transparent);
-  --background-teal-l1: color-mix(in oklch, var(--color-teal-950) 5%, transparent);
+  --background-teal-l0: color-mix(
+    in oklch,
+    var(--color-teal-950) 30%,
+    transparent
+  );
+  --background-teal-l1: color-mix(
+    in oklch,
+    var(--color-teal-950) 5%,
+    transparent
+  );
   --foreground-teal-l0: var(--color-teal-100);
   --foreground-teal-l1: var(--color-teal-300);
 
-  --background-blue-l0: color-mix(in oklch, var(--color-sky-950) 30%, transparent);
-  --background-blue-l1: color-mix(in oklch, var(--color-sky-950) 5%, transparent);
+  --background-blue-l0: color-mix(
+    in oklch,
+    var(--color-sky-950) 30%,
+    transparent
+  );
+  --background-blue-l1: color-mix(
+    in oklch,
+    var(--color-sky-950) 5%,
+    transparent
+  );
   --foreground-blue-l0: var(--color-sky-100);
   --foreground-blue-l1: var(--color-sky-300);
 
-  --background-purple-l0: color-mix(in oklch, var(--color-violet-950) 30%, transparent);
-  --background-purple-l1: color-mix(in oklch, var(--color-violet-950) 5%, transparent);
+  --background-purple-l0: color-mix(
+    in oklch,
+    var(--color-violet-950) 30%,
+    transparent
+  );
+  --background-purple-l1: color-mix(
+    in oklch,
+    var(--color-violet-950) 5%,
+    transparent
+  );
   --foreground-purple-l0: var(--color-violet-100);
   --foreground-purple-l1: var(--color-violet-300);
 
-  --background-gray-l0: color-mix(in oklch, var(--color-gray-800) 30%, transparent);
-  --background-gray-l1: color-mix(in oklch, var(--color-gray-800) 5%, transparent);
+  --background-gray-l0: color-mix(
+    in oklch,
+    var(--color-gray-800) 30%,
+    transparent
+  );
+  --background-gray-l1: color-mix(
+    in oklch,
+    var(--color-gray-800) 5%,
+    transparent
+  );
   --foreground-gray-l0: var(--foreground-l1);
   --foreground-gray-l1: var(--foreground-l2);
 

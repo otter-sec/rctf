@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Check from '@lucide/svelte/icons/check'
+  import Check from '@iconify-svelte/tabler/check'
   import {
     BadAlreadySolvedChallenge,
     GoodFlag,
@@ -121,8 +121,7 @@
                   <Card.Title class="flex items-center gap-2">
                     {#if isSolved}
                       <Check
-                        size={16}
-                        class="text-foreground-success"
+                        class="size-4 text-foreground-success"
                         aria-label="Solved"
                       />
                     {/if}
@@ -205,7 +204,7 @@
                 <p
                   class="flex items-center gap-1 text-sm text-foreground-success"
                 >
-                  <Check size={16} /> Solved
+                  <Check class="size-4" /> Solved
                 </p>
               {/if}
             </Card.Footer>

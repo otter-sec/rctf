@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Trash2 from '@lucide/svelte/icons/trash-2'
-  import UserPlus from '@lucide/svelte/icons/user-plus'
+  import Trash from '@iconify-svelte/tabler/trash-filled'
+  import UserPlus from '@iconify-svelte/tabler/user-plus'
   import {
     CreateMemberRoute,
     DeleteMemberRoute,
@@ -88,7 +88,7 @@
 <Card.Root>
   <Card.Header>
     <Card.Title>
-      Team Members
+      Team members
       <Badge variant="secondary" class="ml-2">{members.length}</Badge>
     </Card.Title>
     <Card.Description>
@@ -147,7 +147,7 @@
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}
-                <Trash2 class="text-foreground-destructive size-4" />
+                <Trash class="text-foreground-destructive size-4" />
               {/if}
             </Button>
           </li>

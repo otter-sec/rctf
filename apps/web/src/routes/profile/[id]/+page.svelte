@@ -9,13 +9,13 @@
   {#if data.user}
     <title>{data.user.name} | {data.clientConfig.ctfName}</title>
   {:else}
-    <title>Profile Not Found | {data.clientConfig.ctfName}</title>
+    <title>Profile not found | {data.clientConfig.ctfName}</title>
   {/if}
 </svelte:head>
 
 {#if data.user}
   {@const user = data.user}
-  <div class="mx-auto flex max-w-2xl flex-col gap-6">
+  <div class="mx-auto flex flex-col gap-6">
     <Card.Root>
       <Card.Header>
         <Card.Title class="wrap-anywhere text-2xl">{user.name}</Card.Title>
@@ -49,14 +49,13 @@
           </div>
           {#if user.globalPlace !== null}
             <div class="flex flex-col gap-1">
-              <span class="text-foreground-l3 text-sm">Global Rank</span>
-              <span class="font-medium tabular-nums">#{user.globalPlace}</span
-              >
+              <span class="text-foreground-l3 text-sm">Global rank</span>
+              <span class="font-medium tabular-nums">#{user.globalPlace}</span>
             </div>
           {/if}
           {#if user.divisionPlace !== null}
             <div class="flex flex-col gap-1">
-              <span class="text-foreground-l3 text-sm">Division Rank</span>
+              <span class="text-foreground-l3 text-sm">Division rank</span>
               <span class="font-medium tabular-nums">
                 #{user.divisionPlace}
               </span>
@@ -105,13 +104,13 @@
 {:else}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Profile Not Found</Card.Title>
+      <Card.Title class="text-2xl">Profile not found</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
         {data.error ?? 'The requested profile could not be found.'}
       </p>
-      <Button href="/scores">View Leaderboard</Button>
+      <Button href="/scores">View leaderboard</Button>
     </Card.Content>
   </Card.Root>
 {/if}

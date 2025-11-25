@@ -1,7 +1,13 @@
 <script lang="ts">
   import { GetChallengeSolvesRoute, GoodChallengeSolves } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
-  import { Button, Dialog, ScrollArea, Spinner } from '$lib/components'
+  import {
+    Button,
+    Dialog,
+    Pagination,
+    ScrollArea,
+    Spinner,
+  } from '$lib/components'
 
   const PAGE_SIZE = 10
 
@@ -39,7 +45,6 @@
 
     if (response.kind === GoodChallengeSolves.kind) {
       solves = response.data.solves
-      page = pageNum
     } else {
       toast.error(response.message)
     }
@@ -75,7 +80,7 @@
       </Dialog.Description>
     </Dialog.Header>
 
-    <ScrollArea class="max-h-[50vh] py-4">
+    <ScrollArea class="max-h-[50vh]">
       {#if loading && solves.length === 0}
         <div class="flex items-center justify-center py-8">
           <Spinner class="size-6" />
@@ -83,7 +88,7 @@
       {:else if solves.length === 0}
         <p class="text-foreground-l3 text-center py-8">No solves yet</p>
       {:else}
-        <ul class="flex flex-col gap-2 pr-4">
+        <ul class="flex flex-col gap-2">
           {#each solves as solve, index (solve.id)}
             <li
               class="flex items-center justify-between gap-4 rounded-md border p-3"
@@ -94,7 +99,7 @@
                 </span>
                 <a
                   href="/profile/{solve.userId}"
-                  class="font-medium hover:underline wrap-anywhere"
+                  class="max-w-48 font-medium hover:underline wrap-anywhere line-clamp-1"
                 >
                   {solve.userName}
                 </a>
@@ -112,28 +117,40 @@
     </ScrollArea>
 
     {#if totalPages > 1}
-      <Dialog.Footer
-        class="flex-row items-center justify-between sm:justify-between"
-      >
-        <Button
-          variant="outline"
-          size="sm"
-          onclick={() => fetchSolves(page - 1)}
-          disabled={page <= 1 || loading}
+      <Dialog.Footer class="justify-center sm:justify-center">
+        <Pagination.Root
+          count={solveCount}
+          perPage={PAGE_SIZE}
+          bind:page
+          onPageChange={p => fetchSolves(p)}
         >
-          Previous
-        </Button>
-        <span class="text-foreground-l3 text-sm">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onclick={() => fetchSolves(page + 1)}
-          disabled={page >= totalPages || loading}
-        >
-          Next
-        </Button>
+          {#snippet children({ pages, currentPage })}
+            <Pagination.Content>
+              <Pagination.Item>
+                <Pagination.PrevButton />
+              </Pagination.Item>
+              {#each pages as p (p.key)}
+                {#if p.type === 'ellipsis'}
+                  <Pagination.Item>
+                    <Pagination.Ellipsis />
+                  </Pagination.Item>
+                {:else}
+                  <Pagination.Item>
+                    <Pagination.Link
+                      page={p}
+                      isActive={currentPage === p.value}
+                    >
+                      {p.value}
+                    </Pagination.Link>
+                  </Pagination.Item>
+                {/if}
+              {/each}
+              <Pagination.Item>
+                <Pagination.NextButton />
+              </Pagination.Item>
+            </Pagination.Content>
+          {/snippet}
+        </Pagination.Root>
       </Dialog.Footer>
     {/if}
   </Dialog.Content>

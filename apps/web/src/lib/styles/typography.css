@@ -60,7 +60,7 @@
     }
 
     :where(a):not(:where(.not-prose, .not-prose *)) {
-      @apply text-foreground-prose-link decoration-foreground-l3 hover:decoration-foreground-l0 font-medium wrap-break-word underline underline-offset-[3px];
+      @apply text-foreground-prose-link hover:decoration-foreground-prose-link font-medium wrap-break-word underline-offset-[3px] hover:underline;
     }
 
     :where(strong):not(:where(.not-prose, .not-prose *)) {

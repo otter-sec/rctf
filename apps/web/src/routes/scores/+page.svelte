@@ -10,7 +10,7 @@
   {#if data.graph && data.graph.length > 0}
     <Card.Root>
       <Card.Header>
-        <Card.Title class="text-2xl">Score Progression</Card.Title>
+        <Card.Title class="text-2xl">Score progression</Card.Title>
         <Card.Description>Top 10 teams over time</Card.Description>
       </Card.Header>
       <Card.Content>

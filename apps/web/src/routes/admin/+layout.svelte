@@ -14,7 +14,7 @@
 {#if !data.user}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Admin Access Required</Card.Title>
+      <Card.Title class="text-2xl">Admin access required</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
@@ -26,13 +26,13 @@
 {:else if !hasReadPerms}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Access Denied</Card.Title>
+      <Card.Title class="text-2xl">Access denied</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
         You don't have permission to access the admin panel.
       </p>
-      <Button href="/">Go Home</Button>
+      <Button href="/">Go home</Button>
     </Card.Content>
   </Card.Root>
 {:else}

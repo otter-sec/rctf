@@ -48,7 +48,7 @@
 {#if verifySent}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Verification Email Sent</Card.Title>
+      <Card.Title class="text-2xl">Verification email sent</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p>
@@ -91,7 +91,7 @@
 
       <form onsubmit={handleSubmit} class="flex flex-col gap-4">
         <Field.Field data-invalid={!!errors.name || undefined}>
-          <Field.Label for="name">Team Name</Field.Label>
+          <Field.Label for="name">Team name</Field.Label>
           <Input
             id="name"
             name="name"

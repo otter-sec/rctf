@@ -13,7 +13,8 @@
     "typecheck": "bun run check"
   },
   "dependencies": {
-    "@lucide/svelte": "^0.544.0",
+    "@iconify-svelte/tabler": "^1.0.0",
+    "@iconify/css-svelte": "^1.0.0",
     "@rctf/types": "workspace:*",
     "@types/d3-array": "^3.2.2",
     "d3-array": "^3.2.4",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@internationalized/date": "^3.8.1",
+    "@lucide/svelte": "^0.544.0",
     "@sveltejs/adapter-auto": "^7.0.0",
     "@sveltejs/kit": "^2.47.1",
     "@sveltejs/vite-plugin-svelte": "^6.2.1",

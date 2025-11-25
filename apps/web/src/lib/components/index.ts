@@ -3,6 +3,7 @@ import * as Chart from './ui/chart'
 import * as Dialog from './ui/dialog'
 import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
+import * as Pagination from './ui/pagination'
 import * as Select from './ui/select'
 import * as Table from './ui/table'
 
@@ -17,6 +18,7 @@ export {
   type ButtonSize,
   type ButtonVariant,
 } from './ui/button'
+export { Checkbox } from './ui/checkbox'
 export { Input } from './ui/input'
 export { Label } from './ui/label'
 export { ScrollArea } from './ui/scroll-area'
@@ -25,6 +27,6 @@ export { Spinner } from './ui/spinner'
 export { Textarea } from './ui/textarea'
 export { Toaster } from './ui/sonner'
 
-export { Card, Chart, Dialog, Field, InputGroup, Select, Table }
+export { Card, Chart, Dialog, Field, InputGroup, Pagination, Select, Table }
 
 export { type ChartConfig } from './ui/chart'

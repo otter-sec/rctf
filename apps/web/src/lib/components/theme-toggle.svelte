@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Moon from '@lucide/svelte/icons/moon'
-  import Sun from '@lucide/svelte/icons/sun'
+  import Moon from '@iconify-svelte/tabler/moon-filled'
+  import Sun from '@iconify-svelte/tabler/sun-high-filled'
   import { Button } from '$lib/components/ui/button'
   import { onMount } from 'svelte'
 

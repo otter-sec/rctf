@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Check from '@lucide/svelte/icons/check'
-  import Copy from '@lucide/svelte/icons/copy'
-  import Eye from '@lucide/svelte/icons/eye'
-  import EyeOff from '@lucide/svelte/icons/eye-off'
+  import Check from '@iconify-svelte/tabler/check'
+  import Copy from '@iconify-svelte/tabler/copy'
+  import EyeClosed from '@iconify-svelte/tabler/eye-closed'
+  import Eye from '@iconify-svelte/tabler/eye-filled'
   import { toast } from '$lib'
   import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
@@ -60,13 +60,13 @@
         </div>
         {#if user.globalPlace !== null}
           <div class="flex flex-col gap-1">
-            <span class="text-foreground-l3 text-sm">Global Rank</span>
+            <span class="text-foreground-l3 text-sm">Global rank</span>
             <span class="font-medium tabular-nums">#{user.globalPlace}</span>
           </div>
         {/if}
         {#if user.divisionPlace !== null}
           <div class="flex flex-col gap-1">
-            <span class="text-foreground-l3 text-sm">Division Rank</span>
+            <span class="text-foreground-l3 text-sm">Division rank</span>
             <span class="font-medium tabular-nums">
               #{user.divisionPlace}
             </span>
@@ -78,7 +78,7 @@
 
   <Card.Root>
     <Card.Header>
-      <Card.Title>Team Token</Card.Title>
+      <Card.Title>Team token</Card.Title>
       <Card.Description>
         Share this token with your teammates so they can login to the same
         account.
@@ -102,7 +102,7 @@
           aria-label={showToken ? 'Hide token' : 'Show token'}
         >
           {#if showToken}
-            <EyeOff class="size-4" />
+            <EyeClosed class="size-4" />
           {:else}
             <Eye class="size-4" />
           {/if}

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Check from '@lucide/svelte/icons/check'
-  import X from '@lucide/svelte/icons/x'
+  import Check from '@iconify-svelte/tabler/check'
+  import X from '@iconify-svelte/tabler/x'
   import {
     GoodEmailSet,
     GoodRegister,
@@ -63,7 +63,7 @@
         class="flex items-center gap-2 text-2xl text-foreground-destructive"
       >
         <X class="size-6" />
-        Verification Failed
+        Verification failed
       </Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
@@ -81,7 +81,7 @@
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
         <Check class="size-6" />
-        Email Verified
+        Email verified
       </Card.Title>
     </Card.Header>
     <Card.Content>
@@ -105,7 +105,7 @@
     </Card.Content>
   {:else}
     <Card.Header>
-      <Card.Title class="text-2xl">Verify Email</Card.Title>
+      <Card.Title class="text-2xl">Verify email</Card.Title>
       <Card.Description>
         Complete your registration by verifying your email address
       </Card.Description>
@@ -118,7 +118,7 @@
         {#if loading}
           <Spinner class="size-4" />
         {/if}
-        Verify Email
+        Verify email
       </Button>
     </Card.Content>
   {/if}

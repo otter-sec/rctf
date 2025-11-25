@@ -29,13 +29,13 @@
 </script>
 
 <svelte:head>
-  <title>Recover Account | {data.clientConfig.ctfName}</title>
+  <title>Recover account | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
 {#if verifySent}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Recovery Email Sent</Card.Title>
+      <Card.Title class="text-2xl">Recovery email sent</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p>
@@ -57,7 +57,7 @@
 {:else}
   <Card.Root class="mx-auto max-w-md">
     <Card.Header>
-      <Card.Title class="text-2xl">Recover Account</Card.Title>
+      <Card.Title class="text-2xl">Recover account</Card.Title>
       <Card.Description>
         Get a new team token sent to your email
       </Card.Description>

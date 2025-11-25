@@ -1,8 +1,8 @@
 <script lang="ts">
-  import ArrowLeft from '@lucide/svelte/icons/arrow-left'
-  import Trash2 from '@lucide/svelte/icons/trash-2'
-  import Upload from '@lucide/svelte/icons/upload'
-  import X from '@lucide/svelte/icons/x'
+  import ArrowLeft from '@iconify-svelte/tabler/arrow-big-left-filled'
+  import Upload from '@iconify-svelte/tabler/file-upload-filled'
+  import Trash from '@iconify-svelte/tabler/trash-filled'
+  import X from '@iconify-svelte/tabler/x'
   import {
     DeleteChallengeRoute,
     GoodChallengeDelete,
@@ -18,8 +18,10 @@
     Badge,
     Button,
     Card,
+    Checkbox,
     Field,
     Input,
+    Label,
     Spinner,
     Textarea,
   } from '$lib/components'
@@ -153,19 +155,19 @@
 
 <svelte:head>
   <title>
-    {data.isNew ? 'New Challenge' : (data.challenge?.name ?? 'Challenge')} | Admin
+    {data.isNew ? 'New challenge' : (data.challenge?.name ?? 'Challenge')} | Admin
     | {data.clientConfig.ctfName}
   </title>
 </svelte:head>
 
-<div class="mx-auto flex max-w-3xl flex-col gap-6">
+<div class="flex flex-col gap-6">
   <div class="flex items-center gap-4">
     <Button variant="ghost" size="icon" href="/admin/challs">
       <ArrowLeft class="size-4" />
     </Button>
     <div>
       <h1 class="text-2xl font-medium">
-        {data.isNew ? 'New Challenge' : 'Edit Challenge'}
+        {data.isNew ? 'New challenge' : 'Edit challenge'}
       </h1>
       {#if !data.isNew && data.challenge}
         <p class="text-foreground-l3 text-sm">{data.challenge.id}</p>
@@ -182,7 +184,7 @@
         >
           {data.error}
         </div>
-        <Button href="/admin/challs" class="mt-4">Back to Challenges</Button>
+        <Button href="/admin/challs" class="mt-4">Back to challenges</Button>
       </Card.Content>
     </Card.Root>
   {:else}
@@ -198,7 +200,7 @@
 
       <Card.Root>
         <Card.Header>
-          <Card.Title>Basic Info</Card.Title>
+          <Card.Title>Basic info</Card.Title>
         </Card.Header>
         <Card.Content class="flex flex-col gap-4">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -258,7 +260,7 @@
 
       <Card.Root>
         <Card.Header>
-          <Card.Title>Flag & Scoring</Card.Title>
+          <Card.Title>Flag and scoring</Card.Title>
         </Card.Header>
         <Card.Content class="flex flex-col gap-4">
           <Field.Field>
@@ -276,7 +278,7 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field.Field>
-              <Field.Label for="pointsMin">Min Points</Field.Label>
+              <Field.Label for="pointsMin">Minimum points</Field.Label>
               <Input
                 id="pointsMin"
                 type="number"
@@ -289,7 +291,7 @@
             </Field.Field>
 
             <Field.Field>
-              <Field.Label for="pointsMax">Max Points</Field.Label>
+              <Field.Label for="pointsMax">Maximum points</Field.Label>
               <Input
                 id="pointsMax"
                 type="number"
@@ -304,30 +306,24 @@
 
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field.Field>
-              <Field.Label for="sortWeight">Sort Weight</Field.Label>
+              <Field.Label for="sortWeight">Sort weight</Field.Label>
               <Input
                 id="sortWeight"
                 type="number"
                 bind:value={sortWeight}
                 disabled={!hasWritePerms}
               />
-              <Field.Description>Higher = appears first</Field.Description>
+              <Field.Description>Higher numbers appear first</Field.Description>
             </Field.Field>
 
-            <Field.Field>
-              <div class="flex items-center gap-2 pt-6">
-                <input
-                  id="tiebreakEligible"
-                  type="checkbox"
-                  bind:checked={tiebreakEligible}
-                  disabled={!hasWritePerms}
-                  class="size-4"
-                />
-                <label for="tiebreakEligible" class="text-sm">
-                  Tiebreak Eligible
-                </label>
-              </div>
-            </Field.Field>
+            <div class="flex items-center gap-2 pt-6">
+              <Checkbox
+                id="tiebreakEligible"
+                bind:checked={tiebreakEligible}
+                disabled={!hasWritePerms}
+              />
+              <Label for="tiebreakEligible">Tiebreak eligible</Label>
+            </div>
           </div>
         </Card.Content>
       </Card.Root>
@@ -395,7 +391,7 @@
                 {:else}
                   <Upload class="size-4" />
                 {/if}
-                Upload Files
+                Upload files
               </Button>
             </div>
           {/if}
@@ -415,9 +411,9 @@
                 {#if deleting}
                   <Spinner class="size-4" />
                 {:else}
-                  <Trash2 class="size-4" />
+                  <Trash class="size-4" />
                 {/if}
-                Delete Challenge
+                Delete challenge
               </Button>
             {/if}
           </div>
@@ -425,7 +421,7 @@
             {#if loading}
               <Spinner class="size-4" />
             {/if}
-            {data.isNew ? 'Create Challenge' : 'Save Changes'}
+            {data.isNew ? 'Create challenge' : 'Save changes'}
           </Button>
         </div>
       {/if}

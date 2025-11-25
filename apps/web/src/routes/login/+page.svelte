@@ -79,7 +79,7 @@
   <Card.Content>
     <form onsubmit={handleSubmit} class="flex flex-col gap-4">
       <Field.Field data-invalid={!!errors.teamToken || undefined}>
-        <Field.Label for="teamToken">Team Token</Field.Label>
+        <Field.Label for="teamToken">Team token</Field.Label>
         <Input
           id="teamToken"
           name="teamToken"

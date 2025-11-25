@@ -113,7 +113,7 @@
 
 <Card.Root>
   <Card.Header>
-    <Card.Title>Update Profile</Card.Title>
+    <Card.Title>Update profile</Card.Title>
     <Card.Description>
       Update your team's name, email, or division. Name changes are limited to
       once every 10 minutes.
@@ -131,7 +131,7 @@
 
     <form onsubmit={handleSubmit} class="flex flex-col gap-4">
       <Field.Field data-invalid={!!errors.name || undefined}>
-        <Field.Label for="name">Team Name</Field.Label>
+        <Field.Label for="name">Team name</Field.Label>
         <Input
           id="name"
           name="name"
@@ -200,7 +200,7 @@
         {#if loading}
           <Spinner class="size-4" />
         {/if}
-        Save Changes
+        Save changes
       </Button>
     </form>
   </Card.Content>
