@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { LeaderboardGraphEntry } from '$lib/api'
-  import * as Chart from '$lib/components/ui/chart'
+  import { Chart, type ChartConfig } from '$lib/components'
   import { flatGroup } from 'd3-array'
   import {
     Axis,
@@ -49,7 +49,7 @@
           color: teamColors[i % teamColors.length],
         },
       ])
-    ) as Chart.ChartConfig
+    ) as ChartConfig
   )
 
   type FlatDataPoint = {

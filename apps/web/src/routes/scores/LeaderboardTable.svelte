@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { LeaderboardEntry } from '$lib/api'
-  import * as Table from '$lib/components/ui/table'
+  import { Table } from '$lib/components'
 
   let { entries, total }: { entries: LeaderboardEntry[]; total: number } =
     $props()

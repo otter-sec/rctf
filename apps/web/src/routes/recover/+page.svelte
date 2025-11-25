@@ -1,11 +1,7 @@
 <script lang="ts">
   import { GoodVerifySent, RecoverRoute } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
-  import { Button } from '$lib/components/ui/button'
-  import * as Card from '$lib/components/ui/card'
-  import * as Field from '$lib/components/ui/field'
-  import { Input } from '$lib/components/ui/input'
-  import { Spinner } from '$lib/components/ui/spinner'
+  import { Button, Card, Field, Input, Spinner } from '$lib/components'
 
   let { data } = $props()
 
