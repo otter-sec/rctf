@@ -7,6 +7,7 @@ import * as Pagination from './ui/pagination'
 import * as Select from './ui/select'
 import * as Table from './ui/table'
 
+export { default as CtftimeButton } from './ctftime-button.svelte'
 export { default as NavLink } from './nav-link.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 

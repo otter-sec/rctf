@@ -1,9 +1,16 @@
 <script lang="ts">
-  import { GoodLogin, LoginRoute } from '@rctf/types'
+  import { BadUnknownUser, GoodLogin, LoginRoute } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
-  import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import {
+    Button,
+    Card,
+    CtftimeButton,
+    Field,
+    Input,
+    Spinner,
+  } from '$lib/components'
   import { onMount } from 'svelte'
 
   let { data } = $props()
@@ -65,6 +72,34 @@
 
     loading = false
   }
+
+  async function handleCtftimeDone(ctftimeData: {
+    ctftimeToken: string
+    ctftimeName: string
+    ctftimeId: string
+  }) {
+    loading = true
+    errors = {}
+
+    const response = await apiRequest(LoginRoute, {
+      ctftimeToken: ctftimeData.ctftimeToken,
+    })
+
+    if (response.kind === GoodLogin.kind) {
+      setToken(response.data.authToken)
+      toast.success('Logged in successfully!')
+      await invalidateAll()
+      goto('/')
+    } else if (response.kind === BadUnknownUser.kind) {
+      sessionStorage.setItem('ctftimeToken', ctftimeData.ctftimeToken)
+      sessionStorage.setItem('ctftimeName', ctftimeData.ctftimeName)
+      goto('/register')
+    } else {
+      toast.error(response.message)
+    }
+
+    loading = false
+  }
 </script>
 
 <svelte:head>
@@ -111,6 +146,22 @@
         Login
       </Button>
     </form>
+
+    {#if data.clientConfig.ctftime}
+      <div class="mt-4 flex items-center gap-4">
+        <div class="h-px flex-1 bg-border"></div>
+        <span class="text-foreground-l3 text-sm">or</span>
+        <div class="h-px flex-1 bg-border"></div>
+      </div>
+
+      <div class="mt-4">
+        <CtftimeButton
+          clientId={data.clientConfig.ctftime.clientId}
+          onCtftimeDone={handleCtftimeDone}
+          disabled={loading}
+        />
+      </div>
+    {/if}
   </Card.Content>
   <Card.Footer>
     <p class="text-foreground-l3 text-sm">

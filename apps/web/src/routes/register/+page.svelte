@@ -1,8 +1,22 @@
 <script lang="ts">
-  import { GoodRegister, GoodVerifySent, RegisterRoute } from '@rctf/types'
+  import {
+    GoodLogin,
+    GoodRegister,
+    GoodVerifySent,
+    LoginRoute,
+    RegisterRoute,
+  } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
   import { apiRequest, setToken, toast } from '$lib'
-  import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import {
+    Button,
+    Card,
+    CtftimeButton,
+    Field,
+    Input,
+    Spinner,
+  } from '$lib/components'
+  import { onMount } from 'svelte'
 
   let { data } = $props()
 
@@ -12,13 +26,52 @@
   let errors = $state<Record<string, string>>({})
   let verifySent = $state(false)
 
+  let ctftimeToken = $state<string | null>(null)
+  let ctftimeName = $state<string | null>(null)
+
+  onMount(() => {
+    const storedToken = sessionStorage.getItem('ctftimeToken')
+    const storedName = sessionStorage.getItem('ctftimeName')
+
+    if (storedToken && storedName) {
+      ctftimeToken = storedToken
+      ctftimeName = storedName
+      name = storedName
+      sessionStorage.removeItem('ctftimeToken')
+      sessionStorage.removeItem('ctftimeName')
+    }
+  })
+
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     loading = true
     errors = {}
 
-    const response = await apiRequest(RegisterRoute, { name, email })
+    if (ctftimeToken) {
+      const response = await apiRequest(RegisterRoute, {
+        name,
+        ctftimeToken,
+      })
 
+      if (response.kind === GoodRegister.kind) {
+        setToken(response.data.authToken)
+        toast.success('Account created successfully!')
+        await invalidateAll()
+        goto('/')
+      } else {
+        const msg = response.message
+        if (msg.toLowerCase().includes('name')) {
+          errors = { name: msg }
+        } else {
+          errors = { form: msg }
+        }
+      }
+
+      loading = false
+      return
+    }
+
+    const response = await apiRequest(RegisterRoute, { name, email })
     if (response.kind === GoodRegister.kind) {
       setToken(response.data.authToken)
       toast.success('Account created successfully!')
@@ -38,6 +91,38 @@
     }
 
     loading = false
+  }
+
+  async function handleCtftimeDone(ctftimeData: {
+    ctftimeToken: string
+    ctftimeName: string
+    ctftimeId: string
+  }) {
+    loading = true
+    errors = {}
+
+    const loginResponse = await apiRequest(LoginRoute, {
+      ctftimeToken: ctftimeData.ctftimeToken,
+    })
+    if (loginResponse.kind === GoodLogin.kind) {
+      setToken(loginResponse.data.authToken)
+      toast.success('Logged in successfully!')
+      await invalidateAll()
+      goto('/')
+      return
+    }
+
+    ctftimeToken = ctftimeData.ctftimeToken
+    ctftimeName = ctftimeData.ctftimeName
+    name = ctftimeData.ctftimeName
+
+    loading = false
+  }
+
+  function cancelCtftime() {
+    ctftimeToken = null
+    ctftimeName = null
+    name = ''
   }
 </script>
 
@@ -66,6 +151,60 @@
         </Button>.
       </p>
     </Card.Content>
+  </Card.Root>
+{:else if ctftimeToken}
+  <Card.Root class="mx-auto max-w-md">
+    <Card.Header>
+      <Card.Title class="text-2xl">Complete Registration</Card.Title>
+      <Card.Description>Registering with CTFtime</Card.Description>
+    </Card.Header>
+    <Card.Content>
+      {#if errors.form}
+        <div
+          class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
+          role="alert"
+        >
+          {errors.form}
+        </div>
+      {/if}
+
+      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
+        <Field.Field data-invalid={!!errors.name || undefined}>
+          <Field.Label for="name">Team name</Field.Label>
+          <Input
+            id="name"
+            name="name"
+            type="text"
+            placeholder="Enter your team name"
+            autocomplete="username"
+            autocorrect="off"
+            minlength={2}
+            maxlength={64}
+            required
+            bind:value={name}
+            aria-invalid={!!errors.name}
+          />
+          <Field.Description>
+            You can use a different name than your CTFtime team name.
+          </Field.Description>
+          {#if errors.name}
+            <Field.Error>{errors.name}</Field.Error>
+          {/if}
+        </Field.Field>
+
+        <Button type="submit" disabled={loading} class="w-full">
+          {#if loading}
+            <Spinner class="size-4" />
+          {/if}
+          Register
+        </Button>
+      </form>
+    </Card.Content>
+    <Card.Footer>
+      <Button variant="ghost" onclick={cancelCtftime} class="text-sm">
+        Cancel and register with email instead
+      </Button>
+    </Card.Footer>
   </Card.Root>
 {:else}
   <Card.Root class="mx-auto max-w-md">
@@ -134,6 +273,22 @@
           Register
         </Button>
       </form>
+
+      {#if data.clientConfig.ctftime}
+        <div class="mt-4 flex items-center gap-4">
+          <div class="h-px flex-1 bg-border"></div>
+          <span class="text-foreground-l3 text-sm">or</span>
+          <div class="h-px flex-1 bg-border"></div>
+        </div>
+
+        <div class="mt-4">
+          <CtftimeButton
+            clientId={data.clientConfig.ctftime.clientId}
+            onCtftimeDone={handleCtftimeDone}
+            disabled={loading}
+          />
+        </div>
+      {/if}
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
