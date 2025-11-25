@@ -4,6 +4,7 @@
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { onMount } from 'svelte'
 
   let { data } = $props()
 
@@ -11,7 +12,7 @@
   let loading = $state(false)
   let errors = $state<Record<string, string>>({})
 
-  $effect(() => {
+  onMount(() => {
     const urlToken = page.url.searchParams.get('token')
     if (urlToken) {
       handleTokenLogin(urlToken)
@@ -48,7 +49,7 @@
         token = urlToken
       }
     } catch {
-      // Not a URL, use as-is
+      // empty
     }
 
     const response = await apiRequest(LoginRoute, { teamToken: token })

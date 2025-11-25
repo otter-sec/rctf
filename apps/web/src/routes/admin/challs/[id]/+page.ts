@@ -28,4 +28,3 @@ export const load: PageLoad = async ({ params }) => {
     error: response.message,
   }
 }
-

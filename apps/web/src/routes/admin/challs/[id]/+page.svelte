@@ -1,6 +1,5 @@
 <script lang="ts">
   import ArrowLeft from '@lucide/svelte/icons/arrow-left'
-  import Plus from '@lucide/svelte/icons/plus'
   import Trash2 from '@lucide/svelte/icons/trash-2'
   import Upload from '@lucide/svelte/icons/upload'
   import X from '@lucide/svelte/icons/x'
@@ -15,7 +14,15 @@
   } from '@rctf/types'
   import { goto } from '$app/navigation'
   import { apiRequest, toast, type AdminChallengeDetail } from '$lib'
-  import { Badge, Button, Card, Field, Input, Spinner, Textarea } from '$lib/components'
+  import {
+    Badge,
+    Button,
+    Card,
+    Field,
+    Input,
+    Spinner,
+    Textarea,
+  } from '$lib/components'
 
   let { data } = $props()
 
@@ -25,7 +32,6 @@
       (data.user.perms & Permissions.challsWrite) !== 0
   )
 
-  // Form state
   let name = $state(data.challenge?.name ?? '')
   let category = $state(data.challenge?.category ?? '')
   let author = $state(data.challenge?.author ?? '')
@@ -73,9 +79,7 @@
     })
 
     if (response.kind === GoodChallengeUpdate.kind) {
-      toast.success(
-        data.isNew ? 'Challenge created!' : 'Challenge updated!'
-      )
+      toast.success(data.isNew ? 'Challenge created!' : 'Challenge updated!')
       if (data.isNew) {
         goto(`/admin/challs/${challengeId}`)
       }
@@ -120,7 +124,7 @@
 
     for (const file of input.files) {
       const reader = new FileReader()
-      const dataUrl = await new Promise<string>((resolve) => {
+      const dataUrl = await new Promise<string>(resolve => {
         reader.onload = () => resolve(reader.result as string)
         reader.readAsDataURL(file)
       })
@@ -149,7 +153,8 @@
 
 <svelte:head>
   <title>
-    {data.isNew ? 'New Challenge' : data.challenge?.name ?? 'Challenge'} | Admin | {data.clientConfig.ctfName}
+    {data.isNew ? 'New Challenge' : (data.challenge?.name ?? 'Challenge')} | Admin
+    | {data.clientConfig.ctfName}
   </title>
 </svelte:head>
 
@@ -244,7 +249,9 @@
               bind:value={description}
               disabled={!hasWritePerms}
             />
-            <Field.Description>Markdown formatting is supported.</Field.Description>
+            <Field.Description
+              >Markdown formatting is supported.</Field.Description
+            >
           </Field.Field>
         </Card.Content>
       </Card.Root>
@@ -259,7 +266,7 @@
             <Input
               id="flag"
               type="text"
-              placeholder={"flag{...}"}
+              placeholder={'flag{...}'}
               class="font-mono"
               required
               bind:value={flag}
@@ -425,4 +432,3 @@
     </form>
   {/if}
 </div>
-

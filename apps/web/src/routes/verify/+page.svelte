@@ -40,7 +40,6 @@
       verified = true
       toast.success('Verified successfully!')
       await invalidateAll()
-      // Short delay
       setTimeout(() => goto('/'), 500)
     } else if (response.kind === GoodEmailSet.kind) {
       emailSet = true

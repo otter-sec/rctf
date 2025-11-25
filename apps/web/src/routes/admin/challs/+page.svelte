@@ -104,7 +104,11 @@
                     {challenge.files.length}
                   </Table.Cell>
                   <Table.Cell class="text-right">
-                    <Button variant="ghost" size="sm" href="/admin/challs/{challenge.id}">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      href="/admin/challs/{challenge.id}"
+                    >
                       Edit
                     </Button>
                   </Table.Cell>
@@ -117,4 +121,3 @@
     {/each}
   {/if}
 </div>
-

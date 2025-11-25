@@ -56,6 +56,17 @@
   --success: oklch(0.546 0.156 148);
   --border: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+
+  --chart-1: oklch(0.65 0.25 30);
+  --chart-2: oklch(0.65 0.22 145);
+  --chart-3: oklch(0.6 0.25 260);
+  --chart-4: oklch(0.7 0.2 50);
+  --chart-5: oklch(0.55 0.25 300);
+  --chart-6: oklch(0.65 0.2 180);
+  --chart-7: oklch(0.75 0.18 90);
+  --chart-8: oklch(0.6 0.22 330);
+  --chart-9: oklch(0.55 0.2 220);
+  --chart-10: oklch(0.7 0.15 60);
 }
 
 [data-theme='dark'] {

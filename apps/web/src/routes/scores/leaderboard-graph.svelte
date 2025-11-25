@@ -28,16 +28,16 @@
   )
 
   const teamColors: string[] = [
-    'oklch(0.65 0.25 30)', // red-orange
-    'oklch(0.65 0.22 145)', // green
-    'oklch(0.60 0.25 260)', // blue
-    'oklch(0.70 0.20 50)', // orange
-    'oklch(0.55 0.25 300)', // purple
-    'oklch(0.65 0.20 180)', // teal
-    'oklch(0.75 0.18 90)', // yellow-green
-    'oklch(0.60 0.22 330)', // magenta
-    'oklch(0.55 0.20 220)', // indigo
-    'oklch(0.70 0.15 60)', // gold
+    'var(--chart-1)',
+    'var(--chart-2)',
+    'var(--chart-3)',
+    'var(--chart-4)',
+    'var(--chart-5)',
+    'var(--chart-6)',
+    'var(--chart-7)',
+    'var(--chart-8)',
+    'var(--chart-9)',
+    'var(--chart-10)',
   ]
 
   const chartConfig = $derived(

@@ -17,4 +17,3 @@ export const load: PageLoad = async () => {
     error: response.message,
   }
 }
-
