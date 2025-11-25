@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { isAuthenticated } from '$lib'
   import { Button, Card } from '$lib/components'
   import ChallengeGrid from './challenge-grid.svelte'
 
@@ -10,20 +11,6 @@
     challenges={data.challenges}
     solves={data.user?.solves ?? []}
   />
-{:else if data.error}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-2xl">Challenges</Card.Title>
-    </Card.Header>
-    <Card.Content>
-      <div
-        class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-        role="alert"
-      >
-        {data.error}
-      </div>
-    </Card.Content>
-  </Card.Root>
 {:else}
   <Card.Root>
     <Card.Header>
@@ -31,9 +18,12 @@
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
-        You need to be logged in to view challenges.
+        {data.error ?? 'Unknown error'}
       </p>
-      <Button href="/login">Login</Button>
+      <!-- TODO(es3n1n): there should be a common component for this -->
+      {#if !isAuthenticated()}
+        <Button href="/login">Login</Button>
+      {/if}
     </Card.Content>
   </Card.Root>
 {/if}

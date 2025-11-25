@@ -31,6 +31,26 @@ type ApiResponseShape = {
   data: unknown
 }
 
+function getToken(): string | null {
+  return browser ? localStorage.getItem('token') : null
+}
+
+export function setToken(token: string): void {
+  if (browser) {
+    localStorage.setItem('token', token)
+  }
+}
+
+export function clearToken(): void {
+  if (browser) {
+    localStorage.removeItem('token')
+  }
+}
+
+export function isAuthenticated(): boolean {
+  return getToken() !== null
+}
+
 const applyPath = (
   path: string,
   params: Record<string, unknown> | undefined
@@ -61,17 +81,7 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
   const envelope = payload as ApiResponseShape
 
   if (envelope.kind === BadToken.kind) {
-    if (browser) {
-      localStorage.removeItem('token')
-    }
-    const parsed = BadToken.schema.safeParse({
-      ...envelope,
-      data: envelope.data === undefined ? null : envelope.data,
-    })
-    if (!parsed.success) {
-      throw new Error(`Failed to parse BadToken response: ${parsed.error}`)
-    }
-    return parsed.data as RouteResponse<TRoute>
+    clearToken()
   }
 
   const definition = route.responses.find(
@@ -107,27 +117,6 @@ const pickArgs = <TRoute extends AnyRouteDefinition>(
     query: route.query ? route.query.parse(inlineSource) : undefined,
     body: route.body ? route.body.parse(inlineSource) : undefined,
   }
-}
-
-function getToken(): string | null {
-  if (!browser) return null
-  return localStorage.getItem('token')
-}
-
-export function setToken(token: string): void {
-  if (browser) {
-    localStorage.setItem('token', token)
-  }
-}
-
-export function clearToken(): void {
-  if (browser) {
-    localStorage.removeItem('token')
-  }
-}
-
-export function isAuthenticated(): boolean {
-  return getToken() !== null
 }
 
 export async function apiRequest<TRoute extends AnyRouteDefinition>(

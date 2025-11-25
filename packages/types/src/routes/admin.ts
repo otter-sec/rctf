@@ -5,6 +5,7 @@ import {
   BadChallenge,
   BadDataUri,
   BadPerms,
+  BadToken,
   GoodAdminChallenge,
   GoodAdminChallenges,
   GoodChallengeDelete,
@@ -20,7 +21,7 @@ const AdminChallengeParams = z.object({
 export const GetAdminChallengesRoute = defineRoute({
   path: '/v1/admin/challs',
   method: 'GET',
-  responses: [GoodAdminChallenges, BadPerms],
+  responses: [GoodAdminChallenges, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })
@@ -28,7 +29,7 @@ export const GetAdminChallengesRoute = defineRoute({
 export const GetAdminChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'GET',
-  responses: [GoodAdminChallenge, BadChallenge, BadPerms],
+  responses: [GoodAdminChallenge, BadChallenge, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsRead,
@@ -62,7 +63,7 @@ export const UpdateChallengeRoute = defineRoute({
       sortWeight: z.number().optional(),
     }),
   }),
-  responses: [GoodChallengeUpdate, BadPerms],
+  responses: [GoodChallengeUpdate, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
@@ -71,7 +72,7 @@ export const UpdateChallengeRoute = defineRoute({
 export const DeleteChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'DELETE',
-  responses: [GoodChallengeDelete, BadPerms],
+  responses: [GoodChallengeDelete, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
@@ -88,7 +89,7 @@ export const UploadFilesRoute = defineRoute({
       })
     ),
   }),
-  responses: [GoodFilesUpload, BadDataUri, BadPerms],
+  responses: [GoodFilesUpload, BadDataUri, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsWrite,
 })
@@ -104,7 +105,7 @@ export const QueryUploadsRoute = defineRoute({
       })
     ),
   }),
-  responses: [GoodUploadsQuery, BadPerms],
+  responses: [GoodUploadsQuery, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })

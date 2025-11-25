@@ -11,6 +11,7 @@ import {
   BadKnownName,
   BadName,
   BadRegistrationsDisabled,
+  BadToken,
   BadTokenVerification,
   BadUnknownEmail,
   BadUnknownUser,
@@ -110,6 +111,6 @@ export const VerifyRoute = defineRoute({
 export const TestAuthRoute = defineRoute({
   path: '/v1/auth/test',
   method: 'GET',
-  responses: [GoodToken],
+  responses: [GoodToken, BadToken],
   authRequired: true,
 })

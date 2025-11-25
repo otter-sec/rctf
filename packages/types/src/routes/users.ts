@@ -14,6 +14,7 @@ import {
   BadKnownName,
   BadName,
   BadRateLimit,
+  BadToken,
   BadUnknownUser,
   BadZeroAuth,
   GoodCtftimeAuthSet,
@@ -43,7 +44,7 @@ export const GetUserRoute = defineRoute({
 export const GetUserSelfRoute = defineRoute({
   path: '/v1/users/me',
   method: 'GET',
-  responses: [GoodUserSelfData],
+  responses: [GoodUserSelfData, BadToken],
   authRequired: true,
 })
 
@@ -61,6 +62,7 @@ export const UpdateUserRoute = defineRoute({
     BadRateLimit,
     BadDivisionNotAllowed,
     BadKnownName,
+    BadToken,
   ],
   authRequired: true,
 })
@@ -68,7 +70,7 @@ export const UpdateUserRoute = defineRoute({
 export const GetMembersRoute = defineRoute({
   path: '/v1/users/me/members',
   method: 'GET',
-  responses: [GoodMemberData, BadEndpoint],
+  responses: [GoodMemberData, BadEndpoint, BadToken],
   authRequired: true,
 })
 
@@ -78,14 +80,21 @@ export const CreateMemberRoute = defineRoute({
   body: z.object({
     email: UserEmail,
   }),
-  responses: [GoodMemberCreate, BadEndpoint, BadEnded, BadEmail, BadKnownEmail],
+  responses: [
+    GoodMemberCreate,
+    BadEndpoint,
+    BadEnded,
+    BadEmail,
+    BadKnownEmail,
+    BadToken,
+  ],
   authRequired: true,
 })
 
 export const DeleteMemberRoute = defineRoute({
   path: '/v1/users/me/members/:id',
   method: 'DELETE',
-  responses: [GoodMemberDelete, BadEnded, BadEndpoint],
+  responses: [GoodMemberDelete, BadEnded, BadEndpoint, BadToken],
   authRequired: true,
   params: z.object({
     id: z.string(),
@@ -105,6 +114,7 @@ export const SetEmailRoute = defineRoute({
     BadKnownEmail,
     BadEmailChangeDivision,
     BadUnknownUser,
+    BadToken,
   ],
   authRequired: true,
 })
@@ -118,6 +128,7 @@ export const DeleteEmailRoute = defineRoute({
     BadZeroAuth,
     BadEmailNoExists,
     BadUnknownUser,
+    BadToken,
   ],
   authRequired: true,
 })
@@ -134,6 +145,7 @@ export const SetCtftimeRoute = defineRoute({
     BadCtftimeToken,
     BadKnownCtftimeId,
     BadUnknownUser,
+    BadToken,
   ],
   authRequired: true,
 })
@@ -147,6 +159,7 @@ export const DeleteCtftimeRoute = defineRoute({
     BadZeroAuth,
     BadCtftimeNoExists,
     BadUnknownUser,
+    BadToken,
   ],
   authRequired: true,
 })

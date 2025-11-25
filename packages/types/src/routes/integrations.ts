@@ -5,6 +5,7 @@ import {
   BadCtftimeCode,
   BadEndpoint,
   BadPerms,
+  BadToken,
   GoodClientConfig,
   GoodCtftimeLeaderboard,
   GoodCtftimeToken,
@@ -20,7 +21,7 @@ export const GetClientConfigRoute = defineRoute({
 export const GetCtftimeLeaderboardRoute = defineRoute({
   path: '/v1/integrations/ctftime/leaderboard',
   method: 'GET',
-  responses: [GoodCtftimeLeaderboard, BadPerms],
+  responses: [GoodCtftimeLeaderboard, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.leaderboardRead,
 })

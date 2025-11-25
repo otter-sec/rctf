@@ -8,6 +8,7 @@ import {
   BadFlag,
   BadNotStarted,
   BadRateLimit,
+  BadToken,
   BadUnknownUser,
   GoodChallenges,
   GoodChallengeSolves,
@@ -18,7 +19,7 @@ import {
 export const GetChallengesRoute = defineRoute({
   path: '/v1/challs',
   method: 'GET',
-  responses: [GoodChallenges, BadNotStarted],
+  responses: [GoodChallenges, BadNotStarted, BadToken],
   authRequired: true,
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -39,6 +40,7 @@ export const SubmitFlagRoute = defineRoute({
     BadRateLimit,
     BadAlreadySolvedChallenge,
     BadUnknownUser,
+    BadToken,
   ],
   authRequired: true,
   params: z.object({
@@ -51,7 +53,7 @@ export const SubmitFlagRoute = defineRoute({
 export const GetChallengeSolvesRoute = defineRoute({
   path: '/v1/challs/:id/solves',
   method: 'GET',
-  responses: [GoodChallengeSolves, BadNotStarted, BadChallenge],
+  responses: [GoodChallengeSolves, BadNotStarted, BadChallenge, BadToken],
   authRequired: true,
   params: z.object({
     id: z.string(),
