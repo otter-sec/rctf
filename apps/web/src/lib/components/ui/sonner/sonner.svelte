@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { browser } from '$app/environment'
   import Icon from '@iconify/svelte'
+  import { browser } from '$app/environment'
   import {
     Toaster as Sonner,
     type ToasterProps as SonnerProps,

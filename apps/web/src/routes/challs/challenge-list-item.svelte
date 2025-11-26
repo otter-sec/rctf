@@ -50,11 +50,12 @@
         </div>
       {/if}
       {#if challenge.solves !== null}
-        <span class="text-base tabular-nums text-category-foreground-l1 opacity-75">
+        <span
+          class="text-base tabular-nums text-category-foreground-l1 opacity-75"
+        >
           {challenge.solves} solves
         </span>
       {/if}
     </div>
   </button>
 </li>
-

@@ -1,11 +1,11 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import { Permissions } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
   import { toast } from '$lib'
   import { clearToken, type UserProfile } from '$lib/api'
   import wordmark from '$lib/assets/wordmark.svg'
   import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
-  import Icon from '@iconify/svelte'
 
   type Props = {
     user: UserProfile | null

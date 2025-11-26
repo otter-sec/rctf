@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { Button } from '$lib/components'
   import Icon from '@iconify/svelte'
+  import { Button } from '$lib/components'
   import { onMount } from 'svelte'
 
   let theme = $state<'light' | 'dark'>('light')

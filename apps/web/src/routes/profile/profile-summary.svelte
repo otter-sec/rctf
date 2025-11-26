@@ -1,8 +1,8 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import { toast } from '$lib'
   import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
-  import Icon from '@iconify/svelte'
 
   let {
     user,
@@ -111,7 +111,10 @@
           aria-label="Copy token"
         >
           {#if copied}
-            <Icon icon="tabler:circle-check-filled" class="size-4 text-foreground-success" />
+            <Icon
+              icon="tabler:circle-check-filled"
+              class="size-4 text-foreground-success"
+            />
           {:else}
             <Icon icon="tabler:copy-plus-filled" class="size-4" />
           {/if}

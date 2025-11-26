@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import {
     GoodEmailSet,
     GoodRegister,
@@ -9,7 +10,6 @@
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
-  import Icon from '@iconify/svelte'
 
   let { data } = $props()
 

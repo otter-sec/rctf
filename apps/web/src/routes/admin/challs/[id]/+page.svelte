@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import {
     DeleteChallengeRoute,
     GoodChallengeDelete,
@@ -21,7 +22,6 @@
     Spinner,
     Textarea,
   } from '$lib/components'
-  import Icon from '@iconify/svelte'
 
   let { data } = $props()
 

@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "name": "rctf-new",
@@ -49,8 +50,7 @@
       "name": "@rctf/web",
       "version": "0.0.1",
       "dependencies": {
-        "@iconify-svelte/tabler": "^1.0.0",
-        "@iconify/css-svelte": "^1.0.0",
+        "@iconify/svelte": "^5.1.0",
         "@rctf/types": "workspace:*",
         "@types/d3-array": "^3.2.2",
         "d3-array": "^3.2.4",
@@ -305,9 +305,7 @@
 
     "@ianvs/prettier-plugin-sort-imports": ["@ianvs/prettier-plugin-sort-imports@4.7.0", "", { "dependencies": { "@babel/generator": "^7.26.2", "@babel/parser": "^7.26.2", "@babel/traverse": "^7.25.9", "@babel/types": "^7.26.0", "semver": "^7.5.2" }, "peerDependencies": { "@prettier/plugin-oxc": "^0.0.4", "@vue/compiler-sfc": "2.7.x || 3.x", "content-tag": "^4.0.0", "prettier": "2 || 3 || ^4.0.0-0", "prettier-plugin-ember-template-tag": "^2.1.0" }, "optionalPeers": ["@prettier/plugin-oxc", "@vue/compiler-sfc", "content-tag", "prettier-plugin-ember-template-tag"] }, "sha512-soa2bPUJAFruLL4z/CnMfSEKGznm5ebz29fIa9PxYtu8HHyLKNE1NXAs6dylfw1jn/ilEIfO2oLLN6uAafb7DA=="],
 
-    "@iconify-svelte/tabler": ["@iconify-svelte/tabler@1.0.0", "", { "dependencies": { "@iconify/css-svelte": "^1.0.0" } }, "sha512-nMMuyLjr2gI/qH24MQUYnearE/kiWPPhtcQ3ZAngxsUqc3j82l0m4NAMAJ9uYgV1V8veLj7NtR2RJ3xizwMdaQ=="],
-
-    "@iconify/css-svelte": ["@iconify/css-svelte@1.0.0", "", { "dependencies": { "@iconify/types": "^2.0.0" }, "peerDependencies": { "svelte": ">4.0.0" } }, "sha512-S9kZ+U/hQ+QVHZVLKu06xiVi0rII4DJCh2Z6M1m7IOyECBD7A1emk5pRx4fWG9Zp7ZOHL8dWO90sxtsaOPZBJw=="],
+    "@iconify/svelte": ["@iconify/svelte@5.1.0", "", { "dependencies": { "@iconify/types": "^2.0.0" }, "peerDependencies": { "svelte": ">4.0.0" } }, "sha512-I14nSqo0pNXO5OKsT61ZO3XIPF4yRHA2ErgPsaZ1sPJdKXn80o7o8jOe1xpWphbb9FihdX6by9zlKKBss61mFw=="],
 
     "@iconify/types": ["@iconify/types@2.0.0", "", {}, "sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg=="],
 

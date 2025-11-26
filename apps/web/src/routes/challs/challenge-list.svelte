@@ -7,8 +7,8 @@
     getCategoryStyle,
   } from '$lib/categories'
   import { Accordion, ScrollArea } from '$lib/components'
-  import ChallengeItem from './challenge-item.svelte'
   import ChallengeListHeader from './challenge-list-header.svelte'
+  import ChallengeListItem from './challenge-list-item.svelte'
 
   type Props = {
     challenges: Challenge[]
@@ -136,7 +136,7 @@
           <Accordion.Content class="pb-0 bg-category-background-l1">
             <ul class="flex flex-col">
               {#each entries as challenge (challenge.id)}
-                <ChallengeItem
+                <ChallengeListItem
                   {challenge}
                   {category}
                   isSolved={solvedIds.has(challenge.id)}

@@ -1,7 +1,7 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import { Permissions } from '@rctf/types'
   import { Badge, Button, Card, Table } from '$lib/components'
-  import Icon from '@iconify/svelte'
 
   let { data } = $props()
 
