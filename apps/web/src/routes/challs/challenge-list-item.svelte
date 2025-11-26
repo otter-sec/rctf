@@ -19,17 +19,16 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'relative flex w-full items-center justify-between px-9 py-3 text-left',
-      isSelected
-        ? 'bg-category-background-l1-select hover:bg-category-background-l1-select-hover'
-        : 'hover:bg-category-background-l1-hover',
+      'relative flex w-full items-center justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover',
       isSolved &&
-        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-success/20 before:to-transparent'
+        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-success/20 before:to-transparent',
+      isSelected &&
+        'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
     )}
   >
     {#if isSolved}
       <Icon
-        icon="tabler:circle-check-filled"
+        icon="tabler:check"
         class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
       />
     {/if}

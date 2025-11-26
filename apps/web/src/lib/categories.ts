@@ -78,7 +78,7 @@ export function getCategoryConfig(category: string): CategoryConfig {
 }
 
 export function getCategoryStyle(color: string): string {
-  return `--category-foreground-l0: var(--foreground-${color}-l0); --category-foreground-l1: var(--foreground-${color}-l1); --category-background-l0: var(--background-${color}-l0); --category-background-l1: var(--background-${color}-l1); --category-background-l1-hover: var(--background-${color}-l1-hover); --category-background-l1-select: var(--background-${color}-l1-select); --category-background-l1-select-hover: var(--background-${color}-l1-select-hover);`
+  return `--category-foreground-l0: var(--foreground-${color}-l0); --category-foreground-l1: var(--foreground-${color}-l1); --category-background-l0: var(--background-${color}-l0); --category-background-l1: var(--background-${color}-l1); --category-background-l1-hover: var(--background-${color}-l1-hover);`
 }
 
 export function getCategoryOrder(category: string): number {
