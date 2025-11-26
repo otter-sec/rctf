@@ -5,16 +5,7 @@
   import { clearToken, type UserProfile } from '$lib/api'
   import wordmark from '$lib/assets/wordmark.svg'
   import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
-  import {
-    IconBell,
-    IconChartBar,
-    IconCopy,
-    IconHammer,
-    IconLogout,
-    IconSettings,
-    IconSwords,
-    IconUserCog,
-  } from '$lib/icons'
+  import Icon from '@iconify/svelte'
 
   type Props = {
     user: UserProfile | null
@@ -66,7 +57,7 @@
         <Tooltip.Trigger>
           <NavButton href="/challs" activePath="/challs">
             {#snippet icon({ class: className })}
-              <IconSwords class={className} />
+              <Icon icon="tabler:swords" class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>
@@ -76,7 +67,7 @@
         <Tooltip.Trigger>
           <NavButton href="/scores" activePath="/scores">
             {#snippet icon({ class: className })}
-              <IconChartBar class={className} />
+              <Icon icon="tabler:chart-bar" class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>
@@ -87,7 +78,7 @@
           <Tooltip.Trigger>
             <NavButton href="/admin/challs" activePath="/admin">
               {#snippet icon({ class: className })}
-                <IconHammer class={className} />
+                <Icon icon="tabler:hammer" class={className} />
               {/snippet}
             </NavButton>
           </Tooltip.Trigger>
@@ -122,21 +113,21 @@
         <DropdownMenu.Content align="end" class="w-56">
           <DropdownMenu.Item onclick={copyTeamToken}>
             Copy team token
-            <IconCopy class="ml-auto size-5" />
+            <Icon icon="tabler:copy" class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={() => goto('/team')}>
             Manage team
-            <IconUserCog class="ml-auto size-5" />
+            <Icon icon="tabler:user-cog" class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Item onclick={() => goto('/preferences')}>
             Preferences
-            <IconSettings class="ml-auto size-5" />
+            <Icon icon="tabler:settings" class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={handleLogout}>
             Log out
-            <IconLogout class="ml-auto size-5" />
+            <Icon icon="tabler:logout" class="ml-auto size-5" />
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>
@@ -145,7 +136,7 @@
         <Tooltip.Trigger>
           <NavButton href="#">
             {#snippet icon({ class: className })}
-              <IconBell class={className} />
+              <Icon icon="tabler:bell" class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>

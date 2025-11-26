@@ -9,7 +9,7 @@
   } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
-  import { IconTrash, IconUsersPlus } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { onMount } from 'svelte'
 
   type Member = {
@@ -115,7 +115,7 @@
             {#if loading}
               <Spinner class="size-4" />
             {:else}
-              <IconUsersPlus class="size-4" />
+              <Icon icon="tabler:users-plus" class="size-4" />
             {/if}
           </Button>
         </div>
@@ -146,7 +146,7 @@
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}
-                <IconTrash class="text-foreground-destructive size-4" />
+                <Icon icon="tabler:trash-filled" class="text-foreground-destructive size-4" />
               {/if}
             </Button>
           </li>

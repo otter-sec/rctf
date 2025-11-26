@@ -1,6 +1,6 @@
 <script lang="ts">
   import { buttonVariants } from '$lib/components/ui/button/index.js'
-  import { IconArrowRight } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { cn } from '$lib/utils.js'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
 
@@ -14,7 +14,7 @@
 
 {#snippet Fallback()}
   <span>Next</span>
-  <IconArrowRight class="size-4" />
+  <Icon icon="tabler:arrow-big-right-filled" class="size-4" />
 {/snippet}
 
 <PaginationPrimitive.NextButton

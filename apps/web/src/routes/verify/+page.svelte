@@ -9,7 +9,7 @@
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
-  import { IconCheckFilled, IconX } from '$lib/icons'
+  import Icon from '@iconify/svelte'
 
   let { data } = $props()
 
@@ -61,7 +61,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-destructive"
       >
-        <IconX class="size-6" />
+        <Icon icon="tabler:x" class="size-6" />
         Verification failed
       </Card.Title>
     </Card.Header>
@@ -79,7 +79,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <IconCheckFilled class="size-6" />
+        <Icon icon="tabler:circle-check-filled" class="size-6" />
         Email verified
       </Card.Title>
     </Card.Header>
@@ -93,7 +93,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <IconCheckFilled class="size-6" />
+        <Icon icon="tabler:circle-check-filled" class="size-6" />
         Verified!
       </Card.Title>
     </Card.Header>

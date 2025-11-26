@@ -1,12 +1,6 @@
 <script lang="ts">
   import { browser } from '$app/environment'
-  import {
-    IconAlertCircle,
-    IconAlertTriangle,
-    IconCheckFilled,
-    IconInfoCircle,
-    IconLoader,
-  } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import {
     Toaster as Sonner,
     type ToasterProps as SonnerProps,
@@ -64,18 +58,18 @@
   {...restProps}
 >
   {#snippet loadingIcon()}
-    <IconLoader class="size-5 animate-spin" />
+    <Icon icon="tabler:loader" class="size-5 animate-spin" />
   {/snippet}
   {#snippet successIcon()}
-    <IconCheckFilled class="size-5" />
+    <Icon icon="tabler:circle-check-filled" class="size-5" />
   {/snippet}
   {#snippet errorIcon()}
-    <IconAlertCircle class="size-5" />
+    <Icon icon="tabler:alert-circle-filled" class="size-5" />
   {/snippet}
   {#snippet warningIcon()}
-    <IconAlertTriangle class="size-5" />
+    <Icon icon="tabler:alert-triangle-filled" class="size-5" />
   {/snippet}
   {#snippet infoIcon()}
-    <IconInfoCircle class="size-5" />
+    <Icon icon="tabler:info-circle-filled" class="size-5" />
   {/snippet}
 </Sonner>

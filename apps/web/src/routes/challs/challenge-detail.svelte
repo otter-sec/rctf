@@ -15,7 +15,7 @@
     Separator,
     Spinner,
   } from '$lib/components'
-  import { IconCheckFilled } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { marked } from 'marked'
   import SolvesDialog from './solves-dialog.svelte'
 
@@ -79,7 +79,7 @@
       <div class="flex flex-col gap-1">
         <div class="flex items-center gap-2">
           {#if isSolved}
-            <IconCheckFilled class="size-5 text-foreground-success" />
+            <Icon icon="tabler:circle-check-filled" class="size-5 text-foreground-success" />
           {/if}
           <h2 class="text-xl font-semibold">{challenge.name}</h2>
         </div>
@@ -135,7 +135,7 @@
     <div class="px-6 py-4">
       {#if isSolved}
         <div class="flex items-center gap-2 text-foreground-success">
-          <IconCheckFilled class="size-5" />
+          <Icon icon="tabler:circle-check-filled" class="size-5" />
           <span class="font-medium">Challenge solved!</span>
         </div>
       {:else}

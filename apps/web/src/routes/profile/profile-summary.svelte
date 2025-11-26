@@ -2,12 +2,7 @@
   import { toast } from '$lib'
   import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
-  import {
-    IconCheckFilled,
-    IconCopyPlus,
-    IconEye,
-    IconEyeClosed,
-  } from '$lib/icons'
+  import Icon from '@iconify/svelte'
 
   let {
     user,
@@ -104,9 +99,9 @@
           aria-label={showToken ? 'Hide token' : 'Show token'}
         >
           {#if showToken}
-            <IconEyeClosed class="size-4" />
+            <Icon icon="tabler:eye-closed" class="size-4" />
           {:else}
-            <IconEye class="size-4" />
+            <Icon icon="tabler:eye-filled" class="size-4" />
           {/if}
         </Button>
         <Button
@@ -116,9 +111,9 @@
           aria-label="Copy token"
         >
           {#if copied}
-            <IconCheckFilled class="size-4 text-foreground-success" />
+            <Icon icon="tabler:circle-check-filled" class="size-4 text-foreground-success" />
           {:else}
-            <IconCopyPlus class="size-4" />
+            <Icon icon="tabler:copy-plus-filled" class="size-4" />
           {/if}
         </Button>
       </div>

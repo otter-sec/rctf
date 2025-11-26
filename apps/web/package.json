@@ -13,8 +13,7 @@
     "typecheck": "bun run check"
   },
   "dependencies": {
-    "@iconify-svelte/tabler": "^1.0.0",
-    "@iconify/css-svelte": "^1.0.0",
+    "@iconify/svelte": "^5.1.0",
     "@rctf/types": "workspace:*",
     "@types/d3-array": "^3.2.2",
     "d3-array": "^3.2.4",

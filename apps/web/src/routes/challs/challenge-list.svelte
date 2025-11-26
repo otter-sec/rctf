@@ -1,142 +1,14 @@
 <script lang="ts">
+  import Icon from '@iconify/svelte'
   import type { Challenge } from '$lib/api'
-  import { Accordion, ScrollArea, Tooltip } from '$lib/components'
   import {
-    IconCheckFilled,
-    IconCode,
-    IconCoins,
-    IconDice,
-    IconEye,
-    IconEyeClosed,
-    IconEyeglass,
-    IconFingerprint,
-    IconFlag,
-    IconFold,
-    IconBomb,
-    IconKey,
-    IconNetwork,
-    IconPuzzle,
-    IconSearch,
-  } from '$lib/icons'
-  import { cn } from '$lib/utils'
-
-  type CategoryConfig = {
-    name: string
-    icon: typeof IconFlag
-    fgL0: string
-    fgL1: string
-    bgL0: string
-    bgL1: string
-  }
-
-  const categoryOrder = [
-    'pwn',
-    'reverse',
-    'crypto',
-    'forensics',
-    'blockchain',
-    'web',
-    'misc',
-    'ppc',
-    'osint',
-  ]
-
-  const categoryConfigs: Record<string, CategoryConfig> = {
-    pwn: {
-      name: 'Binary Exploitation',
-      icon: IconBomb,
-      fgL0: 'text-foreground-red-l0',
-      fgL1: 'text-foreground-red-l1',
-      bgL0: 'bg-background-red-l0',
-      bgL1: 'bg-background-red-l1',
-    },
-    reverse: {
-      name: 'Reverse Engineering',
-      icon: IconPuzzle,
-      fgL0: 'text-foreground-orange-l0',
-      fgL1: 'text-foreground-orange-l1',
-      bgL0: 'bg-background-orange-l0',
-      bgL1: 'bg-background-orange-l1',
-    },
-    crypto: {
-      name: 'Cryptography',
-      icon: IconKey,
-      fgL0: 'text-foreground-yellow-l0',
-      fgL1: 'text-foreground-yellow-l1',
-      bgL0: 'bg-background-yellow-l0',
-      bgL1: 'bg-background-yellow-l1',
-    },
-    forensics: {
-      name: 'Forensics',
-      icon: IconFingerprint,
-      fgL0: 'text-foreground-green-l0',
-      fgL1: 'text-foreground-green-l1',
-      bgL0: 'bg-background-green-l0',
-      bgL1: 'bg-background-green-l1',
-    },
-    blockchain: {
-      name: 'Blockchain',
-      icon: IconCoins,
-      fgL0: 'text-foreground-teal-l0',
-      fgL1: 'text-foreground-teal-l1',
-      bgL0: 'bg-background-teal-l0',
-      bgL1: 'bg-background-teal-l1',
-    },
-    web: {
-      name: 'Web',
-      icon: IconNetwork,
-      fgL0: 'text-foreground-blue-l0',
-      fgL1: 'text-foreground-blue-l1',
-      bgL0: 'bg-background-blue-l0',
-      bgL1: 'bg-background-blue-l1',
-    },
-    misc: {
-      name: 'Miscellaneous',
-      icon: IconDice,
-      fgL0: 'text-foreground-purple-l0',
-      fgL1: 'text-foreground-purple-l1',
-      bgL0: 'bg-background-purple-l0',
-      bgL1: 'bg-background-purple-l1',
-    },
-    ppc: {
-      name: 'Professional Programming and Coding',
-      icon: IconCode,
-      fgL0: 'text-foreground-pink-l0',
-      fgL1: 'text-foreground-pink-l1',
-      bgL0: 'bg-background-pink-l0',
-      bgL1: 'bg-background-pink-l1',
-    },
-    osint: {
-      name: 'OSINT',
-      icon: IconEyeglass,
-      fgL0: 'text-foreground-gray-l0',
-      fgL1: 'text-foreground-gray-l1',
-      bgL0: 'bg-background-gray-l0',
-      bgL1: 'bg-background-gray-l1',
-    },
-  }
-
-  const defaultConfig: CategoryConfig = {
-    name: '',
-    icon: IconFlag,
-    fgL0: 'text-foreground-gray-l0',
-    fgL1: 'text-foreground-gray-l1',
-    bgL0: 'bg-background-gray-l0',
-    bgL1: 'bg-background-gray-l1',
-  }
-
-  function getCategoryConfig(category: string): CategoryConfig {
-    const key = category.toLowerCase()
-    const config = categoryConfigs[key]
-    if (config) return config
-    return { ...defaultConfig, name: category }
-  }
-
-  function getCategoryOrder(category: string): number {
-    const key = category.toLowerCase()
-    const idx = categoryOrder.indexOf(key)
-    return idx === -1 ? -1 : idx
-  }
+    getCategoryConfig,
+    getCategoryOrder,
+    getCategoryStyle,
+  } from '$lib/categories'
+  import { Accordion, ScrollArea } from '$lib/components'
+  import ChallengeItem from './challenge-item.svelte'
+  import ChallengeListHeader from './challenge-list-header.svelte'
 
   type Props = {
     challenges: Challenge[]
@@ -149,6 +21,8 @@
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
+  let openCategories = $state<string[]>([])
+  let hasInitialized = $state(false)
 
   const filteredChallenges = $derived.by(() => {
     let filtered = challenges
@@ -202,150 +76,73 @@
     total: challenges.length,
   })
 
-  let openCategories = $state<string[]>([])
-  let hasInitialized = $state(false)
-
   $effect(() => {
     if (!hasInitialized && groups.length > 0) {
       openCategories = groups.map(([cat]) => cat)
       hasInitialized = true
     }
   })
-
-  function collapseAll() {
-    openCategories = []
-  }
 </script>
 
 <div class="flex h-full flex-col overflow-hidden">
-  <div class="flex shrink-0 flex-col gap-2 py-2">
-    <div class="flex items-baseline justify-between px-9">
-      <div class="flex items-baseline gap-1">
-        <span class="text-foreground-l3 text-base tabular-nums">
-          {stats.pointsEarned.toLocaleString()}
-        </span>
-        <span class="text-foreground-l5 text-base">
-          / {stats.pointsTotal.toLocaleString()} pts
-        </span>
-      </div>
-      <div class="flex items-baseline gap-1">
-        <span class="text-foreground-l3 text-base tabular-nums">
-          {stats.solved}
-        </span>
-        <span class="text-foreground-l5 text-base">
-          / {stats.total}
-        </span>
-      </div>
-    </div>
-
-    <div class="px-5">
-      <div class="flex gap-1 overflow-hidden rounded-full">
-        <div
-          class="rounded-r-sm flex flex-1 items-center justify-between bg-background-l3 px-4 py-2"
-        >
-          <input
-            type="text"
-            placeholder="Search..."
-            class="w-full bg-transparent text-base outline-none placeholder:text-foreground-l4"
-            bind:value={searchQuery}
-          />
-          <IconSearch class="size-5 shrink-0 text-foreground-l3" />
-        </div>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            onclick={() => (hideSolved = !hideSolved)}
-            aria-label={hideSolved
-              ? 'Show solved challenges'
-              : 'Hide solved challenges'}
-            class={cn(
-              'rounded-sm px-4 py-2',
-              hideSolved
-                ? 'bg-background-accent text-foreground-accent hover:opacity-80'
-                : 'bg-background-l3 text-foreground-l3 hover:bg-background-l4 hover:text-foreground-l1'
-            )}
-          >
-            {#if hideSolved}
-              <IconEyeClosed class="size-5" />
-            {:else}
-              <IconEye class="size-5" />
-            {/if}
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>
-            {hideSolved ? 'Show solved' : 'Hide solved'}
-          </Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            onclick={collapseAll}
-            aria-label="Collapse all"
-            class="rounded-l-sm bg-background-l3 px-4 py-2 text-foreground-l3 hover:bg-background-l4 hover:text-foreground-l1"
-          >
-            <IconFold class="size-5" />
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
-        </Tooltip.Root>
-      </div>
-    </div>
-  </div>
+  <ChallengeListHeader
+    pointsEarned={stats.pointsEarned}
+    pointsTotal={stats.pointsTotal}
+    solved={stats.solved}
+    total={stats.total}
+    {searchQuery}
+    {hideSolved}
+    onSearchChange={q => (searchQuery = q)}
+    onToggleHideSolved={() => (hideSolved = !hideSolved)}
+    onCollapseAll={() => (openCategories = [])}
+  />
 
   <ScrollArea class="min-h-0 flex-1">
     <Accordion.Root type="multiple" bind:value={openCategories}>
       {#each groups as [category, entries] (category)}
         {@const config = getCategoryConfig(category)}
+        {@const catStyle = getCategoryStyle(config.color)}
         {@const categorySolved = entries.filter(c =>
           solvedIds.has(c.id)
         ).length}
-        {@const CategoryIcon = config.icon}
-        <Accordion.Item value={category} class="border-b-0">
+        <Accordion.Item value={category} class="border-b-0" style={catStyle}>
           <Accordion.Trigger
-            class={cn('py-2 pr-2 pl-0 hover:no-underline', config.bgL0)}
-            chevronClass={config.fgL1}
+            class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+            chevronClass="text-category-foreground-l1"
           >
             {#snippet trailing()}
               <div
                 class="flex items-baseline gap-1 text-base font-normal tabular-nums"
               >
-                <span class={config.fgL0}>{categorySolved}</span>
-                <span class={config.fgL1}>/ {entries.length}</span>
+                <span class="text-category-foreground-l0">{categorySolved}</span
+                >
+                <span class="text-category-foreground-l1"
+                  >/ {entries.length}</span
+                >
               </div>
             {/snippet}
             <div class="flex items-center">
               <div class="px-2.5">
-                <CategoryIcon class={cn('size-4', config.fgL1)} />
+                <Icon
+                  icon={config.icon}
+                  class="size-4 text-category-foreground-l1"
+                />
               </div>
-              <span class={cn('text-base font-normal', config.fgL1)}>
+              <span class="text-base font-normal text-category-foreground-l1">
                 {config.name}
               </span>
             </div>
           </Accordion.Trigger>
-          <Accordion.Content class={cn('pb-0', config.bgL1)}>
-            <ul class="flex flex-col gap-1 py-2">
+          <Accordion.Content class="pb-0 bg-category-background-l1">
+            <ul class="flex flex-col">
               {#each entries as challenge (challenge.id)}
-                {@const isSolved = solvedIds.has(challenge.id)}
-                {@const isSelected = selectedId === challenge.id}
-                <li>
-                  <button
-                    type="button"
-                    onclick={() => onSelect(challenge)}
-                    class={cn(
-                      'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm hover:bg-background-l2',
-                      isSelected && 'bg-background-l2 ring-1 ring-border',
-                      isSolved && 'text-foreground-success'
-                    )}
-                  >
-                    {#if isSolved}
-                      <IconCheckFilled class="size-4 shrink-0" />
-                    {:else}
-                      <span class="size-4 shrink-0"></span>
-                    {/if}
-                    <span class="flex-1 truncate">{challenge.name}</span>
-                    {#if challenge.points !== null}
-                      <span class="text-foreground-l3 text-xs tabular-nums">
-                        {challenge.points}
-                      </span>
-                    {/if}
-                  </button>
-                </li>
+                <ChallengeItem
+                  {challenge}
+                  {category}
+                  isSolved={solvedIds.has(challenge.id)}
+                  isSelected={selectedId === challenge.id}
+                  onSelect={() => onSelect(challenge)}
+                />
               {/each}
             </ul>
           </Accordion.Content>

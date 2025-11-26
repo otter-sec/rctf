@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconChevronDown } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { cn, type WithoutChild } from '$lib/utils.js'
   import { Accordion as AccordionPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
@@ -35,7 +35,8 @@
         {#if trailing}
           {@render trailing()}
         {/if}
-        <IconChevronDown
+        <Icon
+          icon="tabler:chevron-down"
           class={cn(
             'accordion-chevron text-foreground-l3 pointer-events-none size-5 shrink-0',
             chevronClass

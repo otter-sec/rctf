@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { IconGripVertical } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import * as ResizablePrimitive from 'paneforge'
 
@@ -26,7 +26,7 @@
     <div
       class="bg-background-l3 rounded-sm z-10 flex h-4 w-3 items-center justify-center border"
     >
-      <IconGripVertical class="size-2.5 text-foreground-l3" />
+      <Icon icon="tabler:grip-vertical" class="size-2.5 text-foreground-l3" />
     </div>
   {/if}
 </ResizablePrimitive.PaneResizer>

@@ -21,7 +21,7 @@
     Spinner,
     Textarea,
   } from '$lib/components'
-  import { IconArrowLeft, IconTrash, IconUpload, IconX } from '$lib/icons'
+  import Icon from '@iconify/svelte'
 
   let { data } = $props()
 
@@ -160,7 +160,7 @@
 <div class="flex flex-col gap-6">
   <div class="flex items-center gap-4">
     <Button variant="ghost" size="icon" href="/admin/challs">
-      <IconArrowLeft class="size-4" />
+      <Icon icon="tabler:arrow-big-left-filled" class="size-4" />
     </Button>
     <div>
       <h1 class="text-2xl font-medium">
@@ -357,7 +357,7 @@
                       size="icon-sm"
                       onclick={() => removeFile(index)}
                     >
-                      <IconX class="size-4" />
+                      <Icon icon="tabler:x" class="size-4" />
                     </Button>
                   {/if}
                 </li>
@@ -386,7 +386,7 @@
                 {#if uploading}
                   <Spinner class="size-4" />
                 {:else}
-                  <IconUpload class="size-4" />
+                  <Icon icon="tabler:file-upload-filled" class="size-4" />
                 {/if}
                 Upload files
               </Button>
@@ -408,7 +408,7 @@
                 {#if deleting}
                   <Spinner class="size-4" />
                 {:else}
-                  <IconTrash class="size-4" />
+                  <Icon icon="tabler:trash-filled" class="size-4" />
                 {/if}
                 Delete challenge
               </Button>

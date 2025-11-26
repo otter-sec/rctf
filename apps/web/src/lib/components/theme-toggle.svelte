@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button } from '$lib/components'
-  import { IconMoon, IconSun } from '$lib/icons'
+  import Icon from '@iconify/svelte'
   import { onMount } from 'svelte'
 
   let theme = $state<'light' | 'dark'>('light')
@@ -53,8 +53,8 @@
   aria-label="Toggle theme"
 >
   {#if theme === 'dark'}
-    <IconSun class="size-4" />
+    <Icon icon="tabler:sun-high-filled" class="size-4" />
   {:else}
-    <IconMoon class="size-4" />
+    <Icon icon="tabler:moon-filled" class="size-4" />
   {/if}
 </Button>
