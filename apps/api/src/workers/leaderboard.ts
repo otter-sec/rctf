@@ -27,7 +27,7 @@ const tick = async () => {
 tick()
 setInterval(tick, config.leaderboard.updateInterval)
 
-// @ts-expect-error bun worker global
+// @ts-ignore TS2322
 onmessage = (ev: any) => {
   if (ev?.data?.type === 'force-update') {
     tick()

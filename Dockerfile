@@ -49,4 +49,6 @@ COPY --from=build /app/apps/web/build ./static
 ENV NODE_ENV=production
 ENV PORT=80
 ENV FRONTEND_STATIC_ROOT=/app/static/
-CMD ["bun", "run", "/app/apps/api/dist/index.js"]
+ENV WORKER_EXTENSION=.js
+
+CMD ["sh", "-c", "bun run db:migrate && bun run /app/apps/api/dist/index.js"]

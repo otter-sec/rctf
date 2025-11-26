@@ -16,12 +16,12 @@
   "dependencies": {
     "@rctf/config": "workspace:*",
     "@rctf/types": "workspace:*",
+    "drizzle-kit": "^0.31.6",
     "drizzle-orm": "^0.44.7",
     "postgres": "^3.4.5"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "drizzle-kit": "^0.31.6"
+    "@types/bun": "latest"
   },
   "peerDependencies": {
     "typescript": "^5"
