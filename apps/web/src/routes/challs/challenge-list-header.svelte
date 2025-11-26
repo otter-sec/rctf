@@ -1,9 +1,6 @@
 <script lang="ts">
-  import IconEyeClosed from '~icons/tabler/eye-closed'
-  import IconEyeFilled from '~icons/tabler/eye-filled'
-  import IconFold from '~icons/tabler/fold'
-  import IconSearch from '~icons/tabler/search'
   import { Tooltip } from '$lib/components'
+  import { IconEyeClosed, IconEyeFilled, IconFold, IconSearch } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   type Props = {

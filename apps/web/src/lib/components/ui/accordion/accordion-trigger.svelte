@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconChevronRight from '~icons/tabler/chevron-right'
+  import { IconChevronRight } from '$lib/icons'
   import { cn, type WithoutChild } from '$lib/utils.js'
   import { Accordion as AccordionPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'

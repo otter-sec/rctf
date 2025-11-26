@@ -1,6 +1,5 @@
 <script lang="ts">
-  import CheckIcon from '@lucide/svelte/icons/check'
-  import MinusIcon from '@lucide/svelte/icons/minus'
+  import { IconCheck, IconMinus } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
@@ -33,9 +32,9 @@
       class="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center"
     >
       {#if indeterminate}
-        <MinusIcon class="size-4" />
+        <IconMinus class="size-4" />
       {:else}
-        <CheckIcon class={cn('size-4', !checked && 'text-transparent')} />
+        <IconCheck class={cn('size-4', !checked && 'text-transparent')} />
       {/if}
     </span>
     {@render childrenProp?.()}

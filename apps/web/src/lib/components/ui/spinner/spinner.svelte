@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconLoader from '~icons/tabler/loader'
+  import { IconLoader } from '$lib/icons'
   import { cn } from '$lib/utils.js'
 
   let { class: className }: { class?: string } = $props()

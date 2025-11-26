@@ -1,9 +1,9 @@
 <script lang="ts">
+  import type { IconComponent } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import type { Component } from 'svelte'
 
   type Props = {
-    icon: Component<{ class?: string }>
+    icon: IconComponent
     title: string
     subtitle?: string
     class?: string

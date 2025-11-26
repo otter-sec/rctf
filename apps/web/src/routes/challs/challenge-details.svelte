@@ -1,8 +1,6 @@
 <script lang="ts">
-  import IconFlagFilled from '~icons/tabler/flag-filled'
-  import IconInfoCircle from '~icons/tabler/info-circle'
-  import IconTrophy from '~icons/tabler/trophy'
   import type { Challenge } from '$lib/api'
+  import { IconFlagFilled, IconInfoCircle, IconTrophy } from '$lib/icons'
   import { EmptyState, Separator, Tabs } from '$lib/components'
   import ChallengeDetailsTab from './challenge-details-tab.svelte'
   import ChallengeFlagForm from './challenge-flag-form.svelte'

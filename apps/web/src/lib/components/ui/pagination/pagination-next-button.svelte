@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconArrowBigRightFilled from '~icons/tabler/arrow-big-right-filled'
   import { buttonVariants } from '$lib/components/ui/button/index.js'
+  import { IconArrowBigRightFilled } from '$lib/icons'
   import { cn } from '$lib/utils.js'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
 

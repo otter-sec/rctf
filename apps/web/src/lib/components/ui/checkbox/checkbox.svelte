@@ -1,6 +1,5 @@
 <script lang="ts">
-  import IconCheck from '~icons/tabler/check'
-  import IconMinus from '~icons/tabler/minus'
+  import { IconCheck, IconMinus } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Checkbox as CheckboxPrimitive } from 'bits-ui'
 

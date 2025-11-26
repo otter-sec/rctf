@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconDots from '~icons/tabler/dots'
+  import { IconDots } from '$lib/icons'
   import { cn, type WithElementRef, type WithoutChildren } from '$lib/utils.js'
   import type { HTMLAttributes } from 'svelte/elements'
 

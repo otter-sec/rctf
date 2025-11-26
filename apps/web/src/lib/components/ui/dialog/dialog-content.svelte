@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconX from '~icons/tabler/x'
+  import { IconX } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Dialog as DialogPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'

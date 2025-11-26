@@ -1,10 +1,12 @@
 <script lang="ts">
-  import IconAlertCircleFilled from '~icons/tabler/alert-circle-filled'
-  import IconAlertTriangleFilled from '~icons/tabler/alert-triangle-filled'
-  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
-  import IconInfoCircleFilled from '~icons/tabler/info-circle-filled'
-  import IconLoader from '~icons/tabler/loader'
   import { browser } from '$app/environment'
+  import {
+    IconAlertCircleFilled,
+    IconAlertTriangleFilled,
+    IconCircleCheckFilled,
+    IconInfoCircleFilled,
+    IconLoader,
+  } from '$lib/icons'
   import {
     Toaster as Sonner,
     type ToasterProps as SonnerProps,

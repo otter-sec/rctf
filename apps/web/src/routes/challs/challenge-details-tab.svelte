@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconDownload from '~icons/tabler/download'
   import type { Challenge } from '$lib/api'
+  import { IconDownload } from '$lib/icons'
   import { ScrollArea } from '$lib/components'
   import { marked } from 'marked'
 

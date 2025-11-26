@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconChevronUp from '~icons/tabler/chevron-up'
+  import { IconChevronUp } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Select as SelectPrimitive } from 'bits-ui'
 

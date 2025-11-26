@@ -7,9 +7,8 @@
     GoodMemberData,
     GoodMemberDelete,
   } from '@rctf/types'
-  import IconTrashFilled from '~icons/tabler/trash-filled'
-  import IconUsersPlus from '~icons/tabler/users-plus'
   import { apiRequest, toast } from '$lib'
+  import { IconTrashFilled, IconUsersPlus } from '$lib/icons'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
   import { onMount } from 'svelte'
 

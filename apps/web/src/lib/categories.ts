@@ -1,18 +1,20 @@
-import IconBinaryTreeFilled from '~icons/tabler/binary-tree-filled'
-import IconBombFilled from '~icons/tabler/bomb-filled'
-import IconCloudComputingFilled from '~icons/tabler/cloud-computing-filled'
-import IconCoins from '~icons/tabler/coins'
-import IconDice6Filled from '~icons/tabler/dice-6-filled'
-import IconEyeFilled from '~icons/tabler/eye-filled'
-import IconFlagFilled from '~icons/tabler/flag-filled'
-import IconKeyFilled from '~icons/tabler/key-filled'
-import IconMicroscopeFilled from '~icons/tabler/microscope-filled'
-import IconPuzzleFilled from '~icons/tabler/puzzle-filled'
-import type { Component } from 'svelte'
+import {
+  type IconComponent,
+  IconBinaryTreeFilled,
+  IconBombFilled,
+  IconCloudComputingFilled,
+  IconCoins,
+  IconDice6Filled,
+  IconEyeFilled,
+  IconFlagFilled,
+  IconKeyFilled,
+  IconMicroscopeFilled,
+  IconPuzzleFilled,
+} from '$lib/icons'
 
 export type CategoryConfig = {
   name: string
-  icon: Component<{ class?: string }>
+  icon: IconComponent
   color: string
 }
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconCheck from '~icons/tabler/check'
+  import { IconCheck } from '$lib/icons'
   import { cn, type WithoutChild } from '$lib/utils.js'
   import { Select as SelectPrimitive } from 'bits-ui'
 

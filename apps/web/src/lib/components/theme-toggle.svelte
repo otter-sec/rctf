@@ -1,7 +1,6 @@
 <script lang="ts">
-  import IconMoonFilled from '~icons/tabler/moon-filled'
-  import IconSunHighFilled from '~icons/tabler/sun-high-filled'
   import { Button } from '$lib/components'
+  import { IconMoonFilled, IconSunHighFilled } from '$lib/icons'
   import { onMount } from 'svelte'
 
   let theme = $state<'light' | 'dark'>('light')

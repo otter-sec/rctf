@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconZoomQuestionFilled from '~icons/tabler/zoom-question-filled'
   import type { Challenge } from '$lib/api'
+  import { IconZoomQuestionFilled } from '$lib/icons'
   import {
     getCategoryConfig,
     getCategoryOrder,

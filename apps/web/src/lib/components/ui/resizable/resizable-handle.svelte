@@ -1,5 +1,5 @@
 <script lang="ts">
-  import IconGripVertical from '~icons/tabler/grip-vertical'
+  import { IconGripVertical } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import * as ResizablePrimitive from 'paneforge'
 

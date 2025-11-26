@@ -1,0 +1,63 @@
+import type { SvelteComponent } from 'svelte'
+import type { SvelteHTMLElements } from 'svelte/elements'
+
+interface IconProps {
+  width?: string
+  height?: string
+}
+
+export type IconComponent = typeof SvelteComponent<
+  Omit<SvelteHTMLElements['svg'], 'viewBox' | 'width' | 'height' | 'xmlns'> &
+    IconProps &
+    Record<`data-${string}`, string>
+>
+
+export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
+export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
+export { default as IconArrowBigLeftFilled } from '@iconify-svelte/tabler/arrow-big-left-filled'
+export { default as IconArrowBigRightFilled } from '@iconify-svelte/tabler/arrow-big-right-filled'
+export { default as IconAwardFilled } from '@iconify-svelte/tabler/award-filled'
+export { default as IconBell } from '@iconify-svelte/tabler/bell'
+export { default as IconBinaryTreeFilled } from '@iconify-svelte/tabler/binary-tree-filled'
+export { default as IconBombFilled } from '@iconify-svelte/tabler/bomb-filled'
+export { default as IconChartBar } from '@iconify-svelte/tabler/chart-bar'
+export { default as IconCheck } from '@iconify-svelte/tabler/check'
+export { default as IconChevronDown } from '@iconify-svelte/tabler/chevron-down'
+export { default as IconChevronRight } from '@iconify-svelte/tabler/chevron-right'
+export { default as IconCircle } from '@iconify-svelte/tabler/circle'
+export { default as IconChevronUp } from '@iconify-svelte/tabler/chevron-up'
+export { default as IconCircleCheckFilled } from '@iconify-svelte/tabler/circle-check-filled'
+export { default as IconCloudComputingFilled } from '@iconify-svelte/tabler/cloud-computing-filled'
+export { default as IconCoins } from '@iconify-svelte/tabler/coins'
+export { default as IconCopy } from '@iconify-svelte/tabler/copy'
+export { default as IconCopyPlusFilled } from '@iconify-svelte/tabler/copy-plus-filled'
+export { default as IconDice6Filled } from '@iconify-svelte/tabler/dice-6-filled'
+export { default as IconDots } from '@iconify-svelte/tabler/dots'
+export { default as IconDownload } from '@iconify-svelte/tabler/download'
+export { default as IconEyeClosed } from '@iconify-svelte/tabler/eye-closed'
+export { default as IconEyeFilled } from '@iconify-svelte/tabler/eye-filled'
+export { default as IconFileUploadFilled } from '@iconify-svelte/tabler/file-upload-filled'
+export { default as IconFlagFilled } from '@iconify-svelte/tabler/flag-filled'
+export { default as IconFold } from '@iconify-svelte/tabler/fold'
+export { default as IconGripVertical } from '@iconify-svelte/tabler/grip-vertical'
+export { default as IconHammer } from '@iconify-svelte/tabler/hammer'
+export { default as IconInfoCircle } from '@iconify-svelte/tabler/info-circle'
+export { default as IconInfoCircleFilled } from '@iconify-svelte/tabler/info-circle-filled'
+export { default as IconKeyFilled } from '@iconify-svelte/tabler/key-filled'
+export { default as IconLibraryPlusFilled } from '@iconify-svelte/tabler/library-plus-filled'
+export { default as IconLoader } from '@iconify-svelte/tabler/loader'
+export { default as IconLogout } from '@iconify-svelte/tabler/logout'
+export { default as IconMicroscopeFilled } from '@iconify-svelte/tabler/microscope-filled'
+export { default as IconMinus } from '@iconify-svelte/tabler/minus'
+export { default as IconMoonFilled } from '@iconify-svelte/tabler/moon-filled'
+export { default as IconPuzzleFilled } from '@iconify-svelte/tabler/puzzle-filled'
+export { default as IconSearch } from '@iconify-svelte/tabler/search'
+export { default as IconSettings } from '@iconify-svelte/tabler/settings'
+export { default as IconSunHighFilled } from '@iconify-svelte/tabler/sun-high-filled'
+export { default as IconSwords } from '@iconify-svelte/tabler/swords'
+export { default as IconTrashFilled } from '@iconify-svelte/tabler/trash-filled'
+export { default as IconTrophy } from '@iconify-svelte/tabler/trophy'
+export { default as IconUserCog } from '@iconify-svelte/tabler/user-cog'
+export { default as IconUsersPlus } from '@iconify-svelte/tabler/users-plus'
+export { default as IconX } from '@iconify-svelte/tabler/x'
+export { default as IconZoomQuestionFilled } from '@iconify-svelte/tabler/zoom-question-filled'

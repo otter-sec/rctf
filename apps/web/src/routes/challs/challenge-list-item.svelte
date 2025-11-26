@@ -1,7 +1,6 @@
 <script lang="ts">
-  import IconAwardFilled from '~icons/tabler/award-filled'
-  import IconCheck from '~icons/tabler/check'
   import type { Challenge } from '$lib/api'
+  import { IconAwardFilled, IconCheck } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   type Props = {

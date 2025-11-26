@@ -1,9 +1,11 @@
 <script lang="ts">
-  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
-  import IconCopyPlusFilled from '~icons/tabler/copy-plus-filled'
-  import IconEyeClosed from '~icons/tabler/eye-closed'
-  import IconEyeFilled from '~icons/tabler/eye-filled'
   import { toast } from '$lib'
+  import {
+    IconCircleCheckFilled,
+    IconCopyPlusFilled,
+    IconEyeClosed,
+    IconEyeFilled,
+  } from '$lib/icons'
   import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
 

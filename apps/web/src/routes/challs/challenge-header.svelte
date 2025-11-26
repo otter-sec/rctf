@@ -1,6 +1,6 @@
 <script lang="ts">
-  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
   import type { Challenge } from '$lib/api'
+  import { IconCircleCheckFilled } from '$lib/icons'
   import { Badge } from '$lib/components'
 
   type Props = {

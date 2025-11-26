@@ -4,8 +4,8 @@
     GoodFlag,
     SubmitFlagRoute,
   } from '@rctf/types'
-  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
   import { invalidateAll } from '$app/navigation'
+  import { IconCircleCheckFilled } from '$lib/icons'
   import { apiRequest, toast } from '$lib'
   import type { Challenge } from '$lib/api'
   import { Button, Input, Spinner } from '$lib/components'

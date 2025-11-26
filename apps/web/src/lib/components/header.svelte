@@ -1,14 +1,16 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
-  import IconBell from '~icons/tabler/bell'
-  import IconChartBar from '~icons/tabler/chart-bar'
-  import IconCopy from '~icons/tabler/copy'
-  import IconHammer from '~icons/tabler/hammer'
-  import IconLogout from '~icons/tabler/logout'
-  import IconSettings from '~icons/tabler/settings'
-  import IconSwords from '~icons/tabler/swords'
-  import IconUserCog from '~icons/tabler/user-cog'
   import { goto, invalidateAll } from '$app/navigation'
+  import {
+    IconBell,
+    IconChartBar,
+    IconCopy,
+    IconHammer,
+    IconLogout,
+    IconSettings,
+    IconSwords,
+    IconUserCog,
+  } from '$lib/icons'
   import { toast } from '$lib'
   import { clearToken, type UserProfile } from '$lib/api'
   import wordmark from '$lib/assets/wordmark.svg'

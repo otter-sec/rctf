@@ -8,11 +8,13 @@
     UpdateChallengeRoute,
     UploadFilesRoute,
   } from '@rctf/types'
-  import IconArrowBigLeftFilled from '~icons/tabler/arrow-big-left-filled'
-  import IconFileUploadFilled from '~icons/tabler/file-upload-filled'
-  import IconTrashFilled from '~icons/tabler/trash-filled'
-  import IconX from '~icons/tabler/x'
   import { goto } from '$app/navigation'
+  import {
+    IconArrowBigLeftFilled,
+    IconFileUploadFilled,
+    IconTrashFilled,
+    IconX,
+  } from '$lib/icons'
   import { apiRequest, toast, type AdminChallengeDetail } from '$lib'
   import {
     Badge,
