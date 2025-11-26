@@ -43,7 +43,12 @@ export default class LocalProvider implements UploadProvider {
   async upload(data: Buffer, name: string): Promise<string> {
     const hash = new Bun.SHA256().update(data).digest('hex')
     const key = this.getKey(hash, name)
-    const filePath = path.join(this.uploadDirectory, key)
+    const filePath = path.resolve(path.join(this.uploadDirectory, key))
+
+    const relative = path.relative(this.uploadDirectory, filePath)
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error('Invalid file path')
+    }
 
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
     await fs.promises.writeFile(filePath, data)

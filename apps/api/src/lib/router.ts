@@ -18,6 +18,7 @@ import type {
 } from '@rctf/types'
 import {
   BadBody,
+  BadEnded,
   BadJson,
   BadNotStarted,
   BadPerms,
@@ -161,6 +162,15 @@ const notStarted = (): [JsonLike, ContentfulStatusCode] => [
   BadNotStarted.status as ContentfulStatusCode,
 ]
 
+const alreadyFinished = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadEnded.kind,
+    message: BadEnded.message,
+    data: null,
+  },
+  BadEnded.status as ContentfulStatusCode,
+]
+
 const ensureAuth = async (context: ApiContext): Promise<User | undefined> => {
   const authHeader = context.req.header('Authorization')
   if (!authHeader || !authHeader.startsWith(AUTH_PREFIX)) {
@@ -191,6 +201,10 @@ const ensureStarted = (
   }
 
   return Date.now() >= config.startTime
+}
+
+const ensureNotFinished = (): boolean => {
+  return Date.now() < config.endTime
 }
 
 export const declareRouter = <
@@ -234,6 +248,10 @@ export const declareRouter = <
       )
     ) {
       return context.json(...notStarted())
+    }
+
+    if (definition.onlyWhenNotFinished && !ensureNotFinished()) {
+      return context.json(...alreadyFinished())
     }
 
     const handleResponseIssue = async (

@@ -11,6 +11,7 @@ import type {
   ResponseHelpers,
 } from '@rctf/types'
 import { asc, desc, eq, sql } from 'drizzle-orm'
+import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
@@ -135,17 +136,18 @@ export const submitFlag = async (
   res: SubmitResponseHelpers,
   db: DatabaseClient,
   redis: TypedRedis,
+  log: PinoLogger,
   params: { userId: string; challengeId: string; flag: string }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
-  const challenge = await db
-    .select()
-    .from(challenges)
-    .where(eq(challenges.id, params.challengeId))
-    .limit(1)
-    .then(takeUnique)
+  const challenge = await getChallenge(db, params.challengeId)
   if (!challenge) {
     return res.badChallenge()
   }
+
+  log.info(
+    { user: params.userId, chall: challenge.id, flag: params.flag },
+    'flag submission attempt'
+  )
 
   // 3 per 10s per user+challenge
   const timeLeft = await rateLimit(
@@ -155,6 +157,10 @@ export const submitFlag = async (
     10_000
   )
   if (timeLeft !== undefined) {
+    log.info(
+      { user: params.userId, chall: challenge.id, flag: params.flag, timeLeft },
+      'flag submission rate limit exceeded'
+    )
     return res.badRateLimit({ timeLeft })
   }
 

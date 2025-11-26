@@ -150,7 +150,7 @@ export const calculateLeaderboard = async (
     return true
   }
 
-  const samples: CalculatedLeaderboard['samples'] = []
+  let samples: CalculatedLeaderboard['samples'] = []
   const runSample = (t: number): void => {
     applySolvesUntil(t)
     samples.push({
@@ -182,6 +182,8 @@ export const calculateLeaderboard = async (
     }
   }
 
+  // TODO(es3n1n): below, we are relying on the fact that user scores are in the same order. is this really always true?
+
   // Run up to now, but dedupe if scores haven't changed since last sample
   runSample(now)
   if (samples.length > 1) {
@@ -194,6 +196,22 @@ export const calculateLeaderboard = async (
       samples.pop()
     }
   }
+
+  // Filter out consecutive samples with the same user scores
+  samples = samples
+    .map((s, i) => {
+      if (i === 0) {
+        return s
+      }
+
+      const prev = samples[i - 1]!
+      if (s.userScores.every((s, i) => s.score === prev.userScores[i]?.score)) {
+        return null
+      }
+
+      return s
+    })
+    .filter(s => s !== null)
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     // 1. Score difference

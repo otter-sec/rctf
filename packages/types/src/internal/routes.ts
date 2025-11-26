@@ -33,6 +33,7 @@ export interface RouteDefinition<
   TOnlyWhenStartedPermissionsBypass extends Permissions | undefined =
     | Permissions
     | undefined,
+  TOnlyWhenNotFinished extends boolean = boolean,
 > {
   readonly method: TMethod
   readonly path: string
@@ -44,6 +45,7 @@ export interface RouteDefinition<
   readonly permissions: TPermissions
   readonly onlyWhenStarted: TOnlyWhenStarted
   readonly onlyWhenStartedPermissionsBypass: TOnlyWhenStartedPermissionsBypass
+  readonly onlyWhenNotFinished: TOnlyWhenNotFinished
 }
 
 type RouteConfig = {
@@ -57,6 +59,7 @@ type RouteConfig = {
   permissions?: Permissions
   onlyWhenStarted?: boolean
   onlyWhenStartedPermissionsBypass?: Permissions
+  onlyWhenNotFinished?: boolean
 }
 
 type NormalizedAuthRequired<TDefinition extends RouteConfig> =
@@ -72,6 +75,11 @@ type NormalizedPermissions<TDefinition extends RouteConfig> =
 type NormalizedOnlyWhenStarted<TDefinition extends RouteConfig> =
   TDefinition['onlyWhenStarted'] extends boolean
     ? TDefinition['onlyWhenStarted']
+    : false
+
+type NormalizedOnlyWhenNotFinished<TDefinition extends RouteConfig> =
+  TDefinition['onlyWhenNotFinished'] extends boolean
+    ? TDefinition['onlyWhenNotFinished']
     : false
 
 type NormalizedOnlyWhenStartedPermissionsBypass<
@@ -91,7 +99,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
   NormalizedAuthRequired<TDefinition>,
   NormalizedPermissions<TDefinition>,
   NormalizedOnlyWhenStarted<TDefinition>,
-  NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>
+  NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
+  NormalizedOnlyWhenNotFinished<TDefinition>
 > {
   const {
     method,
@@ -104,6 +113,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     permissions,
     onlyWhenStarted,
     onlyWhenStartedPermissionsBypass,
+    onlyWhenNotFinished,
   } = definition
 
   return {
@@ -114,6 +124,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
       false) as NormalizedOnlyWhenStarted<TDefinition>,
     onlyWhenStartedPermissionsBypass: (onlyWhenStartedPermissionsBypass ??
       undefined) as NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
+    onlyWhenNotFinished: (onlyWhenNotFinished ??
+      false) as NormalizedOnlyWhenNotFinished<TDefinition>,
     authRequired: (authRequired ??
       false) as NormalizedAuthRequired<TDefinition>,
     body: (body ?? undefined) as OptionalSchema<TDefinition['body']>,

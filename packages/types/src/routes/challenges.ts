@@ -3,6 +3,7 @@ import { Permissions } from '../enums'
 import { defineRoute } from '../internal'
 import {
   BadAlreadySolvedChallenge,
+  BadBody,
   BadChallenge,
   BadEnded,
   BadFlag,
@@ -48,18 +49,26 @@ export const SubmitFlagRoute = defineRoute({
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsWrite,
+  onlyWhenNotFinished: true,
 })
 
 export const GetChallengeSolvesRoute = defineRoute({
   path: '/v1/challs/:id/solves',
   method: 'GET',
-  responses: [GoodChallengeSolves, BadNotStarted, BadChallenge, BadToken],
+  responses: [
+    GoodChallengeSolves,
+    BadNotStarted,
+    BadChallenge,
+    BadToken,
+    BadBody,
+  ],
   authRequired: true,
   params: z.object({
     id: z.string(),
   }),
   query: z.object({
-    limit: z.coerce.number().int().min(1), // TODO(es3n1n): add max, but its a breaking change
+    // NOTE: Has max limits that are loaded from config
+    limit: z.coerce.number().int().min(1),
     offset: z.coerce.number().int().min(0),
   }),
   onlyWhenStarted: true,
