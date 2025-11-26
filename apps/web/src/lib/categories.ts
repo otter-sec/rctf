@@ -1,6 +1,18 @@
+import IconBinaryTreeFilled from '~icons/tabler/binary-tree-filled'
+import IconBombFilled from '~icons/tabler/bomb-filled'
+import IconCloudComputingFilled from '~icons/tabler/cloud-computing-filled'
+import IconCoins from '~icons/tabler/coins'
+import IconDice6Filled from '~icons/tabler/dice-6-filled'
+import IconEyeFilled from '~icons/tabler/eye-filled'
+import IconFlagFilled from '~icons/tabler/flag-filled'
+import IconKeyFilled from '~icons/tabler/key-filled'
+import IconMicroscopeFilled from '~icons/tabler/microscope-filled'
+import IconPuzzleFilled from '~icons/tabler/puzzle-filled'
+import type { Component } from 'svelte'
+
 export type CategoryConfig = {
   name: string
-  icon: string
+  icon: Component<{ class?: string }>
   color: string
 }
 
@@ -19,54 +31,54 @@ export const categoryOrder = [
 export const categoryConfigs: Record<string, CategoryConfig> = {
   pwn: {
     name: 'Binary Exploitation',
-    icon: 'tabler:bomb-filled',
+    icon: IconBombFilled,
     color: 'red',
   },
   reverse: {
     name: 'Reverse Engineering',
-    icon: 'tabler:puzzle-filled',
+    icon: IconPuzzleFilled,
     color: 'orange',
   },
   crypto: {
     name: 'Cryptography',
-    icon: 'tabler:key-filled',
+    icon: IconKeyFilled,
     color: 'yellow',
   },
   forensics: {
     name: 'Forensics',
-    icon: 'tabler:microscope-filled',
+    icon: IconMicroscopeFilled,
     color: 'green',
   },
   blockchain: {
     name: 'Blockchain',
-    icon: 'tabler:coins',
+    icon: IconCoins,
     color: 'teal',
   },
   web: {
     name: 'Web',
-    icon: 'tabler:cloud-computing-filled',
+    icon: IconCloudComputingFilled,
     color: 'blue',
   },
   misc: {
     name: 'Miscellaneous',
-    icon: 'tabler:dice-6-filled',
+    icon: IconDice6Filled,
     color: 'purple',
   },
   ppc: {
     name: 'Professional Programming and Coding',
-    icon: 'tabler:binary-tree-filled',
+    icon: IconBinaryTreeFilled,
     color: 'pink',
   },
   osint: {
     name: 'OSINT',
-    icon: 'tabler:eye-filled',
+    icon: IconEyeFilled,
     color: 'gray',
   },
 }
 
 const defaultConfig: CategoryConfig = {
   name: '',
-  icon: 'tabler:flag-filled',
+  icon: IconFlagFilled,
   color: 'gray',
 }
 

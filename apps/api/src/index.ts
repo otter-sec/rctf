@@ -2,6 +2,8 @@ import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
 import { Hono } from 'hono'
 import { pinoLogger } from 'hono-pino'
+import { serveStatic } from 'hono/bun'
+import { compress } from 'hono/compress'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
@@ -15,6 +17,7 @@ const app = new Hono<AppEnv>()
 const pinoObject = pino({
   level: 'trace',
 })
+app.use(compress())
 app.use(
   pinoLogger({
     pino: pinoObject,
@@ -25,6 +28,13 @@ app.use(appEnvMiddleware)
 // TODO(es3n1n): all this stuff should moved to some setup function
 for (const { router, handler } of routeModules) {
   app.on(router.definition.method, `/api${router.definition.path}`, handler)
+}
+
+const frontendStaticRoot = process.env.FRONTEND_STATIC_ROOT
+if (frontendStaticRoot) {
+  app.use('*', serveStatic({ root: frontendStaticRoot }))
+  // SPA fallback
+  app.use('*', serveStatic({ root: frontendStaticRoot, path: '/index.html' }))
 }
 
 // TODO(es3n1n): we need some util to do this instead of manually writing

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconChevronDown from '~icons/tabler/chevron-down'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Select as SelectPrimitive } from 'bits-ui'
 
@@ -16,5 +16,5 @@
   class={cn('flex cursor-default items-center justify-center py-1', className)}
   {...restProps}
 >
-  <Icon icon="tabler:chevron-down" class="size-4" />
+  <IconChevronDown class="size-4" />
 </SelectPrimitive.ScrollDownButton>

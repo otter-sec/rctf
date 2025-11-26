@@ -1,5 +1,6 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconAwardFilled from '~icons/tabler/award-filled'
+  import IconCheck from '~icons/tabler/check'
   import type { Challenge } from '$lib/api'
   import { cn } from '$lib/utils'
 
@@ -38,13 +39,11 @@
     )}
   >
     {#if isFirstBlood}
-      <Icon
-        icon="tabler:award-filled"
+      <IconAwardFilled
         class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-first-l0"
       />
     {:else if isSolved}
-      <Icon
-        icon="tabler:check"
+      <IconCheck
         class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
       />
     {/if}

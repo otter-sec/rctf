@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
   import type { Challenge } from '$lib/api'
   import { Badge } from '$lib/components'
 
@@ -15,10 +15,7 @@
   <div class="flex flex-col gap-1">
     <div class="flex items-center gap-2">
       {#if isSolved}
-        <Icon
-          icon="tabler:circle-check-filled"
-          class="size-5 text-foreground-success"
-        />
+        <IconCircleCheckFilled class="size-5 text-foreground-success" />
       {/if}
       <h2 class="text-xl font-semibold">{challenge.name}</h2>
     </div>

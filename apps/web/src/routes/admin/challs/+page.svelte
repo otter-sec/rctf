@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import { Permissions } from '@rctf/types'
+  import IconLibraryPlusFilled from '~icons/tabler/library-plus-filled'
   import { Badge, Button, Card, Table } from '$lib/components'
 
   let { data } = $props()
@@ -41,7 +41,7 @@
     </div>
     {#if hasWritePerms}
       <Button href="/admin/challs/new">
-        <Icon icon="tabler:library-plus-filled" class="size-4" />
+        <IconLibraryPlusFilled class="size-4" />
         New challenge
       </Button>
     {/if}
@@ -62,7 +62,7 @@
         <p class="text-foreground-l3">No challenges found.</p>
         {#if hasWritePerms}
           <Button href="/admin/challs/new" class="mt-4">
-            <Icon icon="tabler:library-plus-filled" class="size-4" />
+            <IconLibraryPlusFilled class="size-4" />
             Create first challenge
           </Button>
         {/if}

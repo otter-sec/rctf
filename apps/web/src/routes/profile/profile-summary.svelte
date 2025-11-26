@@ -1,5 +1,8 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
+  import IconCopyPlusFilled from '~icons/tabler/copy-plus-filled'
+  import IconEyeClosed from '~icons/tabler/eye-closed'
+  import IconEyeFilled from '~icons/tabler/eye-filled'
   import { toast } from '$lib'
   import type { ClientConfig, UserProfile } from '$lib/api'
   import { Badge, Button, Card, Separator } from '$lib/components'
@@ -99,9 +102,9 @@
           aria-label={showToken ? 'Hide token' : 'Show token'}
         >
           {#if showToken}
-            <Icon icon="tabler:eye-closed" class="size-4" />
+            <IconEyeClosed class="size-4" />
           {:else}
-            <Icon icon="tabler:eye-filled" class="size-4" />
+            <IconEyeFilled class="size-4" />
           {/if}
         </Button>
         <Button
@@ -111,12 +114,9 @@
           aria-label="Copy token"
         >
           {#if copied}
-            <Icon
-              icon="tabler:circle-check-filled"
-              class="size-4 text-foreground-success"
-            />
+            <IconCircleCheckFilled class="size-4 text-foreground-success" />
           {:else}
-            <Icon icon="tabler:copy-plus-filled" class="size-4" />
+            <IconCopyPlusFilled class="size-4" />
           {/if}
         </Button>
       </div>

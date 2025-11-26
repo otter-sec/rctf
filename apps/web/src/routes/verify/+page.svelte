@@ -1,11 +1,12 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import {
     GoodEmailSet,
     GoodRegister,
     GoodVerify,
     VerifyRoute,
   } from '@rctf/types'
+  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
+  import IconX from '~icons/tabler/x'
   import { goto, invalidateAll } from '$app/navigation'
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
@@ -61,7 +62,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-destructive"
       >
-        <Icon icon="tabler:x" class="size-6" />
+        <IconX class="size-6" />
         Verification failed
       </Card.Title>
     </Card.Header>
@@ -79,7 +80,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <Icon icon="tabler:circle-check-filled" class="size-6" />
+        <IconCircleCheckFilled class="size-6" />
         Email verified
       </Card.Title>
     </Card.Header>
@@ -93,7 +94,7 @@
       <Card.Title
         class="flex items-center gap-2 text-2xl text-foreground-success"
       >
-        <Icon icon="tabler:circle-check-filled" class="size-6" />
+        <IconCircleCheckFilled class="size-6" />
         Verified!
       </Card.Title>
     </Card.Header>

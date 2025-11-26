@@ -1,6 +1,13 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import { Permissions } from '@rctf/types'
+  import IconBell from '~icons/tabler/bell'
+  import IconChartBar from '~icons/tabler/chart-bar'
+  import IconCopy from '~icons/tabler/copy'
+  import IconHammer from '~icons/tabler/hammer'
+  import IconLogout from '~icons/tabler/logout'
+  import IconSettings from '~icons/tabler/settings'
+  import IconSwords from '~icons/tabler/swords'
+  import IconUserCog from '~icons/tabler/user-cog'
   import { goto, invalidateAll } from '$app/navigation'
   import { toast } from '$lib'
   import { clearToken, type UserProfile } from '$lib/api'
@@ -57,7 +64,7 @@
         <Tooltip.Trigger>
           <NavButton href="/challs" activePath="/challs">
             {#snippet icon({ class: className })}
-              <Icon icon="tabler:swords" class={className} />
+              <IconSwords class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>
@@ -67,7 +74,7 @@
         <Tooltip.Trigger>
           <NavButton href="/scores" activePath="/scores">
             {#snippet icon({ class: className })}
-              <Icon icon="tabler:chart-bar" class={className} />
+              <IconChartBar class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>
@@ -78,7 +85,7 @@
           <Tooltip.Trigger>
             <NavButton href="/admin/challs" activePath="/admin">
               {#snippet icon({ class: className })}
-                <Icon icon="tabler:hammer" class={className} />
+                <IconHammer class={className} />
               {/snippet}
             </NavButton>
           </Tooltip.Trigger>
@@ -113,21 +120,21 @@
         <DropdownMenu.Content align="end" class="w-56">
           <DropdownMenu.Item onclick={copyTeamToken}>
             Copy team token
-            <Icon icon="tabler:copy" class="ml-auto size-5" />
+            <IconCopy class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
-          <DropdownMenu.Item onclick={() => goto('/team')}>
+          <DropdownMenu.Item onclick={() => goto('/profile')}>
             Manage team
-            <Icon icon="tabler:user-cog" class="ml-auto size-5" />
+            <IconUserCog class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Item onclick={() => goto('/preferences')}>
             Preferences
-            <Icon icon="tabler:settings" class="ml-auto size-5" />
+            <IconSettings class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={handleLogout}>
             Log out
-            <Icon icon="tabler:logout" class="ml-auto size-5" />
+            <IconLogout class="ml-auto size-5" />
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>
@@ -136,7 +143,7 @@
         <Tooltip.Trigger>
           <NavButton href="#">
             {#snippet icon({ class: className })}
-              <Icon icon="tabler:bell" class={className} />
+              <IconBell class={className} />
             {/snippet}
           </NavButton>
         </Tooltip.Trigger>

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconDownload from '~icons/tabler/download'
   import type { Challenge } from '$lib/api'
   import { ScrollArea } from '$lib/components'
   import { marked } from 'marked'
@@ -28,7 +28,7 @@
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1.5 rounded-md border bg-background-l1 px-3 py-1.5 text-sm transition-colors hover:bg-background-l2"
             >
-              <Icon icon="tabler:download" class="size-4" />
+              <IconDownload class="size-4" />
               {file.name}
             </a>
           {/each}

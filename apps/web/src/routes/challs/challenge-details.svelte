@@ -1,5 +1,7 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconFlagFilled from '~icons/tabler/flag-filled'
+  import IconInfoCircle from '~icons/tabler/info-circle'
+  import IconTrophy from '~icons/tabler/trophy'
   import type { Challenge } from '$lib/api'
   import { EmptyState, Separator, Tabs } from '$lib/components'
   import ChallengeDetailsTab from './challenge-details-tab.svelte'
@@ -25,11 +27,11 @@
         <div class="px-6 pt-4">
           <Tabs.List>
             <Tabs.Trigger value="details">
-              <Icon icon="tabler:info-circle" class="size-4" />
+              <IconInfoCircle class="size-4" />
               Details
             </Tabs.Trigger>
             <Tabs.Trigger value="solves">
-              <Icon icon="tabler:trophy" class="size-4" />
+              <IconTrophy class="size-4" />
               Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
             </Tabs.Trigger>
           </Tabs.List>
@@ -51,7 +53,7 @@
   {/key}
 {:else}
   <EmptyState
-    icon="tabler:flag-filled"
+    icon={IconFlagFilled}
     title="Select a challenge"
     subtitle="Choose a challenge from the list to view details"
     class="h-full"

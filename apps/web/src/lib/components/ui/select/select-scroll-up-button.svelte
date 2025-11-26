@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconChevronUp from '~icons/tabler/chevron-up'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Select as SelectPrimitive } from 'bits-ui'
 
@@ -16,5 +16,5 @@
   class={cn('flex cursor-default items-center justify-center py-1', className)}
   {...restProps}
 >
-  <Icon icon="tabler:chevron-up" class="size-4" />
+  <IconChevronUp class="size-4" />
 </SelectPrimitive.ScrollUpButton>

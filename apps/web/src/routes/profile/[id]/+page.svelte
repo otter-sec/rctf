@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { PublicUserProfile } from '$lib/api'
   import { Badge, Button, Card } from '$lib/components'
 
   let { data } = $props()

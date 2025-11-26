@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconArrowBigLeftFilled from '~icons/tabler/arrow-big-left-filled'
   import { buttonVariants } from '$lib/components/ui/button/index.js'
   import { cn } from '$lib/utils.js'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
@@ -13,7 +13,7 @@
 </script>
 
 {#snippet Fallback()}
-  <Icon icon="tabler:arrow-big-left-filled" class="size-4" />
+  <IconArrowBigLeftFilled class="size-4" />
   <span>Previous</span>
 {/snippet}
 
@@ -28,6 +28,7 @@
     }),
     className
   )}
-  children={children || Fallback}
   {...restProps}
-/>
+>
+  {@render (children ?? Fallback)()}
+</PaginationPrimitive.PrevButton>

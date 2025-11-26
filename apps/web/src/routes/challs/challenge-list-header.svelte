@@ -1,5 +1,8 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconEyeClosed from '~icons/tabler/eye-closed'
+  import IconEyeFilled from '~icons/tabler/eye-filled'
+  import IconFold from '~icons/tabler/fold'
+  import IconSearch from '~icons/tabler/search'
   import { Tooltip } from '$lib/components'
   import { cn } from '$lib/utils'
 
@@ -60,7 +63,7 @@
           value={searchQuery}
           oninput={e => onSearchChange(e.currentTarget.value)}
         />
-        <Icon icon="tabler:search" class="size-5 shrink-0 text-foreground-l3" />
+        <IconSearch class="size-5 shrink-0 text-foreground-l3" />
       </div>
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
@@ -76,9 +79,9 @@
           )}
         >
           {#if hideSolved}
-            <Icon icon="tabler:eye-closed" class="size-5" />
+            <IconEyeClosed class="size-5" />
           {:else}
-            <Icon icon="tabler:eye-filled" class="size-5" />
+            <IconEyeFilled class="size-5" />
           {/if}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>
@@ -91,7 +94,7 @@
           aria-label="Collapse all"
           class="rounded-l-sm bg-background-l3 px-4 py-2 text-foreground-l3 hover:bg-background-l4 hover:text-foreground-l1"
         >
-          <Icon icon="tabler:fold" class="size-5" />
+          <IconFold class="size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
       </Tooltip.Root>

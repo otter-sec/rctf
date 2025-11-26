@@ -11,14 +11,14 @@
     "dev": "bun run --elide-lines=0 --filter '@rctf/api' dev",
     "dev:api": "bun run --elide-lines=0 --filter '@rctf/api' dev",
     "dev:web": "bun run --elide-lines=0 --filter '@rctf/web' dev",
-    "build": "bun run --elide-lines=0 --filter '*' build",
+    "build": "bun run --filter '*' build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",
     "prettier": "prettier --write \"**/*.{ts,svelte,html,json}\" --ignore-path .gitignore",
-    "typecheck": "bun run --elide-lines=0 --filter '*' typecheck",
-    "db:generate": "bun run --elide-lines=0 --filter '@rctf/db' generate",
-    "db:migrate": "bun run --elide-lines=0 --filter '@rctf/db' migrate",
-    "db:pull": "bun run --elide-lines=0 --filter '@rctf/db' pull"
+    "typecheck": "bun run --filter '*' typecheck",
+    "db:generate": "bun run --filter '@rctf/db' generate",
+    "db:migrate": "bun run --filter '@rctf/db' migrate",
+    "db:pull": "bun run --filter '@rctf/db' pull"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.7.0",

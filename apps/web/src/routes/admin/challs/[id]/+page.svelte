@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import {
     DeleteChallengeRoute,
     GoodChallengeDelete,
@@ -9,6 +8,10 @@
     UpdateChallengeRoute,
     UploadFilesRoute,
   } from '@rctf/types'
+  import IconArrowBigLeftFilled from '~icons/tabler/arrow-big-left-filled'
+  import IconFileUploadFilled from '~icons/tabler/file-upload-filled'
+  import IconTrashFilled from '~icons/tabler/trash-filled'
+  import IconX from '~icons/tabler/x'
   import { goto } from '$app/navigation'
   import { apiRequest, toast, type AdminChallengeDetail } from '$lib'
   import {
@@ -160,7 +163,7 @@
 <div class="flex flex-col gap-6">
   <div class="flex items-center gap-4">
     <Button variant="ghost" size="icon" href="/admin/challs">
-      <Icon icon="tabler:arrow-big-left-filled" class="size-4" />
+      <IconArrowBigLeftFilled class="size-4" />
     </Button>
     <div>
       <h1 class="text-2xl font-medium">
@@ -357,7 +360,7 @@
                       size="icon-sm"
                       onclick={() => removeFile(index)}
                     >
-                      <Icon icon="tabler:x" class="size-4" />
+                      <IconX class="size-4" />
                     </Button>
                   {/if}
                 </li>
@@ -386,7 +389,7 @@
                 {#if uploading}
                   <Spinner class="size-4" />
                 {:else}
-                  <Icon icon="tabler:file-upload-filled" class="size-4" />
+                  <IconFileUploadFilled class="size-4" />
                 {/if}
                 Upload files
               </Button>
@@ -408,7 +411,7 @@
                 {#if deleting}
                   <Spinner class="size-4" />
                 {:else}
-                  <Icon icon="tabler:trash-filled" class="size-4" />
+                  <IconTrashFilled class="size-4" />
                 {/if}
                 Delete challenge
               </Button>

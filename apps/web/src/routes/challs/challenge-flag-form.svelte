@@ -1,10 +1,10 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import {
     BadAlreadySolvedChallenge,
     GoodFlag,
     SubmitFlagRoute,
   } from '@rctf/types'
+  import IconCircleCheckFilled from '~icons/tabler/circle-check-filled'
   import { invalidateAll } from '$app/navigation'
   import { apiRequest, toast } from '$lib'
   import type { Challenge } from '$lib/api'
@@ -59,7 +59,7 @@
 <div class="px-6 py-4">
   {#if isSolved}
     <div class="flex items-center gap-2 text-foreground-success">
-      <Icon icon="tabler:circle-check-filled" class="size-5" />
+      <IconCircleCheckFilled class="size-5" />
       <span class="font-medium">Challenge solved!</span>
     </div>
   {:else}

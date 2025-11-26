@@ -10,9 +10,6 @@ import { browser } from '$app/environment'
 
 export * from './types'
 
-// TODO(es3n1n): map api to /api and replace this with /
-const base = 'https://rctf-dev.es3n1n.io/'
-
 type SectionPayload<T> = [T] extends [undefined]
   ? {}
   : T extends Record<string, unknown>
@@ -124,7 +121,8 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   const { params, query, body } = pickArgs(route, args)
 
   const path = applyPath(route.path, params).replace(/^\//, '')
-  const url = new URL(`${base}api/${path}`)
+  const origin = browser ? window.location.origin : 'http://localhost'
+  const url = new URL(`/api/${path}`, origin)
   applyQuery(url, query as Record<string, unknown> | undefined)
 
   const headers: Record<string, string> = {

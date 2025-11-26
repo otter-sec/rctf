@@ -1,15 +1,15 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import { cn } from '$lib/utils'
+  import type { Component } from 'svelte'
 
   type Props = {
-    icon: string
+    icon: Component<{ class?: string }>
     title: string
     subtitle?: string
     class?: string
   }
 
-  let { icon, title, subtitle, class: className }: Props = $props()
+  let { icon: Icon, title, subtitle, class: className }: Props = $props()
 </script>
 
 <div
@@ -18,7 +18,7 @@
     className
   )}
 >
-  <Icon {icon} class="size-12 text-foreground-l4" />
+  <Icon class="size-12 text-foreground-l4" />
   <div class="flex flex-col gap-1">
     <span class="text-lg text-foreground-l3">{title}</span>
     {#if subtitle}

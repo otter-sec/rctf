@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconZoomQuestionFilled from '~icons/tabler/zoom-question-filled'
   import type { Challenge } from '$lib/api'
   import {
     getCategoryConfig,
@@ -116,7 +116,7 @@
   <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
     {#if filteredChallenges.length === 0}
       <EmptyState
-        icon="tabler:zoom-question-filled"
+        icon={IconZoomQuestionFilled}
         title="No challenges found"
         subtitle={emptySubtitle}
       />
@@ -147,10 +147,7 @@
               {/snippet}
               <div class="flex items-center">
                 <div class="px-2.5">
-                  <Icon
-                    icon={config.icon}
-                    class="size-4 text-category-foreground-l1"
-                  />
+                  <config.icon class="size-4 text-category-foreground-l1" />
                 </div>
                 <span class="text-base font-normal text-category-foreground-l1">
                   {config.name}

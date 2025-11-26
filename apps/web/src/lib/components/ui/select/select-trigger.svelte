@@ -1,5 +1,5 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
+  import IconChevronDown from '~icons/tabler/chevron-down'
   import { cn, type WithoutChild } from '$lib/utils.js'
   import { Select as SelectPrimitive } from 'bits-ui'
 
@@ -25,5 +25,5 @@
   {...restProps}
 >
   {@render children?.()}
-  <Icon icon="tabler:chevron-down" class="size-4 opacity-50" />
+  <IconChevronDown class="size-4 opacity-50" />
 </SelectPrimitive.Trigger>

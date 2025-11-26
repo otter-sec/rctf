@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import {
     CreateMemberRoute,
     DeleteMemberRoute,
@@ -8,6 +7,8 @@
     GoodMemberData,
     GoodMemberDelete,
   } from '@rctf/types'
+  import IconTrashFilled from '~icons/tabler/trash-filled'
+  import IconUsersPlus from '~icons/tabler/users-plus'
   import { apiRequest, toast } from '$lib'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
   import { onMount } from 'svelte'
@@ -115,7 +116,7 @@
             {#if loading}
               <Spinner class="size-4" />
             {:else}
-              <Icon icon="tabler:users-plus" class="size-4" />
+              <IconUsersPlus class="size-4" />
             {/if}
           </Button>
         </div>
@@ -146,10 +147,7 @@
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}
-                <Icon
-                  icon="tabler:trash-filled"
-                  class="text-foreground-destructive size-4"
-                />
+                <IconTrashFilled class="text-foreground-destructive size-4" />
               {/if}
             </Button>
           </li>

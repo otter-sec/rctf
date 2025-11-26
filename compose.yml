@@ -1,0 +1,39 @@
+services:  
+  rctf:
+    image: ghcr.io/otter-sec/rctf-new:${RCTF_GIT_REF}
+    build: .
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8080:80'
+    networks:
+      - rctf
+    env_file:
+      - .env
+    volumes:
+      - ./rctf.d:/app/rctf.d
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - redis
+      - postgres
+  redis:
+    image: redis:8.2.2
+    restart: always
+    networks:
+      - rctf
+    command: ['redis-server', '--requirepass', '${RCTF_REDIS_PASSWORD}']
+    volumes:
+      - ./.data/redis:/data
+  postgres:
+    image: postgres:18.0
+    restart: always
+    networks:
+      - rctf
+    environment:
+      - POSTGRES_PASSWORD=${RCTF_DATABASE_PASSWORD}
+      - POSTGRES_USER=rctf
+      - POSTGRES_DB=rctf
+    volumes:
+      - ./.data/postgres:/var/lib/postgresql/
+
+networks:
+  rctf:
