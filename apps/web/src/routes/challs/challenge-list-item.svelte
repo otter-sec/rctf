@@ -19,7 +19,7 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'relative flex w-full items-center justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover',
+      'relative flex w-full items-center justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover gap-1',
       isSolved &&
         'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-success/20 before:to-transparent',
       isSelected &&
@@ -32,16 +32,16 @@
         class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
       />
     {/if}
-    <div class="flex flex-col">
-      <div class="text-xl">
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="truncate text-xl">
         <span class="text-category-foreground-l1">{category} /</span>
         <span class="text-category-foreground-l0">{challenge.name}</span>
       </div>
-      <span class="text-base text-category-foreground-l1 opacity-75">
+      <span class="truncate text-base text-category-foreground-l1 opacity-75">
         {challenge.author}
       </span>
     </div>
-    <div class="flex flex-col items-end">
+    <div class="flex shrink-0 flex-col items-end">
       {#if challenge.points !== null}
         <div class="text-xl tabular-nums">
           <span class="text-category-foreground-l0">{challenge.points}</span>

@@ -6,7 +6,7 @@
     getCategoryOrder,
     getCategoryStyle,
   } from '$lib/categories'
-  import { Accordion, ScrollArea } from '$lib/components'
+  import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import ChallengeListHeader from './challenge-list-header.svelte'
   import ChallengeListItem from './challenge-list-item.svelte'
 
@@ -54,7 +54,7 @@
         if (a.solves !== b.solves) {
           return (b.solves ?? 0) - (a.solves ?? 0)
         }
-        return (b.sortWeight ?? 0) - (a.sortWeight ?? 0)
+        return a.name.localeCompare(b.name)
       })
     }
     return Array.from(grouped.entries()).sort((a, b) => {
@@ -74,6 +74,14 @@
     pointsTotal: challenges.reduce((sum, c) => sum + (c.points ?? 0), 0),
     solved: challenges.filter(c => solvedIds.has(c.id)).length,
     total: challenges.length,
+  })
+
+  const emptySubtitle = $derived.by(() => {
+    if (searchQuery.trim() && hideSolved)
+      return 'Try a different search or show solved challenges'
+    if (searchQuery.trim()) return 'Try a different search term'
+    if (hideSolved) return 'All challenges have been solved!'
+    return 'No challenges available'
   })
 
   $effect(() => {
@@ -97,57 +105,66 @@
     onCollapseAll={() => (openCategories = [])}
   />
 
-  <ScrollArea class="min-h-0 flex-1">
-    <Accordion.Root type="multiple" bind:value={openCategories}>
-      {#each groups as [category, entries] (category)}
-        {@const config = getCategoryConfig(category)}
-        {@const catStyle = getCategoryStyle(config.color)}
-        {@const categorySolved = entries.filter(c =>
-          solvedIds.has(c.id)
-        ).length}
-        <Accordion.Item value={category} class="border-b-0" style={catStyle}>
-          <Accordion.Trigger
-            class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
-            chevronClass="text-category-foreground-l1"
-          >
-            {#snippet trailing()}
-              <div
-                class="flex items-baseline gap-1 text-base font-normal tabular-nums"
-              >
-                <span class="text-category-foreground-l0">{categorySolved}</span
+  <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
+    {#if filteredChallenges.length === 0}
+      <EmptyState
+        icon="tabler:zoom-question-filled"
+        title="No challenges found"
+        subtitle={emptySubtitle}
+      />
+    {:else}
+      <Accordion.Root type="multiple" bind:value={openCategories} class="pb-4">
+        {#each groups as [category, entries] (category)}
+          {@const config = getCategoryConfig(category)}
+          {@const catStyle = getCategoryStyle(config.color)}
+          {@const categorySolved = entries.filter(c =>
+            solvedIds.has(c.id)
+          ).length}
+          <Accordion.Item value={category} class="border-b-0" style={catStyle}>
+            <Accordion.Trigger
+              class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+              chevronClass="text-category-foreground-l1"
+            >
+              {#snippet trailing()}
+                <div
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums"
                 >
-                <span class="text-category-foreground-l1"
-                  >/ {entries.length}</span
-                >
+                  <span class="text-category-foreground-l0"
+                    >{categorySolved}</span
+                  >
+                  <span class="text-category-foreground-l1"
+                    >/ {entries.length}</span
+                  >
+                </div>
+              {/snippet}
+              <div class="flex items-center">
+                <div class="px-2.5">
+                  <Icon
+                    icon={config.icon}
+                    class="size-4 text-category-foreground-l1"
+                  />
+                </div>
+                <span class="text-base font-normal text-category-foreground-l1">
+                  {config.name}
+                </span>
               </div>
-            {/snippet}
-            <div class="flex items-center">
-              <div class="px-2.5">
-                <Icon
-                  icon={config.icon}
-                  class="size-4 text-category-foreground-l1"
-                />
-              </div>
-              <span class="text-base font-normal text-category-foreground-l1">
-                {config.name}
-              </span>
-            </div>
-          </Accordion.Trigger>
-          <Accordion.Content class="pb-0 bg-category-background-l1">
-            <ul class="flex flex-col">
-              {#each entries as challenge (challenge.id)}
-                <ChallengeListItem
-                  {challenge}
-                  {category}
-                  isSolved={solvedIds.has(challenge.id)}
-                  isSelected={selectedId === challenge.id}
-                  onSelect={() => onSelect(challenge)}
-                />
-              {/each}
-            </ul>
-          </Accordion.Content>
-        </Accordion.Item>
-      {/each}
-    </Accordion.Root>
+            </Accordion.Trigger>
+            <Accordion.Content class="pb-0 bg-category-background-l1">
+              <ul class="flex flex-col">
+                {#each entries as challenge (challenge.id)}
+                  <ChallengeListItem
+                    {challenge}
+                    {category}
+                    isSolved={solvedIds.has(challenge.id)}
+                    isSelected={selectedId === challenge.id}
+                    onSelect={() => onSelect(challenge)}
+                  />
+                {/each}
+              </ul>
+            </Accordion.Content>
+          </Accordion.Item>
+        {/each}
+      </Accordion.Root>
+    {/if}
   </ScrollArea>
 </div>

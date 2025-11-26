@@ -20,6 +20,7 @@ export { default as NavLink } from './nav-link.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 
 export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'
+export { default as EmptyState } from './empty-state.svelte'
 export {
   Button,
   buttonVariants,

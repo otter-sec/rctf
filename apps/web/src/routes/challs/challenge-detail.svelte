@@ -11,6 +11,7 @@
   import {
     Badge,
     Button,
+    EmptyState,
     Input,
     ScrollArea,
     Separator,
@@ -172,12 +173,10 @@
     </div>
   </div>
 {:else}
-  <div class="flex h-full items-center justify-center">
-    <div class="text-center">
-      <p class="text-foreground-l3 text-lg">Select a challenge</p>
-      <p class="text-foreground-l4 text-sm">
-        Choose a challenge from the list to view details
-      </p>
-    </div>
-  </div>
+  <EmptyState
+    icon="tabler:flag-filled"
+    title="Select a challenge"
+    subtitle="Choose a challenge from the list to view details"
+    class="h-full"
+  />
 {/if}
