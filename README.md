@@ -46,13 +46,13 @@ EOT
 # migrate the database
 bun run db:migrate
 
-# run the thing
+# run the frontend + backend
 bun run dev
 ```
 
 rCTF v1 frontend with rCTF v2 backend:
 
-- `bun run dev` in this repo
+- `bun run dev:api` in this repo
 - `yarn workspace @rctf/client dev` in the old repo
 - access [http://127.0.0.1:8080](http://127.0.0.1:8080)
 
