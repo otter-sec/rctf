@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { Permissions } from '../enums'
 import { defineRoute } from '../internal'
 import {
+  BadBody,
   BadNotStarted,
   GoodLeaderboard,
   GoodLeaderboardGraph,
@@ -10,9 +11,10 @@ import {
 export const GetLeaderboardRoute = defineRoute({
   path: '/v1/leaderboard/now',
   method: 'GET',
-  responses: [GoodLeaderboard, BadNotStarted],
+  responses: [GoodLeaderboard, BadNotStarted, BadBody],
   authRequired: false,
   query: z.object({
+    // NOTE: Has max limits that are loaded from config
     limit: z.coerce.number().int().min(1),
     offset: z.coerce.number().int().min(0),
     division: z.string().optional(),
@@ -24,10 +26,11 @@ export const GetLeaderboardRoute = defineRoute({
 export const GetLeaderboardGraphRoute = defineRoute({
   path: '/v1/leaderboard/graph',
   method: 'GET',
-  responses: [GoodLeaderboardGraph, BadNotStarted],
+  responses: [GoodLeaderboardGraph, BadNotStarted, BadBody],
   authRequired: false,
   query: z.object({
-    limit: z.coerce.number().int().min(1).max(10), // NOTE(es3n1n): .max(10) is a breaking change
+    // NOTE: Has max limit that is loaded from config
+    limit: z.coerce.number().int().min(1),
     division: z.string().optional(),
   }),
   onlyWhenStarted: true,

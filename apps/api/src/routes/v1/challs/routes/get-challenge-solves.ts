@@ -1,18 +1,35 @@
+import { config } from '@rctf/config'
 import { GetChallengeSolvesRoute } from '@rctf/types'
-import { getChallengeSolves } from '../../../../services/challenges'
+import {
+  getChallenge,
+  getChallengeSolves,
+} from '../../../../services/challenges'
 import challsGroup from '../group'
 
 challsGroup.route(
   GetChallengeSolvesRoute,
   async ({ res, ctx, params, query }) => {
-    const data = await getChallengeSolves(
-      ctx.var.db,
-      params.id,
-      query.limit,
-      query.offset
-    )
+    // NOTE: Handling manually because the values are loaded from config
+    if (
+      query.limit > config.leaderboard.maxLimit ||
+      query.offset > config.leaderboard.maxOffset
+    ) {
+      return res.badBody({
+        reason: 'Invalid limit or offset',
+      })
+    }
+
+    const [challenge, solves] = await Promise.all([
+      getChallenge(ctx.var.db, params.id),
+      getChallengeSolves(ctx.var.db, params.id, query.limit, query.offset),
+    ])
+
+    if (!challenge) {
+      return res.badChallenge()
+    }
+
     return res.goodChallengeSolves({
-      solves: data.map(item => {
+      solves: solves.map(item => {
         return {
           id: item.solve.id,
           createdAt: new Date(item.solve.createdat).getTime(),

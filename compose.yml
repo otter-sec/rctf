@@ -24,7 +24,7 @@ services:
       - rctf
     command: ['redis-server', '--requirepass', '${RCTF_REDIS_PASSWORD}']
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping"]
+      test: ["CMD-SHELL", "redis-cli --pass ${RCTF_REDIS_PASSWORD} ping || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

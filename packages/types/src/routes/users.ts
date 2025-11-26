@@ -48,6 +48,7 @@ export const GetUserSelfRoute = defineRoute({
   authRequired: true,
 })
 
+// TODO(es3n1n): rctf v1 allows this only when not finished, do we want that?
 export const UpdateUserRoute = defineRoute({
   path: '/v1/users/me',
   method: 'PATCH',
@@ -74,6 +75,7 @@ export const GetMembersRoute = defineRoute({
   authRequired: true,
 })
 
+// TODO(es3n1n): rctf v1 allows this only when not finished, do we want that?
 export const CreateMemberRoute = defineRoute({
   path: '/v1/users/me/members',
   method: 'POST',
@@ -91,6 +93,7 @@ export const CreateMemberRoute = defineRoute({
   authRequired: true,
 })
 
+// TODO(es3n1n): rctf v1 allows this only when not finished, do we want that?
 export const DeleteMemberRoute = defineRoute({
   path: '/v1/users/me/members/:id',
   method: 'DELETE',
