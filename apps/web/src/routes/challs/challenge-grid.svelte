@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { Challenge, Solve } from '$lib/api'
   import { Resizable } from '$lib/components'
-  import ChallengeList from './challenge-list.svelte'
   import ChallengeDetail from './challenge-detail.svelte'
+  import ChallengeList from './challenge-list.svelte'
 
   let {
     challenges,

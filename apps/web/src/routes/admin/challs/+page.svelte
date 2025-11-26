@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { IconLibraryPlus } from '$lib/icons'
   import { Permissions } from '@rctf/types'
   import { Badge, Button, Card, Table } from '$lib/components'
+  import { IconLibraryPlus } from '$lib/icons'
 
   let { data } = $props()
 

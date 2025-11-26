@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
-  import { clearToken, type UserProfile } from '$lib/api'
   import { toast } from '$lib'
+  import { clearToken, type UserProfile } from '$lib/api'
   import wordmark from '$lib/assets/wordmark.svg'
   import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
   import {
@@ -53,7 +53,9 @@
   }
 </script>
 
-<header class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3">
+<header
+  class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3"
+>
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
       <img src={wordmark} alt="Logo" class="h-8" />

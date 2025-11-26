@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { IconArrowRight } from '$lib/icons'
   import { buttonVariants } from '$lib/components/ui/button/index.js'
+  import { IconArrowRight } from '$lib/icons'
   import { cn } from '$lib/utils.js'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
 

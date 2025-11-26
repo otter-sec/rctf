@@ -1,16 +1,16 @@
 <script lang="ts">
   import { browser } from '$app/environment'
   import {
-    Toaster as Sonner,
-    type ToasterProps as SonnerProps,
-  } from 'svelte-sonner'
-  import {
-    IconCheckFilled,
     IconAlertCircle,
     IconAlertTriangle,
+    IconCheckFilled,
     IconInfoCircle,
     IconLoader,
   } from '$lib/icons'
+  import {
+    Toaster as Sonner,
+    type ToasterProps as SonnerProps,
+  } from 'svelte-sonner'
 
   let { ...restProps }: SonnerProps = $props()
 

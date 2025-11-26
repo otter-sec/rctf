@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { IconTrash, IconUsersPlus } from '$lib/icons'
   import {
     CreateMemberRoute,
     DeleteMemberRoute,
@@ -10,6 +9,7 @@
   } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { IconTrash, IconUsersPlus } from '$lib/icons'
   import { onMount } from 'svelte'
 
   type Member = {

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { IconCheckFilled, IconX } from '$lib/icons'
   import {
     GoodEmailSet,
     GoodRegister,
@@ -10,6 +9,7 @@
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
+  import { IconCheckFilled, IconX } from '$lib/icons'
 
   let { data } = $props()
 

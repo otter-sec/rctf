@@ -7,7 +7,14 @@
   import { invalidateAll } from '$app/navigation'
   import { apiRequest, toast } from '$lib'
   import type { Challenge } from '$lib/api'
-  import { Badge, Button, Input, ScrollArea, Separator, Spinner } from '$lib/components'
+  import {
+    Badge,
+    Button,
+    Input,
+    ScrollArea,
+    Separator,
+    Spinner,
+  } from '$lib/components'
   import { IconCheckFilled } from '$lib/icons'
   import { marked } from 'marked'
   import SolvesDialog from './solves-dialog.svelte'
@@ -136,7 +143,7 @@
           <div class="flex gap-2">
             <Input
               type="text"
-              placeholder={"flag{...}"}
+              placeholder={'flag{...}'}
               autocomplete="off"
               autocorrect="off"
               spellcheck="false"
@@ -171,4 +178,3 @@
     </div>
   </div>
 {/if}
-

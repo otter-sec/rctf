@@ -70,6 +70,44 @@
 
   --color-border: var(--border);
   --color-ring: var(--ring);
+
+  /* Category colors */
+  --color-background-red-l0: var(--background-red-l0);
+  --color-background-red-l1: var(--background-red-l1);
+  --color-foreground-red-l0: var(--foreground-red-l0);
+  --color-foreground-red-l1: var(--foreground-red-l1);
+  --color-background-orange-l0: var(--background-orange-l0);
+  --color-background-orange-l1: var(--background-orange-l1);
+  --color-foreground-orange-l0: var(--foreground-orange-l0);
+  --color-foreground-orange-l1: var(--foreground-orange-l1);
+  --color-background-yellow-l0: var(--background-yellow-l0);
+  --color-background-yellow-l1: var(--background-yellow-l1);
+  --color-foreground-yellow-l0: var(--foreground-yellow-l0);
+  --color-foreground-yellow-l1: var(--foreground-yellow-l1);
+  --color-background-green-l0: var(--background-green-l0);
+  --color-background-green-l1: var(--background-green-l1);
+  --color-foreground-green-l0: var(--foreground-green-l0);
+  --color-foreground-green-l1: var(--foreground-green-l1);
+  --color-background-teal-l0: var(--background-teal-l0);
+  --color-background-teal-l1: var(--background-teal-l1);
+  --color-foreground-teal-l0: var(--foreground-teal-l0);
+  --color-foreground-teal-l1: var(--foreground-teal-l1);
+  --color-background-blue-l0: var(--background-blue-l0);
+  --color-background-blue-l1: var(--background-blue-l1);
+  --color-foreground-blue-l0: var(--foreground-blue-l0);
+  --color-foreground-blue-l1: var(--foreground-blue-l1);
+  --color-background-purple-l0: var(--background-purple-l0);
+  --color-background-purple-l1: var(--background-purple-l1);
+  --color-foreground-purple-l0: var(--foreground-purple-l0);
+  --color-foreground-purple-l1: var(--foreground-purple-l1);
+  --color-background-pink-l0: var(--background-pink-l0);
+  --color-background-pink-l1: var(--background-pink-l1);
+  --color-foreground-pink-l0: var(--foreground-pink-l0);
+  --color-foreground-pink-l1: var(--foreground-pink-l1);
+  --color-background-gray-l0: var(--background-gray-l0);
+  --color-background-gray-l1: var(--background-gray-l1);
+  --color-foreground-gray-l0: var(--foreground-gray-l0);
+  --color-foreground-gray-l1: var(--foreground-gray-l1);
 }
 
 @font-face {
@@ -252,6 +290,19 @@
   );
   --foreground-purple-l0: var(--color-violet-100);
   --foreground-purple-l1: var(--color-violet-300);
+
+  --background-pink-l0: color-mix(
+    in oklch,
+    var(--color-pink-950) 30%,
+    transparent
+  );
+  --background-pink-l1: color-mix(
+    in oklch,
+    var(--color-pink-950) 5%,
+    transparent
+  );
+  --foreground-pink-l0: var(--color-pink-100);
+  --foreground-pink-l1: var(--color-pink-300);
 
   --background-gray-l0: color-mix(
     in oklch,

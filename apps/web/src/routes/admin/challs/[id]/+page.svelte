@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { IconArrowLeft, IconTrash, IconUpload, IconX } from '$lib/icons'
   import {
     DeleteChallengeRoute,
     GoodChallengeDelete,
@@ -22,6 +21,7 @@
     Spinner,
     Textarea,
   } from '$lib/components'
+  import { IconArrowLeft, IconTrash, IconUpload, IconX } from '$lib/icons'
 
   let { data } = $props()
 

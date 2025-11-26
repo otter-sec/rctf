@@ -1,13 +1,13 @@
 <script lang="ts">
+  import { toast } from '$lib'
+  import type { ClientConfig, UserProfile } from '$lib/api'
+  import { Badge, Button, Card, Separator } from '$lib/components'
   import {
     IconCheckFilled,
     IconCopyPlus,
     IconEye,
     IconEyeClosed,
   } from '$lib/icons'
-  import { toast } from '$lib'
-  import type { ClientConfig, UserProfile } from '$lib/api'
-  import { Badge, Button, Card, Separator } from '$lib/components'
 
   let {
     user,
