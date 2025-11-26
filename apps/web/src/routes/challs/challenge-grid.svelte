@@ -1,16 +1,8 @@
 <script lang="ts">
-  import { IconCheckFilled } from '$lib/icons'
-  import {
-    BadAlreadySolvedChallenge,
-    GoodFlag,
-    SubmitFlagRoute,
-  } from '@rctf/types'
-  import { invalidateAll } from '$app/navigation'
-  import { apiRequest, toast } from '$lib'
   import type { Challenge, Solve } from '$lib/api'
-  import { Badge, Button, Card, Input, Spinner } from '$lib/components'
-  import { marked } from 'marked'
-  import SolvesDialog from './solves-dialog.svelte'
+  import { Resizable } from '$lib/components'
+  import ChallengeList from './challenge-list.svelte'
+  import ChallengeDetail from './challenge-detail.svelte'
 
   let {
     challenges,
@@ -22,195 +14,45 @@
     new Set([...solves.map(s => s.id), ...localSolvedIds])
   )
 
-  let flagInputs = $state<Record<string, string>>({})
-  let submitting = $state<Record<string, boolean>>({})
-  let errors = $state<Record<string, string>>({})
+  let selectedChallenge = $state<Challenge | null>(null)
 
-  const groups = $derived.by(() => {
-    const grouped = new Map<string, Challenge[]>()
-    for (const challenge of challenges) {
-      const category = challenge.category
-      if (!grouped.has(category)) {
-        grouped.set(category, [])
-      }
-      grouped.get(category)!.push(challenge)
-    }
-    for (const challs of grouped.values()) {
-      challs.sort((a, b) => {
-        if (a.solves !== b.solves) {
-          return (b.solves ?? 0) - (a.solves ?? 0)
-        }
-        return (b.sortWeight ?? 0) - (a.sortWeight ?? 0)
-      })
-    }
-    return Array.from(grouped.entries()).sort((a, b) =>
-      a[0].localeCompare(b[0])
-    )
-  })
-
-  const stats = $derived({
-    total: challenges.length,
-    solved: challenges.filter(c => solvedIds.has(c.id)).length,
-  })
-
-  async function handleSubmitFlag(challengeId: string, e: SubmitEvent) {
-    e.preventDefault()
-
-    const flag = flagInputs[challengeId]?.trim()
-    if (!flag) {
-      errors[challengeId] = 'Please enter a flag'
-      return
-    }
-
-    submitting[challengeId] = true
-    errors[challengeId] = ''
-
-    const response = await apiRequest(SubmitFlagRoute, {
-      id: challengeId,
-      flag,
-    })
-
-    submitting[challengeId] = false
-
-    if (response.kind === GoodFlag.kind) {
-      toast.success('Flag correct!')
-      localSolvedIds.add(challengeId)
-      localSolvedIds = new Set(localSolvedIds)
-      flagInputs[challengeId] = ''
-      invalidateAll()
-    } else if (response.kind === BadAlreadySolvedChallenge.kind) {
-      toast.info('You already solved this challenge')
-      localSolvedIds.add(challengeId)
-      localSolvedIds = new Set(localSolvedIds)
-    } else {
-      errors[challengeId] = response.message
-      toast.error(response.message)
-    }
+  function handleSelect(challenge: Challenge) {
+    selectedChallenge = challenge
   }
+
+  function handleSolve(challengeId: string) {
+    localSolvedIds.add(challengeId)
+    localSolvedIds = new Set(localSolvedIds)
+  }
+
+  const selectedIsSolved = $derived(
+    selectedChallenge ? solvedIds.has(selectedChallenge.id) : false
+  )
 </script>
 
-<div class="flex flex-col gap-6">
-  <p class="text-foreground-l3">
-    {stats.solved} / {stats.total} solved
-  </p>
-
-  {#each groups as [category, entries] (category)}
-    {@const categorySolved = entries.filter(c => solvedIds.has(c.id)).length}
-    <section class="flex flex-col gap-4">
-      <header class="flex items-center justify-between border-b pb-2">
-        <h3 class="text-lg font-medium">{category}</h3>
-        <span class="text-foreground-l3 text-sm">
-          {categorySolved}/{entries.length}
-        </span>
-      </header>
-
-      <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {#each entries as challenge (challenge.id)}
-          {@const isSolved = solvedIds.has(challenge.id)}
-          {@const isSubmitting = submitting[challenge.id] ?? false}
-          {@const error = errors[challenge.id]}
-
-          <Card.Root
-            class={isSolved
-              ? 'border-foreground-success/50 bg-background-success'
-              : ''}
-          >
-            <Card.Header class="pb-3">
-              <div class="flex items-start justify-between gap-3">
-                <div class="flex flex-col gap-1">
-                  <Card.Title class="flex items-center gap-2">
-                    {#if isSolved}
-                      <IconCheckFilled
-                        class="size-4 text-foreground-success"
-                        aria-label="Solved"
-                      />
-                    {/if}
-                    {challenge.name}
-                  </Card.Title>
-                  <Card.Description>by {challenge.author}</Card.Description>
-                </div>
-                {#if challenge.points !== null}
-                  <Badge variant="secondary">
-                    {challenge.points.toLocaleString()} pts
-                  </Badge>
-                {/if}
-              </div>
-            </Card.Header>
-
-            <Card.Content class="pb-3">
-              <div class="prose prose-sm dark:prose-invert max-w-none">
-                {@html marked(challenge.description)}
-              </div>
-            </Card.Content>
-
-            <Card.Footer class="flex-col items-stretch gap-3">
-              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
-                {#if challenge.solves !== null}
-                  <SolvesDialog
-                    challengeId={challenge.id}
-                    challengeName={challenge.name}
-                    solveCount={challenge.solves}
-                  />
-                {/if}
-
-                {#if challenge.files.length > 0}
-                  <span class="flex items-center gap-2">
-                    <span class="text-foreground-l3">Files:</span>
-                    {#each challenge.files as file, i}
-                      <a
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="text-foreground-prose-link hover:underline"
-                      >
-                        {file.name}</a
-                      >{#if i < challenge.files.length - 1}<span
-                          class="text-foreground-l3">,</span
-                        >{/if}
-                    {/each}
-                  </span>
-                {/if}
-              </div>
-
-              {#if !isSolved}
-                <form
-                  class="flex gap-2"
-                  onsubmit={e => handleSubmitFlag(challenge.id, e)}
-                >
-                  <Input
-                    type="text"
-                    placeholder={'flag{...}'}
-                    autocomplete="off"
-                    autocorrect="off"
-                    spellcheck="false"
-                    class="flex-1 font-mono"
-                    bind:value={flagInputs[challenge.id]}
-                    disabled={isSubmitting}
-                    aria-invalid={!!error}
-                  />
-                  <Button type="submit" disabled={isSubmitting}>
-                    {#if isSubmitting}
-                      <Spinner class="size-4" />
-                    {/if}
-                    Submit
-                  </Button>
-                </form>
-                {#if error}
-                  <p class="text-sm text-foreground-destructive" role="alert">
-                    {error}
-                  </p>
-                {/if}
-              {:else}
-                <p
-                  class="flex items-center gap-1 text-sm text-foreground-success"
-                >
-                  <IconCheckFilled class="size-4" /> Solved
-                </p>
-              {/if}
-            </Card.Footer>
-          </Card.Root>
-        {/each}
+<div class="h-[calc(100vh-72px)]">
+  <Resizable.PaneGroup direction="horizontal" class="gap-2">
+    <Resizable.Pane defaultSize={40} minSize={25} maxSize={50}>
+      <div class="h-full rounded-r-3xl bg-background-l1">
+        <ChallengeList
+          {challenges}
+          {solvedIds}
+          selectedId={selectedChallenge?.id ?? null}
+          onSelect={handleSelect}
+        />
       </div>
-    </section>
-  {/each}
+    </Resizable.Pane>
+
+    <Resizable.Handle withHandle />
+
+    <Resizable.Pane defaultSize={60} minSize={40}>
+      <div class="h-full rounded-l-3xl bg-background-l1">
+        <ChallengeDetail
+          challenge={selectedChallenge}
+          isSolved={selectedIsSolved}
+          onSolve={handleSolve}
+        />
+      </div>
+    </Resizable.Pane>
+  </Resizable.PaneGroup>
 </div>

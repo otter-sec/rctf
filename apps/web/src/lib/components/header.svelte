@@ -4,7 +4,7 @@
   import { clearToken, type UserProfile } from '$lib/api'
   import { toast } from '$lib'
   import wordmark from '$lib/assets/wordmark.svg'
-  import { Avatar, DropdownMenu, NavButton } from '$lib/components'
+  import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
   import {
     IconBell,
     IconChartBar,
@@ -53,29 +53,44 @@
   }
 </script>
 
-<header class="flex items-center justify-between px-9 py-3">
+<header class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3">
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
       <img src={wordmark} alt="Logo" class="h-8" />
     </a>
 
     <nav class="flex items-center gap-2">
-      <NavButton href="/challs" activePath="/challs">
-        {#snippet icon({ class: className })}
-          <IconSwords class={className} />
-        {/snippet}
-      </NavButton>
-      <NavButton href="/scores" activePath="/scores">
-        {#snippet icon({ class: className })}
-          <IconChartBar class={className} />
-        {/snippet}
-      </NavButton>
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          <NavButton href="/challs" activePath="/challs">
+            {#snippet icon({ class: className })}
+              <IconSwords class={className} />
+            {/snippet}
+          </NavButton>
+        </Tooltip.Trigger>
+        <Tooltip.Content sideOffset={8}>Challenges</Tooltip.Content>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          <NavButton href="/scores" activePath="/scores">
+            {#snippet icon({ class: className })}
+              <IconChartBar class={className} />
+            {/snippet}
+          </NavButton>
+        </Tooltip.Trigger>
+        <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
+      </Tooltip.Root>
       {#if isAdmin}
-        <NavButton href="/admin/challs" activePath="/admin">
-          {#snippet icon({ class: className })}
-            <IconHammer class={className} />
-          {/snippet}
-        </NavButton>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            <NavButton href="/admin/challs" activePath="/admin">
+              {#snippet icon({ class: className })}
+                <IconHammer class={className} />
+              {/snippet}
+            </NavButton>
+          </Tooltip.Trigger>
+          <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
+        </Tooltip.Root>
       {/if}
     </nav>
   </div>
@@ -124,11 +139,16 @@
         </DropdownMenu.Content>
       </DropdownMenu.Root>
 
-      <NavButton href="#">
-        {#snippet icon({ class: className })}
-          <IconBell class={className} />
-        {/snippet}
-      </NavButton>
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          <NavButton href="#">
+            {#snippet icon({ class: className })}
+              <IconBell class={className} />
+            {/snippet}
+          </NavButton>
+        </Tooltip.Trigger>
+        <Tooltip.Content sideOffset={8}>Notifications</Tooltip.Content>
+      </Tooltip.Root>
     {:else}
       <a
         href="/login"

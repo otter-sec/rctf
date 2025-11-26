@@ -34,3 +34,6 @@ export { default as IconSun } from '@iconify-svelte/tabler/sun-high-filled'
 
 export { default as IconLibraryPlus } from '@iconify-svelte/tabler/library-plus-filled'
 export { default as IconLoader } from '@iconify-svelte/tabler/loader'
+export { default as IconGripVertical } from '@iconify-svelte/tabler/grip-vertical'
+export { default as IconSearch } from '@iconify-svelte/tabler/search'
+export { default as IconFold } from '@iconify-svelte/tabler/fold'

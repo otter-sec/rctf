@@ -1,10 +1,9 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte'
   import { CtftimeCallbackRoute, GoodCtftimeToken } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
-  import { onDestroy, onMount } from 'svelte'
-  import { Button } from './ui/button'
-  import { Spinner } from './ui/spinner'
+  import { Button, Spinner } from '$lib/components'
 
   interface Props {
     clientId: string
