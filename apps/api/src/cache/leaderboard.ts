@@ -92,18 +92,22 @@ const cacheGraph = async (
   redis: TypedRedis,
   data: CalculatedLeaderboard
 ): Promise<void> => {
-  const latest = data.samples[data.samples.length - 1]!
-  const lastSample = latest.time
+  if (data.samples.length === 0) {
+    return
+  }
+
+  const lastSample = data.samples[data.samples.length - 1]!.time
   const userPoints = new Map<string, string[]>()
 
-  for (const { id, score } of latest.userScores) {
-    let arr = userPoints.get(id)
-    if (!arr) {
-      arr = []
-      userPoints.set(id, arr)
+  for (const sample of data.samples) {
+    for (const { id, score } of sample.userScores) {
+      let arr = userPoints.get(id)
+      if (!arr) {
+        arr = []
+        userPoints.set(id, arr)
+      }
+      arr.push(sample.time.toString(), score.toString())
     }
-
-    arr.push(lastSample.toString(), score.toString())
   }
 
   const ids = Array.from(userPoints.keys())

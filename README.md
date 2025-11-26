@@ -119,8 +119,9 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ### Other Tasks
 
-- [ ] Run migrations programatically
+- [ ] Run migrations programatically depending on the config value instead of just running in dockerfile entry
 - [ ] Go through all config vars and check that all of them are used
+- [ ] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
 
 ## New features compared to v1
 

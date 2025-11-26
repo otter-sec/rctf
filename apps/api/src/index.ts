@@ -17,7 +17,9 @@ const app = new Hono<AppEnv>()
 const pinoObject = pino({
   level: 'trace',
 })
-app.use(compress())
+if (process.env.NODE_ENV === 'production') {
+  app.use(compress())
+}
 app.use(
   pinoLogger({
     pino: pinoObject,

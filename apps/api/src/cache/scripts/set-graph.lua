@@ -26,6 +26,7 @@ local users = cjson.decode(ARGV[2])
 for i = 1, #users do
   local key = KEYS[i + 1]
   local args = users[i]
+  redis.call('DEL', key)
   if #args > 0 then
     chunkCall('HSET', key, args)
   end

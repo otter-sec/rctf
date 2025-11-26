@@ -11,4 +11,12 @@ export default defineConfig({
     }) as PluginOption,
     sveltekit(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
+    },
+  },
 })

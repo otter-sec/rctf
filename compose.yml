@@ -11,7 +11,7 @@ services:
       - .env
     volumes:
       - ./rctf.d:/app/rctf.d
-      - ./data/uploads:/app/uploads
+      - ./.data/uploads:/app/uploads
     depends_on:
       redis:
         condition: service_healthy
@@ -28,6 +28,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     volumes:
       - ./.data/redis:/data
   postgres:
@@ -44,6 +45,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
     volumes:
       - ./.data/postgres:/var/lib/postgresql/
 

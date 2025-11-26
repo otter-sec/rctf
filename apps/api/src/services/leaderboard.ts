@@ -151,8 +151,8 @@ export const calculateLeaderboard = async (
   }
 
   const samples: CalculatedLeaderboard['samples'] = []
-  const runSample = (t: number): boolean => {
-    const result = applySolvesUntil(t)
+  const runSample = (t: number): void => {
+    applySolvesUntil(t)
     samples.push({
       time: t,
       userScores: Array.from(userInfos.entries()).map(([id, u]) => ({
@@ -160,26 +160,40 @@ export const calculateLeaderboard = async (
         score: u.score,
       })),
     })
-    return result || !samples.length
   }
 
-  // Run samples
   const graphSampleTime = config.leaderboard.graphSampleTime
-  if (graphSampleTime > 0) {
-    const start =
-      Math.ceil(config.startTime / graphSampleTime) * graphSampleTime
-    const end = Math.floor(config.endTime / graphSampleTime) * graphSampleTime
+  if (graphSampleTime > 0 && dbSolves.length > 0) {
+    const firstSolveTime = new Date(dbSolves[0]!.createdat).valueOf()
+    const effectiveStart = Math.max(config.startTime, firstSolveTime)
 
-    for (let i = start; i <= end && i <= now; i += graphSampleTime) {
-      // Stop once there are no more changes
-      if (!runSample(i) && solveIndex >= dbSolves.length) {
+    const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
+    const end = Math.min(
+      Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
+      now
+    )
+
+    for (let i = start; i <= end; i += graphSampleTime) {
+      runSample(i)
+
+      if (solveIndex >= dbSolves.length) {
         break
       }
     }
   }
 
-  // Recompute scores up to now even if they're outside of the sample range
+  // Run up to now, but dedupe if scores haven't changed since last sample
   runSample(now)
+  if (samples.length > 1) {
+    const last = samples[samples.length - 1]!
+    const prev = samples[samples.length - 2]!
+    const isDuplicate = last.userScores.every(
+      (s, i) => s.score === prev.userScores[i]?.score
+    )
+    if (isDuplicate) {
+      samples.pop()
+    }
+  }
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     // 1. Score difference
