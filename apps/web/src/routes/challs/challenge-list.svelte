@@ -13,11 +13,13 @@
   type Props = {
     challenges: Challenge[]
     solvedIds: Set<string>
+    firstBloodIds: Set<string>
     selectedId: string | null
     onSelect: (challenge: Challenge) => void
   }
 
-  let { challenges, solvedIds, selectedId, onSelect }: Props = $props()
+  let { challenges, solvedIds, firstBloodIds, selectedId, onSelect }: Props =
+    $props()
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
@@ -90,6 +92,12 @@
       hasInitialized = true
     }
   })
+
+  $effect(() => {
+    if (searchQuery.trim() && groups.length > 0) {
+      openCategories = groups.map(([cat]) => cat)
+    }
+  })
 </script>
 
 <div class="flex h-full flex-col overflow-hidden">
@@ -156,6 +164,7 @@
                     {challenge}
                     {category}
                     isSolved={solvedIds.has(challenge.id)}
+                    isFirstBlood={firstBloodIds.has(challenge.id)}
                     isSelected={selectedId === challenge.id}
                     onSelect={() => onSelect(challenge)}
                   />

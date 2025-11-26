@@ -7,11 +7,19 @@
     challenge: Challenge
     category: string
     isSolved: boolean
+    isFirstBlood: boolean
     isSelected: boolean
     onSelect: () => void
   }
 
-  let { challenge, category, isSolved, isSelected, onSelect }: Props = $props()
+  let {
+    challenge,
+    category,
+    isSolved,
+    isFirstBlood,
+    isSelected,
+    onSelect,
+  }: Props = $props()
 </script>
 
 <li>
@@ -21,12 +29,20 @@
     class={cn(
       'relative flex w-full items-center justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover gap-1',
       isSolved &&
-        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-success/20 before:to-transparent',
+        !isFirstBlood &&
+        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-success/10 before:to-transparent',
+      isFirstBlood &&
+        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-foreground-first-l0/10 before:to-transparent',
       isSelected &&
         'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
     )}
   >
-    {#if isSolved}
+    {#if isFirstBlood}
+      <Icon
+        icon="tabler:award-filled"
+        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-first-l0"
+      />
+    {:else if isSolved}
       <Icon
         icon="tabler:check"
         class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
@@ -52,7 +68,8 @@
         <span
           class="text-base tabular-nums text-category-foreground-l1 opacity-75"
         >
-          {challenge.solves} solves
+          {challenge.solves}
+          {challenge.solves === 1 ? 'solve' : 'solves'}
         </span>
       {/if}
     </div>

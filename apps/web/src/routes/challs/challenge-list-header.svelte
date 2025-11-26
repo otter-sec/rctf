@@ -62,7 +62,7 @@
         />
         <Icon icon="tabler:search" class="size-5 shrink-0 text-foreground-l3" />
       </div>
-      <Tooltip.Root>
+      <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={onToggleHideSolved}
           aria-label={hideSolved
@@ -85,7 +85,7 @@
           {hideSolved ? 'Show solved' : 'Hide solved'}
         </Tooltip.Content>
       </Tooltip.Root>
-      <Tooltip.Root>
+      <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={onCollapseAll}
           aria-label="Collapse all"

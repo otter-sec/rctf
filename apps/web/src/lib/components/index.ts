@@ -11,6 +11,7 @@ import * as Pagination from './ui/pagination'
 import * as Resizable from './ui/resizable'
 import * as Select from './ui/select'
 import * as Table from './ui/table'
+import * as Tabs from './ui/tabs'
 import * as Tooltip from './ui/tooltip'
 
 export { default as CtftimeButton } from './ctftime-button.svelte'
@@ -51,6 +52,7 @@ export {
   Resizable,
   Select,
   Table,
+  Tabs,
   Tooltip,
 }
 

@@ -4,48 +4,64 @@
   import type { LeaderboardEntry } from '$lib/api'
   import { Pagination, Spinner, Table } from '$lib/components'
 
-  const PAGE_SIZE = 100
+  type Props = {
+    initialEntries: LeaderboardEntry[]
+    total: number
+    pageSize: number
+  }
 
-  let {
-    entries: initialEntries,
-    total,
-  }: { entries: LeaderboardEntry[]; total: number } = $props()
+  let { initialEntries, total, pageSize }: Props = $props()
 
   let entries = $state(initialEntries)
   let page = $state(1)
   let loading = $state(false)
+  let pendingPage = $state<number | null>(null)
 
-  const totalPages = $derived(Math.ceil(total / PAGE_SIZE))
+  const totalPages = $derived(Math.ceil(total / pageSize))
 
   async function fetchPage(pageNum: number) {
     loading = true
+    pendingPage = pageNum
+
     const response = await apiRequest(GetLeaderboardRoute, {
-      limit: PAGE_SIZE,
-      offset: (pageNum - 1) * PAGE_SIZE,
+      limit: pageSize,
+      offset: (pageNum - 1) * pageSize,
       division: 'open',
     })
 
     if (response.kind === GoodLeaderboard.kind) {
       entries = response.data.leaderboard
+      page = pageNum
     } else {
       toast.error(response.message)
     }
+
+    pendingPage = null
     loading = false
+  }
+
+  function handlePageChange(newPage: number) {
+    if (newPage === page || loading) return
+    fetchPage(newPage)
   }
 </script>
 
 <div class="flex flex-col gap-4">
   <p class="text-foreground-l3 text-sm">
-    Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
-    teams
+    Showing {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, total)}
+    of {total} teams
   </p>
 
-  {#if loading}
-    <div class="flex items-center justify-center py-8">
-      <Spinner class="size-6" />
-    </div>
-  {:else}
-    <Table.Root>
+  <div class="relative">
+    {#if loading}
+      <div
+        class="absolute inset-0 flex items-center justify-center bg-background/60 z-10"
+      >
+        <Spinner class="size-6" />
+      </div>
+    {/if}
+
+    <Table.Root class={loading ? 'opacity-50' : ''}>
       <Table.Header>
         <Table.Row>
           <Table.Head class="w-16">Rank</Table.Head>
@@ -57,7 +73,7 @@
         {#each entries as entry, index (entry.id)}
           <Table.Row>
             <Table.Cell class="text-foreground-l3 tabular-nums">
-              #{(page - 1) * PAGE_SIZE + index + 1}
+              #{(page - 1) * pageSize + index + 1}
             </Table.Cell>
             <Table.Cell class="font-medium wrap-anywhere">
               <a href="/profile/{entry.id}" class="hover:underline">
@@ -71,19 +87,19 @@
         {/each}
       </Table.Body>
     </Table.Root>
-  {/if}
+  </div>
 
   {#if totalPages > 1}
     <Pagination.Root
       count={total}
-      perPage={PAGE_SIZE}
-      bind:page
-      onPageChange={p => fetchPage(p)}
+      perPage={pageSize}
+      page={pendingPage ?? page}
+      onPageChange={handlePageChange}
     >
       {#snippet children({ pages, currentPage })}
         <Pagination.Content>
           <Pagination.Item>
-            <Pagination.PrevButton />
+            <Pagination.PrevButton disabled={loading} />
           </Pagination.Item>
           {#each pages as p (p.key)}
             {#if p.type === 'ellipsis'}
@@ -92,14 +108,16 @@
               </Pagination.Item>
             {:else}
               <Pagination.Item>
-                <Pagination.Link page={p} isActive={currentPage === p.value}>
-                  {p.value}
-                </Pagination.Link>
+                <Pagination.Link
+                  page={p}
+                  isActive={currentPage === p.value}
+                  disabled={loading}
+                />
               </Pagination.Item>
             {/if}
           {/each}
           <Pagination.Item>
-            <Pagination.NextButton />
+            <Pagination.NextButton disabled={loading} />
           </Pagination.Item>
         </Pagination.Content>
       {/snippet}

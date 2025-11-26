@@ -82,7 +82,7 @@
 
   <div
     class={cn(
-      'pointer-events-none absolute inset-x-0 top-0 transition-opacity duration-200',
+      'pointer-events-none absolute inset-x-0 top-0',
       showTopFade ? 'opacity-100' : 'opacity-0'
     )}
     style={topFadeStyle}
@@ -91,7 +91,7 @@
 
   <div
     class={cn(
-      'pointer-events-none absolute inset-x-0 bottom-0 transition-opacity duration-200',
+      'pointer-events-none absolute inset-x-0 bottom-0',
       showBottomFade ? 'opacity-100' : 'opacity-0'
     )}
     style={bottomFadeStyle}

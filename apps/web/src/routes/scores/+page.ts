@@ -9,10 +9,12 @@ import type { PageLoad } from './$types'
 
 export const ssr = false
 
+const PAGE_SIZE = 100
+
 export const load: PageLoad = async () => {
   const [leaderboardResponse, graphResponse] = await Promise.all([
     apiRequest(GetLeaderboardRoute, {
-      limit: 100,
+      limit: PAGE_SIZE,
       offset: 0,
       division: 'open',
     }),
@@ -38,5 +40,6 @@ export const load: PageLoad = async () => {
   return {
     leaderboard: leaderboardResponse.data,
     graph,
+    pageSize: PAGE_SIZE,
   }
 }

@@ -26,8 +26,9 @@
     <Card.Content>
       {#if data.leaderboard}
         <LeaderboardTable
-          entries={data.leaderboard.leaderboard}
+          initialEntries={data.leaderboard.leaderboard}
           total={data.leaderboard.total}
+          pageSize={data.pageSize}
         />
       {:else if data.error}
         <div
