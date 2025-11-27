@@ -8,8 +8,8 @@
     GoodMemberDelete,
   } from '@rctf/types'
   import { apiRequest, toast } from '$lib'
-  import { IconTrashFilled, IconUsersPlus } from '$lib/icons'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { IconTrashFilled, IconUsersPlus } from '$lib/icons'
   import { onMount } from 'svelte'
 
   type Member = {

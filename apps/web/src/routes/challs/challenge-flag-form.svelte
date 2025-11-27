@@ -5,10 +5,10 @@
     SubmitFlagRoute,
   } from '@rctf/types'
   import { invalidateAll } from '$app/navigation'
-  import { IconCircleCheckFilled } from '$lib/icons'
   import { apiRequest, toast } from '$lib'
   import type { Challenge } from '$lib/api'
-  import { Button, Input, Spinner } from '$lib/components'
+  import { Spinner } from '$lib/components'
+  import { IconCheck, IconSend } from '$lib/icons'
 
   type Props = {
     challenge: Challenge
@@ -56,38 +56,43 @@
   }
 </script>
 
-<div class="px-6 py-4">
-  {#if isSolved}
-    <div class="flex items-center gap-2 text-foreground-success">
-      <IconCircleCheckFilled class="size-5" />
-      <span class="font-medium">Challenge solved!</span>
-    </div>
-  {:else}
-    <form class="flex flex-col gap-3" onsubmit={handleSubmitFlag}>
-      <div class="flex gap-2">
-        <Input
-          type="text"
-          placeholder={'flag{...}'}
-          autocomplete="off"
-          autocorrect="off"
-          spellcheck="false"
-          class="flex-1 font-mono"
-          bind:value={flagInput}
-          disabled={submitting}
-          aria-invalid={!!error}
-        />
-        <Button type="submit" disabled={submitting}>
-          {#if submitting}
-            <Spinner class="size-4" />
-          {/if}
-          Submit
-        </Button>
+<form class="flex flex-col gap-2" onsubmit={handleSubmitFlag}>
+  <div class="flex h-12 gap-2">
+    {#if isSolved}
+      <div
+        class="flex h-full flex-1 items-center gap-3 rounded-lg bg-background-success px-3 text-foreground-success"
+      >
+        <IconCheck class="size-6" />
+        <span class="text-xl">Challenge solved!</span>
       </div>
-      {#if error}
-        <p class="text-sm text-foreground-destructive" role="alert">
-          {error}
-        </p>
+    {:else}
+      <input
+        type="text"
+        placeholder={'flag{...}'}
+        autocomplete="off"
+        autocorrect="off"
+        spellcheck="false"
+        class="h-full flex-1 rounded-lg bg-background-l4 px-3 py-3.5 font-mono text-xl text-foreground-l3 placeholder:text-foreground-l3 outline-none"
+        bind:value={flagInput}
+        disabled={submitting}
+        aria-invalid={!!error || undefined}
+      />
+    {/if}
+    <button
+      type="submit"
+      disabled={submitting || isSolved}
+      class="flex h-full items-center justify-center rounded-lg bg-background-accent px-4 py-3 text-foreground-accent hover:bg-background-accent/90 disabled:opacity-50"
+    >
+      {#if submitting}
+        <Spinner class="size-6" />
+      {:else}
+        <IconSend class="size-6" />
       {/if}
-    </form>
+    </button>
+  </div>
+  {#if error}
+    <p class="text-sm text-foreground-destructive" role="alert">
+      {error}
+    </p>
   {/if}
-</div>
+</form>

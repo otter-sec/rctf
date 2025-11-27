@@ -1,5 +1,4 @@
 import {
-  type IconComponent,
   IconBinaryTreeFilled,
   IconBombFilled,
   IconCloudComputingFilled,
@@ -10,6 +9,7 @@ import {
   IconKeyFilled,
   IconMicroscopeFilled,
   IconPuzzleFilled,
+  type IconComponent,
 } from '$lib/icons'
 
 export type CategoryConfig = {

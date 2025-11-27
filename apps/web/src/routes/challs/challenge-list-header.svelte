@@ -1,6 +1,11 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
-  import { IconEyeClosed, IconEyeFilled, IconFold, IconSearch } from '$lib/icons'
+  import {
+    IconEyeClosed,
+    IconEyeFilled,
+    IconFold,
+    IconSearch,
+  } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   type Props = {

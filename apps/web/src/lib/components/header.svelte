@@ -1,6 +1,10 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
+  import { toast } from '$lib'
+  import { clearToken, type UserProfile } from '$lib/api'
+  import wordmark from '$lib/assets/wordmark.svg'
+  import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
   import {
     IconBell,
     IconChartBar,
@@ -11,10 +15,6 @@
     IconSwords,
     IconUserCog,
   } from '$lib/icons'
-  import { toast } from '$lib'
-  import { clearToken, type UserProfile } from '$lib/api'
-  import wordmark from '$lib/assets/wordmark.svg'
-  import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
 
   type Props = {
     user: UserProfile | null

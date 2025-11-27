@@ -1,12 +1,12 @@
 <script lang="ts">
   import type { Challenge } from '$lib/api'
-  import { IconZoomQuestionFilled } from '$lib/icons'
   import {
     getCategoryConfig,
     getCategoryOrder,
     getCategoryStyle,
   } from '$lib/categories'
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
+  import { IconZoomQuestionFilled } from '$lib/icons'
   import ChallengeListHeader from './challenge-list-header.svelte'
   import ChallengeListItem from './challenge-list-item.svelte'
 
@@ -36,7 +36,8 @@
       filtered = filtered.filter(
         c =>
           c.name.toLowerCase().includes(query) ||
-          c.category.toLowerCase().includes(query)
+          c.category.toLowerCase().includes(query) ||
+          c.author.toLowerCase().includes(query)
       )
     }
     return filtered

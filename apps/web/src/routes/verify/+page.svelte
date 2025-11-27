@@ -6,10 +6,10 @@
     VerifyRoute,
   } from '@rctf/types'
   import { goto, invalidateAll } from '$app/navigation'
-  import { IconCircleCheckFilled, IconX } from '$lib/icons'
   import { page } from '$app/state'
   import { apiRequest, setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
+  import { IconCircleCheckFilled, IconX } from '$lib/icons'
 
   let { data } = $props()
 

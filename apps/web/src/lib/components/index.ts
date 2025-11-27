@@ -16,6 +16,8 @@ import * as Tooltip from './ui/tooltip'
 
 export { default as CtftimeButton } from './ctftime-button.svelte'
 export { default as Header } from './header.svelte'
+export { default as Markdown } from './markdown.svelte'
+export { default as MarkdownAlert } from './markdown-alert.svelte'
 export { default as NavButton } from './nav-button.svelte'
 export { default as NavLink } from './nav-link.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'

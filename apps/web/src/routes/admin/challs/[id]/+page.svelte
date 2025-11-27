@@ -9,12 +9,6 @@
     UploadFilesRoute,
   } from '@rctf/types'
   import { goto } from '$app/navigation'
-  import {
-    IconArrowBigLeftFilled,
-    IconFileUploadFilled,
-    IconTrashFilled,
-    IconX,
-  } from '$lib/icons'
   import { apiRequest, toast, type AdminChallengeDetail } from '$lib'
   import {
     Badge,
@@ -27,6 +21,12 @@
     Spinner,
     Textarea,
   } from '$lib/components'
+  import {
+    IconArrowBigLeftFilled,
+    IconFileUploadFilled,
+    IconTrashFilled,
+    IconX,
+  } from '$lib/icons'
 
   let { data } = $props()
 
