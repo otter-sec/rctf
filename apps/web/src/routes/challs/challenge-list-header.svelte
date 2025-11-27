@@ -35,7 +35,7 @@
 
 <div class="flex shrink-0 flex-col gap-2 py-2">
   <div class="flex items-baseline justify-between px-9">
-    <div class="flex items-baseline gap-1">
+    <div class="flex items-baseline gap-1 whitespace-nowrap">
       <span class="text-foreground-l3 text-base tabular-nums">
         {pointsEarned.toLocaleString()}
       </span>
@@ -43,7 +43,7 @@
         / {pointsTotal.toLocaleString()} pts
       </span>
     </div>
-    <div class="flex items-baseline gap-1">
+    <div class="flex items-baseline gap-1 whitespace-nowrap">
       <span class="text-foreground-l3 text-base tabular-nums">
         {solved}
       </span>
@@ -56,7 +56,7 @@
   <div class="px-5">
     <div class="flex gap-1 overflow-hidden rounded-full">
       <div
-        class="rounded-r-sm flex flex-1 items-center justify-between bg-background-l3 px-4 py-2"
+        class="rounded-r-sm flex flex-1 items-center justify-between bg-background-l2 px-4 py-2"
       >
         <input
           type="text"
@@ -65,7 +65,7 @@
           value={searchQuery}
           oninput={e => onSearchChange(e.currentTarget.value)}
         />
-        <IconSearch class="size-5 shrink-0 text-foreground-l3" />
+        <IconSearch class="size-5 shrink-0 text-foreground-l2" />
       </div>
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
@@ -76,8 +76,8 @@
           class={cn(
             'rounded-sm px-4 py-2',
             hideSolved
-              ? 'bg-background-accent text-foreground-accent hover:opacity-80'
-              : 'bg-background-l3 text-foreground-l3 hover:bg-background-l4 hover:text-foreground-l1'
+              ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
+              : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
           )}
         >
           {#if hideSolved}
@@ -94,7 +94,7 @@
         <Tooltip.Trigger
           onclick={onCollapseAll}
           aria-label="Collapse all"
-          class="rounded-l-sm bg-background-l3 px-4 py-2 text-foreground-l3 hover:bg-background-l4 hover:text-foreground-l1"
+          class="rounded-l-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
         >
           <IconFold class="size-5" />
         </Tooltip.Trigger>

@@ -51,7 +51,7 @@
 
 <div class="h-[calc(100vh-72px)]">
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
-    <Resizable.Pane defaultSize={40} minSize={25} maxSize={50}>
+    <Resizable.Pane defaultSize={40} minSize={20} maxSize={50}>
       <div class="h-full rounded-r-3xl bg-background-l1">
         <ChallengeList
           {challenges}

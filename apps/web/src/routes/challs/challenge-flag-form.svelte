@@ -81,7 +81,7 @@
     <button
       type="submit"
       disabled={submitting || isSolved}
-      class="flex h-full items-center justify-center rounded-lg bg-background-accent px-4 py-3 text-foreground-accent hover:bg-background-accent/90 disabled:opacity-50"
+      class="flex h-full items-center justify-center rounded-lg bg-background-l4 px-4 py-3 text-foreground-l4 hover:bg-background-l5 disabled:opacity-50"
     >
       {#if submitting}
         <Spinner class="size-6" />

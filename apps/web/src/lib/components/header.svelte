@@ -3,8 +3,15 @@
   import { goto, invalidateAll } from '$app/navigation'
   import { toast } from '$lib'
   import { clearToken, type UserProfile } from '$lib/api'
-  import wordmark from '$lib/assets/wordmark.svg'
-  import { Avatar, DropdownMenu, NavButton, Tooltip } from '$lib/components'
+  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import {
+    Avatar,
+    DropdownMenu,
+    NavButton,
+    ThemeToggle,
+    Tooltip,
+  } from '$lib/components'
   import {
     IconBell,
     IconChartBar,
@@ -58,7 +65,8 @@
 >
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
-      <img src={wordmark} alt="Logo" class="h-8" />
+      <img src={wordmarkLight} alt="Logo" class="h-8 block dark:hidden" />
+      <img src={wordmarkDark} alt="Logo" class="h-8 hidden dark:block" />
     </a>
 
     <nav class="flex items-center gap-2">
@@ -97,7 +105,7 @@
     </nav>
   </div>
 
-  <div class="flex items-center gap-4">
+  <div class="flex items-center gap-2">
     {#if user}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
@@ -151,6 +159,8 @@
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Notifications</Tooltip.Content>
       </Tooltip.Root>
+
+      <ThemeToggle />
     {:else}
       <a
         href="/login"

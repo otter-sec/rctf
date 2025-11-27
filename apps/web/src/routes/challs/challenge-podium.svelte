@@ -23,6 +23,7 @@
   }
 
   let topSolves = $state<Solve[]>([])
+  let loaded = $state(false)
 
   const currentUser = $derived(page.data.user)
   const currentUserSolve = $derived(
@@ -101,7 +102,10 @@
   }
 
   async function fetchSolves() {
-    if (!challenge.solves) return
+    if (!challenge.solves) {
+      loaded = true
+      return
+    }
 
     const response = await apiRequest(GetChallengeSolvesRoute, {
       id: challenge.id,
@@ -112,6 +116,7 @@
     if (response.kind === GoodChallengeSolves.kind) {
       topSolves = response.data.solves
     }
+    loaded = true
   }
 
   onMount(() => {
@@ -124,7 +129,7 @@
     {#each placementStyles as style, index}
       {@const isUserSlot = index === 3}
       {@const solve = isUserSlot ? null : topSolves[index]}
-      {@const showUserSolve = isUserSlot && isSolved && currentUserSolve}
+      {@const showUserSolve = isUserSlot && isSolved && currentUserSolve && loaded}
       {@const hasContent = solve || showUserSolve}
       {@const showEmpty = !hasContent}
       <div
@@ -155,7 +160,7 @@
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
-              <Avatar.Fallback class={cn('rounded-md', style.bg, style.fgL0)}>
+              <Avatar.Fallback class="rounded-md">
                 {getInitials(solve.userName)}
               </Avatar.Fallback>
             </Avatar.Root>
@@ -175,7 +180,7 @@
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
-              <Avatar.Fallback class={cn('rounded-md', style.bg, style.fgL0)}>
+              <Avatar.Fallback class="rounded-md">
                 {getInitials(currentUser.name)}
               </Avatar.Fallback>
             </Avatar.Root>

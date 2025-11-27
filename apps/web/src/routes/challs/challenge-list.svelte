@@ -136,7 +136,7 @@
             >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums"
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
                 >
                   <span class="text-category-foreground-l0"
                     >{categorySolved}</span
@@ -156,7 +156,7 @@
               </div>
             </Accordion.Trigger>
             <Accordion.Content class="pb-0 bg-category-background-l1">
-              <ul class="flex flex-col">
+              <ul class="@container flex flex-col">
                 {#each entries as challenge (challenge.id)}
                   <ChallengeListItem
                     {challenge}

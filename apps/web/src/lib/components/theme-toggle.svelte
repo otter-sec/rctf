@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { Button } from '$lib/components'
+  import { Tooltip } from '$lib/components'
   import { IconMoonFilled, IconSunHighFilled } from '$lib/icons'
   import { onMount } from 'svelte'
 
-  let theme = $state<'light' | 'dark'>('light')
+  let theme = $state<'light' | 'dark'>('dark')
 
   onMount(() => {
     const stored = localStorage.getItem('theme')
@@ -46,15 +46,21 @@
   </script>`}
 </svelte:head>
 
-<Button
-  variant="ghost"
-  size="icon-sm"
-  onclick={toggle}
-  aria-label="Toggle theme"
->
-  {#if theme === 'dark'}
-    <IconSunHighFilled class="size-4" />
-  {:else}
-    <IconMoonFilled class="size-4" />
-  {/if}
-</Button>
+<Tooltip.Root disableCloseOnTriggerClick>
+  <Tooltip.Trigger>
+    <button
+      onclick={toggle}
+      aria-label="Toggle theme"
+      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l4"
+    >
+      {#if theme === 'dark'}
+        <IconSunHighFilled class="size-6 text-foreground-l4" />
+      {:else}
+        <IconMoonFilled class="size-6 text-foreground-l4" />
+      {/if}
+    </button>
+  </Tooltip.Trigger>
+  <Tooltip.Content sideOffset={8}>
+    {theme === 'dark' ? 'Light mode' : 'Dark mode'}
+  </Tooltip.Content>
+</Tooltip.Root>
