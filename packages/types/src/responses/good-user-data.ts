@@ -15,7 +15,7 @@ export const GoodUserData = response('goodUserData', {
   message: 'The user data was successfully retrieved.',
   data: z.object({
     name: z.string(),
-    ctftimeId: z.string().nullable().optional(),
+    ctftimeId: z.string().nullable(),
     division: z.string(),
     score: z.number().int(),
     globalPlace: z.number().int().nullable(),

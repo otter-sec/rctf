@@ -17,9 +17,9 @@ export const GoodChallenges = response('goodChallenges', {
           url: z.string(),
         })
       ),
-      points: z.number().int().nullable(),
-      solves: z.number().int().nullable(),
-      sortWeight: z.number().nullable().optional(),
+      points: z.number().int(),
+      solves: z.number().int(),
+      sortWeight: z.number().nullable(),
     })
   ),
 })

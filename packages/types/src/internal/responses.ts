@@ -27,11 +27,16 @@ export function response<
   options: ResponseOptions<TDataSchema>
 ): ResponseDefinition<TKind, TDataSchema> {
   const dataSchema = options.data
-  const schema = z.object({
-    kind: z.literal(kind),
-    message: z.literal(options.message),
-    data: (dataSchema ?? z.null()) as z.ZodTypeAny,
-  })
+  const schema = dataSchema
+    ? z.object({
+        kind: z.literal(kind),
+        message: z.literal(options.message),
+        data: dataSchema,
+      })
+    : z.object({
+        kind: z.literal(kind),
+        message: z.literal(options.message),
+      })
 
   return {
     kind,
@@ -71,17 +76,22 @@ type ResponseDataShape<
   TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
 > = TDefinition['dataSchema'] extends z.ZodTypeAny
   ? z.output<NonNullable<TDefinition['dataSchema']>>
-  : null
+  : never
 
 export type ResponseBody<
   TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
 > =
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>
-    ? {
-        kind: TDefinition['kind']
-        message: TDefinition['message']
-        data: ResponseDataShape<TDefinition>
-      }
+  TDefinition extends ResponseDefinition<string, infer TData>
+    ? TData extends z.ZodTypeAny
+      ? {
+          kind: TDefinition['kind']
+          message: TDefinition['message']
+          data: z.output<TData>
+        }
+      : {
+          kind: TDefinition['kind']
+          message: TDefinition['message']
+        }
     : never
 
 export type ResponseData<T extends ResponseDefinition<string, z.ZodTypeAny>> =

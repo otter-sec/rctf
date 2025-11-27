@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
 import { emailProviders } from './emails'
+import { scoreProviders } from './scores'
 import { uploadProviders } from './uploads'
 
 const loadProvider = <Base>(
@@ -14,7 +15,7 @@ const loadProvider = <Base>(
   const provider = providers[providerConfig.name]
   if (!provider) {
     throw new Error(
-      `Unsupported email provider: ${
+      `Unsupported provider: ${
         providerConfig.name
       }. Available: ${Object.keys(providers).join(', ')}`
     )
@@ -32,3 +33,5 @@ export const uploadProvider = loadProvider(
   uploadProviders,
   config.uploadProvider
 )!
+
+export const scoreProvider = loadProvider(scoreProviders, config.scoreProvider)!

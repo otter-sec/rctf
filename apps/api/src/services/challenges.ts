@@ -72,7 +72,7 @@ export const upsertChallenge = async (
     points: partial.points ?? current?.data.points ?? { min: 0, max: 0 },
     flag: partial.flag ?? current?.data.flag ?? '',
     tiebreakEligible:
-      partial.tiebreakEligible ?? current?.data.tiebreakEligible ?? false,
+      partial.tiebreakEligible ?? current?.data.tiebreakEligible ?? true,
     sortWeight: partial.sortWeight ?? current?.data.sortWeight ?? undefined,
   }
 

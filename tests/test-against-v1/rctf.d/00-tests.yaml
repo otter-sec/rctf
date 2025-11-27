@@ -1,0 +1,31 @@
+ctfName: rCTF Development
+meta:
+  description: 'Example rCTF instance'
+  imageUrl: 'https://example.com'
+homeContent: 'A description of your CTF. Markdown supported.'
+
+origin: http://127.0.0.1:8080
+divisions:
+  open: Open
+tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+startTime: 0
+# startTime: 1763362669574
+endTime: 99999999999999
+
+leaderboard:
+  updateInterval: 1000
+
+scoreProvider:
+  # use v1 scoring
+  name: scores/legacy
+
+database:
+  sql:
+    host: postgres
+    user: rctf
+    password: rctf
+    database: rctf
+  redis:
+    host: redis
+    password: rctf
+  migrate: before

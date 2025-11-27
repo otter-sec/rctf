@@ -34,6 +34,7 @@ export interface RouteDefinition<
     | Permissions
     | undefined,
   TOnlyWhenNotFinished extends boolean = boolean,
+  TReturnBodyAsIs extends boolean = boolean,
 > {
   readonly method: TMethod
   readonly path: string
@@ -46,6 +47,7 @@ export interface RouteDefinition<
   readonly onlyWhenStarted: TOnlyWhenStarted
   readonly onlyWhenStartedPermissionsBypass: TOnlyWhenStartedPermissionsBypass
   readonly onlyWhenNotFinished: TOnlyWhenNotFinished
+  readonly returnBodyAsIs: TReturnBodyAsIs
 }
 
 type RouteConfig = {
@@ -60,6 +62,7 @@ type RouteConfig = {
   onlyWhenStarted?: boolean
   onlyWhenStartedPermissionsBypass?: Permissions
   onlyWhenNotFinished?: boolean
+  returnBodyAsIs?: boolean
 }
 
 type NormalizedAuthRequired<TDefinition extends RouteConfig> =
@@ -88,6 +91,11 @@ type NormalizedOnlyWhenStartedPermissionsBypass<
   ? TDefinition['onlyWhenStartedPermissionsBypass']
   : undefined
 
+type ReturnBodyAsIs<TDefinition extends RouteConfig> =
+  TDefinition['returnBodyAsIs'] extends boolean
+    ? TDefinition['returnBodyAsIs']
+    : false
+
 export function defineRoute<TDefinition extends RouteConfig>(
   definition: TDefinition
 ): RouteDefinition<
@@ -100,7 +108,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
   NormalizedPermissions<TDefinition>,
   NormalizedOnlyWhenStarted<TDefinition>,
   NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
-  NormalizedOnlyWhenNotFinished<TDefinition>
+  NormalizedOnlyWhenNotFinished<TDefinition>,
+  ReturnBodyAsIs<TDefinition>
 > {
   const {
     method,
@@ -114,6 +123,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     onlyWhenStarted,
     onlyWhenStartedPermissionsBypass,
     onlyWhenNotFinished,
+    returnBodyAsIs,
   } = definition
 
   return {
@@ -133,6 +143,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     query: (query ?? undefined) as OptionalSchema<TDefinition['query']>,
     permissions: (permissions ??
       undefined) as NormalizedPermissions<TDefinition>,
+    returnBodyAsIs: (returnBodyAsIs ?? false) as ReturnBodyAsIs<TDefinition>,
   }
 }
 

@@ -24,6 +24,7 @@ export const GetCtftimeLeaderboardRoute = defineRoute({
   responses: [GoodCtftimeLeaderboard, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.leaderboardRead,
+  returnBodyAsIs: true,
 })
 
 export const CtftimeCallbackRoute = defineRoute({

@@ -74,23 +74,26 @@ const buildResponders = <TResponses extends ResponseCollection>(
   const responders = Object.create(null) as Record<string, ResponseHelper<any>>
 
   for (const definition of responses) {
-    const helper: ResponseHelper<typeof definition> = (payload?: unknown) => {
-      const data = definition.dataSchema
-        ? definition.dataSchema.parse(payload)
-        : null
+    const helper = (payload?: unknown): ResponseResult<typeof definition> => {
+      const body = definition.dataSchema
+        ? {
+            kind: definition.kind,
+            message: definition.message,
+            data: definition.dataSchema.parse(payload),
+          }
+        : {
+            kind: definition.kind,
+            message: definition.message,
+          }
 
       return {
         status: definition.status,
-        body: definition.schema.parse({
-          kind: definition.kind,
-          message: definition.message,
-          data,
-        }),
+        body,
         definition,
-      }
+      } as ResponseResult<typeof definition>
     }
 
-    responders[definition.kind] = helper
+    responders[definition.kind] = helper as ResponseHelper<any>
   }
 
   return responders as ResponseHelpers<TResponses>
@@ -111,7 +114,6 @@ const malformedJson = (): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadJson.kind,
     message: BadJson.message,
-    data: null,
   },
   BadJson.status as ContentfulStatusCode,
 ]
@@ -139,7 +141,6 @@ const accessDenied = (): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadPerms.kind,
     message: BadPerms.message,
-    data: null,
   },
   BadPerms.status as ContentfulStatusCode,
 ]
@@ -148,7 +149,6 @@ const unauthorized = (): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadToken.kind,
     message: BadToken.message,
-    data: null,
   },
   BadToken.status as ContentfulStatusCode,
 ]
@@ -157,7 +157,6 @@ const notStarted = (): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadNotStarted.kind,
     message: BadNotStarted.message,
-    data: null,
   },
   BadNotStarted.status as ContentfulStatusCode,
 ]
@@ -166,7 +165,6 @@ const alreadyFinished = (): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadEnded.kind,
     message: BadEnded.message,
-    data: null,
   },
   BadEnded.status as ContentfulStatusCode,
 ]
@@ -383,6 +381,12 @@ export const declareRouter = <
     ) as RouteHandlerArgs<ApiContext, User, typeof definition>
 
     const routeResult = await handler(handlerArgs)
+    if (definition.returnBodyAsIs) {
+      return context.json(
+        (routeResult.body as { data: unknown })?.data,
+        routeResult.status as never
+      )
+    }
     return context.json(routeResult.body, routeResult.status as never)
   }
 

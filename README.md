@@ -125,6 +125,7 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ## New features compared to v1
 
+- Scores config
 - New `s3` upload provider
 
 <details>

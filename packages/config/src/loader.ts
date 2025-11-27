@@ -174,4 +174,7 @@ export const defaultConfig: PartialDeep<ServerConfig> = {
     graphSampleTime: 1800000,
   },
   loginTimeout: 3600000,
+  scoreProvider: {
+    name: 'scores/classic',
+  },
 }

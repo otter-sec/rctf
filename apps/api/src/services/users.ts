@@ -122,11 +122,7 @@ export const updateUser = async (
   }
 
   return res.goodUserUpdate({
-    user: {
-      name: updated!.name,
-      division: updated!.division,
-      email: updated!.email ?? undefined,
-    },
+    user: updated!,
   })
 }
 

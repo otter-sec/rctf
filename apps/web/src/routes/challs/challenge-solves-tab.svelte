@@ -69,7 +69,11 @@
   })
 </script>
 
-<ScrollArea class="h-full px-9 pb-4 pt-2" fadeSize={64} fadeColor="background-l2">
+<ScrollArea
+  class="h-full px-9 pb-4 pt-2"
+  fadeSize={64}
+  fadeColor="background-l2"
+>
   {#if totalCount === 0}
     <p class="text-foreground-l3 text-center py-8">No solves yet</p>
   {:else}

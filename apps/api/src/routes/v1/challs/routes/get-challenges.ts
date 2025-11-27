@@ -15,8 +15,8 @@ challsGroup.route(GetChallengesRoute, async ({ res, ctx }) => {
       return {
         id: item.id,
         ...item.data,
-        points: scores[index]?.score ?? null,
-        solves: scores[index]?.solves ?? null,
+        points: scores[index]?.score ?? 0,
+        solves: scores[index]?.solves ?? 0,
         sortWeight: item.data.sortWeight ?? null,
       }
     })

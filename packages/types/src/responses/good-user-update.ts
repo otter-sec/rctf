@@ -7,7 +7,7 @@ export const GoodUserUpdate = response('goodUserUpdate', {
   data: z.object({
     user: z.object({
       name: z.string(),
-      email: z.string().optional(),
+      email: z.string().nullable(),
       division: z.string(),
     }),
   }),

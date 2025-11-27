@@ -66,6 +66,7 @@ export interface ServerConfig {
 
   challengeProvider: ProviderConfig
   uploadProvider: ProviderConfig
+  scoreProvider: ProviderConfig
 
   email?: {
     provider: ProviderConfig

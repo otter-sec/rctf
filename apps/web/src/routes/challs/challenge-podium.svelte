@@ -142,14 +142,13 @@
           <div class="flex min-w-0 items-center gap-2">
             <div class="flex min-w-0 flex-col items-end">
               <span
-                class={cn(
-                  'w-full truncate text-right text-base',
-                  style.fgL0
-                )}
+                class={cn('w-full truncate text-right text-base', style.fgL0)}
               >
                 {solve.userName}
               </span>
-              <span class={cn('w-full truncate text-right text-sm', style.fgL1)}>
+              <span
+                class={cn('w-full truncate text-right text-sm', style.fgL1)}
+              >
                 {index === 0
                   ? formatFirstBloodTime(solve.createdAt)
                   : formatRelativeTime(solve.createdAt)}
@@ -165,14 +164,13 @@
           <div class="flex min-w-0 items-center gap-2">
             <div class="flex min-w-0 flex-col items-end">
               <span
-                class={cn(
-                  'w-full truncate text-right text-base',
-                  style.fgL0
-                )}
+                class={cn('w-full truncate text-right text-base', style.fgL0)}
               >
                 {currentUser.name}
               </span>
-              <span class={cn('w-full truncate text-right text-sm', style.fgL1)}>
+              <span
+                class={cn('w-full truncate text-right text-sm', style.fgL1)}
+              >
                 {formatRelativeTime(currentUserSolve.createdAt)}
               </span>
             </div>

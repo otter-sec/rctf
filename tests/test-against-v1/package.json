@@ -1,0 +1,17 @@
+{
+  "name": "test-against-v1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test tests/"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/dockerode": "^3.3.47",
+    "dockerode": "^4.0.4",
+    "postgres": "^3.4.5"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

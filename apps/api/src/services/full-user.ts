@@ -1,4 +1,4 @@
-import type { ChallengeData, DatabaseClient, User } from '@rctf/db'
+import type { DatabaseClient, User } from '@rctf/db'
 import {
   getChallengeDynamicPointsValue,
   getUserScore,
@@ -7,18 +7,22 @@ import type { TypedRedis } from '../cache/scripts'
 import { getUserChallengeSolves } from './challenges'
 import { getUser } from './users'
 
+export type SolveData = {
+  category: string
+  name: string
+  id: string
+  createdAt: number
+  solves: number | null
+  points: number | null
+}
+
 export type FullUser = Omit<User, 'email' | 'ctftimeId'> & {
   email: string | null
   ctftimeId: string | null
   score: number
   globalPlace: number | null
   divisionPlace: number | null
-  solves: (Omit<ChallengeData, 'points'> & {
-    id: string
-    createdAt: number
-    solves: number | null
-    points: number | null
-  })[]
+  solves: SolveData[]
 }
 
 export const getFullUser = async (

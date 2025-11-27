@@ -7,7 +7,7 @@ import type {
   InternalChallengeInfo,
   InternalUserInfo,
 } from '../cache/leaderboard'
-import { getClassicScore } from '../providers/scores/classic'
+import { scoreProvider } from '../providers'
 
 const getUsers = async (
   db: DatabaseClient
@@ -125,7 +125,7 @@ export const calculateLeaderboard = async (
       ...Array.from(challengeInfos.values()).map(ch => ch.solves)
     )
     for (const [, ch] of challengeInfos) {
-      ch.score = getClassicScore(
+      ch.score = scoreProvider.calculate(
         ch.minPoints,
         ch.maxPoints,
         maxSolves,

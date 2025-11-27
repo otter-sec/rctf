@@ -1,0 +1,101 @@
+services:
+  # new
+  rctf-new:
+    image: ghcr.io/otter-sec/rctf-new:main
+    build: ../../
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8082:80'
+    networks:
+      - rctf-new
+    volumes:
+      - ./rctf.d:/app/rctf.d
+      - ./.data/uploads:/app/uploads
+    depends_on:
+      redis-new:
+        condition: service_healthy
+      postgres-new:
+        condition: service_healthy
+  redis-new:
+    image: redis:8.2.2
+    restart: always
+    networks:
+      rctf-new:
+        aliases: 
+          - redis
+    command: ['redis-server', '--requirepass', 'rctf']
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --pass rctf ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+  postgres-new:
+    image: postgres:18.0
+    restart: always
+    networks:
+      rctf-new:
+        aliases:
+          - postgres
+    environment:
+      - POSTGRES_PASSWORD=rctf
+      - POSTGRES_USER=rctf
+      - POSTGRES_DB=rctf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rctf -d rctf"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - '127.0.0.1:25432:5432'
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql
+        tmpfs:
+          size: 1073741824  # 1gb
+
+  # v1
+  rctf-v1:
+    image: ghcr.io/otter-sec/rctf:main
+    restart: always
+    ports:
+      - '127.0.0.1:8081:80'
+    networks:
+      - rctf-v1
+    volumes:
+      - ./rctf.d:/app/rctf.d
+      - ./data/uploads:/app/uploads
+    depends_on:
+      - redis-v1
+      - postgres-v1
+  redis-v1:
+    image: redis:6.0.6
+    restart: always
+    command: ['redis-server', '--requirepass', 'rctf']
+    networks:
+      rctf-v1:
+        aliases:
+          - redis
+  postgres-v1:
+    image: postgres:12.3
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=rctf
+      - POSTGRES_USER=rctf
+      - POSTGRES_DB=rctf
+    networks:
+      rctf-v1:
+        aliases:
+          - postgres
+    ports:
+      - '127.0.0.1:15432:5432'
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+        tmpfs:
+          size: 1073741824  # 1gb
+
+networks:
+  rctf-new:
+  rctf-v1:

@@ -16,3 +16,4 @@ docker-compose*.yml
 data/
 uploads/
 rctf.d/
+tests/
