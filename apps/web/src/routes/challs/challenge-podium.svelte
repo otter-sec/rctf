@@ -6,7 +6,13 @@
     useClientConfig,
     useCurrentUser,
   } from '$lib/query'
-  import { cn } from '$lib/utils'
+  import {
+    cn,
+    formatFirstBloodTime,
+    formatRelativeToFirstBlood,
+    getInitials,
+    getOrdinal,
+  } from '$lib/utils'
 
   interface Props {
     challenge: Challenge
@@ -25,6 +31,7 @@
 
   const currentUser = $derived($userQuery.data)
   const clientConfig = $derived($clientConfigQuery.data)
+  const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const currentUserSolve = $derived(
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
@@ -53,52 +60,6 @@
   ]
 
   const firstBloodTime = $derived(topSolves[0]?.createdAt ?? 0)
-
-  function getOrdinal(n: number): string {
-    const suffixes = ['th', 'st', 'nd', 'rd']
-    const v = n % 100
-    const suffix = suffixes[(v - 20) % 10] ?? suffixes[v] ?? suffixes[0]
-    return `${n}${suffix}`
-  }
-
-  function formatFirstBloodTime(timestamp: number): string {
-    const ctfStart = clientConfig?.startTime ?? 0
-    const diff = timestamp - ctfStart
-
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(minutes / 60)
-    const days = Math.floor(hours / 24)
-
-    const parts: string[] = []
-    if (days > 0) parts.push(`${days}d`)
-    if (hours % 24 > 0) parts.push(`${hours % 24}hr`)
-    if (minutes % 60 > 0 || parts.length === 0) parts.push(`${minutes % 60}m`)
-
-    return parts.join(' ')
-  }
-
-  function formatRelativeTime(timestamp: number): string {
-    if (!firstBloodTime) return ''
-    const diff = timestamp - firstBloodTime
-
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(minutes / 60)
-
-    if (hours > 0) {
-      const remainingMins = minutes % 60
-      return remainingMins > 0 ? `+${hours}hr ${remainingMins}m` : `+${hours}hr`
-    }
-    return `+${minutes}m`
-  }
-
-  function getInitials(name: string): string {
-    return name
-      .split(/\s+/)
-      .map(word => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase()
-  }
 </script>
 
 {#if challenge.solves && challenge.solves > 0}
@@ -132,8 +93,8 @@
                 class={cn('w-full truncate text-right text-sm', style.fgL1)}
               >
                 {index === 0
-                  ? formatFirstBloodTime(solve.createdAt)
-                  : formatRelativeTime(solve.createdAt)}
+                  ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
+                  : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
@@ -153,7 +114,7 @@
               <span
                 class={cn('w-full truncate text-right text-sm', style.fgL1)}
               >
-                {formatRelativeTime(currentUserSolve.createdAt)}
+                {formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
