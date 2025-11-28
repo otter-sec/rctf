@@ -5,7 +5,6 @@
   import { page } from '$app/state'
   import { setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
-  import { IconCircleCheckFilled, IconX } from '$lib/icons'
   import { queryKeys, useVerifyMutation } from '$lib/query'
 
   let { data } = $props()
@@ -60,64 +59,42 @@
   <title>Verify | {data.clientConfig.ctfName}</title>
 </svelte:head>
 
-<Card.Root>
-  {#if error}
+{#if emailSet}
+  <Card.Root>
     <Card.Header>
-      <Card.Title
-        class="flex items-center gap-2 text-2xl text-foreground-destructive"
-      >
-        <IconX class="size-6" />
-        Verification failed
-      </Card.Title>
+      <Card.Title class="text-xl">Email verified</Card.Title>
     </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
-      <div
-        class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-        role="alert"
-      >
-        {error}
-      </div>
-      <Button variant="outline" href="/login">Back to login</Button>
+    <Card.Content class="prose">
+      <p>Your email has been verified. You can now close this tab.</p>
     </Card.Content>
-  {:else if emailSet}
+  </Card.Root>
+{:else if verified}
+  <Card.Root>
     <Card.Header>
-      <Card.Title
-        class="flex items-center gap-2 text-2xl text-foreground-success"
-      >
-        <IconCircleCheckFilled class="size-6" />
-        Email verified
-      </Card.Title>
+      <Card.Title class="text-xl">Account verified</Card.Title>
     </Card.Header>
-    <Card.Content>
-      <p class="text-foreground-l3">
-        Your email has been verified. You can now close this tab.
-      </p>
+    <Card.Content class="prose">
+      <p>Your account has been verified. Redirecting you to the home page...</p>
     </Card.Content>
-  {:else if verified}
-    <Card.Header>
-      <Card.Title
-        class="flex items-center gap-2 text-2xl text-foreground-success"
-      >
-        <IconCircleCheckFilled class="size-6" />
-        Verified!
-      </Card.Title>
-    </Card.Header>
-    <Card.Content>
-      <p class="text-foreground-l3">
-        Your account has been verified. Redirecting you to the home page...
-      </p>
-    </Card.Content>
-  {:else}
+  </Card.Root>
+{:else}
+  <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Verify email</Card.Title>
       <Card.Description>
         Complete your registration by verifying your email address
       </Card.Description>
     </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
-      <p class="text-foreground-l3 text-sm">
-        Click the button below to verify your email address.
-      </p>
+    <Card.Content>
+      {#if error}
+        <div
+          class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
+          role="alert"
+        >
+          {error}
+        </div>
+      {/if}
+
       <Button
         onclick={handleVerify}
         disabled={$verifyMutation.isPending}
@@ -129,5 +106,13 @@
         Verify email
       </Button>
     </Card.Content>
-  {/if}
-</Card.Root>
+    <Card.Footer>
+      <p class="text-foreground-l3 text-sm">
+        Need help? <a
+          href="/login"
+          class="text-foreground-prose-link hover:underline">Back to login</a
+        >.
+      </p>
+    </Card.Footer>
+  </Card.Root>
+{/if}

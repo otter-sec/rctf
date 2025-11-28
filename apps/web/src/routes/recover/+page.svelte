@@ -43,21 +43,19 @@
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Recovery email sent</Card.Title>
+      <Card.Description>
+        Get a new team token sent to your email
+      </Card.Description>
     </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
+    <Card.Content class="prose">
       <p>
-        We've sent a recovery email to <strong>{email}</strong>. Please check
-        your inbox and click the link to access your account.
-      </p>
-      <p class="text-foreground-l3 text-sm">
-        Didn't receive the email? Check your spam folder or
-        <Button
-          variant="link"
-          class="h-auto p-0"
-          onclick={() => (verifySent = false)}
-        >
-          try again
-        </Button>.
+        We've sent a recovery email to <b class="font-medium">{email}</b>.
+        Please check your inbox and click the link to access your account. If
+        you didn't receive the email, check your spam folder or
+        <button
+          class="text-foreground-prose-link hover:underline cursor-pointer"
+          onclick={() => (verifySent = false)}>try again</button
+        >.
       </p>
     </Card.Content>
   </Card.Root>
@@ -102,10 +100,10 @@
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
-        Remember your token?
-        <a href="/login" class="text-foreground-prose-link hover:underline"
-          >Login</a
-        >
+        Remember your token? <a
+          href="/login"
+          class="text-foreground-prose-link hover:underline">Login here</a
+        >.
       </p>
     </Card.Footer>
   </Card.Root>

@@ -6,8 +6,8 @@
   import { setToken, toast } from '$lib'
   import {
     Button,
-    Card,
     ButtonCtftime,
+    Card,
     Field,
     Input,
     Spinner,
@@ -181,8 +181,8 @@
     <p class="text-foreground-l3 text-sm">
       Don't have an account?
       <a href="/register" class="text-foreground-prose-link hover:underline"
-        >Register</a
-      >
+        >Register here</a
+      >.
     </p>
   </Card.Footer>
 </Card.Root>

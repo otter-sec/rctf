@@ -6,12 +6,12 @@
     IconFlagFilled,
     IconTrophyFilled,
   } from '$lib/icons'
+  import FooterPodium from './challenge-details-footer-podium.svelte'
+  import FooterSelf from './challenge-details-footer-self.svelte'
+  import FooterSubmit from './challenge-details-footer-submit.svelte'
   import Header from './challenge-details-header.svelte'
   import TabIndex from './challenge-details-tab-index.svelte'
   import TabSolves from './challenge-details-tab-solves.svelte'
-  import FooterSubmit from './challenge-details-footer-submit.svelte'
-  import FooterPodium from './challenge-details-footer-podium.svelte'
-  import FooterSelf from './challenge-details-footer-self.svelte'
 
   interface Props {
     challenge: Challenge | null

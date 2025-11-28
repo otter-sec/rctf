@@ -10,8 +10,7 @@
     base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     variants: {
       variant: {
-        default:
-          'bg-background-accent text-foreground-accent hover:bg-background-accent/90',
+        default: 'bg-background-l3 text-foreground-l1 hover:bg-background-l4',
         destructive:
           'bg-background-destructive text-foreground-destructive hover:bg-background-destructive/90 focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
         outline:

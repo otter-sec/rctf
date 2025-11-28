@@ -8,8 +8,8 @@
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
     Avatar,
-    DropdownMenu,
     ButtonNavigation,
+    DropdownMenu,
     ThemeToggle,
     Tooltip,
   } from '$lib/components'

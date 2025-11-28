@@ -5,8 +5,8 @@
   import { setToken, toast } from '$lib'
   import {
     Button,
-    Card,
     ButtonCtftime,
+    Card,
     Field,
     Input,
     Spinner,
@@ -150,28 +150,26 @@
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Verification email sent</Card.Title>
+      <Card.Description>
+        Check your inbox to complete registration
+      </Card.Description>
     </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
+    <Card.Content class="prose">
       <p>
-        We've sent a verification email to <strong>{email}</strong>. Please
-        check your inbox and click the link to complete registration.
-      </p>
-      <p class="text-foreground-l3 text-sm">
-        Didn't receive the email? Check your spam folder or
-        <Button
-          variant="link"
-          class="h-auto p-0"
-          onclick={() => (verifySent = false)}
-        >
-          try again
-        </Button>.
+        We've sent a verification email to <b class="font-medium">{email}</b>.
+        Please check your inbox and click the link to complete registration. If
+        you didn't receive the email, check your spam folder or
+        <button
+          class="text-foreground-prose-link hover:underline cursor-pointer"
+          onclick={() => (verifySent = false)}>try again</button
+        >.
       </p>
     </Card.Content>
   </Card.Root>
 {:else if ctftimeToken}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-xl">Complete Registration</Card.Title>
+      <Card.Title class="text-xl">Complete registration</Card.Title>
       <Card.Description>Registering with CTFtime</Card.Description>
     </Card.Header>
     <Card.Content>
@@ -308,10 +306,10 @@
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
-        Already have an account?
-        <a href="/login" class="text-foreground-prose-link hover:underline"
-          >Login</a
-        >
+        Already have an account? <a
+          href="/login"
+          class="text-foreground-prose-link hover:underline">Login here</a
+        >.
       </p>
     </Card.Footer>
   </Card.Root>

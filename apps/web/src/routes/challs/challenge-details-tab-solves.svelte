@@ -105,6 +105,7 @@
 <div class="flex h-full flex-col">
   <div class="px-5 py-2">
     <div class="flex justify-between gap-1">
+      <!-- TODO(enscribe): this only searches one page rather than all solves -->
       <div
         class="flex h-10 max-w-sm flex-1 items-center justify-between rounded-full bg-background-l3 px-4"
       >
