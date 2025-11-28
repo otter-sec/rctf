@@ -8,7 +8,7 @@
   } from '$lib/icons'
   import { cn } from '$lib/utils'
 
-  type Props = {
+  interface Props {
     pointsEarned: number
     pointsTotal: number
     solved: number

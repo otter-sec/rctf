@@ -7,7 +7,7 @@
   import { IconCheck, IconSend } from '$lib/icons'
   import { queryKeys, useSubmitFlagMutation } from '$lib/query'
 
-  type Props = {
+  interface Props {
     challenge: Challenge
     isSolved: boolean
     onSolve: (challengeId: string) => void

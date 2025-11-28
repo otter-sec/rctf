@@ -25,7 +25,7 @@
 
   const PAGE_SIZE = 10
 
-  type Props = {
+  interface Props {
     challenge: Challenge
     userVisibleInList?: boolean
   }

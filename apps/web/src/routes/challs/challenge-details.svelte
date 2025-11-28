@@ -6,14 +6,14 @@
     IconFlagFilled,
     IconTrophyFilled,
   } from '$lib/icons'
-  import ChallengeDetailsTab from './challenge-details-tab.svelte'
-  import ChallengeFlagForm from './challenge-flag-form.svelte'
-  import ChallengeHeader from './challenge-header.svelte'
-  import ChallengePodium from './challenge-podium.svelte'
-  import ChallengeSolvesTab from './challenge-solves-tab.svelte'
-  import ChallengeUserSolve from './challenge-user-solve.svelte'
+  import Header from './challenge-details-header.svelte'
+  import TabIndex from './challenge-details-tab-index.svelte'
+  import TabSolves from './challenge-details-tab-solves.svelte'
+  import FooterSubmit from './challenge-details-footer-submit.svelte'
+  import FooterPodium from './challenge-details-footer-podium.svelte'
+  import FooterSelf from './challenge-details-footer-self.svelte'
 
-  type Props = {
+  interface Props {
     challenge: Challenge | null
     isSolved: boolean
     onSolve: (challengeId: string) => void
@@ -28,7 +28,7 @@
 {#if challenge}
   {#key challenge.id}
     <div class="flex h-full flex-col">
-      <ChallengeHeader {challenge} {isSolved} />
+      <Header {challenge} {isSolved} />
 
       <Tabs.Root bind:value={activeTab} class="flex min-h-0 flex-1 flex-col">
         <div class="px-5">
@@ -52,11 +52,11 @@
 
         <div class="min-h-0 flex-1 bg-background-l2">
           <Tabs.Content value="details" class="h-full">
-            <ChallengeDetailsTab {challenge} />
+            <TabIndex {challenge} />
           </Tabs.Content>
 
           <Tabs.Content value="solves" class="h-full">
-            <ChallengeSolvesTab
+            <TabSolves
               {challenge}
               bind:userVisibleInList={userVisibleInSolves}
             />
@@ -66,11 +66,11 @@
 
       <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
         {#if activeTab === 'details'}
-          <ChallengePodium {challenge} {isSolved} />
+          <FooterPodium {challenge} {isSolved} />
         {:else if activeTab === 'solves' && !userVisibleInSolves}
-          <ChallengeUserSolve {challenge} />
+          <FooterSelf {challenge} />
         {/if}
-        <ChallengeFlagForm {challenge} {isSolved} {onSolve} />
+        <FooterSubmit {challenge} {isSolved} {onSolve} />
       </div>
     </div>
   {/key}

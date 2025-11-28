@@ -2,7 +2,7 @@
   import type { IconComponent } from '$lib/icons'
   import { cn } from '$lib/utils'
 
-  type Props = {
+  interface Props {
     icon: IconComponent
     title: string
     subtitle?: string

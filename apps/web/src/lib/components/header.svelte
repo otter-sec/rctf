@@ -9,7 +9,7 @@
   import {
     Avatar,
     DropdownMenu,
-    NavButton,
+    ButtonNavigation,
     ThemeToggle,
     Tooltip,
   } from '$lib/components'
@@ -18,12 +18,14 @@
     IconChartBar,
     IconCopy,
     IconHammer,
+    IconLogin,
     IconLogout,
     IconSettings,
     IconSwords,
     IconUserCog,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
+  import { getInitials } from '$lib/utils'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
@@ -33,17 +35,6 @@
     user?.perms !== null &&
       user?.perms !== undefined &&
       (user.perms & Permissions.challsRead) !== 0
-  )
-
-  const teamInitials = $derived(
-    user?.name
-      ? user.name
-          .split(' ')
-          .map(w => w[0])
-          .join('')
-          .slice(0, 2)
-          .toUpperCase()
-      : '?'
   )
 
   function handleLogout() {
@@ -72,32 +63,32 @@
     <nav class="flex items-center gap-2">
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavButton href="/challs" activePath="/challs">
+          <ButtonNavigation href="/challs" activePath="/challs">
             {#snippet icon({ class: className })}
               <IconSwords class={className} />
             {/snippet}
-          </NavButton>
+          </ButtonNavigation>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Challenges</Tooltip.Content>
       </Tooltip.Root>
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavButton href="/scores" activePath="/scores">
+          <ButtonNavigation href="/scores" activePath="/scores">
             {#snippet icon({ class: className })}
               <IconChartBar class={className} />
             {/snippet}
-          </NavButton>
+          </ButtonNavigation>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
       </Tooltip.Root>
       {#if isAdmin}
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <NavButton href="/admin/challs" activePath="/admin">
+            <ButtonNavigation href="/admin/challs" activePath="/admin">
               {#snippet icon({ class: className })}
                 <IconHammer class={className} />
               {/snippet}
-            </NavButton>
+            </ButtonNavigation>
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
         </Tooltip.Root>
@@ -122,7 +113,7 @@
 
           <Avatar.Root class="size-12 rounded-lg">
             <Avatar.Fallback class="rounded-lg text-sm">
-              {teamInitials}
+              {getInitials(user.name)}
             </Avatar.Fallback>
           </Avatar.Root>
         </DropdownMenu.Trigger>
@@ -151,23 +142,26 @@
 
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavButton href="#">
+          <ButtonNavigation href="#">
             {#snippet icon({ class: className })}
               <IconBell class={className} />
             {/snippet}
-          </NavButton>
+          </ButtonNavigation>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Notifications</Tooltip.Content>
       </Tooltip.Root>
-
-      <ThemeToggle />
     {:else}
-      <a
-        href="/login"
-        class="text-foreground-l1 text-sm font-medium hover:text-foreground-l0"
-      >
-        Login
-      </a>
+      <Tooltip.Root>
+        <Tooltip.Trigger>
+          <ButtonNavigation href="/login">
+            {#snippet icon({ class: className })}
+              <IconLogin class={className} />
+            {/snippet}
+          </ButtonNavigation>
+        </Tooltip.Trigger>
+        <Tooltip.Content sideOffset={8}>Login</Tooltip.Content>
+      </Tooltip.Root>
     {/if}
+    <ThemeToggle />
   </div>
 </header>

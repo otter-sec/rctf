@@ -5,8 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export * from './utils/initials'
+export * from './utils/markdown'
 export * from './utils/time'
 export * from './utils/rank'
+export * from './utils/categories'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T

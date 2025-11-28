@@ -4,13 +4,13 @@
     getCategoryConfig,
     getCategoryOrder,
     getCategoryStyle,
-  } from '$lib/categories'
+  } from '$lib/utils'
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import { IconZoomQuestionFilled } from '$lib/icons'
-  import ChallengeListHeader from './challenge-list-header.svelte'
-  import ChallengeListItem from './challenge-list-item.svelte'
+  import Header from './challenge-list-header.svelte'
+  import Item from './challenge-list-item.svelte'
 
-  type Props = {
+  interface Props {
     challenges: Challenge[]
     solvedIds: Set<string>
     firstBloodIds: Set<string>
@@ -102,7 +102,7 @@
 </script>
 
 <div class="flex h-full flex-col overflow-hidden">
-  <ChallengeListHeader
+  <Header
     pointsEarned={stats.pointsEarned}
     pointsTotal={stats.pointsTotal}
     solved={stats.solved}
@@ -158,7 +158,7 @@
             <Accordion.Content class="pb-0 bg-category-background-l1">
               <ul class="@container flex flex-col">
                 {#each entries as challenge (challenge.id)}
-                  <ChallengeListItem
+                  <Item
                     {challenge}
                     {category}
                     isSolved={solvedIds.has(challenge.id)}

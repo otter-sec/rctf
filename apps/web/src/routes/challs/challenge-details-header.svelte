@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { Challenge } from '$lib/api'
-  import { getCategoryConfig, getCategoryStyle } from '$lib/categories'
+  import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
 
-  type Props = {
+  interface Props {
     challenge: Challenge
     isSolved: boolean
   }

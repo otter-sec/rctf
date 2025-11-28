@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconCheck, IconCopy } from '$lib/icons'
-  import type { AlertType } from '$lib/markdown'
+  import type { AlertType } from '$lib/utils'
   import { cn } from '$lib/utils'
 
   interface AlertConfig {

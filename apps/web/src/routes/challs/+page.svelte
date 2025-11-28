@@ -2,7 +2,7 @@
   import { isAuthenticated } from '$lib'
   import { Button, Card } from '$lib/components'
   import { useChallenges } from '$lib/query'
-  import ChallengeGrid from './challenge-grid.svelte'
+  import Root from './challenge-root.svelte'
 
   const challengesQuery = useChallenges()
   const challenges = $derived($challengesQuery.data)
@@ -10,7 +10,7 @@
 </script>
 
 {#if challenges}
-  <ChallengeGrid />
+  <Root />
 {:else}
   <Card.Root>
     <Card.Header>

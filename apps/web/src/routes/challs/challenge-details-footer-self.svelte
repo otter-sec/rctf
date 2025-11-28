@@ -4,7 +4,7 @@
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood } from '$lib/utils'
 
-  type Props = {
+  interface Props {
     challenge: Challenge
   }
 

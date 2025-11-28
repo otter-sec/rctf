@@ -3,7 +3,7 @@
   import { IconAwardFilled, IconCheck } from '$lib/icons'
   import { cn } from '$lib/utils'
 
-  type Props = {
+  interface Props {
     challenge: Challenge
     category: string
     isSolved: boolean

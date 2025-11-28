@@ -3,7 +3,7 @@
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
 
-  type Props = {
+  interface Props {
     challenge: Challenge
   }
 

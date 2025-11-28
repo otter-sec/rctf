@@ -3,7 +3,7 @@
   import { cn } from '$lib/utils'
   import type { Snippet } from 'svelte'
 
-  type Props = {
+  interface Props {
     href: string
     activePath?: string
     icon: Snippet<[{ class: string }]>

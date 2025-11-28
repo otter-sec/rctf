@@ -7,7 +7,7 @@
   import {
     Button,
     Card,
-    CtftimeButton,
+    ButtonCtftime,
     Field,
     Input,
     Spinner,
@@ -169,7 +169,7 @@
       </div>
 
       <div class="mt-4">
-        <CtftimeButton
+        <ButtonCtftime
           clientId={data.clientConfig.ctftime.clientId}
           onCtftimeDone={handleCtftimeDone}
           disabled={$loginMutation.isPending}
