@@ -9,6 +9,6 @@ export default class GenniProvider implements ScoreProvider {
     maxSolves: number,
     solves: number
   ) {
-    return solves > 3 ? 0 : maxPoints;
+    return solves > 2 ? 0 : maxPoints;
   }
 }
