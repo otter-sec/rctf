@@ -43,6 +43,13 @@
   const clientConfig = $derived($clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
 
+  const firstBloodQuery = $derived(
+    useChallengeSolves(challenge.id, { limit: 1, offset: 0 })
+  )
+  const firstBloodTime = $derived(
+    $firstBloodQuery.data?.solves[0]?.createdAt ?? 0
+  )
+
   const solvesQuery = $derived(
     useChallengeSolves(challenge.id, {
       limit: PAGE_SIZE,
@@ -56,8 +63,6 @@
   const isRefetching = $derived(
     $solvesQuery.isFetching && !$solvesQuery.isPending
   )
-
-  const firstBloodTime = $derived(solves[0]?.createdAt ?? 0)
 
   const solvesWithRank = $derived(
     solves.map((solve, index) => ({

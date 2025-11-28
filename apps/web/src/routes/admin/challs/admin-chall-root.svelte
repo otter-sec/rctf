@@ -2,8 +2,8 @@
   import type { AdminChallenge } from '$lib/api'
   import { Resizable } from '$lib/components'
   import { useAdminChallenges } from '$lib/query'
-  import AdminChallList from './admin-chall-list.svelte'
   import AdminChallDetails from './admin-chall-details.svelte'
+  import AdminChallList from './admin-chall-list.svelte'
 
   const challengesQuery = useAdminChallenges()
   const challenges = $derived($challengesQuery.data ?? [])
@@ -81,4 +81,3 @@
     </Resizable.Pane>
   </Resizable.PaneGroup>
 </div>
-

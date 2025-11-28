@@ -6,8 +6,8 @@
     Permissions,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import type { AdminChallenge, AdminChallengeDetail } from '$lib/api'
   import { toast } from '$lib'
+  import type { AdminChallenge, AdminChallengeDetail } from '$lib/api'
   import {
     Button,
     Checkbox,
@@ -104,7 +104,14 @@
     if (!isEditMode && !isCreatingNew) return false
 
     if (isCreatingNew) {
-      return !!(name || category || author || description || flag || files.length > 0)
+      return !!(
+        name ||
+        category ||
+        author ||
+        description ||
+        flag ||
+        files.length > 0
+      )
     }
 
     if (!challengeDetail) return false
@@ -183,7 +190,11 @@
   })
 
   $effect(() => {
-    if (challengeDetail && !isCreatingNew && challenge?.id === challengeDetail.id) {
+    if (
+      challengeDetail &&
+      !isCreatingNew &&
+      challenge?.id === challengeDetail.id
+    ) {
       resetForm(challengeDetail)
       isEditMode = false
     }
@@ -231,8 +242,12 @@
       {
         onSuccess: response => {
           if (response.kind === GoodChallengeUpdate.kind) {
-            toast.success(isCreatingNew ? 'Challenge created!' : 'Challenge saved!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+            toast.success(
+              isCreatingNew ? 'Challenge created!' : 'Challenge saved!'
+            )
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.adminChallenges,
+            })
             if (challenge?.id) {
               queryClient.invalidateQueries({
                 queryKey: queryKeys.adminChallenge(challenge.id),
@@ -277,7 +292,9 @@
         onSuccess: response => {
           if (response.kind === GoodChallengeDelete.kind) {
             toast.success('Challenge deleted!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.adminChallenges,
+            })
             onDeleted()
           } else {
             toast.error(response.message)
@@ -337,7 +354,7 @@
         <div class="px-9 flex items-start justify-between gap-4">
           <div class="flex flex-col gap-1">
             <h2 class="text-2xl">
-              {isCreatingNew ? 'New Challenge' : (name || 'Untitled')}
+              {isCreatingNew ? 'New Challenge' : name || 'Untitled'}
             </h2>
             <div class="flex items-center gap-2 text-foreground-l3 text-base">
               <span>by {author || 'Unknown'}</span>
@@ -377,18 +394,16 @@
       </div>
 
       <div class="min-h-0 flex-1 bg-background-l1">
-        <ScrollArea
-          class="h-full px-5"
-          fadeSize={64}
-          fadeColor="background-l1"
-        >
+        <ScrollArea class="h-full px-5" fadeSize={64} fadeColor="background-l1">
           <div
             class={cn(
               'flex flex-col gap-6',
               isDisabled && 'opacity-50 pointer-events-none'
             )}
           >
-            <div class="overflow-hidden rounded-lg border-2 border-border bg-background-l2">
+            <div
+              class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
+            >
               <div
                 class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3"
               >
@@ -448,7 +463,9 @@
                     disabled={isDisabled}
                   />
                   <div class="flex items-center justify-between">
-                    <Field.Description>Markdown formatting is supported.</Field.Description>
+                    <Field.Description
+                      >Markdown formatting is supported.</Field.Description
+                    >
                     <Button
                       type="button"
                       size="sm"
@@ -464,7 +481,9 @@
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div class="overflow-hidden rounded-lg border-2 border-border bg-background-l2">
+              <div
+                class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
+              >
                 <div
                   class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3"
                 >
@@ -541,13 +560,14 @@
                 </div>
               </div>
 
-              <div class="overflow-hidden rounded-lg border-2 border-border bg-background-l2 flex flex-col">
+              <div
+                class="overflow-hidden rounded-lg border-2 border-border bg-background-l2 flex flex-col"
+              >
                 <div
                   class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3 flex items-center justify-between"
                 >
                   <span>Attachments</span>
-                  <span
-                    class="text-base text-foreground-l5"
+                  <span class="text-base text-foreground-l5"
                     >{files.length} file{files.length === 1 ? '' : 's'}</span
                   >
                 </div>
@@ -559,7 +579,8 @@
                           class="flex items-center justify-between gap-2 rounded-md bg-background-l4 p-3"
                         >
                           <div class="flex flex-col gap-1 overflow-hidden">
-                            <span class="truncate font-medium">{file.name}</span>
+                            <span class="truncate font-medium">{file.name}</span
+                            >
                             <a
                               href={file.url}
                               target="_blank"
@@ -642,7 +663,12 @@
             {/if}
           </div>
           <div class="flex items-center gap-3">
-            <Button type="button" variant="outline" size="lg" onclick={handleCancelEdit}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onclick={handleCancelEdit}
+            >
               Cancel
             </Button>
             <Button
@@ -714,14 +740,14 @@
             <Markdown content={description} class="prose-sm max-w-none" />
           </div>
         {:else}
-          <p class="text-foreground-l3 text-center py-8">No description to preview.</p>
+          <p class="text-foreground-l3 text-center py-8">
+            No description to preview.
+          </p>
         {/if}
       </div>
     </ScrollArea>
     <Dialog.Footer>
-      <Button onclick={() => (showPreviewDialog = false)}>
-        Close
-      </Button>
+      <Button onclick={() => (showPreviewDialog = false)}>Close</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
@@ -734,8 +760,8 @@
         Delete challenge
       </Dialog.Title>
       <Dialog.Description>
-        Are you sure you want to delete "{name || 'this challenge'}"? This action
-        cannot be undone.
+        Are you sure you want to delete "{name || 'this challenge'}"? This
+        action cannot be undone.
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">
@@ -751,4 +777,3 @@
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
-

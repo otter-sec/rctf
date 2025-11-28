@@ -18,13 +18,8 @@
     onCreateNew: () => void
   }
 
-  let {
-    challenges,
-    selectedId,
-    isCreatingNew,
-    onSelect,
-    onCreateNew,
-  }: Props = $props()
+  let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props =
+    $props()
 
   let searchQuery = $state('')
   let openCategories = $state<string[]>([])
@@ -151,4 +146,3 @@
     {/if}
   </ScrollArea>
 </div>
-
