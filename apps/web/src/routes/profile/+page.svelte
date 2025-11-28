@@ -13,16 +13,12 @@
 </script>
 
 {#if user}
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-    <div class="flex flex-col gap-6">
-      <UpdateProfileCard />
-      {#if clientConfig?.userMembers}
-        <MembersCard />
-      {/if}
-    </div>
-    <div class="flex flex-col gap-6">
-      <ProfileSummary />
-    </div>
+  <div class="flex flex-col gap-6">
+    <ProfileSummary />
+    <UpdateProfileCard />
+    {#if clientConfig?.userMembers}
+      <MembersCard />
+    {/if}
   </div>
 {:else}
   <Card.Root>

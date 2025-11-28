@@ -4,7 +4,9 @@ import {
 } from '$lib/query'
 import type { PageLoad } from './$types'
 
-const PAGE_SIZE = 100
+export const ssr = false
+
+const PAGE_SIZE = 10
 
 export const load: PageLoad = async ({ parent }) => {
   const { queryClient } = await parent()

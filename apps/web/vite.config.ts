@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://rctf-dev.es3n1n.io',
+        target: 'https://rctf-new-dev.es3n1n.io',
         // target: 'http://127.0.0.1:3000',
         changeOrigin: true,
       },
