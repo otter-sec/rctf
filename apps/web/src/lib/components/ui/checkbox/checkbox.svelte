@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconCheck, IconMinus } from '$lib/icons'
-  import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
+  import { cn, type WithoutChildrenOrChild } from '$lib/utils'
   import { Checkbox as CheckboxPrimitive } from 'bits-ui'
 
   let {

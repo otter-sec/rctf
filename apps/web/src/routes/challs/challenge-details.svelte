@@ -23,11 +23,6 @@
 
   let activeTab = $state('details')
   let userVisibleInSolves = $state(false)
-
-  $effect(() => {
-    challenge?.id
-    activeTab = 'details'
-  })
 </script>
 
 {#if challenge}

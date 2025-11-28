@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconCircle } from '$lib/icons'
-  import { cn, type WithoutChild } from '$lib/utils.js'
+  import { cn, type WithoutChild } from '$lib/utils'
   import { DropdownMenu as DropdownMenuPrimitive } from 'bits-ui'
 
   let {

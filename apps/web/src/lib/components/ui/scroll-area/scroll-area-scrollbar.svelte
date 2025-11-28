@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cn, type WithoutChild } from '$lib/utils.js'
+  import { cn, type WithoutChild } from '$lib/utils'
   import { ScrollArea as ScrollAreaPrimitive } from 'bits-ui'
 
   let {
@@ -16,7 +16,7 @@
   data-slot="scroll-area-scrollbar"
   {orientation}
   class={cn(
-    'flex touch-none select-none p-px',
+    'flex touch-none select-none',
     orientation === 'vertical' && 'h-full w-2.5 border-s border-s-transparent',
     orientation === 'horizontal' &&
       'h-2.5 flex-col border-t border-t-transparent',

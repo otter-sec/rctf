@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconGripVertical } from '$lib/icons'
-  import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
+  import { cn, type WithoutChildrenOrChild } from '$lib/utils'
   import * as ResizablePrimitive from 'paneforge'
 
   let {

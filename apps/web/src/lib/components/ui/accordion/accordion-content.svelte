@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cn, type WithoutChild } from '$lib/utils.js'
+  import { cn, type WithoutChild } from '$lib/utils'
   import { Accordion as AccordionPrimitive } from 'bits-ui'
 
   let {

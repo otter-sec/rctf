@@ -28,6 +28,7 @@
     $solvesQuery.data?.solves?.[0]?.createdAt ?? 0
   )
 
+  // TODO(enscribe): don't do this
   const formattedDivision = $derived(
     currentUser?.division
       ? currentUser.division.charAt(0).toUpperCase() +

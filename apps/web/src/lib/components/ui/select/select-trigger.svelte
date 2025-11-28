@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconChevronDown } from '$lib/icons'
-  import { cn, type WithoutChild } from '$lib/utils.js'
+  import { cn, type WithoutChild } from '$lib/utils'
   import { Select as SelectPrimitive } from 'bits-ui'
 
   let {

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { buttonVariants } from '$lib/components/ui/button/index.js'
   import { IconArrowBigLeftFilled } from '$lib/icons'
-  import { cn } from '$lib/utils.js'
+  import { cn } from '$lib/utils'
   import { Pagination as PaginationPrimitive } from 'bits-ui'
 
   let {
