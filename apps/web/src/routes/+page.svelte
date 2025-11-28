@@ -25,7 +25,9 @@
       <Card.Content>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
-            <article class="flex flex-col gap-6 rounded-md bg-background-l2 p-4">
+            <article
+              class="flex flex-col gap-6 rounded-md bg-background-l2 p-4"
+            >
               <img
                 src={sponsor.icon}
                 alt={sponsor.name}

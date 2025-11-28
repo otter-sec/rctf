@@ -114,7 +114,10 @@
               <span
                 class={cn('w-full truncate text-right text-sm', style.fgL1)}
               >
-                {formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
+                {formatRelativeToFirstBlood(
+                  currentUserSolve.createdAt,
+                  firstBloodTime
+                )}
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">

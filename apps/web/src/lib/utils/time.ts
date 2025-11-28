@@ -42,6 +42,16 @@ export function getOrdinal(n: number): string {
   return `${n}${suffix}`
 }
 
+export function formatLocalTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  return date.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
 export function getInitials(name: string): string {
   return name
     .split(/\s+/)
@@ -50,4 +60,3 @@ export function getInitials(name: string): string {
     .slice(0, 2)
     .toUpperCase()
 }
-

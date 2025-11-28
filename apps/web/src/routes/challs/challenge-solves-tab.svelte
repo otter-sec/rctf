@@ -17,19 +17,21 @@
     useCurrentUser,
   } from '$lib/query'
   import {
+    cn,
     formatFirstBloodTime,
+    formatLocalTime,
     formatRelativeToFirstBlood,
     getInitials,
   } from '$lib/utils'
-  import { cn } from '$lib/utils'
 
   const PAGE_SIZE = 10
 
   type Props = {
     challenge: Challenge
+    userVisibleInList?: boolean
   }
 
-  let { challenge }: Props = $props()
+  let { challenge, userVisibleInList = $bindable(false) }: Props = $props()
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
@@ -61,7 +63,7 @@
   const solvesWithRank = $derived(
     solves.map((solve, index) => ({
       ...solve,
-      rank: (page - 1) * PAGE_SIZE + index + 1
+      rank: (page - 1) * PAGE_SIZE + index + 1,
     }))
   )
 
@@ -69,6 +71,12 @@
     if (!searchQuery.trim()) return solvesWithRank
     const query = searchQuery.toLowerCase()
     return solvesWithRank.filter(s => s.userName.toLowerCase().includes(query))
+  })
+
+  $effect(() => {
+    userVisibleInList = currentUser
+      ? solves.some(s => s.userId === currentUser.id)
+      : false
   })
 
   function handlePageChange(newPage: number) {
@@ -110,7 +118,9 @@
         <IconSearch class="size-5 shrink-0 text-foreground-l2" />
       </div>
       <div class="flex items-center gap-1">
-        <div class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3">
+        <div
+          class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3"
+        >
           Page {page} / {totalPages || 1}
         </div>
         <div class="flex h-10 gap-1 overflow-hidden rounded-full">
@@ -136,7 +146,8 @@
           </Tooltip.Root>
           <Tooltip.Root disableCloseOnTriggerClick>
             <Tooltip.Trigger
-              onclick={() => handlePageChange(Math.min(totalPages || 1, page + 1))}
+              onclick={() =>
+                handlePageChange(Math.min(totalPages || 1, page + 1))}
               disabled={isRefetching || page === totalPages}
               class="h-10 rounded-sm bg-background-l3 px-3 text-foreground-l2 hover:bg-background-l4 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50"
             >
@@ -159,11 +170,7 @@
     </div>
   </div>
 
-  <ScrollArea
-    class="min-h-0 flex-1"
-    fadeSize={64}
-    fadeColor="background-l2"
-  >
+  <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l2">
     {#if $solvesQuery.isPending}
       <div class="flex items-center justify-center py-8">
         <Spinner class="size-6" />
@@ -177,15 +184,24 @@
           {@const isFirst = rank === 1}
           {@const isSecond = rank === 2}
           {@const isThird = rank === 3}
-          {@const isCurrentUser = currentUser && solve.userId === currentUser.id}
+          {@const isCurrentUser =
+            currentUser && solve.userId === currentUser.id}
           <div
             class={cn(
               'flex items-center gap-2 rounded-lg px-4 py-2',
               isFirst && 'bg-background-first',
               isSecond && 'bg-background-second',
               isThird && 'bg-background-third',
-              isCurrentUser && !isFirst && !isSecond && !isThird && 'bg-background-self',
-              !isFirst && !isSecond && !isThird && !isCurrentUser && 'bg-background-l3'
+              isCurrentUser &&
+                !isFirst &&
+                !isSecond &&
+                !isThird &&
+                'bg-background-self',
+              !isFirst &&
+                !isSecond &&
+                !isThird &&
+                !isCurrentUser &&
+                'bg-background-nth'
             )}
           >
             <span
@@ -194,8 +210,16 @@
                 isFirst && 'text-foreground-first-l0',
                 isSecond && 'text-foreground-second-l0',
                 isThird && 'text-foreground-third-l0',
-                isCurrentUser && !isFirst && !isSecond && !isThird && 'text-foreground-self-l0',
-                !isFirst && !isSecond && !isThird && !isCurrentUser && 'text-foreground-l3'
+                isCurrentUser &&
+                  !isFirst &&
+                  !isSecond &&
+                  !isThird &&
+                  'text-foreground-self-l0',
+                !isFirst &&
+                  !isSecond &&
+                  !isThird &&
+                  !isCurrentUser &&
+                  'text-foreground-nth-l0'
               )}
             >
               #{rank}
@@ -213,8 +237,16 @@
                   isFirst && 'text-foreground-first-l0',
                   isSecond && 'text-foreground-second-l0',
                   isThird && 'text-foreground-third-l0',
-                  isCurrentUser && !isFirst && !isSecond && !isThird && 'text-foreground-self-l0',
-                  !isFirst && !isSecond && !isThird && !isCurrentUser && 'text-foreground-l0'
+                  isCurrentUser &&
+                    !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    'text-foreground-self-l0',
+                  !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    !isCurrentUser &&
+                    'text-foreground-nth-l0'
                 )}
               >
                 {solve.userName}
@@ -226,27 +258,65 @@
                   isFirst && 'text-foreground-first-l1',
                   isSecond && 'text-foreground-second-l1',
                   isThird && 'text-foreground-third-l1',
-                  isCurrentUser && !isFirst && !isSecond && !isThird && 'text-foreground-self-l1',
-                  !isFirst && !isSecond && !isThird && !isCurrentUser && 'text-foreground-l3'
+                  isCurrentUser &&
+                    !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    'text-foreground-self-l1',
+                  !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    !isCurrentUser &&
+                    'text-foreground-nth-l1'
                 )}
               >
                 Open Division
               </span>
             </div>
-            <span
-              class={cn(
-                'shrink-0 text-xl tabular-nums',
-                isFirst && 'text-foreground-first-l0',
-                isSecond && 'text-foreground-second-l0',
-                isThird && 'text-foreground-third-l0',
-                isCurrentUser && !isFirst && !isSecond && !isThird && 'text-foreground-self-l0',
-                !isFirst && !isSecond && !isThird && !isCurrentUser && 'text-foreground-l0'
-              )}
-            >
-              {isFirst
-                ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
-                : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-            </span>
+            <div class="flex shrink-0 flex-col items-end">
+              <span
+                class={cn(
+                  'text-xl tabular-nums',
+                  isFirst && 'text-foreground-first-l0',
+                  isSecond && 'text-foreground-second-l0',
+                  isThird && 'text-foreground-third-l0',
+                  isCurrentUser &&
+                    !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    'text-foreground-self-l0',
+                  !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    !isCurrentUser &&
+                    'text-foreground-nth-l0'
+                )}
+              >
+                {isFirst
+                  ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
+                  : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
+              </span>
+              <span
+                class={cn(
+                  'text-base',
+                  isFirst && 'text-foreground-first-l1',
+                  isSecond && 'text-foreground-second-l1',
+                  isThird && 'text-foreground-third-l1',
+                  isCurrentUser &&
+                    !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    'text-foreground-self-l1',
+                  !isFirst &&
+                    !isSecond &&
+                    !isThird &&
+                    !isCurrentUser &&
+                    'text-foreground-nth-l1'
+                )}
+              >
+                {formatLocalTime(solve.createdAt)}
+              </span>
+            </div>
           </div>
         {/each}
       </div>

@@ -22,6 +22,7 @@
   let { challenge, isSolved, onSolve }: Props = $props()
 
   let activeTab = $state('details')
+  let userVisibleInSolves = $state(false)
 
   $effect(() => {
     challenge?.id
@@ -60,7 +61,10 @@
           </Tabs.Content>
 
           <Tabs.Content value="solves" class="h-full">
-            <ChallengeSolvesTab {challenge} />
+            <ChallengeSolvesTab
+              {challenge}
+              bind:userVisibleInList={userVisibleInSolves}
+            />
           </Tabs.Content>
         </div>
       </Tabs.Root>
@@ -68,7 +72,7 @@
       <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
         {#if activeTab === 'details'}
           <ChallengePodium {challenge} {isSolved} />
-        {:else if activeTab === 'solves'}
+        {:else if activeTab === 'solves' && !userVisibleInSolves}
           <ChallengeUserSolve {challenge} />
         {/if}
         <ChallengeFlagForm {challenge} {isSolved} {onSolve} />

@@ -2,7 +2,11 @@
   import type { Challenge, Solve as UserSolve } from '$lib/api'
   import { Avatar } from '$lib/components'
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
-  import { formatRelativeToFirstBlood, getInitials } from '$lib/utils'
+  import {
+    formatLocalTime,
+    formatRelativeToFirstBlood,
+    getInitials,
+  } from '$lib/utils'
 
   type Props = {
     challenge: Challenge
@@ -17,12 +21,18 @@
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
 
-  const solvesQuery = $derived(useChallengeSolves(challenge.id, { limit: 1, offset: 0 }))
-  const firstBloodTime = $derived($solvesQuery.data?.solves?.[0]?.createdAt ?? 0)
+  const solvesQuery = $derived(
+    useChallengeSolves(challenge.id, { limit: 1, offset: 0 })
+  )
+  const firstBloodTime = $derived(
+    $solvesQuery.data?.solves?.[0]?.createdAt ?? 0
+  )
 
   const formattedDivision = $derived(
     currentUser?.division
-      ? currentUser.division.charAt(0).toUpperCase() + currentUser.division.slice(1) + ' Division'
+      ? currentUser.division.charAt(0).toUpperCase() +
+          currentUser.division.slice(1) +
+          ' Division'
       : 'Division'
   )
 </script>
@@ -30,7 +40,9 @@
 {#if currentUserSolve && currentUser}
   <div class="flex items-center gap-2 rounded-lg bg-background-self px-4 py-2">
     <!-- TODO(enscribe): Add solve rank -->
-    <span class="w-[58px] text-center shrink-0 text-xl tabular-nums text-foreground-self-l0">
+    <span
+      class="w-[58px] text-center shrink-0 text-xl tabular-nums text-foreground-self-l0"
+    >
       You
     </span>
     <Avatar.Root class="size-12 shrink-0 rounded-lg">
@@ -47,9 +59,13 @@
         {formattedDivision}
       </span>
     </div>
-    <span class="shrink-0 text-xl tabular-nums text-foreground-self-l0">
-      {formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
-    </span>
+    <div class="flex shrink-0 flex-col items-end">
+      <span class="text-xl tabular-nums text-foreground-self-l0">
+        {formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
+      </span>
+      <span class="text-base text-foreground-self-l1">
+        {formatLocalTime(currentUserSolve.createdAt)}
+      </span>
+    </div>
   </div>
 {/if}
-
