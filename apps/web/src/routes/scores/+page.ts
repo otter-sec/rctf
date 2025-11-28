@@ -9,7 +9,7 @@ import type { PageLoad } from './$types'
 
 export const ssr = false
 
-const PAGE_SIZE = 100
+const PAGE_SIZE = 10
 
 export const load: PageLoad = async () => {
   const [leaderboardResponse, graphResponse] = await Promise.all([

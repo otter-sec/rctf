@@ -29,23 +29,25 @@
 </svelte:head>
 
 <div class="flex flex-col gap-6">
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-2xl font-medium">Challenges</h1>
-      <p class="text-foreground-l3">
-        {data.challenges.length} challenge{data.challenges.length === 1
-          ? ''
-          : 's'}
-        across {categoryCount} categor{categoryCount === 1 ? 'y' : 'ies'}
-      </p>
-    </div>
-    {#if hasWritePerms}
-      <Button href="/admin/challs/new">
-        <IconLibraryPlusFilled class="size-4" />
-        New challenge
-      </Button>
-    {/if}
-  </div>
+  <Card.Root>
+    <Card.Content class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-medium">Challenges</h1>
+        <p class="text-foreground-l3">
+          {data.challenges.length} challenge{data.challenges.length === 1
+            ? ''
+            : 's'}
+          across {categoryCount} categor{categoryCount === 1 ? 'y' : 'ies'}
+        </p>
+      </div>
+      {#if hasWritePerms}
+        <Button href="/admin/challs/new">
+          <IconLibraryPlusFilled class="size-4" />
+          New challenge
+        </Button>
+      {/if}
+    </Card.Content>
+  </Card.Root>
 
   {#if data.error}
     <div

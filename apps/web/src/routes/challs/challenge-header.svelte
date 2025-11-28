@@ -9,17 +9,35 @@
 
   let { challenge }: Props = $props()
 
-  const tags = $derived([
-    challenge.category,
-    ...((challenge as Challenge & { tags?: string[] }).tags ?? []),
-  ])
+  const config = $derived(getCategoryConfig(challenge.category))
+  const categoryStyle = $derived(getCategoryStyle(config.color))
+  const otherTags = $derived(
+    (challenge as Challenge & { tags?: string[] }).tags ?? []
+  )
 </script>
 
-<div class="flex flex-col gap-4 py-6">
+<div class="flex flex-col py-6">
   <div class="px-9 flex items-start justify-between gap-4">
-    <div class="flex flex-col">
+    <div class="flex flex-col gap-1">
       <h2 class="text-2xl">{challenge.name}</h2>
-      <p class="text-foreground-l3 text-base">by {challenge.author}</p>
+      <div class="flex items-center gap-2 text-foreground-l3 text-base">
+        <span>by {challenge.author}</span>
+        <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
+        <div class="flex gap-1">
+          <span
+            class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
+            style={categoryStyle}
+          >
+            <config.icon class="size-3.5" />
+            {config.name}
+          </span>
+          {#each otherTags as tag}
+            <span class="rounded bg-background-l2 px-1.5 py-0.5 text-sm"
+              >{tag}</span
+            >
+          {/each}
+        </div>
+      </div>
     </div>
     <div class="flex flex-col items-end">
       <h2 class="text-right text-2xl tabular-nums">
@@ -29,23 +47,5 @@
         {challenge.solves?.toLocaleString() ?? '0'} solves
       </p>
     </div>
-  </div>
-
-  <div class="px-5 flex flex-wrap gap-2">
-    {#each tags as tag, i}
-      {@const isCategory = i === 0}
-      {@const config = getCategoryConfig(isCategory ? tag : challenge.category)}
-      {@const style = getCategoryStyle(config.color)}
-      <span
-        class="inline-flex items-center gap-1.5 rounded-md px-4 py-1 text-sm bg-category-background-l0 text-category-foreground-l1"
-        {style}
-      >
-        {#if isCategory}
-          {@const Icon = config.icon}
-          <Icon class="size-4" />
-        {/if}
-        {isCategory ? config.name : tag}
-      </span>
-    {/each}
   </div>
 </div>

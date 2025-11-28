@@ -8,16 +8,12 @@
 </script>
 
 {#if data.user}
-  <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-    <div class="flex flex-col gap-6">
-      <UpdateProfileCard user={data.user} clientConfig={data.clientConfig} />
-      {#if data.clientConfig.userMembers}
-        <MembersCard />
-      {/if}
-    </div>
-    <div class="flex flex-col gap-6">
-      <ProfileSummary user={data.user} clientConfig={data.clientConfig} />
-    </div>
+  <div class="flex flex-col gap-6">
+    <ProfileSummary user={data.user} clientConfig={data.clientConfig} />
+    <UpdateProfileCard user={data.user} clientConfig={data.clientConfig} />
+    {#if data.clientConfig.userMembers}
+      <MembersCard />
+    {/if}
   </div>
 {:else}
   <Card.Root>
