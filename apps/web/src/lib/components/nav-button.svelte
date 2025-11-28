@@ -24,6 +24,9 @@
   )}
 >
   {@render icon({
-    class: cn('size-6', isActive ? 'text-foreground-accent' : 'text-foreground-l2'),
+    class: cn(
+      'size-6',
+      isActive ? 'text-foreground-accent' : 'text-foreground-l2'
+    ),
   })}
 </a>

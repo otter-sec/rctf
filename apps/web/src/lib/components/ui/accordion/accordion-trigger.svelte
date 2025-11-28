@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconChevronRight } from '$lib/icons'
-  import { cn, type WithoutChild } from '$lib/utils.js'
+  import { cn, type WithoutChild } from '$lib/utils'
   import { Accordion as AccordionPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
 

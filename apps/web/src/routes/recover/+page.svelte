@@ -1,30 +1,37 @@
 <script lang="ts">
-  import { GoodVerifySent, RecoverRoute } from '@rctf/types'
-  import { apiRequest, toast } from '$lib'
+  import { GoodVerifySent } from '@rctf/types'
+  import { toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { useRecoverMutation } from '$lib/query'
 
   let { data } = $props()
 
+  const recoverMutation = useRecoverMutation()
+
   let email = $state('')
-  let loading = $state(false)
   let errors = $state<Record<string, string>>({})
   let verifySent = $state(false)
 
-  async function handleSubmit(e: SubmitEvent) {
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    loading = true
     errors = {}
 
-    const response = await apiRequest(RecoverRoute, { email })
-
-    if (response.kind === GoodVerifySent.kind) {
-      verifySent = true
-      toast.success('Recovery email sent!')
-    } else {
-      errors = { email: response.message }
-    }
-
-    loading = false
+    $recoverMutation.mutate(
+      { email },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodVerifySent.kind) {
+            verifySent = true
+            toast.success('Recovery email sent!')
+          } else {
+            errors = { email: response.message }
+          }
+        },
+        onError: error => {
+          errors = { email: error.message }
+        },
+      }
+    )
   }
 </script>
 
@@ -81,8 +88,12 @@
           {/if}
         </Field.Field>
 
-        <Button type="submit" disabled={loading} class="w-full">
-          {#if loading}
+        <Button
+          type="submit"
+          disabled={$recoverMutation.isPending}
+          class="w-full"
+        >
+          {#if $recoverMutation.isPending}
             <Spinner class="size-4" />
           {/if}
           Recover

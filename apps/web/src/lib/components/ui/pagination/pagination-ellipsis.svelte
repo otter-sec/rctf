@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconDots } from '$lib/icons'
-  import { cn, type WithElementRef, type WithoutChildren } from '$lib/utils.js'
+  import { cn, type WithElementRef, type WithoutChildren } from '$lib/utils'
   import type { HTMLAttributes } from 'svelte/elements'
 
   let {

@@ -11,6 +11,7 @@
   import ChallengeHeader from './challenge-header.svelte'
   import ChallengePodium from './challenge-podium.svelte'
   import ChallengeSolvesTab from './challenge-solves-tab.svelte'
+  import ChallengeUserSolve from './challenge-user-solve.svelte'
 
   type Props = {
     challenge: Challenge | null
@@ -19,6 +20,9 @@
   }
 
   let { challenge, isSolved, onSolve }: Props = $props()
+
+  let activeTab = $state('details')
+  let userVisibleInSolves = $state(false)
 </script>
 
 {#if challenge}
@@ -26,7 +30,7 @@
     <div class="flex h-full flex-col">
       <ChallengeHeader {challenge} {isSolved} />
 
-      <Tabs.Root value="details" class="flex min-h-0 flex-1 flex-col">
+      <Tabs.Root bind:value={activeTab} class="flex min-h-0 flex-1 flex-col">
         <div class="px-5">
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
             <Tabs.Trigger
@@ -52,13 +56,20 @@
           </Tabs.Content>
 
           <Tabs.Content value="solves" class="h-full">
-            <ChallengeSolvesTab {challenge} />
+            <ChallengeSolvesTab
+              {challenge}
+              bind:userVisibleInList={userVisibleInSolves}
+            />
           </Tabs.Content>
         </div>
       </Tabs.Root>
 
-      <div class="flex flex-col gap-2 bg-background-l2 px-9 py-4">
-        <ChallengePodium {challenge} {isSolved} />
+      <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
+        {#if activeTab === 'details'}
+          <ChallengePodium {challenge} {isSolved} />
+        {:else if activeTab === 'solves' && !userVisibleInSolves}
+          <ChallengeUserSolve {challenge} />
+        {/if}
         <ChallengeFlagForm {challenge} {isSolved} {onSolve} />
       </div>
     </div>

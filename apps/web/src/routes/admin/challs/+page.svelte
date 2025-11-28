@@ -2,30 +2,42 @@
   import { Permissions } from '@rctf/types'
   import { Badge, Button, Card, Table } from '$lib/components'
   import { IconLibraryPlusFilled } from '$lib/icons'
+  import {
+    useAdminChallenges,
+    useClientConfig,
+    useCurrentUser,
+  } from '$lib/query'
 
-  let { data } = $props()
+  const userQuery = useCurrentUser()
+  const challengesQuery = useAdminChallenges()
+  const clientConfigQuery = useClientConfig()
+
+  const user = $derived($userQuery.data)
+  const challenges = $derived($challengesQuery.data ?? [])
+  const clientConfig = $derived($clientConfigQuery.data)
+  const error = $derived($challengesQuery.error?.message)
 
   const hasWritePerms = $derived(
-    data.user?.perms !== null &&
-      data.user?.perms !== undefined &&
-      (data.user.perms & Permissions.challsWrite) !== 0
+    user?.perms !== null &&
+      user?.perms !== undefined &&
+      (user.perms & Permissions.challsWrite) !== 0
   )
 
   const sortedChallenges = $derived(
-    [...data.challenges].sort((a, b) => {
+    [...challenges].sort((a, b) => {
       const catCompare = a.category.localeCompare(b.category)
       if (catCompare !== 0) return catCompare
       return a.name.localeCompare(b.name)
     })
   )
 
-  const categoryCount = $derived(
-    new Set(data.challenges.map(c => c.category)).size
-  )
+  const categoryCount = $derived(new Set(challenges.map(c => c.category)).size)
 </script>
 
 <svelte:head>
-  <title>Admin | {data.clientConfig.ctfName}</title>
+  {#if clientConfig}
+    <title>Admin | {clientConfig.ctfName}</title>
+  {/if}
 </svelte:head>
 
 <div class="flex flex-col gap-6">
@@ -34,9 +46,7 @@
       <div>
         <h1 class="text-2xl font-medium">Challenges</h1>
         <p class="text-foreground-l3">
-          {data.challenges.length} challenge{data.challenges.length === 1
-            ? ''
-            : 's'}
+          {challenges.length} challenge{challenges.length === 1 ? '' : 's'}
           across {categoryCount} categor{categoryCount === 1 ? 'y' : 'ies'}
         </p>
       </div>
@@ -49,16 +59,16 @@
     </Card.Content>
   </Card.Root>
 
-  {#if data.error}
+  {#if error}
     <div
       class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
       role="alert"
     >
-      {data.error}
+      {error}
     </div>
   {/if}
 
-  {#if data.challenges.length === 0}
+  {#if challenges.length === 0}
     <Card.Root>
       <Card.Content class="py-12 text-center">
         <p class="text-foreground-l3">No challenges found.</p>

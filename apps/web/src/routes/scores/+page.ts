@@ -1,45 +1,21 @@
 import {
-  GetLeaderboardGraphRoute,
-  GetLeaderboardRoute,
-  GoodLeaderboard,
-  GoodLeaderboardGraph,
-} from '@rctf/types'
-import { apiRequest } from '$lib'
+  leaderboardGraphQueryOptions,
+  leaderboardQueryOptions,
+} from '$lib/query'
 import type { PageLoad } from './$types'
 
 export const ssr = false
 
 const PAGE_SIZE = 10
 
-export const load: PageLoad = async () => {
-  const [leaderboardResponse, graphResponse] = await Promise.all([
-    apiRequest(GetLeaderboardRoute, {
-      limit: PAGE_SIZE,
-      offset: 0,
-      division: 'open',
-    }),
-    apiRequest(GetLeaderboardGraphRoute, {
-      limit: 10,
-      division: 'open',
-    }),
+export const load: PageLoad = async ({ parent }) => {
+  const { queryClient } = await parent()
+
+  const leaderboardParams = { limit: PAGE_SIZE, offset: 0, division: 'open' }
+  const graphParams = { limit: 10, division: 'open' }
+
+  await Promise.all([
+    queryClient.prefetchQuery(leaderboardQueryOptions(leaderboardParams)),
+    queryClient.prefetchQuery(leaderboardGraphQueryOptions(graphParams)),
   ])
-
-  if (leaderboardResponse.kind !== GoodLeaderboard.kind) {
-    return {
-      leaderboard: null,
-      graph: null,
-      error: leaderboardResponse.message,
-    }
-  }
-
-  const graph =
-    graphResponse.kind === GoodLeaderboardGraph.kind
-      ? graphResponse.data.graph
-      : null
-
-  return {
-    leaderboard: leaderboardResponse.data,
-    graph,
-    pageSize: PAGE_SIZE,
-  }
 }

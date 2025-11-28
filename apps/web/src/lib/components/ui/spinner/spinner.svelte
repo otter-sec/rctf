@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconLoader } from '$lib/icons'
-  import { cn } from '$lib/utils.js'
+  import { cn } from '$lib/utils'
 
   let { class: className }: { class?: string } = $props()
 </script>

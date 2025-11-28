@@ -1,17 +1,21 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import { Button, Card } from '$lib/components'
+  import { useCurrentUser } from '$lib/query'
 
-  let { data, children } = $props()
+  let { children } = $props()
+
+  const userQuery = useCurrentUser()
+  const user = $derived($userQuery.data)
 
   const hasReadPerms = $derived(
-    data.user?.perms !== null &&
-      data.user?.perms !== undefined &&
-      (data.user.perms & Permissions.challsRead) !== 0
+    user?.perms !== null &&
+      user?.perms !== undefined &&
+      (user.perms & Permissions.challsRead) !== 0
   )
 </script>
 
-{#if !data.user}
+{#if !user}
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Admin access required</Card.Title>

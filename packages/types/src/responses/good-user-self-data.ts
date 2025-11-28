@@ -17,7 +17,7 @@ export const GoodUserSelfData = response('goodUserSelfData', {
     id: z.string(),
     name: z.string(),
     email: z.string().nullable(),
-    ctftimeId: z.string().nullable(),
+    ctftimeId: z.string().nullish(),
     division: z.string(),
     score: z.number().int(),
     globalPlace: z.number().int().nullable(),

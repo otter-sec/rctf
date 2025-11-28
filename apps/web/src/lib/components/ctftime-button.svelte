@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { CtftimeCallbackRoute, GoodCtftimeToken } from '@rctf/types'
-  import { apiRequest, toast } from '$lib'
+  import { GoodCtftimeToken } from '@rctf/types'
+  import { toast } from '$lib'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Spinner } from '$lib/components'
+  import { useCtftimeCallbackMutation } from '$lib/query'
   import { onDestroy, onMount } from 'svelte'
 
   interface Props {
@@ -17,7 +18,8 @@
 
   let { clientId, onCtftimeDone, disabled = false }: Props = $props()
 
-  let loading = $state(false)
+  const ctftimeMutation = useCtftimeCallbackMutation()
+
   let oauthState: string | null = null
 
   function getState(): string {
@@ -58,7 +60,7 @@
     popup?.focus()
   }
 
-  async function handlePostMessage(evt: MessageEvent) {
+  function handlePostMessage(evt: MessageEvent) {
     if (evt.origin !== location.origin || evt.data.kind !== 'ctftimeCallback') {
       return
     }
@@ -66,24 +68,27 @@
       return
     }
 
-    loading = true
-
-    const response = await apiRequest(CtftimeCallbackRoute, {
-      ctftimeCode: evt.data.ctftimeCode,
-    })
-
-    if (response.kind === GoodCtftimeToken.kind) {
-      onCtftimeDone({
-        ctftimeToken: response.data.ctftimeToken,
-        ctftimeName: response.data.ctftimeName,
-        ctftimeId: response.data.ctftimeId,
-      })
-    } else {
-      toast.error(response.message)
-    }
-
-    loading = false
-    oauthState = null
+    $ctftimeMutation.mutate(
+      { ctftimeCode: evt.data.ctftimeCode },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodCtftimeToken.kind) {
+            onCtftimeDone({
+              ctftimeToken: response.data.ctftimeToken,
+              ctftimeName: response.data.ctftimeName,
+              ctftimeId: response.data.ctftimeId,
+            })
+          } else {
+            toast.error(response.message)
+          }
+          oauthState = null
+        },
+        onError: error => {
+          toast.error(error.message)
+          oauthState = null
+        },
+      }
+    )
   }
 
   onMount(() => {
@@ -101,9 +106,9 @@
   size="lg"
   class="w-full [&_svg:not([class*='size-'])]:w-auto [&_svg:not([class*='size-'])]:h-6 py-0"
   onclick={openPopup}
-  disabled={disabled || loading}
+  disabled={disabled || $ctftimeMutation.isPending}
 >
-  {#if loading}
+  {#if $ctftimeMutation.isPending}
     <Spinner class="size-4" />
     <span>Connecting...</span>
   {:else}

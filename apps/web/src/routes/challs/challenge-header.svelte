@@ -22,7 +22,9 @@
       <h2 class="text-2xl">{challenge.name}</h2>
       <div class="flex items-center gap-2 text-foreground-l3 text-base">
         <span>by {challenge.author}</span>
-        <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
+        <span class="text-foreground-l5 opacity-50 text-2xl leading-none"
+          >·</span
+        >
         <div class="flex gap-1">
           <span
             class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"

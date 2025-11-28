@@ -19,10 +19,10 @@ export const GoodClientConfig = response('goodClientConfig', {
         small: z.boolean().optional(),
       })
     ),
-    globalSiteTag: z.string().nullable(),
+    globalSiteTag: z.string().nullish(),
     ctfName: z.string(),
     divisions: z.record(z.string()),
-    defaultDivision: z.string().nullable(),
+    defaultDivision: z.string().nullish(),
     origin: z.string(),
     startTime: z.number().int(),
     endTime: z.number().int(),

@@ -1,14 +1,11 @@
 <script lang="ts">
-  import {
-    BadAlreadySolvedChallenge,
-    GoodFlag,
-    SubmitFlagRoute,
-  } from '@rctf/types'
-  import { invalidateAll } from '$app/navigation'
-  import { apiRequest, toast } from '$lib'
+  import { BadAlreadySolvedChallenge, GoodFlag } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { toast } from '$lib'
   import type { Challenge } from '$lib/api'
   import { Spinner } from '$lib/components'
   import { IconCheck, IconSend } from '$lib/icons'
+  import { queryKeys, useSubmitFlagMutation } from '$lib/query'
 
   type Props = {
     challenge: Challenge
@@ -18,8 +15,10 @@
 
   let { challenge, isSolved, onSolve }: Props = $props()
 
+  const queryClient = useQueryClient()
+  const submitMutation = useSubmitFlagMutation()
+
   let flagInput = $state('')
-  let submitting = $state(false)
   let error = $state('')
 
   async function handleSubmitFlag(e: SubmitEvent) {
@@ -31,28 +30,33 @@
       return
     }
 
-    submitting = true
     error = ''
 
-    const response = await apiRequest(SubmitFlagRoute, {
-      id: challenge.id,
-      flag,
-    })
-
-    submitting = false
-
-    if (response.kind === GoodFlag.kind) {
-      toast.success('Flag correct!')
-      onSolve(challenge.id)
-      flagInput = ''
-      invalidateAll()
-    } else if (response.kind === BadAlreadySolvedChallenge.kind) {
-      toast.info('You already solved this challenge')
-      onSolve(challenge.id)
-    } else {
-      error = response.message
-      toast.error(response.message)
-    }
+    $submitMutation.mutate(
+      { id: challenge.id, flag },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodFlag.kind) {
+            toast.success('Flag correct!')
+            onSolve(challenge.id)
+            flagInput = ''
+            queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
+            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+            queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+          } else if (response.kind === BadAlreadySolvedChallenge.kind) {
+            toast.info('You already solved this challenge')
+            onSolve(challenge.id)
+          } else {
+            error = response.message
+            toast.error(response.message)
+          }
+        },
+        onError: err => {
+          error = err.message
+          toast.error(err.message)
+        },
+      }
+    )
   }
 </script>
 
@@ -74,16 +78,16 @@
         spellcheck="false"
         class="h-full flex-1 rounded-lg bg-background-l4 px-3 py-3.5 font-mono text-xl text-foreground-l3 placeholder:text-foreground-l3 outline-none"
         bind:value={flagInput}
-        disabled={submitting}
+        disabled={$submitMutation.isPending}
         aria-invalid={!!error || undefined}
       />
     {/if}
     <button
       type="submit"
-      disabled={submitting || isSolved}
+      disabled={$submitMutation.isPending || isSolved}
       class="flex h-full items-center justify-center rounded-lg bg-background-l4 px-4 py-3 text-foreground-l4 hover:bg-background-l5 disabled:opacity-50"
     >
-      {#if submitting}
+      {#if $submitMutation.isPending}
         <Spinner class="size-6" />
       {:else}
         <IconSend class="size-6" />

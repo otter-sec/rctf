@@ -1,19 +1,25 @@
 <script lang="ts">
+  import { page } from '$app/state'
   import { Badge, Button, Card } from '$lib/components'
+  import { useClientConfig, useUserProfile } from '$lib/query'
 
-  let { data } = $props()
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
+
+  const userQuery = $derived(useUserProfile(page.params.id!))
+  const user = $derived($userQuery.data)
+  const error = $derived($userQuery.error?.message)
 </script>
 
 <svelte:head>
-  {#if data.user}
-    <title>{data.user.name} | {data.clientConfig.ctfName}</title>
-  {:else}
-    <title>Profile not found | {data.clientConfig.ctfName}</title>
+  {#if user && clientConfig}
+    <title>{user.name} | {clientConfig.ctfName}</title>
+  {:else if clientConfig}
+    <title>Profile not found | {clientConfig.ctfName}</title>
   {/if}
 </svelte:head>
 
-{#if data.user}
-  {@const user = data.user}
+{#if user && clientConfig}
   <div class="mx-auto flex flex-col gap-6">
     <Card.Root>
       <Card.Header>
@@ -37,7 +43,7 @@
           <div class="flex flex-col gap-1">
             <span class="text-foreground-l3 text-sm">Division</span>
             <span class="font-medium">
-              {data.clientConfig.divisions[user.division] ?? user.division}
+              {clientConfig.divisions[user.division] ?? user.division}
             </span>
           </div>
           <div class="flex flex-col gap-1">
@@ -107,7 +113,7 @@
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
-        {data.error ?? 'The requested profile could not be found.'}
+        {error ?? 'The requested profile could not be found.'}
       </p>
       <Button href="/scores">View leaderboard</Button>
     </Card.Content>

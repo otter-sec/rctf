@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { LeaderboardGraphEntry } from '$lib/api'
   import { Chart, type ChartConfig } from '$lib/components'
+  import { useLeaderboardGraph } from '$lib/query'
   import { flatGroup } from 'd3-array'
   import {
     Axis,
@@ -11,7 +11,8 @@
     Tooltip,
   } from 'layerchart'
 
-  let { graph }: { graph: LeaderboardGraphEntry[] } = $props()
+  const graphQuery = useLeaderboardGraph({ limit: 10, division: 'open' })
+  const graph = $derived($graphQuery.data ?? [])
 
   // TEMPORARY: Cut off data
   const cutoffDate = new Date('2025-10-28T03:00:00.000Z')

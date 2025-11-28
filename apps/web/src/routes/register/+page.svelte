@@ -1,13 +1,8 @@
 <script lang="ts">
-  import {
-    GoodLogin,
-    GoodRegister,
-    GoodVerifySent,
-    LoginRoute,
-    RegisterRoute,
-  } from '@rctf/types'
-  import { goto, invalidateAll } from '$app/navigation'
-  import { apiRequest, setToken, toast } from '$lib'
+  import { GoodLogin, GoodRegister, GoodVerifySent } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
+  import { setToken, toast } from '$lib'
   import {
     Button,
     Card,
@@ -16,18 +11,26 @@
     Input,
     Spinner,
   } from '$lib/components'
+  import { queryKeys, useLoginMutation, useRegisterMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
   let { data } = $props()
 
+  const queryClient = useQueryClient()
+  const registerMutation = useRegisterMutation()
+  const loginMutation = useLoginMutation()
+
   let name = $state('')
   let email = $state('')
-  let loading = $state(false)
   let errors = $state<Record<string, string>>({})
   let verifySent = $state(false)
 
   let ctftimeToken = $state<string | null>(null)
   let ctftimeName = $state<string | null>(null)
+
+  const loading = $derived(
+    $registerMutation.isPending || $loginMutation.isPending
+  )
 
   onMount(() => {
     const storedToken = sessionStorage.getItem('ctftimeToken')
@@ -42,81 +45,94 @@
     }
   })
 
-  async function handleSubmit(e: SubmitEvent) {
+  function handleRegisterSuccess(authToken: string) {
+    setToken(authToken)
+    toast.success('Account created successfully!')
+    queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+    goto('/')
+  }
+
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    loading = true
     errors = {}
 
     if (ctftimeToken) {
-      const response = await apiRequest(RegisterRoute, {
-        name,
-        ctftimeToken,
-      })
-
-      if (response.kind === GoodRegister.kind) {
-        setToken(response.data.authToken)
-        toast.success('Account created successfully!')
-        await invalidateAll()
-        goto('/')
-      } else {
-        const msg = response.message
-        if (msg.toLowerCase().includes('name')) {
-          errors = { name: msg }
-        } else {
-          errors = { form: msg }
+      $registerMutation.mutate(
+        { name, ctftimeToken },
+        {
+          onSuccess: response => {
+            if (response.kind === GoodRegister.kind) {
+              handleRegisterSuccess(response.data.authToken)
+            } else {
+              const msg = response.message
+              if (msg.toLowerCase().includes('name')) {
+                errors = { name: msg }
+              } else {
+                errors = { form: msg }
+              }
+            }
+          },
+          onError: error => {
+            errors = { form: error.message }
+          },
         }
-      }
-
-      loading = false
+      )
       return
     }
 
-    const response = await apiRequest(RegisterRoute, { name, email })
-    if (response.kind === GoodRegister.kind) {
-      setToken(response.data.authToken)
-      toast.success('Account created successfully!')
-      await invalidateAll()
-      goto('/')
-    } else if (response.kind === GoodVerifySent.kind) {
-      verifySent = true
-    } else {
-      const msg = response.message
-      if (msg.toLowerCase().includes('email')) {
-        errors = { email: msg }
-      } else if (msg.toLowerCase().includes('name')) {
-        errors = { name: msg }
-      } else {
-        errors = { form: msg }
+    $registerMutation.mutate(
+      { name, email },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodRegister.kind) {
+            handleRegisterSuccess(response.data.authToken)
+          } else if (response.kind === GoodVerifySent.kind) {
+            verifySent = true
+          } else {
+            const msg = response.message
+            if (msg.toLowerCase().includes('email')) {
+              errors = { email: msg }
+            } else if (msg.toLowerCase().includes('name')) {
+              errors = { name: msg }
+            } else {
+              errors = { form: msg }
+            }
+          }
+        },
+        onError: error => {
+          errors = { form: error.message }
+        },
       }
-    }
-
-    loading = false
+    )
   }
 
-  async function handleCtftimeDone(ctftimeData: {
+  function handleCtftimeDone(ctftimeData: {
     ctftimeToken: string
     ctftimeName: string
     ctftimeId: string
   }) {
-    loading = true
     errors = {}
 
-    const loginResponse = await apiRequest(LoginRoute, {
-      ctftimeToken: ctftimeData.ctftimeToken,
-    })
-    if (loginResponse.kind === GoodLogin.kind) {
-      setToken(loginResponse.data.authToken)
-      toast.success('Logged in successfully!')
-      await invalidateAll()
-      goto('/')
-      return
-    }
-
-    ctftimeToken = ctftimeData.ctftimeToken
-    ctftimeName = ctftimeData.ctftimeName
-    name = ctftimeData.ctftimeName
-
-    loading = false
+    $loginMutation.mutate(
+      { ctftimeToken: ctftimeData.ctftimeToken },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodLogin.kind) {
+            setToken(response.data.authToken)
+            toast.success('Logged in successfully!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+            goto('/')
+          } else {
+            ctftimeToken = ctftimeData.ctftimeToken
+            ctftimeName = ctftimeData.ctftimeName
+            name = ctftimeData.ctftimeName
+          }
+        },
+        onError: error => {
+          toast.error(error.message)
+        },
+      }
+    )
   }
 
   function cancelCtftime() {
