@@ -1,16 +1,16 @@
 <script lang="ts">
   import { isAuthenticated } from '$lib'
   import { Button, Card } from '$lib/components'
+  import { useChallenges } from '$lib/query'
   import ChallengeGrid from './challenge-grid.svelte'
 
-  let { data } = $props()
+  const challengesQuery = useChallenges()
+  const challenges = $derived($challengesQuery.data)
+  const error = $derived($challengesQuery.error?.message)
 </script>
 
-{#if data.challenges}
-  <ChallengeGrid
-    challenges={data.challenges}
-    solves={data.user?.solves ?? []}
-  />
+{#if challenges}
+  <ChallengeGrid />
 {:else}
   <Card.Root>
     <Card.Header>
@@ -18,9 +18,8 @@
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">
-        {data.error ?? 'Unknown error'}
+        {error ?? 'Unknown error'}
       </p>
-      <!-- TODO(es3n1n): there should be a common component for this -->
       {#if !isAuthenticated()}
         <Button href="/login">Login</Button>
       {/if}

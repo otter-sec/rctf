@@ -1,46 +1,26 @@
 <script lang="ts">
-  import {
-    CreateMemberRoute,
-    DeleteMemberRoute,
-    GetMembersRoute,
-    GoodMemberCreate,
-    GoodMemberData,
-    GoodMemberDelete,
-  } from '@rctf/types'
-  import { apiRequest, toast } from '$lib'
+  import { GoodMemberCreate, GoodMemberDelete } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { toast } from '$lib'
   import { Badge, Button, Card, Field, Input, Spinner } from '$lib/components'
   import { IconTrashFilled, IconUsersPlus } from '$lib/icons'
-  import { onMount } from 'svelte'
+  import {
+    queryKeys,
+    useCreateMemberMutation,
+    useDeleteMemberMutation,
+    useMembers,
+  } from '$lib/query'
 
-  type Member = {
-    id: string
-    userid: string
-    email: string
-  }
+  const queryClient = useQueryClient()
+  const membersQuery = useMembers()
+  const createMutation = useCreateMemberMutation()
+  const deleteMutation = useDeleteMemberMutation()
 
-  let members = $state<Member[]>([])
   let newEmail = $state('')
-  let loading = $state(false)
-  let loadingMembers = $state(true)
-  let deletingId = $state<string | null>(null)
   let errors = $state<Record<string, string>>({})
+  let deletingId = $state<string | null>(null)
 
-  onMount(() => {
-    loadMembers()
-  })
-
-  async function loadMembers() {
-    loadingMembers = true
-    const response = await apiRequest(GetMembersRoute)
-
-    if (response.kind === GoodMemberData.kind) {
-      members = response.data
-    } else {
-      toast.error(response.message)
-    }
-
-    loadingMembers = false
-  }
+  const members = $derived($membersQuery.data ?? [])
 
   async function handleAddMember(e: SubmitEvent) {
     e.preventDefault()
@@ -50,37 +30,48 @@
       return
     }
 
-    loading = true
     errors = {}
 
-    const response = await apiRequest(CreateMemberRoute, {
-      email: newEmail.trim(),
-    })
-
-    if (response.kind === GoodMemberCreate.kind) {
-      members = [...members, response.data]
-      newEmail = ''
-      toast.success('Team member added successfully!')
-    } else {
-      errors = { email: response.message }
-    }
-
-    loading = false
+    $createMutation.mutate(
+      { email: newEmail.trim() },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodMemberCreate.kind) {
+            newEmail = ''
+            toast.success('Team member added successfully!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.members })
+          } else {
+            errors = { email: response.message }
+          }
+        },
+        onError: error => {
+          errors = { email: error.message }
+        },
+      }
+    )
   }
 
   async function handleDeleteMember(id: string) {
     deletingId = id
 
-    const response = await apiRequest(DeleteMemberRoute, { id })
-
-    if (response.kind === GoodMemberDelete.kind) {
-      members = members.filter(m => m.id !== id)
-      toast.success('Team member removed successfully!')
-    } else {
-      toast.error(response.message)
-    }
-
-    deletingId = null
+    $deleteMutation.mutate(
+      { id },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodMemberDelete.kind) {
+            toast.success('Team member removed successfully!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.members })
+          } else {
+            toast.error(response.message)
+          }
+          deletingId = null
+        },
+        onError: error => {
+          toast.error(error.message)
+          deletingId = null
+        },
+      }
+    )
   }
 </script>
 
@@ -107,12 +98,16 @@
             autocomplete="email"
             required
             bind:value={newEmail}
-            disabled={loading}
+            disabled={$createMutation.isPending}
             aria-invalid={!!errors.email}
             class="flex-1"
           />
-          <Button type="submit" disabled={loading} size="icon">
-            {#if loading}
+          <Button
+            type="submit"
+            disabled={$createMutation.isPending}
+            size="icon"
+          >
+            {#if $createMutation.isPending}
               <Spinner class="size-4" />
             {:else}
               <IconUsersPlus class="size-4" />
@@ -125,7 +120,7 @@
       </Field.Field>
     </form>
 
-    {#if loadingMembers}
+    {#if $membersQuery.isPending}
       <div class="flex items-center justify-center py-4">
         <Spinner class="size-6" />
       </div>

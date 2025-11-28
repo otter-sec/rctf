@@ -1,19 +1,7 @@
-import { GetAdminChallengesRoute, GoodAdminChallenges } from '@rctf/types'
-import { apiRequest, type AdminChallenge } from '$lib/api'
+import { adminChallengesQueryOptions } from '$lib/query'
 import type { PageLoad } from './$types'
 
-export const load: PageLoad = async () => {
-  const response = await apiRequest(GetAdminChallengesRoute)
-
-  if (response.kind === GoodAdminChallenges.kind) {
-    return {
-      challenges: response.data as AdminChallenge[],
-      error: null,
-    }
-  }
-
-  return {
-    challenges: [] as AdminChallenge[],
-    error: response.message,
-  }
+export const load: PageLoad = async ({ parent }) => {
+  const { queryClient } = await parent()
+  await queryClient.prefetchQuery(adminChallengesQueryOptions)
 }

@@ -1,10 +1,11 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
-  import { goto, invalidateAll } from '$app/navigation'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
   import { toast } from '$lib'
-  import { clearToken, type UserProfile } from '$lib/api'
-  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
     Avatar,
     DropdownMenu,
@@ -22,12 +23,11 @@
     IconSwords,
     IconUserCog,
   } from '$lib/icons'
+  import { useCurrentUser } from '$lib/query'
 
-  type Props = {
-    user: UserProfile | null
-  }
-
-  let { user }: Props = $props()
+  const queryClient = useQueryClient()
+  const userQuery = useCurrentUser()
+  const user = $derived($userQuery.data ?? null)
 
   const isAdmin = $derived(
     user?.perms !== null &&
@@ -48,7 +48,7 @@
 
   function handleLogout() {
     clearToken()
-    invalidateAll()
+    queryClient.setQueryData(['user', 'self'], null)
     goto('/login')
   }
 

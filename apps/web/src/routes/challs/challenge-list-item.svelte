@@ -48,14 +48,18 @@
     {/if}
     <div class="flex min-w-0 flex-1 flex-col z-1">
       <div class="truncate text-xl">
-        <span class="hidden @sm:inline text-category-foreground-l1">{category} /</span>
+        <span class="hidden @sm:inline text-category-foreground-l1"
+          >{category} /</span
+        >
         <span class="text-category-foreground-l0">{challenge.name}</span>
       </div>
       <span class="truncate text-base text-category-foreground-l1 opacity-75">
         {challenge.author}
       </span>
     </div>
-    <div class="flex shrink-0 flex-row @sm:flex-col items-baseline @sm:items-end gap-2 @sm:gap-0 z-1">
+    <div
+      class="flex shrink-0 flex-row @sm:flex-col items-baseline @sm:items-end gap-2 @sm:gap-0 z-1"
+    >
       {#if challenge.points !== null}
         <div class="text-xl tabular-nums whitespace-nowrap">
           <span class="text-category-foreground-l0">{challenge.points}</span>

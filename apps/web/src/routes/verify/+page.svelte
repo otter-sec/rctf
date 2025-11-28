@@ -1,24 +1,23 @@
 <script lang="ts">
-  import {
-    GoodEmailSet,
-    GoodRegister,
-    GoodVerify,
-    VerifyRoute,
-  } from '@rctf/types'
-  import { goto, invalidateAll } from '$app/navigation'
+  import { GoodEmailSet, GoodRegister, GoodVerify } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { apiRequest, setToken, toast } from '$lib'
+  import { setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
   import { IconCircleCheckFilled, IconX } from '$lib/icons'
+  import { queryKeys, useVerifyMutation } from '$lib/query'
 
   let { data } = $props()
 
-  let loading = $state(false)
+  const queryClient = useQueryClient()
+  const verifyMutation = useVerifyMutation()
+
   let error = $state<string | null>(null)
   let emailSet = $state(false)
   let verified = $state(false)
 
-  async function handleVerify() {
+  function handleVerify() {
     const verifyToken = page.url.searchParams.get('token')
 
     if (!verifyToken) {
@@ -26,28 +25,34 @@
       return
     }
 
-    loading = true
     error = null
 
-    const response = await apiRequest(VerifyRoute, { verifyToken })
-
-    if (
-      response.kind === GoodVerify.kind ||
-      response.kind === GoodRegister.kind
-    ) {
-      setToken(response.data.authToken)
-      verified = true
-      toast.success('Verified successfully!')
-      await invalidateAll()
-      setTimeout(() => goto('/'), 500)
-    } else if (response.kind === GoodEmailSet.kind) {
-      emailSet = true
-      toast.success('Email verified!')
-    } else {
-      error = response.message
-    }
-
-    loading = false
+    $verifyMutation.mutate(
+      { verifyToken },
+      {
+        onSuccess: response => {
+          if (
+            response.kind === GoodVerify.kind ||
+            response.kind === GoodRegister.kind
+          ) {
+            setToken(response.data.authToken)
+            verified = true
+            toast.success('Verified successfully!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+            setTimeout(() => goto('/'), 500)
+          } else if (response.kind === GoodEmailSet.kind) {
+            emailSet = true
+            toast.success('Email verified!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          } else {
+            error = response.message
+          }
+        },
+        onError: err => {
+          error = err.message
+        },
+      }
+    )
   }
 </script>
 
@@ -113,8 +118,12 @@
       <p class="text-foreground-l3 text-sm">
         Click the button below to verify your email address.
       </p>
-      <Button onclick={handleVerify} disabled={loading} class="w-full">
-        {#if loading}
+      <Button
+        onclick={handleVerify}
+        disabled={$verifyMutation.isPending}
+        class="w-full"
+      >
+        {#if $verifyMutation.isPending}
           <Spinner class="size-4" />
         {/if}
         Verify email

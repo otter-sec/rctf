@@ -1,12 +1,12 @@
 <script lang="ts">
-  // TODO(enscribe): don't re-fetch top 3
-  import { GetChallengeSolvesRoute, GoodChallengeSolves } from '@rctf/types'
-  import { page } from '$app/state'
-  import { apiRequest } from '$lib'
   import type { Challenge, Solve as UserSolve } from '$lib/api'
   import { Avatar } from '$lib/components'
+  import {
+    useChallengeSolves,
+    useClientConfig,
+    useCurrentUser,
+  } from '$lib/query'
   import { cn } from '$lib/utils'
-  import { onMount } from 'svelte'
 
   interface Props {
     challenge: Challenge
@@ -15,17 +15,16 @@
 
   let { challenge, isSolved }: Props = $props()
 
-  interface Solve {
-    id: string
-    createdAt: number
-    userId: string
-    userName: string
-  }
+  const solvesQuery = $derived(
+    useChallengeSolves(challenge.id, { limit: 15, offset: 0 })
+  )
+  const topSolves = $derived($solvesQuery.data?.solves.slice(0, 3) ?? [])
 
-  let topSolves = $state<Solve[]>([])
-  let loaded = $state(false)
+  const userQuery = useCurrentUser()
+  const clientConfigQuery = useClientConfig()
 
-  const currentUser = $derived(page.data.user)
+  const currentUser = $derived($userQuery.data)
+  const clientConfig = $derived($clientConfigQuery.data)
   const currentUserSolve = $derived(
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
@@ -63,7 +62,7 @@
   }
 
   function formatFirstBloodTime(timestamp: number): string {
-    const ctfStart = page.data.clientConfig.startTime
+    const ctfStart = clientConfig?.startTime ?? 0
     const diff = timestamp - ctfStart
 
     const minutes = Math.floor(diff / (1000 * 60))
@@ -100,28 +99,6 @@
       .slice(0, 2)
       .toUpperCase()
   }
-
-  async function fetchSolves() {
-    if (!challenge.solves) {
-      loaded = true
-      return
-    }
-
-    const response = await apiRequest(GetChallengeSolvesRoute, {
-      id: challenge.id,
-      limit: 3,
-      offset: 0,
-    })
-
-    if (response.kind === GoodChallengeSolves.kind) {
-      topSolves = response.data.solves
-    }
-    loaded = true
-  }
-
-  onMount(() => {
-    fetchSolves()
-  })
 </script>
 
 {#if challenge.solves && challenge.solves > 0}
@@ -129,7 +106,7 @@
     {#each placementStyles as style, index}
       {@const isUserSlot = index === 3}
       {@const solve = isUserSlot ? null : topSolves[index]}
-      {@const showUserSolve = isUserSlot && isSolved && currentUserSolve && loaded}
+      {@const showUserSolve = isUserSlot && isSolved && currentUserSolve}
       {@const hasContent = solve || showUserSolve}
       {@const showEmpty = !hasContent}
       <div

@@ -1,8 +1,9 @@
 <script lang="ts">
-  import { BadUnknownUser, GoodLogin, LoginRoute } from '@rctf/types'
-  import { goto, invalidateAll } from '$app/navigation'
+  import { BadUnknownUser, GoodLogin } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { apiRequest, setToken, toast } from '$lib'
+  import { setToken, toast } from '$lib'
   import {
     Button,
     Card,
@@ -11,12 +12,15 @@
     Input,
     Spinner,
   } from '$lib/components'
+  import { queryKeys, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
   let { data } = $props()
 
+  const queryClient = useQueryClient()
+  const loginMutation = useLoginMutation()
+
   let teamToken = $state('')
-  let loading = $state(false)
   let errors = $state<Record<string, string>>({})
 
   onMount(() => {
@@ -26,26 +30,34 @@
     }
   })
 
-  async function handleTokenLogin(token: string) {
-    loading = true
-    errors = {}
-
-    const response = await apiRequest(LoginRoute, { teamToken: token })
-
-    if (response.kind === GoodLogin.kind) {
-      setToken(response.data.authToken)
-      toast.success('Logged in successfully!')
-      await invalidateAll()
-      goto('/')
-    } else {
-      errors = { teamToken: response.message }
-      loading = false
-    }
+  function handleLoginSuccess(authToken: string) {
+    setToken(authToken)
+    toast.success('Logged in successfully!')
+    queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+    goto('/')
   }
 
-  async function handleSubmit(e: SubmitEvent) {
+  function handleTokenLogin(token: string) {
+    errors = {}
+    $loginMutation.mutate(
+      { teamToken: token },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodLogin.kind) {
+            handleLoginSuccess(response.data.authToken)
+          } else {
+            errors = { teamToken: response.message }
+          }
+        },
+        onError: error => {
+          errors = { teamToken: error.message }
+        },
+      }
+    )
+  }
+
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    loading = true
     errors = {}
 
     let token = teamToken
@@ -59,46 +71,48 @@
       // empty
     }
 
-    const response = await apiRequest(LoginRoute, { teamToken: token })
-
-    if (response.kind === GoodLogin.kind) {
-      setToken(response.data.authToken)
-      toast.success('Logged in successfully!')
-      await invalidateAll()
-      goto('/')
-    } else {
-      errors = { teamToken: response.message }
-    }
-
-    loading = false
+    $loginMutation.mutate(
+      { teamToken: token },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodLogin.kind) {
+            handleLoginSuccess(response.data.authToken)
+          } else {
+            errors = { teamToken: response.message }
+          }
+        },
+        onError: error => {
+          errors = { teamToken: error.message }
+        },
+      }
+    )
   }
 
-  async function handleCtftimeDone(ctftimeData: {
+  function handleCtftimeDone(ctftimeData: {
     ctftimeToken: string
     ctftimeName: string
     ctftimeId: string
   }) {
-    loading = true
     errors = {}
-
-    const response = await apiRequest(LoginRoute, {
-      ctftimeToken: ctftimeData.ctftimeToken,
-    })
-
-    if (response.kind === GoodLogin.kind) {
-      setToken(response.data.authToken)
-      toast.success('Logged in successfully!')
-      await invalidateAll()
-      goto('/')
-    } else if (response.kind === BadUnknownUser.kind) {
-      sessionStorage.setItem('ctftimeToken', ctftimeData.ctftimeToken)
-      sessionStorage.setItem('ctftimeName', ctftimeData.ctftimeName)
-      goto('/register')
-    } else {
-      toast.error(response.message)
-    }
-
-    loading = false
+    $loginMutation.mutate(
+      { ctftimeToken: ctftimeData.ctftimeToken },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodLogin.kind) {
+            handleLoginSuccess(response.data.authToken)
+          } else if (response.kind === BadUnknownUser.kind) {
+            sessionStorage.setItem('ctftimeToken', ctftimeData.ctftimeToken)
+            sessionStorage.setItem('ctftimeName', ctftimeData.ctftimeName)
+            goto('/register')
+          } else {
+            toast.error(response.message)
+          }
+        },
+        onError: error => {
+          toast.error(error.message)
+        },
+      }
+    )
   }
 </script>
 
@@ -139,8 +153,8 @@
         </p>
       {/if}
 
-      <Button type="submit" disabled={loading} class="w-full">
-        {#if loading}
+      <Button type="submit" disabled={$loginMutation.isPending} class="w-full">
+        {#if $loginMutation.isPending}
           <Spinner class="size-4" />
         {/if}
         Login
@@ -158,7 +172,7 @@
         <CtftimeButton
           clientId={data.clientConfig.ctftime.clientId}
           onCtftimeDone={handleCtftimeDone}
-          disabled={loading}
+          disabled={$loginMutation.isPending}
         />
       </div>
     {/if}

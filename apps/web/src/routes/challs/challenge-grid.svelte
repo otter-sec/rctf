@@ -1,15 +1,18 @@
 <script lang="ts">
-  import type { Challenge, Solve } from '$lib/api'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import type { Challenge } from '$lib/api'
   import { Resizable } from '$lib/components'
+  import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
   import ChallengeDetails from './challenge-details.svelte'
   import ChallengeList from './challenge-list.svelte'
 
-  let {
-    challenges: initialChallenges,
-    solves = [],
-  }: { challenges: Challenge[]; solves: Solve[] } = $props()
+  const queryClient = useQueryClient()
+  const challengesQuery = useChallenges()
+  const userQuery = useCurrentUser()
 
-  let challenges = $state(initialChallenges)
+  const challenges = $derived($challengesQuery.data ?? [])
+  const solves = $derived($userQuery.data?.solves ?? [])
+
   let localSolvedIds = $state(new Set<string>())
   const solvedIds = $derived(
     new Set([...solves.map(s => s.id), ...localSolvedIds])
@@ -28,20 +31,8 @@
   function handleSolve(challengeId: string) {
     localSolvedIds.add(challengeId)
     localSolvedIds = new Set(localSolvedIds)
-    challenges = challenges.map(c =>
-      c.id === challengeId && c.solves !== null
-        ? { ...c, solves: c.solves + 1 }
-        : c
-    )
-    if (
-      selectedChallenge?.id === challengeId &&
-      selectedChallenge.solves !== null
-    ) {
-      selectedChallenge = {
-        ...selectedChallenge,
-        solves: selectedChallenge.solves + 1,
-      }
-    }
+    queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
+    queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
   }
 
   const selectedIsSolved = $derived(
