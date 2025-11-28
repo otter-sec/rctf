@@ -20,6 +20,7 @@ export { default as Markdown } from './markdown.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'
 export { default as NavButton } from './nav-button.svelte'
 export { default as NavLink } from './nav-link.svelte'
+export { default as RankRow } from './rank-row.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 
 export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'

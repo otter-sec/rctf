@@ -2,7 +2,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import type { Challenge } from '$lib/api'
-  import { Avatar, ScrollArea, Spinner, Tooltip } from '$lib/components'
+  import { RankRow, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import {
     IconChevronLeft,
     IconChevronLeftPipe,
@@ -17,11 +17,10 @@
     useCurrentUser,
   } from '$lib/query'
   import {
-    cn,
     formatFirstBloodTime,
     formatLocalTime,
     formatRelativeToFirstBlood,
-    getInitials,
+    getRankVariant,
   } from '$lib/utils'
 
   const PAGE_SIZE = 10
@@ -180,144 +179,21 @@
     {:else}
       <div class="flex flex-col gap-2 px-5" class:opacity-50={isRefetching}>
         {#each filteredSolves as solve (solve.id)}
-          {@const rank = solve.rank}
-          {@const isFirst = rank === 1}
-          {@const isSecond = rank === 2}
-          {@const isThird = rank === 3}
-          {@const isCurrentUser =
-            currentUser && solve.userId === currentUser.id}
-          <div
-            class={cn(
-              'flex items-center gap-2 rounded-lg px-4 py-2',
-              isFirst && 'bg-background-first',
-              isSecond && 'bg-background-second',
-              isThird && 'bg-background-third',
-              isCurrentUser &&
-                !isFirst &&
-                !isSecond &&
-                !isThird &&
-                'bg-background-self',
-              !isFirst &&
-                !isSecond &&
-                !isThird &&
-                !isCurrentUser &&
-                'bg-background-nth'
-            )}
-          >
-            <span
-              class={cn(
-                'w-[58px] text-center shrink-0 text-xl tabular-nums',
-                isFirst && 'text-foreground-first-l0',
-                isSecond && 'text-foreground-second-l0',
-                isThird && 'text-foreground-third-l0',
-                isCurrentUser &&
-                  !isFirst &&
-                  !isSecond &&
-                  !isThird &&
-                  'text-foreground-self-l0',
-                !isFirst &&
-                  !isSecond &&
-                  !isThird &&
-                  !isCurrentUser &&
-                  'text-foreground-nth-l0'
-              )}
-            >
-              #{rank}
-            </span>
-            <Avatar.Root class="size-12 shrink-0 rounded-lg">
-              <Avatar.Fallback class="rounded-lg text-sm">
-                {getInitials(solve.userName)}
-              </Avatar.Fallback>
-            </Avatar.Root>
-            <div class="flex min-w-0 flex-1 flex-col">
-              <a
-                href="/profile/{solve.userId}"
-                class={cn(
-                  'truncate text-xl hover:underline',
-                  isFirst && 'text-foreground-first-l0',
-                  isSecond && 'text-foreground-second-l0',
-                  isThird && 'text-foreground-third-l0',
-                  isCurrentUser &&
-                    !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    'text-foreground-self-l0',
-                  !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    !isCurrentUser &&
-                    'text-foreground-nth-l0'
-                )}
-              >
-                {solve.userName}
-              </a>
-              <!-- TODO(enscribe): Add overall division rank (BREAKING CHANGE) -->
-              <span
-                class={cn(
-                  'truncate text-base',
-                  isFirst && 'text-foreground-first-l1',
-                  isSecond && 'text-foreground-second-l1',
-                  isThird && 'text-foreground-third-l1',
-                  isCurrentUser &&
-                    !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    'text-foreground-self-l1',
-                  !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    !isCurrentUser &&
-                    'text-foreground-nth-l1'
-                )}
-              >
-                Open Division
-              </span>
-            </div>
-            <div class="flex shrink-0 flex-col items-end">
-              <span
-                class={cn(
-                  'text-xl tabular-nums',
-                  isFirst && 'text-foreground-first-l0',
-                  isSecond && 'text-foreground-second-l0',
-                  isThird && 'text-foreground-third-l0',
-                  isCurrentUser &&
-                    !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    'text-foreground-self-l0',
-                  !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    !isCurrentUser &&
-                    'text-foreground-nth-l0'
-                )}
-              >
-                {isFirst
-                  ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
-                  : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-              </span>
-              <span
-                class={cn(
-                  'text-base',
-                  isFirst && 'text-foreground-first-l1',
-                  isSecond && 'text-foreground-second-l1',
-                  isThird && 'text-foreground-third-l1',
-                  isCurrentUser &&
-                    !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    'text-foreground-self-l1',
-                  !isFirst &&
-                    !isSecond &&
-                    !isThird &&
-                    !isCurrentUser &&
-                    'text-foreground-nth-l1'
-                )}
-              >
-                {formatLocalTime(solve.createdAt)}
-              </span>
-            </div>
-          </div>
+          {@const isCurrentUser = !!(
+            currentUser && solve.userId === currentUser.id
+          )}
+          {@const variant = getRankVariant(solve.rank, isCurrentUser)}
+          <RankRow
+            {variant}
+            rankLabel={solve.rank}
+            name={solve.userName}
+            userId={solve.userId}
+            subtitle="Open Division"
+            primaryValue={solve.rank === 1
+              ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
+              : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
+            secondaryValue={formatLocalTime(solve.createdAt)}
+          />
         {/each}
       </div>
     {/if}

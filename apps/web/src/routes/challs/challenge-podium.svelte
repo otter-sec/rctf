@@ -6,12 +6,14 @@
     useClientConfig,
     useCurrentUser,
   } from '$lib/query'
+  import type { RankVariant } from '$lib/utils'
   import {
     cn,
     formatFirstBloodTime,
     formatRelativeToFirstBlood,
     getInitials,
     getOrdinal,
+    getRankStyles,
   } from '$lib/utils'
 
   interface Props {
@@ -36,35 +38,15 @@
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
 
-  const placementStyles = [
-    {
-      bg: 'bg-background-first',
-      fgL0: 'text-foreground-first-l0',
-      fgL1: 'text-foreground-first-l1',
-    },
-    {
-      bg: 'bg-background-second',
-      fgL0: 'text-foreground-second-l0',
-      fgL1: 'text-foreground-second-l1',
-    },
-    {
-      bg: 'bg-background-third',
-      fgL0: 'text-foreground-third-l0',
-      fgL1: 'text-foreground-third-l1',
-    },
-    {
-      bg: 'bg-background-self',
-      fgL0: 'text-foreground-self-l0',
-      fgL1: 'text-foreground-self-l1',
-    },
-  ]
+  const placementVariants: RankVariant[] = ['first', 'second', 'third', 'self']
 
   const firstBloodTime = $derived(topSolves[0]?.createdAt ?? 0)
 </script>
 
 {#if challenge.solves && challenge.solves > 0}
   <div class="grid grid-cols-4 gap-2">
-    {#each placementStyles as style, index}
+    {#each placementVariants as variant, index}
+      {@const style = getRankStyles(variant)}
       {@const isUserSlot = index === 3}
       {@const solve = isUserSlot ? null : topSolves[index]}
       {@const showUserSolve = isUserSlot && isSolved && currentUserSolve}
