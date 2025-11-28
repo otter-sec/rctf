@@ -56,6 +56,7 @@
   --color-foreground-ninth: var(--foreground-ninth);
   --color-foreground-tenth: var(--foreground-tenth);
   --color-background-destructive: var(--background-destructive);
+  --color-background-destructive-hover: var(--background-destructive-hover);
   --color-foreground-destructive: var(--foreground-destructive);
   --color-background-success: var(--background-success);
   --color-foreground-success: var(--foreground-success);
@@ -169,8 +170,9 @@
   --foreground-eighth: var(--color-violet-300);
   --foreground-ninth: var(--color-fuchsia-500);
   --foreground-tenth: var(--color-rose-500);
-  --background-destructive: var(--color-red-200);
-  --foreground-destructive: var(--color-red-400);
+  --background-destructive: color-mix(in oklch, var(--color-red-400) 30%, transparent);
+  --background-destructive-hover: color-mix(in oklch, var(--color-red-400) 45%, transparent);
+  --foreground-destructive: var(--color-red-700);
   --background-success: color-mix(in oklch, var(--color-emerald-500) 10%, transparent);
   --foreground-success: color-mix(in oklch, var(--color-emerald-700) 80%, transparent);
   --foreground-prose: var(--color-foreground-l1);
@@ -265,6 +267,7 @@
   --foreground-ninth: var(--color-fuchsia-300);
   --foreground-tenth: var(--color-rose-300);
   --background-destructive: color-mix(in oklch, var(--color-red-950) 50%, transparent);
+  --background-destructive-hover: color-mix(in oklch, var(--color-red-950) 70%, transparent);
   --foreground-destructive: var(--color-red-400);
   --background-success: color-mix(in oklch, var(--color-emerald-900) 10%, transparent);
   --foreground-success: var(--color-emerald-300);

@@ -12,7 +12,7 @@
       variant: {
         default: 'bg-background-l3 text-foreground-l1 hover:bg-background-l4',
         destructive:
-          'bg-background-destructive text-foreground-destructive hover:bg-background-destructive/90 focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
+          'bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
         outline:
           'bg-background-l1 hover:bg-background-l2 text-foreground-l1 border',
         secondary:
