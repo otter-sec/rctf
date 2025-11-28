@@ -1,4 +1,5 @@
 import {
+  BadToken,
   CreateMemberRoute,
   CtftimeCallbackRoute,
   DeleteChallengeRoute,
@@ -50,12 +51,25 @@ import { apiRequest, isAuthenticated } from '$lib/api'
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
+class ApiError extends Error {
+  constructor(public override readonly message: string) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
 export function createQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
         enabled: browser,
         staleTime: 1000 * 60,
+        retry: (failureCount, error) => {
+          if (error?.name === 'ApiError') {
+            return false
+          }
+          return failureCount < 3
+        },
       },
     },
   })
@@ -68,7 +82,7 @@ export const clientConfigQueryOptions = queryOptions({
     if (response.kind === GoodClientConfig.kind) {
       return response.data
     }
-    throw new Error(response.message)
+    throw new ApiError(response.message)
   },
   staleTime: Infinity,
 })
@@ -96,7 +110,7 @@ export const userByIdQueryOptions = (id: string) =>
       if (response.kind === GoodUserData.kind) {
         return response.data
       }
-      throw new Error(response.message)
+      throw new ApiError(response.message)
     },
   })
 
@@ -107,7 +121,10 @@ export const challengesQueryOptions = queryOptions({
     if (response.kind === GoodChallenges.kind) {
       return response.data
     }
-    throw new Error(response.message)
+    if (response.kind === BadToken.kind) {
+      throw new ApiError('You need to be logged in to view challenges')
+    }
+    throw new ApiError(response.message)
   },
   refetchInterval: 30 * 1000,
 })
@@ -119,7 +136,7 @@ export const adminChallengesQueryOptions = queryOptions({
     if (response.kind === GoodAdminChallenges.kind) {
       return response.data
     }
-    throw new Error(response.message)
+    throw new ApiError(response.message)
   },
 })
 
@@ -131,7 +148,7 @@ export const adminChallengeQueryOptions = (id: string) =>
       if (response.kind === GoodAdminChallenge.kind) {
         return response.data
       }
-      throw new Error(response.message)
+      throw new ApiError(response.message)
     },
   })
 
@@ -147,7 +164,7 @@ export const leaderboardQueryOptions = (params: {
       if (response.kind === GoodLeaderboard.kind) {
         return response.data
       }
-      throw new Error(response.message)
+      throw new ApiError(response.message)
     },
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000,
@@ -164,7 +181,7 @@ export const leaderboardGraphQueryOptions = (params: {
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
       }
-      throw new Error(response.message)
+      throw new ApiError(response.message)
     },
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000,
@@ -184,7 +201,7 @@ export const challengeSolvesQueryOptions = (
       if (response.kind === GoodChallengeSolves.kind) {
         return response.data
       }
-      throw new Error(response.message)
+      throw new ApiError(response.message)
     },
   })
 
@@ -195,7 +212,7 @@ export const membersQueryOptions = queryOptions({
     if (response.kind === GoodMemberData.kind) {
       return response.data
     }
-    throw new Error(response.message)
+    throw new ApiError(response.message)
   },
 })
 
