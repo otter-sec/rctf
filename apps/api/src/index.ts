@@ -15,7 +15,7 @@ import { startLeaderboardWorker } from './workers'
 const app = new Hono<AppEnv>()
 
 const pinoObject = pino({
-  level: 'trace',
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'trace',
 })
 if (process.env.NODE_ENV === 'production') {
   app.use(compress())

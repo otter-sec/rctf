@@ -14,6 +14,7 @@ export type TypedRedis = Redis & {
     start: string,
     end: string
   ) => Promise<string[]>
+  rctfRateLimit: (key: string, limit: string, ttlMs: string) => Promise<number>
 }
 
 export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
@@ -36,6 +37,10 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
   redis.defineCommand('rctfGetRange', {
     numberOfKeys: 1,
     lua: await loadLuaScript('get-range.lua'),
+  })
+  redis.defineCommand('rctfRateLimit', {
+    numberOfKeys: 1,
+    lua: await loadLuaScript('rate-limit.lua'),
   })
 
   return redis as TypedRedis

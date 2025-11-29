@@ -6,15 +6,11 @@ export const rateLimit = async (
   limit: number,
   ttlMilliseconds: number
 ): Promise<number | undefined> => {
-  const count = await redis.incr(key)
+  const remainingTtl = await redis.rctfRateLimit(
+    key,
+    limit.toString(),
+    ttlMilliseconds.toString()
+  )
 
-  // Define TTL if this is the first time we're incrementing the counter
-  if (count === 1) {
-    await redis.pexpire(key, ttlMilliseconds)
-  }
-
-  // Rate limit exceeded
-  if (count > limit) {
-    return await redis.pttl(key)
-  }
+  return remainingTtl === -1 ? undefined : remainingTtl
 }
