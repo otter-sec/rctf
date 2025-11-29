@@ -137,7 +137,11 @@ export const submitFlag = async (
   db: DatabaseClient,
   redis: TypedRedis,
   log: PinoLogger,
-  params: { userId: string; challengeId: string; flag: string }
+  params: {
+    userId: string
+    challengeId: string
+    flag: string
+  }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
   const challenge = await getChallenge(db, params.challengeId)
   if (!challenge) {
@@ -145,7 +149,11 @@ export const submitFlag = async (
   }
 
   log.info(
-    { user: params.userId, chall: challenge.id, flag: params.flag },
+    {
+      user: params.userId,
+      chall: challenge.id,
+      flag: params.flag,
+    },
     'flag submission attempt'
   )
 
@@ -158,7 +166,12 @@ export const submitFlag = async (
   )
   if (timeLeft !== undefined) {
     log.info(
-      { user: params.userId, chall: challenge.id, flag: params.flag, timeLeft },
+      {
+        user: params.userId,
+        chall: challenge.id,
+        flag: params.flag,
+        timeLeft,
+      },
       'flag submission rate limit exceeded'
     )
     return res.badRateLimit({ timeLeft })

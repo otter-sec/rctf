@@ -13,6 +13,12 @@ authGroup.route(RegisterRoute, async ({ res, body, ctx }) => {
     return res.badRegistrationsDisabled()
   }
 
+  if (body.ctftimeToken && !config.ctftime) {
+    return res.badEndpoint()
+  }
+
+  // Will return the first division if email is not provided,
+  //  we are assuming ctftime auth is always disabled with email ACLs.
   const division = allowedDivisions({
     email: body.email,
     defaultOnly: true,

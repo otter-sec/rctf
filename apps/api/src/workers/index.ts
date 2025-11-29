@@ -1,4 +1,3 @@
-import { config } from '@rctf/config'
 import pino from 'pino'
 
 const workerExt = process.env.WORKER_EXTENSION ?? '.ts'

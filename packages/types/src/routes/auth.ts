@@ -53,6 +53,7 @@ export const RegisterRoute = defineRoute({
     BadKnownEmail,
     BadKnownName,
     BadRegistrationsDisabled,
+    BadEndpoint,
   ],
   authRequired: false,
 })
