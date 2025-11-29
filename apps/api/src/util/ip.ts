@@ -3,6 +3,9 @@ import { config } from '@rctf/config'
 import type { Context } from 'hono'
 import { getConnInfo } from 'hono/bun'
 
+// NOTE(es3n1n): We could've used something more elegant,
+//   but unfortunately we need backwards compatibility with rctf v1.
+
 function compile(
   value: boolean | string | string[] | number
 ): (ip: string, i: number) => boolean {
