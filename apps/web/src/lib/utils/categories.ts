@@ -30,6 +30,13 @@ export const categoryOrder = [
   'osint',
 ]
 
+export const categoryAliases: Record<string, string> = {
+  binary: 'pwn',
+  rev: 'reverse',
+  cryptography: 'crypto',
+  for: 'forensics',
+}
+
 export const categoryConfigs: Record<string, CategoryConfig> = {
   pwn: {
     name: 'Binary Exploitation',
@@ -84,11 +91,18 @@ const defaultConfig: CategoryConfig = {
   color: 'gray',
 }
 
-export function getCategoryConfig(category: string): CategoryConfig {
+export function getCategoryKeyOrAlias(category: string): string {
   const key = category.toLowerCase()
+  return categoryAliases[key] ?? key
+}
+
+export function getCategoryConfig(category: string): CategoryConfig {
+  const key = getCategoryKeyOrAlias(category)
   const config = categoryConfigs[key]
-  if (config) return config
-  return { ...defaultConfig, name: category }
+  if (config) {
+    return config
+  }
+  return { ...defaultConfig, name: key }
 }
 
 export function getCategoryStyle(color: string): string {
@@ -96,7 +110,7 @@ export function getCategoryStyle(color: string): string {
 }
 
 export function getCategoryOrder(category: string): number {
-  const key = category.toLowerCase()
+  const key = getCategoryKeyOrAlias(category)
   const idx = categoryOrder.indexOf(key)
   return idx === -1 ? -1 : idx
 }

@@ -1,9 +1,5 @@
-export function formatFirstBloodTime(
-  timestamp: number,
-  ctfStartTime: number
-): string {
-  const diff = timestamp - ctfStartTime
-
+function formatTime(diff: number): string {
+  const seconds = Math.floor(diff / 1000)
   const minutes = Math.floor(diff / (1000 * 60))
   const hours = Math.floor(minutes / 60)
   const days = Math.floor(hours / 24)
@@ -11,28 +7,27 @@ export function formatFirstBloodTime(
   const parts: string[] = []
   if (days > 0) parts.push(`${days}d`)
   if (hours % 24 > 0) parts.push(`${hours % 24}h`)
-  if (minutes % 60 > 0 || parts.length === 0) parts.push(`${minutes % 60}m`)
+  if (minutes % 60 > 0) parts.push(`${minutes % 60}m`)
+  if (parts.length === 0) parts.push(`${seconds % 60}s`)
 
   return parts.join(', ')
+}
+
+export function formatFirstBloodTime(
+  timestamp: number,
+  ctfStartTime: number
+): string {
+  return formatTime(timestamp - ctfStartTime)
 }
 
 export function formatRelativeToFirstBlood(
   timestamp: number,
   firstBloodTime: number
 ): string {
-  if (!firstBloodTime) return ''
-  const diff = timestamp - firstBloodTime
-
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  const parts: string[] = []
-  if (days > 0) parts.push(`${days}d`)
-  if (hours % 24 > 0) parts.push(`${hours % 24}h`)
-  if (minutes % 60 > 0 || parts.length === 0) parts.push(`${minutes % 60}m`)
-
-  return `+${parts.join(', ')}`
+  if (!firstBloodTime) {
+    return ''
+  }
+  return `+${formatTime(timestamp - firstBloodTime)}`
 }
 
 export function getOrdinal(n: number): string {

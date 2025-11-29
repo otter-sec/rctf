@@ -2,17 +2,14 @@
   import { Permissions } from '@rctf/types'
   import { Button, Card } from '$lib/components'
   import { useCurrentUser } from '$lib/query'
+  import { hasPermissions } from '$lib/utils/permissions'
 
   let { children } = $props()
 
   const userQuery = useCurrentUser()
   const user = $derived($userQuery.data)
 
-  const hasReadPerms = $derived(
-    user?.perms !== null &&
-      user?.perms !== undefined &&
-      (user.perms & Permissions.challsRead) !== 0
-  )
+  const hasReadPerms = $derived(hasPermissions(user, Permissions.challsRead))
 </script>
 
 {#if !user}

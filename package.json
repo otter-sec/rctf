@@ -8,9 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --elide-lines=0 --filter '@rctf/api' --filter '@rctf/web' dev",
-    "dev:api": "bun run --elide-lines=0 --filter '@rctf/api' dev",
-    "dev:web": "bun run --elide-lines=0 --filter '@rctf/web' dev",
+    "dev": "bun run --filter '@rctf/api' --filter '@rctf/web' dev",
+    "dev:api": "bun run --filter '@rctf/api' dev",
+    "dev:web": "bun run --filter '@rctf/web' dev",
     "build": "bun run --filter '*' build",
     "test": "bun test",
     "test:coverage": "bun test --coverage",

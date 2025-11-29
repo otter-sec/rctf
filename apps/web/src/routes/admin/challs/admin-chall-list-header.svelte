@@ -4,6 +4,7 @@
   import { IconFold, IconLibraryPlusFilled, IconSearch } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
   import { cn } from '$lib/utils'
+  import { hasPermissions } from '$lib/utils/permissions'
 
   interface Props {
     challengeCount: number
@@ -28,11 +29,7 @@
   const userQuery = useCurrentUser()
   const user = $derived($userQuery.data)
 
-  const hasWritePerms = $derived(
-    user?.perms !== null &&
-      user?.perms !== undefined &&
-      (user.perms & Permissions.challsWrite) !== 0
-  )
+  const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
 </script>
 
 <div class="flex shrink-0 flex-col gap-2 py-2">

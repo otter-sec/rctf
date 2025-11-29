@@ -35,9 +35,6 @@ import {
   UploadFilesRoute,
   VerifyRoute,
   type AnyRouteDefinition,
-  type RouteBodyInput,
-  type RouteParamsInput,
-  type RouteQueryInput,
   type RouteResponse,
 } from '@rctf/types'
 import {
@@ -47,7 +44,7 @@ import {
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import { apiRequest, isAuthenticated } from '$lib/api'
+import { apiRequest, isAuthenticated, type InlineArgs } from '$lib/api'
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
@@ -232,6 +229,14 @@ export const queryKeys = {
   members: membersQueryOptions.queryKey,
 }
 
+export function createApiMutation<TRoute extends AnyRouteDefinition>(
+  route: TRoute
+) {
+  return createMutation<RouteResponse<TRoute>, Error, InlineArgs<TRoute>>({
+    mutationFn: (args: InlineArgs<TRoute>) => apiRequest(route, args),
+  })
+}
+
 export function useClientConfig() {
   return createQuery(clientConfigQueryOptions)
 }
@@ -283,26 +288,6 @@ export function useChallengeSolves(
 
 export function useMembers() {
   return createQuery(membersQueryOptions)
-}
-
-type SectionPayload<T> = [T] extends [undefined]
-  ? {}
-  : T extends Record<string, unknown>
-    ? T
-    : {}
-
-export type InlineArgs<TRoute extends AnyRouteDefinition> = SectionPayload<
-  RouteParamsInput<TRoute>
-> &
-  SectionPayload<RouteQueryInput<TRoute>> &
-  SectionPayload<RouteBodyInput<TRoute>>
-
-export function createApiMutation<TRoute extends AnyRouteDefinition>(
-  route: TRoute
-) {
-  return createMutation<RouteResponse<TRoute>, Error, InlineArgs<TRoute>>({
-    mutationFn: (args: InlineArgs<TRoute>) => apiRequest(route, args),
-  })
 }
 
 export function useLoginMutation() {

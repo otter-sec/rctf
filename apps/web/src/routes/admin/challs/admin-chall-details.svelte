@@ -38,6 +38,7 @@
     useUploadFilesMutation,
   } from '$lib/query'
   import { cn, getCategoryConfig, getCategoryStyle } from '$lib/utils'
+  import { hasPermissions } from '$lib/utils/permissions'
 
   interface Props {
     challenge: AdminChallenge | null
@@ -63,11 +64,7 @@
   const uploadMutation = useUploadFilesMutation()
 
   const user = $derived($userQuery.data)
-  const hasWritePerms = $derived(
-    user?.perms !== null &&
-      user?.perms !== undefined &&
-      (user.perms & Permissions.challsWrite) !== 0
-  )
+  const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
 
   let currentChallengeId = $state<string | null>(null)
   let challengeDetailQuery = $state(useAdminChallenge('', false))

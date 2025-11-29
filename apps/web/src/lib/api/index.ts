@@ -16,7 +16,7 @@ type SectionPayload<T> = [T] extends [undefined]
     ? T
     : {}
 
-type InlineArgs<TRoute extends AnyRouteDefinition> = SectionPayload<
+export type InlineArgs<TRoute extends AnyRouteDefinition> = SectionPayload<
   RouteParamsInput<TRoute>
 > &
   SectionPayload<RouteQueryInput<TRoute>> &
