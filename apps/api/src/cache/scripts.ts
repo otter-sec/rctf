@@ -7,6 +7,7 @@ export type TypedRedis = Redis & {
   rctfGetGraph: (
     leaderboardKey: string,
     leaderboardUpdateKey: string,
+    graphDataKey: string,
     limit: string
   ) => Promise<string>
   rctfGetRange: (
@@ -31,7 +32,7 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
     lua: await loadLuaScript('set-graph.lua'),
   })
   redis.defineCommand('rctfGetGraph', {
-    numberOfKeys: 2,
+    numberOfKeys: 3,
     lua: await loadLuaScript('get-graph.lua'),
   })
   redis.defineCommand('rctfGetRange', {

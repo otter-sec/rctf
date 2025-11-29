@@ -1,46 +1,31 @@
 -- KEYS:
 -- 1: graph-update
--- 2..N: graph:<userId>
+-- 2: graph-data
 --
 -- ARGV:
--- [1]: lastSample (timestamp)
--- [2]: numUsers
--- [3..]: For each user: [numPoints, t1, s1, t2, s2, ...] where numPoints is count of t,s pairs
+-- 1: lastSample (timestamp)
+-- 2..N: pairs of [userId, "t1,s1,t2,s2,..."] for each user with graph data
 
--- Call a Redis command with large argument lists by chunking to avoid arg limits
-local function chunkHset(key, args)
+redis.call('SET', KEYS[1], ARGV[1])
+redis.call('DEL', KEYS[2])
+
+-- ARGV[2..] are userId, packedPoints pairs
+local numPairs = (#ARGV - 1) / 2
+if numPairs > 0 then
+  local args = {}
+  for i = 2, #ARGV, 2 do
+    args[#args + 1] = ARGV[i]     -- userId
+    args[#args + 1] = ARGV[i + 1] -- packed points
+  end
+  
   local size = 7996
   local len = #args
-  if len == 0 then return end
-  local chunks = math.ceil(len / size)
-  for i = 1, chunks do
-    local start = (i - 1) * size + 1
-    local stop = math.min(len, i * size)
-    redis.call('HSET', key, unpack(args, start, stop))
-  end
-end
-
--- Parse ARGV
-local lastSample = ARGV[1]
-local numUsers = tonumber(ARGV[2])
-
-redis.call('SET', KEYS[1], lastSample)
-
-local idx = 3
-for i = 1, numUsers do
-  local key = KEYS[i + 1]
-  local numElements = tonumber(ARGV[idx])
-  idx = idx + 1
-  
-  redis.call('DEL', key)
-  
-  if numElements > 0 then
-    -- Collect the hash field-value pairs for this user
-    local args = {}
-    for j = 1, numElements do
-      args[j] = ARGV[idx]
-      idx = idx + 1
+  if len > 0 then
+    local chunks = math.ceil(len / size)
+    for i = 1, chunks do
+      local start = (i - 1) * size + 1
+      local stop = math.min(len, i * size)
+      redis.call('HSET', KEYS[2], unpack(args, start, stop))
     end
-    chunkHset(key, args)
   end
 end

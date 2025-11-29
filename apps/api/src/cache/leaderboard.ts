@@ -2,7 +2,7 @@ import { config } from '@rctf/config'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
-const keyGraphUser = (userId: string) => `graph:${userId}`
+const keyGraphData = 'graph-data'
 
 const keyScorePositions = 'score-positions'
 const keyChallengeInfo = 'challenge-info'
@@ -116,16 +116,12 @@ const cacheGraph = async (
     }
   }
 
-  const ids = Array.from(userPoints.keys())
-  const keys = [keyGraphUpdate, ...ids.map(id => keyGraphUser(id))]
-
-  const argv: string[] = [lastSample.toString(), ids.length.toString()]
-  for (const id of ids) {
-    const points = userPoints.get(id) ?? []
-    argv.push(points.length.toString(), ...points)
+  const argv: string[] = [lastSample.toString()]
+  for (const [id, points] of userPoints) {
+    argv.push(id, points.join(','))
   }
 
-  await redis.rctfSetGraph(keys.length, ...keys, ...argv)
+  await redis.rctfSetGraph(2, keyGraphUpdate, keyGraphData, ...argv)
 }
 
 interface GraphPoint {
@@ -147,10 +143,11 @@ export const getGraph = async (
   const json = await redis.rctfGetGraph(
     keyLeaderboard(division),
     keyLeaderboardUpdate,
+    keyGraphData,
     limit.toString()
   )
 
-  const parsed = JSON.parse(json) as [string, string[], string[][]]
+  const parsed = JSON.parse(json) as [string, string[], (string | null)[]]
 
   const lastUpdate = Number.parseInt(parsed[0] ?? '0')
   const latest = parsed[1] ?? []
@@ -163,18 +160,21 @@ export const getGraph = async (
     const curScore = Number.parseInt(latest[i + 2] ?? '0')
 
     const userIdx = Math.floor(i / 3)
-    const fields = graphData[userIdx] ?? []
+    const packedPoints = graphData[userIdx]
 
     const points: Array<GraphPoint> = []
     if (lastUpdate > 0) {
       points.push({ time: lastUpdate, score: curScore })
     }
 
-    for (let j = 0; j < fields.length; j += 2) {
-      points.push({
-        time: Number.parseInt(fields[j] ?? '0'),
-        score: Number.parseInt(fields[j + 1] ?? '0'),
-      })
+    if (packedPoints) {
+      const parts = packedPoints.split(',')
+      for (let j = 0; j < parts.length; j += 2) {
+        points.push({
+          time: Number.parseInt(parts[j] ?? '0'),
+          score: Number.parseInt(parts[j + 1] ?? '0'),
+        })
+      }
     }
 
     points.sort((a, b) => b.time - a.time)
