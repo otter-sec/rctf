@@ -1,0 +1,31 @@
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { config } from '@rctf/config'
+import { createDatabase } from '@rctf/db'
+import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import type pino from 'pino'
+
+const MIGRATIONS_FOLDER = fileURLToPath(
+  new URL('../../../../packages/db/migrations', import.meta.url)
+)
+
+export const runMigrationsOnStartup = async (logger: pino.Logger) => {
+  const dbConfig = config.database
+  if (!dbConfig.sql) {
+    logger.warn('No SQL database configuration found; skipping migrations')
+    return
+  }
+
+  const { client, db } = createDatabase(dbConfig.sql)
+
+  logger.info('Running database migrations')
+  try {
+    await migrate(db, { migrationsFolder: path.normalize(MIGRATIONS_FOLDER) })
+    logger.info('Database migrations complete')
+  } catch (err) {
+    logger.error({ err }, 'Database migrations failed')
+    throw err
+  } finally {
+    await client.end()
+  }
+}

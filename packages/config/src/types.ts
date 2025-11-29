@@ -35,7 +35,7 @@ export interface ServerConfig {
           password: string
           database: number
         }
-    migrate: string
+    migrate: 'before' | 'only' | 'never'
   }
   instanceType: 'leaderboard' | 'all' | 'frontend'
   tokenKey: string

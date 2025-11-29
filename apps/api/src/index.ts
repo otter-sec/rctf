@@ -7,6 +7,7 @@ import { compress } from 'hono/compress'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
+import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
 import { uploadProvider } from './providers'
 import { routeModules } from './routes'
@@ -65,8 +66,15 @@ app.onError((err, c) => {
 })
 
 const main = async () => {
-  await uploadProvider.startupWebPart(app)
+  if (config.database?.migrate !== 'never') {
+    await runMigrationsOnStartup(pinoObject)
 
+    if (config.database?.migrate === 'only') {
+      return
+    }
+  }
+
+  await uploadProvider.startupWebPart(app)
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(pinoObject)
   }

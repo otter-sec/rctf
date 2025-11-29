@@ -117,11 +117,31 @@ rCTF v1 frontend with rCTF v2 backend:
 | `PUT /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
 | `DELETE /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
 
-### Other Tasks
+### Other Tasks (v1)
 
-- [ ] Run migrations programatically depending on the config value instead of just running in dockerfile entry
-- [ ] Go through all config vars and check that all of them are used
-- [ ] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
+- [x] Run migrations programatically depending on the config value instead of just running in dockerfile entry
+- [x] Go through all config vars and check that all of them are used
+- [x] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
+
+### Todo v2
+
+- avatars for all team endpoints
+- specific position in solves
+- in solves list for a chal return also team's scoreboard position (global + division)
+- in global leaderboard return division positions
+- delete a solve (admin only)
+- resetting teams token (admin only)
+- update client config (admin only)
+- send prize emails (admin only)
+- file sizes
+
+- instancer integration
+- admin bot integration
+- blood bot integration
+
+- discord auth
+
+- ticket bot?
 
 ## New features compared to v1
 
