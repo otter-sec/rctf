@@ -10,5 +10,5 @@ usersGroup.route(DeleteEmailRoute, async ({ ctx, res, user }) => {
   if (!user.email) {
     return res.badEmailNoExists()
   }
-  return await deleteEmail(res, ctx.var.db, user.id)
+  return await deleteEmail(res, ctx.var.db, ctx.var.redis, user.id)
 })

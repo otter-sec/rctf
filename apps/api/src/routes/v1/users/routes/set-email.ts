@@ -21,7 +21,7 @@ usersGroup.route(SetEmailRoute, async ({ ctx, res, body, user }) => {
     return res.goodVerifySent()
   }
 
-  return await updateUserEmail(res, ctx.var.db, user.id, {
+  return await updateUserEmail(res, ctx.var.db, ctx.var.redis, user.id, {
     email: body.email,
   })
 })

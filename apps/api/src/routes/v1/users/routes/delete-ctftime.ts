@@ -7,5 +7,5 @@ usersGroup.route(DeleteCtftimeRoute, async ({ res, ctx, user }) => {
   if (!config.ctftime) {
     return res.badEndpoint()
   }
-  return await deleteCtftimeId(res, ctx.var.db, user.id)
+  return await deleteCtftimeId(res, ctx.var.db, ctx.var.redis, user.id)
 })

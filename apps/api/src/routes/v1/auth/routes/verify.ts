@@ -42,9 +42,15 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
   }
 
   if (tokenData.kind === 'update') {
-    return await updateUserEmail(res, ctx.var.db, tokenData.userId, {
-      email: tokenData.email,
-    })
+    return await updateUserEmail(
+      res,
+      ctx.var.db,
+      ctx.var.redis,
+      tokenData.userId,
+      {
+        email: tokenData.email,
+      }
+    )
   }
 
   throw new Error(`Unsupported kind: ${tokenData}`)

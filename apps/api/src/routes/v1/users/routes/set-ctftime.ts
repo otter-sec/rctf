@@ -14,5 +14,11 @@ usersGroup.route(SetCtftimeRoute, async ({ ctx, user, res, body }) => {
     return res.badCtftimeToken()
   }
 
-  return await updateCtftimeId(res, ctx.var.db, user.id, ctftimeData.ctftimeId)
+  return await updateCtftimeId(
+    res,
+    ctx.var.db,
+    ctx.var.redis,
+    user.id,
+    ctftimeData.ctftimeId
+  )
 })

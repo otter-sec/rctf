@@ -27,6 +27,7 @@ import {
 import type { Handler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod'
+import { getCachedUser, setCachedUser } from '../cache/auth-cache'
 import { getUser } from '../services/users'
 import type { ApiContext, AppEnv } from './app-env'
 import { parseToken, TokenKind } from './tokens'
@@ -42,13 +43,6 @@ type ResponseCollection = readonly ResponseDefinition<
 type SchemaOutput<T extends SchemaLike | undefined> = T extends SchemaLike
   ? z.output<T>
   : undefined
-
-type RouteRequiresAuth<TRoute extends AnyRouteDefinition> =
-  TRoute['authRequired'] extends true
-    ? true
-    : TRoute['permissions'] extends Permissions
-      ? true
-      : false
 
 type MutableRouteHandlerContext<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,
@@ -183,7 +177,18 @@ const ensureAuth = async (context: ApiContext): Promise<User | undefined> => {
     return undefined
   }
 
-  return await getUser(context.var.db, userId)
+  const cachedUser = await getCachedUser(context.var.redis, userId)
+  if (cachedUser) {
+    return cachedUser
+  }
+
+  const user = await getUser(context.var.db, userId)
+  if (user) {
+    // Cache in background
+    setCachedUser(context.var.redis, user).catch(() => {})
+  }
+
+  return user
 }
 
 const ensurePerms = (user: User, permissions: Permissions) => {

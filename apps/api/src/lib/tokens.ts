@@ -1,9 +1,12 @@
-import crypto from 'crypto'
-import { promisify } from 'util'
 import { config } from '@rctf/config'
 
-const randomBytes = promisify(crypto.randomBytes)
-const tokenKey = Buffer.from(config.tokenKey, 'base64')
+const tokenKey = await crypto.subtle.importKey(
+  'raw',
+  Uint8Array.from(atob(config.tokenKey), c => c.charCodeAt(0)),
+  { name: 'AES-GCM' },
+  false,
+  ['encrypt', 'decrypt']
+)
 
 export enum TokenKind {
   Auth = 0,
@@ -79,29 +82,36 @@ const timeNow = () => Math.floor(Date.now() / 1000)
 const encryptToken = async <Kind extends TokenKind>(
   content: InternalTokenData<Kind>
 ): Promise<Token> => {
-  const iv = await randomBytes(12)
-  const cipher = crypto.createCipheriv('aes-256-gcm', tokenKey, iv)
-  const cipherText = cipher.update(JSON.stringify(content))
-  cipher.final()
-  const tokenContent = Buffer.concat([iv, cipherText, cipher.getAuthTag()])
-  return tokenContent.toString('base64')
+  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const plainText = Buffer.from(JSON.stringify(content))
+
+  const cipherText = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    tokenKey,
+    plainText
+  )
+
+  return Buffer.concat([iv, new Uint8Array(cipherText)]).toString('base64')
 }
 
 const decryptToken = async <Kind extends TokenKind>(
   token: Token
 ): Promise<InternalTokenData<Kind> | null> => {
   try {
-    const tokenContent = Buffer.from(token, 'base64')
-    const iv = tokenContent.subarray(0, 12)
-    const authTag = tokenContent.subarray(tokenContent.length - 16)
-    const cipher = crypto.createDecipheriv('aes-256-gcm', tokenKey, iv)
-    cipher.setAuthTag(authTag)
-    const plainText = cipher.update(
-      tokenContent.subarray(12, tokenContent.length - 16)
+    const buf = Buffer.from(token, 'base64')
+    const iv = buf.subarray(0, 12)
+    const cipherText = buf.subarray(12, buf.length)
+
+    const plainText = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      tokenKey,
+      cipherText
     )
-    cipher.final()
-    return JSON.parse(plainText.toString()) as InternalTokenData<Kind>
-  } catch (e) {
+
+    return JSON.parse(
+      Buffer.from(plainText).toString()
+    ) as InternalTokenData<Kind>
+  } catch {
     return null
   }
 }

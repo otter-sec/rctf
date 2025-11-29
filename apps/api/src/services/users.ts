@@ -20,6 +20,8 @@ import {
   GoodRegister,
 } from '@rctf/types'
 import { eq, or } from 'drizzle-orm'
+import { invalidateUserCache } from '../cache/auth-cache'
+import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
 
 type CreateUserResponseHelpers = ResponseHelpers<
@@ -99,6 +101,7 @@ export const createUser = async (
 export const updateUser = async (
   res: UpdateUserResponseHelpers,
   db: DatabaseClient,
+  redis: TypedRedis,
   id: string,
   user: Pick<User, 'division' | 'name'>
 ): Promise<
@@ -121,6 +124,7 @@ export const updateUser = async (
     throw error
   }
 
+  await invalidateUserCache(redis, id)
   return res.goodUserUpdate({
     user: updated!,
   })
@@ -129,6 +133,7 @@ export const updateUser = async (
 export const updateUserEmail = async (
   res: UpdateUserEmailResponseHelpers,
   db: DatabaseClient,
+  redis: TypedRedis,
   id: string,
   user: Pick<User, 'email'>
 ): Promise<
@@ -157,12 +162,14 @@ export const updateUserEmail = async (
     return res.badUnknownUser()
   }
 
+  await invalidateUserCache(redis, id)
   return res.goodEmailSet()
 }
 
 export const deleteEmail = async (
   res: DeleteEmailResponseHelpers,
   db: DatabaseClient,
+  redis: TypedRedis,
   id: string
 ): Promise<
   ReturnType<DeleteEmailResponseHelpers[keyof DeleteEmailResponseHelpers]>
@@ -188,12 +195,14 @@ export const deleteEmail = async (
     return res.badUnknownUser()
   }
 
+  await invalidateUserCache(redis, id)
   return res.goodEmailRemoved()
 }
 
 export const updateCtftimeId = async (
   res: UpdateCtftimeIdResponseHelpers,
   db: DatabaseClient,
+  redis: TypedRedis,
   id: string,
   ctftimeId: string
 ): Promise<
@@ -217,12 +226,14 @@ export const updateCtftimeId = async (
     return res.badUnknownUser()
   }
 
+  await invalidateUserCache(redis, id)
   return res.goodCtftimeAuthSet()
 }
 
 export const deleteCtftimeId = async (
   res: DeleteCtftimeIdResponseHelpers,
   db: DatabaseClient,
+  redis: TypedRedis,
   id: string
 ): Promise<
   ReturnType<
@@ -248,6 +259,7 @@ export const deleteCtftimeId = async (
     return res.badUnknownUser()
   }
 
+  await invalidateUserCache(redis, id)
   return res.goodCtftimeRemoved()
 }
 
