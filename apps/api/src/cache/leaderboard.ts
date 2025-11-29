@@ -63,29 +63,35 @@ const cacheLeaderboard = async (
     ...divisions.map(d => keyLeaderboard(d)),
   ]
 
-  const wireChallengeInfos: string[] = Array.from(data.challengeInfos.entries())
-    .map(([id, challengeInfo]) => [
-      id,
-      `${challengeInfo.score},${challengeInfo.solves}`,
-    ])
-    .flat()
-  const wireLeaderboard: string[] = data.users
-    .map(userInfo => [
+  const wireLeaderboard: string[] = []
+  for (const userInfo of data.users) {
+    wireLeaderboard.push(
       userInfo.id,
       userInfo.name,
       userInfo.division ?? '',
-      userInfo.score.toString(),
-    ])
-    .flat()
+      userInfo.score.toString()
+    )
+  }
 
-  await redis.rctfSetLeaderboard(
-    keys.length,
-    ...keys,
-    JSON.stringify(wireLeaderboard),
-    JSON.stringify(divisions),
-    JSON.stringify(wireChallengeInfos),
-    data.leaderboardUpdate.toString()
-  )
+  const wireChallengeInfos: string[] = []
+  for (const [id, challengeInfo] of data.challengeInfos.entries()) {
+    wireChallengeInfos.push(
+      id,
+      `${challengeInfo.score},${challengeInfo.solves}`
+    )
+  }
+
+  const argv: string[] = [
+    data.leaderboardUpdate.toString(),
+    divisions.length.toString(),
+    ...divisions,
+    wireLeaderboard.length.toString(),
+    ...wireLeaderboard,
+    wireChallengeInfos.length.toString(),
+    ...wireChallengeInfos,
+  ]
+
+  await redis.rctfSetLeaderboard(keys.length, ...keys, ...argv)
 }
 
 const cacheGraph = async (
@@ -112,13 +118,14 @@ const cacheGraph = async (
 
   const ids = Array.from(userPoints.keys())
   const keys = [keyGraphUpdate, ...ids.map(id => keyGraphUser(id))]
-  const values = ids.map(id => userPoints.get(id) ?? [])
-  await redis.rctfSetGraph(
-    keys.length,
-    ...keys,
-    lastSample.toString(),
-    JSON.stringify(values)
-  )
+
+  const argv: string[] = [lastSample.toString(), ids.length.toString()]
+  for (const id of ids) {
+    const points = userPoints.get(id) ?? []
+    argv.push(points.length.toString(), ...points)
+  }
+
+  await redis.rctfSetGraph(keys.length, ...keys, ...argv)
 }
 
 interface GraphPoint {

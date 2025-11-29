@@ -1,5 +1,3 @@
-local cjson = cjson
-
 -- KEYS:
 -- 1: score-positions
 -- 2: challenge-info
@@ -8,39 +6,73 @@ local cjson = cjson
 -- 5..N: division-leaderboard:<division>
 --
 -- ARGV:
--- 1: JSON wireLeaderboard [id, name, division, score, ...]
--- 2: JSON divisions [division, ...]
--- 3: JSON wireChallengeInfos [id, "score,solves", id, "score,solves", ...]
--- 4: leaderboardUpdate (number)
+-- [1]: leaderboardUpdate (number as string)
+-- [2]: numDivisions
+-- [3..3+numDivisions-1]: division names
+-- [3+numDivisions]: numLeaderboardElements (numUsers * 4)
+-- [next..]: leaderboard elements [id, name, division, score, ...] repeated
+-- [after leaderboard]: numChallengeElements (numChallenges * 2)
+-- [after..]: challenge info elements [id, "score,solves", ...] repeated
 
-local wireLeaderboard = cjson.decode(ARGV[1])
-local divisions = cjson.decode(ARGV[2])
-local wireChallengeInfos = cjson.decode(ARGV[3])
-local leaderboardUpdate = ARGV[4]
-
-local scorePositionsArgs = {}
-
--- build per-division lists
-local divisionBoards = {}
-for i = 1, #divisions do
-  divisionBoards[divisions[i]] = {}
+-- Call a Redis command with large argument lists by chunking to avoid arg limits
+local function chunkCall(cmd, key, args)
+  local size = 7996
+  local len = #args
+  if len == 0 then return end
+  local chunks = math.ceil(len / size)
+  for i = 1, chunks do
+    local start = (i - 1) * size + 1
+    local stop = math.min(len, i * size)
+    redis.call(cmd, key, unpack(args, start, stop))
+  end
 end
 
-local globalBoard = {}
+-- Parse ARGV
+local idx = 1
+local leaderboardUpdate = ARGV[idx]
+idx = idx + 1
+
+local numDivisions = tonumber(ARGV[idx])
+idx = idx + 1
+
+local divisions = {}
+for i = 1, numDivisions do
+  divisions[i] = ARGV[idx]
+  idx = idx + 1
+end
+
+local numLeaderboardElements = tonumber(ARGV[idx])
+idx = idx + 1
+
+-- Read leaderboard data directly from ARGV (no JSON parsing!)
+local leaderboardStart = idx
+idx = idx + numLeaderboardElements
+
+local numChallengeElements = tonumber(ARGV[idx])
+idx = idx + 1
+
+local challengeInfoStart = idx
+
+-- Build division boards and score positions
+local divisionBoards = {}
 local divisionCounters = {}
-for i = 1, #divisions do
+for i = 1, numDivisions do
+  divisionBoards[divisions[i]] = {}
   divisionCounters[divisions[i]] = 0
 end
 
-local numUsers = #wireLeaderboard / 4
-for i = 1, numUsers do
-  local base = (i - 1) * 4
-  local id = wireLeaderboard[base + 1]
-  local name = wireLeaderboard[base + 2]
-  local division = wireLeaderboard[base + 3]
-  local score = wireLeaderboard[base + 4]
+local globalBoard = {}
+local scorePositionsArgs = {}
 
-  -- push to global board (triples)
+local numUsers = numLeaderboardElements / 4
+for i = 1, numUsers do
+  local base = leaderboardStart + (i - 1) * 4
+  local id = ARGV[base]
+  local name = ARGV[base + 1]
+  local division = ARGV[base + 2]
+  local score = ARGV[base + 3]
+
+  -- push to global board (triples: id, name, score)
   globalBoard[#globalBoard + 1] = id
   globalBoard[#globalBoard + 1] = name
   globalBoard[#globalBoard + 1] = score
@@ -54,41 +86,47 @@ for i = 1, numUsers do
     divBoard[#divBoard + 1] = score
     local divisionPlace = divisionCounters[division]
     scorePositionsArgs[#scorePositionsArgs + 1] = id
-    scorePositionsArgs[#scorePositionsArgs + 1] = tostring(score) .. ',' .. tostring(i) .. ',' .. tostring(divisionPlace)
+    scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',' .. tostring(divisionPlace)
   else
     -- unknown division; store with division place 0
     scorePositionsArgs[#scorePositionsArgs + 1] = id
-    scorePositionsArgs[#scorePositionsArgs + 1] = tostring(score) .. ',' .. tostring(i) .. ',0'
+    scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',0'
   end
 end
 
--- clear existing lists and hashes
+-- Build challenge info array from ARGV
+local challengeInfoArgs = {}
+for i = 1, numChallengeElements do
+  challengeInfoArgs[i] = ARGV[challengeInfoStart + i - 1]
+end
+
+-- Clear existing keys
 redis.call('DEL', unpack(KEYS))
 
--- write challenge-info
-if #wireChallengeInfos > 0 then
-  redis.call('HSET', KEYS[2], unpack(wireChallengeInfos))
+-- Write challenge-info hash
+if #challengeInfoArgs > 0 then
+  chunkCall('HSET', KEYS[2], challengeInfoArgs)
 end
 
--- write global list
+-- Write global leaderboard list
 if #globalBoard > 0 then
-  redis.call('RPUSH', KEYS[3], unpack(globalBoard))
+  chunkCall('RPUSH', KEYS[3], globalBoard)
 end
 
--- write division lists
-for d = 1, #divisions do
+-- Write division leaderboard lists
+for d = 1, numDivisions do
   local div = divisions[d]
-  local key = KEYS[4 + d] -- after leaderboard-update
+  local key = KEYS[4 + d]
   local board = divisionBoards[div]
   if board and #board > 0 then
-    redis.call('RPUSH', key, unpack(board))
+    chunkCall('RPUSH', key, board)
   end
 end
 
--- write positions
+-- Write score positions hash
 if #scorePositionsArgs > 0 then
-  redis.call('HSET', KEYS[1], unpack(scorePositionsArgs))
+  chunkCall('HSET', KEYS[1], scorePositionsArgs)
 end
 
--- write leaderboard update time
+-- Write leaderboard update time
 redis.call('SET', KEYS[4], leaderboardUpdate)
