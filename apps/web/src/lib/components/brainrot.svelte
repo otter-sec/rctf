@@ -142,29 +142,33 @@
 {#each windows as win (win.id)}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
-    class="brainrot-window"
-    style="
-      left: {win.x}px;
-      top: {win.y}px;
-      z-index: {win.z};
-      width: {win.w}px;
-      height: {win.h}px;
-    "
+    class="fixed flex flex-col rounded-lg overflow-hidden bg-background-l1 border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.3),0_2px_8px_rgba(0,0,0,0.2)]"
+    style:left="{win.x}px"
+    style:top="{win.y}px"
+    style:z-index={win.z}
+    style:width="{win.w}px"
+    style:height="{win.h}px"
     onmousedown={() => bringToFront(win.id)}
   >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="window-titlebar" onmousedown={e => startDrag(e, win.id)}>
-      <span class="window-title">{win.title}</span>
+    <div
+      class="flex items-center justify-between py-1.5 pr-2 pl-3 bg-background-l2 cursor-grab active:cursor-grabbing select-none border-b border-white/5"
+      onmousedown={e => startDrag(e, win.id)}
+    >
+      <span class="text-xs font-medium text-white/70 tracking-wide"
+        >{win.title}</span
+      >
       <button
-        class="window-close"
+        class="flex items-center justify-center w-6 h-6 border-0 bg-transparent rounded text-white/50 cursor-pointer transition-all duration-100 hover:bg-red-500/80 hover:text-white"
         onmousedown={e => e.stopPropagation()}
         onclick={() => closeWindow(win.id)}
       >
         <IconX />
       </button>
     </div>
-    <div class="window-content">
+    <div class="flex-1 min-h-0">
       <iframe
+        class="w-full h-full block"
         src="{win.url}?autoplay=1&mute=1&loop=1"
         title={win.title}
         frameborder="0"
@@ -174,70 +178,3 @@
     </div>
   </div>
 {/each}
-
-<style>
-  .brainrot-window {
-    position: fixed;
-    display: flex;
-    flex-direction: column;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.3),
-      0 2px 8px rgba(0, 0, 0, 0.2);
-    background: #1a1a1a;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .window-titlebar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 8px 6px 12px;
-    background: #252525;
-    cursor: grab;
-    user-select: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  }
-
-  .window-titlebar:active {
-    cursor: grabbing;
-  }
-
-  .window-title {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.7);
-    letter-spacing: 0.3px;
-  }
-
-  .window-close {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    color: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    transition: all 0.1s ease;
-  }
-
-  .window-close:hover {
-    background: rgba(255, 80, 80, 0.8);
-    color: white;
-  }
-
-  .window-content {
-    flex: 1;
-    min-height: 0;
-  }
-
-  .window-content iframe {
-    width: 100%;
-    height: 100%;
-    display: block;
-  }
-</style>
