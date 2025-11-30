@@ -13,86 +13,106 @@ import { uploadProvider } from './providers'
 import { routeModules } from './routes'
 import { startLeaderboardWorker } from './workers'
 
-const app = new Hono<AppEnv>()
-
-const pinoObject = pino({
+const logger = pino({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'trace',
 })
-if (process.env.NODE_ENV === 'production') {
-  app.use(compress())
+
+const createApp = () => {
+  const app = new Hono<AppEnv>()
+
+  if (process.env.NODE_ENV === 'production') {
+    app.use(compress())
+  }
+  app.use(pinoLogger({ pino: logger }))
+  app.use(appEnvMiddleware)
+
+  return app
 }
-app.use(
-  pinoLogger({
-    pino: pinoObject,
+
+const registerApiRoutes = (app: Hono<AppEnv>) => {
+  for (const { router, handler } of routeModules) {
+    app.on(router.definition.method, `/api${router.definition.path}`, handler)
+  }
+}
+
+const registerFrontendRoutes = (app: Hono<AppEnv>) => {
+  const frontendStaticRoot = process.env.FRONTEND_STATIC_ROOT
+  if (!frontendStaticRoot) {
+    return
+  }
+
+  const staticHandler = serveStatic({
+    root: frontendStaticRoot,
+    precompressed: true,
   })
-)
-app.use(appEnvMiddleware)
+  const spaFallbackHandler = serveStatic({
+    root: frontendStaticRoot,
+    path: '/index.html',
+    precompressed: true,
+  })
 
-// TODO(es3n1n): all this stuff should moved to some setup function
-for (const { router, handler } of routeModules) {
-  app.on(router.definition.method, `/api${router.definition.path}`, handler)
+  const skipApiRoutes =
+    (handler: typeof staticHandler) =>
+    async (
+      c: Parameters<typeof staticHandler>[0],
+      next: () => Promise<void>
+    ) => {
+      if (c.req.path.startsWith('/api/')) {
+        return next()
+      }
+      return handler(c, next)
+    }
+
+  app.use('*', skipApiRoutes(staticHandler))
+  app.use('*', skipApiRoutes(spaFallbackHandler))
 }
 
-const frontendStaticRoot = process.env.FRONTEND_STATIC_ROOT
-if (frontendStaticRoot) {
-  app.use('*', serveStatic({ root: frontendStaticRoot, precompressed: true }))
-  // SPA fallback
-  app.use(
-    '*',
-    serveStatic({
-      root: frontendStaticRoot,
-      path: '/index.html',
-      precompressed: true,
-    })
+const registerErrorHandlers = (app: Hono<AppEnv>) => {
+  app.notFound(c =>
+    c.json(
+      { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
+      BadEndpoint.status as ContentfulStatusCode
+    )
   )
+
+  app.onError((err, c) => {
+    c.var.logger.error({ err })
+    return c.json(
+      { kind: ErrorInternal.kind, message: ErrorInternal.message, data: null },
+      ErrorInternal.status as ContentfulStatusCode
+    )
+  })
 }
 
-// TODO(es3n1n): we need some util to do this instead of manually writing
-app.notFound(c =>
-  c.json(
-    {
-      kind: BadEndpoint.kind,
-      message: BadEndpoint.message,
-      data: null,
-    },
-    BadEndpoint.status as ContentfulStatusCode
-  )
-)
+const setupApp = async () => {
+  const app = createApp()
 
-app.onError((err, c) => {
-  // Logging the exception for the second time to make sure we capture the stacktrace :shrug:
-  c.var.logger.error({ err })
-  return c.json(
-    {
-      kind: ErrorInternal.kind,
-      message: ErrorInternal.message,
-      data: null,
-    },
-    ErrorInternal.status as ContentfulStatusCode
-  )
-})
+  registerApiRoutes(app)
+  await uploadProvider.startupWebPart(app)
+  registerFrontendRoutes(app)
+  registerErrorHandlers(app)
+
+  return app
+}
 
 const main = async () => {
   if (config.database?.migrate !== 'never') {
-    await runMigrationsOnStartup(pinoObject)
-
+    await runMigrationsOnStartup(logger)
     if (config.database?.migrate === 'only') {
       return
     }
   }
 
-  await uploadProvider.startupWebPart(app)
+  const app = await setupApp()
+
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
-    startLeaderboardWorker(pinoObject)
+    startLeaderboardWorker(logger)
   }
 
   if (config.instanceType === 'frontend' || config.instanceType === 'all') {
     const port = Number(process.env.PORT ?? 3000)
-    pinoObject.info(`Listening on :${port}`)
-    Bun.serve({
-      port,
-      fetch: app.fetch,
-    })
+    logger.info(`Listening on :${port}`)
+    Bun.serve({ port, fetch: app.fetch })
   }
 }
 
