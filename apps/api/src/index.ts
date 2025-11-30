@@ -88,8 +88,8 @@ const setupApp = async () => {
   const app = createApp()
 
   registerApiRoutes(app)
-  await uploadProvider.startupWebPart(app)
   registerFrontendRoutes(app)
+  await uploadProvider.startupWebPart(app)
   registerErrorHandlers(app)
 
   return app
