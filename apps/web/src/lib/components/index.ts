@@ -14,6 +14,7 @@ import * as Table from './ui/table'
 import * as Tabs from './ui/tabs'
 import * as Tooltip from './ui/tooltip'
 
+export { default as Brainrot } from './brainrot.svelte'
 export { default as ButtonCtftime } from './button-ctftime.svelte'
 export { default as Header } from './header.svelte'
 export { default as Markdown } from './markdown.svelte'

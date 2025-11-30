@@ -1,7 +1,7 @@
 <script lang="ts">
   import '../app.css'
   import favicon from '$lib/assets/favicon.svg'
-  import { Header, Toaster, Tooltip } from '$lib/components'
+  import { Brainrot, Header, Toaster, Tooltip } from '$lib/components'
   import { QueryClientProvider } from '$lib/query'
 
   let { data, children } = $props()
@@ -25,3 +25,4 @@
 </QueryClientProvider>
 
 <Toaster />
+<Brainrot />
