@@ -45,9 +45,7 @@ export default class GcsProvider extends UploadProvider {
   }
 
   private toUrl(key: string): string {
-    return `https://${
-      this.bucketName
-    }.storage.googleapis.com/uploads/${encodeKey(key)}`
+    return `https://${this.bucketName}.storage.googleapis.com/uploads/${encodeKey(key)}`
   }
 
   override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
@@ -62,11 +60,17 @@ export default class GcsProvider extends UploadProvider {
         resumable: false,
         metadata: {
           contentDisposition: 'download',
+          cacheControl: 'public, max-age=31536000, immutable',
         },
       })
     }
 
     return this.toUrl(key)
+  }
+
+  override deleteFile = async (key: string): Promise<void> => {
+    const file = this.getGcsFile(key)
+    await file.delete({ ignoreNotFound: true })
   }
 
   override getFileUrl = async (key: string): Promise<string | null> => {
@@ -76,5 +80,10 @@ export default class GcsProvider extends UploadProvider {
       return null
     }
     return this.toUrl(key)
+  }
+
+  protected override extractKeyFromUrl(url: string): string | null {
+    const match = url.match(/\.storage\.googleapis\.com\/uploads\/(.+)$/)
+    return match?.[1] ? decodeURIComponent(match[1]) : null
   }
 }

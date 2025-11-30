@@ -57,7 +57,10 @@ const registerFrontendRoutes = (app: Hono<AppEnv>) => {
       c: Parameters<typeof staticHandler>[0],
       next: () => Promise<void>
     ) => {
-      if (c.req.path.startsWith('/api/') || c.req.path.startsWith('/uploads/')) {
+      if (
+        c.req.path.startsWith('/api/') ||
+        c.req.path.startsWith('/uploads/')
+      ) {
         return next()
       }
       return handler(c, next)

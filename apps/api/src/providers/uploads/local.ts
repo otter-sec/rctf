@@ -46,6 +46,16 @@ export default class LocalProvider extends UploadProvider {
     return `/uploads/${encodeKey(key)}`
   }
 
+  override deleteFile = async (key: string): Promise<void> => {
+    const filePath = path.resolve(path.join(this.uploadDirectory, key))
+    const relative = path.relative(this.uploadDirectory, filePath)
+    if (relative.startsWith('..') || path.isAbsolute(relative)) {
+      throw new Error('Invalid file path')
+    }
+
+    await fs.promises.unlink(filePath).catch(() => {})
+  }
+
   override getFileUrl = async (key: string): Promise<string | null> => {
     try {
       await fs.promises.access(path.join(this.uploadDirectory, key))

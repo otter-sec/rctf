@@ -1,4 +1,5 @@
 import {
+  DeleteObjectCommand,
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
@@ -81,16 +82,24 @@ export default class S3Provider extends UploadProvider {
       await this.client.send(
         new PutObjectCommand({
           Bucket: this.bucketName,
-          Key: key,
+          Key: `uploads/${key}`,
           Body: data,
           ACL: 'public-read',
-          CacheControl: 'public, max-age=31557600, immutable',
-          ContentDisposition: 'attachment',
+          CacheControl: 'public, max-age=31536000, immutable',
         })
       )
     }
 
     return this.toUrl(key)
+  }
+
+  override deleteFile = async (key: string): Promise<void> => {
+    await this.client.send(
+      new DeleteObjectCommand({
+        Bucket: this.bucketName,
+        Key: `uploads/${key}`,
+      })
+    )
   }
 
   override getFileUrl = async (key: string): Promise<string | null> => {
@@ -99,5 +108,10 @@ export default class S3Provider extends UploadProvider {
       return null
     }
     return this.toUrl(key)
+  }
+
+  protected override extractKeyFromUrl(url: string): string | null {
+    const match = url.match(/\.amazonaws\.com\/uploads\/(.+)$/)
+    return match?.[1] ? decodeURIComponent(match[1]) : null
   }
 }

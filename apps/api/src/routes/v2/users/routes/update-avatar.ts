@@ -24,7 +24,14 @@ usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
       return res.badAvatarFile()
     }
 
-    url = await uploadProvider.uploadAvatar(file, user.id, 'webp')
+    url = await uploadProvider.uploadAvatar(
+      file,
+      user.id,
+      'webp',
+      user.avatarUrl ?? null
+    )
+  } else if (user.avatarUrl) {
+    await uploadProvider.deleteAvatar(user.avatarUrl)
   }
 
   await updateUserAvatar(ctx.var.db, ctx.var.redis, user.id, url)
