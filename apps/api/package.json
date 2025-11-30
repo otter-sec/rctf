@@ -26,6 +26,7 @@
     "nodemailer": "^7.0.10",
     "pino": "^10.1.0",
     "postgres": "^3.4.5",
+    "sharp": "^0.34.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {

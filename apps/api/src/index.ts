@@ -35,9 +35,16 @@ for (const { router, handler } of routeModules) {
 
 const frontendStaticRoot = process.env.FRONTEND_STATIC_ROOT
 if (frontendStaticRoot) {
-  app.use('*', serveStatic({ root: frontendStaticRoot }))
+  app.use('*', serveStatic({ root: frontendStaticRoot, precompressed: true }))
   // SPA fallback
-  app.use('*', serveStatic({ root: frontendStaticRoot, path: '/index.html' }))
+  app.use(
+    '*',
+    serveStatic({
+      root: frontendStaticRoot,
+      path: '/index.html',
+      precompressed: true,
+    })
+  )
 }
 
 // TODO(es3n1n): we need some util to do this instead of manually writing

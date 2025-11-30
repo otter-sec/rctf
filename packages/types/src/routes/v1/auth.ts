@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineRoute } from '../internal'
+import { defineRoute } from '../../internal'
 import {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
@@ -21,8 +21,8 @@ import {
   GoodToken,
   GoodVerify,
   GoodVerifySent,
-} from '../responses'
-import { UserEmail, UserName } from '../util'
+} from '../../responses'
+import { UserEmail, UserName } from '../../util'
 
 export const RegisterRoute = defineRoute({
   path: '/v1/auth/register',

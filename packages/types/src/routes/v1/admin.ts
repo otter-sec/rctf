@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { Permissions } from '../enums/permissions'
-import { defineRoute } from '../internal'
+import { Permissions } from '../../enums/permissions'
+import { defineRoute } from '../../internal'
 import {
   BadChallenge,
   BadDataUri,
@@ -12,7 +12,7 @@ import {
   GoodChallengeUpdate,
   GoodFilesUpload,
   GoodUploadsQuery,
-} from '../responses'
+} from '../../responses'
 
 const AdminChallengeParams = z.object({
   id: z.string(),

@@ -1,7 +1,7 @@
 import { Bucket, File, Storage } from '@google-cloud/storage'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
-import type { UploadProvider } from './base'
+import { encodeKey, UploadProvider } from './base'
 
 interface GcsProviderOptions {
   projectId: string
@@ -9,7 +9,7 @@ interface GcsProviderOptions {
   credentials: Record<string, unknown>
 }
 
-export default class GcsProvider implements UploadProvider {
+export default class GcsProvider extends UploadProvider {
   private readonly bucket: Bucket
   private readonly bucketName: string
 
@@ -35,20 +35,25 @@ export default class GcsProvider implements UploadProvider {
       projectId: options.projectId,
       credentials: options.credentials,
     })
+    super()
     this.bucket = new Bucket(storage, options.bucketName)
     this.bucketName = options.bucketName
   }
 
-  async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
-
-  private readonly getGcsFile = (sha256: string, name: string): File => {
-    const key = `uploads/${sha256}/${name}`
-    return this.bucket.file(key)
+  private readonly getGcsFile = (key: string): File => {
+    return this.bucket.file(`uploads/${key}`)
   }
 
-  async upload(data: Buffer, name: string): Promise<string> {
-    const hash = new Bun.SHA256().update(data).digest('hex')
-    const file = this.getGcsFile(hash, name)
+  private toUrl(key: string): string {
+    return `https://${
+      this.bucketName
+    }.storage.googleapis.com/uploads/${encodeKey(key)}`
+  }
+
+  override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
+
+  override uploadFile = async (data: Buffer, key: string): Promise<string> => {
+    const file = this.getGcsFile(key)
     const exists = (await file.exists())[0]
 
     if (!exists) {
@@ -61,21 +66,15 @@ export default class GcsProvider implements UploadProvider {
       })
     }
 
-    return this.toUrl(hash, name)
+    return this.toUrl(key)
   }
 
-  private toUrl(sha256: string, name: string): string {
-    return `https://${
-      this.bucketName
-    }.storage.googleapis.com/uploads/${sha256}/${encodeURIComponent(name)}`
-  }
-
-  async getUrl(sha256: string, name: string): Promise<string | null> {
-    const file = this.getGcsFile(sha256, name)
+  override getFileUrl = async (key: string): Promise<string | null> => {
+    const file = this.getGcsFile(key)
     const exists = (await file.exists())[0]
     if (!exists) {
       return null
     }
-    return this.toUrl(sha256, name)
+    return this.toUrl(key)
   }
 }

@@ -103,11 +103,14 @@ export const getChallengeSolves = async (
   challengeId: string,
   limit: number,
   offset: number
-): Promise<{ solve: Solve; userName: string }[]> => {
+): Promise<
+  { solve: Solve; userName: string; userAvatarUrl: string | null }[]
+> => {
   return await db
     .select({
       solve: solves,
       userName: users.name,
+      userAvatarUrl: users.avatarUrl,
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))

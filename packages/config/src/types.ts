@@ -74,6 +74,8 @@ export interface ServerConfig {
     logoUrl?: string
   }
 
+  maxAvatarSize: number
+
   divisions: Record<string, string>
   defaultDivision?: string
   divisionACLs?: ACL[]

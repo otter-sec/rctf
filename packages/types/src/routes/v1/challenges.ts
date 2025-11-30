@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { Permissions } from '../enums'
-import { defineRoute } from '../internal'
+import { Permissions } from '../../enums'
+import { defineRoute } from '../../internal'
 import {
   BadAlreadySolvedChallenge,
   BadBody,
@@ -14,7 +14,7 @@ import {
   GoodChallenges,
   GoodChallengeSolves,
   GoodFlag,
-} from '../responses'
+} from '../../responses'
 
 // TODO(es3n1n): i dont like the idea of loginwalling challenges
 export const GetChallengesRoute = defineRoute({

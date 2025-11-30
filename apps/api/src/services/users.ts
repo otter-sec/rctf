@@ -2,7 +2,6 @@ import type { DatabaseClient, User } from '@rctf/db'
 import { users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
-  BadDivisionNotAllowed,
   BadEmailNoExists,
   BadUnknownUser,
   BadZeroAuth,
@@ -10,7 +9,6 @@ import type {
   GoodCtftimeRemoved,
   GoodEmailRemoved,
   GoodEmailSet,
-  GoodUserUpdate,
   ResponseHelpers,
 } from '@rctf/types'
 import {
@@ -31,10 +29,6 @@ type CreateUserResponseHelpers = ResponseHelpers<
     typeof BadKnownName,
     typeof GoodRegister,
   ]
->
-
-type UpdateUserResponseHelpers = ResponseHelpers<
-  [typeof BadDivisionNotAllowed, typeof BadKnownName, typeof GoodUserUpdate]
 >
 
 type UpdateUserEmailResponseHelpers = ResponseHelpers<
@@ -98,15 +92,16 @@ export const createUser = async (
   return res.goodRegister({ authToken })
 }
 
-export const updateUser = async (
-  res: UpdateUserResponseHelpers,
+export type UpdateUserResult =
+  | { success: true; user: User }
+  | { success: false; error: 'badKnownName' }
+
+export const updateUserInternal = async (
   db: DatabaseClient,
   redis: TypedRedis,
   id: string,
   user: Pick<User, 'division' | 'name'>
-): Promise<
-  ReturnType<UpdateUserResponseHelpers[keyof UpdateUserResponseHelpers]>
-> => {
+): Promise<UpdateUserResult> => {
   let updated
 
   try {
@@ -119,15 +114,13 @@ export const updateUser = async (
   } catch (error) {
     const contraintName = getErrorConstraint(error)
     if (contraintName === 'users_name_key') {
-      return res.badKnownName()
+      return { success: false, error: 'badKnownName' }
     }
     throw error
   }
 
   await invalidateUserCache(redis, id)
-  return res.goodUserUpdate({
-    user: updated!,
-  })
+  return { success: true, user: updated! }
 }
 
 export const updateUserEmail = async (
@@ -263,6 +256,16 @@ export const deleteCtftimeId = async (
   return res.goodCtftimeRemoved()
 }
 
+export const updateUserAvatar = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  id: string,
+  avatarUrl: string | null
+): Promise<void> => {
+  await db.update(users).set({ avatarUrl }).where(eq(users.id, id))
+  await invalidateUserCache(redis, id)
+}
+
 export const getUser = async (
   db: DatabaseClient,
   id: string
@@ -317,4 +320,27 @@ export const getUserByCtftimeId = async (
     .where(eq(users.ctftimeId, ctftimeId))
     .limit(1)
     .then(takeUnique)
+}
+
+export const getUserAvatars = async (
+  db: DatabaseClient,
+  userIds: string[]
+): Promise<Map<string, string | null>> => {
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const result = await db
+    .select({
+      id: users.id,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(users)
+    .where(or(...userIds.map(id => eq(users.id, id)))!)
+
+  const map = new Map<string, string | null>()
+  for (const row of result) {
+    map.set(row.id, row.avatarUrl)
+  }
+  return map
 }

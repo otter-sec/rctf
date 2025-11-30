@@ -29,14 +29,12 @@ challsGroup.route(
     }
 
     return res.goodChallengeSolves({
-      solves: solves.map(item => {
-        return {
-          id: item.solve.id,
-          createdAt: new Date(item.solve.createdat).getTime(),
-          userId: item.solve.userid,
-          userName: item.userName,
-        }
-      }),
+      solves: solves.map(({ solve, userName }) => ({
+        id: solve.id,
+        createdAt: new Date(solve.createdat).getTime(),
+        userId: solve.userid,
+        userName,
+      })),
     })
   }
 )

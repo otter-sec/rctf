@@ -112,6 +112,17 @@ const malformedJson = (): [JsonLike, ContentfulStatusCode] => [
   BadJson.status as ContentfulStatusCode,
 ]
 
+const malformedFormData = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadBody.kind,
+    message: BadBody.message,
+    data: {
+      reason: 'body:formData:malformed',
+    },
+  },
+  BadBody.status as ContentfulStatusCode,
+]
+
 const validationError = (
   src: RouteValidationSource,
   error: z.ZodError<unknown>
@@ -335,11 +346,17 @@ export const declareRouter = <
       }
     }
 
+    const expectsFormData = definition.bodyFormat === 'form-data'
     const bodyOutcome = await parseSection(
       'body',
       definition.body,
-      async ctx => ctx.req.json(),
-      async () => context.json(...malformedJson())
+      expectsFormData
+        ? async ctx => await ctx.req.parseBody({ all: true })
+        : async ctx => ctx.req.json(),
+      async () =>
+        expectsFormData
+          ? context.json(...malformedFormData())
+          : context.json(...malformedJson())
     )
     if (bodyOutcome.state === ParseState.Error) {
       return bodyOutcome.result

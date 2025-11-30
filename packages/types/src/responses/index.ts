@@ -42,6 +42,8 @@ export * from './good-flag'
 // users
 export * from './bad-ctftime-no-exists'
 export * from './bad-division-not-allowed'
+export * from './bad-avatar-file'
+export * from './bad-avatar-file-size'
 export * from './good-ctftime-auth-set'
 export * from './good-ctftime-removed'
 export * from './good-email-removed'
@@ -51,6 +53,7 @@ export * from './good-member-delete'
 export * from './good-user-data'
 export * from './good-user-self-data'
 export * from './good-user-update'
+export * from './good-avatar-updated'
 
 // leaderboard
 export * from './good-leaderboard'
@@ -71,3 +74,11 @@ export * from './good-challenge-delete'
 export * from './good-challenge-update'
 export * from './good-files-upload'
 export * from './good-uploads-query'
+
+// v2
+export * from './good-user-data-v2'
+export * from './good-user-self-data-v2'
+export * from './good-user-update-v2'
+export * from './good-leaderboard-v2'
+export * from './good-leaderboard-graph-v2'
+export * from './good-challenge-solves-v2'

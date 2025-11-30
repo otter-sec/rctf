@@ -23,6 +23,7 @@ export const users = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
       .notNull(),
+    avatarUrl: text('avatar_url'),
   },
   table => [
     unique('users_name_key').on(table.name),

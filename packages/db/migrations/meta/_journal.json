@@ -15,6 +15,13 @@
       "when": 1764447346673,
       "tag": "0001_add_solves_challengeid_index",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1764529959000,
+      "tag": "0002_add_avatar_url",
+      "breakpoints": true
     }
   ]
 }

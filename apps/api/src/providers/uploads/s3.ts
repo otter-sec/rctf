@@ -2,11 +2,10 @@ import {
   HeadObjectCommand,
   PutObjectCommand,
   S3Client,
-  type ObjectCannedACL,
 } from '@aws-sdk/client-s3'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
-import type { UploadProvider } from './base'
+import { encodeKey, UploadProvider } from './base'
 
 interface S3ProviderOptions {
   bucketName: string
@@ -15,12 +14,14 @@ interface S3ProviderOptions {
   awsRegion: string
 }
 
-export default class S3Provider implements UploadProvider {
+export default class S3Provider extends UploadProvider {
   private readonly client: S3Client
   private readonly bucketName: string
   private readonly region: string
 
   constructor(_options: Partial<S3ProviderOptions>) {
+    super()
+
     const options = {
       bucketName: process.env.RCTF_S3_BUCKET ?? _options.bucketName,
       awsKeyId: process.env.RCTF_S3_KEY_ID ?? _options.awsKeyId,
@@ -50,11 +51,7 @@ export default class S3Provider implements UploadProvider {
     this.region = options.awsRegion
   }
 
-  async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
-
-  private getKey(hash: string, name: string): string {
-    return `uploads/${hash}/${name}`
-  }
+  override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
 
   private async objectExists(key: string): Promise<boolean> {
     try {
@@ -75,16 +72,11 @@ export default class S3Provider implements UploadProvider {
     }
   }
 
-  private toUrl(hash: string, name: string): string {
-    return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/uploads/${hash}/${encodeURIComponent(
-      name
-    )}`
+  private toUrl(key: string): string {
+    return `https://${this.bucketName}.s3.${this.region}.amazonaws.com/uploads/${encodeKey(key)}`
   }
 
-  async upload(data: Buffer, name: string): Promise<string> {
-    const hash = new Bun.SHA256().update(data).digest('hex')
-    const key = this.getKey(hash, name)
-
+  override uploadFile = async (data: Buffer, key: string): Promise<string> => {
     if (!(await this.objectExists(key))) {
       await this.client.send(
         new PutObjectCommand({
@@ -98,15 +90,14 @@ export default class S3Provider implements UploadProvider {
       )
     }
 
-    return this.toUrl(hash, name)
+    return this.toUrl(key)
   }
 
-  async getUrl(sha256: string, name: string): Promise<string | null> {
-    const key = this.getKey(sha256, name)
+  override getFileUrl = async (key: string): Promise<string | null> => {
     const exists = await this.objectExists(key)
     if (!exists) {
       return null
     }
-    return this.toUrl(sha256, name)
+    return this.toUrl(key)
   }
 }

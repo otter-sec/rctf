@@ -3,19 +3,20 @@ import path from 'path'
 import type { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
 import type { AppEnv } from '../../lib/app-env'
-import type { UploadProvider } from './base'
+import { encodeKey, UploadProvider } from './base'
 
-export default class LocalProvider implements UploadProvider {
+export default class LocalProvider extends UploadProvider {
   private readonly uploadDirectory: string
 
   constructor(_options: any) {
+    super()
     const options = (_options || {}) as Partial<{ uploadDirectory: string }>
     this.uploadDirectory = path.resolve(
       options.uploadDirectory ?? path.join(process.cwd(), 'uploads')
     )
   }
 
-  async startupWebPart(app: Hono<AppEnv>): Promise<void> {
+  override async startupWebPart(app: Hono<AppEnv>): Promise<void> {
     app.use(
       '/uploads/*',
       serveStatic({
@@ -29,22 +30,12 @@ export default class LocalProvider implements UploadProvider {
           )
           ctx.res.headers.set('content-disposition', 'attachment')
         },
-        onNotFound: (path, ctx) => {
-          console.log('not found', path)
-        },
       })
     )
   }
 
-  private getKey(hash: string, name: string): string {
-    return `${hash}/${name}`
-  }
-
-  async upload(data: Buffer, name: string): Promise<string> {
-    const hash = new Bun.SHA256().update(data).digest('hex')
-    const key = this.getKey(hash, name)
+  override uploadFile = async (data: Buffer, key: string): Promise<string> => {
     const filePath = path.resolve(path.join(this.uploadDirectory, key))
-
     const relative = path.relative(this.uploadDirectory, filePath)
     if (relative.startsWith('..') || path.isAbsolute(relative)) {
       throw new Error('Invalid file path')
@@ -52,17 +43,15 @@ export default class LocalProvider implements UploadProvider {
 
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
     await fs.promises.writeFile(filePath, data)
-
-    return `/uploads/${key}`
+    return `/uploads/${encodeKey(key)}`
   }
 
-  async getUrl(sha256: string, name: string): Promise<string | null> {
-    const key = this.getKey(sha256, name)
+  override getFileUrl = async (key: string): Promise<string | null> => {
     try {
       await fs.promises.access(path.join(this.uploadDirectory, key))
     } catch {
       return null
     }
-    return `/uploads/${key}`
+    return `/uploads/${encodeKey(key)}`
   }
 }

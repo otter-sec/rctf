@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { Permissions } from '../enums'
-import { defineRoute } from '../internal'
+import { Permissions } from '../../enums'
+import { defineRoute } from '../../internal'
 import {
   BadBody,
   BadNotStarted,
   GoodLeaderboard,
   GoodLeaderboardGraph,
-} from '../responses'
+} from '../../responses'
 
 export const GetLeaderboardRoute = defineRoute({
   path: '/v1/leaderboard/now',

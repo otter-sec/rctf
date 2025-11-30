@@ -1,6 +1,6 @@
 import { z } from 'zod'
-import { Permissions } from '../enums/permissions'
-import { defineRoute } from '../internal'
+import { Permissions } from '../../enums/permissions'
+import { defineRoute } from '../../internal'
 import {
   BadCtftimeCode,
   BadEndpoint,
@@ -9,7 +9,7 @@ import {
   GoodClientConfig,
   GoodCtftimeLeaderboard,
   GoodCtftimeToken,
-} from '../responses'
+} from '../../responses'
 
 export const GetClientConfigRoute = defineRoute({
   path: '/v1/integrations/client/config',

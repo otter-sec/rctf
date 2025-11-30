@@ -1,5 +1,6 @@
 import {
   BadToken,
+  isFileField,
   type AnyRouteDefinition,
   type RouteBodyInput,
   type RouteParamsInput,
@@ -114,6 +115,44 @@ const pickArgs = <TRoute extends AnyRouteDefinition>(
   }
 }
 
+const buildFormDataBody = (payload: Record<string, unknown>): FormData => {
+  const formData = new FormData()
+
+  const appendValue = (key: string, value: unknown) => {
+    if (value === undefined) {
+      return
+    }
+
+    if (value === null) {
+      formData.append(key, '')
+      return
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach(item => appendValue(key, item))
+      return
+    }
+
+    if (isFileField(value)) {
+      formData.append(key, value)
+      return
+    }
+
+    if (value instanceof Date) {
+      formData.append(key, value.toISOString())
+      return
+    }
+
+    formData.append(key, String(value))
+  }
+
+  for (const [key, value] of Object.entries(payload)) {
+    appendValue(key, value)
+  }
+
+  return formData
+}
+
 export async function apiRequest<TRoute extends AnyRouteDefinition>(
   route: TRoute,
   args?: InlineArgs<TRoute>
@@ -134,10 +173,15 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
     headers['Authorization'] = `Bearer ${token}`
   }
 
-  let requestBody: string | undefined
-  if (route.body && body !== undefined) {
-    headers['Content-Type'] = 'application/json'
-    requestBody = JSON.stringify(body)
+  let requestBody: BodyInit | undefined
+  const expectsBody = Boolean(route.body && body !== undefined)
+  if (expectsBody) {
+    if (route.bodyFormat === 'form-data') {
+      requestBody = buildFormDataBody(body as Record<string, unknown>)
+    } else {
+      headers['Content-Type'] = 'application/json'
+      requestBody = JSON.stringify(body)
+    }
   }
 
   const res = await fetch(url, {

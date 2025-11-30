@@ -125,27 +125,29 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ### Todo v2
 
-- avatars for all team endpoints
-- specific position in solves
-- in solves list for a chal return also team's scoreboard position (global + division)
-- in global leaderboard return division positions
-- delete a solve (admin only)
-- resetting teams token (admin only)
-- update client config (admin only)
-- send prize emails (admin only)
-- file sizes
+- [x] avatars for all team endpoints
+- [ ] better file upload route
+- [ ] specific position in solves
+- [ ] in solves list for a chal return also team's scoreboard position (global + division)
+- [ ] in global leaderboard return division positions
+- [ ] delete a solve (admin only)
+- [ ] resetting teams token (admin only)
+- [ ] update client config (admin only)
+- [ ] send prize emails (admin only)
+- [ ] file sizes
 
-- instancer integration
-- admin bot integration
-- blood bot integration
+- [ ] instancer integration
+- [ ] admin bot integration
+- [ ] blood bot integration
 
-- discord auth
+- [ ] discord auth
 
-- ticket bot?
+- [ ] ticket bot?
 
 ## New features compared to v1
 
 - Scores config
+- Avatars
 - New `s3` upload provider
 
 <details>

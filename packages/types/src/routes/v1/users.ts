@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { defineRoute } from '../internal'
+import { defineRoute } from '../../internal'
 import {
   BadCtftimeNoExists,
   BadCtftimeToken,
@@ -28,8 +28,8 @@ import {
   GoodUserSelfData,
   GoodUserUpdate,
   GoodVerifySent,
-} from '../responses'
-import { UserEmail, UserName } from '../util'
+} from '../../responses'
+import { UserEmail, UserName } from '../../util'
 
 export const GetUserRoute = defineRoute({
   path: '/v1/users/:id',

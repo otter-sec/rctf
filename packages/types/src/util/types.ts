@@ -30,3 +30,28 @@ export const NumericString = z.preprocess(item => {
   }
   return undefined
 }, z.string())
+
+export interface FileField extends Blob {
+  readonly name: string
+  readonly lastModified?: number
+}
+
+export const isFileField = (value: unknown): value is FileField => {
+  if (typeof value !== 'object' || value === null) {
+    return false
+  }
+
+  const candidate = value as Partial<FileField>
+  return (
+    typeof candidate.name === 'string' &&
+    typeof candidate.size === 'number' &&
+    typeof candidate.type === 'string' &&
+    typeof candidate.arrayBuffer === 'function' &&
+    typeof candidate.stream === 'function' &&
+    typeof candidate.text === 'function'
+  )
+}
+
+export const FileFieldSchema = z.custom<FileField>(isFileField, {
+  message: 'Expected file upload',
+})

@@ -8,6 +8,8 @@ import type {
 } from './responses'
 import type { HttpMethod, SchemaLike } from './utils'
 
+export type BodyFormat = 'json' | 'form-data'
+
 type ResponseCollection = readonly ResponseDefinition<
   string,
   z.ZodTypeAny | undefined
@@ -35,6 +37,7 @@ export interface RouteDefinition<
     | undefined,
   TOnlyWhenNotFinished extends boolean = boolean,
   TReturnBodyAsIs extends boolean = boolean,
+  TBodyFormat extends BodyFormat = BodyFormat,
 > {
   readonly method: TMethod
   readonly path: string
@@ -48,6 +51,7 @@ export interface RouteDefinition<
   readonly onlyWhenStartedPermissionsBypass: TOnlyWhenStartedPermissionsBypass
   readonly onlyWhenNotFinished: TOnlyWhenNotFinished
   readonly returnBodyAsIs: TReturnBodyAsIs
+  readonly bodyFormat: TBodyFormat
 }
 
 type RouteConfig = {
@@ -63,6 +67,7 @@ type RouteConfig = {
   onlyWhenStartedPermissionsBypass?: Permissions
   onlyWhenNotFinished?: boolean
   returnBodyAsIs?: boolean
+  bodyFormat?: BodyFormat
 }
 
 type NormalizedAuthRequired<TDefinition extends RouteConfig> =
@@ -96,6 +101,11 @@ type ReturnBodyAsIs<TDefinition extends RouteConfig> =
     ? TDefinition['returnBodyAsIs']
     : false
 
+type NormalizedBodyFormat<TDefinition extends RouteConfig> =
+  TDefinition['bodyFormat'] extends BodyFormat
+    ? TDefinition['bodyFormat']
+    : 'json'
+
 export function defineRoute<TDefinition extends RouteConfig>(
   definition: TDefinition
 ): RouteDefinition<
@@ -109,7 +119,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
   NormalizedOnlyWhenStarted<TDefinition>,
   NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
   NormalizedOnlyWhenNotFinished<TDefinition>,
-  ReturnBodyAsIs<TDefinition>
+  ReturnBodyAsIs<TDefinition>,
+  NormalizedBodyFormat<TDefinition>
 > {
   const {
     method,
@@ -124,6 +135,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     onlyWhenStartedPermissionsBypass,
     onlyWhenNotFinished,
     returnBodyAsIs,
+    bodyFormat,
   } = definition
 
   return {
@@ -144,6 +156,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     permissions: (permissions ??
       undefined) as NormalizedPermissions<TDefinition>,
     returnBodyAsIs: (returnBodyAsIs ?? false) as ReturnBodyAsIs<TDefinition>,
+    bodyFormat: (bodyFormat ?? 'json') as NormalizedBodyFormat<TDefinition>,
   }
 }
 
@@ -181,6 +194,9 @@ export type RouteQueryInput<TRoute extends AnyRouteDefinition> = SchemaInput<
 
 export type RoutePermissions<TRoute extends AnyRouteDefinition> =
   TRoute['permissions']
+
+export type RouteBodyFormat<TRoute extends AnyRouteDefinition> =
+  TRoute['bodyFormat']
 
 type RouteRequiresAuth<TRoute extends AnyRouteDefinition> =
   TRoute['authRequired'] extends true

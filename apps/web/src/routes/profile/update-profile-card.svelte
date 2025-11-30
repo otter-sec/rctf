@@ -2,7 +2,7 @@
   import {
     GoodEmailRemoved,
     GoodEmailSet,
-    GoodUserUpdate,
+    GoodUserUpdateV2,
     GoodVerifySent,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
@@ -99,7 +99,7 @@
           },
           {
             onSuccess: response => {
-              if (response.kind === GoodUserUpdate.kind) {
+              if (response.kind === GoodUserUpdateV2.kind) {
                 toast.success('Profile updated successfully!')
                 updated = true
                 resolve()

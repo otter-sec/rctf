@@ -1,6 +1,6 @@
 import { UpdateUserRoute } from '@rctf/types'
 import { rateLimit } from '../../../../services/rate-limit'
-import { updateUser } from '../../../../services/users'
+import { updateUserInternal } from '../../../../services/users'
 import { divisionAllowed } from '../../../../util/acl'
 import usersGroup from '../group'
 
@@ -27,8 +27,20 @@ usersGroup.route(UpdateUserRoute, async ({ ctx, user, res, body }) => {
     }
   }
 
-  return await updateUser(res, ctx.var.db, ctx.var.redis, user.id, {
+  const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user.id, {
     division: body.division ?? user.division,
     name: body.name ?? user.name,
+  })
+
+  if (!result.success) {
+    return res.badKnownName()
+  }
+
+  return res.goodUserUpdate({
+    user: {
+      name: result.user.name,
+      email: result.user.email ?? null,
+      division: result.user.division,
+    },
   })
 })

@@ -158,6 +158,7 @@ export const defaultConfig: PartialDeep<ServerConfig> = {
   uploadProvider: {
     name: 'uploads/local',
   },
+  maxAvatarSize: 1024 * 1024 * 1, // 1MB
   proxy: {
     cloudflare: false,
     trust: false,

@@ -7,31 +7,31 @@ import {
   DeleteMemberRoute,
   GetAdminChallengeRoute,
   GetAdminChallengesRoute,
-  GetChallengeSolvesRoute,
+  GetChallengeSolvesRouteV2,
   GetChallengesRoute,
   GetClientConfigRoute,
-  GetLeaderboardGraphRoute,
-  GetLeaderboardRoute,
+  GetLeaderboardGraphRouteV2,
+  GetLeaderboardRouteV2,
   GetMembersRoute,
-  GetUserRoute,
-  GetUserSelfRoute,
+  GetUserRouteV2,
+  GetUserSelfRouteV2,
   GoodAdminChallenge,
   GoodAdminChallenges,
   GoodChallenges,
-  GoodChallengeSolves,
+  GoodChallengeSolvesV2,
   GoodClientConfig,
-  GoodLeaderboard,
-  GoodLeaderboardGraph,
+  GoodLeaderboardGraphV2,
+  GoodLeaderboardV2,
   GoodMemberData,
-  GoodUserData,
-  GoodUserSelfData,
+  GoodUserDataV2,
+  GoodUserSelfDataV2,
   LoginRoute,
   RecoverRoute,
   RegisterRoute,
   SetEmailRoute,
   SubmitFlagRoute,
   UpdateChallengeRoute,
-  UpdateUserRoute,
+  UpdateUserRouteV2,
   UploadFilesRoute,
   VerifyRoute,
   type AnyRouteDefinition,
@@ -90,8 +90,8 @@ export const userSelfQueryOptions = queryOptions({
     if (!isAuthenticated()) {
       return null
     }
-    const response = await apiRequest(GetUserSelfRoute)
-    if (response.kind === GoodUserSelfData.kind) {
+    const response = await apiRequest(GetUserSelfRouteV2)
+    if (response.kind === GoodUserSelfDataV2.kind) {
       return response.data
     }
     return null
@@ -103,8 +103,8 @@ export const userByIdQueryOptions = (id: string) =>
   queryOptions({
     queryKey: ['user', id] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetUserRoute, { id })
-      if (response.kind === GoodUserData.kind) {
+      const response = await apiRequest(GetUserRouteV2, { id })
+      if (response.kind === GoodUserDataV2.kind) {
         return response.data
       }
       throw new ApiError(response.message)
@@ -157,8 +157,8 @@ export const leaderboardQueryOptions = (params: {
   queryOptions({
     queryKey: ['leaderboard', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetLeaderboardRoute, params)
-      if (response.kind === GoodLeaderboard.kind) {
+      const response = await apiRequest(GetLeaderboardRouteV2, params)
+      if (response.kind === GoodLeaderboardV2.kind) {
         return response.data
       }
       throw new ApiError(response.message)
@@ -174,8 +174,8 @@ export const leaderboardGraphQueryOptions = (params: {
   queryOptions({
     queryKey: ['leaderboard', 'graph', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetLeaderboardGraphRoute, params)
-      if (response.kind === GoodLeaderboardGraph.kind) {
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, params)
+      if (response.kind === GoodLeaderboardGraphV2.kind) {
         return response.data.graph
       }
       throw new ApiError(response.message)
@@ -191,11 +191,11 @@ export const challengeSolvesQueryOptions = (
   queryOptions({
     queryKey: ['challenges', id, 'solves', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetChallengeSolvesRoute, {
+      const response = await apiRequest(GetChallengeSolvesRouteV2, {
         id,
         ...params,
       })
-      if (response.kind === GoodChallengeSolves.kind) {
+      if (response.kind === GoodChallengeSolvesV2.kind) {
         return response.data
       }
       throw new ApiError(response.message)
@@ -311,7 +311,7 @@ export function useSubmitFlagMutation() {
 }
 
 export function useUpdateUserMutation() {
-  return createApiMutation(UpdateUserRoute)
+  return createApiMutation(UpdateUserRouteV2)
 }
 
 export function useSetEmailMutation() {
