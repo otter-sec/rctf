@@ -292,6 +292,7 @@ export interface TestUser {
   name: string
   tokens: Record<string, string>
   ids: Record<string, string>
+  divisions: Record<string, string>
 }
 
 export async function registerUser(name: string): Promise<TestUser> {
@@ -299,6 +300,7 @@ export async function registerUser(name: string): Promise<TestUser> {
     name,
     tokens: {},
     ids: {},
+    divisions: {},
   }
 
   const email = `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@test.local`
@@ -326,9 +328,14 @@ export async function registerUser(name: string): Promise<TestUser> {
     const meRes = await req(instance.url, '/api/v1/users/me', {
       headers: { Authorization: `Bearer ${body.data.authToken}` },
     })
-    const meBody = meRes.body as { data?: { id?: string } }
+    const meBody = meRes.body as {
+      data?: { id?: string; division?: string }
+    }
     if (meBody.data?.id) {
       user.ids[instance.name] = meBody.data.id
+    }
+    if (meBody.data?.division) {
+      user.divisions[instance.name] = meBody.data.division
     }
   }
 
@@ -342,6 +349,27 @@ export async function makeAdmin(user: TestUser): Promise<void> {
       throw new Error(`No user ID for ${user.name} on ${instance.name}`)
     }
     await instance.db`UPDATE users SET perms = 7 WHERE id = ${userId}`
+
+    const token = user.tokens[instance.name]
+    if (!token) {
+      throw new Error(`No auth token for user ${user.name} on ${instance.name}`)
+    }
+
+    // Invalidating user cache to make sure the updated perms field is reflected
+    const division = user.divisions[instance.name]
+    const res = await req(instance.url, '/api/v1/users/me', {
+      method: 'PATCH',
+      body: { division },
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    if (res.status !== 200) {
+      throw new Error(
+        `Failed to invalidate user cache for ${user.name} on ${instance.name}: ${JSON.stringify(res.body)}`
+      )
+    }
   }
 }
 
