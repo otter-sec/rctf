@@ -1,13 +1,10 @@
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { config } from '@rctf/config'
 import { createDatabase } from '@rctf/db'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
 import type pino from 'pino'
 
-const MIGRATIONS_FOLDER = fileURLToPath(
-  new URL('../../../../packages/db/migrations', import.meta.url)
-)
+const MIGRATIONS_FOLDER = path.resolve(process.cwd(), 'packages/db/migrations')
 
 export const runMigrationsOnStartup = async (logger: pino.Logger) => {
   const dbConfig = config.database
