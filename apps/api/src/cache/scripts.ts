@@ -4,6 +4,13 @@ import type Redis from 'ioredis'
 export type TypedRedis = Redis & {
   rctfSetLeaderboard: (keys: number, ...args: string[]) => Promise<void>
   rctfSetGraph: (keys: number, ...args: string[]) => Promise<void>
+  rctfGetLeaderboardWithChallenges: (
+    leaderboardKey: string,
+    challengeInfoKey: string,
+    start: string,
+    end: string,
+    includeRange: string
+  ) => Promise<[string[], number | string, string[]]>
   rctfGetGraph: (
     leaderboardKey: string,
     leaderboardUpdateKey: string,
@@ -27,6 +34,10 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
 
   redis.defineCommand('rctfSetLeaderboard', {
     lua: await loadLuaScript('set-leaderboard.lua'),
+  })
+  redis.defineCommand('rctfGetLeaderboardWithChallenges', {
+    numberOfKeys: 2,
+    lua: await loadLuaScript('get-leaderboard-with-challenges.lua'),
   })
   redis.defineCommand('rctfSetGraph', {
     lua: await loadLuaScript('set-graph.lua'),

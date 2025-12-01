@@ -12,7 +12,7 @@
 -- [3+numDivisions]: numLeaderboardElements (numUsers * 4)
 -- [next..]: leaderboard elements [id, name, division, score, ...] repeated
 -- [after leaderboard]: numChallengeElements (numChallenges * 2)
--- [after..]: challenge info elements [id, "score,solves", ...] repeated
+-- [after..]: challenge info elements [id, json payload, ...] repeated
 
 -- Call a Redis command with large argument lists by chunking to avoid arg limits
 local function chunkCall(cmd, key, args)

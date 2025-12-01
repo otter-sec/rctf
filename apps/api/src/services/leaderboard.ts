@@ -60,6 +60,8 @@ const getChallenges = async (
     const points = ch.data.points ?? { min: 0, max: 0 }
     result.set(ch.id, {
       id: ch.id,
+      name: ch.data.name ?? '',
+      category: ch.data.category ?? '',
       tiebreakEligible: ch.data.tiebreakEligible ?? false,
       solves: 0,
       score: 0,

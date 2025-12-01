@@ -10,7 +10,7 @@ import {
   GetChallengeSolvesRouteV2,
   GetChallengesRoute,
   GetClientConfigRoute,
-  GetLeaderboardGraphRouteV2,
+  GetLeaderboardGraphRoute,
   GetLeaderboardRouteV2,
   GetMembersRoute,
   GetUserRouteV2,
@@ -20,7 +20,7 @@ import {
   GoodChallenges,
   GoodChallengeSolvesV2,
   GoodClientConfig,
-  GoodLeaderboardGraphV2,
+  GoodLeaderboardGraph,
   GoodLeaderboardV2,
   GoodMemberData,
   GoodUserDataV2,
@@ -174,8 +174,8 @@ export const leaderboardGraphQueryOptions = (params: {
   queryOptions({
     queryKey: ['leaderboard', 'graph', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetLeaderboardGraphRouteV2, params)
-      if (response.kind === GoodLeaderboardGraphV2.kind) {
+      const response = await apiRequest(GetLeaderboardGraphRoute, params)
+      if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
       }
       throw new ApiError(response.message)

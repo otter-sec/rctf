@@ -10,7 +10,7 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { asc, desc, eq, sql } from 'drizzle-orm'
+import { asc, desc, eq, inArray, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -133,6 +133,50 @@ export const getUserChallengeSolves = async (
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
     .where(eq(solves.userid, userId))
     .orderBy(asc(solves.createdat))
+}
+
+export const getUsersChallengeSolveIds = async (
+  db: DatabaseClient,
+  userIds: string[]
+): Promise<{
+  solves: Map<string, string[]>
+  avatars: Map<string, string | null>
+}> => {
+  if (userIds.length === 0) {
+    return { solves: new Map(), avatars: new Map() }
+  }
+
+  const rows = await db
+    .select({
+      userId: solves.userid,
+      challengeId: solves.challengeid,
+      avatarUrl: users.avatarUrl,
+    })
+    .from(solves)
+    .innerJoin(users, eq(users.id, solves.userid))
+    .where(inArray(solves.userid, userIds))
+    .orderBy(asc(solves.createdat))
+
+  const solvesMap = new Map<string, string[]>()
+  const avatars = new Map<string, string | null>()
+  for (const id of userIds) {
+    solvesMap.set(id, [])
+  }
+
+  for (const row of rows) {
+    if (!avatars.has(row.userId)) {
+      avatars.set(row.userId, row.avatarUrl ?? null)
+    }
+
+    const list = solvesMap.get(row.userId)
+    if (list) {
+      list.push(row.challengeId)
+    } else {
+      solvesMap.set(row.userId, [row.challengeId])
+    }
+  }
+
+  return { solves: solvesMap, avatars }
 }
 
 export const submitFlag = async (
