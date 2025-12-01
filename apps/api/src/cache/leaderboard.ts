@@ -21,6 +21,7 @@ export type InternalChallengeInfo = {
   score: number
   minPoints: number
   maxPoints: number
+  sortWeight: number | null
 }
 
 export type InternalUserInfo = {
@@ -42,7 +43,10 @@ export type CalculatedLeaderboard = {
   >
   challengeInfos: Map<
     string,
-    Pick<InternalChallengeInfo, 'score' | 'solves' | 'name' | 'category'>
+    Pick<
+      InternalChallengeInfo,
+      'score' | 'solves' | 'name' | 'category' | 'sortWeight'
+    >
   >
   samples: Array<{
     time: number
@@ -60,36 +64,36 @@ export type CachedChallengeInfo = {
   solves: number | null
   name: string | null
   category: string | null
+  sortWeight: number | null
 }
 
 const parseCachedChallengeInfo = (
   value: string | null
 ): CachedChallengeInfo => {
   if (!value) {
-    return { score: null, solves: null, name: null, category: null }
-  }
-
-  try {
-    const parsed = JSON.parse(value) as Partial<{
-      score: number
-      solves: number
-      name: string
-      category: string
-    }>
     return {
-      score: parsed.score ?? null,
-      solves: parsed.solves ?? null,
-      name: parsed.name ?? null,
-      category: parsed.category ?? null,
-    }
-  } catch {
-    const [score, solves] = value.split(',')
-    return {
-      score: Number.parseInt(score ?? '0'),
-      solves: Number.parseInt(solves ?? '0'),
+      score: null,
+      solves: null,
       name: null,
       category: null,
+      sortWeight: null,
     }
+  }
+
+  const parsed = JSON.parse(value) as Partial<{
+    score: number
+    solves: number
+    name: string
+    category: string
+    sortWeight: number | null
+  }>
+
+  return {
+    score: parsed.score ?? null,
+    solves: parsed.solves ?? null,
+    name: parsed.name ?? null,
+    category: parsed.category ?? null,
+    sortWeight: parsed.sortWeight ?? null,
   }
 }
 
@@ -140,6 +144,7 @@ const cacheLeaderboard = async (
         category: challengeInfo.category,
         score: challengeInfo.score,
         solves: challengeInfo.solves,
+        sortWeight: challengeInfo.sortWeight,
       })
     )
   }

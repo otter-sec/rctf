@@ -39,6 +39,7 @@ leaderboardGroup.route(
             points: info.score ?? 0,
             solves: info.solves ?? 0,
             firstSolvers: firstSolvers.get(id) ?? [],
+            sortWeight: info.sortWeight,
           },
         ])
       ),

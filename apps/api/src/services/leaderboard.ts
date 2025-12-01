@@ -67,6 +67,7 @@ const getChallenges = async (
       score: 0,
       minPoints: points.min ?? 0,
       maxPoints: points.max ?? 0,
+      sortWeight: ch.data.sortWeight ?? null,
     })
   }
   return result

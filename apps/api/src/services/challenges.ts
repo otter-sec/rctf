@@ -28,7 +28,7 @@ type SubmitResponseHelpers = ResponseHelpers<
   ]
 >
 
-type Blood = { id: string; name: string }
+type Blood = { id: string; name: string; solveTime: number }
 
 type SolvesAvatarsBloods = {
   solves: Map<string, string[]>
@@ -160,6 +160,7 @@ export const getSolvesAvatarsBloods = async (
         rank: sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})`.as(
           'rank'
         ),
+        createdAt: solves.createdat,
       })
       .from(solves)
       .innerJoin(users, eq(users.id, solves.userid))
@@ -179,7 +180,7 @@ export const getSolvesAvatarsBloods = async (
   const avatars = new Map<string, string | null>()
   const firstSolvers = new Map<string, Blood[]>()
 
-  for (const { userId, userName, avatar, challId, rank } of rows) {
+  for (const { userId, userName, avatar, challId, rank, createdAt } of rows) {
     // always save user info we requested
     if (userIdSet.has(userId)) {
       avatars.set(userId, avatars.get(userId) ?? avatar ?? null)
@@ -191,7 +192,11 @@ export const getSolvesAvatarsBloods = async (
     }
 
     const bloods = firstSolvers.get(challId) ?? []
-    bloods.push({ id: userId, name: userName })
+    bloods.push({
+      id: userId,
+      name: userName,
+      solveTime: new Date(createdAt).getTime(),
+    })
     firstSolvers.set(challId, bloods)
   }
 
