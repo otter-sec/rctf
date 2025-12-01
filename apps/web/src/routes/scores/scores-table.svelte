@@ -1,7 +1,7 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { Avatar, Spinner, Tooltip } from '$lib/components'
+  import { Avatar, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import {
     IconChevronLeft,
     IconChevronLeftPipe,
@@ -25,11 +25,18 @@
   const PAGE_SIZE = 10
   const TEAM_COL_WIDTH = 548
   const CELL_WIDTH = 48
+  const HEADER_HEIGHT = 60
+  const FADE_SIZE = 48
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
 
   let page = $state(1)
+  let viewportRef = $state<HTMLElement | null>(null)
+  let showTopFade = $state(false)
+  let showBottomFade = $state(false)
+  let showLeftFade = $state(false)
+  let showRightFade = $state(false)
 
   const leaderboardQuery = $derived(
     useLeaderboard({
@@ -102,6 +109,41 @@
   function handlePageChange(newPage: number) {
     page = newPage
   }
+
+  function updateFades() {
+    const viewport = viewportRef
+    if (!viewport) return
+
+    const {
+      scrollTop,
+      scrollHeight,
+      clientHeight,
+      scrollLeft,
+      scrollWidth,
+      clientWidth,
+    } = viewport
+    const threshold = 10
+
+    showTopFade = scrollTop > threshold
+    showBottomFade = scrollTop + clientHeight < scrollHeight - threshold
+    showLeftFade = scrollLeft > threshold
+    showRightFade = scrollLeft + clientWidth < scrollWidth - threshold
+  }
+
+  $effect(() => {
+    const viewport = viewportRef
+    if (!viewport) return
+
+    updateFades()
+    viewport.addEventListener('scroll', updateFades, { passive: true })
+    const resizeObserver = new ResizeObserver(updateFades)
+    resizeObserver.observe(viewport)
+
+    return () => {
+      viewport.removeEventListener('scroll', updateFades)
+      resizeObserver.disconnect()
+    }
+  })
 
   $effect(() => {
     for (const p of [page - 1, page + 1]) {
@@ -180,14 +222,98 @@
   <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
     {#if $leaderboardQuery.isLoading}
       <div
-        class="absolute inset-0 z-30 flex items-center justify-center bg-background/60"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-background/60"
       >
         <Spinner class="size-6" />
       </div>
     {/if}
 
     <div
-      class="max-h-[calc(100vh-128px)] overflow-auto overscroll-none rounded-lg"
+      class={cn(
+        'pointer-events-none absolute top-0 z-40 bg-linear-to-r from-background-l0 to-transparent transition-opacity',
+        showLeftFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:left="{TEAM_COL_WIDTH}px"
+      style:height="{HEADER_HEIGHT}px"
+      style:width="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+    <div
+      class={cn(
+        'pointer-events-none absolute right-0 top-0 z-40 bg-linear-to-l from-background-l0 to-transparent transition-opacity',
+        showRightFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:height="{HEADER_HEIGHT}px"
+      style:width="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class={cn(
+        'pointer-events-none absolute left-0 z-40 bg-linear-to-b from-background-l0 to-transparent transition-opacity',
+        showTopFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:top="{HEADER_HEIGHT}px"
+      style:width="{TEAM_COL_WIDTH}px"
+      style:height="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+    <div
+      class={cn(
+        'pointer-events-none absolute bottom-0 left-0 z-40 bg-linear-to-t from-background-l0 to-transparent transition-opacity',
+        showBottomFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:width="{TEAM_COL_WIDTH}px"
+      style:height="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+
+    <div
+      class={cn(
+        'pointer-events-none absolute right-0 z-40 bg-linear-to-b from-background-l0 to-transparent transition-opacity',
+        showTopFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:top="{HEADER_HEIGHT}px"
+      style:left="{TEAM_COL_WIDTH}px"
+      style:height="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+    <div
+      class={cn(
+        'pointer-events-none absolute right-0 bottom-0 z-40 bg-linear-to-t from-background-l0 to-transparent transition-opacity',
+        showBottomFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:left="{TEAM_COL_WIDTH}px"
+      style:height="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+    <div
+      class={cn(
+        'pointer-events-none absolute bottom-0 z-40 bg-linear-to-r from-background-l0 to-transparent transition-opacity',
+        showLeftFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:left="{TEAM_COL_WIDTH}px"
+      style:top="{HEADER_HEIGHT}px"
+      style:width="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+    <div
+      class={cn(
+        'pointer-events-none absolute right-0 bottom-0 z-40 bg-linear-to-l from-background-l0 to-transparent transition-opacity',
+        showRightFade ? 'opacity-100' : 'opacity-0'
+      )}
+      style:top="{HEADER_HEIGHT}px"
+      style:width="{FADE_SIZE}px"
+      aria-hidden="true"
+    ></div>
+
+    <ScrollArea
+      class="h-[calc(100vh-142px)] rounded-lg"
+      orientation="both"
+      fadeSize={0}
+      scrollbarXClasses="z-50 ml-[548px]"
+      scrollbarYClasses="z-50"
+      bind:viewportRef
     >
       <div class="sticky top-0 z-20 flex w-max bg-background-l0">
         <div
@@ -275,7 +401,7 @@
                 styles.bg,
                 'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2',
                 styles.gradient && [
-                  'after:absolute after:rounded-l-lg after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:bg-linear-to-r after:to-transparent',
+                  'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:rounded-l-lg after:bg-linear-to-r after:to-transparent',
                   styles.gradient,
                 ]
               )}
@@ -348,7 +474,9 @@
                   {#if solved}
                     <Tooltip.Root>
                       <Tooltip.Trigger>
-                        <IconCircle class="size-7 text-category-foreground-l1" />
+                        <IconCircle
+                          class="size-7 text-category-foreground-l1"
+                        />
                       </Tooltip.Trigger>
                       <Tooltip.Content side="top" sideOffset={4}
                         >{challenge.name}</Tooltip.Content
@@ -363,6 +491,6 @@
           </div>
         {/each}
       </div>
-    </div>
+    </ScrollArea>
   </div>
 </div>
