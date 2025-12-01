@@ -4,6 +4,7 @@ export interface RankStyles {
   bg: string
   fgL0: string
   fgL1: string
+  gradient?: string
 }
 
 const rankStyleMap: Record<RankVariant, RankStyles> = {
@@ -11,16 +12,19 @@ const rankStyleMap: Record<RankVariant, RankStyles> = {
     bg: 'bg-background-first',
     fgL0: 'text-foreground-first-l0',
     fgL1: 'text-foreground-first-l1',
+    gradient: 'after:from-foreground-first-l0/15',
   },
   second: {
     bg: 'bg-background-second',
     fgL0: 'text-foreground-second-l0',
     fgL1: 'text-foreground-second-l1',
+    gradient: 'after:from-foreground-second-l0/15',
   },
   third: {
     bg: 'bg-background-third',
     fgL0: 'text-foreground-third-l0',
     fgL1: 'text-foreground-third-l1',
+    gradient: 'after:from-foreground-third-l0/15',
   },
   self: {
     bg: 'bg-background-self',
