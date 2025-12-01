@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardRouteV2 } from '@rctf/types'
 import { getLeaderboardWithChallenges } from '../../../../cache/leaderboard'
-import { getUsersChallengeSolveIds as getSolvesAndAvatars } from '../../../../services/challenges'
+import { getSolvesAvatarsBloods } from '../../../../services/challenges'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
@@ -18,7 +18,7 @@ leaderboardGroup.route(
 
     const { total, leaderboard, challenges } =
       await getLeaderboardWithChallenges(ctx.var.redis, limit, offset, division)
-    const { solves, avatars } = await getSolvesAndAvatars(
+    const { solves, avatars, firstSolvers } = await getSolvesAvatarsBloods(
       ctx.var.db,
       leaderboard.map(e => e.id)
     )
@@ -38,6 +38,7 @@ leaderboardGroup.route(
             category: info.category ?? '',
             points: info.score ?? 0,
             solves: info.solves ?? 0,
+            firstSolvers: firstSolvers.get(id) ?? [],
           },
         ])
       ),

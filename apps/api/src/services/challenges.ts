@@ -10,7 +10,7 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import { asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -27,6 +27,14 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof BadUnknownUser,
   ]
 >
+
+type Blood = { id: string; name: string }
+
+type SolvesAvatarsBloods = {
+  solves: Map<string, string[]>
+  avatars: Map<string, string | null>
+  firstSolvers: Map<string, Blood[]>
+}
 
 export const getChallenges = async (
   db: DatabaseClient
@@ -135,48 +143,59 @@ export const getUserChallengeSolves = async (
     .orderBy(asc(solves.createdat))
 }
 
-export const getUsersChallengeSolveIds = async (
+export const getSolvesAvatarsBloods = async (
   db: DatabaseClient,
   userIds: string[]
-): Promise<{
-  solves: Map<string, string[]>
-  avatars: Map<string, string | null>
-}> => {
-  if (userIds.length === 0) {
-    return { solves: new Map(), avatars: new Map() }
-  }
+): Promise<SolvesAvatarsBloods> => {
+  const numberOfBloods = 3
+  const userIdSet = new Set(userIds)
+
+  const ranked = db.$with('ranked').as(
+    db
+      .select({
+        userId: solves.userid,
+        userName: users.name,
+        avatar: users.avatarUrl,
+        challId: solves.challengeid,
+        rank: sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})`.as(
+          'rank'
+        ),
+      })
+      .from(solves)
+      .innerJoin(users, eq(users.id, solves.userid))
+  )
 
   const rows = await db
-    .select({
-      userId: solves.userid,
-      challengeId: solves.challengeid,
-      avatarUrl: users.avatarUrl,
-    })
-    .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(inArray(solves.userid, userIds))
-    .orderBy(asc(solves.createdat))
+    .with(ranked)
+    .select()
+    .from(ranked)
+    // always fetch first `numberOfBloods` solvers for each challenge
+    .where(
+      or(inArray(ranked.userId, userIds), lte(ranked.rank, numberOfBloods))
+    )
+    .orderBy(asc(ranked.rank))
 
-  const solvesMap = new Map<string, string[]>()
+  const solvesMap = new Map<string, string[]>(userIds.map(id => [id, []]))
   const avatars = new Map<string, string | null>()
-  for (const id of userIds) {
-    solvesMap.set(id, [])
-  }
+  const firstSolvers = new Map<string, Blood[]>()
 
-  for (const row of rows) {
-    if (!avatars.has(row.userId)) {
-      avatars.set(row.userId, row.avatarUrl ?? null)
+  for (const { userId, userName, avatar, challId, rank } of rows) {
+    // always save user info we requested
+    if (userIdSet.has(userId)) {
+      avatars.set(userId, avatars.get(userId) ?? avatar ?? null)
+      solvesMap.get(userId)!.push(challId)
     }
 
-    const list = solvesMap.get(row.userId)
-    if (list) {
-      list.push(row.challengeId)
-    } else {
-      solvesMap.set(row.userId, [row.challengeId])
+    if (rank > numberOfBloods) {
+      continue
     }
+
+    const bloods = firstSolvers.get(challId) ?? []
+    bloods.push({ id: userId, name: userName })
+    firstSolvers.set(challId, bloods)
   }
 
-  return { solves: solvesMap, avatars }
+  return { solves: solvesMap, avatars, firstSolvers }
 }
 
 export const submitFlag = async (

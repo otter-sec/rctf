@@ -22,6 +22,12 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
         category: z.string(),
         solves: z.number(),
         points: z.number(),
+        firstSolvers: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+          })
+        ),
       })
     ),
   }),

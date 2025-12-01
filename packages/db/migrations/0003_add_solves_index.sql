@@ -1,0 +1,1 @@
+CREATE INDEX "solves_challengeid_createdat_index" ON "solves" USING btree ("challengeid" text_ops,"createdat" timestamptz_ops);
