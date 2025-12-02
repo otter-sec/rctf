@@ -7,7 +7,8 @@ const keyGraphData = 'graph-data'
 const keyScorePositions = 'score-positions'
 const keyChallengeInfo = 'challenge-info'
 
-const keysPerUser = 3
+const keysPerUserGlobal = 5
+const keysPerUserDivision = 3
 const keyLeaderboardUpdate = 'leaderboard-update'
 const keyLeaderboard = (division?: string) =>
   division ? `division-leaderboard:${division}` : 'global-leaderboard'
@@ -56,7 +57,13 @@ export type CalculatedLeaderboard = {
 
 export type LeaderboardResult = {
   total: number
-  leaderboard: Array<{ id: string; name: string; score: number }>
+  leaderboard: Array<{
+    id: string
+    name: string
+    division: string
+    score: number
+    divisionPlace: number
+  }>
 }
 
 export type CachedChallengeInfo = {
@@ -214,7 +221,8 @@ export const getGraph = async (
     keyLeaderboardUpdate,
     keyGraphData,
     limit.toString(),
-    offset.toString()
+    offset.toString(),
+    division ? '1' : '0'
   )
 
   const parsed = JSON.parse(json) as [string, string[], (string | null)[]]
@@ -223,13 +231,15 @@ export const getGraph = async (
   const latest = parsed[1] ?? []
   const graphData = parsed[2] ?? []
 
+  const keysPerUser = division ? keysPerUserDivision : keysPerUserGlobal
+
   const result: Array<GraphEntry> = []
-  for (let i = 0; i < latest.length; i += 3) {
+  for (let i = 0; i < latest.length; i += keysPerUser) {
     const id = latest[i] ?? ''
     const name = latest[i + 1] ?? ''
     const curScore = Number.parseInt(latest[i + 2] ?? '0')
 
-    const userIdx = Math.floor(i / 3)
+    const userIdx = Math.floor(i / keysPerUser)
     const packedPoints = graphData[userIdx]
 
     const points: Array<GraphPoint> = []
@@ -258,16 +268,24 @@ const getLeaderboardInternal = async (
   redis: TypedRedis,
   key: string,
   start: number,
-  end: number
+  end: number,
+  division?: string,
+  offset?: number
 ): Promise<LeaderboardResult> => {
   const result = await redis.rctfGetRange(key, start.toString(), end.toString())
+  const keysPerUser = division ? keysPerUserDivision : keysPerUserGlobal
 
-  const leaderboard: Array<{ id: string; name: string; score: number }> = []
+  const leaderboard: LeaderboardResult['leaderboard'] = []
   for (let i = 0; i < result.length - 1; i += keysPerUser) {
+    const idx = Math.floor(i / keysPerUser)
     leaderboard.push({
       id: result[i] ?? '',
       name: result[i + 1] ?? '',
       score: Number.parseInt(result[i + 2] ?? '0'),
+      division: division ?? result[i + 3] ?? '',
+      divisionPlace: division
+        ? (offset ?? 0) + idx + 1
+        : Number.parseInt(result[i + 4] ?? '0'),
     })
   }
 
@@ -284,6 +302,7 @@ export const getLeaderboard = async (
   division?: string
 ): Promise<LeaderboardResult> => {
   const key = keyLeaderboard(division)
+  const keysPerUser = division ? keysPerUserDivision : keysPerUserGlobal
   if (limit === 0) {
     return {
       total: Math.floor((await redis.llen(key)) / keysPerUser),
@@ -293,7 +312,7 @@ export const getLeaderboard = async (
 
   const start = offset * keysPerUser
   const end = start + limit * keysPerUser - 1
-  return await getLeaderboardInternal(redis, key, start, end)
+  return await getLeaderboardInternal(redis, key, start, end, division, offset)
 }
 
 export const getFullLeaderboard = async (
@@ -301,7 +320,7 @@ export const getFullLeaderboard = async (
   division?: string
 ): Promise<LeaderboardResult> => {
   const key = keyLeaderboard(division)
-  return await getLeaderboardInternal(redis, key, 0, -1)
+  return await getLeaderboardInternal(redis, key, 0, -1, division, 0)
 }
 
 export const getLeaderboardWithChallenges = async (
@@ -313,6 +332,7 @@ export const getLeaderboardWithChallenges = async (
   LeaderboardResult & { challenges: Record<string, CachedChallengeInfo> }
 > => {
   const key = keyLeaderboard(division)
+  const keysPerUser = division ? keysPerUserDivision : keysPerUserGlobal
   const includeRange = limit > 0
   const start = offset * keysPerUser
   const end = start + limit * keysPerUser - 1
@@ -329,10 +349,15 @@ export const getLeaderboardWithChallenges = async (
   const leaderboard: LeaderboardResult['leaderboard'] = []
   if (includeRange) {
     for (let i = 0; i < range.length; i += keysPerUser) {
+      const idx = Math.floor(i / keysPerUser)
       leaderboard.push({
         id: range[i] ?? '',
         name: range[i + 1] ?? '',
         score: Number.parseInt(range[i + 2] ?? '0'),
+        division: division ?? range[i + 3] ?? '',
+        divisionPlace: division
+          ? offset + idx + 1
+          : Number.parseInt(range[i + 4] ?? '0'),
       })
     }
   }

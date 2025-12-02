@@ -18,6 +18,8 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
             solveTime: z.number().int(),
           })
         ),
+        division: z.string(),
+        divisionPlace: z.number().int(),
       })
     ),
     challenges: z.record(

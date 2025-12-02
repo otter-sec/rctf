@@ -16,7 +16,8 @@ export type TypedRedis = Redis & {
     leaderboardUpdateKey: string,
     graphDataKey: string,
     limit: string,
-    offset: string
+    offset: string,
+    isDivision: '1' | '0'
   ) => Promise<string>
   rctfGetRange: (
     leaderboardKey: string,

@@ -72,26 +72,26 @@ for i = 1, numUsers do
   local division = ARGV[base + 2]
   local score = ARGV[base + 3]
 
-  -- push to global board (triples: id, name, score)
-  globalBoard[#globalBoard + 1] = id
-  globalBoard[#globalBoard + 1] = name
-  globalBoard[#globalBoard + 1] = score
-
-  -- division board
   local divBoard = divisionBoards[division]
+  local divisionPlace = 0
   if divBoard ~= nil then
     divisionCounters[division] = divisionCounters[division] + 1
     divBoard[#divBoard + 1] = id
     divBoard[#divBoard + 1] = name
     divBoard[#divBoard + 1] = score
-    local divisionPlace = divisionCounters[division]
+    divisionPlace = divisionCounters[division]
     scorePositionsArgs[#scorePositionsArgs + 1] = id
     scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',' .. tostring(divisionPlace)
   else
-    -- unknown division; store with division place 0
     scorePositionsArgs[#scorePositionsArgs + 1] = id
     scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',0'
   end
+
+  globalBoard[#globalBoard + 1] = id
+  globalBoard[#globalBoard + 1] = name
+  globalBoard[#globalBoard + 1] = score
+  globalBoard[#globalBoard + 1] = division
+  globalBoard[#globalBoard + 1] = tostring(divisionPlace)
 end
 
 -- Build challenge info array from ARGV
