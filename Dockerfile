@@ -30,6 +30,10 @@ RUN bun run build
 
 FROM base AS production
 
+RUN apk add --no-cache supervisor nginx
+COPY docker/supervisord.conf /etc/supervisord.conf
+COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 
@@ -42,8 +46,7 @@ COPY --from=build /app/apps/api/package.json ./apps/api/
 COPY --from=build /app/apps/web/build ./static
 
 ENV NODE_ENV=production
-ENV PORT=80
 ENV FRONTEND_STATIC_ROOT=/app/static/
 ENV WORKER_EXTENSION=.js
 
-CMD ["bun", "run", "/app/apps/api/dist/index.js"]
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
