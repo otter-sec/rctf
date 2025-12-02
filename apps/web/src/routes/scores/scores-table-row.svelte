@@ -29,12 +29,15 @@
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="flex w-max rounded-lg bg-background-l2" onmouseenter={onHover}>
+<div
+  class="group flex w-max rounded-lg bg-background-l2 hover:bg-background-l3"
+  onmouseenter={onHover}
+>
   <div
     class={cn(
       'sticky left-0 z-10 flex h-16 shrink-0 items-center gap-3 rounded-l-lg px-4',
       styles.bg,
-      'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2',
+      'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2 group-hover:before:bg-background-l3',
       styles.gradient && [
         'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:rounded-l-lg after:bg-linear-to-r after:to-transparent',
         styles.gradient,

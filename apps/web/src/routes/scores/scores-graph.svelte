@@ -28,24 +28,48 @@
   )
   const graph = $derived($graphQuery.data ?? [])
 
+  const top3Query = $derived(
+    useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' })
+  )
+  const top3Graph = $derived(offset > 0 ? ($top3Query.data ?? []) : [])
+
   // TODO(enscribe): Don't cut off data
   const cutoffDate = new Date('2025-10-28T03:00:00.000Z')
   const cutoffTimestamp = cutoffDate.getTime()
 
-  // TODO(enscribe): Don't cut off data
-  const filteredGraph = $derived(
-    graph
+  const filterGraphData = (
+    data: typeof graph
+  ): Array<(typeof graph)[0] & { isContext?: boolean }> =>
+    data
       .map(entry => ({
         ...entry,
         points: entry.points.filter(point => point.time <= cutoffTimestamp),
       }))
       .filter(entry => entry.points.length > 0)
+
+  // TODO(enscribe): Don't cut off data
+  const filteredGraph = $derived(filterGraphData(graph))
+  const filteredTop3 = $derived(
+    filterGraphData(top3Graph).map(entry => ({ ...entry, isContext: true }))
   )
 
-  const teamColors: string[] = [
+  const currentTeamIds = $derived(new Set(filteredGraph.map(e => e.id)))
+
+  const combinedGraph = $derived([
+    ...filteredTop3.filter(e => !currentTeamIds.has(e.id)),
+    ...filteredGraph,
+  ])
+
+  const medalColors: string[] = [
     'var(--foreground-first-l0)',
     'var(--foreground-second-l0)',
     'var(--foreground-third-l0)',
+  ]
+
+  const nonMedalColors: string[] = [
+    'var(--foreground-first)',
+    'var(--foreground-second)',
+    'var(--foreground-third)',
     'var(--foreground-fourth)',
     'var(--foreground-fifth)',
     'var(--foreground-sixth)',
@@ -55,15 +79,34 @@
     'var(--foreground-tenth)',
   ]
 
+  const getTeamColor = (
+    index: number,
+    isContext: boolean = false
+  ): string => {
+    if (isContext) {
+      return medalColors[index]!
+    }
+    if (offset === 0 && index < 3) {
+      return medalColors[index]!
+    }
+    return nonMedalColors[index % nonMedalColors.length]!
+  }
+
   const chartConfig = $derived(
     Object.fromEntries(
-      filteredGraph.map((entry, i) => [
-        entry.id,
-        {
-          label: entry.name,
-          color: teamColors[i % teamColors.length],
-        },
-      ])
+      combinedGraph.map((entry, i) => {
+        const isContext = 'isContext' in entry && entry.isContext
+        const colorIndex = isContext
+          ? filteredTop3.findIndex(e => e.id === entry.id)
+          : filteredGraph.findIndex(e => e.id === entry.id)
+        return [
+          entry.id,
+          {
+            label: entry.name,
+            color: getTeamColor(colorIndex, isContext),
+          },
+        ]
+      })
     ) as ChartConfig
   )
 
@@ -73,20 +116,26 @@
     time: number
     score: number
     color: string
+    isContext: boolean
   }
 
   const flatData = $derived<FlatDataPoint[]>(
-    filteredGraph.flatMap((entry, i) =>
-      entry.points
+    combinedGraph.flatMap(entry => {
+      const isContext = 'isContext' in entry && entry.isContext === true
+      const colorIndex = isContext
+        ? filteredTop3.findIndex(e => e.id === entry.id)
+        : filteredGraph.findIndex(e => e.id === entry.id)
+      return entry.points
         .toSorted((a, b) => a.time - b.time)
         .map(point => ({
           teamId: entry.id,
           teamName: entry.name,
           time: point.time,
           score: point.score,
-          color: teamColors[i % teamColors.length]!,
+          color: getTeamColor(colorIndex, isContext),
+          isContext: isContext,
         }))
-    )
+    })
   )
 
   const dataByTeam = $derived(
@@ -144,14 +193,18 @@
           format={(d: number) => formatRelativeTime(d)}
         />
         {#each dataByTeam as [teamId, teamData]}
-          {@const teamIndex = filteredGraph.findIndex(e => e.id === teamId)}
-          {@const color = teamColors[teamIndex % teamColors.length]}
+          {@const isContext = teamData[0]?.isContext ?? false}
+          {@const teamIndex = isContext
+            ? filteredTop3.findIndex(e => e.id === teamId)
+            : filteredGraph.findIndex(e => e.id === teamId)}
+          {@const color = getTeamColor(teamIndex, isContext)}
           {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId}
+          {@const baseOpacity = isContext ? 0.3 : 1}
           <Spline
             data={teamData}
             class="stroke-2"
             stroke={isDimmed ? 'var(--foreground-l5)' : color}
-            style="opacity: {isDimmed ? 0.2 : 1}"
+            style="opacity: {isDimmed ? 0.15 : baseOpacity}"
           />
         {/each}
 

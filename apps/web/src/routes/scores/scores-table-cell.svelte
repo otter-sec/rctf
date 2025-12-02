@@ -3,9 +3,9 @@
   import {
     IconCircle,
     IconCircleDashed,
-    IconCircleNumber1,
-    IconCircleNumber2,
-    IconCircleNumber3,
+    IconCircleNumber1Filled,
+    IconCircleNumber2Filled,
+    IconCircleNumber3Filled,
   } from '$lib/icons'
   import { formatLocalTime } from '$lib/utils'
 
@@ -28,7 +28,7 @@
 {#if bloodIndex === 0}
   <Tooltip.Root>
     <Tooltip.Trigger>
-      <IconCircleNumber1 class="size-7 text-foreground-first-l0" />
+      <IconCircleNumber1Filled class="size-7 text-foreground-first-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
@@ -40,8 +40,8 @@
   </Tooltip.Root>
 {:else if bloodIndex === 1}
   <Tooltip.Root>
-    <Tooltip.Trigger>
-      <IconCircleNumber2 class="size-7 text-foreground-second-l0" />
+      <Tooltip.Trigger>
+        <IconCircleNumber2Filled class="size-7 text-foreground-second-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
@@ -54,7 +54,7 @@
 {:else if bloodIndex === 2}
   <Tooltip.Root>
     <Tooltip.Trigger>
-      <IconCircleNumber3 class="size-7 text-foreground-third-l0" />
+      <IconCircleNumber3Filled class="size-7 text-foreground-third-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
@@ -67,16 +67,24 @@
 {:else if solved}
   <Tooltip.Root>
     <Tooltip.Trigger>
-      <IconCircle class="size-7 text-foreground-success" />
+      <IconCircle class="size-7 text-foreground-success/75" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
-      <p class="text-foreground-l3">{points} pts</p>
+      <p class="text-foreground-l3">{points} pts · Solved!</p>
       {#if solveTime}<p class="text-foreground-l3">
           {formatLocalTime(solveTime)}
         </p>{/if}
     </Tooltip.Content>
   </Tooltip.Root>
 {:else}
-  <IconCircleDashed class="size-7 text-foreground-l5/25" />
+  <Tooltip.Root>
+    <Tooltip.Trigger>
+      <IconCircleDashed class="size-7 text-foreground-l5/25" />
+    </Tooltip.Trigger>
+    <Tooltip.Content side="top" sideOffset={4}>
+      <p>{challengeName}</p>
+      <p class="text-foreground-l3">{points} pts · Unsolved</p>
+    </Tooltip.Content>
+  </Tooltip.Root>
 {/if}
