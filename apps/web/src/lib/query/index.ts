@@ -168,6 +168,7 @@ export const leaderboardQueryOptions = (params: {
 
 export const leaderboardGraphQueryOptions = (params: {
   limit: number
+  offset: number
   division: string
 }) =>
   queryOptions({
@@ -221,7 +222,7 @@ export const queryKeys = {
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
-  leaderboardGraph: (params: { limit: number; division: string }) =>
+  leaderboardGraph: (params: { limit: number; offset: number; division: string }) =>
     leaderboardGraphQueryOptions(params).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
@@ -273,6 +274,7 @@ export function useLeaderboard(params: {
 
 export function useLeaderboardGraph(params: {
   limit: number
+  offset: number
   division: string
 }) {
   return createQuery(leaderboardGraphQueryOptions(params))

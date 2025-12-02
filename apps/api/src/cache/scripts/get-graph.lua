@@ -7,9 +7,13 @@ local cjson = cjson
 --
 -- ARGV:
 -- 1: maxTeams
+-- 2: offset
 
 local maxUsers = tonumber(ARGV[1])
-local latest = redis.call('LRANGE', KEYS[1], 0, maxUsers * 3 - 1)
+local offset = tonumber(ARGV[2]) or 0
+local startIdx = offset * 3
+local endIdx = startIdx + maxUsers * 3 - 1
+local latest = redis.call('LRANGE', KEYS[1], startIdx, endIdx)
 
 local userIds = {}
 for i = 1, #latest, 3 do

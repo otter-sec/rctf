@@ -206,13 +206,15 @@ interface GraphEntry {
 export const getGraph = async (
   redis: TypedRedis,
   limit: number,
+  offset: number,
   division?: string
 ): Promise<Array<GraphEntry>> => {
   const json = await redis.rctfGetGraph(
     keyLeaderboard(division),
     keyLeaderboardUpdate,
     keyGraphData,
-    limit.toString()
+    limit.toString(),
+    offset.toString()
   )
 
   const parsed = JSON.parse(json) as [string, string[], (string | null)[]]

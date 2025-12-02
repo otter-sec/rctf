@@ -1,42 +1,28 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { Avatar, ScrollArea, Spinner, Tooltip } from '$lib/components'
-  import {
-    IconChevronLeft,
-    IconChevronLeftPipe,
-    IconChevronRight,
-    IconChevronRightPipe,
-    IconCircle,
-    IconCircleDashed,
-    IconCircleNumber1,
-    IconCircleNumber2,
-    IconCircleNumber3,
-  } from '$lib/icons'
+  import { ScrollArea, Spinner } from '$lib/components'
   import {
     leaderboardQueryOptions,
     useCurrentUser,
     useLeaderboard,
   } from '$lib/query'
+  import { cn } from '$lib/utils'
+  import { getCategoryConfig, getCategoryOrder } from '$lib/utils/categories'
+  import Row from './scores-table-row.svelte'
+  import Header from './scores-table-header.svelte'
+  import Pagination from './scores-table-pagination.svelte'
+  import Fade from './scores-table-fade.svelte'
   import {
-    cn,
-    formatLocalTime,
-    getInitials,
-    getRankStylesForPosition,
-  } from '$lib/utils'
-  import {
-    getCategoryConfig,
-    getCategoryOrder,
-    getCategoryStyle,
-  } from '$lib/utils/categories'
-  import LeaderboardGraph from './leaderboard-graph.svelte'
-
-  const PAGE_SIZE = 10
-  const TEAM_COL_WIDTH = 548
-  const CELL_WIDTH = 48
-  const NAME_ROW_HEIGHT = 128
-  const HEADER_HEIGHT = 60 + NAME_ROW_HEIGHT
-  const FADE_SIZE = 48
+    CELL_WIDTH,
+    FADE_SIZE,
+    HEADER_HEIGHT,
+    NAME_ROW_HEIGHT,
+    PAGE_SIZE,
+    TEAM_COL_WIDTH,
+    type CategoryGroup,
+    type Challenge,
+  } from './types'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
@@ -47,6 +33,7 @@
   let showBottomFade = $state(false)
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
+  let hoveredTeamId = $state<string | null>(null)
 
   const leaderboardQuery = $derived(
     useLeaderboard({
@@ -63,7 +50,7 @@
     $leaderboardQuery.isFetching && !$leaderboardQuery.isPending
   )
 
-  const challenges = $derived.by(() => {
+  const challenges = $derived.by((): Challenge[] => {
     if (!data?.challenges) return []
 
     return Object.entries(data.challenges)
@@ -90,12 +77,8 @@
       })
   })
 
-  const categoryGroups = $derived.by(() => {
-    const groups: Array<{
-      category: string
-      config: ReturnType<typeof getCategoryConfig>
-      challenges: typeof challenges
-    }> = []
+  const categoryGroups = $derived.by((): CategoryGroup[] => {
+    const groups: CategoryGroup[] = []
 
     for (const challenge of challenges) {
       const last = groups.at(-1)
@@ -179,55 +162,12 @@
 </script>
 
 <div class="flex flex-col px-9">
-  <div class="flex items-center justify-end gap-1 py-2">
-    <div
-      class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3"
-    >
-      Page {page} / {totalPages || 1}
-    </div>
-    <div class="flex h-10 gap-1 overflow-hidden rounded-lg">
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => handlePageChange(1)}
-          disabled={isRefetching || page === 1}
-          class="h-10 rounded-r-sm bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50"
-        >
-          <IconChevronLeftPipe class="size-5" />
-        </Tooltip.Trigger>
-        <Tooltip.Content>First page</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => handlePageChange(Math.max(1, page - 1))}
-          disabled={isRefetching || page === 1}
-          class="h-10 rounded-sm bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50"
-        >
-          <IconChevronLeft class="size-5" />
-        </Tooltip.Trigger>
-        <Tooltip.Content>Previous page</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => handlePageChange(Math.min(totalPages || 1, page + 1))}
-          disabled={isRefetching || page === totalPages}
-          class="h-10 rounded-sm bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50"
-        >
-          <IconChevronRight class="size-5" />
-        </Tooltip.Trigger>
-        <Tooltip.Content>Next page</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => handlePageChange(totalPages || 1)}
-          disabled={isRefetching || page === totalPages}
-          class="h-10 rounded-l-sm bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50"
-        >
-          <IconChevronRightPipe class="size-5" />
-        </Tooltip.Trigger>
-        <Tooltip.Content>Last page</Tooltip.Content>
-      </Tooltip.Root>
-    </div>
-  </div>
+  <Pagination
+    {page}
+    {totalPages}
+    {isRefetching}
+    onPageChange={handlePageChange}
+  />
 
   <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
     {#if $leaderboardQuery.isLoading}
@@ -238,84 +178,15 @@
       </div>
     {/if}
 
-    <div
-      class={cn(
-        'pointer-events-none absolute top-0 z-40 bg-linear-to-r from-background-l0 to-transparent transition-opacity',
-        showLeftFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:left="{TEAM_COL_WIDTH}px"
-      style:height="{HEADER_HEIGHT}px"
-      style:width="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-    <div
-      class={cn(
-        'pointer-events-none absolute right-0 top-0 z-40 bg-linear-to-l from-background-l0 to-transparent transition-opacity',
-        showRightFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:height="{HEADER_HEIGHT}px"
-      style:width="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class={cn(
-        'pointer-events-none absolute left-0 z-40 bg-linear-to-b from-background-l0 to-transparent transition-opacity',
-        showTopFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:top="{HEADER_HEIGHT}px"
-      style:width="{TEAM_COL_WIDTH}px"
-      style:height="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-    <div
-      class={cn(
-        'pointer-events-none absolute bottom-0 left-0 z-40 bg-linear-to-t from-background-l0 to-transparent transition-opacity',
-        showBottomFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:width="{TEAM_COL_WIDTH}px"
-      style:height="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class={cn(
-        'pointer-events-none absolute right-0 z-40 bg-linear-to-b from-background-l0 to-transparent transition-opacity',
-        showTopFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:top="{HEADER_HEIGHT}px"
-      style:left="{TEAM_COL_WIDTH}px"
-      style:height="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-    <div
-      class={cn(
-        'pointer-events-none absolute right-0 bottom-0 z-40 bg-linear-to-t from-background-l0 to-transparent transition-opacity',
-        showBottomFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:left="{TEAM_COL_WIDTH}px"
-      style:height="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-    <div
-      class={cn(
-        'pointer-events-none absolute bottom-0 z-40 bg-linear-to-r from-background-l0 to-transparent transition-opacity',
-        showLeftFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:left="{TEAM_COL_WIDTH}px"
-      style:top="{HEADER_HEIGHT}px"
-      style:width="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
-    <div
-      class={cn(
-        'pointer-events-none absolute right-0 bottom-0 z-40 bg-linear-to-l from-background-l0 to-transparent transition-opacity',
-        showRightFade ? 'opacity-100' : 'opacity-0'
-      )}
-      style:top="{HEADER_HEIGHT}px"
-      style:width="{FADE_SIZE}px"
-      aria-hidden="true"
-    ></div>
+    <Fade
+      teamColWidth={TEAM_COL_WIDTH}
+      headerHeight={HEADER_HEIGHT}
+      fadeSize={FADE_SIZE}
+      {showTopFade}
+      {showBottomFade}
+      {showLeftFade}
+      {showRightFade}
+    />
 
     <ScrollArea
       class="h-[calc(100vh-142px)] rounded-lg"
@@ -327,239 +198,34 @@
       scrollbarYStyles="margin-top: {HEADER_HEIGHT}px; height: calc(100% - {HEADER_HEIGHT}px);"
       bind:viewportRef
     >
-      <div class="sticky top-0 z-20 flex w-max bg-background-l0">
-        <div
-          class="sticky left-0 z-30 shrink-0 bg-background-l0 pr-2"
-          style:width="{TEAM_COL_WIDTH}px"
-          style:height="{HEADER_HEIGHT}px"
-        >
-            <LeaderboardGraph class="size-full" />
-        </div>
+      <Header
+        {challenges}
+        {categoryGroups}
+        {hoveredTeamId}
+        graphOffset={(page - 1) * PAGE_SIZE}
+        teamColWidth={TEAM_COL_WIDTH}
+        cellWidth={CELL_WIDTH}
+        nameRowHeight={NAME_ROW_HEIGHT}
+        headerHeight={HEADER_HEIGHT}
+      />
 
-        <div class="flex flex-col">
-          <div class="flex items-end" style:height="{NAME_ROW_HEIGHT}px">
-            {#each challenges as challenge, i}
-              {@const prevCategory = challenges[i - 1]?.category}
-              {@const hasGapBefore = i > 0 && prevCategory !== challenge.category}
-              <div
-                class={cn('relative w-12', hasGapBefore && 'ml-1')}
-                style:height="{NAME_ROW_HEIGHT}px"
-                style={getCategoryStyle(challenge.config.color)}
-              >
-                <span
-                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
-                >
-                  {challenge.name}
-                </span>
-              </div>
-            {/each}
-          </div>
-
-          <div class="flex items-stretch">
-            {#each categoryGroups as group, i}
-              {@const Icon = group.config.icon}
-              {@const showLabel = group.challenges.length > 1}
-              <div
-                class={cn(
-                  'relative flex flex-col rounded-t-lg bg-category-background-l0',
-                  'before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0',
-                  i < categoryGroups.length - 1 && 'mr-1'
-                )}
-                style={getCategoryStyle(group.config.color)}
-              >
-                <div class="flex py-1.5">
-                  {#each group.challenges as challenge}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger
-                        class="flex w-12 items-center justify-center"
-                      >
-                        <span
-                          class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
-                        >
-                          {challenge.points}
-                        </span>
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="bottom" sideOffset={4}>
-                        <p>{challenge.name}</p>
-                        <p class="text-foreground-l3">
-                          {challenge.points} pts · {challenge.solves} solve{challenge.solves !==
-                          1
-                            ? 's'
-                            : ''}
-                        </p>
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {/each}
-                </div>
-
-                <div
-                  class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-1.5"
-                  style:max-width="{group.challenges.length * CELL_WIDTH}px"
-                >
-                  {#if showLabel}
-                    <Icon class="size-5 shrink-0 text-category-foreground-l1" />
-                    <span class="truncate capitalize text-category-foreground-l1"
-                      >{group.config.name}</span
-                    >
-                  {:else}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger
-                        class="flex items-center justify-center text-category-foreground-l1"
-                      >
-                        <Icon class="mt-0.5 size-5" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="bottom" sideOffset={4}>
-                        <span class="capitalize">{group.config.name}</span>
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {/if}
-                </div>
-              </div>
-            {/each}
-          </div>
-        </div>
-      </div>
-
-      <div class="flex flex-col gap-1">
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="flex flex-col gap-1"
+        onmouseleave={() => (hoveredTeamId = null)}
+      >
         {#each entries as entry, index (entry.id)}
           {@const rank = (page - 1) * PAGE_SIZE + index + 1}
-          {@const styles = getRankStylesForPosition(
-            rank,
-            $userQuery.data?.id === entry.id
-          )}
           {@const solves = solvesByTeam.get(entry.id)!}
-
-          <div class="flex w-max rounded-lg bg-background-l2">
-            <div
-              class={cn(
-                'sticky left-0 z-10 flex h-16 shrink-0 items-center gap-3 rounded-l-lg px-4',
-                styles.bg,
-                'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2',
-                styles.gradient && [
-                  'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:rounded-l-lg after:bg-linear-to-r after:to-transparent',
-                  styles.gradient,
-                ]
-              )}
-              style:width="{TEAM_COL_WIDTH}px"
-            >
-              <span
-                class={cn(
-                  'w-16 shrink-0 text-center text-xl tabular-nums',
-                  styles.fgL0
-                )}
-              >
-                #{rank}
-              </span>
-
-              <Avatar.Root class="size-12 shrink-0 rounded-lg">
-                {#if entry.avatarUrl}
-                  <Avatar.Image
-                    src={entry.avatarUrl}
-                    alt={entry.name}
-                    class="rounded-lg"
-                  />
-                {/if}
-                <Avatar.Fallback class="rounded-lg text-sm"
-                  >{getInitials(entry.name)}</Avatar.Fallback
-                >
-              </Avatar.Root>
-
-              <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-                <a
-                  href="/profile/{entry.id}"
-                  class={cn('truncate text-xl hover:underline', styles.fgL0)}
-                >
-                  {entry.name}
-                </a>
-                <span class={cn('truncate text-base', styles.fgL1)}
-                  >Open Division</span
-                >
-              </div>
-
-              <div class="flex w-28 shrink-0 flex-col items-end">
-                <span class="text-xl tabular-nums text-foreground-l1"
-                  >{entry.score.toLocaleString()} pts</span
-                >
-                <span class="text-base text-foreground-l3">
-                  {entry.solves.length} solve{entry.solves.length !== 1
-                    ? 's'
-                    : ''}
-                </span>
-              </div>
-            </div>
-
-            <div class="flex">
-              {#each challenges as challenge, i}
-                {@const solved = solves.has(challenge.id)}
-                {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
-                {@const prevCategory = challenges[i - 1]?.category}
-                {@const nextCategory = challenges[i + 1]?.category}
-                {@const isFirst =
-                  i === 0 || prevCategory !== challenge.category}
-                {@const isLast =
-                  i === challenges.length - 1 ||
-                  nextCategory !== challenge.category}
-                <div
-                  class={cn(
-                    'flex h-16 w-12 items-center justify-center',
-                    isFirst && 'rounded-l-lg',
-                    isLast && i < challenges.length - 1 && 'mr-1'
-                  )}
-                  style={getCategoryStyle(challenge.config.color)}
-                >
-                  {#if bloodIndex === 0}
-                    {@const solveTime = challenge.firstSolvers?.[0]?.solveTime}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger>
-                        <IconCircleNumber1 class="size-7 text-foreground-first-l0" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="top" sideOffset={4}>
-                        <p>{challenge.name}</p>
-                        <p class="text-foreground-l3">{challenge.points} pts · First blood!</p>
-                        {#if solveTime}<p class="text-foreground-l3">{formatLocalTime(solveTime)}</p>{/if}
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {:else if bloodIndex === 1}
-                    {@const solveTime = challenge.firstSolvers?.[1]?.solveTime}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger>
-                        <IconCircleNumber2 class="size-7 text-foreground-second-l0" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="top" sideOffset={4}>
-                        <p>{challenge.name}</p>
-                        <p class="text-foreground-l3">{challenge.points} pts · Second blood!</p>
-                        {#if solveTime}<p class="text-foreground-l3">{formatLocalTime(solveTime)}</p>{/if}
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {:else if bloodIndex === 2}
-                    {@const solveTime = challenge.firstSolvers?.[2]?.solveTime}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger>
-                        <IconCircleNumber3 class="size-7 text-foreground-third-l0" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="top" sideOffset={4}>
-                        <p>{challenge.name}</p>
-                        <p class="text-foreground-l3">{challenge.points} pts · Third blood!</p>
-                        {#if solveTime}<p class="text-foreground-l3">{formatLocalTime(solveTime)}</p>{/if}
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {:else if solved}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger>
-                        <IconCircle class="size-7 text-foreground-success" />
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="top" sideOffset={4}>
-                        <p>{challenge.name}</p>
-                        <p class="text-foreground-l3">{challenge.points} pts</p>
-                      </Tooltip.Content>
-                    </Tooltip.Root>
-                  {:else}
-                    <IconCircleDashed class="size-7 text-foreground-l5/25" />
-                  {/if}
-                </div>
-              {/each}
-            </div>
-          </div>
+          <Row
+            {entry}
+            {rank}
+            {challenges}
+            {solves}
+            isCurrentUser={$userQuery.data?.id === entry.id}
+            teamColWidth={TEAM_COL_WIDTH}
+            onHover={() => (hoveredTeamId = entry.id)}
+          />
         {/each}
       </div>
     </ScrollArea>

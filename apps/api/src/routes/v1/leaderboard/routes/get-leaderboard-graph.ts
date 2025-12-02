@@ -5,7 +5,7 @@ import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
   GetLeaderboardGraphRoute,
-  async ({ ctx, res, query: { limit, division } }) => {
+  async ({ ctx, res, query: { limit, offset, division } }) => {
     // NOTE: Handling manually because the value is loaded from config
     if (limit > config.leaderboard.graphMaxTeams) {
       return res.badBody({
@@ -13,7 +13,7 @@ leaderboardGroup.route(
       })
     }
 
-    const graph = await getGraph(ctx.var.redis, limit, division)
+    const graph = await getGraph(ctx.var.redis, limit, offset, division)
     return res.goodLeaderboardGraph({ graph })
   }
 )
