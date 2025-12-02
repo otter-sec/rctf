@@ -43,13 +43,6 @@
   const clientConfig = $derived($clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
 
-  const firstBloodQuery = $derived(
-    useChallengeSolves(challenge.id, { limit: 1, offset: 0 })
-  )
-  const firstBloodTime = $derived(
-    $firstBloodQuery.data?.solves[0]?.createdAt ?? 0
-  )
-
   const solvesQuery = $derived(
     useChallengeSolves(challenge.id, {
       limit: PAGE_SIZE,
@@ -58,6 +51,13 @@
   )
 
   const solves = $derived($solvesQuery.data?.solves ?? [])
+  let storedFirstBloodTime = $state(0)
+  $effect(() => {
+    if (page === 1 && solves[0]?.createdAt) {
+      storedFirstBloodTime = solves[0].createdAt
+    }
+  })
+  const firstBloodTime = $derived(storedFirstBloodTime)
   const totalCount = $derived(challenge.solves ?? 0)
   const totalPages = $derived(Math.ceil(totalCount / PAGE_SIZE))
   const isRefetching = $derived(

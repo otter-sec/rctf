@@ -22,7 +22,7 @@
   )
 
   const solvesQuery = $derived(
-    useChallengeSolves(challenge.id, { limit: 1, offset: 0 })
+    useChallengeSolves(challenge.id, { limit: 10, offset: 0 })
   )
   const firstBloodTime = $derived(
     $solvesQuery.data?.solves?.[0]?.createdAt ?? 0

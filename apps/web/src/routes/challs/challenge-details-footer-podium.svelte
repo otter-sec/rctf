@@ -24,7 +24,7 @@
   let { challenge, isSolved }: Props = $props()
 
   const solvesQuery = $derived(
-    useChallengeSolves(challenge.id, { limit: 15, offset: 0 })
+    useChallengeSolves(challenge.id, { limit: 10, offset: 0 })
   )
   const topSolves = $derived($solvesQuery.data?.solves.slice(0, 3) ?? [])
 
