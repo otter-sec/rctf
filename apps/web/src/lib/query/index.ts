@@ -10,7 +10,7 @@ import {
   GetChallengeSolvesRouteV2,
   GetChallengesRoute,
   GetClientConfigRoute,
-  GetLeaderboardGraphRoute,
+  GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
   GetMembersRoute,
   GetUserRouteV2,
@@ -168,12 +168,13 @@ export const leaderboardQueryOptions = (params: {
 
 export const leaderboardGraphQueryOptions = (params: {
   limit: number
+  offset: number
   division: string
 }) =>
   queryOptions({
     queryKey: ['leaderboard', 'graph', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetLeaderboardGraphRoute, params)
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, params)
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
       }
@@ -221,8 +222,11 @@ export const queryKeys = {
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
-  leaderboardGraph: (params: { limit: number; division: string }) =>
-    leaderboardGraphQueryOptions(params).queryKey,
+  leaderboardGraph: (params: {
+    limit: number
+    offset: number
+    division: string
+  }) => leaderboardGraphQueryOptions(params).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
@@ -273,6 +277,7 @@ export function useLeaderboard(params: {
 
 export function useLeaderboardGraph(params: {
   limit: number
+  offset: number
   division: string
 }) {
   return createQuery(leaderboardGraphQueryOptions(params))

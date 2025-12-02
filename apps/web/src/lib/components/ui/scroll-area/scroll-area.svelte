@@ -158,10 +158,18 @@
   {/if}
 
   {#if hasVertical}
-    <Scrollbar orientation="vertical" class={scrollbarYClasses} style={scrollbarYStyles} />
+    <Scrollbar
+      orientation="vertical"
+      class={scrollbarYClasses}
+      style={scrollbarYStyles}
+    />
   {/if}
   {#if hasHorizontal}
-    <Scrollbar orientation="horizontal" class={scrollbarXClasses} style={scrollbarXStyles} />
+    <Scrollbar
+      orientation="horizontal"
+      class={scrollbarXClasses}
+      style={scrollbarXStyles}
+    />
   {/if}
   <ScrollAreaPrimitive.Corner />
 </ScrollAreaPrimitive.Root>

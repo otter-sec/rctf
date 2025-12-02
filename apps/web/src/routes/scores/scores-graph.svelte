@@ -13,11 +13,19 @@
 
   interface Props {
     class?: string
+    hoveredTeamId?: string | null
+    offset?: number
   }
 
-  let { class: className = '' }: Props = $props()
+  let {
+    class: className = '',
+    hoveredTeamId = null,
+    offset = 0,
+  }: Props = $props()
 
-  const graphQuery = useLeaderboardGraph({ limit: 10, division: 'open' })
+  const graphQuery = $derived(
+    useLeaderboardGraph({ limit: 10, offset, division: 'open' })
+  )
   const graph = $derived($graphQuery.data ?? [])
 
   // TODO(enscribe): Don't cut off data
@@ -131,14 +139,20 @@
       <Layer type="svg">
         <Axis
           placement="bottom"
-          tickLabelProps={{ textAnchor: "start", dx: -2, dy: 4 }}
+          tickLabelProps={{ textAnchor: 'start', dx: -2, dy: 4 }}
           rule
           format={(d: number) => formatRelativeTime(d)}
         />
         {#each dataByTeam as [teamId, teamData]}
           {@const teamIndex = filteredGraph.findIndex(e => e.id === teamId)}
           {@const color = teamColors[teamIndex % teamColors.length]}
-          <Spline data={teamData} class="stroke-2" stroke={color} />
+          {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId}
+          <Spline
+            data={teamData}
+            class="stroke-2"
+            stroke={isDimmed ? 'var(--foreground-l5)' : color}
+            style="opacity: {isDimmed ? 0.2 : 1}"
+          />
         {/each}
 
         <Highlight points lines />
