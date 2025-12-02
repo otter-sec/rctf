@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
-  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import Progress from './scores-boomer-progress.svelte'
   import TeamInfo from './scores-team-info.svelte'
@@ -58,13 +57,10 @@
     width={teamColWidth}
   />
 
-  <div class="flex pr-4">
-    {#each categoryStats as stat, i}
+  <div class="flex gap-1 pr-4">
+    {#each categoryStats as stat}
       <div
-        class={cn(
-          'flex h-16 w-12 items-center justify-center rounded-l-lg',
-          i < categoryStats.length - 1 && 'mr-1'
-        )}
+        class="flex h-16 w-12 items-center justify-center rounded-l-lg"
         style={getCategoryStyle(stat.config.color)}
       >
         <Tooltip.Root>

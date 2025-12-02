@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
-  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import type { CategoryGroup } from './types'
 
@@ -18,16 +17,12 @@
     style:width="{teamColWidth}px"
   ></div>
 
-  <div class="flex items-stretch pr-4">
-    {#each categoryGroups as group, i}
+  <div class="flex items-stretch gap-1 pr-4">
+    {#each categoryGroups as group}
       {@const Icon = group.config.icon}
       {@const count = group.challenges.length}
       <div
-        class={cn(
-          'relative flex w-12 flex-col items-center justify-center rounded-t-lg bg-category-background-l0 py-3',
-          'before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0',
-          i < categoryGroups.length - 1 && 'mr-1'
-        )}
+        class="relative flex w-12 flex-col items-center justify-center rounded-t-lg bg-category-background-l0 py-3 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
         style={getCategoryStyle(group.config.color)}
       >
         <Tooltip.Root>

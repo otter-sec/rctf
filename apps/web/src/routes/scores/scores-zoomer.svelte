@@ -133,6 +133,7 @@
         {entry}
         {rank}
         {challenges}
+        {categoryGroups}
         solves={solvesByTeam.get(entry.id)!}
         {sortMode}
         isCurrentUser={$userQuery.data?.id === entry.id}

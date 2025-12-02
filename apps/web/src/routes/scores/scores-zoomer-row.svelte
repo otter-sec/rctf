@@ -4,6 +4,7 @@
   import Cell from './scores-zoomer-cell.svelte'
   import TeamInfo from './scores-team-info.svelte'
   import type {
+    CategoryGroup,
     Challenge,
     LeaderboardEntry,
     SortMode,
@@ -14,6 +15,7 @@
     entry: LeaderboardEntry
     rank: number
     challenges: Challenge[]
+    categoryGroups: CategoryGroup[]
     solves: Map<string, { id: string; solveTime: number }>
     isCurrentUser: boolean
     teamColWidth: number
@@ -26,6 +28,7 @@
     entry,
     rank,
     challenges,
+    categoryGroups,
     solves,
     isCurrentUser,
     teamColWidth,
@@ -39,6 +42,32 @@
     onCellHover?.(data, rect.left + rect.width / 2, rect.top)
   }
 </script>
+
+{#snippet cell(challenge: Challenge, isFirst: boolean = false)}
+  {@const solve = solves.get(challenge.id)}
+  {@const bloodIndex =
+    challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
+  <div
+    class={cn('flex h-16 w-12 items-center justify-center', isFirst && 'rounded-l-lg')}
+    style={getCategoryStyle(challenge.config.color)}
+  >
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="flex items-center justify-center"
+      onmouseenter={e =>
+        showTooltip(e, {
+          challengeName: challenge.name,
+          points: challenge.points,
+          solved: !!solve,
+          bloodIndex,
+          solveTime: solve?.solveTime,
+        })}
+      onmouseleave={() => onCellHover?.(null, 0, 0)}
+    >
+      <Cell solved={!!solve} {bloodIndex} />
+    </div>
+  </div>
+{/snippet}
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
@@ -56,42 +85,19 @@
     width={teamColWidth}
   />
 
-  <div class="flex pr-4">
-    {#each challenges as challenge, i}
-      {@const solve = solves.get(challenge.id)}
-      {@const bloodIndex =
-        challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
-      {@const prevCat = challenges[i - 1]?.category}
-      {@const nextCat = challenges[i + 1]?.category}
-      {@const isFirst =
-        sortMode === 'category' && (i === 0 || prevCat !== challenge.category)}
-      {@const isLast =
-        sortMode === 'category' &&
-        (i === challenges.length - 1 || nextCat !== challenge.category)}
-      <div
-        class={cn(
-          'flex h-16 w-12 items-center justify-center',
-          isFirst && 'rounded-l-lg',
-          isLast && i < challenges.length - 1 && 'mr-1'
-        )}
-        style={getCategoryStyle(challenge.config.color)}
-      >
-        <div
-          class="flex items-center justify-center"
-          onmouseenter={e =>
-            showTooltip(e, {
-              challengeName: challenge.name,
-              points: challenge.points,
-              solved: !!solve,
-              bloodIndex,
-              solveTime: solve?.solveTime,
-            })}
-          onmouseleave={() => onCellHover?.(null, 0, 0)}
-        >
-          <Cell solved={!!solve} {bloodIndex} />
+  <div class={cn('flex pr-4', sortMode === 'category' && 'gap-1')}>
+    {#if sortMode === 'category'}
+      {#each categoryGroups as group}
+        <div class="flex gap-1">
+          {#each group.challenges as challenge, i}
+            {@render cell(challenge, i === 0)}
+          {/each}
         </div>
-      </div>
-    {/each}
+      {/each}
+    {:else}
+      {#each challenges as challenge}
+        {@render cell(challenge)}
+      {/each}
+    {/if}
   </div>
 </div>
-

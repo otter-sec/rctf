@@ -94,50 +94,65 @@
   </div>
 
   <div class="flex flex-col">
-    <div class="flex items-end pr-4" style:height="{nameRowHeight}px">
-      {#each challenges as challenge, i}
-        {@const hasGapBefore =
-          sortMode === 'category' &&
-          i > 0 &&
-          challenges[i - 1]?.category !== challenge.category}
-        <div
-          class={cn('relative w-12', hasGapBefore && 'ml-1')}
-          style:height="{nameRowHeight}px"
-          style={getCategoryStyle(challenge.config.color)}
-        >
-          <span
-            class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+    <div
+      class={cn('flex items-end pr-4', sortMode === 'category' && 'gap-1')}
+      style:height="{nameRowHeight}px"
+    >
+      {#if sortMode === 'category'}
+        {#each categoryGroups as group}
+          <div class="flex gap-1 translate-x-1">
+            {#each group.challenges as challenge}
+              <div
+                class="relative w-12"
+                style:height="{nameRowHeight}px"
+                style={getCategoryStyle(challenge.config.color)}
+              >
+                <span
+                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+                >
+                  {challenge.name}
+                </span>
+              </div>
+            {/each}
+          </div>
+        {/each}
+      {:else}
+        {#each challenges as challenge}
+          <div
+            class="relative w-12"
+            style:height="{nameRowHeight}px"
+            style={getCategoryStyle(challenge.config.color)}
           >
-            {challenge.name}
-          </span>
-        </div>
-      {/each}
+            <span
+              class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+            >
+              {challenge.name}
+            </span>
+          </div>
+        {/each}
+      {/if}
     </div>
 
-    <div class="flex items-stretch pr-4">
+    <div class={cn('flex items-stretch pr-4', sortMode === 'category' && 'gap-1')}>
       {#if sortMode === 'solves'}
         {#each challenges as challenge}
           <div
             class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
             style={getCategoryStyle(challenge.config.color)}
           >
-            <div class="flex py-1.5">
+            <div class="flex py-1.5 gap-1">
               {@render pointsBadge(challenge)}
             </div>
             {@render categoryIcon(challenge.config)}
           </div>
         {/each}
       {:else}
-        {#each categoryGroups as group, i}
+        {#each categoryGroups as group}
           <div
-            class={cn(
-              'relative flex flex-col rounded-t-lg bg-category-background-l0',
-              'before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0',
-              i < categoryGroups.length - 1 && 'mr-1'
-            )}
+            class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
             style={getCategoryStyle(group.config.color)}
           >
-            <div class="flex py-1.5">
+            <div class="flex py-1.5 gap-1">
               {#each group.challenges as challenge}
                 {@render pointsBadge(challenge)}
               {/each}
