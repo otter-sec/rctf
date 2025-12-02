@@ -13,6 +13,7 @@
   import Header from './scores-table-header.svelte'
   import Pagination from './scores-table-pagination.svelte'
   import Row from './scores-table-row.svelte'
+  import SharedTooltip from './scores-table-tooltip.svelte'
   import {
     CELL_WIDTH,
     FADE_SIZE,
@@ -22,6 +23,7 @@
     TEAM_COL_WIDTH,
     type CategoryGroup,
     type Challenge,
+    type TooltipData,
   } from './types'
 
   const queryClient = useQueryClient()
@@ -34,6 +36,9 @@
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
   let hoveredTeamId = $state<string | null>(null)
+  let tooltipData = $state<TooltipData | null>(null)
+  let tooltipX = $state(0)
+  let tooltipY = $state(0)
 
   const leaderboardQuery = $derived(
     useLeaderboard({
@@ -101,6 +106,12 @@
 
   function handlePageChange(newPage: number) {
     page = newPage
+  }
+
+  function handleCellHover(data: TooltipData | null, x: number, y: number) {
+    tooltipData = data
+    tooltipX = x
+    tooltipY = y
   }
 
   function updateFades() {
@@ -212,7 +223,10 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="flex flex-col gap-1"
-        onmouseleave={() => (hoveredTeamId = null)}
+        onmouseleave={() => {
+          hoveredTeamId = null
+          tooltipData = null
+        }}
       >
         {#each entries as entry, index (entry.id)}
           {@const rank = (page - 1) * PAGE_SIZE + index + 1}
@@ -225,9 +239,12 @@
             isCurrentUser={$userQuery.data?.id === entry.id}
             teamColWidth={TEAM_COL_WIDTH}
             onHover={() => (hoveredTeamId = entry.id)}
+            onCellHover={handleCellHover}
           />
         {/each}
       </div>
     </ScrollArea>
   </div>
 </div>
+
+<SharedTooltip data={tooltipData} x={tooltipX} y={tooltipY} />

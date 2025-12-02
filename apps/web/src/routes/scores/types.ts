@@ -11,6 +11,14 @@ export interface Challenge {
   firstSolvers?: Array<{ id: string }>
 }
 
+export interface TooltipData {
+  challengeName: string
+  points: number
+  solved: boolean
+  bloodIndex: number
+  solveTime?: number
+}
+
 export interface CategoryGroup {
   category: string
   config: ReturnType<typeof getCategoryConfig>
