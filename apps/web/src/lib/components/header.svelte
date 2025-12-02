@@ -140,7 +140,7 @@
         </DropdownMenu.Content>
       </DropdownMenu.Root>
 
-      <Tooltip.Root>
+      <!-- <Tooltip.Root>
         <Tooltip.Trigger>
           <ButtonNavigation href="#">
             {#snippet icon({ class: className })}
@@ -149,7 +149,7 @@
           </ButtonNavigation>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Notifications</Tooltip.Content>
-      </Tooltip.Root>
+      </Tooltip.Root> -->
     {:else}
       <Tooltip.Root>
         <Tooltip.Trigger>

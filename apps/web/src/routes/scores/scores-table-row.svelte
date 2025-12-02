@@ -3,7 +3,7 @@
   import { cn, getInitials, getRankStylesForPosition } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import Cell from './scores-table-cell.svelte'
-  import type { Challenge, LeaderboardEntry, TooltipData } from './types'
+  import type { Challenge, LeaderboardEntry, SortMode, TooltipData } from './types'
 
   interface Props {
     entry: LeaderboardEntry
@@ -12,6 +12,7 @@
     solves: Map<string, { id: string; solveTime: number }>
     isCurrentUser: boolean
     teamColWidth: number
+    sortMode: SortMode
     onHover?: () => void
     onCellHover?: (data: TooltipData | null, x: number, y: number) => void
   }
@@ -23,6 +24,7 @@
     solves,
     isCurrentUser,
     teamColWidth,
+    sortMode,
     onHover,
     onCellHover,
   }: Props = $props()
@@ -95,16 +97,15 @@
     </div>
   </div>
 
-  <div class="flex">
+  <div class="flex pr-4">
     {#each challenges as challenge, i}
       {@const solve = solves.get(challenge.id)}
       {@const bloodIndex =
         challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
       {@const prevCategory = challenges[i - 1]?.category}
       {@const nextCategory = challenges[i + 1]?.category}
-      {@const isFirst = i === 0 || prevCategory !== challenge.category}
-      {@const isLast =
-        i === challenges.length - 1 || nextCategory !== challenge.category}
+      {@const isFirst = sortMode === 'category' && (i === 0 || prevCategory !== challenge.category)}
+      {@const isLast = sortMode === 'category' && (i === challenges.length - 1 || nextCategory !== challenge.category)}
       {@const tooltipData = {
         challengeName: challenge.name,
         points: challenge.points,

@@ -1,5 +1,8 @@
 import type { getCategoryConfig } from '$lib/utils/categories'
 
+export type SortMode = 'category' | 'solves'
+export type ViewMode = 'zoomer' | 'boomer'
+
 export interface Challenge {
   id: string
   name: string

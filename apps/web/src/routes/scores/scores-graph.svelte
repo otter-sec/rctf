@@ -185,7 +185,6 @@
       <Layer type="svg">
         <Axis
           placement="bottom"
-          tickLabelProps={{ textAnchor: 'start', dx: -2, dy: 4 }}
           rule
           format={(d: number) => formatRelativeTime(d)}
         />
