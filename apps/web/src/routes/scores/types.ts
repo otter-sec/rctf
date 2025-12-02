@@ -48,11 +48,52 @@ export type ChallengesData = Record<
 >
 
 export const PAGE_SIZE = 10
-export const TEAM_COL_WIDTH = 548
-export const CELL_WIDTH = 48
-export const NAME_ROW_HEIGHT = 128
-export const HEADER_HEIGHT = 190
 export const FADE_SIZE = 48
+
+export const layout = {
+  teamColumn: 548,
+  cell: 48,
+  gap: 4,
+  padding: 16,
+  nameRowHeight: 128,
+  headerHeight: 190,
+  diagonal: {
+    maxTextWidth: 150,
+    charWidth: 9, // Lexend at text-lg (~18px)
+    angle: Math.PI / 4,
+  },
+} as const
+
+export function getContentWidth(
+  cells: { name: string }[],
+  viewMode: ViewMode
+): number {
+  const { teamColumn, cell, gap, padding, diagonal } = layout
+
+  if (cells.length === 0) return teamColumn + padding
+
+  const lastLabel =
+    viewMode === 'boomer'
+      ? (cells.at(-1)?.name ?? '')
+      : (cells.at(-1)?.name ?? '')
+
+  const textWidth = Math.min(
+    lastLabel.length * diagonal.charWidth,
+    diagonal.maxTextWidth
+  )
+  const overflow = Math.max(
+    0,
+    Math.ceil(textWidth * Math.cos(diagonal.angle) - cell / 2)
+  )
+
+  return (
+    teamColumn +
+    cells.length * cell +
+    (cells.length - 1) * gap +
+    padding +
+    overflow
+  )
+}
 
 export function processChallenges(
   data: ChallengesData | undefined

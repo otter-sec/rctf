@@ -127,7 +127,7 @@
   </div>
 {/snippet}
 
-<div class="sticky top-0 z-20 flex w-max bg-background-l0">
+<div class="sticky top-0 z-20 flex bg-background-l0">
   <div
     class="sticky left-0 z-30 shrink-0 bg-background-l0 pr-2"
     style:width="{teamColWidth}px"

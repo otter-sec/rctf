@@ -94,14 +94,36 @@
         value={sortMode}
         onValueChange={v => onSortChange(v as SortMode)}
       >
-        <DropdownMenu.RadioItem value="category">
-          <IconSortDescendingShapesFilled class="size-4 text-foreground-l3" />
-          By category
-        </DropdownMenu.RadioItem>
-        <DropdownMenu.RadioItem value="solves">
-          <IconSortAscendingNumbers class="size-4 text-foreground-l3" />
-          By difficulty
-        </DropdownMenu.RadioItem>
+        <Tooltip.Root disabled={viewMode === 'zoomer'}>
+          <Tooltip.Trigger class="w-full">
+            <DropdownMenu.RadioItem
+              value="category"
+              disabled={viewMode === 'boomer'}
+            >
+              <IconSortDescendingShapesFilled
+                class="size-4 text-foreground-l3"
+              />
+              By category
+            </DropdownMenu.RadioItem>
+          </Tooltip.Trigger>
+          <Tooltip.Content side="right"
+            >Not available in simple view</Tooltip.Content
+          >
+        </Tooltip.Root>
+        <Tooltip.Root disabled={viewMode === 'zoomer'}>
+          <Tooltip.Trigger class="w-full">
+            <DropdownMenu.RadioItem
+              value="solves"
+              disabled={viewMode === 'boomer'}
+            >
+              <IconSortAscendingNumbers class="size-4 text-foreground-l3" />
+              By difficulty
+            </DropdownMenu.RadioItem>
+          </Tooltip.Trigger>
+          <Tooltip.Content side="right"
+            >Not available in simple view</Tooltip.Content
+          >
+        </Tooltip.Root>
       </DropdownMenu.RadioGroup>
     </DropdownMenu.Content>
   </DropdownMenu.Root>

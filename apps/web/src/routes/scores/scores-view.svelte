@@ -7,14 +7,12 @@
   import Tooltip from './scores-tooltip.svelte'
   import {
     buildSolvesMap,
-    CELL_WIDTH,
     FADE_SIZE,
+    getContentWidth,
     groupByCategory,
-    HEADER_HEIGHT,
-    NAME_ROW_HEIGHT,
+    layout,
     PAGE_SIZE,
     processChallenges,
-    TEAM_COL_WIDTH,
     type ChallengesData,
     type LeaderboardEntry,
     type SortMode,
@@ -60,21 +58,15 @@
         )
       : challengesByCategory
   )
-  const categoryGroupsBase = $derived(groupByCategory(challengesByCategory))
-  const categoryGroups = $derived(
-    sortMode === 'solves'
-      ? [...categoryGroupsBase].sort((a, b) => {
-          const avgA =
-            a.challenges.reduce((sum, c) => sum + c.solves, 0) /
-            a.challenges.length
-          const avgB =
-            b.challenges.reduce((sum, c) => sum + c.solves, 0) /
-            b.challenges.length
-          return avgA - avgB || a.category.localeCompare(b.category)
-        })
-      : categoryGroupsBase
-  )
+  const categoryGroups = $derived(groupByCategory(challengesByCategory))
   const solvesByTeam = $derived(buildSolvesMap(entries))
+
+  const cells = $derived(
+    viewMode === 'boomer'
+      ? categoryGroups.map(g => ({ name: g.config.name }))
+      : challenges.map(c => ({ name: c.name }))
+  )
+  const contentWidth = $derived(getContentWidth(cells, viewMode))
 
   function handleCellHover(data: TooltipData | null, x: number, y: number) {
     tooltipData = data
@@ -110,10 +102,10 @@
 </script>
 
 <div class="flex justify-center">
-  <div class="relative w-max max-w-full">
+  <div class="relative max-w-full" style:width="{contentWidth}px">
     <Fade
-      teamColWidth={TEAM_COL_WIDTH}
-      headerHeight={HEADER_HEIGHT}
+      teamColWidth={layout.teamColumn}
+      headerHeight={layout.headerHeight}
       fadeSize={FADE_SIZE}
       {showTopFade}
       {showBottomFade}
@@ -122,16 +114,16 @@
     />
 
     <ScrollArea
-      class="h-[calc(100vh-142px)] w-max max-w-full rounded-lg"
+      class="h-[calc(100vh-142px)] max-w-full rounded-lg"
       orientation="both"
       fadeSize={0}
       scrollbarXClasses="z-50"
-      scrollbarXStyles="margin-left: {TEAM_COL_WIDTH}px;"
+      scrollbarXStyles="margin-left: {layout.teamColumn}px;"
       scrollbarYClasses="z-50"
-      scrollbarYStyles="margin-top: {HEADER_HEIGHT}px; height: calc(100% - {HEADER_HEIGHT}px);"
+      scrollbarYStyles="margin-top: {layout.headerHeight}px; height: calc(100% - {layout.headerHeight}px);"
       bind:viewportRef
     >
-      <div class="w-max">
+      <div style:width="{contentWidth}px">
         <Header
           {challenges}
           {categoryGroups}
@@ -140,10 +132,10 @@
           {viewMode}
           {isFetching}
           graphOffset={(page - 1) * PAGE_SIZE}
-          teamColWidth={TEAM_COL_WIDTH}
-          cellWidth={CELL_WIDTH}
-          nameRowHeight={NAME_ROW_HEIGHT}
-          headerHeight={HEADER_HEIGHT}
+          teamColWidth={layout.teamColumn}
+          cellWidth={layout.cell}
+          nameRowHeight={layout.nameRowHeight}
+          headerHeight={layout.headerHeight}
         />
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -165,7 +157,7 @@
               {sortMode}
               {viewMode}
               isCurrentUser={$userQuery.data?.id === entry.id}
-              teamColWidth={TEAM_COL_WIDTH}
+              teamColWidth={layout.teamColumn}
               onHover={() => (hoveredTeamId = entry.id)}
               onCellHover={handleCellHover}
             />

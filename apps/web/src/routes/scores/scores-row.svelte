@@ -118,42 +118,44 @@
 {/snippet}
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-  class="group flex w-max rounded-lg bg-background-l2 hover:bg-background-l3"
-  onmouseenter={onHover}
->
-  <TeamInfo
-    id={entry.id}
-    name={entry.name}
-    score={entry.score}
-    solveCount={entry.solves.length}
-    avatarUrl={entry.avatarUrl}
-    {rank}
-    {isCurrentUser}
-    width={teamColWidth}
-  />
+<div class="w-full bg-background-l2/50 rounded-lg">
+  <div
+    class="group flex rounded-lg bg-background-l2 hover:bg-background-l3 w-fit"
+    onmouseenter={onHover}
+  >
+    <TeamInfo
+      id={entry.id}
+      name={entry.name}
+      score={entry.score}
+      solveCount={entry.solves.length}
+      avatarUrl={entry.avatarUrl}
+      {rank}
+      {isCurrentUser}
+      width={teamColWidth}
+    />
 
-  {#if isBoomer}
-    <div class="flex gap-1 pr-4">
-      {#each categoryStats as stat}
-        {@render categoryCell(stat)}
-      {/each}
-    </div>
-  {:else}
-    <div class="flex gap-1 pr-4">
-      {#if sortMode === 'category'}
-        {#each categoryGroups as group}
-          <div class="flex gap-1">
-            {#each group.challenges as challenge, i}
-              {@render challengeCell(challenge, i === 0)}
-            {/each}
-          </div>
+    {#if isBoomer}
+      <div class="flex gap-1 pr-4">
+        {#each categoryStats as stat}
+          {@render categoryCell(stat)}
         {/each}
-      {:else}
-        {#each challenges as challenge}
-          {@render challengeCell(challenge)}
-        {/each}
-      {/if}
-    </div>
-  {/if}
+      </div>
+    {:else}
+      <div class="flex gap-1 pr-4">
+        {#if sortMode === 'category'}
+          {#each categoryGroups as group}
+            <div class="flex gap-1">
+              {#each group.challenges as challenge, i}
+                {@render challengeCell(challenge, i === 0)}
+              {/each}
+            </div>
+          {/each}
+        {:else}
+          {#each challenges as challenge}
+            {@render challengeCell(challenge)}
+          {/each}
+        {/if}
+      </div>
+    {/if}
+  </div>
 </div>
