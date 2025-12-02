@@ -17,7 +17,16 @@
 
   interface Props {
     entries: LeaderboardEntry[]
-    challengesData: Record<string, { name: string; category: string; points: number; solves: number; firstSolvers?: { id: string }[] }>
+    challengesData: Record<
+      string,
+      {
+        name: string
+        category: string
+        points: number
+        solves: number
+        firstSolvers?: { id: string }[]
+      }
+    >
     page: number
   }
 
@@ -49,8 +58,7 @@
         if (b.order === -1) return -1
         return a.order - b.order
       }
-      if (a.category !== b.category)
-        return a.category.localeCompare(b.category)
+      if (a.category !== b.category) return a.category.localeCompare(b.category)
       return b.points - a.points || a.name.localeCompare(b.name)
     })
   })
@@ -95,10 +103,7 @@
       scrollbarYStyles="margin-top: {BOOMER_HEADER_HEIGHT}px; height: calc(100% - {BOOMER_HEADER_HEIGHT}px);"
       bind:viewportRef
     >
-      <BoomerHeader
-        {categoryGroups}
-        teamColWidth={TEAM_COL_WIDTH}
-      />
+      <BoomerHeader {categoryGroups} teamColWidth={TEAM_COL_WIDTH} />
 
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
@@ -122,4 +127,3 @@
     </ScrollArea>
   </div>
 </div>
-

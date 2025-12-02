@@ -46,3 +46,24 @@ export function formatLocalTime(timestamp: number): string {
     minute: '2-digit',
   })
 }
+
+export function formatRelativeHours(
+  timestamp: number,
+  startTime: number
+): string {
+  const hours = Math.round((timestamp - startTime) / 3_600_000)
+  return hours === 0 ? '0h' : `+${hours}h`
+}
+
+export function formatRelativeHoursMinutes(
+  timestamp: number,
+  startTime: number
+): string {
+  const totalMinutes = (timestamp - startTime) / 60_000
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = Math.round(totalMinutes % 60)
+
+  if (hours === 0 && minutes === 0) return '0h'
+  if (minutes === 0) return `+${hours}h`
+  return `+${hours}h ${minutes}m`
+}

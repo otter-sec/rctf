@@ -1,6 +1,11 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
   import { useLeaderboardGraph } from '$lib/query'
+  import {
+    formatLocalTime,
+    formatRelativeHours,
+    formatRelativeHoursMinutes,
+  } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import {
     Axis,
@@ -26,47 +31,17 @@
   const graphQuery = $derived(
     useLeaderboardGraph({ limit: 10, offset, division: 'open' })
   )
-  const graph = $derived($graphQuery.data ?? [])
-
   const top3Query = $derived(
     useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' })
   )
-  const top3Graph = $derived(offset > 0 ? ($top3Query.data ?? []) : [])
 
-  // TODO(enscribe): Don't cut off data
-  const cutoffDate = new Date('2025-10-28T03:00:00.000Z')
-  const cutoffTimestamp = cutoffDate.getTime()
-
-  const filterGraphData = (
-    data: typeof graph
-  ): Array<(typeof graph)[0] & { isContext?: boolean }> =>
-    data
-      .map(entry => ({
-        ...entry,
-        points: entry.points.filter(point => point.time <= cutoffTimestamp),
-      }))
-      .filter(entry => entry.points.length > 0)
-
-  // TODO(enscribe): Don't cut off data
-  const filteredGraph = $derived(filterGraphData(graph))
-  const filteredTop3 = $derived(
-    filterGraphData(top3Graph).map(entry => ({ ...entry, isContext: true }))
-  )
-
-  const currentTeamIds = $derived(new Set(filteredGraph.map(e => e.id)))
-
-  const combinedGraph = $derived([
-    ...filteredTop3.filter(e => !currentTeamIds.has(e.id)),
-    ...filteredGraph,
-  ])
-
-  const medalColors: string[] = [
+  const MEDAL_COLORS = [
     'var(--foreground-gold-l0)',
     'var(--foreground-silver-l0)',
     'var(--foreground-bronze-l0)',
-  ]
+  ] as const
 
-  const nonMedalColors: string[] = [
+  const RANK_COLORS = [
     'var(--foreground-first)',
     'var(--foreground-second)',
     'var(--foreground-third)',
@@ -77,108 +52,94 @@
     'var(--foreground-eighth)',
     'var(--foreground-ninth)',
     'var(--foreground-tenth)',
-  ]
+  ] as const
 
-  const getTeamColor = (index: number, isContext: boolean = false): string => {
-    if (isContext) {
-      return medalColors[index]!
-    }
-    if (offset === 0 && index < 3) {
-      return medalColors[index]!
-    }
-    return nonMedalColors[index % nonMedalColors.length]!
-  }
+  // TODO(enscribe): Remove cutoff filter
+  const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
 
-  const chartConfig = $derived(
-    Object.fromEntries(
-      combinedGraph.map((entry, i) => {
-        const isContext = 'isContext' in entry && entry.isContext
-        const colorIndex = isContext
-          ? filteredTop3.findIndex(e => e.id === entry.id)
-          : filteredGraph.findIndex(e => e.id === entry.id)
-        return [
-          entry.id,
-          {
-            label: entry.name,
-            color: getTeamColor(colorIndex, isContext),
-          },
-        ]
+  type GraphEntry = NonNullable<typeof $graphQuery.data>[number]
+  type TeamMeta = { index: number; color: string; isContext: boolean }
+
+  const processedData = $derived.by(() => {
+    const rawGraph = $graphQuery.data ?? []
+    const rawTop3 = offset > 0 ? ($top3Query.data ?? []) : []
+
+    const filterByTime = (entries: GraphEntry[]) =>
+      entries
+        .map(e => ({
+          ...e,
+          points: e.points.filter(p => p.time <= CUTOFF_TIME),
+        }))
+        .filter(e => e.points.length > 0)
+
+    const mainTeams = filterByTime(rawGraph)
+    const contextTeams = filterByTime(rawTop3)
+
+    const mainIds = new Set(mainTeams.map(t => t.id))
+    const uniqueContextTeams = contextTeams.filter(t => !mainIds.has(t.id))
+
+    const teamMeta = new Map<string, TeamMeta>()
+
+    uniqueContextTeams.forEach((team, i) => {
+      teamMeta.set(team.id, {
+        index: i,
+        color: MEDAL_COLORS[i]!,
+        isContext: true,
       })
-    ) as ChartConfig
-  )
+    })
 
-  type FlatDataPoint = {
-    teamId: string
-    teamName: string
-    time: number
-    score: number
-    color: string
-    isContext: boolean
-  }
+    mainTeams.forEach((team, i) => {
+      const useMedal = offset === 0 && i < 3
+      teamMeta.set(team.id, {
+        index: i,
+        color: useMedal
+          ? MEDAL_COLORS[i]!
+          : RANK_COLORS[i % RANK_COLORS.length]!,
+        isContext: false,
+      })
+    })
 
-  const flatData = $derived<FlatDataPoint[]>(
-    combinedGraph.flatMap(entry => {
-      const isContext = 'isContext' in entry && entry.isContext === true
-      const colorIndex = isContext
-        ? filteredTop3.findIndex(e => e.id === entry.id)
-        : filteredGraph.findIndex(e => e.id === entry.id)
-      return entry.points
+    const allTeams = [...uniqueContextTeams, ...mainTeams]
+    const flatPoints = allTeams.flatMap(team => {
+      const meta = teamMeta.get(team.id)!
+      return team.points
         .toSorted((a, b) => a.time - b.time)
-        .map(point => ({
-          teamId: entry.id,
-          teamName: entry.name,
-          time: point.time,
-          score: point.score,
-          color: getTeamColor(colorIndex, isContext),
-          isContext: isContext,
+        .map(p => ({
+          teamId: team.id,
+          teamName: team.name,
+          time: p.time,
+          score: p.score,
+          ...meta,
         }))
     })
+
+    const startTime =
+      flatPoints.length > 0 ? Math.min(...flatPoints.map(p => p.time)) : 0
+
+    return { allTeams, teamMeta, flatPoints, startTime }
+  })
+
+  const { flatPoints, teamMeta, startTime } = $derived(processedData)
+  const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
+
+  const chartConfig = $derived<ChartConfig>(
+    Object.fromEntries(
+      processedData.allTeams.map(team => {
+        const meta = teamMeta.get(team.id)!
+        return [team.id, { label: team.name, color: meta.color }]
+      })
+    )
   )
-
-  const dataByTeam = $derived(
-    flatGroup(flatData, (d: FlatDataPoint) => d.teamId)
-  )
-
-  const startTime = $derived(
-    flatData.length > 0 ? Math.min(...flatData.map(d => d.time)) : 0
-  )
-
-  const formatRelativeTime = (timestamp: number) => {
-    const hoursFromStart = (timestamp - startTime) / (1000 * 60 * 60)
-    const roundedHours = Math.round(hoursFromStart)
-    return roundedHours === 0 ? '0h' : `+${roundedHours}h`
-  }
-
-  const formatTooltipRelative = (timestamp: number) => {
-    const hoursFromStart = (timestamp - startTime) / (1000 * 60 * 60)
-    const hours = Math.floor(hoursFromStart)
-    const minutes = Math.round((hoursFromStart - hours) * 60)
-    const prefix = hours === 0 && minutes === 0 ? '' : '+'
-    if (minutes === 0) {
-      return hours === 0 ? '0h' : `+${hours}h`
-    }
-    return `${prefix}${hours}h ${minutes}m`
-  }
-
-  const formatDateTime = (timestamp: number) => {
-    const date = new Date(timestamp)
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    })
-  }
 </script>
 
 <Chart.Container config={chartConfig} class={className}>
   <LayerChart
-    data={flatData}
+    data={flatPoints}
     x="time"
     y="score"
     yDomain={[0, null]}
     yNice
-    padding={{ bottom: 24 }}
+    padding={{ bottom: 24, left: 4 }}
     tooltip={{ mode: 'quadtree' }}
   >
     {#snippet children({ context })}
@@ -186,21 +147,18 @@
         <Axis
           placement="bottom"
           rule
-          format={(d: number) => formatRelativeTime(d)}
+          format={(d: number) => formatRelativeHours(d, startTime)}
+          tickLabelProps={{ textAnchor: 'start', dy: 4 }}
         />
-        {#each dataByTeam as [teamId, teamData]}
-          {@const isContext = teamData[0]?.isContext ?? false}
-          {@const teamIndex = isContext
-            ? filteredTop3.findIndex(e => e.id === teamId)
-            : filteredGraph.findIndex(e => e.id === teamId)}
-          {@const color = getTeamColor(teamIndex, isContext)}
+
+        {#each dataByTeam as [teamId, points]}
+          {@const meta = teamMeta.get(teamId)!}
           {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId}
-          {@const baseOpacity = isContext ? 0.3 : 1}
           <Spline
-            data={teamData}
+            data={points}
             class="stroke-2"
-            stroke={isDimmed ? 'var(--foreground-l5)' : color}
-            style="opacity: {isDimmed ? 0.15 : baseOpacity}"
+            stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
+            style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}"
           />
         {/each}
 
@@ -213,8 +171,8 @@
             class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl"
           >
             <div class="text-foreground-l3 mb-1.5">
-              <div>{formatTooltipRelative(data.time)}</div>
-              <div class="text-[10px]">{formatDateTime(data.time)}</div>
+              <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
+              <div class="text-[10px]">{formatLocalTime(data.time)}</div>
             </div>
             <div class="flex items-center gap-2">
               <div

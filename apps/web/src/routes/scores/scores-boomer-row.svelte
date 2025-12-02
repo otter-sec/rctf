@@ -64,13 +64,19 @@
     )}
     style:width="{teamColWidth}px"
   >
-    <span class={cn('w-16 shrink-0 text-center text-xl tabular-nums', styles.fgL0)}>
+    <span
+      class={cn('w-16 shrink-0 text-center text-xl tabular-nums', styles.fgL0)}
+    >
       #{rank}
     </span>
 
     <Avatar.Root class="size-12 shrink-0 rounded-lg">
       {#if entry.avatarUrl}
-        <Avatar.Image src={entry.avatarUrl} alt={entry.name} class="rounded-lg" />
+        <Avatar.Image
+          src={entry.avatarUrl}
+          alt={entry.name}
+          class="rounded-lg"
+        />
       {/if}
       <Avatar.Fallback class="rounded-lg text-sm">
         {getInitials(entry.name)}
@@ -78,7 +84,10 @@
     </Avatar.Root>
 
     <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-      <a href="/profile/{entry.id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
+      <a
+        href="/profile/{entry.id}"
+        class={cn('truncate text-xl hover:underline', styles.fgL0)}
+      >
         {entry.name}
       </a>
       <span class={cn('truncate text-base', styles.fgL1)}>Open Division</span>
@@ -106,9 +115,14 @@
         <Tooltip.Root>
           <Tooltip.Trigger class="flex items-center justify-center">
             {#if status.isComplete}
-              <IconCircleCheckFilled class="size-7 text-category-foreground-l1" />
+              <IconCircleCheckFilled
+                class="size-7 text-category-foreground-l1"
+              />
             {:else if status.isPartial}
-              <ProgressPie percent={status.percent} class="size-7 text-foreground-l4" />
+              <ProgressPie
+                percent={status.percent}
+                class="size-7 text-foreground-l4"
+              />
             {:else}
               <IconCircleDashed class="size-7 text-foreground-l5/25" />
             {/if}

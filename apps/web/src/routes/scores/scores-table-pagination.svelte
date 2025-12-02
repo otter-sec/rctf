@@ -39,7 +39,8 @@
   <div class="flex gap-1">
     <Tooltip.Root disableCloseOnTriggerClick>
       <Tooltip.Trigger
-        onclick={() => onViewChange(viewMode === 'zoomer' ? 'boomer' : 'zoomer')}
+        onclick={() =>
+          onViewChange(viewMode === 'zoomer' ? 'boomer' : 'zoomer')}
         class="h-10 rounded-lg bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
       >
         {#if viewMode === 'zoomer'}
@@ -56,7 +57,8 @@
     {#if viewMode === 'zoomer'}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
-          onclick={() => onSortChange(sortMode === 'category' ? 'solves' : 'category')}
+          onclick={() =>
+            onSortChange(sortMode === 'category' ? 'solves' : 'category')}
           class="h-10 rounded-lg bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
         >
           {#if sortMode === 'category'}
@@ -66,7 +68,9 @@
           {/if}
         </Tooltip.Trigger>
         <Tooltip.Content>
-          {sortMode === 'category' ? 'Sorted by category' : 'Sorted by difficulty'}
+          {sortMode === 'category'
+            ? 'Sorted by category'
+            : 'Sorted by difficulty'}
         </Tooltip.Content>
       </Tooltip.Root>
     {/if}

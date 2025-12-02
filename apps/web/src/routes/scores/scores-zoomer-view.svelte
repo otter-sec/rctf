@@ -22,13 +22,23 @@
 
   interface Props {
     entries: LeaderboardEntry[]
-    challengesData: Record<string, { name: string; category: string; points: number; solves: number; firstSolvers?: { id: string }[] }>
+    challengesData: Record<
+      string,
+      {
+        name: string
+        category: string
+        points: number
+        solves: number
+        firstSolvers?: { id: string }[]
+      }
+    >
     page: number
     sortMode: SortMode
     onSortChange: (mode: SortMode) => void
   }
 
-  let { entries, challengesData, page, sortMode, onSortChange }: Props = $props()
+  let { entries, challengesData, page, sortMode, onSortChange }: Props =
+    $props()
 
   const userQuery = useCurrentUser()
 
@@ -63,8 +73,7 @@
         if (b.order === -1) return -1
         return a.order - b.order
       }
-      if (a.category !== b.category)
-        return a.category.localeCompare(b.category)
+      if (a.category !== b.category) return a.category.localeCompare(b.category)
       return b.points - a.points || a.name.localeCompare(b.name)
     })
   })
@@ -201,4 +210,3 @@
 </ScrollArea>
 
 <SharedTooltip data={tooltipData} x={tooltipX} y={tooltipY} />
-

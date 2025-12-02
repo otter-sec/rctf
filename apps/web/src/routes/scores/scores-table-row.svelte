@@ -3,7 +3,12 @@
   import { cn, getInitials, getRankStylesForPosition } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import Cell from './scores-table-cell.svelte'
-  import type { Challenge, LeaderboardEntry, SortMode, TooltipData } from './types'
+  import type {
+    Challenge,
+    LeaderboardEntry,
+    SortMode,
+    TooltipData,
+  } from './types'
 
   interface Props {
     entry: LeaderboardEntry
@@ -104,8 +109,12 @@
         challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
       {@const prevCategory = challenges[i - 1]?.category}
       {@const nextCategory = challenges[i + 1]?.category}
-      {@const isFirst = sortMode === 'category' && (i === 0 || prevCategory !== challenge.category)}
-      {@const isLast = sortMode === 'category' && (i === challenges.length - 1 || nextCategory !== challenge.category)}
+      {@const isFirst =
+        sortMode === 'category' &&
+        (i === 0 || prevCategory !== challenge.category)}
+      {@const isLast =
+        sortMode === 'category' &&
+        (i === challenges.length - 1 || nextCategory !== challenge.category)}
       {@const tooltipData = {
         challengeName: challenge.name,
         points: challenge.points,

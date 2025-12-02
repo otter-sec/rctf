@@ -43,7 +43,10 @@
     <div class="flex items-end pr-4" style:height="{nameRowHeight}px">
       {#each challenges as challenge, i}
         {@const prevCategory = challenges[i - 1]?.category}
-        {@const hasGapBefore = sortMode === 'category' && i > 0 && prevCategory !== challenge.category}
+        {@const hasGapBefore =
+          sortMode === 'category' &&
+          i > 0 &&
+          prevCategory !== challenge.category}
         <div
           class={cn('relative w-12', hasGapBefore && 'ml-1')}
           style:height="{nameRowHeight}px"
@@ -78,7 +81,10 @@
                 <Tooltip.Content side="bottom" sideOffset={4}>
                   <p>{challenge.name}</p>
                   <p class="text-foreground-l3">
-                    {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1 ? 's' : ''}
+                    {challenge.points} pts · {challenge.solves} solve{challenge.solves !==
+                    1
+                      ? 's'
+                      : ''}
                   </p>
                 </Tooltip.Content>
               </Tooltip.Root>
@@ -113,7 +119,9 @@
             <div class="flex py-1.5">
               {#each group.challenges as challenge}
                 <Tooltip.Root>
-                  <Tooltip.Trigger class="flex w-12 items-center justify-center">
+                  <Tooltip.Trigger
+                    class="flex w-12 items-center justify-center"
+                  >
                     <span
                       class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
                     >
@@ -123,7 +131,10 @@
                   <Tooltip.Content side="bottom" sideOffset={4}>
                     <p>{challenge.name}</p>
                     <p class="text-foreground-l3">
-                      {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1 ? 's' : ''}
+                      {challenge.points} pts · {challenge.solves} solve{challenge.solves !==
+                      1
+                        ? 's'
+                        : ''}
                     </p>
                   </Tooltip.Content>
                 </Tooltip.Root>

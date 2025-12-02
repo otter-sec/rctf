@@ -36,7 +36,9 @@
           <Tooltip.Content side="bottom" sideOffset={4}>
             <p class="capitalize">{group.config.name}</p>
             <p class="text-foreground-l3">
-              {group.challenges.length} challenge{group.challenges.length !== 1 ? 's' : ''}
+              {group.challenges.length} challenge{group.challenges.length !== 1
+                ? 's'
+                : ''}
             </p>
           </Tooltip.Content>
         </Tooltip.Root>
@@ -44,4 +46,3 @@
     {/each}
   </div>
 </div>
-
