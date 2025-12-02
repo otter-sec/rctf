@@ -8,7 +8,6 @@
 
   const radius = 10
   const circumference = 2 * Math.PI * radius
-  const strokeDasharray = circumference
   const strokeDashoffset = circumference * (1 - percent / 100)
 </script>
 
@@ -33,8 +32,9 @@
     stroke="currentColor"
     stroke-width="2.5"
     stroke-linecap="round"
-    stroke-dasharray={strokeDasharray}
+    stroke-dasharray={circumference}
     stroke-dashoffset={strokeDashoffset}
     transform="rotate(-90 12 12) scale(1 -1) translate(0 -24)"
   />
 </svg>
+

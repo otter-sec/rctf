@@ -4,9 +4,9 @@
   import { Spinner } from '$lib/components'
   import { leaderboardQueryOptions, useLeaderboard } from '$lib/query'
   import { cn } from '$lib/utils'
-  import BoomerView from './scores-boomer-view.svelte'
-  import Pagination from './scores-table-pagination.svelte'
-  import ZoomerView from './scores-zoomer-view.svelte'
+  import Boomer from './scores-boomer.svelte'
+  import Pagination from './scores-pagination.svelte'
+  import Zoomer from './scores-zoomer.svelte'
   import { PAGE_SIZE, type SortMode, type ViewMode } from './types'
 
   const queryClient = useQueryClient()
@@ -15,7 +15,7 @@
   let sortMode = $state<SortMode>('category')
   let viewMode = $state<ViewMode>('zoomer')
 
-  const leaderboardQuery = $derived(
+  const query = $derived(
     useLeaderboard({
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
@@ -23,17 +23,11 @@
     })
   )
 
-  const data = $derived($leaderboardQuery.data)
+  const data = $derived($query.data)
   const entries = $derived(data?.leaderboard ?? [])
   const challengesData = $derived(data?.challenges ?? {})
   const totalPages = $derived(Math.ceil((data?.total ?? 0) / PAGE_SIZE))
-  const isRefetching = $derived(
-    $leaderboardQuery.isFetching && !$leaderboardQuery.isPending
-  )
-
-  function handlePageChange(newPage: number) {
-    page = newPage
-  }
+  const isRefetching = $derived($query.isFetching && !$query.isPending)
 
   $effect(() => {
     for (const p of [page - 1, page + 1]) {
@@ -50,10 +44,8 @@
   })
 
   $effect(() => {
-    if ($leaderboardQuery.isError) {
-      toast.error(
-        $leaderboardQuery.error?.message ?? 'Failed to load leaderboard'
-      )
+    if ($query.isError) {
+      toast.error($query.error?.message ?? 'Failed to load leaderboard')
     }
   })
 </script>
@@ -65,13 +57,13 @@
     {isRefetching}
     {sortMode}
     {viewMode}
-    onPageChange={handlePageChange}
-    onSortChange={mode => (sortMode = mode)}
-    onViewChange={mode => (viewMode = mode)}
+    onPageChange={p => (page = p)}
+    onSortChange={m => (sortMode = m)}
+    onViewChange={m => (viewMode = m)}
   />
 
-  <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
-    {#if $leaderboardQuery.isLoading}
+  <div class={cn('relative', $query.isFetching && 'opacity-50')}>
+    {#if $query.isLoading}
       <div
         class="absolute inset-0 z-50 flex items-center justify-center bg-background/60"
       >
@@ -80,15 +72,16 @@
     {/if}
 
     {#if viewMode === 'zoomer'}
-      <ZoomerView
+      <Zoomer
         {entries}
         {challengesData}
         {page}
         {sortMode}
-        onSortChange={mode => (sortMode = mode)}
+        onSortChange={m => (sortMode = m)}
       />
     {:else}
-      <BoomerView {entries} {challengesData} {page} />
+      <Boomer {entries} {challengesData} {page} />
     {/if}
   </div>
 </div>
+

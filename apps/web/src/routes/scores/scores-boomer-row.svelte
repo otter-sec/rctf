@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { Avatar, Tooltip } from '$lib/components'
+  import { Tooltip } from '$lib/components'
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
-  import { cn, getInitials, getRankStylesForPosition } from '$lib/utils'
+  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import ProgressPie from './progress-pie.svelte'
+  import Progress from './scores-boomer-progress.svelte'
+  import TeamInfo from './scores-team-info.svelte'
   import type { CategoryGroup, LeaderboardEntry } from './types'
 
   interface Props {
@@ -26,23 +27,17 @@
     onHover,
   }: Props = $props()
 
-  const styles = $derived(getRankStylesForPosition(rank, isCurrentUser))
-
-  const categorySolveStatus = $derived(
+  const categoryStats = $derived(
     categoryGroups.map(group => {
-      const totalChallenges = group.challenges.length
-      const solvedCount = group.challenges.filter(c => solves.has(c.id)).length
-      const percent = (solvedCount / totalChallenges) * 100
+      const total = group.challenges.length
+      const solved = group.challenges.filter(c => solves.has(c.id)).length
       return {
-        category: group.category,
-        config: group.config,
-        totalChallenges,
-        solvedCount,
-        percent,
-        isComplete: solvedCount === totalChallenges,
-        isPartial: solvedCount > 0 && solvedCount < totalChallenges,
-        isNotStarted: solvedCount === 0,
-      }
+        ...group,
+        total,
+        solved,
+        percent: (solved / total) * 100,
+        status: solved === total ? 'complete' : solved > 0 ? 'partial' : 'none',
+      } as const
     })
   )
 </script>
@@ -52,85 +47,42 @@
   class="group flex w-max rounded-lg bg-background-l2 hover:bg-background-l3"
   onmouseenter={onHover}
 >
-  <div
-    class={cn(
-      'sticky left-0 z-10 flex h-16 shrink-0 items-center gap-3 rounded-l-lg px-4',
-      styles.bg,
-      'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2 group-hover:before:bg-background-l3',
-      styles.gradient && [
-        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:rounded-l-lg after:bg-linear-to-r after:to-transparent',
-        styles.gradient,
-      ]
-    )}
-    style:width="{teamColWidth}px"
-  >
-    <span
-      class={cn('w-16 shrink-0 text-center text-xl tabular-nums', styles.fgL0)}
-    >
-      #{rank}
-    </span>
-
-    <Avatar.Root class="size-12 shrink-0 rounded-lg">
-      {#if entry.avatarUrl}
-        <Avatar.Image
-          src={entry.avatarUrl}
-          alt={entry.name}
-          class="rounded-lg"
-        />
-      {/if}
-      <Avatar.Fallback class="rounded-lg text-sm">
-        {getInitials(entry.name)}
-      </Avatar.Fallback>
-    </Avatar.Root>
-
-    <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-      <a
-        href="/profile/{entry.id}"
-        class={cn('truncate text-xl hover:underline', styles.fgL0)}
-      >
-        {entry.name}
-      </a>
-      <span class={cn('truncate text-base', styles.fgL1)}>Open Division</span>
-    </div>
-
-    <div class="flex w-28 shrink-0 flex-col items-end">
-      <span class="text-xl tabular-nums text-foreground-l1">
-        {entry.score.toLocaleString()} pts
-      </span>
-      <span class="text-base text-foreground-l3">
-        {entry.solves.length} solve{entry.solves.length !== 1 ? 's' : ''}
-      </span>
-    </div>
-  </div>
+  <TeamInfo
+    id={entry.id}
+    name={entry.name}
+    score={entry.score}
+    solveCount={entry.solves.length}
+    avatarUrl={entry.avatarUrl}
+    {rank}
+    {isCurrentUser}
+    width={teamColWidth}
+  />
 
   <div class="flex pr-4">
-    {#each categorySolveStatus as status, i}
+    {#each categoryStats as stat, i}
       <div
         class={cn(
           'flex h-16 w-12 items-center justify-center rounded-l-lg',
-          i < categorySolveStatus.length - 1 && 'mr-1'
+          i < categoryStats.length - 1 && 'mr-1'
         )}
-        style={getCategoryStyle(status.config.color)}
+        style={getCategoryStyle(stat.config.color)}
       >
         <Tooltip.Root>
           <Tooltip.Trigger class="flex items-center justify-center">
-            {#if status.isComplete}
+            {#if stat.status === 'complete'}
               <IconCircleCheckFilled
                 class="size-7 text-category-foreground-l1"
               />
-            {:else if status.isPartial}
-              <ProgressPie
-                percent={status.percent}
-                class="size-7 text-foreground-l4"
-              />
+            {:else if stat.status === 'partial'}
+              <Progress percent={stat.percent} class="size-7 text-foreground-l4" />
             {:else}
               <IconCircleDashed class="size-7 text-foreground-l5/25" />
             {/if}
           </Tooltip.Trigger>
           <Tooltip.Content side="top" sideOffset={4}>
-            <p class="capitalize">{status.config.name}</p>
+            <p class="capitalize">{stat.config.name}</p>
             <p class="text-foreground-l3">
-              {status.solvedCount} / {status.totalChallenges} solved
+              {stat.solved} / {stat.total} solved
             </p>
           </Tooltip.Content>
         </Tooltip.Root>

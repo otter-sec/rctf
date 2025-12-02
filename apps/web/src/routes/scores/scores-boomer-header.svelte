@@ -21,6 +21,7 @@
   <div class="flex items-stretch pr-4">
     {#each categoryGroups as group, i}
       {@const Icon = group.config.icon}
+      {@const count = group.challenges.length}
       <div
         class={cn(
           'relative flex w-12 flex-col items-center justify-center rounded-t-lg bg-category-background-l0 py-3',
@@ -36,9 +37,7 @@
           <Tooltip.Content side="bottom" sideOffset={4}>
             <p class="capitalize">{group.config.name}</p>
             <p class="text-foreground-l3">
-              {group.challenges.length} challenge{group.challenges.length !== 1
-                ? 's'
-                : ''}
+              {count} challenge{count !== 1 ? 's' : ''}
             </p>
           </Tooltip.Content>
         </Tooltip.Root>
