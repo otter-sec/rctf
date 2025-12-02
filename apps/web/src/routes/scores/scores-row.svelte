@@ -67,9 +67,13 @@
 
 {#snippet challengeCell(challenge: Challenge, isFirst: boolean = false)}
   {@const solve = solves.get(challenge.id)}
-  {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
+  {@const bloodIndex =
+    challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
   <div
-    class={cn('flex h-16 w-12 items-center justify-center', isFirst && 'rounded-l-lg')}
+    class={cn(
+      'flex h-16 w-12 items-center justify-center',
+      isFirst && 'rounded-l-lg'
+    )}
     style={getCategoryStyle(challenge.config.color)}
   >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -90,7 +94,7 @@
   </div>
 {/snippet}
 
-{#snippet categoryCell(stat: typeof categoryStats[number])}
+{#snippet categoryCell(stat: (typeof categoryStats)[number])}
   <div
     class="flex h-16 w-12 items-center justify-center rounded-l-lg"
     style={getCategoryStyle(stat.config.color)}
@@ -153,4 +157,3 @@
     </div>
   {/if}
 </div>
-

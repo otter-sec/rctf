@@ -1,14 +1,15 @@
 <script lang="ts">
-  import { Tooltip } from '$lib/components'
+  import { DropdownMenu, Tooltip } from '$lib/components'
   import {
     IconChevronLeft,
     IconChevronLeftPipe,
     IconChevronRight,
     IconChevronRightPipe,
-    IconLayoutGrid,
-    IconLayoutList,
+    IconLayoutListFilled,
+    IconSettingsFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
+    IconTableFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
   import type { SortMode, ViewMode } from './types'
@@ -67,41 +68,43 @@
 </script>
 
 <div class="flex items-center justify-between gap-1 py-2">
-  <div class="flex gap-1">
-    <Tooltip.Root disableCloseOnTriggerClick>
-      <Tooltip.Trigger
-        onclick={() => onViewChange(viewMode === 'zoomer' ? 'boomer' : 'zoomer')}
-        class={cn(btnClass, 'rounded-lg')}
+  <DropdownMenu.Root>
+    <DropdownMenu.Trigger class={cn(btnClass, 'rounded-lg')}>
+      <IconSettingsFilled class="size-5" />
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Content align="start" class="w-48">
+      <DropdownMenu.Label>View</DropdownMenu.Label>
+      <DropdownMenu.RadioGroup
+        value={viewMode}
+        onValueChange={v => onViewChange(v as ViewMode)}
       >
-        {#if viewMode === 'zoomer'}
-          <IconLayoutList class="size-5" />
-        {:else}
-          <IconLayoutGrid class="size-5" />
-        {/if}
-      </Tooltip.Trigger>
-      <Tooltip.Content>
-        {viewMode === 'zoomer' ? 'Detailed view' : 'Compact view'}
-      </Tooltip.Content>
-    </Tooltip.Root>
+        <DropdownMenu.RadioItem value="zoomer">
+          <IconTableFilled class="size-4 text-foreground-l3" />
+          Matrix view
+        </DropdownMenu.RadioItem>
+        <DropdownMenu.RadioItem value="boomer">
+          <IconLayoutListFilled class="size-4 text-foreground-l3" />
+          Simple view
+        </DropdownMenu.RadioItem>
+      </DropdownMenu.RadioGroup>
 
-    {#if viewMode === 'zoomer'}
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => onSortChange(sortMode === 'category' ? 'solves' : 'category')}
-          class={cn(btnClass, 'rounded-lg')}
-        >
-          {#if sortMode === 'category'}
-            <IconSortDescendingShapesFilled class="size-5" />
-          {:else}
-            <IconSortAscendingNumbers class="size-5" />
-          {/if}
-        </Tooltip.Trigger>
-        <Tooltip.Content>
-          {sortMode === 'category' ? 'Sorted by category' : 'Sorted by difficulty'}
-        </Tooltip.Content>
-      </Tooltip.Root>
-    {/if}
-  </div>
+      <DropdownMenu.Separator />
+      <DropdownMenu.Label>Sorting</DropdownMenu.Label>
+      <DropdownMenu.RadioGroup
+        value={sortMode}
+        onValueChange={v => onSortChange(v as SortMode)}
+      >
+        <DropdownMenu.RadioItem value="category">
+          <IconSortDescendingShapesFilled class="size-4 text-foreground-l3" />
+          By category
+        </DropdownMenu.RadioItem>
+        <DropdownMenu.RadioItem value="solves">
+          <IconSortAscendingNumbers class="size-4 text-foreground-l3" />
+          By difficulty
+        </DropdownMenu.RadioItem>
+      </DropdownMenu.RadioGroup>
+    </DropdownMenu.Content>
+  </DropdownMenu.Root>
 
   <div class="flex items-center gap-1">
     <div
@@ -132,4 +135,3 @@
     </div>
   </div>
 </div>
-

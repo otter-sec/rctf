@@ -11,6 +11,7 @@
     hoveredTeamId: string | null
     sortMode: SortMode
     viewMode: ViewMode
+    isFetching?: boolean
     graphOffset: number
     teamColWidth: number
     cellWidth: number
@@ -24,6 +25,7 @@
     hoveredTeamId,
     sortMode,
     viewMode,
+    isFetching = false,
     graphOffset,
     teamColWidth,
     cellWidth,
@@ -37,14 +39,18 @@
 {#snippet challengeTooltip(challenge: Challenge)}
   <p>{challenge.name}</p>
   <p class="text-foreground-l3">
-    {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1 ? 's' : ''}
+    {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1
+      ? 's'
+      : ''}
   </p>
 {/snippet}
 
 {#snippet pointsBadge(challenge: Challenge)}
   <Tooltip.Root>
     <Tooltip.Trigger class="flex w-12 items-center justify-center">
-      <span class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75">
+      <span
+        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
+      >
         {challenge.points}
       </span>
     </Tooltip.Trigger>
@@ -54,7 +60,11 @@
   </Tooltip.Root>
 {/snippet}
 
-{#snippet categoryIcon(config: CategoryGroup['config'], showLabel: boolean = false, maxWidth?: number)}
+{#snippet categoryIcon(
+  config: CategoryGroup['config'],
+  showLabel: boolean = false,
+  maxWidth?: number
+)}
   {@const Icon = config.icon}
   <div
     class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-1.5"
@@ -62,10 +72,14 @@
   >
     {#if showLabel}
       <Icon class="size-5 shrink-0 text-category-foreground-l1" />
-      <span class="truncate capitalize text-category-foreground-l1">{config.name}</span>
+      <span class="truncate capitalize text-category-foreground-l1"
+        >{config.name}</span
+      >
     {:else}
       <Tooltip.Root>
-        <Tooltip.Trigger class="flex items-center justify-center text-category-foreground-l1">
+        <Tooltip.Trigger
+          class="flex items-center justify-center text-category-foreground-l1"
+        >
           <Icon class="my-0.5 size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content side="bottom" sideOffset={4}>
@@ -82,13 +96,17 @@
   {@const totalPoints = group.challenges.reduce((sum, c) => sum + c.points, 0)}
   <Tooltip.Root>
     <Tooltip.Trigger class="flex w-12 items-center justify-center">
-      <span class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75">
+      <span
+        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
+      >
         {totalPoints}
       </span>
     </Tooltip.Trigger>
     <Tooltip.Content side="bottom" sideOffset={4}>
       <p class="capitalize">{group.config.name}</p>
-      <p class="text-foreground-l3">{count} challenge{count !== 1 ? 's' : ''} · {totalPoints} pts</p>
+      <p class="text-foreground-l3">
+        {count} challenge{count !== 1 ? 's' : ''} · {totalPoints} pts
+      </p>
     </Tooltip.Content>
   </Tooltip.Root>
 {/snippet}
@@ -97,7 +115,9 @@
   {@const Icon = config.icon}
   <div class="flex items-center justify-center px-2 pb-1.5">
     <Tooltip.Root>
-      <Tooltip.Trigger class="flex items-center justify-center text-category-foreground-l1">
+      <Tooltip.Trigger
+        class="flex items-center justify-center text-category-foreground-l1"
+      >
         <Icon class="my-0.5 size-5" />
       </Tooltip.Trigger>
       <Tooltip.Content side="bottom" sideOffset={4}>
@@ -113,7 +133,9 @@
     style:width="{teamColWidth}px"
     style:height="{headerHeight}px"
   >
-    <Graph class="size-full" {hoveredTeamId} offset={graphOffset} />
+    {#if !isFetching}
+      <Graph class="size-full" {hoveredTeamId} offset={graphOffset} />
+    {/if}
   </div>
 
   <div class="flex flex-col">
@@ -129,7 +151,9 @@
               style:height="{nameRowHeight}px"
               style={getCategoryStyle(group.config.color)}
             >
-              <span class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1">
+              <span
+                class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1"
+              >
                 {group.config.name}
               </span>
             </div>
@@ -144,7 +168,9 @@
                 style:height="{nameRowHeight}px"
                 style={getCategoryStyle(challenge.config.color)}
               >
-                <span class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
+                <span
+                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+                >
                   {challenge.name}
                 </span>
               </div>
@@ -158,7 +184,9 @@
             style:height="{nameRowHeight}px"
             style={getCategoryStyle(challenge.config.color)}
           >
-            <span class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
+            <span
+              class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+            >
               {challenge.name}
             </span>
           </div>
@@ -215,4 +243,3 @@
     </div>
   </div>
 </div>
-

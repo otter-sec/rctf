@@ -29,7 +29,7 @@
 
   let internalViewportRef = $state<HTMLElement | null>(null)
   let showTopFade = $state(false)
-  let showBottomFade = $state(false)
+  let showBottomFade = $state(true)
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
 

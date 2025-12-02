@@ -63,11 +63,20 @@
 
   <div class={cn('relative', $query.isFetching && 'opacity-50')}>
     {#if $query.isLoading}
-      <div class="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
+      <div
+        class="absolute inset-0 z-50 flex items-center justify-center bg-background/60"
+      >
         <Spinner class="size-6" />
       </div>
     {/if}
 
-    <View {entries} {challengesData} {page} {sortMode} {viewMode} />
+    <View
+      {entries}
+      {challengesData}
+      {page}
+      {sortMode}
+      {viewMode}
+      isFetching={$query.isFetching}
+    />
   </div>
 </div>

@@ -58,7 +58,8 @@
     },
     {
       show: showBottomFade,
-      class: 'right-0 bottom-0 bg-linear-to-t from-background-l0 to-transparent',
+      class:
+        'right-0 bottom-0 bg-linear-to-t from-background-l0 to-transparent',
       style: `left:${teamColWidth}px;height:${fadeSize}px`,
     },
     // content area, left-right
@@ -69,7 +70,8 @@
     },
     {
       show: showRightFade,
-      class: 'right-0 bottom-0 bg-linear-to-l from-background-l0 to-transparent',
+      class:
+        'right-0 bottom-0 bg-linear-to-l from-background-l0 to-transparent',
       style: `top:${headerHeight}px;width:${fadeSize}px`,
     },
   ])
@@ -86,4 +88,3 @@
     aria-hidden="true"
   ></div>
 {/each}
-
