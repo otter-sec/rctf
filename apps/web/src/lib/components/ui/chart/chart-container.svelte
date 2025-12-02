@@ -67,7 +67,7 @@
     '[&_.lc-labels-text:not([fill])]:fill-foreground-l0 [&_text]:stroke-transparent',
 
     // Tick labels on th x/y axes
-    '[&_.lc-axis-tick-label]:fill-foreground-l3 [&_.lc-axis-tick-label]:font-normal',
+    '[&_.lc-axis-tick-label]:fill-foreground-l5/75 [&_.lc-axis-tick-label]:font-normal',
     '[&_.lc-tooltip-rects-g]:fill-transparent',
     '[&_.lc-layout-svg-g]:fill-transparent',
     '[&_.lc-root-container]:w-full',

@@ -164,7 +164,6 @@ export const leaderboardQueryOptions = (params: {
       throw new ApiError(response.message)
     },
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000,
   })
 
 export const leaderboardGraphQueryOptions = (params: {

@@ -11,14 +11,20 @@
     Tooltip,
   } from 'layerchart'
 
+  interface Props {
+    class?: string
+  }
+
+  let { class: className = '' }: Props = $props()
+
   const graphQuery = useLeaderboardGraph({ limit: 10, division: 'open' })
   const graph = $derived($graphQuery.data ?? [])
 
-  // TEMPORARY: Cut off data
+  // TODO(enscribe): Don't cut off data
   const cutoffDate = new Date('2025-10-28T03:00:00.000Z')
   const cutoffTimestamp = cutoffDate.getTime()
 
-  // TEMPORARY: Filter graph data to only include points before the cutoff
+  // TODO(enscribe): Don't cut off data
   const filteredGraph = $derived(
     graph
       .map(entry => ({
@@ -86,17 +92,18 @@
   const formatRelativeTime = (timestamp: number) => {
     const hoursFromStart = (timestamp - startTime) / (1000 * 60 * 60)
     const roundedHours = Math.round(hoursFromStart)
-    return `+${roundedHours}h`
+    return roundedHours === 0 ? '0h' : `+${roundedHours}h`
   }
 
   const formatTooltipRelative = (timestamp: number) => {
     const hoursFromStart = (timestamp - startTime) / (1000 * 60 * 60)
     const hours = Math.floor(hoursFromStart)
     const minutes = Math.round((hoursFromStart - hours) * 60)
+    const prefix = hours === 0 && minutes === 0 ? '' : '+'
     if (minutes === 0) {
-      return `+${hours}h`
+      return hours === 0 ? '0h' : `+${hours}h`
     }
-    return `+${hours}h ${minutes}m`
+    return `${prefix}${hours}h ${minutes}m`
   }
 
   const formatDateTime = (timestamp: number) => {
@@ -110,28 +117,28 @@
   }
 </script>
 
-<Chart.Container config={chartConfig} class="h-[400px] w-full">
+<Chart.Container config={chartConfig} class={className}>
   <LayerChart
     data={flatData}
     x="time"
     y="score"
     yDomain={[0, null]}
     yNice
-    padding={{ left: 16, bottom: 48, right: 16, top: 16 }}
+    padding={{ bottom: 24 }}
     tooltip={{ mode: 'quadtree' }}
   >
     {#snippet children({ context })}
       <Layer type="svg">
         <Axis
           placement="bottom"
+          tickLabelProps={{ textAnchor: "start", dx: -2, dy: 4 }}
           rule
           format={(d: number) => formatRelativeTime(d)}
         />
-
         {#each dataByTeam as [teamId, teamData]}
           {@const teamIndex = filteredGraph.findIndex(e => e.id === teamId)}
           {@const color = teamColors[teamIndex % teamColors.length]}
-          <Spline data={teamData} class="stroke-[2.5]" stroke={color} />
+          <Spline data={teamData} class="stroke-2" stroke={color} />
         {/each}
 
         <Highlight points lines />

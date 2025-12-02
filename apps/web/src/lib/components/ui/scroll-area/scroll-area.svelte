@@ -10,6 +10,8 @@
     orientation = 'vertical',
     scrollbarXClasses = '',
     scrollbarYClasses = '',
+    scrollbarXStyles = '',
+    scrollbarYStyles = '',
     fadeSize = 24,
     fadeColor = 'background-l0',
     children,
@@ -18,6 +20,8 @@
     orientation?: 'vertical' | 'horizontal' | 'both' | undefined
     scrollbarXClasses?: string | undefined
     scrollbarYClasses?: string | undefined
+    scrollbarXStyles?: string | undefined
+    scrollbarYStyles?: string | undefined
     viewportRef?: HTMLElement | null
     fadeSize?: number
     fadeColor?: string
@@ -154,10 +158,10 @@
   {/if}
 
   {#if hasVertical}
-    <Scrollbar orientation="vertical" class={scrollbarYClasses} />
+    <Scrollbar orientation="vertical" class={scrollbarYClasses} style={scrollbarYStyles} />
   {/if}
   {#if hasHorizontal}
-    <Scrollbar orientation="horizontal" class={scrollbarXClasses} />
+    <Scrollbar orientation="horizontal" class={scrollbarXClasses} style={scrollbarXStyles} />
   {/if}
   <ScrollAreaPrimitive.Corner />
 </ScrollAreaPrimitive.Root>
