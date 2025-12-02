@@ -14,5 +14,6 @@ export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
         userAvatarUrl: z.string().nullable(),
       })
     ),
+    mySolvePosition: z.number().int().nullable(),
   }),
 })

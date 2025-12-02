@@ -15,7 +15,8 @@
 
   const statusText = $derived.by(() => {
     if (!data) return ''
-    if (data.bloodIndex >= 0 && data.bloodIndex < 3) return bloodLabels[data.bloodIndex]
+    if (data.bloodIndex >= 0 && data.bloodIndex < 3)
+      return bloodLabels[data.bloodIndex]
     return data.solved ? 'Solved!' : 'Unsolved'
   })
 </script>
@@ -23,7 +24,10 @@
 {#if data}
   <Tooltip.Provider>
     <Tooltip.Root open>
-      <Tooltip.Trigger class="pointer-events-none fixed size-1" style="left: {x}px; top: {y}px;" />
+      <Tooltip.Trigger
+        class="pointer-events-none fixed size-1"
+        style="left: {x}px; top: {y}px;"
+      />
       <Tooltip.Content side="top" sideOffset={4}>
         <p>{data.challengeName}</p>
         <p class="text-foreground-l3">{data.points} pts · {statusText}</p>

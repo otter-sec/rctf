@@ -2,7 +2,11 @@
   import type { Challenge, Solve as UserSolve } from '$lib/api'
   import { RankRow } from '$lib/components'
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
-  import { formatLocalTime, formatRelativeToFirstBlood } from '$lib/utils'
+  import {
+    formatLocalTime,
+    formatRelativeToFirstBlood,
+    getOrdinal,
+  } from '$lib/utils'
 
   interface Props {
     challenge: Challenge
@@ -23,6 +27,7 @@
   const firstBloodTime = $derived(
     $solvesQuery.data?.solves?.[0]?.createdAt ?? 0
   )
+  const mySolvePosition = $derived($solvesQuery.data?.mySolvePosition ?? null)
 
   const formattedDivision = $derived(
     currentUser?.division
@@ -33,10 +38,10 @@
   )
 </script>
 
-{#if currentUserSolve && currentUser}
+{#if currentUserSolve && currentUser && mySolvePosition}
   <RankRow
     variant="self"
-    rankLabel="You"
+    rankLabel={getOrdinal(mySolvePosition)}
     name={currentUser.name}
     subtitle={formattedDivision}
     primaryValue={formatRelativeToFirstBlood(

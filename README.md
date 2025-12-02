@@ -127,7 +127,7 @@ rCTF v1 frontend with rCTF v2 backend:
 
 - [x] avatars for all team endpoints
 - [ ] better file upload route
-- [ ] specific position in solves
+- [x] specific position in solves
 - [ ] in solves list for a chal return also team's scoreboard position (global + division)
 - [ ] in global leaderboard return division positions
 - [ ] delete a solve (admin only)

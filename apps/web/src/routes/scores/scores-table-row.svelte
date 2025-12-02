@@ -56,13 +56,19 @@
     )}
     style:width="{teamColWidth}px"
   >
-    <span class={cn('w-16 shrink-0 text-center text-xl tabular-nums', styles.fgL0)}>
+    <span
+      class={cn('w-16 shrink-0 text-center text-xl tabular-nums', styles.fgL0)}
+    >
       #{rank}
     </span>
 
     <Avatar.Root class="size-12 shrink-0 rounded-lg">
       {#if entry.avatarUrl}
-        <Avatar.Image src={entry.avatarUrl} alt={entry.name} class="rounded-lg" />
+        <Avatar.Image
+          src={entry.avatarUrl}
+          alt={entry.name}
+          class="rounded-lg"
+        />
       {/if}
       <Avatar.Fallback class="rounded-lg text-sm">
         {getInitials(entry.name)}
@@ -70,7 +76,10 @@
     </Avatar.Root>
 
     <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-      <a href="/profile/{entry.id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
+      <a
+        href="/profile/{entry.id}"
+        class={cn('truncate text-xl hover:underline', styles.fgL0)}
+      >
         {entry.name}
       </a>
       <span class={cn('truncate text-base', styles.fgL1)}>Open Division</span>
@@ -89,11 +98,13 @@
   <div class="flex">
     {#each challenges as challenge, i}
       {@const solve = solves.get(challenge.id)}
-      {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
+      {@const bloodIndex =
+        challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
       {@const prevCategory = challenges[i - 1]?.category}
       {@const nextCategory = challenges[i + 1]?.category}
       {@const isFirst = i === 0 || prevCategory !== challenge.category}
-      {@const isLast = i === challenges.length - 1 || nextCategory !== challenge.category}
+      {@const isLast =
+        i === challenges.length - 1 || nextCategory !== challenge.category}
       {@const tooltipData = {
         challengeName: challenge.name,
         points: challenge.points,
