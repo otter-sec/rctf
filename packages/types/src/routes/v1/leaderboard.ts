@@ -31,7 +31,6 @@ export const GetLeaderboardGraphRoute = defineRoute({
   query: z.object({
     // NOTE: Has max limit that is loaded from config
     limit: z.coerce.number().int().min(1),
-    offset: z.coerce.number().int().min(0),
     division: z.string().optional(),
   }),
   onlyWhenStarted: true,

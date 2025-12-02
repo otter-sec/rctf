@@ -17,7 +17,11 @@
     offset?: number
   }
 
-  let { class: className = '', hoveredTeamId = null, offset = 0 }: Props = $props()
+  let {
+    class: className = '',
+    hoveredTeamId = null,
+    offset = 0,
+  }: Props = $props()
 
   const graphQuery = $derived(
     useLeaderboardGraph({ limit: 10, offset, division: 'open' })

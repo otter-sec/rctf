@@ -9,10 +9,10 @@
   } from '$lib/query'
   import { cn } from '$lib/utils'
   import { getCategoryConfig, getCategoryOrder } from '$lib/utils/categories'
-  import Row from './scores-table-row.svelte'
+  import Fade from './scores-table-fade.svelte'
   import Header from './scores-table-header.svelte'
   import Pagination from './scores-table-pagination.svelte'
-  import Fade from './scores-table-fade.svelte'
+  import Row from './scores-table-row.svelte'
   import {
     CELL_WIDTH,
     FADE_SIZE,
