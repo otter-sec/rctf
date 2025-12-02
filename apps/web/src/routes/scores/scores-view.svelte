@@ -1,10 +1,10 @@
 <script lang="ts">
   import { ScrollArea } from '$lib/components'
   import { useCurrentUser } from '$lib/query'
-  import Fade from './scores-zoomer-fade.svelte'
-  import Header from './scores-zoomer-header.svelte'
-  import Row from './scores-zoomer-row.svelte'
-  import Tooltip from './scores-zoomer-tooltip.svelte'
+  import Fade from './scores-fade.svelte'
+  import Header from './scores-header.svelte'
+  import Row from './scores-row.svelte'
+  import Tooltip from './scores-tooltip.svelte'
   import {
     buildSolvesMap,
     CELL_WIDTH,
@@ -19,6 +19,7 @@
     type LeaderboardEntry,
     type SortMode,
     type TooltipData,
+    type ViewMode,
   } from './types'
 
   interface Props {
@@ -26,10 +27,10 @@
     challengesData: ChallengesData
     page: number
     sortMode: SortMode
-    onSortChange: (mode: SortMode) => void
+    viewMode: ViewMode
   }
 
-  let { entries, challengesData, page, sortMode }: Props = $props()
+  let { entries, challengesData, page, sortMode, viewMode }: Props = $props()
 
   const userQuery = useCurrentUser()
 
@@ -42,6 +43,7 @@
   let tooltipData = $state<TooltipData | null>(null)
   let tooltipX = $state(0)
   let tooltipY = $state(0)
+
 
   const challengesByCategory = $derived(processChallenges(challengesData))
   const challenges = $derived(
@@ -107,41 +109,47 @@
   scrollbarYStyles="margin-top: {HEADER_HEIGHT}px; height: calc(100% - {HEADER_HEIGHT}px);"
   bind:viewportRef
 >
-  <Header
-    {challenges}
-    {categoryGroups}
-    {hoveredTeamId}
-    {sortMode}
-    graphOffset={(page - 1) * PAGE_SIZE}
-    teamColWidth={TEAM_COL_WIDTH}
-    cellWidth={CELL_WIDTH}
-    nameRowHeight={NAME_ROW_HEIGHT}
-    headerHeight={HEADER_HEIGHT}
-  />
-
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="flex flex-col gap-1"
-    onmouseleave={() => {
-      hoveredTeamId = null
-      tooltipData = null
-    }}
-  >
-    {#each entries as entry, index (entry.id)}
-      {@const rank = (page - 1) * PAGE_SIZE + index + 1}
-      <Row
-        {entry}
-        {rank}
+  <div class="inline-flex min-w-full justify-center">
+    <div class="w-max">
+      <Header
         {challenges}
         {categoryGroups}
-        solves={solvesByTeam.get(entry.id)!}
+        {hoveredTeamId}
         {sortMode}
-        isCurrentUser={$userQuery.data?.id === entry.id}
+        {viewMode}
+        graphOffset={(page - 1) * PAGE_SIZE}
         teamColWidth={TEAM_COL_WIDTH}
-        onHover={() => (hoveredTeamId = entry.id)}
-        onCellHover={handleCellHover}
+        cellWidth={CELL_WIDTH}
+        nameRowHeight={NAME_ROW_HEIGHT}
+        headerHeight={HEADER_HEIGHT}
       />
-    {/each}
+
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div
+        class="flex flex-col gap-1"
+        onmouseleave={() => {
+          hoveredTeamId = null
+          tooltipData = null
+        }}
+      >
+        {#each entries as entry, index (entry.id)}
+          {@const rank = (page - 1) * PAGE_SIZE + index + 1}
+          <Row
+            {entry}
+            {rank}
+            {challenges}
+            {categoryGroups}
+            solves={solvesByTeam.get(entry.id)!}
+            {sortMode}
+            {viewMode}
+            isCurrentUser={$userQuery.data?.id === entry.id}
+            teamColWidth={TEAM_COL_WIDTH}
+            onHover={() => (hoveredTeamId = entry.id)}
+            onCellHover={handleCellHover}
+          />
+        {/each}
+      </div>
+    </div>
   </div>
 </ScrollArea>
 

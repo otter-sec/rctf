@@ -4,9 +4,8 @@
   import { Spinner } from '$lib/components'
   import { leaderboardQueryOptions, useLeaderboard } from '$lib/query'
   import { cn } from '$lib/utils'
-  import Boomer from './scores-boomer.svelte'
   import Pagination from './scores-pagination.svelte'
-  import Zoomer from './scores-zoomer.svelte'
+  import View from './scores-view.svelte'
   import { PAGE_SIZE, type SortMode, type ViewMode } from './types'
 
   const queryClient = useQueryClient()
@@ -64,24 +63,11 @@
 
   <div class={cn('relative', $query.isFetching && 'opacity-50')}>
     {#if $query.isLoading}
-      <div
-        class="absolute inset-0 z-50 flex items-center justify-center bg-background/60"
-      >
+      <div class="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
         <Spinner class="size-6" />
       </div>
     {/if}
 
-    {#if viewMode === 'zoomer'}
-      <Zoomer
-        {entries}
-        {challengesData}
-        {page}
-        {sortMode}
-        onSortChange={m => (sortMode = m)}
-      />
-    {:else}
-      <Boomer {entries} {challengesData} {page} />
-    {/if}
+    <View {entries} {challengesData} {page} {sortMode} {viewMode} />
   </div>
 </div>
-
