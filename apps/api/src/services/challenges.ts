@@ -43,14 +43,22 @@ type ChallengeSolvesWithPosition = {
     userId: string
     userName: string
     userAvatarUrl: string | null
+    globalPlace: number
+    division: string
+    divisionPlace: number
   }[]
   solvePosition: number | null
 }
 
 const createRankedSolves = (db: DatabaseClient, challengeId?: string) => {
+  // TODO(es3n1n): maybe dont set these up if we dont need them?
   const position = challengeId
     ? sql<number>`row_number() over (order by ${solves.createdat})::int`
     : sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`
+
+  const divisionPosition = challengeId
+    ? sql<number>`row_number() over (partition by ${users.division} order by ${solves.createdat})::int`
+    : sql<number>`row_number() over (partition by ${solves.challengeid}, ${users.division} order by ${solves.createdat})::int`
 
   const baseQuery = db
     .select({
@@ -59,8 +67,10 @@ const createRankedSolves = (db: DatabaseClient, challengeId?: string) => {
       userId: solves.userid,
       userName: users.name,
       userAvatarUrl: users.avatarUrl,
+      userDivision: users.division,
       createdAt: solves.createdat,
       position: position.as('position'),
+      divisionPosition: divisionPosition.as('division_position'),
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
@@ -180,6 +190,9 @@ export const getChallengeSolvesWithPosition = async (
       userId: ranked.userId,
       userName: ranked.userName,
       userAvatarUrl: ranked.userAvatarUrl,
+      userDivision: ranked.userDivision,
+      position: ranked.position,
+      divisionPosition: ranked.divisionPosition,
       challengeExists:
         sql<boolean>`(SELECT EXISTS(SELECT 1 FROM ${challenges} WHERE id = ${challengeId}))`.as(
           'challenge_exists'
@@ -206,6 +219,9 @@ export const getChallengeSolvesWithPosition = async (
         userId: r.userId,
         userName: r.userName,
         userAvatarUrl: r.userAvatarUrl,
+        globalPlace: r.position,
+        division: r.userDivision,
+        divisionPlace: r.divisionPosition,
       })),
     }
   }

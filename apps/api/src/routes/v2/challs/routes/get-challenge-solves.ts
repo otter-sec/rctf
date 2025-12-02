@@ -31,11 +31,8 @@ challsGroup.route(
 
     return res.goodChallengeSolves({
       solves: solves.map(solve => ({
-        id: solve.id,
+        ...solve,
         createdAt: new Date(solve.createdAt).getTime(),
-        userId: solve.userId,
-        userName: solve.userName,
-        userAvatarUrl: solve.userAvatarUrl,
       })),
       mySolvePosition: solvePosition,
     })

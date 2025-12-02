@@ -9,7 +9,7 @@ export const GoodCtftimeLeaderboard = response('goodCtftimeLeaderboard', {
       z.object({
         pos: z.number().int(),
         team: z.string(),
-        score: z.number(),
+        score: z.number().int(),
       })
     ),
   }),

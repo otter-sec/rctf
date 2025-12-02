@@ -27,9 +27,9 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
       z.object({
         name: z.string(),
         category: z.string(),
-        solves: z.number(),
-        points: z.number(),
-        sortWeight: z.number().nullable(),
+        solves: z.number().int(),
+        points: z.number().int(),
+        sortWeight: z.number().int().nullable(),
         firstSolvers: z.array(
           z.object({
             id: z.string(),
