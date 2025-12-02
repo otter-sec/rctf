@@ -28,7 +28,10 @@ leaderboardGroup.route(
       leaderboard: leaderboard.map(entry => ({
         ...entry,
         avatarUrl: avatars.get(entry.id) ?? null,
-        solves: solves.get(entry.id) ?? [],
+        solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
+          id: solve.challengeId,
+          solveTime: solve.solveTime,
+        })),
       })),
       challenges: Object.fromEntries(
         Object.entries(challenges).map(([id, info]) => [
@@ -38,7 +41,9 @@ leaderboardGroup.route(
             category: info.category ?? '',
             points: info.score ?? 0,
             solves: info.solves ?? 0,
-            firstSolvers: firstSolvers.get(id) ?? [],
+            firstSolvers: Array.from(firstSolvers.get(id) ?? []).map(id => ({
+              id,
+            })),
             sortWeight: info.sortWeight,
           },
         ])

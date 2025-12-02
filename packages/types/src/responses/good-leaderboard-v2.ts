@@ -12,7 +12,12 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
         name: z.string(),
         score: z.number().int(),
         avatarUrl: z.string().nullable(),
-        solves: z.array(z.string()), // array of challenge ids
+        solves: z.array(
+          z.object({
+            id: z.string(),
+            solveTime: z.number().int(),
+          })
+        ),
       })
     ),
     challenges: z.record(
@@ -26,7 +31,6 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
         firstSolvers: z.array(
           z.object({
             id: z.string(),
-            solveTime: z.number().int(),
           })
         ),
       })

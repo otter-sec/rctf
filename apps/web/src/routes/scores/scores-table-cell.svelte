@@ -72,6 +72,9 @@
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
       <p class="text-foreground-l3">{points} pts</p>
+      {#if solveTime}<p class="text-foreground-l3">
+          {formatLocalTime(solveTime)}
+        </p>{/if}
     </Tooltip.Content>
   </Tooltip.Root>
 {:else}

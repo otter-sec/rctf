@@ -9,7 +9,7 @@
     entry: LeaderboardEntry
     rank: number
     challenges: Challenge[]
-    solves: Set<string>
+    solves: Map<string, { id: string; solveTime: number }>
     isCurrentUser: boolean
     teamColWidth: number
     onHover?: () => void
@@ -83,7 +83,8 @@
 
   <div class="flex">
     {#each challenges as challenge, i}
-      {@const solved = solves.has(challenge.id)}
+      {@const solve = solves.get(challenge.id)}
+      {@const solved = !!solve}
       {@const bloodIndex =
         challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
       {@const prevCategory = challenges[i - 1]?.category}
@@ -91,10 +92,7 @@
       {@const isFirst = i === 0 || prevCategory !== challenge.category}
       {@const isLast =
         i === challenges.length - 1 || nextCategory !== challenge.category}
-      {@const solveTime =
-        bloodIndex >= 0 && bloodIndex < 3
-          ? challenge.firstSolvers?.[bloodIndex]?.solveTime
-          : undefined}
+      {@const solveTime = solve?.solveTime}
       <div
         class={cn(
           'flex h-16 w-12 items-center justify-center',

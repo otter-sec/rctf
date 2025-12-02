@@ -96,7 +96,7 @@
   })
 
   const solvesByTeam = $derived(
-    new Map(entries.map(e => [e.id, new Set(e.solves)]))
+    new Map(entries.map(e => [e.id, new Map(e.solves.map(s => [s.id, s]))]))
   )
 
   function handlePageChange(newPage: number) {

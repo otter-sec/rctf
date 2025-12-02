@@ -28,12 +28,11 @@ type SubmitResponseHelpers = ResponseHelpers<
   ]
 >
 
-type Blood = { id: string; name: string; solveTime: number }
-
+type LeaderboardSolve = { challengeId: string; solveTime: number }
 type SolvesAvatarsBloods = {
-  solves: Map<string, string[]>
+  solves: Map<string, LeaderboardSolve[]>
   avatars: Map<string, string | null>
-  firstSolvers: Map<string, Blood[]>
+  firstSolvers: Map<string, string[]>
 }
 
 export const getChallenges = async (
@@ -176,15 +175,20 @@ export const getSolvesAvatarsBloods = async (
     )
     .orderBy(asc(ranked.rank))
 
-  const solvesMap = new Map<string, string[]>(userIds.map(id => [id, []]))
+  const solvesMap = new Map<string, LeaderboardSolve[]>(
+    userIds.map(id => [id, []])
+  )
   const avatars = new Map<string, string | null>()
-  const firstSolvers = new Map<string, Blood[]>()
+  const firstSolvers = new Map<string, string[]>()
 
   for (const { userId, userName, avatar, challId, rank, createdAt } of rows) {
     // always save user info we requested
     if (userIdSet.has(userId)) {
       avatars.set(userId, avatars.get(userId) ?? avatar ?? null)
-      solvesMap.get(userId)!.push(challId)
+      solvesMap.get(userId)!.push({
+        challengeId: challId,
+        solveTime: new Date(createdAt).getTime(),
+      })
     }
 
     if (rank > numberOfBloods) {
@@ -192,11 +196,7 @@ export const getSolvesAvatarsBloods = async (
     }
 
     const bloods = firstSolvers.get(challId) ?? []
-    bloods.push({
-      id: userId,
-      name: userName,
-      solveTime: new Date(createdAt).getTime(),
-    })
+    bloods.push(userId)
     firstSolvers.set(challId, bloods)
   }
 

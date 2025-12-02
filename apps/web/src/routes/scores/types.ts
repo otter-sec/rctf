@@ -8,7 +8,7 @@ export interface Challenge {
   solves: number
   order: number
   config: ReturnType<typeof getCategoryConfig>
-  firstSolvers?: Array<{ id: string; solveTime?: number }>
+  firstSolvers?: Array<{ id: string }>
 }
 
 export interface CategoryGroup {
@@ -21,7 +21,10 @@ export interface LeaderboardEntry {
   id: string
   name: string
   score: number
-  solves: string[]
+  solves: {
+    id: string
+    solveTime: number
+  }[]
   avatarUrl?: string | null
 }
 
