@@ -28,7 +28,7 @@
 {#if bloodIndex === 0}
   <Tooltip.Root>
     <Tooltip.Trigger>
-      <IconCircleNumber1Filled class="size-7 text-foreground-first-l0" />
+      <IconCircleNumber1Filled class="size-7 text-foreground-gold-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
@@ -40,8 +40,8 @@
   </Tooltip.Root>
 {:else if bloodIndex === 1}
   <Tooltip.Root>
-      <Tooltip.Trigger>
-        <IconCircleNumber2Filled class="size-7 text-foreground-second-l0" />
+    <Tooltip.Trigger>
+      <IconCircleNumber2Filled class="size-7 text-foreground-silver-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>
@@ -54,7 +54,7 @@
 {:else if bloodIndex === 2}
   <Tooltip.Root>
     <Tooltip.Trigger>
-      <IconCircleNumber3Filled class="size-7 text-foreground-third-l0" />
+      <IconCircleNumber3Filled class="size-7 text-foreground-bronze-l0" />
     </Tooltip.Trigger>
     <Tooltip.Content side="top" sideOffset={4}>
       <p>{challengeName}</p>

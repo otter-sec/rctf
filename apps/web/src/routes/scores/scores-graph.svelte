@@ -61,9 +61,9 @@
   ])
 
   const medalColors: string[] = [
-    'var(--foreground-first-l0)',
-    'var(--foreground-second-l0)',
-    'var(--foreground-third-l0)',
+    'var(--foreground-gold-l0)',
+    'var(--foreground-silver-l0)',
+    'var(--foreground-bronze-l0)',
   ]
 
   const nonMedalColors: string[] = [
@@ -79,10 +79,7 @@
     'var(--foreground-tenth)',
   ]
 
-  const getTeamColor = (
-    index: number,
-    isContext: boolean = false
-  ): string => {
+  const getTeamColor = (index: number, isContext: boolean = false): string => {
     if (isContext) {
       return medalColors[index]!
     }

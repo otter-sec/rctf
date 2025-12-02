@@ -32,14 +32,14 @@
         !isFirstBlood &&
         'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent',
       isFirstBlood &&
-        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-first/50 dark:before:from-foreground-first-l0/20 before:to-transparent',
+        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-gold/50 dark:before:from-foreground-gold-l0/20 before:to-transparent',
       isSelected &&
         'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
     )}
   >
     {#if isFirstBlood}
       <IconAwardFilled
-        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-first-l0"
+        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-gold-l0"
       />
     {:else if isSolved}
       <IconCheck

@@ -9,22 +9,22 @@ export interface RankStyles {
 
 const rankStyleMap: Record<RankVariant, RankStyles> = {
   first: {
-    bg: 'bg-background-first',
-    fgL0: 'text-foreground-first-l0',
-    fgL1: 'text-foreground-first-l1',
-    gradient: 'after:from-foreground-first-l0/15',
+    bg: 'bg-background-gold',
+    fgL0: 'text-foreground-gold-l0',
+    fgL1: 'text-foreground-gold-l1',
+    gradient: 'after:from-foreground-gold-l0/15',
   },
   second: {
-    bg: 'bg-background-second',
-    fgL0: 'text-foreground-second-l0',
-    fgL1: 'text-foreground-second-l1',
-    gradient: 'after:from-foreground-second-l0/15',
+    bg: 'bg-background-silver',
+    fgL0: 'text-foreground-silver-l0',
+    fgL1: 'text-foreground-silver-l1',
+    gradient: 'after:from-foreground-silver-l0/15',
   },
   third: {
-    bg: 'bg-background-third',
-    fgL0: 'text-foreground-third-l0',
-    fgL1: 'text-foreground-third-l1',
-    gradient: 'after:from-foreground-third-l0/15',
+    bg: 'bg-background-bronze',
+    fgL0: 'text-foreground-bronze-l0',
+    fgL1: 'text-foreground-bronze-l1',
+    gradient: 'after:from-foreground-bronze-l0/15',
   },
   self: {
     bg: 'bg-background-self',
