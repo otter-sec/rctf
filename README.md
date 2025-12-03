@@ -126,7 +126,7 @@ rCTF v1 frontend with rCTF v2 backend:
 ### Todo v2
 
 - [x] avatars for all team endpoints
-- [ ] better file upload route
+- [x] better file upload route
 - [x] specific position in solves
 - [x] in solves list for a chal return also team's scoreboard position (global + division)
 - [ ] in global leaderboard return division positions

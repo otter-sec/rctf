@@ -3,7 +3,6 @@ import { dataUriToBuffer } from 'data-uri-to-buffer'
 import { uploadProvider } from '../../../../providers'
 import adminGroup from '../group'
 
-// TODO(es3n1n): We definitely need to have a v2 method to upload files without URIs.
 adminGroup.route(UploadFilesRoute, async ({ res, body }) => {
   let convertedFiles
   try {
