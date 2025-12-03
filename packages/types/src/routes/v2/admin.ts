@@ -5,7 +5,9 @@ import {
   BadPerms,
   BadToken,
   GoodChallengeUpdateV2,
+  GoodFilesUploadV2,
 } from '../../responses'
+import { FileFieldSchema } from '../../util';
 
 const AdminChallengeParams = z.object({
   id: z.string(),
@@ -44,4 +46,16 @@ export const UpdateChallengeRouteV2 = defineRoute({
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
+})
+
+export const UploadFilesRouteV2 = defineRoute({
+  path: '/v2/admin/upload',
+  method: 'POST',
+  body: z.object({
+    files: z.array(FileFieldSchema),
+  }),
+  responses: [GoodFilesUploadV2, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsWrite,
+  bodyFormat: 'form-data',
 })
