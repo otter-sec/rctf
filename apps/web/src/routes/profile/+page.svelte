@@ -1,9 +1,7 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
   import { useClientConfig, useCurrentUser } from '$lib/query'
-  import MembersCard from './members-card.svelte'
-  import ProfileSummary from './profile-summary.svelte'
-  import UpdateProfileCard from './update-profile-card.svelte'
+  import { MembersCard, ProfileSummary, UpdateProfileCard } from './_components'
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()

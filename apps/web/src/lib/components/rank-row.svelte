@@ -12,6 +12,8 @@
     subtitle?: string
     primaryValue?: string
     secondaryValue?: string
+    division?: string
+    divisionPlace?: number
     children?: Snippet
     class?: string
   }
@@ -24,9 +26,15 @@
     subtitle,
     primaryValue,
     secondaryValue,
+    division,
+    divisionPlace,
     children,
     class: className,
   }: Props = $props()
+
+  const divisionLabel = $derived(
+    division && divisionPlace ? `${division} · #${divisionPlace}` : undefined
+  )
 
   const styles = $derived(getRankStyles(variant))
 </script>
@@ -67,9 +75,9 @@
       </span>
     {/if}
 
-    {#if subtitle}
+    {#if subtitle || divisionLabel}
       <span class={cn('truncate text-base', styles.fgL1)}>
-        {subtitle}
+        {subtitle ?? divisionLabel}
       </span>
     {/if}
   </div>

@@ -14,13 +14,11 @@
     Tooltip,
   } from '$lib/components'
   import {
-    IconBell,
     IconChartBar,
     IconCopy,
     IconHammer,
     IconLogin,
     IconLogout,
-    IconSettings,
     IconSwords,
     IconUserCog,
   } from '$lib/icons'
@@ -128,10 +126,6 @@
             Manage team
             <IconUserCog class="ml-auto size-5" />
           </DropdownMenu.Item>
-          <DropdownMenu.Item onclick={() => goto('/preferences')}>
-            Preferences
-            <IconSettings class="ml-auto size-5" />
-          </DropdownMenu.Item>
           <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={handleLogout}>
             Log out
@@ -139,17 +133,6 @@
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>
-
-      <!-- <Tooltip.Root>
-        <Tooltip.Trigger>
-          <ButtonNavigation href="#">
-            {#snippet icon({ class: className })}
-              <IconBell class={className} />
-            {/snippet}
-          </ButtonNavigation>
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>Notifications</Tooltip.Content>
-      </Tooltip.Root> -->
     {:else}
       <Tooltip.Root>
         <Tooltip.Trigger>

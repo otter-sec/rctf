@@ -2,7 +2,7 @@
   import { isAuthenticated } from '$lib'
   import { Button, Card } from '$lib/components'
   import { useChallenges } from '$lib/query'
-  import Root from './challenge-root.svelte'
+  import { Root } from './_components'
 
   const challengesQuery = useChallenges()
   const challenges = $derived($challengesQuery.data)

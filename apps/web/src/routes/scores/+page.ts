@@ -2,11 +2,10 @@ import {
   leaderboardGraphQueryOptions,
   leaderboardQueryOptions,
 } from '$lib/query'
+import { PAGE_SIZE } from './_lib'
 import type { PageLoad } from './$types'
 
 export const ssr = false
-
-const PAGE_SIZE = 10
 
 export const load: PageLoad = async ({ parent }) => {
   const { queryClient } = await parent()

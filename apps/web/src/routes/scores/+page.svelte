@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Scores from './scores.svelte'
+  import { ScoresRoot } from './_components'
 </script>
 
 <div class="flex flex-col gap-6">
-  <Scores />
+  <ScoresRoot />
 </div>
