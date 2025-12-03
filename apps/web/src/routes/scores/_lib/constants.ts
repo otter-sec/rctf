@@ -7,6 +7,7 @@ export const layout = {
   gap: 4,
   padding: 16,
   nameRowHeight: 128,
+  selfRowHeight: 80,
   headerHeight: 190,
   diagonal: {
     maxTextWidth: 150,

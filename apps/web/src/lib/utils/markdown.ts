@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify'
 import { marked, type TokenizerAndRendererExtension } from 'marked'
 
 export type AlertType =
@@ -69,4 +70,6 @@ function isAlertType(value: string): value is AlertType {
 marked.use({ extensions: [alertExtension] })
 
 export const parseMarkdown = (content: string) =>
-  marked.parse(content) as string
+  DOMPurify.sanitize(marked.parse(content) as string, {
+    ADD_ATTR: ['data-alert', 'data-type', 'data-content', 'data-parsed'],
+  })

@@ -1,5 +1,7 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
+  import { page as pageState } from '$app/state'
   import { toast } from '$lib'
   import { Spinner } from '$lib/components'
   import { leaderboardQueryOptions, useLeaderboard } from '$lib/query'
@@ -10,9 +12,40 @@
 
   const queryClient = useQueryClient()
 
-  let page = $state(1)
-  let sortMode = $state<SortMode>('category')
-  let viewMode = $state<ViewMode>('zoomer')
+  const page = $derived.by(() => {
+    const raw = pageState.url.searchParams.get('page')
+    if (!raw) return 1
+    const n = parseInt(raw, 10)
+    return isNaN(n) || n < 1 ? 1 : n
+  })
+
+  const sortMode = $derived.by(() => {
+    const raw = pageState.url.searchParams.get('sort')
+    return (raw === 'solves' ? 'solves' : 'category') as SortMode
+  })
+
+  const viewMode = $derived.by(() => {
+    const raw = pageState.url.searchParams.get('view')
+    return (raw === 'boomer' ? 'boomer' : 'zoomer') as ViewMode
+  })
+
+  function setUrlParam(
+    key: string,
+    value: string | number,
+    defaultValue: string | number
+  ) {
+    const url = new URL(pageState.url)
+    if (value === defaultValue) {
+      url.searchParams.delete(key)
+    } else {
+      url.searchParams.set(key, String(value))
+    }
+    goto(url.toString(), {
+      replaceState: true,
+      keepFocus: true,
+      noScroll: true,
+    })
+  }
 
   const query = $derived(
     useLeaderboard({
@@ -25,8 +58,19 @@
   const data = $derived($query.data)
   const entries = $derived(data?.leaderboard ?? [])
   const challengesData = $derived(data?.challenges ?? {})
-  const totalPages = $derived(Math.ceil((data?.total ?? 0) / PAGE_SIZE))
   const isRefetching = $derived($query.isFetching && !$query.isPending)
+
+  let lastKnownTotalPages = $state(1)
+  $effect(() => {
+    if (data?.total !== undefined) {
+      lastKnownTotalPages = Math.ceil(data.total / PAGE_SIZE)
+    }
+  })
+  const totalPages = $derived(
+    data?.total !== undefined
+      ? Math.ceil(data.total / PAGE_SIZE)
+      : lastKnownTotalPages
+  )
 
   $effect(() => {
     for (const p of [page - 1, page + 1]) {
@@ -56,9 +100,9 @@
     {isRefetching}
     {sortMode}
     {viewMode}
-    onPageChange={p => (page = p)}
-    onSortChange={m => (sortMode = m)}
-    onViewChange={m => (viewMode = m)}
+    onPageChange={p => setUrlParam('page', p, 1)}
+    onSortChange={m => setUrlParam('sort', m, 'category')}
+    onViewChange={m => setUrlParam('view', m, 'zoomer')}
   />
 
   <div class={cn('relative', $query.isFetching && 'opacity-50')}>

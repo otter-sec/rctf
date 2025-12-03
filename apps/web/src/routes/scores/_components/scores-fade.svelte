@@ -5,20 +5,24 @@
     teamColWidth: number
     headerHeight: number
     fadeSize: number
+    bottomOffset?: number
     showTopFade: boolean
     showBottomFade: boolean
     showLeftFade: boolean
     showRightFade: boolean
+    showSelfRow?: boolean
   }
 
   let {
     teamColWidth,
     headerHeight,
     fadeSize,
+    bottomOffset = 0,
     showTopFade,
     showBottomFade,
     showLeftFade,
     showRightFade,
+    showSelfRow = false,
   }: Props = $props()
 
   type Fade = {
@@ -45,8 +49,8 @@
     },
     {
       show: showBottomFade,
-      class: 'bottom-0 left-0 bg-linear-to-t from-background-l0 to-transparent',
-      style: `width:${teamColWidth}px;height:${fadeSize}px`,
+      class: 'left-0 bg-linear-to-t from-background-l0 to-transparent',
+      style: `bottom:${bottomOffset}px;width:${teamColWidth}px;height:${fadeSize}px`,
     },
     {
       show: showTopFade,
@@ -55,20 +59,28 @@
     },
     {
       show: showBottomFade,
-      class:
-        'right-0 bottom-0 bg-linear-to-t from-background-l0 to-transparent',
-      style: `left:${teamColWidth}px;height:${fadeSize}px`,
+      class: 'right-0 bg-linear-to-t from-background-l0 to-transparent',
+      style: `bottom:${bottomOffset}px;left:${teamColWidth}px;height:${fadeSize}px`,
     },
     {
       show: showLeftFade,
-      class: 'bottom-0 bg-linear-to-r from-background-l0 to-transparent',
-      style: `left:${teamColWidth}px;top:${headerHeight}px;width:${fadeSize}px`,
+      class: 'bg-linear-to-r from-background-l0 to-transparent',
+      style: `bottom:${bottomOffset}px;left:${teamColWidth}px;top:${headerHeight}px;width:${fadeSize}px`,
     },
     {
       show: showRightFade,
-      class:
-        'right-0 bottom-0 bg-linear-to-l from-background-l0 to-transparent',
-      style: `top:${headerHeight}px;width:${fadeSize}px`,
+      class: 'right-0 bg-linear-to-l from-background-l0 to-transparent',
+      style: `bottom:${bottomOffset}px;top:${headerHeight}px;width:${fadeSize}px`,
+    },
+    {
+      show: showLeftFade && showSelfRow,
+      class: 'bg-linear-to-r from-background-l0 to-transparent',
+      style: `bottom:0;left:${teamColWidth}px;height:${bottomOffset}px;width:${fadeSize}px`,
+    },
+    {
+      show: showRightFade && showSelfRow,
+      class: 'right-0 bg-linear-to-l from-background-l0 to-transparent',
+      style: `bottom:0;height:${bottomOffset}px;width:${fadeSize}px`,
     },
   ])
 </script>

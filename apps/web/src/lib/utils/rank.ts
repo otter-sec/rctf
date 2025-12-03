@@ -30,6 +30,7 @@ const rankStyleMap: Record<RankVariant, RankStyles> = {
     bg: 'bg-background-self',
     fgL0: 'text-foreground-self-l0',
     fgL1: 'text-foreground-self-l1',
+    gradient: 'after:from-foreground-self-l0/25',
   },
   nth: {
     bg: 'bg-background-nth',

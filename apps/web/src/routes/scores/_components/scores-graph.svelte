@@ -1,6 +1,10 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
-  import { useLeaderboardGraph } from '$lib/query'
+  import {
+    useCurrentUser,
+    useLeaderboardGraph,
+    useSelfUserGraph,
+  } from '$lib/query'
   import {
     formatLocalTime,
     formatRelativeHours,
@@ -15,6 +19,7 @@
     Spline,
     Tooltip,
   } from 'layerchart'
+  import { PAGE_SIZE } from '../_lib'
 
   interface Props {
     class?: string
@@ -27,6 +32,21 @@
     hoveredTeamId = null,
     offset = 0,
   }: Props = $props()
+
+  const userQuery = useCurrentUser()
+  const currentUser = $derived($userQuery.data)
+  const globalPlace = $derived(currentUser?.globalPlace ?? null)
+
+  const selfIsOnCurrentPage = $derived.by(() => {
+    if (!globalPlace) return true
+    const startRank = offset + 1
+    const endRank = offset + PAGE_SIZE
+    return globalPlace >= startRank && globalPlace <= endRank
+  })
+
+  const selfGraphQuery = $derived(
+    useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace)
+  )
 
   const graphQuery = $derived(
     useLeaderboardGraph({ limit: 10, offset, division: 'open' })
@@ -54,15 +74,23 @@
     'var(--foreground-tenth)',
   ] as const
 
+  const SELF_COLOR = 'var(--foreground-self-l0)'
+
   // TODO(enscribe): Remove cutoff filter
   const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
 
   type GraphEntry = NonNullable<typeof $graphQuery.data>[number]
-  type TeamMeta = { index: number; color: string; isContext: boolean }
+  type TeamMeta = {
+    index: number
+    color: string
+    isContext: boolean
+    isSelf: boolean
+  }
 
   const processedData = $derived.by(() => {
     const rawGraph = $graphQuery.data ?? []
     const rawTop3 = offset > 0 ? ($top3Query.data ?? []) : []
+    const selfGraphData = $selfGraphQuery.data
 
     const filterByTime = (entries: GraphEntry[]) =>
       entries
@@ -85,21 +113,45 @@
         index: i,
         color: MEDAL_COLORS[i]!,
         isContext: true,
+        isSelf: false,
       })
     })
 
     mainTeams.forEach((team, i) => {
       const useMedal = offset === 0 && i < 3
+      const isSelf = currentUser?.id === team.id
       teamMeta.set(team.id, {
         index: i,
-        color: useMedal
-          ? MEDAL_COLORS[i]!
-          : RANK_COLORS[i % RANK_COLORS.length]!,
+        color: isSelf
+          ? SELF_COLOR
+          : useMedal
+            ? MEDAL_COLORS[i]!
+            : RANK_COLORS[i % RANK_COLORS.length]!,
         isContext: false,
+        isSelf,
       })
     })
 
-    const allTeams = [...uniqueContextTeams, ...mainTeams]
+    let allTeams = [...uniqueContextTeams, ...mainTeams]
+
+    if (
+      selfGraphData &&
+      !mainIds.has(selfGraphData.id) &&
+      !selfIsOnCurrentPage
+    ) {
+      const filteredSelf = filterByTime([selfGraphData])
+      if (filteredSelf.length > 0) {
+        const selfEntry = filteredSelf[0]!
+        teamMeta.set(selfEntry.id, {
+          index: -1,
+          color: SELF_COLOR,
+          isContext: false,
+          isSelf: true,
+        })
+        allTeams = [...allTeams, selfEntry]
+      }
+    }
+
     const flatPoints = allTeams.flatMap(team => {
       const meta = teamMeta.get(team.id)!
       return team.points
@@ -153,10 +205,11 @@
 
         {#each dataByTeam as [teamId, points]}
           {@const meta = teamMeta.get(teamId)!}
-          {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId}
+          {@const isDimmed =
+            hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
           <Spline
             data={points}
-            class="stroke-2"
+            class={meta.isSelf ? 'stroke-3' : 'stroke-2'}
             stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
             style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}"
           />
