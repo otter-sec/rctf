@@ -18,6 +18,7 @@
   import Fade from './scores-fade.svelte'
   import Header from './scores-header.svelte'
   import Row from './scores-row.svelte'
+  import SelfRow from './scores-self-row.svelte'
   import Tooltip from './scores-tooltip.svelte'
 
   interface Props {
@@ -39,6 +40,27 @@
   }: Props = $props()
 
   const userQuery = useCurrentUser()
+  const currentUser = $derived($userQuery.data)
+  const globalPlace = $derived(currentUser?.globalPlace ?? null)
+
+  const selfIsOnCurrentPage = $derived.by(() => {
+    if (!globalPlace) return true
+    const startRank = (page - 1) * PAGE_SIZE + 1
+    const endRank = page * PAGE_SIZE
+    return globalPlace >= startRank && globalPlace <= endRank
+  })
+
+  const showSelfRow = $derived(
+    currentUser && globalPlace && !selfIsOnCurrentPage
+  )
+
+  const selfSolves = $derived.by(() => {
+    if (!currentUser)
+      return new Map<string, { id: string; solveTime: number }>()
+    return new Map(
+      currentUser.solves.map(s => [s.id, { id: s.id, solveTime: s.createdAt }])
+    )
+  })
 
   let viewportRef = $state<HTMLElement | null>(null)
   let showTopFade = $state(false)
@@ -107,10 +129,12 @@
       teamColWidth={layout.teamColumn}
       headerHeight={layout.headerHeight}
       fadeSize={FADE_SIZE}
+      bottomOffset={showSelfRow ? layout.selfRowHeight : 0}
       {showTopFade}
       {showBottomFade}
       {showLeftFade}
       {showRightFade}
+      showSelfRow={!!showSelfRow}
     />
 
     <ScrollArea
@@ -156,13 +180,32 @@
               solves={solvesByTeam.get(entry.id)!}
               {sortMode}
               {viewMode}
-              isCurrentUser={$userQuery.data?.id === entry.id}
+              isCurrentUser={currentUser?.id === entry.id}
               teamColWidth={layout.teamColumn}
               onHover={() => (hoveredTeamId = entry.id)}
               onCellHover={handleCellHover}
             />
           {/each}
         </div>
+
+        {#if showSelfRow && currentUser && globalPlace && !isFetching}
+          <div
+            class="sticky bottom-0 z-20 bg-background-l0/95 pt-2 pb-2 backdrop-blur-sm"
+          >
+            <SelfRow
+              user={currentUser}
+              rank={globalPlace}
+              {challenges}
+              {categoryGroups}
+              solves={selfSolves}
+              {sortMode}
+              {viewMode}
+              teamColWidth={layout.teamColumn}
+              onHover={() => (hoveredTeamId = currentUser.id)}
+              onCellHover={handleCellHover}
+            />
+          </div>
+        {/if}
       </div>
     </ScrollArea>
   </div>

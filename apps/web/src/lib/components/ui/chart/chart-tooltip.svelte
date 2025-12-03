@@ -37,7 +37,7 @@
     hideIndicator?: boolean
     labelClassName?: string
     labelFormatter?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((value: any, payload: TooltipPayload[]) => string | number | Snippet)
+      | ((value: any, payload: TooltipPayload[]) => string | number | Snippet)
       | null
     formatter?: Snippet<
       [

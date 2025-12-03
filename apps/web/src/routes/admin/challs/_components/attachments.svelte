@@ -11,7 +11,7 @@
     onFilesChange: (files: { name: string; url: string }[]) => void
   }
 
-  let { files = $bindable(), isDisabled, onFilesChange }: Props = $props()
+  let { files, isDisabled, onFilesChange }: Props = $props()
 
   const uploadMutation = useUploadFilesMutation()
 
@@ -35,9 +35,7 @@
       {
         onSuccess: response => {
           if (response.kind === GoodFilesUpload.kind) {
-            const newFiles = [...files, ...response.data]
-            files = newFiles
-            onFilesChange(newFiles)
+            onFilesChange([...files, ...response.data])
             toast.success(`${response.data.length} file(s) uploaded!`)
           } else {
             toast.error(response.message)
@@ -53,9 +51,7 @@
   }
 
   function removeFile(index: number) {
-    const newFiles = files.filter((_, i) => i !== index)
-    files = newFiles
-    onFilesChange(newFiles)
+    onFilesChange(files.filter((_, i) => i !== index))
   }
 </script>
 
