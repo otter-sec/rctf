@@ -25,6 +25,9 @@ FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Symlinks :(
+RUN bun install --frozen-lockfile
+
 ENV NODE_ENV=production
 RUN bun run build
 
