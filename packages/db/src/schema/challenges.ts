@@ -8,6 +8,7 @@ export interface ChallengePoints {
 export interface ChallengeFile {
   name: string
   url: string
+  size: number
 }
 
 export interface ChallengeData {

@@ -5,6 +5,7 @@ export * from './v1/integrations'
 export * from './v1/leaderboard'
 export * from './v1/users'
 
+export * from './v2/admin'
 export * from './v2/users'
 export * from './v2/leaderboard'
 export * from './v2/challenges'
