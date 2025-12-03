@@ -37,6 +37,7 @@ export * from './bad-flag'
 export * from './bad-not-started'
 export * from './good-challenge-solves'
 export * from './good-challenges'
+export * from './good-challenges-v2'
 export * from './good-flag'
 
 // users
@@ -81,3 +82,4 @@ export * from './good-user-self-data-v2'
 export * from './good-user-update-v2'
 export * from './good-leaderboard-v2'
 export * from './good-challenge-solves-v2'
+export * from './good-challenge-update-v2'

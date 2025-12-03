@@ -128,13 +128,13 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] avatars for all team endpoints
 - [ ] better file upload route
 - [x] specific position in solves
-- [ ] in solves list for a chal return also team's scoreboard position (global + division)
+- [x] in solves list for a chal return also team's scoreboard position (global + division)
 - [ ] in global leaderboard return division positions
 - [ ] delete a solve (admin only)
 - [ ] resetting teams token (admin only)
 - [ ] update client config (admin only)
 - [ ] send prize emails (admin only)
-- [ ] file sizes
+- [x] file sizes
 
 - [ ] instancer integration
 - [ ] admin bot integration

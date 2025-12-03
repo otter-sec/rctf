@@ -6,8 +6,19 @@ import {
   BadChallenge,
   BadNotStarted,
   BadToken,
+  GoodChallengesV2,
   GoodChallengeSolvesV2,
 } from '../../responses'
+
+// TODO(es3n1n): i dont like the idea of loginwalling challenges
+export const GetChallengesRouteV2 = defineRoute({
+  path: '/v2/challs',
+  method: 'GET',
+  responses: [GoodChallengesV2, BadNotStarted, BadToken],
+  authRequired: true,
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
 
 export const GetChallengeSolvesRouteV2 = defineRoute({
   path: '/v2/challs/:id/solves',
