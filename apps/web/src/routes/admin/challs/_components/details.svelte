@@ -24,7 +24,9 @@
 
   interface Props {
     snapshot: SnapshotFrom<typeof editorMachine>
-    send: (event: Parameters<SnapshotFrom<typeof editorMachine>['can']>[0]) => void
+    send: (
+      event: Parameters<SnapshotFrom<typeof editorMachine>['can']>[0]
+    ) => void
   }
 
   let { snapshot, send }: Props = $props()
@@ -106,8 +108,12 @@
       {
         onSuccess: response => {
           if (response.kind === GoodChallengeUpdate.kind) {
-            toast.success(isCreating ? 'Challenge created!' : 'Challenge saved!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+            toast.success(
+              isCreating ? 'Challenge created!' : 'Challenge saved!'
+            )
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.adminChallenges,
+            })
             if (challenge?.id) {
               queryClient.invalidateQueries({
                 queryKey: queryKeys.adminChallenge(challenge.id),
@@ -157,7 +163,9 @@
         onSuccess: response => {
           if (response.kind === GoodChallengeDelete.kind) {
             toast.success('Challenge deleted!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.adminChallenges,
+            })
             send({ type: 'DELETE_SUCCESS' })
           } else {
             toast.error(response.message)
@@ -186,7 +194,9 @@
             </h2>
             <div class="flex items-center gap-2 text-foreground-l3 text-base">
               <span>by {form.author || 'Unknown'}</span>
-              <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
+              <span class="text-foreground-l5 opacity-50 text-2xl leading-none"
+                >·</span
+              >
               <div class="flex gap-1">
                 {#if form.category}
                   <span
@@ -197,7 +207,9 @@
                     {categoryConfig.name}
                   </span>
                 {:else}
-                  <span class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm">
+                  <span
+                    class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm"
+                  >
                     No category
                   </span>
                 {/if}
@@ -248,7 +260,9 @@
         </ScrollArea>
       </div>
 
-      <div class="flex items-center justify-between gap-4 bg-background-l1 px-5 py-4">
+      <div
+        class="flex items-center justify-between gap-4 bg-background-l1 px-5 py-4"
+      >
         {#if isEditMode}
           <div class="flex items-center gap-3">
             {#if !isCreating && challenge}
@@ -269,10 +283,20 @@
             {/if}
           </div>
           <div class="flex items-center gap-3">
-            <Button type="button" variant="outline" size="lg" onclick={() => send({ type: 'CANCEL' })}>
+            <Button
+              type="button"
+              variant="outline"
+              size="lg"
+              onclick={() => send({ type: 'CANCEL' })}
+            >
               Cancel
             </Button>
-            <Button type="button" size="lg" onclick={handleSave} disabled={isUpdating}>
+            <Button
+              type="button"
+              size="lg"
+              onclick={handleSave}
+              disabled={isUpdating}
+            >
               {#if isUpdating}
                 <Spinner class="size-5" />
               {/if}
@@ -281,7 +305,11 @@
           </div>
         {:else if hasWritePerms}
           <div></div>
-          <Button type="button" size="lg" onclick={() => send({ type: 'EDIT' })}>
+          <Button
+            type="button"
+            size="lg"
+            onclick={() => send({ type: 'EDIT' })}
+          >
             <IconPencilFilled class="size-5" />
             Edit challenge
           </Button>

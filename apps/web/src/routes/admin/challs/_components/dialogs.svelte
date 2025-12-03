@@ -37,7 +37,10 @@
   }: Props = $props()
 </script>
 
-<Dialog.Root open={showUnsavedDialog} onOpenChange={open => !open && onCancelDiscard()}>
+<Dialog.Root
+  open={showUnsavedDialog}
+  onOpenChange={open => !open && onCancelDiscard()}
+>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
@@ -58,7 +61,10 @@
   </Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root open={showPreviewDialog} onOpenChange={open => !open && onClosePreview()}>
+<Dialog.Root
+  open={showPreviewDialog}
+  onOpenChange={open => !open && onClosePreview()}
+>
   <Dialog.Content class="sm:max-w-2xl max-h-[80vh] flex flex-col">
     <Dialog.Header>
       <Dialog.Title>Description preview</Dialog.Title>
@@ -85,7 +91,10 @@
   </Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root open={showDeleteDialog} onOpenChange={open => !open && onDeleteCancel()}>
+<Dialog.Root
+  open={showDeleteDialog}
+  onOpenChange={open => !open && onDeleteCancel()}
+>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">

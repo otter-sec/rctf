@@ -227,10 +227,7 @@ export const editorMachine = setup({
             guard: 'hasUnsavedChanges',
             target: 'confirmDiscard',
             actions: assign(({ event }) => ({
-              pendingAction:
-                event.type === 'SELECT'
-                  ? () => {}
-                  : null,
+              pendingAction: event.type === 'SELECT' ? () => {} : null,
             })),
           },
           {
@@ -259,7 +256,11 @@ export const editorMachine = setup({
             actions: 'storePendingAction',
           },
           {
-            actions: ['storePendingAction', 'executePendingAction', 'clearPendingAction'],
+            actions: [
+              'storePendingAction',
+              'executePendingAction',
+              'clearPendingAction',
+            ],
           },
         ],
       },
@@ -290,10 +291,7 @@ export const editorMachine = setup({
             guard: 'hasUnsavedChanges',
             target: 'confirmDiscard',
             actions: assign(({ event }) => ({
-              pendingAction:
-                event.type === 'SELECT'
-                  ? () => {}
-                  : null,
+              pendingAction: event.type === 'SELECT' ? () => {} : null,
             })),
           },
           {
@@ -319,7 +317,11 @@ export const editorMachine = setup({
             actions: 'storePendingAction',
           },
           {
-            actions: ['storePendingAction', 'executePendingAction', 'clearPendingAction'],
+            actions: [
+              'storePendingAction',
+              'executePendingAction',
+              'clearPendingAction',
+            ],
           },
         ],
       },
@@ -349,10 +351,7 @@ export const editorMachine = setup({
             guard: 'hasUnsavedChanges',
             target: 'confirmDiscard',
             actions: assign(({ event }) => ({
-              pendingAction:
-                event.type === 'SELECT'
-                  ? () => {}
-                  : null,
+              pendingAction: event.type === 'SELECT' ? () => {} : null,
             })),
           },
           {
@@ -367,7 +366,11 @@ export const editorMachine = setup({
             actions: 'storePendingAction',
           },
           {
-            actions: ['storePendingAction', 'executePendingAction', 'clearPendingAction'],
+            actions: [
+              'storePendingAction',
+              'executePendingAction',
+              'clearPendingAction',
+            ],
           },
         ],
       },
@@ -385,7 +388,11 @@ export const editorMachine = setup({
       on: {
         DISCARD: {
           target: 'idle',
-          actions: ['executePendingAction', 'clearPendingAction', 'resetToEmpty'],
+          actions: [
+            'executePendingAction',
+            'clearPendingAction',
+            'resetToEmpty',
+          ],
         },
         KEEP_EDITING: [
           {
@@ -417,4 +424,3 @@ export const editorMachine = setup({
     },
   },
 })
-

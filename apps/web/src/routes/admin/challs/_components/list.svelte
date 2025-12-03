@@ -1,8 +1,18 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import type { AdminChallenge } from '$lib/api'
-  import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
-  import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
+  import {
+    Accordion,
+    EmptyState,
+    ScrollArea,
+    SearchInput,
+    Tooltip,
+  } from '$lib/components'
+  import {
+    IconFold,
+    IconLibraryPlusFilled,
+    IconZoomQuestionFilled,
+  } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
   import {
     cn,
@@ -120,7 +130,11 @@
 
     <div class="px-5">
       <div class="flex gap-1 overflow-hidden rounded-full">
-        <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
+        <SearchInput
+          value={searchQuery}
+          onInput={q => (searchQuery = q)}
+          class="py-2"
+        />
         <Tooltip.Root disableCloseOnTriggerClick>
           <Tooltip.Trigger
             onclick={collapseAll}
@@ -160,7 +174,12 @@
         subtitle={emptySubtitle}
       />
     {:else}
-      <Accordion.Root type="multiple" value={openCategories} onValueChange={handleCategoryToggle} class="pb-4">
+      <Accordion.Root
+        type="multiple"
+        value={openCategories}
+        onValueChange={handleCategoryToggle}
+        class="pb-4"
+      >
         {#each groups as [category, entries] (category)}
           {@const config = getCategoryConfig(category)}
           {@const catStyle = getCategoryStyle(config.color)}

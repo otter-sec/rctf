@@ -1,7 +1,7 @@
 <script lang="ts">
+  import { useMachine } from '@xstate/svelte'
   import { Resizable } from '$lib/components'
   import { useAdminChallenges } from '$lib/query'
-  import { useMachine } from '@xstate/svelte'
   import Details from './details.svelte'
   import { editorMachine } from './editor-machine'
   import List from './list.svelte'
@@ -12,7 +12,7 @@
   const { snapshot, send } = useMachine(editorMachine)
 
   const selectedId = $derived(
-    $snapshot.matches('idle') ? null : $snapshot.context.challenge?.id ?? null
+    $snapshot.matches('idle') ? null : ($snapshot.context.challenge?.id ?? null)
   )
 
   const isCreatingNew = $derived($snapshot.matches('creating'))
