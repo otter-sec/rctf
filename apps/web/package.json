@@ -16,8 +16,10 @@
     "@rctf/types": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
     "@types/d3-array": "^3.2.2",
+    "@xstate/svelte": "^5.0.0",
     "d3-array": "^3.2.4",
-    "marked": "^17.0.1"
+    "marked": "^17.0.1",
+    "xstate": "^5.24.0"
   },
   "devDependencies": {
     "@iconify-svelte/tabler": "^1.0.0",

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Checkbox, Field, Input, Textarea } from '$lib/components'
   import { IconEyeFilled } from '$lib/icons'
-  import Attachments from './admin-chall-attachments.svelte'
+  import Attachments from './attachments.svelte'
 
   interface Props {
     name: string
@@ -17,26 +17,44 @@
     isDisabled: boolean
     onShowPreview: () => void
     onFilesChange: (files: { name: string; url: string }[]) => void
+    onNameChange: (value: string) => void
+    onCategoryChange: (value: string) => void
+    onAuthorChange: (value: string) => void
+    onDescriptionChange: (value: string) => void
+    onFlagChange: (value: string) => void
+    onPointsMinChange: (value: number) => void
+    onPointsMaxChange: (value: number) => void
+    onTiebreakEligibleChange: (value: boolean) => void
+    onSortWeightChange: (value: number) => void
   }
 
   let {
-    name = $bindable(),
-    category = $bindable(),
-    author = $bindable(),
-    description = $bindable(),
-    flag = $bindable(),
-    pointsMin = $bindable(),
-    pointsMax = $bindable(),
-    tiebreakEligible = $bindable(),
-    sortWeight = $bindable(),
-    files = $bindable(),
+    name,
+    category,
+    author,
+    description,
+    flag,
+    pointsMin,
+    pointsMax,
+    tiebreakEligible,
+    sortWeight,
+    files,
     isDisabled,
     onShowPreview,
     onFilesChange,
+    onNameChange,
+    onCategoryChange,
+    onAuthorChange,
+    onDescriptionChange,
+    onFlagChange,
+    onPointsMinChange,
+    onPointsMaxChange,
+    onTiebreakEligibleChange,
+    onSortWeightChange,
   }: Props = $props()
 </script>
 
-<div class="flex flex-col gap-6">
+<div class="flex flex-col gap-4">
   <div
     class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
   >
@@ -53,7 +71,8 @@
             placeholder="Challenge name"
             class="bg-background-l4"
             required
-            bind:value={name}
+            value={name}
+            oninput={e => onNameChange(e.currentTarget.value)}
             disabled={isDisabled}
           />
         </Field.Field>
@@ -66,7 +85,8 @@
             placeholder="web, pwn, crypto, etc."
             class="bg-background-l4"
             required
-            bind:value={category}
+            value={category}
+            oninput={e => onCategoryChange(e.currentTarget.value)}
             disabled={isDisabled}
           />
         </Field.Field>
@@ -80,7 +100,8 @@
           placeholder="Challenge author"
           class="bg-background-l4"
           required
-          bind:value={author}
+          value={author}
+          oninput={e => onAuthorChange(e.currentTarget.value)}
           disabled={isDisabled}
         />
       </Field.Field>
@@ -93,7 +114,8 @@
           class="bg-background-l4"
           rows={8}
           required
-          bind:value={description}
+          value={description}
+          oninput={e => onDescriptionChange(e.currentTarget.value)}
           disabled={isDisabled}
         />
         <div class="flex items-center justify-between">
@@ -114,7 +136,7 @@
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <div
       class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
     >
@@ -130,7 +152,8 @@
             placeholder={'flag{...}'}
             class="font-mono bg-background-l4"
             required
-            bind:value={flag}
+            value={flag}
+            oninput={e => onFlagChange(e.currentTarget.value)}
             disabled={isDisabled}
           />
         </Field.Field>
@@ -144,7 +167,8 @@
               class="bg-background-l4"
               min={0}
               required
-              bind:value={pointsMin}
+              value={pointsMin}
+              oninput={e => onPointsMinChange(Number(e.currentTarget.value))}
               disabled={isDisabled}
             />
             <Field.Description>At max solves</Field.Description>
@@ -158,7 +182,8 @@
               class="bg-background-l4"
               min={0}
               required
-              bind:value={pointsMax}
+              value={pointsMax}
+              oninput={e => onPointsMaxChange(Number(e.currentTarget.value))}
               disabled={isDisabled}
             />
             <Field.Description>At zero solves</Field.Description>
@@ -172,7 +197,8 @@
               id="sortWeight"
               type="number"
               class="bg-background-l4"
-              bind:value={sortWeight}
+              value={sortWeight}
+              oninput={e => onSortWeightChange(Number(e.currentTarget.value))}
               disabled={isDisabled}
             />
             <Field.Description>Higher = first</Field.Description>
@@ -181,7 +207,8 @@
           <div class="flex items-center gap-2 pt-6">
             <Checkbox
               id="tiebreakEligible"
-              bind:checked={tiebreakEligible}
+              checked={tiebreakEligible}
+              onCheckedChange={v => onTiebreakEligibleChange(v === true)}
               disabled={isDisabled}
             />
             <label for="tiebreakEligible" class="text-sm"

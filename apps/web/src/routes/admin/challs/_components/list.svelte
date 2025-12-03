@@ -1,14 +1,17 @@
 <script lang="ts">
+  import { Permissions } from '@rctf/types'
   import type { AdminChallenge } from '$lib/api'
-  import { Accordion, EmptyState, ScrollArea } from '$lib/components'
-  import { IconZoomQuestionFilled } from '$lib/icons'
+  import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
+  import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
+  import { useCurrentUser } from '$lib/query'
   import {
+    cn,
     getCategoryConfig,
     getCategoryOrder,
     getCategoryStyle,
   } from '$lib/utils'
-  import Header from './admin-chall-list-header.svelte'
-  import Item from './admin-chall-list-item.svelte'
+  import { hasPermissions } from '$lib/utils/permissions'
+  import Item from './list-item.svelte'
 
   interface Props {
     challenges: AdminChallenge[]
@@ -21,9 +24,11 @@
   let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props =
     $props()
 
+  const userQuery = useCurrentUser()
+  const user = $derived($userQuery.data)
+  const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
+
   let searchQuery = $state('')
-  let openCategories = $state<string[]>([])
-  let hasInitialized = $state(false)
 
   const filteredChallenges = $derived.by(() => {
     if (!searchQuery.trim()) return challenges
@@ -58,40 +63,94 @@
     })
   })
 
+  const allCategoryNames = $derived(groups.map(([cat]) => cat))
+
+  let userCollapsedCategories = $state<Set<string>>(new Set())
+
+  const openCategories = $derived(
+    searchQuery.trim()
+      ? allCategoryNames
+      : allCategoryNames.filter(cat => !userCollapsedCategories.has(cat))
+  )
+
+  function handleCategoryToggle(values: string[]) {
+    const newCollapsed = new Set<string>()
+    for (const cat of allCategoryNames) {
+      if (!values.includes(cat)) newCollapsed.add(cat)
+    }
+    userCollapsedCategories = newCollapsed
+  }
+
+  function collapseAll() {
+    userCollapsedCategories = new Set(allCategoryNames)
+  }
+
   const stats = $derived({
     challengeCount: challenges.length,
     categoryCount: new Set(challenges.map(c => c.category)).size,
   })
 
-  const emptySubtitle = $derived.by(() => {
-    if (searchQuery.trim()) return 'Try a different search term'
-    return 'Create your first challenge to get started'
-  })
-
-  $effect(() => {
-    if (!hasInitialized && groups.length > 0) {
-      openCategories = groups.map(([cat]) => cat)
-      hasInitialized = true
-    }
-  })
-
-  $effect(() => {
-    if (searchQuery.trim() && groups.length > 0) {
-      openCategories = groups.map(([cat]) => cat)
-    }
-  })
+  const emptySubtitle = $derived(
+    searchQuery.trim()
+      ? 'Try a different search term'
+      : 'Create your first challenge to get started'
+  )
 </script>
 
 <div class="flex h-full flex-col overflow-hidden">
-  <Header
-    challengeCount={stats.challengeCount}
-    categoryCount={stats.categoryCount}
-    {searchQuery}
-    {isCreatingNew}
-    onSearchChange={q => (searchQuery = q)}
-    onCollapseAll={() => (openCategories = [])}
-    {onCreateNew}
-  />
+  <div class="flex shrink-0 flex-col gap-2 py-2">
+    <div class="flex items-baseline justify-between px-9">
+      <div class="flex items-baseline gap-1 whitespace-nowrap">
+        <span class="text-foreground-l3 text-base tabular-nums">
+          {stats.challengeCount}
+        </span>
+        <span class="text-foreground-l5 text-base">
+          challenge{stats.challengeCount === 1 ? '' : 's'}
+        </span>
+      </div>
+      <div class="flex items-baseline gap-1 whitespace-nowrap">
+        <span class="text-foreground-l3 text-base tabular-nums">
+          {stats.categoryCount}
+        </span>
+        <span class="text-foreground-l5 text-base">
+          categor{stats.categoryCount === 1 ? 'y' : 'ies'}
+        </span>
+      </div>
+    </div>
+
+    <div class="px-5">
+      <div class="flex gap-1 overflow-hidden rounded-full">
+        <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
+        <Tooltip.Root disableCloseOnTriggerClick>
+          <Tooltip.Trigger
+            onclick={collapseAll}
+            aria-label="Collapse all"
+            class="rounded-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
+          >
+            <IconFold class="size-5" />
+          </Tooltip.Trigger>
+          <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
+        </Tooltip.Root>
+        {#if hasWritePerms}
+          <Tooltip.Root disableCloseOnTriggerClick>
+            <Tooltip.Trigger
+              onclick={onCreateNew}
+              aria-label="New challenge"
+              class={cn(
+                'rounded-l-sm px-4 py-2',
+                isCreatingNew
+                  ? 'bg-background-accent hover:bg-background-accent-hover text-foreground-accent'
+                  : 'bg-background-l2 hover:bg-background-l3 text-foreground-l2 hover:text-foreground-l1'
+              )}
+            >
+              <IconLibraryPlusFilled class="size-5" />
+            </Tooltip.Trigger>
+            <Tooltip.Content sideOffset={8}>New challenge</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
+      </div>
+    </div>
+  </div>
 
   <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
     {#if filteredChallenges.length === 0}
@@ -101,7 +160,7 @@
         subtitle={emptySubtitle}
       />
     {:else}
-      <Accordion.Root type="multiple" bind:value={openCategories} class="pb-4">
+      <Accordion.Root type="multiple" value={openCategories} onValueChange={handleCategoryToggle} class="pb-4">
         {#each groups as [category, entries] (category)}
           {@const config = getCategoryConfig(category)}
           {@const catStyle = getCategoryStyle(config.color)}

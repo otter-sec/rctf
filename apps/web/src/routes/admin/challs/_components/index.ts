@@ -1,1 +1,1 @@
-export { default as AdminChallRoot } from './admin-chall-root.svelte'
+export { default as Root } from './root.svelte'
