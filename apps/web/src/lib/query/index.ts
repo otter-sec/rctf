@@ -5,18 +5,18 @@ import {
   DeleteChallengeRoute,
   DeleteEmailRoute,
   DeleteMemberRoute,
-  GetAdminChallengeRoute,
-  GetAdminChallengesRoute,
+  GetAdminChallengeRouteV2,
+  GetAdminChallengesRouteV2,
   GetChallengeSolvesRouteV2,
-  GetChallengesRoute,
-  GetClientConfigRoute,
+  GetChallengesRouteV2,
+  GetClientConfigRouteV2,
   GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
   GetMembersRoute,
   GetUserRouteV2,
   GetUserSelfRouteV2,
-  GoodAdminChallenge,
-  GoodAdminChallenges,
+  GoodAdminChallengesV2,
+  GoodAdminChallengeV2,
   GoodChallenges,
   GoodChallengeSolvesV2,
   GoodClientConfig,
@@ -30,9 +30,9 @@ import {
   RegisterRoute,
   SetEmailRoute,
   SubmitFlagRoute,
-  UpdateChallengeRoute,
+  UpdateChallengeRouteV2,
   UpdateUserRouteV2,
-  UploadFilesRoute,
+  UploadFilesRouteV2,
   VerifyRoute,
   type AnyRouteDefinition,
   type RouteResponse,
@@ -75,7 +75,7 @@ export function createQueryClient() {
 export const clientConfigQueryOptions = queryOptions({
   queryKey: ['clientConfig'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetClientConfigRoute)
+    const response = await apiRequest(GetClientConfigRouteV2)
     if (response.kind === GoodClientConfig.kind) {
       return response.data
     }
@@ -114,7 +114,7 @@ export const userByIdQueryOptions = (id: string) =>
 export const challengesQueryOptions = queryOptions({
   queryKey: ['challenges'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetChallengesRoute)
+    const response = await apiRequest(GetChallengesRouteV2)
     if (response.kind === GoodChallenges.kind) {
       return response.data
     }
@@ -129,8 +129,8 @@ export const challengesQueryOptions = queryOptions({
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetAdminChallengesRoute)
-    if (response.kind === GoodAdminChallenges.kind) {
+    const response = await apiRequest(GetAdminChallengesRouteV2)
+    if (response.kind === GoodAdminChallengesV2.kind) {
       return response.data
     }
     throw new ApiError(response.message)
@@ -141,8 +141,8 @@ export const adminChallengeQueryOptions = (id: string) =>
   queryOptions({
     queryKey: ['admin', 'challenges', id] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetAdminChallengeRoute, { id })
-      if (response.kind === GoodAdminChallenge.kind) {
+      const response = await apiRequest(GetAdminChallengeRouteV2, { id })
+      if (response.kind === GoodAdminChallengeV2.kind) {
         return response.data
       }
       throw new ApiError(response.message)
@@ -361,7 +361,7 @@ export function useDeleteMemberMutation() {
 }
 
 export function useUpdateChallengeMutation() {
-  return createApiMutation(UpdateChallengeRoute)
+  return createApiMutation(UpdateChallengeRouteV2)
 }
 
 export function useDeleteChallengeMutation() {
@@ -369,7 +369,7 @@ export function useDeleteChallengeMutation() {
 }
 
 export function useUploadFilesMutation() {
-  return createApiMutation(UploadFilesRoute)
+  return createApiMutation(UploadFilesRouteV2)
 }
 
 export function useCtftimeCallbackMutation() {

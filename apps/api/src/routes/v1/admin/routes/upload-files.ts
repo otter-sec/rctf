@@ -19,7 +19,7 @@ adminGroup.route(UploadFilesRoute, async ({ res, body }) => {
   const files = await Promise.all(
     convertedFiles.map(async ({ name, data }) => {
       const url = await uploadProvider.uploadAttachment(data, name)
-      return { name, url }
+      return { name, url, size: data.length }
     })
   )
 

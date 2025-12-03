@@ -15,12 +15,13 @@ export const GoodChallengesV2 = response('goodChallenges', {
         z.object({
           name: z.string(),
           url: z.string(),
-          size: z.number().int(),
+          size: z.number().int().nullable(),
         })
       ),
       points: z.number().int(),
       solves: z.number().int(),
-      sortWeight: z.number().nullish(),
+      sortWeight: z.number().nullable(),
+      instancer: z.boolean(),
     })
   ),
 })

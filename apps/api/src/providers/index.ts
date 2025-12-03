@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
 import { emailProviders } from './emails'
+import { instancerProviders } from './instancer'
 import { scoreProviders } from './scores'
 import { uploadProviders } from './uploads'
 
@@ -35,3 +36,8 @@ export const uploadProvider = loadProvider(
 )!
 
 export const scoreProvider = loadProvider(scoreProviders, config.scoreProvider)!
+
+export const instancerProvider = loadProvider(
+  instancerProviders,
+  config.instancerProvider
+)

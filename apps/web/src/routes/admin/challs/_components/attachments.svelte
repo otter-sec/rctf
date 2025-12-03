@@ -1,14 +1,16 @@
 <script lang="ts">
-  import { GoodFilesUpload } from '@rctf/types'
+  import { GoodFilesUploadV2 } from '@rctf/types'
   import { toast } from '$lib'
   import { Button, Spinner } from '$lib/components'
   import { IconFileUploadFilled, IconX } from '$lib/icons'
   import { useUploadFilesMutation } from '$lib/query'
 
   interface Props {
-    files: { name: string; url: string }[]
+    files: { name: string; url: string; size: number | null }[]
     isDisabled: boolean
-    onFilesChange: (files: { name: string; url: string }[]) => void
+    onFilesChange: (
+      files: { name: string; url: string; size: number | null }[]
+    ) => void
   }
 
   let { files, isDisabled, onFilesChange }: Props = $props()
@@ -19,22 +21,13 @@
     const input = e.target as HTMLInputElement
     if (!input.files?.length) return
 
-    const filesToUpload: { name: string; data: string }[] = []
-
-    for (const file of input.files) {
-      const reader = new FileReader()
-      const dataUrl = await new Promise<string>(resolve => {
-        reader.onload = () => resolve(reader.result as string)
-        reader.readAsDataURL(file)
-      })
-      filesToUpload.push({ name: file.name, data: dataUrl })
-    }
+    const filesToUpload = Array.from(input.files)
 
     $uploadMutation.mutate(
       { files: filesToUpload },
       {
         onSuccess: response => {
-          if (response.kind === GoodFilesUpload.kind) {
+          if (response.kind === GoodFilesUploadV2.kind) {
             onFilesChange([...files, ...response.data])
             toast.success(`${response.data.length} file(s) uploaded!`)
           } else {
@@ -52,6 +45,13 @@
 
   function removeFile(index: number) {
     onFilesChange(files.filter((_, i) => i !== index))
+  }
+
+  function formatFileSize(bytes: number | null | undefined): string {
+    if (bytes == null) return ''
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 </script>
 
@@ -74,7 +74,14 @@
             class="flex items-center justify-between gap-2 rounded-md bg-background-l4 p-3"
           >
             <div class="flex flex-col gap-1 overflow-hidden">
-              <span class="truncate font-medium">{file.name}</span>
+              <div class="flex items-center gap-2">
+                <span class="truncate font-medium">{file.name}</span>
+                {#if file.size}
+                  <span class="text-foreground-l5 text-xs shrink-0"
+                    >{formatFileSize(file.size)}</span
+                  >
+                {/if}
+              </div>
               <a
                 href={file.url}
                 target="_blank"

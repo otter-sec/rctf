@@ -11,7 +11,7 @@ export interface FormData {
   pointsMax: number
   tiebreakEligible: boolean
   sortWeight: number
-  files: { name: string; url: string }[]
+  files: { name: string; url: string; size: number | null }[]
 }
 
 export interface EditorContext {
@@ -40,7 +40,10 @@ type EditorEvent =
   | { type: 'KEEP_EDITING' }
   | { type: 'CHECK_UNSAVED'; pendingAction: () => void }
   | { type: 'UPDATE_FORM'; field: keyof FormData; value: unknown }
-  | { type: 'UPDATE_FILES'; files: { name: string; url: string }[] }
+  | {
+      type: 'UPDATE_FILES'
+      files: { name: string; url: string; size: number | null }[]
+    }
   | { type: 'PREVIEW' }
   | { type: 'CLOSE_PREVIEW' }
 

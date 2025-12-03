@@ -122,6 +122,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] Run migrations programatically depending on the config value instead of just running in dockerfile entry
 - [x] Go through all config vars and check that all of them are used
 - [x] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
+- [ ] Captcha
 
 ### Todo v2
 
@@ -136,7 +137,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] send prize emails (admin only)
 - [x] file sizes
 
-- [ ] instancer integration
+- [x] instancer integration
 - [ ] admin bot integration
 - [ ] blood bot integration
 
@@ -147,7 +148,6 @@ rCTF v1 frontend with rCTF v2 backend:
 ## New features compared to v1
 
 - Scores config
-- Avatars
 - New `s3` upload provider
 
 <details>

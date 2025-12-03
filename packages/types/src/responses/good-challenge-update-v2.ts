@@ -1,32 +1,8 @@
-import { z } from 'zod'
 import { response } from '../internal'
-
-const ChallengeFileSchema = z.object({
-  name: z.string(),
-  url: z.string(),
-  size: z.number().int(),
-})
-
-const ChallengePointsSchema = z.object({
-  min: z.number().int(),
-  max: z.number().int(),
-})
-
-const AdminChallengeSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  category: z.string(),
-  author: z.string(),
-  files: z.array(ChallengeFileSchema),
-  points: ChallengePointsSchema,
-  flag: z.string(),
-  tiebreakEligible: z.boolean(),
-  sortWeight: z.number().nullish(),
-})
+import { AdminChallengeSchemaV2 } from './good-admin-challenge-v2'
 
 export const GoodChallengeUpdateV2 = response('goodChallengeUpdate', {
   status: 200,
   message: 'Challenge successfully updated.',
-  data: AdminChallengeSchema,
+  data: AdminChallengeSchemaV2,
 })

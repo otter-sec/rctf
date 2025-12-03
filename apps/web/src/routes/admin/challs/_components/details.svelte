@@ -132,6 +132,7 @@
                 files: form.files,
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
+                instancerConfig: null,
               },
             })
           } else {

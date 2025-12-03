@@ -74,6 +74,8 @@ export interface ServerConfig {
     logoUrl?: string
   }
 
+  instancerProvider?: ProviderConfig
+
   maxAvatarSize: number
 
   divisions: Record<string, string>

@@ -1,4 +1,10 @@
-import type { Challenge, ChallengeData, DatabaseClient, Solve } from '@rctf/db'
+import type {
+  Challenge,
+  ChallengeData,
+  DatabaseClient,
+  InstancerConfig,
+  Solve,
+} from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
@@ -109,25 +115,47 @@ export const getChallenge = async (
     .then(takeUnique)
 }
 
+const defaultChallengeData: ChallengeData = {
+  name: '',
+  description: '',
+  category: '',
+  author: '',
+  files: [],
+  points: { min: 0, max: 0 },
+  flag: '',
+  tiebreakEligible: true,
+}
+
+const defaultInstancerConfig: InstancerConfig = {
+  challengeIntegrationId: '',
+  pods: [],
+  expose: [],
+  timeoutMilliseconds: 0,
+}
+
 export const upsertChallenge = async (
   db: DatabaseClient,
   id: string,
-  partial: Partial<ChallengeData>
+  partial: Partial<
+    Omit<ChallengeData, 'instancerConfig'> & {
+      instancerConfig?: Partial<InstancerConfig>
+    }
+  >
 ): Promise<Challenge> => {
   const current = await getChallenge(db, id)
+  const { instancerConfig: partialInstancerConfig, ...partialRest } = partial
 
-  // FIXME(es3n1n): there's gotta be a better way to do this
   const data: ChallengeData = {
-    name: partial.name ?? current?.data.name ?? '',
-    description: partial.description ?? current?.data.description ?? '',
-    category: partial.category ?? current?.data.category ?? '',
-    author: partial.author ?? current?.data.author ?? '',
-    files: partial.files ?? current?.data.files ?? [],
-    points: partial.points ?? current?.data.points ?? { min: 0, max: 0 },
-    flag: partial.flag ?? current?.data.flag ?? '',
-    tiebreakEligible:
-      partial.tiebreakEligible ?? current?.data.tiebreakEligible ?? true,
-    sortWeight: partial.sortWeight ?? current?.data.sortWeight ?? undefined,
+    ...defaultChallengeData,
+    ...current?.data,
+    ...partialRest,
+    instancerConfig: partialInstancerConfig
+      ? {
+          ...defaultInstancerConfig,
+          ...current?.data.instancerConfig,
+          ...partialInstancerConfig,
+        }
+      : current?.data.instancerConfig,
   }
 
   const challenge: Challenge = {

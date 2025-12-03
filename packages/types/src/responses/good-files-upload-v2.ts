@@ -1,14 +1,9 @@
 import { z } from 'zod'
 import { response } from '../internal'
-
-const ChallengeFileSchema = z.object({
-  name: z.string(),
-  url: z.string(),
-  size: z.number().int(),
-})
+import { ChallengeFileSchemaV2 } from '../util'
 
 export const GoodFilesUploadV2 = response('goodFilesUpload', {
   status: 200,
   message: 'The files were successfully uploaded.',
-  data: z.array(ChallengeFileSchema),
+  data: z.array(ChallengeFileSchemaV2),
 })

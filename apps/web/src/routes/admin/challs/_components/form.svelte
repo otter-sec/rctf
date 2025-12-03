@@ -13,10 +13,12 @@
     pointsMax: number
     tiebreakEligible: boolean
     sortWeight: number
-    files: { name: string; url: string }[]
+    files: { name: string; url: string; size: number | null }[]
     isDisabled: boolean
     onShowPreview: () => void
-    onFilesChange: (files: { name: string; url: string }[]) => void
+    onFilesChange: (
+      files: { name: string; url: string; size: number | null }[]
+    ) => void
     onNameChange: (value: string) => void
     onCategoryChange: (value: string) => void
     onAuthorChange: (value: string) => void

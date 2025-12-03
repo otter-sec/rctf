@@ -6,8 +6,8 @@ import {
   BadChallenge,
   BadNotStarted,
   BadToken,
-  GoodChallengesV2,
   GoodChallengeSolvesV2,
+  GoodChallengesV2,
 } from '../../responses'
 
 // TODO(es3n1n): i dont like the idea of loginwalling challenges
