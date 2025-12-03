@@ -33,6 +33,9 @@ RUN bun run build
 
 FROM base AS production
 
+# We need this for runtime
+RUN bun install sharp
+
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 
