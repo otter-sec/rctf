@@ -7,7 +7,11 @@ import {
   BadToken,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  BadUnknownSolveV2,
+  BadUnknownUser,
+  GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
+  GoodCreateUserTokenV2,
   GoodFilesUploadV2,
 } from '../../responses'
 import {
@@ -71,4 +75,31 @@ export const UploadFilesRouteV2 = defineRoute({
   authRequired: true,
   permissions: Permissions.challsWrite,
   bodyFormat: 'form-data',
+})
+
+const AdminCreateTokenParams = z.object({
+  id: z.string(),
+})
+
+export const CreateUserTokenRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id/token',
+  method: 'POST',
+  responses: [GoodCreateUserTokenV2, BadPerms, BadToken, BadUnknownUser],
+  authRequired: true,
+  params: AdminCreateTokenParams,
+  permissions: Permissions.usersWrite,
+})
+
+const AdminDeleteChallengeSolveParams = z.object({
+  challengeId: z.string(),
+  userId: z.string(),
+})
+
+export const DeleteChallengeSolveRouteV2 = defineRoute({
+  path: '/v2/admin/challs/:challengeId/solves/:userId',
+  method: 'DELETE',
+  responses: [GoodChallengeSolveDeleteV2, BadPerms, BadToken, BadUnknownSolveV2],
+  authRequired: true,
+  params: AdminDeleteChallengeSolveParams,
+  permissions: Permissions.challsSolveWrite,
 })

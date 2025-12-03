@@ -16,7 +16,7 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
+import { asc, desc, eq, inArray, lte, or, sql, and } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -402,4 +402,17 @@ export const submitFlag = async (
 
   forceLeaderboardUpdate()
   return res.goodFlag()
+}
+
+export const deleteSolve = async (
+  db: DatabaseClient,
+  params: {
+    challengeId: string,
+    userId: string,
+  },
+) => {
+  return db
+    .delete(solves)
+    .where(and(eq(solves.userid, params.userId), eq(solves.challengeid, params.challengeId)))
+    .returning();
 }
