@@ -131,8 +131,8 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] specific position in solves
 - [x] in solves list for a chal return also team's scoreboard position (global + division)
 - [ ] in global leaderboard return division positions
-- [ ] delete a solve (admin only)
-- [ ] resetting teams token (admin only)
+- [x] delete a solve (admin only)
+- [x] resetting teams token (admin only)
 - [ ] update client config (admin only)
 - [ ] send prize emails (admin only)
 - [x] file sizes
