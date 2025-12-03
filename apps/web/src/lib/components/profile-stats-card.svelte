@@ -4,7 +4,7 @@
   interface Props {
     name: string
     email?: string | null
-    ctftimeId?: number | null
+    ctftimeId?: string | null
     division: string
     divisionLabel: string
     score: number
@@ -16,7 +16,6 @@
     name,
     email,
     ctftimeId,
-    division,
     divisionLabel,
     score,
     globalPlace,

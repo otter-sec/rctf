@@ -8,7 +8,7 @@
 
   const radius = 10
   const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference * (1 - percent / 100)
+  let strokeDashoffset = $derived(circumference * (1 - percent / 100))
 </script>
 
 <svg
