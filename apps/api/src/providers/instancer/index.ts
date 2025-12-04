@@ -1,9 +1,9 @@
 import type { InstancerProvider } from './base'
-import RctfCompatProvider from './rctf-compat'
+import TinyInstancerProvider from './tiny-instancer'
 
 export const instancerProviders: Record<
   string,
-  (options: any) => InstancerProvider
+  (options: unknown) => InstancerProvider
 > = {
-  'instancer/rctf-compat': (options: any) => new RctfCompatProvider(options),
+  'instancer/tiny-instancer': options => new TinyInstancerProvider(options),
 }

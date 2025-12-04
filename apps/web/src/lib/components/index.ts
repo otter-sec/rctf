@@ -1,3 +1,4 @@
+import * as SchemaForm from './schema-form'
 import * as Accordion from './ui/accordion'
 import * as Avatar from './ui/avatar'
 import * as ButtonGroup from './ui/button-group'
@@ -59,6 +60,7 @@ export {
   InputGroup,
   Pagination,
   Resizable,
+  SchemaForm,
   Section,
   Select,
   Table,

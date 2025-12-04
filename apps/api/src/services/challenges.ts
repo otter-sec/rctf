@@ -128,7 +128,7 @@ const defaultChallengeData: ChallengeData = {
 
 const defaultInstancerConfig: InstancerConfig = {
   challengeIntegrationId: '',
-  pods: [],
+  config: {},
   expose: [],
   timeoutMilliseconds: 0,
 }
@@ -138,24 +138,32 @@ export const upsertChallenge = async (
   id: string,
   partial: Partial<
     Omit<ChallengeData, 'instancerConfig'> & {
-      instancerConfig?: Partial<InstancerConfig>
+      instancerConfig?: Partial<InstancerConfig> | null
     }
   >
 ): Promise<Challenge> => {
   const current = await getChallenge(db, id)
   const { instancerConfig: partialInstancerConfig, ...partialRest } = partial
 
+  // Handle instancerConfig: null = clear, undefined = keep current, object = merge
+  let instancerConfig: InstancerConfig | undefined
+  if (partialInstancerConfig === null) {
+    instancerConfig = undefined // Explicitly cleared
+  } else if (partialInstancerConfig !== undefined) {
+    instancerConfig = {
+      ...defaultInstancerConfig,
+      ...current?.data.instancerConfig,
+      ...partialInstancerConfig,
+    }
+  } else {
+    instancerConfig = current?.data.instancerConfig
+  }
+
   const data: ChallengeData = {
     ...defaultChallengeData,
     ...current?.data,
     ...partialRest,
-    instancerConfig: partialInstancerConfig
-      ? {
-          ...defaultInstancerConfig,
-          ...current?.data.instancerConfig,
-          ...partialInstancerConfig,
-        }
-      : current?.data.instancerConfig,
+    instancerConfig,
   }
 
   const challenge: Challenge = {

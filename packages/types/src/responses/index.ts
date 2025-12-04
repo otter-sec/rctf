@@ -64,6 +64,7 @@ export * from './bad-ctftime-code'
 export * from './good-client-config'
 export * from './good-ctftime-leaderboard'
 export * from './good-ctftime-token'
+export * from './good-instancer-schema'
 
 // admin
 export * from './bad-data-uri'

@@ -36,57 +36,31 @@ export const ChallengePointsSchema = z.object({
   max: z.number().int(),
 })
 
-export const UlimitSchema = z.object({
-  name: z.string(),
-  soft: z.number().int(),
-  hard: z.number().int(),
-})
-
-export const PodLimitsSchema = z.object({
-  memoryBytes: z.number().int(),
-  cpusNano: z.number().int(),
-  pidsLimit: z.number().int(),
-  ulimits: z.array(UlimitSchema),
-})
-
-export const PodSecuritySchema = z.object({
-  readOnlyFs: z.boolean(),
-  dockerSecurityOpt: z.array(z.string()),
-  capAdd: z.array(z.string()),
-  capDrop: z.array(z.string()),
-})
-
-export const PodSchema = z.object({
-  name: z.string(),
-  image: z.string(),
-  env: z.record(z.string(), z.string()),
-  egress: z.boolean(),
-  security: PodSecuritySchema,
-  limits: PodLimitsSchema,
-})
-
-export const ExposeSchema = z.object({
-  kind: z.nativeEnum(ExposeKind),
-  podName: z.string(),
-  podPort: z.number().int(),
-})
-
 export const EndpointSchema = z.object({
   kind: z.nativeEnum(ExposeKind),
   host: z.string(),
   port: z.number().int(),
 })
 
+export const ExposeSchema = z.object({
+  kind: z.nativeEnum(ExposeKind),
+  hostPrefix: z.string(),
+  containerName: z.string(),
+  containerPort: z.number().int(),
+  shouldDisplay: z.boolean().optional(),
+})
+
+// NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
   challengeIntegrationId: z.string(),
-  pods: z.array(PodSchema),
+  config: z.record(z.string(), z.any()),
   expose: z.array(ExposeSchema),
   timeoutMilliseconds: z.number().int(),
 })
 
 export const PartialInstancerConfigSchema = z.object({
   challengeIntegrationId: z.string().optional(),
-  pods: z.array(PodSchema).optional(),
+  config: z.record(z.string(), z.any()).optional(),
   expose: z.array(ExposeSchema).optional(),
   timeoutMilliseconds: z.number().int().optional(),
 })

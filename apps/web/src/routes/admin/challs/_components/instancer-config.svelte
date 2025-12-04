@@ -1,8 +1,20 @@
 <script lang="ts">
   import { ExposeKind } from '@rctf/types'
-  import type { InstancerConfig } from '$lib/api'
-  import { Button, Field, Input, ScrollArea, Section, Select, Textarea } from '$lib/components'
-  import { IconPlus, IconTrashFilled, IconX } from '$lib/icons'
+  import { type InstancerConfig } from '$lib/api'
+  import {
+    Button,
+    Checkbox,
+    Field,
+    Input,
+    SchemaForm,
+    Section,
+    Select,
+    Spinner,
+    Textarea,
+  } from '$lib/components'
+  import { IconPlus, IconTrashFilled } from '$lib/icons'
+  import { useInstancerSchema } from '$lib/query'
+  import * as yaml from 'yaml'
 
   interface Props {
     config: InstancerConfig | null
@@ -12,114 +24,95 @@
 
   let { config, isDisabled, onConfigChange }: Props = $props()
 
-  type Container = InstancerConfig['pods'][number]
-  type Expose = InstancerConfig['expose'][number]
+  const schemaQuery = useInstancerSchema()
+  const schemaData = $derived($schemaQuery.data)
+  const schemaLoading = $derived($schemaQuery.isPending)
+  const schemaError = $derived(
+    $schemaQuery.error?.message ??
+      ($schemaQuery.isSuccess && !schemaData ? 'Instancer not configured' : null)
+  )
 
-  const NANO_PER_CORE = 1e9
-  const MB = 1024 * 1024
+  let advancedMode = $state(false)
+  let yamlText = $state('')
+  let yamlError = $state<string | null>(null)
 
-  let selected = $state('')
-
-  $effect(() => {
-    if (!config) return
-    if (!selected || !config.pods.some(c => c.name === selected)) {
-      selected = config.pods[0]?.name ?? ''
+  function enterAdvancedMode() {
+    if (config?.config) {
+      yamlText = yaml.stringify(config.config)
+      yamlError = null
     }
-  })
-
-  const current = $derived(config?.pods.find(c => c.name === selected))
-
-  const csv = {
-    parse: (s: string) =>
-      s
-        .split(',')
-        .map(x => x.trim())
-        .filter(Boolean),
-    format: (a: string[]) => a.join(', '),
+    advancedMode = true
   }
 
-  const env = {
-    parse: (s: string): Record<string, string> =>
-      Object.fromEntries(
-        s
-          .split('\n')
-          .map(l => l.trim())
-          .filter(Boolean)
-          .map(l => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)])
-          .filter(([k]) => k)
-      ),
-    format: (e: Record<string, string>) =>
-      Object.entries(e)
-        .map(([k, v]) => `${k}=${v}`)
-        .join('\n'),
+  function exitAdvancedMode() {
+    if (yamlText) {
+      try {
+        const parsed = yaml.parse(yamlText)
+        if (typeof parsed === 'object' && parsed !== null) {
+          update(c => ({ ...c, config: parsed }))
+        }
+      } catch {
+        // Ignore parse errors on exit
+      }
+    }
+    advancedMode = false
+  }
+
+  function handleYamlChange(text: string) {
+    yamlText = text
+    try {
+      const parsed = yaml.parse(text)
+      if (typeof parsed === 'object' && parsed !== null) {
+        yamlError = null
+        update(c => ({ ...c, config: parsed }))
+      } else {
+        yamlError = 'YAML must be an object'
+      }
+    } catch (e) {
+      yamlError = e instanceof Error ? e.message : 'Invalid YAML'
+    }
   }
 
   function update(fn: (c: InstancerConfig) => InstancerConfig) {
-    if (config) onConfigChange(fn(config))
-  }
-
-  function updatePod(fn: (p: Container) => Container) {
-    if (!selected) return
-    update(c => ({ ...c, pods: c.pods.map(p => (p.name === selected ? fn(p) : p)) }))
-  }
-
-  function defaultContainer(name: string): Container {
-    return {
-      name,
-      image: '',
-      env: {},
-      egress: false,
-      security: {
-        readOnlyFs: true,
-        dockerSecurityOpt: ['no-new-privileges'],
-        capAdd: [],
-        capDrop: ['ALL'],
-      },
-      limits: {
-        memoryBytes: 6 * MB,
-        cpusNano: NANO_PER_CORE,
-        pidsLimit: 1024,
-        ulimits: [{ name: 'nofile', soft: 1024, hard: 1024 }],
-      },
+    if (config) {
+      onConfigChange(fn(config))
     }
   }
 
   function defaultConfig(): InstancerConfig {
     return {
       challengeIntegrationId: '',
-      pods: [{ ...defaultContainer('app'), image: 'traefik/whoami:latest' }],
-      expose: [{ kind: ExposeKind.HTTPS, podName: 'app', podPort: 80 }],
+      config: schemaData?.defaults ?? {},
+      expose: [
+        {
+          kind: ExposeKind.HTTPS,
+          hostPrefix: 'test-challenge',
+          containerName: 'app',
+          containerPort: 80,
+          shouldDisplay: true,
+        },
+      ],
       timeoutMilliseconds: 120000,
     }
   }
 
-  function addContainer() {
-    const names = new Set(config?.pods.map(c => c.name))
-    let n = 1
-    while (names.has(`container-${n}`)) n++
-    const name = `container-${n}`
-    update(c => ({ ...c, pods: [...c.pods, defaultContainer(name)] }))
-    selected = name
-  }
-
-  function removeContainer(name: string) {
-    if (!config || config.pods.length <= 1) return
-    const idx = config.pods.findIndex(c => c.name === name)
-    update(c => ({
-      ...c,
-      pods: c.pods.filter(p => p.name !== name),
-      expose: c.expose.filter(e => e.podName !== name),
-    }))
-    if (selected === name) {
-      selected = config.pods[idx === 0 ? 1 : idx - 1]?.name ?? ''
-    }
+  function handleConfigChange(newConfig: Record<string, unknown>) {
+    update(c => ({ ...c, config: newConfig }))
   }
 
   function addExpose() {
-    if (!config?.pods[0]) return
     update(c => ({
       ...c,
-      expose: [...c.expose, { kind: ExposeKind.HTTPS, podName: c.pods[0]!.name, podPort: 80 }],
+      expose: [
+        ...c.expose,
+        {
+          kind: ExposeKind.HTTPS,
+          hostPrefix: 'test-challenge',
+          containerName: 'app',
+          containerPort: 80,
+          shouldDisplay: true,
+        },
+      ],
     }))
   }
 
@@ -127,7 +120,7 @@
     update(c => ({ ...c, expose: c.expose.filter((_, j) => j !== i) }))
   }
 
-  function updateExpose(i: number, partial: Partial<Expose>) {
+  function updateExpose(i: number, partial: Partial<InstancerConfig['expose'][number]>) {
     update(c => ({
       ...c,
       expose: c.expose.map((e, j) => (j === i ? { ...e, ...partial } : e)),
@@ -141,19 +134,28 @@
     <Section.Content class="flex flex-col gap-4">
       <Field.Field>
         <Field.Label>Enable instancer</Field.Label>
-        <Select.Root
-          type="single"
-          value={config ? 'yes' : 'no'}
-          onValueChange={v => onConfigChange(v === 'yes' ? defaultConfig() : null)}
-          disabled={isDisabled}>
-          <Select.Trigger class="w-full">
-            {config ? 'Enabled' : 'Disabled'}
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value="no" label="Disabled">Disabled</Select.Item>
-            <Select.Item value="yes" label="Enabled">Enabled</Select.Item>
-          </Select.Content>
-        </Select.Root>
+        {#if schemaLoading}
+          <div class="flex items-center gap-2 text-sm text-foreground-l4">
+            <Spinner class="size-4" />
+            Loading schema...
+          </div>
+        {:else if schemaError}
+          <p class="text-sm text-foreground-l4">{schemaError}</p>
+        {:else}
+          <Select.Root
+            type="single"
+            value={config ? 'yes' : 'no'}
+            onValueChange={v => onConfigChange(v === 'yes' ? defaultConfig() : null)}
+            disabled={isDisabled}>
+            <Select.Trigger class="w-full">
+              {config ? 'Enabled' : 'Disabled'}
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value="no" label="Disabled">Disabled</Select.Item>
+              <Select.Item value="yes" label="Enabled">Enabled</Select.Item>
+            </Select.Content>
+          </Select.Root>
+        {/if}
       </Field.Field>
 
       {#if config}
@@ -185,237 +187,49 @@
 
   {#if config}
     <Section.Root>
-      <Section.Header>Containers</Section.Header>
-      <Section.Content class="p-0">
-        <div class="flex">
-          <div class="relative w-44 shrink-0 border-r-2">
-            <div class="absolute inset-0 flex flex-col">
-              <ScrollArea class="min-h-0 flex-1" fadeColor="background-l2">
-                <div class="flex flex-col gap-0.5 p-2">
-                  {#each config.pods as pod (pod.name)}
-                    {@const active = selected === pod.name}
-                    <div
-                      class="group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm
-                        {active
-                        ? 'bg-background-l4 text-foreground-l0'
-                        : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'}"
-                      role="button"
-                      tabindex="0"
-                      onclick={() => (selected = pod.name)}
-                      onkeydown={e =>
-                        (e.key === 'Enter' || e.key === ' ') &&
-                        (e.preventDefault(), (selected = pod.name))}>
-                      <span class="flex-1 truncate font-mono">{pod.name}</span>
-                      {#if config.pods.length > 1}
-                        <button
-                          type="button"
-                          class="rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive
-                            {active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}"
-                          onclick={e => (e.stopPropagation(), removeContainer(pod.name))}
-                          disabled={isDisabled}>
-                          <IconX class="size-3" />
-                        </button>
-                      {/if}
-                    </div>
-                  {/each}
-                </div>
-              </ScrollArea>
-              <div class="shrink-0 border-t-2 p-2">
-                <Button size="sm" class="w-full" onclick={addContainer} disabled={isDisabled}>
-                  <IconPlus class="size-4" />
-                  Add container
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div class="flex-1 p-4">
-            {#if current}
-              {@const limits = current.limits}
-              {@const security = current.security}
-              <div class="flex flex-col gap-4">
-                <div class="grid grid-cols-2 gap-4">
-                  <Field.Field>
-                    <Field.Label>Name</Field.Label>
-                    <Input
-                      type="text"
-                      class="font-mono"
-                      value={current.name}
-                      oninput={e => {
-                        const name = e.currentTarget.value
-                        updatePod(p => ({ ...p, name }))
-                        selected = name
-                      }}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Image</Field.Label>
-                    <Input
-                      type="text"
-                      placeholder="image:tag"
-                      class="font-mono"
-                      value={current.image}
-                      oninput={e => updatePod(p => ({ ...p, image: e.currentTarget.value }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                </div>
-
-                <span class="border-b-2 pb-2 text-sm font-medium text-foreground-l3"
-                  >Resources</span>
-                <div class="grid grid-cols-4 gap-4">
-                  <Field.Field>
-                    <Field.Label>Memory <Field.Hint>(MB)</Field.Hint></Field.Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={Math.round(limits.memoryBytes / MB)}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          limits: { ...p.limits, memoryBytes: +e.currentTarget.value * MB },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>CPU <Field.Hint>(cores)</Field.Hint></Field.Label>
-                    <Input
-                      type="number"
-                      min={0.1}
-                      step={0.1}
-                      value={limits.cpusNano / NANO_PER_CORE}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          limits: {
-                            ...p.limits,
-                            cpusNano: Math.round(+e.currentTarget.value * NANO_PER_CORE),
-                          },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>PIDs <Field.Hint>(limit)</Field.Hint></Field.Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={limits.pidsLimit}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          limits: { ...p.limits, pidsLimit: +e.currentTarget.value },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Egress</Field.Label>
-                    <Select.Root
-                      type="single"
-                      value={current.egress ? 'yes' : 'no'}
-                      onValueChange={v => updatePod(p => ({ ...p, egress: v === 'yes' }))}
-                      disabled={isDisabled}>
-                      <Select.Trigger class="w-full"
-                        >{current.egress ? 'Allowed' : 'Blocked'}</Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value="yes" label="Allowed">Allowed</Select.Item>
-                        <Select.Item value="no" label="Blocked">Blocked</Select.Item>
-                      </Select.Content>
-                    </Select.Root>
-                  </Field.Field>
-                </div>
-
-                <span class="border-b-2 pb-2 text-sm font-medium text-foreground-l3">Security</span>
-                <div class="grid grid-cols-2 gap-4">
-                  <Field.Field>
-                    <Field.Label>Read-only FS</Field.Label>
-                    <Select.Root
-                      type="single"
-                      value={security.readOnlyFs ? 'yes' : 'no'}
-                      onValueChange={v =>
-                        updatePod(p => ({
-                          ...p,
-                          security: { ...p.security, readOnlyFs: v === 'yes' },
-                        }))}
-                      disabled={isDisabled}>
-                      <Select.Trigger class="w-full"
-                        >{security.readOnlyFs ? 'Yes' : 'No'}</Select.Trigger>
-                      <Select.Content>
-                        <Select.Item value="yes" label="Yes">Yes</Select.Item>
-                        <Select.Item value="no" label="No">No</Select.Item>
-                      </Select.Content>
-                    </Select.Root>
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Security opts</Field.Label>
-                    <Input
-                      type="text"
-                      placeholder="no-new-privileges, ..."
-                      class="font-mono"
-                      value={csv.format(security.dockerSecurityOpt)}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          security: {
-                            ...p.security,
-                            dockerSecurityOpt: csv.parse(e.currentTarget.value),
-                          },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Cap add</Field.Label>
-                    <Input
-                      type="text"
-                      placeholder="CAP_NET_ADMIN, ..."
-                      class="font-mono"
-                      value={csv.format(security.capAdd)}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          security: { ...p.security, capAdd: csv.parse(e.currentTarget.value) },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                  <Field.Field>
-                    <Field.Label>Cap drop</Field.Label>
-                    <Input
-                      type="text"
-                      placeholder="ALL, ..."
-                      class="font-mono"
-                      value={csv.format(security.capDrop)}
-                      oninput={e =>
-                        updatePod(p => ({
-                          ...p,
-                          security: { ...p.security, capDrop: csv.parse(e.currentTarget.value) },
-                        }))}
-                      disabled={isDisabled} />
-                  </Field.Field>
-                </div>
-
-                <Field.Field>
-                  <Field.Label>Environment <Field.Hint>(one per line)</Field.Hint></Field.Label>
-                  <Textarea
-                    placeholder="KEY=value"
-                    class="font-mono text-sm"
-                    rows={3}
-                    value={env.format(current.env)}
-                    oninput={e => updatePod(p => ({ ...p, env: env.parse(e.currentTarget.value) }))}
-                    disabled={isDisabled} />
-                </Field.Field>
-              </div>
-            {:else}
-              <div class="flex h-full items-center justify-center text-sm text-foreground-l4">
-                Select a container to view details
-              </div>
+      <Section.Header class="flex items-center justify-between">
+        <span>Provider config</span>
+        <button
+          type="button"
+          class="text-xs font-medium text-foreground-l4 hover:text-foreground-l0 transition-colors"
+          onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}>
+          {advancedMode ? '← Form editor' : 'Advanced (YAML) →'}
+        </button>
+      </Section.Header>
+      <Section.Content>
+        {#if advancedMode}
+          <div class="flex flex-col gap-2">
+            <Textarea
+              class="min-h-[300px] font-mono text-sm"
+              value={yamlText}
+              oninput={e => handleYamlChange(e.currentTarget.value)}
+              disabled={isDisabled}
+              placeholder="# YAML configuration..." />
+            {#if yamlError}
+              <p class="text-sm text-destructive">{yamlError}</p>
             {/if}
           </div>
-        </div>
+        {:else if schemaLoading}
+          <div class="flex items-center justify-center py-8">
+            <Spinner class="size-6" />
+            <span class="ml-2 text-sm text-foreground-l4">Loading schema...</span>
+          </div>
+        {:else if schemaError}
+          <p class="text-sm text-foreground-l4">{schemaError}</p>
+        {:else if schemaData}
+          <SchemaForm.SchemaForm
+            schema={schemaData.schema}
+            value={config.config}
+            onChange={handleConfigChange}
+            disabled={isDisabled} />
+        {/if}
       </Section.Content>
     </Section.Root>
 
     <Section.Root>
       <Section.Header class="flex items-center justify-between">
         <span>Exposed ports</span>
-        <Button size="sm" onclick={addExpose} disabled={isDisabled || !config.pods.length}>
+        <Button size="sm" onclick={addExpose} disabled={isDisabled}>
           <IconPlus class="size-4" />
           Add
         </Button>
@@ -423,7 +237,15 @@
       {#if config.expose.length}
         <div class="divide-y divide-border">
           {#each config.expose as exp, i (i)}
-            <div class="flex items-center gap-3 px-4 py-2">
+            <div class="flex flex-wrap items-center gap-3 px-4 py-2">
+              <Input
+                type="text"
+                placeholder="host prefix"
+                class="w-36 font-mono text-sm"
+                value={exp.hostPrefix}
+                oninput={e => updateExpose(i, { hostPrefix: e.currentTarget.value })}
+                disabled={isDisabled} />
+
               <Select.Root
                 type="single"
                 value={exp.kind}
@@ -439,18 +261,13 @@
 
               <span class="text-foreground-l4">→</span>
 
-              <Select.Root
-                type="single"
-                value={exp.podName}
-                onValueChange={v => updateExpose(i, { podName: v })}
-                disabled={isDisabled}>
-                <Select.Trigger class="w-32 font-mono">{exp.podName}</Select.Trigger>
-                <Select.Content>
-                  {#each config.pods as pod}
-                    <Select.Item value={pod.name} label={pod.name}>{pod.name}</Select.Item>
-                  {/each}
-                </Select.Content>
-              </Select.Root>
+              <Input
+                type="text"
+                placeholder="container"
+                class="w-28 font-mono text-sm"
+                value={exp.containerName}
+                oninput={e => updateExpose(i, { containerName: e.currentTarget.value })}
+                disabled={isDisabled} />
 
               <span class="text-foreground-l4">:</span>
 
@@ -460,11 +277,21 @@
                 max={65535}
                 placeholder="Port"
                 class="w-20"
-                value={exp.podPort}
-                oninput={e => updateExpose(i, { podPort: +e.currentTarget.value })}
+                value={exp.containerPort}
+                oninput={e => updateExpose(i, { containerPort: +e.currentTarget.value })}
                 disabled={isDisabled} />
 
               <div class="flex-1"></div>
+
+              <label
+                class="flex items-center gap-2 text-sm text-foreground-l4"
+                title="Show to player">
+                <Checkbox
+                  checked={exp.shouldDisplay ?? true}
+                  onCheckedChange={v => updateExpose(i, { shouldDisplay: !!v })}
+                  disabled={isDisabled} />
+                <span class="hidden sm:inline">Show to players</span>
+              </label>
 
               <Button
                 variant="destructive"

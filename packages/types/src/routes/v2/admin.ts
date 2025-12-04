@@ -3,6 +3,7 @@ import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
   BadChallenge,
+  BadEndpoint,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
@@ -14,6 +15,7 @@ import {
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
   GoodFilesUploadV2,
+  GoodInstancerSchema,
 } from '../../responses'
 import {
   ChallengeFileSchemaV2,
@@ -22,16 +24,16 @@ import {
   PartialInstancerConfigSchema,
 } from '../../util'
 
-const AdminChallengeParams = z.object({
-  id: z.string(),
-})
-
 export const GetAdminChallengesRouteV2 = defineRoute({
   path: '/v2/admin/challs',
   method: 'GET',
   responses: [GoodAdminChallengesV2, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
+})
+
+const AdminChallengeParams = z.object({
+  id: z.string(),
 })
 
 export const GetAdminChallengeRouteV2 = defineRoute({
@@ -78,10 +80,6 @@ export const UploadFilesRouteV2 = defineRoute({
   bodyFormat: 'form-data',
 })
 
-const AdminCreateTokenParams = z.object({
-  id: z.string(),
-})
-
 export const CreateUserTokenRouteV2 = defineRoute({
   path: '/v2/admin/users/:id/token',
   method: 'POST',
@@ -93,13 +91,10 @@ export const CreateUserTokenRouteV2 = defineRoute({
     BadUserPrivileged,
   ],
   authRequired: true,
-  params: AdminCreateTokenParams,
+  params: z.object({
+    id: z.string(),
+  }),
   permissions: Permissions.usersWrite,
-})
-
-const AdminDeleteChallengeSolveParams = z.object({
-  challengeId: z.string(),
-  userId: z.string(),
 })
 
 export const DeleteChallengeSolveRouteV2 = defineRoute({
@@ -112,6 +107,17 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
     BadUnknownSolveV2,
   ],
   authRequired: true,
-  params: AdminDeleteChallengeSolveParams,
+  params: z.object({
+    challengeId: z.string(),
+    userId: z.string(),
+  }),
   permissions: Permissions.challsSolveWrite,
+})
+
+export const GetInstancerSchemaRouteV2 = defineRoute({
+  path: '/v2/admin/instancer/schema',
+  method: 'GET',
+  responses: [GoodInstancerSchema, BadEndpoint, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
 })

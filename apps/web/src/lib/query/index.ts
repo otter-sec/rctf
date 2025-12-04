@@ -10,6 +10,7 @@ import {
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
   GetClientConfigRouteV2,
+  GetInstancerSchemaRouteV2,
   GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
   GetMembersRoute,
@@ -20,6 +21,7 @@ import {
   GoodChallengeSolvesV2,
   GoodChallengesV2,
   GoodClientConfig,
+  GoodInstancerSchema,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
   GoodMemberData,
@@ -233,6 +235,18 @@ export const membersQueryOptions = queryOptions({
   },
 })
 
+export const instancerSchemaQueryOptions = queryOptions({
+  queryKey: ['admin', 'instancer', 'schema'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetInstancerSchemaRouteV2)
+    if (response.kind === GoodInstancerSchema.kind) {
+      return response.data
+    }
+    return null
+  },
+  staleTime: Infinity,
+})
+
 export const queryKeys = {
   clientConfig: clientConfigQueryOptions.queryKey,
   userSelf: userSelfQueryOptions.queryKey,
@@ -252,6 +266,7 @@ export const queryKeys = {
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
+  instancerSchema: instancerSchemaQueryOptions.queryKey,
 }
 
 export function createApiMutation<TRoute extends AnyRouteDefinition>(
@@ -318,6 +333,10 @@ export function useChallengeSolves(
 
 export function useMembers() {
   return createQuery(membersQueryOptions)
+}
+
+export function useInstancerSchema() {
+  return createQuery(instancerSchemaQueryOptions)
 }
 
 export function useLoginMutation() {

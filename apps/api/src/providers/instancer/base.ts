@@ -1,4 +1,4 @@
-import { type InstancerConfig } from '@rctf/db'
+import type { InstancerConfig } from '@rctf/db'
 import { EndpointSchema, InstanceStatus } from '@rctf/types'
 import { z } from 'zod'
 
@@ -29,13 +29,21 @@ export type instanceDetailsOrError =
   | z.output<typeof instanceDetailsSchema>
   | z.output<typeof instancerErrorSchema>
 
+export type ProviderConfig = Record<string, unknown>
+
 export interface InstancerProvider {
+  readonly configSchema: z.ZodType<ProviderConfig, z.ZodTypeDef, unknown>
+
+  getDefaults: () => ProviderConfig
+
   createInstance: (
     options: CreateInstanceOptions
   ) => Promise<instanceDetailsOrError>
+
   getInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>
+
   deleteInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>

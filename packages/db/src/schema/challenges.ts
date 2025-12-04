@@ -16,35 +16,19 @@ export interface ChallengeFile {
   size?: number
 }
 
+export interface InstancerExpose {
+  kind: ExposeKind
+  hostPrefix: string
+  containerName: string
+  containerPort: number
+  shouldDisplay?: boolean
+}
+
+// NOTE(es3n1n): `config` is provider-specific
 export interface InstancerConfig {
   challengeIntegrationId: string
-  pods: {
-    name: string
-    image: string
-    env: Record<string, string>
-    egress: boolean
-    security: {
-      readOnlyFs: boolean
-      dockerSecurityOpt: string[]
-      capAdd: string[]
-      capDrop: string[]
-    }
-    limits: {
-      memoryBytes: number
-      cpusNano: number
-      pidsLimit: number
-      ulimits: {
-        name: string
-        soft: number
-        hard: number
-      }[]
-    }
-  }[]
-  expose: {
-    kind: ExposeKind
-    podName: string
-    podPort: number
-  }[]
+  config: Record<string, unknown>
+  expose: InstancerExpose[]
   timeoutMilliseconds: number
 }
 
