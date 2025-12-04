@@ -17,6 +17,7 @@
     cellWidth: number
     nameRowHeight: number
     headerHeight: number
+    solveHighlight?: { teamId: string; time: number } | null
   }
 
   let {
@@ -31,6 +32,7 @@
     cellWidth,
     nameRowHeight,
     headerHeight,
+    solveHighlight = null,
   }: Props = $props()
 
   const isBoomer = $derived(viewMode === 'boomer')
@@ -134,7 +136,12 @@
     style:height="{headerHeight}px"
   >
     {#if !isFetching}
-      <Graph class="size-full" {hoveredTeamId} offset={graphOffset} />
+      <Graph
+        class="size-full"
+        {hoveredTeamId}
+        offset={graphOffset}
+        {solveHighlight}
+      />
     {/if}
   </div>
 

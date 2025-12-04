@@ -25,12 +25,14 @@
     class?: string
     hoveredTeamId?: string | null
     offset?: number
+    solveHighlight?: { teamId: string; time: number } | null
   }
 
   let {
     class: className = '',
     hoveredTeamId = null,
     offset = 0,
+    solveHighlight = null,
   }: Props = $props()
 
   const userQuery = useCurrentUser()
@@ -174,6 +176,28 @@
   const { flatPoints, teamMeta, startTime } = $derived(processedData)
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
+  const solveHighlightPoint = $derived.by(() => {
+    if (!solveHighlight) return null
+    const teamData = dataByTeam.find(([id]) => id === solveHighlight.teamId)
+    if (!teamData) return null
+
+    const [, points] = teamData
+    if (points.length === 0) return null
+
+    const targetTime = solveHighlight.time
+
+    const point = points.find(p => p.time === targetTime)
+    if (point) return point
+
+    const closestPoint = points.reduce((closest, current) => {
+      const currentDiff = Math.abs(current.time - targetTime)
+      const closestDiff = Math.abs(closest.time - targetTime)
+      return currentDiff < closestDiff ? current : closest
+    })
+
+    return closestPoint
+  })
+
   const chartConfig = $derived<ChartConfig>(
     Object.fromEntries(
       processedData.allTeams.map(team => {
@@ -214,6 +238,20 @@
             style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}"
           />
         {/each}
+
+        {#if solveHighlightPoint}
+          {@const x = context.xScale(solveHighlightPoint.time)}
+          {@const y = context.yScale(solveHighlightPoint.score)}
+          <circle
+            cx={x}
+            cy={y}
+            r={6}
+            fill={solveHighlightPoint.color}
+            stroke="var(--background-l0)"
+            stroke-width={3}
+            class="pointer-events-none"
+          />
+        {/if}
 
         <Highlight points lines />
       </Layer>

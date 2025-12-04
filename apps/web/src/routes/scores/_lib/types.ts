@@ -15,6 +15,7 @@ export interface Challenge {
 }
 
 export interface TooltipData {
+  teamId: string
   challengeName: string
   points: number
   solved: boolean

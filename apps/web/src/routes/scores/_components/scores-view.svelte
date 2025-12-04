@@ -160,6 +160,9 @@
           cellWidth={layout.cell}
           nameRowHeight={layout.nameRowHeight}
           headerHeight={layout.headerHeight}
+          solveHighlight={tooltipData?.solved && tooltipData.solveTime
+            ? { teamId: tooltipData.teamId, time: tooltipData.solveTime }
+            : null}
         />
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->

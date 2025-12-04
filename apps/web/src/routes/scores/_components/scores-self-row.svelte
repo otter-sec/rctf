@@ -79,6 +79,7 @@
       class="flex items-center justify-center"
       onmouseenter={e =>
         showTooltip(e, {
+          teamId: user.id,
           challengeName: challenge.name,
           points: challenge.points,
           solved: !!solve,
