@@ -47,4 +47,8 @@ export interface InstancerProvider {
   deleteInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>
+
+  extendInstance: (
+    options: InstanceQueryOptions
+  ) => Promise<instanceDetailsOrError>
 }

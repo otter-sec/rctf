@@ -45,3 +45,14 @@ export const DeleteInstanceRouteV2 = defineRoute({
     id: z.string(),
   }),
 })
+
+// TODO(es3n1n): add captcha
+export const ExtendInstanceRouteV2 = defineRoute({
+  path: '/v2/integrations/challs/:id/instance',
+  method: 'PATCH',
+  responses: [GoodInstanceStatus, BadInstancerError, BadEndpoint, BadChallenge],
+  authRequired: true,
+  params: z.object({
+    id: z.string(),
+  }),
+})

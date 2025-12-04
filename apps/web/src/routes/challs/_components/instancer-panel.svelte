@@ -3,6 +3,7 @@
     CreateInstanceRouteV2,
     DeleteInstanceRouteV2,
     ExposeKind,
+    ExtendInstanceRouteV2,
     GetInstanceStatusRouteV2,
     InstanceStatus,
   } from '@rctf/types'
@@ -84,6 +85,21 @@
     actioning = false
   }
 
+  async function extend() {
+    actioning = true
+    const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
+    if (res.kind === 'goodInstanceStatus') {
+      status = res.data.status
+      endpoints = res.data.endpoints ?? []
+      timeLeft = res.data.timeLeftMilliseconds
+      error = null
+      toast.success('Instance extended')
+    } else if (res.kind === 'badInstancerError') {
+      toast.error(res.data.message)
+    }
+    actioning = false
+  }
+
   $effect(() => {
     fetchStatus()
     const poll = setInterval(() => {
@@ -111,7 +127,7 @@
       <p class="text-sm text-foreground-destructive">{error}</p>
       <Button size="sm" onclick={fetchStatus}>Retry</Button>
     </div>
-  {:else if status === InstanceStatus.STOPPED || status === InstanceStatus.ERRORED}
+  {:else if status === InstanceStatus.STOPPED}
     <div class="flex flex-col items-center justify-center space-y-3 text-center">
       <p class="text-sm text-foreground-l3">No instance running</p>
       <Button onclick={start} disabled={actioning} class="w-full">
@@ -119,13 +135,19 @@
         Start instance
       </Button>
     </div>
-  {:else if status === InstanceStatus.STARTING}
-    <div class="flex flex-col items-center justify-center space-y-2 text-center">
-      <IconLoader class="mx-auto size-5 animate-spin text-foreground-l4" />
-      <p class="text-sm text-foreground-l3">Starting...</p>
-    </div>
   {:else}
     <div class="flex flex-1 flex-col gap-3">
+      {#if status === InstanceStatus.STARTING || status === InstanceStatus.ERRORED}
+        <div class="flex items-center justify-center gap-2 text-sm text-foreground-l3">
+          <IconLoader class="size-4 animate-spin" />
+          {#if status === InstanceStatus.STARTING}
+            <span>Starting...</span>
+          {:else}
+            <span>Errored</span>
+          {/if}
+        </div>
+      {/if}
+
       {#each endpoints as { kind, host, port }, i}
         {@const url = formatUrl(kind, host, port)}
         <div class="space-y-1">
@@ -152,10 +174,16 @@
         </div>
       {/if}
 
-      <Button variant="destructive" onclick={stop} disabled={actioning}>
-        {#if actioning}<IconLoader class="animate-spin" />{/if}
-        Stop
-      </Button>
+      <div class="flex gap-2">
+        <Button variant="secondary" onclick={extend} disabled={actioning || status === InstanceStatus.STARTING} class="flex-1">
+          {#if actioning}<IconLoader class="animate-spin" />{/if}
+          Extend
+        </Button>
+        <Button variant="destructive" onclick={stop} disabled={actioning || status === InstanceStatus.STARTING} class="flex-1">
+          {#if actioning}<IconLoader class="animate-spin" />{/if}
+          Stop
+        </Button>
+      </div>
     </div>
   {/if}
 </div>

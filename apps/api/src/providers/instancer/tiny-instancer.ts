@@ -45,8 +45,11 @@ const serviceSchema = z.object({
   volumes: z
     .array(z.string())
     .default([])
-    .describe('Volume mounts (volume:path or path:path)'),
-  tmpfs: z.array(z.string()).default([]).describe('Tmpfs mounts'),
+    .describe('Volume mounts (volume:path)'),
+  tmpfs: z
+    .record(z.string(), z.string())
+    .default({})
+    .describe('Tmpfs mounts and their mount options'),
   shm_size: z.string().optional().describe('Size of /dev/shm (e.g., 64m)'),
   healthcheck: z
     .object({
@@ -112,7 +115,7 @@ const defaultService = {
   ports: [],
   expose: [],
   volumes: [],
-  tmpfs: [],
+  tmpfs: { '/tmp': 'rw,noexec,nosuid,nodev,size=65536k' },
   read_only: true,
   privileged: false,
   security_opt: ['no-new-privileges'],
@@ -174,7 +177,7 @@ export default class TinyInstancerProvider implements InstancerProvider {
 
   private async apiRequest(
     path: string,
-    method: 'POST' | 'PUT' | 'DELETE',
+    method: 'POST' | 'PUT' | 'DELETE' | 'PATCH',
     body?: unknown
   ): Promise<instanceDetailsOrError> {
     const response = await fetch(`${this.apiUrl}/${path}`, {
@@ -218,6 +221,16 @@ export default class TinyInstancerProvider implements InstancerProvider {
   ): Promise<instanceDetailsOrError> => {
     return this.apiRequest('v1/instances/', 'POST', {
       kind: 'instancerGetInstanceForm',
+      rctfAuthToken: this.authToken,
+      ...options,
+    })
+  }
+
+  extendInstance = async (
+    options: InstanceQueryOptions
+  ): Promise<instanceDetailsOrError> => {
+    return this.apiRequest('v1/instances/', 'PATCH', {
+      kind: 'instancerRenewInstanceForm',
       rctfAuthToken: this.authToken,
       ...options,
     })
