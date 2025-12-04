@@ -1,10 +1,7 @@
-import {
-  CreateInstanceRouteV2,
-  DeleteInstanceRouteV2,
-  GetInstanceStatusRouteV2,
-} from '@rctf/types'
+import { DeleteInstanceRouteV2 } from '@rctf/types'
 import { instancerProvider } from '../../../../providers'
 import {
+  filterInstanceEndpoints,
   getInstancerChallenge,
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
@@ -24,9 +21,13 @@ integrationsGroup.route(
 
     const instanceStatus = await instancerProvider!.deleteInstance({
       teamId: user.id,
-      ...challenge.data.instancerConfig!,
+      challengeIntegrationId:
+        challenge.data.instancerConfig!.challengeIntegrationId,
     })
 
-    return await returnInstanceStatusOrError(res, instanceStatus)
+    return await returnInstanceStatusOrError(
+      res,
+      filterInstanceEndpoints(instanceStatus, challenge)
+    )
   }
 )

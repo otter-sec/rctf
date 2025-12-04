@@ -4,10 +4,13 @@ import type {
   BadChallenge,
   BadEndpoint,
   BadInstancerError,
+  EndpointSchema,
   GoodInstanceStatus,
   ResponseHelpers,
 } from '@rctf/types'
+import { z } from 'zod'
 import {
+  instanceDetailsSchema,
   instancerErrorSchema,
   type instanceDetailsOrError,
 } from '../providers/instancer/base'
@@ -68,4 +71,33 @@ export const returnInstanceStatusOrError = async (
     return res.badInstancerError(instanceStatus)
   }
   return res.goodInstanceStatus(instanceStatus)
+}
+
+export const filterInstanceEndpoints = (
+  instanceStatus: instanceDetailsOrError,
+  challenge: Challenge
+): instanceDetailsOrError => {
+  if (instanceStatus.kind !== instanceDetailsSchema.shape.kind.value) {
+    return instanceStatus
+  }
+
+  if (!instanceStatus.endpoints || !challenge.data.instancerConfig?.expose) {
+    return instanceStatus
+  }
+
+  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
+  instanceStatus.endpoints =
+    (instanceStatus.endpoints
+      .map((endpoint, i) => {
+        if (!challenge.data.instancerConfig?.expose?.[i]?.shouldDisplay) {
+          return undefined
+        }
+
+        return endpoint
+      })
+      .filter(endpoint => Boolean(endpoint)) as z.output<
+      typeof EndpointSchema
+    >[]) ?? null
+
+  return instanceStatus
 }

@@ -1,6 +1,7 @@
 import { CreateInstanceRouteV2, GetInstanceStatusRouteV2 } from '@rctf/types'
 import { instancerProvider } from '../../../../providers'
 import {
+  filterInstanceEndpoints,
   getInstancerChallenge,
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
@@ -23,6 +24,9 @@ integrationsGroup.route(
       ...challenge.data.instancerConfig!,
     })
 
-    return await returnInstanceStatusOrError(res, instanceStatus)
+    return await returnInstanceStatusOrError(
+      res,
+      filterInstanceEndpoints(instanceStatus, challenge)
+    )
   }
 )
