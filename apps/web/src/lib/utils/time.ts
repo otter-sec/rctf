@@ -68,3 +68,9 @@ export function formatRelativeHoursMinutes(
   if (minutes === 0) return `+${hours}h`
   return `+${hours}h ${minutes}m`
 }
+
+export function formatCountdown(ms: number): string {
+  const mins = Math.floor(ms / 60_000)
+  const secs = Math.floor((ms % 60_000) / 1000)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}

@@ -40,6 +40,7 @@ export {
 export { Checkbox } from './ui/checkbox'
 export { Input } from './ui/input'
 export { Label } from './ui/label'
+export { Progress } from './ui/progress'
 export { ScrollArea } from './ui/scroll-area'
 export { Separator } from './ui/separator'
 export { Spinner } from './ui/spinner'
