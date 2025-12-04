@@ -7,6 +7,7 @@ import {
   BadToken,
   BadUnknownSolveV2,
   BadUnknownUser,
+  BadUserPrivileged,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodChallengeSolveDeleteV2,
@@ -84,7 +85,13 @@ const AdminCreateTokenParams = z.object({
 export const CreateUserTokenRouteV2 = defineRoute({
   path: '/v2/admin/users/:id/token',
   method: 'POST',
-  responses: [GoodCreateUserTokenV2, BadPerms, BadToken, BadUnknownUser],
+  responses: [
+    GoodCreateUserTokenV2,
+    BadPerms,
+    BadToken,
+    BadUnknownUser,
+    BadUserPrivileged,
+  ],
   authRequired: true,
   params: AdminCreateTokenParams,
   permissions: Permissions.usersWrite,

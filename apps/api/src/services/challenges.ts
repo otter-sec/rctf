@@ -410,7 +410,7 @@ export const deleteSolve = async (
     challengeId: string
     userId: string
   }
-) => {
+): Promise<Solve[]> => {
   return db
     .delete(solves)
     .where(
