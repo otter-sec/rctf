@@ -44,7 +44,15 @@
     "quoteProps": "as-needed",
     "trailingComma": "es5",
     "bracketSpacing": true,
-    "bracketSameLine": false,
-    "arrowParens": "avoid"
+    "bracketSameLine": true,
+    "arrowParens": "avoid",
+    "overrides": [
+      {
+        "files": "*.svelte",
+        "options": {
+          "printWidth": 200
+        }
+      }
+    ]
   }
 }
