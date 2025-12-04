@@ -38,8 +38,9 @@
         <IconAlertTriangleFilled class="size-5 text-foreground-warning" />
         Unsaved changes
       </Dialog.Title>
-      <Dialog.Description
-        >You have unsaved changes that will be lost. Are you sure you want to leave?</Dialog.Description>
+      <Dialog.Description>
+        You have unsaved changes that will be lost. Are you sure you want to leave?
+      </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">
       <Button variant="ghost" onclick={onCancelDiscard}>Keep editing</Button>
@@ -49,19 +50,19 @@
 </Dialog.Root>
 
 <Dialog.Root open={showPreviewDialog} onOpenChange={open => !open && onClosePreview()}>
-  <Dialog.Content class="sm:max-w-2xl max-h-[80vh] flex flex-col">
+  <Dialog.Content class="flex max-h-[80vh] flex-col sm:max-w-2xl">
     <Dialog.Header>
       <Dialog.Title>Description preview</Dialog.Title>
       <Dialog.Description>This is how the description will appear to players.</Dialog.Description>
     </Dialog.Header>
-    <ScrollArea class="flex-1 min-h-0 -mx-6 px-6">
+    <ScrollArea class="-mx-6 min-h-0 flex-1 px-6">
       <div class="py-4">
         {#if description}
-          <div class="rounded-lg border-2 p-4 bg-background-l2">
+          <div class="rounded-lg border-2 bg-background-l2 p-4">
             <Markdown content={description} class="prose-sm max-w-none" />
           </div>
         {:else}
-          <p class="text-foreground-l3 text-center py-8">No description to preview.</p>
+          <p class="py-8 text-center text-foreground-l3">No description to preview.</p>
         {/if}
       </div>
     </ScrollArea>
@@ -86,9 +87,7 @@
     <Dialog.Footer class="gap-2">
       <Button variant="ghost" onclick={onDeleteCancel}>Cancel</Button>
       <Button variant="destructive" onclick={onDeleteConfirm}>
-        {#if isDeleting}
-          <Spinner class="size-4" />
-        {/if}
+        {#if isDeleting}<Spinner class="size-4" />{/if}
         Delete challenge
       </Button>
     </Dialog.Footer>

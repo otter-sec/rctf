@@ -9,7 +9,7 @@
     IconFlagFilled,
   } from '$lib/icons'
   import Attachments from './attachments.svelte'
-  import InstancerConfigComponent from './instancer-config.svelte'
+  import InstancerConfigPanel from './instancer-config.svelte'
 
   interface Props {
     name: string
@@ -25,17 +25,17 @@
     instancerConfig: InstancerConfig | null
     isDisabled: boolean
     onShowPreview: () => void
-    onFilesChange: (files: { name: string; url: string; size: number | null }[]) => void
+    onFilesChange: (files: Props['files']) => void
     onInstancerConfigChange: (config: InstancerConfig | null) => void
-    onNameChange: (value: string) => void
-    onCategoryChange: (value: string) => void
-    onAuthorChange: (value: string) => void
-    onDescriptionChange: (value: string) => void
-    onFlagChange: (value: string) => void
-    onPointsMinChange: (value: number) => void
-    onPointsMaxChange: (value: number) => void
-    onTiebreakEligibleChange: (value: boolean) => void
-    onSortWeightChange: (value: number) => void
+    onNameChange: (v: string) => void
+    onCategoryChange: (v: string) => void
+    onAuthorChange: (v: string) => void
+    onDescriptionChange: (v: string) => void
+    onFlagChange: (v: string) => void
+    onPointsMinChange: (v: number) => void
+    onPointsMaxChange: (v: number) => void
+    onTiebreakEligibleChange: (v: boolean) => void
+    onSortWeightChange: (v: number) => void
   }
 
   let {
@@ -65,33 +65,28 @@
     onSortWeightChange,
   }: Props = $props()
 
-  let activeTab = $state('details')
+  let tab = $state('details')
+
+  const tabClass =
+    'rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none'
 </script>
 
-<Tabs.Root bind:value={activeTab} class="flex h-full min-h-0 flex-col">
+<Tabs.Root bind:value={tab} class="flex h-full min-h-0 flex-col">
   <div class="px-5">
     <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
-      <Tabs.Trigger
-        value="details"
-        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+      <Tabs.Trigger value="details" class={tabClass}>
         <IconFileInfoFilled class="size-4" />
         Details
       </Tabs.Trigger>
-      <Tabs.Trigger
-        value="scoring"
-        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+      <Tabs.Trigger value="scoring" class={tabClass}>
         <IconFlagFilled class="size-4" />
         Scoring
       </Tabs.Trigger>
-      <Tabs.Trigger
-        value="files"
-        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+      <Tabs.Trigger value="files" class={tabClass}>
         <IconFileFilled class="size-4" />
-        Files{files.length > 0 ? ` (${files.length})` : ''}
+        Files{files.length ? ` (${files.length})` : ''}
       </Tabs.Trigger>
-      <Tabs.Trigger
-        value="instancer"
-        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+      <Tabs.Trigger value="instancer" class={tabClass}>
         <IconCloudComputingFilled class="size-4" />
         Instancer
       </Tabs.Trigger>
@@ -104,9 +99,8 @@
         <div class="flex flex-col gap-4 pb-4">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field.Field>
-              <Field.Label for="name">Name</Field.Label>
+              <Field.Label>Name</Field.Label>
               <Input
-                id="name"
                 type="text"
                 placeholder="Challenge name"
                 required
@@ -114,11 +108,9 @@
                 oninput={e => onNameChange(e.currentTarget.value)}
                 disabled={isDisabled} />
             </Field.Field>
-
             <Field.Field>
-              <Field.Label for="category">Category</Field.Label>
+              <Field.Label>Category</Field.Label>
               <Input
-                id="category"
                 type="text"
                 placeholder="web, pwn, crypto, etc."
                 required
@@ -129,9 +121,8 @@
           </div>
 
           <Field.Field>
-            <Field.Label for="author">Author</Field.Label>
+            <Field.Label>Author</Field.Label>
             <Input
-              id="author"
               type="text"
               placeholder="Challenge author"
               required
@@ -141,11 +132,9 @@
           </Field.Field>
 
           <Field.Field>
-            <Field.Label for="description" class="flex items-center"
-              >Description <Field.Hint>(Markdown supported)</Field.Hint>
-
+            <Field.Label class="flex items-center">
+              Description <Field.Hint>(Markdown supported)</Field.Hint>
               <Button
-                type="button"
                 variant="secondary"
                 size="sm"
                 class="ml-auto"
@@ -156,7 +145,6 @@
               </Button>
             </Field.Label>
             <Textarea
-              id="description"
               placeholder="Challenge description (Markdown supported)"
               rows={12}
               required
@@ -172,9 +160,8 @@
       <ScrollArea class="h-full px-9 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="flex flex-col gap-4 pb-4">
           <Field.Field>
-            <Field.Label for="flag">Flag</Field.Label>
+            <Field.Label>Flag</Field.Label>
             <Input
-              id="flag"
               type="text"
               placeholder={'flag{...}'}
               class="font-mono"
@@ -186,54 +173,45 @@
 
           <div class="grid grid-cols-2 gap-4">
             <Field.Field>
-              <Field.Label for="pointsMin"
-                >Minimum points <Field.Hint>(at max solves)</Field.Hint></Field.Label>
+              <Field.Label>Minimum points <Field.Hint>(at max solves)</Field.Hint></Field.Label>
               <Input
-                id="pointsMin"
                 type="number"
                 min={0}
                 required
                 value={pointsMin}
-                oninput={e => onPointsMinChange(Number(e.currentTarget.value))}
+                oninput={e => onPointsMinChange(+e.currentTarget.value)}
                 disabled={isDisabled} />
             </Field.Field>
-
             <Field.Field>
-              <Field.Label for="pointsMax"
-                >Maximum points <Field.Hint>(at zero solves)</Field.Hint></Field.Label>
+              <Field.Label>Maximum points <Field.Hint>(at zero solves)</Field.Hint></Field.Label>
               <Input
-                id="pointsMax"
                 type="number"
                 min={0}
                 required
                 value={pointsMax}
-                oninput={e => onPointsMaxChange(Number(e.currentTarget.value))}
+                oninput={e => onPointsMaxChange(+e.currentTarget.value)}
                 disabled={isDisabled} />
             </Field.Field>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <Field.Field>
-              <Field.Label for="sortWeight"
-                >Sort weight <Field.Hint>(higher = first)</Field.Hint></Field.Label>
+              <Field.Label>Sort weight <Field.Hint>(higher = first)</Field.Hint></Field.Label>
               <Input
-                id="sortWeight"
                 type="number"
                 value={sortWeight}
-                oninput={e => onSortWeightChange(Number(e.currentTarget.value))}
+                oninput={e => onSortWeightChange(+e.currentTarget.value)}
                 disabled={isDisabled} />
             </Field.Field>
-
             <Field.Field>
-              <Field.Label for="tiebreakEligible">Tiebreak eligibility</Field.Label>
+              <Field.Label>Tiebreak eligibility</Field.Label>
               <Select.Root
                 type="single"
                 value={tiebreakEligible ? 'yes' : 'no'}
                 onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
                 disabled={isDisabled}>
-                <Select.Trigger id="tiebreakEligible" class="w-full">
-                  {tiebreakEligible ? 'Eligible' : 'Ineligible'}
-                </Select.Trigger>
+                <Select.Trigger class="w-full"
+                  >{tiebreakEligible ? 'Eligible' : 'Ineligible'}</Select.Trigger>
                 <Select.Content>
                   <Select.Item value="yes" label="Eligible">Eligible</Select.Item>
                   <Select.Item value="no" label="Ineligible">Ineligible</Select.Item>
@@ -256,7 +234,7 @@
     <Tabs.Content value="instancer" class="h-full">
       <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="pb-4">
-          <InstancerConfigComponent
+          <InstancerConfigPanel
             config={instancerConfig}
             {isDisabled}
             onConfigChange={onInstancerConfigChange} />

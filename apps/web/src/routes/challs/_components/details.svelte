@@ -17,8 +17,11 @@
 
   let { challenge, isSolved, onSolve }: Props = $props()
 
-  let activeTab = $state('details')
-  let userVisibleInSolves = $state(false)
+  let tab = $state('details')
+  let userVisible = $state(false)
+
+  const tabClass =
+    'rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none'
 </script>
 
 {#if challenge}
@@ -26,18 +29,14 @@
     <div class="flex h-full flex-col">
       <Header {challenge} {isSolved} />
 
-      <Tabs.Root bind:value={activeTab} class="flex min-h-0 flex-1 flex-col">
+      <Tabs.Root bind:value={tab} class="flex min-h-0 flex-1 flex-col">
         <div class="px-5">
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
-            <Tabs.Trigger
-              value="details"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+            <Tabs.Trigger value="details" class={tabClass}>
               <IconFileInfoFilled class="size-4" />
               Details
             </Tabs.Trigger>
-            <Tabs.Trigger
-              value="solves"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
+            <Tabs.Trigger value="solves" class={tabClass}>
               <IconTrophyFilled class="size-4" />
               Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
             </Tabs.Trigger>
@@ -48,17 +47,16 @@
           <Tabs.Content value="details" class="h-full">
             <TabOverview {challenge} />
           </Tabs.Content>
-
           <Tabs.Content value="solves" class="h-full">
-            <TabSolves {challenge} bind:userVisibleInList={userVisibleInSolves} />
+            <TabSolves {challenge} bind:userVisibleInList={userVisible} />
           </Tabs.Content>
         </div>
       </Tabs.Root>
 
       <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
-        {#if activeTab === 'details'}
+        {#if tab === 'details'}
           <FooterPodium {challenge} {isSolved} />
-        {:else if activeTab === 'solves' && !userVisibleInSolves}
+        {:else if tab === 'solves' && !userVisible}
           <FooterSelf {challenge} />
         {/if}
         <FooterSubmit {challenge} {isSolved} {onSolve} />

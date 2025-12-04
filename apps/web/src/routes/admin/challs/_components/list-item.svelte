@@ -10,6 +10,8 @@
   }
 
   let { challenge, category, isSelected, onSelect }: Props = $props()
+
+  const { name, author, points, files } = $derived(challenge)
 </script>
 
 <li>
@@ -17,28 +19,25 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'relative flex w-full flex-col @sm:flex-row @sm:items-center @sm:justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover gap-1',
+      'relative flex w-full flex-col gap-1 px-9 py-3 text-left hover:bg-category-background-l1-hover @sm:flex-row @sm:items-center @sm:justify-between',
       isSelected &&
         'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
     )}>
-    <div class="flex min-w-0 flex-1 flex-col z-1">
+    <div class="z-1 flex min-w-0 flex-1 flex-col">
       <div class="truncate text-xl">
-        <span class="hidden @sm:inline text-category-foreground-l1">{category} /</span>
-        <span class="text-category-foreground-l0">{challenge.name}</span>
+        <span class="hidden text-category-foreground-l1 @sm:inline">{category} /</span>
+        <span class="text-category-foreground-l0">{name}</span>
       </div>
-      <span class="truncate text-base text-category-foreground-l1 opacity-75">
-        {challenge.author}
-      </span>
+      <span class="truncate text-base text-category-foreground-l1 opacity-75">{author}</span>
     </div>
     <div
-      class="flex shrink-0 flex-row @sm:flex-col items-baseline @sm:items-end gap-2 @sm:gap-0 z-1">
-      <div class="text-xl tabular-nums whitespace-nowrap">
-        <span class="text-category-foreground-l0"
-          >{challenge.points.min}–{challenge.points.max}</span>
+      class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm:flex-col @sm:items-end @sm:gap-0">
+      <div class="whitespace-nowrap text-xl tabular-nums">
+        <span class="text-category-foreground-l0">{points.min}–{points.max}</span>
         <span class="text-category-foreground-l1">pts</span>
       </div>
-      <span class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap">
-        {challenge.files.length} file{challenge.files.length === 1 ? '' : 's'}
+      <span class="whitespace-nowrap text-base tabular-nums text-category-foreground-l1 opacity-75">
+        {files.length} file{files.length === 1 ? '' : 's'}
       </span>
     </div>
   </button>

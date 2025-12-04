@@ -45,15 +45,12 @@ type EditorEvent =
   | { type: 'KEEP_EDITING' }
   | { type: 'CHECK_UNSAVED'; pendingAction: () => void }
   | { type: 'UPDATE_FORM'; field: keyof FormData; value: unknown }
-  | {
-      type: 'UPDATE_FILES'
-      files: { name: string; url: string; size: number | null }[]
-    }
+  | { type: 'UPDATE_FILES'; files: FormData['files'] }
   | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
   | { type: 'PREVIEW' }
   | { type: 'CLOSE_PREVIEW' }
 
-const emptyForm: FormData = {
+const empty: FormData = {
   name: '',
   category: '',
   author: '',
@@ -67,39 +64,35 @@ const emptyForm: FormData = {
   instancerConfig: null,
 }
 
-function formFromChallenge(challenge: AdminChallenge): FormData {
-  return {
-    name: challenge.name,
-    category: challenge.category,
-    author: challenge.author,
-    description: challenge.description ?? '',
-    flag: challenge.flag ?? '',
-    pointsMin: challenge.points.min,
-    pointsMax: challenge.points.max,
-    tiebreakEligible: challenge.tiebreakEligible,
-    sortWeight: challenge.sortWeight ?? 0,
-    files: challenge.files ? [...challenge.files] : [],
-    instancerConfig: challenge.instancerConfig ?? null,
-  }
-}
+const fromChallenge = (c: AdminChallenge): FormData => ({
+  name: c.name,
+  category: c.category,
+  author: c.author,
+  description: c.description ?? '',
+  flag: c.flag ?? '',
+  pointsMin: c.points.min,
+  pointsMax: c.points.max,
+  tiebreakEligible: c.tiebreakEligible,
+  sortWeight: c.sortWeight ?? 0,
+  files: c.files ? [...c.files] : [],
+  instancerConfig: c.instancerConfig ?? null,
+})
 
-function formFromDetail(detail: AdminChallengeDetail): FormData {
-  return {
-    name: detail.name,
-    category: detail.category,
-    author: detail.author,
-    description: detail.description,
-    flag: detail.flag,
-    pointsMin: detail.points.min,
-    pointsMax: detail.points.max,
-    tiebreakEligible: detail.tiebreakEligible,
-    sortWeight: detail.sortWeight ?? 0,
-    files: detail.files ? [...detail.files] : [],
-    instancerConfig: detail.instancerConfig ?? null,
-  }
-}
+const fromDetail = (d: AdminChallengeDetail): FormData => ({
+  name: d.name,
+  category: d.category,
+  author: d.author,
+  description: d.description,
+  flag: d.flag,
+  pointsMin: d.points.min,
+  pointsMax: d.points.max,
+  tiebreakEligible: d.tiebreakEligible,
+  sortWeight: d.sortWeight ?? 0,
+  files: d.files ? [...d.files] : [],
+  instancerConfig: d.instancerConfig ?? null,
+})
 
-function hasChanges(form: FormData, original: FormData | null): boolean {
+const isDirty = (form: FormData, original: FormData | null): boolean => {
   if (!original) {
     return !!(
       form.name ||
@@ -107,7 +100,7 @@ function hasChanges(form: FormData, original: FormData | null): boolean {
       form.author ||
       form.description ||
       form.flag ||
-      form.files.length > 0 ||
+      form.files.length ||
       form.instancerConfig
     )
   }
@@ -127,69 +120,50 @@ function hasChanges(form: FormData, original: FormData | null): boolean {
   )
 }
 
+const resetCtx = {
+  challenge: null,
+  challengeDetail: null,
+  form: empty,
+  originalForm: null,
+}
+
 export const editorMachine = setup({
-  types: {
-    context: {} as EditorContext,
-    events: {} as EditorEvent,
-  },
+  types: { context: {} as EditorContext, events: {} as EditorEvent },
   guards: {
-    hasUnsavedChanges: ({ context }) =>
-      hasChanges(context.form, context.originalForm),
-    noUnsavedChanges: ({ context }) =>
-      !hasChanges(context.form, context.originalForm),
+    dirty: ({ context }) => isDirty(context.form, context.originalForm),
+    clean: ({ context }) => !isDirty(context.form, context.originalForm),
   },
   actions: {
-    resetToEmpty: assign({
-      challenge: null,
-      challengeDetail: null,
-      form: emptyForm,
-      originalForm: null,
-    }),
-    selectChallenge: assign(({ event }) => {
+    reset: assign(resetCtx),
+    select: assign(({ event }) => {
       if (event.type !== 'SELECT') return {}
-      const challenge = event.challenge
-      if (!challenge) {
-        return {
-          challenge: null,
-          challengeDetail: null,
-          form: emptyForm,
-          originalForm: null,
-        }
-      }
-      const form = formFromChallenge(challenge)
+      if (!event.challenge) return resetCtx
+      const form = fromChallenge(event.challenge)
       return {
-        challenge,
+        challenge: event.challenge,
         challengeDetail: null,
         form,
         originalForm: form,
       }
     }),
-    loadDetail: assign(({ context, event }) => {
+    loadDetail: assign(({ event }) => {
       if (event.type !== 'DETAIL_LOADED') return {}
-      const form = formFromDetail(event.detail)
-      return {
-        challengeDetail: event.detail,
-        form,
-        originalForm: form,
-      }
+      const form = fromDetail(event.detail)
+      return { challengeDetail: event.detail, form, originalForm: form }
     }),
-    startCreating: assign({
+    startCreate: assign({
       challenge: null,
       challengeDetail: null,
-      form: emptyForm,
+      form: empty,
       originalForm: null,
     }),
     updateForm: assign(({ context, event }) => {
       if (event.type !== 'UPDATE_FORM') return {}
-      return {
-        form: { ...context.form, [event.field]: event.value },
-      }
+      return { form: { ...context.form, [event.field]: event.value } }
     }),
     updateFiles: assign(({ context, event }) => {
       if (event.type !== 'UPDATE_FILES') return {}
-      return {
-        form: { ...context.form, files: event.files },
-      }
+      return { form: { ...context.form, files: event.files } }
     }),
     updateInstancer: assign(({ context, event }) => {
       if (event.type !== 'UPDATE_INSTANCER') return {}
@@ -198,216 +172,132 @@ export const editorMachine = setup({
       }
     }),
     resetForm: assign(({ context }) => ({
-      form: context.originalForm ? { ...context.originalForm } : emptyForm,
+      form: context.originalForm ? { ...context.originalForm } : empty,
     })),
-    storePendingAction: assign(({ event }) => {
-      if (event.type !== 'CHECK_UNSAVED') return {}
-      return { pendingAction: event.pendingAction }
-    }),
-    clearPendingAction: assign({ pendingAction: null }),
-    executePendingAction: ({ context }) => {
-      context.pendingAction?.()
-    },
-    updateAfterSave: assign(({ event }) => {
+    storePending: assign(({ event }) =>
+      event.type === 'CHECK_UNSAVED'
+        ? { pendingAction: event.pendingAction }
+        : {}
+    ),
+    clearPending: assign({ pendingAction: null }),
+    execPending: ({ context }) => context.pendingAction?.(),
+    afterSave: assign(({ event }) => {
       if (event.type !== 'SAVE_SUCCESS') return {}
-      const form = formFromChallenge(event.challenge)
-      return {
-        challenge: event.challenge,
-        form,
-        originalForm: form,
-      }
+      const form = fromChallenge(event.challenge)
+      return { challenge: event.challenge, form, originalForm: form }
     }),
   },
 }).createMachine({
-  id: 'challengeEditor',
+  id: 'editor',
   initial: 'idle',
   context: {
     challenge: null,
     challengeDetail: null,
-    form: emptyForm,
+    form: empty,
     originalForm: null,
     pendingAction: null,
   },
   states: {
     idle: {
       on: {
-        SELECT: {
-          target: 'viewing',
-          actions: 'selectChallenge',
-        },
-        CREATE: {
-          target: 'creating',
-          actions: 'startCreating',
-        },
+        SELECT: { target: 'viewing', actions: 'select' },
+        CREATE: { target: 'creating', actions: 'startCreate' },
       },
     },
     viewing: {
       on: {
         SELECT: [
           {
-            guard: 'hasUnsavedChanges',
-            target: 'confirmDiscard',
-            actions: assign(({ event }) => ({
-              pendingAction: event.type === 'SELECT' ? () => {} : null,
-            })),
-          },
-          {
-            actions: 'selectChallenge',
-          },
-        ],
-        CREATE: [
-          {
-            guard: 'hasUnsavedChanges',
+            guard: 'dirty',
             target: 'confirmDiscard',
             actions: assign({ pendingAction: () => {} }),
           },
-          {
-            target: 'creating',
-            actions: 'startCreating',
-          },
+          { actions: 'select' },
         ],
-        DETAIL_LOADED: {
-          actions: 'loadDetail',
-        },
+        CREATE: [
+          {
+            guard: 'dirty',
+            target: 'confirmDiscard',
+            actions: assign({ pendingAction: () => {} }),
+          },
+          { target: 'creating', actions: 'startCreate' },
+        ],
+        DETAIL_LOADED: { actions: 'loadDetail' },
         EDIT: 'editing',
         CHECK_UNSAVED: [
-          {
-            guard: 'hasUnsavedChanges',
-            target: 'confirmDiscard',
-            actions: 'storePendingAction',
-          },
-          {
-            actions: [
-              'storePendingAction',
-              'executePendingAction',
-              'clearPendingAction',
-            ],
-          },
+          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
+          { actions: ['storePending', 'execPending', 'clearPending'] },
         ],
       },
     },
     editing: {
       on: {
-        UPDATE_FORM: {
-          actions: 'updateForm',
-        },
-        UPDATE_FILES: {
-          actions: 'updateFiles',
-        },
-        UPDATE_INSTANCER: {
-          actions: 'updateInstancer',
-        },
+        UPDATE_FORM: { actions: 'updateForm' },
+        UPDATE_FILES: { actions: 'updateFiles' },
+        UPDATE_INSTANCER: { actions: 'updateInstancer' },
         CANCEL: [
           {
-            guard: 'hasUnsavedChanges',
+            guard: 'dirty',
             target: 'confirmDiscard',
             actions: assign({ pendingAction: () => {} }),
           },
-          {
-            target: 'viewing',
-            actions: 'resetForm',
-          },
+          { target: 'viewing', actions: 'resetForm' },
         ],
         SAVE: 'saving',
         DELETE: 'confirmDelete',
         SELECT: [
           {
-            guard: 'hasUnsavedChanges',
-            target: 'confirmDiscard',
-            actions: assign(({ event }) => ({
-              pendingAction: event.type === 'SELECT' ? () => {} : null,
-            })),
-          },
-          {
-            target: 'viewing',
-            actions: 'selectChallenge',
-          },
-        ],
-        CREATE: [
-          {
-            guard: 'hasUnsavedChanges',
+            guard: 'dirty',
             target: 'confirmDiscard',
             actions: assign({ pendingAction: () => {} }),
           },
+          { target: 'viewing', actions: 'select' },
+        ],
+        CREATE: [
           {
-            target: 'creating',
-            actions: 'startCreating',
+            guard: 'dirty',
+            target: 'confirmDiscard',
+            actions: assign({ pendingAction: () => {} }),
           },
+          { target: 'creating', actions: 'startCreate' },
         ],
         CHECK_UNSAVED: [
-          {
-            guard: 'hasUnsavedChanges',
-            target: 'confirmDiscard',
-            actions: 'storePendingAction',
-          },
-          {
-            actions: [
-              'storePendingAction',
-              'executePendingAction',
-              'clearPendingAction',
-            ],
-          },
+          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
+          { actions: ['storePending', 'execPending', 'clearPending'] },
         ],
       },
     },
     creating: {
       on: {
-        UPDATE_FORM: {
-          actions: 'updateForm',
-        },
-        UPDATE_FILES: {
-          actions: 'updateFiles',
-        },
-        UPDATE_INSTANCER: {
-          actions: 'updateInstancer',
-        },
+        UPDATE_FORM: { actions: 'updateForm' },
+        UPDATE_FILES: { actions: 'updateFiles' },
+        UPDATE_INSTANCER: { actions: 'updateInstancer' },
         CANCEL: [
           {
-            guard: 'hasUnsavedChanges',
+            guard: 'dirty',
             target: 'confirmDiscard',
             actions: assign({ pendingAction: () => {} }),
           },
-          {
-            target: 'idle',
-            actions: 'resetToEmpty',
-          },
+          { target: 'idle', actions: 'reset' },
         ],
         SAVE: 'saving',
         SELECT: [
           {
-            guard: 'hasUnsavedChanges',
+            guard: 'dirty',
             target: 'confirmDiscard',
-            actions: assign(({ event }) => ({
-              pendingAction: event.type === 'SELECT' ? () => {} : null,
-            })),
+            actions: assign({ pendingAction: () => {} }),
           },
-          {
-            target: 'viewing',
-            actions: 'selectChallenge',
-          },
+          { target: 'viewing', actions: 'select' },
         ],
         CHECK_UNSAVED: [
-          {
-            guard: 'hasUnsavedChanges',
-            target: 'confirmDiscard',
-            actions: 'storePendingAction',
-          },
-          {
-            actions: [
-              'storePendingAction',
-              'executePendingAction',
-              'clearPendingAction',
-            ],
-          },
+          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
+          { actions: ['storePending', 'execPending', 'clearPending'] },
         ],
       },
     },
     saving: {
       on: {
-        SAVE_SUCCESS: {
-          target: 'viewing',
-          actions: 'updateAfterSave',
-        },
+        SAVE_SUCCESS: { target: 'viewing', actions: 'afterSave' },
         SAVE_ERROR: 'editing',
       },
     },
@@ -415,22 +305,15 @@ export const editorMachine = setup({
       on: {
         DISCARD: {
           target: 'idle',
-          actions: [
-            'executePendingAction',
-            'clearPendingAction',
-            'resetToEmpty',
-          ],
+          actions: ['execPending', 'clearPending', 'reset'],
         },
         KEEP_EDITING: [
           {
             target: 'editing',
             guard: ({ context }) => context.challenge !== null,
-            actions: 'clearPendingAction',
+            actions: 'clearPending',
           },
-          {
-            target: 'creating',
-            actions: 'clearPendingAction',
-          },
+          { target: 'creating', actions: 'clearPending' },
         ],
       },
     },
@@ -442,10 +325,7 @@ export const editorMachine = setup({
     },
     deleting: {
       on: {
-        DELETE_SUCCESS: {
-          target: 'idle',
-          actions: 'resetToEmpty',
-        },
+        DELETE_SUCCESS: { target: 'idle', actions: 'reset' },
         DELETE_ERROR: 'editing',
       },
     },

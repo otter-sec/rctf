@@ -19,112 +19,73 @@
   let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props = $props()
 
   const userQuery = useCurrentUser()
-  const user = $derived($userQuery.data)
-  const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
+  const canWrite = $derived(hasPermissions($userQuery.data, Permissions.challsWrite))
 
-  let searchQuery = $state('')
+  let query = $state('')
+  let collapsed = $state<Set<string>>(new Set())
 
-  const filteredChallenges = $derived.by(() => {
-    if (!searchQuery.trim()) return challenges
-    const query = searchQuery.toLowerCase()
+  const filtered = $derived.by(() => {
+    if (!query.trim()) return challenges
+    const q = query.toLowerCase()
     return challenges.filter(
       c =>
-        c.name.toLowerCase().includes(query) ||
-        c.category.toLowerCase().includes(query) ||
-        c.author.toLowerCase().includes(query)
+        c.name.toLowerCase().includes(q) ||
+        c.category.toLowerCase().includes(q) ||
+        c.author.toLowerCase().includes(q)
     )
   })
 
   const groups = $derived.by(() => {
-    const grouped = new Map<string, AdminChallenge[]>()
-    for (const challenge of filteredChallenges) {
-      const category = challenge.category
-      if (!grouped.has(category)) {
-        grouped.set(category, [])
-      }
-      grouped.get(category)!.push(challenge)
+    const map = new Map<string, AdminChallenge[]>()
+    for (const c of filtered) {
+      if (!map.has(c.category)) map.set(c.category, [])
+      map.get(c.category)!.push(c)
     }
-    for (const challs of grouped.values()) {
-      challs.sort((a, b) => a.name.localeCompare(b.name))
-    }
-    return Array.from(grouped.entries()).sort((a, b) => {
-      const orderA = getCategoryOrder(a[0])
-      const orderB = getCategoryOrder(b[0])
-      if (orderA === -1 && orderB === -1) return a[0].localeCompare(b[0])
-      if (orderA === -1) return 1
-      if (orderB === -1) return -1
-      return orderA - orderB
+    for (const list of map.values()) list.sort((a, b) => a.name.localeCompare(b.name))
+    return [...map.entries()].sort((a, b) => {
+      const [oa, ob] = [getCategoryOrder(a[0]), getCategoryOrder(b[0])]
+      if (oa === -1 && ob === -1) return a[0].localeCompare(b[0])
+      if (oa === -1) return 1
+      if (ob === -1) return -1
+      return oa - ob
     })
   })
 
-  const allCategoryNames = $derived(groups.map(([cat]) => cat))
-
-  let userCollapsedCategories = $state<Set<string>>(new Set())
-
-  const openCategories = $derived(
-    searchQuery.trim()
-      ? allCategoryNames
-      : allCategoryNames.filter(cat => !userCollapsedCategories.has(cat))
-  )
-
-  function handleCategoryToggle(values: string[]) {
-    const newCollapsed = new Set<string>()
-    for (const cat of allCategoryNames) {
-      if (!values.includes(cat)) newCollapsed.add(cat)
-    }
-    userCollapsedCategories = newCollapsed
-  }
-
-  function collapseAll() {
-    userCollapsedCategories = new Set(allCategoryNames)
-  }
+  const categories = $derived(groups.map(([cat]) => cat))
+  const open = $derived(query.trim() ? categories : categories.filter(c => !collapsed.has(c)))
 
   const stats = $derived({
-    challengeCount: challenges.length,
-    categoryCount: new Set(challenges.map(c => c.category)).size,
+    challs: challenges.length,
+    cats: new Set(challenges.map(c => c.category)).size,
   })
-
-  const emptySubtitle = $derived(
-    searchQuery.trim()
-      ? 'Try a different search term'
-      : 'Create your first challenge to get started'
-  )
 </script>
 
 <div class="flex h-full flex-col overflow-hidden">
   <div class="flex shrink-0 flex-col gap-2 py-2">
     <div class="flex items-baseline justify-between px-9">
       <div class="flex items-baseline gap-1 whitespace-nowrap">
-        <span class="text-foreground-l3 text-base tabular-nums">
-          {stats.challengeCount}
-        </span>
-        <span class="text-foreground-l5 text-base">
-          challenge{stats.challengeCount === 1 ? '' : 's'}
-        </span>
+        <span class="text-base tabular-nums text-foreground-l3">{stats.challs}</span>
+        <span class="text-base text-foreground-l5">challenge{stats.challs === 1 ? '' : 's'}</span>
       </div>
       <div class="flex items-baseline gap-1 whitespace-nowrap">
-        <span class="text-foreground-l3 text-base tabular-nums">
-          {stats.categoryCount}
-        </span>
-        <span class="text-foreground-l5 text-base">
-          categor{stats.categoryCount === 1 ? 'y' : 'ies'}
-        </span>
+        <span class="text-base tabular-nums text-foreground-l3">{stats.cats}</span>
+        <span class="text-base text-foreground-l5">categor{stats.cats === 1 ? 'y' : 'ies'}</span>
       </div>
     </div>
 
     <div class="px-5">
       <div class="flex gap-1 overflow-hidden rounded-full">
-        <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
+        <SearchInput value={query} onInput={q => (query = q)} class="py-2" />
         <Tooltip.Root disableCloseOnTriggerClick>
           <Tooltip.Trigger
-            onclick={collapseAll}
+            onclick={() => (collapsed = new Set(categories))}
             aria-label="Collapse all"
             class="rounded-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1">
             <IconFold class="size-5" />
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
         </Tooltip.Root>
-        {#if hasWritePerms}
+        {#if canWrite}
           <Tooltip.Root disableCloseOnTriggerClick>
             <Tooltip.Trigger
               onclick={onCreateNew}
@@ -132,8 +93,8 @@
               class={cn(
                 'rounded-l-sm px-4 py-2',
                 isCreatingNew
-                  ? 'bg-background-accent hover:bg-background-accent-hover text-foreground-accent'
-                  : 'bg-background-l2 hover:bg-background-l3 text-foreground-l2 hover:text-foreground-l1'
+                  ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
+                  : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
               )}>
               <IconLibraryPlusFilled class="size-5" />
             </Tooltip.Trigger>
@@ -145,41 +106,40 @@
   </div>
 
   <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
-    {#if filteredChallenges.length === 0}
+    {#if !filtered.length}
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges found"
-        subtitle={emptySubtitle} />
+        subtitle={query.trim()
+          ? 'Try a different search term'
+          : 'Create your first challenge to get started'} />
     {:else}
       <Accordion.Root
         type="multiple"
-        value={openCategories}
-        onValueChange={handleCategoryToggle}
+        value={open}
+        onValueChange={vals => (collapsed = new Set(categories.filter(c => !vals.includes(c))))}
         class="pb-4">
         {#each groups as [category, entries] (category)}
-          {@const config = getCategoryConfig(category)}
-          {@const catStyle = getCategoryStyle(config.color)}
-          <Accordion.Item value={category} class="border-b-0" style={catStyle}>
+          {@const cfg = getCategoryConfig(category)}
+          <Accordion.Item value={category} class="border-b-0" style={getCategoryStyle(cfg.color)}>
             <Accordion.Trigger
-              class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+              class="bg-category-background-l0 py-2 pr-2 pl-0 hover:no-underline"
               chevronClass="text-category-foreground-l1">
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap">
+                  class="flex items-baseline gap-1 whitespace-nowrap text-base font-normal tabular-nums">
                   <span class="text-category-foreground-l0">{entries.length}</span>
                 </div>
               {/snippet}
               <div class="flex items-center">
                 <div class="px-2.5">
-                  <config.icon class="size-4 text-category-foreground-l1" />
+                  <cfg.icon class="size-4 text-category-foreground-l1" />
                 </div>
-                <span class="text-base font-normal text-category-foreground-l1">
-                  {config.name}
-                </span>
+                <span class="text-base font-normal text-category-foreground-l1">{cfg.name}</span>
               </div>
             </Accordion.Trigger>
-            <Accordion.Content class="pb-0 bg-category-background-l1">
-              <ul class="@container flex flex-col">
+            <Accordion.Content class="bg-category-background-l1 pb-0">
+              <ul class="flex flex-col @container">
                 {#each entries as challenge (challenge.id)}
                   <Item
                     {challenge}

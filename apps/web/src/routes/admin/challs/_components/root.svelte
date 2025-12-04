@@ -7,15 +7,13 @@
   import List from './list.svelte'
 
   const challengesQuery = useAdminChallenges()
-  const challenges = $derived($challengesQuery.data ?? [])
-
   const { snapshot, send } = useMachine(editorMachine)
 
+  const challenges = $derived($challengesQuery.data ?? [])
   const selectedId = $derived(
     $snapshot.matches('idle') ? null : ($snapshot.context.challenge?.id ?? null)
   )
-
-  const isCreatingNew = $derived($snapshot.matches('creating'))
+  const isCreating = $derived($snapshot.matches('creating'))
 </script>
 
 <div class="h-[calc(100vh-72px)]">
@@ -25,14 +23,12 @@
         <List
           {challenges}
           {selectedId}
-          {isCreatingNew}
-          onSelect={challenge => send({ type: 'SELECT', challenge })}
+          isCreatingNew={isCreating}
+          onSelect={c => send({ type: 'SELECT', challenge: c })}
           onCreateNew={() => send({ type: 'CREATE' })} />
       </div>
     </Resizable.Pane>
-
     <Resizable.Handle withHandle />
-
     <Resizable.Pane defaultSize={60} minSize={40}>
       <div class="h-full rounded-l-3xl bg-background-l1">
         <Details snapshot={$snapshot} {send} />

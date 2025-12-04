@@ -9,63 +9,45 @@
   interface Props {
     files: { name: string; url: string; size: number | null }[]
     isDisabled: boolean
-    onFilesChange: (files: { name: string; url: string; size: number | null }[]) => void
+    onFilesChange: (files: Props['files']) => void
   }
 
   let { files, isDisabled, onFilesChange }: Props = $props()
 
-  const uploadMutation = useUploadFilesMutation()
+  const upload = useUploadFilesMutation()
+  let dragging = $state(false)
+  let input: HTMLInputElement | null = $state(null)
 
-  let isDragging = $state(false)
-  let fileInput: HTMLInputElement | null = $state(null)
+  function handleUpload(list: FileList | File[]) {
+    const items = Array.from(list)
+    if (!items.length) return
 
-  function uploadFiles(fileList: FileList | File[]) {
-    const filesToUpload = Array.from(fileList)
-    if (!filesToUpload.length) return
-
-    $uploadMutation.mutate(
-      { files: filesToUpload },
+    $upload.mutate(
+      { files: items },
       {
-        onSuccess: response => {
-          if (response.kind === GoodFilesUploadV2.kind) {
-            onFilesChange([...files, ...response.data])
-            toast.success(`${response.data.length} file(s) uploaded!`)
+        onSuccess: res => {
+          if (res.kind === GoodFilesUploadV2.kind) {
+            onFilesChange([...files, ...res.data])
+            toast.success(`${res.data.length} file(s) uploaded!`)
           } else {
-            toast.error(response.message)
+            toast.error(res.message)
           }
         },
-        onError: error => {
-          toast.error(error.message)
-        },
+        onError: e => toast.error(e.message),
       }
     )
   }
 
-  function handleFileInput(e: Event) {
-    const input = e.target as HTMLInputElement
-    if (!input.files?.length) return
-    uploadFiles(input.files)
-    input.value = ''
+  function onInput(e: Event) {
+    const el = e.target as HTMLInputElement
+    if (el.files?.length) handleUpload(el.files)
+    el.value = ''
   }
 
-  function handleDrop(e: DragEvent) {
+  function onDrop(e: DragEvent) {
     e.preventDefault()
-    isDragging = false
-    if (isDisabled || !e.dataTransfer?.files.length) return
-    uploadFiles(e.dataTransfer.files)
-  }
-
-  function handleDragOver(e: DragEvent) {
-    e.preventDefault()
-    if (!isDisabled) isDragging = true
-  }
-
-  function handleDragLeave() {
-    isDragging = false
-  }
-
-  function removeFile(index: number) {
-    onFilesChange(files.filter((_, i) => i !== index))
+    dragging = false
+    if (!isDisabled && e.dataTransfer?.files.length) handleUpload(e.dataTransfer.files)
   }
 </script>
 
@@ -75,40 +57,40 @@
       type="button"
       class={cn(
         'relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8',
-        isDragging
+        dragging
           ? 'border-primary bg-primary/5'
           : 'hover:border-foreground-l4 hover:bg-background-l3'
       )}
-      onclick={() => fileInput?.click()}
-      ondrop={handleDrop}
-      ondragover={handleDragOver}
-      ondragleave={handleDragLeave}
-      disabled={$uploadMutation.isPending}>
-      {#if $uploadMutation.isPending}
+      onclick={() => input?.click()}
+      ondrop={onDrop}
+      ondragover={e => (e.preventDefault(), !isDisabled && (dragging = true))}
+      ondragleave={() => (dragging = false)}
+      disabled={$upload.isPending}>
+      {#if $upload.isPending}
         <Spinner class="size-8 text-foreground-l3" />
         <span class="text-sm text-foreground-l3">Uploading...</span>
       {:else}
-        <IconCloudUpload class={cn('size-8', isDragging ? 'text-primary' : 'text-foreground-l4')} />
+        <IconCloudUpload class={cn('size-8', dragging ? 'text-primary' : 'text-foreground-l4')} />
         <div class="flex flex-col items-center gap-0.5">
-          <span class={cn('text-sm', isDragging ? 'text-primary' : 'text-foreground-l2')}>
-            {isDragging ? 'Drop files here' : 'Click to upload or drag and drop'}
+          <span class={cn('text-sm', dragging ? 'text-primary' : 'text-foreground-l2')}>
+            {dragging ? 'Drop files here' : 'Click to upload or drag and drop'}
           </span>
           <span class="text-xs text-foreground-l4">Any file type supported</span>
         </div>
       {/if}
     </button>
     <input
-      bind:this={fileInput}
+      bind:this={input}
       type="file"
       multiple
-      onchange={handleFileInput}
-      disabled={$uploadMutation.isPending}
+      onchange={onInput}
+      disabled={$upload.isPending}
       class="hidden" />
   {/if}
 
-  {#if files.length > 0}
+  {#if files.length}
     <div class="flex flex-col gap-1">
-      {#each files as file, index (file.url)}
+      {#each files as file, i (file.url)}
         <div
           class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4">
           <IconFileFilled class="size-5 shrink-0 text-foreground-l4" />
@@ -122,11 +104,10 @@
           </a>
           {#if !isDisabled}
             <Button
-              type="button"
               variant="destructive"
               size="icon-sm"
               class="opacity-0 group-hover:opacity-100"
-              onclick={() => removeFile(index)}>
+              onclick={() => onFilesChange(files.filter((_, j) => j !== i))}>
               <IconTrashFilled class="size-4" />
             </Button>
           {/if}
@@ -135,7 +116,7 @@
     </div>
   {:else if isDisabled}
     <div class="flex flex-col items-center justify-center py-8 text-foreground-l4">
-      <IconFileFilled class="size-8 mb-2 opacity-50" />
+      <IconFileFilled class="mb-2 size-8 opacity-50" />
       <span class="text-sm">No files attached</span>
     </div>
   {/if}
