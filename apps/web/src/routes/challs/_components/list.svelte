@@ -2,11 +2,7 @@
   import type { Challenge } from '$lib/api'
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import { IconZoomQuestionFilled } from '$lib/icons'
-  import {
-    getCategoryConfig,
-    getCategoryOrder,
-    getCategoryStyle,
-  } from '$lib/utils'
+  import { getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'
   import Header from './list-header.svelte'
   import Item from './list-item.svelte'
 
@@ -18,8 +14,7 @@
     onSelect: (challenge: Challenge) => void
   }
 
-  let { challenges, solvedIds, firstBloodIds, selectedId, onSelect }: Props =
-    $props()
+  let { challenges, solvedIds, firstBloodIds, selectedId, onSelect }: Props = $props()
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
@@ -80,8 +75,7 @@
   })
 
   const emptySubtitle = $derived.by(() => {
-    if (searchQuery.trim() && hideSolved)
-      return 'Try a different search or show solved challenges'
+    if (searchQuery.trim() && hideSolved) return 'Try a different search or show solved challenges'
     if (searchQuery.trim()) return 'Try a different search term'
     if (hideSolved) return 'All challenges have been solved!'
     return 'No challenges available'
@@ -111,39 +105,29 @@
     {hideSolved}
     onSearchChange={q => (searchQuery = q)}
     onToggleHideSolved={() => (hideSolved = !hideSolved)}
-    onCollapseAll={() => (openCategories = [])}
-  />
+    onCollapseAll={() => (openCategories = [])} />
 
   <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
     {#if filteredChallenges.length === 0}
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges found"
-        subtitle={emptySubtitle}
-      />
+        subtitle={emptySubtitle} />
     {:else}
       <Accordion.Root type="multiple" bind:value={openCategories} class="pb-4">
         {#each groups as [category, entries] (category)}
           {@const config = getCategoryConfig(category)}
           {@const catStyle = getCategoryStyle(config.color)}
-          {@const categorySolved = entries.filter(c =>
-            solvedIds.has(c.id)
-          ).length}
+          {@const categorySolved = entries.filter(c => solvedIds.has(c.id)).length}
           <Accordion.Item value={category} class="border-b-0" style={catStyle}>
             <Accordion.Trigger
               class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
-              chevronClass="text-category-foreground-l1"
-            >
+              chevronClass="text-category-foreground-l1">
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
-                >
-                  <span class="text-category-foreground-l0"
-                    >{categorySolved}</span
-                  >
-                  <span class="text-category-foreground-l1"
-                    >/ {entries.length}</span
-                  >
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap">
+                  <span class="text-category-foreground-l0">{categorySolved}</span>
+                  <span class="text-category-foreground-l1">/ {entries.length}</span>
                 </div>
               {/snippet}
               <div class="flex items-center">
@@ -164,8 +148,7 @@
                     isSolved={solvedIds.has(challenge.id)}
                     isFirstBlood={firstBloodIds.has(challenge.id)}
                     isSelected={selectedId === challenge.id}
-                    onSelect={() => onSelect(challenge)}
-                  />
+                    onSelect={() => onSelect(challenge)} />
                 {/each}
               </ul>
             </Accordion.Content>

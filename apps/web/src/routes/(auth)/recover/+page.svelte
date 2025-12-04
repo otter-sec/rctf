@@ -46,15 +46,13 @@
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Recovery email sent</Card.Title>
-      <Card.Description>
-        Get a new team token sent to your email
-      </Card.Description>
+      <Card.Description>Get a new team token sent to your email</Card.Description>
     </Card.Header>
     <Card.Content class="prose">
       <p>
-        We've sent a recovery email to <b class="font-medium">{email}</b>.
-        Please check your inbox and click the link to access your account. If
-        you didn't receive the email, check your spam folder or
+        We've sent a recovery email to <b class="font-medium">{email}</b>. Please check your inbox
+        and click the link to access your account. If you didn't receive the email, check your spam
+        folder or
         <button
           class="text-foreground-prose-link hover:underline cursor-pointer"
           onclick={() => (verifySent = false)}>try again</button
@@ -66,9 +64,7 @@
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Recover account</Card.Title>
-      <Card.Description>
-        Get a new team token sent to your email
-      </Card.Description>
+      <Card.Description>Get a new team token sent to your email</Card.Description>
     </Card.Header>
     <Card.Content>
       <form onsubmit={handleSubmit} class="flex flex-col gap-4">
@@ -82,18 +78,13 @@
             autocomplete="email"
             required
             bind:value={email}
-            aria-invalid={!!errors.email}
-          />
+            aria-invalid={!!errors.email} />
           {#if errors.email}
             <Field.Error>{errors.email}</Field.Error>
           {/if}
         </Field.Field>
 
-        <Button
-          type="submit"
-          disabled={$recoverMutation.isPending}
-          class="w-full"
-        >
+        <Button type="submit" disabled={$recoverMutation.isPending} class="w-full">
           {#if $recoverMutation.isPending}
             <Spinner class="size-4" />
           {/if}
@@ -103,9 +94,8 @@
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
-        Remember your token? <a
-          href="/login"
-          class="text-foreground-prose-link hover:underline">Login here</a
+        Remember your token? <a href="/login" class="text-foreground-prose-link hover:underline"
+          >Login here</a
         >.
       </p>
     </Card.Footer>

@@ -43,10 +43,7 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content align="start" class="w-48">
       <DropdownMenu.Label>View</DropdownMenu.Label>
-      <DropdownMenu.RadioGroup
-        value={viewMode}
-        onValueChange={v => onViewChange(v as ViewMode)}
-      >
+      <DropdownMenu.RadioGroup value={viewMode} onValueChange={v => onViewChange(v as ViewMode)}>
         <DropdownMenu.RadioItem value="zoomer">
           <IconTableFilled class="size-4 text-foreground-l3" />
           Matrix view
@@ -59,48 +56,28 @@
 
       <DropdownMenu.Separator />
       <DropdownMenu.Label>Sorting</DropdownMenu.Label>
-      <DropdownMenu.RadioGroup
-        value={sortMode}
-        onValueChange={v => onSortChange(v as SortMode)}
-      >
+      <DropdownMenu.RadioGroup value={sortMode} onValueChange={v => onSortChange(v as SortMode)}>
         <Tooltip.Root disabled={viewMode === 'zoomer'}>
           <Tooltip.Trigger class="w-full">
-            <DropdownMenu.RadioItem
-              value="category"
-              disabled={viewMode === 'boomer'}
-            >
-              <IconSortDescendingShapesFilled
-                class="size-4 text-foreground-l3"
-              />
+            <DropdownMenu.RadioItem value="category" disabled={viewMode === 'boomer'}>
+              <IconSortDescendingShapesFilled class="size-4 text-foreground-l3" />
               By category
             </DropdownMenu.RadioItem>
           </Tooltip.Trigger>
-          <Tooltip.Content side="right"
-            >Not available in simple view</Tooltip.Content
-          >
+          <Tooltip.Content side="right">Not available in simple view</Tooltip.Content>
         </Tooltip.Root>
         <Tooltip.Root disabled={viewMode === 'zoomer'}>
           <Tooltip.Trigger class="w-full">
-            <DropdownMenu.RadioItem
-              value="solves"
-              disabled={viewMode === 'boomer'}
-            >
+            <DropdownMenu.RadioItem value="solves" disabled={viewMode === 'boomer'}>
               <IconSortAscendingNumbers class="size-4 text-foreground-l3" />
               By difficulty
             </DropdownMenu.RadioItem>
           </Tooltip.Trigger>
-          <Tooltip.Content side="right"
-            >Not available in simple view</Tooltip.Content
-          >
+          <Tooltip.Content side="right">Not available in simple view</Tooltip.Content>
         </Tooltip.Root>
       </DropdownMenu.RadioGroup>
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 
-  <PaginationControls
-    {page}
-    {totalPages}
-    disabled={isRefetching}
-    {onPageChange}
-  />
+  <PaginationControls {page} {totalPages} disabled={isRefetching} {onPageChange} />
 </div>

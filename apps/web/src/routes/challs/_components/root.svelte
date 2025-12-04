@@ -14,13 +14,9 @@
   const solves = $derived($userQuery.data?.solves ?? [])
 
   let localSolvedIds = $state(new Set<string>())
-  const solvedIds = $derived(
-    new Set([...solves.map(s => s.id), ...localSolvedIds])
-  )
+  const solvedIds = $derived(new Set([...solves.map(s => s.id), ...localSolvedIds]))
 
-  const firstBloodIds = $derived(
-    new Set(solves.filter(s => s.solves === 1).map(s => s.id))
-  )
+  const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
 
   let selectedChallenge = $state<Challenge | null>(null)
 
@@ -35,9 +31,7 @@
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
   }
 
-  const selectedIsSolved = $derived(
-    selectedChallenge ? solvedIds.has(selectedChallenge.id) : false
-  )
+  const selectedIsSolved = $derived(selectedChallenge ? solvedIds.has(selectedChallenge.id) : false)
 </script>
 
 <div class="h-[calc(100vh-72px)]">
@@ -49,8 +43,7 @@
           {solvedIds}
           {firstBloodIds}
           selectedId={selectedChallenge?.id ?? null}
-          onSelect={handleSelect}
-        />
+          onSelect={handleSelect} />
       </div>
     </Resizable.Pane>
 
@@ -58,11 +51,7 @@
 
     <Resizable.Pane defaultSize={60} minSize={40}>
       <div class="h-full rounded-l-3xl bg-background-l1">
-        <Details
-          challenge={selectedChallenge}
-          isSolved={selectedIsSolved}
-          onSolve={handleSolve}
-        />
+        <Details challenge={selectedChallenge} isSolved={selectedIsSolved} onSolve={handleSolve} />
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>

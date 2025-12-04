@@ -27,8 +27,7 @@
           {selectedId}
           {isCreatingNew}
           onSelect={challenge => send({ type: 'SELECT', challenge })}
-          onCreateNew={() => send({ type: 'CREATE' })}
-        />
+          onCreateNew={() => send({ type: 'CREATE' })} />
       </div>
     </Resizable.Pane>
 

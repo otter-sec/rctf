@@ -23,9 +23,7 @@
     },
   })
 
-  export type FieldOrientation = VariantProps<
-    typeof fieldVariants
-  >['orientation']
+  export type FieldOrientation = VariantProps<typeof fieldVariants>['orientation']
 </script>
 
 <script lang="ts">
@@ -49,7 +47,6 @@
   data-slot="field"
   data-orientation={orientation}
   class={cn(fieldVariants({ orientation }), className)}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </div>

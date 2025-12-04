@@ -30,9 +30,7 @@
   })
 
   const isMultipleErrors = $derived(errors && errors.length > 1)
-  const singleErrorMessage = $derived(
-    errors && errors.length === 1 && errors[0]?.message
-  )
+  const singleErrorMessage = $derived(errors && errors.length === 1 && errors[0]?.message)
 </script>
 
 {#if hasContent}
@@ -41,8 +39,7 @@
     role="alert"
     data-slot="field-error"
     class={cn('text-foreground-destructive text-sm font-normal', className)}
-    {...restProps}
-  >
+    {...restProps}>
     {#if children}
       {@render children()}
     {:else if singleErrorMessage}

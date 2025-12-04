@@ -41,9 +41,7 @@
 {#snippet challengeTooltip(challenge: Challenge)}
   <p>{challenge.name}</p>
   <p class="text-foreground-l3">
-    {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1
-      ? 's'
-      : ''}
+    {challenge.points} pts · {challenge.solves} solve{challenge.solves !== 1 ? 's' : ''}
   </p>
 {/snippet}
 
@@ -51,8 +49,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger class="flex w-12 items-center justify-center">
       <span
-        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
-      >
+        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75">
         {challenge.points}
       </span>
     </Tooltip.Trigger>
@@ -70,18 +67,13 @@
   {@const Icon = config.icon}
   <div
     class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-1.5"
-    style:max-width={maxWidth ? `${maxWidth}px` : undefined}
-  >
+    style:max-width={maxWidth ? `${maxWidth}px` : undefined}>
     {#if showLabel}
       <Icon class="size-5 shrink-0 text-category-foreground-l1" />
-      <span class="truncate capitalize text-category-foreground-l1"
-        >{config.name}</span
-      >
+      <span class="truncate capitalize text-category-foreground-l1">{config.name}</span>
     {:else}
       <Tooltip.Root>
-        <Tooltip.Trigger
-          class="flex items-center justify-center text-category-foreground-l1"
-        >
+        <Tooltip.Trigger class="flex items-center justify-center text-category-foreground-l1">
           <Icon class="my-0.5 size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content side="bottom" sideOffset={4}>
@@ -99,8 +91,7 @@
   <Tooltip.Root>
     <Tooltip.Trigger class="flex w-12 items-center justify-center">
       <span
-        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
-      >
+        class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75">
         {totalPoints}
       </span>
     </Tooltip.Trigger>
@@ -117,9 +108,7 @@
   {@const Icon = config.icon}
   <div class="flex items-center justify-center px-2 pb-1.5">
     <Tooltip.Root>
-      <Tooltip.Trigger
-        class="flex items-center justify-center text-category-foreground-l1"
-      >
+      <Tooltip.Trigger class="flex items-center justify-center text-category-foreground-l1">
         <Icon class="my-0.5 size-5" />
       </Tooltip.Trigger>
       <Tooltip.Content side="bottom" sideOffset={4}>
@@ -133,34 +122,23 @@
   <div
     class="sticky left-0 z-30 shrink-0 bg-background-l0 pr-2"
     style:width="{teamColWidth}px"
-    style:height="{headerHeight}px"
-  >
+    style:height="{headerHeight}px">
     {#if !isFetching}
-      <Graph
-        class="size-full"
-        {hoveredTeamId}
-        offset={graphOffset}
-        {solveHighlight}
-      />
+      <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} />
     {/if}
   </div>
 
   <div class="flex flex-col">
-    <div
-      class={cn('flex items-end pr-4', !isBoomer && 'gap-1')}
-      style:height="{nameRowHeight}px"
-    >
+    <div class={cn('flex items-end pr-4', !isBoomer && 'gap-1')} style:height="{nameRowHeight}px">
       {#if isBoomer}
         <div class="flex gap-1 translate-x-1">
           {#each categoryGroups as group}
             <div
               class="relative w-12"
               style:height="{nameRowHeight}px"
-              style={getCategoryStyle(group.config.color)}
-            >
+              style={getCategoryStyle(group.config.color)}>
               <span
-                class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1"
-              >
+                class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1">
                 {group.config.name}
               </span>
             </div>
@@ -173,11 +151,9 @@
               <div
                 class="relative w-12"
                 style:height="{nameRowHeight}px"
-                style={getCategoryStyle(challenge.config.color)}
-              >
+                style={getCategoryStyle(challenge.config.color)}>
                 <span
-                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
-                >
+                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
                   {challenge.name}
                 </span>
               </div>
@@ -189,11 +165,9 @@
           <div
             class="relative w-12"
             style:height="{nameRowHeight}px"
-            style={getCategoryStyle(challenge.config.color)}
-          >
+            style={getCategoryStyle(challenge.config.color)}>
             <span
-              class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
-            >
+              class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
               {challenge.name}
             </span>
           </div>
@@ -207,8 +181,7 @@
           {#each categoryGroups as group}
             <div
               class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
-              style={getCategoryStyle(group.config.color)}
-            >
+              style={getCategoryStyle(group.config.color)}>
               <div class="flex py-1.5">
                 {@render categoryBadge(group)}
               </div>
@@ -220,8 +193,7 @@
         {#each challenges as challenge}
           <div
             class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
-            style={getCategoryStyle(challenge.config.color)}
-          >
+            style={getCategoryStyle(challenge.config.color)}>
             <div class="flex py-1.5 gap-1">
               {@render pointsBadge(challenge)}
             </div>
@@ -232,8 +204,7 @@
         {#each categoryGroups as group}
           <div
             class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
-            style={getCategoryStyle(group.config.color)}
-          >
+            style={getCategoryStyle(group.config.color)}>
             <div class="flex py-1.5 gap-1">
               {#each group.challenges as challenge}
                 {@render pointsBadge(challenge)}

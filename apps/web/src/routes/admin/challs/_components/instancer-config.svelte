@@ -1,15 +1,7 @@
 <script lang="ts">
   import { ExposeKind } from '@rctf/types'
   import type { InstancerConfig } from '$lib/api'
-  import {
-    Button,
-    Field,
-    Input,
-    ScrollArea,
-    Section,
-    Select,
-    Textarea,
-  } from '$lib/components'
+  import { Button, Field, Input, ScrollArea, Section, Select, Textarea } from '$lib/components'
   import { IconPlus, IconTrashFilled, IconX } from '$lib/icons'
 
   interface Props {
@@ -38,19 +30,28 @@
   const current = $derived(config?.pods.find(c => c.name === selected))
 
   const csv = {
-    parse: (s: string) => s.split(',').map(x => x.trim()).filter(Boolean),
+    parse: (s: string) =>
+      s
+        .split(',')
+        .map(x => x.trim())
+        .filter(Boolean),
     format: (a: string[]) => a.join(', '),
   }
 
   const env = {
     parse: (s: string): Record<string, string> =>
       Object.fromEntries(
-        s.split('\n').map(l => l.trim()).filter(Boolean)
+        s
+          .split('\n')
+          .map(l => l.trim())
+          .filter(Boolean)
           .map(l => [l.slice(0, l.indexOf('=')), l.slice(l.indexOf('=') + 1)])
           .filter(([k]) => k)
       ),
     format: (e: Record<string, string>) =>
-      Object.entries(e).map(([k, v]) => `${k}=${v}`).join('\n'),
+      Object.entries(e)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('\n'),
   }
 
   function update(fn: (c: InstancerConfig) => InstancerConfig) {
@@ -59,7 +60,7 @@
 
   function updatePod(fn: (p: Container) => Container) {
     if (!selected) return
-    update(c => ({ ...c, pods: c.pods.map(p => p.name === selected ? fn(p) : p) }))
+    update(c => ({ ...c, pods: c.pods.map(p => (p.name === selected ? fn(p) : p)) }))
   }
 
   function defaultContainer(name: string): Container {
@@ -129,7 +130,7 @@
   function updateExpose(i: number, partial: Partial<Expose>) {
     update(c => ({
       ...c,
-      expose: c.expose.map((e, j) => j === i ? { ...e, ...partial } : e),
+      expose: c.expose.map((e, j) => (j === i ? { ...e, ...partial } : e)),
     }))
   }
 </script>
@@ -144,8 +145,7 @@
           type="single"
           value={config ? 'yes' : 'no'}
           onValueChange={v => onConfigChange(v === 'yes' ? defaultConfig() : null)}
-          disabled={isDisabled}
-        >
+          disabled={isDisabled}>
           <Select.Trigger class="w-full">
             {config ? 'Enabled' : 'Disabled'}
           </Select.Trigger>
@@ -166,8 +166,7 @@
               class="font-mono"
               value={config.challengeIntegrationId}
               oninput={e => update(c => ({ ...c, challengeIntegrationId: e.currentTarget.value }))}
-              disabled={isDisabled}
-            />
+              disabled={isDisabled} />
           </Field.Field>
           <Field.Field>
             <Field.Label>Timeout <Field.Hint>(seconds)</Field.Hint></Field.Label>
@@ -175,9 +174,9 @@
               type="number"
               min={0}
               value={Math.round(config.timeoutMilliseconds / 1000)}
-              oninput={e => update(c => ({ ...c, timeoutMilliseconds: +e.currentTarget.value * 1000 }))}
-              disabled={isDisabled}
-            />
+              oninput={e =>
+                update(c => ({ ...c, timeoutMilliseconds: +e.currentTarget.value * 1000 }))}
+              disabled={isDisabled} />
           </Field.Field>
         </div>
       {/if}
@@ -197,12 +196,15 @@
                     {@const active = selected === pod.name}
                     <div
                       class="group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm
-                        {active ? 'bg-background-l4 text-foreground-l0' : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'}"
+                        {active
+                        ? 'bg-background-l4 text-foreground-l0'
+                        : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'}"
                       role="button"
                       tabindex="0"
                       onclick={() => (selected = pod.name)}
-                      onkeydown={e => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), selected = pod.name)}
-                    >
+                      onkeydown={e =>
+                        (e.key === 'Enter' || e.key === ' ') &&
+                        (e.preventDefault(), (selected = pod.name))}>
                       <span class="flex-1 truncate font-mono">{pod.name}</span>
                       {#if config.pods.length > 1}
                         <button
@@ -210,8 +212,7 @@
                           class="rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive
                             {active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}"
                           onclick={e => (e.stopPropagation(), removeContainer(pod.name))}
-                          disabled={isDisabled}
-                        >
+                          disabled={isDisabled}>
                           <IconX class="size-3" />
                         </button>
                       {/if}
@@ -245,8 +246,7 @@
                         updatePod(p => ({ ...p, name }))
                         selected = name
                       }}
-                      disabled={isDisabled}
-                    />
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>Image</Field.Label>
@@ -256,12 +256,12 @@
                       class="font-mono"
                       value={current.image}
                       oninput={e => updatePod(p => ({ ...p, image: e.currentTarget.value }))}
-                      disabled={isDisabled}
-                    />
+                      disabled={isDisabled} />
                   </Field.Field>
                 </div>
 
-                <span class="border-b-2 pb-2 text-sm font-medium text-foreground-l3">Resources</span>
+                <span class="border-b-2 pb-2 text-sm font-medium text-foreground-l3"
+                  >Resources</span>
                 <div class="grid grid-cols-4 gap-4">
                   <Field.Field>
                     <Field.Label>Memory <Field.Hint>(MB)</Field.Hint></Field.Label>
@@ -269,9 +269,12 @@
                       type="number"
                       min={1}
                       value={Math.round(limits.memoryBytes / MB)}
-                      oninput={e => updatePod(p => ({ ...p, limits: { ...p.limits, memoryBytes: +e.currentTarget.value * MB } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          limits: { ...p.limits, memoryBytes: +e.currentTarget.value * MB },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>CPU <Field.Hint>(cores)</Field.Hint></Field.Label>
@@ -280,9 +283,15 @@
                       min={0.1}
                       step={0.1}
                       value={limits.cpusNano / NANO_PER_CORE}
-                      oninput={e => updatePod(p => ({ ...p, limits: { ...p.limits, cpusNano: Math.round(+e.currentTarget.value * NANO_PER_CORE) } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          limits: {
+                            ...p.limits,
+                            cpusNano: Math.round(+e.currentTarget.value * NANO_PER_CORE),
+                          },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>PIDs <Field.Hint>(limit)</Field.Hint></Field.Label>
@@ -290,9 +299,12 @@
                       type="number"
                       min={1}
                       value={limits.pidsLimit}
-                      oninput={e => updatePod(p => ({ ...p, limits: { ...p.limits, pidsLimit: +e.currentTarget.value } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          limits: { ...p.limits, pidsLimit: +e.currentTarget.value },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>Egress</Field.Label>
@@ -300,9 +312,9 @@
                       type="single"
                       value={current.egress ? 'yes' : 'no'}
                       onValueChange={v => updatePod(p => ({ ...p, egress: v === 'yes' }))}
-                      disabled={isDisabled}
-                    >
-                      <Select.Trigger class="w-full">{current.egress ? 'Allowed' : 'Blocked'}</Select.Trigger>
+                      disabled={isDisabled}>
+                      <Select.Trigger class="w-full"
+                        >{current.egress ? 'Allowed' : 'Blocked'}</Select.Trigger>
                       <Select.Content>
                         <Select.Item value="yes" label="Allowed">Allowed</Select.Item>
                         <Select.Item value="no" label="Blocked">Blocked</Select.Item>
@@ -318,10 +330,14 @@
                     <Select.Root
                       type="single"
                       value={security.readOnlyFs ? 'yes' : 'no'}
-                      onValueChange={v => updatePod(p => ({ ...p, security: { ...p.security, readOnlyFs: v === 'yes' } }))}
-                      disabled={isDisabled}
-                    >
-                      <Select.Trigger class="w-full">{security.readOnlyFs ? 'Yes' : 'No'}</Select.Trigger>
+                      onValueChange={v =>
+                        updatePod(p => ({
+                          ...p,
+                          security: { ...p.security, readOnlyFs: v === 'yes' },
+                        }))}
+                      disabled={isDisabled}>
+                      <Select.Trigger class="w-full"
+                        >{security.readOnlyFs ? 'Yes' : 'No'}</Select.Trigger>
                       <Select.Content>
                         <Select.Item value="yes" label="Yes">Yes</Select.Item>
                         <Select.Item value="no" label="No">No</Select.Item>
@@ -335,9 +351,15 @@
                       placeholder="no-new-privileges, ..."
                       class="font-mono"
                       value={csv.format(security.dockerSecurityOpt)}
-                      oninput={e => updatePod(p => ({ ...p, security: { ...p.security, dockerSecurityOpt: csv.parse(e.currentTarget.value) } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          security: {
+                            ...p.security,
+                            dockerSecurityOpt: csv.parse(e.currentTarget.value),
+                          },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>Cap add</Field.Label>
@@ -346,9 +368,12 @@
                       placeholder="CAP_NET_ADMIN, ..."
                       class="font-mono"
                       value={csv.format(security.capAdd)}
-                      oninput={e => updatePod(p => ({ ...p, security: { ...p.security, capAdd: csv.parse(e.currentTarget.value) } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          security: { ...p.security, capAdd: csv.parse(e.currentTarget.value) },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                   <Field.Field>
                     <Field.Label>Cap drop</Field.Label>
@@ -357,9 +382,12 @@
                       placeholder="ALL, ..."
                       class="font-mono"
                       value={csv.format(security.capDrop)}
-                      oninput={e => updatePod(p => ({ ...p, security: { ...p.security, capDrop: csv.parse(e.currentTarget.value) } }))}
-                      disabled={isDisabled}
-                    />
+                      oninput={e =>
+                        updatePod(p => ({
+                          ...p,
+                          security: { ...p.security, capDrop: csv.parse(e.currentTarget.value) },
+                        }))}
+                      disabled={isDisabled} />
                   </Field.Field>
                 </div>
 
@@ -371,8 +399,7 @@
                     rows={3}
                     value={env.format(current.env)}
                     oninput={e => updatePod(p => ({ ...p, env: env.parse(e.currentTarget.value) }))}
-                    disabled={isDisabled}
-                  />
+                    disabled={isDisabled} />
                 </Field.Field>
               </div>
             {:else}
@@ -401,8 +428,7 @@
                 type="single"
                 value={exp.kind}
                 onValueChange={v => updateExpose(i, { kind: v as ExposeKind })}
-                disabled={isDisabled}
-              >
+                disabled={isDisabled}>
                 <Select.Trigger class="w-24">{exp.kind}</Select.Trigger>
                 <Select.Content>
                   {#each Object.values(ExposeKind) as kind}
@@ -417,8 +443,7 @@
                 type="single"
                 value={exp.podName}
                 onValueChange={v => updateExpose(i, { podName: v })}
-                disabled={isDisabled}
-              >
+                disabled={isDisabled}>
                 <Select.Trigger class="w-32 font-mono">{exp.podName}</Select.Trigger>
                 <Select.Content>
                   {#each config.pods as pod}
@@ -437,8 +462,7 @@
                 class="w-20"
                 value={exp.podPort}
                 oninput={e => updateExpose(i, { podPort: +e.currentTarget.value })}
-                disabled={isDisabled}
-              />
+                disabled={isDisabled} />
 
               <div class="flex-1"></div>
 
@@ -446,8 +470,7 @@
                 variant="destructive"
                 size="icon-sm"
                 onclick={() => removeExpose(i)}
-                disabled={isDisabled}
-              >
+                disabled={isDisabled}>
                 <IconTrashFilled class="size-4 text-destructive" />
               </Button>
             </div>

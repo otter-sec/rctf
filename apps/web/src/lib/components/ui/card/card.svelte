@@ -17,7 +17,6 @@
     'bg-background-l1 text-foreground-l0 flex flex-col gap-4 rounded-lg py-4 w-full max-w-3xl mx-auto',
     className
   )}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </div>

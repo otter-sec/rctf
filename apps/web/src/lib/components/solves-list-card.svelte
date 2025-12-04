@@ -29,9 +29,7 @@
     {#if solves.length > 0}
       <ul class="flex flex-col gap-2">
         {#each solves as solve (solve.id)}
-          <li
-            class="flex items-start justify-between gap-4 rounded-md border p-3"
-          >
+          <li class="flex items-start justify-between gap-4 rounded-md border p-3">
             <div class="flex flex-col gap-1">
               <span class="font-medium">{solve.name}</span>
               <span class="text-foreground-l3 text-sm">

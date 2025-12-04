@@ -1,10 +1,5 @@
 <script lang="ts">
-  import {
-    GoodEmailRemoved,
-    GoodEmailSet,
-    GoodUserUpdateV2,
-    GoodVerifySent,
-  } from '@rctf/types'
+  import { GoodEmailRemoved, GoodEmailSet, GoodUserUpdateV2, GoodVerifySent } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { Button, Card, Field, Input, Select, Spinner } from '$lib/components'
@@ -52,29 +47,19 @@
   )
 
   const allowedDivisionOptions = $derived(
-    user
-      ? divisionOptions.filter(d => user.allowedDivisions.includes(d.value))
-      : []
+    user ? divisionOptions.filter(d => user.allowedDivisions.includes(d.value)) : []
   )
 
-  const selectedDivisionLabel = $derived(
-    clientConfig?.divisions[division] ?? 'Select division'
-  )
+  const selectedDivisionLabel = $derived(clientConfig?.divisions[division] ?? 'Select division')
 
   const canDeleteEmail = $derived(clientConfig?.emailEnabled && user?.email)
 
   const hasChanges = $derived(
-    user
-      ? name !== user.name ||
-          email !== (user.email ?? '') ||
-          division !== user.division
-      : false
+    user ? name !== user.name || email !== (user.email ?? '') || division !== user.division : false
   )
 
   const loading = $derived(
-    $updateUserMutation.isPending ||
-      $setEmailMutation.isPending ||
-      $deleteEmailMutation.isPending
+    $updateUserMutation.isPending || $setEmailMutation.isPending || $deleteEmailMutation.isPending
   )
 
   async function handleSubmit(e: SubmitEvent) {
@@ -156,9 +141,7 @@
                   toast.success('Email updated successfully!')
                   updated = true
                 } else if (response.kind === GoodVerifySent.kind) {
-                  toast.success(
-                    'Verification email sent. Please check your inbox.'
-                  )
+                  toast.success('Verification email sent. Please check your inbox.')
                   updated = true
                 } else {
                   errors = { ...errors, email: response.message }
@@ -185,17 +168,15 @@
   <Card.Root>
     <Card.Header>
       <Card.Title>Update profile</Card.Title>
-      <Card.Description>
-        Update your team's name, email, or division. Name changes are limited to
-        once every 10 minutes.
-      </Card.Description>
+      <Card.Description
+        >Update your team's name, email, or division. Name changes are limited to once every 10
+        minutes.</Card.Description>
     </Card.Header>
     <Card.Content>
       {#if errors.form}
         <div
           class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-          role="alert"
-        >
+          role="alert">
           {errors.form}
         </div>
       {/if}
@@ -214,17 +195,14 @@
             maxlength={64}
             required
             bind:value={name}
-            aria-invalid={!!errors.name}
-          />
+            aria-invalid={!!errors.name} />
           {#if errors.name}
             <Field.Error>{errors.name}</Field.Error>
           {/if}
         </Field.Field>
 
         <Field.Field data-invalid={!!errors.email || undefined}>
-          <Field.Label for="email"
-            >Email{canDeleteEmail ? ' (optional)' : ''}</Field.Label
-          >
+          <Field.Label for="email">Email{canDeleteEmail ? ' (optional)' : ''}</Field.Label>
           <Input
             id="email"
             name="email"
@@ -232,8 +210,7 @@
             placeholder="Enter your email"
             autocomplete="email"
             bind:value={email}
-            aria-invalid={!!errors.email}
-          />
+            aria-invalid={!!errors.email} />
           <Field.Description>
             {#if canDeleteEmail}
               Used for account recovery. Leave blank to remove.

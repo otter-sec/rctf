@@ -1,11 +1,6 @@
 <script lang="ts">
   import { toast } from '$lib'
-  import {
-    Button,
-    Card,
-    ProfileStatsCard,
-    SolvesListCard,
-  } from '$lib/components'
+  import { Button, Card, ProfileStatsCard, SolvesListCard } from '$lib/components'
   import {
     IconCircleCheckFilled,
     IconCopyPlusFilled,
@@ -42,22 +37,18 @@
       divisionLabel={clientConfig.divisions[user.division] ?? user.division}
       score={user.score}
       globalPlace={user.globalPlace}
-      divisionPlace={user.divisionPlace}
-    />
+      divisionPlace={user.divisionPlace} />
 
     <Card.Root>
       <Card.Header>
         <Card.Title>Team token</Card.Title>
-        <Card.Description>
-          Share this token with your teammates so they can login to the same
-          account.
-        </Card.Description>
+        <Card.Description
+          >Share this token with your teammates so they can login to the same account.</Card.Description>
       </Card.Header>
       <Card.Content>
         <div class="flex items-center gap-2">
           <code
-            class="bg-background-l2 flex-1 overflow-hidden text-ellipsis rounded-md border px-3 py-2 font-mono text-sm"
-          >
+            class="bg-background-l2 flex-1 overflow-hidden text-ellipsis rounded-md border px-3 py-2 font-mono text-sm">
             {#if showToken}
               {user.teamToken}
             {:else}
@@ -68,20 +59,14 @@
             variant="outline"
             size="icon"
             onclick={() => (showToken = !showToken)}
-            aria-label={showToken ? 'Hide token' : 'Show token'}
-          >
+            aria-label={showToken ? 'Hide token' : 'Show token'}>
             {#if showToken}
               <IconEyeClosed class="size-4" />
             {:else}
               <IconEyeFilled class="size-4" />
             {/if}
           </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onclick={copyToken}
-            aria-label="Copy token"
-          >
+          <Button variant="outline" size="icon" onclick={copyToken} aria-label="Copy token">
             {#if copied}
               <IconCircleCheckFilled class="size-4 text-foreground-success" />
             {:else}
@@ -94,7 +79,6 @@
 
     <SolvesListCard
       solves={user.solves}
-      emptyMessage="No solves yet. Head over to the challenges page to get started!"
-    />
+      emptyMessage="No solves yet. Head over to the challenges page to get started!" />
   </div>
 {/if}

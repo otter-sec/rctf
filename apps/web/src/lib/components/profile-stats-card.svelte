@@ -12,15 +12,7 @@
     divisionPlace: number | null
   }
 
-  let {
-    name,
-    email,
-    ctftimeId,
-    divisionLabel,
-    score,
-    globalPlace,
-    divisionPlace,
-  }: Props = $props()
+  let { name, email, ctftimeId, divisionLabel, score, globalPlace, divisionPlace }: Props = $props()
 </script>
 
 // TODO(enscribe): remove
@@ -37,8 +29,7 @@
           href="https://ctftime.org/team/{ctftimeId}"
           target="_blank"
           rel="noopener noreferrer"
-          class="text-foreground-prose-link hover:underline"
-        >
+          class="text-foreground-prose-link hover:underline">
           {ctftimeId}
         </a>
       </Card.Description>

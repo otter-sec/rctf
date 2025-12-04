@@ -41,13 +41,10 @@
       styles.gradient,
     ]
   )}
-  style:width="{width}px"
->
+  style:width="{width}px">
   <div class="flex w-16 shrink-0 flex-col items-center">
     <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
-    <span class={cn('text-base tabular-nums', styles.fgL1)}
-      >#{divisionPlace}</span
-    >
+    <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
   </div>
 
   <Avatar.Root class="size-12 shrink-0 rounded-lg">
@@ -60,10 +57,7 @@
   </Avatar.Root>
 
   <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-    <a
-      href="/profile/{id}"
-      class={cn('truncate text-xl hover:underline', styles.fgL0)}
-    >
+    <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
       {name}
     </a>
     <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>

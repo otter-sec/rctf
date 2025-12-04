@@ -15,7 +15,6 @@
   bind:ref
   data-slot="select-group-heading"
   class={cn('text-foreground-l3 px-2 py-1.5 text-xs', className)}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </SelectPrimitive.GroupHeading>

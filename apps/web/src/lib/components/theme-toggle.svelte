@@ -51,8 +51,7 @@
     <button
       onclick={toggle}
       aria-label="Toggle theme"
-      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l4"
-    >
+      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l4">
       {#if theme === 'dark'}
         <IconSunHighFilled class="size-6 text-foreground-l4" />
       {:else}

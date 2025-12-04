@@ -30,14 +30,7 @@
     isFetching?: boolean
   }
 
-  let {
-    entries,
-    challengesData,
-    page,
-    sortMode,
-    viewMode,
-    isFetching = false,
-  }: Props = $props()
+  let { entries, challengesData, page, sortMode, viewMode, isFetching = false }: Props = $props()
 
   const userQuery = useCurrentUser()
   const currentUser = $derived($userQuery.data)
@@ -50,16 +43,11 @@
     return globalPlace >= startRank && globalPlace <= endRank
   })
 
-  const showSelfRow = $derived(
-    currentUser && globalPlace && !selfIsOnCurrentPage
-  )
+  const showSelfRow = $derived(currentUser && globalPlace && !selfIsOnCurrentPage)
 
   const selfSolves = $derived.by(() => {
-    if (!currentUser)
-      return new Map<string, { id: string; solveTime: number }>()
-    return new Map(
-      currentUser.solves.map(s => [s.id, { id: s.id, solveTime: s.createdAt }])
-    )
+    if (!currentUser) return new Map<string, { id: string; solveTime: number }>()
+    return new Map(currentUser.solves.map(s => [s.id, { id: s.id, solveTime: s.createdAt }]))
   })
 
   let viewportRef = $state<HTMLElement | null>(null)
@@ -134,8 +122,7 @@
       {showBottomFade}
       {showLeftFade}
       {showRightFade}
-      showSelfRow={!!showSelfRow}
-    />
+      showSelfRow={!!showSelfRow} />
 
     <ScrollArea
       class="h-[calc(100vh-142px)] max-w-full rounded-lg"
@@ -145,8 +132,7 @@
       scrollbarXStyles="margin-left: {layout.teamColumn}px;"
       scrollbarYClasses="z-50"
       scrollbarYStyles="margin-top: {layout.headerHeight}px; height: calc(100% - {layout.headerHeight}px);"
-      bind:viewportRef
-    >
+      bind:viewportRef>
       <div style:width="{contentWidth}px">
         <Header
           {challenges}
@@ -162,8 +148,7 @@
           headerHeight={layout.headerHeight}
           solveHighlight={tooltipData?.solved && tooltipData.solveTime
             ? { teamId: tooltipData.teamId, time: tooltipData.solveTime }
-            : null}
-        />
+            : null} />
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
@@ -171,8 +156,7 @@
           onmouseleave={() => {
             hoveredTeamId = null
             tooltipData = null
-          }}
-        >
+          }}>
           {#each entries as entry, index (entry.id)}
             {@const rank = (page - 1) * PAGE_SIZE + index + 1}
             <Row
@@ -186,15 +170,12 @@
               isCurrentUser={currentUser?.id === entry.id}
               teamColWidth={layout.teamColumn}
               onHover={() => (hoveredTeamId = entry.id)}
-              onCellHover={handleCellHover}
-            />
+              onCellHover={handleCellHover} />
           {/each}
         </div>
 
         {#if showSelfRow && currentUser && globalPlace && !isFetching}
-          <div
-            class="sticky bottom-0 z-20 bg-background-l0/95 pt-2 pb-2 backdrop-blur-sm"
-          >
+          <div class="sticky bottom-0 z-20 bg-background-l0/95 pt-2 pb-2 backdrop-blur-sm">
             <SelfRow
               user={currentUser}
               rank={globalPlace}
@@ -205,8 +186,7 @@
               {viewMode}
               teamColWidth={layout.teamColumn}
               onHover={() => (hoveredTeamId = currentUser.id)}
-              onCellHover={handleCellHover}
-            />
+              onCellHover={handleCellHover} />
           </div>
         {/if}
       </div>

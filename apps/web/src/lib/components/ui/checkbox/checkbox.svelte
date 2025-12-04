@@ -21,8 +21,7 @@
   )}
   bind:checked
   bind:indeterminate
-  {...restProps}
->
+  {...restProps}>
   {#snippet children({ checked, indeterminate })}
     <div data-slot="checkbox-indicator" class="text-current transition-none">
       {#if checked}

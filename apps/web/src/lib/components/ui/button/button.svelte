@@ -1,21 +1,16 @@
 <script lang="ts" module>
   import { cn, type WithElementRef } from '$lib/utils'
-  import type {
-    HTMLAnchorAttributes,
-    HTMLButtonAttributes,
-  } from 'svelte/elements'
+  import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
   import { tv, type VariantProps } from 'tailwind-variants'
 
   export const buttonVariants = tv({
     base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     variants: {
       variant: {
-        default:
-          'bg-background-accent text-foreground-accent hover:bg-background-accent-hover',
+        default: 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover',
         destructive:
           'bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
-        outline:
-          'bg-background-l1 hover:bg-background-l2 text-foreground-l1 border',
+        outline: 'bg-background-l1 hover:bg-background-l2 text-foreground-l1 border',
         secondary: 'bg-background-l4 text-foreground-l1 hover:bg-background-l5',
         ghost: 'hover:bg-background-l2 text-foreground-l1',
         link: 'text-foreground-prose-link underline-offset-4 hover:underline',
@@ -68,8 +63,7 @@
     aria-disabled={disabled}
     role={disabled ? 'link' : undefined}
     tabindex={disabled ? -1 : undefined}
-    {...restProps}
-  >
+    {...restProps}>
     {@render children?.()}
   </a>
 {:else}
@@ -79,8 +73,7 @@
     class={cn(buttonVariants({ variant, size }), className)}
     {type}
     {disabled}
-    {...restProps}
-  >
+    {...restProps}>
     {@render children?.()}
   </button>
 {/if}

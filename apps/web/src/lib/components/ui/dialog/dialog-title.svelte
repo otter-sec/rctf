@@ -13,5 +13,4 @@
   bind:ref
   data-slot="dialog-title"
   class={cn('text-lg leading-none', className)}
-  {...restProps}
-/>
+  {...restProps} />

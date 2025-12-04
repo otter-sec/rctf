@@ -15,9 +15,5 @@
   bind:ref
   data-slot="button-group-separator"
   {orientation}
-  class={cn(
-    'bg-border relative m-0! self-stretch data-[orientation=vertical]:h-auto',
-    className
-  )}
-  {...restProps}
-/>
+  class={cn('bg-border relative m-0! self-stretch data-[orientation=vertical]:h-auto', className)}
+  {...restProps} />

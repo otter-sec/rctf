@@ -4,13 +4,7 @@
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import type {
-    CategoryGroup,
-    Challenge,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from '../_lib'
+  import type { CategoryGroup, Challenge, SortMode, TooltipData, ViewMode } from '../_lib'
   import Cell from './scores-cell.svelte'
   import Progress from './scores-progress.svelte'
   import TeamInfo from './scores-team-info.svelte'
@@ -65,15 +59,10 @@
 
 {#snippet challengeCell(challenge: Challenge, isFirst: boolean = false)}
   {@const solve = solves.get(challenge.id)}
-  {@const bloodIndex =
-    challenge.firstSolvers?.findIndex(s => s.id === user.id) ?? -1}
+  {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === user.id) ?? -1}
   <div
-    class={cn(
-      'flex h-16 w-12 items-center justify-center',
-      isFirst && 'rounded-l-lg'
-    )}
-    style={getCategoryStyle(challenge.config.color)}
-  >
+    class={cn('flex h-16 w-12 items-center justify-center', isFirst && 'rounded-l-lg')}
+    style={getCategoryStyle(challenge.config.color)}>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="flex items-center justify-center"
@@ -86,8 +75,7 @@
           bloodIndex,
           solveTime: solve?.solveTime,
         })}
-      onmouseleave={() => onCellHover?.(null, 0, 0)}
-    >
+      onmouseleave={() => onCellHover?.(null, 0, 0)}>
       <Cell solved={!!solve} {bloodIndex} />
     </div>
   </div>
@@ -96,8 +84,7 @@
 {#snippet categoryCell(stat: (typeof categoryStats)[number])}
   <div
     class="flex h-16 w-12 items-center justify-center rounded-l-lg"
-    style={getCategoryStyle(stat.config.color)}
-  >
+    style={getCategoryStyle(stat.config.color)}>
     <Tooltip.Root>
       <Tooltip.Trigger class="flex items-center justify-center">
         {#if stat.status === 'complete'}
@@ -119,11 +106,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="group w-full rounded-lg bg-background-l2/50 hover:bg-background-l2"
-  onmouseenter={onHover}
->
-  <div
-    class="flex w-fit rounded-lg bg-background-l2 group-hover:bg-background-l3"
-  >
+  onmouseenter={onHover}>
+  <div class="flex w-fit rounded-lg bg-background-l2 group-hover:bg-background-l3">
     <TeamInfo
       id={user.id}
       name={user.name}
@@ -134,8 +118,7 @@
       divisionPlace={user.divisionPlace ?? 0}
       {rank}
       isCurrentUser={true}
-      width={teamColWidth}
-    />
+      width={teamColWidth} />
 
     {#if isBoomer}
       <div class="flex gap-1 pr-4">

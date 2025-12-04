@@ -1,24 +1,9 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
-  import {
-    useCurrentUser,
-    useLeaderboardGraph,
-    useSelfUserGraph,
-  } from '$lib/query'
-  import {
-    formatLocalTime,
-    formatRelativeHours,
-    formatRelativeHoursMinutes,
-  } from '$lib/utils/time'
+  import { useCurrentUser, useLeaderboardGraph, useSelfUserGraph } from '$lib/query'
+  import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
-  import {
-    Axis,
-    Highlight,
-    Layer,
-    Chart as LayerChart,
-    Spline,
-    Tooltip,
-  } from 'layerchart'
+  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
   import { PAGE_SIZE } from '../_lib'
 
   interface Props {
@@ -46,16 +31,10 @@
     return globalPlace >= startRank && globalPlace <= endRank
   })
 
-  const selfGraphQuery = $derived(
-    useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace)
-  )
+  const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
 
-  const graphQuery = $derived(
-    useLeaderboardGraph({ limit: 10, offset, division: 'open' })
-  )
-  const top3Query = $derived(
-    useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' })
-  )
+  const graphQuery = $derived(useLeaderboardGraph({ limit: 10, offset, division: 'open' }))
+  const top3Query = $derived(useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' }))
 
   const MEDAL_COLORS = [
     'var(--foreground-gold-l0)',
@@ -136,11 +115,7 @@
 
     let allTeams = [...uniqueContextTeams, ...mainTeams]
 
-    if (
-      selfGraphData &&
-      !mainIds.has(selfGraphData.id) &&
-      !selfIsOnCurrentPage
-    ) {
+    if (selfGraphData && !mainIds.has(selfGraphData.id) && !selfIsOnCurrentPage) {
       const filteredSelf = filterByTime([selfGraphData])
       if (filteredSelf.length > 0) {
         const selfEntry = filteredSelf[0]!
@@ -167,8 +142,7 @@
         }))
     })
 
-    const startTime =
-      flatPoints.length > 0 ? Math.min(...flatPoints.map(p => p.time)) : 0
+    const startTime = flatPoints.length > 0 ? Math.min(...flatPoints.map(p => p.time)) : 0
 
     return { allTeams, teamMeta, flatPoints, startTime }
   })
@@ -216,27 +190,23 @@
     yDomain={[0, null]}
     yNice
     padding={{ bottom: 24, left: 4 }}
-    tooltip={{ mode: 'quadtree' }}
-  >
+    tooltip={{ mode: 'quadtree' }}>
     {#snippet children({ context })}
       <Layer type="svg">
         <Axis
           placement="bottom"
           rule
           format={(d: number) => formatRelativeHours(d, startTime)}
-          tickLabelProps={{ textAnchor: 'start', dy: 4 }}
-        />
+          tickLabelProps={{ textAnchor: 'start', dy: 4 }} />
 
         {#each dataByTeam as [teamId, points]}
           {@const meta = teamMeta.get(teamId)!}
-          {@const isDimmed =
-            hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
+          {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
           <Spline
             data={points}
             class={meta.isSelf ? 'stroke-3' : 'stroke-2'}
             stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
-            style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}"
-          />
+            style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}" />
         {/each}
 
         {#if solveHighlightPoint}
@@ -249,8 +219,7 @@
             fill={solveHighlightPoint.color}
             stroke="var(--background-l0)"
             stroke-width={3}
-            class="pointer-events-none"
-          />
+            class="pointer-events-none" />
         {/if}
 
         <Highlight points lines />
@@ -259,17 +228,13 @@
       <Tooltip.Root>
         {#snippet children({ data })}
           <div
-            class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl"
-          >
+            class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl">
             <div class="text-foreground-l3 mb-1.5">
               <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
               <div class="text-[10px]">{formatLocalTime(data.time)}</div>
             </div>
             <div class="flex items-center gap-2">
-              <div
-                class="h-2.5 w-2.5 rounded-sm"
-                style="background-color: {data.color}"
-              ></div>
+              <div class="h-2.5 w-2.5 rounded-sm" style="background-color: {data.color}"></div>
               <span class="font-medium wrap-anywhere">{data.teamName}</span>
               <span class="text-foreground-l3 ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts

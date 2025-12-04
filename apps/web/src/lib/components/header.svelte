@@ -6,13 +6,7 @@
   import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
-  import {
-    Avatar,
-    ButtonNavigation,
-    DropdownMenu,
-    ThemeToggle,
-    Tooltip,
-  } from '$lib/components'
+  import { Avatar, ButtonNavigation, DropdownMenu, ThemeToggle, Tooltip } from '$lib/components'
   import {
     IconChartAreaLineFilled,
     IconCopy,
@@ -30,9 +24,7 @@
   const user = $derived($userQuery.data ?? null)
 
   const isAdmin = $derived(
-    user?.perms !== null &&
-      user?.perms !== undefined &&
-      (user.perms & Permissions.challsRead) !== 0
+    user?.perms !== null && user?.perms !== undefined && (user.perms & Permissions.challsRead) !== 0
   )
 
   function handleLogout() {
@@ -49,9 +41,7 @@
   }
 </script>
 
-<header
-  class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3"
->
+<header class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3">
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
       <img src={wordmarkLight} alt="Logo" class="h-8 block dark:hidden" />
@@ -98,8 +88,7 @@
     {#if user}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
-          class="flex cursor-pointer items-center gap-3 pl-2 rounded-lg hover:bg-background-l2"
-        >
+          class="flex cursor-pointer items-center gap-3 pl-2 rounded-lg hover:bg-background-l2">
           <div class="flex flex-col items-end">
             <span class="text-foreground-l0 text-lg leading-tight">
               {user.name}

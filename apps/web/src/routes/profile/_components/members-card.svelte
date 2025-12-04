@@ -81,10 +81,9 @@
       Team members
       <Badge variant="secondary" class="ml-2">{members.length}</Badge>
     </Card.Title>
-    <Card.Description>
-      Add your team members' emails for informational purposes. Keep this
-      updated to remain prize eligible.
-    </Card.Description>
+    <Card.Description
+      >Add your team members' emails for informational purposes. Keep this updated to remain prize
+      eligible.</Card.Description>
   </Card.Header>
   <Card.Content class="flex flex-col gap-4">
     <form onsubmit={handleAddMember} class="flex gap-2">
@@ -100,13 +99,8 @@
             bind:value={newEmail}
             disabled={$createMutation.isPending}
             aria-invalid={!!errors.email}
-            class="flex-1"
-          />
-          <Button
-            type="submit"
-            disabled={$createMutation.isPending}
-            size="icon"
-          >
+            class="flex-1" />
+          <Button type="submit" disabled={$createMutation.isPending} size="icon">
             {#if $createMutation.isPending}
               <Spinner class="size-4" />
             {:else}
@@ -127,17 +121,14 @@
     {:else if members.length > 0}
       <ul class="flex flex-col gap-2">
         {#each members as member (member.id)}
-          <li
-            class="flex items-center justify-between gap-2 rounded-md border p-3"
-          >
+          <li class="flex items-center justify-between gap-2 rounded-md border p-3">
             <span class="truncate text-sm">{member.email}</span>
             <Button
               variant="ghost"
               size="icon-sm"
               onclick={() => handleDeleteMember(member.id)}
               disabled={deletingId === member.id}
-              aria-label="Remove team member"
-            >
+              aria-label="Remove team member">
               {#if deletingId === member.id}
                 <Spinner class="size-4" />
               {:else}

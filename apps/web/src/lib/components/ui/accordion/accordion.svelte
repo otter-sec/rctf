@@ -12,5 +12,4 @@
   bind:ref
   bind:value={value as never}
   data-slot="accordion"
-  {...restProps}
-/>
+  {...restProps} />

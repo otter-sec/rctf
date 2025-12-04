@@ -3,11 +3,7 @@
   import { getTooltipContext, Tooltip as TooltipPrimitive } from 'layerchart'
   import type { Snippet } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
-  import {
-    getPayloadConfigFromPayload,
-    useChart,
-    type TooltipPayload,
-  } from './chart-utils'
+  import { getPayloadConfigFromPayload, useChart, type TooltipPayload } from './chart-utils'
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function defaultFormatter(value: any, _payload: TooltipPayload[]) {
@@ -37,8 +33,7 @@
     hideIndicator?: boolean
     labelClassName?: string
     labelFormatter?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      | ((value: any, payload: TooltipPayload[]) => string | number | Snippet)
-      | null
+      ((value: any, payload: TooltipPayload[]) => string | number | Snippet) | null
     formatter?: Snippet<
       [
         {
@@ -75,9 +70,7 @@
     return labelFormatter(value, tooltipCtx.payload)
   })
 
-  const nestLabel = $derived(
-    tooltipCtx.payload.length === 1 && indicator !== 'dot'
-  )
+  const nestLabel = $derived(tooltipCtx.payload.length === 1 && indicator !== 'dot')
 </script>
 
 {#snippet TooltipLabel()}
@@ -98,26 +91,20 @@
       'border-border/50 bg-background-l1 grid min-w-36 items-start gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl',
       className
     )}
-    {...restProps}
-  >
+    {...restProps}>
     {#if !nestLabel}
       {@render TooltipLabel()}
     {/if}
     <div class="grid gap-1.5">
       {#each tooltipCtx.payload as item, i (item.key + i)}
         {@const key = `${nameKey || item.key || item.name || 'value'}`}
-        {@const itemConfig = getPayloadConfigFromPayload(
-          chart.config,
-          item,
-          key
-        )}
+        {@const itemConfig = getPayloadConfigFromPayload(chart.config, item, key)}
         {@const indicatorColor = color || item.payload?.color || item.color}
         <div
           class={cn(
             '[&>svg]:text-foreground-l3 flex w-full flex-wrap items-stretch gap-2 [&>svg]:size-2.5',
             indicator === 'dot' && 'items-center'
-          )}
-        >
+          )}>
           {#if formatter && item.value !== undefined && item.name}
             {@render formatter({
               value: item.value,
@@ -132,24 +119,19 @@
             {:else if !hideIndicator}
               <div
                 style="--color-bg: {indicatorColor}; --color-border: {indicatorColor};"
-                class={cn(
-                  'border-(--color-border) bg-(--color-bg) shrink-0 rounded-[2px]',
-                  {
-                    'size-2.5': indicator === 'dot',
-                    'h-full w-1': indicator === 'line',
-                    'w-0 border-[1.5px] border-dashed bg-transparent':
-                      indicator === 'dashed',
-                    'my-0.5': nestLabel && indicator === 'dashed',
-                  }
-                )}
-              ></div>
+                class={cn('border-(--color-border) bg-(--color-bg) shrink-0 rounded-[2px]', {
+                  'size-2.5': indicator === 'dot',
+                  'h-full w-1': indicator === 'line',
+                  'w-0 border-[1.5px] border-dashed bg-transparent': indicator === 'dashed',
+                  'my-0.5': nestLabel && indicator === 'dashed',
+                })}>
+              </div>
             {/if}
             <div
               class={cn(
                 'flex flex-1 shrink-0 justify-between leading-none',
                 nestLabel ? 'items-end' : 'items-center'
-              )}
-            >
+              )}>
               <div class="grid gap-1.5">
                 {#if nestLabel}
                   {@render TooltipLabel()}
@@ -159,9 +141,7 @@
                 </span>
               </div>
               {#if item.value !== undefined}
-                <span
-                  class="text-foreground-l0 font-mono font-medium tabular-nums"
-                >
+                <span class="text-foreground-l0 font-mono font-medium tabular-nums">
                   {item.value.toLocaleString()}
                 </span>
               {/if}

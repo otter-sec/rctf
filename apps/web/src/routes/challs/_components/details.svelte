@@ -1,11 +1,7 @@
 <script lang="ts">
   import type { Challenge } from '$lib/api'
   import { EmptyState, Tabs } from '$lib/components'
-  import {
-    IconFileInfoFilled,
-    IconFlagFilled,
-    IconTrophyFilled,
-  } from '$lib/icons'
+  import { IconFileInfoFilled, IconFlagFilled, IconTrophyFilled } from '$lib/icons'
   import Header from './details-header.svelte'
   import FooterPodium from './footer-podium.svelte'
   import FooterSelf from './footer-self.svelte'
@@ -35,15 +31,13 @@
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
             <Tabs.Trigger
               value="details"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
-            >
+              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
               <IconFileInfoFilled class="size-4" />
               Details
             </Tabs.Trigger>
             <Tabs.Trigger
               value="solves"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
-            >
+              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none">
               <IconTrophyFilled class="size-4" />
               Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
             </Tabs.Trigger>
@@ -56,10 +50,7 @@
           </Tabs.Content>
 
           <Tabs.Content value="solves" class="h-full">
-            <TabSolves
-              {challenge}
-              bind:userVisibleInList={userVisibleInSolves}
-            />
+            <TabSolves {challenge} bind:userVisibleInList={userVisibleInSolves} />
           </Tabs.Content>
         </div>
       </Tabs.Root>
@@ -79,6 +70,5 @@
     icon={IconFlagFilled}
     title="Select a challenge"
     subtitle="Choose a challenge from the list to view details"
-    class="h-full"
-  />
+    class="h-full" />
 {/if}

@@ -1,11 +1,5 @@
 <script lang="ts">
-  import {
-    Button,
-    Dialog,
-    Markdown,
-    ScrollArea,
-    Spinner,
-  } from '$lib/components'
+  import { Button, Dialog, Markdown, ScrollArea, Spinner } from '$lib/components'
   import { IconAlertTriangleFilled, IconTrashFilled } from '$lib/icons'
 
   interface Props {
@@ -37,40 +31,28 @@
   }: Props = $props()
 </script>
 
-<Dialog.Root
-  open={showUnsavedDialog}
-  onOpenChange={open => !open && onCancelDiscard()}
->
+<Dialog.Root open={showUnsavedDialog} onOpenChange={open => !open && onCancelDiscard()}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
         <IconAlertTriangleFilled class="size-5 text-foreground-warning" />
         Unsaved changes
       </Dialog.Title>
-      <Dialog.Description>
-        You have unsaved changes that will be lost. Are you sure you want to
-        leave?
-      </Dialog.Description>
+      <Dialog.Description
+        >You have unsaved changes that will be lost. Are you sure you want to leave?</Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">
       <Button variant="ghost" onclick={onCancelDiscard}>Keep editing</Button>
-      <Button variant="destructive" onclick={onDiscardChanges}>
-        Discard changes
-      </Button>
+      <Button variant="destructive" onclick={onDiscardChanges}>Discard changes</Button>
     </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root
-  open={showPreviewDialog}
-  onOpenChange={open => !open && onClosePreview()}
->
+<Dialog.Root open={showPreviewDialog} onOpenChange={open => !open && onClosePreview()}>
   <Dialog.Content class="sm:max-w-2xl max-h-[80vh] flex flex-col">
     <Dialog.Header>
       <Dialog.Title>Description preview</Dialog.Title>
-      <Dialog.Description>
-        This is how the description will appear to players.
-      </Dialog.Description>
+      <Dialog.Description>This is how the description will appear to players.</Dialog.Description>
     </Dialog.Header>
     <ScrollArea class="flex-1 min-h-0 -mx-6 px-6">
       <div class="py-4">
@@ -79,9 +61,7 @@
             <Markdown content={description} class="prose-sm max-w-none" />
           </div>
         {:else}
-          <p class="text-foreground-l3 text-center py-8">
-            No description to preview.
-          </p>
+          <p class="text-foreground-l3 text-center py-8">No description to preview.</p>
         {/if}
       </div>
     </ScrollArea>
@@ -91,10 +71,7 @@
   </Dialog.Content>
 </Dialog.Root>
 
-<Dialog.Root
-  open={showDeleteDialog}
-  onOpenChange={open => !open && onDeleteCancel()}
->
+<Dialog.Root open={showDeleteDialog} onOpenChange={open => !open && onDeleteCancel()}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
@@ -102,8 +79,8 @@
         Delete challenge
       </Dialog.Title>
       <Dialog.Description>
-        Are you sure you want to delete "{challengeName || 'this challenge'}"?
-        This action cannot be undone.
+        Are you sure you want to delete "{challengeName || 'this challenge'}"? This action cannot be
+        undone.
       </Dialog.Description>
     </Dialog.Header>
     <Dialog.Footer class="gap-2">

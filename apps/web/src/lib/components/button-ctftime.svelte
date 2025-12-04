@@ -8,11 +8,7 @@
 
   interface Props {
     clientId: string
-    onCtftimeDone: (data: {
-      ctftimeToken: string
-      ctftimeName: string
-      ctftimeId: string
-    }) => void
+    onCtftimeDone: (data: { ctftimeToken: string; ctftimeName: string; ctftimeId: string }) => void
     disabled?: boolean
   }
 
@@ -106,8 +102,7 @@
   size="lg"
   class="w-full [&_svg:not([class*='size-'])]:w-auto [&_svg:not([class*='size-'])]:h-6 py-0"
   onclick={openPopup}
-  disabled={disabled || $ctftimeMutation.isPending}
->
+  disabled={disabled || $ctftimeMutation.isPending}>
   {#if $ctftimeMutation.isPending}
     <Spinner class="size-4" />
     <span>Connecting...</span>

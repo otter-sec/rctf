@@ -31,10 +31,7 @@
       { verifyToken },
       {
         onSuccess: response => {
-          if (
-            response.kind === GoodVerify.kind ||
-            response.kind === GoodRegister.kind
-          ) {
+          if (response.kind === GoodVerify.kind || response.kind === GoodRegister.kind) {
             setToken(response.data.authToken)
             verified = true
             toast.success('Verified successfully!')
@@ -84,25 +81,18 @@
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Verify email</Card.Title>
-      <Card.Description>
-        Click the button below to verify your email and continue
-      </Card.Description>
+      <Card.Description>Click the button below to verify your email and continue</Card.Description>
     </Card.Header>
     <Card.Content>
       {#if error}
         <div
           class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-          role="alert"
-        >
+          role="alert">
           {error}
         </div>
       {/if}
 
-      <Button
-        onclick={handleVerify}
-        disabled={$verifyMutation.isPending}
-        class="w-full"
-      >
+      <Button onclick={handleVerify} disabled={$verifyMutation.isPending} class="w-full">
         {#if $verifyMutation.isPending}
           <Spinner class="size-4" />
         {/if}
@@ -111,9 +101,8 @@
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
-        Wrong link? <a
-          href="/login"
-          class="text-foreground-prose-link hover:underline">Back to login</a
+        Wrong link? <a href="/login" class="text-foreground-prose-link hover:underline"
+          >Back to login</a
         >.
       </p>
     </Card.Footer>

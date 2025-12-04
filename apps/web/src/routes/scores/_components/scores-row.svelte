@@ -67,15 +67,10 @@
 
 {#snippet challengeCell(challenge: Challenge, isFirst: boolean = false)}
   {@const solve = solves.get(challenge.id)}
-  {@const bloodIndex =
-    challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
+  {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === entry.id) ?? -1}
   <div
-    class={cn(
-      'flex h-16 w-12 items-center justify-center',
-      isFirst && 'rounded-l-lg'
-    )}
-    style={getCategoryStyle(challenge.config.color)}
-  >
+    class={cn('flex h-16 w-12 items-center justify-center', isFirst && 'rounded-l-lg')}
+    style={getCategoryStyle(challenge.config.color)}>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="flex items-center justify-center"
@@ -88,8 +83,7 @@
           bloodIndex,
           solveTime: solve?.solveTime,
         })}
-      onmouseleave={() => onCellHover?.(null, 0, 0)}
-    >
+      onmouseleave={() => onCellHover?.(null, 0, 0)}>
       <Cell solved={!!solve} {bloodIndex} />
     </div>
   </div>
@@ -98,8 +92,7 @@
 {#snippet categoryCell(stat: (typeof categoryStats)[number])}
   <div
     class="flex h-16 w-12 items-center justify-center rounded-l-lg"
-    style={getCategoryStyle(stat.config.color)}
-  >
+    style={getCategoryStyle(stat.config.color)}>
     <Tooltip.Root>
       <Tooltip.Trigger class="flex items-center justify-center">
         {#if stat.status === 'complete'}
@@ -121,11 +114,8 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="group w-full bg-background-l2/50 rounded-lg hover:bg-background-l2"
-  onmouseenter={onHover}
->
-  <div
-    class="flex rounded-lg bg-background-l2 group-hover:bg-background-l3 w-fit"
-  >
+  onmouseenter={onHover}>
+  <div class="flex rounded-lg bg-background-l2 group-hover:bg-background-l3 w-fit">
     <TeamInfo
       id={entry.id}
       name={entry.name}
@@ -136,8 +126,7 @@
       divisionPlace={entry.divisionPlace}
       {rank}
       {isCurrentUser}
-      width={teamColWidth}
-    />
+      width={teamColWidth} />
 
     {#if isBoomer}
       <div class="flex gap-1 pr-4">

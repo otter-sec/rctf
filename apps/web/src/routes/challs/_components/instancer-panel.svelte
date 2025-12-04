@@ -26,8 +26,7 @@
   let error = $state<string | null>(null)
 
   function formatUrl(kind: ExposeKind, host: string, port: number) {
-    if (kind === ExposeKind.HTTP)
-      return port === 80 ? `http://${host}` : `http://${host}:${port}`
+    if (kind === ExposeKind.HTTP) return port === 80 ? `http://${host}` : `http://${host}:${port}`
     if (kind === ExposeKind.HTTPS)
       return port === 443 ? `https://${host}` : `https://${host}:${port}`
     return `${host}:${port}`
@@ -88,18 +87,10 @@
   $effect(() => {
     fetchStatus()
     const poll = setInterval(() => {
-      if (
-        status === InstanceStatus.RUNNING ||
-        status === InstanceStatus.STARTING
-      )
-        fetchStatus()
+      if (status === InstanceStatus.RUNNING || status === InstanceStatus.STARTING) fetchStatus()
     }, 5000)
     const tick = setInterval(() => {
-      if (
-        status === InstanceStatus.RUNNING &&
-        timeLeft !== null &&
-        timeLeft > 0
-      ) {
+      if (status === InstanceStatus.RUNNING && timeLeft !== null && timeLeft > 0) {
         timeLeft = Math.max(0, timeLeft - 1000)
       }
     }, 1000)
@@ -145,14 +136,9 @@
           <button
             type="button"
             class="group flex w-full items-center justify-between gap-2 rounded-md bg-background-l4 px-3 py-2"
-            onclick={() => copy(url)}
-          >
-            <span class="truncate font-mono text-sm text-foreground-accent"
-              >{url}</span
-            >
-            <IconCopy
-              class="size-4 shrink-0 text-foreground-l4 group-hover:text-foreground-l2"
-            />
+            onclick={() => copy(url)}>
+            <span class="truncate font-mono text-sm text-foreground-accent">{url}</span>
+            <IconCopy class="size-4 shrink-0 text-foreground-l4 group-hover:text-foreground-l2" />
           </button>
         </div>
       {/each}

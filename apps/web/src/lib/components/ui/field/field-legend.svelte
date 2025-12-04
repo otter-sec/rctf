@@ -23,7 +23,6 @@
     'data-[variant=label]:text-sm',
     className
   )}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </legend>

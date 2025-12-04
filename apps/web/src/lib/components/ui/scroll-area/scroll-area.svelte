@@ -33,25 +33,14 @@
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
 
-  const hasVertical = $derived(
-    orientation === 'vertical' || orientation === 'both'
-  )
-  const hasHorizontal = $derived(
-    orientation === 'horizontal' || orientation === 'both'
-  )
+  const hasVertical = $derived(orientation === 'vertical' || orientation === 'both')
+  const hasHorizontal = $derived(orientation === 'horizontal' || orientation === 'both')
 
   function updateFades() {
     const viewport = internalViewportRef
     if (!viewport) return
 
-    const {
-      scrollTop,
-      scrollHeight,
-      clientHeight,
-      scrollLeft,
-      scrollWidth,
-      clientWidth,
-    } = viewport
+    const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = viewport
     const threshold = 10
 
     if (hasVertical) {
@@ -103,8 +92,7 @@
   bind:ref
   data-slot="scroll-area"
   class={cn('relative', className)}
-  {...restProps}
->
+  {...restProps}>
   <ScrollAreaPrimitive.Viewport
     bind:ref={internalViewportRef}
     data-slot="scroll-area-viewport"
@@ -112,8 +100,7 @@
       'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:outline-1 focus-visible:ring-4',
       hasHorizontal && 'overscroll-x-none',
       hasVertical && 'overscroll-y-none'
-    )}
-  >
+    )}>
     {@render children?.()}
   </ScrollAreaPrimitive.Viewport>
 
@@ -124,8 +111,8 @@
         showTopFade ? 'opacity-100' : 'opacity-0'
       )}
       style={topFadeStyle}
-      aria-hidden="true"
-    ></div>
+      aria-hidden="true">
+    </div>
 
     <div
       class={cn(
@@ -133,8 +120,8 @@
         showBottomFade ? 'opacity-100' : 'opacity-0'
       )}
       style={bottomFadeStyle}
-      aria-hidden="true"
-    ></div>
+      aria-hidden="true">
+    </div>
   {/if}
 
   {#if hasHorizontal}
@@ -144,8 +131,8 @@
         showLeftFade ? 'opacity-100' : 'opacity-0'
       )}
       style={leftFadeStyle}
-      aria-hidden="true"
-    ></div>
+      aria-hidden="true">
+    </div>
 
     <div
       class={cn(
@@ -153,23 +140,15 @@
         showRightFade ? 'opacity-100' : 'opacity-0'
       )}
       style={rightFadeStyle}
-      aria-hidden="true"
-    ></div>
+      aria-hidden="true">
+    </div>
   {/if}
 
   {#if hasVertical}
-    <Scrollbar
-      orientation="vertical"
-      class={scrollbarYClasses}
-      style={scrollbarYStyles}
-    />
+    <Scrollbar orientation="vertical" class={scrollbarYClasses} style={scrollbarYStyles} />
   {/if}
   {#if hasHorizontal}
-    <Scrollbar
-      orientation="horizontal"
-      class={scrollbarXClasses}
-      style={scrollbarXStyles}
-    />
+    <Scrollbar orientation="horizontal" class={scrollbarXClasses} style={scrollbarXStyles} />
   {/if}
   <ScrollAreaPrimitive.Corner />
 </ScrollAreaPrimitive.Root>

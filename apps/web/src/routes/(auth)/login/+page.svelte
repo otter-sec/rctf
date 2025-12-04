@@ -4,14 +4,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken, toast } from '$lib'
-  import {
-    Button,
-    ButtonCtftime,
-    Card,
-    Field,
-    Input,
-    Spinner,
-  } from '$lib/components'
+  import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
@@ -141,8 +134,7 @@
             autocomplete="current-password"
             required
             bind:value={teamToken}
-            aria-invalid={!!errors.teamToken}
-          />
+            aria-invalid={!!errors.teamToken} />
           {#if errors.teamToken}
             <Field.Error>{errors.teamToken}</Field.Error>
           {/if}
@@ -150,19 +142,12 @@
 
         {#if clientConfig.emailEnabled}
           <p class="text-sm">
-            <a
-              href="/recover"
-              class="text-foreground-prose-link hover:underline"
-              >Lost your team token?</a
-            >
+            <a href="/recover" class="text-foreground-prose-link hover:underline"
+              >Lost your team token?</a>
           </p>
         {/if}
 
-        <Button
-          type="submit"
-          disabled={$loginMutation.isPending}
-          class="w-full"
-        >
+        <Button type="submit" disabled={$loginMutation.isPending} class="w-full">
           {#if $loginMutation.isPending}
             <Spinner class="size-4" />
           {/if}
@@ -181,17 +166,14 @@
           <ButtonCtftime
             clientId={clientConfig.ctftime.clientId}
             onCtftimeDone={handleCtftimeDone}
-            disabled={$loginMutation.isPending}
-          />
+            disabled={$loginMutation.isPending} />
         </div>
       {/if}
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
         Don't have an account?
-        <a href="/register" class="text-foreground-prose-link hover:underline"
-          >Register here</a
-        >.
+        <a href="/register" class="text-foreground-prose-link hover:underline">Register here</a>.
       </p>
     </Card.Footer>
   </Card.Root>

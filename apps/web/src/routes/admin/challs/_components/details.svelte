@@ -1,9 +1,5 @@
 <script lang="ts">
-  import {
-    GoodChallengeDelete,
-    GoodChallengeUpdateV2,
-    Permissions,
-  } from '@rctf/types'
+  import { GoodChallengeDelete, GoodChallengeUpdateV2, Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { Button, EmptyState, Spinner } from '$lib/components'
@@ -24,9 +20,7 @@
 
   interface Props {
     snapshot: SnapshotFrom<typeof editorMachine>
-    send: (
-      event: Parameters<SnapshotFrom<typeof editorMachine>['can']>[0]
-    ) => void
+    send: (event: Parameters<SnapshotFrom<typeof editorMachine>['can']>[0]) => void
   }
 
   let { snapshot, send }: Props = $props()
@@ -42,9 +36,7 @@
   const challenge = $derived(snapshot.context.challenge)
   const form = $derived(snapshot.context.form)
 
-  const challengeDetailQuery = $derived(
-    useAdminChallenge(challenge?.id ?? '', !!challenge?.id)
-  )
+  const challengeDetailQuery = $derived(useAdminChallenge(challenge?.id ?? '', !!challenge?.id))
   const challengeDetail = $derived($challengeDetailQuery.data)
 
   let prevDetailId: string | undefined = undefined
@@ -109,9 +101,7 @@
       {
         onSuccess: response => {
           if (response.kind === GoodChallengeUpdateV2.kind) {
-            toast.success(
-              isCreating ? 'Challenge created!' : 'Challenge saved!'
-            )
+            toast.success(isCreating ? 'Challenge created!' : 'Challenge saved!')
             queryClient.invalidateQueries({
               queryKey: queryKeys.adminChallenges,
             })
@@ -195,22 +185,17 @@
           </h2>
           <div class="flex items-center gap-2 text-foreground-l3 text-base">
             <span>by {form.author || 'Unknown'}</span>
-            <span class="text-foreground-l5 opacity-50 text-2xl leading-none"
-              >·</span
-            >
+            <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
             <div class="flex gap-1">
               {#if form.category}
                 <span
                   class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
-                  style={categoryStyle}
-                >
+                  style={categoryStyle}>
                   <categoryConfig.icon class="size-3.5" />
                   {categoryConfig.name}
                 </span>
               {:else}
-                <span
-                  class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm"
-                >
+                <span class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm">
                   No category
                 </span>
               {/if}
@@ -224,8 +209,7 @@
                 type="button"
                 variant="destructive"
                 onclick={handleDelete}
-                disabled={isDeletingChallenge}
-              >
+                disabled={isDeletingChallenge}>
                 {#if isDeletingChallenge}
                   <Spinner class="size-4" />
                 {:else}
@@ -234,13 +218,8 @@
                 Delete
               </Button>
             {/if}
-            <Button
-              type="button"
-              variant="outline"
-              onclick={() => send({ type: 'CANCEL' })}
-            >
-              Cancel
-            </Button>
+            <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}
+              >Cancel</Button>
             <Button type="button" onclick={handleSave} disabled={isUpdating}>
               {#if isUpdating}
                 <Spinner class="size-4" />
@@ -257,11 +236,7 @@
       </div>
 
       <div
-        class={cn(
-          'min-h-0 flex-1 flex flex-col',
-          isDisabled && 'opacity-50 pointer-events-none'
-        )}
-      >
+        class={cn('min-h-0 flex-1 flex flex-col', isDisabled && 'opacity-50 pointer-events-none')}>
         <Form
           name={form.name}
           category={form.category}
@@ -287,8 +262,7 @@
           onPointsMinChange={v => updateField('pointsMin', v)}
           onPointsMaxChange={v => updateField('pointsMax', v)}
           onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
-          onSortWeightChange={v => updateField('sortWeight', v)}
-        />
+          onSortWeightChange={v => updateField('sortWeight', v)} />
       </div>
     </div>
   {/key}
@@ -297,8 +271,7 @@
     icon={IconHammer}
     title="Select a challenge"
     subtitle="Choose a challenge from the list or create a new one"
-    class="h-full"
-  />
+    class="h-full" />
 {/if}
 
 <Dialogs
@@ -312,5 +285,4 @@
   onCancelDiscard={() => send({ type: 'KEEP_EDITING' })}
   onClosePreview={() => (showPreviewDialog = false)}
   onDeleteConfirm={handleDeleteConfirm}
-  onDeleteCancel={() => send({ type: 'DELETE_CANCEL' })}
-/>
+  onDeleteCancel={() => send({ type: 'DELETE_CANCEL' })} />

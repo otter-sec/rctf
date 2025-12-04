@@ -5,10 +5,8 @@
     base: "text-foreground-l3 flex h-auto cursor-text select-none items-center justify-center gap-2 py-1.5 text-sm group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4",
     variants: {
       align: {
-        'inline-start':
-          'order-first ps-3 has-[>button]:ms-[-0.45rem] has-[>kbd]:ms-[-0.35rem]',
-        'inline-end':
-          'order-last pe-3 has-[>button]:me-[-0.45rem] has-[>kbd]:me-[-0.35rem]',
+        'inline-start': 'order-first ps-3 has-[>button]:ms-[-0.45rem] has-[>kbd]:ms-[-0.35rem]',
+        'inline-end': 'order-last pe-3 has-[>button]:me-[-0.45rem] has-[>kbd]:me-[-0.35rem]',
         'block-start':
           '[.border-b]:pb-3 order-first w-full justify-start px-3 pt-3 group-has-[>input]/input-group:pt-2.5',
         'block-end':
@@ -20,9 +18,7 @@
     },
   })
 
-  export type InputGroupAddonAlign = VariantProps<
-    typeof inputGroupAddonVariants
-  >['align']
+  export type InputGroupAddonAlign = VariantProps<typeof inputGroupAddonVariants>['align']
 </script>
 
 <script lang="ts">
@@ -52,7 +48,6 @@
     }
     e.currentTarget.parentElement?.querySelector('input')?.focus()
   }}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </div>

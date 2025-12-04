@@ -52,10 +52,7 @@
   ]
 
   function handleKeydown(e: KeyboardEvent) {
-    if (
-      e.target instanceof HTMLInputElement ||
-      e.target instanceof HTMLTextAreaElement
-    ) {
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
       return
     }
 
@@ -133,11 +130,7 @@
   }
 </script>
 
-<svelte:window
-  onkeydown={handleKeydown}
-  onmousemove={onMouseMove}
-  onmouseup={onMouseUp}
-/>
+<svelte:window onkeydown={handleKeydown} onmousemove={onMouseMove} onmouseup={onMouseUp} />
 
 {#each windows as win (win.id)}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -148,21 +141,16 @@
     style:z-index={win.z}
     style:width="{win.w}px"
     style:height="{win.h}px"
-    onmousedown={() => bringToFront(win.id)}
-  >
+    onmousedown={() => bringToFront(win.id)}>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="flex items-center justify-between py-1.5 pr-2 pl-3 bg-background-l2 cursor-grab active:cursor-grabbing select-none border-b border-white/5"
-      onmousedown={e => startDrag(e, win.id)}
-    >
-      <span class="text-xs font-medium text-white/70 tracking-wide"
-        >{win.title}</span
-      >
+      onmousedown={e => startDrag(e, win.id)}>
+      <span class="text-xs font-medium text-white/70 tracking-wide">{win.title}</span>
       <button
         class="flex items-center justify-center w-6 h-6 border-0 bg-transparent rounded text-white/50 cursor-pointer transition-all duration-100 hover:bg-red-500/80 hover:text-white"
         onmousedown={e => e.stopPropagation()}
-        onclick={() => closeWindow(win.id)}
-      >
+        onclick={() => closeWindow(win.id)}>
         <IconX />
       </button>
     </div>
@@ -173,8 +161,7 @@
         title={win.title}
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen
-      ></iframe>
+        allowfullscreen></iframe>
     </div>
   </div>
 {/each}

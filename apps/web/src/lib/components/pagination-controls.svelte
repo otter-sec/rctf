@@ -16,13 +16,7 @@
     onPageChange: (page: number) => void
   }
 
-  let {
-    page,
-    totalPages,
-    disabled = false,
-    variant = 'default',
-    onPageChange,
-  }: Props = $props()
+  let { page, totalPages, disabled = false, variant = 'default', onPageChange }: Props = $props()
 
   const baseClass = 'h-10 px-3 disabled:pointer-events-none disabled:opacity-50'
 
@@ -32,9 +26,7 @@
       : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
   )
 
-  const containerClass = $derived(
-    variant === 'rounded' ? 'rounded-full' : 'rounded-lg'
-  )
+  const containerClass = $derived(variant === 'rounded' ? 'rounded-full' : 'rounded-lg')
 
   const pageButtons = $derived([
     {
@@ -65,9 +57,7 @@
 </script>
 
 <div class="flex items-center gap-1">
-  <div
-    class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3"
-  >
+  <div class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3">
     Page {page} / {totalPages || 1}
   </div>
   <div class={cn('flex h-10 gap-1 overflow-hidden', containerClass)}>
@@ -79,13 +69,8 @@
           class={cn(
             baseClass,
             variantClasses,
-            i === 0
-              ? 'rounded-r-sm'
-              : i === pageButtons.length - 1
-                ? 'rounded-l-sm'
-                : 'rounded-sm'
-          )}
-        >
+            i === 0 ? 'rounded-r-sm' : i === pageButtons.length - 1 ? 'rounded-l-sm' : 'rounded-sm'
+          )}>
           <btn.icon class="size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content>{btn.label}</Tooltip.Content>

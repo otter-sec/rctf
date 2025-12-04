@@ -44,7 +44,6 @@
   data-slot="badge"
   {href}
   class={cn(badgeVariants({ variant }), className)}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </svelte:element>

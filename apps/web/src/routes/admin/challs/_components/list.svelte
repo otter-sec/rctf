@@ -1,25 +1,10 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import type { AdminChallenge } from '$lib/api'
-  import {
-    Accordion,
-    EmptyState,
-    ScrollArea,
-    SearchInput,
-    Tooltip,
-  } from '$lib/components'
-  import {
-    IconFold,
-    IconLibraryPlusFilled,
-    IconZoomQuestionFilled,
-  } from '$lib/icons'
+  import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
+  import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
-  import {
-    cn,
-    getCategoryConfig,
-    getCategoryOrder,
-    getCategoryStyle,
-  } from '$lib/utils'
+  import { cn, getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'
   import { hasPermissions } from '$lib/utils/permissions'
   import Item from './list-item.svelte'
 
@@ -31,8 +16,7 @@
     onCreateNew: () => void
   }
 
-  let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props =
-    $props()
+  let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props = $props()
 
   const userQuery = useCurrentUser()
   const user = $derived($userQuery.data)
@@ -130,17 +114,12 @@
 
     <div class="px-5">
       <div class="flex gap-1 overflow-hidden rounded-full">
-        <SearchInput
-          value={searchQuery}
-          onInput={q => (searchQuery = q)}
-          class="py-2"
-        />
+        <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
         <Tooltip.Root disableCloseOnTriggerClick>
           <Tooltip.Trigger
             onclick={collapseAll}
             aria-label="Collapse all"
-            class="rounded-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
-          >
+            class="rounded-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1">
             <IconFold class="size-5" />
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
@@ -155,8 +134,7 @@
                 isCreatingNew
                   ? 'bg-background-accent hover:bg-background-accent-hover text-foreground-accent'
                   : 'bg-background-l2 hover:bg-background-l3 text-foreground-l2 hover:text-foreground-l1'
-              )}
-            >
+              )}>
               <IconLibraryPlusFilled class="size-5" />
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8}>New challenge</Tooltip.Content>
@@ -171,30 +149,24 @@
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges found"
-        subtitle={emptySubtitle}
-      />
+        subtitle={emptySubtitle} />
     {:else}
       <Accordion.Root
         type="multiple"
         value={openCategories}
         onValueChange={handleCategoryToggle}
-        class="pb-4"
-      >
+        class="pb-4">
         {#each groups as [category, entries] (category)}
           {@const config = getCategoryConfig(category)}
           {@const catStyle = getCategoryStyle(config.color)}
           <Accordion.Item value={category} class="border-b-0" style={catStyle}>
             <Accordion.Trigger
               class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
-              chevronClass="text-category-foreground-l1"
-            >
+              chevronClass="text-category-foreground-l1">
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
-                >
-                  <span class="text-category-foreground-l0"
-                    >{entries.length}</span
-                  >
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap">
+                  <span class="text-category-foreground-l0">{entries.length}</span>
                 </div>
               {/snippet}
               <div class="flex items-center">
@@ -213,8 +185,7 @@
                     {challenge}
                     {category}
                     isSelected={selectedId === challenge.id}
-                    onSelect={() => onSelect(challenge)}
-                  />
+                    onSelect={() => onSelect(challenge)} />
                 {/each}
               </ul>
             </Accordion.Content>

@@ -54,16 +54,13 @@
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={onToggleHideSolved}
-          aria-label={hideSolved
-            ? 'Show solved challenges'
-            : 'Hide solved challenges'}
+          aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
           class={cn(
             'rounded-sm px-4 py-2',
             hideSolved
               ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
               : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
-          )}
-        >
+          )}>
           {#if hideSolved}
             <IconEyeClosed class="size-5" />
           {:else}
@@ -78,8 +75,7 @@
         <Tooltip.Trigger
           onclick={onCollapseAll}
           aria-label="Collapse all"
-          class="rounded-l-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1"
-        >
+          class="rounded-l-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1">
           <IconFold class="size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>

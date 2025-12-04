@@ -2,13 +2,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import type { Challenge } from '$lib/api'
-  import {
-    PaginationControls,
-    RankRow,
-    ScrollArea,
-    SearchInput,
-    Spinner,
-  } from '$lib/components'
+  import { PaginationControls, RankRow, ScrollArea, SearchInput, Spinner } from '$lib/components'
   import {
     challengeSolvesQueryOptions,
     useChallengeSolves,
@@ -59,9 +53,7 @@
   const firstBloodTime = $derived(storedFirstBloodTime)
   const totalCount = $derived(challenge.solves ?? 0)
   const totalPages = $derived(Math.ceil(totalCount / PAGE_SIZE))
-  const isRefetching = $derived(
-    $solvesQuery.isFetching && !$solvesQuery.isPending
-  )
+  const isRefetching = $derived($solvesQuery.isFetching && !$solvesQuery.isPending)
 
   const filteredSolves = $derived.by(() => {
     if (!searchQuery.trim()) return solves
@@ -70,9 +62,7 @@
   })
 
   $effect(() => {
-    userVisibleInList = currentUser
-      ? solves.some(s => s.userId === currentUser.id)
-      : false
+    userVisibleInList = currentUser ? solves.some(s => s.userId === currentUser.id) : false
   })
 
   function handlePageChange(newPage: number) {
@@ -83,9 +73,7 @@
     const prefetchPage = (targetPage: number) => {
       if (targetPage < 1 || targetPage > totalPages) return
       const params = { limit: PAGE_SIZE, offset: (targetPage - 1) * PAGE_SIZE }
-      queryClient.prefetchQuery(
-        challengeSolvesQueryOptions(challenge.id, params)
-      )
+      queryClient.prefetchQuery(challengeSolvesQueryOptions(challenge.id, params))
     }
 
     prefetchPage(page - 1)
@@ -107,15 +95,13 @@
         value={searchQuery}
         onInput={v => (searchQuery = v)}
         variant="rounded"
-        class="max-w-sm"
-      />
+        class="max-w-sm" />
       <PaginationControls
         {page}
         {totalPages}
         disabled={isRefetching}
         variant="rounded"
-        onPageChange={handlePageChange}
-      />
+        onPageChange={handlePageChange} />
     </div>
   </div>
 
@@ -129,9 +115,7 @@
     {:else}
       <div class="flex flex-col gap-2 px-5" class:opacity-50={isRefetching}>
         {#each filteredSolves as solve (solve.id)}
-          {@const isCurrentUser = !!(
-            currentUser && solve.userId === currentUser.id
-          )}
+          {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
           {@const variant = getRankVariant(solve.globalPlace, isCurrentUser)}
           <RankRow
             {variant}
@@ -143,8 +127,7 @@
             primaryValue={solve.globalPlace === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-            secondaryValue={formatLocalTime(solve.createdAt)}
-          />
+            secondaryValue={formatLocalTime(solve.createdAt)} />
         {/each}
       </div>
     {/if}

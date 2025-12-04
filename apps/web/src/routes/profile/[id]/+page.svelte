@@ -1,11 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import {
-    Button,
-    Card,
-    ProfileStatsCard,
-    SolvesListCard,
-  } from '$lib/components'
+  import { Button, Card, ProfileStatsCard, SolvesListCard } from '$lib/components'
   import { useClientConfig, useUserProfile } from '$lib/query'
 
   const clientConfigQuery = useClientConfig()
@@ -33,13 +28,11 @@
       divisionLabel={clientConfig.divisions[user.division] ?? user.division}
       score={user.score}
       globalPlace={user.globalPlace}
-      divisionPlace={user.divisionPlace}
-    />
+      divisionPlace={user.divisionPlace} />
 
     <SolvesListCard
       solves={user.solves}
-      emptyMessage="This team hasn't solved any challenges yet."
-    />
+      emptyMessage="This team hasn't solved any challenges yet." />
   </div>
 {:else}
   <Card.Root>

@@ -16,9 +16,7 @@
     },
   })
 
-  export type ButtonGroupOrientation = VariantProps<
-    typeof buttonGroupVariants
-  >['orientation']
+  export type ButtonGroupOrientation = VariantProps<typeof buttonGroupVariants>['orientation']
 </script>
 
 <script lang="ts">
@@ -42,7 +40,6 @@
   data-slot="button-group"
   data-orientation={orientation}
   class={cn(buttonGroupVariants({ orientation }), className)}
-  {...restProps}
->
+  {...restProps}>
   {@render children?.()}
 </div>

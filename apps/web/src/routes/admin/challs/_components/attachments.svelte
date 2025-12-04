@@ -9,9 +9,7 @@
   interface Props {
     files: { name: string; url: string; size: number | null }[]
     isDisabled: boolean
-    onFilesChange: (
-      files: { name: string; url: string; size: number | null }[]
-    ) => void
+    onFilesChange: (files: { name: string; url: string; size: number | null }[]) => void
   }
 
   let { files, isDisabled, onFilesChange }: Props = $props()
@@ -85,31 +83,17 @@
       ondrop={handleDrop}
       ondragover={handleDragOver}
       ondragleave={handleDragLeave}
-      disabled={$uploadMutation.isPending}
-    >
+      disabled={$uploadMutation.isPending}>
       {#if $uploadMutation.isPending}
         <Spinner class="size-8 text-foreground-l3" />
         <span class="text-sm text-foreground-l3">Uploading...</span>
       {:else}
-        <IconCloudUpload
-          class={cn(
-            'size-8',
-            isDragging ? 'text-primary' : 'text-foreground-l4'
-          )}
-        />
+        <IconCloudUpload class={cn('size-8', isDragging ? 'text-primary' : 'text-foreground-l4')} />
         <div class="flex flex-col items-center gap-0.5">
-          <span
-            class={cn(
-              'text-sm',
-              isDragging ? 'text-primary' : 'text-foreground-l2'
-            )}
-          >
-            {isDragging
-              ? 'Drop files here'
-              : 'Click to upload or drag and drop'}
+          <span class={cn('text-sm', isDragging ? 'text-primary' : 'text-foreground-l2')}>
+            {isDragging ? 'Drop files here' : 'Click to upload or drag and drop'}
           </span>
-          <span class="text-xs text-foreground-l4">Any file type supported</span
-          >
+          <span class="text-xs text-foreground-l4">Any file type supported</span>
         </div>
       {/if}
     </button>
@@ -119,27 +103,22 @@
       multiple
       onchange={handleFileInput}
       disabled={$uploadMutation.isPending}
-      class="hidden"
-    />
+      class="hidden" />
   {/if}
 
   {#if files.length > 0}
     <div class="flex flex-col gap-1">
       {#each files as file, index (file.url)}
         <div
-          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4"
-        >
+          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4">
           <IconFileFilled class="size-5 shrink-0 text-foreground-l4" />
           <a
             href={file.url}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex min-w-0 flex-1 flex-col"
-          >
+            class="flex min-w-0 flex-1 flex-col">
             <span class="truncate text-sm">{file.name}</span>
-            <span class="text-xs text-foreground-l4"
-              >{formatFileSize(file.size)}</span
-            >
+            <span class="text-xs text-foreground-l4">{formatFileSize(file.size)}</span>
           </a>
           {#if !isDisabled}
             <Button
@@ -147,8 +126,7 @@
               variant="destructive"
               size="icon-sm"
               class="opacity-0 group-hover:opacity-100"
-              onclick={() => removeFile(index)}
-            >
+              onclick={() => removeFile(index)}>
               <IconTrashFilled class="size-4" />
             </Button>
           {/if}
@@ -156,9 +134,7 @@
       {/each}
     </div>
   {:else if isDisabled}
-    <div
-      class="flex flex-col items-center justify-center py-8 text-foreground-l4"
-    >
+    <div class="flex flex-col items-center justify-center py-8 text-foreground-l4">
       <IconFileFilled class="size-8 mb-2 opacity-50" />
       <span class="text-sm">No files attached</span>
     </div>

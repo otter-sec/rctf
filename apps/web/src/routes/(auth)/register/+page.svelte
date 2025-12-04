@@ -3,20 +3,8 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken, toast } from '$lib'
-  import {
-    Button,
-    ButtonCtftime,
-    Card,
-    Field,
-    Input,
-    Spinner,
-  } from '$lib/components'
-  import {
-    queryKeys,
-    useClientConfig,
-    useLoginMutation,
-    useRegisterMutation,
-  } from '$lib/query'
+  import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
+  import { queryKeys, useClientConfig, useLoginMutation, useRegisterMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
   const queryClient = useQueryClient()
@@ -34,9 +22,7 @@
   let ctftimeToken = $state<string | null>(null)
   let ctftimeName = $state<string | null>(null)
 
-  const loading = $derived(
-    $registerMutation.isPending || $loginMutation.isPending
-  )
+  const loading = $derived($registerMutation.isPending || $loginMutation.isPending)
 
   onMount(() => {
     const storedToken = sessionStorage.getItem('ctftimeToken')
@@ -159,15 +145,13 @@
     <Card.Root>
       <Card.Header>
         <Card.Title class="text-xl">Verification email sent</Card.Title>
-        <Card.Description>
-          Check your inbox to complete registration
-        </Card.Description>
+        <Card.Description>Check your inbox to complete registration</Card.Description>
       </Card.Header>
       <Card.Content class="prose">
         <p>
-          We've sent a verification email to <b class="font-medium">{email}</b>.
-          Please check your inbox and click the link to complete registration.
-          If you didn't receive the email, check your spam folder or
+          We've sent a verification email to <b class="font-medium">{email}</b>. Please check your
+          inbox and click the link to complete registration. If you didn't receive the email, check
+          your spam folder or
           <button
             class="text-foreground-prose-link hover:underline cursor-pointer"
             onclick={() => (verifySent = false)}>try again</button
@@ -185,8 +169,7 @@
         {#if errors.form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert"
-          >
+            role="alert">
             {errors.form}
           </div>
         {/if}
@@ -205,11 +188,9 @@
               maxlength={64}
               required
               bind:value={name}
-              aria-invalid={!!errors.name}
-            />
-            <Field.Description>
-              You can use a different name than your CTFtime team name.
-            </Field.Description>
+              aria-invalid={!!errors.name} />
+            <Field.Description
+              >You can use a different name than your CTFtime team name.</Field.Description>
             {#if errors.name}
               <Field.Error>{errors.name}</Field.Error>
             {/if}
@@ -224,9 +205,8 @@
         </form>
       </Card.Content>
       <Card.Footer>
-        <Button variant="ghost" onclick={cancelCtftime} class="text-sm">
-          Cancel and register with email instead
-        </Button>
+        <Button variant="ghost" onclick={cancelCtftime} class="text-sm"
+          >Cancel and register with email instead</Button>
       </Card.Footer>
     </Card.Root>
   {:else}
@@ -238,15 +218,12 @@
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <p class="text-foreground-l3 mb-4 text-sm">
-          Please register one account per team.
-        </p>
+        <p class="text-foreground-l3 mb-4 text-sm">Please register one account per team.</p>
 
         {#if errors.form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert"
-          >
+            role="alert">
             {errors.form}
           </div>
         {/if}
@@ -265,8 +242,7 @@
               maxlength={64}
               required
               bind:value={name}
-              aria-invalid={!!errors.name}
-            />
+              aria-invalid={!!errors.name} />
             {#if errors.name}
               <Field.Error>{errors.name}</Field.Error>
             {/if}
@@ -282,8 +258,7 @@
               autocomplete="email"
               required
               bind:value={email}
-              aria-invalid={!!errors.email}
-            />
+              aria-invalid={!!errors.email} />
             {#if errors.email}
               <Field.Error>{errors.email}</Field.Error>
             {/if}
@@ -308,8 +283,7 @@
             <ButtonCtftime
               clientId={clientConfig.ctftime.clientId}
               onCtftimeDone={handleCtftimeDone}
-              disabled={loading}
-            />
+              disabled={loading} />
           </div>
         {/if}
       </Card.Content>

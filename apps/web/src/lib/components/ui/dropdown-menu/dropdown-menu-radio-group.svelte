@@ -12,5 +12,4 @@
   bind:ref
   bind:value
   data-slot="dropdown-menu-radio-group"
-  {...restProps}
-/>
+  {...restProps} />

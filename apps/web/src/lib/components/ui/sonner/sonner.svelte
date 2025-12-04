@@ -7,10 +7,7 @@
     IconInfoCircleFilled,
     IconLoader,
   } from '$lib/icons'
-  import {
-    Toaster as Sonner,
-    type ToasterProps as SonnerProps,
-  } from 'svelte-sonner'
+  import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'svelte-sonner'
 
   let { ...restProps }: SonnerProps = $props()
 
@@ -61,8 +58,7 @@
         'bg-background-l3 text-foreground-l1 px-3 py-1.5 rounded-md text-xs font-medium hover:bg-background-l4',
     },
   }}
-  {...restProps}
->
+  {...restProps}>
   {#snippet loadingIcon()}
     <IconLoader class="size-5 animate-spin" />
   {/snippet}

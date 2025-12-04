@@ -11,27 +11,17 @@
 
   let { data, x, y }: Props = $props()
 
-  const BLOOD_LABELS = [
-    'First blood!',
-    'Second blood!',
-    'Third blood!',
-  ] as const
+  const BLOOD_LABELS = ['First blood!', 'Second blood!', 'Third blood!'] as const
 
   const statusText = $derived(
-    !data
-      ? ''
-      : (BLOOD_LABELS[data.bloodIndex] ??
-          (data.solved ? 'Solved!' : 'Unsolved'))
+    !data ? '' : (BLOOD_LABELS[data.bloodIndex] ?? (data.solved ? 'Solved!' : 'Unsolved'))
   )
 </script>
 
 {#if data}
   <Tooltip.Provider>
     <Tooltip.Root open>
-      <Tooltip.Trigger
-        class="pointer-events-none fixed size-1"
-        style="left:{x}px;top:{y}px;"
-      />
+      <Tooltip.Trigger class="pointer-events-none fixed size-1" style="left:{x}px;top:{y}px;" />
       <Tooltip.Content side="top" sideOffset={4}>
         <p>{data.challengeName}</p>
         <p class="text-foreground-l3">{data.points} pts · {statusText}</p>
