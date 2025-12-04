@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, ProfileStatsCard, SolvesListCard } from '$lib/components'
+  import { Button, Card, ProfileStatsCard, Spinner, SolvesListCard } from '$lib/components'
   import { useClientConfig, useUserProfile } from '$lib/query'
 
   const clientConfigQuery = useClientConfig()
@@ -8,6 +8,7 @@
 
   const userQuery = $derived(useUserProfile(page.params.id!))
   const user = $derived($userQuery.data)
+  const isPending = $derived($userQuery.isPending)
   const error = $derived($userQuery.error?.message)
 </script>
 
@@ -33,6 +34,10 @@
     <SolvesListCard
       solves={user.solves}
       emptyMessage="This team hasn't solved any challenges yet." />
+  </div>
+{:else if isPending}
+  <div class="flex flex-1 items-center justify-center">
+    <Spinner class="size-4" />
   </div>
 {:else}
   <Card.Root>
