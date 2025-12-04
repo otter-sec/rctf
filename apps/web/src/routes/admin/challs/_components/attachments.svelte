@@ -4,6 +4,7 @@
   import { Button, Spinner } from '$lib/components'
   import { IconFileUploadFilled, IconX } from '$lib/icons'
   import { useUploadFilesMutation } from '$lib/query'
+  import { formatFileSize } from '$lib/utils'
 
   interface Props {
     files: { name: string; url: string; size: number | null }[]
@@ -46,13 +47,6 @@
   function removeFile(index: number) {
     onFilesChange(files.filter((_, i) => i !== index))
   }
-
-  function formatFileSize(bytes: number | null | undefined): string {
-    if (bytes == null) return ''
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
 </script>
 
 <div
@@ -73,24 +67,17 @@
           <li
             class="flex items-center justify-between gap-2 rounded-md bg-background-l4 p-3"
           >
-            <div class="flex flex-col gap-1 overflow-hidden">
-              <div class="flex items-center gap-2">
-                <span class="truncate font-medium">{file.name}</span>
-                {#if file.size}
-                  <span class="text-foreground-l5 text-xs shrink-0"
-                    >{formatFileSize(file.size)}</span
-                  >
-                {/if}
-              </div>
-              <a
-                href={file.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-foreground-l3 truncate text-sm hover:underline"
+            <a
+              href={file.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex min-w-0 flex-col hover:underline"
+            >
+              <span class="truncate">{file.name}</span>
+              <span class="text-foreground-l5 text-sm"
+                >{formatFileSize(file.size)}</span
               >
-                {file.url}
-              </a>
-            </div>
+            </a>
             {#if !isDisabled}
               <Button
                 type="button"

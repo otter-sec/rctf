@@ -23,6 +23,7 @@
   }: Props = $props()
 </script>
 
+// TODO(enscribe): remove
 <Card.Root>
   <Card.Header>
     <Card.Title class="wrap-anywhere text-2xl">{name}</Card.Title>

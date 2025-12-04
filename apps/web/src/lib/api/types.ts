@@ -1,7 +1,7 @@
 import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
-  GoodChallenges,
+  GoodChallengesV2,
   GoodClientConfig,
   GoodFilesUploadV2,
   GoodLeaderboardGraph,
@@ -13,7 +13,7 @@ import type { ResponseData } from '@rctf/types'
 
 export type AdminChallenge = ResponseData<typeof GoodAdminChallengesV2>[number]
 export type AdminChallengeDetail = ResponseData<typeof GoodAdminChallengeV2>
-export type Challenge = ResponseData<typeof GoodChallenges>[number]
+export type Challenge = ResponseData<typeof GoodChallengesV2>[number]
 export type ClientConfig = ResponseData<typeof GoodClientConfig>
 export type GraphPoint = LeaderboardGraphEntry['points'][number]
 export type LeaderboardData = ResponseData<typeof GoodLeaderboardV2>

@@ -2,6 +2,7 @@
   import type { Challenge } from '$lib/api'
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
+  import { formatFileSize } from '$lib/utils'
 
   interface Props {
     challenge: Challenge
@@ -42,9 +43,8 @@
                   <div class="flex min-w-0 flex-col">
                     <span class="text-base text-foreground-l0">{file.name}</span
                     >
-                    <!-- TODO(enscribe): replace with file size -->
-                    <span class="truncate text-sm text-foreground-l3"
-                      >{file.url}</span
+                    <span class="text-sm text-foreground-l3"
+                      >{formatFileSize(file.size)}</span
                     >
                   </div>
                 </a>

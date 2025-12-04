@@ -17,8 +17,8 @@ import {
   GetUserSelfRouteV2,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
-  GoodChallenges,
   GoodChallengeSolvesV2,
+  GoodChallengesV2,
   GoodClientConfig,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
@@ -115,7 +115,7 @@ export const challengesQueryOptions = queryOptions({
   queryKey: ['challenges'] as const,
   queryFn: async () => {
     const response = await apiRequest(GetChallengesRouteV2)
-    if (response.kind === GoodChallenges.kind) {
+    if (response.kind === GoodChallengesV2.kind) {
       return response.data
     }
     if (response.kind === BadToken.kind) {

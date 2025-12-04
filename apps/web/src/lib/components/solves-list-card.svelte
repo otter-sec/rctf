@@ -17,6 +17,7 @@
   let { solves, emptyMessage = 'No solves yet.' }: Props = $props()
 </script>
 
+// TODO(enscribe): remove
 <Card.Root>
   <Card.Header>
     <Card.Title>

@@ -207,19 +207,26 @@
           </Field.Field>
 
           <Field.Field>
-            <Field.Label for="tiebreakEligible">Tiebreak eligibility</Field.Label>
+            <Field.Label for="tiebreakEligible"
+              >Tiebreak eligibility</Field.Label
+            >
             <Select.Root
               type="single"
               value={tiebreakEligible ? 'yes' : 'no'}
               onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
               disabled={isDisabled}
             >
-              <Select.Trigger id="tiebreakEligible" class="w-full bg-background-l4">
+              <Select.Trigger
+                id="tiebreakEligible"
+                class="w-full bg-background-l4"
+              >
                 {tiebreakEligible ? 'Eligible' : 'Ineligible'}
               </Select.Trigger>
               <Select.Content>
                 <Select.Item value="yes" label="Eligible">Eligible</Select.Item>
-                <Select.Item value="no" label="Ineligible">Ineligible</Select.Item>
+                <Select.Item value="no" label="Ineligible"
+                  >Ineligible</Select.Item
+                >
               </Select.Content>
             </Select.Root>
           </Field.Field>

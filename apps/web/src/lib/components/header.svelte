@@ -16,10 +16,10 @@
   import {
     IconChartAreaLineFilled,
     IconCopy,
+    IconFlag3Filled,
     IconGavel,
     IconLogin,
     IconLogout,
-    IconFlag3Filled,
     IconUserCog,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'

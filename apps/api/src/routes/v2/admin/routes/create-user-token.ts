@@ -1,7 +1,7 @@
 import { CreateUserTokenRouteV2 } from '@rctf/types'
 import { createToken, TokenKind } from '../../../../lib/tokens'
-import adminGroup from '../group'
 import { getFullUserFromId } from '../../../../services/full-user.ts'
+import adminGroup from '../group'
 
 adminGroup.route(CreateUserTokenRouteV2, async ({ res, ctx, params }) => {
   const fullUser = await getFullUserFromId(ctx.var.db, ctx.var.redis, params.id)

@@ -91,4 +91,4 @@ export * from './good-client-config-v2'
 export * from './good-instance-status'
 export * from './bad-instancer-error'
 export * from './good-create-user-token-v2'
-export * from './bad-unknown-solve-v2';
+export * from './bad-unknown-solve-v2'
