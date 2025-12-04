@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Checkbox, Field, Input, Textarea } from '$lib/components'
+  import { Button, Field, Input, Select, Textarea } from '$lib/components'
   import { IconEyeFilled } from '$lib/icons'
   import Attachments from './attachments.svelte'
 
@@ -206,17 +206,23 @@
             <Field.Description>Higher = first</Field.Description>
           </Field.Field>
 
-          <div class="flex items-center gap-2 pt-6">
-            <Checkbox
-              id="tiebreakEligible"
-              checked={tiebreakEligible}
-              onCheckedChange={v => onTiebreakEligibleChange(v === true)}
+          <Field.Field>
+            <Field.Label for="tiebreakEligible">Tiebreak eligibility</Field.Label>
+            <Select.Root
+              type="single"
+              value={tiebreakEligible ? 'yes' : 'no'}
+              onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
               disabled={isDisabled}
-            />
-            <label for="tiebreakEligible" class="text-sm"
-              >Tiebreak eligible</label
             >
-          </div>
+              <Select.Trigger id="tiebreakEligible" class="w-full bg-background-l4">
+                {tiebreakEligible ? 'Eligible' : 'Ineligible'}
+              </Select.Trigger>
+              <Select.Content>
+                <Select.Item value="yes" label="Eligible">Eligible</Select.Item>
+                <Select.Item value="no" label="Ineligible">Ineligible</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Field.Field>
         </div>
       </div>
     </div>

@@ -14,12 +14,12 @@
     Tooltip,
   } from '$lib/components'
   import {
-    IconChartBar,
+    IconChartAreaLineFilled,
     IconCopy,
-    IconHammer,
+    IconGavel,
     IconLogin,
     IconLogout,
-    IconSwords,
+    IconFlag3Filled,
     IconUserCog,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
@@ -63,7 +63,7 @@
         <Tooltip.Trigger>
           <ButtonNavigation href="/challs" activePath="/challs">
             {#snippet icon({ class: className })}
-              <IconSwords class={className} />
+              <IconFlag3Filled class={className} />
             {/snippet}
           </ButtonNavigation>
         </Tooltip.Trigger>
@@ -73,7 +73,7 @@
         <Tooltip.Trigger>
           <ButtonNavigation href="/scores" activePath="/scores">
             {#snippet icon({ class: className })}
-              <IconChartBar class={className} />
+              <IconChartAreaLineFilled class={className} />
             {/snippet}
           </ButtonNavigation>
         </Tooltip.Trigger>
@@ -84,7 +84,7 @@
           <Tooltip.Trigger>
             <ButtonNavigation href="/admin/challs" activePath="/admin">
               {#snippet icon({ class: className })}
-                <IconHammer class={className} />
+                <IconGavel class={className} />
               {/snippet}
             </ButtonNavigation>
           </Tooltip.Trigger>

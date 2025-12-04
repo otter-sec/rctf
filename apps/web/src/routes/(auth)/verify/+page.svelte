@@ -85,7 +85,7 @@
     <Card.Header>
       <Card.Title class="text-xl">Verify email</Card.Title>
       <Card.Description>
-        Complete your registration by verifying your email address
+        Click the button below to verify your email and continue
       </Card.Description>
     </Card.Header>
     <Card.Content>
@@ -111,7 +111,7 @@
     </Card.Content>
     <Card.Footer>
       <p class="text-foreground-l3 text-sm">
-        Need help? <a
+        Wrong link? <a
           href="/login"
           class="text-foreground-prose-link hover:underline">Back to login</a
         >.
