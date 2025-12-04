@@ -1,7 +1,23 @@
 <script lang="ts">
-  import { Button, Field, Input, Select, Textarea } from '$lib/components'
-  import { IconEyeFilled } from '$lib/icons'
+  import type { InstancerConfig } from '$lib/api'
+  import {
+    Button,
+    Field,
+    Input,
+    ScrollArea,
+    Select,
+    Tabs,
+    Textarea,
+  } from '$lib/components'
+  import {
+    IconCloudComputingFilled,
+    IconEyeFilled,
+    IconFileFilled,
+    IconFileInfoFilled,
+    IconFlagFilled,
+  } from '$lib/icons'
   import Attachments from './attachments.svelte'
+  import InstancerConfigComponent from './instancer-config.svelte'
 
   interface Props {
     name: string
@@ -14,11 +30,13 @@
     tiebreakEligible: boolean
     sortWeight: number
     files: { name: string; url: string; size: number | null }[]
+    instancerConfig: InstancerConfig | null
     isDisabled: boolean
     onShowPreview: () => void
     onFilesChange: (
       files: { name: string; url: string; size: number | null }[]
     ) => void
+    onInstancerConfigChange: (config: InstancerConfig | null) => void
     onNameChange: (value: string) => void
     onCategoryChange: (value: string) => void
     onAuthorChange: (value: string) => void
@@ -41,9 +59,11 @@
     tiebreakEligible,
     sortWeight,
     files,
+    instancerConfig,
     isDisabled,
     onShowPreview,
     onFilesChange,
+    onInstancerConfigChange,
     onNameChange,
     onCategoryChange,
     onAuthorChange,
@@ -54,186 +74,247 @@
     onTiebreakEligibleChange,
     onSortWeightChange,
   }: Props = $props()
+
+  let activeTab = $state('details')
 </script>
 
-<div class="flex flex-col gap-4">
-  <div
-    class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
-  >
-    <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">
-      Basic information
-    </div>
-    <div class="px-4 pt-2 pb-4 flex flex-col gap-4">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Field.Field>
-          <Field.Label for="name">Name</Field.Label>
-          <Input
-            id="name"
-            type="text"
-            placeholder="Challenge name"
-            class="bg-background-l4"
-            required
-            value={name}
-            oninput={e => onNameChange(e.currentTarget.value)}
-            disabled={isDisabled}
-          />
-        </Field.Field>
-
-        <Field.Field>
-          <Field.Label for="category">Category</Field.Label>
-          <Input
-            id="category"
-            type="text"
-            placeholder="web, pwn, crypto, etc."
-            class="bg-background-l4"
-            required
-            value={category}
-            oninput={e => onCategoryChange(e.currentTarget.value)}
-            disabled={isDisabled}
-          />
-        </Field.Field>
-      </div>
-
-      <Field.Field>
-        <Field.Label for="author">Author</Field.Label>
-        <Input
-          id="author"
-          type="text"
-          placeholder="Challenge author"
-          class="bg-background-l4"
-          required
-          value={author}
-          oninput={e => onAuthorChange(e.currentTarget.value)}
-          disabled={isDisabled}
-        />
-      </Field.Field>
-
-      <Field.Field>
-        <Field.Label for="description">Description</Field.Label>
-        <Textarea
-          id="description"
-          placeholder="Challenge description (Markdown supported)"
-          class="bg-background-l4"
-          rows={8}
-          required
-          value={description}
-          oninput={e => onDescriptionChange(e.currentTarget.value)}
-          disabled={isDisabled}
-        />
-        <div class="flex items-center justify-between">
-          <Field.Description
-            >Markdown formatting is supported.</Field.Description
-          >
-          <Button
-            type="button"
-            size="sm"
-            onclick={onShowPreview}
-            disabled={!description}
-          >
-            <IconEyeFilled class="size-4" />
-            Preview
-          </Button>
-        </div>
-      </Field.Field>
-    </div>
+<Tabs.Root bind:value={activeTab} class="flex h-full min-h-0 flex-col">
+  <div class="px-5">
+    <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
+      <Tabs.Trigger
+        value="details"
+        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+      >
+        <IconFileInfoFilled class="size-4" />
+        Details
+      </Tabs.Trigger>
+      <Tabs.Trigger
+        value="scoring"
+        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+      >
+        <IconFlagFilled class="size-4" />
+        Scoring
+      </Tabs.Trigger>
+      <Tabs.Trigger
+        value="files"
+        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+      >
+        <IconFileFilled class="size-4" />
+        Files{files.length > 0 ? ` (${files.length})` : ''}
+      </Tabs.Trigger>
+      <Tabs.Trigger
+        value="instancer"
+        class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+      >
+        <IconCloudComputingFilled class="size-4" />
+        Instancer
+      </Tabs.Trigger>
+    </Tabs.List>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-    <div
-      class="overflow-hidden rounded-lg border-2 border-border bg-background-l2"
-    >
-      <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">
-        Flag and scoring
-      </div>
-      <div class="px-4 pt-2 pb-4 flex flex-col gap-4">
-        <Field.Field>
-          <Field.Label for="flag">Flag</Field.Label>
-          <Input
-            id="flag"
-            type="text"
-            placeholder={'flag{...}'}
-            class="font-mono bg-background-l4"
-            required
-            value={flag}
-            oninput={e => onFlagChange(e.currentTarget.value)}
-            disabled={isDisabled}
-          />
-        </Field.Field>
+  <div class="min-h-0 flex-1 bg-background-l2">
+    <Tabs.Content value="details" class="h-full">
+      <ScrollArea
+        class="h-full px-9 pt-4"
+        fadeSize={64}
+        fadeColor="background-l2"
+      >
+        <div class="flex flex-col gap-4 pb-4">
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Field.Field>
+              <Field.Label for="name">Name</Field.Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="Challenge name"
+                required
+                value={name}
+                oninput={e => onNameChange(e.currentTarget.value)}
+                disabled={isDisabled}
+              />
+            </Field.Field>
 
-        <div class="grid grid-cols-2 gap-4">
+            <Field.Field>
+              <Field.Label for="category">Category</Field.Label>
+              <Input
+                id="category"
+                type="text"
+                placeholder="web, pwn, crypto, etc."
+                required
+                value={category}
+                oninput={e => onCategoryChange(e.currentTarget.value)}
+                disabled={isDisabled}
+              />
+            </Field.Field>
+          </div>
+
           <Field.Field>
-            <Field.Label for="pointsMin">Min points</Field.Label>
+            <Field.Label for="author">Author</Field.Label>
             <Input
-              id="pointsMin"
-              type="number"
-              class="bg-background-l4"
-              min={0}
+              id="author"
+              type="text"
+              placeholder="Challenge author"
               required
-              value={pointsMin}
-              oninput={e => onPointsMinChange(Number(e.currentTarget.value))}
+              value={author}
+              oninput={e => onAuthorChange(e.currentTarget.value)}
               disabled={isDisabled}
             />
-            <Field.Description>At max solves</Field.Description>
           </Field.Field>
 
           <Field.Field>
-            <Field.Label for="pointsMax">Max points</Field.Label>
-            <Input
-              id="pointsMax"
-              type="number"
-              class="bg-background-l4"
-              min={0}
-              required
-              value={pointsMax}
-              oninput={e => onPointsMaxChange(Number(e.currentTarget.value))}
-              disabled={isDisabled}
-            />
-            <Field.Description>At zero solves</Field.Description>
-          </Field.Field>
-        </div>
+            <Field.Label for="description" class="flex items-center"
+              >Description <Field.Hint>(Markdown supported)</Field.Hint>
 
-        <div class="grid grid-cols-2 gap-4">
-          <Field.Field>
-            <Field.Label for="sortWeight">Sort weight</Field.Label>
-            <Input
-              id="sortWeight"
-              type="number"
-              class="bg-background-l4"
-              value={sortWeight}
-              oninput={e => onSortWeightChange(Number(e.currentTarget.value))}
-              disabled={isDisabled}
-            />
-            <Field.Description>Higher = first</Field.Description>
-          </Field.Field>
-
-          <Field.Field>
-            <Field.Label for="tiebreakEligible"
-              >Tiebreak eligibility</Field.Label
-            >
-            <Select.Root
-              type="single"
-              value={tiebreakEligible ? 'yes' : 'no'}
-              onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
-              disabled={isDisabled}
-            >
-              <Select.Trigger
-                id="tiebreakEligible"
-                class="w-full bg-background-l4"
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                class="ml-auto"
+                onclick={onShowPreview}
+                disabled={!description}
               >
-                {tiebreakEligible ? 'Eligible' : 'Ineligible'}
-              </Select.Trigger>
-              <Select.Content>
-                <Select.Item value="yes" label="Eligible">Eligible</Select.Item>
-                <Select.Item value="no" label="Ineligible"
-                  >Ineligible</Select.Item
-                >
-              </Select.Content>
-            </Select.Root>
+                <IconEyeFilled class="size-4" />
+                Preview
+              </Button>
+            </Field.Label>
+            <Textarea
+              id="description"
+              placeholder="Challenge description (Markdown supported)"
+              rows={12}
+              required
+              value={description}
+              oninput={e => onDescriptionChange(e.currentTarget.value)}
+              disabled={isDisabled}
+            />
           </Field.Field>
         </div>
-      </div>
-    </div>
+      </ScrollArea>
+    </Tabs.Content>
 
-    <Attachments {files} {isDisabled} {onFilesChange} />
+    <Tabs.Content value="scoring" class="h-full">
+      <ScrollArea
+        class="h-full px-9 pt-4"
+        fadeSize={64}
+        fadeColor="background-l2"
+      >
+        <div class="flex flex-col gap-4 pb-4">
+          <Field.Field>
+            <Field.Label for="flag">Flag</Field.Label>
+            <Input
+              id="flag"
+              type="text"
+              placeholder={'flag{...}'}
+              class="font-mono"
+              required
+              value={flag}
+              oninput={e => onFlagChange(e.currentTarget.value)}
+              disabled={isDisabled}
+            />
+          </Field.Field>
+
+          <div class="grid grid-cols-2 gap-4">
+            <Field.Field>
+              <Field.Label for="pointsMin"
+                >Minimum points <Field.Hint>(at max solves)</Field.Hint
+                ></Field.Label
+              >
+              <Input
+                id="pointsMin"
+                type="number"
+                min={0}
+                required
+                value={pointsMin}
+                oninput={e => onPointsMinChange(Number(e.currentTarget.value))}
+                disabled={isDisabled}
+              />
+            </Field.Field>
+
+            <Field.Field>
+              <Field.Label for="pointsMax"
+                >Maximum points <Field.Hint>(at zero solves)</Field.Hint
+                ></Field.Label
+              >
+              <Input
+                id="pointsMax"
+                type="number"
+                min={0}
+                required
+                value={pointsMax}
+                oninput={e => onPointsMaxChange(Number(e.currentTarget.value))}
+                disabled={isDisabled}
+              />
+            </Field.Field>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <Field.Field>
+              <Field.Label for="sortWeight"
+                >Sort weight <Field.Hint>(higher = first)</Field.Hint
+                ></Field.Label
+              >
+              <Input
+                id="sortWeight"
+                type="number"
+                value={sortWeight}
+                oninput={e => onSortWeightChange(Number(e.currentTarget.value))}
+                disabled={isDisabled}
+              />
+            </Field.Field>
+
+            <Field.Field>
+              <Field.Label for="tiebreakEligible"
+                >Tiebreak eligibility</Field.Label
+              >
+              <Select.Root
+                type="single"
+                value={tiebreakEligible ? 'yes' : 'no'}
+                onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
+                disabled={isDisabled}
+              >
+                <Select.Trigger id="tiebreakEligible" class="w-full">
+                  {tiebreakEligible ? 'Eligible' : 'Ineligible'}
+                </Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="yes" label="Eligible"
+                    >Eligible</Select.Item
+                  >
+                  <Select.Item value="no" label="Ineligible"
+                    >Ineligible</Select.Item
+                  >
+                </Select.Content>
+              </Select.Root>
+            </Field.Field>
+          </div>
+        </div>
+      </ScrollArea>
+    </Tabs.Content>
+
+    <Tabs.Content value="files" class="h-full">
+      <ScrollArea
+        class="h-full px-9 pt-4"
+        fadeSize={64}
+        fadeColor="background-l2"
+      >
+        <div class="pb-4">
+          <Attachments {files} {isDisabled} {onFilesChange} />
+        </div>
+      </ScrollArea>
+    </Tabs.Content>
+
+    <Tabs.Content value="instancer" class="h-full">
+      <ScrollArea
+        class="h-full px-5 pt-4"
+        fadeSize={64}
+        fadeColor="background-l2"
+      >
+        <div class="pb-4">
+          <InstancerConfigComponent
+            config={instancerConfig}
+            {isDisabled}
+            onConfigChange={onInstancerConfigChange}
+          />
+        </div>
+      </ScrollArea>
+    </Tabs.Content>
   </div>
-</div>
+</Tabs.Root>

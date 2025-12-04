@@ -13,7 +13,7 @@
 
 <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
   <div class="flex flex-col gap-4">
-    <div class="overflow-hidden rounded-lg border-2 border-border">
+    <div class="overflow-hidden rounded-lg border-2">
       <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">
         Description
       </div>
@@ -23,9 +23,7 @@
     </div>
 
     <div class="grid grid-cols-2 gap-4">
-      <div
-        class="flex flex-col overflow-hidden rounded-lg border-2 border-border"
-      >
+      <div class="flex flex-col overflow-hidden rounded-lg border-2">
         <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">
           Files
         </div>
@@ -64,7 +62,7 @@
         </div>
       </div>
 
-      <div class="overflow-hidden rounded-lg border-2 border-border">
+      <div class="overflow-hidden rounded-lg border-2">
         <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">
           Instancer
         </div>

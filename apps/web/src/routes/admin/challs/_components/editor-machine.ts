@@ -1,4 +1,8 @@
-import type { AdminChallenge, AdminChallengeDetail } from '$lib/api'
+import type {
+  AdminChallenge,
+  AdminChallengeDetail,
+  InstancerConfig,
+} from '$lib/api'
 import { assign, setup } from 'xstate'
 
 export interface FormData {
@@ -12,6 +16,7 @@ export interface FormData {
   tiebreakEligible: boolean
   sortWeight: number
   files: { name: string; url: string; size: number | null }[]
+  instancerConfig: InstancerConfig | null
 }
 
 export interface EditorContext {
@@ -44,6 +49,7 @@ type EditorEvent =
       type: 'UPDATE_FILES'
       files: { name: string; url: string; size: number | null }[]
     }
+  | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
   | { type: 'PREVIEW' }
   | { type: 'CLOSE_PREVIEW' }
 
@@ -58,6 +64,7 @@ const emptyForm: FormData = {
   tiebreakEligible: true,
   sortWeight: 0,
   files: [],
+  instancerConfig: null,
 }
 
 function formFromChallenge(challenge: AdminChallenge): FormData {
@@ -72,6 +79,7 @@ function formFromChallenge(challenge: AdminChallenge): FormData {
     tiebreakEligible: challenge.tiebreakEligible,
     sortWeight: challenge.sortWeight ?? 0,
     files: challenge.files ? [...challenge.files] : [],
+    instancerConfig: challenge.instancerConfig ?? null,
   }
 }
 
@@ -87,6 +95,7 @@ function formFromDetail(detail: AdminChallengeDetail): FormData {
     tiebreakEligible: detail.tiebreakEligible,
     sortWeight: detail.sortWeight ?? 0,
     files: detail.files ? [...detail.files] : [],
+    instancerConfig: detail.instancerConfig ?? null,
   }
 }
 
@@ -98,7 +107,8 @@ function hasChanges(form: FormData, original: FormData | null): boolean {
       form.author ||
       form.description ||
       form.flag ||
-      form.files.length > 0
+      form.files.length > 0 ||
+      form.instancerConfig
     )
   }
   return (
@@ -111,7 +121,9 @@ function hasChanges(form: FormData, original: FormData | null): boolean {
     form.pointsMax !== original.pointsMax ||
     form.tiebreakEligible !== original.tiebreakEligible ||
     form.sortWeight !== original.sortWeight ||
-    JSON.stringify(form.files) !== JSON.stringify(original.files)
+    JSON.stringify(form.files) !== JSON.stringify(original.files) ||
+    JSON.stringify(form.instancerConfig) !==
+      JSON.stringify(original.instancerConfig)
   )
 }
 
@@ -177,6 +189,12 @@ export const editorMachine = setup({
       if (event.type !== 'UPDATE_FILES') return {}
       return {
         form: { ...context.form, files: event.files },
+      }
+    }),
+    updateInstancer: assign(({ context, event }) => {
+      if (event.type !== 'UPDATE_INSTANCER') return {}
+      return {
+        form: { ...context.form, instancerConfig: event.instancerConfig },
       }
     }),
     resetForm: assign(({ context }) => ({
@@ -276,6 +294,9 @@ export const editorMachine = setup({
         UPDATE_FILES: {
           actions: 'updateFiles',
         },
+        UPDATE_INSTANCER: {
+          actions: 'updateInstancer',
+        },
         CANCEL: [
           {
             guard: 'hasUnsavedChanges',
@@ -336,6 +357,9 @@ export const editorMachine = setup({
         },
         UPDATE_FILES: {
           actions: 'updateFiles',
+        },
+        UPDATE_INSTANCER: {
+          actions: 'updateInstancer',
         },
         CANCEL: [
           {

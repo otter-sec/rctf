@@ -9,6 +9,7 @@ import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
 import * as Pagination from './ui/pagination'
 import * as Resizable from './ui/resizable'
+import * as Section from './ui/section'
 import * as Select from './ui/select'
 import * as Table from './ui/table'
 import * as Tabs from './ui/tabs'
@@ -57,6 +58,7 @@ export {
   InputGroup,
   Pagination,
   Resizable,
+  Section,
   Select,
   Table,
   Tabs,

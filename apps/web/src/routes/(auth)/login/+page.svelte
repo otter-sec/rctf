@@ -136,10 +136,9 @@
           <Input
             id="teamToken"
             name="teamToken"
-            type="text"
+            type="password"
             placeholder="Enter your team token"
-            autocomplete="off"
-            autocorrect="off"
+            autocomplete="current-password"
             required
             bind:value={teamToken}
             aria-invalid={!!errors.teamToken}

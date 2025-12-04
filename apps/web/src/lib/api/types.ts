@@ -13,6 +13,9 @@ import type { ResponseData } from '@rctf/types'
 
 export type AdminChallenge = ResponseData<typeof GoodAdminChallengesV2>[number]
 export type AdminChallengeDetail = ResponseData<typeof GoodAdminChallengeV2>
+export type InstancerConfig = NonNullable<
+  AdminChallengeDetail['instancerConfig']
+>
 export type Challenge = ResponseData<typeof GoodChallengesV2>[number]
 export type ClientConfig = ResponseData<typeof GoodClientConfig>
 export type GraphPoint = LeaderboardGraphEntry['points'][number]

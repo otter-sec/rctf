@@ -145,9 +145,9 @@
   --foreground-l3: oklch(60.0% 0 0);
   --foreground-l4: oklch(65.0% 0 0);
   --foreground-l5: oklch(70.0% 0 0);
-  --background-accent: var(--color-red-100);
-  --background-accent-hover: var(--color-red-200);
-  --foreground-accent: var(--color-red-400);
+  --background-accent: color-mix(in oklch, var(--color-sky-200) 50%, transparent);
+  --background-accent-hover: color-mix(in oklch, var(--color-sky-200) 70%, transparent);
+  --foreground-accent: var(--color-sky-700);
   --background-gold: color-mix(in oklch, var(--color-yellow-500) 15%, transparent);
   --foreground-gold-l0: var(--color-yellow-700);
   --foreground-gold-l1: color-mix(in oklch, var(--color-yellow-700) 80%, transparent);
@@ -244,9 +244,9 @@
   --foreground-l3: var(--color-neutral-400);
   --foreground-l4: oklch(59.7% 0 0);
   --foreground-l5: var(--color-neutral-500);
-  --background-accent: color-mix(in oklch, var(--color-red-950) 30%, transparent);
-  --background-accent-hover: color-mix(in oklch, var(--color-red-950) 50%, transparent);
-  --foreground-accent: var(--color-red-400);
+  --background-accent: color-mix(in oklch, var(--color-sky-800) 30%, transparent);
+  --background-accent-hover: color-mix(in oklch, var(--color-sky-800) 50%, transparent);
+  --foreground-accent: var(--color-sky-300);
   --background-gold: color-mix(in oklch, var(--color-yellow-950) 20%, transparent);
   --foreground-gold-l0: var(--color-yellow-400);
   --foreground-gold-l1: var(--color-yellow-700);
@@ -273,7 +273,7 @@
   --foreground-ninth: var(--color-fuchsia-300);
   --foreground-tenth: var(--color-pink-300);
   --background-destructive: color-mix(in oklch, var(--color-red-950) 50%, transparent);
-  --background-destructive-hover: color-mix(in oklch, var(--color-red-950) 70%, transparent);
+  --background-destructive-hover: color-mix(in oklch, var(--color-red-900) 40%, transparent);
   --foreground-destructive: var(--color-red-400);
   --background-success: color-mix(in oklch, var(--color-emerald-900) 10%, transparent);
   --foreground-success: var(--color-emerald-300);

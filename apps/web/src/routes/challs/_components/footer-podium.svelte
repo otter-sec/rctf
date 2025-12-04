@@ -55,7 +55,7 @@
       <div
         class={cn(
           'flex h-14 items-center justify-between gap-2 rounded-lg py-1.5 pr-1.5 pl-2',
-          showEmpty ? 'border-2 border-dashed border-border' : style.bg
+          showEmpty ? 'border-2 border-dashed' : style.bg
         )}
       >
         {#if !showEmpty}

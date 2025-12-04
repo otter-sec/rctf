@@ -2,9 +2,9 @@
   import { GoodFilesUploadV2 } from '@rctf/types'
   import { toast } from '$lib'
   import { Button, Spinner } from '$lib/components'
-  import { IconFileUploadFilled, IconX } from '$lib/icons'
+  import { IconCloudUpload, IconFileFilled, IconTrashFilled } from '$lib/icons'
   import { useUploadFilesMutation } from '$lib/query'
-  import { formatFileSize } from '$lib/utils'
+  import { cn, formatFileSize } from '$lib/utils'
 
   interface Props {
     files: { name: string; url: string; size: number | null }[]
@@ -18,11 +18,12 @@
 
   const uploadMutation = useUploadFilesMutation()
 
-  async function handleFileUpload(e: Event) {
-    const input = e.target as HTMLInputElement
-    if (!input.files?.length) return
+  let isDragging = $state(false)
+  let fileInput: HTMLInputElement | null = $state(null)
 
-    const filesToUpload = Array.from(input.files)
+  function uploadFiles(fileList: FileList | File[]) {
+    const filesToUpload = Array.from(fileList)
+    if (!filesToUpload.length) return
 
     $uploadMutation.mutate(
       { files: filesToUpload },
@@ -40,8 +41,29 @@
         },
       }
     )
+  }
 
+  function handleFileInput(e: Event) {
+    const input = e.target as HTMLInputElement
+    if (!input.files?.length) return
+    uploadFiles(input.files)
     input.value = ''
+  }
+
+  function handleDrop(e: DragEvent) {
+    e.preventDefault()
+    isDragging = false
+    if (isDisabled || !e.dataTransfer?.files.length) return
+    uploadFiles(e.dataTransfer.files)
+  }
+
+  function handleDragOver(e: DragEvent) {
+    e.preventDefault()
+    if (!isDisabled) isDragging = true
+  }
+
+  function handleDragLeave() {
+    isDragging = false
   }
 
   function removeFile(index: number) {
@@ -49,76 +71,96 @@
   }
 </script>
 
-<div
-  class="overflow-hidden rounded-lg border-2 border-border bg-background-l2 flex flex-col"
->
-  <div
-    class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3 flex items-center justify-between"
-  >
-    <span>Attachments</span>
-    <span class="text-base text-foreground-l5"
-      >{files.length} file{files.length === 1 ? '' : 's'}</span
+<div class="flex flex-col gap-4">
+  {#if !isDisabled}
+    <button
+      type="button"
+      class={cn(
+        'relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8',
+        isDragging
+          ? 'border-primary bg-primary/5'
+          : 'hover:border-foreground-l4 hover:bg-background-l3'
+      )}
+      onclick={() => fileInput?.click()}
+      ondrop={handleDrop}
+      ondragover={handleDragOver}
+      ondragleave={handleDragLeave}
+      disabled={$uploadMutation.isPending}
     >
-  </div>
-  <div class="p-4 flex flex-col gap-4 flex-1">
-    {#if files.length > 0}
-      <ul class="flex flex-col gap-2">
-        {#each files as file, index (file.url)}
-          <li
-            class="flex items-center justify-between gap-2 rounded-md bg-background-l4 p-3"
-          >
-            <a
-              href={file.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="flex min-w-0 flex-col hover:underline"
-            >
-              <span class="truncate">{file.name}</span>
-              <span class="text-foreground-l5 text-sm"
-                >{formatFileSize(file.size)}</span
-              >
-            </a>
-            {#if !isDisabled}
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon-sm"
-                onclick={() => removeFile(index)}
-              >
-                <IconX class="size-4" />
-              </Button>
-            {/if}
-          </li>
-        {/each}
-      </ul>
-    {:else}
-      <p class="text-foreground-l3 text-sm">No files attached.</p>
-    {/if}
-
-    {#if !isDisabled}
-      <div class="flex items-center gap-2 mt-auto">
-        <input
-          type="file"
-          id="fileUpload"
-          multiple
-          onchange={handleFileUpload}
-          disabled={$uploadMutation.isPending}
-          class="hidden"
+      {#if $uploadMutation.isPending}
+        <Spinner class="size-8 text-foreground-l3" />
+        <span class="text-sm text-foreground-l3">Uploading...</span>
+      {:else}
+        <IconCloudUpload
+          class={cn(
+            'size-8',
+            isDragging ? 'text-primary' : 'text-foreground-l4'
+          )}
         />
-        <Button
-          type="button"
-          variant="outline"
-          onclick={() => document.getElementById('fileUpload')?.click()}
-          disabled={$uploadMutation.isPending}
+        <div class="flex flex-col items-center gap-0.5">
+          <span
+            class={cn(
+              'text-sm',
+              isDragging ? 'text-primary' : 'text-foreground-l2'
+            )}
+          >
+            {isDragging
+              ? 'Drop files here'
+              : 'Click to upload or drag and drop'}
+          </span>
+          <span class="text-xs text-foreground-l4">Any file type supported</span
+          >
+        </div>
+      {/if}
+    </button>
+    <input
+      bind:this={fileInput}
+      type="file"
+      multiple
+      onchange={handleFileInput}
+      disabled={$uploadMutation.isPending}
+      class="hidden"
+    />
+  {/if}
+
+  {#if files.length > 0}
+    <div class="flex flex-col gap-1">
+      {#each files as file, index (file.url)}
+        <div
+          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4"
         >
-          {#if $uploadMutation.isPending}
-            <Spinner class="size-4" />
-          {:else}
-            <IconFileUploadFilled class="size-4" />
+          <IconFileFilled class="size-5 shrink-0 text-foreground-l4" />
+          <a
+            href={file.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex min-w-0 flex-1 flex-col"
+          >
+            <span class="truncate text-sm">{file.name}</span>
+            <span class="text-xs text-foreground-l4"
+              >{formatFileSize(file.size)}</span
+            >
+          </a>
+          {#if !isDisabled}
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon-sm"
+              class="opacity-0 group-hover:opacity-100"
+              onclick={() => removeFile(index)}
+            >
+              <IconTrashFilled class="size-4" />
+            </Button>
           {/if}
-          Upload files
-        </Button>
-      </div>
-    {/if}
-  </div>
+        </div>
+      {/each}
+    </div>
+  {:else if isDisabled}
+    <div
+      class="flex flex-col items-center justify-center py-8 text-foreground-l4"
+    >
+      <IconFileFilled class="size-8 mb-2 opacity-50" />
+      <span class="text-sm">No files attached</span>
+    </div>
+  {/if}
 </div>

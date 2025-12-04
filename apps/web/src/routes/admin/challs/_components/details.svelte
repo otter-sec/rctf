@@ -1,12 +1,12 @@
 <script lang="ts">
   import {
     GoodChallengeDelete,
-    GoodChallengeUpdate,
+    GoodChallengeUpdateV2,
     Permissions,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { Button, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { Button, EmptyState, Spinner } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
   import {
     queryKeys,
@@ -103,11 +103,12 @@
           tiebreakEligible: form.tiebreakEligible,
           sortWeight: form.sortWeight || undefined,
           files: form.files,
+          instancerConfig: form.instancerConfig,
         },
       },
       {
         onSuccess: response => {
-          if (response.kind === GoodChallengeUpdate.kind) {
+          if (response.kind === GoodChallengeUpdateV2.kind) {
             toast.success(
               isCreating ? 'Challenge created!' : 'Challenge saved!'
             )
@@ -132,7 +133,7 @@
                 files: form.files,
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
-                instancerConfig: null,
+                instancerConfig: form.instancerConfig,
               },
             })
           } else {
@@ -187,134 +188,107 @@
 {#if showContent}
   {#key challenge?.id ?? 'new'}
     <div class="flex h-full flex-col">
-      <div class="flex flex-col py-6">
-        <div class="px-9 flex items-start justify-between gap-4">
-          <div class="flex flex-col gap-1">
-            <h2 class="text-2xl">
-              {isCreating ? 'New Challenge' : form.name || 'Untitled'}
-            </h2>
-            <div class="flex items-center gap-2 text-foreground-l3 text-base">
-              <span>by {form.author || 'Unknown'}</span>
-              <span class="text-foreground-l5 opacity-50 text-2xl leading-none"
-                >·</span
-              >
-              <div class="flex gap-1">
-                {#if form.category}
-                  <span
-                    class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
-                    style={categoryStyle}
-                  >
-                    <categoryConfig.icon class="size-3.5" />
-                    {categoryConfig.name}
-                  </span>
-                {:else}
-                  <span
-                    class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm"
-                  >
-                    No category
-                  </span>
-                {/if}
-              </div>
+      <div class="flex items-start justify-between gap-4 px-9 py-6">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-2xl">
+            {isCreating ? 'New Challenge' : form.name || 'Untitled'}
+          </h2>
+          <div class="flex items-center gap-2 text-foreground-l3 text-base">
+            <span>by {form.author || 'Unknown'}</span>
+            <span class="text-foreground-l5 opacity-50 text-2xl leading-none"
+              >·</span
+            >
+            <div class="flex gap-1">
+              {#if form.category}
+                <span
+                  class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
+                  style={categoryStyle}
+                >
+                  <categoryConfig.icon class="size-3.5" />
+                  {categoryConfig.name}
+                </span>
+              {:else}
+                <span
+                  class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm"
+                >
+                  No category
+                </span>
+              {/if}
             </div>
           </div>
-          <div class="flex flex-col items-end gap-1">
-            <h2 class="text-right text-2xl tabular-nums">
-              {form.pointsMin}–{form.pointsMax} pts
-            </h2>
-            {#if !isCreating && challenge}
-              <p class="text-right text-foreground-l5 text-base font-mono">
-                {challenge.id}
-              </p>
-            {/if}
-          </div>
         </div>
-      </div>
-
-      <div class="min-h-0 flex-1 bg-background-l1">
-        <ScrollArea class="h-full px-5" fadeSize={64} fadeColor="background-l1">
-          <div class={cn(isDisabled && 'opacity-50 pointer-events-none')}>
-            <Form
-              name={form.name}
-              category={form.category}
-              author={form.author}
-              description={form.description}
-              flag={form.flag}
-              pointsMin={form.pointsMin}
-              pointsMax={form.pointsMax}
-              tiebreakEligible={form.tiebreakEligible}
-              sortWeight={form.sortWeight}
-              files={form.files}
-              {isDisabled}
-              onShowPreview={() => (showPreviewDialog = true)}
-              onFilesChange={files => send({ type: 'UPDATE_FILES', files })}
-              onNameChange={v => updateField('name', v)}
-              onCategoryChange={v => updateField('category', v)}
-              onAuthorChange={v => updateField('author', v)}
-              onDescriptionChange={v => updateField('description', v)}
-              onFlagChange={v => updateField('flag', v)}
-              onPointsMinChange={v => updateField('pointsMin', v)}
-              onPointsMaxChange={v => updateField('pointsMax', v)}
-              onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
-              onSortWeightChange={v => updateField('sortWeight', v)}
-            />
-          </div>
-        </ScrollArea>
-      </div>
-
-      <div
-        class="flex items-center justify-between gap-4 bg-background-l1 px-5 py-4"
-      >
-        {#if isEditMode}
-          <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2">
+          {#if isEditMode}
             {#if !isCreating && challenge}
               <Button
                 type="button"
                 variant="destructive"
-                size="lg"
                 onclick={handleDelete}
                 disabled={isDeletingChallenge}
               >
                 {#if isDeletingChallenge}
-                  <Spinner class="size-5" />
+                  <Spinner class="size-4" />
                 {:else}
-                  <IconTrashFilled class="size-5" />
+                  <IconTrashFilled class="size-4" />
                 {/if}
-                Delete challenge
+                Delete
               </Button>
             {/if}
-          </div>
-          <div class="flex items-center gap-3">
             <Button
               type="button"
               variant="outline"
-              size="lg"
               onclick={() => send({ type: 'CANCEL' })}
             >
               Cancel
             </Button>
-            <Button
-              type="button"
-              size="lg"
-              onclick={handleSave}
-              disabled={isUpdating}
-            >
+            <Button type="button" onclick={handleSave} disabled={isUpdating}>
               {#if isUpdating}
-                <Spinner class="size-5" />
+                <Spinner class="size-4" />
               {/if}
-              {isCreating ? 'Create challenge' : 'Save changes'}
+              {isCreating ? 'Create' : 'Save'}
             </Button>
-          </div>
-        {:else if hasWritePerms}
-          <div></div>
-          <Button
-            type="button"
-            size="lg"
-            onclick={() => send({ type: 'EDIT' })}
-          >
-            <IconPencilFilled class="size-5" />
-            Edit challenge
-          </Button>
-        {/if}
+          {:else if hasWritePerms}
+            <Button type="button" onclick={() => send({ type: 'EDIT' })}>
+              <IconPencilFilled class="size-4" />
+              Edit
+            </Button>
+          {/if}
+        </div>
+      </div>
+
+      <div
+        class={cn(
+          'min-h-0 flex-1 flex flex-col',
+          isDisabled && 'opacity-50 pointer-events-none'
+        )}
+      >
+        <Form
+          name={form.name}
+          category={form.category}
+          author={form.author}
+          description={form.description}
+          flag={form.flag}
+          pointsMin={form.pointsMin}
+          pointsMax={form.pointsMax}
+          tiebreakEligible={form.tiebreakEligible}
+          sortWeight={form.sortWeight}
+          files={form.files}
+          instancerConfig={form.instancerConfig}
+          {isDisabled}
+          onShowPreview={() => (showPreviewDialog = true)}
+          onFilesChange={files => send({ type: 'UPDATE_FILES', files })}
+          onInstancerConfigChange={config =>
+            send({ type: 'UPDATE_INSTANCER', instancerConfig: config })}
+          onNameChange={v => updateField('name', v)}
+          onCategoryChange={v => updateField('category', v)}
+          onAuthorChange={v => updateField('author', v)}
+          onDescriptionChange={v => updateField('description', v)}
+          onFlagChange={v => updateField('flag', v)}
+          onPointsMinChange={v => updateField('pointsMin', v)}
+          onPointsMaxChange={v => updateField('pointsMax', v)}
+          onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
+          onSortWeightChange={v => updateField('sortWeight', v)}
+        />
       </div>
     </div>
   {/key}

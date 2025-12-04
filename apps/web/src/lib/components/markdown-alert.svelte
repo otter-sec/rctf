@@ -69,7 +69,7 @@
 </script>
 
 {#if type === 'connection'}
-  <div class="my-4 overflow-hidden rounded-md border-2 border-border">
+  <div class="my-4 overflow-hidden rounded-md border-2">
     <div
       class="flex items-center gap-2 bg-background-l3 px-4 py-1 text-foreground-l3"
     >
