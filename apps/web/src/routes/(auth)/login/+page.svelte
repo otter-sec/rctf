@@ -4,7 +4,15 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken, toast } from '$lib'
-  import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
+  import {
+    Button,
+    ButtonCtftime,
+    ButtonDiscord,
+    Card,
+    Field,
+    Input,
+    Spinner,
+  } from '$lib/components'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
@@ -108,6 +116,33 @@
       }
     )
   }
+
+  function handleDiscordDone(discordData: {
+    discordToken: string
+    discordName: string
+    discordId: string
+  }) {
+    errors = {}
+    $loginMutation.mutate(
+      { discordToken: discordData.discordToken },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodLogin.kind) {
+            handleLoginSuccess(response.data.authToken)
+          } else if (response.kind === BadUnknownUser.kind) {
+            sessionStorage.setItem('discordToken', discordData.discordToken)
+            sessionStorage.setItem('discordName', discordData.discordName)
+            goto('/register')
+          } else {
+            toast.error(response.message)
+          }
+        },
+        onError: error => {
+          toast.error(error.message)
+        },
+      }
+    )
+  }
 </script>
 
 <svelte:head>
@@ -167,6 +202,22 @@
             clientId={clientConfig.ctftime.clientId}
             onCtftimeDone={handleCtftimeDone}
             disabled={$loginMutation.isPending} />
+        </div>
+      {/if}
+
+      {#if clientConfig.discord}
+        <div class="mt-4 flex items-center gap-4">
+          <div class="h-px flex-1 bg-border"></div>
+          <span class="text-foreground-l3 text-sm">or</span>
+          <div class="h-px flex-1 bg-border"></div>
+        </div>
+
+        <div class="mt-4">
+          <ButtonDiscord
+            clientId={clientConfig.discord.clientId}
+            onDiscordDone={handleDiscordDone}
+            disabled={$loginMutation.isPending}
+          />
         </div>
       {/if}
     </Card.Content>

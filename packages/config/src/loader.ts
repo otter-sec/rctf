@@ -98,6 +98,11 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['clientSecret', getString('RCTF_CTFTIME_CLIENT_SECRET')],
   ])
 
+  const discord = optionalObjectFrom([
+    ['clientId', getString('RCTF_DISCORD_CLIENT_ID')],
+    ['clientSecret', getString('RCTF_DISCORD_CLIENT_SECRET')],
+  ])
+
   const meta = optionalObjectFrom([
     ['description', getString('RCTF_META_DESCRIPTION')],
     ['imageUrl', getString('RCTF_IMAGE_URL')],
@@ -128,6 +133,7 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['tokenKey', getString('RCTF_TOKEN_KEY')],
     ['origin', getString('RCTF_ORIGIN')],
     ['ctftime', ctftime],
+    ['discord', discord],
     ['userMembers', getBoolean('RCTF_USER_MEMBERS')],
     ['homeContent', getString('RCTF_HOME_CONTENT')],
     ['ctfName', getString('RCTF_NAME')],

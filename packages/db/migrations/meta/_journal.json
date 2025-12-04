@@ -29,6 +29,13 @@
       "when": 1764616505704,
       "tag": "0003_add_solves_index",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1764857201528,
+      "tag": "0004_add_discord_id",
+      "breakpoints": true
     }
   ]
 }

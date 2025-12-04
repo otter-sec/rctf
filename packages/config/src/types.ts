@@ -51,6 +51,11 @@ export interface ServerConfig {
     clientSecret: string
   }
 
+  discord?: {
+    clientId: string
+    clientSecret: string
+  }
+
   userMembers: boolean
   registrationsEnabled: boolean
 

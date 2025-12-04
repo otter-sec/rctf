@@ -178,7 +178,7 @@ export const deleteEmail = async (
       .then(takeUnique)
   } catch (error) {
     const contraintName = getErrorConstraint(error)
-    if (contraintName === 'require_email_or_ctftime_id') {
+    if (contraintName === 'require_email_ctftime_id_or_discord_id') {
       return res.badZeroAuth()
     }
     throw error
@@ -242,7 +242,7 @@ export const deleteCtftimeId = async (
       .where(eq(users.id, id))
   } catch (error) {
     const contraintName = getErrorConstraint(error)
-    if (contraintName === 'require_email_or_ctftime_id') {
+    if (contraintName === 'require_email_ctftime_id_or_discord_id') {
       return res.badZeroAuth()
     }
     throw error
@@ -318,6 +318,18 @@ export const getUserByCtftimeId = async (
     .select()
     .from(users)
     .where(eq(users.ctftimeId, ctftimeId))
+    .limit(1)
+    .then(takeUnique)
+}
+
+export const getUserByDiscordId = async (
+  db: DatabaseClient,
+  discordId: string
+): Promise<User | undefined> => {
+  return await db
+    .select()
+    .from(users)
+    .where(eq(users.discordId, discordId))
     .limit(1)
     .then(takeUnique)
 }

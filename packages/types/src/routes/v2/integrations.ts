@@ -4,9 +4,11 @@ import {
   BadChallenge,
   BadEndpoint,
   BadInstancerError,
+  BadDiscordCodeV2,
   GoodClientConfigV2,
   GoodInstanceStatus,
 } from '../../responses'
+import { GoodDiscordTokenV2 } from '../../responses/good-discord-token-v2.ts'
 
 export const GetClientConfigRouteV2 = defineRoute({
   path: '/v2/integrations/client/config',
@@ -14,6 +16,17 @@ export const GetClientConfigRouteV2 = defineRoute({
   responses: [GoodClientConfigV2],
   authRequired: false,
 })
+
+export const DiscordCallbackRouteV2 = defineRoute({
+  path: '/v2/integrations/discord/callback',
+  method: 'POST',
+  body: z.object({
+    discordCode: z.string(),
+  }),
+  responses: [GoodDiscordTokenV2, BadEndpoint, BadDiscordCodeV2],
+  authRequired: false,
+})
+
 
 export const GetInstanceStatusRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',

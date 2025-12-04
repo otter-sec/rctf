@@ -141,7 +141,7 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] admin bot integration
 - [ ] blood bot integration
 
-- [ ] discord auth
+- [x] discord auth
 
 - [ ] ticket bot?
 

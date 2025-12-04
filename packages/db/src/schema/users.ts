@@ -20,6 +20,7 @@ export const users = pgTable(
     division: text().notNull(),
     perms: integer().notNull(),
     ctftimeId: text('ctftime_id'),
+    discordId: text('discord_id'),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
       .notNull(),
@@ -30,8 +31,8 @@ export const users = pgTable(
     unique('users_email_key').on(table.email),
     unique('users_ctftime_id_key').on(table.ctftimeId),
     check(
-      'require_email_or_ctftime_id',
-      sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL)`
+      'require_email_ctftime_id_or_discord_id',
+      sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL) OR (discord_id IS NOT NULL)`
     ),
   ]
 )

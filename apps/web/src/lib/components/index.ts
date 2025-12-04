@@ -17,6 +17,7 @@ import * as Tooltip from './ui/tooltip'
 
 export { default as Brainrot } from './brainrot.svelte'
 export { default as ButtonCtftime } from './button-ctftime.svelte'
+export { default as ButtonDiscord } from './button-discord.svelte'
 export { default as Header } from './header.svelte'
 export { default as Markdown } from './markdown.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'

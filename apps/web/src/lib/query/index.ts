@@ -25,15 +25,16 @@ import {
   GoodMemberData,
   GoodUserDataV2,
   GoodUserSelfDataV2,
-  LoginRoute,
+  LoginRouteV2,
   RecoverRoute,
-  RegisterRoute,
+  RegisterRouteV2,
   SetEmailRoute,
   SubmitFlagRoute,
   UpdateChallengeRouteV2,
   UpdateUserRouteV2,
   UploadFilesRouteV2,
   VerifyRoute,
+  DiscordCallbackRouteV2,
   type AnyRouteDefinition,
   type RouteResponse,
 } from '@rctf/types'
@@ -321,11 +322,11 @@ export function useMembers() {
 }
 
 export function useLoginMutation() {
-  return createApiMutation(LoginRoute)
+  return createApiMutation(LoginRouteV2)
 }
 
 export function useRegisterMutation() {
-  return createApiMutation(RegisterRoute)
+  return createApiMutation(RegisterRouteV2)
 }
 
 export function useVerifyMutation() {
@@ -374,4 +375,8 @@ export function useUploadFilesMutation() {
 
 export function useCtftimeCallbackMutation() {
   return createApiMutation(CtftimeCallbackRoute)
+}
+
+export function useDiscordCallbackMutation() {
+  return createApiMutation(DiscordCallbackRouteV2)
 }

@@ -35,6 +35,11 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
         clientId: NumericString,
       })
       .nullable(),
+    discord: z
+      .object({
+        clientId: NumericString,
+      })
+      .nullable(),
     instancerEnabled: z.boolean(),
   }),
 })

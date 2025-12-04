@@ -11,6 +11,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
     faviconUrl: config.faviconUrl ?? null,
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
+    discord: config.discord ?? null,
     instancerEnabled: Boolean(config.instancerProvider),
   })
 })

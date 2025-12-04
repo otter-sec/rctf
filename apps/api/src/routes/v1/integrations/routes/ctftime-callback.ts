@@ -28,6 +28,8 @@ integrationsGroup.route(CtftimeCallbackRoute, async ({ res, body }) => {
     return res.badEndpoint()
   }
 
+  // TODO(trixter-osec): we probably want some kind of ratelimiting?
+
   let response = await fetch(tokenEndpoint, {
     method: 'POST',
     body: new URLSearchParams({
