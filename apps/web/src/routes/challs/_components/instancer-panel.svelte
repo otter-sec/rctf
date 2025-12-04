@@ -175,11 +175,19 @@
       {/if}
 
       <div class="flex gap-2">
-        <Button variant="secondary" onclick={extend} disabled={actioning || status === InstanceStatus.STARTING} class="flex-1">
+        <Button
+          variant="secondary"
+          onclick={extend}
+          disabled={actioning || status === InstanceStatus.STARTING}
+          class="flex-1">
           {#if actioning}<IconLoader class="animate-spin" />{/if}
           Extend
         </Button>
-        <Button variant="destructive" onclick={stop} disabled={actioning || status === InstanceStatus.STARTING} class="flex-1">
+        <Button
+          variant="destructive"
+          onclick={stop}
+          disabled={actioning || status === InstanceStatus.STARTING}
+          class="flex-1">
           {#if actioning}<IconLoader class="animate-spin" />{/if}
           Stop
         </Button>

@@ -40,6 +40,7 @@ export interface InstancerProvider {
     options: CreateInstanceOptions
   ) => Promise<instanceDetailsOrError>
 
+  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
   getInstance: (
     options: InstanceQueryOptions
   ) => Promise<instanceDetailsOrError>

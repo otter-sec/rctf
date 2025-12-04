@@ -216,6 +216,7 @@ export default class TinyInstancerProvider implements InstancerProvider {
     })
   }
 
+  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
   getInstance = async (
     options: InstanceQueryOptions
   ): Promise<instanceDetailsOrError> => {
