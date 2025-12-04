@@ -6,7 +6,6 @@
     Checkbox,
     Field,
     Input,
-    SchemaForm,
     Section,
     Select,
     Spinner,
@@ -15,6 +14,7 @@
   import { IconPlus, IconTrashFilled } from '$lib/icons'
   import { useInstancerSchema } from '$lib/query'
   import * as yaml from 'yaml'
+  import { SchemaForm } from './schema-form'
 
   interface Props {
     config: InstancerConfig | null

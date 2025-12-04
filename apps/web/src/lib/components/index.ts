@@ -1,4 +1,3 @@
-import * as SchemaForm from './schema-form'
 import * as Accordion from './ui/accordion'
 import * as Avatar from './ui/avatar'
 import * as ButtonGroup from './ui/button-group'
@@ -45,6 +44,7 @@ export { Progress } from './ui/progress'
 export { ScrollArea } from './ui/scroll-area'
 export { Separator } from './ui/separator'
 export { Spinner } from './ui/spinner'
+export { TagInput } from './ui/tag-input'
 export { Textarea } from './ui/textarea'
 export { Toaster } from './ui/sonner'
 
@@ -60,7 +60,6 @@ export {
   InputGroup,
   Pagination,
   Resizable,
-  SchemaForm,
   Section,
   Select,
   Table,

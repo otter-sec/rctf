@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Button, Field, ScrollArea, Section } from '$lib/components'
+  import { TagInput } from '$lib/components/ui/tag-input'
   import { IconPlus, IconX } from '$lib/icons'
   import SchemaField from './schema-field.svelte'
   import type { JsonSchema } from './types'
@@ -40,7 +41,6 @@
   }
 
   function defaultValue(s: JsonSchema): unknown {
-    // For objects, merge schema default with recursively computed property defaults
     if (s.type === 'object' && s.properties) {
       const base =
         s.default && typeof s.default === 'object' && !Array.isArray(s.default)
@@ -54,7 +54,6 @@
       return base
     }
 
-    // For non-objects, use schema default if available
     if (s.default !== undefined) {
       return JSON.parse(JSON.stringify(s.default))
     }
@@ -77,6 +76,11 @@
       items.filter((_, idx) => idx !== i)
     )
   }
+
+  function handleTagChange(newItems: string[]) {
+    const converted = itemSchema.type === 'string' ? newItems : newItems.map(v => Number(v))
+    onChange(path, converted)
+  }
 </script>
 
 {#if isPrimitive}
@@ -87,41 +91,7 @@
         <Field.Hint>({description})</Field.Hint>
       {/if}
     </Field.Label>
-    <div
-      class="flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border bg-background-l1 px-2 py-1.5
-      focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2
-      {disabled ? 'cursor-not-allowed opacity-50' : ''}">
-      {#each items as item, i (i)}
-        <span
-          class="inline-flex items-center gap-1 rounded-md bg-background-l3 px-2 py-0.5 text-sm font-mono">
-          {item}
-          {#if !disabled}
-            <button
-              type="button"
-              class="ml-0.5 rounded-sm hover:bg-background-l4"
-              onclick={() => remove(i)}>
-              <IconX class="size-3" />
-            </button>
-          {/if}
-        </span>
-      {/each}
-      <input
-        type="text"
-        class="min-w-24 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-        placeholder={items.length === 0 ? 'Type and press Enter...' : 'Add more...'}
-        onkeydown={e => {
-          const input = e.currentTarget
-          if (e.key === 'Enter' && input.value.trim()) {
-            e.preventDefault()
-            const v = input.value.trim()
-            onChange(path, [...items, itemSchema.type === 'string' ? v : Number(v)])
-            input.value = ''
-          } else if (e.key === 'Backspace' && !input.value && items.length > 0) {
-            remove(items.length - 1)
-          }
-        }}
-        {disabled} />
-    </div>
+    <TagInput value={items.map(String)} onchange={handleTagChange} {disabled} />
   </Field.Field>
 {:else}
   <Section.Root>

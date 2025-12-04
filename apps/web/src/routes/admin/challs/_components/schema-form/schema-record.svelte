@@ -23,7 +23,6 @@
   const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
   const description = $derived(schema.description)
 
-  // For simple value types (string, number), render inline
   const isSimpleValue = $derived(
     ['string', 'number', 'integer', 'boolean'].includes(valueSchema.type ?? '')
   )
@@ -86,7 +85,6 @@
 </script>
 
 {#if isSimpleValue}
-  <!-- Simple key-value pairs rendered as tag-like inputs -->
   <Field.Field>
     <Field.Label>
       {label}
@@ -163,7 +161,6 @@
     </div>
   </Field.Field>
 {:else}
-  <!-- Complex values with sidebar -->
   <Section.Root>
     <Section.Header>{label}</Section.Header>
     <Section.Content class="p-0">
