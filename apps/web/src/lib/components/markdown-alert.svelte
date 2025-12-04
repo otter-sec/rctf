@@ -56,7 +56,9 @@
   let timeout: ReturnType<typeof setTimeout>
 
   const config = $derived(configs[type])
-  const trimmed = $derived(content.trim())
+  const trimmed = $derived(
+    type === 'connection' ? content.trim().replace(/^`+|`+$/g, '') : content.trim()
+  )
   const isUrl = $derived(/^https?:\/\//.test(trimmed))
   const CopyIcon = $derived(copied ? IconCheck : IconCopy)
 

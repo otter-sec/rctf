@@ -103,16 +103,16 @@
 
 <div class="flex h-full flex-col p-3">
   {#if loading}
-    <div class="m-auto">
+    <div class="flex flex-col items-center justify-center">
       <IconLoader class="size-5 animate-spin text-foreground-l4" />
     </div>
   {:else if error}
-    <div class="m-auto space-y-2 text-center">
+    <div class="flex flex-col items-center justify-center space-y-2 text-center">
       <p class="text-sm text-foreground-destructive">{error}</p>
       <Button size="sm" onclick={fetchStatus}>Retry</Button>
     </div>
   {:else if status === InstanceStatus.STOPPED || status === InstanceStatus.ERRORED}
-    <div class="m-auto space-y-3 text-center">
+    <div class="flex flex-col items-center justify-center space-y-3 text-center">
       <p class="text-sm text-foreground-l3">No instance running</p>
       <Button onclick={start} disabled={actioning} class="w-full">
         {#if actioning}<IconLoader class="animate-spin" />{/if}
@@ -120,7 +120,7 @@
       </Button>
     </div>
   {:else if status === InstanceStatus.STARTING}
-    <div class="m-auto space-y-2 text-center">
+    <div class="flex flex-col items-center justify-center space-y-2 text-center">
       <IconLoader class="mx-auto size-5 animate-spin text-foreground-l4" />
       <p class="text-sm text-foreground-l3">Starting...</p>
     </div>
@@ -138,7 +138,7 @@
             class="group flex w-full items-center justify-between gap-2 rounded-md bg-background-l4 px-3 py-2"
             onclick={() => copy(url)}>
             <span class="truncate font-mono text-sm text-foreground-accent">{url}</span>
-            <IconCopy class="size-4 shrink-0 text-foreground-l4 group-hover:text-foreground-l2" />
+            <IconCopy class="size-4 shrink-0 text-foreground-l4 hover:text-foreground-l2" />
           </button>
         </div>
       {/each}

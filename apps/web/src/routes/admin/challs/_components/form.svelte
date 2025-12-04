@@ -95,8 +95,8 @@
 
   <div class="min-h-0 flex-1 bg-background-l2">
     <Tabs.Content value="details" class="h-full">
-      <ScrollArea class="h-full px-9 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="flex flex-col gap-4 pb-4">
+      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+        <div class="flex flex-col gap-4 p-1 pb-4">
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field.Field>
               <Field.Label>Name</Field.Label>
@@ -157,8 +157,8 @@
     </Tabs.Content>
 
     <Tabs.Content value="scoring" class="h-full">
-      <ScrollArea class="h-full px-9 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="flex flex-col gap-4 pb-4">
+      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+        <div class="flex flex-col gap-4 p-1 pb-4">
           <Field.Field>
             <Field.Label>Flag</Field.Label>
             <Input
@@ -224,8 +224,8 @@
     </Tabs.Content>
 
     <Tabs.Content value="files" class="h-full">
-      <ScrollArea class="h-full px-9 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="pb-4">
+      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+        <div class="p-1 pb-4">
           <Attachments {files} {isDisabled} {onFilesChange} />
         </div>
       </ScrollArea>
