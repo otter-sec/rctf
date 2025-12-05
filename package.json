@@ -9,7 +9,7 @@
     "tests/server"
   ],
   "scripts": {
-    "dev": "bun run --filter '@rctf/api' --filter '@rctf/web' dev",
+    "dev": "bun --ellide-lines=0 run --filter '@rctf/api' --filter '@rctf/web' dev",
     "dev:api": "bun run --filter '@rctf/api' dev",
     "dev:web": "bun run --filter '@rctf/web' dev",
     "build": "bun run --filter '*' build",

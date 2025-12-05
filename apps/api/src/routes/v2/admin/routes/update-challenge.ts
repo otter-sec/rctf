@@ -1,5 +1,6 @@
 import type { InstancerConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
+import { instancerProvider } from '../../../../providers'
 import { upsertChallenge } from '../../../../services/challenges'
 import { forceLeaderboardUpdate } from '../../../../workers'
 import adminGroup from '../group'
@@ -9,6 +10,27 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   const instancerConfig = body.data.instancerConfig as
     | Partial<InstancerConfig>
     | undefined
+
+  // Validate instancer config if provided
+  if (instancerConfig) {
+    if (!instancerProvider) {
+      return res.badInstancerConfig({
+        error: 'Instancer is not enabled',
+      })
+    }
+
+    const configResult = instancerProvider.configSchema.safeParse(
+      instancerConfig.config
+    )
+
+    if (!configResult.success) {
+      return res.badInstancerConfig({
+        error: configResult.error.errors
+          .map(e => `${e.path.join('.')}: ${e.message}`)
+          .join(', '),
+      })
+    }
+  }
 
   const updated = await upsertChallenge(ctx.var.db, params.id, {
     ...body.data,

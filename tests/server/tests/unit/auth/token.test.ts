@@ -72,4 +72,3 @@ describe('token', () => {
     expect(extracted).toBeNull()
   })
 })
-

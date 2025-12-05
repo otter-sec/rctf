@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { GoodChallengeDelete, GoodChallengeUpdateV2, Permissions } from '@rctf/types'
+  import {
+    BadInstancerConfig,
+    GoodChallengeDelete,
+    GoodChallengeUpdateV2,
+    Permissions,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { Button, EmptyState, Spinner } from '$lib/components'
@@ -126,6 +131,9 @@
                 instancerConfig: form.instancerConfig,
               },
             })
+          } else if (response.kind === BadInstancerConfig.kind) {
+            toast.error(`Instancer config error: ${response.data.error}`)
+            send({ type: 'SAVE_ERROR' })
           } else {
             toast.error(response.message)
             send({ type: 'SAVE_ERROR' })

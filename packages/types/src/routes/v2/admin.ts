@@ -4,6 +4,7 @@ import { defineRoute } from '../../internal'
 import {
   BadChallenge,
   BadEndpoint,
+  BadInstancerConfig,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
@@ -62,7 +63,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
       instancerConfig: PartialInstancerConfigSchema.nullish(),
     }),
   }),
-  responses: [GoodChallengeUpdateV2, BadPerms, BadToken],
+  responses: [GoodChallengeUpdateV2, BadInstancerConfig, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
