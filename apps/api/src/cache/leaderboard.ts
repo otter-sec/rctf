@@ -392,29 +392,46 @@ export const getCachedChallenges = async (
   )
 }
 
-export const getUserScore = async (
-  redis: TypedRedis,
-  userId: string
-): Promise<{
+export type UserScoreResult = {
   score: number | null
   place: number | null
   divisionPlace: number | null
-}> => {
-  const redisResult = await redis.hget(keyScorePositions, userId)
-  if (!redisResult) {
-    return {
-      score: null,
-      place: null,
-      divisionPlace: null,
-    }
-  }
+}
 
-  const [score, place, divisionPlace] = redisResult.split(',')
+const parseUserScoreResult = (value: string | null): UserScoreResult => {
+  if (!value) {
+    return { score: null, place: null, divisionPlace: null }
+  }
+  const [score, place, divisionPlace] = value.split(',')
   return {
     score: Number.parseInt(score ?? '0'),
     place: Number.parseInt(place ?? '0'),
     divisionPlace: Number.parseInt(divisionPlace ?? '0'),
   }
+}
+
+export const getUserScore = async (
+  redis: TypedRedis,
+  userId: string
+): Promise<UserScoreResult> => {
+  const redisResult = await redis.hget(keyScorePositions, userId)
+  return parseUserScoreResult(redisResult)
+}
+
+export const getUsersScores = async (
+  redis: TypedRedis,
+  userIds: string[]
+): Promise<Map<string, UserScoreResult>> => {
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const results = await redis.hmget(keyScorePositions, ...userIds)
+  const map = new Map<string, UserScoreResult>()
+  for (let i = 0; i < userIds.length; i++) {
+    map.set(userIds[i]!, parseUserScoreResult(results[i] ?? null))
+  }
+  return map
 }
 
 export const cacheLeaderboardAndGraph = async (

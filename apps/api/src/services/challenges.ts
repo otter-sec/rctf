@@ -18,6 +18,7 @@ import type {
 } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
+import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
@@ -56,37 +57,25 @@ type ChallengeSolvesWithPosition = {
   solvePosition: number | null
 }
 
-const createRankedSolves = (db: DatabaseClient, challengeId?: string) => {
-  // TODO(es3n1n): maybe dont set these up if we dont need them?
-  const position = challengeId
-    ? sql<number>`row_number() over (order by ${solves.createdat})::int`
-    : sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`
-
-  const divisionPosition = challengeId
-    ? sql<number>`row_number() over (partition by ${users.division} order by ${solves.createdat})::int`
-    : sql<number>`row_number() over (partition by ${solves.challengeid}, ${users.division} order by ${solves.createdat})::int`
-
-  const baseQuery = db
-    .select({
-      solveId: solves.id,
-      challengeId: solves.challengeid,
-      userId: solves.userid,
-      userName: users.name,
-      userAvatarUrl: users.avatarUrl,
-      userDivision: users.division,
-      createdAt: solves.createdat,
-      position: position.as('position'),
-      divisionPosition: divisionPosition.as('division_position'),
-    })
-    .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-
-  const query = challengeId
-    ? baseQuery.where(eq(solves.challengeid, challengeId))
-    : baseQuery
-
-  return db.$with('ranked').as(query)
-}
+const createRankedSolves = (db: DatabaseClient) =>
+  db.$with('ranked').as(
+    db
+      .select({
+        solveId: solves.id,
+        challengeId: solves.challengeid,
+        userId: solves.userid,
+        userName: users.name,
+        userAvatarUrl: users.avatarUrl,
+        userDivision: users.division,
+        createdAt: solves.createdat,
+        position:
+          sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`.as(
+            'position'
+          ),
+      })
+      .from(solves)
+      .innerJoin(users, eq(users.id, solves.userid))
+  )
 
 export const getChallenges = async (
   db: DatabaseClient
@@ -159,10 +148,15 @@ export const upsertChallenge = async (
     instancerConfig = current?.data.instancerConfig
   }
 
+  // Filter out undefined values, otherwise we will include them
+  const filteredPartial = Object.fromEntries(
+    Object.entries(partialRest).filter(([_, v]) => v !== undefined)
+  )
+
   const data: ChallengeData = {
     ...defaultChallengeData,
     ...current?.data,
-    ...partialRest,
+    ...filteredPartial,
     instancerConfig,
   }
 
@@ -212,12 +206,13 @@ export const getChallengeSolves = async (
 
 export const getChallengeSolvesWithPosition = async (
   db: DatabaseClient,
+  redis: TypedRedis,
   challengeId: string,
   userId: string,
   limit: number,
   offset: number
 ): Promise<ChallengeSolvesWithPosition> => {
-  const ranked = createRankedSolves(db, challengeId)
+  const ranked = createRankedSolves(db)
   const rows = await db
     .with(ranked)
     .select({
@@ -227,52 +222,45 @@ export const getChallengeSolvesWithPosition = async (
       userName: ranked.userName,
       userAvatarUrl: ranked.userAvatarUrl,
       userDivision: ranked.userDivision,
-      position: ranked.position,
-      divisionPosition: ranked.divisionPosition,
-      challengeExists:
-        sql<boolean>`(SELECT EXISTS(SELECT 1 FROM ${challenges} WHERE id = ${challengeId}))`.as(
-          'challenge_exists'
-        ),
-      userPosition: sql<
-        number | null
-      >`(SELECT position FROM ranked WHERE userid = ${userId})`.as(
-        'user_position'
-      ),
+      userSolvePosition: sql<number | null>`(
+        SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
+      )`.as('user_solve_position'),
     })
     .from(ranked)
+    .where(eq(ranked.challengeId, challengeId))
     .orderBy(asc(ranked.position))
     .limit(limit)
     .offset(offset)
 
-  const firstRow = rows[0]
-  if (firstRow) {
+  if (rows.length === 0) {
+    const challengeExists = await getChallenge(db, challengeId)
     return {
-      challengeExists: firstRow.challengeExists,
-      solvePosition: firstRow.userPosition,
-      solves: rows.map(r => ({
+      challengeExists: !!challengeExists,
+      solvePosition: null,
+      solves: [],
+    }
+  }
+
+  const userScores = await getUsersScores(
+    redis,
+    rows.map(r => r.userId)
+  )
+  return {
+    challengeExists: true,
+    solvePosition: rows[0]!.userSolvePosition,
+    solves: rows.map(r => {
+      const scores = userScores.get(r.userId)
+      return {
         id: r.solveId,
         createdAt: r.createdAt,
         userId: r.userId,
         userName: r.userName,
         userAvatarUrl: r.userAvatarUrl,
-        globalPlace: r.position,
+        globalPlace: scores?.place ?? 0,
         division: r.userDivision,
-        divisionPlace: r.divisionPosition,
-      })),
-    }
-  }
-
-  const challengeExists = await db
-    .select({ id: challenges.id })
-    .from(challenges)
-    .where(eq(challenges.id, challengeId))
-    .limit(1)
-    .then(rows => rows.length > 0)
-
-  return {
-    challengeExists,
-    solvePosition: null,
-    solves: [],
+        divisionPlace: scores?.divisionPlace ?? 0,
+      }
+    }),
   }
 }
 
