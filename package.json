@@ -5,15 +5,17 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "tests/server"
   ],
   "scripts": {
     "dev": "bun run --filter '@rctf/api' --filter '@rctf/web' dev",
     "dev:api": "bun run --filter '@rctf/api' dev",
     "dev:web": "bun run --filter '@rctf/web' dev",
     "build": "bun run --filter '*' build",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
+    "test": "cd tests/server && bun test",
+    "test:coverage": "cd tests/server && bun test --coverage",
+    "test:integration": "cd tests/test-against-v1 && bun test",
     "prettier": "prettier --write \"**/*.{ts,svelte,html,json}\" --ignore-path .gitignore",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun run --filter '@rctf/db' generate",

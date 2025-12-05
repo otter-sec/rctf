@@ -1,0 +1,19 @@
+{
+  "name": "server-tests",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@rctf/config": "workspace:*",
+    "@rctf/db": "workspace:*",
+    "@rctf/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
