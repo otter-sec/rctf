@@ -1,4 +1,3 @@
-import { expect } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   challenges,
@@ -9,6 +8,7 @@ import {
   type User,
 } from '@rctf/db'
 import type { ResponseDefinition } from '@rctf/types'
+import { expect } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { createToken, TokenKind } from '../../apps/api/src/lib/tokens'
 

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FieldProps, JsonSchema } from '../types'
+  import { isTypeOneOf } from '../utils'
   import ArrayPanel from './array-panel.svelte'
   import ArrayTags from './array-tags.svelte'
 
@@ -8,7 +9,7 @@
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 
   const itemSchema = $derived(schema.items ?? ({ type: 'string' } as JsonSchema))
-  const isPrimitive = $derived(['string', 'number', 'integer'].includes(itemSchema.type ?? ''))
+  const isPrimitive = $derived(isTypeOneOf(itemSchema.type, ['string', 'number', 'integer']))
 </script>
 
 {#if isPrimitive}

@@ -2,7 +2,14 @@
   import { Field, Input, Select, Textarea } from '$lib/components'
   import { getValidationContext } from '../context'
   import type { FieldProps } from '../types'
-  import { resolveValue } from '../utils'
+  import {
+    isNullable as checkNullable,
+    fromNullSentinel,
+    getEffectiveSchema,
+    NULL_SENTINEL,
+    resolveValue,
+    toNullSentinel,
+  } from '../utils'
   import { validateValue } from '../validate'
 
   interface Props extends FieldProps {
@@ -23,7 +30,11 @@
   const description = $derived(schema.description)
   const isTextarea = $derived((schema.maxLength ?? 0) > 100 || schema.format === 'textarea')
   const pathKey = $derived(path.join('.'))
-  const displayValue = $derived(String(resolveValue(schema, value) ?? ''))
+
+  const effectiveSchema = $derived(getEffectiveSchema(schema))
+  const enumValues = $derived(effectiveSchema.enum as unknown[] | undefined)
+  const isNullable = $derived(checkNullable(schema))
+  const displayValue = $derived(String(resolveValue(effectiveSchema, value) ?? ''))
 
   const validationCtx = getValidationContext()
 
@@ -43,14 +54,17 @@
     const target = e.currentTarget as HTMLInputElement | HTMLTextAreaElement
     const newValue = target.value
 
-    const result = validateValue(schema, newValue)
+    // For nullable fields, empty string means null
+    const valueToSet = isNullable && newValue === '' ? null : newValue
+
+    const result = validateValue(schema, valueToSet)
     setError(result.error)
 
-    onChange(path, newValue)
+    onChange(path, valueToSet)
   }
 
   function set(v: unknown) {
-    onChange(path, v)
+    onChange(path, fromNullSentinel(v))
   }
 </script>
 
@@ -64,11 +78,18 @@
     </Field.Label>
   {/if}
 
-  {#if schema.enum}
-    <Select.Root type="single" value={displayValue} onValueChange={set} {disabled}>
-      <Select.Trigger class="w-full">{displayValue || 'Select...'}</Select.Trigger>
+  {#if enumValues}
+    <Select.Root type="single" value={toNullSentinel(value)} onValueChange={set} {disabled}>
+      <Select.Trigger class="w-full">
+        {value === null ? (isNullable ? 'None' : 'Select...') : displayValue || 'Select...'}
+      </Select.Trigger>
       <Select.Content>
-        {#each schema.enum as opt}
+        {#if isNullable}
+          <Select.Item value={NULL_SENTINEL} label="None">
+            <span class="text-foreground-l4">None</span>
+          </Select.Item>
+        {/if}
+        {#each enumValues as opt}
           <Select.Item value={String(opt)} label={String(opt)}>{opt}</Select.Item>
         {/each}
       </Select.Content>
@@ -79,6 +100,7 @@
       oninput={handleInput}
       aria-invalid={!!error}
       rows={3}
+      placeholder={isNullable ? '(empty for none)' : undefined}
       {disabled} />
   {:else}
     <Input
@@ -86,6 +108,7 @@
       value={displayValue}
       oninput={handleInput}
       aria-invalid={!!error}
+      placeholder={isNullable ? '(empty for none)' : undefined}
       {disabled} />
   {/if}
   {#if error}

@@ -2,7 +2,7 @@
   import { Field, Input } from '$lib/components'
   import { getValidationContext } from '../context'
   import type { FieldProps } from '../types'
-  import { resolveValue } from '../utils'
+  import { isNullable as checkNullable, parseNumber, resolveValue } from '../utils'
   import { validateValue } from '../validate'
 
   interface Props extends FieldProps {
@@ -23,6 +23,7 @@
   const description = $derived(schema.description)
   const pathKey = $derived(path.join('.'))
   const resolved = $derived(resolveValue(schema, value))
+  const isNullable = $derived(checkNullable(schema))
 
   const validationCtx = getValidationContext()
 
@@ -44,16 +45,15 @@
     validationCtx?.registerError(pathKey, newError)
   }
 
-  function parseNumber(str: string): number | undefined {
-    if (str === '') return undefined
-    const num = Number(str)
-    if (isNaN(num) || !isFinite(num)) return undefined
-    return num
-  }
-
   function handleInput(e: Event) {
     const target = e.currentTarget as HTMLInputElement
     inputValue = target.value
+
+    if (inputValue === '' && isNullable) {
+      setError(null)
+      onChange(path, null)
+      return
+    }
 
     const num = parseNumber(inputValue)
     if (num === undefined && inputValue !== '') {
@@ -86,6 +86,7 @@
     value={inputValue}
     oninput={handleInput}
     aria-invalid={!!error}
+    placeholder={isNullable ? '(empty for none)' : undefined}
     {disabled} />
   {#if error}
     <Field.Error>{error}</Field.Error>

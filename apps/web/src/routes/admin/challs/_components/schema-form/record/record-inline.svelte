@@ -3,7 +3,7 @@
   import { IconPlus, IconX } from '$lib/icons'
   import { getValidationContext } from '../context'
   import type { FieldProps, JsonSchema } from '../types'
-  import { defaultValue } from '../utils'
+  import { defaultValue, parseNumber, renameRecordKey } from '../utils'
   import { validateValue } from '../validate'
 
   interface Props extends FieldProps {}
@@ -21,11 +21,41 @@
   const isNumeric = $derived(valueSchema.type === 'number' || valueSchema.type === 'integer')
   const basePath = $derived(path.join('.'))
 
+  const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
+  const availableKeys = $derived(
+    keyEnumValues?.filter(k => !entries.some(([ek]) => ek === k)) ?? []
+  )
+
   const validationCtx = getValidationContext()
 
   let newKeyInput = $state('')
+  let selectedKey = $state('')
   let errors = $state<Record<string, string | null>>({})
+  let keyInputs = $state<Record<string, string>>({})
+  let pendingRenames = $state<Map<string, string>>(new Map()) // oldKey -> newKey
   let registeredKeys = new Set<string>()
+
+  $effect(() => {
+    const currentKeys = new Set(entries.map(([k]) => k))
+
+    for (const [oldKey, newKey] of pendingRenames) {
+      if (currentKeys.has(newKey)) {
+        pendingRenames.delete(oldKey)
+      }
+    }
+
+    for (const key of currentKeys) {
+      if (!(key in keyInputs)) {
+        keyInputs[key] = key
+      }
+    }
+
+    for (const key of Object.keys(keyInputs)) {
+      if (!currentKeys.has(key) && !pendingRenames.has(key)) {
+        delete keyInputs[key]
+      }
+    }
+  })
 
   const isDuplicateKey = $derived(
     newKeyInput.trim() !== '' && entries.some(([k]) => k === newKeyInput.trim())
@@ -73,17 +103,18 @@
   }
 
   function renameEntry(oldKey: string, newKey: string) {
-    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) return
-    const obj = (value as Record<string, unknown>) ?? {}
-    const newValue: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(obj)) {
-      newValue[k === oldKey ? newKey : k] = v
+    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) {
+      keyInputs[oldKey] = oldKey
+      return
     }
-    onChange(path, newValue)
+
+    pendingRenames.set(oldKey, newKey)
+    delete keyInputs[oldKey]
+    keyInputs[newKey] = newKey
+
+    onChange(path, renameRecordKey((value as Record<string, unknown>) ?? {}, oldKey, newKey))
 
     const oldPathKey = basePath ? `${basePath}.${oldKey}` : oldKey
-    const newPathKey = basePath ? `${basePath}.${newKey}` : newKey
-
     validationCtx?.unregisterField(oldPathKey)
     registeredKeys.delete(oldPathKey)
 
@@ -108,8 +139,8 @@
       return
     }
 
-    const num = Number(inputValue)
-    if (isNaN(num) || !isFinite(num)) {
+    const num = parseNumber(inputValue)
+    if (num === undefined) {
       setError(key, 'Must be a valid number')
       return
     }
@@ -135,12 +166,16 @@
       {@const error = errors[key]}
       <Field.Field data-invalid={!!error || undefined}>
         <div class="flex items-center gap-2">
-          <Input
-            type="text"
-            class="w-32 font-mono text-sm"
-            value={key}
-            onblur={e => renameEntry(key, e.currentTarget.value)}
-            {disabled} />
+          {#if keyEnumValues}
+            <span class="w-32 font-mono text-sm text-foreground-l2">{key}</span>
+          {:else}
+            <Input
+              type="text"
+              class="w-32 font-mono text-sm"
+              bind:value={keyInputs[key]}
+              onblur={() => renameEntry(key, keyInputs[key] ?? key)}
+              {disabled} />
+          {/if}
           <span class="text-foreground-l4">=</span>
           {#if valueSchema.type === 'boolean'}
             <Select.Root
@@ -181,24 +216,51 @@
     {/each}
     <Field.Field data-invalid={isDuplicateKey || undefined}>
       <div class="flex items-center gap-2">
-        <Input
-          type="text"
-          class="w-32 font-mono text-sm"
-          placeholder="new key"
-          bind:value={newKeyInput}
-          onkeydown={e => {
-            if (e.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
-              e.preventDefault()
-              addEntry(newKeyInput.trim())
-            }
-          }}
-          aria-invalid={isDuplicateKey}
-          {disabled} />
+        {#if keyEnumValues}
+          <Select.Root
+            type="single"
+            value={selectedKey}
+            onValueChange={v => (selectedKey = v)}
+            disabled={disabled || availableKeys.length === 0}>
+            <Select.Trigger class="w-32 font-mono text-sm">
+              {selectedKey || 'Select key...'}
+            </Select.Trigger>
+            <Select.Content>
+              {#each availableKeys as key}
+                <Select.Item value={key} label={key}>{key}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
+        {:else}
+          <Input
+            type="text"
+            class="w-32 font-mono text-sm"
+            placeholder="new key"
+            bind:value={newKeyInput}
+            onkeydown={e => {
+              if (e.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
+                e.preventDefault()
+                addEntry(newKeyInput.trim())
+              }
+            }}
+            aria-invalid={isDuplicateKey}
+            {disabled} />
+        {/if}
         <span class="text-foreground-l4">=</span>
         <Button
           size="sm"
-          onclick={() => addEntry(newKeyInput.trim())}
-          disabled={disabled || !newKeyInput.trim() || isDuplicateKey}>
+          onclick={() => {
+            if (keyEnumValues) {
+              if (selectedKey) {
+                addEntry(selectedKey)
+                selectedKey = ''
+              }
+            } else {
+              addEntry(newKeyInput.trim())
+            }
+          }}
+          disabled={disabled ||
+            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}>
           <IconPlus class="size-4" />
           Add
         </Button>

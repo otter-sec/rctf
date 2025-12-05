@@ -7,6 +7,7 @@
   import SchemaRecord from './record/schema-record.svelte'
   import SchemaObject from './schema-object.svelte'
   import type { JsonSchema } from './types'
+  import { isNullable as checkNullable, getEffectiveSchema, getPrimaryType } from './utils'
 
   interface Props {
     schema: JsonSchema
@@ -28,23 +29,62 @@
     required = false,
   }: Props = $props()
 
+  const effectiveSchema = $derived(getEffectiveSchema(schema))
+  const primaryType = $derived(getPrimaryType(schema))
+  const isNullable = $derived(checkNullable(schema))
+
   const isRecord = $derived(
-    schema.type === 'object' && !schema.properties && schema.additionalProperties
+    primaryType === 'object' && !effectiveSchema.properties && effectiveSchema.additionalProperties
   )
 </script>
 
 {#if isRecord}
-  <SchemaRecord {schema} {value} {path} {onChange} {disabled} />
-{:else if schema.type === 'object' && schema.properties}
-  <SchemaObject {schema} {value} {path} {onChange} {disabled} {showLabel} />
-{:else if schema.type === 'array'}
-  <SchemaArray {schema} {value} {path} {onChange} {disabled} />
-{:else if schema.type === 'string'}
-  <StringField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
-{:else if schema.type === 'number' || schema.type === 'integer'}
-  <NumberField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
-{:else if schema.type === 'boolean'}
-  <BooleanField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
+  <SchemaRecord schema={effectiveSchema} {value} {path} {onChange} {disabled} />
+{:else if primaryType === 'object' && effectiveSchema.properties}
+  <SchemaObject
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {disabled}
+    {showLabel}
+    {isNullable} />
+{:else if primaryType === 'array'}
+  <SchemaArray schema={effectiveSchema} {value} {path} {onChange} {disabled} />
+{:else if primaryType === 'string' || effectiveSchema.enum}
+  <StringField
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {disabled}
+    {showLabel}
+    {required} />
+{:else if primaryType === 'number' || primaryType === 'integer'}
+  <NumberField
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {disabled}
+    {showLabel}
+    {required} />
+{:else if primaryType === 'boolean'}
+  <BooleanField
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {disabled}
+    {showLabel}
+    {required} />
 {:else}
-  <UnknownField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
+  <UnknownField
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {disabled}
+    {showLabel}
+    {required} />
 {/if}

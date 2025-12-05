@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Button, Field, Input } from '$lib/components'
+  import { Button, Field, Input, Select } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
   import SchemaField from '../schema-field.svelte'
   import PanelLayout from '../shared/panel-layout.svelte'
   import type { FieldProps, JsonSchema } from '../types'
-  import { defaultValue } from '../utils'
+  import { defaultValue, renameRecordKey } from '../utils'
 
   interface Props extends FieldProps {}
 
@@ -19,18 +19,39 @@
   )
   const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
 
+  const keyEnumValues = $derived(schema.propertyNames?.enum as string[] | undefined)
+  const availableKeys = $derived(
+    keyEnumValues?.filter(k => !entries.some(([ek]) => ek === k)) ?? []
+  )
+
   let selectedKey = $state<string | null>(null)
+  let keyNameInput = $state('')
   let newKeyInput = $state('')
+  let newKeySelect = $state('')
+  let pendingKey = $state<string | null>(null)
   const isDuplicateKey = $derived(
     newKeyInput.trim() !== '' && entries.some(([k]) => k === newKeyInput.trim())
   )
 
   $effect(() => {
+    if (pendingKey && entries.some(([k]) => k === pendingKey)) {
+      selectedKey = pendingKey
+      pendingKey = null
+      return
+    }
+    if (pendingKey) return
+
     if (selectedKey && !entries.some(([k]) => k === selectedKey)) {
       selectedKey = entries[0]?.[0] ?? null
     }
     if (!selectedKey && entries.length > 0) {
       selectedKey = entries[0]![0]
+    }
+  })
+
+  $effect(() => {
+    if (!pendingKey) {
+      keyNameInput = selectedKey ?? ''
     }
   })
 
@@ -52,14 +73,13 @@
   }
 
   function renameEntry(oldKey: string, newKey: string) {
-    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) return
-    const obj = (value as Record<string, unknown>) ?? {}
-    const newValue: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(obj)) {
-      newValue[k === oldKey ? newKey : k] = v
+    if (!newKey.trim() || oldKey === newKey || entries.some(([k]) => k === newKey)) {
+      keyNameInput = oldKey
+      return
     }
-    onChange(path, newValue)
-    selectedKey = newKey
+    pendingKey = newKey
+    keyNameInput = newKey
+    onChange(path, renameRecordKey((value as Record<string, unknown>) ?? {}, oldKey, newKey))
   }
 </script>
 
@@ -96,24 +116,52 @@
 
   {#snippet footer()}
     <Field.Field data-invalid={isDuplicateKey || undefined}>
-      <div class="flex gap-1">
-        <Input
-          type="text"
-          class="flex-1 font-mono text-sm"
-          placeholder="key"
-          bind:value={newKeyInput}
-          onkeydown={e => {
-            if (e.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
-              e.preventDefault()
+      <div class="flex min-w-0 gap-1">
+        {#if keyEnumValues}
+          <Select.Root
+            type="single"
+            value={newKeySelect}
+            onValueChange={v => (newKeySelect = v)}
+            disabled={disabled || availableKeys.length === 0}>
+            <Select.Trigger class="min-w-0 flex-1 font-mono text-sm">
+              <span class="truncate">{newKeySelect || 'Select key...'}</span>
+            </Select.Trigger>
+            <Select.Content>
+              {#each availableKeys as key}
+                <Select.Item value={key} label={key}>{key}</Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
+        {:else}
+          <Input
+            type="text"
+            class="min-w-0 flex-1 font-mono text-sm"
+            placeholder="key"
+            bind:value={newKeyInput}
+            onkeydown={e => {
+              if (e.key === 'Enter' && newKeyInput.trim() && !isDuplicateKey) {
+                e.preventDefault()
+                addEntry(newKeyInput.trim())
+              }
+            }}
+            aria-invalid={isDuplicateKey}
+            {disabled} />
+        {/if}
+        <Button
+          class="shrink-0"
+          size="icon"
+          onclick={() => {
+            if (keyEnumValues) {
+              if (newKeySelect) {
+                addEntry(newKeySelect)
+                newKeySelect = ''
+              }
+            } else {
               addEntry(newKeyInput.trim())
             }
           }}
-          aria-invalid={isDuplicateKey}
-          {disabled} />
-        <Button
-          size="icon"
-          onclick={() => addEntry(newKeyInput.trim())}
-          disabled={disabled || !newKeyInput.trim() || isDuplicateKey}>
+          disabled={disabled ||
+            (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}>
           <IconPlus class="size-4" />
         </Button>
       </div>
@@ -125,17 +173,19 @@
 
   {#snippet content()}
     {#if selectedKey && entries.some(([k]) => k === selectedKey)}
-      <div class="mb-3">
-        <Field.Field>
-          <Field.Label>Key name</Field.Label>
-          <Input
-            type="text"
-            class="font-mono"
-            value={selectedKey}
-            onblur={e => renameEntry(selectedKey!, e.currentTarget.value)}
-            {disabled} />
-        </Field.Field>
-      </div>
+      {#if !keyEnumValues}
+        <div class="mb-3">
+          <Field.Field>
+            <Field.Label>Key name</Field.Label>
+            <Input
+              type="text"
+              class="font-mono"
+              bind:value={keyNameInput}
+              onblur={() => renameEntry(selectedKey!, keyNameInput)}
+              {disabled} />
+          </Field.Field>
+        </div>
+      {/if}
       <SchemaField
         schema={valueSchema}
         value={entries.find(([k]) => k === selectedKey)?.[1]}

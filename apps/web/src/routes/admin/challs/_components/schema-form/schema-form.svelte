@@ -56,8 +56,24 @@
       s = { ...s, items: resolveRefs(s.items, defs) }
     }
 
-    if (s.additionalProperties) {
-      s = { ...s, additionalProperties: resolveRefs(s.additionalProperties as JsonSchema, defs) }
+    if (s.additionalProperties && typeof s.additionalProperties === 'object') {
+      s = { ...s, additionalProperties: resolveRefs(s.additionalProperties, defs) }
+    }
+
+    if (s.propertyNames) {
+      s = { ...s, propertyNames: resolveRefs(s.propertyNames, defs) }
+    }
+
+    if (s.anyOf) {
+      s = { ...s, anyOf: s.anyOf.map(sub => resolveRefs(sub, defs)) }
+    }
+
+    if (s.oneOf) {
+      s = { ...s, oneOf: s.oneOf.map(sub => resolveRefs(sub, defs)) }
+    }
+
+    if (s.allOf) {
+      s = { ...s, allOf: s.allOf.map(sub => resolveRefs(sub, defs)) }
     }
 
     return s

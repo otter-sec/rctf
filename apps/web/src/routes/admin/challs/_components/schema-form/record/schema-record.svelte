@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { FieldProps, JsonSchema } from '../types'
+  import { isTypeOneOf } from '../utils'
   import RecordInline from './record-inline.svelte'
   import RecordPanel from './record-panel.svelte'
 
@@ -13,7 +14,7 @@
       : { type: 'string' }) as JsonSchema
   )
   const isSimpleValue = $derived(
-    ['string', 'number', 'integer', 'boolean'].includes(valueSchema.type ?? '')
+    isTypeOneOf(valueSchema.type, ['string', 'number', 'integer', 'boolean'])
   )
 </script>
 
