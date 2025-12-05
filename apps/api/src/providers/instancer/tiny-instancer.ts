@@ -8,115 +8,29 @@ import {
   type InstancerProvider,
   type ProviderConfig,
 } from './base'
+import { docker, linux, net } from './util'
 
 interface TinyInstancerProviderOptions {
   authToken: string
   apiUrl: string
 }
 
-const DOCKER_IMAGE_REGEX =
-  /^(?:(?:[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?::[0-9]+)?\/)?[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\/[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)*)(?::[a-z0-9][a-z0-9._-]{0,127})?(?:@sha256:[a-f0-9]{64})?$/i
-const MEMORY_SIZE_REGEX = /^[1-9]\d*[bkmgBKMG]?$/
-const DURATION_REGEX = /^(?:0|[1-9]\d*)(?:ns|us|µs|ms|s|m|h)$/
-const HOSTNAME_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i
-const IP_ADDRESS_REGEX =
-  /^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)$|^(?:[a-f0-9]{1,4}:){7}[a-f0-9]{1,4}$|^::(?:[a-f0-9]{1,4}:){0,6}[a-f0-9]{1,4}$|^(?:[a-f0-9]{1,4}:){1,6}::$|^(?:[a-f0-9]{1,4}:){1,5}::[a-f0-9]{1,4}$|^(?:[a-f0-9]{1,4}:){1,4}(?::[a-f0-9]{1,4}){1,2}$|^(?:[a-f0-9]{1,4}:){1,3}(?::[a-f0-9]{1,4}){1,3}$|^(?:[a-f0-9]{1,4}:){1,2}(?::[a-f0-9]{1,4}){1,4}$|^[a-f0-9]{1,4}:(?::[a-f0-9]{1,4}){1,5}$|^::$/i
-const ABSOLUTE_PATH_REGEX = /^\/(?:[^/\0]+\/?)*$/
-const PORT_REGEX =
-  /^(?:[1-9]\d{0,3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])(?:\/(?:tcp|udp|sctp))?$/
-const EXTRA_HOST_REGEX =
-  /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?:(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]?\d)$/i
-const VOLUME_MOUNT_REGEX =
-  /^[a-z0-9][a-z0-9_.-]*:\/[^:]*(?::(?:ro|rw|z|Z|shared|slave|private|rshared|rslave|rprivate|nocopy|delegated|cached)(?:,(?:ro|rw|z|Z|shared|slave|private|rshared|rslave|rprivate|nocopy|delegated|cached))*)?$/i
-const USER_REGEX =
-  /^(?:[a-z_][a-z0-9_-]*|[0-9]+)(?::[a-z_][a-z0-9_-]*|:[0-9]+)?$/i
-const SYSCTL_KEY_REGEX = /^[a-z][a-z0-9_]*(?:\.[a-z][a-z0-9_]*)*$/i
-const LABEL_KEY_REGEX =
-  /^[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?)*$/i
-const ENV_VAR_KEY_REGEX = /^[a-zA-Z_][a-zA-Z0-9_]*$/
-const NAME_REGEX = /^[a-z0-9][a-z0-9_.-]*$/i
-const SERVICE_NAME_REGEX = /^[a-z][a-z0-9_-]*$/i
-const DNS_DOMAIN_REGEX = /^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/i
-
-const LINUX_CAPABILITIES = [
-  'ALL',
-  'AUDIT_CONTROL',
-  'AUDIT_READ',
-  'AUDIT_WRITE',
-  'BLOCK_SUSPEND',
-  'BPF',
-  'CHECKPOINT_RESTORE',
-  'CHOWN',
-  'DAC_OVERRIDE',
-  'DAC_READ_SEARCH',
-  'FOWNER',
-  'FSETID',
-  'IPC_LOCK',
-  'IPC_OWNER',
-  'KILL',
-  'LEASE',
-  'LINUX_IMMUTABLE',
-  'MAC_ADMIN',
-  'MAC_OVERRIDE',
-  'MKNOD',
-  'NET_ADMIN',
-  'NET_BIND_SERVICE',
-  'NET_BROADCAST',
-  'NET_RAW',
-  'PERFMON',
-  'SETFCAP',
-  'SETGID',
-  'SETPCAP',
-  'SETUID',
-  'SYS_ADMIN',
-  'SYS_BOOT',
-  'SYS_CHROOT',
-  'SYS_MODULE',
-  'SYS_NICE',
-  'SYS_PACCT',
-  'SYS_PTRACE',
-  'SYS_RAWIO',
-  'SYS_RESOURCE',
-  'SYS_TIME',
-  'SYS_TTY_CONFIG',
-  'SYSLOG',
-  'WAKE_ALARM',
-] as const
-
-const ULIMIT_NAMES = [
-  'core',
-  'cpu',
-  'data',
-  'fsize',
-  'locks',
-  'memlock',
-  'msgqueue',
-  'nice',
-  'nofile',
-  'nproc',
-  'rss',
-  'rtprio',
-  'rttime',
-  'sigpending',
-  'stack',
-] as const
-
 // TODO(es3n1n): depends_on
 const serviceSchema = z.object({
   image: z
     .string()
     .min(1)
-    .regex(DOCKER_IMAGE_REGEX, 'Invalid Docker image format')
+    .regex(docker.IMAGE_REGEX, 'Invalid Docker image format')
     .describe('Docker image'),
   hostname: z
     .string()
     .max(63)
-    .regex(HOSTNAME_REGEX, 'Invalid hostname')
+    .regex(net.HOSTNAME_REGEX, 'Invalid hostname')
     .nullable()
     .default(null)
     .describe('Container hostname'),
   environment: z
-    .record(z.string().regex(ENV_VAR_KEY_REGEX), z.string())
+    .record(z.string().regex(linux.ENV_VAR_REGEX), z.string())
     .default({})
     .describe('Environment variables'),
   command: z
@@ -133,55 +47,52 @@ const serviceSchema = z.object({
     .describe('Override default entrypoint'),
   working_dir: z
     .string()
-    .regex(ABSOLUTE_PATH_REGEX, 'Must be absolute path')
+    .regex(linux.ABSOLUTE_PATH_REGEX, 'Must be absolute path')
     .nullable()
     .default(null)
     .describe('Working directory'),
   user: z
     .string()
-    .regex(USER_REGEX, 'Invalid user format')
+    .regex(linux.USER_REGEX, 'Invalid user format')
     .nullable()
     .default(null)
     .describe('User to run as'),
   networks: z
-    .array(z.string().min(1).max(64).regex(NAME_REGEX))
+    .array(z.string().min(1).max(64).regex(docker.NAME_REGEX))
     .default([])
     .describe('Networks to connect to'),
   network_mode: z
     .enum(['bridge', 'host', 'none'])
     .optional()
     .describe('Network mode (e.g., host, bridge)'),
-  dns: z
-    .array(z.string().regex(IP_ADDRESS_REGEX, 'Invalid IP'))
-    .default([])
-    .describe('Custom DNS servers'),
+  dns: z.array(z.string().ip()).default([]).describe('Custom DNS servers'),
   dns_opt: z
     .array(z.string().min(1).max(255))
     .default([])
     .describe('DNS options'),
   dns_search: z
-    .array(z.string().min(1).max(253).regex(DNS_DOMAIN_REGEX))
+    .array(z.string().min(1).max(253).regex(net.DNS_DOMAIN_REGEX))
     .default([])
     .describe('DNS search domains'),
   extra_hosts: z
-    .array(z.string().regex(EXTRA_HOST_REGEX, 'Expected host:ip'))
+    .array(z.string().regex(net.EXTRA_HOST_REGEX, 'Expected host:ip'))
     .default([])
     .describe('Extra /etc/hosts entries (host:ip)'),
   expose: z
-    .array(z.string().regex(PORT_REGEX, 'Invalid port'))
+    .array(z.string().regex(net.PORT_REGEX, 'Invalid port'))
     .default([])
     .describe('Expose ports without publishing'),
   volumes: z
-    .array(z.string().regex(VOLUME_MOUNT_REGEX, 'Invalid mount'))
+    .array(z.string().regex(docker.VOLUME_MOUNT_REGEX, 'Invalid mount'))
     .default([])
     .describe('Volume mounts (volume:path)'),
   tmpfs: z
-    .record(z.string().regex(ABSOLUTE_PATH_REGEX), z.string().min(1))
+    .record(z.string().regex(linux.ABSOLUTE_PATH_REGEX), z.string().min(1))
     .default({})
     .describe('Tmpfs mounts and their mount options'),
   shm_size: z
     .string()
-    .regex(MEMORY_SIZE_REGEX, 'Invalid size')
+    .regex(docker.MEMORY_SIZE_REGEX, 'Invalid size')
     .nullable()
     .default(null)
     .describe('Size of /dev/shm (e.g., 64m)'),
@@ -190,12 +101,12 @@ const serviceSchema = z.object({
       test: z.array(z.string().min(1)).min(1).describe('Command to run'),
       interval: z
         .string()
-        .regex(DURATION_REGEX)
+        .regex(docker.DURATION_REGEX)
         .default('30s')
         .describe('Interval between checks'),
       timeout: z
         .string()
-        .regex(DURATION_REGEX)
+        .regex(docker.DURATION_REGEX)
         .default('10s')
         .describe('Timeout for each check'),
       retries: z
@@ -207,7 +118,7 @@ const serviceSchema = z.object({
         .describe('Retries before unhealthy'),
       start_period: z
         .string()
-        .regex(DURATION_REGEX)
+        .regex(docker.DURATION_REGEX)
         .default('0s')
         .describe('Start period'),
     })
@@ -221,16 +132,16 @@ const serviceSchema = z.object({
     .default(['no-new-privileges'])
     .describe('Security options'),
   cap_add: z
-    .array(z.enum(LINUX_CAPABILITIES))
+    .array(z.enum(linux.CAPABILITIES))
     .default([])
     .describe('Add capabilities'),
   cap_drop: z
-    .array(z.enum(LINUX_CAPABILITIES))
+    .array(z.enum(linux.CAPABILITIES))
     .default(['ALL'])
     .describe('Drop capabilities'),
   mem_limit: z
     .string()
-    .regex(MEMORY_SIZE_REGEX)
+    .regex(docker.MEMORY_SIZE_REGEX)
     .default('6m')
     .describe('Memory limit (e.g., 256m, 1g)'),
   cpus: z.number().positive().max(1024).default(1.0).describe('CPU limit'),
@@ -243,7 +154,7 @@ const serviceSchema = z.object({
     .describe('PIDs limit'),
   ulimits: z
     .record(
-      z.enum(ULIMIT_NAMES),
+      z.enum(linux.ULIMIT_NAMES),
       z
         .object({
           soft: z.number().int().nonnegative(),
@@ -254,11 +165,11 @@ const serviceSchema = z.object({
     .default({ nofile: { soft: 1024, hard: 1024 } })
     .describe('Ulimits'),
   sysctls: z
-    .record(z.string().regex(SYSCTL_KEY_REGEX), z.string().min(1))
+    .record(z.string().regex(linux.SYSCTL_KEY_REGEX), z.string().min(1))
     .default({})
     .describe('Sysctl settings'),
   labels: z
-    .record(z.string().regex(LABEL_KEY_REGEX), z.string())
+    .record(z.string().regex(docker.LABEL_KEY_REGEX), z.string())
     .default({})
     .describe('Container labels'),
   restart: z
@@ -305,8 +216,8 @@ const defaultService = {
   read_only: true,
   privileged: false,
   security_opt: ['no-new-privileges'],
-  cap_add: [] as (typeof LINUX_CAPABILITIES)[number][],
-  cap_drop: ['ALL'] as (typeof LINUX_CAPABILITIES)[number][],
+  cap_add: [] as (typeof linux.CAPABILITIES)[number][],
+  cap_drop: ['ALL'] as (typeof linux.CAPABILITIES)[number][],
   mem_limit: '6m',
   cpus: 1.0,
   pids_limit: 64,
@@ -320,19 +231,19 @@ const tinyInstancerConfigSchema = z
   .object({
     services: z
       .record(
-        z.string().min(1).max(64).regex(SERVICE_NAME_REGEX),
+        z.string().min(1).max(64).regex(docker.SERVICE_NAME_REGEX),
         serviceSchema
       )
       .default({ app: defaultService })
       .describe('Service definitions'),
     networks: z
-      .record(z.string().min(1).max(64).regex(NAME_REGEX), networkSchema)
+      .record(z.string().min(1).max(64).regex(docker.NAME_REGEX), networkSchema)
       .default({
         internal: { driver: 'bridge', internal: true, driver_opts: {} },
       })
       .describe('Network definitions'),
     volumes: z
-      .record(z.string().min(1).max(255).regex(NAME_REGEX), volumeSchema)
+      .record(z.string().min(1).max(255).regex(docker.NAME_REGEX), volumeSchema)
       .default({})
       .describe('Volume definitions'),
   })
