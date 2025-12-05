@@ -191,7 +191,7 @@
         <span>Provider config</span>
         <button
           type="button"
-          class="text-xs font-medium text-foreground-l4 hover:text-foreground-l0 transition-colors"
+          class="text-xs font-medium text-foreground-l4 hover:text-foreground-l0"
           onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}>
           {advancedMode ? '← Form editor' : 'Advanced (YAML) →'}
         </button>
@@ -217,7 +217,7 @@
         {:else if schemaError}
           <p class="text-sm text-foreground-l4">{schemaError}</p>
         {:else if schemaData}
-          <SchemaForm.SchemaForm
+          <SchemaForm
             schema={schemaData.schema}
             value={config.config}
             onChange={handleConfigChange}

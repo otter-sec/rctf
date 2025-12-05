@@ -26,3 +26,11 @@ export interface SchemaFormContext {
   onChange: (path: string[], value: unknown) => void
   disabled: boolean
 }
+
+export interface FieldProps {
+  schema: JsonSchema
+  value: unknown
+  path: string[]
+  onChange: (path: string[], value: unknown) => void
+  disabled?: boolean
+}

@@ -1,0 +1,69 @@
+<script lang="ts">
+  import { Field, Input } from '$lib/components'
+  import type { FieldProps } from '../types'
+  import { validateValue } from '../validate'
+
+  interface Props extends FieldProps {
+    showLabel?: boolean
+  }
+
+  let { schema, value, path, onChange, disabled = false, showLabel = true }: Props = $props()
+
+  const label = $derived(schema.title ?? path[path.length - 1] ?? '')
+  const description = $derived(schema.description)
+
+  let inputValue = $state('')
+  let error = $state<string | null>(null)
+  const displayValue = $derived(value !== undefined ? String(value) : '')
+
+  $effect(() => {
+    inputValue = displayValue
+  })
+
+  function parseNumber(str: string): number | undefined {
+    if (str === '') return undefined
+    const num = Number(str)
+    if (isNaN(num) || !isFinite(num)) return undefined
+    return num
+  }
+
+  function handleInput(e: Event) {
+    const target = e.currentTarget as HTMLInputElement
+    inputValue = target.value
+
+    const num = parseNumber(inputValue)
+    if (num === undefined && inputValue !== '') {
+      error = 'Must be a valid number'
+      return
+    }
+
+    const result = validateValue(schema, num)
+    error = result.error
+
+    if (result.valid) {
+      onChange(path, num)
+    }
+  }
+</script>
+
+<Field.Field data-invalid={!!error || undefined}>
+  {#if showLabel && label}
+    <Field.Label>
+      {label}
+      {#if description}
+        <Field.Hint>({description})</Field.Hint>
+      {/if}
+    </Field.Label>
+  {/if}
+
+  <Input
+    type="text"
+    inputmode="decimal"
+    value={inputValue}
+    oninput={handleInput}
+    aria-invalid={!!error}
+    {disabled} />
+  {#if error}
+    <Field.Error>{error}</Field.Error>
+  {/if}
+</Field.Field>

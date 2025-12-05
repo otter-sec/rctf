@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, ProfileStatsCard, Spinner, SolvesListCard } from '$lib/components'
+  import { Button, Card, ProfileStatsCard, SolvesListCard, Spinner } from '$lib/components'
   import { useClientConfig, useUserProfile } from '$lib/query'
 
   const clientConfigQuery = useClientConfig()

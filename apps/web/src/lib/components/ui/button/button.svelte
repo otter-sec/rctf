@@ -12,7 +12,7 @@
           'bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50',
         outline: 'bg-background-l1 hover:bg-background-l2 text-foreground-l1 border',
         secondary: 'bg-background-l4 text-foreground-l1 hover:bg-background-l5',
-        ghost: 'hover:bg-background-l2 text-foreground-l1',
+        ghost: 'hover:bg-background-l3 text-foreground-l1',
         link: 'text-foreground-prose-link underline-offset-4 hover:underline',
       },
       size: {

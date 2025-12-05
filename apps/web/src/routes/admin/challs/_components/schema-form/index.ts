@@ -1,5 +1,5 @@
 export { default as SchemaForm } from './schema-form.svelte'
 export { default as SchemaField } from './schema-field.svelte'
-export { default as SchemaArray } from './schema-array.svelte'
+export { default as SchemaArray } from './array/schema-array.svelte'
 export { default as SchemaObject } from './schema-object.svelte'
-export { default as SchemaRecord } from './schema-record.svelte'
+export { default as SchemaRecord } from './record/schema-record.svelte'
