@@ -85,33 +85,37 @@
 
 <PanelLayout {label}>
   {#snippet sidebar()}
-    {#each entries as [key] (key)}
-      {@const active = selectedKey === key}
-      <div
-        class={cn(
-          'group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
-          active
-            ? 'bg-background-l4 text-foreground-l0'
-            : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
-        )}
-        role="button"
-        tabindex="0"
-        onclick={() => (selectedKey = key)}
-        onkeydown={e =>
-          (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedKey = key))}>
-        <span class="flex-1 truncate font-mono">{key}</span>
-        <button
-          type="button"
+    {#if entries.length === 0}
+      <p class="text-sm px-2 py-1.5 text-foreground-l4">No entries</p>
+    {:else}
+      {#each entries as [key] (key)}
+        {@const active = selectedKey === key}
+        <div
           class={cn(
-            'rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive',
-            active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            'group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+            active
+              ? 'bg-background-l4 text-foreground-l0'
+              : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
           )}
-          onclick={e => (e.stopPropagation(), removeEntry(key))}
-          {disabled}>
-          <IconX class="size-3" />
-        </button>
-      </div>
-    {/each}
+          role="button"
+          tabindex="0"
+          onclick={() => (selectedKey = key)}
+          onkeydown={e =>
+            (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedKey = key))}>
+          <span class="flex-1 truncate font-mono">{key}</span>
+          <button
+            type="button"
+            class={cn(
+              'rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive',
+              active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            )}
+            onclick={e => (e.stopPropagation(), removeEntry(key))}
+            {disabled}>
+            <IconX class="size-3" />
+          </button>
+        </div>
+      {/each}
+    {/if}
   {/snippet}
 
   {#snippet footer()}

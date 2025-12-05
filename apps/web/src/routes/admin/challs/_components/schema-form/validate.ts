@@ -14,7 +14,7 @@ export function validateValue(
   schema: JsonSchema,
   value: unknown
 ): ValidationResult {
-  if (value === undefined || value === '') {
+  if (value === undefined) {
     return { valid: true, error: null }
   }
 
@@ -48,6 +48,7 @@ function formatError(
     case 'maximum':
       return `Must be at most ${error.params.limit}`
     case 'minLength':
+      if (error.params.limit === 1) return 'Cannot be empty'
       return `Must be at least ${error.params.limit} characters`
     case 'maxLength':
       return `Must be at most ${error.params.limit} characters`

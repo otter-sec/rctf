@@ -7,7 +7,7 @@
 
 <div
   data-slot="section"
-  class={cn('overflow-hidden rounded-lg border-2', className)}
+  class={cn('overflow-clip rounded-lg border-2', className)}
   {...restProps}>
   {@render children?.()}
 </div>

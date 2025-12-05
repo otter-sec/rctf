@@ -55,14 +55,14 @@
       value={items.map(String)}
       onValueChange={handleMultiSelectChange}
       {disabled}>
-      <Select.Trigger class="w-full min-h-9">
+      <Select.Trigger class="w-full px-2 py-1">
         {#if items.length === 0}
           <span class="text-foreground-l4">Select...</span>
         {:else}
           <div class="flex flex-wrap gap-1">
             {#each items as item}
               <span
-                class="inline-flex items-center gap-1 rounded bg-foreground-l6 px-1.5 py-0.5 text-xs">
+                class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 text-sm font-mono">
                 {item}
                 <button
                   type="button"
@@ -80,7 +80,9 @@
       </Select.Trigger>
       <Select.Content class="max-h-60 overflow-y-auto">
         {#each enumValues as opt}
-          <Select.Item value={String(opt)} label={String(opt)}>{opt}</Select.Item>
+          <Select.Item value={String(opt)} label={String(opt)}>
+            <span class="font-mono">{opt}</span>
+          </Select.Item>
         {/each}
       </Select.Content>
     </Select.Root>
