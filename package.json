@@ -5,8 +5,7 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*",
-    "tests/server"
+    "packages/*"
   ],
   "scripts": {
     "dev": "bun --ellide-lines=0 run --filter '@rctf/api' --filter '@rctf/web' dev",
