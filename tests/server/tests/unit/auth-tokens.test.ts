@@ -5,7 +5,7 @@ import {
   parseToken,
   TokenKind,
   type CtftimeAuthTokenData,
-} from '../../../../../apps/api/src/lib/tokens'
+} from '../../../../apps/api/src/lib/tokens'
 
 describe('token', () => {
   test('round-trip token is valid', async () => {
