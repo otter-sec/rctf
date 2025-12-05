@@ -33,4 +33,5 @@ export interface FieldProps {
   path: string[]
   onChange: (path: string[], value: unknown) => void
   disabled?: boolean
+  required?: boolean
 }

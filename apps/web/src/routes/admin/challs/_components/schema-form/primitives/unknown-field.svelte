@@ -6,7 +6,15 @@
     showLabel?: boolean
   }
 
-  let { schema, value, path, onChange, disabled = false, showLabel = true }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    onChange,
+    disabled = false,
+    showLabel = true,
+    required = false,
+  }: Props = $props()
 
   const label = $derived(schema.title ?? path[path.length - 1] ?? '')
   const description = $derived(schema.description)
@@ -19,7 +27,7 @@
 <Field.Field>
   {#if showLabel && label}
     <Field.Label>
-      {label}
+      {label}{#if required}<span class="text-foreground-destructive -ms-1">*</span>{/if}
       {#if description}
         <Field.Hint>({description})</Field.Hint>
       {/if}

@@ -18,6 +18,12 @@ export function defaultValue(schema: JsonSchema): unknown {
   return null
 }
 
+export function resolveValue(schema: JsonSchema, value: unknown): unknown {
+  if (value !== undefined && value !== null && value !== '') return value
+  if (schema.default !== undefined) return schema.default
+  return value
+}
+
 export function getItemLabel(
   item: unknown,
   index: number,

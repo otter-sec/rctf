@@ -15,9 +15,18 @@
     onChange: (path: string[], value: unknown) => void
     disabled?: boolean
     showLabel?: boolean
+    required?: boolean
   }
 
-  let { schema, value, path, onChange, disabled = false, showLabel = true }: Props = $props()
+  let {
+    schema,
+    value,
+    path,
+    onChange,
+    disabled = false,
+    showLabel = true,
+    required = false,
+  }: Props = $props()
 
   const isRecord = $derived(
     schema.type === 'object' && !schema.properties && schema.additionalProperties
@@ -31,11 +40,11 @@
 {:else if schema.type === 'array'}
   <SchemaArray {schema} {value} {path} {onChange} {disabled} />
 {:else if schema.type === 'string'}
-  <StringField {schema} {value} {path} {onChange} {disabled} {showLabel} />
+  <StringField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
 {:else if schema.type === 'number' || schema.type === 'integer'}
-  <NumberField {schema} {value} {path} {onChange} {disabled} {showLabel} />
+  <NumberField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
 {:else if schema.type === 'boolean'}
-  <BooleanField {schema} {value} {path} {onChange} {disabled} {showLabel} />
+  <BooleanField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
 {:else}
-  <UnknownField {schema} {value} {path} {onChange} {disabled} {showLabel} />
+  <UnknownField {schema} {value} {path} {onChange} {disabled} {showLabel} {required} />
 {/if}

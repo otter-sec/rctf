@@ -16,6 +16,7 @@
 
   const obj = $derived((value ?? {}) as Record<string, unknown>)
   const entries = $derived(Object.entries(schema.properties ?? {}))
+  const requiredFields = $derived(new Set(schema.required ?? []))
   const label = $derived(schema.title ?? path[path.length - 1] ?? '')
 </script>
 
@@ -29,7 +30,8 @@
           value={obj[key]}
           path={[...path, key]}
           {onChange}
-          {disabled} />
+          {disabled}
+          required={requiredFields.has(key)} />
       {/each}
     </Section.Content>
   </Section.Root>
@@ -41,7 +43,8 @@
         value={obj[key]}
         path={[...path, key]}
         {onChange}
-        {disabled} />
+        {disabled}
+        required={requiredFields.has(key)} />
     {/each}
   </div>
 {/if}

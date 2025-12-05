@@ -20,9 +20,10 @@
     config: InstancerConfig | null
     isDisabled: boolean
     onConfigChange: (config: InstancerConfig | null) => void
+    isValid?: boolean
   }
 
-  let { config, isDisabled, onConfigChange }: Props = $props()
+  let { config, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
   const schemaData = $derived($schemaQuery.data)
@@ -35,6 +36,17 @@
   let advancedMode = $state(false)
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
+  let schemaFormValid = $state(true)
+
+  $effect(() => {
+    if (!config) {
+      isValid = true
+    } else if (advancedMode) {
+      isValid = !yamlError
+    } else {
+      isValid = schemaFormValid
+    }
+  })
 
   function enterAdvancedMode() {
     if (config?.config) {
@@ -206,7 +218,7 @@
               disabled={isDisabled}
               placeholder="# YAML configuration..." />
             {#if yamlError}
-              <p class="text-sm text-destructive">{yamlError}</p>
+              <p class="text-sm text-foreground-destructive">{yamlError}</p>
             {/if}
           </div>
         {:else if schemaLoading}
@@ -221,7 +233,8 @@
             schema={schemaData.schema}
             value={config.config}
             onChange={handleConfigChange}
-            disabled={isDisabled} />
+            disabled={isDisabled}
+            bind:isValid={schemaFormValid} />
         {/if}
       </Section.Content>
     </Section.Root>
@@ -298,7 +311,7 @@
                 size="icon-sm"
                 onclick={() => removeExpose(i)}
                 disabled={isDisabled}>
-                <IconTrashFilled class="size-4 text-destructive" />
+                <IconTrashFilled class="size-4 text-foreground-destructive" />
               </Button>
             </div>
           {/each}

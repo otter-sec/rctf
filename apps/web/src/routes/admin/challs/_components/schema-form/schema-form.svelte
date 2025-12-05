@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { setValidationContext } from './context'
   import SchemaField from './schema-field.svelte'
   import type { JsonSchema } from './types'
 
@@ -7,9 +8,32 @@
     value: Record<string, unknown>
     onChange: (value: Record<string, unknown>) => void
     disabled?: boolean
+    isValid?: boolean
   }
 
-  let { schema, value, onChange, disabled = false }: Props = $props()
+  let { schema, value, onChange, disabled = false, isValid = $bindable(true) }: Props = $props()
+
+  const errors = new Map<string, string>()
+
+  function updateIsValid() {
+    isValid = errors.size === 0
+  }
+
+  function registerError(path: string, error: string | null) {
+    if (error) {
+      errors.set(path, error)
+    } else {
+      errors.delete(path)
+    }
+    updateIsValid()
+  }
+
+  function unregisterField(path: string) {
+    errors.delete(path)
+    updateIsValid()
+  }
+
+  setValidationContext({ registerError, unregisterField })
 
   function resolveRefs(s: JsonSchema, defs: Record<string, JsonSchema>): JsonSchema {
     if ('$ref' in s) {

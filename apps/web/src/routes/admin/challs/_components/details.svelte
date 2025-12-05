@@ -181,6 +181,7 @@
   }
 
   let showPreviewDialog = $state(false)
+  let instancerValid = $state(true)
 </script>
 
 {#if showContent}
@@ -228,7 +229,7 @@
             {/if}
             <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}
               >Cancel</Button>
-            <Button type="button" onclick={handleSave} disabled={isUpdating}>
+            <Button type="button" onclick={handleSave} disabled={isUpdating || !instancerValid}>
               {#if isUpdating}
                 <Spinner class="size-4" />
               {/if}
@@ -258,6 +259,7 @@
           files={form.files}
           instancerConfig={form.instancerConfig}
           {isDisabled}
+          bind:instancerValid
           onShowPreview={() => (showPreviewDialog = true)}
           onFilesChange={files => send({ type: 'UPDATE_FILES', files })}
           onInstancerConfigChange={config =>

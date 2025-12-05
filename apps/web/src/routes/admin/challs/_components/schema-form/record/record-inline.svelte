@@ -1,6 +1,7 @@
 <script lang="ts">
   import { Button, Field, Input, Select } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
+  import { getValidationContext } from '../context'
   import type { FieldProps, JsonSchema } from '../types'
   import { defaultValue } from '../utils'
   import { validateValue } from '../validate'
@@ -18,13 +19,37 @@
   const label = $derived(schema.title ?? path[path.length - 1] ?? 'Items')
   const description = $derived(schema.description)
   const isNumeric = $derived(valueSchema.type === 'number' || valueSchema.type === 'integer')
+  const basePath = $derived(path.join('.'))
+
+  const validationCtx = getValidationContext()
 
   let newKeyInput = $state('')
   let errors = $state<Record<string, string | null>>({})
+  let registeredKeys = new Set<string>()
 
   const isDuplicateKey = $derived(
     newKeyInput.trim() !== '' && entries.some(([k]) => k === newKeyInput.trim())
   )
+
+  $effect(() => {
+    return () => {
+      for (const pathKey of registeredKeys) {
+        validationCtx?.unregisterField(pathKey)
+      }
+      registeredKeys.clear()
+    }
+  })
+
+  function setError(key: string, error: string | null) {
+    errors[key] = error
+    const pathKey = basePath ? `${basePath}.${key}` : key
+    validationCtx?.registerError(pathKey, error)
+    if (error) {
+      registeredKeys.add(pathKey)
+    } else {
+      registeredKeys.delete(pathKey)
+    }
+  }
 
   function addEntry(key: string) {
     if (!key.trim() || entries.some(([k]) => k === key)) return
@@ -40,6 +65,10 @@
     const newValue = { ...((value as Record<string, unknown>) ?? {}) }
     delete newValue[key]
     onChange(path, newValue)
+
+    const pathKey = basePath ? `${basePath}.${key}` : key
+    validationCtx?.unregisterField(pathKey)
+    registeredKeys.delete(pathKey)
     delete errors[key]
   }
 
@@ -51,34 +80,42 @@
       newValue[k === oldKey ? newKey : k] = v
     }
     onChange(path, newValue)
+
+    const oldPathKey = basePath ? `${basePath}.${oldKey}` : oldKey
+    const newPathKey = basePath ? `${basePath}.${newKey}` : newKey
+
+    validationCtx?.unregisterField(oldPathKey)
+    registeredKeys.delete(oldPathKey)
+
     if (errors[oldKey]) {
-      errors[newKey] = errors[oldKey]
+      const oldError = errors[oldKey]
       delete errors[oldKey]
+      setError(newKey, oldError)
     }
   }
 
   function handleValueInput(key: string, inputValue: string) {
     if (!isNumeric) {
       const result = validateValue(valueSchema, inputValue)
-      errors[key] = result.error
+      setError(key, result.error)
       onChange([...path, key], inputValue)
       return
     }
 
     if (inputValue === '') {
-      errors[key] = null
+      setError(key, null)
       onChange([...path, key], undefined)
       return
     }
 
     const num = Number(inputValue)
     if (isNaN(num) || !isFinite(num)) {
-      errors[key] = 'Must be a valid number'
+      setError(key, 'Must be a valid number')
       return
     }
 
     const result = validateValue(valueSchema, num)
-    errors[key] = result.error
+    setError(key, result.error)
 
     if (result.valid) {
       onChange([...path, key], num)

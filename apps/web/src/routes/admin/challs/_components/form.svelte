@@ -24,6 +24,7 @@
     files: { name: string; url: string; size: number | null }[]
     instancerConfig: InstancerConfig | null
     isDisabled: boolean
+    instancerValid?: boolean
     onShowPreview: () => void
     onFilesChange: (files: Props['files']) => void
     onInstancerConfigChange: (config: InstancerConfig | null) => void
@@ -51,6 +52,7 @@
     files,
     instancerConfig,
     isDisabled,
+    instancerValid = $bindable(true),
     onShowPreview,
     onFilesChange,
     onInstancerConfigChange,
@@ -237,7 +239,8 @@
           <InstancerConfigPanel
             config={instancerConfig}
             {isDisabled}
-            onConfigChange={onInstancerConfigChange} />
+            onConfigChange={onInstancerConfigChange}
+            bind:isValid={instancerValid} />
         </div>
       </ScrollArea>
     </Tabs.Content>
