@@ -110,7 +110,6 @@
             Copy team token
             <IconCopy class="ml-auto size-5" />
           </DropdownMenu.Item>
-          <DropdownMenu.Separator />
           <DropdownMenu.Item onclick={() => goto('/profile')}>
             Manage team
             <IconUserCog class="ml-auto size-5" />
