@@ -16,6 +16,17 @@ const loadRecaptchaScript = () =>
 const recaptchaQueue = []
 let recaptchaPromise
 let recaptchaId
+let recaptchaContainer
+const getRecaptchaContainer = () => {
+  if (recaptchaContainer) {
+    return recaptchaContainer
+  }
+  const container = document.createElement('div')
+  container.style.display = 'none'
+  document.body.appendChild(container)
+  recaptchaContainer = container
+  return container
+}
 const handleRecaptchaNext = async () => {
   if (recaptchaQueue.length === 0) {
     return
@@ -38,8 +49,9 @@ const loadRecaptcha = async () => {
   recaptchaPromise = recaptchaPromise ?? loadRecaptchaScript()
   recaptchaId =
     recaptchaId ??
-    (await recaptchaPromise).render({
+    (await recaptchaPromise).render(getRecaptchaContainer(), {
       theme: 'dark',
+      size: 'invisible',
       sitekey: config.recaptcha.siteKey,
       callback: handleRecaptchaDone,
       'error-callback': handleRecaptchaError,

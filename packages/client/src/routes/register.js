@@ -17,9 +17,6 @@ import {
   RecaptchaLegalNotice,
 } from '../components/recaptcha'
 
-// legacy check for class components
-const recaptchaEnabled = config.recaptcha?.protectedActions.includes('register')
-
 export default withStyles(
   {
     root: {
@@ -47,6 +44,9 @@ export default withStyles(
     },
   },
   class Register extends Component {
+    recaptchaEnabled = () =>
+      config.recaptcha?.protectedActions?.includes('register')
+
     state = {
       name: '',
       email: '',
@@ -59,7 +59,7 @@ export default withStyles(
 
     componentDidMount() {
       document.title = `Registration | ${config.ctfName}`
-      if (recaptchaEnabled) {
+      if (this.recaptchaEnabled()) {
         loadRecaptcha()
       }
     }
@@ -76,6 +76,7 @@ export default withStyles(
         verifySent,
       }
     ) {
+      const recaptchaEnabled = this.recaptchaEnabled()
       if (ctftimeToken) {
         return (
           <CtftimeAdditional
@@ -167,7 +168,7 @@ export default withStyles(
     handleSubmit = async e => {
       e.preventDefault()
 
-      const recaptchaCode = recaptchaEnabled
+      const recaptchaCode = this.recaptchaEnabled()
         ? await requestRecaptchaCode()
         : undefined
 

@@ -6,6 +6,7 @@ import { removeUndefined } from '../util/object'
 import path from 'path'
 import fs from 'fs'
 import yaml from 'yaml'
+import type { RecaptchaProtectedActions } from '../util/recaptcha'
 
 const isRoot = (p: string): boolean => {
   const parsed = path.parse(p)
@@ -93,6 +94,15 @@ export const loadEnvConfig = (): PartialDeep<ServerConfig> =>
     ctftime: {
       clientId: process.env.RCTF_CTFTIME_CLIENT_ID,
       clientSecret: process.env.RCTF_CTFTIME_CLIENT_SECRET,
+    },
+    recaptcha: {
+      siteKey: process.env.RCTF_RECAPTCHA_SITE_KEY,
+      secretKey: process.env.RCTF_RECAPTCHA_SECRET_KEY,
+      protectedActions: (process.env.RCTF_RECAPTCHA_PROTECTED_ACTIONS?.split(
+        ','
+      )
+        .map(s => s.trim())
+        .filter(Boolean) ?? undefined) as RecaptchaProtectedActions[],
     },
     userMembers: nullsafeParseBoolEnv(process.env.RCTF_USER_MEMBERS),
     homeContent: process.env.RCTF_HOME_CONTENT,

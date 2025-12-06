@@ -9,9 +9,21 @@ import config from '../../config/server'
 import { getUserByNameOrEmail } from '../../database/users'
 import { sendVerification } from '../../email'
 
+const recaptchaEnabled = util.recaptcha.checkProtectedAction(
+  util.recaptcha.RecaptchaProtectedActions.register
+)
+
 export default makeFastifyRoute(authRegisterPost, async ({ req, res }) => {
   if (!config.registrationsEnabled) {
     return res.badRegistrationsDisabled()
+  }
+
+  if (
+    recaptchaEnabled &&
+    (!req.body.recaptchaCode ||
+      !(await util.recaptcha.verifyRecaptchaCode(req.body.recaptchaCode)))
+  ) {
+    return res.badRecaptchaCode()
   }
 
   let email
