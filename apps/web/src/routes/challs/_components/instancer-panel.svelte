@@ -26,11 +26,13 @@
   let actioning = $state(false)
   let error = $state<string | null>(null)
 
-  function formatUrl(kind: ExposeKind, host: string, port: number) {
+  function formatEndpoint(kind: ExposeKind, host: string, port: number) {
     if (kind === ExposeKind.HTTP) return port === 80 ? `http://${host}` : `http://${host}:${port}`
     if (kind === ExposeKind.HTTPS)
       return port === 443 ? `https://${host}` : `https://${host}:${port}`
-    return `${host}:${port}`
+    if (kind === ExposeKind.TCP) 
+      return `nc ${host} ${port}`
+    return `ncat --ssl ${host} ${port}`
   }
 
   async function copy(text: string) {
@@ -149,10 +151,10 @@
       {/if}
 
       {#each endpoints as { kind, host, port }, i}
-        {@const url = formatUrl(kind, host, port)}
+        {@const url = formatEndpoint(kind, host, port)}
         <div class="space-y-1">
           <div class="flex justify-between text-sm text-foreground-l3">
-            <span>{endpoints.length > 1 ? `Endpoint ${i + 1}` : 'URL'}</span>
+            <span>{endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint'}</span>
             <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
           </div>
           <button
