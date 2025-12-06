@@ -107,12 +107,12 @@
     fetchStatus()
     const poll = setInterval(() => {
       if (status === InstanceStatus.RUNNING || status === InstanceStatus.STARTING) fetchStatus()
-    }, 5000)
+    }, 10_000)
     const tick = setInterval(() => {
       if (status === InstanceStatus.RUNNING && timeLeft !== null && timeLeft > 0) {
         timeLeft = Math.max(0, timeLeft - 1000)
       }
-    }, 1000)
+    }, 1_000)
     return () => {
       clearInterval(poll)
       clearInterval(tick)
