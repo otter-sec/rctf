@@ -21,7 +21,7 @@ export const createDatabase = (
     | string
     | {
         host: string
-        port: number
+        port?: number | undefined
         user: string
         password: string
         database: string

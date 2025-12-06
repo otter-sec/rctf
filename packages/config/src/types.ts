@@ -1,112 +1,147 @@
-import { ProtectedAction } from '@rctf/types'
+import { NumericString, ProtectedAction } from '@rctf/types'
+import { z } from 'zod'
 
 export { ProtectedAction }
 
-export interface ACL {
-  match: string
-  value: string
-  divisions: (keyof ServerConfig['divisions'])[]
-}
+export const ProviderConfigSchema = z.object({
+  name: z.string(),
+  options: z.unknown(),
+})
 
-export interface ProviderConfig {
-  name: string
-  options: unknown
-}
+export const SponsorSchema = z.object({
+  name: z.string(),
+  icon: z.string(),
+  description: z.string(),
+  small: z.boolean().optional(),
+})
 
-export interface Sponsor {
-  name: string
-  icon: string
-  description: string
-  small?: boolean
-}
+// Division access control: matches field `match` against `value`, applies to listed divisions
+export const ACLSchema = z.object({
+  match: z.string(),
+  value: z.string(),
+  divisions: z.array(z.string()),
+})
 
-export interface ServerConfig {
-  database: {
-    sql:
-      | string
-      | {
-          host: string
-          port: number
-          user: string
-          password: string
-          database: string
-        }
-    redis:
-      | string
-      | {
-          host: string
-          port: number
-          password: string
-          database: number
-        }
-    migrate: 'before' | 'only' | 'never'
-  }
-  instanceType: 'leaderboard' | 'all' | 'frontend'
-  tokenKey: string
-  origin: string
+export const ServerConfigSchema = z.object({
+  // Core
+  ctfName: z.string(),
+  origin: z.string(),
+  tokenKey: z.string(),
+  instanceType: z.enum(['leaderboard', 'all', 'frontend']).default('all'),
 
-  proxy: {
-    cloudflare: boolean
-    trust: boolean | string | string[] | number
-  }
+  // Database
+  database: z.object({
+    sql: z.union([
+      z.string(), // connection string
+      z.object({
+        host: z.string(),
+        port: z.number().optional(),
+        user: z.string(),
+        password: z.string(),
+        database: z.string(),
+      }),
+    ]),
+    redis: z.union([
+      z.string(), // connection string
+      z.object({
+        host: z.string(),
+        port: z.number().optional(),
+        password: z.string().optional(),
+        database: z.number().optional(),
+      }),
+    ]),
+    migrate: z.enum(['before', 'only', 'never']).default('never'),
+  }),
 
-  ctftime?: {
-    clientId: string
-    clientSecret: string
-  }
+  // CTF timing
+  startTime: z.number(), // unix ms
+  endTime: z.number(), // unix ms
 
-  userMembers: boolean
-  registrationsEnabled: boolean
+  // Divisions
+  divisions: z.record(z.string(), z.string()).default({open: 'Open'}), // id -> display name
+  defaultDivision: z.string().optional(),
+  divisionACLs: z.array(ACLSchema).optional(),
 
-  sponsors: Sponsor[]
-  homeContent: string
-  ctfName: string
-  meta: {
-    description: string
-    imageUrl: string
-  }
-  faviconUrl?: string
-  globalSiteTag?: string
+  // Auth
+  registrationsEnabled: z.boolean().default(true),
+  userMembers: z.boolean().default(true),
+  loginTimeout: z.number().default(3_600_000),
+  ctftime: z
+    .object({
+      clientId: NumericString,
+      clientSecret: z.string(),
+    })
+    .optional(),
 
-  challengeProvider: ProviderConfig
-  uploadProvider: ProviderConfig
-  scoreProvider: ProviderConfig
+  // Captcha
+  captcha: z
+    .object({
+      provider: ProviderConfigSchema.optional(),
+      protectedEndpoints: z.array(z.nativeEnum(ProtectedAction)).optional(),
+    })
+    .optional(),
 
-  email?: {
-    provider: ProviderConfig
-    from: string
-    logoUrl?: string
-  }
+  // Backport for v1 recaptcha config
+  recaptcha: z
+    .object({
+      siteKey: z.string().optional(),
+      secretKey: z.string().optional(),
+      protectedActions: z.array(z.nativeEnum(ProtectedAction)).optional(),
+    })
+    .optional(),
 
-  captcha?: {
-    provider?: ProviderConfig
-    protectedEndpoints?: ProtectedAction[]
-  }
+  // Providers
+  uploadProvider: ProviderConfigSchema.default({ name: 'uploads/local' }),
+  scoreProvider: ProviderConfigSchema.default({ name: 'scores/classic' }),
+  instancerProvider: ProviderConfigSchema.optional(),
+  email: z
+    .object({
+      provider: ProviderConfigSchema,
+      from: z.string(),
+      logoUrl: z.string().optional(),
+    })
+    .optional(),
 
-  // NOTE(es3n1n): backporting v1 recaptcha config
-  recaptcha?: {
-    siteKey?: string
-    secretKey?: string
-    protectedActions?: ProtectedAction[]
-  }
+  // UI
+  homeContent: z.string().default('Home content. Markdown supported.'),
+  sponsors: z.array(SponsorSchema).default([]),
+  meta: z
+    .object({
+      description: z.string().default('rCTF event description'),
+      imageUrl: z.string().default(''),
+    })
+    .default({}),
+  faviconUrl: z
+    .string()
+    .default('https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'),
 
-  instancerProvider?: ProviderConfig
+  // TODO(es3n1n): use this for analytics
+  globalSiteTag: z.string().optional(),
 
-  maxAvatarSize: number
+  // Limits
+  maxAvatarSize: z.number().default(1024 * 1024),
+  leaderboard: z
+    .object({
+      maxLimit: z.number().default(100),
+      maxOffset: z.number().default(4294967296),
+      updateInterval: z.number().default(10_000), // 10s
+      graphMaxTeams: z.number().default(10),
+      graphSampleTime: z.number().default(1_800_000), // 30min
+    })
+    .default({}),
 
-  divisions: Record<string, string>
-  defaultDivision?: string
-  divisionACLs?: ACL[]
+  // Proxy
+  proxy: z
+    .object({
+      cloudflare: z.boolean().default(false),
+      trust: z
+        .union([z.boolean(), z.string(), z.array(z.string()), z.number()])
+        .default(false),
+    })
+    .default({}),
+})
 
-  startTime: number
-  endTime: number
-
-  leaderboard: {
-    maxLimit: number
-    maxOffset: number
-    updateInterval: number
-    graphMaxTeams: number
-    graphSampleTime: number
-  }
-  loginTimeout: number
-}
+export type ProviderConfig = z.infer<typeof ProviderConfigSchema>
+export type Sponsor = z.infer<typeof SponsorSchema>
+export type ACL = z.infer<typeof ACLSchema>
+export type ServerConfig = z.infer<typeof ServerConfigSchema>
