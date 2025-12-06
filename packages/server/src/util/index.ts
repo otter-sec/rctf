@@ -8,6 +8,7 @@ export * as normalize from './normalize'
 export * as validate from './validate'
 export * as scores from './scores'
 export * as restrict from './restrict'
+export * as recaptcha from './recaptcha'
 
 export const serveIndex: FastifyPluginAsync<{ indexPath: string }> = async (
   fastify,

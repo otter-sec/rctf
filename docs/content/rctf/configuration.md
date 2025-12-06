@@ -60,15 +60,18 @@ Important values to configure to customize your CTF.
 
 Optional configuration to enable additional features.
 
-| YAML/JSON name         | environment name             | required | default value | type     | description                                                                    |
-| ---------------------- | ---------------------------- | -------- | ------------- | -------- | ------------------------------------------------------------------------------ |
-| `sponsors`             | _(none)_                     | yes      | `[]`          | array    | list of CTF sponsors. [documentation](management/home.md)                      |
-| `globalSiteTag`        | `RCTF_GLOBAL_SITE_TAG`       | no       | _(none)_      | string   | Google Analytics site tag                                                      |
-| `email.provider`       | _(none)_                     | no       | _(none)_      | provider | provider for email sending. [documentation](providers/emails/index.md)         |
-| `email.from`           | _(none)_                     | no       | _(none)_      | provider | `from:` address when sending email. [documentation](providers/emails/index.md) |
-| `email.logoUrl`        | `RCTF_EMAIL_LOGO_URL`        | no       | _(none)_      | string   | URL to raster image of the CTF's logo                                          |
-| `ctftime.clientId`     | `RCTF_CTFTIME_CLIENT_ID`     | no       | _(none)_      | string   | CTFtime OAuth client ID. [documentation](integrations/ctftime.md)              |
-| `ctftime.clientSecret` | `RCTF_CTFTIME_CLIENT_SECRET` | no       | _(none)_      | string   | CTFtime OAuth client secret. [documentation](integrations/ctftime.md)          |
+| YAML/JSON name               | environment name                   | required | default value | type     | description                                                                                                            |
+| ---------------------------- | ---------------------------------- | -------- | ------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `sponsors`                   | _(none)_                           | yes      | `[]`          | array    | list of CTF sponsors. [documentation](management/home.md)                                                              |
+| `globalSiteTag`              | `RCTF_GLOBAL_SITE_TAG`             | no       | _(none)_      | string   | Google Analytics site tag                                                                                              |
+| `email.provider`             | _(none)_                           | no       | _(none)_      | provider | provider for email sending. [documentation](providers/emails/index.md)                                                 |
+| `email.from`                 | _(none)_                           | no       | _(none)_      | provider | `from:` address when sending email. [documentation](providers/emails/index.md)                                         |
+| `email.logoUrl`              | `RCTF_EMAIL_LOGO_URL`              | no       | _(none)_      | string   | URL to raster image of the CTF's logo                                                                                  |
+| `ctftime.clientId`           | `RCTF_CTFTIME_CLIENT_ID`           | no       | _(none)_      | string   | CTFtime OAuth client ID. [documentation](integrations/ctftime.md)                                                      |
+| `ctftime.clientSecret`       | `RCTF_CTFTIME_CLIENT_SECRET`       | no       | _(none)_      | string   | CTFtime OAuth client secret. [documentation](integrations/ctftime.md)                                                  |
+| `recaptcha.siteKey`          | `RCTF_RECAPTCHA_SITE_KEY`          | no       | _(none)_      | string   | reCAPTCHA public site key. [documentation](integrations/recaptcha.md)                                                  |
+| `recaptcha.secretKey`        | `RCTF_RECAPTCHA_SECRET_KEY`        | no       | _(none)_      | string   | reCAPTCHA secret key. [documentation](integrations/recaptcha.md)                                                       |
+| `recaptcha.protectedActions` | `RCTF_RECAPTCHA_PROTECTED_ACTIONS` | no       | _(none)_      | array    | list of actions protected by reCAPTCHA (`register`, `recover`, `setEmail`). [documentation](integrations/recaptcha.md) |
 
 ### Advanced
 

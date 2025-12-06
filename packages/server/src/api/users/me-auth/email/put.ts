@@ -9,10 +9,27 @@ import { divisionAllowed } from '../../../../util/restrict'
 import { getToken, tokenKinds } from '../../../../auth/token'
 import { getUserByEmail, updateUser } from '../../../../database/users'
 import { sendVerification } from '../../../../email'
+import {
+  checkProtectedAction,
+  RecaptchaProtectedActions,
+  verifyRecaptchaCode,
+} from '../../../../util/recaptcha'
+
+const recaptchaEnabled = checkProtectedAction(
+  RecaptchaProtectedActions.setEmail
+)
 
 export default makeFastifyRoute(
   usersMeAuthEmailPut,
   async ({ req, user, res }) => {
+    if (
+      recaptchaEnabled &&
+      (!req.body.recaptchaCode ||
+        !(await verifyRecaptchaCode(req.body.recaptchaCode)))
+    ) {
+      return res.badRecaptchaCode()
+    }
+
     const email = normalizeEmail(req.body.email)
     if (!emailValidator.validate(email)) {
       return res.badEmail()

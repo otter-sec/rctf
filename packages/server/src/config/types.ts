@@ -1,3 +1,4 @@
+import { RecaptchaProtectedActions } from '../util/recaptcha'
 import { ACL } from '../util/restrict'
 
 export interface ProviderConfig {
@@ -46,6 +47,12 @@ export interface ServerConfig {
   ctftime?: {
     clientId: string
     clientSecret: string
+  }
+
+  recaptcha?: {
+    siteKey: string
+    secretKey: string
+    protectedActions: RecaptchaProtectedActions[]
   }
 
   userMembers: boolean
@@ -105,4 +112,8 @@ export type ClientConfig = Pick<
 > & {
   emailEnabled: boolean
   ctftime?: Pick<NonNullable<ServerConfig['ctftime']>, 'clientId'>
+  recaptcha?: Pick<
+    NonNullable<ServerConfig['recaptcha']>,
+    'siteKey' | 'protectedActions'
+  >
 }

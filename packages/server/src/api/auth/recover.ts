@@ -8,10 +8,25 @@ import { getToken, tokenKinds } from '../../auth/token'
 import { getUserByEmail } from '../../database/users'
 import config from '../../config/server'
 import { sendVerification } from '../../email'
+import {
+  checkProtectedAction,
+  RecaptchaProtectedActions,
+  verifyRecaptchaCode,
+} from '../../util/recaptcha'
+
+const recaptchaEnabled = checkProtectedAction(RecaptchaProtectedActions.recover)
 
 export default makeFastifyRoute(authRecoverPost, async ({ req, res }) => {
   if (!config.email) {
     return res.badEndpoint()
+  }
+
+  if (
+    recaptchaEnabled &&
+    (!req.body.recaptchaCode ||
+      !(await verifyRecaptchaCode(req.body.recaptchaCode)))
+  ) {
+    return res.badRecaptchaCode()
   }
 
   const email = normalizeEmail(req.body.email)

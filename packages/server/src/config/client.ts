@@ -22,6 +22,13 @@ const config: ClientConfig = {
       : {
           clientId: server.ctftime.clientId,
         },
+  recaptcha:
+    server.recaptcha == null
+      ? undefined
+      : {
+          siteKey: server.recaptcha.siteKey,
+          protectedActions: server.recaptcha.protectedActions,
+        },
 }
 
 export default config

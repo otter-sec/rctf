@@ -11,6 +11,8 @@ schema:
         type: string
       ctftimeToken:
         type: string
+      recaptchaCode:
+        type: string
     required:
       - name
     oneOf:
@@ -29,3 +31,4 @@ responses:
   - badKnownEmail
   - badKnownName
   - badRegistrationsDisabled
+  - badRecaptchaCode

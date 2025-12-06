@@ -7,6 +7,8 @@ schema:
     properties:
       email:
         type: string
+      recaptchaCode:
+        type: string
     required:
       - email
 responses:
@@ -14,3 +16,4 @@ responses:
   - badEndpoint
   - badEmail
   - badUnknownEmail
+  - badRecaptchaCode
