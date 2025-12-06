@@ -13,6 +13,10 @@ export interface InstanceQueryOptions {
   challengeIntegrationId: string
 }
 
+export interface ExtendInstanceOptions extends InstanceQueryOptions {
+  timeoutMilliseconds: number
+}
+
 export const instanceDetailsSchema = z.object({
   kind: z.literal('instancerInstanceDetails'),
   status: z.nativeEnum(InstanceStatus),
@@ -50,6 +54,6 @@ export interface InstancerProvider {
   ) => Promise<instanceDetailsOrError>
 
   extendInstance: (
-    options: InstanceQueryOptions
+    options: ExtendInstanceOptions
   ) => Promise<instanceDetailsOrError>
 }

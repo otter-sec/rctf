@@ -3,6 +3,7 @@ import {
   instanceDetailsSchema,
   instancerErrorSchema,
   type CreateInstanceOptions,
+  type ExtendInstanceOptions,
   type instanceDetailsOrError,
   type InstanceQueryOptions,
   type InstancerProvider,
@@ -353,7 +354,7 @@ export default class TinyInstancerProvider implements InstancerProvider {
   }
 
   extendInstance = async (
-    options: InstanceQueryOptions
+    options: ExtendInstanceOptions
   ): Promise<instanceDetailsOrError> => {
     return this.apiRequest('v1/instances/', 'PATCH', {
       kind: 'instancerRenewInstanceForm',
