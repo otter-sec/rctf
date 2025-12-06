@@ -150,7 +150,7 @@ rCTF v1 frontend with rCTF v2 backend:
 ## New features compared to v1
 
 - Scores config
-- New captcha providers
+- New captcha providers (`turnstile`, `hcaptcha`)
 - New `s3` upload provider
 
 <details>
