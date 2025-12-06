@@ -1,5 +1,5 @@
-import { describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
+import { describe, expect, test } from 'bun:test'
 import {
   createToken,
   parseToken,

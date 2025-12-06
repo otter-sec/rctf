@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { GetChallengeSolvesRouteV2, GoodChallengeSolvesV2 } from '@rctf/types'
   import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { apiRequest, type Challenge } from '$lib/api'
@@ -10,7 +11,6 @@
     formatRelativeToFirstBlood,
     getRankVariant,
   } from '$lib/utils'
-  import { GetChallengeSolvesRouteV2, GoodChallengeSolvesV2 } from '@rctf/types'
 
   const PAGE_SIZE = 10
 
@@ -44,7 +44,7 @@
         throw new Error(response.message)
       },
       initialPageParam: 0,
-      getNextPageParam: (lastPage) => {
+      getNextPageParam: lastPage => {
         const nextOffset = lastPage.offset + lastPage.solves.length
         return nextOffset < totalCount ? nextOffset : undefined
       },

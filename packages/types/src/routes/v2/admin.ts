@@ -21,7 +21,7 @@ import {
 import {
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
-  FileFieldSchema,
+  MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
 } from '../../util'
 
@@ -73,7 +73,7 @@ export const UploadFilesRouteV2 = defineRoute({
   path: '/v2/admin/upload',
   method: 'POST',
   body: z.object({
-    files: z.array(FileFieldSchema),
+    files: MultipleFileFieldSchema,
   }),
   responses: [GoodFilesUploadV2, BadPerms, BadToken],
   authRequired: true,

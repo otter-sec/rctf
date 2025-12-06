@@ -1,12 +1,11 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
   BadUnknownUser,
   GoodFlag,
   GoodUserData,
   GoodUserSelfData,
 } from '@rctf/types'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
-import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
 import { getApp, request } from '../../app'
 import {
   expectResponse,

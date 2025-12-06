@@ -55,3 +55,8 @@ export const isFileField = (value: unknown): value is FileField => {
 export const FileFieldSchema = z.custom<FileField>(isFileField, {
   message: 'Expected file upload',
 })
+
+export const MultipleFileFieldSchema = z.preprocess(
+  val => (Array.isArray(val) ? val : [val]),
+  z.array(FileFieldSchema)
+)

@@ -30,8 +30,7 @@
     if (kind === ExposeKind.HTTP) return port === 80 ? `http://${host}` : `http://${host}:${port}`
     if (kind === ExposeKind.HTTPS)
       return port === 443 ? `https://${host}` : `https://${host}:${port}`
-    if (kind === ExposeKind.TCP) 
-      return `nc ${host} ${port}`
+    if (kind === ExposeKind.TCP) return `nc ${host} ${port}`
     return `ncat --ssl ${host} ${port}`
   }
 
