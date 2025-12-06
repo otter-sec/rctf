@@ -3,7 +3,7 @@ import type { ProtectedAction } from '@rctf/types'
 import { captchaProvider } from '../providers'
 
 export const isActionProtected = (action: ProtectedAction): boolean => {
-  return config.captcha?.protectedEndpoints?.[action] === true
+  return config.captcha?.protectedEndpoints?.includes(action) ?? false
 }
 
 export const validateCaptcha = async (

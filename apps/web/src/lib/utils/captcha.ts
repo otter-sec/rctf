@@ -121,9 +121,10 @@ export const requestCaptchaCode = async (
     // @ts-expect-error hcaptcha global
     hcaptcha.reset(hcaptchaWidgetId)
     // @ts-expect-error hcaptcha global
-    return hcaptcha.execute(hcaptchaWidgetId, {
+    const result = (await hcaptcha.execute(hcaptchaWidgetId, {
       async: true,
-    }) as Promise<string>
+    })) as { key: string; response: string }
+    return result.response
   }
 
   throw new Error(`Unknown captcha provider: ${info.provider}`)

@@ -17,8 +17,7 @@ integrationsGroup.route(GetClientConfigRoute, async ({ res }) => {
             siteKey:
               (config.captcha!.provider!.options as { siteKey?: string })
                 .siteKey ?? '',
-            protectedActions:
-              Object.keys(config.captcha!.protectedEndpoints ?? {}) ?? [],
+            protectedActions: config.captcha!.protectedEndpoints ?? [],
           }
         : null,
   })

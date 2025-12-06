@@ -111,18 +111,19 @@
 
   $effect(() => {
     fetchStatus()
-    const poll = setInterval(() => {
-      if (status === InstanceStatus.RUNNING || status === InstanceStatus.STARTING) fetchStatus()
-    }, 10_000)
     const tick = setInterval(() => {
       if (status === InstanceStatus.RUNNING && timeLeft !== null && timeLeft > 0) {
         timeLeft = Math.max(0, timeLeft - 1000)
       }
     }, 1_000)
-    return () => {
-      clearInterval(poll)
-      clearInterval(tick)
-    }
+    return () => clearInterval(tick)
+  })
+
+  $effect(() => {
+    if (status === InstanceStatus.STOPPED) return
+    const interval = status === InstanceStatus.STARTING ? 2_000 : 10_000
+    const poll = setInterval(fetchStatus, interval)
+    return () => clearInterval(poll)
   })
 </script>
 
@@ -143,6 +144,7 @@
         {#if actioning}<IconLoader class="animate-spin" />{/if}
         Start instance
       </Button>
+      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} />
     </div>
   {:else}
     <div class="flex flex-1 flex-col gap-3">

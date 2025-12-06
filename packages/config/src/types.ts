@@ -80,9 +80,7 @@ export interface ServerConfig {
 
   captcha?: {
     provider?: ProviderConfig
-    protectedEndpoints?: {
-      [key in ProtectedAction]?: boolean
-    }
+    protectedEndpoints?: ProtectedAction[]
   }
 
   // NOTE(es3n1n): backporting v1 recaptcha config

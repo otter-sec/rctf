@@ -27,9 +27,9 @@ export default class HCaptchaProvider implements CaptchaProvider {
     const response = await fetch(`https://hcaptcha.com/siteverify`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: JSON.stringify({
+      body: new URLSearchParams({
         secret: this.secretKey,
         response: options.code,
         remoteip: options.ip,

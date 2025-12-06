@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ProtectedAction } from '../enums'
 import { response } from '../internal'
 import { NumericString } from '../util'
 
@@ -40,14 +41,10 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
       .object({
         provider: z.string(),
         publicOptions: z.record(z.string(), z.string()),
-        protectedEndpoints: z.object({
-          register: z.boolean(),
-          recover: z.boolean(),
-          setEmail: z.boolean(),
-          instancerStart: z.boolean(),
-          instancerExtend: z.boolean(),
-          avatarUpload: z.boolean(),
-        }),
+        protectedEndpoints: z.record(
+          z.nativeEnum(ProtectedAction),
+          z.boolean()
+        ),
       })
       .nullable(),
   }),

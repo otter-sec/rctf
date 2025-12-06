@@ -60,9 +60,7 @@ export const captchaProvider = (() => {
           siteKey: config.recaptcha.siteKey,
         },
       },
-      protectedEndpoints: Object.fromEntries(
-        config.recaptcha.protectedActions?.map(action => [action, true]) ?? []
-      ),
+      protectedEndpoints: config.recaptcha.protectedActions ?? [],
     }
   }
 

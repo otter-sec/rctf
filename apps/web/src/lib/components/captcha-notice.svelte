@@ -17,8 +17,7 @@
 
 {#if enabled && provider === 'captcha/recaptcha'}
   <p class={`block text-foreground-l4 text-xs ${className}`}>
-    This site is protected by reCAPTCHA.<br />
-    The Google
+    This site is protected by reCAPTCHA. The Google
     <a
       class="text-foreground-prose-link hover:underline"
       href="https://policies.google.com/privacy"
@@ -50,7 +49,7 @@
   </p>
 {:else if enabled && provider}
   <p class={`block text-foreground-l4 text-xs ${className}`}>
-    This site is protected by a captcha provider <code>{provider}</code>. No idea what are its
+    This site is protected by a captcha provider <code>{provider}</code>. No idea what are their
     copyrights for this though.
   </p>
 {/if}

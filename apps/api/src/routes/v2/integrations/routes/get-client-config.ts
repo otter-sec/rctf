@@ -1,5 +1,5 @@
-import { config, ProtectedAction } from '@rctf/config'
-import { GetClientConfigRouteV2 } from '@rctf/types'
+import { config } from '@rctf/config'
+import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
 import { captchaProvider } from '../../../../providers'
 import integrationsGroup from '../group'
 
@@ -20,7 +20,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
           protectedEndpoints: Object.fromEntries(
             Object.values(ProtectedAction).map(action => [
               action,
-              config.captcha!.protectedEndpoints?.[action] ?? false,
+              config.captcha!.protectedEndpoints?.includes(action) ?? false,
             ])
           ) as Record<ProtectedAction, boolean>,
         }
