@@ -14,6 +14,8 @@ export function getContentWidth(
 ): number {
   const { teamColumn, cell, gap, padding, diagonal } = layout
 
+  if (viewMode === 'minimal') return teamColumn
+
   if (cells.length === 0) return teamColumn + padding
 
   const lastLabel =

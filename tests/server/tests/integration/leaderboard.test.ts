@@ -1,5 +1,5 @@
-import { GoodLeaderboard } from '@rctf/types'
 import { beforeAll, describe, expect, test } from 'bun:test'
+import { GoodLeaderboard } from '@rctf/types'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import { expectResponse } from '../../util'

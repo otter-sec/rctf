@@ -1,103 +1,100 @@
 <script lang="ts" module>
-	import { tv, type VariantProps } from "tailwind-variants";
+  import { tv, type VariantProps } from 'tailwind-variants'
 
-	export const sidebarMenuButtonVariants = tv({
-		base: "peer/menu-button outline-hidden ring-ring hover:bg-background-l3 hover:text-foreground-l0 active:bg-background-l3 active:text-foreground-l0 group-has-data-[sidebar=menu-action]/menu-item:pe-8 data-[active=true]:bg-background-l3 data-[active=true]:text-foreground-l0 data-[state=open]:hover:bg-background-l3 data-[state=open]:hover:text-foreground-l0 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0",
-		variants: {
-			variant: {
-				default: "hover:bg-background-l3 hover:text-foreground-l0",
-				outline:
-					"bg-background-l0 hover:bg-background-l3 hover:text-foreground-l0 shadow-[0_0_0_1px_var(--border)] hover:shadow-[0_0_0_1px_var(--background-l3)]",
-			},
-			size: {
-				default: "h-8 text-sm",
-				sm: "h-7 text-xs",
-				lg: "group-data-[collapsible=icon]:p-0! h-12 text-sm",
-			},
-		},
-		defaultVariants: {
-			variant: "default",
-			size: "default",
-		},
-	});
+  export const sidebarMenuButtonVariants = tv({
+    base: 'peer/menu-button outline-hidden ring-ring hover:bg-background-l3 hover:text-foreground-l0 active:bg-background-l3 active:text-foreground-l0 group-has-data-[sidebar=menu-action]/menu-item:pe-8 data-[active=true]:bg-background-l3 data-[active=true]:text-foreground-l0 data-[state=open]:hover:bg-background-l3 data-[state=open]:hover:text-foreground-l0 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-start text-sm transition-[width,height,padding] focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:font-medium [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+    variants: {
+      variant: {
+        default: 'hover:bg-background-l3 hover:text-foreground-l0',
+        outline:
+          'bg-background-l0 hover:bg-background-l3 hover:text-foreground-l0 shadow-[0_0_0_1px_var(--border)] hover:shadow-[0_0_0_1px_var(--background-l3)]',
+      },
+      size: {
+        default: 'h-8 text-sm',
+        sm: 'h-7 text-xs',
+        lg: 'group-data-[collapsible=icon]:p-0! h-12 text-sm',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  })
 
-	export type SidebarMenuButtonVariant = VariantProps<
-		typeof sidebarMenuButtonVariants
-	>["variant"];
-	export type SidebarMenuButtonSize = VariantProps<typeof sidebarMenuButtonVariants>["size"];
+  export type SidebarMenuButtonVariant = VariantProps<typeof sidebarMenuButtonVariants>['variant']
+  export type SidebarMenuButtonSize = VariantProps<typeof sidebarMenuButtonVariants>['size']
 </script>
 
 <script lang="ts">
-	import * as Tooltip from "$lib/components/ui/tooltip/index.js";
-	import { cn, type WithElementRef, type WithoutChildrenOrChild } from "$lib/utils.js";
-	import { mergeProps } from "bits-ui";
-	import type { ComponentProps, Snippet } from "svelte";
-	import type { HTMLAttributes } from "svelte/elements";
-	import { useSidebar } from "./context.svelte.js";
+  import * as Tooltip from '$lib/components/ui/tooltip/index.js'
+  import { cn, type WithElementRef, type WithoutChildrenOrChild } from '$lib/utils.js'
+  import { mergeProps } from 'bits-ui'
+  import type { ComponentProps, Snippet } from 'svelte'
+  import type { HTMLAttributes } from 'svelte/elements'
+  import { useSidebar } from './context.svelte.js'
 
-	let {
-		ref = $bindable(null),
-		class: className,
-		children,
-		child,
-		variant = "default",
-		size = "default",
-		isActive = false,
-		tooltipContent,
-		tooltipContentProps,
-		...restProps
-	}: WithElementRef<HTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
-		isActive?: boolean;
-		variant?: SidebarMenuButtonVariant;
-		size?: SidebarMenuButtonSize;
-		tooltipContent?: Snippet | string;
-		tooltipContentProps?: WithoutChildrenOrChild<ComponentProps<typeof Tooltip.Content>>;
-		child?: Snippet<[{ props: Record<string, unknown> }]>;
-	} = $props();
+  let {
+    ref = $bindable(null),
+    class: className,
+    children,
+    child,
+    variant = 'default',
+    size = 'default',
+    isActive = false,
+    tooltipContent,
+    tooltipContentProps,
+    ...restProps
+  }: WithElementRef<HTMLAttributes<HTMLButtonElement>, HTMLButtonElement> & {
+    isActive?: boolean
+    variant?: SidebarMenuButtonVariant
+    size?: SidebarMenuButtonSize
+    tooltipContent?: Snippet | string
+    tooltipContentProps?: WithoutChildrenOrChild<ComponentProps<typeof Tooltip.Content>>
+    child?: Snippet<[{ props: Record<string, unknown> }]>
+  } = $props()
 
-	const sidebar = useSidebar();
+  const sidebar = useSidebar()
 
-	const buttonProps = $derived({
-		class: cn(sidebarMenuButtonVariants({ variant, size }), className),
-		"data-slot": "sidebar-menu-button",
-		"data-sidebar": "menu-button",
-		"data-size": size,
-		"data-active": isActive,
-		...restProps,
-	});
+  const buttonProps = $derived({
+    class: cn(sidebarMenuButtonVariants({ variant, size }), className),
+    'data-slot': 'sidebar-menu-button',
+    'data-sidebar': 'menu-button',
+    'data-size': size,
+    'data-active': isActive,
+    ...restProps,
+  })
 </script>
 
-{#snippet Button({ props }: { props?: Record<string, unknown> })}
-	{@const mergedProps = mergeProps(buttonProps, props)}
-	{#if child}
-		{@render child({ props: mergedProps })}
-	{:else}
-		<button bind:this={ref} {...mergedProps}>
-			{@render children?.()}
-		</button>
-	{/if}
+{#snippet Button({ props }: { props?: Record })}
+  {@const mergedProps = mergeProps(buttonProps, props)}
+  {#if child}
+    {@render child({ props: mergedProps })}
+  {:else}
+    <button bind:this={ref} {...mergedProps}>
+      {@render children?.()}
+    </button>
+  {/if}
 {/snippet}
 
 {#if !tooltipContent}
-	{@render Button({})}
+  {@render Button({})}
 {:else}
-	<Tooltip.Root>
-		<Tooltip.Trigger>
-			{#snippet child({ props })}
-				{@render Button({ props })}
-			{/snippet}
-		</Tooltip.Trigger>
-		<Tooltip.Content
-			side="right"
-			align="center"
-			hidden={sidebar.state !== "collapsed" || sidebar.isMobile}
-			{...tooltipContentProps}
-		>
-			{#if typeof tooltipContent === "string"}
-				{tooltipContent}
-			{:else if tooltipContent}
-				{@render tooltipContent()}
-			{/if}
-		</Tooltip.Content>
-	</Tooltip.Root>
+  <Tooltip.Root>
+    <Tooltip.Trigger>
+      {#snippet child({ props })}
+        {@render Button({ props })}
+      {/snippet}
+    </Tooltip.Trigger>
+    <Tooltip.Content
+      side="right"
+      align="center"
+      hidden={sidebar.state !== 'collapsed' || sidebar.isMobile}
+      {...tooltipContentProps}>
+      {#if typeof tooltipContent === 'string'}
+        {tooltipContent}
+      {:else if tooltipContent}
+        {@render tooltipContent()}
+      {/if}
+    </Tooltip.Content>
+  </Tooltip.Root>
 {/if}

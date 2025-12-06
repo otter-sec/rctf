@@ -26,7 +26,9 @@
 
   const viewMode = $derived.by(() => {
     const raw = pageState.url.searchParams.get('view')
-    return (raw === 'boomer' ? 'boomer' : 'zoomer') as ViewMode
+    if (raw === 'boomer') return 'boomer' as ViewMode
+    if (raw === 'minimal') return 'minimal' as ViewMode
+    return 'zoomer' as ViewMode
   })
 
   function setUrlParam(key: string, value: string | number, defaultValue: string | number) {

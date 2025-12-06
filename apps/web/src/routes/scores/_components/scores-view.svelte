@@ -1,8 +1,10 @@
 <script lang="ts">
   import { ScrollArea } from '$lib/components'
-  import { useCurrentUser } from '$lib/query'
+  import { useCurrentUser, useLeaderboardGraph, useSelfUserGraph } from '$lib/query'
+  import { cn } from '$lib/utils'
   import {
     buildSolvesMap,
+    CUTOFF_TIME,
     FADE_SIZE,
     getContentWidth,
     groupByCategory,
@@ -50,6 +52,55 @@
     return new Map(currentUser.solves.map(s => [s.id, { id: s.id, solveTime: s.createdAt }]))
   })
 
+  const graphQuery = $derived(
+    useLeaderboardGraph({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, division: 'open' })
+  )
+  const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
+
+  const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12
+
+  const sparklineDataByTeam = $derived.by(() => {
+    const graphData = $graphQuery.data ?? []
+    const selfGraphData = $selfGraphQuery.data
+
+    const allPoints: { time: number; score: number }[][] = []
+
+    for (const team of graphData) {
+      const filtered = team.points
+        .filter(p => p.time <= CUTOFF_TIME)
+        .map(p => ({ time: p.time, score: p.score }))
+      allPoints.push(filtered)
+    }
+
+    if (selfGraphData) {
+      const filtered = selfGraphData.points
+        .filter(p => p.time <= CUTOFF_TIME)
+        .map(p => ({ time: p.time, score: p.score }))
+      allPoints.push(filtered)
+    }
+
+    const maxTime = Math.max(...allPoints.flatMap(pts => pts.map(p => p.time)))
+    const windowStart = maxTime - SPARKLINE_WINDOW
+
+    const result = new Map<string, { time: number; score: number }[]>()
+
+    for (const team of graphData) {
+      const filtered = team.points
+        .filter(p => p.time >= windowStart && p.time <= CUTOFF_TIME)
+        .map(p => ({ time: p.time, score: p.score }))
+      result.set(team.id, filtered)
+    }
+
+    if (selfGraphData && !result.has(selfGraphData.id)) {
+      const filtered = selfGraphData.points
+        .filter(p => p.time >= windowStart && p.time <= CUTOFF_TIME)
+        .map(p => ({ time: p.time, score: p.score }))
+      result.set(selfGraphData.id, filtered)
+    }
+
+    return result
+  })
+
   let viewportRef = $state<HTMLElement | null>(null)
   let showTopFade = $state(false)
   let showBottomFade = $state(true)
@@ -71,6 +122,8 @@
   const categoryGroups = $derived(groupByCategory(challengesByCategory))
   const solvesByTeam = $derived(buildSolvesMap(entries))
 
+  const isMinimal = $derived(viewMode === 'minimal')
+
   const cells = $derived(
     viewMode === 'boomer'
       ? categoryGroups.map(g => ({ name: g.config.name }))
@@ -78,10 +131,25 @@
   )
   const contentWidth = $derived(getContentWidth(cells, viewMode))
 
+  let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+
   function handleCellHover(data: TooltipData | null, x: number, y: number) {
-    tooltipData = data
-    tooltipX = x
-    tooltipY = y
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      hoverTimeout = null
+    }
+
+    if (data) {
+      hoverTimeout = setTimeout(() => {
+        hoveredTeamId = data.teamId
+        tooltipData = data
+        tooltipX = x
+        tooltipY = y
+      }, 300)
+    } else {
+      hoveredTeamId = null
+      tooltipData = null
+    }
   }
 
   function updateFades() {
@@ -112,16 +180,18 @@
 </script>
 
 <div class="flex justify-center">
-  <div class="relative max-w-full" style:width="{contentWidth}px">
+  <div
+    class={cn('relative max-w-full', isMinimal ? 'w-full max-w-3xl' : '')}
+    style:width={isMinimal ? undefined : `${contentWidth}px`}>
     <Fade
-      teamColWidth={layout.teamColumn}
+      teamColWidth={isMinimal ? 0 : layout.teamColumn}
       headerHeight={layout.headerHeight}
       fadeSize={FADE_SIZE}
       bottomOffset={showSelfRow ? layout.selfRowHeight : 0}
       {showTopFade}
       {showBottomFade}
-      {showLeftFade}
-      {showRightFade}
+      showLeftFade={isMinimal ? false : showLeftFade}
+      showRightFade={isMinimal ? false : showRightFade}
       showSelfRow={!!showSelfRow} />
 
     <ScrollArea
@@ -129,11 +199,13 @@
       orientation="both"
       fadeSize={0}
       scrollbarXClasses="z-50"
-      scrollbarXStyles="margin-left: {layout.teamColumn}px;"
+      scrollbarXStyles={isMinimal ? '' : `margin-left: ${layout.teamColumn}px;`}
       scrollbarYClasses="z-50"
       scrollbarYStyles="margin-top: {layout.headerHeight}px; height: calc(100% - {layout.headerHeight}px);"
       bind:viewportRef>
-      <div style:width="{contentWidth}px">
+      <div
+        class={isMinimal ? 'w-full' : ''}
+        style:width={isMinimal ? undefined : `${contentWidth}px`}>
         <Header
           {challenges}
           {categoryGroups}
@@ -169,7 +241,10 @@
               {viewMode}
               isCurrentUser={currentUser?.id === entry.id}
               teamColWidth={layout.teamColumn}
+              sparklineData={sparklineDataByTeam.get(entry.id) ?? []}
+              {page}
               onHover={() => (hoveredTeamId = entry.id)}
+              onUnhover={() => (hoveredTeamId = null)}
               onCellHover={handleCellHover} />
           {/each}
         </div>
@@ -185,7 +260,10 @@
               {sortMode}
               {viewMode}
               teamColWidth={layout.teamColumn}
+              sparklineData={sparklineDataByTeam.get(currentUser.id) ?? []}
+              {page}
               onHover={() => (hoveredTeamId = currentUser.id)}
+              onUnhover={() => (hoveredTeamId = null)}
               onCellHover={handleCellHover} />
           </div>
         {/if}

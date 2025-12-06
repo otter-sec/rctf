@@ -36,6 +36,7 @@
   }: Props = $props()
 
   const isBoomer = $derived(viewMode === 'boomer')
+  const isMinimal = $derived(viewMode === 'minimal')
 </script>
 
 {#snippet challengeTooltip(challenge: Challenge)}
@@ -117,106 +118,114 @@
   </div>
 {/snippet}
 
-<div class="sticky top-0 z-20 flex bg-background-l0">
-  <div
-    class="sticky left-0 z-30 shrink-0 bg-background-l0 pr-2"
-    style:width="{teamColWidth}px"
-    style:height="{headerHeight}px">
+{#if isMinimal}
+  <div class="sticky top-0 z-20 bg-background-l0" style:height="{headerHeight}px">
     {#if !isFetching}
       <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} />
     {/if}
   </div>
+{:else}
+  <div class="sticky top-0 z-20 flex bg-background-l0">
+    <div
+      class="sticky left-0 z-30 shrink-0 bg-background-l0 pr-2"
+      style:width="{teamColWidth}px"
+      style:height="{headerHeight}px">
+      {#if !isFetching}
+        <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} />
+      {/if}
+    </div>
 
-  <div class="flex flex-col">
-    <div class={cn('flex items-end pr-4', !isBoomer && 'gap-1')} style:height="{nameRowHeight}px">
-      {#if isBoomer}
-        <div class="flex gap-1 translate-x-1">
-          {#each categoryGroups as group}
-            <div
-              class="relative w-12"
-              style:height="{nameRowHeight}px"
-              style={getCategoryStyle(group.config.color)}>
-              <span
-                class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1">
-                {group.config.name}
-              </span>
-            </div>
-          {/each}
-        </div>
-      {:else if sortMode === 'category'}
-        {#each categoryGroups as group}
+    <div class="flex flex-col">
+      <div class={cn('flex items-end pr-4', !isBoomer && 'gap-1')} style:height="{nameRowHeight}px">
+        {#if isBoomer}
           <div class="flex gap-1 translate-x-1">
-            {#each group.challenges as challenge}
+            {#each categoryGroups as group}
               <div
                 class="relative w-12"
                 style:height="{nameRowHeight}px"
-                style={getCategoryStyle(challenge.config.color)}>
+                style={getCategoryStyle(group.config.color)}>
                 <span
-                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
-                  {challenge.name}
+                  class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1">
+                  {group.config.name}
                 </span>
               </div>
             {/each}
           </div>
-        {/each}
-      {:else}
-        {#each challenges as challenge}
-          <div
-            class="relative w-12"
-            style:height="{nameRowHeight}px"
-            style={getCategoryStyle(challenge.config.color)}>
-            <span
-              class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
-              {challenge.name}
-            </span>
-          </div>
-        {/each}
-      {/if}
-    </div>
+        {:else if sortMode === 'category'}
+          {#each categoryGroups as group}
+            <div class="flex gap-1 translate-x-1">
+              {#each group.challenges as challenge}
+                <div
+                  class="relative w-12"
+                  style:height="{nameRowHeight}px"
+                  style={getCategoryStyle(challenge.config.color)}>
+                  <span
+                    class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
+                    {challenge.name}
+                  </span>
+                </div>
+              {/each}
+            </div>
+          {/each}
+        {:else}
+          {#each challenges as challenge}
+            <div
+              class="relative w-12"
+              style:height="{nameRowHeight}px"
+              style={getCategoryStyle(challenge.config.color)}>
+              <span
+                class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1">
+                {challenge.name}
+              </span>
+            </div>
+          {/each}
+        {/if}
+      </div>
 
-    <div class={cn('flex items-stretch pr-4', !isBoomer && 'gap-1')}>
-      {#if isBoomer}
-        <div class="flex gap-1">
+      <div class={cn('flex items-stretch pr-4', !isBoomer && 'gap-1')}>
+        {#if isBoomer}
+          <div class="flex gap-1">
+            {#each categoryGroups as group}
+              <div
+                class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
+                style={getCategoryStyle(group.config.color)}>
+                <div class="flex py-1.5">
+                  {@render categoryBadge(group)}
+                </div>
+                {@render categoryIconOnly(group.config)}
+              </div>
+            {/each}
+          </div>
+        {:else if sortMode === 'solves'}
+          {#each challenges as challenge}
+            <div
+              class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
+              style={getCategoryStyle(challenge.config.color)}>
+              <div class="flex py-1.5 gap-1">
+                {@render pointsBadge(challenge)}
+              </div>
+              {@render categoryIcon(challenge.config)}
+            </div>
+          {/each}
+        {:else}
           {#each categoryGroups as group}
             <div
               class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
               style={getCategoryStyle(group.config.color)}>
-              <div class="flex py-1.5">
-                {@render categoryBadge(group)}
+              <div class="flex py-1.5 gap-1">
+                {#each group.challenges as challenge}
+                  {@render pointsBadge(challenge)}
+                {/each}
               </div>
-              {@render categoryIconOnly(group.config)}
+              {@render categoryIcon(
+                group.config,
+                group.challenges.length > 1,
+                group.challenges.length * cellWidth
+              )}
             </div>
           {/each}
-        </div>
-      {:else if sortMode === 'solves'}
-        {#each challenges as challenge}
-          <div
-            class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
-            style={getCategoryStyle(challenge.config.color)}>
-            <div class="flex py-1.5 gap-1">
-              {@render pointsBadge(challenge)}
-            </div>
-            {@render categoryIcon(challenge.config)}
-          </div>
-        {/each}
-      {:else}
-        {#each categoryGroups as group}
-          <div
-            class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
-            style={getCategoryStyle(group.config.color)}>
-            <div class="flex py-1.5 gap-1">
-              {#each group.challenges as challenge}
-                {@render pointsBadge(challenge)}
-              {/each}
-            </div>
-            {@render categoryIcon(
-              group.config,
-              group.challenges.length > 1,
-              group.challenges.length * cellWidth
-            )}
-          </div>
-        {/each}
-      {/if}
+        {/if}
+      </div>
     </div>
   </div>
-</div>
+{/if}

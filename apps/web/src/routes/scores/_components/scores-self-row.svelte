@@ -18,7 +18,10 @@
     teamColWidth: number
     sortMode: SortMode
     viewMode: ViewMode
+    sparklineData?: { time: number; score: number }[]
+    page?: number
     onHover?: () => void
+    onUnhover?: () => void
     onCellHover?: (data: TooltipData | null, x: number, y: number) => void
   }
 
@@ -31,11 +34,15 @@
     teamColWidth,
     sortMode,
     viewMode,
+    sparklineData = [],
+    page = 1,
     onHover,
+    onUnhover,
     onCellHover,
   }: Props = $props()
 
   const isBoomer = $derived(viewMode === 'boomer')
+  const isMinimal = $derived(viewMode === 'minimal')
 
   const categoryStats = $derived(
     categoryGroups.map(group => {
@@ -104,10 +111,12 @@
 {/snippet}
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div
-  class="group w-full rounded-lg bg-background-l2/50 hover:bg-background-l2"
-  onmouseenter={onHover}>
-  <div class="flex w-fit rounded-lg bg-background-l2 group-hover:bg-background-l3">
+<div class="group w-full rounded-lg bg-background-l2/50 hover:bg-background-l2">
+  <div
+    class={cn(
+      'flex rounded-lg bg-background-l2 group-hover:bg-background-l3',
+      isMinimal ? 'w-full' : 'w-fit'
+    )}>
     <TeamInfo
       id={user.id}
       name={user.name}
@@ -118,30 +127,36 @@
       divisionPlace={user.divisionPlace ?? 0}
       {rank}
       isCurrentUser={true}
-      width={teamColWidth} />
+      width={isMinimal ? undefined : teamColWidth}
+      {sparklineData}
+      {page}
+      {onHover}
+      {onUnhover} />
 
-    {#if isBoomer}
-      <div class="flex gap-1 pr-4">
-        {#each categoryStats as stat}
-          {@render categoryCell(stat)}
-        {/each}
-      </div>
-    {:else}
-      <div class="flex gap-1 pr-4">
-        {#if sortMode === 'category'}
-          {#each categoryGroups as group}
-            <div class="flex gap-1">
-              {#each group.challenges as challenge, i}
-                {@render challengeCell(challenge, i === 0)}
-              {/each}
-            </div>
+    {#if !isMinimal}
+      {#if isBoomer}
+        <div class="flex gap-1 pr-4">
+          {#each categoryStats as stat}
+            {@render categoryCell(stat)}
           {/each}
-        {:else}
-          {#each challenges as challenge}
-            {@render challengeCell(challenge)}
-          {/each}
-        {/if}
-      </div>
+        </div>
+      {:else}
+        <div class="flex gap-1 pr-4">
+          {#if sortMode === 'category'}
+            {#each categoryGroups as group}
+              <div class="flex gap-1">
+                {#each group.challenges as challenge, i}
+                  {@render challengeCell(challenge, i === 0)}
+                {/each}
+              </div>
+            {/each}
+          {:else}
+            {#each challenges as challenge}
+              {@render challengeCell(challenge)}
+            {/each}
+          {/if}
+        </div>
+      {/if}
     {/if}
   </div>
 </div>

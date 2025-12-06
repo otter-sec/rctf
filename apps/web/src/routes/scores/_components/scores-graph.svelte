@@ -4,7 +4,7 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
-  import { PAGE_SIZE } from '../_lib'
+  import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from '../_lib'
 
   interface Props {
     class?: string
@@ -35,30 +35,6 @@
 
   const graphQuery = $derived(useLeaderboardGraph({ limit: 10, offset, division: 'open' }))
   const top3Query = $derived(useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' }))
-
-  const MEDAL_COLORS = [
-    'var(--foreground-gold-l0)',
-    'var(--foreground-silver-l0)',
-    'var(--foreground-bronze-l0)',
-  ] as const
-
-  const RANK_COLORS = [
-    'var(--foreground-first)',
-    'var(--foreground-second)',
-    'var(--foreground-third)',
-    'var(--foreground-fourth)',
-    'var(--foreground-fifth)',
-    'var(--foreground-sixth)',
-    'var(--foreground-seventh)',
-    'var(--foreground-eighth)',
-    'var(--foreground-ninth)',
-    'var(--foreground-tenth)',
-  ] as const
-
-  const SELF_COLOR = 'var(--foreground-self-l0)'
-
-  // TODO(enscribe): Remove cutoff filter
-  const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
 
   type GraphEntry = NonNullable<typeof $graphQuery.data>[number]
   type TeamMeta = {
@@ -206,20 +182,47 @@
             data={points}
             class={meta.isSelf ? 'stroke-3' : 'stroke-2'}
             stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
-            style="opacity: {isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}" />
+            style="opacity: {isDimmed
+              ? 0.15
+              : meta.isContext
+                ? 0.3
+                : 1}; transition: opacity 150ms ease, stroke 150ms ease; stroke-linecap: round; stroke-linejoin: round;" />
         {/each}
 
         {#if solveHighlightPoint}
           {@const x = context.xScale(solveHighlightPoint.time)}
           {@const y = context.yScale(solveHighlightPoint.score)}
+          {@const yRange = context.yScale.range()}
+          {@const xRange = context.xScale.range()}
+          <line
+            x1={x}
+            y1={yRange[0]}
+            x2={x}
+            y2={yRange[1]}
+            stroke={solveHighlightPoint.color}
+            stroke-width={1}
+            stroke-dasharray="4 4"
+            class="pointer-events-none"
+            style="opacity: 0.5; transition: all 150ms ease;" />
+          <line
+            x1={xRange[0]}
+            y1={y}
+            x2={xRange[1]}
+            y2={y}
+            stroke={solveHighlightPoint.color}
+            stroke-width={1}
+            stroke-dasharray="4 4"
+            class="pointer-events-none"
+            style="opacity: 0.5; transition: all 150ms ease;" />
           <circle
             cx={x}
             cy={y}
-            r={6}
+            r={5}
             fill={solveHighlightPoint.color}
             stroke="var(--background-l0)"
             stroke-width={3}
-            class="pointer-events-none" />
+            class="pointer-events-none"
+            style="transition: all 150ms ease;" />
         {/if}
 
         <Highlight points lines />

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { DropdownMenu, PaginationControls, Tooltip } from '$lib/components'
+  import { Button, ButtonGroup, PaginationControls, Tooltip } from '$lib/components'
   import {
     IconLayoutListFilled,
-    IconSettingsFilled,
+    IconListFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
@@ -32,52 +32,68 @@
     onViewChange,
   }: Props = $props()
 
-  const btnClass =
-    'h-10 bg-background-l2 px-3 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50'
+  const viewOptions: { value: ViewMode; icon: typeof IconTableFilled; label: string }[] = [
+    { value: 'zoomer', icon: IconTableFilled, label: 'Matrix' },
+    { value: 'boomer', icon: IconLayoutListFilled, label: 'Simple' },
+    { value: 'minimal', icon: IconListFilled, label: 'Minimal' },
+  ]
+
+  const sortOptions: { value: SortMode; icon: typeof IconTableFilled; label: string }[] = [
+    { value: 'category', icon: IconSortDescendingShapesFilled, label: 'Category' },
+    { value: 'solves', icon: IconSortAscendingNumbers, label: 'Difficulty' },
+  ]
+
+  const toggleBtnClass =
+    'h-9 px-3 text-foreground-l3 hover:text-foreground-l1 disabled:pointer-events-none disabled:opacity-50'
+  const toggleBtnActiveClass = 'bg-background-l3 text-foreground-l1'
 </script>
 
-<div class="flex items-center justify-between gap-1 py-2">
-  <DropdownMenu.Root>
-    <DropdownMenu.Trigger class={cn(btnClass, 'rounded-lg')}>
-      <IconSettingsFilled class="size-5" />
-    </DropdownMenu.Trigger>
-    <DropdownMenu.Content align="start" class="w-48">
-      <DropdownMenu.Label>View</DropdownMenu.Label>
-      <DropdownMenu.RadioGroup value={viewMode} onValueChange={v => onViewChange(v as ViewMode)}>
-        <DropdownMenu.RadioItem value="zoomer">
-          <IconTableFilled class="size-4 text-foreground-l3" />
-          Matrix view
-        </DropdownMenu.RadioItem>
-        <DropdownMenu.RadioItem value="boomer">
-          <IconLayoutListFilled class="size-4 text-foreground-l3" />
-          Simple view
-        </DropdownMenu.RadioItem>
-      </DropdownMenu.RadioGroup>
+<div class="flex items-center justify-between gap-4 py-2">
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <span class="text-sm text-foreground-l3">View</span>
+      <ButtonGroup.Root class="gap-0.5">
+        {#each viewOptions as option}
+          {@const isActive = viewMode === option.value}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Button
+                variant="ghost"
+                size="sm"
+                class={cn(toggleBtnClass, isActive && toggleBtnActiveClass)}
+                onclick={() => onViewChange(option.value)}>
+                <option.icon class="size-4" />
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
+          </Tooltip.Root>
+        {/each}
+      </ButtonGroup.Root>
+    </div>
 
-      <DropdownMenu.Separator />
-      <DropdownMenu.Label>Sorting</DropdownMenu.Label>
-      <DropdownMenu.RadioGroup value={sortMode} onValueChange={v => onSortChange(v as SortMode)}>
-        <Tooltip.Root disabled={viewMode === 'zoomer'}>
-          <Tooltip.Trigger class="w-full">
-            <DropdownMenu.RadioItem value="category" disabled={viewMode === 'boomer'}>
-              <IconSortDescendingShapesFilled class="size-4 text-foreground-l3" />
-              By category
-            </DropdownMenu.RadioItem>
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">Not available in simple view</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root disabled={viewMode === 'zoomer'}>
-          <Tooltip.Trigger class="w-full">
-            <DropdownMenu.RadioItem value="solves" disabled={viewMode === 'boomer'}>
-              <IconSortAscendingNumbers class="size-4 text-foreground-l3" />
-              By difficulty
-            </DropdownMenu.RadioItem>
-          </Tooltip.Trigger>
-          <Tooltip.Content side="right">Not available in simple view</Tooltip.Content>
-        </Tooltip.Root>
-      </DropdownMenu.RadioGroup>
-    </DropdownMenu.Content>
-  </DropdownMenu.Root>
+    {#if viewMode === 'zoomer'}
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-foreground-l3">Sort</span>
+        <ButtonGroup.Root>
+          {#each sortOptions as option}
+            {@const isActive = sortMode === option.value}
+            <Tooltip.Root>
+              <Tooltip.Trigger>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  class={cn(toggleBtnClass, isActive && toggleBtnActiveClass)}
+                  onclick={() => onSortChange(option.value)}>
+                  <option.icon class="size-4" />
+                </Button>
+              </Tooltip.Trigger>
+              <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
+            </Tooltip.Root>
+          {/each}
+        </ButtonGroup.Root>
+      </div>
+    {/if}
+  </div>
 
   <PaginationControls {page} {totalPages} disabled={isRefetching} {onPageChange} />
 </div>
