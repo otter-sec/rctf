@@ -69,7 +69,6 @@
       "devDependencies": {
         "@iconify-svelte/tabler": "^1.0.0",
         "@internationalized/date": "^3.8.1",
-        "@lucide/svelte": "^0.544.0",
         "@sveltejs/adapter-auto": "^7.0.0",
         "@sveltejs/adapter-static": "^3.0.10",
         "@sveltejs/kit": "^2.47.1",
@@ -98,6 +97,7 @@
       "name": "@rctf/config",
       "version": "0.0.0",
       "dependencies": {
+        "@rctf/types": "workspace:*",
         "deepmerge": "^4.3.1",
         "type-fest": "^5.2.0",
         "yaml": "^2.8.1",
@@ -404,8 +404,6 @@
     "@layerstack/tailwind": ["@layerstack/tailwind@2.0.0-next.15", "", { "dependencies": { "@layerstack/utils": "^2.0.0-next.12", "clsx": "^2.1.1", "d3-array": "^3.2.4", "lodash-es": "^4.17.21", "tailwind-merge": "^3.2.0" } }, "sha512-7tqKE3OV7/ybeDOORX++USYYCBJa7IgTya2czFpzbgXGo7CQDVyuv+0J1DggjRcEqhhXQA4MUhgnhcRaZvHxWg=="],
 
     "@layerstack/utils": ["@layerstack/utils@2.0.0-next.12", "", { "dependencies": { "d3-array": "^3.2.4", "d3-time": "^3.1.0", "d3-time-format": "^4.1.0", "lodash-es": "^4.17.21" } }, "sha512-fhGZUlSr3N+D44BYm37WKMGSEFyZBW+dwIqtGU8Cl54mR4TLQ/UwyGhdpgIHyH/x/8q1abE0fP0Dn6ZsrDE3BA=="],
-
-    "@lucide/svelte": ["@lucide/svelte@0.544.0", "", { "peerDependencies": { "svelte": "^5" } }, "sha512-9f9O6uxng2pLB01sxNySHduJN3HTl5p0HDu4H26VR51vhZfiMzyOMe9Mhof3XAk4l813eTtl+/DYRvGyoRR+yw=="],
 
     "@pinojs/redact": ["@pinojs/redact@0.4.0", "", {}, "sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg=="],
 

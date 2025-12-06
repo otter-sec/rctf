@@ -47,6 +47,22 @@
       rel="noopener noreferrer">Terms of Service</a>
     apply.
   </p>
+{:else if enabled && provider === 'captcha/turnstile'}
+  <p class={`block text-foreground-l4 text-xs ${className}`}>
+    This site is protected by Cloudflare Turnstile. The Cloudflare
+    <a
+      class="text-foreground-prose-link hover:underline"
+      href="https://www.cloudflare.com/privacypolicy/"
+      target="_blank"
+      rel="noopener noreferrer">Privacy Policy</a>
+    and
+    <a
+      class="text-foreground-prose-link hover:underline"
+      href="https://www.cloudflare.com/website-terms/"
+      target="_blank"
+      rel="noopener noreferrer">Terms of Service</a>
+    apply.
+  </p>
 {:else if enabled && provider}
   <p class={`block text-foreground-l4 text-xs ${className}`}>
     This site is protected by a captcha provider <code>{provider}</code>. No idea what are their
