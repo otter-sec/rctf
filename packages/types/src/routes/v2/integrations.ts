@@ -4,6 +4,7 @@ import {
   BadChallenge,
   BadEndpoint,
   BadInstancerError,
+  ErrorInternal,
   GoodClientConfigV2,
   GoodInstanceStatus,
 } from '../../responses'
@@ -18,7 +19,13 @@ export const GetClientConfigRouteV2 = defineRoute({
 export const GetInstanceStatusRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',
   method: 'GET',
-  responses: [GoodInstanceStatus, BadInstancerError, BadEndpoint, BadChallenge],
+  responses: [
+    GoodInstanceStatus,
+    BadInstancerError,
+    BadEndpoint,
+    BadChallenge,
+    ErrorInternal,
+  ],
   authRequired: true,
   params: z.object({
     id: z.string(),

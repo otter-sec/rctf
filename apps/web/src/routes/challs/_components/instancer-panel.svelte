@@ -52,6 +52,8 @@
       error = null
     } else if (res.kind === 'badInstancerError') {
       error = res.data.message
+    } else {
+      error = res.message
     }
     loading = false
   }
@@ -120,7 +122,7 @@
 
 <div class="flex h-full flex-col p-3">
   {#if loading}
-    <div class="flex flex-col items-center justify-center">
+    <div class="flex flex-1 flex-col items-center justify-center">
       <IconLoader class="size-5 animate-spin text-foreground-l4" />
     </div>
   {:else if error}
