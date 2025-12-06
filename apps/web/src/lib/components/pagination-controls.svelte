@@ -18,58 +18,59 @@
 
   let { page, totalPages, disabled = false, variant = 'default', onPageChange }: Props = $props()
 
-  const baseClass = 'h-10 px-3 disabled:pointer-events-none disabled:opacity-50'
-
-  const variantClasses = $derived(
-    variant === 'rounded'
-      ? 'bg-background-l3 text-foreground-l2 hover:bg-background-l4 hover:text-foreground-l1'
-      : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
-  )
-
-  const containerClass = $derived(variant === 'rounded' ? 'rounded-full' : 'rounded-lg')
+  const atStart = $derived(page === 1)
+  const atEnd = $derived(page === totalPages || totalPages === 0)
+  const safeTotalPages = $derived(totalPages || 1)
 
   const pageButtons = $derived([
     {
       icon: IconChevronLeftPipe,
       targetPage: 1,
-      disabled: page === 1,
+      disabled: atStart,
       label: 'First page',
+      roundedClass: 'rounded-r-sm',
     },
     {
       icon: IconChevronLeft,
       targetPage: Math.max(1, page - 1),
-      disabled: page === 1,
+      disabled: atStart,
       label: 'Previous page',
+      roundedClass: 'rounded-sm',
     },
     {
       icon: IconChevronRight,
-      targetPage: Math.min(totalPages || 1, page + 1),
-      disabled: page === totalPages || totalPages === 0,
+      targetPage: Math.min(safeTotalPages, page + 1),
+      disabled: atEnd,
       label: 'Next page',
+      roundedClass: 'rounded-sm',
     },
     {
       icon: IconChevronRightPipe,
-      targetPage: totalPages || 1,
-      disabled: page === totalPages || totalPages === 0,
+      targetPage: safeTotalPages,
+      disabled: atEnd,
       label: 'Last page',
+      roundedClass: 'rounded-l-sm',
     },
   ])
 </script>
 
 <div class="flex items-center gap-1">
   <div class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3">
-    Page {page} / {totalPages || 1}
+    Page {page} / {safeTotalPages}
   </div>
-  <div class={cn('flex h-10 gap-1 overflow-hidden', containerClass)}>
-    {#each pageButtons as btn, i}
+  <div
+    class={cn(
+      'flex h-10 gap-1 overflow-hidden',
+      variant === 'rounded' ? 'rounded-full' : 'rounded-lg'
+    )}>
+    {#each pageButtons as btn}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={() => onPageChange(btn.targetPage)}
           disabled={disabled || btn.disabled}
           class={cn(
-            baseClass,
-            variantClasses,
-            i === 0 ? 'rounded-r-sm' : i === pageButtons.length - 1 ? 'rounded-l-sm' : 'rounded-sm'
+            'h-10 px-3 bg-background-l4 text-foreground-l1 hover:bg-background-l5 disabled:pointer-events-none disabled:opacity-50',
+            btn.roundedClass
           )}>
           <btn.icon class="size-5" />
         </Tooltip.Trigger>

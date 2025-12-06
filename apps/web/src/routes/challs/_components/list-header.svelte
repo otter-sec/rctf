@@ -29,8 +29,8 @@
 </script>
 
 <div class="flex shrink-0 flex-col gap-2 py-2">
-  <div class="flex items-baseline justify-between px-9">
-    <div class="flex items-baseline gap-1 whitespace-nowrap">
+  <div class="flex justify-between px-9">
+    <div class="flex gap-1 whitespace-nowrap">
       <span class="text-foreground-l3 text-base tabular-nums">
         {pointsEarned.toLocaleString()}
       </span>
@@ -59,7 +59,7 @@
             'rounded-sm px-4 py-2',
             hideSolved
               ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
-              : 'bg-background-l2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1'
+              : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
           )}>
           {#if hideSolved}
             <IconEyeClosed class="size-5" />
@@ -75,7 +75,7 @@
         <Tooltip.Trigger
           onclick={onCollapseAll}
           aria-label="Collapse all"
-          class="rounded-l-sm bg-background-l2 px-4 py-2 text-foreground-l2 hover:bg-background-l3 hover:text-foreground-l1">
+          class="rounded-l-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5">
           <IconFold class="size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>

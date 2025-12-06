@@ -17,13 +17,14 @@
     class: className,
     onInput,
   }: Props = $props()
-
-  const containerClass = $derived(
-    variant === 'rounded' ? 'rounded-full bg-background-l3' : 'rounded-r-sm bg-background-l2'
-  )
 </script>
 
-<div class={cn('flex h-10 flex-1 items-center justify-between px-4', containerClass, className)}>
+<div
+  class={cn(
+    'flex h-10 flex-1 items-center justify-between px-4 bg-background-l4',
+    variant === 'rounded' ? 'rounded-full' : 'rounded-r-sm',
+    className
+  )}>
   <input
     type="text"
     {placeholder}

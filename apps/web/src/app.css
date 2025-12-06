@@ -133,18 +133,18 @@
 
 :root {
   --radius: 0.625rem;
-  --background-l0: var(--color-neutral-50);
-  --background-l1: var(--color-neutral-100);
-  --background-l2: oklch(94.0% 0 0);
-  --background-l3: oklch(92.0% 0 0);
-  --background-l4: oklch(90.0% 0 0);
-  --background-l5: oklch(88.0% 0 0);
+  --background-l0: oklch(98% 0 0);
+  --background-l1: oklch(95% 0 0);
+  --background-l2: oklch(92% 0 0);
+  --background-l3: oklch(90% 0 0);
+  --background-l4: oklch(88% 0 0);
+  --background-l5: oklch(86% 0 0);
   --foreground-l0: var(--color-neutral-700);
   --foreground-l1: var(--color-neutral-600);
   --foreground-l2: var(--color-neutral-500);
-  --foreground-l3: oklch(60.0% 0 0);
-  --foreground-l4: oklch(65.0% 0 0);
-  --foreground-l5: oklch(70.0% 0 0);
+  --foreground-l3: oklch(60% 0 0);
+  --foreground-l4: oklch(65% 0 0);
+  --foreground-l5: oklch(70% 0 0);
   --background-accent: color-mix(in oklch, var(--color-sky-200) 50%, transparent);
   --background-accent-hover: color-mix(in oklch, var(--color-sky-200) 70%, transparent);
   --foreground-accent: var(--color-sky-700);
@@ -232,12 +232,12 @@
 
 [data-theme='dark'] {
   --radius: 0.625rem;
-  --background-l0: var(--color-neutral-950);
-  --background-l1: oklch(16.4% 0 0);
-  --background-l2: var(--color-neutral-900);
-  --background-l3: oklch(23.5% 0 0);
-  --background-l4: var(--color-neutral-800);
-  --background-l5: var(--color-neutral-700);
+  --background-l0: oklch(15% 0 0);
+  --background-l1: oklch(18.5% 0 0);
+  --background-l2: oklch(22% 0 0);
+  --background-l3: oklch(26% 0 0);
+  --background-l4: oklch(30% 0 0);
+  --background-l5: oklch(35% 0 0);
   --foreground-l0: var(--color-neutral-50);
   --foreground-l1: var(--color-neutral-200);
   --foreground-l2: var(--color-neutral-300);

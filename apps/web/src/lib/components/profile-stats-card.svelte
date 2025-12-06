@@ -15,7 +15,7 @@
   let { name, email, ctftimeId, divisionLabel, score, globalPlace, divisionPlace }: Props = $props()
 </script>
 
-// TODO(enscribe): remove
+<!-- TODO(enscribe): remove -->
 <Card.Root>
   <Card.Header>
     <Card.Title class="wrap-anywhere text-2xl">{name}</Card.Title>

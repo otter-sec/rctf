@@ -85,7 +85,6 @@
 {/snippet}
 
 {#snippet categoryBadge(group: CategoryGroup)}
-  {@const Icon = group.config.icon}
   {@const count = group.challenges.length}
   {@const totalPoints = group.challenges.reduce((sum, c) => sum + c.points, 0)}
   <Tooltip.Root>
