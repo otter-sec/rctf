@@ -88,7 +88,7 @@
 {#each fades as fade}
   <div
     class={cn(
-      'pointer-events-none absolute z-40 transition-opacity',
+      'pointer-events-none absolute z-20',
       fade.class,
       fade.show ? 'opacity-100' : 'opacity-0'
     )}

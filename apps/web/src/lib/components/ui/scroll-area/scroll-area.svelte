@@ -29,7 +29,7 @@
 
   let internalViewportRef = $state<HTMLElement | null>(null)
   let showTopFade = $state(false)
-  let showBottomFade = $state(true)
+  let showBottomFade = $state(false)
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
 
@@ -107,7 +107,7 @@
   {#if hasVertical}
     <div
       class={cn(
-        'pointer-events-none absolute inset-x-0 top-0 transition-opacity',
+        'pointer-events-none absolute inset-x-0 top-0 z-10',
         showTopFade ? 'opacity-100' : 'opacity-0'
       )}
       style={topFadeStyle}
@@ -116,7 +116,7 @@
 
     <div
       class={cn(
-        'pointer-events-none absolute inset-x-0 bottom-0 transition-opacity',
+        'pointer-events-none absolute inset-x-0 bottom-0 z-10',
         showBottomFade ? 'opacity-100' : 'opacity-0'
       )}
       style={bottomFadeStyle}
@@ -127,7 +127,7 @@
   {#if hasHorizontal}
     <div
       class={cn(
-        'pointer-events-none absolute inset-y-0 left-0 transition-opacity',
+        'pointer-events-none absolute inset-y-0 left-0 z-10',
         showLeftFade ? 'opacity-100' : 'opacity-0'
       )}
       style={leftFadeStyle}
@@ -136,7 +136,7 @@
 
     <div
       class={cn(
-        'pointer-events-none absolute inset-y-0 right-0 transition-opacity',
+        'pointer-events-none absolute inset-y-0 right-0 z-10',
         showRightFade ? 'opacity-100' : 'opacity-0'
       )}
       style={rightFadeStyle}

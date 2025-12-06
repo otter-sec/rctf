@@ -107,7 +107,12 @@
     onToggleHideSolved={() => (hideSolved = !hideSolved)}
     onCollapseAll={() => (openCategories = [])} />
 
-  <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l1">
+  <ScrollArea
+    class="min-h-0 flex-1"
+    fadeSize={86}
+    fadeColor="background-l1"
+    scrollbarYClasses="z-30"
+    scrollbarXClasses="z-30">
     {#if filteredChallenges.length === 0}
       <EmptyState
         icon={IconZoomQuestionFilled}
@@ -122,6 +127,7 @@
           <Accordion.Item value={category} class="border-b-0" style={catStyle}>
             <Accordion.Trigger
               class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+              headerClass="sticky top-0 z-20 bg-background-l1"
               chevronClass="text-category-foreground-l1">
               {#snippet trailing()}
                 <div

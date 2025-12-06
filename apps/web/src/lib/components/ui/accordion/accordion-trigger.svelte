@@ -7,6 +7,7 @@
   let {
     ref = $bindable(null),
     class: className,
+    headerClass,
     chevronClass,
     level = 3,
     children,
@@ -14,12 +15,13 @@
     ...restProps
   }: WithoutChild<AccordionPrimitive.TriggerProps> & {
     level?: AccordionPrimitive.HeaderProps['level']
+    headerClass?: string
     chevronClass?: string
     trailing?: Snippet
   } = $props()
 </script>
 
-<AccordionPrimitive.Header {level} class="flex">
+<AccordionPrimitive.Header {level} class={cn('flex', headerClass)}>
   <AccordionPrimitive.Trigger
     data-slot="accordion-trigger"
     bind:ref
