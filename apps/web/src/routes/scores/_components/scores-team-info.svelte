@@ -48,7 +48,7 @@
 
 <div
   class={cn(
-    'sticky left-0 z-10 flex h-16 items-center gap-3 px-4',
+    'sticky left-0 z-10 flex h-16 items-center justify-between px-4',
     isFullWidth ? 'w-full rounded-lg' : 'shrink-0 rounded-l-lg',
     styles.bg,
     isFullWidth
@@ -62,37 +62,41 @@
     ]
   )}
   style:width={width ? `${width}px` : undefined}>
-  <div class="flex w-16 shrink-0 flex-col items-center">
-    <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
-    <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+  <div class="flex items-center gap-3">
+    <div class="flex w-16 shrink-0 flex-col items-center">
+      <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
+      <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+    </div>
+
+    <Avatar.Root class="size-12 shrink-0 rounded-lg">
+      {#if avatarUrl}
+        <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
+      {/if}
+      <Avatar.Fallback class="rounded-lg text-sm">
+        {getInitials(name)}
+      </Avatar.Fallback>
+    </Avatar.Root>
+
+    <div class="flex h-full w-64 shrink-0 flex-col justify-center">
+      <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
+        {name}
+      </a>
+      <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
+    </div>
   </div>
 
-  <Avatar.Root class="size-12 shrink-0 rounded-lg">
-    {#if avatarUrl}
-      <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
-    {/if}
-    <Avatar.Fallback class="rounded-lg text-sm">
-      {getInitials(name)}
-    </Avatar.Fallback>
-  </Avatar.Root>
+  <div class="flex items-center gap-4">
+    <div class="flex w-28 shrink-0 flex-col items-end">
+      <span class="text-xl tabular-nums text-foreground-l1">
+        {score.toLocaleString()} pts
+      </span>
+      <span class="text-base text-foreground-l3">
+        {solveCount} solve{solveCount !== 1 ? 's' : ''}
+      </span>
+    </div>
 
-  <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-    <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
-      {name}
-    </a>
-    <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
-  </div>
-
-  <div class="flex w-28 shrink-0 flex-col items-end">
-    <span class="text-xl tabular-nums text-foreground-l1">
-      {score.toLocaleString()} pts
-    </span>
-    <span class="text-base text-foreground-l3">
-      {solveCount} solve{solveCount !== 1 ? 's' : ''}
-    </span>
-  </div>
-
-  <div class="ml-4 w-24 shrink-0">
-    <Sparkline data={sparklineData} {rank} {isCurrentUser} {page} {onHover} {onUnhover} />
+    <div class="w-24 shrink-0">
+      <Sparkline data={sparklineData} {rank} {isCurrentUser} {page} {onHover} {onUnhover} />
+    </div>
   </div>
 </div>
