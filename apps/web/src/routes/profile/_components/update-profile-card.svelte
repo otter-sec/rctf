@@ -1,8 +1,15 @@
 <script lang="ts">
-  import { GoodEmailRemoved, GoodEmailSet, GoodUserUpdateV2, GoodVerifySent } from '@rctf/types'
+  import {
+    GoodEmailRemoved,
+    GoodEmailSet,
+    GoodUserUpdateV2,
+    GoodVerifySent,
+    ProtectedAction,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { Button, Card, Field, Input, Select, Spinner } from '$lib/components'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import {
     queryKeys,
     useClientConfig,
@@ -222,6 +229,8 @@
             <Field.Error>{errors.email}</Field.Error>
           {/if}
         </Field.Field>
+
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} class="mt-1" />
 
         {#if allowedDivisionOptions.length > 1}
           <Field.Field data-invalid={!!errors.division || undefined}>

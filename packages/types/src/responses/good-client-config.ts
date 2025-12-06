@@ -35,5 +35,11 @@ export const GoodClientConfig = response('goodClientConfig', {
         clientId: NumericString,
       })
       .nullable(),
+    recaptcha: z
+      .object({
+        siteKey: z.string(),
+        protectedActions: z.array(z.string()),
+      })
+      .nullable(),
   }),
 })

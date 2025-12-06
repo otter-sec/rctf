@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
+import { captchaProviders } from './captcha'
 import { emailProviders } from './emails'
 import { instancerProviders } from './instancer'
 import { scoreProviders } from './scores'
@@ -41,3 +42,29 @@ export const instancerProvider = loadProvider(
   instancerProviders,
   config.instancerProvider
 )
+
+export const captchaProvider = (() => {
+  // NOTE(es3n1n): backporting v1 recaptcha config
+  if (config.recaptcha) {
+    if (config.captcha) {
+      throw new Error(
+        'Captcha provider and recaptcha config cannot be used together'
+      )
+    }
+
+    config.captcha = {
+      provider: {
+        name: 'captcha/recaptcha',
+        options: {
+          secretKey: config.recaptcha.secretKey,
+          siteKey: config.recaptcha.siteKey,
+        },
+      },
+      protectedEndpoints: Object.fromEntries(
+        config.recaptcha.protectedActions?.map(action => [action, true]) ?? []
+      ),
+    }
+  }
+
+  return loadProvider(captchaProviders, config.captcha?.provider)
+})()

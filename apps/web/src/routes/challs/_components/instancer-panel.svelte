@@ -6,10 +6,13 @@
     ExtendInstanceRouteV2,
     GetInstanceStatusRouteV2,
     InstanceStatus,
+    ProtectedAction,
   } from '@rctf/types'
   import { apiRequest } from '$lib/api'
   import { Button, Progress } from '$lib/components'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader } from '$lib/icons'
+  import { useClientConfig } from '$lib/query'
   import { formatCountdown } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
@@ -18,6 +21,9 @@
   }
 
   let { challengeId }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   let status = $state(InstanceStatus.STOPPED)
   let endpoints = $state<{ kind: ExposeKind; host: string; port: number }[]>([])
@@ -195,6 +201,7 @@
           Stop
         </Button>
       </div>
+      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} class="mt-2" />
     </div>
   {/if}
 </div>

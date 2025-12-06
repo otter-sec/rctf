@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { GoodVerifySent } from '@rctf/types'
+  import { GoodVerifySent, ProtectedAction } from '@rctf/types'
   import { toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useClientConfig, useRecoverMutation } from '$lib/query'
 
   const recoverMutation = useRecoverMutation()
@@ -92,12 +93,13 @@
         </Button>
       </form>
     </Card.Content>
-    <Card.Footer>
+    <Card.Footer class="flex flex-col gap-2">
       <p class="text-foreground-l3 text-sm">
         Remember your token? <a href="/login" class="text-foreground-prose-link hover:underline"
           >Login here</a
         >.
       </p>
+      <CaptchaNotice config={clientConfig} action={ProtectedAction.Recover} class="mt-3" />
     </Card.Footer>
   </Card.Root>
 {/if}

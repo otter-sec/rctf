@@ -18,10 +18,12 @@ import type {
 } from '@rctf/types'
 import {
   BadBody,
+  BadCaptcha,
   BadEnded,
   BadJson,
   BadNotStarted,
   BadPerms,
+  BadRecaptchaCode,
   BadToken,
 } from '@rctf/types'
 import type { Handler } from 'hono'
@@ -29,6 +31,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod'
 import { getCachedUser, setCachedUser } from '../cache/auth-cache'
 import { getUser } from '../services/users'
+import { validateCaptcha } from '../util/captcha'
 import type { ApiContext, AppEnv } from './app-env'
 import { parseToken, TokenKind } from './tokens'
 
@@ -172,6 +175,24 @@ const alreadyFinished = (): [JsonLike, ContentfulStatusCode] => [
     message: BadEnded.message,
   },
   BadEnded.status as ContentfulStatusCode,
+]
+
+// NOTE(es3n1n): v2 response
+const badCaptcha = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadCaptcha.kind,
+    message: BadCaptcha.message,
+  },
+  BadCaptcha.status as ContentfulStatusCode,
+]
+
+// NOTE(es3n1n): v1 backwards compatibility
+const badRecaptchaCode = (): [JsonLike, ContentfulStatusCode] => [
+  {
+    kind: BadRecaptchaCode.kind,
+    message: BadRecaptchaCode.message,
+  },
+  BadRecaptchaCode.status as ContentfulStatusCode,
 ]
 
 const ensureAuth = async (context: ApiContext): Promise<User | undefined> => {
@@ -383,6 +404,26 @@ export const declareRouter = <
     const parsedBody = bodyOutcome.value as RouteBody<typeof definition>
     const parsedParams = paramsOutcome.value as RouteParams<typeof definition>
     const parsedQuery = queryOutcome.value as RouteQuery<typeof definition>
+
+    if (definition.captchaAction) {
+      // NOTE(es3n1n): v1 uses recaptchaCode, v2 uses captchaCode
+      const isV1 = definition.path.startsWith('/v1/')
+      const bodyWithCaptcha = parsedBody as
+        | { captchaCode?: string; recaptchaCode?: string }
+        | undefined
+      const captchaCode = isV1
+        ? bodyWithCaptcha?.recaptchaCode
+        : bodyWithCaptcha?.captchaCode
+
+      const isValid = await validateCaptcha(
+        definition.captchaAction,
+        captchaCode,
+        context.var.ip
+      )
+      if (!isValid) {
+        return context.json(...(isV1 ? badRecaptchaCode() : badCaptcha()))
+      }
+    }
 
     executionContext.params = parsedParams
     executionContext.query = parsedQuery

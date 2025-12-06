@@ -3,6 +3,10 @@
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
+.grecaptcha-badge {
+  visibility: hidden !important;
+}
+
 @theme inline {
   --font-sans:
     Lexend, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',

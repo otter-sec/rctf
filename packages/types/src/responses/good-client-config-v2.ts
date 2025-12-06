@@ -36,5 +36,19 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
       })
       .nullable(),
     instancerEnabled: z.boolean(),
+    captcha: z
+      .object({
+        provider: z.string(),
+        publicOptions: z.record(z.string(), z.string()),
+        protectedEndpoints: z.object({
+          register: z.boolean(),
+          recover: z.boolean(),
+          setEmail: z.boolean(),
+          instancerStart: z.boolean(),
+          instancerExtend: z.boolean(),
+          avatarUpload: z.boolean(),
+        }),
+      })
+      .nullable(),
   }),
 })

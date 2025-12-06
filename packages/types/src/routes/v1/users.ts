@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadCtftimeNoExists,
@@ -14,6 +15,7 @@ import {
   BadKnownName,
   BadName,
   BadRateLimit,
+  BadRecaptchaCode,
   BadToken,
   BadUnknownUser,
   BadZeroAuth,
@@ -107,8 +109,10 @@ export const DeleteMemberRoute = defineRoute({
 export const SetEmailRoute = defineRoute({
   path: '/v1/users/me/auth/email',
   method: 'PUT',
+  captchaAction: ProtectedAction.SetEmail,
   body: z.object({
     email: UserEmail,
+    recaptchaCode: z.string().optional(),
   }),
   responses: [
     GoodEmailSet,
@@ -117,6 +121,7 @@ export const SetEmailRoute = defineRoute({
     BadKnownEmail,
     BadEmailChangeDivision,
     BadUnknownUser,
+    BadRecaptchaCode,
     BadToken,
   ],
   authRequired: true,

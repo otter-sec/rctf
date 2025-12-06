@@ -2,7 +2,7 @@ import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodChallengesV2,
-  GoodClientConfig,
+  GoodClientConfigV2,
   GoodFilesUploadV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
@@ -17,7 +17,7 @@ export type InstancerConfig = NonNullable<
   AdminChallengeDetail['instancerConfig']
 >
 export type Challenge = ResponseData<typeof GoodChallengesV2>[number]
-export type ClientConfig = ResponseData<typeof GoodClientConfig>
+export type ClientConfig = ResponseData<typeof GoodClientConfigV2>
 export type GraphPoint = LeaderboardGraphEntry['points'][number]
 export type LeaderboardData = ResponseData<typeof GoodLeaderboardV2>
 export type LeaderboardEntry = LeaderboardData['leaderboard'][number]

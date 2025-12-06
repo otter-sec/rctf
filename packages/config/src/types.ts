@@ -1,3 +1,7 @@
+import { ProtectedAction } from '@rctf/types'
+
+export { ProtectedAction }
+
 export interface ACL {
   match: string
   value: string
@@ -72,6 +76,20 @@ export interface ServerConfig {
     provider: ProviderConfig
     from: string
     logoUrl?: string
+  }
+
+  captcha?: {
+    provider?: ProviderConfig
+    protectedEndpoints?: {
+      [key in ProtectedAction]?: boolean
+    }
+  }
+
+  // NOTE(es3n1n): backporting v1 recaptcha config
+  recaptcha?: {
+    siteKey?: string
+    secretKey?: string
+    protectedActions?: ProtectedAction[]
   }
 
   instancerProvider?: ProviderConfig

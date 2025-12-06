@@ -1,9 +1,11 @@
 // common
 export * from './bad-body'
+export * from './bad-captcha'
 export * from './bad-endpoint'
 export * from './bad-json'
 export * from './bad-perms'
 export * from './bad-rate-limit'
+export * from './bad-recaptcha-code'
 export * from './bad-token'
 export * from './error-internal'
 

@@ -20,7 +20,7 @@ import {
   GoodAdminChallengeV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
-  GoodClientConfig,
+  GoodClientConfigV2,
   GoodInstancerSchema,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
@@ -28,9 +28,9 @@ import {
   GoodUserDataV2,
   GoodUserSelfDataV2,
   LoginRoute,
-  RecoverRoute,
-  RegisterRoute,
-  SetEmailRoute,
+  RecoverRouteV2,
+  RegisterRouteV2,
+  SetEmailRouteV2,
   SubmitFlagRoute,
   UpdateChallengeRouteV2,
   UpdateUserRouteV2,
@@ -46,7 +46,12 @@ import {
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import { apiRequest, isAuthenticated, type InlineArgs } from '$lib/api'
+import {
+  apiRequest,
+  isAuthenticated,
+  setClientConfig,
+  type InlineArgs,
+} from '$lib/api'
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
@@ -78,7 +83,8 @@ export const clientConfigQueryOptions = queryOptions({
   queryKey: ['clientConfig'] as const,
   queryFn: async () => {
     const response = await apiRequest(GetClientConfigRouteV2)
-    if (response.kind === GoodClientConfig.kind) {
+    if (response.kind === GoodClientConfigV2.kind) {
+      setClientConfig(response.data)
       return response.data
     }
     throw new ApiError(response.message)
@@ -344,7 +350,7 @@ export function useLoginMutation() {
 }
 
 export function useRegisterMutation() {
-  return createApiMutation(RegisterRoute)
+  return createApiMutation(RegisterRouteV2)
 }
 
 export function useVerifyMutation() {
@@ -352,7 +358,7 @@ export function useVerifyMutation() {
 }
 
 export function useRecoverMutation() {
-  return createApiMutation(RecoverRoute)
+  return createApiMutation(RecoverRouteV2)
 }
 
 export function useSubmitFlagMutation() {
@@ -364,7 +370,7 @@ export function useUpdateUserMutation() {
 }
 
 export function useSetEmailMutation() {
-  return createApiMutation(SetEmailRoute)
+  return createApiMutation(SetEmailRouteV2)
 }
 
 export function useDeleteEmailMutation() {

@@ -1,9 +1,10 @@
 <script lang="ts">
-  import { GoodLogin, GoodRegister, GoodVerifySent } from '@rctf/types'
+  import { GoodLogin, GoodRegister, GoodVerifySent, ProtectedAction } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken, toast } from '$lib'
   import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { queryKeys, useClientConfig, useLoginMutation, useRegisterMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
@@ -21,7 +22,6 @@
 
   let ctftimeToken = $state<string | null>(null)
   let ctftimeName = $state<string | null>(null)
-
   const loading = $derived($registerMutation.isPending || $loginMutation.isPending)
 
   onMount(() => {
@@ -287,13 +287,14 @@
           </div>
         {/if}
       </Card.Content>
-      <Card.Footer>
+      <Card.Footer class="flex flex-col gap-2">
         <p class="text-foreground-l3 text-sm">
           Already have an account? <a
             href="/login"
             class="text-foreground-prose-link hover:underline">Login here</a
           >.
         </p>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.Register} class="mt-3" />
       </Card.Footer>
     </Card.Root>
   {/if}

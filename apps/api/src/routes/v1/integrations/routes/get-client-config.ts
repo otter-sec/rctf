@@ -11,5 +11,15 @@ integrationsGroup.route(GetClientConfigRoute, async ({ res }) => {
     faviconUrl: config.faviconUrl ?? null,
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
+    recaptcha:
+      config.captcha?.provider?.name === 'captcha/recaptcha'
+        ? {
+            siteKey:
+              (config.captcha!.provider!.options as { siteKey?: string })
+                .siteKey ?? '',
+            protectedActions:
+              Object.keys(config.captcha!.protectedEndpoints ?? {}) ?? [],
+          }
+        : null,
   })
 })

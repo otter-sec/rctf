@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import type { Permissions } from '../enums'
+import type { Permissions, ProtectedAction } from '../enums'
 import type {
   ResponseBody,
   ResponseDefinition,
@@ -38,6 +38,9 @@ export interface RouteDefinition<
   TOnlyWhenNotFinished extends boolean = boolean,
   TReturnBodyAsIs extends boolean = boolean,
   TBodyFormat extends BodyFormat = BodyFormat,
+  TCaptchaAction extends ProtectedAction | undefined =
+    | ProtectedAction
+    | undefined,
 > {
   readonly method: TMethod
   readonly path: string
@@ -52,6 +55,7 @@ export interface RouteDefinition<
   readonly onlyWhenNotFinished: TOnlyWhenNotFinished
   readonly returnBodyAsIs: TReturnBodyAsIs
   readonly bodyFormat: TBodyFormat
+  readonly captchaAction: TCaptchaAction
 }
 
 type RouteConfig = {
@@ -68,6 +72,7 @@ type RouteConfig = {
   onlyWhenNotFinished?: boolean
   returnBodyAsIs?: boolean
   bodyFormat?: BodyFormat
+  captchaAction?: ProtectedAction
 }
 
 type NormalizedAuthRequired<TDefinition extends RouteConfig> =
@@ -106,6 +111,11 @@ type NormalizedBodyFormat<TDefinition extends RouteConfig> =
     ? TDefinition['bodyFormat']
     : 'json'
 
+type NormalizedCaptchaAction<TDefinition extends RouteConfig> =
+  TDefinition['captchaAction'] extends ProtectedAction
+    ? TDefinition['captchaAction']
+    : undefined
+
 export function defineRoute<TDefinition extends RouteConfig>(
   definition: TDefinition
 ): RouteDefinition<
@@ -120,7 +130,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
   NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
   NormalizedOnlyWhenNotFinished<TDefinition>,
   ReturnBodyAsIs<TDefinition>,
-  NormalizedBodyFormat<TDefinition>
+  NormalizedBodyFormat<TDefinition>,
+  NormalizedCaptchaAction<TDefinition>
 > {
   const {
     method,
@@ -136,6 +147,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     onlyWhenNotFinished,
     returnBodyAsIs,
     bodyFormat,
+    captchaAction,
   } = definition
 
   return {
@@ -157,6 +169,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
       undefined) as NormalizedPermissions<TDefinition>,
     returnBodyAsIs: (returnBodyAsIs ?? false) as ReturnBodyAsIs<TDefinition>,
     bodyFormat: (bodyFormat ?? 'json') as NormalizedBodyFormat<TDefinition>,
+    captchaAction: (captchaAction ??
+      undefined) as NormalizedCaptchaAction<TDefinition>,
   }
 }
 
@@ -165,7 +179,15 @@ export type AnyRouteDefinition = RouteDefinition<
   SchemaLike | undefined,
   ResponseCollection,
   SchemaLike | undefined,
-  SchemaLike | undefined
+  SchemaLike | undefined,
+  boolean,
+  Permissions | undefined,
+  boolean,
+  Permissions | undefined,
+  boolean,
+  boolean,
+  BodyFormat,
+  ProtectedAction | undefined
 >
 
 export type RouteBody<TRoute extends AnyRouteDefinition> = SchemaOutput<

@@ -1,6 +1,8 @@
 import { z } from 'zod'
+import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
+  BadCaptcha,
   BadChallenge,
   BadEndpoint,
   BadInstancerError,
@@ -32,11 +34,20 @@ export const GetInstanceStatusRouteV2 = defineRoute({
   }),
 })
 
-// TODO(es3n1n): add captcha
 export const CreateInstanceRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',
   method: 'PUT',
-  responses: [GoodInstanceStatus, BadInstancerError, BadEndpoint, BadChallenge],
+  captchaAction: ProtectedAction.InstancerStart,
+  body: z.object({
+    captchaCode: z.string().optional(),
+  }),
+  responses: [
+    GoodInstanceStatus,
+    BadInstancerError,
+    BadEndpoint,
+    BadChallenge,
+    BadCaptcha,
+  ],
   authRequired: true,
   params: z.object({
     id: z.string(),
@@ -53,11 +64,20 @@ export const DeleteInstanceRouteV2 = defineRoute({
   }),
 })
 
-// TODO(es3n1n): add captcha
 export const ExtendInstanceRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',
   method: 'PATCH',
-  responses: [GoodInstanceStatus, BadInstancerError, BadEndpoint, BadChallenge],
+  captchaAction: ProtectedAction.InstancerExtend,
+  body: z.object({
+    captchaCode: z.string().optional(),
+  }),
+  responses: [
+    GoodInstanceStatus,
+    BadInstancerError,
+    BadEndpoint,
+    BadChallenge,
+    BadCaptcha,
+  ],
   authRequired: true,
   params: z.object({
     id: z.string(),
