@@ -6,13 +6,8 @@ import { forceLeaderboardUpdate } from '../../../../workers'
 import adminGroup from '../group'
 
 adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
-  // NOTE(es3n1n): Cast is needed because z.any() makes `data` optional :shrug:
-  const instancerConfig = body.data.instancerConfig as
-    | Partial<InstancerConfig>
-    | undefined
-
   // Validate instancer config if provided
-  if (instancerConfig) {
+  if (body.data.instancerConfig) {
     if (!instancerProvider) {
       return res.badInstancerConfig({
         error: 'Instancer is not enabled',
@@ -20,7 +15,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
     }
 
     const configResult = instancerProvider.configSchema.safeParse(
-      instancerConfig.config
+      body.data.instancerConfig.config
     )
 
     if (!configResult.success) {
@@ -39,7 +34,6 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       url: file.url,
       size: file.size ?? undefined,
     })),
-    instancerConfig,
   })
 
   forceLeaderboardUpdate()

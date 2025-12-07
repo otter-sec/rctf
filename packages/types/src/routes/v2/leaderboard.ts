@@ -16,8 +16,8 @@ export const GetLeaderboardRouteV2 = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.int().check(z.gte(1)),
-    offset: z.int().check(z.gte(0)),
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     division: z.optional(z.string()),
   }),
   onlyWhenStarted: true,
@@ -32,8 +32,8 @@ export const GetLeaderboardGraphRouteV2 = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config
-    limit: z.int().check(z.gte(1)),
-    offset: z.int().check(z.gte(0)),
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     division: z.optional(z.string()),
   }),
   onlyWhenStarted: true,

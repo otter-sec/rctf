@@ -32,8 +32,8 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   }),
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.int().check(z.gte(1)),
-    offset: z.int().check(z.gte(0)),
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
