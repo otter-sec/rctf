@@ -1,19 +1,19 @@
 <script lang="ts">
   import {
-    GoodUserUpdateV2,
-    GoodEmailSet,
-    GoodVerifySent,
+    CreateMemberRoute,
+    DeleteEmailRoute,
+    DeleteMemberRoute,
     GoodEmailRemoved,
+    GoodEmailSet,
     GoodMemberCreate,
     GoodMemberDelete,
-    UpdateUserRouteV2,
+    GoodUserUpdateV2,
+    GoodVerifySent,
     SetEmailRouteV2,
-    DeleteEmailRoute,
-    CreateMemberRoute,
-    DeleteMemberRoute,
+    UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { useMutationForm, required, email, name, compose } from '$lib/forms'
+  import { useMutationForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useCurrentUser, useMembers } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -30,7 +30,6 @@
   const profileForm = useMutationForm({
     route: UpdateUserRouteV2,
     initial: { name: '', division: '' },
-    validators: { name: compose(required, name) },
     transform: values => ({
       name: values.name !== user?.name ? values.name : undefined,
       division: values.division !== user?.division ? values.division : undefined,
@@ -45,7 +44,6 @@
   const emailForm = useMutationForm({
     route: SetEmailRouteV2,
     initial: { email: '' },
-    validators: { email: email },
     onSuccess: response => {
       if (response.kind === GoodEmailSet.kind || response.kind === GoodVerifySent.kind) {
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
@@ -67,7 +65,6 @@
   const memberForm = useMutationForm({
     route: CreateMemberRoute,
     initial: { email: '' },
-    validators: { email: compose(required, email) },
     onSuccess: response => {
       if (response.kind === GoodMemberCreate.kind) {
         queryClient.invalidateQueries({ queryKey: queryKeys.members })

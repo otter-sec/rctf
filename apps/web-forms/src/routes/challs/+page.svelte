@@ -2,7 +2,7 @@
   import { GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import type { Challenge } from '$lib/api'
-  import { useMutationForm, required } from '$lib/forms'
+  import { required, useMutationForm } from '$lib/forms'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -75,8 +75,7 @@
               style:text-decoration={isSolved ? 'line-through' : 'none'}>
               {challenge.name}
             </button>
-            - {challenge.points} pts
-            ({challenge.solves} solves)
+            - {challenge.points} pts ({challenge.solves} solves)
             {#if isSolved}
               <span style="color: green">✓</span>
             {/if}

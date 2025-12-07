@@ -3,7 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
-  import { useMutationForm, required } from '$lib/forms'
+  import { required, useMutationForm } from '$lib/forms'
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()

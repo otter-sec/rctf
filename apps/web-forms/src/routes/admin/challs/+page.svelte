@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { GoodChallengeUpdateV2, GoodChallengeDelete } from '@rctf/types'
+  import { GoodChallengeDelete, GoodChallengeUpdateV2 } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { useMachine } from '@xstate/svelte'
   import { editorMachine, type FormData } from '$lib/machines'
   import {
     queryKeys,
-    useAdminChallenges,
     useAdminChallenge,
-    useUpdateChallengeMutation,
+    useAdminChallenges,
     useDeleteChallengeMutation,
+    useUpdateChallengeMutation,
   } from '$lib/query'
 
   const queryClient = useQueryClient()

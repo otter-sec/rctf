@@ -3,7 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
-  import { useMutationForm, required, email, name, compose } from '$lib/forms'
+  import { useMutationForm } from '$lib/forms'
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -13,10 +13,6 @@
   const form = useMutationForm({
     route: RegisterRouteV2,
     initial: { name: '', email: '' },
-    validators: {
-      name: compose(required, name),
-      email: compose(required, email),
-    },
     onSuccess: response => {
       if (response.kind === GoodRegister.kind) {
         setToken(response.data.authToken)

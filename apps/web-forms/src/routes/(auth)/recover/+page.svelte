@@ -1,13 +1,12 @@
 <script lang="ts">
   import { GoodVerifySent, RecoverRouteV2 } from '@rctf/types'
-  import { useMutationForm, required, email, compose } from '$lib/forms'
+  import { useMutationForm } from '$lib/forms'
 
   let verifySent = $state(false)
 
   const form = useMutationForm({
     route: RecoverRouteV2,
     initial: { email: '' },
-    validators: { email: compose(required, email) },
     onSuccess: response => {
       if (response.kind === GoodVerifySent.kind) {
         verifySent = true

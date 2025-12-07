@@ -18,7 +18,7 @@ export function createForm<T extends Record<string, unknown>>(
 
   const isDirty = $derived(JSON.stringify(values) !== initialSnapshot)
 
-  const isValid = $derived(() => {
+  const isValid = $derived.by(() => {
     for (const key in errors) {
       if (errors[key]) return false
     }
@@ -102,7 +102,7 @@ export function createForm<T extends Record<string, unknown>>(
       return isDirty
     },
     get isValid() {
-      return isValid()
+      return isValid
     },
     get isSubmitting() {
       return isSubmitting

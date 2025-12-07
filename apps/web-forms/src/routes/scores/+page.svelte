@@ -8,9 +8,7 @@
   let page = $state(0)
   const limit = 25
 
-  const leaderboardQuery = $derived(
-    useLeaderboard({ limit, offset: page * limit, division })
-  )
+  const leaderboardQuery = $derived(useLeaderboard({ limit, offset: page * limit, division }))
   const leaderboard = $derived($leaderboardQuery.data)
 
   function nextPage() {

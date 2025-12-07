@@ -1,4 +1,8 @@
-import type { AdminChallenge, AdminChallengeDetail, InstancerConfig } from '$lib/api'
+import type {
+  AdminChallenge,
+  AdminChallengeDetail,
+  InstancerConfig,
+} from '$lib/api'
 import { assign, setup } from 'xstate'
 
 export interface FormData {
@@ -207,7 +211,10 @@ export const editorMachine = setup({
       on: {
         DISCARD: { target: 'idle', actions: 'reset' },
         KEEP_EDITING: [
-          { target: 'editing', guard: ({ context }) => context.challenge !== null },
+          {
+            target: 'editing',
+            guard: ({ context }) => context.challenge !== null,
+          },
           { target: 'creating' },
         ],
       },

@@ -2,8 +2,8 @@ import type { ResponseData } from '../internal'
 import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
-  GoodChallengesV2,
   GoodChallengeSolvesV2,
+  GoodChallengesV2,
   GoodClientConfigV2,
   GoodFilesUploadV2,
   GoodLeaderboardGraph,
@@ -15,10 +15,14 @@ import {
 
 export type AdminChallenge = ResponseData<typeof GoodAdminChallengesV2>[number]
 export type AdminChallengeDetail = ResponseData<typeof GoodAdminChallengeV2>
-export type InstancerConfig = NonNullable<AdminChallengeDetail['instancerConfig']>
+export type InstancerConfig = NonNullable<
+  AdminChallengeDetail['instancerConfig']
+>
 
 export type Challenge = ResponseData<typeof GoodChallengesV2>[number]
-export type ChallengeSolve = ResponseData<typeof GoodChallengeSolvesV2>['solves'][number]
+export type ChallengeSolve = ResponseData<
+  typeof GoodChallengeSolvesV2
+>['solves'][number]
 
 export type ClientConfig = ResponseData<typeof GoodClientConfigV2>
 export type Sponsor = ClientConfig['sponsors'][number]

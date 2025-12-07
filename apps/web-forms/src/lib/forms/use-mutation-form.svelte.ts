@@ -4,6 +4,7 @@ import type {
   RouteResponse,
 } from '@rctf/types'
 import { apiRequest, type InlineArgs } from '$lib/api'
+import { z } from 'zod'
 import type { FieldValidators, FormErrors, FormTouched } from './types'
 
 type SuccessKind = `good${string}`
@@ -17,6 +18,42 @@ type ExtractErrorResponse<TRoute extends AnyRouteDefinition> = Exclude<
   RouteResponse<TRoute>,
   { kind: SuccessKind }
 >
+
+function unwrapZodSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
+  if (schema instanceof z.ZodEffects) {
+    return unwrapZodSchema(schema._def.schema)
+  }
+  if (schema instanceof z.ZodOptional || schema instanceof z.ZodNullable) {
+    return schema
+  }
+  return schema
+}
+
+function getFieldSchema(
+  bodySchema: z.ZodTypeAny | undefined,
+  field: string
+): z.ZodTypeAny | undefined {
+  if (!bodySchema) return undefined
+
+  const unwrapped = unwrapZodSchema(bodySchema)
+  if (unwrapped instanceof z.ZodObject) {
+    return unwrapped.shape[field]
+  }
+
+  return undefined
+}
+
+function validateWithSchema(
+  schema: z.ZodTypeAny | undefined,
+  value: unknown
+): string | null {
+  if (!schema) return null
+
+  const result = schema.safeParse(value)
+  if (result.success) return null
+
+  return result.error.errors[0]?.message ?? 'Invalid'
+}
 
 export interface MutationFormConfig<
   TRoute extends AnyRouteDefinition,
@@ -44,7 +81,7 @@ export function useMutationForm<
 
   const isDirty = $derived(JSON.stringify(values) !== initialSnapshot)
 
-  const isValid = $derived(() => {
+  const isValid = $derived.by(() => {
     for (const key in errors) {
       if (errors[key]) return false
     }
@@ -53,9 +90,18 @@ export function useMutationForm<
 
   function setValue<K extends keyof TFields>(field: K, value: TFields[K]) {
     values[field] = value
+    errors[field] = validateField(field, value)
+  }
+
+  function validateField<K extends keyof TFields>(
+    field: K,
+    value: TFields[K]
+  ): string | null {
     if (config.validators?.[field]) {
-      errors[field] = config.validators[field]!(value)
+      return config.validators[field]!(value)
     }
+    const fieldSchema = getFieldSchema(config.route.body, String(field))
+    return validateWithSchema(fieldSchema, value)
   }
 
   function setError<K extends keyof TFields>(field: K, error: string | null) {
@@ -93,12 +139,9 @@ export function useMutationForm<
   function validate(): boolean {
     let valid = true
     for (const key in config.initial) {
-      const validator = config.validators?.[key]
-      if (validator) {
-        const error = validator(values[key])
-        errors[key] = error
-        if (error) valid = false
-      }
+      const error = validateField(key as keyof TFields, values[key])
+      errors[key] = error
+      if (error) valid = false
     }
     return valid
   }
@@ -128,7 +171,8 @@ export function useMutationForm<
     } catch (error) {
       const keys = Object.keys(config.initial) as (keyof TFields)[]
       if (keys.length > 0) {
-        errors[keys[0]] = error instanceof Error ? error.message : 'An error occurred'
+        errors[keys[0]] =
+          error instanceof Error ? error.message : 'An error occurred'
       }
     } finally {
       isPending = false
@@ -154,7 +198,7 @@ export function useMutationForm<
       return isDirty
     },
     get isValid() {
-      return isValid()
+      return isValid
     },
     get isPending() {
       return isPending

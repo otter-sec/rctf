@@ -233,15 +233,20 @@ export const queryKeys = {
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
-  leaderboardGraph: (params: { limit: number; offset: number; division: string }) =>
-    leaderboardGraphQueryOptions(params).queryKey,
+  leaderboardGraph: (params: {
+    limit: number
+    offset: number
+    division: string
+  }) => leaderboardGraphQueryOptions(params).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
   instancerSchema: instancerSchemaQueryOptions.queryKey,
 }
 
-export function createApiMutation<TRoute extends AnyRouteDefinition>(route: TRoute) {
+export function createApiMutation<TRoute extends AnyRouteDefinition>(
+  route: TRoute
+) {
   return createMutation<RouteResponse<TRoute>, Error, InlineArgs<TRoute>>({
     mutationFn: (args: InlineArgs<TRoute>) => apiRequest(route, args),
   })
@@ -274,15 +279,26 @@ export function useAdminChallenge(id: string, enabled = true) {
   })
 }
 
-export function useLeaderboard(params: { limit: number; offset: number; division: string }) {
+export function useLeaderboard(params: {
+  limit: number
+  offset: number
+  division: string
+}) {
   return createQuery(leaderboardQueryOptions(params))
 }
 
-export function useLeaderboardGraph(params: { limit: number; offset: number; division: string }) {
+export function useLeaderboardGraph(params: {
+  limit: number
+  offset: number
+  division: string
+}) {
   return createQuery(leaderboardGraphQueryOptions(params))
 }
 
-export function useChallengeSolves(challengeId: string, params: { limit: number; offset: number }) {
+export function useChallengeSolves(
+  challengeId: string,
+  params: { limit: number; offset: number }
+) {
   return createQuery(challengeSolvesQueryOptions(challengeId, params))
 }
 

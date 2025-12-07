@@ -31,4 +31,5 @@ export interface FormActions<T extends Record<string, unknown>> {
   setSubmitting: (submitting: boolean) => void
 }
 
-export type Form<T extends Record<string, unknown>> = FormState<T> & FormActions<T>
+export type Form<T extends Record<string, unknown>> = FormState<T> &
+  FormActions<T>

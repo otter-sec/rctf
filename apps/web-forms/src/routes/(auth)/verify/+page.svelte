@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GoodVerify, GoodEmailSet, GoodRegister } from '@rctf/types'
+  import { GoodEmailSet, GoodRegister, GoodVerify } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
