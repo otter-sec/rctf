@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { Permissions } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -32,8 +32,8 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   }),
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.coerce.number().int().min(1),
-    offset: z.coerce.number().int().min(0),
+    limit: z.int().check(z.gte(1)),
+    offset: z.int().check(z.gte(0)),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

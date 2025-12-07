@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 
 export enum ExposeKind {
   TCP = 'tcp',
@@ -20,34 +20,34 @@ export const ChallengeFileSchemaV1 = z.object({
 })
 
 export const ChallengePointsSchemaV1 = z.object({
-  min: z.number().int(),
-  max: z.number().int(),
+  min: z.int(),
+  max: z.int(),
 })
 
 export const ChallengeFileSchemaV2 = z.object({
   name: z.string(),
   url: z.string(),
   // NOTE(es3n1n): optional for backwards compat with old data
-  size: z.number().int().nullable(),
+  size: z.nullable(z.int()),
 })
 
 export const ChallengePointsSchema = z.object({
-  min: z.number().int(),
-  max: z.number().int(),
+  min: z.int(),
+  max: z.int(),
 })
 
 export const EndpointSchema = z.object({
-  kind: z.nativeEnum(ExposeKind),
+  kind: z.enum(ExposeKind),
   host: z.string(),
-  port: z.number().int(),
+  port: z.int(),
 })
 
 export const ExposeSchema = z.object({
-  kind: z.nativeEnum(ExposeKind),
+  kind: z.enum(ExposeKind),
   hostPrefix: z.string(),
   containerName: z.string(),
-  containerPort: z.number().int(),
-  shouldDisplay: z.boolean().optional(),
+  containerPort: z.int(),
+  shouldDisplay: z.optional(z.boolean()),
 })
 
 // NOTE(es3n1n): `config` is provider-specific
@@ -55,12 +55,12 @@ export const InstancerConfigSchema = z.object({
   challengeIntegrationId: z.string(),
   config: z.record(z.string(), z.any()),
   expose: z.array(ExposeSchema),
-  timeoutMilliseconds: z.number().int(),
+  timeoutMilliseconds: z.int(),
 })
 
 export const PartialInstancerConfigSchema = z.object({
-  challengeIntegrationId: z.string().optional(),
-  config: z.record(z.string(), z.any()).optional(),
-  expose: z.array(ExposeSchema).optional(),
-  timeoutMilliseconds: z.number().int().optional(),
+  challengeIntegrationId: z.optional(z.string()),
+  config: z.optional(z.record(z.string(), z.any())),
+  expose: z.optional(z.array(ExposeSchema)),
+  timeoutMilliseconds: z.optional(z.int()),
 })

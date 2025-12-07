@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -57,8 +57,8 @@ export const UpdateUserRoute = defineRoute({
   path: '/v1/users/me',
   method: 'PATCH',
   body: z.object({
-    name: UserName.optional(),
-    division: z.string().optional(),
+    name: z.optional(UserName),
+    division: z.optional(z.string()),
   }),
   goodResponses: [GoodUserUpdate],
   badResponses: [
@@ -110,7 +110,7 @@ export const SetEmailRoute = defineRoute({
   captchaAction: ProtectedAction.SetEmail,
   body: z.object({
     email: UserEmail,
-    recaptchaCode: z.string().optional(),
+    recaptchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodEmailSet, GoodVerifySent],
   badResponses: [

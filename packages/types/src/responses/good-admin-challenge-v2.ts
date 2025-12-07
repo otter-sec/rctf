@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 import {
   ChallengeFileSchemaV2,
@@ -16,8 +16,8 @@ export const AdminChallengeSchemaV2 = z.object({
   points: ChallengePointsSchema,
   flag: z.string(),
   tiebreakEligible: z.boolean(),
-  sortWeight: z.number().nullable(),
-  instancerConfig: InstancerConfigSchema.nullable(),
+  sortWeight: z.nullable(z.number()),
+  instancerConfig: z.nullable(InstancerConfigSchema),
 })
 
 export const GoodAdminChallengeV2 = response('goodAdminChallenge', {

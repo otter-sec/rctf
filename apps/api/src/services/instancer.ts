@@ -8,12 +8,8 @@ import type {
   GoodInstanceStatus,
   ResponseHelpers,
 } from '@rctf/types'
-import { z } from 'zod'
-import {
-  instanceDetailsSchema,
-  instancerErrorSchema,
-  type instanceDetailsOrError,
-} from '../providers/instancer/base'
+import { z } from 'zod/mini'
+import { type instanceDetailsOrError } from '../providers/instancer/base'
 import { getChallenge } from './challenges'
 
 type InstancerResponseHelpers = ResponseHelpers<
@@ -67,7 +63,7 @@ export const returnInstanceStatusOrError = async (
 ): Promise<
   ReturnType<InstancerResponseHelpers[keyof InstancerResponseHelpers]>
 > => {
-  if (instanceStatus.kind === instancerErrorSchema.shape.kind.value) {
+  if (instanceStatus.kind === 'instancerError') {
     return res.badInstancerError(instanceStatus)
   }
   return res.goodInstanceStatus(instanceStatus)
@@ -77,7 +73,7 @@ export const filterInstanceEndpoints = (
   instanceStatus: instanceDetailsOrError,
   challenge: Challenge
 ): instanceDetailsOrError => {
-  if (instanceStatus.kind !== instanceDetailsSchema.shape.kind.value) {
+  if (instanceStatus.kind !== 'instancerInstanceDetails') {
     return instanceStatus
   }
 

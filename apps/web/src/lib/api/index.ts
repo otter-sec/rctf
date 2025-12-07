@@ -181,7 +181,7 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   const path = applyPath(route.path, params).replace(/^\//, '')
   const origin = browser ? window.location.origin : 'http://localhost'
   const url = new URL(`/api/${path}`, origin)
-  applyQuery(url, query as Record<string, unknown> | undefined)
+  applyQuery(url, query)
 
   const headers: Record<string, string> = {
     Accept: 'application/json',

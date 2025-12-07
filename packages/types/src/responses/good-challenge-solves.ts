@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodChallengeSolves = response('goodChallengeSolves', {
@@ -8,7 +8,7 @@ export const GoodChallengeSolves = response('goodChallengeSolves', {
     solves: z.array(
       z.object({
         id: z.string(),
-        createdAt: z.number().int(),
+        createdAt: z.int(),
         userId: z.string(),
         userName: z.string(),
       })

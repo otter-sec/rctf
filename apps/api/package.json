@@ -27,8 +27,7 @@
     "pino": "^10.1.0",
     "postgres": "^3.4.5",
     "sharp": "^0.34.5",
-    "zod": "^3.23.8",
-    "zod-to-json-schema": "^3.24.5"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@types/bun": "latest",

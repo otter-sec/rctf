@@ -28,7 +28,7 @@ import {
 } from '@rctf/types'
 import type { Handler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { getCachedUser, setCachedUser } from '../cache/auth-cache'
 import { getUser } from '../services/users'
 import { validateCaptcha } from '../util/captcha'
@@ -40,7 +40,7 @@ type JsonLike = Record<string, unknown>
 
 type ResponseCollection = readonly ResponseDefinition<
   string,
-  z.ZodTypeAny | undefined
+  SchemaLike | undefined
 >[]
 
 type SchemaOutput<T extends SchemaLike | undefined> = T extends SchemaLike
@@ -128,7 +128,7 @@ const malformedFormData = (): [JsonLike, ContentfulStatusCode] => [
 
 const validationError = (
   src: RouteValidationSource,
-  error: z.ZodError<unknown>
+  error: z.core.$ZodError<unknown>
 ): [JsonLike, ContentfulStatusCode] => [
   {
     kind: BadBody.kind,
@@ -290,10 +290,10 @@ export const declareRouter = <
     }
 
     const handleResponseIssue = async (
-      error: z.ZodError<unknown>
+      error: z.core.$ZodError<unknown>
     ): Promise<Response | undefined> => {
       for (const issue of error.issues) {
-        const scopedIssue = issue as z.ZodIssue & {
+        const scopedIssue = issue as z.core.$ZodIssue & {
           params?: Record<string, unknown>
         }
         if (!scopedIssue.params) {

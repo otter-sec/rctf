@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodUserUpdateV2 = response('goodUserUpdate', {
@@ -7,9 +7,9 @@ export const GoodUserUpdateV2 = response('goodUserUpdate', {
   data: z.object({
     user: z.object({
       name: z.string(),
-      email: z.string().nullable(),
+      email: z.nullable(z.string()),
       division: z.string(),
-      avatarUrl: z.string().nullable(),
+      avatarUrl: z.nullable(z.string()),
     }),
   }),
 })

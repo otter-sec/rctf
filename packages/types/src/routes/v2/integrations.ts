@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -35,7 +35,7 @@ export const CreateInstanceRouteV2 = defineRoute({
   method: 'PUT',
   captchaAction: ProtectedAction.InstancerStart,
   body: z.object({
-    captchaCode: z.string().optional(),
+    captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodInstanceStatus],
   badResponses: [BadInstancerError, BadEndpoint, BadChallenge, BadCaptcha],
@@ -61,7 +61,7 @@ export const ExtendInstanceRouteV2 = defineRoute({
   method: 'PATCH',
   captchaAction: ProtectedAction.InstancerExtend,
   body: z.object({
-    captchaCode: z.string().optional(),
+    captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodInstanceStatus],
   badResponses: [BadInstancerError, BadEndpoint, BadChallenge, BadCaptcha],

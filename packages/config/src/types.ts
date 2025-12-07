@@ -1,18 +1,18 @@
 import { NumericString, ProtectedAction } from '@rctf/types'
-import { z } from 'zod'
+import { z } from 'zod/mini'
 
 export { ProtectedAction }
 
 export const ProviderConfigSchema = z.object({
   name: z.string(),
-  options: z.unknown(),
+  options: z.prefault(z.unknown(), {}),
 })
 
 export const SponsorSchema = z.object({
   name: z.string(),
   icon: z.string(),
   description: z.string(),
-  small: z.boolean().optional(),
+  small: z.optional(z.boolean()),
 })
 
 // Division access control: matches field `match` against `value`, applies to listed divisions
@@ -27,7 +27,7 @@ export const ServerConfigSchema = z.object({
   ctfName: z.string(),
   origin: z.string(),
   tokenKey: z.string(),
-  instanceType: z.enum(['leaderboard', 'all', 'frontend']).default('all'),
+  instanceType: z.prefault(z.enum(['leaderboard', 'all', 'frontend']), 'all'),
 
   // Database
   database: z.object({
@@ -35,7 +35,7 @@ export const ServerConfigSchema = z.object({
       z.string(), // connection string
       z.object({
         host: z.string(),
-        port: z.number().optional(),
+        port: z.optional(z.number()),
         user: z.string(),
         password: z.string(),
         database: z.string(),
@@ -45,12 +45,12 @@ export const ServerConfigSchema = z.object({
       z.string(), // connection string
       z.object({
         host: z.string(),
-        port: z.number().optional(),
-        password: z.string().optional(),
-        database: z.number().optional(),
+        port: z.optional(z.number()),
+        password: z.optional(z.string()),
+        database: z.optional(z.number()),
       }),
     ]),
-    migrate: z.enum(['before', 'only', 'never']).default('never'),
+    migrate: z.prefault(z.enum(['before', 'only', 'never']), 'never'),
   }),
 
   // CTF timing
@@ -58,87 +58,96 @@ export const ServerConfigSchema = z.object({
   endTime: z.number(), // unix ms
 
   // Divisions
-  divisions: z.record(z.string(), z.string()).default({ open: 'Open' }), // id -> display name
-  defaultDivision: z.string().optional(),
-  divisionACLs: z.array(ACLSchema).optional(),
+  divisions: z.prefault(z.record(z.string(), z.string()), { open: 'Open' }), // id -> display name
+  defaultDivision: z.optional(z.string()),
+  divisionACLs: z.optional(z.array(ACLSchema)),
 
   // Auth
-  registrationsEnabled: z.boolean().default(true),
-  userMembers: z.boolean().default(true),
-  loginTimeout: z.number().default(3_600_000),
-  ctftime: z
-    .object({
+  registrationsEnabled: z.prefault(z.boolean(), true),
+  userMembers: z.prefault(z.boolean(), true),
+  loginTimeout: z.prefault(z.number(), 3_600_000),
+  ctftime: z.optional(
+    z.object({
       clientId: NumericString,
       clientSecret: z.string(),
     })
-    .optional(),
+  ),
 
   // Captcha
-  captcha: z
-    .object({
-      provider: ProviderConfigSchema.optional(),
-      protectedEndpoints: z.array(z.nativeEnum(ProtectedAction)).optional(),
+  captcha: z.optional(
+    z.object({
+      provider: z.optional(ProviderConfigSchema),
+      protectedEndpoints: z.optional(z.array(z.enum(ProtectedAction))),
     })
-    .optional(),
+  ),
 
   // Backport for v1 recaptcha config
-  recaptcha: z
-    .object({
-      siteKey: z.string().optional(),
-      secretKey: z.string().optional(),
-      protectedActions: z.array(z.nativeEnum(ProtectedAction)).optional(),
+  recaptcha: z.optional(
+    z.object({
+      siteKey: z.optional(z.string()),
+      secretKey: z.optional(z.string()),
+      protectedActions: z.optional(z.array(z.enum(ProtectedAction))),
     })
-    .optional(),
+  ),
 
   // Providers
-  uploadProvider: ProviderConfigSchema.default({ name: 'uploads/local' }),
-  scoreProvider: ProviderConfigSchema.default({ name: 'scores/classic' }),
-  instancerProvider: ProviderConfigSchema.optional(),
-  email: z
-    .object({
+  uploadProvider: z.prefault(ProviderConfigSchema, {
+    name: 'uploads/local',
+  }),
+  scoreProvider: z.prefault(ProviderConfigSchema, {
+    name: 'scores/classic',
+  }),
+  instancerProvider: z.optional(ProviderConfigSchema),
+  email: z.optional(
+    z.object({
       provider: ProviderConfigSchema,
       from: z.string(),
-      logoUrl: z.string().optional(),
+      logoUrl: z.optional(z.string()),
     })
-    .optional(),
+  ),
 
   // UI
-  homeContent: z.string().default('Home content. Markdown supported.'),
-  sponsors: z.array(SponsorSchema).default([]),
-  meta: z
-    .object({
-      description: z.string().default('rCTF event description'),
-      imageUrl: z.string().default(''),
-    })
-    .default({}),
-  faviconUrl: z
-    .string()
-    .default('https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'),
+  homeContent: z.prefault(z.string(), 'Home content. Markdown supported.'),
+  sponsors: z.prefault(z.array(SponsorSchema), []),
+  meta: z.prefault(
+    z.object({
+      description: z.prefault(z.string(), 'rCTF event description'),
+      imageUrl: z.prefault(z.string(), ''),
+    }),
+    {}
+  ),
+  faviconUrl: z.prefault(
+    z.string(),
+    'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'
+  ),
 
   // TODO(es3n1n): use this for analytics
-  globalSiteTag: z.string().optional(),
+  globalSiteTag: z.optional(z.string()),
 
   // Limits
-  maxAvatarSize: z.number().default(1024 * 1024),
-  leaderboard: z
-    .object({
-      maxLimit: z.number().default(100),
-      maxOffset: z.number().default(4294967296),
-      updateInterval: z.number().default(10_000), // 10s
-      graphMaxTeams: z.number().default(10),
-      graphSampleTime: z.number().default(1_800_000), // 30min
-    })
-    .default({}),
+  maxAvatarSize: z.prefault(z.number(), 1024 * 1024),
+  leaderboard: z.prefault(
+    z.object({
+      maxLimit: z.prefault(z.number(), 100),
+      maxOffset: z.prefault(z.number(), 4294967296),
+      updateInterval: z.prefault(z.number(), 10_000), // 10s
+      graphMaxTeams: z.prefault(z.number(), 10),
+      graphSampleTime: z.prefault(z.number(), 1_800_000), // 30min
+    }),
+    {}
+  ),
 
   // Proxy
-  proxy: z
-    .object({
-      cloudflare: z.boolean().default(false),
-      trust: z
-        .union([z.boolean(), z.string(), z.array(z.string()), z.number()])
-        .default(false),
-    })
-    .default({}),
+  proxy: z.prefault(
+    z.object({
+      cloudflare: z.prefault(z.boolean(), false),
+      trust: z.prefault(
+        z.union([z.boolean(), z.string(), z.array(z.string()), z.number()]),
+        false
+      ),
+    }),
+    {}
+  ),
 })
 
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>

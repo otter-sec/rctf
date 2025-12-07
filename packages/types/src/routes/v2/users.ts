@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -46,8 +46,8 @@ export const UpdateUserRouteV2 = defineRoute({
   path: '/v2/users/me',
   method: 'PATCH',
   body: z.object({
-    name: UserName.optional(),
-    division: z.string().optional(),
+    name: z.optional(UserName),
+    division: z.optional(z.string()),
   }),
   goodResponses: [GoodUserUpdateV2],
   badResponses: [
@@ -69,8 +69,8 @@ export const UpdateAvatarRoute = defineRoute({
   badResponses: [BadToken, BadAvatarFile, BadAvatarFileSize, BadCaptcha],
   authRequired: true,
   body: z.object({
-    avatar: FileFieldSchema.optional(),
-    captchaCode: z.string().optional(),
+    avatar: z.optional(FileFieldSchema),
+    captchaCode: z.optional(z.string()),
   }),
   bodyFormat: 'form-data',
 })
@@ -81,7 +81,7 @@ export const SetEmailRouteV2 = defineRoute({
   captchaAction: ProtectedAction.SetEmail,
   body: z.object({
     email: UserEmail,
-    captchaCode: z.string().optional(),
+    captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodEmailSet, GoodVerifySent],
   badResponses: [BadEmail, BadKnownEmail, BadUnknownUser, BadCaptcha, BadToken],

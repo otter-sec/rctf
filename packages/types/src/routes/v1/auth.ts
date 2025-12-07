@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -32,20 +32,22 @@ export const RegisterRoute = defineRoute({
   captchaAction: ProtectedAction.Register,
   body: z
     .object({
-      email: UserEmail.optional(),
+      email: z.optional(UserEmail),
       name: UserName,
-      ctftimeToken: z.string().optional(),
-      recaptchaCode: z.string().optional(),
+      ctftimeToken: z.optional(z.string()),
+      recaptchaCode: z.optional(z.string()),
     })
-    .superRefine((data, ctx) => {
-      if (!data.email && !data.ctftimeToken) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Either email or ctftimeToken must be provided.',
-          path: ['email'],
-        })
-      }
-    }),
+    .check(
+      z.superRefine((data, ctx) => {
+        if (!data.email && !data.ctftimeToken) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Either email or ctftimeToken must be provided.',
+            path: ['email'],
+          })
+        }
+      })
+    ),
   goodResponses: [GoodVerifySent, GoodRegister],
   badResponses: [
     BadCtftimeToken,
@@ -67,18 +69,20 @@ export const LoginRoute = defineRoute({
   method: 'POST',
   body: z
     .object({
-      teamToken: z.string().optional(),
-      ctftimeToken: z.string().optional(),
+      teamToken: z.optional(z.string()),
+      ctftimeToken: z.optional(z.string()),
     })
-    .superRefine((data, ctx) => {
-      if (!data.teamToken && !data.ctftimeToken) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Either teamToken or ctftimeToken must be provided.',
-          path: ['teamToken'],
-        })
-      }
-    }),
+    .check(
+      z.superRefine((data, ctx) => {
+        if (!data.teamToken && !data.ctftimeToken) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Either teamToken or ctftimeToken must be provided.',
+            path: ['teamToken'],
+          })
+        }
+      })
+    ),
   goodResponses: [GoodLogin],
   badResponses: [BadUnknownUser, BadTokenVerification, BadCtftimeToken],
   authRequired: false,
@@ -90,7 +94,7 @@ export const RecoverRoute = defineRoute({
   captchaAction: ProtectedAction.Recover,
   body: z.object({
     email: UserEmail,
-    recaptchaCode: z.string().optional(),
+    recaptchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodVerifySent],
   badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadRecaptchaCode],

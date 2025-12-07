@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase, users } from '@rctf/db'
 import {
@@ -14,6 +13,7 @@ import {
   GoodEmailSet,
   GoodLogin,
 } from '@rctf/types'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'

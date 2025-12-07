@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
@@ -53,16 +53,16 @@ export const UpdateChallengeRouteV2 = defineRoute({
   method: 'PUT',
   body: z.object({
     data: z.object({
-      author: z.string().optional(),
-      category: z.string().optional(),
-      description: z.string().optional(),
-      flag: z.string().optional(),
-      name: z.string().optional(),
-      points: ChallengePointsSchema.optional(),
-      tiebreakEligible: z.boolean().optional(),
-      files: z.array(ChallengeFileSchemaV2).optional(),
-      sortWeight: z.number().optional(),
-      instancerConfig: PartialInstancerConfigSchema.nullish(),
+      author: z.optional(z.string()),
+      category: z.optional(z.string()),
+      description: z.optional(z.string()),
+      flag: z.optional(z.string()),
+      name: z.optional(z.string()),
+      points: z.optional(ChallengePointsSchema),
+      tiebreakEligible: z.optional(z.boolean()),
+      files: z.optional(z.array(ChallengeFileSchemaV2)),
+      sortWeight: z.optional(z.number()),
+      instancerConfig: z.nullish(PartialInstancerConfigSchema),
     }),
   }),
   goodResponses: [GoodChallengeUpdateV2],

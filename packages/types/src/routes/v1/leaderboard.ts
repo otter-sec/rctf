@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { Permissions } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -16,9 +16,9 @@ export const GetLeaderboardRoute = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.coerce.number().int().min(1),
-    offset: z.coerce.number().int().min(0),
-    division: z.string().optional(),
+    limit: z.int().check(z.gte(1)),
+    offset: z.int().check(z.gte(0)),
+    division: z.optional(z.string()),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
@@ -32,8 +32,8 @@ export const GetLeaderboardGraphRoute = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config
-    limit: z.coerce.number().int().min(1),
-    division: z.string().optional(),
+    limit: z.int().check(z.gte(1)),
+    division: z.optional(z.string()),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
@@ -8,15 +8,15 @@ export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
     solves: z.array(
       z.object({
         id: z.string(),
-        createdAt: z.number().int(),
+        createdAt: z.int(),
         userId: z.string(),
         userName: z.string(),
-        userAvatarUrl: z.string().nullable(),
-        globalPlace: z.number().int(),
+        userAvatarUrl: z.nullable(z.string()),
+        globalPlace: z.int(),
         division: z.string(),
-        divisionPlace: z.number().int(),
+        divisionPlace: z.int(),
       })
     ),
-    mySolvePosition: z.number().int().nullable(),
+    mySolvePosition: z.nullable(z.int()),
   }),
 })

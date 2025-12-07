@@ -1,25 +1,25 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodLeaderboardV2 = response('goodLeaderboard', {
   status: 200,
   message: 'The leaderboard was retrieved.',
   data: z.object({
-    total: z.number().int(),
+    total: z.int(),
     leaderboard: z.array(
       z.object({
         id: z.string(),
         name: z.string(),
-        score: z.number().int(),
-        avatarUrl: z.string().nullable(),
+        score: z.int(),
+        avatarUrl: z.nullable(z.string()),
         solves: z.array(
           z.object({
             id: z.string(),
-            solveTime: z.number().int(),
+            solveTime: z.int(),
           })
         ),
         division: z.string(),
-        divisionPlace: z.number().int(),
+        divisionPlace: z.int(),
       })
     ),
     challenges: z.record(
@@ -27,9 +27,9 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
       z.object({
         name: z.string(),
         category: z.string(),
-        solves: z.number().int(),
-        points: z.number().int(),
-        sortWeight: z.number().int().nullable(),
+        solves: z.int(),
+        points: z.int(),
+        sortWeight: z.nullable(z.int()),
         firstSolvers: z.array(
           z.object({
             id: z.string(),

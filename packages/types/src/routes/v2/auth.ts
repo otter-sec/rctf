@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
@@ -24,20 +24,22 @@ export const RegisterRouteV2 = defineRoute({
   captchaAction: ProtectedAction.Register,
   body: z
     .object({
-      email: UserEmail.optional(),
+      email: z.optional(UserEmail),
       name: UserName,
-      ctftimeToken: z.string().optional(),
-      captchaCode: z.string().optional(),
+      ctftimeToken: z.optional(z.string()),
+      captchaCode: z.optional(z.string()),
     })
-    .superRefine((data, ctx) => {
-      if (!data.email && !data.ctftimeToken) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Either email or ctftimeToken must be provided.',
-          path: ['email'],
-        })
-      }
-    }),
+    .check(
+      z.superRefine((data, ctx) => {
+        if (!data.email && !data.ctftimeToken) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Either email or ctftimeToken must be provided.',
+            path: ['email'],
+          })
+        }
+      })
+    ),
   goodResponses: [GoodVerifySent, GoodRegister],
   badResponses: [
     BadCompetitionNotAllowed,
@@ -60,7 +62,7 @@ export const RecoverRouteV2 = defineRoute({
   captchaAction: ProtectedAction.Recover,
   body: z.object({
     email: UserEmail,
-    captchaCode: z.string().optional(),
+    captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodVerifySent],
   badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadCaptcha],

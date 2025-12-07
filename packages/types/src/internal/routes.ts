@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import type { Permissions, ProtectedAction } from '../enums'
 import type {
   ResponseBody,
@@ -10,14 +10,9 @@ import type { HttpMethod, SchemaLike } from './utils'
 
 export type BodyFormat = 'json' | 'form-data'
 
-type GoodResponseCollection = readonly ResponseDefinition<
-  `good${string}`,
-  z.ZodTypeAny | undefined
->[]
-
-type BadResponseCollection = readonly ResponseDefinition<
-  `bad${string}` | `error${string}`,
-  z.ZodTypeAny | undefined
+type ResponseCollection = readonly ResponseDefinition<
+  string,
+  z.ZodMiniType<any, any> | undefined
 >[]
 
 type OptionalSchema<T> = T extends SchemaLike ? T : undefined
@@ -295,7 +290,7 @@ export type RouteErrorResponse<
 
 type SuccessResponseData<TDefinition> =
   TDefinition extends ResponseDefinition<string, infer TSchema>
-    ? TSchema extends z.ZodTypeAny
+    ? TSchema extends z.ZodMiniType<any, any>
       ? z.output<TSchema>
       : void
     : void

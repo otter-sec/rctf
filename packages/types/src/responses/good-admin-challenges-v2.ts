@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 import { AdminChallengeSchemaV2 } from './good-admin-challenge-v2'
 

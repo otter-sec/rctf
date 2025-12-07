@@ -1,6 +1,6 @@
 import type { InstancerConfig } from '@rctf/db'
 import { EndpointSchema, InstanceStatus } from '@rctf/types'
-import { z } from 'zod'
+import { z } from 'zod/mini'
 
 export { InstanceStatus }
 
@@ -19,9 +19,9 @@ export interface ExtendInstanceOptions extends InstanceQueryOptions {
 
 export const instanceDetailsSchema = z.object({
   kind: z.literal('instancerInstanceDetails'),
-  status: z.nativeEnum(InstanceStatus),
-  timeLeftMilliseconds: z.number().int().nullable(),
-  endpoints: z.array(EndpointSchema).nullable(),
+  status: z.enum(InstanceStatus),
+  timeLeftMilliseconds: z.nullable(z.int()),
+  endpoints: z.nullable(z.array(EndpointSchema)),
 })
 
 export const instancerErrorSchema = z.object({
@@ -36,7 +36,7 @@ export type instanceDetailsOrError =
 export type ProviderConfig = Record<string, unknown>
 
 export interface InstancerProvider {
-  readonly configSchema: z.ZodType<ProviderConfig, z.ZodTypeDef, unknown>
+  readonly configSchema: z.ZodMiniType<ProviderConfig, unknown>
 
   getDefaults: () => ProviderConfig
 

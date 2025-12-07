@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 const JsonSchemaSchema = z.record(z.string(), z.unknown())

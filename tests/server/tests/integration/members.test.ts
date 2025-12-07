@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   BadKnownEmail,
@@ -6,6 +5,7 @@ import {
   GoodMemberData,
   GoodMemberDelete,
 } from '@rctf/types'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import {

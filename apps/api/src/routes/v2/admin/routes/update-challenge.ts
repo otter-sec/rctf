@@ -25,7 +25,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
 
     if (!configResult.success) {
       return res.badInstancerConfig({
-        error: configResult.error.errors
+        error: configResult.error.issues
           .map(e => `${e.path.join('.')}: ${e.message}`)
           .join(', '),
       })

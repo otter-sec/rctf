@@ -1,27 +1,26 @@
-import { z } from 'zod'
-import type { StatusCode } from './utils'
+import { z } from 'zod/mini'
+import type { SchemaLike, StatusCode } from './utils'
 
 export interface ResponseDefinition<
   TKind extends string,
-  TDataSchema extends z.ZodTypeAny | undefined = undefined,
+  TDataSchema extends SchemaLike | undefined = undefined,
 > {
   readonly kind: TKind
   readonly status: StatusCode
   readonly message: string
   readonly dataSchema: TDataSchema
-  readonly schema: z.ZodTypeAny
+  readonly schema: SchemaLike
 }
 
-type ResponseOptions<TDataSchema extends z.ZodTypeAny | undefined = undefined> =
-  {
-    status: StatusCode
-    message: string
-    data?: TDataSchema
-  }
+type ResponseOptions<TDataSchema extends SchemaLike | undefined = undefined> = {
+  status: StatusCode
+  message: string
+  data?: TDataSchema
+}
 
 export function response<
   TKind extends string,
-  TDataSchema extends z.ZodTypeAny | undefined = undefined,
+  TDataSchema extends SchemaLike | undefined = undefined,
 >(
   kind: TKind,
   options: ResponseOptions<TDataSchema>
@@ -48,7 +47,7 @@ export function response<
 }
 
 export type ResponseResult<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
+  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
 > = {
   status: TDefinition['status']
   body: ResponseBody<TDefinition>
@@ -56,8 +55,8 @@ export type ResponseResult<
 }
 
 export type ResponseHelper<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
-> = TDefinition['dataSchema'] extends z.ZodTypeAny
+  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
+> = TDefinition['dataSchema'] extends SchemaLike
   ? (
       payload: z.input<NonNullable<TDefinition['dataSchema']>>
     ) => ResponseResult<TDefinition>
@@ -66,23 +65,17 @@ export type ResponseHelper<
 export type ResponseHelpers<
   TResponses extends readonly ResponseDefinition<
     string,
-    z.ZodTypeAny | undefined
+    SchemaLike | undefined
   >[],
 > = {
   [R in TResponses[number] as R['kind']]: ResponseHelper<R>
 }
 
-type ResponseDataShape<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
-> = TDefinition['dataSchema'] extends z.ZodTypeAny
-  ? z.output<NonNullable<TDefinition['dataSchema']>>
-  : never
-
 export type ResponseBody<
-  TDefinition extends ResponseDefinition<string, z.ZodTypeAny | undefined>,
+  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
 > =
   TDefinition extends ResponseDefinition<string, infer TData>
-    ? TData extends z.ZodTypeAny
+    ? TData extends SchemaLike
       ? {
           kind: TDefinition['kind']
           message: TDefinition['message']
@@ -94,5 +87,5 @@ export type ResponseBody<
         }
     : never
 
-export type ResponseData<T extends ResponseDefinition<string, z.ZodTypeAny>> =
+export type ResponseData<T extends ResponseDefinition<string, SchemaLike>> =
   z.output<T['dataSchema']>

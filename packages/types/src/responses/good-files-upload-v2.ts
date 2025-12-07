@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 import { ChallengeFileSchemaV2 } from '../util'
 
