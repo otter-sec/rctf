@@ -2,6 +2,7 @@ import {
   BadToken,
   isFileField,
   type AnyRouteDefinition,
+  type ResponseDefinition,
   type RouteBodyInput,
   type RouteParamsInput,
   type RouteQueryInput,
@@ -83,7 +84,11 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
     clearToken()
   }
 
-  const definition = route.responses.find(
+  const definitions: ResponseDefinition[] = [
+    ...route.goodResponses,
+    ...route.badResponses,
+  ]
+  const definition = definitions.find(
     definition => definition.kind === envelope.kind
   )
   if (!definition) {

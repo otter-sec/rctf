@@ -191,7 +191,7 @@
             onChange: ({ value }) => {
               if (value === '') return undefined
               const result = UserEmail.safeParse(value)
-              return result.success ? undefined : result.error.errors[0]?.message
+              return result.success ? undefined : result.error.issues[0]?.message
             },
           }}>
           {#snippet children(field)}
