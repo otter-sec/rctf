@@ -69,6 +69,9 @@
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
+              {#if solve.userAvatarUrl}
+                <Avatar.Image src={solve.userAvatarUrl} alt={solve.userName} class="rounded-md" />
+              {/if}
               <Avatar.Fallback class="rounded-md">
                 {getInitials(solve.userName)}
               </Avatar.Fallback>
@@ -85,6 +88,9 @@
               </span>
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
+              {#if currentUser.avatarUrl}
+                <Avatar.Image src={currentUser.avatarUrl} alt={currentUser.name} class="rounded-md" />
+              {/if}
               <Avatar.Fallback class="rounded-md">
                 {getInitials(currentUser.name)}
               </Avatar.Fallback>

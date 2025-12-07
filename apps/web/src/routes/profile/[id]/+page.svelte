@@ -24,6 +24,7 @@
   <div class="mx-auto flex flex-col gap-6">
     <ProfileStatsCard
       name={user.name}
+      avatarUrl={user.avatarUrl}
       ctftimeId={user.ctftimeId}
       division={user.division}
       divisionLabel={clientConfig.divisions[user.division] ?? user.division}

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
   import { useClientConfig, useCurrentUser } from '$lib/query'
-  import { MembersCard, ProfileSummary, UpdateProfileCard } from './_components'
+  import { MembersCard, ProfileSummary, UpdateAvatarCard, UpdateProfileCard } from './_components'
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
@@ -13,6 +13,7 @@
 {#if user}
   <div class="flex flex-col gap-6">
     <ProfileSummary />
+    <UpdateAvatarCard />
     <UpdateProfileCard />
     {#if clientConfig?.userMembers}
       <MembersCard />

@@ -58,7 +58,7 @@ export const ServerConfigSchema = z.object({
   endTime: z.number(), // unix ms
 
   // Divisions
-  divisions: z.record(z.string(), z.string()).default({open: 'Open'}), // id -> display name
+  divisions: z.record(z.string(), z.string()).default({ open: 'Open' }), // id -> display name
   defaultDivision: z.string().optional(),
   divisionACLs: z.array(ACLSchema).optional(),
 

@@ -31,6 +31,7 @@
   <div class="flex flex-col gap-6">
     <ProfileStatsCard
       name={user.name}
+      avatarUrl={user.avatarUrl}
       email={user.email}
       ctftimeId={user.ctftimeId}
       division={user.division}

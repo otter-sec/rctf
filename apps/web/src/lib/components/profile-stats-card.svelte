@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { Card } from '$lib/components'
+  import { Avatar, Card } from '$lib/components'
+  import { getInitials } from '$lib/utils'
 
   interface Props {
     name: string
+    avatarUrl?: string | null
     email?: string | null
     ctftimeId?: string | null
     division: string
@@ -12,28 +14,50 @@
     divisionPlace: number | null
   }
 
-  let { name, email, ctftimeId, divisionLabel, score, globalPlace, divisionPlace }: Props = $props()
+  let {
+    name,
+    avatarUrl,
+    email,
+    ctftimeId,
+    divisionLabel,
+    score,
+    globalPlace,
+    divisionPlace,
+  }: Props = $props()
 </script>
 
-<!-- TODO(enscribe): remove -->
 <Card.Root>
   <Card.Header>
-    <Card.Title class="wrap-anywhere text-2xl">{name}</Card.Title>
-    {#if email}
-      <Card.Description>{email}</Card.Description>
-    {/if}
-    {#if ctftimeId}
-      <Card.Description>
-        CTFtime:
-        <a
-          href="https://ctftime.org/team/{ctftimeId}"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="text-foreground-prose-link hover:underline">
-          {ctftimeId}
-        </a>
-      </Card.Description>
-    {/if}
+    <div class="flex items-center gap-4">
+      {#key avatarUrl}
+        <Avatar.Root class="size-16 shrink-0 rounded-xl">
+          {#if avatarUrl}
+            <Avatar.Image src={avatarUrl} alt={name} class="rounded-xl" />
+          {/if}
+          <Avatar.Fallback class="rounded-xl text-xl">
+            {getInitials(name)}
+          </Avatar.Fallback>
+        </Avatar.Root>
+      {/key}
+      <div class="min-w-0 flex-1">
+        <Card.Title class="wrap-anywhere text-2xl">{name}</Card.Title>
+        {#if email}
+          <Card.Description>{email}</Card.Description>
+        {/if}
+        {#if ctftimeId}
+          <Card.Description>
+            CTFtime:
+            <a
+              href="https://ctftime.org/team/{ctftimeId}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-foreground-prose-link hover:underline">
+              {ctftimeId}
+            </a>
+          </Card.Description>
+        {/if}
+      </div>
+    </div>
   </Card.Header>
   <Card.Content>
     <div class="grid grid-cols-2 gap-4 md:grid-cols-4">

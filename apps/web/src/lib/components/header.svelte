@@ -98,11 +98,16 @@
             </span>
           </div>
 
-          <Avatar.Root class="size-12 rounded-lg">
-            <Avatar.Fallback class="rounded-lg text-sm">
-              {getInitials(user.name)}
-            </Avatar.Fallback>
-          </Avatar.Root>
+          {#key user.avatarUrl}
+            <Avatar.Root class="size-12 rounded-lg">
+              {#if user.avatarUrl}
+                <Avatar.Image src={user.avatarUrl} alt={user.name} class="rounded-lg" />
+              {/if}
+              <Avatar.Fallback class="rounded-lg text-sm">
+                {getInitials(user.name)}
+              </Avatar.Fallback>
+            </Avatar.Root>
+          {/key}
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Content align="end" class="w-56">

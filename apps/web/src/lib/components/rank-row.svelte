@@ -9,6 +9,7 @@
     rankLabel: string | number
     name: string
     userId?: string
+    avatarUrl?: string | null
     subtitle?: string
     primaryValue?: string
     secondaryValue?: string
@@ -23,6 +24,7 @@
     rankLabel,
     name,
     userId,
+    avatarUrl,
     subtitle,
     primaryValue,
     secondaryValue,
@@ -45,6 +47,9 @@
   </span>
 
   <Avatar.Root class="size-12 shrink-0 rounded-lg">
+    {#if avatarUrl}
+      <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
+    {/if}
     <Avatar.Fallback class="rounded-lg text-sm">
       {getInitials(name)}
     </Avatar.Fallback>

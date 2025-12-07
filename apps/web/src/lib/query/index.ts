@@ -32,6 +32,7 @@ import {
   RegisterRouteV2,
   SetEmailRouteV2,
   SubmitFlagRoute,
+  UpdateAvatarRoute,
   UpdateChallengeRouteV2,
   UpdateUserRouteV2,
   UploadFilesRouteV2,
@@ -399,4 +400,8 @@ export function useUploadFilesMutation() {
 
 export function useCtftimeCallbackMutation() {
   return createApiMutation(CtftimeCallbackRoute)
+}
+
+export function useUpdateAvatarMutation() {
+  return createApiMutation(UpdateAvatarRoute)
 }

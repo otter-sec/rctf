@@ -13,6 +13,7 @@ export type IconComponent = typeof SvelteComponent<
 >
 
 export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
+export { default as IconCameraFilled } from '@iconify-svelte/tabler/camera-filled'
 export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
 export { default as IconArrowBigLeftFilled } from '@iconify-svelte/tabler/arrow-big-left-filled'
 export { default as IconArrowBigRightFilled } from '@iconify-svelte/tabler/arrow-big-right-filled'

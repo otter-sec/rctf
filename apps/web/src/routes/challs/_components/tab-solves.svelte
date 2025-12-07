@@ -84,6 +84,7 @@
             rankLabel={solvePosition}
             name={solve.userName}
             userId={solve.userId}
+            avatarUrl={solve.userAvatarUrl}
             division={solve.division}
             divisionPlace={solve.divisionPlace}
             primaryValue={solvePosition === 1
