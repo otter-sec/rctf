@@ -7,20 +7,16 @@
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()
-
-  let verifySent = $state(false)
-  let submittedEmail = $state('')
+  let verifySent = $state<string | null>(null)
 
   const form = useApiForm(RegisterRouteV2, {
-    defaults: { name: '', email: '' },
-    onSuccess: response => {
-      if (response.kind === GoodRegister.kind) {
-        setToken(response.data.authToken)
+    onSuccess: res => {
+      if (res.kind === GoodRegister.kind) {
+        setToken(res.data.authToken)
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
         goto('/')
-      } else if (response.kind === GoodVerifySent.kind) {
-        submittedEmail = form.data.email ?? ''
-        verifySent = true
+      } else if (res.kind === GoodVerifySent.kind) {
+        verifySent = form.data.email ?? ''
       }
     },
   })
@@ -29,34 +25,25 @@
 <h1>Register</h1>
 
 {#if verifySent}
-  <p>Verification email sent to <strong>{submittedEmail}</strong></p>
-  <p>Check your inbox and click the link to complete registration.</p>
-  <button onclick={() => (verifySent = false)}>Try again</button>
+  <p>Verification email sent to <strong>{verifySent}</strong>. Check your inbox.</p>
+  <button onclick={() => (verifySent = null)}>Try again</button>
 {:else}
   <form onsubmit={form.submit}>
-    <div>
-      <label for="name">Team Name</label>
-      <input id="name" name="name" type="text" bind:value={form.data.name} />
-      {#if form.errors.name}
-        <em role="alert">{form.errors.name}</em>
-      {/if}
-    </div>
-
-    <div>
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" bind:value={form.data.email} />
-      {#if form.errors.email}
-        <em role="alert">{form.errors.email}</em>
-      {/if}
-    </div>
-
-    {#if form.errors._form}
-      <p style="color: red">{form.errors._form}</p>
+    <label>Team Name <input type="text" bind:value={form.data.name} /></label>
+    {#if form.errors.name}
+      <em>{form.errors.name}</em>
     {/if}
 
-    <button type="submit" disabled={form.submitting}>
-      {form.submitting ? 'Registering...' : 'Register'}
-    </button>
+    <label>Email <input type="email" bind:value={form.data.email} /></label>
+    {#if form.errors.email}
+      <em>{form.errors.email}</em>
+    {/if}
+
+    {#if form.errors._form}
+      <p style="color:red">{form.errors._form}</p>
+    {/if}
+
+    <button disabled={form.submitting}>{form.submitting ? 'Registering...' : 'Register'}</button>
   </form>
 {/if}
 

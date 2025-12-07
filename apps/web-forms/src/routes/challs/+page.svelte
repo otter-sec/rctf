@@ -11,12 +11,11 @@
   const challenges = $derived($challengesQuery.data ?? [])
   const user = $derived($userQuery.data)
   const solvedIds = $derived(new Set(user?.solves.map(s => s.id) ?? []))
-
   let selected = $state<Challenge | null>(null)
 
   const flagForm = useApiForm(SubmitFlagRoute, {
-    onSuccess: response => {
-      if (response.kind === GoodFlag.kind) {
+    onSuccess: res => {
+      if (res.kind === GoodFlag.kind) {
         queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
         selected = null
@@ -81,19 +80,26 @@
         <h4>Files</h4>
         <ul>
           {#each selected.files as f}
-            <li><a href={f.url} target="_blank" rel="noopener">{f.name}</a></li>
+            <li>
+              <a href={f.url} target="_blank" rel="noopener">{f.name}</a>
+            </li>
           {/each}
         </ul>
       {/if}
 
       {#if !solvedIds.has(selected.id)}
         <form onsubmit={flagForm.submit}>
-          <label>
-            Flag
-            <input type="text" bind:value={flagForm.data.flag} placeholder="flag..." />
-          </label>
-          {#if flagForm.errors.flag}<em>{flagForm.errors.flag}</em>{/if}
-          {#if flagForm.errors._form}<p style="color:red">{flagForm.errors._form}</p>{/if}
+          <label
+            >Flag <input
+              type="text"
+              bind:value={flagForm.data.flag}
+              placeholder="flag..." /></label>
+          {#if flagForm.errors.flag}
+            <em>{flagForm.errors.flag}</em>
+          {/if}
+          {#if flagForm.errors._form}
+            <p style="color:red">{flagForm.errors._form}</p>
+          {/if}
           <button disabled={flagForm.submitting}
             >{flagForm.submitting ? 'Submitting...' : 'Submit'}</button>
         </form>

@@ -2,16 +2,11 @@
   import { GoodVerifySent, RecoverRouteV2 } from '@rctf/types'
   import { useApiForm } from '$lib/forms'
 
-  let verifySent = $state(false)
-  let submittedEmail = $state('')
+  let verifySent = $state<string | null>(null)
 
   const form = useApiForm(RecoverRouteV2, {
-    defaults: { email: '' },
-    onSuccess: response => {
-      if (response.kind === GoodVerifySent.kind) {
-        submittedEmail = form.data.email
-        verifySent = true
-      }
+    onSuccess: res => {
+      if (res.kind === GoodVerifySent.kind) verifySent = form.data.email
     },
   })
 </script>
@@ -19,26 +14,22 @@
 <h1>Recover Account</h1>
 
 {#if verifySent}
-  <p>Recovery email sent to <strong>{submittedEmail}</strong></p>
-  <p>Check your inbox for your team token.</p>
-  <button onclick={() => (verifySent = false)}>Try again</button>
+  <p>Recovery email sent to <strong>{verifySent}</strong>. Check your inbox.</p>
+  <button onclick={() => (verifySent = null)}>Try again</button>
 {:else}
   <form onsubmit={form.submit}>
-    <div>
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" bind:value={form.data.email} />
-      {#if form.errors.email}
-        <em role="alert">{form.errors.email}</em>
-      {/if}
-    </div>
-
-    {#if form.errors._form}
-      <p style="color: red">{form.errors._form}</p>
+    <label>Email <input type="email" bind:value={form.data.email} /></label>
+    
+    {#if form.errors.email}
+      <em>{form.errors.email}</em>
     {/if}
-
-    <button type="submit" disabled={form.submitting}>
-      {form.submitting ? 'Sending...' : 'Send Recovery Email'}
-    </button>
+    
+    {#if form.errors._form}
+      <p style="color:red">{form.errors._form}</p>
+    {/if}
+    
+    <button disabled={form.submitting}
+      >{form.submitting ? 'Sending...' : 'Send Recovery Email'}</button>
   </form>
 {/if}
 

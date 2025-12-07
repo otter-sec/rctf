@@ -7,12 +7,10 @@
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()
-
   const form = useApiForm(LoginRoute, {
-    defaults: { teamToken: '' },
-    onSuccess: response => {
-      if (response.kind === GoodLogin.kind) {
-        setToken(response.data.authToken)
+    onSuccess: res => {
+      if (res.kind === GoodLogin.kind) {
+        setToken(res.data.authToken)
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
         goto('/')
       }
@@ -23,24 +21,17 @@
 <h1>Login</h1>
 
 <form onsubmit={form.submit}>
-  <div>
-    <label for="teamToken">Team Token</label>
-    <input id="teamToken" name="teamToken" type="password" bind:value={form.data.teamToken} />
-    {#if form.errors.teamToken}
-      <em role="alert">{form.errors.teamToken}</em>
-    {/if}
-  </div>
+  <label>Team Token <input type="password" bind:value={form.data.teamToken} /></label>
 
-  {#if form.errors._form}
-    <p style="color: red">{form.errors._form}</p>
+  {#if form.errors.teamToken}
+    <em>{form.errors.teamToken}</em>
   {/if}
 
-  <button type="submit" disabled={form.submitting}>
-    {form.submitting ? 'Logging in...' : 'Login'}
-  </button>
+  {#if form.errors._form}
+    <p style="color:red">{form.errors._form}</p>
+  {/if}
+
+  <button disabled={form.submitting}>{form.submitting ? 'Logging in...' : 'Login'}</button>
 </form>
 
-<p>
-  <a href="/register">Register</a> |
-  <a href="/recover">Forgot token?</a>
-</p>
+<p><a href="/register">Register</a> | <a href="/recover">Forgot token?</a></p>
