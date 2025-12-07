@@ -94,9 +94,8 @@ const parseResponse = <TRoute extends AnyRouteDefinition>(
     clearToken()
   }
 
-  const definition = route.responses.find(
-    definition => definition.kind === envelope.kind
-  )
+  const allResponses = [...route.goodResponses, ...route.badResponses]
+  const definition = allResponses.find(def => def.kind === envelope.kind)
   if (!definition) {
     throw new Error(`Unknown response kind: ${JSON.stringify(payload)}`)
   }

@@ -6,70 +6,20 @@ import type {
   ResponseHelpers,
   ResponseResult,
 } from './responses'
-import type { HttpMethod, SchemaLike } from './utils'
+import type { HttpMethod, Infer, InferInput, Schema } from './utils'
 
 export type BodyFormat = 'json' | 'form-data'
+export type ResponseCollection = readonly ResponseDefinition[]
 
-type ResponseCollection = readonly ResponseDefinition<
-  string,
-  z.ZodMiniType<any, any> | undefined
->[]
-
-type OptionalSchema<T> = T extends SchemaLike ? T : undefined
-type SchemaOutput<T extends SchemaLike | undefined> = T extends SchemaLike
-  ? z.output<T>
-  : undefined
-type SchemaInput<T extends SchemaLike | undefined> = T extends SchemaLike
-  ? z.input<T>
-  : undefined
-
-export interface RouteDefinition<
-  TMethod extends HttpMethod = HttpMethod,
-  TBody extends SchemaLike | undefined = undefined,
-  TGoodResponses extends GoodResponseCollection = GoodResponseCollection,
-  TBadResponses extends BadResponseCollection = BadResponseCollection,
-  TParams extends SchemaLike | undefined = undefined,
-  TQuery extends SchemaLike | undefined = undefined,
-  TAuthRequired extends boolean = boolean,
-  TPermissions extends Permissions | undefined = Permissions | undefined,
-  TOnlyWhenStarted extends boolean = boolean,
-  TOnlyWhenStartedPermissionsBypass extends Permissions | undefined =
-    | Permissions
-    | undefined,
-  TOnlyWhenNotFinished extends boolean = boolean,
-  TReturnBodyAsIs extends boolean = boolean,
-  TBodyFormat extends BodyFormat = BodyFormat,
-  TCaptchaAction extends ProtectedAction | undefined =
-    | ProtectedAction
-    | undefined,
-> {
-  readonly method: TMethod
-  readonly path: string
-  readonly body: TBody
-  readonly goodResponses: TGoodResponses
-  readonly badResponses: TBadResponses
-  readonly responses: readonly [...TGoodResponses, ...TBadResponses]
-  readonly authRequired: TAuthRequired
-  readonly params: TParams
-  readonly query: TQuery
-  readonly permissions: TPermissions
-  readonly onlyWhenStarted: TOnlyWhenStarted
-  readonly onlyWhenStartedPermissionsBypass: TOnlyWhenStartedPermissionsBypass
-  readonly onlyWhenNotFinished: TOnlyWhenNotFinished
-  readonly returnBodyAsIs: TReturnBodyAsIs
-  readonly bodyFormat: TBodyFormat
-  readonly captchaAction: TCaptchaAction
-}
-
-type RouteConfig = {
+export interface RouteConfig {
   method: HttpMethod
   path: string
-  goodResponses: GoodResponseCollection
-  badResponses: BadResponseCollection
+  goodResponses: ResponseCollection
+  badResponses?: ResponseCollection
   authRequired?: boolean
-  body?: SchemaLike
-  params?: SchemaLike
-  query?: SchemaLike
+  body?: Schema
+  params?: Schema
+  query?: Schema
   permissions?: Permissions
   onlyWhenStarted?: boolean
   onlyWhenStartedPermissionsBypass?: Permissions
@@ -79,226 +29,146 @@ type RouteConfig = {
   captchaAction?: ProtectedAction
 }
 
-type NormalizedAuthRequired<TDefinition extends RouteConfig> =
-  TDefinition['authRequired'] extends boolean
-    ? TDefinition['authRequired']
+export interface RouteDefinition<T extends RouteConfig = RouteConfig> {
+  readonly method: T['method']
+  readonly path: string
+  readonly body: T['body']
+  readonly goodResponses: T['goodResponses']
+  readonly badResponses: T['badResponses'] extends ResponseCollection
+    ? T['badResponses']
+    : readonly []
+  readonly authRequired: T['authRequired'] extends boolean
+    ? T['authRequired']
     : false
-
-type NormalizedPermissions<TDefinition extends RouteConfig> =
-  TDefinition['permissions'] extends Permissions
-    ? TDefinition['permissions']
-    : undefined
-
-type NormalizedOnlyWhenStarted<TDefinition extends RouteConfig> =
-  TDefinition['onlyWhenStarted'] extends boolean
-    ? TDefinition['onlyWhenStarted']
+  readonly params: T['params']
+  readonly query: T['query']
+  readonly permissions: T['permissions']
+  readonly onlyWhenStarted: T['onlyWhenStarted'] extends boolean
+    ? T['onlyWhenStarted']
     : false
-
-type NormalizedOnlyWhenNotFinished<TDefinition extends RouteConfig> =
-  TDefinition['onlyWhenNotFinished'] extends boolean
-    ? TDefinition['onlyWhenNotFinished']
+  readonly onlyWhenStartedPermissionsBypass: T['onlyWhenStartedPermissionsBypass']
+  readonly onlyWhenNotFinished: T['onlyWhenNotFinished'] extends boolean
+    ? T['onlyWhenNotFinished']
     : false
-
-type NormalizedOnlyWhenStartedPermissionsBypass<
-  TDefinition extends RouteConfig,
-> = TDefinition['onlyWhenStartedPermissionsBypass'] extends Permissions
-  ? TDefinition['onlyWhenStartedPermissionsBypass']
-  : undefined
-
-type ReturnBodyAsIs<TDefinition extends RouteConfig> =
-  TDefinition['returnBodyAsIs'] extends boolean
-    ? TDefinition['returnBodyAsIs']
+  readonly returnBodyAsIs: T['returnBodyAsIs'] extends boolean
+    ? T['returnBodyAsIs']
     : false
-
-type NormalizedBodyFormat<TDefinition extends RouteConfig> =
-  TDefinition['bodyFormat'] extends BodyFormat
-    ? TDefinition['bodyFormat']
+  readonly bodyFormat: T['bodyFormat'] extends BodyFormat
+    ? T['bodyFormat']
     : 'json'
-
-type NormalizedCaptchaAction<TDefinition extends RouteConfig> =
-  TDefinition['captchaAction'] extends ProtectedAction
-    ? TDefinition['captchaAction']
-    : undefined
-
-export function defineRoute<TDefinition extends RouteConfig>(
-  definition: TDefinition
-): RouteDefinition<
-  TDefinition['method'],
-  OptionalSchema<TDefinition['body']>,
-  TDefinition['goodResponses'],
-  TDefinition['badResponses'],
-  OptionalSchema<TDefinition['params']>,
-  OptionalSchema<TDefinition['query']>,
-  NormalizedAuthRequired<TDefinition>,
-  NormalizedPermissions<TDefinition>,
-  NormalizedOnlyWhenStarted<TDefinition>,
-  NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
-  NormalizedOnlyWhenNotFinished<TDefinition>,
-  ReturnBodyAsIs<TDefinition>,
-  NormalizedBodyFormat<TDefinition>,
-  NormalizedCaptchaAction<TDefinition>
-> {
-  const {
-    method,
-    path,
-    goodResponses,
-    badResponses,
-    authRequired = false,
-    body,
-    params,
-    query,
-    permissions,
-    onlyWhenStarted,
-    onlyWhenStartedPermissionsBypass,
-    onlyWhenNotFinished,
-    returnBodyAsIs,
-    bodyFormat,
-    captchaAction,
-  } = definition
-
-  return {
-    method,
-    path,
-    goodResponses,
-    badResponses,
-    responses: [...goodResponses, ...badResponses] as unknown as readonly [
-      ...TDefinition['goodResponses'],
-      ...TDefinition['badResponses'],
-    ],
-    onlyWhenStarted: (onlyWhenStarted ??
-      false) as NormalizedOnlyWhenStarted<TDefinition>,
-    onlyWhenStartedPermissionsBypass: (onlyWhenStartedPermissionsBypass ??
-      undefined) as NormalizedOnlyWhenStartedPermissionsBypass<TDefinition>,
-    onlyWhenNotFinished: (onlyWhenNotFinished ??
-      false) as NormalizedOnlyWhenNotFinished<TDefinition>,
-    authRequired: (authRequired ??
-      false) as NormalizedAuthRequired<TDefinition>,
-    body: (body ?? undefined) as OptionalSchema<TDefinition['body']>,
-    params: (params ?? undefined) as OptionalSchema<TDefinition['params']>,
-    query: (query ?? undefined) as OptionalSchema<TDefinition['query']>,
-    permissions: (permissions ??
-      undefined) as NormalizedPermissions<TDefinition>,
-    returnBodyAsIs: (returnBodyAsIs ?? false) as ReturnBodyAsIs<TDefinition>,
-    bodyFormat: (bodyFormat ?? 'json') as NormalizedBodyFormat<TDefinition>,
-    captchaAction: (captchaAction ??
-      undefined) as NormalizedCaptchaAction<TDefinition>,
-  }
+  readonly captchaAction: T['captchaAction']
 }
 
-export type AnyRouteDefinition = RouteDefinition<
-  HttpMethod,
-  SchemaLike | undefined,
-  GoodResponseCollection,
-  BadResponseCollection,
-  SchemaLike | undefined,
-  SchemaLike | undefined,
-  boolean,
-  Permissions | undefined,
-  boolean,
-  Permissions | undefined,
-  boolean,
-  boolean,
-  BodyFormat,
-  ProtectedAction | undefined
+export function defineRoute<const T extends RouteConfig>(
+  config: T
+): RouteDefinition<T> {
+  return {
+    method: config.method,
+    path: config.path,
+    body: config.body,
+    goodResponses: config.goodResponses,
+    badResponses: (config.badResponses ??
+      []) as RouteDefinition<T>['badResponses'],
+    authRequired: (config.authRequired ??
+      false) as RouteDefinition<T>['authRequired'],
+    params: config.params,
+    query: config.query,
+    permissions: config.permissions,
+    onlyWhenStarted: (config.onlyWhenStarted ??
+      false) as RouteDefinition<T>['onlyWhenStarted'],
+    onlyWhenStartedPermissionsBypass: config.onlyWhenStartedPermissionsBypass,
+    onlyWhenNotFinished: (config.onlyWhenNotFinished ??
+      false) as RouteDefinition<T>['onlyWhenNotFinished'],
+    returnBodyAsIs: (config.returnBodyAsIs ??
+      false) as RouteDefinition<T>['returnBodyAsIs'],
+    bodyFormat: (config.bodyFormat ??
+      'json') as RouteDefinition<T>['bodyFormat'],
+    captchaAction: config.captchaAction,
+  } as RouteDefinition<T>
+}
+
+export type AnyRouteDefinition = RouteDefinition<any>
+type AllResponses<T extends AnyRouteDefinition> = readonly [
+  ...T['goodResponses'],
+  ...T['badResponses'],
+]
+
+export type RouteBody<T extends AnyRouteDefinition> = Infer<T['body']>
+export type RouteBodyInput<T extends AnyRouteDefinition> = InferInput<T['body']>
+export type RouteParams<T extends AnyRouteDefinition> = Infer<T['params']>
+export type RouteParamsInput<T extends AnyRouteDefinition> = InferInput<
+  T['params']
 >
-
-export type RouteBody<TRoute extends AnyRouteDefinition> = SchemaOutput<
-  TRoute['body']
+export type RouteQuery<T extends AnyRouteDefinition> = Infer<T['query']>
+export type RouteQueryInput<T extends AnyRouteDefinition> = InferInput<
+  T['query']
 >
+export type RoutePermissions<T extends AnyRouteDefinition> = T['permissions']
+export type RouteBodyFormat<T extends AnyRouteDefinition> = T['bodyFormat']
 
-export type RouteBodyInput<TRoute extends AnyRouteDefinition> = SchemaInput<
-  TRoute['body']
->
-
-export type RouteParams<TRoute extends AnyRouteDefinition> = SchemaOutput<
-  TRoute['params']
->
-
-export type RouteParamsInput<TRoute extends AnyRouteDefinition> = SchemaInput<
-  TRoute['params']
->
-
-export type RouteQuery<TRoute extends AnyRouteDefinition> = SchemaOutput<
-  TRoute['query']
->
-
-export type RouteQueryInput<TRoute extends AnyRouteDefinition> = SchemaInput<
-  TRoute['query']
->
-
-export type RoutePermissions<TRoute extends AnyRouteDefinition> =
-  TRoute['permissions']
-
-export type RouteBodyFormat<TRoute extends AnyRouteDefinition> =
-  TRoute['bodyFormat']
-
-type RouteRequiresAuth<TRoute extends AnyRouteDefinition> =
-  TRoute['authRequired'] extends true
+type RequiresAuth<T extends AnyRouteDefinition> = T['authRequired'] extends true
+  ? true
+  : T['permissions'] extends Permissions
     ? true
-    : TRoute['permissions'] extends Permissions
-      ? true
-      : false
+    : false
 
-type RouteAuthFields<TRoute extends AnyRouteDefinition, TUser> =
-  RouteRequiresAuth<TRoute> extends true ? { user: TUser } : {}
+type AuthFields<T extends AnyRouteDefinition, TUser> =
+  RequiresAuth<T> extends true ? { user: TUser } : {}
 
 export type RouteHandlerContext<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+  T extends AnyRouteDefinition = AnyRouteDefinition,
 > = {
   context: TContext
-  params: RouteParams<TRoute>
-  query: RouteQuery<TRoute>
-  permissions: RoutePermissions<TRoute>
-} & RouteAuthFields<TRoute, TUser>
+  params: RouteParams<T>
+  query: RouteQuery<T>
+  permissions: RoutePermissions<T>
+} & AuthFields<T, TUser>
 
 export type RouteHandlerArgs<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+  T extends AnyRouteDefinition = AnyRouteDefinition,
 > = {
-  res: ResponseHelpers<TRoute['responses']>
-  body: RouteBody<TRoute>
-  params: RouteParams<TRoute>
-  query: RouteQuery<TRoute>
+  res: ResponseHelpers<[...T['goodResponses'], ...T['badResponses']]>
+  body: RouteBody<T>
+  params: RouteParams<T>
+  query: RouteQuery<T>
   ctx: TContext
-  permissions: RoutePermissions<TRoute>
-} & RouteAuthFields<TRoute, TUser>
+  permissions: RoutePermissions<T>
+} & AuthFields<T, TUser>
 
 export type RouteHandler<
   TContext,
   TUser,
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+  T extends AnyRouteDefinition = AnyRouteDefinition,
 > = (
-  args: RouteHandlerArgs<TContext, TUser, TRoute>
-) => RouteHandlerResult<TRoute> | Promise<RouteHandlerResult<TRoute>>
+  args: RouteHandlerArgs<TContext, TUser, T>
+) => RouteHandlerResult<T> | Promise<RouteHandlerResult<T>>
 
 export type RouteHandlerResult<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = ResponseResult<TRoute['responses'][number]>
+  T extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseResult<AllResponses<T>[number]>
 
 export type RouteValidationSource = 'body' | 'query' | 'params'
 
 export type RouteSuccessResponse<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = ResponseBody<TRoute['goodResponses'][number]>
+  T extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseBody<T['goodResponses'][number]>
 
 export type RouteErrorResponse<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = ResponseBody<TRoute['badResponses'][number]>
+  T extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseBody<T['badResponses'][number]>
 
-type SuccessResponseData<TDefinition> =
-  TDefinition extends ResponseDefinition<string, infer TSchema>
+export type RouteResponseData<
+  T extends AnyRouteDefinition = AnyRouteDefinition,
+> =
+  T['goodResponses'][number] extends ResponseDefinition<string, infer TSchema>
     ? TSchema extends z.ZodMiniType<any, any>
       ? z.output<TSchema>
       : void
     : void
 
-export type RouteResponseData<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = SuccessResponseData<TRoute['goodResponses'][number]>
-
-export type RouteResponse<
-  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = ResponseBody<TRoute['responses'][number]>
+export type RouteResponse<T extends AnyRouteDefinition = AnyRouteDefinition> =
+  ResponseBody<AllResponses<T>[number]>

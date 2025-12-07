@@ -15,7 +15,6 @@ export const GetClientConfigRoute = defineRoute({
   path: '/v1/integrations/client/config',
   method: 'GET',
   goodResponses: [GoodClientConfig],
-  badResponses: [],
   authRequired: false,
 })
 

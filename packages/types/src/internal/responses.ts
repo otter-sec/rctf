@@ -1,18 +1,18 @@
 import { z } from 'zod/mini'
-import type { SchemaLike, StatusCode } from './utils'
+import type { Infer, Schema, StatusCode } from './utils'
 
 export interface ResponseDefinition<
-  TKind extends string,
-  TDataSchema extends SchemaLike | undefined = undefined,
+  TKind extends string = string,
+  TDataSchema extends Schema | undefined = Schema | undefined,
 > {
   readonly kind: TKind
   readonly status: StatusCode
   readonly message: string
   readonly dataSchema: TDataSchema
-  readonly schema: SchemaLike
+  readonly schema: Schema
 }
 
-type ResponseOptions<TDataSchema extends SchemaLike | undefined = undefined> = {
+type ResponseOptions<TDataSchema extends Schema | undefined = undefined> = {
   status: StatusCode
   message: string
   data?: TDataSchema
@@ -20,7 +20,7 @@ type ResponseOptions<TDataSchema extends SchemaLike | undefined = undefined> = {
 
 export function response<
   TKind extends string,
-  TDataSchema extends SchemaLike | undefined = undefined,
+  TDataSchema extends Schema | undefined = undefined,
 >(
   kind: TKind,
   options: ResponseOptions<TDataSchema>
@@ -46,46 +46,35 @@ export function response<
   }
 }
 
-export type ResponseResult<
-  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
-> = {
-  status: TDefinition['status']
-  body: ResponseBody<TDefinition>
-  definition: TDefinition
+export type ResponseResult<TDef extends ResponseDefinition> = {
+  status: TDef['status']
+  body: ResponseBody<TDef>
+  definition: TDef
 }
 
-export type ResponseHelper<
-  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
-> = TDefinition['dataSchema'] extends SchemaLike
-  ? (
-      payload: z.input<NonNullable<TDefinition['dataSchema']>>
-    ) => ResponseResult<TDefinition>
-  : () => ResponseResult<TDefinition>
+export type ResponseHelper<TDef extends ResponseDefinition> =
+  TDef['dataSchema'] extends Schema
+    ? (
+        payload: z.input<NonNullable<TDef['dataSchema']>>
+      ) => ResponseResult<TDef>
+    : () => ResponseResult<TDef>
 
-export type ResponseHelpers<
-  TResponses extends readonly ResponseDefinition<
-    string,
-    SchemaLike | undefined
-  >[],
-> = {
-  [R in TResponses[number] as R['kind']]: ResponseHelper<R>
-}
+export type ResponseHelpers<TResponses extends readonly ResponseDefinition[]> =
+  {
+    [R in TResponses[number] as R['kind']]: ResponseHelper<R>
+  }
 
-export type ResponseBody<
-  TDefinition extends ResponseDefinition<string, SchemaLike | undefined>,
-> =
-  TDefinition extends ResponseDefinition<string, infer TData>
-    ? TData extends SchemaLike
+export type ResponseBody<TDef extends ResponseDefinition> =
+  TDef extends ResponseDefinition
+    ? TDef['dataSchema'] extends Schema
       ? {
-          kind: TDefinition['kind']
-          message: TDefinition['message']
-          data: z.output<TData>
+          kind: TDef['kind']
+          message: TDef['message']
+          data: Infer<TDef['dataSchema']>
         }
-      : {
-          kind: TDefinition['kind']
-          message: TDefinition['message']
-        }
+      : { kind: TDef['kind']; message: TDef['message'] }
     : never
 
-export type ResponseData<T extends ResponseDefinition<string, SchemaLike>> =
-  z.output<T['dataSchema']>
+export type ResponseData<T extends ResponseDefinition<string, Schema>> = Infer<
+  T['dataSchema']
+>
