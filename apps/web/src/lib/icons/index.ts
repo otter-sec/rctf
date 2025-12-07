@@ -37,6 +37,7 @@ export { default as IconCircleNumber2Filled } from '@iconify-svelte/tabler/circl
 export { default as IconCircleNumber3Filled } from '@iconify-svelte/tabler/circle-number-3-filled'
 export { default as IconCloudComputingFilled } from '@iconify-svelte/tabler/cloud-computing-filled'
 export { default as IconCloudUpload } from '@iconify-svelte/tabler/cloud-upload'
+export { default as IconClockFilled } from '@iconify-svelte/tabler/clock-filled'
 export { default as IconCoins } from '@iconify-svelte/tabler/coins'
 export { default as IconCopy } from '@iconify-svelte/tabler/copy'
 export { default as IconCopyPlusFilled } from '@iconify-svelte/tabler/copy-plus-filled'

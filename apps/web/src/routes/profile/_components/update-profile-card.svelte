@@ -8,7 +8,7 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { Button, Card, Field, Input, Select, Spinner } from '$lib/components'
+  import { Button, Field, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import {
     queryKeys,
@@ -32,8 +32,11 @@
   let name = $state('')
   let email = $state('')
   let division = $state('')
-  let errors = $state<Record<string, string>>({})
+  let errors = $state<Record<string, string | null>>({})
   let initialized = $state(false)
+
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  const isEmailValid = $derived(email === '' || EMAIL_REGEX.test(email.trim()))
 
   $effect(() => {
     if (user && !initialized) {
@@ -172,28 +175,21 @@
 </script>
 
 {#if user && clientConfig}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Update profile</Card.Title>
-      <Card.Description
-        >Update your team's name, email, or division. Name changes are limited to once every 10
-        minutes.</Card.Description>
-    </Card.Header>
-    <Card.Content>
+  <Section.Root>
+    <Section.Header>Update profile</Section.Header>
+    <Section.Content>
       {#if errors.form}
         <div
-          class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
+          class="bg-background-destructive text-foreground-destructive mb-3 rounded-md p-3 text-sm"
           role="alert">
           {errors.form}
         </div>
       {/if}
 
-      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
+      <form onsubmit={handleSubmit} class="flex flex-col gap-3">
         <Field.Field data-invalid={!!errors.name || undefined}>
-          <Field.Label for="name">Team name</Field.Label>
+          <Field.Label>Team name</Field.Label>
           <Input
-            id="name"
-            name="name"
             type="text"
             placeholder="Enter your team name"
             autocomplete="username"
@@ -201,36 +197,32 @@
             minlength={2}
             maxlength={64}
             required
-            bind:value={name}
-            aria-invalid={!!errors.name} />
+            bind:value={name} />
           {#if errors.name}
             <Field.Error>{errors.name}</Field.Error>
           {/if}
         </Field.Field>
 
-        <Field.Field data-invalid={!!errors.email || undefined}>
-          <Field.Label for="email">Email{canDeleteEmail ? ' (optional)' : ''}</Field.Label>
+        <Field.Field data-invalid={!!errors.email || (!isEmailValid && email !== '') || undefined}>
+          <Field.Label>
+            Email
+            {#if canDeleteEmail}
+              <Field.Hint>(optional)</Field.Hint>
+            {/if}
+          </Field.Label>
           <Input
-            id="email"
-            name="email"
             type="email"
             placeholder="Enter your email"
             autocomplete="email"
-            bind:value={email}
-            aria-invalid={!!errors.email} />
-          <Field.Description>
-            {#if canDeleteEmail}
-              Used for account recovery. Leave blank to remove.
-            {:else}
-              Used for account recovery.
-            {/if}
-          </Field.Description>
+            bind:value={email} />
           {#if errors.email}
             <Field.Error>{errors.email}</Field.Error>
+          {:else if !isEmailValid && email !== ''}
+            <Field.Error>Please enter a valid email address</Field.Error>
           {/if}
         </Field.Field>
 
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} class="mt-1" />
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} />
 
         {#if allowedDivisionOptions.length > 1}
           <Field.Field data-invalid={!!errors.division || undefined}>
@@ -253,13 +245,13 @@
           </Field.Field>
         {/if}
 
-        <Button type="submit" disabled={loading || !hasChanges} class="w-full">
+        <Button type="submit" disabled={loading || !hasChanges || !isEmailValid} class="w-full">
           {#if loading}
             <Spinner class="size-4" />
           {/if}
           Save changes
         </Button>
       </form>
-    </Card.Content>
-  </Card.Root>
+    </Section.Content>
+  </Section.Root>
 {/if}

@@ -1,10 +1,13 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, ProfileStatsCard, SolvesListCard, Spinner } from '$lib/components'
-  import { useClientConfig, useUserProfile } from '$lib/query'
+  import { Button, Card, Spinner } from '$lib/components'
+  import { useChallenges, useClientConfig, useUserProfile } from '$lib/query'
+  import { ProfileLayout } from '../_components'
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived($clientConfigQuery.data)
+  const challengesQuery = useChallenges()
+  const challenges = $derived($challengesQuery.data ?? [])
 
   const userQuery = $derived(useUserProfile(page.params.id!))
   const user = $derived($userQuery.data)
@@ -21,21 +24,10 @@
 </svelte:head>
 
 {#if user && clientConfig}
-  <div class="mx-auto flex flex-col gap-6">
-    <ProfileStatsCard
-      name={user.name}
-      avatarUrl={user.avatarUrl}
-      ctftimeId={user.ctftimeId}
-      division={user.division}
-      divisionLabel={clientConfig.divisions[user.division] ?? user.division}
-      score={user.score}
-      globalPlace={user.globalPlace}
-      divisionPlace={user.divisionPlace} />
-
-    <SolvesListCard
-      solves={user.solves}
-      emptyMessage="This team hasn't solved any challenges yet." />
-  </div>
+  <ProfileLayout
+    {user}
+    divisionLabel={clientConfig.divisions[user.division] ?? user.division}
+    {challenges} />
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
@@ -43,7 +35,7 @@
 {:else}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-xl">Profile not found</Card.Title>
+      <Card.Title class="text-xl font-medium">Profile not found</Card.Title>
     </Card.Header>
     <Card.Content class="flex flex-col gap-4">
       <p class="text-foreground-l3">

@@ -2,7 +2,7 @@
   import { GoodAvatarUpdated, ProtectedAction } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { Avatar, Button, Card, Spinner } from '$lib/components'
+  import { Avatar, Button, Section, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
   import { queryKeys, useClientConfig, useCurrentUser, useUpdateAvatarMutation } from '$lib/query'
@@ -97,30 +97,24 @@
 </script>
 
 {#if user && clientConfig}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title>Team avatar</Card.Title>
-      <Card.Description>
-        Upload an avatar for your team. Maximum file size is 1MB. Images will be resized to 256x256.
-      </Card.Description>
-    </Card.Header>
-    <Card.Content>
+  <Section.Root>
+    <Section.Header>Team avatar</Section.Header>
+    <Section.Content>
       <div class="flex items-center gap-4">
         <div class="relative">
           {#key displayAvatarUrl}
-            <Avatar.Root class="size-24 rounded-xl">
+            <Avatar.Root class="size-18 rounded-lg">
               {#if displayAvatarUrl}
-                <Avatar.Image src={displayAvatarUrl} alt={user.name} class="rounded-xl" />
+                <Avatar.Image src={displayAvatarUrl} alt={user.name} class="rounded-lg" />
               {/if}
-              <Avatar.Fallback class="rounded-xl text-2xl">
+              <Avatar.Fallback class="rounded-lg text-xl">
                 {getInitials(user.name)}
               </Avatar.Fallback>
             </Avatar.Root>
           {/key}
           {#if loading}
-            <div
-              class="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50">
-              <Spinner class="size-6" />
+            <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
+              <Spinner class="size-5" />
             </div>
           {/if}
         </div>
@@ -132,27 +126,20 @@
             accept="image/*"
             class="hidden"
             onchange={handleFileSelect} />
-          <Button
-            size="sm"
-            onclick={triggerFileInput}
-            disabled={loading}>
+          <Button size="sm" onclick={triggerFileInput} disabled={loading}>
             <IconCameraFilled class="size-4" />
-            {user.avatarUrl ? 'Change avatar' : 'Upload avatar'}
+            {user.avatarUrl ? 'Change' : 'Upload'}
           </Button>
           {#if user.avatarUrl}
-            <Button
-              variant="destructive"
-              size="sm"
-              onclick={removeAvatar}
-              disabled={loading}>
+            <Button variant="destructive" size="sm" onclick={removeAvatar} disabled={loading}>
               <IconTrashFilled class="size-4" />
-              Remove avatar
+              Remove
             </Button>
           {/if}
         </div>
       </div>
 
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.AvatarUpload} class="mt-4" />
-    </Card.Content>
-  </Card.Root>
+      <CaptchaNotice config={clientConfig} action={ProtectedAction.AvatarUpload} class="mt-3" />
+    </Section.Content>
+  </Section.Root>
 {/if}

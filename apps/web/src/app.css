@@ -139,10 +139,10 @@
   --radius: 0.625rem;
   --background-l0: oklch(98% 0 0);
   --background-l1: oklch(95% 0 0);
-  --background-l2: oklch(92% 0 0);
-  --background-l3: oklch(90% 0 0);
-  --background-l4: oklch(88% 0 0);
-  --background-l5: oklch(86% 0 0);
+  --background-l2: oklch(93% 0 0);
+  --background-l3: oklch(91% 0 0);
+  --background-l4: oklch(89% 0 0);
+  --background-l5: oklch(84% 0 0);
   --foreground-l0: var(--color-neutral-700);
   --foreground-l1: var(--color-neutral-600);
   --foreground-l2: var(--color-neutral-500);
@@ -241,7 +241,7 @@
   --background-l2: oklch(22% 0 0);
   --background-l3: oklch(26% 0 0);
   --background-l4: oklch(30% 0 0);
-  --background-l5: oklch(35% 0 0);
+  --background-l5: oklch(40% 0 0);
   --foreground-l0: var(--color-neutral-50);
   --foreground-l1: var(--color-neutral-200);
   --foreground-l2: var(--color-neutral-300);

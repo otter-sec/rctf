@@ -74,7 +74,7 @@
     {#if viewMode === 'zoomer'}
       <div class="flex items-center gap-2">
         <span class="text-sm text-foreground-l3">Sort</span>
-        <ButtonGroup.Root>
+        <ButtonGroup.Root class="gap-0.5">
           {#each sortOptions as option}
             {@const isActive = sortMode === option.value}
             <Tooltip.Root>

@@ -89,7 +89,10 @@
             </div>
             <Avatar.Root class="size-11 shrink-0 rounded-md text-sm">
               {#if currentUser.avatarUrl}
-                <Avatar.Image src={currentUser.avatarUrl} alt={currentUser.name} class="rounded-md" />
+                <Avatar.Image
+                  src={currentUser.avatarUrl}
+                  alt={currentUser.name}
+                  class="rounded-md" />
               {/if}
               <Avatar.Fallback class="rounded-md">
                 {getInitials(currentUser.name)}
