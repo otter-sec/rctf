@@ -28,7 +28,8 @@ import {
 export const GetAdminChallengesRouteV2 = defineRoute({
   path: '/v2/admin/challs',
   method: 'GET',
-  responses: [GoodAdminChallengesV2, BadPerms, BadToken],
+  goodResponses: [GoodAdminChallengesV2],
+  badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })
@@ -40,7 +41,8 @@ const AdminChallengeParams = z.object({
 export const GetAdminChallengeRouteV2 = defineRoute({
   path: '/v2/admin/challs/:id',
   method: 'GET',
-  responses: [GoodAdminChallengeV2, BadChallenge, BadPerms, BadToken],
+  goodResponses: [GoodAdminChallengeV2],
+  badResponses: [BadChallenge, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsRead,
@@ -63,7 +65,8 @@ export const UpdateChallengeRouteV2 = defineRoute({
       instancerConfig: PartialInstancerConfigSchema.nullish(),
     }),
   }),
-  responses: [GoodChallengeUpdateV2, BadInstancerConfig, BadPerms, BadToken],
+  goodResponses: [GoodChallengeUpdateV2],
+  badResponses: [BadInstancerConfig, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
@@ -75,7 +78,8 @@ export const UploadFilesRouteV2 = defineRoute({
   body: z.object({
     files: MultipleFileFieldSchema,
   }),
-  responses: [GoodFilesUploadV2, BadPerms, BadToken],
+  goodResponses: [GoodFilesUploadV2],
+  badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsWrite,
   bodyFormat: 'form-data',
@@ -84,13 +88,8 @@ export const UploadFilesRouteV2 = defineRoute({
 export const CreateUserTokenRouteV2 = defineRoute({
   path: '/v2/admin/users/:id/token',
   method: 'POST',
-  responses: [
-    GoodCreateUserTokenV2,
-    BadPerms,
-    BadToken,
-    BadUnknownUser,
-    BadUserPrivileged,
-  ],
+  goodResponses: [GoodCreateUserTokenV2],
+  badResponses: [BadPerms, BadToken, BadUnknownUser, BadUserPrivileged],
   authRequired: true,
   params: z.object({
     id: z.string(),
@@ -101,12 +100,8 @@ export const CreateUserTokenRouteV2 = defineRoute({
 export const DeleteChallengeSolveRouteV2 = defineRoute({
   path: '/v2/admin/challs/:challengeId/solves/:userId',
   method: 'DELETE',
-  responses: [
-    GoodChallengeSolveDeleteV2,
-    BadPerms,
-    BadToken,
-    BadUnknownSolveV2,
-  ],
+  goodResponses: [GoodChallengeSolveDeleteV2],
+  badResponses: [BadPerms, BadToken, BadUnknownSolveV2],
   authRequired: true,
   params: z.object({
     challengeId: z.string(),
@@ -118,7 +113,8 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
 export const GetInstancerSchemaRouteV2 = defineRoute({
   path: '/v2/admin/instancer/schema',
   method: 'GET',
-  responses: [GoodInstancerSchema, BadEndpoint, BadPerms, BadToken],
+  goodResponses: [GoodInstancerSchema],
+  badResponses: [BadEndpoint, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })

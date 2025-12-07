@@ -46,9 +46,8 @@ export const RegisterRoute = defineRoute({
         })
       }
     }),
-  responses: [
-    GoodVerifySent,
-    GoodRegister,
+  goodResponses: [GoodVerifySent, GoodRegister],
+  badResponses: [
     BadCtftimeToken,
     BadEmail,
     BadName,
@@ -80,7 +79,8 @@ export const LoginRoute = defineRoute({
         })
       }
     }),
-  responses: [GoodLogin, BadUnknownUser, BadTokenVerification, BadCtftimeToken],
+  goodResponses: [GoodLogin],
+  badResponses: [BadUnknownUser, BadTokenVerification, BadCtftimeToken],
   authRequired: false,
 })
 
@@ -92,13 +92,8 @@ export const RecoverRoute = defineRoute({
     email: UserEmail,
     recaptchaCode: z.string().optional(),
   }),
-  responses: [
-    GoodVerifySent,
-    BadEndpoint,
-    BadEmail,
-    BadUnknownEmail,
-    BadRecaptchaCode,
-  ],
+  goodResponses: [GoodVerifySent],
+  badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadRecaptchaCode],
   authRequired: false,
 })
 
@@ -108,10 +103,8 @@ export const VerifyRoute = defineRoute({
   body: z.object({
     verifyToken: z.string(),
   }),
-  responses: [
-    GoodVerify,
-    GoodEmailSet,
-    GoodRegister,
+  goodResponses: [GoodVerify, GoodEmailSet, GoodRegister],
+  badResponses: [
     BadTokenVerification,
     BadEmailChangeDivision,
     BadKnownCtftimeId,
@@ -125,6 +118,7 @@ export const VerifyRoute = defineRoute({
 export const TestAuthRoute = defineRoute({
   path: '/v1/auth/test',
   method: 'GET',
-  responses: [GoodToken, BadToken],
+  goodResponses: [GoodToken],
+  badResponses: [BadToken],
   authRequired: true,
 })

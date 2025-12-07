@@ -14,14 +14,16 @@ import {
 export const GetClientConfigRoute = defineRoute({
   path: '/v1/integrations/client/config',
   method: 'GET',
-  responses: [GoodClientConfig],
+  goodResponses: [GoodClientConfig],
+  badResponses: [],
   authRequired: false,
 })
 
 export const GetCtftimeLeaderboardRoute = defineRoute({
   path: '/v1/integrations/ctftime/leaderboard',
   method: 'GET',
-  responses: [GoodCtftimeLeaderboard, BadPerms, BadToken],
+  goodResponses: [GoodCtftimeLeaderboard],
+  badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.leaderboardRead,
   returnBodyAsIs: true,
@@ -33,6 +35,7 @@ export const CtftimeCallbackRoute = defineRoute({
   body: z.object({
     ctftimeCode: z.string(),
   }),
-  responses: [GoodCtftimeToken, BadEndpoint, BadCtftimeCode],
+  goodResponses: [GoodCtftimeToken],
+  badResponses: [BadEndpoint, BadCtftimeCode],
   authRequired: false,
 })

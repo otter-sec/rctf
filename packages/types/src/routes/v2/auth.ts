@@ -38,9 +38,8 @@ export const RegisterRouteV2 = defineRoute({
         })
       }
     }),
-  responses: [
-    GoodVerifySent,
-    GoodRegister,
+  goodResponses: [GoodVerifySent, GoodRegister],
+  badResponses: [
     BadCompetitionNotAllowed,
     BadCtftimeToken,
     BadEmail,
@@ -63,12 +62,7 @@ export const RecoverRouteV2 = defineRoute({
     email: UserEmail,
     captchaCode: z.string().optional(),
   }),
-  responses: [
-    GoodVerifySent,
-    BadEndpoint,
-    BadEmail,
-    BadUnknownEmail,
-    BadCaptcha,
-  ],
+  goodResponses: [GoodVerifySent],
+  badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadCaptcha],
   authRequired: false,
 })

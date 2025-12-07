@@ -1,23 +1,12 @@
 import type {
   AnyRouteDefinition,
   RouteBodyInput,
-  RouteResponse,
+  RouteErrorResponse,
+  RouteSuccessResponse,
 } from '@rctf/types'
 import { apiRequest, type InlineArgs } from '$lib/api'
 import { z } from 'zod'
 import type { FieldValidators, FormErrors, FormTouched } from './types'
-
-type SuccessKind = `good${string}`
-
-type ExtractSuccessResponse<TRoute extends AnyRouteDefinition> = Extract<
-  RouteResponse<TRoute>,
-  { kind: SuccessKind }
->
-
-type ExtractErrorResponse<TRoute extends AnyRouteDefinition> = Exclude<
-  RouteResponse<TRoute>,
-  { kind: SuccessKind }
->
 
 function unwrapZodSchema(schema: z.ZodTypeAny): z.ZodTypeAny {
   if (schema instanceof z.ZodEffects) {
@@ -64,8 +53,8 @@ export interface MutationFormConfig<
   validators?: FieldValidators<TFields>
   fieldMapping?: Record<string, keyof TFields>
   transform?: (values: TFields) => InlineArgs<TRoute>
-  onSuccess?: (response: ExtractSuccessResponse<TRoute>) => void
-  onError?: (response: ExtractErrorResponse<TRoute>) => void
+  onSuccess?: (response: RouteSuccessResponse<TRoute>) => void
+  onError?: (response: RouteErrorResponse<TRoute>) => void
 }
 
 export function useMutationForm<
@@ -163,10 +152,10 @@ export function useMutationForm<
     try {
       const response = await apiRequest(config.route, args)
       if (response.kind.startsWith('good')) {
-        config.onSuccess?.(response as ExtractSuccessResponse<TRoute>)
+        config.onSuccess?.(response as RouteSuccessResponse<TRoute>)
       } else {
         setServerError(response)
-        config.onError?.(response as ExtractErrorResponse<TRoute>)
+        config.onError?.(response as RouteErrorResponse<TRoute>)
       }
     } catch (error) {
       const keys = Object.keys(config.initial) as (keyof TFields)[]

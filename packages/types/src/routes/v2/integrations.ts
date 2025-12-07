@@ -14,15 +14,16 @@ import {
 export const GetClientConfigRouteV2 = defineRoute({
   path: '/v2/integrations/client/config',
   method: 'GET',
-  responses: [GoodClientConfigV2],
+  goodResponses: [GoodClientConfigV2],
+  badResponses: [],
   authRequired: false,
 })
 
 export const GetInstanceStatusRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',
   method: 'GET',
-  responses: [
-    GoodInstanceStatus,
+  goodResponses: [GoodInstanceStatus],
+  badResponses: [
     BadInstancerError,
     BadEndpoint,
     BadChallenge,
@@ -41,8 +42,8 @@ export const CreateInstanceRouteV2 = defineRoute({
   body: z.object({
     captchaCode: z.string().optional(),
   }),
-  responses: [
-    GoodInstanceStatus,
+  goodResponses: [GoodInstanceStatus],
+  badResponses: [
     BadInstancerError,
     BadEndpoint,
     BadChallenge,
@@ -57,7 +58,8 @@ export const CreateInstanceRouteV2 = defineRoute({
 export const DeleteInstanceRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/instance',
   method: 'DELETE',
-  responses: [GoodInstanceStatus, BadInstancerError, BadEndpoint, BadChallenge],
+  goodResponses: [GoodInstanceStatus],
+  badResponses: [BadInstancerError, BadEndpoint, BadChallenge],
   authRequired: true,
   params: z.object({
     id: z.string(),
@@ -71,8 +73,8 @@ export const ExtendInstanceRouteV2 = defineRoute({
   body: z.object({
     captchaCode: z.string().optional(),
   }),
-  responses: [
-    GoodInstanceStatus,
+  goodResponses: [GoodInstanceStatus],
+  badResponses: [
     BadInstancerError,
     BadEndpoint,
     BadChallenge,

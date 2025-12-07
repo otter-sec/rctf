@@ -11,7 +11,8 @@ import {
 export const GetLeaderboardRoute = defineRoute({
   path: '/v1/leaderboard/now',
   method: 'GET',
-  responses: [GoodLeaderboard, BadNotStarted, BadBody],
+  goodResponses: [GoodLeaderboard],
+  badResponses: [BadNotStarted, BadBody],
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
@@ -26,7 +27,8 @@ export const GetLeaderboardRoute = defineRoute({
 export const GetLeaderboardGraphRoute = defineRoute({
   path: '/v1/leaderboard/graph',
   method: 'GET',
-  responses: [GoodLeaderboardGraph, BadNotStarted, BadBody],
+  goodResponses: [GoodLeaderboardGraph],
+  badResponses: [BadNotStarted, BadBody],
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config

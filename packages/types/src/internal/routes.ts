@@ -10,8 +10,13 @@ import type { HttpMethod, SchemaLike } from './utils'
 
 export type BodyFormat = 'json' | 'form-data'
 
-type ResponseCollection = readonly ResponseDefinition<
-  string,
+type GoodResponseCollection = readonly ResponseDefinition<
+  `good${string}`,
+  z.ZodTypeAny | undefined
+>[]
+
+type BadResponseCollection = readonly ResponseDefinition<
+  `bad${string}` | `error${string}`,
   z.ZodTypeAny | undefined
 >[]
 
@@ -26,7 +31,8 @@ type SchemaInput<T extends SchemaLike | undefined> = T extends SchemaLike
 export interface RouteDefinition<
   TMethod extends HttpMethod = HttpMethod,
   TBody extends SchemaLike | undefined = undefined,
-  TResponses extends ResponseCollection = ResponseCollection,
+  TGoodResponses extends GoodResponseCollection = GoodResponseCollection,
+  TBadResponses extends BadResponseCollection = BadResponseCollection,
   TParams extends SchemaLike | undefined = undefined,
   TQuery extends SchemaLike | undefined = undefined,
   TAuthRequired extends boolean = boolean,
@@ -45,7 +51,9 @@ export interface RouteDefinition<
   readonly method: TMethod
   readonly path: string
   readonly body: TBody
-  readonly responses: TResponses
+  readonly goodResponses: TGoodResponses
+  readonly badResponses: TBadResponses
+  readonly responses: readonly [...TGoodResponses, ...TBadResponses]
   readonly authRequired: TAuthRequired
   readonly params: TParams
   readonly query: TQuery
@@ -61,7 +69,8 @@ export interface RouteDefinition<
 type RouteConfig = {
   method: HttpMethod
   path: string
-  responses: ResponseCollection
+  goodResponses: GoodResponseCollection
+  badResponses: BadResponseCollection
   authRequired?: boolean
   body?: SchemaLike
   params?: SchemaLike
@@ -121,7 +130,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
 ): RouteDefinition<
   TDefinition['method'],
   OptionalSchema<TDefinition['body']>,
-  TDefinition['responses'],
+  TDefinition['goodResponses'],
+  TDefinition['badResponses'],
   OptionalSchema<TDefinition['params']>,
   OptionalSchema<TDefinition['query']>,
   NormalizedAuthRequired<TDefinition>,
@@ -136,7 +146,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
   const {
     method,
     path,
-    responses,
+    goodResponses,
+    badResponses,
     authRequired = false,
     body,
     params,
@@ -153,7 +164,15 @@ export function defineRoute<TDefinition extends RouteConfig>(
   return {
     method,
     path,
-    responses,
+    goodResponses,
+    badResponses,
+    responses: [
+      ...goodResponses,
+      ...badResponses,
+    ] as unknown as readonly [
+      ...TDefinition['goodResponses'],
+      ...TDefinition['badResponses'],
+    ],
     onlyWhenStarted: (onlyWhenStarted ??
       false) as NormalizedOnlyWhenStarted<TDefinition>,
     onlyWhenStartedPermissionsBypass: (onlyWhenStartedPermissionsBypass ??
@@ -177,7 +196,8 @@ export function defineRoute<TDefinition extends RouteConfig>(
 export type AnyRouteDefinition = RouteDefinition<
   HttpMethod,
   SchemaLike | undefined,
-  ResponseCollection,
+  GoodResponseCollection,
+  BadResponseCollection,
   SchemaLike | undefined,
   SchemaLike | undefined,
   boolean,
@@ -268,10 +288,13 @@ export type RouteHandlerResult<
 
 export type RouteValidationSource = 'body' | 'query' | 'params'
 
-type ExtractSuccessResponse<TResponses extends ResponseCollection> = Extract<
-  TResponses[number],
-  ResponseDefinition<`good${string}`, z.ZodTypeAny | undefined>
->
+export type RouteSuccessResponse<
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseBody<TRoute['goodResponses'][number]>
+
+export type RouteErrorResponse<
+  TRoute extends AnyRouteDefinition = AnyRouteDefinition,
+> = ResponseBody<TRoute['badResponses'][number]>
 
 type SuccessResponseData<TDefinition> =
   TDefinition extends ResponseDefinition<string, infer TSchema>
@@ -282,7 +305,7 @@ type SuccessResponseData<TDefinition> =
 
 export type RouteResponseData<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,
-> = SuccessResponseData<ExtractSuccessResponse<TRoute['responses']>>
+> = SuccessResponseData<TRoute['goodResponses'][number]>
 
 export type RouteResponse<
   TRoute extends AnyRouteDefinition = AnyRouteDefinition,

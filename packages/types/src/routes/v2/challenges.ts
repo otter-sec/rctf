@@ -14,7 +14,8 @@ import {
 export const GetChallengesRouteV2 = defineRoute({
   path: '/v2/challs',
   method: 'GET',
-  responses: [GoodChallengesV2, BadNotStarted, BadToken],
+  goodResponses: [GoodChallengesV2],
+  badResponses: [BadNotStarted, BadToken],
   authRequired: true,
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -23,13 +24,8 @@ export const GetChallengesRouteV2 = defineRoute({
 export const GetChallengeSolvesRouteV2 = defineRoute({
   path: '/v2/challs/:id/solves',
   method: 'GET',
-  responses: [
-    GoodChallengeSolvesV2,
-    BadNotStarted,
-    BadChallenge,
-    BadToken,
-    BadBody,
-  ],
+  goodResponses: [GoodChallengeSolvesV2],
+  badResponses: [BadNotStarted, BadChallenge, BadToken, BadBody],
   authRequired: true,
   params: z.object({
     id: z.string(),
