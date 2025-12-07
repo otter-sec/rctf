@@ -129,11 +129,9 @@
                   value={field.state.value}
                   oninput={e => field.handleChange(e.currentTarget.value)}
                   onblur={field.handleBlur}
-                  placeholder="flag..."
-                  required />
-                {#if field.state.meta.errors.length > 0}
-                  <span style="color: red"
-                    >{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+                  placeholder="flag..." />
+                {#if field.state.meta.errors}
+                  <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
                 {/if}
               {/snippet}
             </flagForm.Field>

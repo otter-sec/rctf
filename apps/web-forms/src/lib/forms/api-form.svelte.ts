@@ -25,7 +25,7 @@ export function createApiForm<
   return createForm(() => ({
     defaultValues: config.defaultValues,
     validators: {
-      onBlur: config.route.body,
+      onSubmit: config.route.body,
     },
     onSubmit: async ({ value, formApi }) => {
       const args = config.transform

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GoodRegister, GoodVerifySent, RegisterRouteV2 } from '@rctf/types'
+  import { GoodRegister, GoodVerifySent, RegisterRouteV2, UserEmail, UserName } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
@@ -41,7 +41,7 @@
       form.handleSubmit()
     }}>
     <div>
-      <form.Field name="name">
+      <form.Field name="name" validators={{ onChange: UserName }}>
         {#snippet children(field)}
           <label for={field.name}>Team Name</label>
           <input
@@ -50,19 +50,16 @@
             type="text"
             value={field.state.value}
             oninput={e => field.handleChange(e.currentTarget.value)}
-            onblur={field.handleBlur}
-            minlength={2}
-            maxlength={64}
-            required />
-          {#if field.state.meta.errors.length > 0}
-            <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+            onblur={field.handleBlur} />
+          {#if field.state.meta.errors}
+            <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
           {/if}
         {/snippet}
       </form.Field>
     </div>
 
     <div>
-      <form.Field name="email">
+      <form.Field name="email" validators={{ onChange: UserEmail }}>
         {#snippet children(field)}
           <label for={field.name}>Email</label>
           <input
@@ -71,10 +68,9 @@
             type="email"
             value={field.state.value}
             oninput={e => field.handleChange(e.currentTarget.value)}
-            onblur={field.handleBlur}
-            required />
-          {#if field.state.meta.errors.length > 0}
-            <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+            onblur={field.handleBlur} />
+          {#if field.state.meta.errors}
+            <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
           {/if}
         {/snippet}
       </form.Field>

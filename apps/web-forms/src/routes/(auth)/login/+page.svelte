@@ -39,10 +39,9 @@
           type="password"
           value={field.state.value}
           oninput={e => field.handleChange(e.currentTarget.value)}
-          onblur={field.handleBlur}
-          required />
-        {#if field.state.meta.errors.length > 0}
-          <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+          onblur={field.handleBlur} />
+        {#if field.state.meta.errors}
+          <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
         {/if}
       {/snippet}
     </form.Field>

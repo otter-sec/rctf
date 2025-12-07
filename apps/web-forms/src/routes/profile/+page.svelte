@@ -11,6 +11,8 @@
     GoodVerifySent,
     SetEmailRouteV2,
     UpdateUserRouteV2,
+    UserEmail,
+    UserName,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest } from '$lib/api'
@@ -123,7 +125,7 @@
         profileForm.handleSubmit()
       }}>
       <div>
-        <profileForm.Field name="name">
+        <profileForm.Field name="name" validators={{ onChange: UserName }}>
           {#snippet children(field)}
             <label for={field.name}>Team Name</label>
             <input
@@ -132,13 +134,9 @@
               type="text"
               value={field.state.value}
               oninput={e => field.handleChange(e.currentTarget.value)}
-              onblur={field.handleBlur}
-              minlength={2}
-              maxlength={64}
-              required />
-            {#if field.state.meta.errors.length > 0}
-              <span style="color: red"
-                >{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+              onblur={field.handleBlur} />
+            {#if field.state.meta.errors}
+              <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
             {/if}
           {/snippet}
         </profileForm.Field>
@@ -187,7 +185,15 @@
     <h2>Email</h2>
     <form onsubmit={handleEmailSubmit}>
       <div>
-        <emailForm.Field name="email">
+        <emailForm.Field
+          name="email"
+          validators={{
+            onChange: ({ value }) => {
+              if (value === '') return undefined
+              const result = UserEmail.safeParse(value)
+              return result.success ? undefined : result.error.errors[0]?.message
+            },
+          }}>
           {#snippet children(field)}
             <label for={field.name}>Email (optional)</label>
             <input
@@ -197,9 +203,8 @@
               value={field.state.value}
               oninput={e => field.handleChange(e.currentTarget.value)}
               onblur={field.handleBlur} />
-            {#if field.state.meta.errors.length > 0}
-              <span style="color: red"
-                >{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+            {#if field.state.meta.errors}
+              <em role="alert">{field.state.meta.errors}</em>
             {/if}
           {/snippet}
         </emailForm.Field>
@@ -213,9 +218,9 @@
         {/snippet}
       </emailForm.Subscribe>
 
-      <emailForm.Subscribe selector={state => state.isSubmitting}>
-        {#snippet children(isSubmitting)}
-          <button type="submit" disabled={isSubmitting || isDeletingEmail}>
+      <emailForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+        {#snippet children([canSubmit, isSubmitting])}
+          <button type="submit" disabled={!canSubmit || isDeletingEmail}>
             {isSubmitting || isDeletingEmail ? 'Updating...' : 'Update Email'}
           </button>
         {/snippet}
@@ -252,7 +257,7 @@
         memberForm.handleSubmit()
       }}>
       <div>
-        <memberForm.Field name="email">
+        <memberForm.Field name="email" validators={{ onChange: UserEmail }}>
           {#snippet children(field)}
             <label for="memberEmail">Add member by email</label>
             <input
@@ -261,11 +266,9 @@
               type="email"
               value={field.state.value}
               oninput={e => field.handleChange(e.currentTarget.value)}
-              onblur={field.handleBlur}
-              required />
-            {#if field.state.meta.errors.length > 0}
-              <span style="color: red"
-                >{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+              onblur={field.handleBlur} />
+            {#if field.state.meta.errors}
+              <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
             {/if}
           {/snippet}
         </memberForm.Field>

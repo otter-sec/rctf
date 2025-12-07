@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GoodVerifySent, RecoverRouteV2 } from '@rctf/types'
+  import { GoodVerifySent, RecoverRouteV2, UserEmail } from '@rctf/types'
   import { createApiForm } from '$lib/forms'
 
   let verifySent = $state(false)
@@ -31,7 +31,7 @@
       form.handleSubmit()
     }}>
     <div>
-      <form.Field name="email">
+      <form.Field name="email" validators={{ onChange: UserEmail }}>
         {#snippet children(field)}
           <label for={field.name}>Email</label>
           <input
@@ -40,10 +40,9 @@
             type="email"
             value={field.state.value}
             oninput={e => field.handleChange(e.currentTarget.value)}
-            onblur={field.handleBlur}
-            required />
-          {#if field.state.meta.errors.length > 0}
-            <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+            onblur={field.handleBlur} />
+          {#if field.state.meta.errors}
+            <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
           {/if}
         {/snippet}
       </form.Field>
