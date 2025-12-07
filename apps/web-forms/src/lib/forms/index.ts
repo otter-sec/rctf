@@ -1,5 +1,1 @@
-export {
-  createApiForm,
-  createForm,
-  type ApiFormConfig,
-} from './api-form.svelte'
+export { useApiForm, type UseApiFormConfig } from './use-api-form.svelte'

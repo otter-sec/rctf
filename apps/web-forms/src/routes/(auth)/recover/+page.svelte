@@ -1,16 +1,15 @@
 <script lang="ts">
-  import { GoodVerifySent, RecoverRouteV2, UserEmail } from '@rctf/types'
-  import { createApiForm } from '$lib/forms'
+  import { GoodVerifySent, RecoverRouteV2 } from '@rctf/types'
+  import { useApiForm } from '$lib/forms'
 
   let verifySent = $state(false)
   let submittedEmail = $state('')
 
-  const form = createApiForm({
-    route: RecoverRouteV2,
-    defaultValues: { email: '' },
+  const form = useApiForm(RecoverRouteV2, {
+    defaults: { email: '' },
     onSuccess: response => {
       if (response.kind === GoodVerifySent.kind) {
-        submittedEmail = form.getFieldValue('email')
+        submittedEmail = form.data.email
         verifySent = true
       }
     },
@@ -24,45 +23,22 @@
   <p>Check your inbox for your team token.</p>
   <button onclick={() => (verifySent = false)}>Try again</button>
 {:else}
-  <form
-    onsubmit={e => {
-      e.preventDefault()
-      e.stopPropagation()
-      form.handleSubmit()
-    }}>
+  <form onsubmit={form.submit}>
     <div>
-      <form.Field name="email" validators={{ onChange: UserEmail }}>
-        {#snippet children(field)}
-          <label for={field.name}>Email</label>
-          <input
-            id={field.name}
-            name={field.name}
-            type="email"
-            value={field.state.value}
-            oninput={e => field.handleChange(e.currentTarget.value)}
-            onblur={field.handleBlur} />
-          {#if field.state.meta.errors}
-            <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
-          {/if}
-        {/snippet}
-      </form.Field>
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" bind:value={form.data.email} />
+      {#if form.errors.email}
+        <em role="alert">{form.errors.email}</em>
+      {/if}
     </div>
 
-    <form.Subscribe selector={state => state.errorMap.onSubmit}>
-      {#snippet children(error)}
-        {#if error}
-          <p style="color: red">{error}</p>
-        {/if}
-      {/snippet}
-    </form.Subscribe>
+    {#if form.errors._form}
+      <p style="color: red">{form.errors._form}</p>
+    {/if}
 
-    <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-      {#snippet children([canSubmit, isSubmitting])}
-        <button type="submit" disabled={!canSubmit}>
-          {isSubmitting ? 'Sending...' : 'Send Recovery Email'}
-        </button>
-      {/snippet}
-    </form.Subscribe>
+    <button type="submit" disabled={form.submitting}>
+      {form.submitting ? 'Sending...' : 'Send Recovery Email'}
+    </button>
   </form>
 {/if}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { GoodFlag, SubmitFlagRoute, type Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { createApiForm } from '$lib/forms'
+  import { useApiForm } from '$lib/forms'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -12,71 +12,53 @@
   const user = $derived($userQuery.data)
   const solvedIds = $derived(new Set(user?.solves.map(s => s.id) ?? []))
 
-  let selectedChallenge = $state<Challenge | null>(null)
+  let selected = $state<Challenge | null>(null)
 
-  const flagForm = createApiForm({
-    route: SubmitFlagRoute,
-    defaultValues: { flag: '' },
-    transform: values => ({
-      id: selectedChallenge!.id,
-      flag: values.flag,
-    }),
+  const flagForm = useApiForm(SubmitFlagRoute, {
     onSuccess: response => {
       if (response.kind === GoodFlag.kind) {
         queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-        closeChallenge()
+        selected = null
       }
     },
   })
 
-  function selectChallenge(challenge: Challenge) {
-    selectedChallenge = challenge
-    flagForm.reset()
+  function select(c: Challenge) {
+    selected = c
+    flagForm.setData({ id: c.id, flag: '' })
   }
 
-  function closeChallenge() {
-    selectedChallenge = null
-    flagForm.reset()
-  }
-
-  const groupedChallenges = $derived(() => {
-    const groups: Record<string, Challenge[]> = {}
-    for (const challenge of challenges) {
-      if (!groups[challenge.category]) {
-        groups[challenge.category] = []
-      }
-      groups[challenge.category].push(challenge)
-    }
-    return groups
+  const grouped = $derived(() => {
+    const g: Record<string, Challenge[]> = {}
+    for (const c of challenges) (g[c.category] ??= []).push(c)
+    return g
   })
 </script>
 
 <h1>Challenges</h1>
 
 {#if $challengesQuery.isPending}
-  <p>Loading challenges...</p>
+  <p>Loading...</p>
 {:else if $challengesQuery.isError}
-  <p style="color: red">Error: {$challengesQuery.error.message}</p>
-{:else if challenges.length === 0}
-  <p>No challenges available yet.</p>
+  <p style="color:red">Error: {$challengesQuery.error.message}</p>
+{:else if !challenges.length}
+  <p>No challenges yet.</p>
 {:else}
-  {#each Object.entries(groupedChallenges()) as [category, categoryChalls]}
+  {#each Object.entries(grouped()) as [category, challs]}
     <section>
       <h2>{category}</h2>
       <ul>
-        {#each categoryChalls as challenge}
-          {@const isSolved = solvedIds.has(challenge.id)}
+        {#each challs as c}
+          {@const solved = solvedIds.has(c.id)}
           <li>
             <button
-              onclick={() => selectChallenge(challenge)}
-              style:text-decoration={isSolved ? 'line-through' : 'none'}>
-              {challenge.name}
+              onclick={() => select(c)}
+              style:text-decoration={solved ? 'line-through' : 'none'}>
+              {c.name}
             </button>
-            - {challenge.points} pts ({challenge.solves} solves)
-            {#if isSolved}
-              <span style="color: green">✓</span>
-            {/if}
+            - {c.points} pts ({c.solves} solves)
+            {#if solved}<span style="color:green">✓</span>{/if}
           </li>
         {/each}
       </ul>
@@ -84,82 +66,42 @@
   {/each}
 {/if}
 
-{#if selectedChallenge}
+{#if selected}
   <dialog open>
     <article>
       <header>
-        <h3>{selectedChallenge.name}</h3>
-        <p>
-          {selectedChallenge.category} | {selectedChallenge.points} pts |
-          {selectedChallenge.solves} solves
-        </p>
-        <p><em>by {selectedChallenge.author}</em></p>
+        <h3>{selected.name}</h3>
+        <p>{selected.category} · {selected.points} pts · {selected.solves} solves</p>
+        <p><em>by {selected.author}</em></p>
       </header>
 
-      <div>
-        <p>{selectedChallenge.description}</p>
+      <p>{selected.description}</p>
 
-        {#if selectedChallenge.files.length > 0}
-          <h4>Files</h4>
-          <ul>
-            {#each selectedChallenge.files as file}
-              <li>
-                <a href={file.url} target="_blank" rel="noopener">{file.name}</a>
-              </li>
-            {/each}
-          </ul>
-        {/if}
-      </div>
-
-      {#if !solvedIds.has(selectedChallenge.id)}
-        <form
-          onsubmit={e => {
-            e.preventDefault()
-            e.stopPropagation()
-            flagForm.handleSubmit()
-          }}>
-          <div>
-            <flagForm.Field name="flag">
-              {#snippet children(field)}
-                <label for={field.name}>Flag</label>
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type="text"
-                  value={field.state.value}
-                  oninput={e => field.handleChange(e.currentTarget.value)}
-                  onblur={field.handleBlur}
-                  placeholder="flag..." />
-                {#if field.state.meta.errors}
-                  <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
-                {/if}
-              {/snippet}
-            </flagForm.Field>
-          </div>
-
-          <flagForm.Subscribe selector={state => state.errorMap.onSubmit}>
-            {#snippet children(error)}
-              {#if error}
-                <p style="color: red">{error}</p>
-              {/if}
-            {/snippet}
-          </flagForm.Subscribe>
-
-          <flagForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-            {#snippet children([canSubmit, isSubmitting])}
-              <button type="submit" disabled={!canSubmit}>
-                {isSubmitting ? 'Submitting...' : 'Submit Flag'}
-              </button>
-            {/snippet}
-          </flagForm.Subscribe>
-        </form>
-      {:else}
-        <p style="color: green">You have already solved this challenge!</p>
+      {#if selected.files.length}
+        <h4>Files</h4>
+        <ul>
+          {#each selected.files as f}
+            <li><a href={f.url} target="_blank" rel="noopener">{f.name}</a></li>
+          {/each}
+        </ul>
       {/if}
 
-      <footer>
-        <button onclick={closeChallenge}>Close</button>
-      </footer>
+      {#if !solvedIds.has(selected.id)}
+        <form onsubmit={flagForm.submit}>
+          <label>
+            Flag
+            <input type="text" bind:value={flagForm.data.flag} placeholder="flag..." />
+          </label>
+          {#if flagForm.errors.flag}<em>{flagForm.errors.flag}</em>{/if}
+          {#if flagForm.errors._form}<p style="color:red">{flagForm.errors._form}</p>{/if}
+          <button disabled={flagForm.submitting}
+            >{flagForm.submitting ? 'Submitting...' : 'Submit'}</button>
+        </form>
+      {:else}
+        <p style="color:green">Already solved!</p>
+      {/if}
+
+      <footer><button onclick={() => (selected = null)}>Close</button></footer>
     </article>
   </dialog>
 {/if}

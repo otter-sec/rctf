@@ -4,19 +4,13 @@
     DeleteEmailRoute,
     DeleteMemberRoute,
     GoodEmailRemoved,
-    GoodEmailSet,
-    GoodMemberCreate,
     GoodMemberDelete,
-    GoodUserUpdateV2,
-    GoodVerifySent,
     SetEmailRouteV2,
     UpdateUserRouteV2,
-    UserEmail,
-    UserName,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest } from '$lib/api'
-  import { createApiForm } from '$lib/forms'
+  import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useCurrentUser, useMembers } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -28,84 +22,51 @@
   const config = $derived($configQuery.data)
   const members = $derived($membersQuery.data ?? [])
 
+  const invalidateUser = () => queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+  const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: queryKeys.members })
+
+  const profileForm = useApiForm(UpdateUserRouteV2, { onSuccess: invalidateUser })
+  const emailForm = useApiForm(SetEmailRouteV2, { onSuccess: invalidateUser })
+  const memberForm = useApiForm(CreateMemberRoute, {
+    onSuccess: () => {
+      invalidateMembers()
+      memberForm.reset()
+    },
+  })
+
   let initialized = $state(false)
-
-  const profileForm = createApiForm({
-    route: UpdateUserRouteV2,
-    defaultValues: { name: '', division: '' },
-    transform: values => ({
-      name: values.name !== user?.name ? values.name : undefined,
-      division: values.division !== user?.division ? values.division : undefined,
-    }),
-    onSuccess: response => {
-      if (response.kind === GoodUserUpdateV2.kind) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-      }
-    },
-  })
-
-  const emailForm = createApiForm({
-    route: SetEmailRouteV2,
-    defaultValues: { email: '' },
-    onSuccess: response => {
-      if (response.kind === GoodEmailSet.kind || response.kind === GoodVerifySent.kind) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-      }
-    },
-  })
-
-  const memberForm = createApiForm({
-    route: CreateMemberRoute,
-    defaultValues: { email: '' },
-    onSuccess: response => {
-      if (response.kind === GoodMemberCreate.kind) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.members })
-        memberForm.reset()
-      }
-    },
-  })
-
-  let isDeletingEmail = $state(false)
-  let isDeletingMember = $state<string | null>(null)
-
-  async function handleDeleteEmail() {
-    isDeletingEmail = true
-    const response = await apiRequest(DeleteEmailRoute, {})
-    if (response.kind === GoodEmailRemoved.kind) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-      emailForm.setFieldValue('email', '')
-    }
-    isDeletingEmail = false
-  }
-
-  async function handleDeleteMember(id: string) {
-    isDeletingMember = id
-    const response = await apiRequest(DeleteMemberRoute, { id })
-    if (response.kind === GoodMemberDelete.kind) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.members })
-    }
-    isDeletingMember = null
-  }
+  let deleting = $state<string | null>(null)
 
   $effect(() => {
     if (user && !initialized) {
-      profileForm.setFieldValue('name', user.name)
-      profileForm.setFieldValue('division', user.division)
-      emailForm.setFieldValue('email', user.email ?? '')
+      profileForm.setData({ name: user.name, division: user.division })
+      emailForm.setData({ email: user.email ?? '' })
       initialized = true
     }
   })
 
-  function handleEmailSubmit(e: SubmitEvent) {
-    e.preventDefault()
-    e.stopPropagation()
-    const newEmail = emailForm.getFieldValue('email').trim()
-
-    if (newEmail === '' && user?.email) {
-      handleDeleteEmail()
-    } else if (newEmail !== '') {
-      emailForm.handleSubmit()
+  async function deleteEmail() {
+    deleting = 'email'
+    const res = await apiRequest(DeleteEmailRoute, {})
+    if (res.kind === GoodEmailRemoved.kind) {
+      invalidateUser()
+      emailForm.setData({ email: '' })
     }
+    deleting = null
+  }
+
+  async function deleteMember(id: string) {
+    deleting = id
+    const res = await apiRequest(DeleteMemberRoute, { id })
+    if (res.kind === GoodMemberDelete.kind) invalidateMembers()
+    deleting = null
+  }
+
+  function submitEmail(e: Event) {
+    e.preventDefault()
+    const email = emailForm.data.email?.trim() ?? ''
+    if (email === '' && user?.email) deleteEmail()
+    else if (email) emailForm.submit()
   }
 </script>
 
@@ -118,64 +79,27 @@
 {:else}
   <section>
     <h2>Update Profile</h2>
-    <form
-      onsubmit={e => {
-        e.preventDefault()
-        e.stopPropagation()
-        profileForm.handleSubmit()
-      }}>
-      <div>
-        <profileForm.Field name="name" validators={{ onChange: UserName }}>
-          {#snippet children(field)}
-            <label for={field.name}>Team Name</label>
-            <input
-              id={field.name}
-              name={field.name}
-              type="text"
-              value={field.state.value}
-              oninput={e => field.handleChange(e.currentTarget.value)}
-              onblur={field.handleBlur} />
-            {#if field.state.meta.errors}
-              <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
-            {/if}
-          {/snippet}
-        </profileForm.Field>
-      </div>
+    <form onsubmit={profileForm.submit}>
+      <label>
+        Team Name
+        <input type="text" bind:value={profileForm.data.name} />
+      </label>
+      {#if profileForm.errors.name}<em>{profileForm.errors.name}</em>{/if}
 
       {#if config && Object.keys(config.divisions).length > 1}
-        <div>
-          <profileForm.Field name="division">
-            {#snippet children(field)}
-              <label for={field.name}>Division</label>
-              <select
-                id={field.name}
-                name={field.name}
-                value={field.state.value}
-                onchange={e => field.handleChange(e.currentTarget.value)}>
-                {#each Object.entries(config.divisions) as [value, label]}
-                  <option {value}>{label}</option>
-                {/each}
-              </select>
-            {/snippet}
-          </profileForm.Field>
-        </div>
+        <label>
+          Division
+          <select bind:value={profileForm.data.division}>
+            {#each Object.entries(config.divisions) as [value, label]}
+              <option {value}>{label}</option>
+            {/each}
+          </select>
+        </label>
       {/if}
 
-      <profileForm.Subscribe selector={state => state.errorMap.onSubmit}>
-        {#snippet children(error)}
-          {#if error}
-            <p style="color: red">{error}</p>
-          {/if}
-        {/snippet}
-      </profileForm.Subscribe>
-
-      <profileForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-        {#snippet children([canSubmit, isSubmitting])}
-          <button type="submit" disabled={!canSubmit}>
-            {isSubmitting ? 'Saving...' : 'Save Profile'}
-          </button>
-        {/snippet}
-      </profileForm.Subscribe>
+      {#if profileForm.errors._form}<p style="color:red">{profileForm.errors._form}</p>{/if}
+      <button disabled={profileForm.submitting}
+        >{profileForm.submitting ? 'Saving...' : 'Save'}</button>
     </form>
   </section>
 
@@ -183,48 +107,16 @@
 
   <section>
     <h2>Email</h2>
-    <form onsubmit={handleEmailSubmit}>
-      <div>
-        <emailForm.Field
-          name="email"
-          validators={{
-            onChange: ({ value }) => {
-              if (value === '') return undefined
-              const result = UserEmail.safeParse(value)
-              return result.success ? undefined : result.error.issues[0]?.message
-            },
-          }}>
-          {#snippet children(field)}
-            <label for={field.name}>Email (optional)</label>
-            <input
-              id={field.name}
-              name={field.name}
-              type="email"
-              value={field.state.value}
-              oninput={e => field.handleChange(e.currentTarget.value)}
-              onblur={field.handleBlur} />
-            {#if field.state.meta.errors}
-              <em role="alert">{field.state.meta.errors}</em>
-            {/if}
-          {/snippet}
-        </emailForm.Field>
-      </div>
-
-      <emailForm.Subscribe selector={state => state.errorMap.onSubmit}>
-        {#snippet children(error)}
-          {#if error}
-            <p style="color: red">{error}</p>
-          {/if}
-        {/snippet}
-      </emailForm.Subscribe>
-
-      <emailForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-        {#snippet children([canSubmit, isSubmitting])}
-          <button type="submit" disabled={!canSubmit || isDeletingEmail}>
-            {isSubmitting || isDeletingEmail ? 'Updating...' : 'Update Email'}
-          </button>
-        {/snippet}
-      </emailForm.Subscribe>
+    <form onsubmit={submitEmail}>
+      <label>
+        Email (optional)
+        <input type="email" bind:value={emailForm.data.email} />
+      </label>
+      {#if emailForm.errors.email}<em>{emailForm.errors.email}</em>{/if}
+      {#if emailForm.errors._form}<p style="color:red">{emailForm.errors._form}</p>{/if}
+      <button disabled={emailForm.submitting || deleting === 'email'}>
+        {emailForm.submitting || deleting === 'email' ? 'Updating...' : 'Update'}
+      </button>
     </form>
   </section>
 
@@ -232,63 +124,30 @@
 
   <section>
     <h2>Team Members ({members.length})</h2>
-
     {#if members.length > 0}
       <ul>
-        {#each members as member}
+        {#each members as m}
           <li>
-            {member.email}
-            <button
-              onclick={() => handleDeleteMember(member.id)}
-              disabled={isDeletingMember === member.id}>
-              {isDeletingMember === member.id ? 'Removing...' : 'Remove'}
+            {m.email}
+            <button onclick={() => deleteMember(m.id)} disabled={deleting === m.id}>
+              {deleting === m.id ? 'Removing...' : 'Remove'}
             </button>
           </li>
         {/each}
       </ul>
     {:else}
-      <p>No team members yet.</p>
+      <p>No members yet.</p>
     {/if}
 
-    <form
-      onsubmit={e => {
-        e.preventDefault()
-        e.stopPropagation()
-        memberForm.handleSubmit()
-      }}>
-      <div>
-        <memberForm.Field name="email" validators={{ onChange: UserEmail }}>
-          {#snippet children(field)}
-            <label for="memberEmail">Add member by email</label>
-            <input
-              id="memberEmail"
-              name={field.name}
-              type="email"
-              value={field.state.value}
-              oninput={e => field.handleChange(e.currentTarget.value)}
-              onblur={field.handleBlur} />
-            {#if field.state.meta.errors}
-              <em role="alert">{field.state.meta.errors.map(e => e.message).join(', ')}</em>
-            {/if}
-          {/snippet}
-        </memberForm.Field>
-      </div>
-
-      <memberForm.Subscribe selector={state => state.errorMap.onSubmit}>
-        {#snippet children(error)}
-          {#if error}
-            <p style="color: red">{error}</p>
-          {/if}
-        {/snippet}
-      </memberForm.Subscribe>
-
-      <memberForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
-        {#snippet children([canSubmit, isSubmitting])}
-          <button type="submit" disabled={!canSubmit}>
-            {isSubmitting ? 'Adding...' : 'Add Member'}
-          </button>
-        {/snippet}
-      </memberForm.Subscribe>
+    <form onsubmit={memberForm.submit}>
+      <label>
+        Add member by email
+        <input type="email" bind:value={memberForm.data.email} />
+      </label>
+      {#if memberForm.errors.email}<em>{memberForm.errors.email}</em>{/if}
+      {#if memberForm.errors._form}<p style="color:red">{memberForm.errors._form}</p>{/if}
+      <button disabled={memberForm.submitting}
+        >{memberForm.submitting ? 'Adding...' : 'Add'}</button>
     </form>
   </section>
 
@@ -296,7 +155,6 @@
 
   <section>
     <h2>Stats</h2>
-    <p>Score: {user.score}</p>
-    <p>Solves: {user.solves.length}</p>
+    <p>Score: {user.score}, Solves: {user.solves.length}</p>
   </section>
 {/if}

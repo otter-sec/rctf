@@ -12,11 +12,10 @@
   },
   "dependencies": {
     "@rctf/types": "workspace:*",
-    "@tanstack/svelte-form": "^1.27.1",
     "@tanstack/svelte-query": "^5.62.16",
     "@xstate/svelte": "^5.0.0",
     "xstate": "^5.24.0",
-    "zod": "^3.23.8"
+    "zod": "^4.1.13"
   },
   "devDependencies": {
     "@sveltejs/adapter-auto": "^7.0.0",
