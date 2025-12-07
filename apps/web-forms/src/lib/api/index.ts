@@ -9,8 +9,6 @@ import {
 } from '@rctf/types'
 import { browser } from '$app/environment'
 
-export * from './types'
-
 type SectionPayload<T> = [T] extends [undefined]
   ? {}
   : T extends Record<string, unknown>

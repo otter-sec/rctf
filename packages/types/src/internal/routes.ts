@@ -166,10 +166,7 @@ export function defineRoute<TDefinition extends RouteConfig>(
     path,
     goodResponses,
     badResponses,
-    responses: [
-      ...goodResponses,
-      ...badResponses,
-    ] as unknown as readonly [
+    responses: [...goodResponses, ...badResponses] as unknown as readonly [
       ...TDefinition['goodResponses'],
       ...TDefinition['badResponses'],
     ],

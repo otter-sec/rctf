@@ -3,22 +3,24 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
-  import { useMutationForm } from '$lib/forms'
+  import { createApiForm } from '$lib/forms'
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()
 
   let verifySent = $state(false)
+  let submittedEmail = $state('')
 
-  const form = useMutationForm({
+  const form = createApiForm({
     route: RegisterRouteV2,
-    initial: { name: '', email: '' },
+    defaultValues: { name: '', email: '' },
     onSuccess: response => {
       if (response.kind === GoodRegister.kind) {
         setToken(response.data.authToken)
         queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
         goto('/')
       } else if (response.kind === GoodVerifySent.kind) {
+        submittedEmail = form.getFieldValue('email')
         verifySent = true
       }
     },
@@ -28,44 +30,71 @@
 <h1>Register</h1>
 
 {#if verifySent}
-  <p>Verification email sent to <strong>{form.values.email}</strong></p>
+  <p>Verification email sent to <strong>{submittedEmail}</strong></p>
   <p>Check your inbox and click the link to complete registration.</p>
   <button onclick={() => (verifySent = false)}>Try again</button>
 {:else}
-  <form onsubmit={form.handleSubmit}>
+  <form
+    onsubmit={e => {
+      e.preventDefault()
+      e.stopPropagation()
+      form.handleSubmit()
+    }}>
     <div>
-      <label for="name">Team Name</label>
-      <input
-        id="name"
-        type="text"
-        value={form.values.name}
-        oninput={e => form.setValue('name', e.currentTarget.value)}
-        onblur={() => form.setTouched('name')}
-        minlength={2}
-        maxlength={64}
-        required />
-      {#if form.errors.name && form.touched.name}
-        <span style="color: red">{form.errors.name}</span>
-      {/if}
+      <form.Field name="name">
+        {#snippet children(field)}
+          <label for={field.name}>Team Name</label>
+          <input
+            id={field.name}
+            name={field.name}
+            type="text"
+            value={field.state.value}
+            oninput={e => field.handleChange(e.currentTarget.value)}
+            onblur={field.handleBlur}
+            minlength={2}
+            maxlength={64}
+            required />
+          {#if field.state.meta.errors.length > 0}
+            <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+          {/if}
+        {/snippet}
+      </form.Field>
     </div>
 
     <div>
-      <label for="email">Email</label>
-      <input
-        id="email"
-        type="email"
-        value={form.values.email}
-        oninput={e => form.setValue('email', e.currentTarget.value)}
-        onblur={() => form.setTouched('email')}
-        required />
-      {#if form.errors.email && form.touched.email}
-        <span style="color: red">{form.errors.email}</span>
-      {/if}
+      <form.Field name="email">
+        {#snippet children(field)}
+          <label for={field.name}>Email</label>
+          <input
+            id={field.name}
+            name={field.name}
+            type="email"
+            value={field.state.value}
+            oninput={e => field.handleChange(e.currentTarget.value)}
+            onblur={field.handleBlur}
+            required />
+          {#if field.state.meta.errors.length > 0}
+            <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+          {/if}
+        {/snippet}
+      </form.Field>
     </div>
 
-    <button type="submit" disabled={form.isPending}>
-      {form.isPending ? 'Registering...' : 'Register'}
-    </button>
+    <form.Subscribe selector={state => state.errorMap.onSubmit}>
+      {#snippet children(error)}
+        {#if error}
+          <p style="color: red">{error}</p>
+        {/if}
+      {/snippet}
+    </form.Subscribe>
+
+    <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+      {#snippet children([canSubmit, isSubmitting])}
+        <button type="submit" disabled={!canSubmit}>
+          {isSubmitting ? 'Registering...' : 'Register'}
+        </button>
+      {/snippet}
+    </form.Subscribe>
   </form>
 {/if}
 

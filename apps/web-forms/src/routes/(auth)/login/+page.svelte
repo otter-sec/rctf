@@ -3,16 +3,14 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
-  import { required, useMutationForm } from '$lib/forms'
+  import { createApiForm } from '$lib/forms'
   import { queryKeys } from '$lib/query'
 
   const queryClient = useQueryClient()
 
-  const form = useMutationForm({
+  const form = createApiForm({
     route: LoginRoute,
-    initial: { teamToken: '' },
-    validators: { teamToken: required },
-    fieldMapping: { token: 'teamToken' },
+    defaultValues: { teamToken: '' },
     onSuccess: response => {
       if (response.kind === GoodLogin.kind) {
         setToken(response.data.authToken)
@@ -25,24 +23,46 @@
 
 <h1>Login</h1>
 
-<form onsubmit={form.handleSubmit}>
+<form
+  onsubmit={e => {
+    e.preventDefault()
+    e.stopPropagation()
+    form.handleSubmit()
+  }}>
   <div>
-    <label for="teamToken">Team Token</label>
-    <input
-      id="teamToken"
-      type="password"
-      value={form.values.teamToken}
-      oninput={e => form.setValue('teamToken', e.currentTarget.value)}
-      onblur={() => form.setTouched('teamToken')}
-      required />
-    {#if form.errors.teamToken && form.touched.teamToken}
-      <span style="color: red">{form.errors.teamToken}</span>
-    {/if}
+    <form.Field name="teamToken">
+      {#snippet children(field)}
+        <label for={field.name}>Team Token</label>
+        <input
+          id={field.name}
+          name={field.name}
+          type="password"
+          value={field.state.value}
+          oninput={e => field.handleChange(e.currentTarget.value)}
+          onblur={field.handleBlur}
+          required />
+        {#if field.state.meta.errors.length > 0}
+          <span style="color: red">{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+        {/if}
+      {/snippet}
+    </form.Field>
   </div>
 
-  <button type="submit" disabled={form.isPending}>
-    {form.isPending ? 'Logging in...' : 'Login'}
-  </button>
+  <form.Subscribe selector={state => state.errorMap.onSubmit}>
+    {#snippet children(error)}
+      {#if error}
+        <p style="color: red">{error}</p>
+      {/if}
+    {/snippet}
+  </form.Subscribe>
+
+  <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+    {#snippet children([canSubmit, isSubmitting])}
+      <button type="submit" disabled={!canSubmit}>
+        {isSubmitting ? 'Logging in...' : 'Login'}
+      </button>
+    {/snippet}
+  </form.Subscribe>
 </form>
 
 <p>

@@ -11,6 +11,7 @@ export const UserEmail = z
   .string()
   .transform(normalizeEmail)
   .refine(validateEmail, {
+    message: 'Enter a valid email',
     params: { response: BadEmail },
   })
 
@@ -18,6 +19,7 @@ export const UserName = z
   .string()
   .transform(normalizeName)
   .refine(validateName, {
+    message: 'Name must be 2-64 printable characters',
     params: { response: BadName },
   })
 

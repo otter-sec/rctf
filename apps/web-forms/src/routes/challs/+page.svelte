@@ -1,8 +1,7 @@
 <script lang="ts">
-  import { GoodFlag, SubmitFlagRoute } from '@rctf/types'
+  import { GoodFlag, SubmitFlagRoute, type Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import type { Challenge } from '$lib/api'
-  import { required, useMutationForm } from '$lib/forms'
+  import { createApiForm } from '$lib/forms'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
 
   const queryClient = useQueryClient()
@@ -15,10 +14,9 @@
 
   let selectedChallenge = $state<Challenge | null>(null)
 
-  const flagForm = useMutationForm({
+  const flagForm = createApiForm({
     route: SubmitFlagRoute,
-    initial: { flag: '' },
-    validators: { flag: required },
+    defaultValues: { flag: '' },
     transform: values => ({
       id: selectedChallenge!.id,
       flag: values.flag,
@@ -114,24 +112,48 @@
       </div>
 
       {#if !solvedIds.has(selectedChallenge.id)}
-        <form onsubmit={flagForm.handleSubmit}>
+        <form
+          onsubmit={e => {
+            e.preventDefault()
+            e.stopPropagation()
+            flagForm.handleSubmit()
+          }}>
           <div>
-            <label for="flag">Flag</label>
-            <input
-              id="flag"
-              type="text"
-              value={flagForm.values.flag}
-              oninput={e => flagForm.setValue('flag', e.currentTarget.value)}
-              placeholder="flag..."
-              required />
-            {#if flagForm.errors.flag}
-              <span style="color: red">{flagForm.errors.flag}</span>
-            {/if}
+            <flagForm.Field name="flag">
+              {#snippet children(field)}
+                <label for={field.name}>Flag</label>
+                <input
+                  id={field.name}
+                  name={field.name}
+                  type="text"
+                  value={field.state.value}
+                  oninput={e => field.handleChange(e.currentTarget.value)}
+                  onblur={field.handleBlur}
+                  placeholder="flag..."
+                  required />
+                {#if field.state.meta.errors.length > 0}
+                  <span style="color: red"
+                    >{field.state.meta.errors.map(e => e.message).join(', ')}</span>
+                {/if}
+              {/snippet}
+            </flagForm.Field>
           </div>
 
-          <button type="submit" disabled={flagForm.isPending}>
-            {flagForm.isPending ? 'Submitting...' : 'Submit Flag'}
-          </button>
+          <flagForm.Subscribe selector={state => state.errorMap.onSubmit}>
+            {#snippet children(error)}
+              {#if error}
+                <p style="color: red">{error}</p>
+              {/if}
+            {/snippet}
+          </flagForm.Subscribe>
+
+          <flagForm.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+            {#snippet children([canSubmit, isSubmitting])}
+              <button type="submit" disabled={!canSubmit}>
+                {isSubmitting ? 'Submitting...' : 'Submit Flag'}
+              </button>
+            {/snippet}
+          </flagForm.Subscribe>
         </form>
       {:else}
         <p style="color: green">You have already solved this challenge!</p>
