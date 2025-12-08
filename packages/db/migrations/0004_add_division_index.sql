@@ -1,0 +1,1 @@
+CREATE INDEX "users_division_index" ON "users" USING btree ("division" text_ops);

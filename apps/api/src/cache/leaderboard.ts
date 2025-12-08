@@ -6,6 +6,7 @@ const keyGraphData = 'graph-data'
 
 const keyScorePositions = 'score-positions'
 const keyChallengeInfo = 'challenge-info'
+const keyFirstBloods = 'first-bloods'
 
 const keysPerUserGlobal = 5
 const keysPerUserDivision = 3
@@ -35,6 +36,11 @@ export type InternalUserInfo = {
   solvedChallengeIds: string[]
 }
 
+export type Sample = {
+  time: number
+  userScores: Array<{ id: string; score: number }>
+}
+
 export type CalculatedLeaderboard = {
   leaderboardUpdate: number
   users: Array<
@@ -49,10 +55,8 @@ export type CalculatedLeaderboard = {
       'score' | 'solves' | 'name' | 'category' | 'sortWeight'
     >
   >
-  samples: Array<{
-    time: number
-    userScores: Array<{ id: string; score: number }>
-  }>
+  firstBloods: Map<string, string[]>
+  samples: Array<Sample>
 }
 
 export type LeaderboardResult = {
@@ -129,6 +133,7 @@ const cacheLeaderboard = async (
     keyChallengeInfo,
     keyLeaderboard(),
     keyLeaderboardUpdate,
+    keyFirstBloods,
     ...divisions.map(d => keyLeaderboard(d)),
   ]
 
@@ -156,6 +161,13 @@ const cacheLeaderboard = async (
     )
   }
 
+  const wireFirstBloods: string[] = []
+  for (const [challengeId, userIds] of data.firstBloods.entries()) {
+    if (userIds.length > 0) {
+      wireFirstBloods.push(challengeId, userIds.join(','))
+    }
+  }
+
   const argv: string[] = [
     data.leaderboardUpdate.toString(),
     divisions.length.toString(),
@@ -164,6 +176,8 @@ const cacheLeaderboard = async (
     ...wireLeaderboard,
     wireChallengeInfos.length.toString(),
     ...wireChallengeInfos,
+    wireFirstBloods.length.toString(),
+    ...wireFirstBloods,
   ]
 
   await redis.rctfSetLeaderboard(keys.length, ...keys, ...argv)
@@ -392,6 +406,38 @@ export const getCachedChallenges = async (
   )
 }
 
+export type CachedChallengeInfoWithBloods = CachedChallengeInfo & {
+  firstBloods: string[]
+}
+
+export const getCachedChallengesWithBloods = async (
+  redis: TypedRedis
+): Promise<Record<string, CachedChallengeInfoWithBloods>> => {
+  const pipeline = redis.pipeline()
+  pipeline.hgetall(keyChallengeInfo)
+  pipeline.hgetall(keyFirstBloods)
+
+  const results = await pipeline.exec()
+  if (!results) {
+    return {}
+  }
+
+  const [challengeResult, bloodsResult] = results
+  const challengeEntries = Object.entries(
+    (challengeResult?.[1] as Record<string, string>) ?? {}
+  )
+  const bloodsMap = (bloodsResult?.[1] as Record<string, string>) ?? {}
+
+  return Object.fromEntries(
+    challengeEntries.map(([id, value]) => {
+      const info = parseCachedChallengeInfo(value)
+      const bloodsStr = bloodsMap[id]
+      const firstBloods = bloodsStr ? bloodsStr.split(',') : []
+      return [id, { ...info, firstBloods }]
+    })
+  )
+}
+
 export type UserScoreResult = {
   score: number | null
   place: number | null
@@ -434,10 +480,50 @@ export const getUsersScores = async (
   return map
 }
 
+export const getUserScoreAndChallengePoints = async (
+  redis: TypedRedis,
+  userId: string,
+  challengeIds: string[]
+): Promise<{
+  userScore: UserScoreResult
+  challengeScores: Array<CachedChallengeInfo>
+}> => {
+  if (challengeIds.length === 0) {
+    const userScore = await getUserScore(redis, userId)
+    return { userScore, challengeScores: [] }
+  }
+
+  const pipeline = redis.pipeline()
+  pipeline.hget(keyScorePositions, userId)
+  pipeline.hmget(keyChallengeInfo, ...challengeIds)
+
+  const results = await pipeline.exec()
+  if (!results) {
+    return {
+      userScore: { score: null, place: null, divisionPlace: null },
+      challengeScores: [],
+    }
+  }
+
+  const [userScoreResult, challengeScoresResult] = results
+
+  const userScore = Boolean(userScoreResult?.[1])
+    ? parseUserScoreResult(userScoreResult![1] as string)
+    : { score: null, place: null, divisionPlace: null }
+
+  const rawChallengeScores = Boolean(challengeScoresResult?.[1])
+    ? (challengeScoresResult![1] as (string | null)[])
+    : []
+
+  const challengeScores = rawChallengeScores.map(info =>
+    parseCachedChallengeInfo(info)
+  )
+  return { userScore, challengeScores }
+}
+
 export const cacheLeaderboardAndGraph = async (
   redis: TypedRedis,
   data: CalculatedLeaderboard
 ): Promise<void> => {
-  await cacheLeaderboard(redis, data)
-  await cacheGraph(redis, data)
+  await Promise.all([cacheLeaderboard(redis, data), cacheGraph(redis, data)])
 }

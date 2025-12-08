@@ -4,6 +4,7 @@ import { defineRoute } from '../../internal'
 import {
   BadBody,
   BadNotStarted,
+  GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
 } from '../../responses'
@@ -22,6 +23,16 @@ export const GetLeaderboardRouteV2 = defineRoute({
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
+})
+
+export const GetLeaderboardChallengesRouteV2 = defineRoute({
+  path: '/v2/leaderboard/challs',
+  method: 'GET',
+  goodResponses: [GoodLeaderboardChallengesV2],
+  badResponses: [BadNotStarted],
+  authRequired: false,
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const GetLeaderboardGraphRouteV2 = defineRoute({

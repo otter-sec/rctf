@@ -156,7 +156,10 @@ const getAuthenticatedUser = async (
 
   const user = await getUser(context.var.db, userId)
   if (user) {
-    setCachedUser(context.var.redis, user).catch(() => {})
+    // do not stale the request
+    setCachedUser(context.var.redis, user).catch(() => {
+      context.var.logger.error({ userId }, 'failed to set cached user')
+    })
   }
 
   return user

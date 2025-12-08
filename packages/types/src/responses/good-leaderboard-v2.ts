@@ -22,20 +22,5 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
         divisionPlace: z.int(),
       })
     ),
-    challenges: z.record(
-      z.string(), // challenge id
-      z.object({
-        name: z.string(),
-        category: z.string(),
-        solves: z.int(),
-        points: z.int(),
-        sortWeight: z.nullable(z.int()),
-        firstSolvers: z.array(
-          z.object({
-            id: z.string(),
-          })
-        ),
-      })
-    ),
   }),
 })

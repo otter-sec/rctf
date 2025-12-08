@@ -4,16 +4,16 @@ import { getUser } from '../../../../services/users.ts'
 import adminGroup from '../group'
 
 adminGroup.route(CreateUserTokenRouteV2, async ({ res, ctx, params }) => {
-  const user = await getUser(ctx.var.db, params.id)
-  if (!user) {
+  const targetUser = await getUser(ctx.var.db, params.id)
+  if (!targetUser) {
     return res.badUnknownUser()
   }
 
-  if (user.perms > 0) {
+  if (targetUser.perms > 0) {
     return res.badUserPrivileged()
   }
 
   return res.goodCreateUserToken({
-    token: await createToken(TokenKind.Team, user.id),
+    token: await createToken(TokenKind.Team, targetUser.id),
   })
 })

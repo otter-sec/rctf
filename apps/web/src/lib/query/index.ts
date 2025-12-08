@@ -11,6 +11,7 @@ import {
   GetChallengesRouteV2,
   GetClientConfigRouteV2,
   GetInstancerSchemaRouteV2,
+  GetLeaderboardChallengesRouteV2,
   GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
   GetMembersRoute,
@@ -22,6 +23,7 @@ import {
   GoodChallengesV2,
   GoodClientConfigV2,
   GoodInstancerSchema,
+  GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
   GoodMemberData,
@@ -175,6 +177,19 @@ export const leaderboardQueryOptions = (params: {
     refetchOnWindowFocus: true,
   })
 
+export const leaderboardChallengesQueryOptions = queryOptions({
+  queryKey: ['leaderboard', 'challenges'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetLeaderboardChallengesRouteV2)
+    if (response.kind === GoodLeaderboardChallengesV2.kind) {
+      return response.data.challenges
+    }
+    throw new ApiError(response.message)
+  },
+  refetchOnWindowFocus: true,
+  refetchInterval: 30 * 1000,
+})
+
 export const leaderboardGraphQueryOptions = (params: {
   limit: number
   offset: number
@@ -263,6 +278,7 @@ export const queryKeys = {
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
+  leaderboardChallenges: leaderboardChallengesQueryOptions.queryKey,
   leaderboardGraph: (params: {
     limit: number
     offset: number
@@ -325,6 +341,10 @@ export function useLeaderboardGraph(params: {
   division: string
 }) {
   return createQuery(leaderboardGraphQueryOptions(params))
+}
+
+export function useLeaderboardChallenges() {
+  return createQuery(leaderboardChallengesQueryOptions)
 }
 
 export function useSelfUserGraph(globalPlace: number | null) {

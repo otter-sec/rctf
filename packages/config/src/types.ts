@@ -22,6 +22,30 @@ export const ACLSchema = z.object({
   divisions: z.array(z.string()),
 })
 
+export const SqlDatabaseSchema = z.union([
+  z.string(), // connection string
+  z.object({
+    host: z.string(),
+    port: z.optional(z.number()),
+    user: z.string(),
+    password: z.string(),
+    database: z.string(),
+    maxPoolSize: z.prefault(z.int(), 20),
+    idleTimeout: z.prefault(z.int(), 30_000),
+    connectTimeout: z.prefault(z.int(), 3_000),
+  }),
+])
+
+export const RedisDatabaseSchema = z.union([
+  z.string(), // connection string
+  z.object({
+    host: z.string(),
+    port: z.optional(z.number()),
+    password: z.optional(z.string()),
+    database: z.optional(z.number()),
+  }),
+])
+
 export const ServerConfigSchema = z.object({
   // Core
   ctfName: z.string(),
@@ -31,25 +55,8 @@ export const ServerConfigSchema = z.object({
 
   // Database
   database: z.object({
-    sql: z.union([
-      z.string(), // connection string
-      z.object({
-        host: z.string(),
-        port: z.optional(z.number()),
-        user: z.string(),
-        password: z.string(),
-        database: z.string(),
-      }),
-    ]),
-    redis: z.union([
-      z.string(), // connection string
-      z.object({
-        host: z.string(),
-        port: z.optional(z.number()),
-        password: z.optional(z.string()),
-        database: z.optional(z.number()),
-      }),
-    ]),
+    sql: SqlDatabaseSchema,
+    redis: RedisDatabaseSchema,
     migrate: z.prefault(z.enum(['before', 'only', 'never']), 'never'),
   }),
 

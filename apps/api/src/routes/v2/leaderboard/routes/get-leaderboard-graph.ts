@@ -7,9 +7,18 @@ leaderboardGroup.route(
   GetLeaderboardGraphRouteV2,
   async ({ ctx, res, query: { limit, offset, division } }) => {
     // NOTE: Handling manually because the value is loaded from config
-    if (limit > config.leaderboard.graphMaxTeams) {
+    if (
+      limit > config.leaderboard.graphMaxTeams ||
+      offset > config.leaderboard.maxOffset
+    ) {
       return res.badBody({
-        reason: 'Invalid limit',
+        reason: 'Invalid limit or offset',
+      })
+    }
+
+    if (division && !config.divisions[division]) {
+      return res.badBody({
+        reason: 'Invalid division',
       })
     }
 

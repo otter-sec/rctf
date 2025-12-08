@@ -29,6 +29,11 @@ export const solves = pgTable(
       table.challengeid.asc().nullsLast().op('text_ops'),
       table.createdat.asc().nullsLast().op('timestamptz_ops')
     ),
+    index('solves_userid_challengeid_index').using(
+      'btree',
+      table.userid.asc().nullsLast().op('text_ops'),
+      table.challengeid.asc().nullsLast().op('text_ops')
+    ),
     foreignKey({
       columns: [table.userid],
       foreignColumns: [users.id],

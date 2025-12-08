@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardRouteV2 } from '@rctf/types'
-import { getLeaderboardWithChallenges } from '../../../../cache/leaderboard'
-import { getSolvesAvatarsBloods } from '../../../../services/challenges'
+import { getLeaderboard } from '../../../../cache/leaderboard'
+import { getSolvesAndAvatars } from '../../../../services/challenges'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
@@ -16,9 +16,19 @@ leaderboardGroup.route(
       })
     }
 
-    const { total, leaderboard, challenges } =
-      await getLeaderboardWithChallenges(ctx.var.redis, limit, offset, division)
-    const { solves, avatars, firstSolvers } = await getSolvesAvatarsBloods(
+    if (division && !config.divisions[division]) {
+      return res.badBody({
+        reason: 'Invalid division',
+      })
+    }
+
+    const { total, leaderboard } = await getLeaderboard(
+      ctx.var.redis,
+      limit,
+      offset,
+      division
+    )
+    const { solves, avatars } = await getSolvesAndAvatars(
       ctx.var.db,
       leaderboard.map(e => e.id)
     )
@@ -33,21 +43,6 @@ leaderboardGroup.route(
           solveTime: solve.solveTime,
         })),
       })),
-      challenges: Object.fromEntries(
-        Object.entries(challenges).map(([id, info]) => [
-          id,
-          {
-            name: info.name ?? '',
-            category: info.category ?? '',
-            points: info.score ?? 0,
-            solves: info.solves ?? 0,
-            firstSolvers: Array.from(firstSolvers.get(id) ?? []).map(id => ({
-              id,
-            })),
-            sortWeight: info.sortWeight,
-          },
-        ])
-      ),
     })
   }
 )

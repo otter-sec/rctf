@@ -36,10 +36,9 @@ type SubmitResponseHelpers = ResponseHelpers<
 >
 
 type LeaderboardSolve = { challengeId: string; solveTime: number }
-type SolvesAvatarsBloods = {
+type SolvesAvatars = {
   solves: Map<string, LeaderboardSolve[]>
   avatars: Map<string, string | null>
-  firstSolvers: Map<string, string[]>
 }
 
 type ChallengeSolvesWithPosition = {
@@ -178,8 +177,10 @@ export const deleteChallenge = async (
   db: DatabaseClient,
   id: string
 ): Promise<void> => {
-  await db.delete(challenges).where(eq(challenges.id, id))
-  await db.delete(solves).where(eq(solves.challengeid, id))
+  await db.transaction(async tx => {
+    await tx.delete(solves).where(eq(solves.challengeid, id))
+    await tx.delete(challenges).where(eq(challenges.id, id))
+  })
 }
 
 export const getChallengeSolves = async (
@@ -279,54 +280,43 @@ export const getUserChallengeSolves = async (
     .orderBy(asc(solves.createdat))
 }
 
-export const getSolvesAvatarsBloods = async (
+export const getSolvesAndAvatars = async (
   db: DatabaseClient,
   userIds: string[]
-): Promise<SolvesAvatarsBloods> => {
-  const numberOfBloods = 3
-  const userIdSet = new Set(userIds)
+): Promise<SolvesAvatars> => {
+  if (userIds.length === 0) {
+    return {
+      solves: new Map(),
+      avatars: new Map(),
+    }
+  }
 
-  const ranked = createRankedSolves(db)
   const rows = await db
-    .with(ranked)
-    .select()
-    .from(ranked)
-    // always fetch first `numberOfBloods` solvers for each challenge
-    .where(
-      or(inArray(ranked.userId, userIds), lte(ranked.position, numberOfBloods))
-    )
-    .orderBy(asc(ranked.position))
+    .select({
+      challenge_id: solves.challengeid,
+      user_id: solves.userid,
+      avatar_url: users.avatarUrl,
+      created_at: solves.createdat,
+    })
+    .from(solves)
+    .innerJoin(users, eq(users.id, solves.userid))
+    .where(inArray(solves.userid, userIds))
+    .orderBy(asc(solves.createdat))
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(
     userIds.map(id => [id, []])
   )
   const avatars = new Map<string, string | null>()
-  const firstSolvers = new Map<string, string[]>()
 
   for (const row of rows) {
-    const userId = row.userId
-    const challId = row.challengeId
-    const position = row.position
-
-    // always save user info we requested
-    if (userIdSet.has(userId)) {
-      avatars.set(userId, avatars.get(userId) ?? row.userAvatarUrl)
-      solvesMap.get(userId)!.push({
-        challengeId: challId,
-        solveTime: new Date(row.createdAt).getTime(),
-      })
-    }
-
-    if (position > numberOfBloods) {
-      continue
-    }
-
-    const bloods = firstSolvers.get(challId) ?? []
-    bloods.push(userId)
-    firstSolvers.set(challId, bloods)
+    avatars.set(row.user_id, avatars.get(row.user_id) ?? row.avatar_url)
+    solvesMap.get(row.user_id)?.push({
+      challengeId: row.challenge_id,
+      solveTime: new Date(row.created_at).getTime(),
+    })
   }
 
-  return { solves: solvesMap, avatars, firstSolvers }
+  return { solves: solvesMap, avatars }
 }
 
 export const submitFlag = async (

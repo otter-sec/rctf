@@ -1,8 +1,5 @@
 import type { DatabaseClient, User } from '@rctf/db'
-import {
-  getChallengeDynamicPointsValue,
-  getUserScore,
-} from '../cache/leaderboard'
+import { getUserScoreAndChallengePoints } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { getUserChallengeSolves } from './challenges'
 import { getUser } from './users'
@@ -30,13 +27,10 @@ export const getFullUser = async (
   redis: TypedRedis,
   user: User
 ): Promise<FullUser> => {
-  const [solves, userScore] = await Promise.all([
-    getUserChallengeSolves(db, user.id),
-    getUserScore(redis, user.id),
-  ])
-
-  const challengeScores = await getChallengeDynamicPointsValue(
+  const solves = await getUserChallengeSolves(db, user.id)
+  const { userScore, challengeScores } = await getUserScoreAndChallengePoints(
     redis,
+    user.id,
     solves.map(item => item.solve.challengeid)
   )
 

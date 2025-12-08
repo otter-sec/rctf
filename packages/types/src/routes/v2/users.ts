@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { ProtectedAction } from '../../enums'
+import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadAvatarFile,
@@ -32,6 +32,9 @@ export const GetUserRouteV2 = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  // challsRead because we return solves
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const GetUserSelfRouteV2 = defineRoute({
@@ -66,7 +69,13 @@ export const UpdateAvatarRoute = defineRoute({
   method: 'PATCH',
   captchaAction: ProtectedAction.AvatarUpload,
   goodResponses: [GoodAvatarUpdated],
-  badResponses: [BadToken, BadAvatarFile, BadAvatarFileSize, BadCaptcha],
+  badResponses: [
+    BadToken,
+    BadAvatarFile,
+    BadAvatarFileSize,
+    BadCaptcha,
+    BadRateLimit,
+  ],
   authRequired: true,
   body: z.object({
     avatar: z.optional(FileFieldSchema),

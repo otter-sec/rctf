@@ -6,6 +6,7 @@ import type {
   CalculatedLeaderboard,
   InternalChallengeInfo,
   InternalUserInfo,
+  Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
 
@@ -89,6 +90,9 @@ export const calculateLeaderboard = async (
     .from(solves)
     .orderBy(asc(solves.createdat))
 
+  const numberOfBloods = 3
+  const firstBloods = new Map<string, string[]>()
+
   let solveIndex = 0
   const applySolvesUntil = (untilEpochMs: number): boolean => {
     let changed = false
@@ -108,6 +112,15 @@ export const calculateLeaderboard = async (
       const user = userInfos.get(s.userid)
       if (!chal || !user) {
         continue
+      }
+
+      let bloods = firstBloods.get(s.challengeid)
+      if (!bloods) {
+        bloods = []
+        firstBloods.set(s.challengeid, bloods)
+      }
+      if (bloods.length < numberOfBloods) {
+        bloods.push(s.userid)
       }
 
       chal.solves++
@@ -153,16 +166,41 @@ export const calculateLeaderboard = async (
     return true
   }
 
-  let samples: CalculatedLeaderboard['samples'] = []
+  const usersWithScores = new Set<string>()
+  const samples: CalculatedLeaderboard['samples'] = []
+  let prevScoreMap: Map<string, number> | null = null
+
   const runSample = (t: number): void => {
     applySolvesUntil(t)
-    samples.push({
-      time: t,
-      userScores: Array.from(userInfos.entries()).map(([id, u]) => ({
-        id,
-        score: u.score,
-      })),
-    })
+
+    const userScores: Sample['userScores'] = []
+    for (const [id, u] of userInfos) {
+      if (u.score > 0) {
+        userScores.push({ id, score: u.score })
+        usersWithScores.add(id)
+      }
+    }
+
+    // dedupe
+    if (prevScoreMap !== null) {
+      let changed = false
+      if (userScores.length !== prevScoreMap.size) {
+        changed = true
+      } else {
+        for (const { id, score } of userScores) {
+          if (prevScoreMap.get(id) !== score) {
+            changed = true
+            break
+          }
+        }
+      }
+      if (!changed) {
+        return
+      }
+    }
+
+    prevScoreMap = new Map(userScores.map(({ id, score }) => [id, score]))
+    samples.push({ time: t, userScores })
   }
 
   const graphSampleTime = config.leaderboard.graphSampleTime
@@ -185,36 +223,8 @@ export const calculateLeaderboard = async (
     }
   }
 
-  // TODO(es3n1n): below, we are relying on the fact that user scores are in the same order. is this really always true?
-
-  // Run up to now, but dedupe if scores haven't changed since last sample
+  // Run up to now (but dedupe if scores are the same)
   runSample(now)
-  if (samples.length > 1) {
-    const last = samples[samples.length - 1]!
-    const prev = samples[samples.length - 2]!
-    const isDuplicate = last.userScores.every(
-      (s, i) => s.score === prev.userScores[i]?.score
-    )
-    if (isDuplicate) {
-      samples.pop()
-    }
-  }
-
-  // Filter out consecutive samples with the same user scores
-  samples = samples
-    .map((s, i) => {
-      if (i === 0) {
-        return s
-      }
-
-      const prev = samples[i - 1]!
-      if (s.userScores.every((s, i) => s.score === prev.userScores[i]?.score)) {
-        return null
-      }
-
-      return s
-    })
-    .filter(s => s !== null)
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     // 1. Score difference
@@ -251,6 +261,7 @@ export const calculateLeaderboard = async (
         hadAnySolve: true,
       })),
     challengeInfos: challengeInfos,
+    firstBloods,
     samples,
   }
 }

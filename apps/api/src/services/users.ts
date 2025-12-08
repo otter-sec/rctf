@@ -262,8 +262,10 @@ export const updateUserAvatar = async (
   id: string,
   avatarUrl: string | null
 ): Promise<void> => {
-  await db.update(users).set({ avatarUrl }).where(eq(users.id, id))
-  await invalidateUserCache(redis, id)
+  await Promise.all([
+    db.update(users).set({ avatarUrl }).where(eq(users.id, id)),
+    invalidateUserCache(redis, id),
+  ])
 }
 
 export const getUser = async (
@@ -320,27 +322,4 @@ export const getUserByCtftimeId = async (
     .where(eq(users.ctftimeId, ctftimeId))
     .limit(1)
     .then(takeUnique)
-}
-
-export const getUserAvatars = async (
-  db: DatabaseClient,
-  userIds: string[]
-): Promise<Map<string, string | null>> => {
-  if (userIds.length === 0) {
-    return new Map()
-  }
-
-  const result = await db
-    .select({
-      id: users.id,
-      avatarUrl: users.avatarUrl,
-    })
-    .from(users)
-    .where(or(...userIds.map(id => eq(users.id, id)))!)
-
-  const map = new Map<string, string | null>()
-  for (const row of result) {
-    map.set(row.id, row.avatarUrl)
-  }
-  return map
 }

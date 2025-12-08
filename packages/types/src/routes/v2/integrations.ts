@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { ProtectedAction } from '../../enums'
+import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadCaptcha,
@@ -27,6 +27,8 @@ export const GetInstanceStatusRouteV2 = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const CreateInstanceRouteV2 = defineRoute({
@@ -42,6 +44,8 @@ export const CreateInstanceRouteV2 = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const DeleteInstanceRouteV2 = defineRoute({
@@ -53,6 +57,8 @@ export const DeleteInstanceRouteV2 = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const ExtendInstanceRouteV2 = defineRoute({
@@ -68,4 +74,6 @@ export const ExtendInstanceRouteV2 = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })

@@ -1,5 +1,6 @@
 import { ExposeKind } from '@rctf/types'
-import { jsonb, pgTable, text } from 'drizzle-orm/pg-core'
+import { sql } from 'drizzle-orm'
+import { index, jsonb, pgTable, text } from 'drizzle-orm/pg-core'
 
 export { ExposeKind }
 
@@ -45,7 +46,16 @@ export interface ChallengeData {
   instancerConfig?: InstancerConfig
 }
 
-export const challenges = pgTable('challenges', {
-  id: text().primaryKey().notNull(),
-  data: jsonb().$type<ChallengeData>().notNull(),
-})
+export const challenges = pgTable(
+  'challenges',
+  {
+    id: text().primaryKey().notNull(),
+    data: jsonb().$type<ChallengeData>().notNull(),
+  },
+  table => [
+    index('challenges_sortweight_index').using(
+      'btree',
+      sql`((${table.data} ->> 'sortWeight')::int)`
+    ),
+  ]
+)

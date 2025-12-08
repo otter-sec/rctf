@@ -4,7 +4,7 @@
   import { page as pageState } from '$app/state'
   import { toast } from '$lib'
   import { Spinner } from '$lib/components'
-  import { leaderboardQueryOptions, useLeaderboard } from '$lib/query'
+  import { leaderboardQueryOptions, useLeaderboard, useLeaderboardChallenges } from '$lib/query'
   import { cn } from '$lib/utils'
   import { PAGE_SIZE, type SortMode, type ViewMode } from '../_lib'
   import Pagination from './scores-pagination.svelte'
@@ -45,7 +45,7 @@
     })
   }
 
-  const query = $derived(
+  const leaderboardQuery = $derived(
     useLeaderboard({
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
@@ -53,10 +53,15 @@
     })
   )
 
-  const data = $derived($query.data)
+  const challengesQuery = $derived(useLeaderboardChallenges())
+
+  const data = $derived($leaderboardQuery.data)
   const entries = $derived(data?.leaderboard ?? [])
-  const challengesData = $derived(data?.challenges ?? {})
-  const isRefetching = $derived($query.isFetching && !$query.isPending)
+  const challengesData = $derived($challengesQuery.data ?? {})
+  const isRefetching = $derived(
+    ($leaderboardQuery.isFetching && !$leaderboardQuery.isPending) ||
+      ($challengesQuery.isFetching && !$challengesQuery.isPending)
+  )
 
   let lastKnownTotalPages = $state(1)
   $effect(() => {
@@ -83,8 +88,11 @@
   })
 
   $effect(() => {
-    if ($query.isError) {
-      toast.error($query.error?.message ?? 'Failed to load leaderboard')
+    if ($leaderboardQuery.isError) {
+      toast.error($leaderboardQuery.error?.message ?? 'Failed to load leaderboard')
+    }
+    if ($challengesQuery.isError) {
+      toast.error($challengesQuery.error?.message ?? 'Failed to load challenges')
     }
   })
 </script>
@@ -100,13 +108,19 @@
     onSortChange={m => setUrlParam('sort', m, 'category')}
     onViewChange={m => setUrlParam('view', m, 'zoomer')} />
 
-  <div class={cn('relative', $query.isFetching && 'opacity-50')}>
-    {#if $query.isLoading}
+  <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
+    {#if $leaderboardQuery.isLoading || $challengesQuery.isLoading}
       <div class="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
         <Spinner class="size-6" />
       </div>
     {/if}
 
-    <View {entries} {challengesData} {page} {sortMode} {viewMode} isFetching={$query.isFetching} />
+    <View
+      {entries}
+      {challengesData}
+      {page}
+      {sortMode}
+      {viewMode}
+      isFetching={$leaderboardQuery.isFetching} />
   </div>
 </div>

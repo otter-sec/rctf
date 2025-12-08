@@ -590,61 +590,6 @@ describe('users service', () => {
     })
   })
 
-  describe('getUserAvatars', () => {
-    test('returns empty map for empty userIds array', async () => {
-      const { getUserAvatars } =
-        await import('../../../../apps/api/src/services/users')
-      const db = createDatabase(config.database.sql).db
-
-      const result = await getUserAvatars(db, [])
-      expect(result).toBeInstanceOf(Map)
-      expect(result.size).toBe(0)
-    })
-
-    test('returns avatar URLs for existing users', async () => {
-      const { getUserAvatars } =
-        await import('../../../../apps/api/src/services/users')
-      const db = createDatabase(config.database.sql).db
-
-      // Create users with and without avatars
-      const { user: user1, cleanup: cleanup1 } = await generateRealTestUser()
-      createdUserCleanups.push(cleanup1)
-
-      const userId2 = crypto.randomUUID()
-      const testUser2 = generateTestUser()
-      await db.insert(users).values({
-        id: userId2,
-        ...testUser2,
-        avatarUrl: 'https://example.com/avatar.webp',
-        perms: 0,
-      })
-      createdUserEmails.push(testUser2.email)
-
-      const result = await getUserAvatars(db, [user1.id, userId2])
-      expect(result).toBeInstanceOf(Map)
-      expect(result.size).toBe(2)
-      expect(result.get(user1.id)).toBeNull() // No avatar
-      expect(result.get(userId2)).toBe('https://example.com/avatar.webp')
-    })
-
-    test('returns only found users', async () => {
-      const { getUserAvatars } =
-        await import('../../../../apps/api/src/services/users')
-      const db = createDatabase(config.database.sql).db
-
-      const { user, cleanup } = await generateRealTestUser()
-      createdUserCleanups.push(cleanup)
-
-      const nonExistentId = crypto.randomUUID()
-      const result = await getUserAvatars(db, [user.id, nonExistentId])
-
-      expect(result).toBeInstanceOf(Map)
-      expect(result.size).toBe(1)
-      expect(result.has(user.id)).toBe(true)
-      expect(result.has(nonExistentId)).toBe(false)
-    })
-  })
-
   describe('updateUserInternal - duplicate name', () => {
     test('fails with badKnownName when updating to existing name', async () => {
       config.email = undefined

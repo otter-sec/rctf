@@ -1,6 +1,8 @@
+import type { SqlDatabaseSchema } from '@rctf/config'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
+import { z } from 'zod'
 import * as schema from './schema'
 
 export * from './schema'
@@ -16,17 +18,7 @@ export type User = InferInsertModel<typeof schema.users>
 export type UserMember = InferInsertModel<typeof schema.userMembers>
 
 // FIXME(es3n1n): shared type for db config
-export const createDatabase = (
-  params:
-    | string
-    | {
-        host: string
-        port?: number | undefined
-        user: string
-        password: string
-        database: string
-      }
-) => {
+export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient
   if (typeof params === 'string') {
     client = postgres(params)
@@ -37,6 +29,9 @@ export const createDatabase = (
       user: params.user,
       password: params.password,
       database: params.database,
+      max: params.maxPoolSize,
+      idle_timeout: params.idleTimeout / 1000,
+      connect_timeout: params.connectTimeout / 1000,
     })
   }
 
