@@ -10,6 +10,7 @@
     useDeleteChallengeMutation,
     useUpdateChallengeMutation,
   } from '$lib/query'
+  import InstancerConfig from './_components/instancer-config.svelte'
 
   const queryClient = useQueryClient()
   const challengesQuery = useAdminChallenges()
@@ -19,21 +20,20 @@
   const { snapshot, send } = useMachine(editorMachine)
 
   const challenges = $derived($challengesQuery.data ?? [])
-  const state = $derived($snapshot)
-  const form = $derived(state.context.form)
-  const challenge = $derived(state.context.challenge)
+  const form = $derived($snapshot.context.form)
+  const challenge = $derived($snapshot.context.challenge)
 
-  const isIdle = $derived(state.matches('idle'))
-  const isViewing = $derived(state.matches('viewing'))
-  const isEditing = $derived(state.matches('editing'))
-  const isCreating = $derived(state.matches('creating'))
-  const isSaving = $derived(state.matches('saving'))
-  const isConfirmDiscard = $derived(state.matches('confirmDiscard'))
-  const isConfirmDelete = $derived(state.matches('confirmDelete'))
-  const isDeleting = $derived(state.matches('deleting'))
+  const isIdle = $derived($snapshot.matches('idle'))
+  const isCreating = $derived($snapshot.matches('creating'))
+  const isSaving = $derived($snapshot.matches('saving'))
+  const isConfirmDiscard = $derived($snapshot.matches('confirmDiscard'))
+  const isConfirmDelete = $derived($snapshot.matches('confirmDelete'))
+  const isDeleting = $derived($snapshot.matches('deleting'))
 
-  const isEditMode = $derived(isEditing || isCreating)
+  const isEditMode = $derived($snapshot.matches('editing') || isCreating)
   const showForm = $derived(!isIdle)
+
+  let instancerConfigValid = $state(true)
 
   const detailQuery = $derived(useAdminChallenge(challenge?.id ?? '', !!challenge?.id))
 
@@ -161,7 +161,7 @@
     {:else if showForm}
       <header>
         <h2>{isCreating ? 'New Challenge' : form.name || 'Untitled'}</h2>
-        <p>State: {state.value}</p>
+        <p>State: {$snapshot.value}</p>
       </header>
 
       <fieldset disabled={!isEditMode}>
@@ -255,6 +255,13 @@
             oninput={e => updateField('sortWeight', +e.currentTarget.value)} />
         </div>
       </fieldset>
+
+      <h3 style="margin-top: 1.5rem;">Instancer</h3>
+      <InstancerConfig
+        config={form.instancerConfig}
+        isDisabled={!isEditMode}
+        onConfigChange={config => updateField('instancerConfig', config)}
+        bind:isValid={instancerConfigValid} />
 
       <div style="margin-top: 1rem;">
         {#if isEditMode}

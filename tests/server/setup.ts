@@ -1,5 +1,5 @@
-import path from 'path'
 import { mock } from 'bun:test'
+import path from 'path'
 import deepMerge from 'deepmerge'
 
 const mockTestConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')

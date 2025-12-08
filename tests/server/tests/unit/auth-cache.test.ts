@@ -1,5 +1,5 @@
-import { config } from '@rctf/config'
 import { describe, expect, mock, test } from 'bun:test'
+import { config } from '@rctf/config'
 import {
   checkLoginVerification,
   createLoginVerification,

@@ -22,6 +22,15 @@
       page--
     }
   }
+
+  function getInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+  }
 </script>
 
 <h1>Scores</h1>
@@ -48,6 +57,7 @@
     <thead>
       <tr>
         <th>#</th>
+        <th></th>
         <th>Team</th>
         <th>Score</th>
       </tr>
@@ -56,6 +66,21 @@
       {#each leaderboard.leaderboard as entry, i}
         <tr>
           <td>{page * limit + i + 1}</td>
+          <td>
+            {#if entry.avatarUrl}
+              <img
+                src={entry.avatarUrl}
+                alt={entry.name}
+                width="32"
+                height="32"
+                style="border-radius: 4px; object-fit: cover; vertical-align: middle;" />
+            {:else}
+              <span
+                style="display: inline-flex; width: 32px; height: 32px; border-radius: 4px; background: #ddd; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; vertical-align: middle;">
+                {getInitials(entry.name)}
+              </span>
+            {/if}
+          </td>
           <td>
             <a href="/profile/{entry.id}">{entry.name}</a>
           </td>

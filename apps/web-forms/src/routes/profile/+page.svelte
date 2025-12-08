@@ -3,6 +3,7 @@
     CreateMemberRoute,
     DeleteEmailRoute,
     DeleteMemberRoute,
+    GoodAvatarUpdated,
     GoodEmailRemoved,
     GoodMemberDelete,
     SetEmailRouteV2,
@@ -11,12 +12,21 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest } from '$lib/api'
   import { useApiForm } from '$lib/forms'
-  import { queryKeys, useClientConfig, useCurrentUser, useMembers } from '$lib/query'
+  import {
+    queryKeys,
+    useClientConfig,
+    useCurrentUser,
+    useMembers,
+    useUpdateAvatarMutation,
+  } from '$lib/query'
+
+  const MAX_AVATAR_SIZE = 1024 * 1024 // 1MB
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const configQuery = useClientConfig()
   const membersQuery = useMembers()
+  const avatarMutation = useUpdateAvatarMutation()
 
   const user = $derived($userQuery.data)
   const config = $derived($configQuery.data)
@@ -36,6 +46,81 @@
 
   let initialized = $state(false)
   let deleting = $state<string | null>(null)
+  let fileInput = $state<HTMLInputElement | null>(null)
+  let avatarUploading = $state(false)
+
+  function getInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+  }
+
+  function handleAvatarSelect(e: Event) {
+    const input = e.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file) return
+
+    if (file.size > MAX_AVATAR_SIZE) {
+      alert(`File too large. Maximum size is ${(MAX_AVATAR_SIZE / 1024 / 1024).toFixed(0)}MB`)
+      input.value = ''
+      return
+    }
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file')
+      input.value = ''
+      return
+    }
+
+    uploadAvatar(file)
+  }
+
+  function uploadAvatar(file: File) {
+    avatarUploading = true
+    $avatarMutation.mutate(
+      { avatar: file },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAvatarUpdated.kind) {
+            alert('Avatar updated!')
+            invalidateUser()
+          } else {
+            alert(response.message)
+          }
+          avatarUploading = false
+        },
+        onError: error => {
+          alert(error.message)
+          avatarUploading = false
+        },
+      }
+    )
+  }
+
+  function removeAvatar() {
+    avatarUploading = true
+    $avatarMutation.mutate(
+      {},
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAvatarUpdated.kind) {
+            alert('Avatar removed!')
+            invalidateUser()
+          } else {
+            alert(response.message)
+          }
+          avatarUploading = false
+        },
+        onError: error => {
+          alert(error.message)
+          avatarUploading = false
+        },
+      }
+    )
+  }
 
   $effect(() => {
     if (user && !initialized) {
@@ -77,6 +162,43 @@
 {:else if !user}
   <p>Not logged in. <a href="/login">Login</a></p>
 {:else}
+  <section>
+    <h2>Team Avatar</h2>
+    <div>
+      {#if user.avatarUrl}
+        <img
+          src={user.avatarUrl}
+          alt={user.name}
+          width="80"
+          height="80"
+          style="border-radius: 8px; object-fit: cover;" />
+      {:else}
+        <div
+          style="width: 80px; height: 80px; border-radius: 8px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+          {getInitials(user.name)}
+        </div>
+      {/if}
+    </div>
+    <div style="margin-top: 0.5rem;">
+      <input
+        bind:this={fileInput}
+        type="file"
+        accept="image/*"
+        style="display: none;"
+        onchange={handleAvatarSelect} />
+      <button type="button" onclick={() => fileInput?.click()} disabled={avatarUploading}>
+        {avatarUploading ? 'Uploading...' : user.avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
+      </button>
+      {#if user.avatarUrl}
+        <button type="button" onclick={removeAvatar} disabled={avatarUploading}>
+          {avatarUploading ? 'Removing...' : 'Remove Avatar'}
+        </button>
+      {/if}
+    </div>
+  </section>
+
+  <hr />
+
   <section>
     <h2>Update Profile</h2>
     <form onsubmit={profileForm.submit}>

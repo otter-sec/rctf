@@ -19,15 +19,15 @@
 {:else}
   <form onsubmit={form.submit}>
     <label>Email <input type="email" bind:value={form.data.email} /></label>
-    
+
     {#if form.errors.email}
       <em>{form.errors.email}</em>
     {/if}
-    
+
     {#if form.errors._form}
       <p style="color:red">{form.errors._form}</p>
     {/if}
-    
+
     <button disabled={form.submitting}
       >{form.submitting ? 'Sending...' : 'Send Recovery Email'}</button>
   </form>

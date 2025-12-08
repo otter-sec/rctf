@@ -99,7 +99,10 @@
         "@rctf/types": "workspace:*",
         "@tanstack/svelte-query": "^5.62.16",
         "@xstate/svelte": "^5.0.0",
+        "ajv": "^8.17.1",
+        "ajv-formats": "^3.0.1",
         "xstate": "^5.24.0",
+        "yaml": "^2.8.2",
         "zod": "^4.1.13",
       },
       "devDependencies": {

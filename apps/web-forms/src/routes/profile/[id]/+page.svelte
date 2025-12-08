@@ -5,6 +5,15 @@
   const id = $derived(page.params.id ?? '')
   const profileQuery = $derived(useUserProfile(id))
   const profile = $derived($profileQuery.data)
+
+  function getInitials(name: string): string {
+    return name
+      .split(/\s+/)
+      .slice(0, 2)
+      .map(w => w[0])
+      .join('')
+      .toUpperCase()
+  }
 </script>
 
 <h1>User Profile</h1>
@@ -15,8 +24,27 @@
   <p style="color: red">Error: {$profileQuery.error.message}</p>
 {:else if profile}
   <section>
-    <h2>{profile.name}</h2>
-    <p>Division: {profile.division}</p>
+    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+      {#if profile.avatarUrl}
+        <img
+          src={profile.avatarUrl}
+          alt={profile.name}
+          width="64"
+          height="64"
+          style="border-radius: 8px; object-fit: cover;" />
+      {:else}
+        <div
+          style="width: 64px; height: 64px; border-radius: 8px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
+          {getInitials(profile.name)}
+        </div>
+      {/if}
+      <div>
+        <h2 style="margin: 0;">{profile.name}</h2>
+        <p style="margin: 0; color: #666;">
+          {#if profile.divisionPlace}#{profile.divisionPlace} in {profile.division}{:else}{profile.division}{/if}
+        </p>
+      </div>
+    </div>
     <p>Score: {profile.score}</p>
     <p>Solves: {profile.solves.length}</p>
   </section>

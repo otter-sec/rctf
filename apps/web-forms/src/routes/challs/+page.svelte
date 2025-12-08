@@ -3,6 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
+  import InstancerPanel from './_components/instancer-panel.svelte'
 
   const queryClient = useQueryClient()
   const challengesQuery = useChallenges()
@@ -85,6 +86,10 @@
             </li>
           {/each}
         </ul>
+      {/if}
+
+      {#if selected.instancer}
+        <InstancerPanel challengeId={selected.id} />
       {/if}
 
       {#if !solvedIds.has(selected.id)}
