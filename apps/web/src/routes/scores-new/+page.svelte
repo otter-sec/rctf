@@ -43,11 +43,23 @@
     return isNaN(n) || n < 1 ? 1 : n
   })
 
-  const viewMode = $derived.by(() => {
+  const viewModeParam = $derived.by(() => {
     const v = pageState.url.searchParams.get('view')
     if (v === 'categories' || v === 'minimal') return v as ViewMode
     return 'challenges' as ViewMode
   })
+
+  let isMobile = $state(false)
+
+  $effect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    isMobile = mq.matches
+    const handler = (e: MediaQueryListEvent) => (isMobile = e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  })
+
+  const viewMode = $derived(isMobile ? 'minimal' : viewModeParam)
 
   const sortMode = $derived.by(() => {
     const s = pageState.url.searchParams.get('sort')
@@ -357,7 +369,7 @@
   {@const styles = getRankStylesForPosition(rank, isCurrentUser)}
   <div
     class={cn(
-      'col-team sticky left-0 z-10 flex h-16 items-center justify-between px-4',
+      'col-team sticky left-0 z-10 flex h-16 items-center gap-1.5 px-4 md:gap-2',
       'before:bg-background-l2 before:absolute before:inset-0 before:-z-10',
       isFullWidth ? 'rounded-lg before:rounded-lg' : 'rounded-l-lg before:rounded-l-lg',
       styles.bg,
@@ -368,37 +380,38 @@
       ]
     )}
   >
-    <div class="flex items-center gap-3">
-      <div class="flex w-16 shrink-0 flex-col items-center">
-        <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
-        {#if divisionPlace}
-          <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-        {/if}
-      </div>
-
-      <Avatar.Root class="size-12 shrink-0 rounded-lg">
-        {#if avatarUrl}
-          <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
-        {/if}
-        <Avatar.Fallback class="rounded-lg text-sm">{getInitials(name)}</Avatar.Fallback>
-      </Avatar.Root>
-
-      <div class="flex h-full w-64 shrink-0 flex-col justify-center">
-        <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
-          {name}
-        </a>
-        <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
-      </div>
+    <div class="flex w-10 shrink-0 flex-col items-center md:w-16">
+      <span class={cn('text-lg tabular-nums md:text-xl', styles.fgL0)}>#{rank}</span>
+      {#if divisionPlace}
+        <span class={cn('text-sm tabular-nums md:text-base', styles.fgL1)}>#{divisionPlace}</span>
+      {/if}
     </div>
 
-    <div class="flex items-center gap-4">
-      <div class="flex w-28 shrink-0 flex-col items-end">
-        <span class="text-foreground-l1 text-xl tabular-nums">{score.toLocaleString()} pts</span>
-        <span class="text-foreground-l3 text-base"
+    <Avatar.Root class="size-10 shrink-0 rounded-lg md:size-12">
+      {#if avatarUrl}
+        <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
+      {/if}
+      <Avatar.Fallback class="rounded-lg text-xs md:text-sm">{getInitials(name)}</Avatar.Fallback>
+    </Avatar.Root>
+
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <a
+        href="/profile/{id}"
+        class={cn('block truncate text-lg hover:underline md:text-xl', styles.fgL0)}>{name}</a
+      >
+      <span class={cn('truncate text-sm md:text-base', styles.fgL1)}>{division}</span>
+    </div>
+
+    <div class="flex shrink-0 items-center gap-1 md:gap-4">
+      <div class="flex w-20 flex-col items-end md:w-28">
+        <span class="text-foreground-l1 text-base tabular-nums md:text-xl"
+          >{score.toLocaleString()} <span class="text-foreground-l3">pts</span></span
+        >
+        <span class="text-foreground-l3 text-sm md:text-base"
           >{solveCount} solve{solveCount !== 1 ? 's' : ''}</span
         >
       </div>
-      <div class="w-24 shrink-0">
+      <div class="hidden w-24 sm:block">
         <Sparkline data={sparklineData} {rank} {isCurrentUser} {page} {onHover} {onUnhover} />
       </div>
     </div>
@@ -416,7 +429,7 @@
       {#each categoryGroups as group}
         {@const stats = getCatStats(group)}
         <div
-          class="flex h-16 w-12 items-center justify-center rounded-l-lg"
+          class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16"
           style={getCategoryStyle(group.config.color)}
         >
           <Tooltip.Root>
@@ -469,8 +482,8 @@
   </div>
 {/snippet}
 
-<div class="flex items-center justify-between px-9 py-2">
-  <div class="flex items-center gap-4">
+<div class="flex items-center justify-between px-4 py-2 md:px-9">
+  <div class="hidden items-center gap-4 md:flex">
     <div class="flex items-center gap-2">
       <span class="text-foreground-l3 text-sm">View</span>
       <div class="flex items-center gap-0.5">
@@ -478,7 +491,7 @@
           <button
             class={cn(
               'rounded-lg px-3 py-1.5 text-sm',
-              viewMode === mode
+              viewModeParam === mode
                 ? 'bg-background-l3 text-foreground-l1'
                 : 'text-foreground-l3 hover:bg-background-l2 hover:text-foreground-l2'
             )}
@@ -490,7 +503,7 @@
       </div>
     </div>
 
-    {#if viewMode === 'challenges'}
+    {#if viewModeParam === 'challenges'}
       <div class="flex items-center gap-2">
         <span class="text-foreground-l3 text-sm">Sort</span>
         <div class="flex items-center gap-0.5">
@@ -542,9 +555,9 @@
   </div>
 </div>
 
-<div class="flex justify-center px-9">
+<div class="flex justify-center px-4 md:px-9">
   <div
-    class={cn('scoreboard relative', viewMode === 'minimal' ? 'w-full max-w-2xl' : 'max-w-full')}
+    class={cn('scoreboard relative w-full', viewMode === 'minimal' ? 'max-w-2xl' : 'md:max-w-full')}
     style:--self-row-offset={showSelfRow ? 'var(--self-row-height)' : '0px'}
   >
     <Fades
@@ -772,17 +785,22 @@
       <div class={cn('flex flex-col gap-1', $leaderboardQuery.isFetching && 'opacity-50')}>
         {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
           {#each Array(PAGE_SIZE) as _}
-            <div class="bg-background-l2 data-row flex w-fit rounded-lg">
-              <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-l-lg px-4">
-                <div class="flex items-center gap-3">
+            <div
+              class={cn(
+                'bg-background-l2 data-row flex rounded-lg',
+                viewMode === 'minimal' ? 'w-full' : 'w-fit'
+              )}
+            >
+              <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-lg px-4">
+                <div class="flex min-w-0 flex-1 items-center gap-3">
                   <div class="flex w-16 flex-col items-center gap-1">
                     <div class="bg-background-l3 h-5 w-10 rounded"></div>
                     <div class="bg-background-l3 h-4 w-8 rounded"></div>
                   </div>
                   <div class="bg-background-l3 size-12 rounded-lg"></div>
-                  <div class="flex w-64 flex-col gap-1">
-                    <div class="bg-background-l3 h-5 w-32 rounded"></div>
-                    <div class="bg-background-l3 h-4 w-20 rounded"></div>
+                  <div class="flex min-w-0 flex-1 flex-col gap-1">
+                    <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                    <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
                   </div>
                 </div>
               </div>
@@ -791,17 +809,27 @@
         {:else if $leaderboardQuery.isLoading}
           {@const colCount = viewMode === 'categories' ? categoryGroups.length : challenges.length}
           {#each Array(PAGE_SIZE) as _}
-            <div class="bg-background-l2 data-row flex w-fit rounded-lg">
-              <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-l-lg px-4">
-                <div class="flex items-center gap-3">
+            <div
+              class={cn(
+                'bg-background-l2 data-row flex rounded-lg',
+                viewMode === 'minimal' ? 'w-full' : 'w-fit'
+              )}
+            >
+              <div
+                class={cn(
+                  'col-team sticky left-0 z-10 flex h-16 items-center px-4',
+                  viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
+                )}
+              >
+                <div class="flex min-w-0 flex-1 items-center gap-3">
                   <div class="flex w-16 flex-col items-center gap-1">
                     <div class="bg-background-l3 h-5 w-10 rounded"></div>
                     <div class="bg-background-l3 h-4 w-8 rounded"></div>
                   </div>
                   <div class="bg-background-l3 size-12 rounded-lg"></div>
-                  <div class="flex w-64 flex-col gap-1">
-                    <div class="bg-background-l3 h-5 w-32 rounded"></div>
-                    <div class="bg-background-l3 h-4 w-20 rounded"></div>
+                  <div class="flex min-w-0 flex-1 flex-col gap-1">
+                    <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                    <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
                   </div>
                 </div>
               </div>
@@ -823,7 +851,12 @@
             {@const solveTimes = solvesWithTimeByTeam.get(entry.id)}
             {@const isYou = currentUser?.id === entry.id}
 
-            <div class="bg-background-l1 data-row group flex w-fit rounded-lg">
+            <div
+              class={cn(
+                'bg-background-l1 data-row group flex min-w-0 rounded-lg',
+                viewMode === 'minimal' ? 'w-full' : 'w-fit'
+              )}
+            >
               {@render teamInfo(
                 entry.id,
                 entry.name,
@@ -855,7 +888,12 @@
 
       {#if showSelfRow && currentUser}
         <div class="self-row bg-background-l0 sticky bottom-0 z-20 mt-2">
-          <div class="bg-background-l1 data-row group flex w-fit rounded-lg">
+          <div
+            class={cn(
+              'bg-background-l1 data-row group flex min-w-0 rounded-lg',
+              viewMode === 'minimal' ? 'w-full' : 'w-fit'
+            )}
+          >
             {@render teamInfo(
               currentUser.id,
               currentUser.name,
@@ -910,16 +948,24 @@
 
 <style>
   .scoreboard {
-    --team-column-width: 42rem;
-    --header-height: 12rem;
+    --team-column-width: calc(100dvw - 2rem);
+    --header-height: 8rem;
     --name-row-height: 8rem;
     --self-row-height: 5rem;
     --diagonal-overflow: 5rem;
   }
 
+  @media (min-width: 768px) {
+    .scoreboard {
+      --team-column-width: 42rem;
+      --header-height: 12rem;
+    }
+  }
+
   .col-team {
     width: var(--team-column-width);
-    flex-shrink: 0;
+    max-width: calc(100dvw - 2rem);
+    overflow: hidden;
   }
 
   .col-headers,
