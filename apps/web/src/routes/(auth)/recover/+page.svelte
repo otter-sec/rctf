@@ -35,9 +35,9 @@
     </Card.Header>
     <Card.Content class="prose">
       <p>
-        We've sent a recovery email to <b class="font-medium">{form.data.email}</b>. Please check
-        your inbox and click the link to access your account. If you didn't receive the email, check
-        your spam folder or
+        If an account exists for <b class="font-medium">{form.data.email}</b>, we've sent a recovery
+        email. Please check your inbox and click the link to access your account. If you didn't
+        receive the email, check your spam folder or
         <button
           class="text-foreground-prose-link cursor-pointer hover:underline"
           onclick={() => (verifySent = false)}>try again</button
