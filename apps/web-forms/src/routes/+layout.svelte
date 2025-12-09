@@ -1,5 +1,6 @@
 <script lang="ts">
   import { QueryClientProvider } from '@tanstack/svelte-query'
+  import Navigation from '$lib/components/navigation.svelte'
   import { createQueryClient } from '$lib/query'
 
   let { children } = $props()
@@ -8,16 +9,11 @@
 </script>
 
 <QueryClientProvider client={queryClient}>
-  <nav>
-    <a href="/">Home</a> |
-    <a href="/login">Login</a> |
-    <a href="/register">Register</a> |
-    <a href="/recover">Recover</a> |
-    <a href="/profile">Profile</a> |
-    <a href="/challs">Challenges</a> |
-    <a href="/scores">Scores</a> |
-    <a href="/admin/challs">Admin</a>
-  </nav>
-  <hr />
+  <Navigation />
   {@render children()}
 </QueryClientProvider>
+
+<style>
+  @import '$lib/styles/normalize.css';
+  @import '$lib/styles/tailwind.css';
+</style>

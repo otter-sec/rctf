@@ -132,8 +132,8 @@
 
 <h1>Admin - Challenges</h1>
 
-<div style="display: flex; gap: 2rem;">
-  <aside style="width: 250px;">
+<div>
+  <aside>
     <h2>Challenges</h2>
     <button onclick={() => send({ type: 'CREATE' })}>+ New Challenge</button>
 
@@ -155,7 +155,7 @@
     {/if}
   </aside>
 
-  <main style="flex: 1;">
+  <main>
     {#if isIdle}
       <p>Select a challenge or create a new one.</p>
     {:else if showForm}
@@ -215,7 +215,7 @@
             required />
         </div>
 
-        <div style="display: flex; gap: 1rem;">
+        <div>
           <div>
             <label for="pointsMin">Min Points</label>
             <input
@@ -256,14 +256,14 @@
         </div>
       </fieldset>
 
-      <h3 style="margin-top: 1.5rem;">Instancer</h3>
+      <h3>Instancer</h3>
       <InstancerConfig
         config={form.instancerConfig}
         isDisabled={!isEditMode}
         onConfigChange={config => updateField('instancerConfig', config)}
         bind:isValid={instancerConfigValid} />
 
-      <div style="margin-top: 1rem;">
+      <div>
         {#if isEditMode}
           <button onclick={handleSave} disabled={isSaving}>
             {isSaving ? 'Saving...' : isCreating ? 'Create' : 'Save'}

@@ -18,8 +18,6 @@
   <p>End: {new Date(config.endTime).toLocaleString()}</p>
 {/if}
 
-<hr />
-
 {#if $userQuery.isPending}
   <p>Loading user...</p>
 {:else if user}

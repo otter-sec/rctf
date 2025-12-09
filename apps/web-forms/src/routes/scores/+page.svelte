@@ -68,15 +68,9 @@
           <td>{page * limit + i + 1}</td>
           <td>
             {#if entry.avatarUrl}
-              <img
-                src={entry.avatarUrl}
-                alt={entry.name}
-                width="32"
-                height="32"
-                style="border-radius: 4px; object-fit: cover; vertical-align: middle;" />
+              <img src={entry.avatarUrl} alt={entry.name} width="32" height="32" />
             {:else}
-              <span
-                style="display: inline-flex; width: 32px; height: 32px; border-radius: 4px; background: #ddd; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; vertical-align: middle;">
+              <span>
                 {getInitials(entry.name)}
               </span>
             {/if}

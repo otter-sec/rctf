@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ExposeKind, type InstancerConfig } from '@rctf/types'
-  import { SchemaForm } from '$lib/components/schema-form'
   import { useInstancerSchema } from '$lib/query'
   import * as yaml from 'yaml'
+  import { SchemaForm } from './schema-form'
 
   interface Props {
     config: InstancerConfig | null

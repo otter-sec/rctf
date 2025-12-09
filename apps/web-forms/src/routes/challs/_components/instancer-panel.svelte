@@ -112,7 +112,6 @@
     actioning = false
   }
 
-  // Initial fetch + client-side countdown timer
   $effect(() => {
     fetchStatus()
     const tick = setInterval(() => {
@@ -123,7 +122,6 @@
     return () => clearInterval(tick)
   })
 
-  // Adaptive polling based on status
   $effect(() => {
     if (status === InstanceStatus.STOPPED) return
     const interval = status === InstanceStatus.STARTING ? 2_000 : 10_000

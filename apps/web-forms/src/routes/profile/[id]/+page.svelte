@@ -24,23 +24,17 @@
   <p style="color: red">Error: {$profileQuery.error.message}</p>
 {:else if profile}
   <section>
-    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+    <div>
       {#if profile.avatarUrl}
-        <img
-          src={profile.avatarUrl}
-          alt={profile.name}
-          width="64"
-          height="64"
-          style="border-radius: 8px; object-fit: cover;" />
+        <img src={profile.avatarUrl} alt={profile.name} width="64" height="64" />
       {:else}
-        <div
-          style="width: 64px; height: 64px; border-radius: 8px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
+        <div>
           {getInitials(profile.name)}
         </div>
       {/if}
       <div>
-        <h2 style="margin: 0;">{profile.name}</h2>
-        <p style="margin: 0; color: #666;">
+        <h2>{profile.name}</h2>
+        <p>
           {#if profile.divisionPlace}#{profile.divisionPlace} in {profile.division}{:else}{profile.division}{/if}
         </p>
       </div>
