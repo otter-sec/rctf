@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Avatar } from '$lib/components'
   import { cn, getInitials, getRankStylesForPosition } from '$lib/utils'
-  import Sparkline from './scores-sparkline.svelte'
+  import Sparkline from './scores-row-sparkline.svelte'
 
   interface SparklinePoint {
     time: number

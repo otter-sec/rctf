@@ -3,7 +3,7 @@
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import type { CategoryGroup, Challenge, SortMode, ViewMode } from './types'
-  import Graph from './scores-graph.svelte'
+  import Graph from './scores-header-graph.svelte'
 
   interface Props {
     challenges: Challenge[]

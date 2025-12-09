@@ -21,11 +21,11 @@
     TooltipData,
     ViewMode,
   } from './types'
-  import Fade from './scores-fade.svelte'
-  import Header from './scores-header.svelte'
+  import Fade from './scores-fades.svelte'
+  import Header from './scores-header-labels.svelte'
   import Row from './scores-row.svelte'
-  import SelfRow from './scores-self-row.svelte'
-  import Tooltip from './scores-tooltip.svelte'
+  import SelfRow from './scores-row-self.svelte'
+  import Tooltip from './scores-cell-tooltip.svelte'
 
   interface Props {
     entries: LeaderboardEntry[]

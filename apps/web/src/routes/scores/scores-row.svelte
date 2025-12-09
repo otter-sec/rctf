@@ -11,9 +11,9 @@
     TooltipData,
     ViewMode,
   } from './types'
-  import Cell from './scores-cell.svelte'
-  import Progress from './scores-progress.svelte'
-  import TeamInfo from './scores-team-info.svelte'
+  import Cell from './scores-cell-blood.svelte'
+  import Progress from './scores-cell-progress.svelte'
+  import TeamInfo from './scores-row-team-info.svelte'
 
   interface Props {
     entry: LeaderboardEntry

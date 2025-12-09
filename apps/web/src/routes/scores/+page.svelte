@@ -8,8 +8,8 @@
   import { cn } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import { type ViewMode, type SortMode } from './types'
-  import ScoresPagination from './scores-pagination.svelte'
-  import ScoresView from './scores-view.svelte'
+  import ScoresPagination from './scores-header-options.svelte'
+  import ScoresView from './scores.svelte'
 
   const queryClient = useQueryClient()
 
