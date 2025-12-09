@@ -23,6 +23,7 @@ export interface InstancerExpose {
   containerName: string
   containerPort: number
   shouldDisplay?: boolean
+  title?: string
 }
 
 // NOTE(es3n1n): `config` is provider-specific

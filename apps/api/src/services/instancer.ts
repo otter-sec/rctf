@@ -85,11 +85,15 @@ export const filterInstanceEndpoints = (
   instanceStatus.endpoints =
     (instanceStatus.endpoints
       .map((endpoint, i) => {
-        if (!challenge.data.instancerConfig?.expose?.[i]?.shouldDisplay) {
+        const exposeConfig = challenge.data.instancerConfig?.expose?.[i]
+        if (!exposeConfig?.shouldDisplay) {
           return undefined
         }
 
-        return endpoint
+        return {
+          ...endpoint,
+          title: exposeConfig.title,
+        }
       })
       .filter(endpoint => Boolean(endpoint)) as z.output<
       typeof EndpointSchema

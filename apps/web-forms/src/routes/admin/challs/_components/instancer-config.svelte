@@ -232,6 +232,7 @@
               <th>Kind</th>
               <th>Container</th>
               <th>Port</th>
+              <th>Title</th>
               <th>Show</th>
               <th></th>
             </tr>
@@ -276,6 +277,15 @@
                     placeholder="Port"
                     value={exp.containerPort}
                     oninput={e => updateExpose(i, { containerPort: +e.currentTarget.value })}
+                    disabled={isDisabled}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    placeholder="title (optional)"
+                    value={exp.title ?? ''}
+                    oninput={e => updateExpose(i, { title: e.currentTarget.value || undefined })}
                     disabled={isDisabled}
                   />
                 </td>

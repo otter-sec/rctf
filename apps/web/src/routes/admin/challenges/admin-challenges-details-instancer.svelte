@@ -305,6 +305,15 @@
 
               <div class="flex-1"></div>
 
+              <Input
+                type="text"
+                placeholder="title (optional)"
+                class="w-32 text-sm"
+                value={exp.title ?? ''}
+                oninput={e => updateExpose(i, { title: e.currentTarget.value || undefined })}
+                disabled={isDisabled}
+              />
+
               <label
                 class="text-foreground-l4 flex items-center gap-2 text-sm"
                 title="Show to player"

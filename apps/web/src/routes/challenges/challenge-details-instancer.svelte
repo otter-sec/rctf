@@ -26,7 +26,7 @@
   const clientConfig = $derived($clientConfigQuery.data)
 
   let status = $state(InstanceStatus.STOPPED)
-  let endpoints = $state<{ kind: ExposeKind; host: string; port: number }[]>([])
+  let endpoints = $state<{ kind: ExposeKind; host: string; port: number; title?: string }[]>([])
   let timeLeft = $state<number | null>(null)
   let loading = $state(true)
   let actioning = $state(false)
@@ -159,11 +159,12 @@
         </div>
       {/if}
 
-      {#each endpoints as { kind, host, port }, i}
+      {#each endpoints as { kind, host, port, title }, i}
         {@const url = formatEndpoint(kind, host, port)}
+        {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
         <div class="space-y-1">
           <div class="text-foreground-l3 flex justify-between text-sm">
-            <span>{endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint'}</span>
+            <span>{label}</span>
             <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
           </div>
           <button

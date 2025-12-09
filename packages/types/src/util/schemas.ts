@@ -40,6 +40,7 @@ export const EndpointSchema = z.object({
   kind: z.enum(ExposeKind),
   host: z.string(),
   port: z.int(),
+  title: z.optional(z.string()),
 })
 
 export const ExposeSchema = z.object({
@@ -48,6 +49,7 @@ export const ExposeSchema = z.object({
   containerName: z.string(),
   containerPort: z.int(),
   shouldDisplay: z.optional(z.boolean()),
+  title: z.optional(z.string()),
 })
 
 // NOTE(es3n1n): `config` is provider-specific
