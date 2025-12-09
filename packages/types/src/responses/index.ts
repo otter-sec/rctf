@@ -29,6 +29,7 @@ export * from './good-login'
 export * from './good-register'
 export * from './good-token'
 export * from './good-verify'
+export * from './good-verify-info'
 export * from './good-verify-sent'
 
 // challenges

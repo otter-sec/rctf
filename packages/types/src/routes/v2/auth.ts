@@ -12,8 +12,10 @@ import {
   BadKnownName,
   BadName,
   BadRegistrationsDisabled,
+  BadTokenVerification,
   BadUnknownEmail,
   GoodRegister,
+  GoodVerifyInfo,
   GoodVerifySent,
 } from '../../responses'
 import { UserEmail, UserName } from '../../util'
@@ -66,5 +68,16 @@ export const RecoverRouteV2 = defineRoute({
   }),
   goodResponses: [GoodVerifySent],
   badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadCaptcha],
+  authRequired: false,
+})
+
+export const GetVerifyInfoRouteV2 = defineRoute({
+  path: '/v2/auth/verify-info',
+  method: 'GET',
+  query: z.object({
+    token: z.string(),
+  }),
+  goodResponses: [GoodVerifyInfo],
+  badResponses: [BadTokenVerification],
   authRequired: false,
 })

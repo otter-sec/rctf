@@ -18,6 +18,7 @@ import {
   GetMembersRoute,
   GetUserRouteV2,
   GetUserSelfRouteV2,
+  GetVerifyInfoRouteV2,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodChallengeSolvesV2,
@@ -31,6 +32,7 @@ import {
   GoodMemberData,
   GoodUserDataV2,
   GoodUserSelfDataV2,
+  GoodVerifyInfo,
   LoginRoute,
   RecoverRouteV2,
   RegisterRouteV2,
@@ -288,6 +290,21 @@ export const instancerSchemaQueryOptions = queryOptions({
   staleTime: Infinity,
 })
 
+export const verifyInfoQueryOptions = (token: string | null) =>
+  queryOptions({
+    queryKey: ['auth', 'verify-info', token] as const,
+    queryFn: async () => {
+      if (!token) return null
+      const response = await apiRequest(GetVerifyInfoRouteV2, { token })
+      if (response.kind === GoodVerifyInfo.kind) {
+        return response.data
+      }
+      return null
+    },
+    enabled: !!token,
+    staleTime: Infinity,
+  })
+
 export const queryKeys = {
   clientConfig: clientConfigQueryOptions.queryKey,
   userSelf: userSelfQueryOptions.queryKey,
@@ -396,6 +413,10 @@ export function useMembers() {
 
 export function useInstancerSchema() {
   return createQuery(instancerSchemaQueryOptions)
+}
+
+export function useVerifyInfo(token: string | null) {
+  return createQuery(verifyInfoQueryOptions(token))
 }
 
 export function useLoginMutation() {

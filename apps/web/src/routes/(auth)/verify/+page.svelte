@@ -5,11 +5,15 @@
   import { page } from '$app/state'
   import { setToken, toast } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
-  import { queryKeys, useClientConfig, useVerifyMutation } from '$lib/query'
+  import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
 
   const queryClient = useQueryClient()
   const verifyMutation = useVerifyMutation()
   const clientConfigQuery = useClientConfig()
+
+  const verifyToken = $derived(page.url.searchParams.get('token'))
+  const verifyInfoQuery = $derived(useVerifyInfo(verifyToken))
+  const verifyInfo = $derived($verifyInfoQuery.data)
 
   const clientConfig = $derived($clientConfigQuery.data)
 
@@ -17,9 +21,31 @@
   let emailSet = $state(false)
   let verified = $state(false)
 
-  function handleVerify() {
-    const verifyToken = page.url.searchParams.get('token')
+  const title = $derived.by(() => {
+    if (!verifyInfo) return 'Verify email'
+    switch (verifyInfo.kind) {
+      case 'register':
+        return `Registering as ${verifyInfo.name}`
+      case 'recover':
+        return `Logging in as ${verifyInfo.name}`
+      case 'update':
+        return `Setting email to ${verifyInfo.email} for ${verifyInfo.name}`
+    }
+  })
 
+  const description = $derived.by(() => {
+    if (!verifyInfo) return 'Click the button below to verify your email and continue'
+    switch (verifyInfo.kind) {
+      case 'register':
+        return `Click below to complete your registration with email ${verifyInfo.email}`
+      case 'recover':
+        return 'Click below to log in to your account'
+      case 'update':
+        return 'Click below to confirm your new email address'
+    }
+  })
+
+  function handleVerify() {
     if (!verifyToken) {
       error = 'No verification token provided.'
       return
@@ -71,17 +97,17 @@
 {:else if verified}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-xl">Account verified</Card.Title>
+      <Card.Title class="text-xl">Verified</Card.Title>
     </Card.Header>
     <Card.Content class="prose">
-      <p>Your account has been verified. Redirecting you to the home page...</p>
+      <p>Redirecting you to the home page...</p>
     </Card.Content>
   </Card.Root>
 {:else}
   <Card.Root>
     <Card.Header>
-      <Card.Title class="text-xl">Verify email</Card.Title>
-      <Card.Description>Click the button below to verify your email and continue</Card.Description>
+      <Card.Title class="text-xl">{title}</Card.Title>
+      <Card.Description>{description}</Card.Description>
     </Card.Header>
     <Card.Content>
       {#if error}
@@ -97,7 +123,15 @@
         {#if $verifyMutation.isPending}
           <Spinner class="size-4" />
         {/if}
-        Verify email
+        {#if verifyInfo?.kind === 'register'}
+          Complete registration
+        {:else if verifyInfo?.kind === 'recover'}
+          Log in
+        {:else if verifyInfo?.kind === 'update'}
+          Confirm email
+        {:else}
+          Verify email
+        {/if}
       </Button>
     </Card.Content>
     <Card.Footer>
