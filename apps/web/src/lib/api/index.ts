@@ -10,7 +10,7 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
-import { getCaptchaCode } from '$lib/utils/captcha'
+import { getCaptchaCode } from '$lib/utils'
 
 let cachedClientConfig: ClientConfig | null = null
 

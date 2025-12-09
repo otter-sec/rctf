@@ -17,8 +17,7 @@
     useDeleteChallengeMutation,
     useUpdateChallengeMutation,
   } from '$lib/query'
-  import { cn, getCategoryConfig, getCategoryStyle } from '$lib/utils'
-  import { hasPermissions } from '$lib/utils/permissions'
+  import { cn, getCategoryConfig, getCategoryStyle, hasPermissions } from '$lib/utils'
   import type { SnapshotFrom } from 'xstate'
   import Dialogs from './dialogs.svelte'
   import Form from './form.svelte'

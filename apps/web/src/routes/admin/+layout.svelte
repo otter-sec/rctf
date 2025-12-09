@@ -2,7 +2,7 @@
   import { Permissions } from '@rctf/types'
   import { Button, Card } from '$lib/components'
   import { useCurrentUser } from '$lib/query'
-  import { hasPermissions } from '$lib/utils/permissions'
+  import { hasPermissions } from '$lib/utils'
 
   let { children } = $props()
 

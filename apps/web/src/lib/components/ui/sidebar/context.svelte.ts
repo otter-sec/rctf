@@ -1,6 +1,14 @@
-import { IsMobile } from '$lib/hooks/is-mobile.svelte.js'
+import { MediaQuery } from 'svelte/reactivity'
 import { getContext, setContext } from 'svelte'
 import { SIDEBAR_KEYBOARD_SHORTCUT } from './constants.js'
+
+const MOBILE_BREAKPOINT = 768
+
+class IsMobile extends MediaQuery {
+  constructor() {
+    super(`max-width: ${MOBILE_BREAKPOINT - 1}px`)
+  }
+}
 
 type Getter<T> = () => T
 

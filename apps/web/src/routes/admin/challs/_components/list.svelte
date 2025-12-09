@@ -4,8 +4,7 @@
   import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
   import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
-  import { cn, getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'
-  import { hasPermissions } from '$lib/utils/permissions'
+  import { cn, getCategoryConfig, getCategoryOrder, getCategoryStyle, hasPermissions } from '$lib/utils'
   import Item from './list-item.svelte'
 
   interface Props {
