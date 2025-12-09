@@ -12,9 +12,8 @@
   } from '$lib/icons'
   import {
     useCurrentUser,
-    useLeaderboard,
     useLeaderboardChallenges,
-    useLeaderboardGraph,
+    useLeaderboardWithGraph,
     useSelfUserGraph,
   } from '$lib/query'
   import { cn, getInitials } from '$lib/utils'
@@ -74,12 +73,13 @@
   }
 
   const leaderboardQuery = $derived(
-    useLeaderboard({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, division: 'open' })
+    useLeaderboardWithGraph({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE })
   )
   const challengesQuery = $derived(useLeaderboardChallenges())
   const userQuery = useCurrentUser()
 
   const entries = $derived($leaderboardQuery.data?.leaderboard ?? [])
+  const graphData = $derived($leaderboardQuery.data?.graph ?? [])
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
 
@@ -143,15 +143,11 @@
     return rank < (page - 1) * PAGE_SIZE + 1 || rank > page * PAGE_SIZE
   })
 
-  const graphQuery = $derived(
-    useLeaderboardGraph({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, division: 'open' })
-  )
   const selfGraphQuery = $derived(
     useSelfUserGraph(showSelfRow && currentUser?.globalPlace ? currentUser.globalPlace : null)
   )
 
   const sparklineDataByTeam = $derived.by(() => {
-    const graphData = $graphQuery.data ?? []
     const selfGraphData = $selfGraphQuery.data
 
     const allPoints: { time: number; score: number }[][] = []
@@ -592,6 +588,7 @@
               {hoveredTeamId}
               offset={(page - 1) * PAGE_SIZE}
               {solveHighlight}
+              {graphData}
             />
           </div>
         </div>

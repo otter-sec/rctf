@@ -60,6 +60,7 @@ export * from './good-avatar-updated'
 // leaderboard
 export * from './good-leaderboard'
 export * from './good-leaderboard-graph'
+export * from './good-leaderboard-with-graph'
 
 // integrations
 export * from './bad-ctftime-code'

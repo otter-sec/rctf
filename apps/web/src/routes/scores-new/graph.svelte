@@ -1,16 +1,23 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
-  import { useCurrentUser, useLeaderboardGraph, useSelfUserGraph } from '$lib/query'
+  import { useCurrentUser, useLeaderboardGraph, useLeaderboardWithGraph, useSelfUserGraph } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
   import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
+
+  type GraphEntry = {
+    id: string
+    name: string
+    points: { time: number; score: number }[]
+  }
 
   interface Props {
     class?: string
     hoveredTeamId?: string | null
     offset?: number
     solveHighlight?: { teamId: string; time: number } | null
+    graphData?: GraphEntry[]
   }
 
   let {
@@ -18,6 +25,7 @@
     hoveredTeamId = null,
     offset = 0,
     solveHighlight = null,
+    graphData,
   }: Props = $props()
 
   const userQuery = useCurrentUser()
@@ -33,10 +41,8 @@
 
   const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
 
-  const graphQuery = $derived(useLeaderboardGraph({ limit: PAGE_SIZE, offset, division: 'open' }))
-  const top3Query = $derived(useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' }))
-
-  type GraphEntry = NonNullable<typeof $graphQuery.data>[number]
+  // NOTE(es3n1n): heavily relying on a fact that this will be cached
+  const firstPageQuery = $derived(useLeaderboardWithGraph({ limit: PAGE_SIZE, offset: 0 }))
   type TeamMeta = {
     index: number
     color: string
@@ -45,8 +51,8 @@
   }
 
   const processedData = $derived.by(() => {
-    const rawGraph = $graphQuery.data ?? []
-    const rawTop3 = offset > 0 ? ($top3Query.data ?? []) : []
+    const rawGraph = graphData ?? []
+    const rawTop3 = offset > 0 ? ($firstPageQuery.data?.graph ?? []) : []
     const selfGraphData = $selfGraphQuery.data
 
     const filterByTime = (entries: GraphEntry[]) =>

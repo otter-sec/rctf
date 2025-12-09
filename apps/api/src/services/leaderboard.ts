@@ -2,13 +2,16 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { asc } from 'drizzle-orm'
-import type {
-  CalculatedLeaderboard,
-  InternalChallengeInfo,
-  InternalUserInfo,
-  Sample,
+import {
+  getLeaderboard,
+  type CalculatedLeaderboard,
+  type InternalChallengeInfo,
+  type InternalUserInfo,
+  type Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
+import { getSolvesAndAvatars } from './challenges'
+import type { TypedRedis } from '../cache/scripts'
 
 const getUsers = async (
   db: DatabaseClient
@@ -263,5 +266,37 @@ export const calculateLeaderboard = async (
     challengeInfos: challengeInfos,
     firstBloods,
     samples,
+  }
+}
+
+export const getLeaderboardWithTotal = async (
+  redis: TypedRedis,
+  db: DatabaseClient,
+  limit: number,
+  offset: number,
+  division?: string
+) => {
+  const { total, leaderboard } = await getLeaderboard(
+    redis,
+    limit,
+    offset,
+    division
+  )
+
+  const { solves, avatars } = await getSolvesAndAvatars(
+    db,
+    leaderboard.map(e => e.id)
+  )
+
+  return {
+    total,
+    leaderboard: leaderboard.map(entry => ({
+      ...entry,
+      avatarUrl: avatars.get(entry.id) ?? null,
+      solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
+        id: solve.challengeId,
+        solveTime: solve.solveTime,
+      })),
+    })),
   }
 }

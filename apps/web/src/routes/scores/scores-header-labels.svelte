@@ -3,7 +3,7 @@
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import Graph from './scores-header-graph.svelte'
-  import type { CategoryGroup, Challenge, SortMode, ViewMode } from './types'
+  import type { CategoryGroup, Challenge, GraphEntry, SortMode, ViewMode } from './types'
 
   interface Props {
     challenges: Challenge[]
@@ -18,6 +18,7 @@
     nameRowHeight: number
     headerHeight: number
     solveHighlight?: { teamId: string; time: number } | null
+    graphData?: GraphEntry[]
   }
 
   let {
@@ -33,6 +34,7 @@
     nameRowHeight,
     headerHeight,
     solveHighlight = null,
+    graphData,
   }: Props = $props()
 
   const isBoomer = $derived(viewMode === 'boomer')
@@ -124,7 +126,7 @@
 {#if isMinimal}
   <div class="bg-background-l0 sticky top-0 z-20" style:height="{headerHeight}px">
     {#if !isFetching}
-      <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} />
+      <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} {graphData} />
     {/if}
   </div>
 {:else}
@@ -135,7 +137,13 @@
       style:height="{headerHeight}px"
     >
       {#if !isFetching}
-        <Graph class="size-full" {hoveredTeamId} offset={graphOffset} {solveHighlight} />
+        <Graph
+          class="size-full"
+          {hoveredTeamId}
+          offset={graphOffset}
+          {solveHighlight}
+          {graphData}
+        />
       {/if}
     </div>
 

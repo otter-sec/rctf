@@ -14,6 +14,7 @@ import {
   GetLeaderboardChallengesRouteV2,
   GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
+  GetLeaderboardWithGraphRoute,
   GetMembersRoute,
   GetUserRouteV2,
   GetUserSelfRouteV2,
@@ -26,6 +27,7 @@ import {
   GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
+  GoodLeaderboardWithGraph,
   GoodMemberData,
   GoodUserDataV2,
   GoodUserSelfDataV2,
@@ -163,7 +165,7 @@ export const adminChallengeQueryOptions = (id: string) =>
 export const leaderboardQueryOptions = (params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) =>
   queryOptions({
     queryKey: ['leaderboard', params] as const,
@@ -193,7 +195,7 @@ export const leaderboardChallengesQueryOptions = queryOptions({
 export const leaderboardGraphQueryOptions = (params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) =>
   queryOptions({
     queryKey: ['leaderboard', 'graph', params] as const,
@@ -201,6 +203,24 @@ export const leaderboardGraphQueryOptions = (params: {
       const response = await apiRequest(GetLeaderboardGraphRouteV2, params)
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
+      }
+      throw new ApiError(response.message)
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
+  })
+
+export const leaderboardWithGraphQueryOptions = (params: {
+  limit: number
+  offset: number
+  division?: string
+}) =>
+  queryOptions({
+    queryKey: ['leaderboard', 'with-graph', params] as const,
+    queryFn: async () => {
+      const response = await apiRequest(GetLeaderboardWithGraphRoute, params)
+      if (response.kind === GoodLeaderboardWithGraph.kind) {
+        return response.data
       }
       throw new ApiError(response.message)
     },
@@ -216,7 +236,6 @@ export const selfUserGraphQueryOptions = (globalPlace: number | null) =>
       const response = await apiRequest(GetLeaderboardGraphRouteV2, {
         limit: 1,
         offset: globalPlace - 1,
-        division: 'open',
       })
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph[0] ?? null
@@ -284,6 +303,11 @@ export const queryKeys = {
     offset: number
     division: string
   }) => leaderboardGraphQueryOptions(params).queryKey,
+  leaderboardWithGraph: (params: {
+    limit: number
+    offset: number
+    division: string
+  }) => leaderboardWithGraphQueryOptions(params).queryKey,
   selfUserGraph: (globalPlace: number | null) =>
     selfUserGraphQueryOptions(globalPlace).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
@@ -330,7 +354,7 @@ export function useAdminChallenge(id: string, enabled = true) {
 export function useLeaderboard(params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) {
   return createQuery(leaderboardQueryOptions(params))
 }
@@ -338,9 +362,17 @@ export function useLeaderboard(params: {
 export function useLeaderboardGraph(params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) {
   return createQuery(leaderboardGraphQueryOptions(params))
+}
+
+export function useLeaderboardWithGraph(params: {
+  limit: number
+  offset: number
+  division?: string
+}) {
+  return createQuery(leaderboardWithGraphQueryOptions(params))
 }
 
 export function useLeaderboardChallenges() {

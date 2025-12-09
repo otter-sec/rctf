@@ -7,6 +7,7 @@ import {
   GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
+  GoodLeaderboardWithGraph,
 } from '../../responses'
 
 export const GetLeaderboardRouteV2 = defineRoute({
@@ -43,6 +44,22 @@ export const GetLeaderboardGraphRouteV2 = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+    division: z.optional(z.string()),
+  }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
+})
+
+export const GetLeaderboardWithGraphRoute = defineRoute({
+  path: '/v2/leaderboard/with-graph',
+  method: 'GET',
+  goodResponses: [GoodLeaderboardWithGraph],
+  badResponses: [BadNotStarted, BadBody],
+  authRequired: false,
+  query: z.object({
+    // NOTE: Has max limits that are loaded from config
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     division: z.optional(z.string()),

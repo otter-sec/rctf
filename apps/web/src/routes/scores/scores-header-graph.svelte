@@ -5,12 +5,14 @@
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
   import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
+  import type { GraphEntry as GraphEntryType } from './types'
 
   interface Props {
     class?: string
     hoveredTeamId?: string | null
     offset?: number
     solveHighlight?: { teamId: string; time: number } | null
+    graphData?: GraphEntryType[]
   }
 
   let {
@@ -18,6 +20,7 @@
     hoveredTeamId = null,
     offset = 0,
     solveHighlight = null,
+    graphData,
   }: Props = $props()
 
   const userQuery = useCurrentUser()
@@ -33,10 +36,9 @@
 
   const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
 
-  const graphQuery = $derived(useLeaderboardGraph({ limit: 10, offset, division: 'open' }))
-  const top3Query = $derived(useLeaderboardGraph({ limit: 3, offset: 0, division: 'open' }))
+  const top3Query = $derived(useLeaderboardGraph({ limit: 3, offset: 0 }))
 
-  type GraphEntry = NonNullable<typeof $graphQuery.data>[number]
+  type GraphEntry = GraphEntryType
   type TeamMeta = {
     index: number
     color: string
@@ -45,7 +47,7 @@
   }
 
   const processedData = $derived.by(() => {
-    const rawGraph = $graphQuery.data ?? []
+    const rawGraph = graphData ?? []
     const rawTop3 = offset > 0 ? ($top3Query.data ?? []) : []
     const selfGraphData = $selfGraphQuery.data
 

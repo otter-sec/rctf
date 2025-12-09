@@ -1,6 +1,6 @@
 <script lang="ts">
   import { ScrollArea } from '$lib/components'
-  import { useCurrentUser, useLeaderboardGraph, useSelfUserGraph } from '$lib/query'
+  import { useCurrentUser, useSelfUserGraph } from '$lib/query'
   import { cn } from '$lib/utils'
   import { CUTOFF_TIME, FADE_SIZE, layout, PAGE_SIZE } from './constants'
   import Tooltip from './scores-cell-tooltip.svelte'
@@ -8,11 +8,19 @@
   import Header from './scores-header-labels.svelte'
   import SelfRow from './scores-row-self.svelte'
   import Row from './scores-row.svelte'
-  import type { ChallengesData, LeaderboardEntry, SortMode, TooltipData, ViewMode } from './types'
+  import type {
+    ChallengesData,
+    GraphEntry,
+    LeaderboardEntry,
+    SortMode,
+    TooltipData,
+    ViewMode,
+  } from './types'
   import { buildSolvesMap, getContentWidth, groupByCategory, processChallenges } from './utils'
 
   interface Props {
     entries: LeaderboardEntry[]
+    graphData: GraphEntry[]
     challengesData: ChallengesData
     page: number
     sortMode: SortMode
@@ -20,7 +28,15 @@
     isFetching?: boolean
   }
 
-  let { entries, challengesData, page, sortMode, viewMode, isFetching = false }: Props = $props()
+  let {
+    entries,
+    graphData,
+    challengesData,
+    page,
+    sortMode,
+    viewMode,
+    isFetching = false,
+  }: Props = $props()
 
   const userQuery = useCurrentUser()
   const currentUser = $derived($userQuery.data)
@@ -40,15 +56,11 @@
     return new Map(currentUser.solves.map(s => [s.id, { id: s.id, solveTime: s.createdAt }]))
   })
 
-  const graphQuery = $derived(
-    useLeaderboardGraph({ limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE, division: 'open' })
-  )
   const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
 
   const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12
 
   const sparklineDataByTeam = $derived.by(() => {
-    const graphData = $graphQuery.data ?? []
     const selfGraphData = $selfGraphQuery.data
 
     const allPoints: { time: number; score: number }[][] = []
@@ -213,6 +225,7 @@
           solveHighlight={tooltipData?.solved && tooltipData.solveTime
             ? { teamId: tooltipData.teamId, time: tooltipData.solveTime }
             : null}
+          {graphData}
         />
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->

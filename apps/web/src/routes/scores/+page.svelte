@@ -4,7 +4,11 @@
   import { page as pageState } from '$app/state'
   import { toast } from '$lib'
   import { Spinner } from '$lib/components'
-  import { leaderboardQueryOptions, useLeaderboard, useLeaderboardChallenges } from '$lib/query'
+  import {
+    leaderboardWithGraphQueryOptions,
+    useLeaderboardChallenges,
+    useLeaderboardWithGraph,
+  } from '$lib/query'
   import { cn } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import ScoresPagination from './scores-header-options.svelte'
@@ -47,10 +51,9 @@
   }
 
   const leaderboardQuery = $derived(
-    useLeaderboard({
+    useLeaderboardWithGraph({
       limit: PAGE_SIZE,
       offset: (page - 1) * PAGE_SIZE,
-      division: 'open',
     })
   )
 
@@ -58,6 +61,7 @@
 
   const data = $derived($leaderboardQuery.data)
   const entries = $derived(data?.leaderboard ?? [])
+  const graphData = $derived(data?.graph ?? [])
   const challengesData = $derived($challengesQuery.data ?? {})
   const isRefetching = $derived(
     ($leaderboardQuery.isFetching && !$leaderboardQuery.isPending) ||
@@ -78,10 +82,9 @@
     for (const p of [page - 1, page + 1]) {
       if (p >= 1 && p <= totalPages) {
         queryClient.prefetchQuery(
-          leaderboardQueryOptions({
+          leaderboardWithGraphQueryOptions({
             limit: PAGE_SIZE,
             offset: (p - 1) * PAGE_SIZE,
-            division: 'open',
           })
         )
       }
@@ -119,6 +122,7 @@
 
     <ScoresView
       {entries}
+      {graphData}
       {challengesData}
       {page}
       {sortMode}

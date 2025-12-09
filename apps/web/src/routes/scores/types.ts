@@ -49,3 +49,9 @@ export type ChallengesData = Record<
     firstSolvers?: { id: string }[]
   }
 >
+
+export interface GraphEntry {
+  id: string
+  name: string
+  points: { time: number; score: number }[]
+}
