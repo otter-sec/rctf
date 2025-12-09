@@ -68,15 +68,15 @@
       disabled={$upload.isPending}
     >
       {#if $upload.isPending}
-        <Spinner class="size-8 text-foreground-l3" />
-        <span class="text-sm text-foreground-l3">Uploading...</span>
+        <Spinner class="text-foreground-l3 size-8" />
+        <span class="text-foreground-l3 text-sm">Uploading...</span>
       {:else}
         <IconCloudUpload class={cn('size-8', dragging ? 'text-primary' : 'text-foreground-l4')} />
         <div class="flex flex-col items-center gap-0.5">
           <span class={cn('text-sm', dragging ? 'text-primary' : 'text-foreground-l2')}>
             {dragging ? 'Drop files here' : 'Click to upload or drag and drop'}
           </span>
-          <span class="text-xs text-foreground-l4">Any file type supported</span>
+          <span class="text-foreground-l4 text-xs">Any file type supported</span>
         </div>
       {/if}
     </button>
@@ -94,9 +94,9 @@
     <div class="flex flex-col gap-1">
       {#each files as file, i (file.url)}
         <div
-          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4"
+          class="group bg-background-l3 hover:bg-background-l4 flex items-center gap-3 rounded-lg px-3 py-2.5"
         >
-          <IconFileFilled class="size-5 shrink-0 text-foreground-l4" />
+          <IconFileFilled class="text-foreground-l4 size-5 shrink-0" />
           <a
             href={file.url}
             target="_blank"
@@ -104,7 +104,7 @@
             class="flex min-w-0 flex-1 flex-col"
           >
             <span class="truncate text-sm">{file.name}</span>
-            <span class="text-xs text-foreground-l4">{formatFileSize(file.size)}</span>
+            <span class="text-foreground-l4 text-xs">{formatFileSize(file.size)}</span>
           </a>
           {#if !isDisabled}
             <Button
@@ -120,7 +120,7 @@
       {/each}
     </div>
   {:else if isDisabled}
-    <div class="flex flex-col items-center justify-center py-8 text-foreground-l4">
+    <div class="text-foreground-l4 flex flex-col items-center justify-center py-8">
       <IconFileFilled class="mb-2 size-8 opacity-50" />
       <span class="text-sm">No files attached</span>
     </div>

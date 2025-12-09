@@ -102,9 +102,9 @@
 <Sheet.Root bind:open>
   <Sheet.Trigger>
     <div
-      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3"
+      class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
     >
-      <IconMenu2 class="size-6 text-foreground-l2" />
+      <IconMenu2 class="text-foreground-l2 size-6" />
     </div>
   </Sheet.Trigger>
   <Sheet.Content side="left" class="flex w-72 flex-col p-0">
@@ -112,16 +112,16 @@
       <Sheet.Title>Navigation</Sheet.Title>
     </Sheet.Header>
 
-    <div class="flex items-center gap-2 px-4 pt-3 justify-between">
+    <div class="flex items-center justify-between gap-2 px-4 pt-3">
       <a href="/" onclick={() => (open = false)} class="flex shrink-0 items-center">
-        <img src={wordmarkLight} alt="Logo" class="h-8 block dark:hidden" />
-        <img src={wordmarkDark} alt="Logo" class="h-8 hidden dark:block" />
+        <img src={wordmarkLight} alt="Logo" class="block h-8 dark:hidden" />
+        <img src={wordmarkDark} alt="Logo" class="hidden h-8 dark:block" />
       </a>
       <Sheet.Close>
         <div
-          class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3"
+          class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
         >
-          <IconX class="size-6 text-foreground-l2" />
+          <IconX class="text-foreground-l2 size-6" />
         </div>
       </Sheet.Close>
     </div>
@@ -151,7 +151,7 @@
       {#if user}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
-            class="flex flex-1 cursor-pointer items-center gap-3 rounded-lg hover:bg-background-l2"
+            class="hover:bg-background-l2 flex flex-1 cursor-pointer items-center gap-3 rounded-lg"
           >
             {#key user.avatarUrl}
               <Avatar.Root class="size-12 rounded-lg">
@@ -164,10 +164,10 @@
               </Avatar.Root>
             {/key}
             <div class="flex flex-1 flex-col overflow-hidden text-left">
-              <span class="truncate text-lg leading-tight text-foreground-l0">
+              <span class="text-foreground-l0 truncate text-lg leading-tight">
                 {user.name}
               </span>
-              <span class="truncate text-sm leading-tight text-foreground-l3">
+              <span class="text-foreground-l3 truncate text-sm leading-tight">
                 {user.division ?? 'No Division'}
               </span>
             </div>
@@ -192,9 +192,9 @@
       {:else}
         <button
           onclick={() => navigate('/login')}
-          class="flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground-l1 hover:bg-background-l2"
+          class="text-foreground-l1 hover:bg-background-l2 flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-left"
         >
-          <IconLogin class="size-5 text-foreground-l2" />
+          <IconLogin class="text-foreground-l2 size-5" />
           <span class="font-medium">Login</span>
         </button>
       {/if}

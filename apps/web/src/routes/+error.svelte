@@ -9,7 +9,7 @@
     <Card.Root>
       <Card.Header>
         <Card.Title class="flex items-center gap-2 text-xl">
-          <IconAlertTriangleFilled class="size-6 text-foreground-warning" />
+          <IconAlertTriangleFilled class="text-foreground-warning size-6" />
           {page.status === 404 ? 'Page not found' : 'Something went wrong'}
         </Card.Title>
         <Card.Description>
@@ -30,7 +30,7 @@
           </div>
         {/if}
 
-        <p class="text-foreground-l3 text-sm mb-4">
+        <p class="text-foreground-l3 mb-4 text-sm">
           Error code: {page.status}
         </p>
 

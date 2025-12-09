@@ -46,7 +46,7 @@
       <Button size="sm" onclick={enableObject} {disabled}>Enable</Button>
     </Section.Header>
     <Section.Content>
-      <p class="text-sm text-foreground-l4">Not configured</p>
+      <p class="text-foreground-l4 text-sm">Not configured</p>
     </Section.Content>
   </Section.Root>
 {:else if showLabel && label && path.length > 0}

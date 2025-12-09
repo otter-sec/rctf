@@ -100,7 +100,7 @@
   type="button"
   variant="outline"
   size="lg"
-  class="w-full [&_svg:not([class*='size-'])]:w-auto [&_svg:not([class*='size-'])]:h-6 py-0"
+  class="w-full py-0 [&_svg:not([class*='size-'])]:h-6 [&_svg:not([class*='size-'])]:w-auto"
   onclick={openPopup}
   disabled={disabled || $ctftimeMutation.isPending}
 >

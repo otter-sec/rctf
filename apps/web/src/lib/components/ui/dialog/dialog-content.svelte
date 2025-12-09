@@ -33,7 +33,7 @@
     {@render children?.()}
     {#if showCloseButton}
       <DialogPrimitive.Close
-        class="focus:ring-ring rounded-xs focus:outline-hidden absolute end-4 top-4 opacity-70 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:ring-offset-background-l1 disabled:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0"
+        class="focus:ring-ring focus:ring-offset-background-l1 absolute end-4 top-4 rounded-xs opacity-70 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
       >
         <IconX />
         <span class="sr-only">Close</span>

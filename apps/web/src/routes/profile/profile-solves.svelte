@@ -177,7 +177,7 @@
   )
 </script>
 
-<div class="flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl bg-background-l1">
+<div class="bg-background-l1 flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl">
   <div class="flex shrink-0 flex-col gap-2 py-2">
     <div class="flex justify-between px-9">
       <div class="flex gap-1 whitespace-nowrap">
@@ -233,7 +233,7 @@
             <Tooltip.Trigger
               onclick={collapseAll}
               aria-label="Collapse all"
-              class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+              class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-sm px-4 py-2"
             >
               <IconFold class="size-5" />
             </Tooltip.Trigger>
@@ -244,7 +244,7 @@
           <Tooltip.Trigger
             onclick={cycleSortMode}
             aria-label={sortLabel}
-            class="rounded-l-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+            class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-l-sm px-4 py-2"
           >
             {#if sortMode === 'category'}
               <IconFlagFilled class="size-5" />
@@ -282,13 +282,13 @@
           {@const categoryShort = getCategoryKeyOrAlias(category)}
           <Accordion.Item value={category} class="border-b-0" style={catStyle}>
             <Accordion.Trigger
-              class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+              class="bg-category-background-l0 py-2 pr-2 pl-0 hover:no-underline"
               headerClass="sticky top-0 z-20 bg-background-l1"
               chevronClass="text-category-foreground-l1"
             >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
+                  class="flex items-baseline gap-1 text-base font-normal whitespace-nowrap tabular-nums"
                 >
                   <span class="text-category-foreground-l0">{categorySolved}</span>
                   <span class="text-category-foreground-l1">/ {entries.length}</span>
@@ -296,42 +296,42 @@
               {/snippet}
               <div class="flex items-center">
                 <div class="px-2.5">
-                  <config.icon class="size-4 text-category-foreground-l1" />
+                  <config.icon class="text-category-foreground-l1 size-4" />
                 </div>
-                <span class="text-base font-normal text-category-foreground-l1">
+                <span class="text-category-foreground-l1 text-base font-normal">
                   {config.name}
                 </span>
               </div>
             </Accordion.Trigger>
-            <Accordion.Content class="pb-0 bg-category-background-l1">
+            <Accordion.Content class="bg-category-background-l1 pb-0">
               <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
                   <li
                     class={cn(
-                      'relative flex w-full items-center justify-between px-9 py-2 text-left gap-4',
+                      'relative flex w-full items-center justify-between gap-4 px-9 py-2 text-left',
                       challenge.isSolved &&
-                        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent'
+                        'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent'
                     )}
                   >
                     {#if challenge.isSolved}
                       <IconCheck
-                        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
+                        class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2"
                       />
                     {/if}
-                    <div class="flex min-w-0 flex-1 items-center gap-1 z-1 truncate text-base">
+                    <div class="z-1 flex min-w-0 flex-1 items-center gap-1 truncate text-base">
                       <span class="text-category-foreground-l1">{categoryShort} /</span>
-                      <span class="truncate text-category-foreground-l0">{challenge.name}</span>
+                      <span class="text-category-foreground-l0 truncate">{challenge.name}</span>
                     </div>
-                    <div class="flex shrink-0 items-center gap-4 z-1">
+                    <div class="z-1 flex shrink-0 items-center gap-4">
                       {#if challenge.solvedAt}
                         <span
-                          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+                          class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
                         >
                           {formatSolveTime(challenge.solvedAt)}
                         </span>
                       {/if}
                       {#if challenge.points !== null}
-                        <span class="text-base tabular-nums whitespace-nowrap">
+                        <span class="text-base whitespace-nowrap tabular-nums">
                           <span class="text-category-foreground-l0">{challenge.points}</span>
                           <span class="text-category-foreground-l1">pts</span>
                         </span>
@@ -353,30 +353,30 @@
           <li
             style={catStyle}
             class={cn(
-              'relative flex w-full items-center justify-between px-9 py-2 text-left gap-4 bg-category-background-l1',
+              'bg-category-background-l1 relative flex w-full items-center justify-between gap-4 px-9 py-2 text-left',
               challenge.isSolved &&
-                'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent'
+                'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent'
             )}
           >
             {#if challenge.isSolved}
               <IconCheck
-                class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
+                class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2"
               />
             {/if}
-            <div class="flex min-w-0 flex-1 items-center gap-1 z-1 truncate text-base">
+            <div class="z-1 flex min-w-0 flex-1 items-center gap-1 truncate text-base">
               <span class="text-category-foreground-l1">{categoryShort} /</span>
-              <span class="truncate text-category-foreground-l0">{challenge.name}</span>
+              <span class="text-category-foreground-l0 truncate">{challenge.name}</span>
             </div>
-            <div class="flex shrink-0 items-center gap-4 z-1">
+            <div class="z-1 flex shrink-0 items-center gap-4">
               {#if challenge.solvedAt}
                 <span
-                  class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+                  class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
                 >
                   {formatSolveTime(challenge.solvedAt)}
                 </span>
               {/if}
               {#if challenge.points !== null}
-                <span class="text-base tabular-nums whitespace-nowrap">
+                <span class="text-base whitespace-nowrap tabular-nums">
                   <span class="text-category-foreground-l0">{challenge.points}</span>
                   <span class="text-category-foreground-l1">pts</span>
                 </span>

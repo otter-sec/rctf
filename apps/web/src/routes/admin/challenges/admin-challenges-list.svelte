@@ -69,12 +69,12 @@
   <div class="flex shrink-0 flex-col gap-2 py-2">
     <div class="flex items-baseline justify-between px-9">
       <div class="flex items-baseline gap-1 whitespace-nowrap">
-        <span class="text-base tabular-nums text-foreground-l3">{stats.challs}</span>
-        <span class="text-base text-foreground-l5">challenge{stats.challs === 1 ? '' : 's'}</span>
+        <span class="text-foreground-l3 text-base tabular-nums">{stats.challs}</span>
+        <span class="text-foreground-l5 text-base">challenge{stats.challs === 1 ? '' : 's'}</span>
       </div>
       <div class="flex items-baseline gap-1 whitespace-nowrap">
-        <span class="text-base tabular-nums text-foreground-l3">{stats.cats}</span>
-        <span class="text-base text-foreground-l5">categor{stats.cats === 1 ? 'y' : 'ies'}</span>
+        <span class="text-foreground-l3 text-base tabular-nums">{stats.cats}</span>
+        <span class="text-foreground-l5 text-base">categor{stats.cats === 1 ? 'y' : 'ies'}</span>
       </div>
     </div>
 
@@ -85,7 +85,7 @@
           <Tooltip.Trigger
             onclick={() => (collapsed = new Set(categories))}
             aria-label="Collapse all"
-            class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+            class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-sm px-4 py-2"
           >
             <IconFold class="size-5" />
           </Tooltip.Trigger>
@@ -144,16 +144,16 @@
             >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 whitespace-nowrap text-base font-normal tabular-nums"
+                  class="flex items-baseline gap-1 text-base font-normal whitespace-nowrap tabular-nums"
                 >
                   <span class="text-category-foreground-l0">{entries.length}</span>
                 </div>
               {/snippet}
               <div class="flex items-center">
                 <div class="px-2.5">
-                  <cfg.icon class="size-4 text-category-foreground-l1" />
+                  <cfg.icon class="text-category-foreground-l1 size-4" />
                 </div>
-                <span class="text-base font-normal text-category-foreground-l1">{cfg.name}</span>
+                <span class="text-category-foreground-l1 text-base font-normal">{cfg.name}</span>
               </div>
             </Accordion.Trigger>
             <Accordion.Content class="bg-category-background-l1 pb-0">

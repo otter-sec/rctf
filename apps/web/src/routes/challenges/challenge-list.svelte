@@ -129,13 +129,13 @@
           {@const categorySolved = entries.filter(c => solvedIds.has(c.id)).length}
           <Accordion.Item value={category} class="border-b-0" style={catStyle}>
             <Accordion.Trigger
-              class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
+              class="bg-category-background-l0 py-2 pr-2 pl-0 hover:no-underline"
               headerClass="sticky top-0 z-20 bg-background-l1"
               chevronClass="text-category-foreground-l1"
             >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
+                  class="flex items-baseline gap-1 text-base font-normal whitespace-nowrap tabular-nums"
                 >
                   <span class="text-category-foreground-l0">{categorySolved}</span>
                   <span class="text-category-foreground-l1">/ {entries.length}</span>
@@ -143,14 +143,14 @@
               {/snippet}
               <div class="flex items-center">
                 <div class="px-2.5">
-                  <config.icon class="size-4 text-category-foreground-l1" />
+                  <config.icon class="text-category-foreground-l1 size-4" />
                 </div>
-                <span class="text-base font-normal text-category-foreground-l1">
+                <span class="text-category-foreground-l1 text-base font-normal">
                   {config.name}
                 </span>
               </div>
             </Accordion.Trigger>
-            <Accordion.Content class="pb-0 bg-category-background-l1">
+            <Accordion.Content class="bg-category-background-l1 pb-0">
               <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
                   <ChallengeListItem

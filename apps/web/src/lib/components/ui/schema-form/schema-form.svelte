@@ -121,5 +121,5 @@
     showLabel={false}
   />
 {:else}
-  <div class="text-sm text-foreground-l4">Schema has no properties to render</div>
+  <div class="text-foreground-l4 text-sm">Schema has no properties to render</div>
 {/if}

@@ -20,44 +20,44 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'relative flex w-full flex-col @sm/list:flex-row @sm/list:items-center @sm/list:justify-between px-9 py-3 text-left hover:bg-category-background-l1-hover gap-1',
+      'hover:bg-category-background-l1-hover relative flex w-full flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
       isSolved &&
         !isFirstBlood &&
-        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent',
+        'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
       isFirstBlood &&
-        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-gold/50 dark:before:from-foreground-gold-l0/20 before:to-transparent',
+        'before:from-background-gold/50 dark:before:from-foreground-gold-l0/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
       isSelected &&
-        'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
+        'ring-category-foreground-l1/25 after:from-category-background-l0 ring-2 ring-inset after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:to-transparent'
     )}
   >
     {#if isFirstBlood}
       <IconAwardFilled
-        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-gold-l0"
+        class="text-foreground-gold-l0 absolute top-1/2 left-2 size-5 -translate-y-1/2"
       />
     {:else if isSolved}
-      <IconCheck class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success" />
+      <IconCheck class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2" />
     {/if}
-    <div class="flex min-w-0 flex-1 flex-col z-1">
+    <div class="z-1 flex min-w-0 flex-1 flex-col">
       <div class="truncate text-xl">
-        <span class="hidden @sm/list:inline text-category-foreground-l1">{category} /</span>
+        <span class="text-category-foreground-l1 hidden @sm/list:inline">{category} /</span>
         <span class="text-category-foreground-l0">{challenge.name}</span>
       </div>
-      <span class="truncate text-base text-category-foreground-l1 opacity-75">
+      <span class="text-category-foreground-l1 truncate text-base opacity-75">
         {challenge.author}
       </span>
     </div>
     <div
-      class="flex shrink-0 flex-row @sm/list:flex-col items-baseline @sm/list:items-end gap-2 @sm/list:gap-0 z-1"
+      class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
     >
       {#if challenge.points !== null}
-        <div class="text-xl tabular-nums whitespace-nowrap">
+        <div class="text-xl whitespace-nowrap tabular-nums">
           <span class="text-category-foreground-l0">{challenge.points}</span>
           <span class="text-category-foreground-l1">pts</span>
         </div>
       {/if}
       {#if challenge.solves !== null}
         <span
-          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+          class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
         >
           {challenge.solves}
           {challenge.solves === 1 ? 'solve' : 'solves'}

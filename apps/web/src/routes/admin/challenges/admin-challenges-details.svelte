@@ -191,20 +191,20 @@
           <h2 class="text-2xl">
             {isCreating ? 'New Challenge' : form.name || 'Untitled'}
           </h2>
-          <div class="flex items-center gap-2 text-foreground-l3 text-base">
+          <div class="text-foreground-l3 flex items-center gap-2 text-base">
             <span>by {form.author || 'Unknown'}</span>
-            <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
+            <span class="text-foreground-l5 text-2xl leading-none opacity-50">·</span>
             <div class="flex gap-1">
               {#if form.category}
                 <span
-                  class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
+                  class="bg-category-background-l0 text-category-foreground-l1 inline-flex items-center gap-1 rounded-lg px-3 py-0.5 text-sm"
                   style={categoryStyle}
                 >
                   <categoryConfig.icon class="size-3.5" />
                   {categoryConfig.name}
                 </span>
               {:else}
-                <span class="rounded-lg bg-background-l2 text-foreground-l4 px-3 py-0.5 text-sm">
+                <span class="bg-background-l2 text-foreground-l4 rounded-lg px-3 py-0.5 text-sm">
                   No category
                 </span>
               {/if}
@@ -247,7 +247,7 @@
       </div>
 
       <div
-        class={cn('min-h-0 flex-1 flex flex-col', isDisabled && 'opacity-50 pointer-events-none')}
+        class={cn('flex min-h-0 flex-1 flex-col', isDisabled && 'pointer-events-none opacity-50')}
       >
         <AdminChallengesDetailsForm
           name={form.name}

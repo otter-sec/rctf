@@ -51,7 +51,7 @@
 <div class="flex items-center justify-between gap-4 py-2">
   <div class="flex items-center gap-4">
     <div class="flex items-center gap-2">
-      <span class="text-sm text-foreground-l3">View</span>
+      <span class="text-foreground-l3 text-sm">View</span>
       <ButtonGroup.Root class="gap-0.5">
         {#each viewOptions as option}
           {@const isActive = viewMode === option.value}
@@ -74,7 +74,7 @@
 
     {#if viewMode === 'zoomer'}
       <div class="flex items-center gap-2">
-        <span class="text-sm text-foreground-l3">Sort</span>
+        <span class="text-foreground-l3 text-sm">Sort</span>
         <ButtonGroup.Root class="gap-0.5">
           {#each sortOptions as option}
             {@const isActive = sortMode === option.value}

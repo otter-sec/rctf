@@ -16,7 +16,7 @@
   data-slot="scroll-area-scrollbar"
   {orientation}
   class={cn(
-    'flex z-30 touch-none select-none',
+    'z-30 flex touch-none select-none',
     orientation === 'vertical' && 'h-full w-2.5 border-s border-s-transparent',
     orientation === 'horizontal' && 'h-2.5 flex-col border-t border-t-transparent',
     className

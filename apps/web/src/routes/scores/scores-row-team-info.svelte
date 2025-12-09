@@ -52,8 +52,8 @@
     isFullWidth ? 'w-full rounded-lg' : 'shrink-0 rounded-l-lg',
     styles.bg,
     isFullWidth
-      ? 'before:absolute before:inset-0 before:-z-10 before:rounded-lg before:bg-background-l2 group-hover:before:bg-background-l3'
-      : 'before:absolute before:inset-0 before:-z-10 before:rounded-l-lg before:bg-background-l2 group-hover:before:bg-background-l3',
+      ? 'before:bg-background-l2 group-hover:before:bg-background-l3 before:absolute before:inset-0 before:-z-10 before:rounded-lg'
+      : 'before:bg-background-l2 group-hover:before:bg-background-l3 before:absolute before:inset-0 before:-z-10 before:rounded-l-lg',
     styles.gradient && [
       isFullWidth
         ? 'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:rounded-lg after:bg-linear-to-r after:to-transparent'
@@ -88,10 +88,10 @@
 
   <div class="flex items-center gap-4">
     <div class="flex w-28 shrink-0 flex-col items-end">
-      <span class="text-xl tabular-nums text-foreground-l1">
+      <span class="text-foreground-l1 text-xl tabular-nums">
         {score.toLocaleString()} pts
       </span>
-      <span class="text-base text-foreground-l3">
+      <span class="text-foreground-l3 text-base">
         {solveCount} solve{solveCount !== 1 ? 's' : ''}
       </span>
     </div>

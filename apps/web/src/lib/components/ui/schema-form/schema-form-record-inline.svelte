@@ -167,7 +167,7 @@
       <Field.Field data-invalid={!!error || undefined}>
         <div class="flex items-center gap-2">
           {#if keyEnumValues}
-            <span class="w-32 font-mono text-sm text-foreground-l2">{key}</span>
+            <span class="text-foreground-l2 w-32 font-mono text-sm">{key}</span>
           {:else}
             <Input
               type="text"

@@ -123,7 +123,7 @@
           check your inbox and click the link to complete registration. If you didn't receive the
           email, check your spam folder or
           <button
-            class="text-foreground-prose-link hover:underline cursor-pointer"
+            class="text-foreground-prose-link cursor-pointer hover:underline"
             onclick={() => (verifySent = false)}>try again</button
           >.
         </p>
@@ -256,9 +256,9 @@
 
         {#if clientConfig.ctftime}
           <div class="mt-4 flex items-center gap-4">
-            <div class="h-px flex-1 bg-border"></div>
+            <div class="bg-border h-px flex-1"></div>
             <span class="text-foreground-l3 text-sm">or</span>
-            <div class="h-px flex-1 bg-border"></div>
+            <div class="bg-border h-px flex-1"></div>
           </div>
 
           <div class="mt-4">

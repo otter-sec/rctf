@@ -31,14 +31,14 @@
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
             <Tabs.Trigger
               value="details"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+              class="data-[state=active]:bg-background-l2 rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:shadow-none"
             >
               <IconFileInfoFilled class="size-4" />
               Details
             </Tabs.Trigger>
             <Tabs.Trigger
               value="solves"
-              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+              class="data-[state=active]:bg-background-l2 rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:shadow-none"
             >
               <IconTrophyFilled class="size-4" />
               Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
@@ -46,7 +46,7 @@
           </Tabs.List>
         </div>
 
-        <div class="min-h-0 flex-1 bg-background-l2">
+        <div class="bg-background-l2 min-h-0 flex-1">
           <Tabs.Content value="details" class="h-full">
             <ChallengeDetailsOverview {challenge} />
           </Tabs.Content>
@@ -56,7 +56,7 @@
         </div>
       </Tabs.Root>
 
-      <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
+      <div class="bg-background-l2 flex flex-col gap-2 px-5 py-4">
         {#if tab === 'details'}
           <ChallengeDetailsPodium {challenge} {isSolved} />
         {:else if tab === 'solves' && !userVisible}

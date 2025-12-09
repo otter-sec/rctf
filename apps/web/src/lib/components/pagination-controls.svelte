@@ -56,7 +56,7 @@
 </script>
 
 <div class="flex items-center gap-1">
-  <div class="flex h-10 items-center whitespace-nowrap px-3 text-sm text-foreground-l3">
+  <div class="text-foreground-l3 flex h-10 items-center px-3 text-sm whitespace-nowrap">
     Page {page} / {safeTotalPages}
   </div>
   <div
@@ -71,7 +71,7 @@
           onclick={() => onPageChange(btn.targetPage)}
           disabled={disabled || btn.disabled}
           class={cn(
-            'h-10 px-3 bg-background-l4 text-foreground-l1 hover:bg-background-l5 disabled:pointer-events-none disabled:opacity-50',
+            'bg-background-l4 text-foreground-l1 hover:bg-background-l5 h-10 px-3 disabled:pointer-events-none disabled:opacity-50',
             btn.roundedClass
           )}
         >

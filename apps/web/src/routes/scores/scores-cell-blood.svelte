@@ -16,13 +16,13 @@
 </script>
 
 {#if bloodIndex === 0}
-  <IconCircleNumber1Filled class="size-7 text-foreground-gold-l0" />
+  <IconCircleNumber1Filled class="text-foreground-gold-l0 size-7" />
 {:else if bloodIndex === 1}
-  <IconCircleNumber2Filled class="size-7 text-foreground-silver-l0" />
+  <IconCircleNumber2Filled class="text-foreground-silver-l0 size-7" />
 {:else if bloodIndex === 2}
-  <IconCircleNumber3Filled class="size-7 text-foreground-bronze-l0" />
+  <IconCircleNumber3Filled class="text-foreground-bronze-l0 size-7" />
 {:else if solved}
-  <IconCircle class="size-7 text-foreground-success/75" />
+  <IconCircle class="text-foreground-success/75 size-7" />
 {:else}
-  <IconCircleDashed class="size-7 text-foreground-l5/25" />
+  <IconCircleDashed class="text-foreground-l5/25 size-7" />
 {/if}

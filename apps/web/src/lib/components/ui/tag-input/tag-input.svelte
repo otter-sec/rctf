@@ -78,7 +78,7 @@
       {@render children({ item, index: i, remove: () => remove(i) })}
     {:else}
       <span
-        class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 font-mono text-sm"
+        class="bg-background-l5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-sm"
       >
         {item}
         {#if !disabled}
@@ -86,7 +86,7 @@
             type="button"
             onclick={() => remove(i)}
             aria-label="Remove {item}"
-            class="rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive"
+            class="hover:bg-background-destructive hover:text-foreground-destructive rounded p-0.5"
           >
             <IconX class="size-3" />
           </button>
@@ -97,7 +97,7 @@
   <input
     bind:this={ref}
     type="text"
-    class="min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none placeholder:text-foreground-l4 disabled:cursor-not-allowed"
+    class="placeholder:text-foreground-l4 min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none disabled:cursor-not-allowed"
     placeholder={value.length === 0 ? emptyPlaceholder : placeholder}
     onkeydown={handleKeydown}
     {disabled}

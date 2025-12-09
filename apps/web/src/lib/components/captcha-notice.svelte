@@ -16,7 +16,7 @@
 </script>
 
 {#if enabled && provider === 'captcha/recaptcha'}
-  <p class={`block text-foreground-l4 text-xs ${className}`}>
+  <p class={`text-foreground-l4 block text-xs ${className}`}>
     This site is protected by reCAPTCHA. The Google
     <a
       class="text-foreground-prose-link hover:underline"
@@ -34,7 +34,7 @@
     apply.
   </p>
 {:else if enabled && provider === 'captcha/hcaptcha'}
-  <p class={`block text-foreground-l4 text-xs ${className}`}>
+  <p class={`text-foreground-l4 block text-xs ${className}`}>
     This site is protected by hCaptcha and its
     <a
       class="text-foreground-prose-link hover:underline"
@@ -52,7 +52,7 @@
     apply.
   </p>
 {:else if enabled && provider === 'captcha/turnstile'}
-  <p class={`block text-foreground-l4 text-xs ${className}`}>
+  <p class={`text-foreground-l4 block text-xs ${className}`}>
     This site is protected by Cloudflare Turnstile. The Cloudflare
     <a
       class="text-foreground-prose-link hover:underline"
@@ -70,7 +70,7 @@
     apply.
   </p>
 {:else if enabled && provider}
-  <p class={`block text-foreground-l4 text-xs ${className}`}>
+  <p class={`text-foreground-l4 block text-xs ${className}`}>
     This site is protected by a captcha provider <code>{provider}</code>. No idea what are their
     copyrights for this though.
   </p>

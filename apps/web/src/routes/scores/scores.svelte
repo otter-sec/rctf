@@ -245,7 +245,7 @@
         </div>
 
         {#if showSelfRow && currentUser && globalPlace && !isFetching}
-          <div class="sticky bottom-0 z-20 bg-background-l0/95 pt-2 pb-2 backdrop-blur-sm">
+          <div class="bg-background-l0/95 sticky bottom-0 z-20 pt-2 pb-2 backdrop-blur-sm">
             <SelfRow
               user={currentUser}
               rank={globalPlace}

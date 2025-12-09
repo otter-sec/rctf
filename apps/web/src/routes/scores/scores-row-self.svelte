@@ -98,11 +98,11 @@
     <Tooltip.Root>
       <Tooltip.Trigger class="flex items-center justify-center">
         {#if stat.status === 'complete'}
-          <IconCircleCheckFilled class="size-7 text-category-foreground-l1" />
+          <IconCircleCheckFilled class="text-category-foreground-l1 size-7" />
         {:else if stat.status === 'partial'}
-          <Progress percent={stat.percent} class="size-7 text-foreground-l4" />
+          <Progress percent={stat.percent} class="text-foreground-l4 size-7" />
         {:else}
-          <IconCircleDashed class="size-7 text-foreground-l5/25" />
+          <IconCircleDashed class="text-foreground-l5/25 size-7" />
         {/if}
       </Tooltip.Trigger>
       <Tooltip.Content side="top" sideOffset={4}>
@@ -114,10 +114,10 @@
 {/snippet}
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="group w-full rounded-lg bg-background-l2/50 hover:bg-background-l2">
+<div class="group bg-background-l2/50 hover:bg-background-l2 w-full rounded-lg">
   <div
     class={cn(
-      'flex rounded-lg bg-background-l2 group-hover:bg-background-l3',
+      'bg-background-l2 group-hover:bg-background-l3 flex rounded-lg',
       isMinimal ? 'w-full' : 'w-fit'
     )}
   >

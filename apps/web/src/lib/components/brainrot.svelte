@@ -141,21 +141,21 @@
     onmousedown={() => bringToFront(win.id)}
   >
     <Section.Header
-      class="flex items-center justify-between cursor-grab active:cursor-grabbing select-none"
+      class="flex cursor-grab items-center justify-between select-none active:cursor-grabbing"
       onmousedown={e => startDrag(e, win.id)}
     >
       <span>{win.title}</span>
       <button
-        class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-me-2 -my-2')}
+        class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-my-2 -me-2')}
         onmousedown={e => e.stopPropagation()}
         onclick={() => closeWindow(win.id)}
       >
         <IconX />
       </button>
     </Section.Header>
-    <Section.Content class="flex-1 min-h-0 p-0">
+    <Section.Content class="min-h-0 flex-1 p-0">
       <iframe
-        class="size-full block"
+        class="block size-full"
         src="{win.url}?autoplay=1&mute=1&loop=1"
         title={win.title}
         frameborder="0"

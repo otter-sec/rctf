@@ -17,7 +17,7 @@
 <a
   {href}
   class={cn(
-    'flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3',
+    'bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3',
     isActive && 'bg-background-accent hover:bg-background-accent-hover'
   )}
 >

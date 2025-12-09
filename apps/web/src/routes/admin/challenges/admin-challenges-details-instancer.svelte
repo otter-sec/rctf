@@ -146,12 +146,12 @@
       <Field.Field>
         <Field.Label>Enable instancer</Field.Label>
         {#if schemaLoading}
-          <div class="flex items-center gap-2 text-sm text-foreground-l4">
+          <div class="text-foreground-l4 flex items-center gap-2 text-sm">
             <Spinner class="size-4" />
             Loading schema...
           </div>
         {:else if schemaError}
-          <p class="text-sm text-foreground-l4">{schemaError}</p>
+          <p class="text-foreground-l4 text-sm">{schemaError}</p>
         {:else}
           <Select.Root
             type="single"
@@ -205,7 +205,7 @@
         <span>Provider config</span>
         <button
           type="button"
-          class="text-xs font-medium text-foreground-l4 hover:text-foreground-l0"
+          class="text-foreground-l4 hover:text-foreground-l0 text-xs font-medium"
           onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}
         >
           {advancedMode ? '← Form editor' : 'Advanced (YAML) →'}
@@ -222,16 +222,16 @@
               placeholder="# YAML configuration..."
             />
             {#if yamlError}
-              <p class="text-sm text-foreground-destructive">{yamlError}</p>
+              <p class="text-foreground-destructive text-sm">{yamlError}</p>
             {/if}
           </div>
         {:else if schemaLoading}
           <div class="flex items-center justify-center py-8">
             <Spinner class="size-6" />
-            <span class="ml-2 text-sm text-foreground-l4">Loading schema...</span>
+            <span class="text-foreground-l4 ml-2 text-sm">Loading schema...</span>
           </div>
         {:else if schemaError}
-          <p class="text-sm text-foreground-l4">{schemaError}</p>
+          <p class="text-foreground-l4 text-sm">{schemaError}</p>
         {:else if schemaData}
           <SchemaForm
             schema={schemaData.schema}
@@ -253,7 +253,7 @@
         </Button>
       </Section.Header>
       {#if config.expose.length}
-        <div class="divide-y divide-border">
+        <div class="divide-border divide-y">
           {#each config.expose as exp, i (i)}
             <div class="flex flex-wrap items-center gap-3 px-4 py-2">
               <Input
@@ -306,7 +306,7 @@
               <div class="flex-1"></div>
 
               <label
-                class="flex items-center gap-2 text-sm text-foreground-l4"
+                class="text-foreground-l4 flex items-center gap-2 text-sm"
                 title="Show to player"
               >
                 <Checkbox
@@ -323,14 +323,14 @@
                 onclick={() => removeExpose(i)}
                 disabled={isDisabled}
               >
-                <IconTrashFilled class="size-4 text-foreground-destructive" />
+                <IconTrashFilled class="text-foreground-destructive size-4" />
               </Button>
             </div>
           {/each}
         </div>
       {:else}
         <Section.Content>
-          <p class="text-sm text-foreground-l4">No exposed ports configured.</p>
+          <p class="text-foreground-l4 text-sm">No exposed ports configured.</p>
         </Section.Content>
       {/if}
     </Section.Root>

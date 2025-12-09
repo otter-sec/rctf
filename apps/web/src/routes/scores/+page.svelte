@@ -112,7 +112,7 @@
 
   <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
     {#if $leaderboardQuery.isLoading || $challengesQuery.isLoading}
-      <div class="absolute inset-0 z-50 flex items-center justify-center bg-background/60">
+      <div class="bg-background/60 absolute inset-0 z-50 flex items-center justify-center">
         <Spinner class="size-6" />
       </div>
     {/if}

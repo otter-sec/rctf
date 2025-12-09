@@ -56,6 +56,6 @@
   </div>
 {:else}
   <div class="flex h-10 w-24 items-center justify-center">
-    <div class="h-0.5 w-16 rounded-full bg-foreground-l5/20"></div>
+    <div class="bg-foreground-l5/20 h-0.5 w-16 rounded-full"></div>
   </div>
 {/if}

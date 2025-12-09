@@ -7,7 +7,7 @@
 
 <div
   data-slot="section-header"
-  class={cn('bg-background-l3 px-4 py-1.5 text-base text-foreground-l3', className)}
+  class={cn('bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base', className)}
   {...restProps}
 >
   {@render children?.()}

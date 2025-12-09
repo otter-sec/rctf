@@ -35,7 +35,7 @@
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
-        <IconAlertTriangleFilled class="size-5 text-foreground-warning" />
+        <IconAlertTriangleFilled class="text-foreground-warning size-5" />
         Unsaved changes
       </Dialog.Title>
       <Dialog.Description>
@@ -58,11 +58,11 @@
     <ScrollArea class="-mx-6 min-h-0 flex-1 px-6">
       <div class="py-4">
         {#if description}
-          <div class="rounded-lg border-2 bg-background-l2 p-4">
+          <div class="bg-background-l2 rounded-lg border-2 p-4">
             <Markdown content={description} class="prose-sm max-w-none" />
           </div>
         {:else}
-          <p class="py-8 text-center text-foreground-l3">No description to preview.</p>
+          <p class="text-foreground-l3 py-8 text-center">No description to preview.</p>
         {/if}
       </div>
     </ScrollArea>
@@ -76,7 +76,7 @@
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
       <Dialog.Title class="flex items-center gap-2">
-        <IconTrashFilled class="size-5 text-foreground-destructive" />
+        <IconTrashFilled class="text-foreground-destructive size-5" />
         Delete challenge
       </Dialog.Title>
       <Dialog.Description>

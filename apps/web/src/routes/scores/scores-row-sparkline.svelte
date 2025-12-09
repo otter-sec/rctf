@@ -36,7 +36,7 @@
 
 {#if data.length > 1}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="h-10 w-24 group/sparkline" onmouseenter={onHover} onmouseleave={onUnhover}>
+  <div class="group/sparkline h-10 w-24" onmouseenter={onHover} onmouseleave={onUnhover}>
     <LayerChart
       {data}
       x="time"
@@ -52,7 +52,7 @@
           </linearGradient>
         </defs>
         <Spline
-          class="stroke-2 fill-none group-hover/sparkline:stroke-4 transition-[stroke-width]"
+          class="fill-none stroke-2 transition-[stroke-width] group-hover/sparkline:stroke-4"
           stroke="url(#{gradientId})"
           style="stroke-linecap: round; stroke-linejoin: round;"
         />
@@ -61,6 +61,6 @@
   </div>
 {:else}
   <div class="flex h-10 w-24 items-center justify-center">
-    <div class="h-0.5 w-16 rounded-full bg-foreground-l5/20"></div>
+    <div class="bg-foreground-l5/20 h-0.5 w-16 rounded-full"></div>
   </div>
 {/if}

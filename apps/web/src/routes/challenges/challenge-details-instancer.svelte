@@ -130,16 +130,16 @@
 <div class="flex h-full flex-col p-3">
   {#if loading}
     <div class="flex flex-1 flex-col items-center justify-center">
-      <IconLoader class="size-5 animate-spin text-foreground-l4" />
+      <IconLoader class="text-foreground-l4 size-5 animate-spin" />
     </div>
   {:else if error}
     <div class="flex flex-col items-center justify-center space-y-2 text-center">
-      <p class="text-sm text-foreground-destructive">{error}</p>
+      <p class="text-foreground-destructive text-sm">{error}</p>
       <Button size="sm" onclick={fetchStatus}>Retry</Button>
     </div>
   {:else if status === InstanceStatus.STOPPED}
     <div class="flex flex-col items-center justify-center space-y-3 text-center">
-      <p class="text-sm text-foreground-l3">No instance running</p>
+      <p class="text-foreground-l3 text-sm">No instance running</p>
       <Button onclick={start} disabled={actioning} class="w-full">
         {#if actioning}<IconLoader class="animate-spin" />{/if}
         Start instance
@@ -149,7 +149,7 @@
   {:else}
     <div class="flex flex-1 flex-col gap-3">
       {#if status === InstanceStatus.STARTING || status === InstanceStatus.ERRORED}
-        <div class="flex items-center justify-center gap-2 text-sm text-foreground-l3">
+        <div class="text-foreground-l3 flex items-center justify-center gap-2 text-sm">
           <IconLoader class="size-4 animate-spin" />
           {#if status === InstanceStatus.STARTING}
             <span>Starting...</span>
@@ -162,17 +162,17 @@
       {#each endpoints as { kind, host, port }, i}
         {@const url = formatEndpoint(kind, host, port)}
         <div class="space-y-1">
-          <div class="flex justify-between text-sm text-foreground-l3">
+          <div class="text-foreground-l3 flex justify-between text-sm">
             <span>{endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint'}</span>
             <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
           </div>
           <button
             type="button"
-            class="group flex w-full items-center justify-between gap-2 rounded-md bg-background-l4 px-3 py-2"
+            class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
             onclick={() => copy(url)}
           >
-            <span class="truncate font-mono text-sm text-foreground-accent">{url}</span>
-            <IconCopy class="size-4 shrink-0 text-foreground-l4 hover:text-foreground-l2" />
+            <span class="text-foreground-accent truncate font-mono text-sm">{url}</span>
+            <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
           </button>
         </div>
       {/each}
@@ -180,7 +180,7 @@
       {#if timeLeft !== null}
         <div class="mt-auto space-y-1.5">
           <Progress value={timeLeft} max={120000} class="h-1.5" />
-          <p class="text-center text-sm text-foreground-l3">
+          <p class="text-foreground-l3 text-center text-sm">
             {formatCountdown(timeLeft)} remaining
           </p>
         </div>

@@ -47,7 +47,7 @@
 <div class="hidden h-[calc(100vh-72px)] md:block">
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
     <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
-      <div class="h-full rounded-r-3xl bg-background-l1">
+      <div class="bg-background-l1 h-full rounded-r-3xl">
         <ChallengeList
           {challenges}
           {solvedIds}
@@ -61,7 +61,7 @@
     <Resizable.Handle withHandle />
 
     <Resizable.Pane defaultSize={60} minSize={40}>
-      <div class="h-full rounded-l-3xl bg-background-l1">
+      <div class="bg-background-l1 h-full rounded-l-3xl">
         <ChallengeDetails
           challenge={selectedChallenge}
           isSolved={selectedIsSolved}
@@ -73,7 +73,7 @@
 </div>
 
 <div class="flex h-[calc(100vh-72px)] flex-col md:hidden">
-  <div class="h-full bg-background-l1">
+  <div class="bg-background-l1 h-full">
     <ChallengeList
       {challenges}
       {solvedIds}

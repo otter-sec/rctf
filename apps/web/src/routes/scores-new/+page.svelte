@@ -295,21 +295,21 @@
 
 {#snippet solveCell(solved: boolean, bloodIndex: number)}
   {#if bloodIndex === 0}
-    <IconCircleNumber1Filled class="size-7 text-foreground-gold-l0" />
+    <IconCircleNumber1Filled class="text-foreground-gold-l0 size-7" />
   {:else if bloodIndex === 1}
-    <IconCircleNumber2Filled class="size-7 text-foreground-silver-l0" />
+    <IconCircleNumber2Filled class="text-foreground-silver-l0 size-7" />
   {:else if bloodIndex === 2}
-    <IconCircleNumber3Filled class="size-7 text-foreground-bronze-l0" />
+    <IconCircleNumber3Filled class="text-foreground-bronze-l0 size-7" />
   {:else if solved}
-    <IconCircle class="size-7 text-foreground-success/75" />
+    <IconCircle class="text-foreground-success/75 size-7" />
   {:else}
-    <IconCircleDashed class="size-7 text-foreground-l5/25" />
+    <IconCircleDashed class="text-foreground-l5/25 size-7" />
   {/if}
 {/snippet}
 
 {#snippet categoryCell(stats: { solved: number; total: number; percent: number })}
   {#if stats.solved === stats.total}
-    <IconCircleCheckFilled class="size-7 text-category-foreground-l1" />
+    <IconCircleCheckFilled class="text-category-foreground-l1 size-7" />
   {:else if stats.solved > 0}
     <svg class="size-7 -rotate-90" viewBox="0 0 24 24">
       <circle
@@ -335,7 +335,7 @@
       />
     </svg>
   {:else}
-    <IconCircleDashed class="size-7 text-foreground-l5/25" />
+    <IconCircleDashed class="text-foreground-l5/25 size-7" />
   {/if}
 {/snippet}
 
@@ -358,7 +358,7 @@
   <div
     class={cn(
       'col-team sticky left-0 z-10 flex h-16 items-center justify-between px-4',
-      'before:absolute before:inset-0 before:-z-10 before:bg-background-l2',
+      'before:bg-background-l2 before:absolute before:inset-0 before:-z-10',
       isFullWidth ? 'rounded-lg before:rounded-lg' : 'rounded-l-lg before:rounded-l-lg',
       styles.bg,
       styles.gradient && [
@@ -393,8 +393,8 @@
 
     <div class="flex items-center gap-4">
       <div class="flex w-28 shrink-0 flex-col items-end">
-        <span class="text-xl tabular-nums text-foreground-l1">{score.toLocaleString()} pts</span>
-        <span class="text-base text-foreground-l3"
+        <span class="text-foreground-l1 text-xl tabular-nums">{score.toLocaleString()} pts</span>
+        <span class="text-foreground-l3 text-base"
           >{solveCount} solve{solveCount !== 1 ? 's' : ''}</span
         >
       </div>
@@ -411,7 +411,7 @@
   getSolveTime: (challengeId: string) => number | undefined,
   getCatStats: (group: (typeof categoryGroups)[number]) => { solved: number; total: number; percent: number }
 )}
-  <div class="col-cells flex gap-1 bg-background-l2 rounded-r-md pr-4">
+  <div class="col-cells bg-background-l2 flex gap-1 rounded-r-md pr-4 pl-1">
     {#if viewMode === 'categories'}
       {#each categoryGroups as group}
         {@const stats = getCatStats(group)}
@@ -472,7 +472,7 @@
 <div class="flex items-center justify-between px-9 py-2">
   <div class="flex items-center gap-4">
     <div class="flex items-center gap-2">
-      <span class="text-sm text-foreground-l3">View</span>
+      <span class="text-foreground-l3 text-sm">View</span>
       <div class="flex items-center gap-0.5">
         {#each ['challenges', 'categories', 'minimal'] as mode}
           <button
@@ -492,7 +492,7 @@
 
     {#if viewMode === 'challenges'}
       <div class="flex items-center gap-2">
-        <span class="text-sm text-foreground-l3">Sort</span>
+        <span class="text-foreground-l3 text-sm">Sort</span>
         <div class="flex items-center gap-0.5">
           <button
             class={cn(
@@ -523,17 +523,17 @@
 
   <div class="flex items-center gap-2">
     <button
-      class="rounded-lg bg-background-l2 px-3 py-1.5 text-sm text-foreground-l2 hover:bg-background-l3 disabled:opacity-50"
+      class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
       onclick={() => setParam('page', page - 1, 1)}
       disabled={page === 1 || $leaderboardQuery.isFetching}
     >
       Prev
     </button>
-    <span class={cn('text-sm text-foreground-l3', $leaderboardQuery.isFetching && 'opacity-50')}>
+    <span class={cn('text-foreground-l3 text-sm', $leaderboardQuery.isFetching && 'opacity-50')}>
       Page {page}
     </span>
     <button
-      class="rounded-lg bg-background-l2 px-3 py-1.5 text-sm text-foreground-l2 hover:bg-background-l3 disabled:opacity-50"
+      class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
       onclick={() => setParam('page', page + 1, 1)}
       disabled={$leaderboardQuery.isFetching}
     >
@@ -566,12 +566,12 @@
       scrollbarYStyles="padding-top: var(--header-height); padding-bottom: calc(var(--self-row-offset) + 8px); z-index: 40;"
       bind:viewportRef
     >
-      <div class="header-row sticky top-0 z-20 flex bg-background-l0">
-        <div class="col-team sticky left-0 z-30 bg-background-l0">
+      <div class="header-row bg-background-l0 sticky top-0 z-20 flex">
+        <div class="col-team bg-background-l0 sticky left-0 z-30">
           <div
             class={cn(
-              'graph rounded-lg',
-              viewMode !== 'minimal' && 'bg-background-l1 rounded-br-none mr-1'
+              'graph rounded-3xl rounded-bl-lg',
+              viewMode !== 'minimal' && 'bg-background-l1 rounded-br-none'
             )}
           >
             <Graph
@@ -587,11 +587,11 @@
           <div class="col-headers flex flex-col">
             <div class="name-row flex items-end" class:gap-1={viewMode === 'challenges'}>
               {#if viewMode === 'categories'}
-                <div class="flex gap-1 translate-x-1">
+                <div class="flex translate-x-1 gap-1">
                   {#each categoryGroups as group}
                     <div class="relative w-12" style={getCategoryStyle(group.config.color)}>
                       <span
-                        class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize text-category-foreground-l1"
+                        class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize"
                       >
                         {group.config.name}
                       </span>
@@ -600,11 +600,11 @@
                 </div>
               {:else if sortMode === 'categories'}
                 {#each categoryGroups as group}
-                  <div class="flex gap-1 translate-x-1">
+                  <div class="flex translate-x-1 gap-1">
                     {#each group.challenges as challenge}
                       <div class="relative w-12" style={getCategoryStyle(challenge.config.color)}>
                         <span
-                          class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+                          class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg"
                         >
                           {challenge.name}
                         </span>
@@ -619,7 +619,7 @@
                     style={getCategoryStyle(challenge.config.color)}
                   >
                     <span
-                      class="absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg text-category-foreground-l1"
+                      class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg"
                     >
                       {challenge.name}
                     </span>
@@ -628,20 +628,20 @@
               {/if}
             </div>
 
-            <div class="flex items-stretch" class:gap-1={viewMode === 'challenges'}>
+            <div class="ml-1 flex items-stretch" class:gap-1={viewMode === 'challenges'}>
               {#if viewMode === 'categories'}
                 <div class="flex gap-1">
                   {#each categoryGroups as group}
                     {@const Icon = group.config.icon}
                     {@const totalPoints = group.challenges.reduce((s, c) => s + c.points, 0)}
                     <div
-                      class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
+                      class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
                       style={getCategoryStyle(group.config.color)}
                     >
                       <Tooltip.Root>
                         <Tooltip.Trigger class="flex w-12 items-center justify-center py-1.5">
                           <span
-                            class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
+                            class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
                           >
                             {totalPoints}
                           </span>
@@ -658,7 +658,7 @@
                       <div class="flex items-center justify-center px-2 pb-2">
                         <Tooltip.Root>
                           <Tooltip.Trigger
-                            class="flex items-center justify-center text-category-foreground-l1"
+                            class="text-category-foreground-l1 flex items-center justify-center"
                           >
                             <Icon class="my-0.5 size-5" />
                           </Tooltip.Trigger>
@@ -674,7 +674,7 @@
                 {#each categoryGroups as group}
                   {@const Icon = group.config.icon}
                   <div
-                    class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
+                    class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
                     style={getCategoryStyle(group.config.color)}
                   >
                     <div class="flex gap-1 py-1.5">
@@ -682,7 +682,7 @@
                         <Tooltip.Root>
                           <Tooltip.Trigger class="flex w-12 items-center justify-center">
                             <span
-                              class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
+                              class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
                             >
                               {challenge.points}
                             </span>
@@ -704,14 +704,14 @@
                       style:max-width="{group.challenges.length * 48}px"
                     >
                       {#if group.challenges.length > 1}
-                        <Icon class="size-5 shrink-0 text-category-foreground-l1" />
-                        <span class="truncate capitalize text-category-foreground-l1"
+                        <Icon class="text-category-foreground-l1 size-5 shrink-0" />
+                        <span class="text-category-foreground-l1 truncate capitalize"
                           >{group.config.name}</span
                         >
                       {:else}
                         <Tooltip.Root>
                           <Tooltip.Trigger
-                            class="flex items-center justify-center text-category-foreground-l1"
+                            class="text-category-foreground-l1 flex items-center justify-center"
                           >
                             <Icon class="my-0.5 size-5" />
                           </Tooltip.Trigger>
@@ -727,14 +727,14 @@
                 {#each challenges as challenge}
                   {@const Icon = challenge.config.icon}
                   <div
-                    class="relative flex flex-col rounded-t-lg bg-category-background-l0 before:absolute before:inset-0 before:-z-10 before:rounded-t-lg before:bg-background-l0"
+                    class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
                     style={getCategoryStyle(challenge.config.color)}
                   >
                     <div class="flex py-1.5">
                       <Tooltip.Root>
                         <Tooltip.Trigger class="flex w-12 items-center justify-center">
                           <span
-                            class="flex size-5 items-center justify-center rounded bg-category-background-l1 text-sm leading-none text-category-foreground-l1 opacity-75"
+                            class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
                           >
                             {challenge.points}
                           </span>
@@ -752,7 +752,7 @@
                     <div class="flex items-center justify-center px-2 pb-2">
                       <Tooltip.Root>
                         <Tooltip.Trigger
-                          class="flex items-center justify-center text-category-foreground-l1"
+                          class="text-category-foreground-l1 flex items-center justify-center"
                         >
                           <Icon class="my-0.5 size-5" />
                         </Tooltip.Trigger>
@@ -773,16 +773,16 @@
         {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
           {#each Array(PAGE_SIZE) as _}
             <div class="bg-background-l2 data-row flex w-fit rounded-lg">
-              <div class="col-team rounded-l-lg sticky left-0 z-10 flex h-16 items-center px-4">
+              <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-l-lg px-4">
                 <div class="flex items-center gap-3">
                   <div class="flex w-16 flex-col items-center gap-1">
-                    <div class="h-5 w-10 rounded bg-background-l3"></div>
-                    <div class="h-4 w-8 rounded bg-background-l3"></div>
+                    <div class="bg-background-l3 h-5 w-10 rounded"></div>
+                    <div class="bg-background-l3 h-4 w-8 rounded"></div>
                   </div>
-                  <div class="size-12 rounded-lg bg-background-l3"></div>
+                  <div class="bg-background-l3 size-12 rounded-lg"></div>
                   <div class="flex w-64 flex-col gap-1">
-                    <div class="h-5 w-32 rounded bg-background-l3"></div>
-                    <div class="h-4 w-20 rounded bg-background-l3"></div>
+                    <div class="bg-background-l3 h-5 w-32 rounded"></div>
+                    <div class="bg-background-l3 h-4 w-20 rounded"></div>
                   </div>
                 </div>
               </div>
@@ -792,24 +792,24 @@
           {@const colCount = viewMode === 'categories' ? categoryGroups.length : challenges.length}
           {#each Array(PAGE_SIZE) as _}
             <div class="bg-background-l2 data-row flex w-fit rounded-lg">
-              <div class="col-team rounded-l-lg sticky left-0 z-10 flex h-16 items-center px-4">
+              <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-l-lg px-4">
                 <div class="flex items-center gap-3">
                   <div class="flex w-16 flex-col items-center gap-1">
-                    <div class="h-5 w-10 rounded bg-background-l3"></div>
-                    <div class="h-4 w-8 rounded bg-background-l3"></div>
+                    <div class="bg-background-l3 h-5 w-10 rounded"></div>
+                    <div class="bg-background-l3 h-4 w-8 rounded"></div>
                   </div>
-                  <div class="size-12 rounded-lg bg-background-l3"></div>
+                  <div class="bg-background-l3 size-12 rounded-lg"></div>
                   <div class="flex w-64 flex-col gap-1">
-                    <div class="h-5 w-32 rounded bg-background-l3"></div>
-                    <div class="h-4 w-20 rounded bg-background-l3"></div>
+                    <div class="bg-background-l3 h-5 w-32 rounded"></div>
+                    <div class="bg-background-l3 h-4 w-20 rounded"></div>
                   </div>
                 </div>
               </div>
               {#if viewMode !== 'minimal'}
-                <div class="col-cells flex gap-1 rounded-r-md bg-background-l2 pr-4">
+                <div class="col-cells bg-background-l2 flex gap-1 rounded-r-md pr-4 pl-1">
                   {#each Array(colCount) as _}
-                    <div class="h-16 w-12 bg-background-l2 flex items-center justify-center">
-                      <IconCircleDashed class="size-7 text-foreground-l5/25" />
+                    <div class="bg-background-l2 flex h-16 w-12 items-center justify-center">
+                      <IconCircleDashed class="text-foreground-l5/25 size-7" />
                     </div>
                   {/each}
                 </div>
@@ -854,7 +854,7 @@
       </div>
 
       {#if showSelfRow && currentUser}
-        <div class="self-row sticky bottom-0 z-20 mt-2 bg-background-l0">
+        <div class="self-row bg-background-l0 sticky bottom-0 z-20 mt-2">
           <div class="bg-background-l1 data-row group flex w-fit rounded-lg">
             {@render teamInfo(
               currentUser.id,

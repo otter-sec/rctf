@@ -17,7 +17,7 @@
   const divisionLabel = $derived(clientConfig.divisions[user.division] ?? user.division)
 </script>
 
-<div class="flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl bg-background-l1">
+<div class="bg-background-l1 flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl">
   <div class="flex shrink-0 flex-col gap-2 py-2">
     <div class="flex items-center gap-3 px-9">
       {#key user.avatarUrl}
@@ -32,8 +32,8 @@
       {/key}
 
       <div class="flex min-w-0 flex-1 flex-col">
-        <span class="truncate text-base text-foreground-l0">{user.name}</span>
-        <div class="flex items-center gap-1.5 text-sm text-foreground-l3">
+        <span class="text-foreground-l0 truncate text-base">{user.name}</span>
+        <div class="text-foreground-l3 flex items-center gap-1.5 text-sm">
           <span>{divisionLabel}</span>
           {#if user.ctftimeId}
             <span>•</span>
@@ -57,7 +57,7 @@
         </span>
         <span class="text-foreground-l5 text-base">pts</span>
       </div>
-      <div class="flex items-baseline gap-3 whitespace-nowrap text-base tabular-nums">
+      <div class="flex items-baseline gap-3 text-base whitespace-nowrap tabular-nums">
         {#if user.globalPlace !== null}
           <div class="flex gap-1">
             <span class="text-foreground-l3">#{user.globalPlace}</span>

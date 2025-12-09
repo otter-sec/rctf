@@ -86,7 +86,7 @@
 <SchemaFormPanelLayout {label}>
   {#snippet sidebar()}
     {#if entries.length === 0}
-      <p class="text-sm px-2 py-1.5 text-foreground-l4">No entries</p>
+      <p class="text-foreground-l4 px-2 py-1.5 text-sm">No entries</p>
     {:else}
       {#each entries as [key] (key)}
         {@const active = selectedKey === key}
@@ -107,7 +107,7 @@
           <button
             type="button"
             class={cn(
-              'rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive',
+              'hover:bg-background-destructive hover:text-foreground-destructive rounded p-0.5',
               active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )}
             onclick={e => (e.stopPropagation(), removeEntry(key))}
@@ -205,7 +205,7 @@
         showLabel={false}
       />
     {:else}
-      <div class="flex h-full items-center justify-center text-sm text-foreground-l4">
+      <div class="text-foreground-l4 flex h-full items-center justify-center text-sm">
         Add an item to get started
       </div>
     {/if}

@@ -19,7 +19,7 @@
 <div class="h-[calc(100vh-72px)]">
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
     <Resizable.Pane defaultSize={40} minSize={20} maxSize={45}>
-      <div class="h-full rounded-r-3xl bg-background-l1">
+      <div class="bg-background-l1 h-full rounded-r-3xl">
         <AdminChallengesList
           {challenges}
           {selectedId}
@@ -31,7 +31,7 @@
     </Resizable.Pane>
     <Resizable.Handle withHandle />
     <Resizable.Pane defaultSize={60} minSize={40}>
-      <div class="h-full rounded-l-3xl bg-background-l1">
+      <div class="bg-background-l1 h-full rounded-l-3xl">
         <AdminChallengesDetails snapshot={$snapshot} {send} />
       </div>
     </Resizable.Pane>

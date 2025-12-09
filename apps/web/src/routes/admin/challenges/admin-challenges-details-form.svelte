@@ -95,7 +95,7 @@
     </Tabs.List>
   </div>
 
-  <div class="min-h-0 flex-1 bg-background-l2">
+  <div class="bg-background-l2 min-h-0 flex-1">
     <Tabs.Content value="details" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="flex flex-col gap-4 p-1 pb-4">

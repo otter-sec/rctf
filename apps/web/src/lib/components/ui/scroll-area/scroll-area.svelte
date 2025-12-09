@@ -107,7 +107,7 @@
     bind:ref={internalViewportRef}
     data-slot="scroll-area-viewport"
     class={cn(
-      'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:outline-1 focus-visible:ring-4',
+      'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:ring-4 focus-visible:outline-1',
       hasHorizontal && 'overscroll-x-none',
       hasVertical && 'overscroll-y-none'
     )}

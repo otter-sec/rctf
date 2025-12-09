@@ -72,7 +72,7 @@
 
 {#if type === 'connection'}
   <div class="my-4 overflow-hidden rounded-md border-2">
-    <div class="flex items-center gap-2 bg-background-l3 px-4 py-1 text-foreground-l3">
+    <div class="bg-background-l3 text-foreground-l3 flex items-center gap-2 px-4 py-1">
       <span>{config.label}</span>
       <button class="ml-auto rounded p-1 opacity-60 hover:opacity-100" onclick={copy} title="Copy">
         <CopyIcon class="size-4" />
@@ -84,12 +84,12 @@
           href={trimmed}
           target="_blank"
           rel="noopener noreferrer"
-          class="block font-mono text-foreground-prose-link underline-offset-2 hover:underline"
+          class="text-foreground-prose-link block font-mono underline-offset-2 hover:underline"
         >
           {trimmed}
         </a>
       {:else}
-        <code class="block font-mono text-foreground-prose">{trimmed}</code>
+        <code class="text-foreground-prose block font-mono">{trimmed}</code>
       {/if}
     </div>
   </div>
@@ -100,7 +100,7 @@
       <span class="font-medium">{config.label}</span>
     </div>
     <div
-      class="text-foreground-prose *:first:mt-0! [&>:first-child_*]:mt-0! *:last:mb-0! [&>:last-child_*]:mb-0!"
+      class="text-foreground-prose *:first:mt-0! *:last:mb-0! [&>:first-child_*]:mt-0! [&>:last-child_*]:mb-0!"
     >
       {@html parsedContent}
     </div>

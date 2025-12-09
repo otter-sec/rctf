@@ -39,7 +39,7 @@
         your inbox and click the link to access your account. If you didn't receive the email, check
         your spam folder or
         <button
-          class="text-foreground-prose-link hover:underline cursor-pointer"
+          class="text-foreground-prose-link cursor-pointer hover:underline"
           onclick={() => (verifySent = false)}>try again</button
         >.
       </p>

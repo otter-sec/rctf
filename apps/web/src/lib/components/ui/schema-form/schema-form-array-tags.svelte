@@ -63,7 +63,7 @@
           <div class="flex flex-wrap gap-1">
             {#each items as item}
               <span
-                class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 text-sm font-mono"
+                class="bg-background-l5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-sm"
               >
                 {item}
                 <button
