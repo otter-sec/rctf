@@ -4,7 +4,8 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/api",
+    "apps/web",
     "packages/*"
   ],
   "scripts": {

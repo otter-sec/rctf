@@ -2,7 +2,6 @@ import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
 import { Hono } from 'hono'
 import { pinoLogger } from 'hono-pino'
-import { serveStatic } from 'hono/bun'
 import { compress } from 'hono/compress'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
@@ -37,41 +36,6 @@ const registerApiRoutes = (app: Hono<AppEnv>) => {
   }
 }
 
-const registerFrontendRoutes = (app: Hono<AppEnv>) => {
-  const frontendStaticRoot = process.env.FRONTEND_STATIC_ROOT
-  if (!frontendStaticRoot) {
-    return
-  }
-
-  const staticHandler = serveStatic({
-    root: frontendStaticRoot,
-    precompressed: true,
-  })
-  const spaFallbackHandler = serveStatic({
-    root: frontendStaticRoot,
-    path: '/index.html',
-    precompressed: true,
-  })
-
-  const skipApiRoutes =
-    (handler: typeof staticHandler) =>
-    async (
-      c: Parameters<typeof staticHandler>[0],
-      next: () => Promise<void>
-    ) => {
-      if (
-        c.req.path.startsWith('/api/') ||
-        c.req.path.startsWith('/uploads/')
-      ) {
-        return next()
-      }
-      return handler(c, next)
-    }
-
-  app.use('*', skipApiRoutes(staticHandler))
-  app.use('*', skipApiRoutes(spaFallbackHandler))
-}
-
 const registerErrorHandlers = (app: Hono<AppEnv>) => {
   app.notFound(c =>
     c.json(
@@ -93,7 +57,6 @@ export const setupApp = async () => {
   const app = createApp()
 
   registerApiRoutes(app)
-  registerFrontendRoutes(app)
   await uploadProvider.startupWebPart(app)
   registerErrorHandlers(app)
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
-  import { useCurrentUser, useLeaderboardGraph, useLeaderboardWithGraph, useSelfUserGraph } from '$lib/query'
+  import { useCurrentUser, useLeaderboardWithGraph, useSelfUserGraph } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
