@@ -92,29 +92,6 @@
         "vite": "^7.1.10",
       },
     },
-    "apps/web-forms": {
-      "name": "@rctf/web-forms",
-      "version": "0.0.1",
-      "dependencies": {
-        "@rctf/types": "workspace:*",
-        "@tanstack/svelte-query": "^5.62.16",
-        "@xstate/svelte": "^5.0.0",
-        "ajv": "^8.17.1",
-        "ajv-formats": "^3.0.1",
-        "xstate": "^5.24.0",
-        "yaml": "^2.8.2",
-        "zod": "^4.1.13",
-      },
-      "devDependencies": {
-        "@sveltejs/adapter-auto": "^7.0.0",
-        "@sveltejs/kit": "^2.47.1",
-        "@sveltejs/vite-plugin-svelte": "^6.2.1",
-        "svelte": "^5.41.0",
-        "svelte-check": "^4.3.3",
-        "typescript": "^5.9.3",
-        "vite": "^7.1.10",
-      },
-    },
     "packages/config": {
       "name": "@rctf/config",
       "version": "0.0.0",
@@ -441,8 +418,6 @@
     "@rctf/types": ["@rctf/types@workspace:packages/types"],
 
     "@rctf/web": ["@rctf/web@workspace:apps/web"],
-
-    "@rctf/web-forms": ["@rctf/web-forms@workspace:apps/web-forms"],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.53.3", "", { "os": "android", "cpu": "arm" }, "sha512-mRSi+4cBjrRLoaal2PnqH82Wqyb+d3HsPUN/W+WslCXsZsyHa9ZeQQX/pQsZaVIWDkPcpV6jJ+3KLbTbgnwv8w=="],
 

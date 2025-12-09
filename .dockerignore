@@ -8,13 +8,13 @@ apps/api/dist
 .gitignore
 .env
 .env.*
-.data
 *.md
 LICENSE*
 Dockerfile*
 compose*.yml
 docker-compose*.yml
 data/
+.data/
 uploads/
 rctf.d/
 tests/

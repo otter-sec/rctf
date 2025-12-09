@@ -23,10 +23,11 @@ RUN bun install --production --frozen-lockfile
 FROM base AS build
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY --from=package-configs /app/package.json /app/bun.lock ./
 
-# Symlinks :(
-RUN bun install --frozen-lockfile
+COPY apps ./apps
+COPY packages ./packages
+COPY tsconfig.json ./
 
 ENV NODE_ENV=production
 RUN bun run build
@@ -36,7 +37,7 @@ FROM base AS production
 # We need this for runtime
 RUN bun install sharp
 
-RUN apk add --no-cache supervisor nginx
+RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 
@@ -52,7 +53,5 @@ COPY --from=build /app/apps/api/package.json ./apps/api/
 COPY --from=build /app/apps/web/build ./static
 
 ENV NODE_ENV=production
-ENV FRONTEND_STATIC_ROOT=/app/static/
 ENV WORKER_EXTENSION=.js
-
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]
