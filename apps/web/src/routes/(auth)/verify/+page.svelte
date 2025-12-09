@@ -26,7 +26,7 @@
     switch (verifyInfo.kind) {
       case 'register':
         return `Registering as ${verifyInfo.name}`
-      case 'recover':
+      case 'team':
         return `Logging in as ${verifyInfo.name}`
       case 'update':
         return `Setting email to ${verifyInfo.email} for ${verifyInfo.name}`
@@ -38,7 +38,7 @@
     switch (verifyInfo.kind) {
       case 'register':
         return `Click below to complete your registration with email ${verifyInfo.email}`
-      case 'recover':
+      case 'team':
         return 'Click below to log in to your account'
       case 'update':
         return 'Click below to confirm your new email address'
@@ -125,7 +125,7 @@
         {/if}
         {#if verifyInfo?.kind === 'register'}
           Complete registration
-        {:else if verifyInfo?.kind === 'recover'}
+        {:else if verifyInfo?.kind === 'team'}
           Log in
         {:else if verifyInfo?.kind === 'update'}
           Confirm email

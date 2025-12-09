@@ -149,6 +149,7 @@ rCTF v1 frontend with rCTF v2 backend:
 
 ## New features compared to v1
 
+- No more verify.recover token type, we just use team tokens from now on
 - Scores config
 - New captcha providers (`turnstile`, `hcaptcha`)
 - New `s3` upload provider

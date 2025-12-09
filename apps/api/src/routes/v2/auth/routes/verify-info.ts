@@ -1,27 +1,41 @@
 import { GetVerifyInfoRouteV2 } from '@rctf/types'
-import { parseToken, TokenKind } from '../../../../lib/tokens'
+import { parseTokenWithMultipleKinds, TokenKind } from '../../../../lib/tokens'
 import authGroup from '../group'
-import { getUserByEmail } from '../../../../services/users'
+import { getUser, getUserByEmail } from '../../../../services/users'
 
 authGroup.route(GetVerifyInfoRouteV2, async ({ ctx, query, res }) => {
-  const tokenData = await parseToken(TokenKind.Verify, query.token)
-  if (!tokenData) {
+  const result = await parseTokenWithMultipleKinds(
+    [TokenKind.Verify, TokenKind.Team],
+    query.token
+  )
+  if (!result) {
     return res.badTokenVerification()
   }
 
-  if (tokenData.kind === 'register') {
+  const [kind, data] = result
+
+  if (kind === TokenKind.Verify && data.kind === 'register') {
     return res.goodVerifyInfo({
       kind: 'register',
-      email: tokenData.email,
-      name: tokenData.name,
+      email: data.email,
+      name: data.name,
     })
   }
 
-  if (tokenData.kind === 'recover' || tokenData.kind === 'update') {
-    const user = await getUserByEmail(ctx.var.db, tokenData.email)
+  if (kind === TokenKind.Verify && data.kind === 'update') {
+    const user = await getUserByEmail(ctx.var.db, data.email)
     return res.goodVerifyInfo({
-      kind: tokenData.kind,
-      email: tokenData.email,
+      kind: 'update',
+      email: data.email,
+      name: user?.name,
+    })
+  }
+
+  if (kind === TokenKind.Team) {
+    const user = await getUser(ctx.var.db, data)
+    return res.goodVerifyInfo({
+      kind: 'team',
+      email: null,
       name: user?.name,
     })
   }

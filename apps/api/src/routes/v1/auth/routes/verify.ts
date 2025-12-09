@@ -1,57 +1,56 @@
 import { VerifyRoute } from '@rctf/types'
 import { checkLoginVerification } from '../../../../cache/auth-cache'
-import { createToken, parseToken, TokenKind } from '../../../../lib/tokens'
+import {
+  createToken,
+  parseTokenWithMultipleKinds,
+  TokenKind,
+} from '../../../../lib/tokens'
 import {
   createUser,
-  getUserByEmail,
+  getUser,
   updateUserEmail,
 } from '../../../../services/users'
 import authGroup from '../group'
 
 authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
-  const tokenData = await parseToken(TokenKind.Verify, body.verifyToken)
-  if (!tokenData) {
-    return res.badTokenVerification()
-  }
-
-  const tokenUnused = await checkLoginVerification(
-    ctx.var.redis,
-    tokenData.verifyId
+  const result = await parseTokenWithMultipleKinds(
+    [TokenKind.Verify, TokenKind.Team],
+    body.verifyToken
   )
-  if (!tokenUnused) {
+  if (!result) {
     return res.badTokenVerification()
   }
 
-  if (tokenData.kind === 'register') {
-    return await createUser(res, ctx.var.db, {
-      division: tokenData.division,
-      email: tokenData.email,
-      name: tokenData.name,
-      ctftimeId: null,
-    })
-  }
+  const [kind, data] = result
 
-  if (tokenData.kind === 'recover') {
-    const user = await getUserByEmail(ctx.var.db, tokenData.email)
+  if (kind === TokenKind.Team) {
+    const user = await getUser(ctx.var.db, data)
     if (!user) {
       return res.badUnknownUser()
     }
-
     const authToken = await createToken(TokenKind.Auth, user.id)
     return res.goodVerify({ authToken })
   }
 
-  if (tokenData.kind === 'update') {
-    return await updateUserEmail(
-      res,
-      ctx.var.db,
-      ctx.var.redis,
-      tokenData.userId,
-      {
-        email: tokenData.email,
-      }
-    )
+  const tokenUnused = await checkLoginVerification(ctx.var.redis, data.verifyId)
+  if (!tokenUnused) {
+    return res.badTokenVerification()
   }
 
-  throw new Error(`Unsupported kind: ${tokenData}`)
+  if (data.kind === 'register') {
+    return await createUser(res, ctx.var.db, {
+      division: data.division,
+      email: data.email,
+      name: data.name,
+      ctftimeId: null,
+    })
+  }
+
+  if (data.kind === 'update') {
+    return await updateUserEmail(res, ctx.var.db, ctx.var.redis, data.userId, {
+      email: data.email,
+    })
+  }
+
+  throw new Error(`Unsupported kind: ${data}`)
 })

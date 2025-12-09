@@ -14,7 +14,7 @@ import type {
 } from '@rctf/types'
 import { createLoginVerification } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
-import { parseToken, TokenKind } from '../lib/tokens'
+import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
 import { sendVerificationEmail } from './emails'
 import { createUser, getUserByEmail, getUserByNameOrEmail } from './users'
@@ -120,7 +120,6 @@ export const registerUser = async (
 export const recoverUser = async (
   res: RecoverResponseHelpers,
   db: DatabaseClient,
-  redis: TypedRedis,
   email: string
 ): Promise<
   ReturnType<RecoverResponseHelpers[keyof RecoverResponseHelpers]>
@@ -135,12 +134,9 @@ export const recoverUser = async (
     return res.goodVerifySent()
   }
 
-  const verifyToken = await createLoginVerification(redis, {
-    kind: 'recover',
-    userId: user.id,
-    email: email,
-  })
+  // v2 change: send team token, its lifetime is infinite
+  const teamToken = await createToken(TokenKind.Team, user.id)
 
-  await sendVerificationEmail(email, 'recover', verifyToken)
+  await sendVerificationEmail(email, 'recover', teamToken)
   return res.goodVerifySent()
 }

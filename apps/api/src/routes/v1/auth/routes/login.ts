@@ -19,11 +19,11 @@ authGroup.route(LoginRoute, async ({ ctx, res, body }) => {
     user = await getUserByCtftimeId(ctx.var.db, ctfTimeToken.ctftimeId)
   } else {
     // Login with team token:
-    const userId = await parseToken(TokenKind.Team, body.teamToken ?? '')
-    if (!userId) {
+    const teamId = await parseToken(TokenKind.Team, body.teamToken ?? '')
+    if (!teamId) {
       return res.badTokenVerification()
     }
-    user = await getUser(ctx.var.db, userId)
+    user = await getUser(ctx.var.db, teamId)
   }
 
   if (!user) {

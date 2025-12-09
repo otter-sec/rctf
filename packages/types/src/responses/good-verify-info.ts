@@ -7,10 +7,10 @@ export const GoodVerifyInfo = response('goodVerifyInfo', {
   data: z.object({
     kind: z.union([
       z.literal('register'),
-      z.literal('recover'),
+      z.literal('team'),
       z.literal('update'),
     ]),
-    email: z.string(),
+    email: z.nullable(z.string()),
     name: z.optional(z.string()),
   }),
 })

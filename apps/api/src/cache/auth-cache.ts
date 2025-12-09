@@ -3,7 +3,6 @@ import type { User } from '@rctf/db'
 import {
   createToken,
   TokenKind,
-  type RecoverTokenData,
   type RegisterVerifyTokenData,
   type UpdateVerifyTokenData,
   type VerifyTokenData,
@@ -73,7 +72,6 @@ export const createLoginVerification = async (
   data:
     | Omit<RegisterVerifyTokenData, 'verifyId'>
     | Omit<UpdateVerifyTokenData, 'verifyId'>
-    | Omit<RecoverTokenData, 'verifyId'>
 ): Promise<string> => {
   const verifyId = crypto.randomUUID()
   await storeLoginVerification(client, verifyId)

@@ -15,13 +15,12 @@ export enum TokenKind {
   CtftimeAuth = 4,
 }
 
-export type VerifyTokenKinds = 'update' | 'register' | 'recover'
 export type AuthTokenData = string
 export type TeamTokenData = string
 
 interface BaseVerifyTokenData {
   verifyId: string
-  kind: VerifyTokenKinds
+  kind: 'update' | 'register'
 }
 
 export interface RegisterVerifyTokenData extends BaseVerifyTokenData {
@@ -37,16 +36,7 @@ export interface UpdateVerifyTokenData extends BaseVerifyTokenData {
   email: NonNullable<string>
 }
 
-export interface RecoverTokenData extends BaseVerifyTokenData {
-  kind: 'recover'
-  userId: string
-  email: NonNullable<string>
-}
-
-export type VerifyTokenData =
-  | RegisterVerifyTokenData
-  | UpdateVerifyTokenData
-  | RecoverTokenData
+export type VerifyTokenData = RegisterVerifyTokenData | UpdateVerifyTokenData
 
 export interface CtftimeAuthTokenData {
   name: string
@@ -116,22 +106,36 @@ const decryptToken = async <Kind extends TokenKind>(
   }
 }
 
-export const parseToken = async <Kind extends TokenKind>(
-  expectedTokenKind: Kind,
+export const parseTokenWithMultipleKinds = async <Kinds extends TokenKind[]>(
+  expectedTokenKinds: [...Kinds],
   token: Token
-): Promise<TokenDataTypes[Kind] | null> => {
-  const content = await decryptToken<Kind>(token)
+): Promise<
+  | {
+      [K in Kinds[number]]: [K, TokenDataTypes[K]]
+    }[Kinds[number]]
+  | null
+> => {
+  const content = await decryptToken<Kinds[number]>(token)
   if (content === null) {
     return null
   }
   const { k: kind, t: createdAt, d: data } = content
-  if (kind !== expectedTokenKind) {
+  if (!expectedTokenKinds.includes(kind)) {
     return null
   }
   if (createdAt + tokenExpiries[kind] < timeNow()) {
     return null
   }
-  return data
+
+  return [kind, data]
+}
+
+export const parseToken = async <Kind extends TokenKind>(
+  expectedTokenKind: Kind,
+  token: Token
+): Promise<TokenDataTypes[Kind] | null> => {
+  const result = await parseTokenWithMultipleKinds([expectedTokenKind], token)
+  return result?.[1] ?? null
 }
 
 export const createToken = async <Kind extends TokenKind>(
