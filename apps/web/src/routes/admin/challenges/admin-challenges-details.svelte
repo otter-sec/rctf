@@ -6,7 +6,7 @@
     Permissions,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { Button, EmptyState, Spinner } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
   import { type editorMachine, type FormData } from '$lib/machines'
@@ -134,7 +134,7 @@
             toast.error(`Instancer config error: ${response.data.error}`)
             send({ type: 'SAVE_ERROR' })
           } else {
-            toast.error(response.message)
+            showApiError(response)
             send({ type: 'SAVE_ERROR' })
           }
         },
@@ -167,7 +167,7 @@
             })
             send({ type: 'DELETE_SUCCESS' })
           } else {
-            toast.error(response.message)
+            showApiError(response)
             send({ type: 'DELETE_ERROR' })
           }
         },

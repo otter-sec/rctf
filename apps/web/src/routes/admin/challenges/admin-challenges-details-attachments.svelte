@@ -1,6 +1,6 @@
 <script lang="ts">
   import { GoodFilesUploadV2 } from '@rctf/types'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { Button, Spinner } from '$lib/components'
   import { IconCloudUpload, IconFileFilled, IconTrashFilled } from '$lib/icons'
   import { useUploadFilesMutation } from '$lib/query'
@@ -30,7 +30,7 @@
             onFilesChange([...files, ...res.data])
             toast.success(`${res.data.length} file(s) uploaded!`)
           } else {
-            toast.error(res.message)
+            showApiError(res)
           }
         },
         onError: e => toast.error(e.message),

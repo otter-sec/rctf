@@ -1,8 +1,11 @@
--- KEYS[1]: leaderboard key
--- KEYS[2]: challenge-info key
--- ARGV[1]: start
--- ARGV[2]: end
--- ARGV[3]: includeRange ("1" | "0")
+-- KEYS:
+-- 1: leaderboard key
+-- 2: challenge-info key
+--
+-- ARGV:
+-- 1: start
+-- 2: end
+-- 3: includeRange ("1" | "0")
 
 local includeRange = ARGV[3] == "1"
 local leaderboard = {}

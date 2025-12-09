@@ -2,7 +2,7 @@
   import type { ClientConfig, UserProfile } from '@rctf/types'
   import { GoodAvatarUpdated, ProtectedAction } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { Avatar, Button, Section, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
@@ -61,7 +61,7 @@
             queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
             previewUrl = null
           } else {
-            toast.error(response.message)
+            showApiError(response)
           }
         },
         onError: error => {
@@ -82,7 +82,7 @@
             toast.success('Avatar removed!')
             queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
           } else {
-            toast.error(response.message)
+            showApiError(response)
             isRemoving = false
           }
         },

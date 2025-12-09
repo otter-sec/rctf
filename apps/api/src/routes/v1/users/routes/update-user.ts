@@ -15,11 +15,12 @@ usersGroup.route(UpdateUserRoute, async ({ ctx, user, res, body }) => {
 
   // Limit name updates to 1 per 10 minutes
   if (body.name !== undefined) {
+    // burst 3, 1 per 1min
     const timeLeft = await rateLimit(
       ctx.var.redis,
       `rl:UPDATE_PROFILE:${user.id}`,
-      1,
-      10 * 60 * 1000
+      3,
+      180_000
     )
 
     if (timeLeft) {

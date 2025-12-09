@@ -2,7 +2,7 @@
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { IconCheck, IconSend } from '$lib/icons'
@@ -31,6 +31,9 @@
         toast.info('You already solved this challenge')
         onSolve(challenge.id)
       }
+    },
+    onError: response => {
+      showApiError(response)
     },
   })
 
@@ -85,9 +88,4 @@
       {/if}
     </button>
   </div>
-  {#if form.errors._form}
-    <p class="text-foreground-destructive text-sm" role="alert">
-      {form.errors._form}
-    </p>
-  {/if}
 </form>

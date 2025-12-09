@@ -1,6 +1,6 @@
 <script lang="ts">
   import { GoodCtftimeToken } from '@rctf/types'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Spinner } from '$lib/components'
   import { useCtftimeCallbackMutation } from '$lib/query'
@@ -75,7 +75,7 @@
               ctftimeId: response.data.ctftimeId,
             })
           } else {
-            toast.error(response.message)
+            showApiError(response)
           }
           oauthState = null
         },

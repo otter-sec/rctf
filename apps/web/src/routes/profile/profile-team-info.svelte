@@ -8,7 +8,7 @@
     UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { apiRequest } from '$lib/api'
   import { Button, Field, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
@@ -31,12 +31,18 @@
       toast.success('Profile updated!')
       invalidateUser()
     },
+    onError: response => {
+      showApiError(response)
+    },
   })
 
   const emailForm = useApiForm(SetEmailRouteV2, {
     onSuccess: () => {
       toast.success('Email updated!')
       invalidateUser()
+    },
+    onError: response => {
+      showApiError(response)
     },
   })
 
@@ -91,7 +97,7 @@
       invalidateUser()
       emailForm.setData({ email: '' })
     } else {
-      toast.error(res.message)
+      showApiError(res)
     }
     deletingEmail = false
   }

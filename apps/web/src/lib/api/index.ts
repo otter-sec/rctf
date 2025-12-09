@@ -1,4 +1,5 @@
 import {
+  BadRateLimit,
   BadToken,
   isFileField,
   type AnyRouteDefinition,
@@ -12,6 +13,27 @@ import {
 import { browser } from '$app/environment'
 import { toast } from 'svelte-sonner'
 import { CaptchaError, getCaptchaCode } from '$lib/utils'
+
+export function showApiError(response: {
+  kind: string
+  message: string
+  data?: unknown
+}): void {
+  if (response.kind !== BadRateLimit.kind) {
+    toast.error(response.message)
+    return
+  }
+
+  const timeLeft = (response.data as { timeLeft?: number })?.timeLeft
+  if (timeLeft !== undefined) {
+    const seconds = Math.max(1, Math.round(timeLeft / 1000))
+    toast.error(`Try again in ${seconds} second${seconds !== 1 ? 's' : ''}`)
+    return
+  }
+
+  // should never happen, but you never know
+  toast.error(response.message)
+}
 
 let cachedClientConfig: ClientConfig | null = null
 

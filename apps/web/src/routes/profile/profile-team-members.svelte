@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CreateMemberRoute, DeleteMemberRoute, GoodMemberDelete } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { showApiError, toast } from '$lib'
   import { apiRequest } from '$lib/api'
   import { Badge, Field, Section, Spinner } from '$lib/components'
   import { TagInput } from '$lib/components/ui/tag-input'
@@ -39,7 +39,7 @@
       toast.success('Team member removed!')
       invalidateMembers()
     } else {
-      toast.error(res.message)
+      showApiError(res)
     }
     deleting = null
   }

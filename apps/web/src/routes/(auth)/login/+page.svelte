@@ -3,7 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { setToken, toast } from '$lib'
+  import { setToken, showApiError, toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
@@ -86,7 +86,7 @@
             sessionStorage.setItem('ctftimeName', ctftimeData.ctftimeName)
             goto('/register')
           } else {
-            toast.error(response.message)
+            showApiError(response)
           }
         },
         onError: error => {

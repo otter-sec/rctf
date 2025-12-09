@@ -344,12 +344,12 @@ export const submitFlag = async (
     'flag submission attempt'
   )
 
-  // 3 per 10s per user+challenge
+  // burst 5, then 1 per 5s
   const timeLeft = await rateLimit(
     redis,
     `rl:FLAG:${params.challengeId}:${params.userId}`,
-    3,
-    10_000
+    5,
+    25_000
   )
   if (timeLeft !== undefined) {
     log.info(
