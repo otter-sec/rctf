@@ -20,7 +20,7 @@
 
   const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
 
-  const urlChallengeId = $derived(page.url.searchParams.get('chall'))
+  const urlChallengeId = $derived(page.url.searchParams.get('challenge'))
   let selectedChallengeId = $state<string | null>(null)
   let hasScrolledToUrl = $state(false)
 
@@ -53,7 +53,7 @@
   function handleSelect(challenge: Challenge) {
     selectedChallengeId = challenge.id
     const url = new URL(window.location.href)
-    url.searchParams.set('chall', challenge.id)
+    url.searchParams.set('challenge', challenge.id)
     history.replaceState(history.state, '', url)
     if (isMobile) {
       drawerOpen = true
