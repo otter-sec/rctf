@@ -13,7 +13,7 @@
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
-  import { formatCountdown } from '$lib/utils'
+  import { CaptchaError, formatCountdown } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
   interface Props {

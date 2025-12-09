@@ -1,6 +1,13 @@
 import { ProtectedAction } from '@rctf/types'
 import type { ClientConfig } from '@rctf/types'
 
+export class CaptchaError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'CaptchaError'
+  }
+}
+
 const getCaptchaInfo = (config: ClientConfig | undefined | null) => {
   const captcha = config?.captcha
   if (!captcha) return null
@@ -45,7 +52,8 @@ const loadScriptOnce = (src: string): Promise<void> => {
       script.dataset.loaded = 'true'
       resolve()
     }
-    script.onerror = () => reject(new Error(`Failed to load script: ${src}`))
+    script.onerror = () =>
+      reject(new CaptchaError(`Failed to load captcha script`))
     document.head.appendChild(script)
   })
 }
@@ -182,13 +190,22 @@ export const requestCaptchaCode = async (
 
   const handler = captchaHandlers[info.provider]
   if (!handler) {
-    throw new Error(`Unknown captcha provider: ${info.provider}`)
+    throw new CaptchaError(`Unknown captcha provider: ${info.provider}`)
   }
 
-  await loadScriptOnce(handler.scriptUrl)
-  const state = getState(info.provider)
-  await handler.init(state, info.siteKey)
-  return handler.execute(state, info.siteKey)
+  try {
+    await loadScriptOnce(handler.scriptUrl)
+    const state = getState(info.provider)
+    await handler.init(state, info.siteKey)
+    return await handler.execute(state, info.siteKey)
+  } catch (err) {
+    if (err instanceof CaptchaError) {
+      throw err
+    }
+    throw new CaptchaError(
+      err instanceof Error ? err.message : 'Captcha verification failed'
+    )
+  }
 }
 
 export const getCaptchaCode = async (

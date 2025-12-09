@@ -10,7 +10,8 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
-import { getCaptchaCode } from '$lib/utils'
+import { toast } from 'svelte-sonner'
+import { CaptchaError, getCaptchaCode } from '$lib/utils'
 
 let cachedClientConfig: ClientConfig | null = null
 
@@ -163,12 +164,19 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
 
   let finalBody = body as Record<string, unknown> | undefined
   if (route.captchaAction && finalBody) {
-    const captchaCode = await getCaptchaCode(
-      route.captchaAction,
-      cachedClientConfig
-    )
-    if (captchaCode) {
-      finalBody = { ...finalBody, captchaCode }
+    try {
+      const captchaCode = await getCaptchaCode(
+        route.captchaAction,
+        cachedClientConfig
+      )
+      if (captchaCode) {
+        finalBody = { ...finalBody, captchaCode }
+      }
+    } catch (err) {
+      if (err instanceof CaptchaError) {
+        toast.error(err.message)
+      }
+      throw err
     }
   }
 
