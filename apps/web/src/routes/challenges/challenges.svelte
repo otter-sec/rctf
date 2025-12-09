@@ -18,15 +18,19 @@
 
   const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
 
-  let selectedChallenge = $state<Challenge | null>(null)
+  let selectedChallengeId = $state<string | null>(null)
   let drawerOpen = $state(false)
   let innerWidth = $state(0)
+
+  const selectedChallenge = $derived(
+    selectedChallengeId ? (challenges.find(c => c.id === selectedChallengeId) ?? null) : null
+  )
 
   const listMinSize = $derived(innerWidth < 1280 ? 40 : 20)
   const isMobile = $derived(innerWidth < 768)
 
   function handleSelect(challenge: Challenge) {
-    selectedChallenge = challenge
+    selectedChallengeId = challenge.id
     if (isMobile) {
       drawerOpen = true
     }
@@ -35,8 +39,13 @@
   function handleSolve(challengeId: string) {
     localSolvedIds.add(challengeId)
     localSolvedIds = new Set(localSolvedIds)
-    queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
-    queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+
+    // FIXME(es3n1n): Small delay to allow the server's leaderboard worker to update the cache
+    setTimeout(() => {
+      queryClient.refetchQueries({ queryKey: queryKeys.challenges })
+      queryClient.refetchQueries({ queryKey: queryKeys.userSelf })
+      queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+    }, 500)
   }
 
   const selectedIsSolved = $derived(selectedChallenge ? solvedIds.has(selectedChallenge.id) : false)

@@ -312,6 +312,7 @@ export const queryKeys = {
   challenges: challengesQueryOptions.queryKey,
   adminChallenges: adminChallengesQueryOptions.queryKey,
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
+  fullLeaderboard: ['leaderboard'] as const,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
   leaderboardChallenges: leaderboardChallengesQueryOptions.queryKey,

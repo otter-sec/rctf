@@ -1,12 +1,10 @@
 <script lang="ts">
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
-  import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError, toast } from '$lib'
   import { Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { IconCheck, IconSend } from '$lib/icons'
-  import { queryKeys } from '$lib/query'
 
   interface Props {
     challenge: Challenge
@@ -16,17 +14,12 @@
 
   let { challenge, isSolved, onSolve }: Props = $props()
 
-  const queryClient = useQueryClient()
-
   const form = useApiForm(SubmitFlagRoute, {
     onSuccess: response => {
       if (response.kind === GoodFlag.kind) {
         toast.success('Flag correct!')
         onSolve(challenge.id)
         form.setData({ flag: '' })
-        queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
-        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-        queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
       } else if (response.kind === BadAlreadySolvedChallenge.kind) {
         toast.info('You already solved this challenge')
         onSolve(challenge.id)
@@ -79,7 +72,7 @@
     <button
       type="submit"
       disabled={form.submitting || isSolved}
-      class="bg-background-l4 text-foreground-l4 hover:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:opacity-50"
+      class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {#if form.submitting}
         <Spinner class="size-6" />
