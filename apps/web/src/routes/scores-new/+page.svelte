@@ -951,7 +951,7 @@
     --team-column-width: calc(100dvw - 2rem);
     --header-height: 8rem;
     --name-row-height: 8rem;
-    --self-row-height: 5rem;
+    --self-row-height: 4rem;
     --diagonal-overflow: 5rem;
   }
 
