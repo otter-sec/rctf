@@ -10,17 +10,28 @@
     orientation = 'vertical',
     scrollbarXClasses = '',
     scrollbarYClasses = '',
+    scrollbarXStyles = '',
+    scrollbarYStyles = '',
     fadeSize = 24,
     fadeColor = 'background-l0',
+    fadeOffsets = {},
     children,
     ...restProps
   }: WithoutChild<ScrollAreaPrimitive.RootProps> & {
     orientation?: 'vertical' | 'horizontal' | 'both' | undefined
     scrollbarXClasses?: string | undefined
     scrollbarYClasses?: string | undefined
+    scrollbarXStyles?: string | undefined
+    scrollbarYStyles?: string | undefined
     viewportRef?: HTMLElement | null
     fadeSize?: number
     fadeColor?: string
+    fadeOffsets?: {
+      top?: number | string
+      bottom?: number | string
+      left?: number | string
+      right?: number | string
+    }
   } = $props()
 
   let internalViewportRef = $state<HTMLElement | null>(null)
@@ -29,25 +40,29 @@
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
 
-  const hasVertical = $derived(
-    orientation === 'vertical' || orientation === 'both'
+  const hasVertical = $derived(orientation === 'vertical' || orientation === 'both')
+  const hasHorizontal = $derived(orientation === 'horizontal' || orientation === 'both')
+
+  const topOffset = $derived(
+    typeof fadeOffsets.top === 'number' ? `${fadeOffsets.top}px` : (fadeOffsets.top ?? '0px')
   )
-  const hasHorizontal = $derived(
-    orientation === 'horizontal' || orientation === 'both'
+  const bottomOffset = $derived(
+    typeof fadeOffsets.bottom === 'number'
+      ? `${fadeOffsets.bottom}px`
+      : (fadeOffsets.bottom ?? '0px')
+  )
+  const leftOffset = $derived(
+    typeof fadeOffsets.left === 'number' ? `${fadeOffsets.left}px` : (fadeOffsets.left ?? '0px')
+  )
+  const rightOffset = $derived(
+    typeof fadeOffsets.right === 'number' ? `${fadeOffsets.right}px` : (fadeOffsets.right ?? '0px')
   )
 
   function updateFades() {
     const viewport = internalViewportRef
     if (!viewport) return
 
-    const {
-      scrollTop,
-      scrollHeight,
-      clientHeight,
-      scrollLeft,
-      scrollWidth,
-      clientWidth,
-    } = viewport
+    const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = viewport
     const threshold = 10
 
     if (hasVertical) {
@@ -80,19 +95,6 @@
   $effect(() => {
     viewportRef = internalViewportRef
   })
-
-  const topFadeStyle = $derived(
-    `height: ${fadeSize}px; background: linear-gradient(to bottom, var(--${fadeColor}), transparent);`
-  )
-  const bottomFadeStyle = $derived(
-    `height: ${fadeSize}px; background: linear-gradient(to top, var(--${fadeColor}), transparent);`
-  )
-  const leftFadeStyle = $derived(
-    `width: ${fadeSize}px; background: linear-gradient(to right, var(--${fadeColor}), transparent);`
-  )
-  const rightFadeStyle = $derived(
-    `width: ${fadeSize}px; background: linear-gradient(to left, var(--${fadeColor}), transparent);`
-  )
 </script>
 
 <ScrollAreaPrimitive.Root
@@ -105,7 +107,7 @@
     bind:ref={internalViewportRef}
     data-slot="scroll-area-viewport"
     class={cn(
-      'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:outline-1 focus-visible:ring-4',
+      'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:ring-4 focus-visible:outline-1',
       hasHorizontal && 'overscroll-x-none',
       hasVertical && 'overscroll-y-none'
     )}
@@ -113,51 +115,75 @@
     {@render children?.()}
   </ScrollAreaPrimitive.Viewport>
 
-  {#if hasVertical}
+  {#if hasVertical && fadeSize > 0}
     <div
       class={cn(
-        'pointer-events-none absolute inset-x-0 top-0 transition-opacity',
+        'pointer-events-none absolute z-10 transition-opacity',
         showTopFade ? 'opacity-100' : 'opacity-0'
       )}
-      style={topFadeStyle}
+      style="
+        top: {topOffset};
+        left: {leftOffset};
+        right: {rightOffset};
+        height: {fadeSize}px;
+        background: linear-gradient(to bottom, var(--{fadeColor}), transparent);
+      "
       aria-hidden="true"
     ></div>
 
     <div
       class={cn(
-        'pointer-events-none absolute inset-x-0 bottom-0 transition-opacity',
+        'pointer-events-none absolute z-10 transition-opacity',
         showBottomFade ? 'opacity-100' : 'opacity-0'
       )}
-      style={bottomFadeStyle}
+      style="
+        bottom: {bottomOffset};
+        left: {leftOffset};
+        right: {rightOffset};
+        height: {fadeSize}px;
+        background: linear-gradient(to top, var(--{fadeColor}), transparent);
+      "
       aria-hidden="true"
     ></div>
   {/if}
 
-  {#if hasHorizontal}
+  {#if hasHorizontal && fadeSize > 0}
     <div
       class={cn(
-        'pointer-events-none absolute inset-y-0 left-0 transition-opacity',
+        'pointer-events-none absolute z-10 transition-opacity',
         showLeftFade ? 'opacity-100' : 'opacity-0'
       )}
-      style={leftFadeStyle}
+      style="
+        left: {leftOffset};
+        top: {topOffset};
+        bottom: {bottomOffset};
+        width: {fadeSize}px;
+        background: linear-gradient(to right, var(--{fadeColor}), transparent);
+      "
       aria-hidden="true"
     ></div>
 
     <div
       class={cn(
-        'pointer-events-none absolute inset-y-0 right-0 transition-opacity',
+        'pointer-events-none absolute z-10 transition-opacity',
         showRightFade ? 'opacity-100' : 'opacity-0'
       )}
-      style={rightFadeStyle}
+      style="
+        right: {rightOffset};
+        top: {topOffset};
+        bottom: {bottomOffset};
+        width: {fadeSize}px;
+        background: linear-gradient(to left, var(--{fadeColor}), transparent);
+      "
       aria-hidden="true"
     ></div>
   {/if}
 
   {#if hasVertical}
-    <Scrollbar orientation="vertical" class={scrollbarYClasses} />
+    <Scrollbar orientation="vertical" class={scrollbarYClasses} style={scrollbarYStyles} />
   {/if}
   {#if hasHorizontal}
-    <Scrollbar orientation="horizontal" class={scrollbarXClasses} />
+    <Scrollbar orientation="horizontal" class={scrollbarXClasses} style={scrollbarXStyles} />
   {/if}
   <ScrollAreaPrimitive.Corner />
 </ScrollAreaPrimitive.Root>

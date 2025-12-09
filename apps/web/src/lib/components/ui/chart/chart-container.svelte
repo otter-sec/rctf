@@ -17,7 +17,7 @@
     config: ChartConfig
   } = $props()
 
-  const chartId = `chart-${id || uid.replace(/:/g, '')}`
+  let chartId = $derived(`chart-${id || uid.replace(/:/g, '')}`)
 
   setChartContext({
     get config() {
@@ -44,7 +44,7 @@
 
     // by default, when you hover a point on a stacked series chart, it will drop the opacity
     // of the other series, this overrides that
-    '[&_.lc-area-path]:opacity-100 [&_.lc-highlight-line]:opacity-100 [&_.lc-highlight-point]:opacity-100 [&_.lc-spline-path]:opacity-100 [&_.lc-text-svg]:overflow-visible [&_.lc-text]:text-xs',
+    '[&_.lc-area-path]:opacity-100 [&_.lc-highlight-line]:opacity-100 [&_.lc-highlight-point]:opacity-100 [&_.lc-spline-path]:opacity-100 [&_.lc-text]:text-xs [&_.lc-text-svg]:overflow-visible',
 
     // We don't want the little tick lines between the axis labels and the chart, so we remove
     // the stroke. The alternative is to manually disable `tickMarks` on the x/y axis of every
@@ -67,7 +67,7 @@
     '[&_.lc-labels-text:not([fill])]:fill-foreground-l0 [&_text]:stroke-transparent',
 
     // Tick labels on th x/y axes
-    '[&_.lc-axis-tick-label]:fill-foreground-l3 [&_.lc-axis-tick-label]:font-normal',
+    '[&_.lc-axis-tick-label]:fill-foreground-l5/75 [&_.lc-axis-tick-label]:font-normal',
     '[&_.lc-tooltip-rects-g]:fill-transparent',
     '[&_.lc-layout-svg-g]:fill-transparent',
     '[&_.lc-root-container]:w-full',

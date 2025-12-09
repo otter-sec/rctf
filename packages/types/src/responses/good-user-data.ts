@@ -1,13 +1,13 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 const SolveSchema = z.object({
   category: z.string(),
   name: z.string(),
-  points: z.number().int().nullable(),
-  solves: z.number().int().nullable(),
+  points: z.nullable(z.int()),
+  solves: z.nullable(z.int()),
   id: z.string(),
-  createdAt: z.number().int(),
+  createdAt: z.int(),
 })
 
 export const GoodUserData = response('goodUserData', {
@@ -15,11 +15,11 @@ export const GoodUserData = response('goodUserData', {
   message: 'The user data was successfully retrieved.',
   data: z.object({
     name: z.string(),
-    ctftimeId: z.string().nullish(),
+    ctftimeId: z.nullish(z.string()),
     division: z.string(),
-    score: z.number().int(),
-    globalPlace: z.number().int().nullable(),
-    divisionPlace: z.number().int().nullable(),
+    score: z.int(),
+    globalPlace: z.nullable(z.int()),
+    divisionPlace: z.nullable(z.int()),
     solves: z.array(SolveSchema),
   }),
 })

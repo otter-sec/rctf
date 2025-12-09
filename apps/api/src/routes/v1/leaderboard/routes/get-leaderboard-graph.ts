@@ -13,7 +13,13 @@ leaderboardGroup.route(
       })
     }
 
-    const graph = await getGraph(ctx.var.redis, limit, division)
+    if (division && !config.divisions[division]) {
+      return res.badBody({
+        reason: 'Invalid division',
+      })
+    }
+
+    const graph = await getGraph(ctx.var.redis, limit, 0, division)
     return res.goodLeaderboardGraph({ graph })
   }
 )

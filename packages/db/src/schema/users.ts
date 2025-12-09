@@ -26,6 +26,13 @@ export const users = pgTable(
     avatarUrl: text('avatar_url'),
   },
   table => [
+    index('users_division_index').using(
+      'btree',
+      table.division.asc().nullsLast().op('text_ops')
+    ),
+    index('users_email_index')
+      .using('btree', table.email.asc().nullsLast().op('text_ops'))
+      .where(sql`${table.email} IS NOT NULL`),
     unique('users_name_key').on(table.name),
     unique('users_email_key').on(table.email),
     unique('users_ctftime_id_key').on(table.ctftimeId),

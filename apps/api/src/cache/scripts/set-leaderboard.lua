@@ -3,7 +3,8 @@
 -- 2: challenge-info
 -- 3: global-leaderboard
 -- 4: leaderboard-update
--- 5..N: division-leaderboard:<division>
+-- 5: first-bloods
+-- 6..N: division-leaderboard:<division>
 --
 -- ARGV:
 -- [1]: leaderboardUpdate (number as string)
@@ -13,6 +14,8 @@
 -- [next..]: leaderboard elements [id, name, division, score, ...] repeated
 -- [after leaderboard]: numChallengeElements (numChallenges * 2)
 -- [after..]: challenge info elements [id, json payload, ...] repeated
+-- [after challenges]: numFirstBloodsElements (numChallenges * 2)
+-- [after..]: first bloods elements [challengeId, "userId1,userId2,...", ...] repeated
 
 -- Call a Redis command with large argument lists by chunking to avoid arg limits
 local function chunkCall(cmd, key, args)
@@ -44,7 +47,7 @@ end
 local numLeaderboardElements = tonumber(ARGV[idx])
 idx = idx + 1
 
--- Read leaderboard data directly from ARGV (no JSON parsing!)
+-- Read leaderboard data directly from ARGV
 local leaderboardStart = idx
 idx = idx + numLeaderboardElements
 
@@ -52,6 +55,12 @@ local numChallengeElements = tonumber(ARGV[idx])
 idx = idx + 1
 
 local challengeInfoStart = idx
+idx = idx + numChallengeElements
+
+local numFirstBloodsElements = tonumber(ARGV[idx])
+idx = idx + 1
+
+local firstBloodsStart = idx
 
 -- Build division boards and score positions
 local divisionBoards = {}
@@ -72,32 +81,38 @@ for i = 1, numUsers do
   local division = ARGV[base + 2]
   local score = ARGV[base + 3]
 
-  -- push to global board (triples: id, name, score)
-  globalBoard[#globalBoard + 1] = id
-  globalBoard[#globalBoard + 1] = name
-  globalBoard[#globalBoard + 1] = score
-
-  -- division board
   local divBoard = divisionBoards[division]
+  local divisionPlace = 0
   if divBoard ~= nil then
     divisionCounters[division] = divisionCounters[division] + 1
     divBoard[#divBoard + 1] = id
     divBoard[#divBoard + 1] = name
     divBoard[#divBoard + 1] = score
-    local divisionPlace = divisionCounters[division]
+    divisionPlace = divisionCounters[division]
     scorePositionsArgs[#scorePositionsArgs + 1] = id
     scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',' .. tostring(divisionPlace)
   else
-    -- unknown division; store with division place 0
     scorePositionsArgs[#scorePositionsArgs + 1] = id
     scorePositionsArgs[#scorePositionsArgs + 1] = score .. ',' .. tostring(i) .. ',0'
   end
+
+  globalBoard[#globalBoard + 1] = id
+  globalBoard[#globalBoard + 1] = name
+  globalBoard[#globalBoard + 1] = score
+  globalBoard[#globalBoard + 1] = division
+  globalBoard[#globalBoard + 1] = tostring(divisionPlace)
 end
 
 -- Build challenge info array from ARGV
 local challengeInfoArgs = {}
 for i = 1, numChallengeElements do
   challengeInfoArgs[i] = ARGV[challengeInfoStart + i - 1]
+end
+
+-- Build first bloods array from ARGV
+local firstBloodsArgs = {}
+for i = 1, numFirstBloodsElements do
+  firstBloodsArgs[i] = ARGV[firstBloodsStart + i - 1]
 end
 
 -- Clear existing keys
@@ -116,7 +131,7 @@ end
 -- Write division leaderboard lists
 for d = 1, numDivisions do
   local div = divisions[d]
-  local key = KEYS[4 + d]
+  local key = KEYS[5 + d]
   local board = divisionBoards[div]
   if board and #board > 0 then
     chunkCall('RPUSH', key, board)
@@ -126,6 +141,11 @@ end
 -- Write score positions hash
 if #scorePositionsArgs > 0 then
   chunkCall('HSET', KEYS[1], scorePositionsArgs)
+end
+
+-- Write first bloods hash
+if #firstBloodsArgs > 0 then
+  chunkCall('HSET', KEYS[5], firstBloodsArgs)
 end
 
 -- Write leaderboard update time

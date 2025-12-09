@@ -1,10 +1,8 @@
 import deepMerge from 'deepmerge'
-import { defaultConfig, loadEnvConfig, loadFileConfigs } from './loader'
-import type { ServerConfig } from './types'
+import { loadEnvConfig, loadFileConfigs } from './loader'
+import { ServerConfigSchema } from './types'
 
 export * from './types'
-export const config: ServerConfig = deepMerge.all([
-  defaultConfig,
-  ...loadFileConfigs(),
-  loadEnvConfig(),
-]) as ServerConfig
+export const config = ServerConfigSchema.parse(
+  deepMerge.all([...loadFileConfigs(), loadEnvConfig()])
+)

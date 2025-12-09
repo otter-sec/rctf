@@ -1,14 +1,11 @@
 import { config } from '@rctf/config'
 import { GetChallengeSolvesRouteV2 } from '@rctf/types'
-import {
-  getChallenge,
-  getChallengeSolves,
-} from '../../../../services/challenges'
+import { getChallengeSolvesWithPosition } from '../../../../services/challenges'
 import challsGroup from '../group'
 
 challsGroup.route(
   GetChallengeSolvesRouteV2,
-  async ({ res, ctx, params, query }) => {
+  async ({ res, ctx, params, query, user }) => {
     // NOTE: Handling manually because the values are loaded from config
     if (
       query.limit > config.leaderboard.maxLimit ||
@@ -19,23 +16,26 @@ challsGroup.route(
       })
     }
 
-    const [challenge, solves] = await Promise.all([
-      getChallenge(ctx.var.db, params.id),
-      getChallengeSolves(ctx.var.db, params.id, query.limit, query.offset),
-    ])
+    const { challengeExists, solves, solvePosition } =
+      await getChallengeSolvesWithPosition(
+        ctx.var.db,
+        ctx.var.redis,
+        params.id,
+        user.id,
+        query.limit,
+        query.offset
+      )
 
-    if (!challenge) {
+    if (!challengeExists) {
       return res.badChallenge()
     }
 
     return res.goodChallengeSolves({
-      solves: solves.map(({ solve, userName, userAvatarUrl }) => ({
-        id: solve.id,
-        createdAt: new Date(solve.createdat).getTime(),
-        userId: solve.userid,
-        userName,
-        userAvatarUrl,
+      solves: solves.map(solve => ({
+        ...solve,
+        createdAt: new Date(solve.createdAt).getTime(),
       })),
+      mySolvePosition: solvePosition,
     })
   }
 )

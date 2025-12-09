@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodCtftimeLeaderboard = response('goodCtftimeLeaderboard', {
@@ -7,9 +7,9 @@ export const GoodCtftimeLeaderboard = response('goodCtftimeLeaderboard', {
   data: z.object({
     standings: z.array(
       z.object({
-        pos: z.number().int(),
+        pos: z.int(),
         team: z.string(),
-        score: z.number(),
+        score: z.int(),
       })
     ),
   }),

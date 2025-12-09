@@ -14,15 +14,15 @@
 
 <div
   class={cn(
-    'flex flex-col items-center justify-center gap-3 py-16 text-center max-w-sm mx-auto',
+    'mx-auto flex max-w-sm flex-col items-center justify-center gap-3 py-16 text-center',
     className
   )}
 >
-  <Icon class="size-12 text-foreground-l4" />
+  <Icon class="text-foreground-l4 size-12" />
   <div class="flex flex-col gap-1">
-    <span class="text-lg text-foreground-l3">{title}</span>
+    <span class="text-foreground-l3 text-lg">{title}</span>
     {#if subtitle}
-      <span class="text-sm text-foreground-l5">{subtitle}</span>
+      <span class="text-foreground-l5 text-sm">{subtitle}</span>
     {/if}
   </div>
 </div>

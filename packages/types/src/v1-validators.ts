@@ -1,9 +1,5 @@
 import { validate as emailValidator } from 'email-validator'
 
-export const validateName = (name: string): boolean => {
-  return /^[ -~]{2,64}$/.test(name)
-}
-
 export const validateEmail = (email: string): boolean => {
   return emailValidator(email)
 }

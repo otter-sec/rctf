@@ -1,14 +1,21 @@
+import { format, intervalToDuration } from 'date-fns'
+
 function formatTime(diff: number): string {
-  const seconds = Math.floor(diff / 1000)
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
+  const {
+    days = 0,
+    hours = 0,
+    minutes = 0,
+    seconds = 0,
+  } = intervalToDuration({
+    start: 0,
+    end: diff,
+  })
 
   const parts: string[] = []
   if (days > 0) parts.push(`${days}d`)
-  if (hours % 24 > 0) parts.push(`${hours % 24}h`)
-  if (minutes % 60 > 0) parts.push(`${minutes % 60}m`)
-  if (parts.length === 0) parts.push(`${seconds % 60}s`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0) parts.push(`${minutes}m`)
+  if (parts.length === 0) parts.push(`${seconds}s`)
 
   return parts.join(', ')
 }
@@ -38,11 +45,32 @@ export function getOrdinal(n: number): string {
 }
 
 export function formatLocalTime(timestamp: number): string {
-  const date = new Date(timestamp)
-  return date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  })
+  return format(timestamp, 'MMM d, h:mm a')
+}
+
+export function formatRelativeHours(
+  timestamp: number,
+  startTime: number
+): string {
+  const hours = Math.round((timestamp - startTime) / 3_600_000)
+  return hours === 0 ? '0h' : `+${hours}h`
+}
+
+export function formatRelativeHoursMinutes(
+  timestamp: number,
+  startTime: number
+): string {
+  const totalMinutes = (timestamp - startTime) / 60_000
+  const hours = Math.floor(totalMinutes / 60)
+  const minutes = Math.round(totalMinutes % 60)
+
+  if (hours === 0 && minutes === 0) return '0h'
+  if (minutes === 0) return `+${hours}h`
+  return `+${hours}h ${minutes}m`
+}
+
+export function formatCountdown(ms: number): string {
+  const mins = Math.floor(ms / 60_000)
+  const secs = Math.floor((ms % 60_000) / 1000)
+  return `${mins}:${secs.toString().padStart(2, '0')}`
 }

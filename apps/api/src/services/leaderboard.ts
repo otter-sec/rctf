@@ -2,12 +2,16 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { asc } from 'drizzle-orm'
-import type {
-  CalculatedLeaderboard,
-  InternalChallengeInfo,
-  InternalUserInfo,
+import {
+  getLeaderboard,
+  type CalculatedLeaderboard,
+  type InternalChallengeInfo,
+  type InternalUserInfo,
+  type Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
+import { getSolvesAndAvatars } from './challenges'
+import type { TypedRedis } from '../cache/scripts'
 
 const getUsers = async (
   db: DatabaseClient
@@ -67,6 +71,7 @@ const getChallenges = async (
       score: 0,
       minPoints: points.min ?? 0,
       maxPoints: points.max ?? 0,
+      sortWeight: ch.data.sortWeight ?? null,
     })
   }
   return result
@@ -88,6 +93,9 @@ export const calculateLeaderboard = async (
     .from(solves)
     .orderBy(asc(solves.createdat))
 
+  const numberOfBloods = 3
+  const firstBloods = new Map<string, string[]>()
+
   let solveIndex = 0
   const applySolvesUntil = (untilEpochMs: number): boolean => {
     let changed = false
@@ -107,6 +115,15 @@ export const calculateLeaderboard = async (
       const user = userInfos.get(s.userid)
       if (!chal || !user) {
         continue
+      }
+
+      let bloods = firstBloods.get(s.challengeid)
+      if (!bloods) {
+        bloods = []
+        firstBloods.set(s.challengeid, bloods)
+      }
+      if (bloods.length < numberOfBloods) {
+        bloods.push(s.userid)
       }
 
       chal.solves++
@@ -152,16 +169,41 @@ export const calculateLeaderboard = async (
     return true
   }
 
-  let samples: CalculatedLeaderboard['samples'] = []
+  const usersWithScores = new Set<string>()
+  const samples: CalculatedLeaderboard['samples'] = []
+  let prevScoreMap: Map<string, number> | null = null
+
   const runSample = (t: number): void => {
     applySolvesUntil(t)
-    samples.push({
-      time: t,
-      userScores: Array.from(userInfos.entries()).map(([id, u]) => ({
-        id,
-        score: u.score,
-      })),
-    })
+
+    const userScores: Sample['userScores'] = []
+    for (const [id, u] of userInfos) {
+      if (u.score > 0) {
+        userScores.push({ id, score: u.score })
+        usersWithScores.add(id)
+      }
+    }
+
+    // dedupe
+    if (prevScoreMap !== null) {
+      let changed = false
+      if (userScores.length !== prevScoreMap.size) {
+        changed = true
+      } else {
+        for (const { id, score } of userScores) {
+          if (prevScoreMap.get(id) !== score) {
+            changed = true
+            break
+          }
+        }
+      }
+      if (!changed) {
+        return
+      }
+    }
+
+    prevScoreMap = new Map(userScores.map(({ id, score }) => [id, score]))
+    samples.push({ time: t, userScores })
   }
 
   const graphSampleTime = config.leaderboard.graphSampleTime
@@ -184,36 +226,8 @@ export const calculateLeaderboard = async (
     }
   }
 
-  // TODO(es3n1n): below, we are relying on the fact that user scores are in the same order. is this really always true?
-
-  // Run up to now, but dedupe if scores haven't changed since last sample
+  // Run up to now (but dedupe if scores are the same)
   runSample(now)
-  if (samples.length > 1) {
-    const last = samples[samples.length - 1]!
-    const prev = samples[samples.length - 2]!
-    const isDuplicate = last.userScores.every(
-      (s, i) => s.score === prev.userScores[i]?.score
-    )
-    if (isDuplicate) {
-      samples.pop()
-    }
-  }
-
-  // Filter out consecutive samples with the same user scores
-  samples = samples
-    .map((s, i) => {
-      if (i === 0) {
-        return s
-      }
-
-      const prev = samples[i - 1]!
-      if (s.userScores.every((s, i) => s.score === prev.userScores[i]?.score)) {
-        return null
-      }
-
-      return s
-    })
-    .filter(s => s !== null)
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     // 1. Score difference
@@ -250,6 +264,39 @@ export const calculateLeaderboard = async (
         hadAnySolve: true,
       })),
     challengeInfos: challengeInfos,
+    firstBloods,
     samples,
+  }
+}
+
+export const getLeaderboardWithTotal = async (
+  redis: TypedRedis,
+  db: DatabaseClient,
+  limit: number,
+  offset: number,
+  division?: string
+) => {
+  const { total, leaderboard } = await getLeaderboard(
+    redis,
+    limit,
+    offset,
+    division
+  )
+
+  const { solves, avatars } = await getSolvesAndAvatars(
+    db,
+    leaderboard.map(e => e.id)
+  )
+
+  return {
+    total,
+    leaderboard: leaderboard.map(entry => ({
+      ...entry,
+      avatarUrl: avatars.get(entry.id) ?? null,
+      solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
+        id: solve.challengeId,
+        solveTime: solve.solveTime,
+      })),
+    })),
   }
 }

@@ -1,4 +1,5 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
+import { ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadCtftimeNoExists,
@@ -14,6 +15,7 @@ import {
   BadKnownName,
   BadName,
   BadRateLimit,
+  BadRecaptchaCode,
   BadToken,
   BadUnknownUser,
   BadZeroAuth,
@@ -34,7 +36,8 @@ import { UserEmail, UserName } from '../../util'
 export const GetUserRoute = defineRoute({
   path: '/v1/users/:id',
   method: 'GET',
-  responses: [GoodUserData, BadUnknownUser],
+  goodResponses: [GoodUserData],
+  badResponses: [BadUnknownUser],
   authRequired: false,
   params: z.object({
     id: z.string(),
@@ -44,7 +47,8 @@ export const GetUserRoute = defineRoute({
 export const GetUserSelfRoute = defineRoute({
   path: '/v1/users/me',
   method: 'GET',
-  responses: [GoodUserSelfData, BadToken],
+  goodResponses: [GoodUserSelfData],
+  badResponses: [BadToken],
   authRequired: true,
 })
 
@@ -53,11 +57,11 @@ export const UpdateUserRoute = defineRoute({
   path: '/v1/users/me',
   method: 'PATCH',
   body: z.object({
-    name: UserName.optional(),
-    division: z.string().optional(),
+    name: z.optional(UserName),
+    division: z.optional(z.string()),
   }),
-  responses: [
-    GoodUserUpdate,
+  goodResponses: [GoodUserUpdate],
+  badResponses: [
     BadEnded,
     BadName,
     BadRateLimit,
@@ -71,7 +75,8 @@ export const UpdateUserRoute = defineRoute({
 export const GetMembersRoute = defineRoute({
   path: '/v1/users/me/members',
   method: 'GET',
-  responses: [GoodMemberData, BadEndpoint, BadToken],
+  goodResponses: [GoodMemberData],
+  badResponses: [BadEndpoint, BadToken],
   authRequired: true,
 })
 
@@ -82,14 +87,8 @@ export const CreateMemberRoute = defineRoute({
   body: z.object({
     email: UserEmail,
   }),
-  responses: [
-    GoodMemberCreate,
-    BadEndpoint,
-    BadEnded,
-    BadEmail,
-    BadKnownEmail,
-    BadToken,
-  ],
+  goodResponses: [GoodMemberCreate],
+  badResponses: [BadEndpoint, BadEnded, BadEmail, BadKnownEmail, BadToken],
   authRequired: true,
 })
 
@@ -97,7 +96,8 @@ export const CreateMemberRoute = defineRoute({
 export const DeleteMemberRoute = defineRoute({
   path: '/v1/users/me/members/:id',
   method: 'DELETE',
-  responses: [GoodMemberDelete, BadEnded, BadEndpoint, BadToken],
+  goodResponses: [GoodMemberDelete],
+  badResponses: [BadEnded, BadEndpoint, BadToken],
   authRequired: true,
   params: z.object({
     id: z.string(),
@@ -107,16 +107,18 @@ export const DeleteMemberRoute = defineRoute({
 export const SetEmailRoute = defineRoute({
   path: '/v1/users/me/auth/email',
   method: 'PUT',
+  captchaAction: ProtectedAction.SetEmail,
   body: z.object({
     email: UserEmail,
+    recaptchaCode: z.optional(z.string()),
   }),
-  responses: [
-    GoodEmailSet,
-    GoodVerifySent,
+  goodResponses: [GoodEmailSet, GoodVerifySent],
+  badResponses: [
     BadEmail,
     BadKnownEmail,
     BadEmailChangeDivision,
     BadUnknownUser,
+    BadRecaptchaCode,
     BadToken,
   ],
   authRequired: true,
@@ -125,8 +127,8 @@ export const SetEmailRoute = defineRoute({
 export const DeleteEmailRoute = defineRoute({
   path: '/v1/users/me/auth/email',
   method: 'DELETE',
-  responses: [
-    GoodEmailRemoved,
+  goodResponses: [GoodEmailRemoved],
+  badResponses: [
     BadEndpoint,
     BadZeroAuth,
     BadEmailNoExists,
@@ -142,8 +144,8 @@ export const SetCtftimeRoute = defineRoute({
   body: z.object({
     ctftimeToken: z.string(),
   }),
-  responses: [
-    GoodCtftimeAuthSet,
+  goodResponses: [GoodCtftimeAuthSet],
+  badResponses: [
     BadEndpoint,
     BadCtftimeToken,
     BadKnownCtftimeId,
@@ -156,8 +158,8 @@ export const SetCtftimeRoute = defineRoute({
 export const DeleteCtftimeRoute = defineRoute({
   path: '/v1/users/me/auth/ctftime',
   method: 'DELETE',
-  responses: [
-    GoodCtftimeRemoved,
+  goodResponses: [GoodCtftimeRemoved],
+  badResponses: [
     BadEndpoint,
     BadZeroAuth,
     BadCtftimeNoExists,

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 import { NumericString } from '../util'
 
@@ -16,24 +16,30 @@ export const GoodClientConfig = response('goodClientConfig', {
         name: z.string(),
         icon: z.string(),
         description: z.string(),
-        small: z.boolean().optional(),
+        small: z.optional(z.boolean()),
       })
     ),
-    globalSiteTag: z.string().nullish(),
+    globalSiteTag: z.nullish(z.string()),
     ctfName: z.string(),
-    divisions: z.record(z.string()),
-    defaultDivision: z.string().nullish(),
+    divisions: z.record(z.string(), z.string()),
+    defaultDivision: z.nullish(z.string()),
     origin: z.string(),
-    startTime: z.number().int(),
-    endTime: z.number().int(),
+    startTime: z.int(),
+    endTime: z.int(),
     userMembers: z.boolean(),
-    faviconUrl: z.string().nullable(),
+    faviconUrl: z.nullable(z.string()),
     emailEnabled: z.boolean(),
-    registrationsEnabled: z.boolean().nullable(),
-    ctftime: z
-      .object({
+    registrationsEnabled: z.nullable(z.boolean()),
+    ctftime: z.nullable(
+      z.object({
         clientId: NumericString,
       })
-      .nullable(),
+    ),
+    recaptcha: z.nullable(
+      z.object({
+        siteKey: z.string(),
+        protectedActions: z.array(z.string()),
+      })
+    ),
   }),
 })

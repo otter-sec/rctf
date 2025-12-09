@@ -8,7 +8,7 @@
         default:
           'bg-background-accent text-foreground-accent [a&]:hover:bg-background-accent/90 border-transparent',
         secondary:
-          'bg-background-l2 text-foreground-l1 [a&]:hover:bg-background-l2/90 border-transparent',
+          'bg-background-l4 text-foreground-l1 [a&]:hover:bg-background-l5 border-transparent',
         destructive:
           'bg-background-destructive text-foreground-destructive [a&]:hover:bg-background-destructive/90 focus-visible:ring-foreground-destructive/20 border-transparent',
         outline: 'text-foreground-l1 [a&]:hover:bg-background-l2',

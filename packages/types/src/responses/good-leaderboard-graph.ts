@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodLeaderboardGraph = response('goodLeaderboardGraph', {
@@ -9,8 +9,8 @@ export const GoodLeaderboardGraph = response('goodLeaderboardGraph', {
       z.object({
         points: z.array(
           z.object({
-            time: z.number().int(),
-            score: z.number().int(),
+            time: z.int(),
+            score: z.int(),
           })
         ),
         id: z.string(),

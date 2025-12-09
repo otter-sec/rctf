@@ -2,14 +2,21 @@ import {
   BadToken,
   isFileField,
   type AnyRouteDefinition,
+  type ClientConfig,
+  type ResponseDefinition,
   type RouteBodyInput,
   type RouteParamsInput,
   type RouteQueryInput,
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
+import { getCaptchaCode } from '$lib/utils'
 
-export * from './types'
+let cachedClientConfig: ClientConfig | null = null
+
+export function setClientConfig(config: ClientConfig): void {
+  cachedClientConfig = config
+}
 
 type SectionPayload<T> = [T] extends [undefined]
   ? {}
@@ -56,7 +63,6 @@ const applyPath = (
   if (!params) {
     return path
   }
-
   return path.replace(/:([A-Za-z0-9_]+)/g, (_, key: string) => {
     const value = params[key]
     if (value === undefined || value === null) {
@@ -74,19 +80,23 @@ const applyQuery = (url: URL, query: Record<string, unknown> | undefined) => {
 
 const parseResponse = <TRoute extends AnyRouteDefinition>(
   route: TRoute,
-  payload: any
+  payload: unknown
 ): RouteResponse<TRoute> => {
   const envelope: ApiResponseShape = {
-    kind: payload?.kind ?? 'unknown',
-    message: payload?.message ?? 'Unknown error',
-    data: payload?.data ?? null,
+    kind: (payload as ApiResponseShape)?.kind ?? 'unknown',
+    message: (payload as ApiResponseShape)?.message ?? 'Unknown error',
+    data: (payload as ApiResponseShape)?.data ?? null,
   }
 
   if (envelope.kind === BadToken.kind) {
     clearToken()
   }
 
-  const definition = route.responses.find(
+  const definitions: ResponseDefinition[] = [
+    ...route.goodResponses,
+    ...route.badResponses,
+  ]
+  const definition = definitions.find(
     definition => definition.kind === envelope.kind
   )
   if (!definition) {
@@ -119,37 +129,29 @@ const buildFormDataBody = (payload: Record<string, unknown>): FormData => {
   const formData = new FormData()
 
   const appendValue = (key: string, value: unknown) => {
-    if (value === undefined) {
-      return
-    }
-
+    if (value === undefined) return
     if (value === null) {
       formData.append(key, '')
       return
     }
-
     if (Array.isArray(value)) {
       value.forEach(item => appendValue(key, item))
       return
     }
-
     if (isFileField(value)) {
       formData.append(key, value)
       return
     }
-
     if (value instanceof Date) {
       formData.append(key, value.toISOString())
       return
     }
-
     formData.append(key, String(value))
   }
 
   for (const [key, value] of Object.entries(payload)) {
     appendValue(key, value)
   }
-
   return formData
 }
 
@@ -158,6 +160,17 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   args?: InlineArgs<TRoute>
 ): Promise<RouteResponse<TRoute>> {
   const { params, query, body } = pickArgs(route, args)
+
+  let finalBody = body as Record<string, unknown> | undefined
+  if (route.captchaAction && finalBody) {
+    const captchaCode = await getCaptchaCode(
+      route.captchaAction,
+      cachedClientConfig
+    )
+    if (captchaCode) {
+      finalBody = { ...finalBody, captchaCode }
+    }
+  }
 
   const path = applyPath(route.path, params).replace(/^\//, '')
   const origin = browser ? window.location.origin : 'http://localhost'
@@ -174,13 +187,13 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   }
 
   let requestBody: BodyInit | undefined
-  const expectsBody = Boolean(route.body && body !== undefined)
+  const expectsBody = Boolean(route.body && finalBody !== undefined)
   if (expectsBody) {
     if (route.bodyFormat === 'form-data') {
-      requestBody = buildFormDataBody(body as Record<string, unknown>)
+      requestBody = buildFormDataBody(finalBody as Record<string, unknown>)
     } else {
       headers['Content-Type'] = 'application/json'
-      requestBody = JSON.stringify(body)
+      requestBody = JSON.stringify(finalBody)
     }
   }
 

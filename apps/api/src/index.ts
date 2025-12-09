@@ -14,7 +14,9 @@ import { routeModules } from './routes'
 import { startLeaderboardWorker } from './workers'
 
 const logger = pino({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'trace',
+  level:
+    process.env.LOG_LEVEL ??
+    (process.env.NODE_ENV === 'production' ? 'info' : 'trace'),
 })
 
 const createApp = () => {
@@ -87,7 +89,7 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
   })
 }
 
-const setupApp = async () => {
+export const setupApp = async () => {
   const app = createApp()
 
   registerApiRoutes(app)

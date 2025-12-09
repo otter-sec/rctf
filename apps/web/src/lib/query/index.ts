@@ -5,34 +5,41 @@ import {
   DeleteChallengeRoute,
   DeleteEmailRoute,
   DeleteMemberRoute,
-  GetAdminChallengeRoute,
-  GetAdminChallengesRoute,
+  GetAdminChallengeRouteV2,
+  GetAdminChallengesRouteV2,
   GetChallengeSolvesRouteV2,
-  GetChallengesRoute,
-  GetClientConfigRoute,
-  GetLeaderboardGraphRoute,
+  GetChallengesRouteV2,
+  GetClientConfigRouteV2,
+  GetInstancerSchemaRouteV2,
+  GetLeaderboardChallengesRouteV2,
+  GetLeaderboardGraphRouteV2,
   GetLeaderboardRouteV2,
+  GetLeaderboardWithGraphRoute,
   GetMembersRoute,
   GetUserRouteV2,
   GetUserSelfRouteV2,
-  GoodAdminChallenge,
-  GoodAdminChallenges,
-  GoodChallenges,
+  GoodAdminChallengesV2,
+  GoodAdminChallengeV2,
   GoodChallengeSolvesV2,
-  GoodClientConfig,
+  GoodChallengesV2,
+  GoodClientConfigV2,
+  GoodInstancerSchema,
+  GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
+  GoodLeaderboardWithGraph,
   GoodMemberData,
   GoodUserDataV2,
   GoodUserSelfDataV2,
   LoginRoute,
-  RecoverRoute,
-  RegisterRoute,
-  SetEmailRoute,
+  RecoverRouteV2,
+  RegisterRouteV2,
+  SetEmailRouteV2,
   SubmitFlagRoute,
-  UpdateChallengeRoute,
+  UpdateAvatarRoute,
+  UpdateChallengeRouteV2,
   UpdateUserRouteV2,
-  UploadFilesRoute,
+  UploadFilesRouteV2,
   VerifyRoute,
   type AnyRouteDefinition,
   type RouteResponse,
@@ -44,7 +51,12 @@ import {
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import { apiRequest, isAuthenticated, type InlineArgs } from '$lib/api'
+import {
+  apiRequest,
+  isAuthenticated,
+  setClientConfig,
+  type InlineArgs,
+} from '$lib/api'
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
@@ -75,8 +87,9 @@ export function createQueryClient() {
 export const clientConfigQueryOptions = queryOptions({
   queryKey: ['clientConfig'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetClientConfigRoute)
-    if (response.kind === GoodClientConfig.kind) {
+    const response = await apiRequest(GetClientConfigRouteV2)
+    if (response.kind === GoodClientConfigV2.kind) {
+      setClientConfig(response.data)
       return response.data
     }
     throw new ApiError(response.message)
@@ -114,8 +127,8 @@ export const userByIdQueryOptions = (id: string) =>
 export const challengesQueryOptions = queryOptions({
   queryKey: ['challenges'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetChallengesRoute)
-    if (response.kind === GoodChallenges.kind) {
+    const response = await apiRequest(GetChallengesRouteV2)
+    if (response.kind === GoodChallengesV2.kind) {
       return response.data
     }
     if (response.kind === BadToken.kind) {
@@ -129,8 +142,8 @@ export const challengesQueryOptions = queryOptions({
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
   queryFn: async () => {
-    const response = await apiRequest(GetAdminChallengesRoute)
-    if (response.kind === GoodAdminChallenges.kind) {
+    const response = await apiRequest(GetAdminChallengesRouteV2)
+    if (response.kind === GoodAdminChallengesV2.kind) {
       return response.data
     }
     throw new ApiError(response.message)
@@ -141,8 +154,8 @@ export const adminChallengeQueryOptions = (id: string) =>
   queryOptions({
     queryKey: ['admin', 'challenges', id] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetAdminChallengeRoute, { id })
-      if (response.kind === GoodAdminChallenge.kind) {
+      const response = await apiRequest(GetAdminChallengeRouteV2, { id })
+      if (response.kind === GoodAdminChallengeV2.kind) {
         return response.data
       }
       throw new ApiError(response.message)
@@ -152,7 +165,7 @@ export const adminChallengeQueryOptions = (id: string) =>
 export const leaderboardQueryOptions = (params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) =>
   queryOptions({
     queryKey: ['leaderboard', params] as const,
@@ -164,22 +177,72 @@ export const leaderboardQueryOptions = (params: {
       throw new ApiError(response.message)
     },
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000,
   })
+
+export const leaderboardChallengesQueryOptions = queryOptions({
+  queryKey: ['leaderboard', 'challenges'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetLeaderboardChallengesRouteV2)
+    if (response.kind === GoodLeaderboardChallengesV2.kind) {
+      return response.data.challenges
+    }
+    throw new ApiError(response.message)
+  },
+  refetchOnWindowFocus: true,
+  refetchInterval: 30 * 1000,
+})
 
 export const leaderboardGraphQueryOptions = (params: {
   limit: number
-  division: string
+  offset: number
+  division?: string
 }) =>
   queryOptions({
     queryKey: ['leaderboard', 'graph', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetLeaderboardGraphRoute, params)
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, params)
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
       }
       throw new ApiError(response.message)
     },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
+  })
+
+export const leaderboardWithGraphQueryOptions = (params: {
+  limit: number
+  offset: number
+  division?: string
+}) =>
+  queryOptions({
+    queryKey: ['leaderboard', 'with-graph', params] as const,
+    queryFn: async () => {
+      const response = await apiRequest(GetLeaderboardWithGraphRoute, params)
+      if (response.kind === GoodLeaderboardWithGraph.kind) {
+        return response.data
+      }
+      throw new ApiError(response.message)
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
+  })
+
+export const selfUserGraphQueryOptions = (globalPlace: number | null) =>
+  queryOptions({
+    queryKey: ['leaderboard', 'graph', 'self', globalPlace] as const,
+    queryFn: async () => {
+      if (globalPlace === null || globalPlace < 1) return null
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, {
+        limit: 1,
+        offset: globalPlace - 1,
+      })
+      if (response.kind === GoodLeaderboardGraph.kind) {
+        return response.data.graph[0] ?? null
+      }
+      return null
+    },
+    enabled: globalPlace !== null && globalPlace >= 1,
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000,
   })
@@ -213,6 +276,18 @@ export const membersQueryOptions = queryOptions({
   },
 })
 
+export const instancerSchemaQueryOptions = queryOptions({
+  queryKey: ['admin', 'instancer', 'schema'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetInstancerSchemaRouteV2)
+    if (response.kind === GoodInstancerSchema.kind) {
+      return response.data
+    }
+    return null
+  },
+  staleTime: Infinity,
+})
+
 export const queryKeys = {
   clientConfig: clientConfigQueryOptions.queryKey,
   userSelf: userSelfQueryOptions.queryKey,
@@ -222,11 +297,23 @@ export const queryKeys = {
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,
-  leaderboardGraph: (params: { limit: number; division: string }) =>
-    leaderboardGraphQueryOptions(params).queryKey,
+  leaderboardChallenges: leaderboardChallengesQueryOptions.queryKey,
+  leaderboardGraph: (params: {
+    limit: number
+    offset: number
+    division: string
+  }) => leaderboardGraphQueryOptions(params).queryKey,
+  leaderboardWithGraph: (params: {
+    limit: number
+    offset: number
+    division: string
+  }) => leaderboardWithGraphQueryOptions(params).queryKey,
+  selfUserGraph: (globalPlace: number | null) =>
+    selfUserGraphQueryOptions(globalPlace).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
+  instancerSchema: instancerSchemaQueryOptions.queryKey,
 }
 
 export function createApiMutation<TRoute extends AnyRouteDefinition>(
@@ -267,16 +354,33 @@ export function useAdminChallenge(id: string, enabled = true) {
 export function useLeaderboard(params: {
   limit: number
   offset: number
-  division: string
+  division?: string
 }) {
   return createQuery(leaderboardQueryOptions(params))
 }
 
 export function useLeaderboardGraph(params: {
   limit: number
-  division: string
+  offset: number
+  division?: string
 }) {
   return createQuery(leaderboardGraphQueryOptions(params))
+}
+
+export function useLeaderboardWithGraph(params: {
+  limit: number
+  offset: number
+  division?: string
+}) {
+  return createQuery(leaderboardWithGraphQueryOptions(params))
+}
+
+export function useLeaderboardChallenges() {
+  return createQuery(leaderboardChallengesQueryOptions)
+}
+
+export function useSelfUserGraph(globalPlace: number | null) {
+  return createQuery(selfUserGraphQueryOptions(globalPlace))
 }
 
 export function useChallengeSolves(
@@ -290,12 +394,16 @@ export function useMembers() {
   return createQuery(membersQueryOptions)
 }
 
+export function useInstancerSchema() {
+  return createQuery(instancerSchemaQueryOptions)
+}
+
 export function useLoginMutation() {
   return createApiMutation(LoginRoute)
 }
 
 export function useRegisterMutation() {
-  return createApiMutation(RegisterRoute)
+  return createApiMutation(RegisterRouteV2)
 }
 
 export function useVerifyMutation() {
@@ -303,7 +411,7 @@ export function useVerifyMutation() {
 }
 
 export function useRecoverMutation() {
-  return createApiMutation(RecoverRoute)
+  return createApiMutation(RecoverRouteV2)
 }
 
 export function useSubmitFlagMutation() {
@@ -315,7 +423,7 @@ export function useUpdateUserMutation() {
 }
 
 export function useSetEmailMutation() {
-  return createApiMutation(SetEmailRoute)
+  return createApiMutation(SetEmailRouteV2)
 }
 
 export function useDeleteEmailMutation() {
@@ -331,7 +439,7 @@ export function useDeleteMemberMutation() {
 }
 
 export function useUpdateChallengeMutation() {
-  return createApiMutation(UpdateChallengeRoute)
+  return createApiMutation(UpdateChallengeRouteV2)
 }
 
 export function useDeleteChallengeMutation() {
@@ -339,9 +447,13 @@ export function useDeleteChallengeMutation() {
 }
 
 export function useUploadFilesMutation() {
-  return createApiMutation(UploadFilesRoute)
+  return createApiMutation(UploadFilesRouteV2)
 }
 
 export function useCtftimeCallbackMutation() {
   return createApiMutation(CtftimeCallbackRoute)
+}
+
+export function useUpdateAvatarMutation() {
+  return createApiMutation(UpdateAvatarRoute)
 }

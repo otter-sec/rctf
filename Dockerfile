@@ -25,10 +25,16 @@ FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Symlinks :(
+RUN bun install --frozen-lockfile
+
 ENV NODE_ENV=production
 RUN bun run build
 
 FROM base AS production
+
+# We need this for runtime
+RUN bun install sharp
 
 RUN apk add --no-cache supervisor nginx
 COPY docker/supervisord.conf /etc/supervisord.conf

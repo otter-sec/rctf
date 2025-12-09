@@ -122,21 +122,24 @@ rCTF v1 frontend with rCTF v2 backend:
 - [x] Run migrations programatically depending on the config value instead of just running in dockerfile entry
 - [x] Go through all config vars and check that all of them are used
 - [x] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
+- [x] Captcha
 
 ### Todo v2
 
 - [x] avatars for all team endpoints
-- [ ] better file upload route
-- [ ] specific position in solves
-- [ ] in solves list for a chal return also team's scoreboard position (global + division)
+- [x] better file upload route
+- [x] specific position in solves
+- [x] in solves list for a chal return also team's scoreboard position (global + division)
 - [ ] in global leaderboard return division positions
-- [ ] delete a solve (admin only)
-- [ ] resetting teams token (admin only)
+- [x] delete a solve (admin only)
+- [x] resetting teams token (admin only)
 - [ ] update client config (admin only)
 - [ ] send prize emails (admin only)
-- [ ] file sizes
+- [x] file sizes
 
-- [ ] instancer integration
+- [ ] add csp headers
+
+- [x] instancer integration
 - [ ] admin bot integration
 - [ ] blood bot integration
 
@@ -147,7 +150,7 @@ rCTF v1 frontend with rCTF v2 backend:
 ## New features compared to v1
 
 - Scores config
-- Avatars
+- New captcha providers (`turnstile`, `hcaptcha`)
 - New `s3` upload provider
 
 <details>

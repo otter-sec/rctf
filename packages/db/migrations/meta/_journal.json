@@ -22,6 +22,27 @@
       "when": 1764529959000,
       "tag": "0002_add_avatar_url",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1764616505704,
+      "tag": "0003_add_solves_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1765197402620,
+      "tag": "0004_add_division_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1765198070464,
+      "tag": "0005_add_more_indexes",
+      "breakpoints": true
     }
   ]
 }

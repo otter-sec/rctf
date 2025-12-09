@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodChallenges = response('goodChallenges', {
@@ -17,9 +17,9 @@ export const GoodChallenges = response('goodChallenges', {
           url: z.string(),
         })
       ),
-      points: z.number().int(),
-      solves: z.number().int(),
-      sortWeight: z.number().nullish(),
+      points: z.int(),
+      solves: z.int(),
+      sortWeight: z.nullish(z.number()),
     })
   ),
 })

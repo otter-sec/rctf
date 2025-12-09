@@ -1,0 +1,107 @@
+import { expect } from 'bun:test'
+import { config } from '@rctf/config'
+import {
+  challenges,
+  createDatabase,
+  solves,
+  users,
+  type ChallengeData,
+  type User,
+} from '@rctf/db'
+import type { ResponseDefinition } from '@rctf/types'
+import { eq } from 'drizzle-orm'
+import { createToken, TokenKind } from '../../apps/api/src/lib/tokens'
+
+export const expectResponse = async <T extends ResponseDefinition<string, any>>(
+  res: Response,
+  expected: T
+): Promise<ReturnType<Response['json']>> => {
+  expect(res.status).toBe(expected.status)
+  const body = await res.json()
+  expect(body.kind).toBe(expected.kind)
+  return body
+}
+
+export const generateTestUser = () => ({
+  email: `${crypto.randomUUID()}@es3n1n.eu`,
+  name: crypto.randomUUID(),
+  division: Object.keys(config.divisions)[0]!,
+})
+
+export const generateAuthToken = async (userId: string) => {
+  return createToken(TokenKind.Auth, userId)
+}
+
+export const generateRealTestUser = async (perms = 0) => {
+  const db = createDatabase(config.database.sql).db
+  const userData = generateTestUser()
+  const id = crypto.randomUUID()
+
+  const [user] = await db
+    .insert(users)
+    .values({
+      id,
+      ...userData,
+      perms,
+    })
+    .returning()
+
+  return {
+    user: user!,
+    cleanup: async () => {
+      await db.delete(solves).where(eq(solves.userid, id))
+      await db.delete(users).where(eq(users.id, id))
+    },
+  }
+}
+
+export const generateChallenge = async () => {
+  const db = createDatabase(config.database.sql).db
+  const id = crypto.randomUUID()
+  const flag = crypto.randomUUID()
+
+  const data: ChallengeData = {
+    name: crypto.randomUUID(),
+    description: crypto.randomUUID(),
+    category: crypto.randomUUID(),
+    author: crypto.randomUUID(),
+    files: [],
+    flag,
+    tiebreakEligible: true,
+    points: {
+      min: 100,
+      max: 500,
+    },
+  }
+
+  await db.insert(challenges).values({ id, data })
+
+  return {
+    challenge: { id, ...data, flag },
+    cleanup: async () => {
+      await db.delete(solves).where(eq(solves.challengeid, id))
+      await db.delete(challenges).where(eq(challenges.id, id))
+    },
+  }
+}
+
+export const getUserByEmail = async (
+  email: string
+): Promise<User | undefined> => {
+  const db = createDatabase(config.database.sql).db
+  return await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1)
+    .then(r => r[0])
+}
+
+export const deleteUserByEmail = async (email: string): Promise<void> => {
+  const db = createDatabase(config.database.sql).db
+  const user = await getUserByEmail(email)
+  if (user) {
+    await db.delete(solves).where(eq(solves.userid, user.id))
+    await db.delete(users).where(eq(users.id, user.id))
+  }
+}

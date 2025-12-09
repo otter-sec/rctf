@@ -7,10 +7,7 @@
     IconInfoCircleFilled,
     IconLoader,
   } from '$lib/icons'
-  import {
-    Toaster as Sonner,
-    type ToasterProps as SonnerProps,
-  } from 'svelte-sonner'
+  import { Toaster as Sonner, type ToasterProps as SonnerProps } from 'svelte-sonner'
 
   let { ...restProps }: SonnerProps = $props()
 
@@ -47,7 +44,7 @@
     unstyled: true,
     classes: {
       toast:
-        'font-sans flex items-center gap-3 px-4 py-3 rounded-lg border border-border bg-background-l0 w-full',
+        'font-sans flex items-center gap-3 px-4 py-3 rounded-lg border bg-background-l0 w-full shadow-lg',
       default: 'text-foreground-l0',
       success: 'text-foreground-success',
       error: 'text-foreground-destructive',

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodUploadsQuery = response('goodUploadsQuery', {
@@ -8,7 +8,7 @@ export const GoodUploadsQuery = response('goodUploadsQuery', {
     z.object({
       sha256: z.string(),
       name: z.string(),
-      url: z.string().nullable(),
+      url: z.nullable(z.string()),
     })
   ),
 })

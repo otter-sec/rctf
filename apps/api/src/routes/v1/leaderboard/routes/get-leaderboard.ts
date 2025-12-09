@@ -15,6 +15,12 @@ leaderboardGroup.route(
       })
     }
 
+    if (division && !config.divisions[division]) {
+      return res.badBody({
+        reason: 'Invalid division',
+      })
+    }
+
     const { total, leaderboard } = await getLeaderboard(
       ctx.var.redis,
       limit,

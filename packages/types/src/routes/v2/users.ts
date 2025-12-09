@@ -1,36 +1,47 @@
-import { z } from 'zod'
+import { z } from 'zod/mini'
+import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadAvatarFile,
   BadAvatarFileSize,
+  BadCaptcha,
   BadDivisionNotAllowed,
+  BadEmail,
   BadEnded,
+  BadKnownEmail,
   BadKnownName,
   BadName,
   BadRateLimit,
   BadToken,
   BadUnknownUser,
   GoodAvatarUpdated,
+  GoodEmailSet,
   GoodUserDataV2,
   GoodUserSelfDataV2,
   GoodUserUpdateV2,
+  GoodVerifySent,
 } from '../../responses'
-import { FileFieldSchema, UserName } from '../../util'
+import { FileFieldSchema, UserEmail, UserName } from '../../util'
 
 export const GetUserRouteV2 = defineRoute({
   path: '/v2/users/:id',
   method: 'GET',
-  responses: [GoodUserDataV2, BadUnknownUser],
+  goodResponses: [GoodUserDataV2],
+  badResponses: [BadUnknownUser],
   authRequired: false,
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  // challsRead because we return solves
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const GetUserSelfRouteV2 = defineRoute({
   path: '/v2/users/me',
   method: 'GET',
-  responses: [GoodUserSelfDataV2, BadToken],
+  goodResponses: [GoodUserSelfDataV2],
+  badResponses: [BadToken],
   authRequired: true,
 })
 
@@ -38,11 +49,11 @@ export const UpdateUserRouteV2 = defineRoute({
   path: '/v2/users/me',
   method: 'PATCH',
   body: z.object({
-    name: UserName.optional(),
-    division: z.string().optional(),
+    name: z.optional(UserName),
+    division: z.optional(z.string()),
   }),
-  responses: [
-    GoodUserUpdateV2,
+  goodResponses: [GoodUserUpdateV2],
+  badResponses: [
     BadEnded,
     BadName,
     BadRateLimit,
@@ -56,10 +67,32 @@ export const UpdateUserRouteV2 = defineRoute({
 export const UpdateAvatarRoute = defineRoute({
   path: '/v2/users/me/avatar',
   method: 'PATCH',
-  responses: [BadToken, BadAvatarFile, BadAvatarFileSize, GoodAvatarUpdated],
+  captchaAction: ProtectedAction.AvatarUpload,
+  goodResponses: [GoodAvatarUpdated],
+  badResponses: [
+    BadToken,
+    BadAvatarFile,
+    BadAvatarFileSize,
+    BadCaptcha,
+    BadRateLimit,
+  ],
   authRequired: true,
   body: z.object({
-    avatar: FileFieldSchema.optional(),
+    avatar: z.optional(FileFieldSchema),
+    captchaCode: z.optional(z.string()),
   }),
   bodyFormat: 'form-data',
+})
+
+export const SetEmailRouteV2 = defineRoute({
+  path: '/v2/users/me/auth/email',
+  method: 'PUT',
+  captchaAction: ProtectedAction.SetEmail,
+  body: z.object({
+    email: UserEmail,
+    captchaCode: z.optional(z.string()),
+  }),
+  goodResponses: [GoodEmailSet, GoodVerifySent],
+  badResponses: [BadEmail, BadKnownEmail, BadUnknownUser, BadCaptcha, BadToken],
+  authRequired: true,
 })

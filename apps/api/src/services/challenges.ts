@@ -1,4 +1,10 @@
-import type { Challenge, ChallengeData, DatabaseClient, Solve } from '@rctf/db'
+import type {
+  Challenge,
+  ChallengeData,
+  DatabaseClient,
+  InstancerConfig,
+  Solve,
+} from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
@@ -10,8 +16,9 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
+import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
@@ -27,6 +34,47 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof BadUnknownUser,
   ]
 >
+
+type LeaderboardSolve = { challengeId: string; solveTime: number }
+type SolvesAvatars = {
+  solves: Map<string, LeaderboardSolve[]>
+  avatars: Map<string, string | null>
+}
+
+type ChallengeSolvesWithPosition = {
+  challengeExists: boolean
+  solves: {
+    id: string
+    createdAt: string
+    userId: string
+    userName: string
+    userAvatarUrl: string | null
+    globalPlace: number
+    division: string
+    divisionPlace: number
+  }[]
+  solvePosition: number | null
+}
+
+const createRankedSolves = (db: DatabaseClient) =>
+  db.$with('ranked').as(
+    db
+      .select({
+        solveId: solves.id,
+        challengeId: solves.challengeid,
+        userId: solves.userid,
+        userName: users.name,
+        userAvatarUrl: users.avatarUrl,
+        userDivision: users.division,
+        createdAt: solves.createdat,
+        position:
+          sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`.as(
+            'position'
+          ),
+      })
+      .from(solves)
+      .innerJoin(users, eq(users.id, solves.userid))
+  )
 
 export const getChallenges = async (
   db: DatabaseClient
@@ -55,25 +103,60 @@ export const getChallenge = async (
     .then(takeUnique)
 }
 
+const defaultChallengeData: ChallengeData = {
+  name: '',
+  description: '',
+  category: '',
+  author: '',
+  files: [],
+  points: { min: 0, max: 0 },
+  flag: '',
+  tiebreakEligible: true,
+}
+
+const defaultInstancerConfig: InstancerConfig = {
+  challengeIntegrationId: '',
+  config: {},
+  expose: [],
+  timeoutMilliseconds: 0,
+}
+
 export const upsertChallenge = async (
   db: DatabaseClient,
   id: string,
-  partial: Partial<ChallengeData>
+  partial: Partial<
+    Omit<ChallengeData, 'instancerConfig'> & {
+      instancerConfig?: Partial<InstancerConfig> | null
+    }
+  >
 ): Promise<Challenge> => {
   const current = await getChallenge(db, id)
+  const { instancerConfig: partialInstancerConfig, ...partialRest } = partial
 
-  // FIXME(es3n1n): there's gotta be a better way to do this
+  // Handle instancerConfig: null = clear, undefined = keep current, object = merge
+  let instancerConfig: InstancerConfig | undefined
+  if (partialInstancerConfig === null) {
+    instancerConfig = undefined // Explicitly cleared
+  } else if (partialInstancerConfig !== undefined) {
+    instancerConfig = {
+      ...defaultInstancerConfig,
+      ...current?.data.instancerConfig,
+      ...partialInstancerConfig,
+    }
+  } else {
+    instancerConfig = current?.data.instancerConfig
+  }
+
+  // Filter out undefined values, otherwise we will include them
+  const filteredPartial = Object.fromEntries(
+    Object.entries(partialRest).filter(([_, v]) => v !== undefined)
+  )
+
   const data: ChallengeData = {
-    name: partial.name ?? current?.data.name ?? '',
-    description: partial.description ?? current?.data.description ?? '',
-    category: partial.category ?? current?.data.category ?? '',
-    author: partial.author ?? current?.data.author ?? '',
-    files: partial.files ?? current?.data.files ?? [],
-    points: partial.points ?? current?.data.points ?? { min: 0, max: 0 },
-    flag: partial.flag ?? current?.data.flag ?? '',
-    tiebreakEligible:
-      partial.tiebreakEligible ?? current?.data.tiebreakEligible ?? true,
-    sortWeight: partial.sortWeight ?? current?.data.sortWeight ?? undefined,
+    ...defaultChallengeData,
+    ...current?.data,
+    ...filteredPartial,
+    instancerConfig,
   }
 
   const challenge: Challenge = {
@@ -94,8 +177,10 @@ export const deleteChallenge = async (
   db: DatabaseClient,
   id: string
 ): Promise<void> => {
-  await db.delete(challenges).where(eq(challenges.id, id))
-  await db.delete(solves).where(eq(solves.challengeid, id))
+  await db.transaction(async tx => {
+    await tx.delete(solves).where(eq(solves.challengeid, id))
+    await tx.delete(challenges).where(eq(challenges.id, id))
+  })
 }
 
 export const getChallengeSolves = async (
@@ -120,6 +205,66 @@ export const getChallengeSolves = async (
     .offset(offset)
 }
 
+export const getChallengeSolvesWithPosition = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  challengeId: string,
+  userId: string,
+  limit: number,
+  offset: number
+): Promise<ChallengeSolvesWithPosition> => {
+  const ranked = createRankedSolves(db)
+  const rows = await db
+    .with(ranked)
+    .select({
+      solveId: ranked.solveId,
+      createdAt: ranked.createdAt,
+      userId: ranked.userId,
+      userName: ranked.userName,
+      userAvatarUrl: ranked.userAvatarUrl,
+      userDivision: ranked.userDivision,
+      userSolvePosition: sql<number | null>`(
+        SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
+      )`.as('user_solve_position'),
+    })
+    .from(ranked)
+    .where(eq(ranked.challengeId, challengeId))
+    .orderBy(asc(ranked.position))
+    .limit(limit)
+    .offset(offset)
+
+  if (rows.length === 0) {
+    const challengeExists = await getChallenge(db, challengeId)
+    return {
+      challengeExists: !!challengeExists,
+      solvePosition: null,
+      solves: [],
+    }
+  }
+
+  const userScores = await getUsersScores(
+    redis,
+    rows.map(r => r.userId)
+  )
+  return {
+    challengeExists: true,
+    solvePosition: rows[0]!.userSolvePosition,
+    solves: rows.map(r => {
+      const scores = userScores.get(r.userId)
+      return {
+        id: r.solveId,
+        createdAt: r.createdAt,
+        userId: r.userId,
+        userName: r.userName,
+        userAvatarUrl: r.userAvatarUrl,
+        globalPlace: scores?.place ?? 0,
+        division: r.userDivision,
+        divisionPlace: scores?.divisionPlace ?? 0,
+      }
+    }),
+  }
+}
+
 export const getUserChallengeSolves = async (
   db: DatabaseClient,
   userId: string
@@ -135,45 +280,40 @@ export const getUserChallengeSolves = async (
     .orderBy(asc(solves.createdat))
 }
 
-export const getUsersChallengeSolveIds = async (
+export const getSolvesAndAvatars = async (
   db: DatabaseClient,
   userIds: string[]
-): Promise<{
-  solves: Map<string, string[]>
-  avatars: Map<string, string | null>
-}> => {
+): Promise<SolvesAvatars> => {
   if (userIds.length === 0) {
-    return { solves: new Map(), avatars: new Map() }
+    return {
+      solves: new Map(),
+      avatars: new Map(),
+    }
   }
 
   const rows = await db
     .select({
-      userId: solves.userid,
-      challengeId: solves.challengeid,
-      avatarUrl: users.avatarUrl,
+      challenge_id: solves.challengeid,
+      user_id: solves.userid,
+      avatar_url: users.avatarUrl,
+      created_at: solves.createdat,
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
     .where(inArray(solves.userid, userIds))
     .orderBy(asc(solves.createdat))
 
-  const solvesMap = new Map<string, string[]>()
+  const solvesMap = new Map<string, LeaderboardSolve[]>(
+    userIds.map(id => [id, []])
+  )
   const avatars = new Map<string, string | null>()
-  for (const id of userIds) {
-    solvesMap.set(id, [])
-  }
 
   for (const row of rows) {
-    if (!avatars.has(row.userId)) {
-      avatars.set(row.userId, row.avatarUrl ?? null)
-    }
-
-    const list = solvesMap.get(row.userId)
-    if (list) {
-      list.push(row.challengeId)
-    } else {
-      solvesMap.set(row.userId, [row.challengeId])
-    }
+    avatars.set(row.user_id, avatars.get(row.user_id) ?? row.avatar_url)
+    solvesMap.get(row.user_id)?.push({
+      challengeId: row.challenge_id,
+      solveTime: new Date(row.created_at).getTime(),
+    })
   }
 
   return { solves: solvesMap, avatars }
@@ -248,4 +388,22 @@ export const submitFlag = async (
 
   forceLeaderboardUpdate()
   return res.goodFlag()
+}
+
+export const deleteSolve = async (
+  db: DatabaseClient,
+  params: {
+    challengeId: string
+    userId: string
+  }
+): Promise<Solve[]> => {
+  return db
+    .delete(solves)
+    .where(
+      and(
+        eq(solves.userid, params.userId),
+        eq(solves.challengeid, params.challengeId)
+      )
+    )
+    .returning()
 }

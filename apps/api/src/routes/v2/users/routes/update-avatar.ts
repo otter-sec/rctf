@@ -2,10 +2,22 @@ import { config } from '@rctf/config'
 import { UpdateAvatarRoute } from '@rctf/types'
 import sharp from 'sharp'
 import { uploadProvider } from '../../../../providers'
+import { rateLimit } from '../../../../services/rate-limit'
 import { updateUserAvatar } from '../../../../services/users'
 import usersGroup from '../group'
 
 usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
+  // Rate limit avatar uploads to 1 per 1 minute
+  const timeLeft = await rateLimit(
+    ctx.var.redis,
+    `rl:UPDATE_AVATAR:${user.id}`,
+    1,
+    1 * 60_000
+  )
+  if (timeLeft) {
+    return res.badRateLimit({ timeLeft })
+  }
+
   let url: string | null = null
   if (body.avatar) {
     if (body.avatar.size > config.maxAvatarSize) {

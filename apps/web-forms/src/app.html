@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    %sveltekit.head%
+  </head>
+  <body data-sveltekit-preload-data="hover" style="display: contents">
+    <main>%sveltekit.body%</main>
+  </body>
+</html>
+
+<style>
+  @font-face {
+    font-family: 'Geist';
+    src: url('/fonts/GeistVF.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'Geist Mono';
+    src: url('/fonts/GeistMonoVF.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    --font-sans:
+      'Geist', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+      'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-mono:
+      'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      'Liberation Mono', 'Courier New', monospace;
+
+    --background: light-dark(var(--color-neutral-50), var(--color-neutral-950));
+    --foreground: light-dark(var(--color-neutral-950), var(--color-neutral-50));
+    --primary: light-dark(var(--color-neutral-900), var(--color-neutral-200));
+    --primary-foreground: light-dark(
+      var(--color-neutral-50),
+      var(--color-neutral-900)
+    );
+    --muted: light-dark(var(--color-neutral-200), var(--color-neutral-800));
+    --muted-foreground: light-dark(
+      var(--color-neutral-500),
+      var(--color-neutral-400)
+    );
+    --destructive: light-dark(var(--color-red-600), var(--color-red-400));
+    --border: light-dark(var(--color-neutral-200), var(--color-neutral-800));
+    --ring: light-dark(var(--color-neutral-400), var(--color-neutral-500));
+
+    color-scheme: light dark;
+  }
+
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
+    letter-spacing: var(--tracking-tight);
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      border-radius: var(--radius-sm);
+    }
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+  }
+
+  main {
+    flex: 1;
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1fr)
+      min(calc(var(--container-3xl) - var(--spacing) * 8), 100%)
+      minmax(0, 1fr);
+    padding-inline: calc(var(--spacing) * 4);
+
+    > * {
+      grid-column: 2;
+    }
+  }
+</style>

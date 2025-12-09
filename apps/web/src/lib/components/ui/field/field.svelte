@@ -23,9 +23,7 @@
     },
   })
 
-  export type FieldOrientation = VariantProps<
-    typeof fieldVariants
-  >['orientation']
+  export type FieldOrientation = VariantProps<typeof fieldVariants>['orientation']
 </script>
 
 <script lang="ts">

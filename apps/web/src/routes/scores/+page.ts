@@ -1,21 +1,13 @@
-import {
-  leaderboardGraphQueryOptions,
-  leaderboardQueryOptions,
-} from '$lib/query'
+import { leaderboardWithGraphQueryOptions } from '$lib/query'
 import type { PageLoad } from './$types'
+import { PAGE_SIZE } from './constants'
 
 export const ssr = false
-
-const PAGE_SIZE = 10
 
 export const load: PageLoad = async ({ parent }) => {
   const { queryClient } = await parent()
 
-  const leaderboardParams = { limit: PAGE_SIZE, offset: 0, division: 'open' }
-  const graphParams = { limit: 10, division: 'open' }
-
-  await Promise.all([
-    queryClient.prefetchQuery(leaderboardQueryOptions(leaderboardParams)),
-    queryClient.prefetchQuery(leaderboardGraphQueryOptions(graphParams)),
-  ])
+  await queryClient.prefetchQuery(
+    leaderboardWithGraphQueryOptions({ limit: PAGE_SIZE, offset: 0 })
+  )
 }

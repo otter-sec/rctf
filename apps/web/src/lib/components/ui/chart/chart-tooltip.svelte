@@ -3,11 +3,7 @@
   import { getTooltipContext, Tooltip as TooltipPrimitive } from 'layerchart'
   import type { Snippet } from 'svelte'
   import type { HTMLAttributes } from 'svelte/elements'
-  import {
-    getPayloadConfigFromPayload,
-    useChart,
-    type TooltipPayload,
-  } from './chart-utils'
+  import { getPayloadConfigFromPayload, useChart, type TooltipPayload } from './chart-utils'
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function defaultFormatter(value: any, _payload: TooltipPayload[]) {
@@ -37,8 +33,7 @@
     hideIndicator?: boolean
     labelClassName?: string
     labelFormatter?: // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    | ((value: any, payload: TooltipPayload[]) => string | number | Snippet)
-      | null
+      ((value: any, payload: TooltipPayload[]) => string | number | Snippet) | null
     formatter?: Snippet<
       [
         {
@@ -75,9 +70,7 @@
     return labelFormatter(value, tooltipCtx.payload)
   })
 
-  const nestLabel = $derived(
-    tooltipCtx.payload.length === 1 && indicator !== 'dot'
-  )
+  const nestLabel = $derived(tooltipCtx.payload.length === 1 && indicator !== 'dot')
 </script>
 
 {#snippet TooltipLabel()}
@@ -106,11 +99,7 @@
     <div class="grid gap-1.5">
       {#each tooltipCtx.payload as item, i (item.key + i)}
         {@const key = `${nameKey || item.key || item.name || 'value'}`}
-        {@const itemConfig = getPayloadConfigFromPayload(
-          chart.config,
-          item,
-          key
-        )}
+        {@const itemConfig = getPayloadConfigFromPayload(chart.config, item, key)}
         {@const indicatorColor = color || item.payload?.color || item.color}
         <div
           class={cn(
@@ -132,16 +121,12 @@
             {:else if !hideIndicator}
               <div
                 style="--color-bg: {indicatorColor}; --color-border: {indicatorColor};"
-                class={cn(
-                  'border-(--color-border) bg-(--color-bg) shrink-0 rounded-[2px]',
-                  {
-                    'size-2.5': indicator === 'dot',
-                    'h-full w-1': indicator === 'line',
-                    'w-0 border-[1.5px] border-dashed bg-transparent':
-                      indicator === 'dashed',
-                    'my-0.5': nestLabel && indicator === 'dashed',
-                  }
-                )}
+                class={cn('shrink-0 rounded-[2px] border-(--color-border) bg-(--color-bg)', {
+                  'size-2.5': indicator === 'dot',
+                  'h-full w-1': indicator === 'line',
+                  'w-0 border-[1.5px] border-dashed bg-transparent': indicator === 'dashed',
+                  'my-0.5': nestLabel && indicator === 'dashed',
+                })}
               ></div>
             {/if}
             <div
@@ -159,9 +144,7 @@
                 </span>
               </div>
               {#if item.value !== undefined}
-                <span
-                  class="text-foreground-l0 font-mono font-medium tabular-nums"
-                >
+                <span class="text-foreground-l0 font-mono font-medium tabular-nums">
                   {item.value.toLocaleString()}
                 </span>
               {/if}

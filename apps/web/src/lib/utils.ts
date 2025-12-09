@@ -10,6 +10,9 @@ export * from './utils/markdown'
 export * from './utils/time'
 export * from './utils/rank'
 export * from './utils/categories'
+export * from './utils/filesize'
+export * from './utils/captcha'
+export * from './utils/permissions'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T
