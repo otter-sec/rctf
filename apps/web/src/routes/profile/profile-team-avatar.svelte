@@ -100,48 +100,48 @@
 </script>
 
 <Section.Root>
-    <Section.Header>Team avatar</Section.Header>
-    <Section.Content>
-      <div class="flex items-center gap-4">
-        <div class="relative">
-          {#key displayAvatarUrl}
-            <Avatar.Root class="size-18 rounded-lg">
-              {#if displayAvatarUrl}
-                <Avatar.Image src={displayAvatarUrl} alt={user.name} class="rounded-lg" />
-              {/if}
-              <Avatar.Fallback class="rounded-lg text-xl">
-                {getInitials(user.name)}
-              </Avatar.Fallback>
-            </Avatar.Root>
-          {/key}
-          {#if loading}
-            <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
-              <Spinner class="size-5" />
-            </div>
-          {/if}
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <input
-            bind:this={fileInput}
-            type="file"
-            accept="image/*"
-            class="hidden"
-            onchange={handleFileSelect}
-          />
-          <Button size="sm" onclick={triggerFileInput} disabled={loading}>
-            <IconCameraFilled class="size-4" />
-            {user.avatarUrl ? 'Change' : 'Upload'}
-          </Button>
-          {#if user.avatarUrl}
-            <Button variant="destructive" size="sm" onclick={removeAvatar} disabled={loading}>
-              <IconTrashFilled class="size-4" />
-              Remove
-            </Button>
-          {/if}
-        </div>
+  <Section.Header>Team avatar</Section.Header>
+  <Section.Content>
+    <div class="flex items-center gap-4">
+      <div class="relative">
+        {#key displayAvatarUrl}
+          <Avatar.Root class="size-18 rounded-lg">
+            {#if displayAvatarUrl}
+              <Avatar.Image src={displayAvatarUrl} alt={user.name} class="rounded-lg" />
+            {/if}
+            <Avatar.Fallback class="rounded-lg text-xl">
+              {getInitials(user.name)}
+            </Avatar.Fallback>
+          </Avatar.Root>
+        {/key}
+        {#if loading}
+          <div class="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50">
+            <Spinner class="size-5" />
+          </div>
+        {/if}
       </div>
 
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.AvatarUpload} class="mt-3" />
-    </Section.Content>
-  </Section.Root>
+      <div class="flex flex-col gap-2">
+        <input
+          bind:this={fileInput}
+          type="file"
+          accept="image/*"
+          class="hidden"
+          onchange={handleFileSelect}
+        />
+        <Button size="sm" onclick={triggerFileInput} disabled={loading}>
+          <IconCameraFilled class="size-4" />
+          {user.avatarUrl ? 'Change' : 'Upload'}
+        </Button>
+        {#if user.avatarUrl}
+          <Button variant="destructive" size="sm" onclick={removeAvatar} disabled={loading}>
+            <IconTrashFilled class="size-4" />
+            Remove
+          </Button>
+        {/if}
+      </div>
+    </div>
+
+    <CaptchaNotice config={clientConfig} action={ProtectedAction.AvatarUpload} class="mt-3" />
+  </Section.Content>
+</Section.Root>

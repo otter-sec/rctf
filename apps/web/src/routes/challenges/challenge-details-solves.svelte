@@ -5,7 +5,6 @@
   import { toast } from '$lib'
   import { apiRequest } from '$lib/api'
   import { Button, ScrollArea, Spinner } from '$lib/components'
-  import ChallengeRankRow from './challenge-rank-row.svelte'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import {
     formatFirstBloodTime,
@@ -13,6 +12,7 @@
     formatRelativeToFirstBlood,
     getRankVariant,
   } from '$lib/utils'
+  import ChallengeRankRow from './challenge-rank-row.svelte'
 
   const PAGE_SIZE = 10
 

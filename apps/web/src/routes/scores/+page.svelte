@@ -7,9 +7,9 @@
   import { leaderboardQueryOptions, useLeaderboard, useLeaderboardChallenges } from '$lib/query'
   import { cn } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
-  import { type ViewMode, type SortMode } from './types'
   import ScoresPagination from './scores-header-options.svelte'
   import ScoresView from './scores.svelte'
+  import { type SortMode, type ViewMode } from './types'
 
   const queryClient = useQueryClient()
 

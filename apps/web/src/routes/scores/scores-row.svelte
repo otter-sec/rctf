@@ -3,6 +3,9 @@
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
+  import Cell from './scores-cell-blood.svelte'
+  import Progress from './scores-cell-progress.svelte'
+  import TeamInfo from './scores-row-team-info.svelte'
   import type {
     CategoryGroup,
     Challenge,
@@ -11,9 +14,6 @@
     TooltipData,
     ViewMode,
   } from './types'
-  import Cell from './scores-cell-blood.svelte'
-  import Progress from './scores-cell-progress.svelte'
-  import TeamInfo from './scores-row-team-info.svelte'
 
   interface Props {
     entry: LeaderboardEntry

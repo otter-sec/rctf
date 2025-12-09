@@ -15,6 +15,7 @@
   "dependencies": {
     "@rctf/types": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
+    "@tanstack/svelte-virtual": "^3.13.13",
     "@types/d3-array": "^3.2.2",
     "@xstate/svelte": "^5.0.0",
     "ajv": "^8.17.1",

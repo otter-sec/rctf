@@ -10,11 +10,11 @@
   import { goto } from '$app/navigation'
   import { setToken, toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
-  import ButtonCtftime from '../button-ctftime.svelte'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
+  import ButtonCtftime from '../button-ctftime.svelte'
 
   const queryClient = useQueryClient()
   const loginMutation = useLoginMutation()

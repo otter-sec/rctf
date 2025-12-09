@@ -109,118 +109,114 @@
 
 <Section.Root>
   <Section.Header>Update profile</Section.Header>
-    <Section.Content>
-      <form onsubmit={profileForm.submit} class="flex flex-col gap-3">
-        <Field.Field data-invalid={!!profileForm.errors.name || undefined}>
-          <Field.Label>Team name</Field.Label>
-          <Input
-            type="text"
-            placeholder="Enter your team name"
-            autocomplete="username"
-            autocorrect="off"
-            minlength={2}
-            maxlength={64}
-            required
-            bind:value={profileForm.data.name}
-            disabled={loading}
-          />
-          {#if profileForm.errors.name}
-            <Field.Error>{profileForm.errors.name}</Field.Error>
+  <Section.Content>
+    <form onsubmit={profileForm.submit} class="flex flex-col gap-3">
+      <Field.Field data-invalid={!!profileForm.errors.name || undefined}>
+        <Field.Label>Team name</Field.Label>
+        <Input
+          type="text"
+          placeholder="Enter your team name"
+          autocomplete="username"
+          autocorrect="off"
+          minlength={2}
+          maxlength={64}
+          required
+          bind:value={profileForm.data.name}
+          disabled={loading}
+        />
+        {#if profileForm.errors.name}
+          <Field.Error>{profileForm.errors.name}</Field.Error>
+        {/if}
+      </Field.Field>
+
+      {#if allowedDivisionOptions.length > 1}
+        <Field.Field data-invalid={!!profileForm.errors.division || undefined}>
+          <Field.Label>Division</Field.Label>
+          <Select.Root type="single" bind:value={profileForm.data.division} disabled={loading}>
+            <Select.Trigger class="w-full">
+              {selectedDivisionLabel}
+            </Select.Trigger>
+            <Select.Content>
+              {#each allowedDivisionOptions as option (option.value)}
+                <Select.Item value={option.value} label={option.label}>
+                  {option.label}
+                </Select.Item>
+              {/each}
+            </Select.Content>
+          </Select.Root>
+          {#if profileForm.errors.division}
+            <Field.Error>{profileForm.errors.division}</Field.Error>
           {/if}
         </Field.Field>
+      {/if}
 
-        {#if allowedDivisionOptions.length > 1}
-          <Field.Field data-invalid={!!profileForm.errors.division || undefined}>
-            <Field.Label>Division</Field.Label>
-            <Select.Root type="single" bind:value={profileForm.data.division} disabled={loading}>
-              <Select.Trigger class="w-full">
-                {selectedDivisionLabel}
-              </Select.Trigger>
-              <Select.Content>
-                {#each allowedDivisionOptions as option (option.value)}
-                  <Select.Item value={option.value} label={option.label}>
-                    {option.label}
-                  </Select.Item>
-                {/each}
-              </Select.Content>
-            </Select.Root>
-            {#if profileForm.errors.division}
-              <Field.Error>{profileForm.errors.division}</Field.Error>
-            {/if}
-          </Field.Field>
-        {/if}
-
-        {#if profileForm.errors._form}
-          <div
-            class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-            role="alert"
-          >
-            {profileForm.errors._form}
-          </div>
-        {/if}
-
-        <Button type="submit" disabled={loading || !profileHasChanges} class="w-full">
-          {#if profileForm.submitting}
-            <Spinner class="size-4" />
-          {/if}
-          Save profile
-        </Button>
-      </form>
-    </Section.Content>
-  </Section.Root>
-
-  <Section.Root>
-    <Section.Header>Email</Section.Header>
-    <Section.Content>
-      <form onsubmit={submitEmail} class="flex flex-col gap-3">
-        <Field.Field
-          data-invalid={!!emailForm.errors.email ||
-            (!isEmailValid && (emailForm.data.email ?? '') !== '') ||
-            undefined}
+      {#if profileForm.errors._form}
+        <div
+          class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
+          role="alert"
         >
-          <Field.Label>
-            Email
-            {#if canDeleteEmail}
-              <Field.Hint>(optional - leave empty to remove)</Field.Hint>
-            {/if}
-          </Field.Label>
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            autocomplete="email"
-            bind:value={emailForm.data.email}
-            disabled={loading}
-          />
-          {#if emailForm.errors.email}
-            <Field.Error>{emailForm.errors.email}</Field.Error>
-          {:else if !isEmailValid && (emailForm.data.email ?? '') !== ''}
-            <Field.Error>Please enter a valid email address</Field.Error>
-          {/if}
-        </Field.Field>
+          {profileForm.errors._form}
+        </div>
+      {/if}
 
-        {#if emailForm.errors._form}
-          <div
-            class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-            role="alert"
-          >
-            {emailForm.errors._form}
-          </div>
+      <Button type="submit" disabled={loading || !profileHasChanges} class="w-full">
+        {#if profileForm.submitting}
+          <Spinner class="size-4" />
         {/if}
+        Save profile
+      </Button>
+    </form>
+  </Section.Content>
+</Section.Root>
 
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} />
-
-        <Button
-          type="submit"
-          disabled={loading || !emailHasChanges || !isEmailValid}
-          class="w-full"
-        >
-          {#if emailForm.submitting || deletingEmail}
-            <Spinner class="size-4" />
+<Section.Root>
+  <Section.Header>Email</Section.Header>
+  <Section.Content>
+    <form onsubmit={submitEmail} class="flex flex-col gap-3">
+      <Field.Field
+        data-invalid={!!emailForm.errors.email ||
+          (!isEmailValid && (emailForm.data.email ?? '') !== '') ||
+          undefined}
+      >
+        <Field.Label>
+          Email
+          {#if canDeleteEmail}
+            <Field.Hint>(optional - leave empty to remove)</Field.Hint>
           {/if}
-          {(emailForm.data.email ?? '').trim() === '' && canDeleteEmail
-            ? 'Remove email'
-            : 'Update email'}
-        </Button>
-      </form>
-    </Section.Content>
-  </Section.Root>
+        </Field.Label>
+        <Input
+          type="email"
+          placeholder="Enter your email"
+          autocomplete="email"
+          bind:value={emailForm.data.email}
+          disabled={loading}
+        />
+        {#if emailForm.errors.email}
+          <Field.Error>{emailForm.errors.email}</Field.Error>
+        {:else if !isEmailValid && (emailForm.data.email ?? '') !== ''}
+          <Field.Error>Please enter a valid email address</Field.Error>
+        {/if}
+      </Field.Field>
+
+      {#if emailForm.errors._form}
+        <div
+          class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
+          role="alert"
+        >
+          {emailForm.errors._form}
+        </div>
+      {/if}
+
+      <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} />
+
+      <Button type="submit" disabled={loading || !emailHasChanges || !isEmailValid} class="w-full">
+        {#if emailForm.submitting || deletingEmail}
+          <Spinner class="size-4" />
+        {/if}
+        {(emailForm.data.email ?? '').trim() === '' && canDeleteEmail
+          ? 'Remove email'
+          : 'Update email'}
+      </Button>
+    </form>
+  </Section.Content>
+</Section.Root>

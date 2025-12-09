@@ -4,10 +4,10 @@
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import type { CategoryGroup, Challenge, SortMode, TooltipData, ViewMode } from './types'
   import Cell from './scores-cell-blood.svelte'
   import Progress from './scores-cell-progress.svelte'
   import TeamInfo from './scores-row-team-info.svelte'
+  import type { CategoryGroup, Challenge, SortMode, TooltipData, ViewMode } from './types'
 
   interface Props {
     user: UserProfile

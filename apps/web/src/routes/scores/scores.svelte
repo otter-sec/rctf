@@ -2,30 +2,14 @@
   import { ScrollArea } from '$lib/components'
   import { useCurrentUser, useLeaderboardGraph, useSelfUserGraph } from '$lib/query'
   import { cn } from '$lib/utils'
-  import {
-    buildSolvesMap,
-    getContentWidth,
-    groupByCategory,
-    processChallenges,
-  } from './utils'
-  import { 
-    CUTOFF_TIME,
-    FADE_SIZE,
-    PAGE_SIZE,
-    layout
-  } from './constants'
-  import type {
-    ChallengesData,
-    LeaderboardEntry,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './types'
+  import { CUTOFF_TIME, FADE_SIZE, layout, PAGE_SIZE } from './constants'
+  import Tooltip from './scores-cell-tooltip.svelte'
   import Fade from './scores-fades.svelte'
   import Header from './scores-header-labels.svelte'
-  import Row from './scores-row.svelte'
   import SelfRow from './scores-row-self.svelte'
-  import Tooltip from './scores-cell-tooltip.svelte'
+  import Row from './scores-row.svelte'
+  import type { ChallengesData, LeaderboardEntry, SortMode, TooltipData, ViewMode } from './types'
+  import { buildSolvesMap, getContentWidth, groupByCategory, processChallenges } from './utils'
 
   interface Props {
     entries: LeaderboardEntry[]

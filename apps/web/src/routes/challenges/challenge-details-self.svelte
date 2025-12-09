@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
-  import ChallengeRankRow from './challenge-rank-row.svelte'
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'
+  import ChallengeRankRow from './challenge-rank-row.svelte'
 
   interface Props {
     challenge: Challenge
