@@ -1,14 +1,23 @@
 <script lang="ts">
   import { isAuthenticated } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
-  import { useChallenges } from '$lib/query'
+  import { useChallenges, useClientConfig } from '$lib/query'
   import Challenges from './challenges.svelte'
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   const challengesQuery = useChallenges()
   const challenges = $derived($challengesQuery.data)
   const isPending = $derived($challengesQuery.isPending)
   const error = $derived($challengesQuery.error?.message)
 </script>
+
+<svelte:head>
+  {#if clientConfig}
+    <title>Challenges | {clientConfig.ctfName}</title>
+  {/if}
+</svelte:head>
 
 {#if challenges}
   <Challenges />

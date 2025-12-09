@@ -6,6 +6,7 @@
   import { Spinner } from '$lib/components'
   import {
     leaderboardWithGraphQueryOptions,
+    useClientConfig,
     useLeaderboardChallenges,
     useLeaderboardWithGraph,
   } from '$lib/query'
@@ -14,6 +15,9 @@
   import ScoresPagination from './scores-header-options.svelte'
   import ScoresView from './scores.svelte'
   import { type SortMode, type ViewMode } from './types'
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   const queryClient = useQueryClient()
 
@@ -100,6 +104,12 @@
     }
   })
 </script>
+
+<svelte:head>
+  {#if clientConfig}
+    <title>Leaderboard | {clientConfig.ctfName}</title>
+  {/if}
+</svelte:head>
 
 <div class="flex flex-col px-9">
   <ScoresPagination

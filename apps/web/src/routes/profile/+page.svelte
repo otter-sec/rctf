@@ -13,6 +13,12 @@
   const challenges = $derived($challengesQuery.data ?? [])
 </script>
 
+<svelte:head>
+  {#if clientConfig}
+    <title>Profile | {clientConfig.ctfName}</title>
+  {/if}
+</svelte:head>
+
 {#if user && clientConfig}
   <div class="mx-auto grid h-[calc(100vh-72px)] w-full max-w-5xl grid-cols-2 gap-4">
     <ProfileTeam {user} {clientConfig} showMembersSection={clientConfig.userMembers} />

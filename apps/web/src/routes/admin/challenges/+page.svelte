@@ -1,13 +1,22 @@
 <script lang="ts">
   import { Card, Spinner } from '$lib/components'
-  import { useAdminChallenges } from '$lib/query'
+  import { useAdminChallenges, useClientConfig } from '$lib/query'
   import AdminChallenges from './admin-challenges.svelte'
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   const challengesQuery = useAdminChallenges()
   const challenges = $derived($challengesQuery.data)
   const isPending = $derived($challengesQuery.isPending)
   const error = $derived($challengesQuery.error?.message)
 </script>
+
+<svelte:head>
+  {#if clientConfig}
+    <title>Admin | {clientConfig.ctfName}</title>
+  {/if}
+</svelte:head>
 
 {#if challenges}
   <AdminChallenges />
