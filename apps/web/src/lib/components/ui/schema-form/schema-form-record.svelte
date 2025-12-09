@@ -1,6 +1,6 @@
 <script lang="ts">
-  import RecordInline from './record-inline.svelte'
-  import RecordPanel from './record-panel.svelte'
+  import SchemaFormRecordInline from './schema-form-record-inline.svelte'
+  import SchemaFormRecordPanel from './schema-form-record-panel.svelte'
   import type { SchemaFormFieldProps, JsonSchema } from './types'
   import { isTypeOneOf } from './utils'
 
@@ -19,7 +19,7 @@
 </script>
 
 {#if isSimpleValue}
-  <RecordInline {schema} {value} {path} {onChange} {disabled} />
+  <SchemaFormRecordInline {schema} {value} {path} {onChange} {disabled} />
 {:else}
-  <RecordPanel {schema} {value} {path} {onChange} {disabled} />
+  <SchemaFormRecordPanel {schema} {value} {path} {onChange} {disabled} />
 {/if}

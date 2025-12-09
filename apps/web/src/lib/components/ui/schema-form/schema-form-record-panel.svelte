@@ -2,8 +2,8 @@
   import { Button, Field, Input, Select } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import SchemaField from './field.svelte'
-  import PanelLayout from './panel-layout.svelte'
+  import SchemaFormField from './schema-form-field.svelte'
+  import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
   import type { SchemaFormFieldProps, JsonSchema } from './types'
   import { defaultValue, renameRecordKey } from './utils'
 
@@ -83,7 +83,7 @@
   }
 </script>
 
-<PanelLayout {label}>
+<SchemaFormPanelLayout {label}>
   {#snippet sidebar()}
     {#if entries.length === 0}
       <p class="text-sm px-2 py-1.5 text-foreground-l4">No entries</p>
@@ -190,7 +190,7 @@
           </Field.Field>
         </div>
       {/if}
-      <SchemaField
+      <SchemaFormField
         schema={valueSchema}
         value={entries.find(([k]) => k === selectedKey)?.[1]}
         path={[...path, selectedKey]}
@@ -203,4 +203,4 @@
       </div>
     {/if}
   {/snippet}
-</PanelLayout>
+</SchemaFormPanelLayout>

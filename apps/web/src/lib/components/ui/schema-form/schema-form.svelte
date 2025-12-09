@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setValidationContext } from './context'
-  import SchemaField from './field.svelte'
+  import SchemaFormField from './schema-form-field.svelte'
   import type { JsonSchema } from './types'
 
   interface Props {
@@ -112,7 +112,7 @@
 </script>
 
 {#if resolvedSchema.properties}
-  <SchemaField
+  <SchemaFormField
     schema={resolvedSchema}
     {value}
     path={[]}

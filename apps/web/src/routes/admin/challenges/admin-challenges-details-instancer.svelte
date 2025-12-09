@@ -13,7 +13,7 @@
   import { IconPlus, IconTrashFilled } from '$lib/icons'
   import { useInstancerSchema } from '$lib/query'
   import * as yaml from 'yaml'
-  import { SchemaForm } from './schema-form'
+  import { SchemaForm } from '$lib/components'
 
   interface Props {
     config: InstancerConfig | null

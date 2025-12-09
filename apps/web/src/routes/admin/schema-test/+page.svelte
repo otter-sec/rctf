@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button, Card, Section, Textarea } from '$lib/components'
   import * as yaml from 'yaml'
-  import { SchemaForm } from '../challs/_components/schema-form'
+  import { SchemaForm } from '$lib/components'
   import testData from './test-data.yaml?raw'
   import testSchema from './test-schema.yaml?raw'
 

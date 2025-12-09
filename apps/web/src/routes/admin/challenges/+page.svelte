@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Card, Spinner } from '$lib/components'
   import { useAdminChallenges } from '$lib/query'
-  import { Root } from './_components'
+  import AdminChallenges from './admin-challenges.svelte'
 
   const challengesQuery = useAdminChallenges()
   const challenges = $derived($challengesQuery.data)
@@ -10,7 +10,7 @@
 </script>
 
 {#if challenges}
-  <Root />
+  <AdminChallenges />
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
