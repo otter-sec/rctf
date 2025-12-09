@@ -187,7 +187,7 @@
                 min={0}
                 required
                 value={pointsMin}
-                oninput={e => onPointsMinChange(+e.currentTarget.value)}
+                onchange={e => onPointsMinChange(+e.currentTarget.value)}
                 disabled={isDisabled}
               />
             </Field.Field>
@@ -198,7 +198,7 @@
                 min={0}
                 required
                 value={pointsMax}
-                oninput={e => onPointsMaxChange(+e.currentTarget.value)}
+                onchange={e => onPointsMaxChange(+e.currentTarget.value)}
                 disabled={isDisabled}
               />
             </Field.Field>
@@ -210,7 +210,7 @@
               <Input
                 type="number"
                 value={sortWeight}
-                oninput={e => onSortWeightChange(+e.currentTarget.value)}
+                onchange={e => onSortWeightChange(+e.currentTarget.value)}
                 disabled={isDisabled}
               />
             </Field.Field>
