@@ -37,7 +37,7 @@ export interface SchemaFormContext {
   disabled: boolean
 }
 
-export interface FieldProps {
+export interface SchemaFormFieldProps {
   schema: JsonSchema
   value: unknown
   path: string[]

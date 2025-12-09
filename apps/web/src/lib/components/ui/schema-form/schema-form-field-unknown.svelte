@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Field, Input } from '$lib/components'
-  import type { FieldProps } from './types'
+  import type { SchemaFormFieldProps } from './types'
 
-  interface Props extends FieldProps {
+  interface Props extends SchemaFormFieldProps {
     showLabel?: boolean
   }
 

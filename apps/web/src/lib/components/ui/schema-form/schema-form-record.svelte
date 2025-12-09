@@ -1,10 +1,10 @@
 <script lang="ts">
   import RecordInline from './record-inline.svelte'
   import RecordPanel from './record-panel.svelte'
-  import type { FieldProps, JsonSchema } from './types'
+  import type { SchemaFormFieldProps, JsonSchema } from './types'
   import { isTypeOneOf } from './utils'
 
-  interface Props extends FieldProps {}
+  interface Props extends SchemaFormFieldProps {}
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 

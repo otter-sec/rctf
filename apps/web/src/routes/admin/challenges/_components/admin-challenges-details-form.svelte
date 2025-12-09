@@ -8,8 +8,8 @@
     IconFileInfoFilled,
     IconFlagFilled,
   } from '$lib/icons'
-  import Attachments from './attachments.svelte'
-  import InstancerConfigPanel from './instancer-config.svelte'
+  import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
+  import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
 
   interface Props {
     name: string
@@ -228,7 +228,7 @@
     <Tabs.Content value="files" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="p-1 pb-4">
-          <Attachments {files} {isDisabled} {onFilesChange} />
+          <AdminChallengesDetailsAttachments {files} {isDisabled} {onFilesChange} />
         </div>
       </ScrollArea>
     </Tabs.Content>
@@ -236,7 +236,7 @@
     <Tabs.Content value="instancer" class="h-full">
       <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="pb-4">
-          <InstancerConfigPanel
+          <AdminChallengesDetailsInstancer
             config={instancerConfig}
             {isDisabled}
             onConfigChange={onInstancerConfigChange}

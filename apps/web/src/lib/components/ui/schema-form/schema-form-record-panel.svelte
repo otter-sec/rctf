@@ -4,10 +4,10 @@
   import { cn } from '$lib/utils'
   import SchemaField from './field.svelte'
   import PanelLayout from './panel-layout.svelte'
-  import type { FieldProps, JsonSchema } from './types'
+  import type { SchemaFormFieldProps, JsonSchema } from './types'
   import { defaultValue, renameRecordKey } from './utils'
 
-  interface Props extends FieldProps {}
+  interface Props extends SchemaFormFieldProps {}
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 

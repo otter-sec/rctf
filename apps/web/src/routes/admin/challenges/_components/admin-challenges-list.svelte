@@ -11,7 +11,7 @@
     getCategoryStyle,
     hasPermissions,
   } from '$lib/utils'
-  import Item from './list-item.svelte'
+  import AdminChallengesListItem from './admin-challenges-list-item.svelte'
 
   interface Props {
     challenges: AdminChallenge[]
@@ -152,7 +152,7 @@
             <Accordion.Content class="bg-category-background-l1 pb-0">
               <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
-                  <Item
+                  <AdminChallengesListItem
                     {challenge}
                     {category}
                     isSelected={selectedId === challenge.id}

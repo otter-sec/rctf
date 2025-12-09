@@ -1,11 +1,11 @@
 <script lang="ts">
-  import SchemaArray from './array.svelte'
-  import BooleanField from './field-boolean.svelte'
-  import NumberField from './field-number.svelte'
-  import StringField from './field-string.svelte'
-  import UnknownField from './field-unknown.svelte'
-  import SchemaObject from './object.svelte'
-  import SchemaRecord from './record.svelte'
+  import SchemaFormArray from './schema-form-array.svelte'
+  import SchemaFormFieldBoolean from './schema-form-field-boolean.svelte'
+  import SchemaFormFieldNumber from './schema-form-field-number.svelte'
+  import SchemaFormFieldString from './schema-form-field-string.svelte'
+  import SchemaFormFieldUnknown from './schema-form-field-unknown.svelte'
+  import SchemaFormObject from './schema-form-object.svelte'
+  import SchemaFormRecord from './schema-form-record.svelte'
   import type { JsonSchema } from './types'
   import { isNullable as checkNullable, getEffectiveSchema, getPrimaryType } from './utils'
 
@@ -39,9 +39,9 @@
 </script>
 
 {#if isRecord}
-  <SchemaRecord schema={effectiveSchema} {value} {path} {onChange} {disabled} />
+  <SchemaFormRecord schema={effectiveSchema} {value} {path} {onChange} {disabled} />
 {:else if primaryType === 'object' && effectiveSchema.properties}
-  <SchemaObject
+  <SchemaFormObject
     schema={effectiveSchema}
     {value}
     {path}
@@ -50,9 +50,9 @@
     {showLabel}
     {isNullable} />
 {:else if primaryType === 'array'}
-  <SchemaArray schema={effectiveSchema} {value} {path} {onChange} {disabled} />
+  <SchemaFormArray schema={effectiveSchema} {value} {path} {onChange} {disabled} />
 {:else if primaryType === 'string' || effectiveSchema.enum}
-  <StringField
+  <SchemaFormFieldString
     schema={effectiveSchema}
     {value}
     {path}
@@ -61,7 +61,7 @@
     {showLabel}
     {required} />
 {:else if primaryType === 'number' || primaryType === 'integer'}
-  <NumberField
+  <SchemaFormFieldNumber
     schema={effectiveSchema}
     {value}
     {path}
@@ -70,7 +70,7 @@
     {showLabel}
     {required} />
 {:else if primaryType === 'boolean'}
-  <BooleanField
+  <SchemaFormFieldBoolean
     schema={effectiveSchema}
     {value}
     {path}
@@ -79,7 +79,7 @@
     {showLabel}
     {required} />
 {:else}
-  <UnknownField
+  <SchemaFormFieldUnknown
     schema={effectiveSchema}
     {value}
     {path}

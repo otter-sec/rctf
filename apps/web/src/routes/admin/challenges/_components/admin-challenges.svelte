@@ -3,8 +3,8 @@
   import { Resizable } from '$lib/components'
   import { editorMachine } from '$lib/machines'
   import { useAdminChallenges } from '$lib/query'
-  import Details from './details.svelte'
-  import List from './list.svelte'
+  import AdminChallengesDetails from './admin-challenges-details.svelte'
+  import AdminChallengesList from './admin-challenges-list.svelte'
 
   const challengesQuery = useAdminChallenges()
   const { snapshot, send } = useMachine(editorMachine)
@@ -20,7 +20,7 @@
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
     <Resizable.Pane defaultSize={40} minSize={20} maxSize={45}>
       <div class="h-full rounded-r-3xl bg-background-l1">
-        <List
+        <AdminChallengesList
           {challenges}
           {selectedId}
           isCreatingNew={isCreating}
@@ -31,7 +31,7 @@
     <Resizable.Handle withHandle />
     <Resizable.Pane defaultSize={60} minSize={40}>
       <div class="h-full rounded-l-3xl bg-background-l1">
-        <Details snapshot={$snapshot} {send} />
+        <AdminChallengesDetails snapshot={$snapshot} {send} />
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>

@@ -19,8 +19,8 @@
   } from '$lib/query'
   import { cn, getCategoryConfig, getCategoryStyle, hasPermissions } from '$lib/utils'
   import type { SnapshotFrom } from 'xstate'
-  import Dialogs from './dialogs.svelte'
-  import Form from './form.svelte'
+  import AdminChallengesDetailsDialogs from './admin-challenges-details-dialogs.svelte'
+  import AdminChallengesDetailsForm from './admin-challenges-details-form.svelte'
 
   interface Props {
     snapshot: SnapshotFrom<typeof editorMachine>
@@ -245,7 +245,7 @@
 
       <div
         class={cn('min-h-0 flex-1 flex flex-col', isDisabled && 'opacity-50 pointer-events-none')}>
-        <Form
+        <AdminChallengesDetailsForm
           name={form.name}
           category={form.category}
           author={form.author}
@@ -283,7 +283,7 @@
     class="h-full" />
 {/if}
 
-<Dialogs
+<AdminChallengesDetailsDialogs
   showUnsavedDialog={isConfirmDiscard}
   {showPreviewDialog}
   showDeleteDialog={isConfirmDelete}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Section } from '$lib/components'
-  import SchemaField from './field.svelte'
+  import SchemaFormField from './schema-form-field.svelte'
   import type { JsonSchema } from './types'
   import { defaultValue } from './utils'
 
@@ -59,7 +59,7 @@
     </Section.Header>
     <Section.Content class="flex flex-col gap-3">
       {#each entries as [key, propSchema]}
-        <SchemaField
+        <SchemaFormField
           schema={propSchema}
           value={obj[key]}
           path={[...path, key]}
@@ -72,7 +72,7 @@
 {:else}
   <div class="flex flex-col gap-3">
     {#each entries as [key, propSchema]}
-      <SchemaField
+      <SchemaFormField
         schema={propSchema}
         value={obj[key]}
         path={[...path, key]}

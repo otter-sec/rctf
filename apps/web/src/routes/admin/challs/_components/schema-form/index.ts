@@ -1,6 +1,0 @@
-export { default as SchemaForm } from './form.svelte'
-export { default as SchemaField } from './field.svelte'
-export { default as SchemaArray } from './array.svelte'
-export { default as SchemaObject } from './object.svelte'
-export { default as SchemaRecord } from './record.svelte'
-export type { JsonSchema, FieldProps } from './types'

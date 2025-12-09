@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Field, Input, Select, Textarea } from '$lib/components'
   import { getValidationContext } from './context'
-  import type { FieldProps } from './types'
+  import type { SchemaFormFieldProps } from './types'
   import {
     isNullable as checkNullable,
     fromNullSentinel,
@@ -12,7 +12,7 @@
   } from './utils'
   import { validateValue } from './validate'
 
-  interface Props extends FieldProps {
+  interface Props extends SchemaFormFieldProps {
     showLabel?: boolean
   }
 

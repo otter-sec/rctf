@@ -2,12 +2,12 @@
   import { Button } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import SchemaField from './field.svelte'
-  import PanelLayout from './panel-layout.svelte'
-  import type { FieldProps, JsonSchema } from './types'
+  import SchemaFormField from './schema-form-field.svelte'
+  import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
+  import type { SchemaFormFieldProps, JsonSchema } from './types'
   import { defaultValue, getItemLabel } from './utils'
 
-  interface Props extends FieldProps {}
+  interface Props extends SchemaFormFieldProps {}
 
   let { schema, value, path, onChange, disabled = false }: Props = $props()
 
@@ -34,7 +34,7 @@
   }
 </script>
 
-<PanelLayout {label}>
+<SchemaFormPanelLayout {label}>
   {#snippet sidebar()}
     {#if items.length === 0}
       <p class="text-sm px-2 py-1.5 text-foreground-l4">No items</p>
@@ -78,7 +78,7 @@
 
   {#snippet content()}
     {#if items[selectedIndex] !== undefined}
-      <SchemaField
+      <SchemaFormField
         schema={itemSchema}
         value={items[selectedIndex]}
         path={[...path, String(selectedIndex)]}
@@ -91,4 +91,4 @@
       </div>
     {/if}
   {/snippet}
-</PanelLayout>
+</SchemaFormPanelLayout>
