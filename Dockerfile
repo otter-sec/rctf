@@ -13,12 +13,12 @@ COPY packages/types/package.json ./packages/types/
 FROM base AS deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --frozen-lockfile
+RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
 
 FROM base AS prod-deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --production --frozen-lockfile
+RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
 
 FROM base AS build
 
@@ -33,9 +33,6 @@ ENV NODE_ENV=production
 RUN bun run build
 
 FROM base AS production
-
-# We need this for runtime
-RUN bun install sharp
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY docker/supervisord.conf /etc/supervisord.conf
