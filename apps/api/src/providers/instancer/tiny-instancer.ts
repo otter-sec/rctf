@@ -26,239 +26,299 @@ const serviceSchema = z.object({
       z.describe('Docker image')
     ),
   hostname: z
-    .prefault(
-      z.nullable(
-        z
-          .string()
-          .check(
-            z.maxLength(63),
-            z.regex(net.HOSTNAME_REGEX, 'Invalid hostname')
-          )
-      ),
-      null
+    .optional(
+      z.prefault(
+        z.nullable(
+          z
+            .string()
+            .check(
+              z.maxLength(63),
+              z.regex(net.HOSTNAME_REGEX, 'Invalid hostname')
+            )
+        ),
+        null
+      )
     )
     .check(z.describe('Container hostname')),
   environment: z
-    .prefault(
-      z.record(z.string().check(z.regex(linux.ENV_VAR_REGEX)), z.string()),
-      {}
+    .optional(
+      z.prefault(
+        z.record(z.string().check(z.regex(linux.ENV_VAR_REGEX)), z.string()),
+        {}
+      )
     )
     .check(z.describe('Environment variables')),
   command: z
-    .prefault(z.nullable(z.string().check(z.minLength(1))), null)
+    .optional(z.prefault(z.nullable(z.string().check(z.minLength(1))), null))
     .check(z.describe('Override default command')),
   entrypoint: z
-    .prefault(z.nullable(z.string().check(z.minLength(1))), null)
+    .optional(z.prefault(z.nullable(z.string().check(z.minLength(1))), null))
     .check(z.describe('Override default entrypoint')),
   working_dir: z
-    .prefault(
-      z.nullable(
-        z
-          .string()
-          .check(z.regex(linux.ABSOLUTE_PATH_REGEX, 'Must be absolute path'))
-      ),
-      null
+    .optional(
+      z.prefault(
+        z.nullable(
+          z
+            .string()
+            .check(z.regex(linux.ABSOLUTE_PATH_REGEX, 'Must be absolute path'))
+        ),
+        null
+      )
     )
     .check(z.describe('Working directory')),
   user: z
-    .prefault(
-      z.nullable(
-        z.string().check(z.regex(linux.USER_REGEX, 'Invalid user format'))
-      ),
-      null
+    .optional(
+      z.prefault(
+        z.nullable(
+          z.string().check(z.regex(linux.USER_REGEX, 'Invalid user format'))
+        ),
+        null
+      )
     )
     .check(z.describe('User to run as')),
   networks: z
-    .prefault(
-      z.array(
-        z
-          .string()
-          .check(z.minLength(1), z.maxLength(64), z.regex(docker.NAME_REGEX))
-      ),
-      []
+    .optional(
+      z.prefault(
+        z.array(
+          z
+            .string()
+            .check(z.minLength(1), z.maxLength(64), z.regex(docker.NAME_REGEX))
+        ),
+        []
+      )
     )
     .check(z.describe('Networks to connect to')),
   network_mode: z
     .optional(z.enum(['bridge', 'host', 'none']))
     .check(z.describe('Network mode (e.g., host, bridge)')),
   dns: z
-    .prefault(z.array(z.union([z.ipv4(), z.ipv6()])), [])
+    .optional(z.prefault(z.array(z.union([z.ipv4(), z.ipv6()])), []))
     .check(z.describe('Custom DNS servers')),
   dns_opt: z
-    .prefault(z.array(z.string().check(z.minLength(1), z.maxLength(255))), [])
+    .optional(
+      z.prefault(
+        z.array(z.string().check(z.minLength(1), z.maxLength(255))),
+        []
+      )
+    )
     .check(z.describe('DNS options')),
   dns_search: z
-    .prefault(
-      z.array(
-        z
-          .string()
-          .check(
-            z.minLength(1),
-            z.maxLength(253),
-            z.regex(net.DNS_DOMAIN_REGEX)
-          )
-      ),
-      []
+    .optional(
+      z.prefault(
+        z.array(
+          z
+            .string()
+            .check(
+              z.minLength(1),
+              z.maxLength(253),
+              z.regex(net.DNS_DOMAIN_REGEX)
+            )
+        ),
+        []
+      )
     )
     .check(z.describe('DNS search domains')),
   extra_hosts: z
-    .prefault(
-      z.array(
-        z.string().check(z.regex(net.EXTRA_HOST_REGEX, 'Expected host:ip'))
-      ),
-      []
+    .optional(
+      z.prefault(
+        z.array(
+          z.string().check(z.regex(net.EXTRA_HOST_REGEX, 'Expected host:ip'))
+        ),
+        []
+      )
     )
     .check(z.describe('Extra /etc/hosts entries (host:ip)')),
   expose: z
-    .prefault(
-      z.array(z.string().check(z.regex(net.PORT_REGEX, 'Invalid port'))),
-      []
+    .optional(
+      z.prefault(
+        z.array(z.string().check(z.regex(net.PORT_REGEX, 'Invalid port'))),
+        []
+      )
     )
     .check(z.describe('Expose ports without publishing')),
   volumes: z
-    .prefault(
-      z.array(
-        z.string().check(z.regex(docker.VOLUME_MOUNT_REGEX, 'Invalid mount'))
-      ),
-      []
+    .optional(
+      z.prefault(
+        z.array(
+          z.string().check(z.regex(docker.VOLUME_MOUNT_REGEX, 'Invalid mount'))
+        ),
+        []
+      )
     )
     .check(z.describe('Volume mounts (volume:path)')),
   tmpfs: z
-    .prefault(
-      z.record(
-        z.string().check(z.regex(linux.ABSOLUTE_PATH_REGEX)),
-        z.string().check(z.minLength(1))
-      ),
-      {}
+    .optional(
+      z.prefault(
+        z.record(
+          z.string().check(z.regex(linux.ABSOLUTE_PATH_REGEX)),
+          z.string().check(z.minLength(1))
+        ),
+        {}
+      )
     )
     .check(z.describe('Tmpfs mounts and their mount options')),
   shm_size: z
-    .prefault(
-      z.nullable(
-        z.string().check(z.regex(docker.MEMORY_SIZE_REGEX, 'Invalid size'))
-      ),
-      null
+    .optional(
+      z.prefault(
+        z.nullable(
+          z.string().check(z.regex(docker.MEMORY_SIZE_REGEX, 'Invalid size'))
+        ),
+        null
+      )
     )
     .check(z.describe('Size of /dev/shm (e.g., 64m)')),
   healthcheck: z
-    .prefault(
-      z.nullable(
-        z.object({
-          test: z
-            .array(z.string().check(z.minLength(1)))
-            .check(z.minLength(1))
-            .check(z.describe('Command to run')),
-          interval: z
-            .prefault(z.string().check(z.regex(docker.DURATION_REGEX)), '30s')
-            .check(z.describe('Interval between checks')),
-          timeout: z
-            .prefault(z.string().check(z.regex(docker.DURATION_REGEX)), '10s')
-            .check(z.describe('Timeout for each check')),
-          retries: z
-            .prefault(z.int().check(z.gte(1), z.lte(100)), 3)
-            .check(z.describe('Retries before unhealthy')),
-          start_period: z
-            .prefault(z.string().check(z.regex(docker.DURATION_REGEX)), '0s')
-            .check(z.describe('Start period')),
-        })
-      ),
-      null
+    .optional(
+      z.prefault(
+        z.nullable(
+          z.object({
+            test: z
+              .array(z.string().check(z.minLength(1)))
+              .check(z.minLength(1))
+              .check(z.describe('Command to run')),
+            interval: z
+              .optional(
+                z.prefault(
+                  z.string().check(z.regex(docker.DURATION_REGEX)),
+                  '30s'
+                )
+              )
+              .check(z.describe('Interval between checks')),
+            timeout: z
+              .optional(
+                z.prefault(
+                  z.string().check(z.regex(docker.DURATION_REGEX)),
+                  '10s'
+                )
+              )
+              .check(z.describe('Timeout for each check')),
+            retries: z
+              .optional(z.prefault(z.int().check(z.gte(1), z.lte(100)), 3))
+              .check(z.describe('Retries before unhealthy')),
+            start_period: z
+              .optional(
+                z.prefault(
+                  z.string().check(z.regex(docker.DURATION_REGEX)),
+                  '0s'
+                )
+              )
+              .check(z.describe('Start period')),
+          })
+        ),
+        null
+      )
     )
     .check(z.describe('Container health check')),
   read_only: z
-    .prefault(z.boolean(), true)
+    .optional(z.prefault(z.boolean(), true))
     .check(z.describe('Read-only root filesystem')),
   privileged: z
-    .prefault(z.boolean(), false)
+    .optional(z.prefault(z.boolean(), false))
     .check(z.describe('Privileged mode')),
   security_opt: z
-    .prefault(z.array(z.string().check(z.minLength(1), z.maxLength(255))), [
-      'no-new-privileges',
-    ])
+    .optional(
+      z.prefault(z.array(z.string().check(z.minLength(1), z.maxLength(255))), [
+        'no-new-privileges',
+      ])
+    )
     .check(z.describe('Security options')),
   cap_add: z
-    .prefault(z.array(z.enum(linux.CAPABILITIES)), [])
+    .optional(z.prefault(z.array(z.enum(linux.CAPABILITIES)), []))
     .check(z.describe('Add capabilities')),
   cap_drop: z
-    .prefault(z.array(z.enum(linux.CAPABILITIES)), ['ALL'])
+    .optional(z.prefault(z.array(z.enum(linux.CAPABILITIES)), ['ALL']))
     .check(z.describe('Drop capabilities')),
   mem_limit: z
-    .prefault(z.string().check(z.regex(docker.MEMORY_SIZE_REGEX)), '6m')
+    .optional(
+      z.prefault(z.string().check(z.regex(docker.MEMORY_SIZE_REGEX)), '6m')
+    )
     .check(z.describe('Memory limit (e.g., 256m, 1g)')),
   cpus: z
-    .prefault(z.number().check(z.positive(), z.lte(1024)), 1.0)
+    .optional(z.prefault(z.number().check(z.positive(), z.lte(1024)), 1.0))
     .check(z.describe('CPU limit')),
   pids_limit: z
-    .prefault(z.int().check(z.gte(-1), z.lte(65536)), 64)
+    .optional(z.prefault(z.int().check(z.gte(-1), z.lte(65536)), 64))
     .check(z.describe('PIDs limit')),
   ulimits: z
-    .prefault(
-      z.partialRecord(
-        z.enum(linux.ULIMIT_NAMES),
-        z.optional(
-          z
-            .object({
-              soft: z.int().check(z.nonnegative()),
-              hard: z.int().check(z.nonnegative()),
-            })
-            .check(z.refine(d => d.soft <= d.hard, 'soft must be <= hard'))
-        )
-      ),
-      { nofile: { soft: 1024, hard: 1024 } }
+    .optional(
+      z.prefault(
+        z.partialRecord(
+          z.enum(linux.ULIMIT_NAMES),
+          z.optional(
+            z
+              .object({
+                soft: z.int().check(z.nonnegative()),
+                hard: z.int().check(z.nonnegative()),
+              })
+              .check(z.refine(d => d.soft <= d.hard, 'soft must be <= hard'))
+          )
+        ),
+        { nofile: { soft: 1024, hard: 1024 } }
+      )
     )
     .check(z.describe('Ulimits')),
   sysctls: z
-    .prefault(
-      z.record(
-        z.string().check(z.regex(linux.SYSCTL_KEY_REGEX)),
-        z.string().check(z.minLength(1))
-      ),
-      {}
+    .optional(
+      z.prefault(
+        z.record(
+          z.string().check(z.regex(linux.SYSCTL_KEY_REGEX)),
+          z.string().check(z.minLength(1))
+        ),
+        {}
+      )
     )
     .check(z.describe('Sysctl settings')),
   labels: z
-    .prefault(
-      z.record(z.string().check(z.regex(docker.LABEL_KEY_REGEX)), z.string()),
-      {}
+    .optional(
+      z.prefault(
+        z.record(z.string().check(z.regex(docker.LABEL_KEY_REGEX)), z.string()),
+        {}
+      )
     )
     .check(z.describe('Container labels')),
   restart: z
-    .prefault(
-      z.enum(['no', 'always', 'on-failure', 'unless-stopped']),
-      'unless-stopped'
+    .optional(
+      z.prefault(
+        z.enum(['no', 'always', 'on-failure', 'unless-stopped']),
+        'unless-stopped'
+      )
     )
     .check(z.describe('Restart policy')),
 })
 
 const networkSchema = z.object({
   driver: z
-    .prefault(z.enum(['bridge', 'host', 'none']), 'bridge')
+    .optional(z.prefault(z.enum(['bridge', 'host', 'none']), 'bridge'))
     .check(z.describe('Network driver')),
   internal: z
-    .prefault(z.boolean(), true)
+    .optional(z.prefault(z.boolean(), true))
     .check(z.describe('Disable external access')),
   driver_opts: z
-    .prefault(
-      z.record(
-        z.string().check(z.minLength(1), z.maxLength(255)),
-        z.string().check(z.maxLength(4096))
-      ),
-      {}
+    .optional(
+      z.prefault(
+        z.record(
+          z.string().check(z.minLength(1), z.maxLength(255)),
+          z.string().check(z.maxLength(4096))
+        ),
+        {}
+      )
     )
     .check(z.describe('Driver options')),
 })
 
 const volumeSchema = z.object({
   driver: z
-    .prefault(z.enum(['local', 'nfs', 'tmpfs']), 'local')
+    .optional(z.prefault(z.enum(['local', 'nfs', 'tmpfs']), 'local'))
     .check(z.describe('Volume driver')),
   driver_opts: z
-    .prefault(
-      z.record(
-        z.string().check(z.minLength(1), z.maxLength(255)),
-        z.string().check(z.maxLength(4096))
-      ),
-      {}
+    .optional(
+      z.prefault(
+        z.record(
+          z.string().check(z.minLength(1), z.maxLength(255)),
+          z.string().check(z.maxLength(4096))
+        ),
+        {}
+      )
     )
     .check(z.describe('Driver options')),
 })
@@ -292,67 +352,77 @@ const defaultService = {
 const tinyInstancerConfigSchema = z
   .object({
     services: z
-      .prefault(
-        z.record(
-          z
-            .string()
-            .check(
-              z.minLength(1),
-              z.maxLength(64),
-              z.regex(docker.SERVICE_NAME_REGEX)
-            ),
-          serviceSchema
-        ),
-        { app: defaultService }
+      .optional(
+        z.prefault(
+          z.record(
+            z
+              .string()
+              .check(
+                z.minLength(1),
+                z.maxLength(64),
+                z.regex(docker.SERVICE_NAME_REGEX)
+              ),
+            serviceSchema
+          ),
+          { app: defaultService }
+        )
       )
       .check(z.describe('Service definitions')),
     networks: z
-      .prefault(
-        z.record(
-          z
-            .string()
-            .check(z.minLength(1), z.maxLength(64), z.regex(docker.NAME_REGEX)),
-          networkSchema
-        ),
-        {
-          internal: { driver: 'bridge', internal: true, driver_opts: {} },
-        }
+      .optional(
+        z.prefault(
+          z.record(
+            z
+              .string()
+              .check(
+                z.minLength(1),
+                z.maxLength(64),
+                z.regex(docker.NAME_REGEX)
+              ),
+            networkSchema
+          ),
+          {
+            internal: { driver: 'bridge', internal: true, driver_opts: {} },
+          }
+        )
       )
       .check(z.describe('Network definitions')),
     volumes: z
-      .prefault(
-        z.record(
-          z
-            .string()
-            .check(
-              z.minLength(1),
-              z.maxLength(255),
-              z.regex(docker.NAME_REGEX)
-            ),
-          volumeSchema
-        ),
-        {}
+      .optional(
+        z.prefault(
+          z.record(
+            z
+              .string()
+              .check(
+                z.minLength(1),
+                z.maxLength(255),
+                z.regex(docker.NAME_REGEX)
+              ),
+            volumeSchema
+          ),
+          {}
+        )
       )
       .check(z.describe('Volume definitions')),
   })
   .check(
     z.refine(
-      data => Object.keys(data.services).length > 0,
+      data => Object.keys(data.services ?? {}).length > 0,
       'At least one service required'
     )
   )
   .check(
     z.refine(data => {
-      const nets = new Set(Object.keys(data.networks))
-      return Object.values(data.services).every(s =>
+      const nets = new Set(Object.keys(data.networks ?? {}))
+      return Object.values(data.services ?? {}).every(s =>
         (s.networks ?? []).every(n => nets.has(n))
       )
     }, 'Services reference undefined networks')
   )
   .check(
     z.refine(data => {
-      const vols = new Set(Object.keys(data.volumes))
-      return Object.values(data.services).every(s =>
+      const vols = new Set(Object.keys(data.volumes ?? {}))
+      return Object.values(data.services ?? {}).every(s =>
         (s.volumes ?? []).every(m => {
           const name = m.split(':')[0] ?? ''
           return (
