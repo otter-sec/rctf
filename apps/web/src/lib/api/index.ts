@@ -2,6 +2,8 @@ import {
   BadToken,
   isFileField,
   type AnyRouteDefinition,
+  type ClientConfig,
+  type ResponseDefinition,
   type RouteBodyInput,
   type RouteParamsInput,
   type RouteQueryInput,
@@ -9,9 +11,6 @@ import {
 } from '@rctf/types'
 import { browser } from '$app/environment'
 import { getCaptchaCode } from '$lib/utils/captcha'
-import type { ClientConfig } from './types'
-
-export * from './types'
 
 let cachedClientConfig: ClientConfig | null = null
 
@@ -64,7 +63,6 @@ const applyPath = (
   if (!params) {
     return path
   }
-
   return path.replace(/:([A-Za-z0-9_]+)/g, (_, key: string) => {
     const value = params[key]
     if (value === undefined || value === null) {
@@ -82,20 +80,25 @@ const applyQuery = (url: URL, query: Record<string, unknown> | undefined) => {
 
 const parseResponse = <TRoute extends AnyRouteDefinition>(
   route: TRoute,
-  payload: any
+  payload: unknown
 ): RouteResponse<TRoute> => {
   const envelope: ApiResponseShape = {
-    kind: payload?.kind ?? 'unknown',
-    message: payload?.message ?? 'Unknown error',
-    data: payload?.data ?? null,
+    kind: (payload as ApiResponseShape)?.kind ?? 'unknown',
+    message: (payload as ApiResponseShape)?.message ?? 'Unknown error',
+    data: (payload as ApiResponseShape)?.data ?? null,
   }
 
   if (envelope.kind === BadToken.kind) {
     clearToken()
   }
 
-  const allResponses = [...route.goodResponses, ...route.badResponses]
-  const definition = allResponses.find(def => def.kind === envelope.kind)
+  const definitions: ResponseDefinition[] = [
+    ...route.goodResponses,
+    ...route.badResponses,
+  ]
+  const definition = definitions.find(
+    definition => definition.kind === envelope.kind
+  )
   if (!definition) {
     throw new Error(`Unknown response kind: ${JSON.stringify(payload)}`)
   }
@@ -126,37 +129,29 @@ const buildFormDataBody = (payload: Record<string, unknown>): FormData => {
   const formData = new FormData()
 
   const appendValue = (key: string, value: unknown) => {
-    if (value === undefined) {
-      return
-    }
-
+    if (value === undefined) return
     if (value === null) {
       formData.append(key, '')
       return
     }
-
     if (Array.isArray(value)) {
       value.forEach(item => appendValue(key, item))
       return
     }
-
     if (isFileField(value)) {
       formData.append(key, value)
       return
     }
-
     if (value instanceof Date) {
       formData.append(key, value.toISOString())
       return
     }
-
     formData.append(key, String(value))
   }
 
   for (const [key, value] of Object.entries(payload)) {
     appendValue(key, value)
   }
-
   return formData
 }
 
@@ -180,7 +175,7 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   const path = applyPath(route.path, params).replace(/^\//, '')
   const origin = browser ? window.location.origin : 'http://localhost'
   const url = new URL(`/api/${path}`, origin)
-  applyQuery(url, query)
+  applyQuery(url, query as Record<string, unknown> | undefined)
 
   const headers: Record<string, string> = {
     Accept: 'application/json',

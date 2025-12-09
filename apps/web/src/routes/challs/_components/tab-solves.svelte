@@ -1,8 +1,9 @@
 <script lang="ts">
   import { GetChallengeSolvesRouteV2, GoodChallengeSolvesV2 } from '@rctf/types'
+  import type { Challenge } from '@rctf/types'
   import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { apiRequest, type Challenge } from '$lib/api'
+  import { apiRequest } from '$lib/api'
   import { Button, RankRow, ScrollArea, Spinner } from '$lib/components'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge } from '$lib/api'
+  import type { Challenge } from '@rctf/types'
   import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
 
   interface Props {

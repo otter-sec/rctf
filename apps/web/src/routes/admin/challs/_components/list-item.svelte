@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { AdminChallenge } from '$lib/api'
+  import type { AdminChallenge } from '@rctf/types'
   import { cn } from '$lib/utils'
 
   interface Props {

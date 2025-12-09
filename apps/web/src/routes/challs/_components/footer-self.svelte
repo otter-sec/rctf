@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge, Solve as UserSolve } from '$lib/api'
+  import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { RankRow } from '$lib/components'
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge, Solve as UserSolve } from '$lib/api'
+  import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { Avatar } from '$lib/components'
   import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
   import type { RankVariant } from '$lib/utils'

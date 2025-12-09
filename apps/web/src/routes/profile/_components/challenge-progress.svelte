@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge, Solve } from '$lib/api'
+  import type { Challenge, Solve } from '@rctf/types'
   import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
   import {
     IconCheck,

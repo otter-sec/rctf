@@ -47,7 +47,12 @@ import {
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
-import { apiRequest, isAuthenticated, type InlineArgs } from '$lib/api'
+import {
+  apiRequest,
+  isAuthenticated,
+  setClientConfig,
+  type InlineArgs,
+} from '$lib/api'
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
@@ -78,6 +83,7 @@ export const clientConfigQueryOptions = queryOptions({
   queryFn: async () => {
     const response = await apiRequest(GetClientConfigRouteV2)
     if (response.kind === GoodClientConfigV2.kind) {
+      setClientConfig(response.data)
       return response.data
     }
     throw new ApiError(response.message)

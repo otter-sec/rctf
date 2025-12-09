@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PublicUserProfile, UserProfile } from '$lib/api'
+  import type { PublicUserProfile, UserProfile } from '@rctf/types'
   import { Avatar, ScrollArea } from '$lib/components'
   import { getInitials } from '$lib/utils'
   import type { Snippet } from 'svelte'

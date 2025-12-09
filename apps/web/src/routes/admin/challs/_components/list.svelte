@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
-  import type { AdminChallenge } from '$lib/api'
+  import type { AdminChallenge } from '@rctf/types'
   import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
   import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'

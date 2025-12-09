@@ -2,7 +2,7 @@ import type {
   AdminChallenge,
   AdminChallengeDetail,
   InstancerConfig,
-} from '$lib/api'
+} from '@rctf/types'
 import { assign, setup } from 'xstate'
 
 export interface FormData {

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge } from '$lib/api'
+  import type { Challenge } from '@rctf/types'
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
   import { formatFileSize } from '$lib/utils'

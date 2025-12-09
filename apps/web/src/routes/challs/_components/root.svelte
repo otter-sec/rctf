@@ -1,6 +1,6 @@
 <script lang="ts">
+  import type { Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import type { Challenge } from '$lib/api'
   import { Resizable } from '$lib/components'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
   import Details from './details.svelte'

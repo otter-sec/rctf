@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { UserProfile } from '$lib/api'
+  import type { UserProfile } from '@rctf/types'
   import { Tooltip } from '$lib/components'
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { cn } from '$lib/utils'

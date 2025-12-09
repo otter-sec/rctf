@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge, PublicUserProfile, UserProfile } from '$lib/api'
+  import type { Challenge, PublicUserProfile, UserProfile } from '@rctf/types'
   import type { Snippet } from 'svelte'
   import ChallengeProgress from './challenge-progress.svelte'
   import ProfileInfo from './profile-info.svelte'

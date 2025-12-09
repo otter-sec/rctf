@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { InstancerConfig } from '$lib/api'
+  import type { InstancerConfig } from '@rctf/types'
   import { Button, Field, Input, ScrollArea, Select, Tabs, Textarea } from '$lib/components'
   import {
     IconCloudComputingFilled,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge } from '$lib/api'
+  import type { Challenge } from '@rctf/types'
   import { EmptyState, Tabs } from '$lib/components'
   import { IconFileInfoFilled, IconFlagFilled, IconTrophyFilled } from '$lib/icons'
   import Header from './details-header.svelte'

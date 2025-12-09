@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge } from '$lib/api'
+  import type { Challenge } from '@rctf/types'
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import { IconZoomQuestionFilled } from '$lib/icons'
   import { getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'

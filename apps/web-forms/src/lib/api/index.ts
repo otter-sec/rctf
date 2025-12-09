@@ -2,6 +2,7 @@ import {
   BadToken,
   isFileField,
   type AnyRouteDefinition,
+  type ClientConfig,
   type ResponseDefinition,
   type RouteBodyInput,
   type RouteParamsInput,
@@ -9,6 +10,13 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
+import { getCaptchaCode } from '$lib/utils/captcha'
+
+let cachedClientConfig: ClientConfig | null = null
+
+export function setClientConfig(config: ClientConfig): void {
+  cachedClientConfig = config
+}
 
 type SectionPayload<T> = [T] extends [undefined]
   ? {}
@@ -152,7 +160,17 @@ export async function apiRequest<TRoute extends AnyRouteDefinition>(
   args?: InlineArgs<TRoute>
 ): Promise<RouteResponse<TRoute>> {
   const { params, query, body } = pickArgs(route, args)
-  const finalBody = body as Record<string, unknown> | undefined
+
+  let finalBody = body as Record<string, unknown> | undefined
+  if (route.captchaAction && finalBody) {
+    const captchaCode = await getCaptchaCode(
+      route.captchaAction,
+      cachedClientConfig
+    )
+    if (captchaCode) {
+      finalBody = { ...finalBody, captchaCode }
+    }
+  }
 
   const path = applyPath(route.path, params).replace(/^\//, '')
   const origin = browser ? window.location.origin : 'http://localhost'

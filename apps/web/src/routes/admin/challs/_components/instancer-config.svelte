@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { ExposeKind } from '@rctf/types'
-  import { type InstancerConfig } from '$lib/api'
+  import { ExposeKind, type InstancerConfig } from '@rctf/types'
   import {
     Button,
     Checkbox,

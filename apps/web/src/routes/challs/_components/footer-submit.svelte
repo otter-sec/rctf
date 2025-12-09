@@ -1,8 +1,8 @@
 <script lang="ts">
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
+  import type { Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import type { Challenge } from '$lib/api'
   import { Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { IconCheck, IconSend } from '$lib/icons'
