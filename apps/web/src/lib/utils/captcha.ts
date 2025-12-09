@@ -62,6 +62,7 @@ interface CaptchaState {
   container: HTMLDivElement | null
   widgetId: string | number | null
   resolve: ((token: string) => void) | null
+  reject: ((error: Error) => void) | null
 }
 
 interface CaptchaHandler {
@@ -73,7 +74,12 @@ interface CaptchaHandler {
 const captchaStates: Record<string, CaptchaState> = {}
 const getState = (provider: string): CaptchaState => {
   if (!captchaStates[provider]) {
-    captchaStates[provider] = { container: null, widgetId: null, resolve: null }
+    captchaStates[provider] = {
+      container: null,
+      widgetId: null,
+      resolve: null,
+      reject: null,
+    }
   }
   return captchaStates[provider]
 }
@@ -83,6 +89,22 @@ const createContainer = (): HTMLDivElement => {
   container.style.display = 'none'
   document.body.appendChild(container)
   return container
+}
+
+const resolveState = (state: CaptchaState, token: string) => {
+  if (state.resolve) {
+    state.resolve(token)
+    state.resolve = null
+    state.reject = null
+  }
+}
+
+const rejectState = (state: CaptchaState, message: string) => {
+  if (state.reject) {
+    state.reject(new CaptchaError(message))
+    state.resolve = null
+    state.reject = null
+  }
 }
 
 let recaptchaReadyPromise: Promise<void> | null = null
@@ -108,13 +130,23 @@ const captchaHandlers: Record<string, CaptchaHandler> = {
       state.widgetId = grecaptcha.render(state.container, {
         sitekey: siteKey,
         size: 'invisible',
+        callback: (token: string) => resolveState(state, token),
+        'expired-callback': () =>
+          rejectState(state, 'reCAPTCHA response expired'),
+        'error-callback': () =>
+          rejectState(state, 'reCAPTCHA error (network issue)'),
       }) as number
     },
     async execute(state) {
       // @ts-expect-error grecaptcha global
       grecaptcha.reset(state.widgetId)
-      // @ts-expect-error grecaptcha global
-      return grecaptcha.execute(state.widgetId)
+
+      return new Promise<string>((resolve, reject) => {
+        state.resolve = resolve
+        state.reject = reject
+        // @ts-expect-error grecaptcha global
+        grecaptcha.execute(state.widgetId)
+      })
     },
   },
 
@@ -158,20 +190,22 @@ const captchaHandlers: Record<string, CaptchaHandler> = {
         sitekey: siteKey,
         size: 'invisible',
         execution: 'execute',
-        callback: (token: string) => {
-          if (state.resolve) {
-            state.resolve(token)
-            state.resolve = null
-          }
+        callback: (token: string) => resolveState(state, token),
+        'error-callback': (errorCode: string) => {
+          rejectState(state, `Turnstile error: ${errorCode}`)
+          return true
         },
+        'timeout-callback': () =>
+          rejectState(state, 'Turnstile challenge timed out'),
       }) as string
     },
     async execute(state) {
       // @ts-expect-error turnstile global
       turnstile.reset(state.widgetId)
 
-      return new Promise<string>(resolve => {
+      return new Promise<string>((resolve, reject) => {
         state.resolve = resolve
+        state.reject = reject
         // @ts-expect-error turnstile global
         turnstile.execute(state.container)
       })
