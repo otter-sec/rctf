@@ -14,11 +14,13 @@
   const otherTags = $derived((challenge as Challenge & { tags?: string[] }).tags ?? [])
 </script>
 
-<div class="flex flex-col py-6">
+<div class="flex flex-col sm:py-6 py-4">
   <div class="px-9 flex items-start justify-between gap-4">
-    <div class="flex flex-col gap-1">
-      <h2 class="text-2xl">{challenge.name}</h2>
-      <div class="flex items-center gap-2 text-foreground-l3 text-base">
+    <div class="flex flex-col gap-1 flex-1">
+      <h2 class="@xl/details:text-2xl text-xl">{challenge.name}</h2>
+      <div
+        class="flex items-center gap-2 text-foreground-l3 flex-wrap @xl/details:flex-text-base text-base"
+      >
         <span>by {challenge.author}</span>
         <span class="text-foreground-l5 opacity-50 text-2xl leading-none">·</span>
         <div class="flex gap-1">
@@ -26,7 +28,7 @@
             class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
             style={categoryStyle}
           >
-            <config.icon class="size-3.5" />
+            <config.icon class="size-3.5 shrink-0" />
             {config.name}
           </span>
           {#each otherTags as tag}
@@ -36,10 +38,10 @@
       </div>
     </div>
     <div class="flex flex-col items-end">
-      <h2 class="text-right text-2xl tabular-nums">
+      <h2 class="text-right @xl/details:text-2xl text-xl tabular-nums whitespace-nowrap">
         {challenge.points?.toLocaleString() ?? '0'} pts
       </h2>
-      <p class="text-right text-foreground-l3 text-base tabular-nums">
+      <p class="text-right text-foreground-l3 text-base tabular-nums whitespace-nowrap">
         {challenge.solves?.toLocaleString() ?? '0'} solves
       </p>
     </div>

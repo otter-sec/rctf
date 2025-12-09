@@ -81,7 +81,7 @@
       {#if isAdmin}
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <ButtonNavigation href="/admin/challs" activePath="/admin">
+            <ButtonNavigation href="/admin/challenges" activePath="/admin">
               {#snippet icon({ class: className })}
                 <IconGavel class={className} />
               {/snippet}

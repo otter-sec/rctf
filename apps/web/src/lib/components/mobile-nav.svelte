@@ -83,7 +83,7 @@
       show: true,
     },
     {
-      href: '/admin/challs',
+      href: '/admin/challenges',
       activePath: '/admin',
       label: 'Admin',
       icon: IconGavel,

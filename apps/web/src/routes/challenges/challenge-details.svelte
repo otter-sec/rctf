@@ -19,24 +19,27 @@
 
   let tab = $state('details')
   let userVisible = $state(false)
-
-  const tabClass =
-    'rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none'
 </script>
 
 {#if challenge}
   {#key challenge.id}
-    <div class="flex h-full flex-col">
+    <div class="@container/details flex h-full flex-col">
       <ChallengeDetailsHeader {challenge} {isSolved} />
 
       <Tabs.Root bind:value={tab} class="flex min-h-0 flex-1 flex-col">
         <div class="px-5">
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
-            <Tabs.Trigger value="details" class={tabClass}>
+            <Tabs.Trigger
+              value="details"
+              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+            >
               <IconFileInfoFilled class="size-4" />
               Details
             </Tabs.Trigger>
-            <Tabs.Trigger value="solves" class={tabClass}>
+            <Tabs.Trigger
+              value="solves"
+              class="rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none"
+            >
               <IconTrophyFilled class="size-4" />
               Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
             </Tabs.Trigger>

@@ -70,9 +70,9 @@
             )}
           >
             {#if hideSolved}
-              <IconEyeClosed class="size-5" />
+              <IconEyeClosed class="size-5 shrink-0" />
             {:else}
-              <IconEyeFilled class="size-5" />
+              <IconEyeFilled class="size-5 shrink-0" />
             {/if}
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>
@@ -83,9 +83,9 @@
           <Tooltip.Trigger
             onclick={onCollapseAll}
             aria-label="Collapse all"
-            class="flex flex-1 items-center justify-center bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5 @sm/list:flex-initial rounded-sm"
+            class="flex flex-1 items-center justify-center bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5 active:bg-background-accent active:text-foreground-accent @sm/list:flex-initial rounded-sm"
           >
-            <IconFold class="size-5" />
+            <IconFold class="size-5 shrink-0" />
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
         </Tooltip.Root>

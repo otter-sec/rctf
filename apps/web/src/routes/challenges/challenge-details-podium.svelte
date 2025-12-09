@@ -38,7 +38,9 @@
 </script>
 
 {#if challenge.solves && challenge.solves > 0}
-  <div class="grid grid-cols-4 gap-2">
+  <div
+    class="@md/details:grid-cols-2 @2xl/details:grid-cols-3 @4xl/details:grid-cols-4 grid grid-cols-1 gap-2"
+  >
     {#each placementVariants as variant, index}
       {@const style = getRankStyles(variant)}
       {@const isUserSlot = index === 3}
@@ -49,7 +51,10 @@
       <div
         class={cn(
           'flex h-14 items-center justify-between gap-2 rounded-lg py-1.5 pr-1.5 pl-2',
-          showEmpty ? 'border-2 border-dashed' : style.bg
+          showEmpty ? 'border-2 border-dashed' : style.bg,
+          index === 0 ? '@md/details:flex hidden' : '',
+          index === 1 ? '@2xl/details:flex hidden' : '',
+          index === 2 ? '@4xl/details:flex hidden' : ''
         )}
       >
         {#if !showEmpty}

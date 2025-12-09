@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-4">
+    <div class="@xl/details:grid-cols-2 grid grid-cols-1 gap-4">
       {#if challenge.files.length > 0}
         <div class="flex flex-col overflow-hidden rounded-lg border-2">
           <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">Files</div>
