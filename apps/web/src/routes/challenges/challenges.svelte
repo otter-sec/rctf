@@ -20,23 +20,23 @@
 
   const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
 
-  const urlChallengeId = $derived(page.url.searchParams.get('challenge'))
   let selectedChallengeId = $state<string | null>(null)
-  let hasScrolledToUrl = $state(false)
+  let hasInitializedFromUrl = $state(false)
 
   $effect(() => {
-    if (urlChallengeId && challenges.length > 0) {
-      const exists = challenges.some(c => c.id === urlChallengeId)
-      if (exists && selectedChallengeId !== urlChallengeId) {
-        selectedChallengeId = urlChallengeId
-        if (!hasScrolledToUrl) {
-          hasScrolledToUrl = true
+    if (!hasInitializedFromUrl && challenges.length > 0) {
+      const urlChallengeId = page.url.searchParams.get('challenge')
+      if (urlChallengeId) {
+        const exists = challenges.some(c => c.id === urlChallengeId)
+        if (exists) {
+          selectedChallengeId = urlChallengeId
           tick().then(() => {
             const el = document.getElementById(`chall-${urlChallengeId}`)
             el?.scrollIntoView({ behavior: 'instant', block: 'center' })
           })
         }
       }
+      hasInitializedFromUrl = true
     }
   })
 
