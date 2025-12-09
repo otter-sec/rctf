@@ -2,12 +2,12 @@
   import type { Challenge } from '@rctf/types'
   import { EmptyState, Tabs } from '$lib/components'
   import { IconFileInfoFilled, IconFlagFilled, IconTrophyFilled } from '$lib/icons'
-  import Header from './details-header.svelte'
-  import FooterPodium from './footer-podium.svelte'
-  import FooterSelf from './footer-self.svelte'
-  import FooterSubmit from './footer-submit.svelte'
-  import TabOverview from './tab-overview.svelte'
-  import TabSolves from './tab-solves.svelte'
+  import ChallengeDetailsHeader from './challenge-details-header.svelte'
+  import ChallengeDetailsOverview from './challenge-details-overview.svelte'
+  import ChallengeDetailsPodium from './challenge-details-podium.svelte'
+  import ChallengeDetailsSelf from './challenge-details-self.svelte'
+  import ChallengeDetailsSolves from './challenge-details-solves.svelte'
+  import ChallengeDetailsSubmit from './challenge-details-submit.svelte'
 
   interface Props {
     challenge: Challenge | null
@@ -27,7 +27,7 @@
 {#if challenge}
   {#key challenge.id}
     <div class="flex h-full flex-col">
-      <Header {challenge} {isSolved} />
+      <ChallengeDetailsHeader {challenge} {isSolved} />
 
       <Tabs.Root bind:value={tab} class="flex min-h-0 flex-1 flex-col">
         <div class="px-5">
@@ -45,21 +45,21 @@
 
         <div class="min-h-0 flex-1 bg-background-l2">
           <Tabs.Content value="details" class="h-full">
-            <TabOverview {challenge} />
+            <ChallengeDetailsOverview {challenge} />
           </Tabs.Content>
           <Tabs.Content value="solves" class="h-full">
-            <TabSolves {challenge} bind:userVisibleInList={userVisible} />
+            <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
           </Tabs.Content>
         </div>
       </Tabs.Root>
 
       <div class="flex flex-col gap-2 bg-background-l2 px-5 py-4">
         {#if tab === 'details'}
-          <FooterPodium {challenge} {isSolved} />
+          <ChallengeDetailsPodium {challenge} {isSolved} />
         {:else if tab === 'solves' && !userVisible}
-          <FooterSelf {challenge} />
+          <ChallengeDetailsSelf {challenge} />
         {/if}
-        <FooterSubmit {challenge} {isSolved} {onSolve} />
+        <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
       </div>
     </div>
   {/key}

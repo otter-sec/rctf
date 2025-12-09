@@ -3,7 +3,7 @@
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
   import { formatFileSize } from '$lib/utils'
-  import InstancerPanel from './instancer-panel.svelte'
+  import ChallengeDetailsInstancer from './challenge-details-instancer.svelte'
 
   interface Props {
     challenge: Challenge
@@ -61,7 +61,7 @@
       {#if challenge.instancer}
         <div class="flex flex-col overflow-hidden rounded-lg border-2">
           <div class="bg-background-l3 px-4 py-1.5 text-base text-foreground-l3">Instancer</div>
-          <InstancerPanel challengeId={challenge.id} />
+          <ChallengeDetailsInstancer challengeId={challenge.id} />
         </div>
       {/if}
     </div>

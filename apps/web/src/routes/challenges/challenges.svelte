@@ -3,8 +3,8 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { Drawer, Resizable } from '$lib/components'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
-  import Details from './details.svelte'
-  import List from './list.svelte'
+  import ChallengeDetails from './challenge-details.svelte'
+  import ChallengeList from './challenge-list.svelte'
 
   const queryClient = useQueryClient()
   const challengesQuery = useChallenges()
@@ -48,7 +48,7 @@
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
     <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
       <div class="h-full rounded-r-3xl bg-background-l1">
-        <List
+        <ChallengeList
           {challenges}
           {solvedIds}
           {firstBloodIds}
@@ -61,7 +61,10 @@
 
     <Resizable.Pane defaultSize={60} minSize={40}>
       <div class="h-full rounded-l-3xl bg-background-l1">
-        <Details challenge={selectedChallenge} isSolved={selectedIsSolved} onSolve={handleSolve} />
+        <ChallengeDetails
+          challenge={selectedChallenge}
+          isSolved={selectedIsSolved}
+          onSolve={handleSolve} />
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>
@@ -69,7 +72,7 @@
 
 <div class="flex h-[calc(100vh-72px)] flex-col md:hidden">
   <div class="h-full bg-background-l1">
-    <List
+    <ChallengeList
       {challenges}
       {solvedIds}
       {firstBloodIds}
@@ -80,7 +83,10 @@
   <Drawer.Root bind:open={drawerOpen}>
     <Drawer.Content>
       <div class="flex-1 overflow-auto">
-        <Details challenge={selectedChallenge} isSolved={selectedIsSolved} onSolve={handleSolve} />
+        <ChallengeDetails
+          challenge={selectedChallenge}
+          isSolved={selectedIsSolved}
+          onSolve={handleSolve} />
       </div>
     </Drawer.Content>
   </Drawer.Root>

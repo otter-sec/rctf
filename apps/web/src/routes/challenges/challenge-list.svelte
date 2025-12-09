@@ -3,8 +3,8 @@
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import { IconZoomQuestionFilled } from '$lib/icons'
   import { getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'
-  import Header from './list-header.svelte'
-  import Item from './list-item.svelte'
+  import ChallengeListHeader from './challenge-list-header.svelte'
+  import ChallengeListItem from './challenge-list-item.svelte'
 
   interface Props {
     challenges: Challenge[]
@@ -96,7 +96,7 @@
 </script>
 
 <div class="@container/list flex h-full flex-col overflow-hidden">
-  <Header
+  <ChallengeListHeader
     pointsEarned={stats.pointsEarned}
     pointsTotal={stats.pointsTotal}
     solved={stats.solved}
@@ -148,7 +148,7 @@
             <Accordion.Content class="pb-0 bg-category-background-l1">
               <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
-                  <Item
+                  <ChallengeListItem
                     {challenge}
                     {category}
                     isSolved={solvedIds.has(challenge.id)}

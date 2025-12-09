@@ -2,7 +2,7 @@
   import { isAuthenticated } from '$lib'
   import { Button, Card, Spinner } from '$lib/components'
   import { useChallenges } from '$lib/query'
-  import { Root } from './_components'
+  import Challenges from './challenges.svelte'
 
   const challengesQuery = useChallenges()
   const challenges = $derived($challengesQuery.data)
@@ -11,7 +11,7 @@
 </script>
 
 {#if challenges}
-  <Root />
+  <Challenges />
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
