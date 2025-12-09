@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Field, Input, Select, Textarea } from '$lib/components'
-  import { getValidationContext } from '../context'
-  import type { FieldProps } from '../types'
+  import { getValidationContext } from './context'
+  import type { FieldProps } from './types'
   import {
     isNullable as checkNullable,
     fromNullSentinel,
@@ -9,8 +9,8 @@
     NULL_SENTINEL,
     resolveValue,
     toNullSentinel,
-  } from '../utils'
-  import { validateValue } from '../validate'
+  } from './utils'
+  import { validateValue } from './validate'
 
   interface Props extends FieldProps {
     showLabel?: boolean

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { setValidationContext } from './context'
-  import SchemaField from './schema-field.svelte'
+  import SchemaField from './field.svelte'
   import type { JsonSchema } from './types'
 
   interface Props {

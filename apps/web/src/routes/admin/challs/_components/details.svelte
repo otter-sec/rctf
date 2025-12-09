@@ -9,6 +9,7 @@
   import { toast } from '$lib'
   import { Button, EmptyState, Spinner } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
+  import { type editorMachine, type FormData } from '$lib/machines'
   import {
     queryKeys,
     useAdminChallenge,
@@ -20,7 +21,6 @@
   import { hasPermissions } from '$lib/utils/permissions'
   import type { SnapshotFrom } from 'xstate'
   import Dialogs from './dialogs.svelte'
-  import type { editorMachine, FormData } from './editor-machine'
   import Form from './form.svelte'
 
   interface Props {

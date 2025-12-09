@@ -1,9 +1,9 @@
 <script lang="ts">
   import { useMachine } from '@xstate/svelte'
   import { Resizable } from '$lib/components'
+  import { editorMachine } from '$lib/machines'
   import { useAdminChallenges } from '$lib/query'
   import Details from './details.svelte'
-  import { editorMachine } from './editor-machine'
   import List from './list.svelte'
 
   const challengesQuery = useAdminChallenges()

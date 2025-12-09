@@ -2,10 +2,10 @@
   import { Button } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import SchemaField from '../schema-field.svelte'
-  import PanelLayout from '../shared/panel-layout.svelte'
-  import type { FieldProps, JsonSchema } from '../types'
-  import { defaultValue, getItemLabel } from '../utils'
+  import SchemaField from './field.svelte'
+  import PanelLayout from './panel-layout.svelte'
+  import type { FieldProps, JsonSchema } from './types'
+  import { defaultValue, getItemLabel } from './utils'
 
   interface Props extends FieldProps {}
 

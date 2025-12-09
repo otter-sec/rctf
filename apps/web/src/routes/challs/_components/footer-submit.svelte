@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { BadAlreadySolvedChallenge, GoodFlag } from '@rctf/types'
+  import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import type { Challenge } from '$lib/api'
   import { Spinner } from '$lib/components'
+  import { useApiForm } from '$lib/forms'
   import { IconCheck, IconSend } from '$lib/icons'
-  import { queryKeys, useSubmitFlagMutation } from '$lib/query'
+  import { queryKeys } from '$lib/query'
 
   interface Props {
     challenge: Challenge
@@ -16,51 +17,41 @@
   let { challenge, isSolved, onSolve }: Props = $props()
 
   const queryClient = useQueryClient()
-  const submitMutation = useSubmitFlagMutation()
 
-  let flagInput = $state('')
-  let error = $state('')
+  const form = useApiForm(SubmitFlagRoute, {
+    onSuccess: response => {
+      if (response.kind === GoodFlag.kind) {
+        toast.success('Flag correct!')
+        onSolve(challenge.id)
+        form.setData({ flag: '' })
+        queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
+        queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+        queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
+      } else if (response.kind === BadAlreadySolvedChallenge.kind) {
+        toast.info('You already solved this challenge')
+        onSolve(challenge.id)
+      }
+    },
+  })
 
-  async function handleSubmitFlag(e: SubmitEvent) {
+  $effect(() => {
+    form.data.id = challenge.id
+  })
+
+  function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
 
-    const flag = flagInput.trim()
+    const flag = (form.data.flag ?? '').trim()
     if (!flag) {
-      error = 'Please enter a flag'
       return
     }
 
-    error = ''
-
-    $submitMutation.mutate(
-      { id: challenge.id, flag },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodFlag.kind) {
-            toast.success('Flag correct!')
-            onSolve(challenge.id)
-            flagInput = ''
-            queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-            queryClient.invalidateQueries({ queryKey: ['leaderboard'] })
-          } else if (response.kind === BadAlreadySolvedChallenge.kind) {
-            toast.info('You already solved this challenge')
-            onSolve(challenge.id)
-          } else {
-            error = response.message
-            toast.error(response.message)
-          }
-        },
-        onError: err => {
-          error = err.message
-          toast.error(err.message)
-        },
-      }
-    )
+    form.setData({ flag })
+    form.submit()
   }
 </script>
 
-<form class="flex flex-col gap-2" onsubmit={handleSubmitFlag}>
+<form class="flex flex-col gap-2" onsubmit={handleSubmit}>
   <div class="flex h-12 gap-2">
     {#if isSolved}
       <div
@@ -76,24 +67,24 @@
         autocorrect="off"
         spellcheck="false"
         class="h-full flex-1 rounded-lg bg-background-l4 px-3 py-3.5 font-mono text-xl text-foreground-l3 placeholder:text-foreground-l3 outline-none"
-        bind:value={flagInput}
-        disabled={$submitMutation.isPending}
-        aria-invalid={!!error || undefined} />
+        bind:value={form.data.flag}
+        disabled={form.submitting}
+        aria-invalid={!!form.errors._form || undefined} />
     {/if}
     <button
       type="submit"
-      disabled={$submitMutation.isPending || isSolved}
+      disabled={form.submitting || isSolved}
       class="flex h-full items-center justify-center rounded-lg bg-background-l4 px-4 py-3 text-foreground-l4 hover:bg-background-l5 disabled:opacity-50">
-      {#if $submitMutation.isPending}
+      {#if form.submitting}
         <Spinner class="size-6" />
       {:else}
         <IconSend class="size-6" />
       {/if}
     </button>
   </div>
-  {#if error}
+  {#if form.errors._form}
     <p class="text-sm text-foreground-destructive" role="alert">
-      {error}
+      {form.errors._form}
     </p>
   {/if}
 </form>

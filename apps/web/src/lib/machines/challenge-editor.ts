@@ -21,10 +21,8 @@ export interface FormData {
 
 export interface EditorContext {
   challenge: AdminChallenge | null
-  challengeDetail: AdminChallengeDetail | null
   form: FormData
   originalForm: FormData | null
-  pendingAction: (() => void) | null
 }
 
 type EditorEvent =
@@ -43,14 +41,11 @@ type EditorEvent =
   | { type: 'DELETE_CANCEL' }
   | { type: 'DISCARD' }
   | { type: 'KEEP_EDITING' }
-  | { type: 'CHECK_UNSAVED'; pendingAction: () => void }
   | { type: 'UPDATE_FORM'; field: keyof FormData; value: unknown }
   | { type: 'UPDATE_FILES'; files: FormData['files'] }
   | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
-  | { type: 'PREVIEW' }
-  | { type: 'CLOSE_PREVIEW' }
 
-const empty: FormData = {
+const emptyForm: FormData = {
   name: '',
   category: '',
   author: '',
@@ -100,31 +95,10 @@ const isDirty = (form: FormData, original: FormData | null): boolean => {
       form.author ||
       form.description ||
       form.flag ||
-      form.files.length ||
-      form.instancerConfig
+      form.files.length
     )
   }
-  return (
-    form.name !== original.name ||
-    form.category !== original.category ||
-    form.author !== original.author ||
-    form.description !== original.description ||
-    form.flag !== original.flag ||
-    form.pointsMin !== original.pointsMin ||
-    form.pointsMax !== original.pointsMax ||
-    form.tiebreakEligible !== original.tiebreakEligible ||
-    form.sortWeight !== original.sortWeight ||
-    JSON.stringify(form.files) !== JSON.stringify(original.files) ||
-    JSON.stringify(form.instancerConfig) !==
-      JSON.stringify(original.instancerConfig)
-  )
-}
-
-const resetCtx = {
-  challenge: null,
-  challengeDetail: null,
-  form: empty,
-  originalForm: null,
+  return JSON.stringify(form) !== JSON.stringify(original)
 }
 
 export const editorMachine = setup({
@@ -134,27 +108,27 @@ export const editorMachine = setup({
     clean: ({ context }) => !isDirty(context.form, context.originalForm),
   },
   actions: {
-    reset: assign(resetCtx),
+    reset: assign({
+      challenge: null,
+      form: emptyForm,
+      originalForm: null,
+    }),
     select: assign(({ event }) => {
       if (event.type !== 'SELECT') return {}
-      if (!event.challenge) return resetCtx
-      const form = fromChallenge(event.challenge)
-      return {
-        challenge: event.challenge,
-        challengeDetail: null,
-        form,
-        originalForm: form,
+      if (!event.challenge) {
+        return { challenge: null, form: emptyForm, originalForm: null }
       }
+      const form = fromChallenge(event.challenge)
+      return { challenge: event.challenge, form, originalForm: form }
     }),
     loadDetail: assign(({ event }) => {
       if (event.type !== 'DETAIL_LOADED') return {}
       const form = fromDetail(event.detail)
-      return { challengeDetail: event.detail, form, originalForm: form }
+      return { form, originalForm: form }
     }),
     startCreate: assign({
       challenge: null,
-      challengeDetail: null,
-      form: empty,
+      form: emptyForm,
       originalForm: null,
     }),
     updateForm: assign(({ context, event }) => {
@@ -172,15 +146,8 @@ export const editorMachine = setup({
       }
     }),
     resetForm: assign(({ context }) => ({
-      form: context.originalForm ? { ...context.originalForm } : empty,
+      form: context.originalForm ? { ...context.originalForm } : emptyForm,
     })),
-    storePending: assign(({ event }) =>
-      event.type === 'CHECK_UNSAVED'
-        ? { pendingAction: event.pendingAction }
-        : {}
-    ),
-    clearPending: assign({ pendingAction: null }),
-    execPending: ({ context }) => context.pendingAction?.(),
     afterSave: assign(({ event }) => {
       if (event.type !== 'SAVE_SUCCESS') return {}
       const form = fromChallenge(event.challenge)
@@ -192,10 +159,8 @@ export const editorMachine = setup({
   initial: 'idle',
   context: {
     challenge: null,
-    challengeDetail: null,
-    form: empty,
+    form: emptyForm,
     originalForm: null,
-    pendingAction: null,
   },
   states: {
     idle: {
@@ -207,27 +172,15 @@ export const editorMachine = setup({
     viewing: {
       on: {
         SELECT: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { actions: 'select' },
         ],
         CREATE: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'creating', actions: 'startCreate' },
         ],
         DETAIL_LOADED: { actions: 'loadDetail' },
         EDIT: 'editing',
-        CHECK_UNSAVED: [
-          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
-          { actions: ['storePending', 'execPending', 'clearPending'] },
-        ],
       },
     },
     editing: {
@@ -236,34 +189,18 @@ export const editorMachine = setup({
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         CANCEL: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'viewing', actions: 'resetForm' },
         ],
         SAVE: 'saving',
         DELETE: 'confirmDelete',
         SELECT: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'viewing', actions: 'select' },
         ],
         CREATE: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'creating', actions: 'startCreate' },
-        ],
-        CHECK_UNSAVED: [
-          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
-          { actions: ['storePending', 'execPending', 'clearPending'] },
         ],
       },
     },
@@ -273,25 +210,13 @@ export const editorMachine = setup({
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         CANCEL: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'idle', actions: 'reset' },
         ],
         SAVE: 'saving',
         SELECT: [
-          {
-            guard: 'dirty',
-            target: 'confirmDiscard',
-            actions: assign({ pendingAction: () => {} }),
-          },
+          { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'viewing', actions: 'select' },
-        ],
-        CHECK_UNSAVED: [
-          { guard: 'dirty', target: 'confirmDiscard', actions: 'storePending' },
-          { actions: ['storePending', 'execPending', 'clearPending'] },
         ],
       },
     },
@@ -303,17 +228,13 @@ export const editorMachine = setup({
     },
     confirmDiscard: {
       on: {
-        DISCARD: {
-          target: 'idle',
-          actions: ['execPending', 'clearPending', 'reset'],
-        },
+        DISCARD: { target: 'idle', actions: 'reset' },
         KEEP_EDITING: [
           {
             target: 'editing',
             guard: ({ context }) => context.challenge !== null,
-            actions: 'clearPending',
           },
-          { target: 'creating', actions: 'clearPending' },
+          { target: 'creating' },
         ],
       },
     },

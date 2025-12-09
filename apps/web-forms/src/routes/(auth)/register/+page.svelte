@@ -29,14 +29,22 @@
   <button onclick={() => (verifySent = null)}>Try again</button>
 {:else}
   <form onsubmit={form.submit}>
-    <label>Team Name <input type="text" bind:value={form.data.name} /></label>
+    <label
+      >Team Name <input
+        type="text"
+        bind:value={form.data.name}
+        oninput={() => form.validateField('name')} /></label>
     {#if form.errors.name}
-      <em>{form.errors.name}</em>
+      <em style="color: red">{form.errors.name}</em>
     {/if}
 
-    <label>Email <input type="email" bind:value={form.data.email} /></label>
+    <label
+      >Email <input
+        type="email"
+        bind:value={form.data.email}
+        oninput={() => form.validateField('email')} /></label>
     {#if form.errors.email}
-      <em>{form.errors.email}</em>
+      <em style="color: red">{form.errors.email}</em>
     {/if}
 
     {#if form.errors._form}

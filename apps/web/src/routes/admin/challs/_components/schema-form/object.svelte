@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Section } from '$lib/components'
-  import SchemaField from './schema-field.svelte'
+  import SchemaField from './field.svelte'
   import type { JsonSchema } from './types'
   import { defaultValue } from './utils'
 

@@ -13,15 +13,10 @@
   <a href="/">Home</a>
   <a href="/challs">Challenges</a>
   <a href="/scores">Scores</a>
-  {#if isAdmin}
-    <a href="/admin/challs">Admin</a>
-  {/if}
-  {#if user}
-    <a href="/profile">Profile</a>
-  {:else}
-    <a href="/login">Login</a>
-    <a href="/register">Register</a>
-  {/if}
+  <a href="/admin/challs">Admin</a>
+  <a href="/profile">Profile</a>
+  <a href="/login">Login</a>
+  <a href="/register">Register</a>
 </nav>
 
 <style>
@@ -32,7 +27,7 @@
     margin-block-start: calc(var(--spacing) * 2);
     border: 1px solid var(--border);
     gap: 1rem;
-    
+
     a:hover {
       text-decoration: underline;
     }

@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { BadUnknownUser, GoodLogin } from '@rctf/types'
+  import { BadUnknownUser, GoodLogin, LoginRoute } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken, toast } from '$lib'
   import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
+  import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
@@ -14,8 +15,13 @@
 
   const clientConfig = $derived($clientConfigQuery.data)
 
-  let teamToken = $state('')
-  let errors = $state<Record<string, string>>({})
+  const form = useApiForm(LoginRoute, {
+    onSuccess: res => {
+      if (res.kind === GoodLogin.kind) {
+        handleLoginSuccess(res.data.authToken)
+      }
+    },
+  })
 
   onMount(() => {
     const urlToken = page.url.searchParams.get('token')
@@ -32,7 +38,6 @@
   }
 
   function handleTokenLogin(token: string) {
-    errors = {}
     $loginMutation.mutate(
       { teamToken: token },
       {
@@ -40,11 +45,9 @@
           if (response.kind === GoodLogin.kind) {
             handleLoginSuccess(response.data.authToken)
           } else {
-            errors = { teamToken: response.message }
+            form.data = { teamToken: token }
+            form.clearErrors()
           }
-        },
-        onError: error => {
-          errors = { teamToken: error.message }
         },
       }
     )
@@ -52,34 +55,18 @@
 
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    errors = {}
 
-    let token = teamToken
+    let token = form.data.teamToken ?? ''
     try {
       const url = new URL(token)
       const urlToken = url.searchParams.get('token')
       if (urlToken) {
         token = urlToken
+        form.setData({ teamToken: token })
       }
-    } catch {
-      // empty
-    }
+    } catch {}
 
-    $loginMutation.mutate(
-      { teamToken: token },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodLogin.kind) {
-            handleLoginSuccess(response.data.authToken)
-          } else {
-            errors = { teamToken: response.message }
-          }
-        },
-        onError: error => {
-          errors = { teamToken: error.message }
-        },
-      }
-    )
+    form.submit()
   }
 
   function handleCtftimeDone(ctftimeData: {
@@ -87,7 +74,6 @@
     ctftimeName: string
     ctftimeId: string
   }) {
-    errors = {}
     $loginMutation.mutate(
       { ctftimeToken: ctftimeData.ctftimeToken },
       {
@@ -108,6 +94,8 @@
       }
     )
   }
+
+  const isPending = $derived(form.submitting || $loginMutation.isPending)
 </script>
 
 <svelte:head>
@@ -124,7 +112,7 @@
     </Card.Header>
     <Card.Content>
       <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-        <Field.Field data-invalid={!!errors.teamToken || undefined}>
+        <Field.Field data-invalid={!!form.errors.teamToken || !!form.errors._form || undefined}>
           <Field.Label for="teamToken">Team token</Field.Label>
           <Input
             id="teamToken"
@@ -133,10 +121,14 @@
             placeholder="Enter your team token"
             autocomplete="current-password"
             required
-            bind:value={teamToken}
-            aria-invalid={!!errors.teamToken} />
-          {#if errors.teamToken}
-            <Field.Error>{errors.teamToken}</Field.Error>
+            bind:value={form.data.teamToken}
+            aria-invalid={!!form.errors.teamToken || !!form.errors._form}
+            oninput={() => form.validateField('teamToken')} />
+          {#if form.errors.teamToken}
+            <Field.Error>{form.errors.teamToken}</Field.Error>
+          {/if}
+          {#if form.errors._form}
+            <Field.Error>{form.errors._form}</Field.Error>
           {/if}
         </Field.Field>
 
@@ -147,8 +139,8 @@
           </p>
         {/if}
 
-        <Button type="submit" disabled={$loginMutation.isPending} class="w-full">
-          {#if $loginMutation.isPending}
+        <Button type="submit" disabled={isPending} class="w-full">
+          {#if isPending}
             <Spinner class="size-4" />
           {/if}
           Login
@@ -166,11 +158,11 @@
           <ButtonCtftime
             clientId={clientConfig.ctftime.clientId}
             onCtftimeDone={handleCtftimeDone}
-            disabled={$loginMutation.isPending} />
+            disabled={isPending} />
         </div>
       {/if}
     </Card.Content>
-    <Card.Footer>
+    <Card.Footer class="flex flex-col gap-2">
       <p class="text-foreground-l3 text-sm">
         Don't have an account?
         <a href="/register" class="text-foreground-prose-link hover:underline">Register here</a>.

@@ -1,8 +1,8 @@
 <script lang="ts">
   import { Field, Select } from '$lib/components'
   import { TagInput } from '$lib/components/ui/tag-input'
-  import type { FieldProps, JsonSchema } from '../types'
-  import { validateValue } from '../validate'
+  import type { FieldProps, JsonSchema } from './types'
+  import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
 

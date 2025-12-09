@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Field, Input } from '$lib/components'
-  import { getValidationContext } from '../context'
-  import type { FieldProps } from '../types'
-  import { isNullable as checkNullable, parseNumber, resolveValue } from '../utils'
-  import { validateValue } from '../validate'
+  import { getValidationContext } from './context'
+  import type { FieldProps } from './types'
+  import { isNullable as checkNullable, parseNumber, resolveValue } from './utils'
+  import { validateValue } from './validate'
 
   interface Props extends FieldProps {
     showLabel?: boolean

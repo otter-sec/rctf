@@ -1,11 +1,11 @@
 <script lang="ts">
-  import SchemaArray from './array/schema-array.svelte'
-  import BooleanField from './primitives/boolean-field.svelte'
-  import NumberField from './primitives/number-field.svelte'
-  import StringField from './primitives/string-field.svelte'
-  import UnknownField from './primitives/unknown-field.svelte'
-  import SchemaRecord from './record/schema-record.svelte'
-  import SchemaObject from './schema-object.svelte'
+  import SchemaArray from './array.svelte'
+  import BooleanField from './field-boolean.svelte'
+  import NumberField from './field-number.svelte'
+  import StringField from './field-string.svelte'
+  import UnknownField from './field-unknown.svelte'
+  import SchemaObject from './object.svelte'
+  import SchemaRecord from './record.svelte'
   import type { JsonSchema } from './types'
   import { isNullable as checkNullable, getEffectiveSchema, getPrimaryType } from './utils'
 

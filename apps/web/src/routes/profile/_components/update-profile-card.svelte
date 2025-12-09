@@ -1,48 +1,54 @@
 <script lang="ts">
   import {
+    DeleteEmailRoute,
     GoodEmailRemoved,
-    GoodEmailSet,
-    GoodUserUpdateV2,
-    GoodVerifySent,
     ProtectedAction,
+    SetEmailRouteV2,
+    UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
+  import { apiRequest } from '$lib/api'
   import { Button, Field, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import {
-    queryKeys,
-    useClientConfig,
-    useCurrentUser,
-    useDeleteEmailMutation,
-    useSetEmailMutation,
-    useUpdateUserMutation,
-  } from '$lib/query'
+  import { useApiForm } from '$lib/forms'
+  import { queryKeys, useClientConfig, useCurrentUser } from '$lib/query'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const updateUserMutation = useUpdateUserMutation()
-  const setEmailMutation = useSetEmailMutation()
-  const deleteEmailMutation = useDeleteEmailMutation()
 
   const user = $derived($userQuery.data)
   const clientConfig = $derived($clientConfigQuery.data)
 
-  let name = $state('')
-  let email = $state('')
-  let division = $state('')
-  let errors = $state<Record<string, string | null>>({})
+  const invalidateUser = () => queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+
+  const profileForm = useApiForm(UpdateUserRouteV2, {
+    onSuccess: () => {
+      toast.success('Profile updated!')
+      invalidateUser()
+    },
+  })
+
+  const emailForm = useApiForm(SetEmailRouteV2, {
+    onSuccess: () => {
+      toast.success('Email updated!')
+      invalidateUser()
+    },
+  })
+
   let initialized = $state(false)
+  let deletingEmail = $state(false)
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  const isEmailValid = $derived(email === '' || EMAIL_REGEX.test(email.trim()))
+  const isEmailValid = $derived(
+    (emailForm.data.email ?? '') === '' || EMAIL_REGEX.test((emailForm.data.email ?? '').trim())
+  )
 
   $effect(() => {
     if (user && !initialized) {
-      name = user.name
-      email = user.email ?? ''
-      division = user.division
+      profileForm.setData({ name: user.name, division: user.division })
+      emailForm.setData({ email: user.email ?? '' })
       initialized = true
     }
   })
@@ -60,116 +66,46 @@
     user ? divisionOptions.filter(d => user.allowedDivisions.includes(d.value)) : []
   )
 
-  const selectedDivisionLabel = $derived(clientConfig?.divisions[division] ?? 'Select division')
-
-  const canDeleteEmail = $derived(clientConfig?.emailEnabled && user?.email)
-
-  const hasChanges = $derived(
-    user ? name !== user.name || email !== (user.email ?? '') || division !== user.division : false
+  const selectedDivisionLabel = $derived(
+    clientConfig?.divisions[profileForm.data.division ?? ''] ?? 'Select division'
   )
 
-  const loading = $derived(
-    $updateUserMutation.isPending || $setEmailMutation.isPending || $deleteEmailMutation.isPending
+  // Can only delete email if user has an alternative auth method (linked CTFtime)
+  const canDeleteEmail = $derived(clientConfig?.emailEnabled && user?.email && user?.ctftimeId)
+
+  const profileHasChanges = $derived(
+    user
+      ? (profileForm.data.name ?? '') !== user.name ||
+          (profileForm.data.division ?? '') !== user.division
+      : false
   )
 
-  async function handleSubmit(e: SubmitEvent) {
+  const emailHasChanges = $derived(
+    user ? (emailForm.data.email ?? '') !== (user.email ?? '') : false
+  )
+
+  const loading = $derived(profileForm.submitting || emailForm.submitting || deletingEmail)
+
+  async function deleteEmail() {
+    deletingEmail = true
+    const res = await apiRequest(DeleteEmailRoute, {})
+    if (res.kind === GoodEmailRemoved.kind) {
+      toast.success('Email removed!')
+      invalidateUser()
+      emailForm.setData({ email: '' })
+    } else {
+      toast.error(res.message)
+    }
+    deletingEmail = false
+  }
+
+  function submitEmail(e: Event) {
     e.preventDefault()
-
-    if (!user) return
-
-    if (!hasChanges) {
-      toast.info('No changes to save')
-      return
-    }
-
-    errors = {}
-    let updated = false
-
-    if (name !== user.name || division !== user.division) {
-      await new Promise<void>((resolve, reject) => {
-        $updateUserMutation.mutate(
-          {
-            name: name !== user.name ? name : undefined,
-            division: division !== user.division ? division : undefined,
-          },
-          {
-            onSuccess: response => {
-              if (response.kind === GoodUserUpdateV2.kind) {
-                toast.success('Profile updated successfully!')
-                updated = true
-                resolve()
-              } else {
-                const msg = response.message
-                if (msg.toLowerCase().includes('name')) {
-                  errors = { ...errors, name: msg }
-                } else if (msg.toLowerCase().includes('division')) {
-                  errors = { ...errors, division: msg }
-                } else {
-                  errors = { ...errors, form: msg }
-                }
-                resolve()
-              }
-            },
-            onError: error => {
-              errors = { ...errors, form: error.message }
-              resolve()
-            },
-          }
-        )
-      })
-    }
-
-    if (email !== (user.email ?? '')) {
-      if (email === '' && canDeleteEmail) {
-        await new Promise<void>(resolve => {
-          $deleteEmailMutation.mutate(
-            {},
-            {
-              onSuccess: response => {
-                if (response.kind === GoodEmailRemoved.kind) {
-                  toast.success('Email removed successfully!')
-                  updated = true
-                } else {
-                  errors = { ...errors, email: response.message }
-                }
-                resolve()
-              },
-              onError: error => {
-                errors = { ...errors, email: error.message }
-                resolve()
-              },
-            }
-          )
-        })
-      } else if (email !== '') {
-        await new Promise<void>(resolve => {
-          $setEmailMutation.mutate(
-            { email },
-            {
-              onSuccess: response => {
-                if (response.kind === GoodEmailSet.kind) {
-                  toast.success('Email updated successfully!')
-                  updated = true
-                } else if (response.kind === GoodVerifySent.kind) {
-                  toast.success('Verification email sent. Please check your inbox.')
-                  updated = true
-                } else {
-                  errors = { ...errors, email: response.message }
-                }
-                resolve()
-              },
-              onError: error => {
-                errors = { ...errors, email: error.message }
-                resolve()
-              },
-            }
-          )
-        })
-      }
-    }
-
-    if (updated) {
-      queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+    const email = (emailForm.data.email ?? '').trim()
+    if (email === '' && canDeleteEmail) {
+      deleteEmail()
+    } else if (email) {
+      emailForm.submit()
     }
   }
 </script>
@@ -178,16 +114,8 @@
   <Section.Root>
     <Section.Header>Update profile</Section.Header>
     <Section.Content>
-      {#if errors.form}
-        <div
-          class="bg-background-destructive text-foreground-destructive mb-3 rounded-md p-3 text-sm"
-          role="alert">
-          {errors.form}
-        </div>
-      {/if}
-
-      <form onsubmit={handleSubmit} class="flex flex-col gap-3">
-        <Field.Field data-invalid={!!errors.name || undefined}>
+      <form onsubmit={profileForm.submit} class="flex flex-col gap-3">
+        <Field.Field data-invalid={!!profileForm.errors.name || undefined}>
           <Field.Label>Team name</Field.Label>
           <Input
             type="text"
@@ -197,37 +125,17 @@
             minlength={2}
             maxlength={64}
             required
-            bind:value={name} />
-          {#if errors.name}
-            <Field.Error>{errors.name}</Field.Error>
+            bind:value={profileForm.data.name}
+            disabled={loading} />
+          {#if profileForm.errors.name}
+            <Field.Error>{profileForm.errors.name}</Field.Error>
           {/if}
         </Field.Field>
-
-        <Field.Field data-invalid={!!errors.email || (!isEmailValid && email !== '') || undefined}>
-          <Field.Label>
-            Email
-            {#if canDeleteEmail}
-              <Field.Hint>(optional)</Field.Hint>
-            {/if}
-          </Field.Label>
-          <Input
-            type="email"
-            placeholder="Enter your email"
-            autocomplete="email"
-            bind:value={email} />
-          {#if errors.email}
-            <Field.Error>{errors.email}</Field.Error>
-          {:else if !isEmailValid && email !== ''}
-            <Field.Error>Please enter a valid email address</Field.Error>
-          {/if}
-        </Field.Field>
-
-        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} />
 
         {#if allowedDivisionOptions.length > 1}
-          <Field.Field data-invalid={!!errors.division || undefined}>
+          <Field.Field data-invalid={!!profileForm.errors.division || undefined}>
             <Field.Label>Division</Field.Label>
-            <Select.Root type="single" bind:value={division}>
+            <Select.Root type="single" bind:value={profileForm.data.division} disabled={loading}>
               <Select.Trigger class="w-full">
                 {selectedDivisionLabel}
               </Select.Trigger>
@@ -239,17 +147,77 @@
                 {/each}
               </Select.Content>
             </Select.Root>
-            {#if errors.division}
-              <Field.Error>{errors.division}</Field.Error>
+            {#if profileForm.errors.division}
+              <Field.Error>{profileForm.errors.division}</Field.Error>
             {/if}
           </Field.Field>
         {/if}
 
-        <Button type="submit" disabled={loading || !hasChanges || !isEmailValid} class="w-full">
-          {#if loading}
+        {#if profileForm.errors._form}
+          <div
+            class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
+            role="alert">
+            {profileForm.errors._form}
+          </div>
+        {/if}
+
+        <Button type="submit" disabled={loading || !profileHasChanges} class="w-full">
+          {#if profileForm.submitting}
             <Spinner class="size-4" />
           {/if}
-          Save changes
+          Save profile
+        </Button>
+      </form>
+    </Section.Content>
+  </Section.Root>
+
+  <Section.Root>
+    <Section.Header>Email</Section.Header>
+    <Section.Content>
+      <form onsubmit={submitEmail} class="flex flex-col gap-3">
+        <Field.Field
+          data-invalid={!!emailForm.errors.email ||
+            (!isEmailValid && (emailForm.data.email ?? '') !== '') ||
+            undefined}>
+          <Field.Label>
+            Email
+            {#if canDeleteEmail}
+              <Field.Hint>(optional - leave empty to remove)</Field.Hint>
+            {/if}
+          </Field.Label>
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            bind:value={emailForm.data.email}
+            disabled={loading} />
+          {#if emailForm.errors.email}
+            <Field.Error>{emailForm.errors.email}</Field.Error>
+          {:else if !isEmailValid && (emailForm.data.email ?? '') !== ''}
+            <Field.Error>Please enter a valid email address</Field.Error>
+          {/if}
+        </Field.Field>
+
+        {#if emailForm.errors._form}
+          <div
+            class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
+            role="alert">
+            {emailForm.errors._form}
+          </div>
+        {/if}
+
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.SetEmail} />
+
+        <Button
+          type="submit"
+          disabled={loading || !emailHasChanges || !isEmailValid}
+          class="w-full">
+          {#if emailForm.submitting || deletingEmail}
+            <Spinner class="size-4" />
+          {/if}
+          {(emailForm.data.email ?? '').trim() === '' && canDeleteEmail
+            ? 'Remove email'
+            : 'Update email'}
         </Button>
       </form>
     </Section.Content>

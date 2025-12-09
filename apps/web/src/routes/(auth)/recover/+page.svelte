@@ -1,40 +1,24 @@
 <script lang="ts">
-  import { GoodVerifySent, ProtectedAction } from '@rctf/types'
+  import { GoodVerifySent, ProtectedAction, RecoverRouteV2 } from '@rctf/types'
   import { toast } from '$lib'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import { useClientConfig, useRecoverMutation } from '$lib/query'
+  import { useApiForm } from '$lib/forms'
+  import { useClientConfig } from '$lib/query'
 
-  const recoverMutation = useRecoverMutation()
   const clientConfigQuery = useClientConfig()
-
   const clientConfig = $derived($clientConfigQuery.data)
 
-  let email = $state('')
-  let errors = $state<Record<string, string>>({})
   let verifySent = $state(false)
 
-  function handleSubmit(e: SubmitEvent) {
-    e.preventDefault()
-    errors = {}
-
-    $recoverMutation.mutate(
-      { email },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodVerifySent.kind) {
-            verifySent = true
-            toast.success('Recovery email sent!')
-          } else {
-            errors = { email: response.message }
-          }
-        },
-        onError: error => {
-          errors = { email: error.message }
-        },
+  const form = useApiForm(RecoverRouteV2, {
+    onSuccess: res => {
+      if (res.kind === GoodVerifySent.kind) {
+        verifySent = true
+        toast.success('Recovery email sent!')
       }
-    )
-  }
+    },
+  })
 </script>
 
 <svelte:head>
@@ -51,9 +35,9 @@
     </Card.Header>
     <Card.Content class="prose">
       <p>
-        We've sent a recovery email to <b class="font-medium">{email}</b>. Please check your inbox
-        and click the link to access your account. If you didn't receive the email, check your spam
-        folder or
+        We've sent a recovery email to <b class="font-medium">{form.data.email}</b>. Please check
+        your inbox and click the link to access your account. If you didn't receive the email, check
+        your spam folder or
         <button
           class="text-foreground-prose-link hover:underline cursor-pointer"
           onclick={() => (verifySent = false)}>try again</button
@@ -68,8 +52,8 @@
       <Card.Description>Get a new team token sent to your email</Card.Description>
     </Card.Header>
     <Card.Content>
-      <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-        <Field.Field data-invalid={!!errors.email || undefined}>
+      <form onsubmit={form.submit} class="flex flex-col gap-4">
+        <Field.Field data-invalid={!!form.errors.email || !!form.errors._form || undefined}>
           <Field.Label for="email">Email</Field.Label>
           <Input
             id="email"
@@ -78,15 +62,18 @@
             placeholder="Enter your email"
             autocomplete="email"
             required
-            bind:value={email}
-            aria-invalid={!!errors.email} />
-          {#if errors.email}
-            <Field.Error>{errors.email}</Field.Error>
+            bind:value={form.data.email}
+            aria-invalid={!!form.errors.email || !!form.errors._form} />
+          {#if form.errors.email}
+            <Field.Error>{form.errors.email}</Field.Error>
+          {/if}
+          {#if form.errors._form}
+            <Field.Error>{form.errors._form}</Field.Error>
           {/if}
         </Field.Field>
 
-        <Button type="submit" disabled={$recoverMutation.isPending} class="w-full">
-          {#if $recoverMutation.isPending}
+        <Button type="submit" disabled={form.submitting} class="w-full">
+          {#if form.submitting}
             <Spinner class="size-4" />
           {/if}
           Recover

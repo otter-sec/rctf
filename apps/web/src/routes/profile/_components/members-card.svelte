@@ -1,25 +1,30 @@
 <script lang="ts">
-  import { GoodMemberCreate, GoodMemberDelete } from '@rctf/types'
+  import { CreateMemberRoute, DeleteMemberRoute, GoodMemberDelete } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
+  import { apiRequest } from '$lib/api'
   import { Badge, Field, Section, Spinner } from '$lib/components'
   import { TagInput } from '$lib/components/ui/tag-input'
-  import {
-    queryKeys,
-    useCreateMemberMutation,
-    useDeleteMemberMutation,
-    useMembers,
-  } from '$lib/query'
+  import { useApiForm } from '$lib/forms'
+  import { queryKeys, useMembers } from '$lib/query'
 
   const queryClient = useQueryClient()
   const membersQuery = useMembers()
-  const createMutation = useCreateMemberMutation()
-  const deleteMutation = useDeleteMemberMutation()
-
-  let error = $state<string | null>(null)
 
   const members = $derived($membersQuery.data ?? [])
   const memberEmails = $derived(members.map(m => m.email))
+
+  const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: queryKeys.members })
+
+  const memberForm = useApiForm(CreateMemberRoute, {
+    onSuccess: () => {
+      toast.success('Team member added!')
+      invalidateMembers()
+      memberForm.reset()
+    },
+  })
+
+  let deleting = $state<string | null>(null)
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -27,58 +32,33 @@
     return EMAIL_REGEX.test(email.trim())
   }
 
+  async function deleteMember(id: string) {
+    deleting = id
+    const res = await apiRequest(DeleteMemberRoute, { id })
+    if (res.kind === GoodMemberDelete.kind) {
+      toast.success('Team member removed!')
+      invalidateMembers()
+    } else {
+      toast.error(res.message)
+    }
+    deleting = null
+  }
+
   function handleEmailsChange(newEmails: string[]) {
-    error = null
+    memberForm.clearErrors()
 
     const added = newEmails.find(e => !memberEmails.includes(e))
     if (added) {
-      handleAddMember(added)
+      memberForm.setData({ email: added.trim() })
+      memberForm.submit()
       return
     }
 
     const removed = memberEmails.find(e => !newEmails.includes(e))
     if (removed) {
       const member = members.find(m => m.email === removed)
-      if (member) handleDeleteMember(member.id)
+      if (member) deleteMember(member.id)
     }
-  }
-
-  function handleAddMember(email: string) {
-    $createMutation.mutate(
-      { email: email.trim() },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodMemberCreate.kind) {
-            toast.success('Team member added successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.members })
-          } else {
-            error = response.message
-          }
-        },
-        onError: err => {
-          error = err.message
-        },
-      }
-    )
-  }
-
-  function handleDeleteMember(id: string) {
-    $deleteMutation.mutate(
-      { id },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodMemberDelete.kind) {
-            toast.success('Team member removed successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.members })
-          } else {
-            toast.error(response.message)
-          }
-        },
-        onError: err => {
-          toast.error(err.message)
-        },
-      }
-    )
   }
 </script>
 
@@ -93,17 +73,17 @@
         <Spinner class="size-5" />
       </div>
     {:else}
-      <Field.Field data-invalid={!!error || undefined}>
+      <Field.Field data-invalid={!!memberForm.errors._form || undefined}>
         <TagInput
           value={memberEmails}
           onchange={handleEmailsChange}
           validate={validateEmail}
           class="[&>span]:font-sans"
-          disabled={$createMutation.isPending || $deleteMutation.isPending}
+          disabled={memberForm.submitting || deleting !== null}
           placeholder="Add more..."
           emptyPlaceholder="teammate@example.com" />
-        {#if error}
-          <Field.Error>{error}</Field.Error>
+        {#if memberForm.errors._form}
+          <Field.Error>{memberForm.errors._form}</Field.Error>
         {/if}
       </Field.Field>
     {/if}

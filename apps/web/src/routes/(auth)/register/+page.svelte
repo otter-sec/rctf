@@ -1,28 +1,41 @@
 <script lang="ts">
-  import { GoodLogin, GoodRegister, GoodVerifySent, ProtectedAction } from '@rctf/types'
+  import {
+    GoodLogin,
+    GoodRegister,
+    GoodVerifySent,
+    ProtectedAction,
+    RegisterRouteV2,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken, toast } from '$lib'
   import { Button, ButtonCtftime, Card, Field, Input, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import { queryKeys, useClientConfig, useLoginMutation, useRegisterMutation } from '$lib/query'
+  import { useApiForm } from '$lib/forms'
+  import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
 
   const queryClient = useQueryClient()
-  const registerMutation = useRegisterMutation()
   const loginMutation = useLoginMutation()
   const clientConfigQuery = useClientConfig()
 
   const clientConfig = $derived($clientConfigQuery.data)
 
-  let name = $state('')
-  let email = $state('')
-  let errors = $state<Record<string, string>>({})
   let verifySent = $state(false)
-
   let ctftimeToken = $state<string | null>(null)
   let ctftimeName = $state<string | null>(null)
-  const loading = $derived($registerMutation.isPending || $loginMutation.isPending)
+
+  const form = useApiForm(RegisterRouteV2, {
+    onSuccess: res => {
+      if (res.kind === GoodRegister.kind) {
+        handleRegisterSuccess(res.data.authToken)
+      } else if (res.kind === GoodVerifySent.kind) {
+        verifySent = true
+      }
+    },
+  })
+
+  const isPending = $derived(form.submitting || $loginMutation.isPending)
 
   onMount(() => {
     const storedToken = sessionStorage.getItem('ctftimeToken')
@@ -31,7 +44,7 @@
     if (storedToken && storedName) {
       ctftimeToken = storedToken
       ctftimeName = storedName
-      name = storedName
+      form.setData({ name: storedName, ctftimeToken: storedToken })
       sessionStorage.removeItem('ctftimeToken')
       sessionStorage.removeItem('ctftimeName')
     }
@@ -46,56 +59,12 @@
 
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
-    errors = {}
 
     if (ctftimeToken) {
-      $registerMutation.mutate(
-        { name, ctftimeToken },
-        {
-          onSuccess: response => {
-            if (response.kind === GoodRegister.kind) {
-              handleRegisterSuccess(response.data.authToken)
-            } else {
-              const msg = response.message
-              if (msg.toLowerCase().includes('name')) {
-                errors = { name: msg }
-              } else {
-                errors = { form: msg }
-              }
-            }
-          },
-          onError: error => {
-            errors = { form: error.message }
-          },
-        }
-      )
-      return
+      form.setData({ ctftimeToken })
     }
 
-    $registerMutation.mutate(
-      { name, email },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodRegister.kind) {
-            handleRegisterSuccess(response.data.authToken)
-          } else if (response.kind === GoodVerifySent.kind) {
-            verifySent = true
-          } else {
-            const msg = response.message
-            if (msg.toLowerCase().includes('email')) {
-              errors = { email: msg }
-            } else if (msg.toLowerCase().includes('name')) {
-              errors = { name: msg }
-            } else {
-              errors = { form: msg }
-            }
-          }
-        },
-        onError: error => {
-          errors = { form: error.message }
-        },
-      }
-    )
+    form.submit()
   }
 
   function handleCtftimeDone(ctftimeData: {
@@ -103,7 +72,7 @@
     ctftimeName: string
     ctftimeId: string
   }) {
-    errors = {}
+    form.clearErrors()
 
     $loginMutation.mutate(
       { ctftimeToken: ctftimeData.ctftimeToken },
@@ -117,7 +86,7 @@
           } else {
             ctftimeToken = ctftimeData.ctftimeToken
             ctftimeName = ctftimeData.ctftimeName
-            name = ctftimeData.ctftimeName
+            form.setData({ name: ctftimeData.ctftimeName, ctftimeToken: ctftimeData.ctftimeToken })
           }
         },
         onError: error => {
@@ -130,7 +99,7 @@
   function cancelCtftime() {
     ctftimeToken = null
     ctftimeName = null
-    name = ''
+    form.reset()
   }
 </script>
 
@@ -149,9 +118,9 @@
       </Card.Header>
       <Card.Content class="prose">
         <p>
-          We've sent a verification email to <b class="font-medium">{email}</b>. Please check your
-          inbox and click the link to complete registration. If you didn't receive the email, check
-          your spam folder or
+          We've sent a verification email to <b class="font-medium">{form.data.email}</b>. Please
+          check your inbox and click the link to complete registration. If you didn't receive the
+          email, check your spam folder or
           <button
             class="text-foreground-prose-link hover:underline cursor-pointer"
             onclick={() => (verifySent = false)}>try again</button
@@ -166,16 +135,16 @@
         <Card.Description>Registering with CTFtime</Card.Description>
       </Card.Header>
       <Card.Content>
-        {#if errors.form}
+        {#if form.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
             role="alert">
-            {errors.form}
+            {form.errors._form}
           </div>
         {/if}
 
         <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-          <Field.Field data-invalid={!!errors.name || undefined}>
+          <Field.Field data-invalid={!!form.errors.name || undefined}>
             <Field.Label for="name">Team name</Field.Label>
             <Input
               id="name"
@@ -187,17 +156,18 @@
               minlength={2}
               maxlength={64}
               required
-              bind:value={name}
-              aria-invalid={!!errors.name} />
+              bind:value={form.data.name}
+              aria-invalid={!!form.errors.name}
+              oninput={() => form.validateField('name')} />
             <Field.Description
               >You can use a different name than your CTFtime team name.</Field.Description>
-            {#if errors.name}
-              <Field.Error>{errors.name}</Field.Error>
+            {#if form.errors.name}
+              <Field.Error>{form.errors.name}</Field.Error>
             {/if}
           </Field.Field>
 
-          <Button type="submit" disabled={loading} class="w-full">
-            {#if loading}
+          <Button type="submit" disabled={isPending} class="w-full">
+            {#if isPending}
               <Spinner class="size-4" />
             {/if}
             Register
@@ -205,8 +175,11 @@
         </form>
       </Card.Content>
       <Card.Footer>
-        <Button variant="ghost" onclick={cancelCtftime} class="text-sm"
-          >Cancel and register with email instead</Button>
+        <p class="text-foreground-l3 text-sm">
+          Changed your mind? <a href="/register" class="text-foreground-prose-link hover:underline"
+            >Register with email instead</a
+          >.
+        </p>
       </Card.Footer>
     </Card.Root>
   {:else}
@@ -220,16 +193,16 @@
       <Card.Content>
         <p class="text-foreground-l3 mb-4 text-sm">Please register one account per team.</p>
 
-        {#if errors.form}
+        {#if form.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
             role="alert">
-            {errors.form}
+            {form.errors._form}
           </div>
         {/if}
 
         <form onsubmit={handleSubmit} class="flex flex-col gap-4">
-          <Field.Field data-invalid={!!errors.name || undefined}>
+          <Field.Field data-invalid={!!form.errors.name || undefined}>
             <Field.Label for="name">Team name</Field.Label>
             <Input
               id="name"
@@ -241,14 +214,15 @@
               minlength={2}
               maxlength={64}
               required
-              bind:value={name}
-              aria-invalid={!!errors.name} />
-            {#if errors.name}
-              <Field.Error>{errors.name}</Field.Error>
+              bind:value={form.data.name}
+              aria-invalid={!!form.errors.name}
+              oninput={() => form.validateField('name')} />
+            {#if form.errors.name}
+              <Field.Error>{form.errors.name}</Field.Error>
             {/if}
           </Field.Field>
 
-          <Field.Field data-invalid={!!errors.email || undefined}>
+          <Field.Field data-invalid={!!form.errors.email || undefined}>
             <Field.Label for="email">Email</Field.Label>
             <Input
               id="email"
@@ -257,15 +231,16 @@
               placeholder="Enter your email"
               autocomplete="email"
               required
-              bind:value={email}
-              aria-invalid={!!errors.email} />
-            {#if errors.email}
-              <Field.Error>{errors.email}</Field.Error>
+              bind:value={form.data.email}
+              aria-invalid={!!form.errors.email}
+              oninput={() => form.validateField('email')} />
+            {#if form.errors.email}
+              <Field.Error>{form.errors.email}</Field.Error>
             {/if}
           </Field.Field>
 
-          <Button type="submit" disabled={loading} class="w-full">
-            {#if loading}
+          <Button type="submit" disabled={isPending} class="w-full">
+            {#if isPending}
               <Spinner class="size-4" />
             {/if}
             Register
@@ -283,7 +258,7 @@
             <ButtonCtftime
               clientId={clientConfig.ctftime.clientId}
               onCtftimeDone={handleCtftimeDone}
-              disabled={loading} />
+              disabled={isPending} />
           </div>
         {/if}
       </Card.Content>

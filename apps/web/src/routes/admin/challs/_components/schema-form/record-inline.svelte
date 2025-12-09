@@ -1,10 +1,10 @@
 <script lang="ts">
   import { Button, Field, Input, Select } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
-  import { getValidationContext } from '../context'
-  import type { FieldProps, JsonSchema } from '../types'
-  import { defaultValue, parseNumber, renameRecordKey } from '../utils'
-  import { validateValue } from '../validate'
+  import { getValidationContext } from './context'
+  import type { FieldProps, JsonSchema } from './types'
+  import { defaultValue, parseNumber, renameRecordKey } from './utils'
+  import { validateValue } from './validate'
 
   interface Props extends FieldProps {}
 

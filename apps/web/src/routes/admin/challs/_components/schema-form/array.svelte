@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type { FieldProps, JsonSchema } from '../types'
-  import { isTypeOneOf } from '../utils'
   import ArrayPanel from './array-panel.svelte'
   import ArrayTags from './array-tags.svelte'
+  import type { FieldProps, JsonSchema } from './types'
+  import { isTypeOneOf } from './utils'
 
   interface Props extends FieldProps {}
 
