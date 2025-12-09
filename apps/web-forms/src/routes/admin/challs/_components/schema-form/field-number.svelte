@@ -85,7 +85,8 @@
     value={inputValue}
     oninput={handleInput}
     placeholder={isNullable ? '(empty for none)' : undefined}
-    {disabled} />
+    {disabled}
+  />
   {#if error}
     <div><small>{error}</small></div>
   {/if}

@@ -17,6 +17,7 @@
     'text-foreground-l0 h-10 whitespace-nowrap bg-clip-padding px-2 text-start align-middle font-medium [&:has([role=checkbox])]:pe-0',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </th>

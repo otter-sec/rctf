@@ -216,7 +216,8 @@
               hideUnsolved
                 ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
                 : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
-            )}>
+            )}
+          >
             {#if hideUnsolved}
               <IconEyeClosed class="size-5" />
             {:else}
@@ -232,7 +233,8 @@
             <Tooltip.Trigger
               onclick={collapseAll}
               aria-label="Collapse all"
-              class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5">
+              class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+            >
               <IconFold class="size-5" />
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
@@ -242,7 +244,8 @@
           <Tooltip.Trigger
             onclick={cycleSortMode}
             aria-label={sortLabel}
-            class="rounded-l-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5">
+            class="rounded-l-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+          >
             {#if sortMode === 'category'}
               <IconFlagFilled class="size-5" />
             {:else if sortMode === 'time'}
@@ -262,12 +265,14 @@
     fadeSize={86}
     fadeColor="background-l1"
     scrollbarYClasses="z-30"
-    scrollbarXClasses="z-30">
+    scrollbarXClasses="z-30"
+  >
     {#if displayChallenges.length === 0}
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges"
-        subtitle={searchQuery ? 'No matches found' : 'No challenge data available'} />
+        subtitle={searchQuery ? 'No matches found' : 'No challenge data available'}
+      />
     {:else if sortMode === 'category'}
       <Accordion.Root type="multiple" bind:value={openCategories} class="pb-4">
         {#each groups as [category, entries] (category)}
@@ -279,10 +284,12 @@
             <Accordion.Trigger
               class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
               headerClass="sticky top-0 z-20 bg-background-l1"
-              chevronClass="text-category-foreground-l1">
+              chevronClass="text-category-foreground-l1"
+            >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap">
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
+                >
                   <span class="text-category-foreground-l0">{categorySolved}</span>
                   <span class="text-category-foreground-l1">/ {entries.length}</span>
                 </div>
@@ -304,10 +311,12 @@
                       'relative flex w-full items-center justify-between px-9 py-2 text-left gap-4',
                       challenge.isSolved &&
                         'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent'
-                    )}>
+                    )}
+                  >
                     {#if challenge.isSolved}
                       <IconCheck
-                        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success" />
+                        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
+                      />
                     {/if}
                     <div class="flex min-w-0 flex-1 items-center gap-1 z-1 truncate text-base">
                       <span class="text-category-foreground-l1">{categoryShort} /</span>
@@ -316,7 +325,8 @@
                     <div class="flex shrink-0 items-center gap-4 z-1">
                       {#if challenge.solvedAt}
                         <span
-                          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap">
+                          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+                        >
                           {formatSolveTime(challenge.solvedAt)}
                         </span>
                       {/if}
@@ -346,10 +356,12 @@
               'relative flex w-full items-center justify-between px-9 py-2 text-left gap-4 bg-category-background-l1',
               challenge.isSolved &&
                 'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-success/50 dark:before:from-foreground-success/20 before:to-transparent'
-            )}>
+            )}
+          >
             {#if challenge.isSolved}
               <IconCheck
-                class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success" />
+                class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success"
+              />
             {/if}
             <div class="flex min-w-0 flex-1 items-center gap-1 z-1 truncate text-base">
               <span class="text-category-foreground-l1">{categoryShort} /</span>
@@ -358,7 +370,8 @@
             <div class="flex shrink-0 items-center gap-4 z-1">
               {#if challenge.solvedAt}
                 <span
-                  class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap">
+                  class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+                >
                   {formatSolveTime(challenge.solvedAt)}
                 </span>
               {/if}

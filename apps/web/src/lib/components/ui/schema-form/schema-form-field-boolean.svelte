@@ -41,7 +41,8 @@
     type="single"
     value={String(displayValue)}
     onValueChange={v => set(v === 'true')}
-    {disabled}>
+    {disabled}
+  >
     <Select.Trigger class="w-full">{displayValue ? 'Yes' : 'No'}</Select.Trigger>
     <Select.Content>
       <Select.Item value="true" label="Yes">Yes</Select.Item>

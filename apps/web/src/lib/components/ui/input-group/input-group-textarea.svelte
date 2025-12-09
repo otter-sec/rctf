@@ -19,4 +19,5 @@
     className
   )}
   bind:value
-  {...props} />
+  {...props}
+/>

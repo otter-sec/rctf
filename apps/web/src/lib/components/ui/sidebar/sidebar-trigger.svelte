@@ -28,7 +28,8 @@
     onclick?.(e)
     sidebar.toggle()
   }}
-  {...restProps}>
+  {...restProps}
+>
   <IconLayoutSidebarLeftCollapse class="size-4" />
   <span class="sr-only">Toggle Sidebar</span>
 </Button>

@@ -15,6 +15,7 @@
   data-slot="sidebar-group-content"
   data-sidebar="group-content"
   class={cn('w-full text-sm', className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </div>

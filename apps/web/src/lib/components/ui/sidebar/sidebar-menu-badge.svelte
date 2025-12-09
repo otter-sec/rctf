@@ -23,6 +23,7 @@
     'group-data-[collapsible=icon]:hidden',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </div>

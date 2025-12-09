@@ -30,6 +30,7 @@
     '[[data-side=right][data-collapsible=offcanvas]_&]:-start-2',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </button>

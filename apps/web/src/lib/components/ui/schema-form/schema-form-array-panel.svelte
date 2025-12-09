@@ -4,7 +4,7 @@
   import { cn } from '$lib/utils'
   import SchemaFormField from './schema-form-field.svelte'
   import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { defaultValue, getItemLabel } from './utils'
 
   interface Props extends SchemaFormFieldProps {}
@@ -52,7 +52,8 @@
           tabindex="0"
           onclick={() => (selectedIndex = i)}
           onkeydown={e =>
-            (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedIndex = i))}>
+            (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedIndex = i))}
+        >
           <span class="flex-1 truncate">{getItemLabel(item, i, label)}</span>
           <button
             type="button"
@@ -61,7 +62,8 @@
               active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )}
             onclick={e => (e.stopPropagation(), remove(i))}
-            {disabled}>
+            {disabled}
+          >
             <IconX class="size-3" />
           </button>
         </div>
@@ -84,7 +86,8 @@
         path={[...path, String(selectedIndex)]}
         {onChange}
         {disabled}
-        showLabel={false} />
+        showLabel={false}
+      />
     {:else}
       <div class="flex h-full items-center justify-center text-sm text-foreground-l4">
         Add an item to get started

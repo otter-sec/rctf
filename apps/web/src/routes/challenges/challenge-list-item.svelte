@@ -28,10 +28,12 @@
         'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:from-background-gold/50 dark:before:from-foreground-gold-l0/20 before:to-transparent',
       isSelected &&
         'ring-2 ring-inset ring-category-foreground-l1/25 after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:from-category-background-l0 after:to-transparent'
-    )}>
+    )}
+  >
     {#if isFirstBlood}
       <IconAwardFilled
-        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-gold-l0" />
+        class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-gold-l0"
+      />
     {:else if isSolved}
       <IconCheck class="absolute left-2 top-1/2 -translate-y-1/2 size-5 text-foreground-success" />
     {/if}
@@ -45,7 +47,8 @@
       </span>
     </div>
     <div
-      class="flex shrink-0 flex-row @sm/list:flex-col items-baseline @sm/list:items-end gap-2 @sm/list:gap-0 z-1">
+      class="flex shrink-0 flex-row @sm/list:flex-col items-baseline @sm/list:items-end gap-2 @sm/list:gap-0 z-1"
+    >
       {#if challenge.points !== null}
         <div class="text-xl tabular-nums whitespace-nowrap">
           <span class="text-category-foreground-l0">{challenge.points}</span>
@@ -54,7 +57,8 @@
       {/if}
       {#if challenge.solves !== null}
         <span
-          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap">
+          class="text-base tabular-nums text-category-foreground-l1 opacity-75 whitespace-nowrap"
+        >
           {challenge.solves}
           {challenge.solves === 1 ? 'solve' : 'solves'}
         </span>

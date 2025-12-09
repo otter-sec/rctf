@@ -105,19 +105,22 @@
     {hideSolved}
     onSearchChange={q => (searchQuery = q)}
     onToggleHideSolved={() => (hideSolved = !hideSolved)}
-    onCollapseAll={() => (openCategories = [])} />
+    onCollapseAll={() => (openCategories = [])}
+  />
 
   <ScrollArea
     class="min-h-0 flex-1"
     fadeSize={86}
     fadeColor="background-l1"
     scrollbarYClasses="z-30"
-    scrollbarXClasses="z-30">
+    scrollbarXClasses="z-30"
+  >
     {#if filteredChallenges.length === 0}
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges found"
-        subtitle={emptySubtitle} />
+        subtitle={emptySubtitle}
+      />
     {:else}
       <Accordion.Root type="multiple" bind:value={openCategories} class="pb-4">
         {#each groups as [category, entries] (category)}
@@ -128,10 +131,12 @@
             <Accordion.Trigger
               class="py-2 pr-2 pl-0 hover:no-underline bg-category-background-l0"
               headerClass="sticky top-0 z-20 bg-background-l1"
-              chevronClass="text-category-foreground-l1">
+              chevronClass="text-category-foreground-l1"
+            >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap">
+                  class="flex items-baseline gap-1 text-base font-normal tabular-nums whitespace-nowrap"
+                >
                   <span class="text-category-foreground-l0">{categorySolved}</span>
                   <span class="text-category-foreground-l1">/ {entries.length}</span>
                 </div>
@@ -154,7 +159,8 @@
                     isSolved={solvedIds.has(challenge.id)}
                     isFirstBlood={firstBloodIds.has(challenge.id)}
                     isSelected={selectedId === challenge.id}
-                    onSelect={() => onSelect(challenge)} />
+                    onSelect={() => onSelect(challenge)}
+                  />
                 {/each}
               </ul>
             </Accordion.Content>

@@ -61,7 +61,8 @@
       styles.gradient,
     ]
   )}
-  style:width={width ? `${width}px` : undefined}>
+  style:width={width ? `${width}px` : undefined}
+>
   <div class="flex items-center gap-3">
     <div class="flex w-16 shrink-0 flex-col items-center">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>

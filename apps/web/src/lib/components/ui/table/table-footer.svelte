@@ -14,6 +14,7 @@
   bind:this={ref}
   data-slot="table-footer"
   class={cn('bg-background-l2/50 border-t font-medium [&>tr]:last:border-b-0', className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </tfoot>

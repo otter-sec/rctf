@@ -53,7 +53,8 @@
           {solvedIds}
           {firstBloodIds}
           selectedId={selectedChallenge?.id ?? null}
-          onSelect={handleSelect} />
+          onSelect={handleSelect}
+        />
       </div>
     </Resizable.Pane>
 
@@ -64,7 +65,8 @@
         <ChallengeDetails
           challenge={selectedChallenge}
           isSolved={selectedIsSolved}
-          onSolve={handleSolve} />
+          onSolve={handleSolve}
+        />
       </div>
     </Resizable.Pane>
   </Resizable.PaneGroup>
@@ -77,16 +79,18 @@
       {solvedIds}
       {firstBloodIds}
       selectedId={selectedChallenge?.id ?? null}
-      onSelect={handleSelect} />
+      onSelect={handleSelect}
+    />
   </div>
 
   <Drawer.Root bind:open={drawerOpen}>
-    <Drawer.Content>
+    <Drawer.Content class="h-full">
       <div class="flex-1 overflow-auto">
         <ChallengeDetails
           challenge={selectedChallenge}
           isSolved={selectedIsSolved}
-          onSolve={handleSolve} />
+          onSolve={handleSolve}
+        />
       </div>
     </Drawer.Content>
   </Drawer.Root>

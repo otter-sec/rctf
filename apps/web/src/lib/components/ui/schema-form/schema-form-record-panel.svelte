@@ -4,7 +4,7 @@
   import { cn } from '$lib/utils'
   import SchemaFormField from './schema-form-field.svelte'
   import SchemaFormPanelLayout from './schema-form-panel-layout.svelte'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { defaultValue, renameRecordKey } from './utils'
 
   interface Props extends SchemaFormFieldProps {}
@@ -101,7 +101,8 @@
           tabindex="0"
           onclick={() => (selectedKey = key)}
           onkeydown={e =>
-            (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedKey = key))}>
+            (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedKey = key))}
+        >
           <span class="flex-1 truncate font-mono">{key}</span>
           <button
             type="button"
@@ -110,7 +111,8 @@
               active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
             )}
             onclick={e => (e.stopPropagation(), removeEntry(key))}
-            {disabled}>
+            {disabled}
+          >
             <IconX class="size-3" />
           </button>
         </div>
@@ -126,7 +128,8 @@
             type="single"
             value={newKeySelect}
             onValueChange={v => (newKeySelect = v)}
-            disabled={disabled || availableKeys.length === 0}>
+            disabled={disabled || availableKeys.length === 0}
+          >
             <Select.Trigger class="min-w-0 flex-1 font-mono text-sm">
               <span class="truncate">{newKeySelect || 'Select key...'}</span>
             </Select.Trigger>
@@ -149,7 +152,8 @@
               }
             }}
             aria-invalid={isDuplicateKey}
-            {disabled} />
+            {disabled}
+          />
         {/if}
         <Button
           class="shrink-0"
@@ -165,7 +169,8 @@
             }
           }}
           disabled={disabled ||
-            (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}>
+            (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}
+        >
           <IconPlus class="size-4" />
         </Button>
       </div>
@@ -186,7 +191,8 @@
               class="font-mono"
               bind:value={keyNameInput}
               onblur={() => renameEntry(selectedKey!, keyNameInput)}
-              {disabled} />
+              {disabled}
+            />
           </Field.Field>
         </div>
       {/if}
@@ -196,7 +202,8 @@
         path={[...path, selectedKey]}
         {onChange}
         {disabled}
-        showLabel={false} />
+        showLabel={false}
+      />
     {:else}
       <div class="flex h-full items-center justify-center text-sm text-foreground-l4">
         Add an item to get started

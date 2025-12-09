@@ -50,7 +50,8 @@
         class={cn(
           'flex h-14 items-center justify-between gap-2 rounded-lg py-1.5 pr-1.5 pl-2',
           showEmpty ? 'border-2 border-dashed' : style.bg
-        )}>
+        )}
+      >
         {#if !showEmpty}
           <span class={cn('text-base font-medium', style.fgL0)}>
             {isUserSlot ? 'You' : getOrdinal(index + 1)}
@@ -92,7 +93,8 @@
                 <Avatar.Image
                   src={currentUser.avatarUrl}
                   alt={currentUser.name}
-                  class="rounded-md" />
+                  class="rounded-md"
+                />
               {/if}
               <Avatar.Fallback class="rounded-md">
                 {getInitials(currentUser.name)}

@@ -50,7 +50,8 @@
     bind:ref
     data-slot="sheet-content"
     class={cn(sheetVariants({ side }), className)}
-    {...restProps}>
+    {...restProps}
+  >
     {@render children?.()}
   </SheetPrimitive.Content>
 </SheetPortal>

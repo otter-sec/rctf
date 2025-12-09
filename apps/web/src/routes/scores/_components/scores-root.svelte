@@ -106,7 +106,8 @@
     {viewMode}
     onPageChange={p => setUrlParam('page', p, 1)}
     onSortChange={m => setUrlParam('sort', m, 'category')}
-    onViewChange={m => setUrlParam('view', m, 'zoomer')} />
+    onViewChange={m => setUrlParam('view', m, 'zoomer')}
+  />
 
   <div class={cn('relative', $leaderboardQuery.isFetching && 'opacity-50')}>
     {#if $leaderboardQuery.isLoading || $challengesQuery.isLoading}
@@ -121,6 +122,7 @@
       {page}
       {sortMode}
       {viewMode}
-      isFetching={$leaderboardQuery.isFetching} />
+      isFetching={$leaderboardQuery.isFetching}
+    />
   </div>
 </div>

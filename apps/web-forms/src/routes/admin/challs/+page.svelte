@@ -145,7 +145,8 @@
           <li>
             <button
               onclick={() => send({ type: 'SELECT', challenge: chall })}
-              style:font-weight={challenge?.id === chall.id ? 'bold' : 'normal'}>
+              style:font-weight={challenge?.id === chall.id ? 'bold' : 'normal'}
+            >
               {chall.name}
             </button>
             <small>({chall.category})</small>
@@ -172,7 +173,8 @@
             type="text"
             value={form.name}
             oninput={e => updateField('name', e.currentTarget.value)}
-            required />
+            required
+          />
         </div>
 
         <div>
@@ -182,7 +184,8 @@
             type="text"
             value={form.category}
             oninput={e => updateField('category', e.currentTarget.value)}
-            required />
+            required
+          />
         </div>
 
         <div>
@@ -192,7 +195,8 @@
             type="text"
             value={form.author}
             oninput={e => updateField('author', e.currentTarget.value)}
-            required />
+            required
+          />
         </div>
 
         <div>
@@ -202,7 +206,8 @@
             value={form.description}
             oninput={e => updateField('description', e.currentTarget.value)}
             rows={6}
-            required></textarea>
+            required
+          ></textarea>
         </div>
 
         <div>
@@ -212,7 +217,8 @@
             type="text"
             value={form.flag}
             oninput={e => updateField('flag', e.currentTarget.value)}
-            required />
+            required
+          />
         </div>
 
         <div>
@@ -223,7 +229,8 @@
               type="number"
               value={form.pointsMin}
               oninput={e => updateField('pointsMin', +e.currentTarget.value)}
-              min={0} />
+              min={0}
+            />
           </div>
           <div>
             <label for="pointsMax">Max Points</label>
@@ -232,7 +239,8 @@
               type="number"
               value={form.pointsMax}
               oninput={e => updateField('pointsMax', +e.currentTarget.value)}
-              min={0} />
+              min={0}
+            />
           </div>
         </div>
 
@@ -241,7 +249,8 @@
             <input
               type="checkbox"
               checked={form.tiebreakEligible}
-              onchange={e => updateField('tiebreakEligible', e.currentTarget.checked)} />
+              onchange={e => updateField('tiebreakEligible', e.currentTarget.checked)}
+            />
             Tiebreak Eligible
           </label>
         </div>
@@ -252,7 +261,8 @@
             id="sortWeight"
             type="number"
             value={form.sortWeight}
-            oninput={e => updateField('sortWeight', +e.currentTarget.value)} />
+            oninput={e => updateField('sortWeight', +e.currentTarget.value)}
+          />
         </div>
       </fieldset>
 
@@ -261,7 +271,8 @@
         config={form.instancerConfig}
         isDisabled={!isEditMode}
         onConfigChange={config => updateField('instancerConfig', config)}
-        bind:isValid={instancerConfigValid} />
+        bind:isValid={instancerConfigValid}
+      />
 
       <div>
         {#if isEditMode}

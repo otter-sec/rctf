@@ -36,6 +36,7 @@
       'bg-foreground-l0 text-background-l0 hover:bg-foreground-l1 hover:text-background-l0',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render (children ?? Fallback)()}
 </PaginationPrimitive.Page>

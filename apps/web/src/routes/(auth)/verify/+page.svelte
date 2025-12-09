@@ -87,7 +87,8 @@
       {#if error}
         <div
           class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-          role="alert">
+          role="alert"
+        >
           {error}
         </div>
       {/if}

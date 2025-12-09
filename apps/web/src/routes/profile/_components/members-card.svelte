@@ -81,7 +81,8 @@
           class="[&>span]:font-sans"
           disabled={memberForm.submitting || deleting !== null}
           placeholder="Add more..."
-          emptyPlaceholder="teammate@example.com" />
+          emptyPlaceholder="teammate@example.com"
+        />
         {#if memberForm.errors._form}
           <Field.Error>{memberForm.errors._form}</Field.Error>
         {/if}

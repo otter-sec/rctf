@@ -29,7 +29,8 @@
       className
     )}
     bind:this={ref}
-    {...restProps}>
+    {...restProps}
+  >
     {@render children?.()}
   </div>
 {:else if sidebar.isMobile}
@@ -40,7 +41,8 @@
       data-mobile="true"
       class="bg-background-l1 text-foreground-l0 w-(--sidebar-width) p-0 [&>button]:hidden"
       style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
-      {side}>
+      {side}
+    >
       <Sheet.Header class="sr-only">
         <Sheet.Title>Sidebar</Sheet.Title>
         <Sheet.Description>Displays the mobile sidebar.</Sheet.Description>
@@ -58,7 +60,8 @@
     data-collapsible={sidebar.state === 'collapsed' ? collapsible : ''}
     data-variant={variant}
     data-side={side}
-    data-slot="sidebar">
+    data-slot="sidebar"
+  >
     <!-- This is what handles the sidebar gap on desktop -->
     <div
       data-slot="sidebar-gap"
@@ -69,8 +72,8 @@
         variant === 'floating' || variant === 'inset'
           ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
           : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon)'
-      )}>
-    </div>
+      )}
+    ></div>
     <div
       data-slot="sidebar-container"
       class={cn(
@@ -84,11 +87,13 @@
           : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-e group-data-[side=right]:border-s',
         className
       )}
-      {...restProps}>
+      {...restProps}
+    >
       <div
         data-sidebar="sidebar"
         data-slot="sidebar-inner"
-        class="bg-background-l1 group-data-[variant=floating]:border-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm">
+        class="bg-background-l1 group-data-[variant=floating]:border-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
+      >
         {@render children?.()}
       </div>
     </div>

@@ -65,7 +65,8 @@
           path={[...path, key]}
           {onChange}
           {disabled}
-          required={requiredFields.has(key)} />
+          required={requiredFields.has(key)}
+        />
       {/each}
     </Section.Content>
   </Section.Root>
@@ -78,7 +79,8 @@
         path={[...path, key]}
         {onChange}
         {disabled}
-        required={requiredFields.has(key)} />
+        required={requiredFields.has(key)}
+      />
     {/each}
   </div>
 {/if}

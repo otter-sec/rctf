@@ -49,7 +49,8 @@
 </script>
 
 <header
-  class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-4 py-3 md:px-9">
+  class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-4 py-3 md:px-9"
+>
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
       <img src={wordmarkLight} alt="Logo" class="h-8 block dark:hidden" />
@@ -96,7 +97,8 @@
     {#if user}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
-          class="flex cursor-pointer items-center gap-3 pl-2 rounded-lg hover:bg-background-l2">
+          class="flex cursor-pointer items-center gap-3 pl-2 rounded-lg hover:bg-background-l2"
+        >
           <div class="flex flex-col items-end">
             <span class="text-foreground-l0 text-lg leading-tight">
               {user.name}

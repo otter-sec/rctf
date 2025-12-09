@@ -169,7 +169,8 @@
           <button
             type="button"
             class="group flex w-full items-center justify-between gap-2 rounded-md bg-background-l4 px-3 py-2"
-            onclick={() => copy(url)}>
+            onclick={() => copy(url)}
+          >
             <span class="truncate font-mono text-sm text-foreground-accent">{url}</span>
             <IconCopy class="size-4 shrink-0 text-foreground-l4 hover:text-foreground-l2" />
           </button>
@@ -190,7 +191,8 @@
           variant="secondary"
           onclick={extend}
           disabled={actioning || status === InstanceStatus.STARTING}
-          class="flex-1">
+          class="flex-1"
+        >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
           Extend
         </Button>
@@ -198,7 +200,8 @@
           variant="destructive"
           onclick={stop}
           disabled={actioning || status === InstanceStatus.STARTING}
-          class="flex-1">
+          class="flex-1"
+        >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
           Stop
         </Button>

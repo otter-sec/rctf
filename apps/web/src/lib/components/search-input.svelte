@@ -18,6 +18,7 @@
     {placeholder}
     class="w-full bg-transparent text-base outline-none placeholder:text-foreground-l4"
     {value}
-    oninput={e => onInput(e.currentTarget.value)} />
+    oninput={e => onInput(e.currentTarget.value)}
+  />
   <IconSearch class="size-5 shrink-0 text-foreground-l2" />
 </div>

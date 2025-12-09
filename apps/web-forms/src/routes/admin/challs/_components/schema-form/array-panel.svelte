@@ -65,7 +65,8 @@
         path={[...path, String(selectedIndex)]}
         {onChange}
         {disabled}
-        showLabel={false} />
+        showLabel={false}
+      />
     {:else}
       <p>Add an item to get started</p>
     {/if}

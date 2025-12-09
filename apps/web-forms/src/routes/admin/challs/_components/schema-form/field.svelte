@@ -52,7 +52,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else if primaryType === 'number' || primaryType === 'integer'}
   <FieldNumber
     schema={effectiveSchema}
@@ -61,7 +62,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else if primaryType === 'boolean'}
   <FieldBoolean
     schema={effectiveSchema}
@@ -70,7 +72,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else}
   <FieldUnknown
     schema={effectiveSchema}
@@ -79,5 +82,6 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {/if}

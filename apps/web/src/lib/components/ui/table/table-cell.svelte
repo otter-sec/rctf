@@ -17,6 +17,7 @@
     'whitespace-nowrap bg-clip-padding p-2 align-middle [&:has([role=checkbox])]:pe-0',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </td>

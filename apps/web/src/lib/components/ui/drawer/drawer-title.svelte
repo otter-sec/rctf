@@ -13,4 +13,5 @@
   bind:ref
   data-slot="drawer-title"
   class={cn('text-foreground-l0 font-medium', className)}
-  {...restProps} />
+  {...restProps}
+/>

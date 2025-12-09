@@ -15,4 +15,5 @@
   bind:value
   data-slot="tabs"
   class={cn('flex flex-col', className)}
-  {...restProps} />
+  {...restProps}
+/>

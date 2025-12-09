@@ -118,7 +118,8 @@
     path={[]}
     onChange={handleChange}
     {disabled}
-    showLabel={false} />
+    showLabel={false}
+  />
 {:else}
   <p>Schema has no properties to render</p>
 {/if}

@@ -12,4 +12,5 @@
   bind:ref
   bind:value
   data-slot="dropdown-menu-checkbox-group"
-  {...restProps} />
+  {...restProps}
+/>

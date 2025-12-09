@@ -29,7 +29,8 @@
     {/if}
 
     <button disabled={form.submitting}
-      >{form.submitting ? 'Sending...' : 'Send Recovery Email'}</button>
+      >{form.submitting ? 'Sending...' : 'Send Recovery Email'}</button
+    >
   </form>
 {/if}
 

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Field, Select } from '$lib/components'
   import { TagInput } from '$lib/components/ui/tag-input'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { validateValue } from './validate'
 
   interface Props extends SchemaFormFieldProps {}
@@ -54,7 +54,8 @@
       type="multiple"
       value={items.map(String)}
       onValueChange={handleMultiSelectChange}
-      {disabled}>
+      {disabled}
+    >
       <Select.Trigger class="w-full px-2 py-1">
         {#if items.length === 0}
           <span class="text-foreground-l4">Select...</span>
@@ -62,7 +63,8 @@
           <div class="flex flex-wrap gap-1">
             {#each items as item}
               <span
-                class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 text-sm font-mono">
+                class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 text-sm font-mono"
+              >
                 {item}
                 <button
                   type="button"
@@ -70,7 +72,8 @@
                   onclick={e => {
                     e.stopPropagation()
                     removeItem(String(item))
-                  }}>
+                  }}
+                >
                   ×
                 </button>
               </span>

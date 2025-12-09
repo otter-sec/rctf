@@ -15,6 +15,7 @@
   data-slot="sidebar-menu-item"
   data-sidebar="menu-item"
   class={cn('group/menu-item relative', className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </li>

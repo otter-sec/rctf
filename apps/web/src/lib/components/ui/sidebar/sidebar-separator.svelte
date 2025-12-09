@@ -15,4 +15,5 @@
   data-slot="sidebar-separator"
   data-sidebar="separator"
   class={cn('bg-border', className)}
-  {...restProps} />
+  {...restProps}
+/>

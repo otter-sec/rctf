@@ -43,6 +43,7 @@
   data-size={size}
   {variant}
   class={cn(inputGroupButtonVariants({ size }), className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </Button>

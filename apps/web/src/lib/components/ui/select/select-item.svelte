@@ -21,7 +21,8 @@
     "data-highlighted:bg-background-l5 data-highlighted:text-foreground-l0 [&_svg:not([class*='text-'])]:text-foreground-l3 outline-hidden *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2 relative flex w-full cursor-default select-none items-center gap-2 rounded-sm py-1.5 pe-8 ps-2 text-sm data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {#snippet children({ selected, highlighted })}
     <span class="absolute end-2 flex size-3.5 items-center justify-center">
       {#if selected}

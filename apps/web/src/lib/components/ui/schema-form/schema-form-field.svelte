@@ -48,7 +48,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {isNullable} />
+    {isNullable}
+  />
 {:else if primaryType === 'array'}
   <SchemaFormArray schema={effectiveSchema} {value} {path} {onChange} {disabled} />
 {:else if primaryType === 'string' || effectiveSchema.enum}
@@ -59,7 +60,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else if primaryType === 'number' || primaryType === 'integer'}
   <SchemaFormFieldNumber
     schema={effectiveSchema}
@@ -68,7 +70,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else if primaryType === 'boolean'}
   <SchemaFormFieldBoolean
     schema={effectiveSchema}
@@ -77,7 +80,8 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {:else}
   <SchemaFormFieldUnknown
     schema={effectiveSchema}
@@ -86,5 +90,6 @@
     {onChange}
     {disabled}
     {showLabel}
-    {required} />
+    {required}
+  />
 {/if}

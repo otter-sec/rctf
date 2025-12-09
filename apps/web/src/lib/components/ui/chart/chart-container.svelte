@@ -73,7 +73,8 @@
     '[&_.lc-root-container]:w-full',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   <ChartStyle id={chartId} {config} />
   {@render children?.()}
 </div>

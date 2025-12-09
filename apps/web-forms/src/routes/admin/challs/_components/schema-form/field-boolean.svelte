@@ -39,7 +39,8 @@
   <select
     value={String(displayValue)}
     onchange={e => set(e.currentTarget.value === 'true')}
-    {disabled}>
+    {disabled}
+  >
     <option value="true">Yes</option>
     <option value="false">No</option>
   </select>

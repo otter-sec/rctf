@@ -22,5 +22,6 @@
     stroke-linecap="round"
     stroke-dasharray={circumference}
     stroke-dashoffset={strokeDashoffset}
-    transform="rotate(-90 12 12) scale(1 -1) translate(0 -24)" />
+    transform="rotate(-90 12 12) scale(1 -1) translate(0 -24)"
+  />
 </svg>

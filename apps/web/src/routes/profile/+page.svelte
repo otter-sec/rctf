@@ -16,7 +16,8 @@
   <ProfileLayout
     {user}
     divisionLabel={clientConfig.divisions[user.division] ?? user.division}
-    {challenges}>
+    {challenges}
+  >
     <UpdateAvatarCard />
     <UpdateProfileCard />
     {#if clientConfig.userMembers}

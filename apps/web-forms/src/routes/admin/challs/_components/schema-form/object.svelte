@@ -59,7 +59,8 @@
         path={[...path, key]}
         {onChange}
         {disabled}
-        required={requiredFields.has(key)} />
+        required={requiredFields.has(key)}
+      />
     {/each}
   </fieldset>
 {:else}
@@ -71,7 +72,8 @@
         path={[...path, key]}
         {onChange}
         {disabled}
-        required={requiredFields.has(key)} />
+        required={requiredFields.has(key)}
+      />
     {/each}
   </div>
 {/if}

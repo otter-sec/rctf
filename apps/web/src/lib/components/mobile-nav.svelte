@@ -102,7 +102,8 @@
 <Sheet.Root bind:open>
   <Sheet.Trigger>
     <div
-      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3">
+      class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3"
+    >
       <IconMenu2 class="size-6 text-foreground-l2" />
     </div>
   </Sheet.Trigger>
@@ -118,7 +119,8 @@
       </a>
       <Sheet.Close>
         <div
-          class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3">
+          class="flex items-center justify-center rounded-lg bg-background-l2 px-4 py-3 hover:bg-background-l3"
+        >
           <IconX class="size-6 text-foreground-l2" />
         </div>
       </Sheet.Close>
@@ -132,11 +134,13 @@
             class="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-left
               {isActive(item.activePath)
               ? 'bg-background-accent text-foreground-accent'
-              : 'text-foreground-l1 hover:bg-background-l2'}">
+              : 'text-foreground-l1 hover:bg-background-l2'}"
+          >
             <item.icon
               class="size-5 {isActive(item.activePath)
                 ? 'text-foreground-accent'
-                : 'text-foreground-l2'}" />
+                : 'text-foreground-l2'}"
+            />
             <span>{item.label}</span>
           </button>
         {/if}
@@ -147,7 +151,8 @@
       {#if user}
         <DropdownMenu.Root>
           <DropdownMenu.Trigger
-            class="flex flex-1 cursor-pointer items-center gap-3 rounded-lg hover:bg-background-l2">
+            class="flex flex-1 cursor-pointer items-center gap-3 rounded-lg hover:bg-background-l2"
+          >
             {#key user.avatarUrl}
               <Avatar.Root class="size-12 rounded-lg">
                 {#if user.avatarUrl}
@@ -187,7 +192,8 @@
       {:else}
         <button
           onclick={() => navigate('/login')}
-          class="flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground-l1 hover:bg-background-l2">
+          class="flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-left text-foreground-l1 hover:bg-background-l2"
+        >
           <IconLogin class="size-5 text-foreground-l2" />
           <span class="font-medium">Login</span>
         </button>

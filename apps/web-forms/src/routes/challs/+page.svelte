@@ -54,7 +54,8 @@
           <li>
             <button
               onclick={() => select(c)}
-              style:text-decoration={solved ? 'line-through' : 'none'}>
+              style:text-decoration={solved ? 'line-through' : 'none'}
+            >
               {c.name}
             </button>
             - {c.points} pts ({c.solves} solves)
@@ -95,10 +96,8 @@
       {#if !solvedIds.has(selected.id)}
         <form onsubmit={flagForm.submit}>
           <label
-            >Flag <input
-              type="text"
-              bind:value={flagForm.data.flag}
-              placeholder="flag..." /></label>
+            >Flag <input type="text" bind:value={flagForm.data.flag} placeholder="flag..." /></label
+          >
           {#if flagForm.errors.flag}
             <em>{flagForm.errors.flag}</em>
           {/if}
@@ -106,7 +105,8 @@
             <p style="color:red">{flagForm.errors._form}</p>
           {/if}
           <button disabled={flagForm.submitting}
-            >{flagForm.submitting ? 'Submitting...' : 'Submit'}</button>
+            >{flagForm.submitting ? 'Submitting...' : 'Submit'}</button
+          >
         </form>
       {:else}
         <p style="color:green">Already solved!</p>

@@ -90,7 +90,8 @@
         bind:value={inputValue}
         onkeydown={handleKeyDown}
         placeholder="Type and press Enter"
-        {disabled} />
+        {disabled}
+      />
       <button type="button" onclick={addItem} disabled={disabled || !inputValue.trim()}>Add</button>
     </div>
   {/if}

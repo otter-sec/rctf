@@ -13,4 +13,5 @@
   bind:ref
   data-slot="accordion-item"
   class={cn('border-b last:border-b-0', className)}
-  {...restProps} />
+  {...restProps}
+/>

@@ -138,7 +138,8 @@
         {#if form.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert">
+            role="alert"
+          >
             {form.errors._form}
           </div>
         {/if}
@@ -158,9 +159,11 @@
               required
               bind:value={form.data.name}
               aria-invalid={!!form.errors.name}
-              oninput={() => form.validateField('name')} />
+              oninput={() => form.validateField('name')}
+            />
             <Field.Description
-              >You can use a different name than your CTFtime team name.</Field.Description>
+              >You can use a different name than your CTFtime team name.</Field.Description
+            >
             {#if form.errors.name}
               <Field.Error>{form.errors.name}</Field.Error>
             {/if}
@@ -196,7 +199,8 @@
         {#if form.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert">
+            role="alert"
+          >
             {form.errors._form}
           </div>
         {/if}
@@ -216,7 +220,8 @@
               required
               bind:value={form.data.name}
               aria-invalid={!!form.errors.name}
-              oninput={() => form.validateField('name')} />
+              oninput={() => form.validateField('name')}
+            />
             {#if form.errors.name}
               <Field.Error>{form.errors.name}</Field.Error>
             {/if}
@@ -233,7 +238,8 @@
               required
               bind:value={form.data.email}
               aria-invalid={!!form.errors.email}
-              oninput={() => form.validateField('email')} />
+              oninput={() => form.validateField('email')}
+            />
             {#if form.errors.email}
               <Field.Error>{form.errors.email}</Field.Error>
             {/if}
@@ -258,7 +264,8 @@
             <ButtonCtftime
               clientId={clientConfig.ctftime.clientId}
               onCtftimeDone={handleCtftimeDone}
-              disabled={isPending} />
+              disabled={isPending}
+            />
           </div>
         {/if}
       </Card.Content>

@@ -65,7 +65,8 @@
       ondrop={onDrop}
       ondragover={e => (e.preventDefault(), !isDisabled && (dragging = true))}
       ondragleave={() => (dragging = false)}
-      disabled={$upload.isPending}>
+      disabled={$upload.isPending}
+    >
       {#if $upload.isPending}
         <Spinner class="size-8 text-foreground-l3" />
         <span class="text-sm text-foreground-l3">Uploading...</span>
@@ -85,20 +86,23 @@
       multiple
       onchange={onInput}
       disabled={$upload.isPending}
-      class="hidden" />
+      class="hidden"
+    />
   {/if}
 
   {#if files.length}
     <div class="flex flex-col gap-1">
       {#each files as file, i (file.url)}
         <div
-          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4">
+          class="group flex items-center gap-3 rounded-lg bg-background-l3 px-3 py-2.5 hover:bg-background-l4"
+        >
           <IconFileFilled class="size-5 shrink-0 text-foreground-l4" />
           <a
             href={file.url}
             target="_blank"
             rel="noopener noreferrer"
-            class="flex min-w-0 flex-1 flex-col">
+            class="flex min-w-0 flex-1 flex-col"
+          >
             <span class="truncate text-sm">{file.name}</span>
             <span class="text-xs text-foreground-l4">{formatFileSize(file.size)}</span>
           </a>
@@ -107,7 +111,8 @@
               variant="destructive"
               size="icon-sm"
               class="opacity-0 group-hover:opacity-100"
-              onclick={() => onFilesChange(files.filter((_, j) => j !== i))}>
+              onclick={() => onFilesChange(files.filter((_, j) => j !== i))}
+            >
               <IconTrashFilled class="size-4" />
             </Button>
           {/if}

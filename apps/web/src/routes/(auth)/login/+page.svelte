@@ -123,7 +123,8 @@
             required
             bind:value={form.data.teamToken}
             aria-invalid={!!form.errors.teamToken || !!form.errors._form}
-            oninput={() => form.validateField('teamToken')} />
+            oninput={() => form.validateField('teamToken')}
+          />
           {#if form.errors.teamToken}
             <Field.Error>{form.errors.teamToken}</Field.Error>
           {/if}
@@ -135,7 +136,8 @@
         {#if clientConfig.emailEnabled}
           <p class="text-sm">
             <a href="/recover" class="text-foreground-prose-link hover:underline"
-              >Lost your team token?</a>
+              >Lost your team token?</a
+            >
           </p>
         {/if}
 
@@ -158,7 +160,8 @@
           <ButtonCtftime
             clientId={clientConfig.ctftime.clientId}
             onCtftimeDone={handleCtftimeDone}
-            disabled={isPending} />
+            disabled={isPending}
+          />
         </div>
       {/if}
     </Card.Content>

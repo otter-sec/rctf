@@ -47,6 +47,7 @@
   data-slot="field"
   data-orientation={orientation}
   class={cn(fieldVariants({ orientation }), className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </div>

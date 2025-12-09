@@ -28,6 +28,7 @@
     }),
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render (children ?? Fallback)()}
 </PaginationPrimitive.PrevButton>

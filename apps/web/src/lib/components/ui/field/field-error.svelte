@@ -39,7 +39,8 @@
     role="alert"
     data-slot="field-error"
     class={cn('text-foreground-destructive text-sm font-normal', className)}
-    {...restProps}>
+    {...restProps}
+  >
     {#if children}
       {@render children()}
     {:else if singleErrorMessage}

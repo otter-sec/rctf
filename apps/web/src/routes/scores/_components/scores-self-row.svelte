@@ -69,7 +69,8 @@
   {@const bloodIndex = challenge.firstSolvers?.findIndex(s => s.id === user.id) ?? -1}
   <div
     class={cn('flex h-16 w-12 items-center justify-center', isFirst && 'rounded-l-lg')}
-    style={getCategoryStyle(challenge.config.color)}>
+    style={getCategoryStyle(challenge.config.color)}
+  >
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
       class="flex items-center justify-center"
@@ -82,7 +83,8 @@
           bloodIndex,
           solveTime: solve?.solveTime,
         })}
-      onmouseleave={() => onCellHover?.(null, 0, 0)}>
+      onmouseleave={() => onCellHover?.(null, 0, 0)}
+    >
       <Cell solved={!!solve} {bloodIndex} />
     </div>
   </div>
@@ -91,7 +93,8 @@
 {#snippet categoryCell(stat: (typeof categoryStats)[number])}
   <div
     class="flex h-16 w-12 items-center justify-center rounded-l-lg"
-    style={getCategoryStyle(stat.config.color)}>
+    style={getCategoryStyle(stat.config.color)}
+  >
     <Tooltip.Root>
       <Tooltip.Trigger class="flex items-center justify-center">
         {#if stat.status === 'complete'}
@@ -116,7 +119,8 @@
     class={cn(
       'flex rounded-lg bg-background-l2 group-hover:bg-background-l3',
       isMinimal ? 'w-full' : 'w-fit'
-    )}>
+    )}
+  >
     <TeamInfo
       id={user.id}
       name={user.name}
@@ -131,7 +135,8 @@
       {sparklineData}
       {page}
       {onHover}
-      {onUnhover} />
+      {onUnhover}
+    />
 
     {#if !isMinimal}
       {#if isBoomer}

@@ -166,14 +166,16 @@
     yDomain={[0, null]}
     yNice
     padding={{ bottom: 24, left: 4 }}
-    tooltip={{ mode: 'quadtree' }}>
+    tooltip={{ mode: 'quadtree' }}
+  >
     {#snippet children({ context })}
       <Layer type="svg">
         <Axis
           placement="bottom"
           rule
           format={(d: number) => formatRelativeHours(d, startTime)}
-          tickLabelProps={{ textAnchor: 'start', dy: 4 }} />
+          tickLabelProps={{ textAnchor: 'start', dy: 4 }}
+        />
 
         {#each dataByTeam as [teamId, points]}
           {@const meta = teamMeta.get(teamId)!}
@@ -186,7 +188,8 @@
               ? 0.15
               : meta.isContext
                 ? 0.3
-                : 1}; transition: opacity 150ms ease, stroke 150ms ease; stroke-linecap: round; stroke-linejoin: round;" />
+                : 1}; transition: opacity 150ms ease, stroke 150ms ease; stroke-linecap: round; stroke-linejoin: round;"
+          />
         {/each}
 
         {#if solveHighlightPoint}
@@ -203,7 +206,8 @@
             stroke-width={1}
             stroke-dasharray="4 4"
             class="pointer-events-none"
-            style="opacity: 0.5; transition: all 150ms ease;" />
+            style="opacity: 0.5; transition: all 150ms ease;"
+          />
           <line
             x1={xRange[0]}
             y1={y}
@@ -213,7 +217,8 @@
             stroke-width={1}
             stroke-dasharray="4 4"
             class="pointer-events-none"
-            style="opacity: 0.5; transition: all 150ms ease;" />
+            style="opacity: 0.5; transition: all 150ms ease;"
+          />
           <circle
             cx={x}
             cy={y}
@@ -222,7 +227,8 @@
             stroke="var(--background-l0)"
             stroke-width={3}
             class="pointer-events-none"
-            style="transition: all 150ms ease;" />
+            style="transition: all 150ms ease;"
+          />
         {/if}
 
         <Highlight points lines />
@@ -231,7 +237,8 @@
       <Tooltip.Root>
         {#snippet children({ data })}
           <div
-            class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl">
+            class="border-border/50 bg-background-l1 rounded-lg border px-3 py-2 text-xs shadow-xl"
+          >
             <div class="text-foreground-l3 mb-1.5">
               <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
               <div class="text-[10px]">{formatLocalTime(data.time)}</div>

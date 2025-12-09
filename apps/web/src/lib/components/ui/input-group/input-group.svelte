@@ -32,6 +32,7 @@
 
     className
   )}
-  {...props}>
+  {...props}
+>
   {@render children?.()}
 </div>

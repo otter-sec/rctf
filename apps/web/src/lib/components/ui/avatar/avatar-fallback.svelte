@@ -16,4 +16,5 @@
     'bg-background-l3 text-foreground-l3 flex size-full items-center justify-center rounded-md',
     className
   )}
-  {...restProps} />
+  {...restProps}
+/>

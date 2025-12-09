@@ -1,7 +1,7 @@
 <script lang="ts">
   import SchemaFormRecordInline from './schema-form-record-inline.svelte'
   import SchemaFormRecordPanel from './schema-form-record-panel.svelte'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { isTypeOneOf } from './utils'
 
   interface Props extends SchemaFormFieldProps {}

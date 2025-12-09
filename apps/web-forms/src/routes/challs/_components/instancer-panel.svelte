@@ -185,13 +185,15 @@
       <button
         type="button"
         onclick={extend}
-        disabled={actioning || status === InstanceStatus.STARTING}>
+        disabled={actioning || status === InstanceStatus.STARTING}
+      >
         {actioning ? 'Extending...' : 'Extend'}
       </button>
       <button
         type="button"
         onclick={stop}
-        disabled={actioning || status === InstanceStatus.STARTING}>
+        disabled={actioning || status === InstanceStatus.STARTING}
+      >
         {actioning ? 'Stopping...' : 'Stop'}
       </button>
     </div>

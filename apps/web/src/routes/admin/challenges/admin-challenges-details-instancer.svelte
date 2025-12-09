@@ -5,6 +5,7 @@
     Checkbox,
     Field,
     Input,
+    SchemaForm,
     Section,
     Select,
     Spinner,
@@ -13,7 +14,6 @@
   import { IconPlus, IconTrashFilled } from '$lib/icons'
   import { useInstancerSchema } from '$lib/query'
   import * as yaml from 'yaml'
-  import { SchemaForm } from '$lib/components'
 
   interface Props {
     config: InstancerConfig | null
@@ -157,7 +157,8 @@
             type="single"
             value={config ? 'yes' : 'no'}
             onValueChange={v => onConfigChange(v === 'yes' ? defaultConfig() : null)}
-            disabled={isDisabled}>
+            disabled={isDisabled}
+          >
             <Select.Trigger class="w-full">
               {config ? 'Enabled' : 'Disabled'}
             </Select.Trigger>
@@ -179,7 +180,8 @@
               class="font-mono"
               value={config.challengeIntegrationId}
               oninput={e => update(c => ({ ...c, challengeIntegrationId: e.currentTarget.value }))}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </Field.Field>
           <Field.Field>
             <Field.Label>Timeout <Field.Hint>(seconds)</Field.Hint></Field.Label>
@@ -189,7 +191,8 @@
               value={Math.round(config.timeoutMilliseconds / 1000)}
               oninput={e =>
                 update(c => ({ ...c, timeoutMilliseconds: +e.currentTarget.value * 1000 }))}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </Field.Field>
         </div>
       {/if}
@@ -203,7 +206,8 @@
         <button
           type="button"
           class="text-xs font-medium text-foreground-l4 hover:text-foreground-l0"
-          onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}>
+          onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}
+        >
           {advancedMode ? '← Form editor' : 'Advanced (YAML) →'}
         </button>
       </Section.Header>
@@ -215,7 +219,8 @@
               value={yamlText}
               oninput={e => handleYamlChange(e.currentTarget.value)}
               disabled={isDisabled}
-              placeholder="# YAML configuration..." />
+              placeholder="# YAML configuration..."
+            />
             {#if yamlError}
               <p class="text-sm text-foreground-destructive">{yamlError}</p>
             {/if}
@@ -233,7 +238,8 @@
             value={config.config}
             onChange={handleConfigChange}
             disabled={isDisabled}
-            bind:isValid={schemaFormValid} />
+            bind:isValid={schemaFormValid}
+          />
         {/if}
       </Section.Content>
     </Section.Root>
@@ -256,13 +262,15 @@
                 class="w-36 font-mono text-sm"
                 value={exp.hostPrefix}
                 oninput={e => updateExpose(i, { hostPrefix: e.currentTarget.value })}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
 
               <Select.Root
                 type="single"
                 value={exp.kind}
                 onValueChange={v => updateExpose(i, { kind: v as ExposeKind })}
-                disabled={isDisabled}>
+                disabled={isDisabled}
+              >
                 <Select.Trigger class="w-24">{exp.kind}</Select.Trigger>
                 <Select.Content>
                   {#each Object.values(ExposeKind) as kind}
@@ -279,7 +287,8 @@
                 class="w-28 font-mono text-sm"
                 value={exp.containerName}
                 oninput={e => updateExpose(i, { containerName: e.currentTarget.value })}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
 
               <span class="text-foreground-l4">:</span>
 
@@ -291,17 +300,20 @@
                 class="w-20"
                 value={exp.containerPort}
                 oninput={e => updateExpose(i, { containerPort: +e.currentTarget.value })}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
 
               <div class="flex-1"></div>
 
               <label
                 class="flex items-center gap-2 text-sm text-foreground-l4"
-                title="Show to player">
+                title="Show to player"
+              >
                 <Checkbox
                   checked={exp.shouldDisplay ?? true}
                   onCheckedChange={v => updateExpose(i, { shouldDisplay: !!v })}
-                  disabled={isDisabled} />
+                  disabled={isDisabled}
+                />
                 <span class="hidden sm:inline">Show to players</span>
               </label>
 
@@ -309,7 +321,8 @@
                 variant="destructive"
                 size="icon-sm"
                 onclick={() => removeExpose(i)}
-                disabled={isDisabled}>
+                disabled={isDisabled}
+              >
                 <IconTrashFilled class="size-4 text-foreground-destructive" />
               </Button>
             </div>

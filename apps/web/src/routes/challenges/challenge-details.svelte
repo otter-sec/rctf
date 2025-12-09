@@ -68,5 +68,6 @@
     icon={IconFlagFilled}
     title="Select a challenge"
     subtitle="Choose a challenge from the list to view details"
-    class="h-full" />
+    class="h-full"
+  />
 {/if}

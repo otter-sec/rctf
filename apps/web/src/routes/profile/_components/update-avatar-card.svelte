@@ -125,7 +125,8 @@
             type="file"
             accept="image/*"
             class="hidden"
-            onchange={handleFileSelect} />
+            onchange={handleFileSelect}
+          />
           <Button size="sm" onclick={triggerFileInput} disabled={loading}>
             <IconCameraFilled class="size-4" />
             {user.avatarUrl ? 'Change' : 'Upload'}

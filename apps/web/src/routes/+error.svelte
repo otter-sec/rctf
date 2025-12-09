@@ -24,7 +24,8 @@
         {#if page.error?.message}
           <div
             class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
-            role="alert">
+            role="alert"
+          >
             {page.error.message}
           </div>
         {/if}

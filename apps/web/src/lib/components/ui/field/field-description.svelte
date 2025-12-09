@@ -19,6 +19,7 @@
     '[&>a]:text-foreground-prose-link [&>a]:underline [&>a]:underline-offset-4',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </p>

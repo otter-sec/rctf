@@ -138,15 +138,18 @@
   <Section.Root
     class="fixed flex flex-col shadow-lg"
     style="left: {win.x}px; top: {win.y}px; z-index: {win.z}; width: {win.w}px; height: {win.h}px;"
-    onmousedown={() => bringToFront(win.id)}>
+    onmousedown={() => bringToFront(win.id)}
+  >
     <Section.Header
       class="flex items-center justify-between cursor-grab active:cursor-grabbing select-none"
-      onmousedown={e => startDrag(e, win.id)}>
+      onmousedown={e => startDrag(e, win.id)}
+    >
       <span>{win.title}</span>
       <button
         class={cn(buttonVariants({ variant: 'ghost', size: 'icon' }), '-me-2 -my-2')}
         onmousedown={e => e.stopPropagation()}
-        onclick={() => closeWindow(win.id)}>
+        onclick={() => closeWindow(win.id)}
+      >
         <IconX />
       </button>
     </Section.Header>
@@ -157,7 +160,8 @@
         title={win.title}
         frameborder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowfullscreen></iframe>
+        allowfullscreen
+      ></iframe>
     </Section.Content>
   </Section.Root>
 {/each}

@@ -87,7 +87,8 @@
     oninput={handleInput}
     aria-invalid={!!error}
     placeholder={isNullable ? '(empty for none)' : undefined}
-    {disabled} />
+    {disabled}
+  />
   {#if error}
     <Field.Error>{error}</Field.Error>
   {/if}

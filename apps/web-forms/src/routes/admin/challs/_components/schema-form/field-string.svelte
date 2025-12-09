@@ -80,7 +80,8 @@
     <select
       value={toNullSentinel(value)}
       onchange={e => set(e.currentTarget.value === NULL_SENTINEL ? null : e.currentTarget.value)}
-      {disabled}>
+      {disabled}
+    >
       {#if isNullable}
         <option value={NULL_SENTINEL}>None</option>
       {/if}
@@ -94,14 +95,16 @@
       oninput={handleInput}
       rows={3}
       placeholder={isNullable ? '(empty for none)' : undefined}
-      {disabled}></textarea>
+      {disabled}
+    ></textarea>
   {:else}
     <input
       type="text"
       value={displayValue}
       oninput={handleInput}
       placeholder={isNullable ? '(empty for none)' : undefined}
-      {disabled} />
+      {disabled}
+    />
   {/if}
   {#if error}
     <div><small>{error}</small></div>

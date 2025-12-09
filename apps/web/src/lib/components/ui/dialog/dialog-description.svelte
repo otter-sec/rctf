@@ -13,4 +13,5 @@
   bind:ref
   data-slot="dialog-description"
   class={cn('text-foreground-l3 text-sm', className)}
-  {...restProps} />
+  {...restProps}
+/>

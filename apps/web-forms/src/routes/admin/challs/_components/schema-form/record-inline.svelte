@@ -171,14 +171,16 @@
               type="text"
               bind:value={keyInputs[key]}
               onblur={() => renameEntry(key, keyInputs[key] ?? key)}
-              {disabled} />
+              {disabled}
+            />
           {/if}
           =
           {#if valueSchema.type === 'boolean'}
             <select
               value={String(val ?? false)}
               onchange={e => onChange([...path, key], e.currentTarget.value === 'true')}
-              {disabled}>
+              {disabled}
+            >
               <option value="true">true</option>
               <option value="false">false</option>
             </select>
@@ -188,7 +190,8 @@
               inputmode={isNumeric ? 'decimal' : 'text'}
               value={String(val ?? '')}
               oninput={e => handleValueInput(key, e.currentTarget.value)}
-              {disabled} />
+              {disabled}
+            />
           {/if}
           {#if !disabled}
             <button type="button" onclick={() => removeEntry(key)}>×</button>
@@ -219,7 +222,8 @@
                 addEntry(newKeyInput.trim())
               }
             }}
-            {disabled} />
+            {disabled}
+          />
         {/if}
         =
         <button
@@ -235,7 +239,8 @@
             }
           }}
           disabled={disabled ||
-            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}>
+            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}
+        >
           + Add
         </button>
       </div>

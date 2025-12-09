@@ -42,7 +42,8 @@
       x="time"
       y="score"
       yDomain={null}
-      padding={{ top: 4, bottom: 4, left: 2, right: 2 }}>
+      padding={{ top: 4, bottom: 4, left: 2, right: 2 }}
+    >
       <Layer type="svg">
         <defs>
           <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -53,7 +54,8 @@
         <Spline
           class="stroke-2 fill-none group-hover/sparkline:stroke-4 transition-[stroke-width]"
           stroke="url(#{gradientId})"
-          style="stroke-linecap: round; stroke-linejoin: round;" />
+          style="stroke-linecap: round; stroke-linejoin: round;"
+        />
       </Layer>
     </LayerChart>
   </div>

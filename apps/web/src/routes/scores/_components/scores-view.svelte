@@ -182,7 +182,8 @@
 <div class="flex justify-center">
   <div
     class={cn('relative max-w-full', isMinimal ? 'w-full max-w-3xl' : '')}
-    style:width={isMinimal ? undefined : `${contentWidth}px`}>
+    style:width={isMinimal ? undefined : `${contentWidth}px`}
+  >
     <Fade
       teamColWidth={isMinimal ? 0 : layout.teamColumn}
       headerHeight={layout.headerHeight}
@@ -192,7 +193,8 @@
       {showBottomFade}
       showLeftFade={isMinimal ? false : showLeftFade}
       showRightFade={isMinimal ? false : showRightFade}
-      showSelfRow={!!showSelfRow} />
+      showSelfRow={!!showSelfRow}
+    />
 
     <ScrollArea
       class="h-[calc(100vh-142px)] max-w-full rounded-lg"
@@ -202,10 +204,12 @@
       scrollbarXStyles={isMinimal ? '' : `margin-left: ${layout.teamColumn}px;`}
       scrollbarYClasses="z-50"
       scrollbarYStyles="margin-top: {layout.headerHeight}px; height: calc(100% - {layout.headerHeight}px);"
-      bind:viewportRef>
+      bind:viewportRef
+    >
       <div
         class={isMinimal ? 'w-full' : ''}
-        style:width={isMinimal ? undefined : `${contentWidth}px`}>
+        style:width={isMinimal ? undefined : `${contentWidth}px`}
+      >
         <Header
           {challenges}
           {categoryGroups}
@@ -220,7 +224,8 @@
           headerHeight={layout.headerHeight}
           solveHighlight={tooltipData?.solved && tooltipData.solveTime
             ? { teamId: tooltipData.teamId, time: tooltipData.solveTime }
-            : null} />
+            : null}
+        />
 
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
@@ -228,7 +233,8 @@
           onmouseleave={() => {
             hoveredTeamId = null
             tooltipData = null
-          }}>
+          }}
+        >
           {#each entries as entry, index (entry.id)}
             {@const rank = (page - 1) * PAGE_SIZE + index + 1}
             <Row
@@ -245,7 +251,8 @@
               {page}
               onHover={() => (hoveredTeamId = entry.id)}
               onUnhover={() => (hoveredTeamId = null)}
-              onCellHover={handleCellHover} />
+              onCellHover={handleCellHover}
+            />
           {/each}
         </div>
 
@@ -264,7 +271,8 @@
               {page}
               onHover={() => (hoveredTeamId = currentUser.id)}
               onUnhover={() => (hoveredTeamId = null)}
-              onCellHover={handleCellHover} />
+              onCellHover={handleCellHover}
+            />
           </div>
         {/if}
       </div>

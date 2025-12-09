@@ -101,7 +101,8 @@
       aria-invalid={!!error}
       rows={3}
       placeholder={isNullable ? '(empty for none)' : undefined}
-      {disabled} />
+      {disabled}
+    />
   {:else}
     <Input
       type="text"
@@ -109,7 +110,8 @@
       oninput={handleInput}
       aria-invalid={!!error}
       placeholder={isNullable ? '(empty for none)' : undefined}
-      {disabled} />
+      {disabled}
+    />
   {/if}
   {#if error}
     <Field.Error>{error}</Field.Error>

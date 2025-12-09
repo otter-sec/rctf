@@ -121,7 +121,8 @@
               addEntry(newKeyInput.trim())
             }
           }}
-          {disabled} />
+          {disabled}
+        />
       {/if}
       <button
         type="button"
@@ -136,7 +137,8 @@
           }
         }}
         disabled={disabled ||
-          (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}>
+          (keyEnumValues ? !newKeySelect : !newKeyInput.trim() || isDuplicateKey)}
+      >
         +
       </button>
     </div>
@@ -156,7 +158,8 @@
             type="text"
             bind:value={keyNameInput}
             onblur={() => renameEntry(selectedKey!, keyNameInput)}
-            {disabled} />
+            {disabled}
+          />
         </div>
       {/if}
       <Field
@@ -165,7 +168,8 @@
         path={[...path, selectedKey]}
         {onChange}
         {disabled}
-        showLabel={false} />
+        showLabel={false}
+      />
     {:else}
       <p>Add an item to get started</p>
     {/if}

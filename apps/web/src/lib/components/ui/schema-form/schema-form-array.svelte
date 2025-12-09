@@ -1,7 +1,7 @@
 <script lang="ts">
   import SchemaFormArrayPanel from './schema-form-array-panel.svelte'
   import SchemaFormArrayTags from './schema-form-array-tags.svelte'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { isTypeOneOf } from './utils'
 
   interface Props extends SchemaFormFieldProps {}

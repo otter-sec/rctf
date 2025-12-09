@@ -48,6 +48,7 @@
     }
     e.currentTarget.parentElement?.querySelector('input')?.focus()
   }}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </div>

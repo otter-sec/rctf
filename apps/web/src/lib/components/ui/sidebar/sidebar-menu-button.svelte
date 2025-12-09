@@ -91,7 +91,8 @@
       side="right"
       align="center"
       hidden={sidebar.state !== 'collapsed' || sidebar.isMobile}
-      {...tooltipContentProps}>
+      {...tooltipContentProps}
+    >
       {#if typeof tooltipContent === 'string'}
         {tooltipContent}
       {:else if tooltipContent}

@@ -142,7 +142,8 @@
           <select
             value={config ? 'yes' : 'no'}
             onchange={e => onConfigChange(e.currentTarget.value === 'yes' ? defaultConfig() : null)}
-            disabled={isDisabled}>
+            disabled={isDisabled}
+          >
             <option value="no">Disabled</option>
             <option value="yes">Enabled</option>
           </select>
@@ -158,7 +159,8 @@
               placeholder="challenge-id"
               value={config.challengeIntegrationId}
               oninput={e => update(c => ({ ...c, challengeIntegrationId: e.currentTarget.value }))}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </div>
           <div>
             <strong>Timeout</strong> <small>(seconds)</small>
@@ -168,7 +170,8 @@
               value={Math.round(config.timeoutMilliseconds / 1000)}
               oninput={e =>
                 update(c => ({ ...c, timeoutMilliseconds: +e.currentTarget.value * 1000 }))}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </div>
         </div>
       {/if}
@@ -181,7 +184,8 @@
         Provider config
         <button
           type="button"
-          onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}>
+          onclick={() => (advancedMode ? exitAdvancedMode() : enterAdvancedMode())}
+        >
           {advancedMode ? '← Form editor' : 'Advanced (YAML) →'}
         </button>
       </legend>
@@ -193,7 +197,8 @@
               value={yamlText}
               oninput={e => handleYamlChange(e.currentTarget.value)}
               disabled={isDisabled}
-              placeholder="# YAML configuration..."></textarea>
+              placeholder="# YAML configuration..."
+            ></textarea>
             {#if yamlError}
               <p>{yamlError}</p>
             {/if}
@@ -208,7 +213,8 @@
             value={config.config}
             onChange={handleConfigChange}
             disabled={isDisabled}
-            bind:isValid={schemaFormValid} />
+            bind:isValid={schemaFormValid}
+          />
         {/if}
       </div>
     </fieldset>
@@ -239,13 +245,15 @@
                     placeholder="host prefix"
                     value={exp.hostPrefix}
                     oninput={e => updateExpose(i, { hostPrefix: e.currentTarget.value })}
-                    disabled={isDisabled} />
+                    disabled={isDisabled}
+                  />
                 </td>
                 <td>
                   <select
                     value={exp.kind}
                     onchange={e => updateExpose(i, { kind: e.currentTarget.value as ExposeKind })}
-                    disabled={isDisabled}>
+                    disabled={isDisabled}
+                  >
                     {#each Object.values(ExposeKind) as kind}
                       <option value={kind}>{kind}</option>
                     {/each}
@@ -257,7 +265,8 @@
                     placeholder="container"
                     value={exp.containerName}
                     oninput={e => updateExpose(i, { containerName: e.currentTarget.value })}
-                    disabled={isDisabled} />
+                    disabled={isDisabled}
+                  />
                 </td>
                 <td>
                   <input
@@ -267,7 +276,8 @@
                     placeholder="Port"
                     value={exp.containerPort}
                     oninput={e => updateExpose(i, { containerPort: +e.currentTarget.value })}
-                    disabled={isDisabled} />
+                    disabled={isDisabled}
+                  />
                 </td>
                 <td>
                   <label>
@@ -275,7 +285,8 @@
                       type="checkbox"
                       checked={exp.shouldDisplay ?? true}
                       onchange={e => updateExpose(i, { shouldDisplay: e.currentTarget.checked })}
-                      disabled={isDisabled} />
+                      disabled={isDisabled}
+                    />
                   </label>
                 </td>
                 <td>

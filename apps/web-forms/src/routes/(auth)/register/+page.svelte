@@ -33,7 +33,9 @@
       >Team Name <input
         type="text"
         bind:value={form.data.name}
-        oninput={() => form.validateField('name')} /></label>
+        oninput={() => form.validateField('name')}
+      /></label
+    >
     {#if form.errors.name}
       <em style="color: red">{form.errors.name}</em>
     {/if}
@@ -42,7 +44,9 @@
       >Email <input
         type="email"
         bind:value={form.data.email}
-        oninput={() => form.validateField('email')} /></label>
+        oninput={() => form.validateField('email')}
+      /></label
+    >
     {#if form.errors.email}
       <em style="color: red">{form.errors.email}</em>
     {/if}

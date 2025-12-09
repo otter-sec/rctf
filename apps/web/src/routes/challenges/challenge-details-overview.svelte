@@ -33,7 +33,8 @@
                     href={file.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-3 rounded-md bg-background-l4 px-3 py-2 hover:bg-background-l5">
+                    class="flex items-center gap-3 rounded-md bg-background-l4 px-3 py-2 hover:bg-background-l5"
+                  >
                     <IconFileFilled class="size-5 shrink-0 text-foreground-l3" />
                     <div class="flex min-w-0 flex-col">
                       <span class="text-base text-foreground-l0">{file.name}</span>
@@ -48,7 +49,8 @@
             {#if challenge.files.length > 1}
               <div class="p-2">
                 <button
-                  class="flex w-full items-center justify-center gap-1 rounded-md bg-background-accent px-4 py-2 text-base font-normal text-foreground-accent hover:opacity-90">
+                  class="flex w-full items-center justify-center gap-1 rounded-md bg-background-accent px-4 py-2 text-base font-normal text-foreground-accent hover:opacity-90"
+                >
                   <IconDownload class="size-5" />
                   Download all
                 </button>

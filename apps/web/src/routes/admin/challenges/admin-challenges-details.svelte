@@ -198,7 +198,8 @@
               {#if form.category}
                 <span
                   class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
-                  style={categoryStyle}>
+                  style={categoryStyle}
+                >
                   <categoryConfig.icon class="size-3.5" />
                   {categoryConfig.name}
                 </span>
@@ -217,7 +218,8 @@
                 type="button"
                 variant="destructive"
                 onclick={handleDelete}
-                disabled={isDeletingChallenge}>
+                disabled={isDeletingChallenge}
+              >
                 {#if isDeletingChallenge}
                   <Spinner class="size-4" />
                 {:else}
@@ -227,7 +229,8 @@
               </Button>
             {/if}
             <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}
-              >Cancel</Button>
+              >Cancel</Button
+            >
             <Button type="button" onclick={handleSave} disabled={isUpdating || !instancerValid}>
               {#if isUpdating}
                 <Spinner class="size-4" />
@@ -244,7 +247,8 @@
       </div>
 
       <div
-        class={cn('min-h-0 flex-1 flex flex-col', isDisabled && 'opacity-50 pointer-events-none')}>
+        class={cn('min-h-0 flex-1 flex flex-col', isDisabled && 'opacity-50 pointer-events-none')}
+      >
         <AdminChallengesDetailsForm
           name={form.name}
           category={form.category}
@@ -271,7 +275,8 @@
           onPointsMinChange={v => updateField('pointsMin', v)}
           onPointsMaxChange={v => updateField('pointsMax', v)}
           onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
-          onSortWeightChange={v => updateField('sortWeight', v)} />
+          onSortWeightChange={v => updateField('sortWeight', v)}
+        />
       </div>
     </div>
   {/key}
@@ -280,7 +285,8 @@
     icon={IconHammer}
     title="Select a challenge"
     subtitle="Choose a challenge from the list or create a new one"
-    class="h-full" />
+    class="h-full"
+  />
 {/if}
 
 <AdminChallengesDetailsDialogs
@@ -294,4 +300,5 @@
   onCancelDiscard={() => send({ type: 'KEEP_EDITING' })}
   onClosePreview={() => (showPreviewDialog = false)}
   onDeleteConfirm={handleDeleteConfirm}
-  onDeleteCancel={() => send({ type: 'DELETE_CANCEL' })} />
+  onDeleteCancel={() => send({ type: 'DELETE_CANCEL' })}
+/>

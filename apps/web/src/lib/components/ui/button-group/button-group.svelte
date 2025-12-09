@@ -40,6 +40,7 @@
   data-slot="button-group"
   data-orientation={orientation}
   class={cn(buttonGroupVariants({ orientation }), className)}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </div>

@@ -27,7 +27,8 @@
   <ProfileLayout
     {user}
     divisionLabel={clientConfig.divisions[user.division] ?? user.division}
-    {challenges} />
+    {challenges}
+  />
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />

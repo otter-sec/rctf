@@ -126,7 +126,8 @@
             maxlength={64}
             required
             bind:value={profileForm.data.name}
-            disabled={loading} />
+            disabled={loading}
+          />
           {#if profileForm.errors.name}
             <Field.Error>{profileForm.errors.name}</Field.Error>
           {/if}
@@ -156,7 +157,8 @@
         {#if profileForm.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-            role="alert">
+            role="alert"
+          >
             {profileForm.errors._form}
           </div>
         {/if}
@@ -178,7 +180,8 @@
         <Field.Field
           data-invalid={!!emailForm.errors.email ||
             (!isEmailValid && (emailForm.data.email ?? '') !== '') ||
-            undefined}>
+            undefined}
+        >
           <Field.Label>
             Email
             {#if canDeleteEmail}
@@ -190,7 +193,8 @@
             placeholder="Enter your email"
             autocomplete="email"
             bind:value={emailForm.data.email}
-            disabled={loading} />
+            disabled={loading}
+          />
           {#if emailForm.errors.email}
             <Field.Error>{emailForm.errors.email}</Field.Error>
           {:else if !isEmailValid && (emailForm.data.email ?? '') !== ''}
@@ -201,7 +205,8 @@
         {#if emailForm.errors._form}
           <div
             class="bg-background-destructive text-foreground-destructive rounded-md p-3 text-sm"
-            role="alert">
+            role="alert"
+          >
             {emailForm.errors._form}
           </div>
         {/if}
@@ -211,7 +216,8 @@
         <Button
           type="submit"
           disabled={loading || !emailHasChanges || !isEmailValid}
-          class="w-full">
+          class="w-full"
+        >
           {#if emailForm.submitting || deletingEmail}
             <Spinner class="size-4" />
           {/if}

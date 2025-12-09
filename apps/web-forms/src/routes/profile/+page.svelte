@@ -171,10 +171,12 @@
           alt={user.name}
           width="80"
           height="80"
-          style="border-radius: 8px; object-fit: cover;" />
+          style="border-radius: 8px; object-fit: cover;"
+        />
       {:else}
         <div
-          style="width: 80px; height: 80px; border-radius: 8px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+          style="width: 80px; height: 80px; border-radius: 8px; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;"
+        >
           {getInitials(user.name)}
         </div>
       {/if}
@@ -185,7 +187,8 @@
         type="file"
         accept="image/*"
         style="display: none;"
-        onchange={handleAvatarSelect} />
+        onchange={handleAvatarSelect}
+      />
       <button type="button" onclick={() => fileInput?.click()} disabled={avatarUploading}>
         {avatarUploading ? 'Uploading...' : user.avatarUrl ? 'Change Avatar' : 'Upload Avatar'}
       </button>
@@ -221,7 +224,8 @@
 
       {#if profileForm.errors._form}<p style="color:red">{profileForm.errors._form}</p>{/if}
       <button disabled={profileForm.submitting}
-        >{profileForm.submitting ? 'Saving...' : 'Save'}</button>
+        >{profileForm.submitting ? 'Saving...' : 'Save'}</button
+      >
     </form>
   </section>
 
@@ -268,8 +272,8 @@
       </label>
       {#if memberForm.errors.email}<em>{memberForm.errors.email}</em>{/if}
       {#if memberForm.errors._form}<p style="color:red">{memberForm.errors._form}</p>{/if}
-      <button disabled={memberForm.submitting}
-        >{memberForm.submitting ? 'Adding...' : 'Add'}</button>
+      <button disabled={memberForm.submitting}>{memberForm.submitting ? 'Adding...' : 'Add'}</button
+      >
     </form>
   </section>
 

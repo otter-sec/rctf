@@ -3,7 +3,8 @@
   lang="en"
   xmlns="http://www.w3.org/1999/xhtml"
   xmlns:o="urn:schemas-microsoft-com:office:office"
-  xmlns:v="urn:schemas-microsoft-com:vml">
+  xmlns:v="urn:schemas-microsoft-com:vml"
+>
   <head>
     <title>
       {{ #register }} Email verification for {{ ctf_name }} {{ /register }} {{
@@ -16,7 +17,8 @@
     <meta name="x-apple-disable-message-reformatting" />
     <meta
       name="format-detection"
-      content="telephone=no,address=no,email=no,date=no,url=no" />
+      content="telephone=no,address=no,email=no,date=no,url=no"
+    />
 
     <!--[if gte mso 9]>
       <xml>
@@ -35,7 +37,8 @@
       padding: 0 !important;
       background: #111111;
       mso-line-height-rule: exactly;
-    ">
+    "
+  >
     <center style="width: 100%; background: #111111">
       <!--[if mso | IE]>
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #111111;">
@@ -54,7 +57,8 @@
           cellpadding="0"
           cellspacing="0"
           role="presentation"
-          style="max-width: 680px; width: 100%">
+          style="max-width: 680px; width: 100%"
+        >
           <tr>
             <td style="padding: 20px 30px; text-align: left" class="sm-px">
               <a href="{{{ origin }}}" rel="nofollow" target="_blank">
@@ -70,7 +74,8 @@
                     line-height: 15px;
                     color: #ffffff;
                     margin: 0;
-                  " />
+                  "
+                />
                 {{ /logo_url }} {{ ^logo_url }}
                 <h1
                   style="
@@ -79,7 +84,8 @@
                     line-height: 27px;
                     color: #ffffff;
                     margin: 0 0 15px 0;
-                  ">
+                  "
+                >
                   {{ ctf_name }}
                 </h1>
                 {{ /logo_url }}
@@ -93,13 +99,15 @@
                 background-color: #222222;
                 border-radius: 10px;
               "
-              class="sm-p bar">
+              class="sm-p bar"
+            >
               <table
                 border="0"
                 cellpadding="0"
                 cellspacing="0"
                 role="presentation"
-                style="width: 100%">
+                style="width: 100%"
+              >
                 <tr>
                   <td
                     style="
@@ -109,7 +117,8 @@
                       line-height: 21px;
                       color: #ffffff;
                       text-align: left;
-                    ">
+                    "
+                  >
                     <h1
                       style="
                         font-weight: bold;
@@ -117,7 +126,8 @@
                         line-height: 27px;
                         color: #ffffff;
                         margin: 0 0 15px 0;
-                      ">
+                      "
+                    >
                       {{ #register }} Verify your email for {{ ctf_name }} {{
                       /register }} {{ #recover }} Recover your account for {{
                       ctf_name }} {{ /recover }} {{ #update }} Update your {{
@@ -158,11 +168,13 @@
                       border="0"
                       cellpadding="0"
                       cellspacing="0"
-                      role="presentation">
+                      role="presentation"
+                    >
                       <tr>
                         <td
                           class="s-btn s-btn__primary"
-                          style="border-radius: 4px; background: #bc2226">
+                          style="border-radius: 4px; background: #bc2226"
+                        >
                           <a
                             class="s-btn s-btn__primary"
                             href="{{{ origin }}}/verify?token={{ token }}"
@@ -180,7 +192,8 @@
                               display: block;
                               border-radius: 4px;
                               white-space: nowrap;
-                            ">
+                            "
+                          >
                             {{ #register }} Register for {{ ctf_name }} {{
                             /register}} {{ #recover }} Recover your account {{
                             /recover }} {{ #update }} Update your email {{
@@ -202,7 +215,8 @@
                 cellpadding="0"
                 cellspacing="0"
                 role="presentation"
-                width="100%">
+                width="100%"
+              >
                 <tr>
                   <td
                     style="
@@ -212,7 +226,8 @@
                       font-family: arial, sans-serif;
                       color: #9199a1;
                       text-align: left;
-                    ">
+                    "
+                  >
                     If you didn't attempt this, you can safely ignore this
                     email.
                   </td>
@@ -225,7 +240,8 @@
                       font-family: arial, sans-serif;
                       color: #9199a1;
                       text-align: left;
-                    ">
+                    "
+                  >
                     <span style="color: #9ea3a9">Sent by </span>
                     <a
                       href="{{{ origin }}}"

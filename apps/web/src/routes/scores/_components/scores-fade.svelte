@@ -93,6 +93,6 @@
       fade.show ? 'opacity-100' : 'opacity-0'
     )}
     style={fade.style}
-    aria-hidden="true">
-  </div>
+    aria-hidden="true"
+  ></div>
 {/each}

@@ -30,5 +30,6 @@
     avatarUrl={currentUser.avatarUrl}
     subtitle={currentUser.division}
     primaryValue={formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
-    secondaryValue={formatLocalTime(currentUserSolve.createdAt)} />
+    secondaryValue={formatLocalTime(currentUserSolve.createdAt)}
+  />
 {/if}

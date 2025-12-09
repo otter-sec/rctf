@@ -71,20 +71,23 @@
     'data-invalid:border-foreground-destructive data-invalid:ring-foreground-destructive/20 data-invalid:ring-[3px]',
     disabled && 'cursor-not-allowed opacity-50',
     className
-  )}>
+  )}
+>
   {#each value as item, i (i)}
     {#if children}
       {@render children({ item, index: i, remove: () => remove(i) })}
     {:else}
       <span
-        class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 font-mono text-sm">
+        class="inline-flex items-center gap-1 rounded bg-background-l5 px-1.5 py-0.5 font-mono text-sm"
+      >
         {item}
         {#if !disabled}
           <button
             type="button"
             onclick={() => remove(i)}
             aria-label="Remove {item}"
-            class="rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive">
+            class="rounded p-0.5 hover:bg-background-destructive hover:text-foreground-destructive"
+          >
             <IconX class="size-3" />
           </button>
         {/if}
@@ -98,5 +101,6 @@
     placeholder={value.length === 0 ? emptyPlaceholder : placeholder}
     onkeydown={handleKeydown}
     {disabled}
-    {...restProps} />
+    {...restProps}
+  />
 </div>

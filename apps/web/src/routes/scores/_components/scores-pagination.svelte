@@ -61,7 +61,8 @@
                 variant="ghost"
                 size="sm"
                 class={cn(toggleBtnClass, isActive && toggleBtnActiveClass)}
-                onclick={() => onViewChange(option.value)}>
+                onclick={() => onViewChange(option.value)}
+              >
                 <option.icon class="size-4" />
               </Button>
             </Tooltip.Trigger>
@@ -83,7 +84,8 @@
                   variant="ghost"
                   size="sm"
                   class={cn(toggleBtnClass, isActive && toggleBtnActiveClass)}
-                  onclick={() => onSortChange(option.value)}>
+                  onclick={() => onSortChange(option.value)}
+                >
                   <option.icon class="size-4" />
                 </Button>
               </Tooltip.Trigger>

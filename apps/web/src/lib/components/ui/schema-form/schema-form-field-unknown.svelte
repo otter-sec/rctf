@@ -44,5 +44,6 @@
         set(e.currentTarget.value)
       }
     }}
-    {disabled} />
+    {disabled}
+  />
 </Field.Field>

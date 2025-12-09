@@ -37,7 +37,8 @@
               href="https://ctftime.org/team/{user.ctftimeId}"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-foreground-prose-link hover:underline">
+              class="text-foreground-prose-link hover:underline"
+            >
               CTFtime
             </a>
           {/if}
@@ -74,7 +75,8 @@
       class="min-h-0 flex-1"
       fadeSize={32}
       fadeColor="background-l1"
-      scrollbarYClasses="z-30">
+      scrollbarYClasses="z-30"
+    >
       <div class="flex flex-col gap-4 px-4 pt-2 pb-4">
         {@render children()}
       </div>

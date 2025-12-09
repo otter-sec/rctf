@@ -84,7 +84,8 @@
           href={trimmed}
           target="_blank"
           rel="noopener noreferrer"
-          class="block font-mono text-foreground-prose-link underline-offset-2 hover:underline">
+          class="block font-mono text-foreground-prose-link underline-offset-2 hover:underline"
+        >
           {trimmed}
         </a>
       {:else}
@@ -99,7 +100,8 @@
       <span class="font-medium">{config.label}</span>
     </div>
     <div
-      class="text-foreground-prose *:first:mt-0! [&>:first-child_*]:mt-0! *:last:mb-0! [&>:last-child_*]:mb-0!">
+      class="text-foreground-prose *:first:mt-0! [&>:first-child_*]:mt-0! *:last:mb-0! [&>:last-child_*]:mb-0!"
+    >
       {@html parsedContent}
     </div>
   </div>

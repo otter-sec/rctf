@@ -22,13 +22,15 @@
       class="text-foreground-prose-link hover:underline"
       href="https://policies.google.com/privacy"
       target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a>
+      rel="noopener noreferrer">Privacy Policy</a
+    >
     and
     <a
       class="text-foreground-prose-link hover:underline"
       href="https://policies.google.com/terms"
       target="_blank"
-      rel="noopener noreferrer">Terms of Service</a>
+      rel="noopener noreferrer">Terms of Service</a
+    >
     apply.
   </p>
 {:else if enabled && provider === 'captcha/hcaptcha'}
@@ -38,13 +40,15 @@
       class="text-foreground-prose-link hover:underline"
       href="https://www.hcaptcha.com/privacy"
       target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a>
+      rel="noopener noreferrer">Privacy Policy</a
+    >
     and
     <a
       class="text-foreground-prose-link hover:underline"
       href="https://www.hcaptcha.com/terms"
       target="_blank"
-      rel="noopener noreferrer">Terms of Service</a>
+      rel="noopener noreferrer">Terms of Service</a
+    >
     apply.
   </p>
 {:else if enabled && provider === 'captcha/turnstile'}
@@ -54,13 +58,15 @@
       class="text-foreground-prose-link hover:underline"
       href="https://www.cloudflare.com/privacypolicy/"
       target="_blank"
-      rel="noopener noreferrer">Privacy Policy</a>
+      rel="noopener noreferrer">Privacy Policy</a
+    >
     and
     <a
       class="text-foreground-prose-link hover:underline"
       href="https://www.cloudflare.com/website-terms/"
       target="_blank"
-      rel="noopener noreferrer">Terms of Service</a>
+      rel="noopener noreferrer">Terms of Service</a
+    >
     apply.
   </p>
 {:else if enabled && provider}

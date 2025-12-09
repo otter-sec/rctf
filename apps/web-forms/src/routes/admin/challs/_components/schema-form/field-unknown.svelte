@@ -43,5 +43,6 @@
         set(e.currentTarget.value)
       }
     }}
-    {disabled} />
+    {disabled}
+  />
 </div>

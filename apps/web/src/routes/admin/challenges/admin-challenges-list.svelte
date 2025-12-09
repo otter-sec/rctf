@@ -85,7 +85,8 @@
           <Tooltip.Trigger
             onclick={() => (collapsed = new Set(categories))}
             aria-label="Collapse all"
-            class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5">
+            class="rounded-sm bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5"
+          >
             <IconFold class="size-5" />
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
@@ -100,7 +101,8 @@
                 isCreatingNew
                   ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
                   : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
-              )}>
+              )}
+            >
               <IconLibraryPlusFilled class="size-5" />
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8}>New challenge</Tooltip.Content>
@@ -115,30 +117,35 @@
     fadeSize={86}
     fadeColor="background-l1"
     scrollbarYClasses="z-30"
-    scrollbarXClasses="z-30">
+    scrollbarXClasses="z-30"
+  >
     {#if !filtered.length}
       <EmptyState
         icon={IconZoomQuestionFilled}
         title="No challenges found"
         subtitle={query.trim()
           ? 'Try a different search term'
-          : 'Create your first challenge to get started'} />
+          : 'Create your first challenge to get started'}
+      />
     {:else}
       <Accordion.Root
         type="multiple"
         value={open}
         onValueChange={vals => (collapsed = new Set(categories.filter(c => !vals.includes(c))))}
-        class="pb-4">
+        class="pb-4"
+      >
         {#each groups as [category, entries] (category)}
           {@const cfg = getCategoryConfig(category)}
           <Accordion.Item value={category} class="border-b-0" style={getCategoryStyle(cfg.color)}>
             <Accordion.Trigger
               class="bg-category-background-l0 py-2 pr-2 pl-0 hover:no-underline"
               headerClass="sticky top-0 z-20 bg-background-l1"
-              chevronClass="text-category-foreground-l1">
+              chevronClass="text-category-foreground-l1"
+            >
               {#snippet trailing()}
                 <div
-                  class="flex items-baseline gap-1 whitespace-nowrap text-base font-normal tabular-nums">
+                  class="flex items-baseline gap-1 whitespace-nowrap text-base font-normal tabular-nums"
+                >
                   <span class="text-category-foreground-l0">{entries.length}</span>
                 </div>
               {/snippet}
@@ -156,7 +163,8 @@
                     {challenge}
                     {category}
                     isSelected={selectedId === challenge.id}
-                    onSelect={() => onSelect(challenge)} />
+                    onSelect={() => onSelect(challenge)}
+                  />
                 {/each}
               </ul>
             </Accordion.Content>

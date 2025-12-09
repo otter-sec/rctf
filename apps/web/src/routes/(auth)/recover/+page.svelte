@@ -63,7 +63,8 @@
             autocomplete="email"
             required
             bind:value={form.data.email}
-            aria-invalid={!!form.errors.email || !!form.errors._form} />
+            aria-invalid={!!form.errors.email || !!form.errors._form}
+          />
           {#if form.errors.email}
             <Field.Error>{form.errors.email}</Field.Error>
           {/if}

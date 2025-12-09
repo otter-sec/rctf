@@ -20,6 +20,7 @@
     'has-data-[state=checked]:bg-background-accent/5 has-data-[state=checked]:border-background-accent',
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </Label>

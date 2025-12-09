@@ -16,6 +16,7 @@
     "text-foreground-l3 flex items-center gap-2 text-sm [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none",
     className
   )}
-  {...restProps}>
+  {...restProps}
+>
   {@render children?.()}
 </span>

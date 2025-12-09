@@ -53,9 +53,11 @@
       <SearchInput
         value={searchQuery}
         onInput={onSearchChange}
-        class="min-w-0 flex-1 py-2 rounded-full @sm/list:rounded-r-sm @sm/list:rounded-l-none" />
+        class="min-w-0 flex-1 py-2 rounded-full @sm/list:rounded-r-sm @sm/list:rounded-l-none"
+      />
       <div
-        class="flex w-full gap-1 @sm/list:w-auto rounded-full @sm/list:rounded-none overflow-hidden @sm/list:overflow-auto">
+        class="flex w-full gap-1 @sm/list:w-auto rounded-full @sm/list:rounded-none overflow-hidden @sm/list:overflow-auto"
+      >
         <Tooltip.Root disableCloseOnTriggerClick>
           <Tooltip.Trigger
             onclick={onToggleHideSolved}
@@ -65,7 +67,8 @@
               hideSolved
                 ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
                 : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
-            )}>
+            )}
+          >
             {#if hideSolved}
               <IconEyeClosed class="size-5" />
             {:else}
@@ -80,7 +83,8 @@
           <Tooltip.Trigger
             onclick={onCollapseAll}
             aria-label="Collapse all"
-            class="flex flex-1 items-center justify-center bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5 @sm/list:flex-initial rounded-sm">
+            class="flex flex-1 items-center justify-center bg-background-l4 px-4 py-2 text-foreground-l1 hover:bg-background-l5 @sm/list:flex-initial rounded-sm"
+          >
             <IconFold class="size-5" />
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>

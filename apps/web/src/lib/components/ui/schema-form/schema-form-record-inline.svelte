@@ -2,7 +2,7 @@
   import { Button, Field, Input, Select } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import { getValidationContext } from './context'
-  import type { SchemaFormFieldProps, JsonSchema } from './types'
+  import type { JsonSchema, SchemaFormFieldProps } from './types'
   import { defaultValue, parseNumber, renameRecordKey } from './utils'
   import { validateValue } from './validate'
 
@@ -174,7 +174,8 @@
               class="w-32 font-mono text-sm"
               bind:value={keyInputs[key]}
               onblur={() => renameEntry(key, keyInputs[key] ?? key)}
-              {disabled} />
+              {disabled}
+            />
           {/if}
           <span class="text-foreground-l4">=</span>
           {#if valueSchema.type === 'boolean'}
@@ -182,7 +183,8 @@
               type="single"
               value={String(val ?? false)}
               onValueChange={v => onChange([...path, key], v === 'true')}
-              {disabled}>
+              {disabled}
+            >
               <Select.Trigger class="flex-1">{val ? 'true' : 'false'}</Select.Trigger>
               <Select.Content>
                 <Select.Item value="true" label="true">true</Select.Item>
@@ -197,14 +199,16 @@
               value={String(val ?? '')}
               oninput={e => handleValueInput(key, e.currentTarget.value)}
               aria-invalid={!!error}
-              {disabled} />
+              {disabled}
+            />
           {/if}
           {#if !disabled}
             <Button
               type="button"
               size="icon"
               variant="destructive"
-              onclick={() => removeEntry(key)}>
+              onclick={() => removeEntry(key)}
+            >
               <IconX class="size-4" />
             </Button>
           {/if}
@@ -221,7 +225,8 @@
             type="single"
             value={selectedKey}
             onValueChange={v => (selectedKey = v)}
-            disabled={disabled || availableKeys.length === 0}>
+            disabled={disabled || availableKeys.length === 0}
+          >
             <Select.Trigger class="w-32 font-mono text-sm">
               {selectedKey || 'Select key...'}
             </Select.Trigger>
@@ -244,7 +249,8 @@
               }
             }}
             aria-invalid={isDuplicateKey}
-            {disabled} />
+            {disabled}
+          />
         {/if}
         <span class="text-foreground-l4">=</span>
         <Button
@@ -260,7 +266,8 @@
             }
           }}
           disabled={disabled ||
-            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}>
+            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}
+        >
           <IconPlus class="size-4" />
           Add
         </Button>

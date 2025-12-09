@@ -108,7 +108,8 @@
                 required
                 value={name}
                 oninput={e => onNameChange(e.currentTarget.value)}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
             </Field.Field>
             <Field.Field>
               <Field.Label>Category</Field.Label>
@@ -118,7 +119,8 @@
                 required
                 value={category}
                 oninput={e => onCategoryChange(e.currentTarget.value)}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
             </Field.Field>
           </div>
 
@@ -130,7 +132,8 @@
               required
               value={author}
               oninput={e => onAuthorChange(e.currentTarget.value)}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </Field.Field>
 
           <Field.Field>
@@ -141,7 +144,8 @@
                 size="sm"
                 class="ml-auto"
                 onclick={onShowPreview}
-                disabled={!description}>
+                disabled={!description}
+              >
                 <IconEyeFilled class="size-4" />
                 Preview
               </Button>
@@ -152,7 +156,8 @@
               required
               value={description}
               oninput={e => onDescriptionChange(e.currentTarget.value)}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </Field.Field>
         </div>
       </ScrollArea>
@@ -170,7 +175,8 @@
               required
               value={flag}
               oninput={e => onFlagChange(e.currentTarget.value)}
-              disabled={isDisabled} />
+              disabled={isDisabled}
+            />
           </Field.Field>
 
           <div class="grid grid-cols-2 gap-4">
@@ -182,7 +188,8 @@
                 required
                 value={pointsMin}
                 oninput={e => onPointsMinChange(+e.currentTarget.value)}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
             </Field.Field>
             <Field.Field>
               <Field.Label>Maximum points <Field.Hint>(at zero solves)</Field.Hint></Field.Label>
@@ -192,7 +199,8 @@
                 required
                 value={pointsMax}
                 oninput={e => onPointsMaxChange(+e.currentTarget.value)}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
             </Field.Field>
           </div>
 
@@ -203,7 +211,8 @@
                 type="number"
                 value={sortWeight}
                 oninput={e => onSortWeightChange(+e.currentTarget.value)}
-                disabled={isDisabled} />
+                disabled={isDisabled}
+              />
             </Field.Field>
             <Field.Field>
               <Field.Label>Tiebreak eligibility</Field.Label>
@@ -211,9 +220,11 @@
                 type="single"
                 value={tiebreakEligible ? 'yes' : 'no'}
                 onValueChange={v => onTiebreakEligibleChange(v === 'yes')}
-                disabled={isDisabled}>
+                disabled={isDisabled}
+              >
                 <Select.Trigger class="w-full"
-                  >{tiebreakEligible ? 'Eligible' : 'Ineligible'}</Select.Trigger>
+                  >{tiebreakEligible ? 'Eligible' : 'Ineligible'}</Select.Trigger
+                >
                 <Select.Content>
                   <Select.Item value="yes" label="Eligible">Eligible</Select.Item>
                   <Select.Item value="no" label="Ineligible">Ineligible</Select.Item>
@@ -240,7 +251,8 @@
             config={instancerConfig}
             {isDisabled}
             onConfigChange={onInstancerConfigChange}
-            bind:isValid={instancerValid} />
+            bind:isValid={instancerValid}
+          />
         </div>
       </ScrollArea>
     </Tabs.Content>

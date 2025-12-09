@@ -91,7 +91,8 @@
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-            secondaryValue={formatLocalTime(solve.createdAt)} />
+            secondaryValue={formatLocalTime(solve.createdAt)}
+          />
         {/each}
       </div>
 
@@ -100,7 +101,8 @@
           <Button
             class="w-full"
             disabled={$solvesQuery.isFetchingNextPage}
-            onclick={() => $solvesQuery.fetchNextPage()}>
+            onclick={() => $solvesQuery.fetchNextPage()}
+          >
             {#if $solvesQuery.isFetchingNextPage}
               <Spinner class="mr-2 size-4" />
               Loading...

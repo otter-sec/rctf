@@ -62,7 +62,8 @@
     class={cn(
       'flex h-10 gap-1 overflow-hidden',
       variant === 'rounded' ? 'rounded-full' : 'rounded-lg'
-    )}>
+    )}
+  >
     {#each pageButtons as btn}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
@@ -71,7 +72,8 @@
           class={cn(
             'h-10 px-3 bg-background-l4 text-foreground-l1 hover:bg-background-l5 disabled:pointer-events-none disabled:opacity-50',
             btn.roundedClass
-          )}>
+          )}
+        >
           <btn.icon class="size-5" />
         </Tooltip.Trigger>
         <Tooltip.Content>{btn.label}</Tooltip.Content>

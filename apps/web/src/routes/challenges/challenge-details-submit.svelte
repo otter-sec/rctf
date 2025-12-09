@@ -55,7 +55,8 @@
   <div class="flex h-12 gap-2">
     {#if isSolved}
       <div
-        class="flex h-full flex-1 items-center gap-3 rounded-lg bg-background-success px-3 text-foreground-success">
+        class="flex h-full flex-1 items-center gap-3 rounded-lg bg-background-success px-3 text-foreground-success"
+      >
         <IconCheck class="size-6" />
         <span class="text-xl">Challenge solved!</span>
       </div>
@@ -69,12 +70,14 @@
         class="h-full flex-1 rounded-lg bg-background-l4 px-3 py-3.5 font-mono text-xl text-foreground-l3 placeholder:text-foreground-l3 outline-none"
         bind:value={form.data.flag}
         disabled={form.submitting}
-        aria-invalid={!!form.errors._form || undefined} />
+        aria-invalid={!!form.errors._form || undefined}
+      />
     {/if}
     <button
       type="submit"
       disabled={form.submitting || isSolved}
-      class="flex h-full items-center justify-center rounded-lg bg-background-l4 px-4 py-3 text-foreground-l4 hover:bg-background-l5 disabled:opacity-50">
+      class="flex h-full items-center justify-center rounded-lg bg-background-l4 px-4 py-3 text-foreground-l4 hover:bg-background-l5 disabled:opacity-50"
+    >
       {#if form.submitting}
         <Spinner class="size-6" />
       {:else}

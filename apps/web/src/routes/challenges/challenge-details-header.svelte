@@ -24,7 +24,8 @@
         <div class="flex gap-1">
           <span
             class="inline-flex items-center gap-1 rounded-lg bg-category-background-l0 text-category-foreground-l1 px-3 py-0.5 text-sm"
-            style={categoryStyle}>
+            style={categoryStyle}
+          >
             <config.icon class="size-3.5" />
             {config.name}
           </span>
