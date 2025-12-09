@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
   import { formatLocalTime } from '$lib/utils/time'
-  import type { TooltipData } from '../_lib'
+  import type { TooltipData } from './types'
 
   interface Props {
     data: TooltipData | null

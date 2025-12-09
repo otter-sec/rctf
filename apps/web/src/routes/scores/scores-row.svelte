@@ -10,7 +10,7 @@
     SortMode,
     TooltipData,
     ViewMode,
-  } from '../_lib'
+  } from './types'
   import Cell from './scores-cell.svelte'
   import Progress from './scores-progress.svelte'
   import TeamInfo from './scores-team-info.svelte'

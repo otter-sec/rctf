@@ -4,19 +4,23 @@
   import { cn } from '$lib/utils'
   import {
     buildSolvesMap,
-    CUTOFF_TIME,
-    FADE_SIZE,
     getContentWidth,
     groupByCategory,
-    layout,
-    PAGE_SIZE,
     processChallenges,
-    type ChallengesData,
-    type LeaderboardEntry,
-    type SortMode,
-    type TooltipData,
-    type ViewMode,
-  } from '../_lib'
+  } from './utils'
+  import { 
+    CUTOFF_TIME,
+    FADE_SIZE,
+    PAGE_SIZE,
+    layout
+  } from './constants'
+  import type {
+    ChallengesData,
+    LeaderboardEntry,
+    SortMode,
+    TooltipData,
+    ViewMode,
+  } from './types'
   import Fade from './scores-fade.svelte'
   import Header from './scores-header.svelte'
   import Row from './scores-row.svelte'

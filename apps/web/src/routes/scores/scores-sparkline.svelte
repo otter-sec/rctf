@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Layer, Chart as LayerChart, Spline } from 'layerchart'
-  import { MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from '../_lib'
+  import { MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
 
   interface SparklinePoint {
     time: number

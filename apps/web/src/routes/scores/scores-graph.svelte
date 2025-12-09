@@ -4,7 +4,7 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
-  import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from '../_lib'
+  import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
 
   interface Props {
     class?: string

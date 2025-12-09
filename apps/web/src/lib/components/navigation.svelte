@@ -8,7 +8,7 @@
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
     Avatar,
-    ButtonNavigation,
+    NavigationButton,
     DropdownMenu,
     NavigationMobile,
     ThemeToggle,
@@ -60,32 +60,32 @@
     <nav class="hidden items-center gap-2 md:flex">
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <ButtonNavigation href="/challenges" activePath="/challenges">
+          <NavigationButton href="/challenges" activePath="/challenges">
             {#snippet icon({ class: className })}
               <IconFlag3Filled class={className} />
             {/snippet}
-          </ButtonNavigation>
+          </NavigationButton>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Challenges</Tooltip.Content>
       </Tooltip.Root>
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <ButtonNavigation href="/scores" activePath="/scores">
+          <NavigationButton href="/scores" activePath="/scores">
             {#snippet icon({ class: className })}
               <IconChartAreaLineFilled class={className} />
             {/snippet}
-          </ButtonNavigation>
+          </NavigationButton>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
       </Tooltip.Root>
       {#if isAdmin}
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <ButtonNavigation href="/admin/challenges" activePath="/admin">
+            <NavigationButton href="/admin/challenges" activePath="/admin">
               {#snippet icon({ class: className })}
                 <IconGavel class={className} />
               {/snippet}
-            </ButtonNavigation>
+            </NavigationButton>
           </Tooltip.Trigger>
           <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
         </Tooltip.Root>
@@ -139,11 +139,11 @@
     {:else}
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <ButtonNavigation href="/login">
+          <NavigationButton href="/login">
             {#snippet icon({ class: className })}
               <IconLogin class={className} />
             {/snippet}
-          </ButtonNavigation>
+          </NavigationButton>
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Login</Tooltip.Content>
       </Tooltip.Root>

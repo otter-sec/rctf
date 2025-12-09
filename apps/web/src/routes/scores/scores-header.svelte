@@ -2,7 +2,7 @@
   import { Tooltip } from '$lib/components'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import type { CategoryGroup, Challenge, SortMode, ViewMode } from '../_lib'
+  import type { CategoryGroup, Challenge, SortMode, ViewMode } from './types'
   import Graph from './scores-graph.svelte'
 
   interface Props {

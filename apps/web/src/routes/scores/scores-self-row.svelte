@@ -4,7 +4,7 @@
   import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import type { CategoryGroup, Challenge, SortMode, TooltipData, ViewMode } from '../_lib'
+  import type { CategoryGroup, Challenge, SortMode, TooltipData, ViewMode } from './types'
   import Cell from './scores-cell.svelte'
   import Progress from './scores-progress.svelte'
   import TeamInfo from './scores-team-info.svelte'

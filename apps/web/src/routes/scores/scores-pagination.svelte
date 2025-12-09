@@ -8,7 +8,7 @@
     IconTableFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import type { SortMode, ViewMode } from '../_lib'
+  import type { SortMode, ViewMode } from './types'
 
   interface Props {
     page: number

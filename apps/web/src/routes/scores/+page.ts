@@ -2,7 +2,7 @@ import {
   leaderboardGraphQueryOptions,
   leaderboardQueryOptions,
 } from '$lib/query'
-import { PAGE_SIZE } from './_lib'
+import { PAGE_SIZE } from './constants'
 import type { PageLoad } from './$types'
 
 export const ssr = false
