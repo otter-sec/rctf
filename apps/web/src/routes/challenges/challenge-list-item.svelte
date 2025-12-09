@@ -15,7 +15,7 @@
   let { challenge, category, isSolved, isFirstBlood, isSelected, onSelect }: Props = $props()
 </script>
 
-<li>
+<li id="chall-{challenge.id}">
   <button
     type="button"
     onclick={onSelect}

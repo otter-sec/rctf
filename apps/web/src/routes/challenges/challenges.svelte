@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import { tick } from 'svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
+  import { page } from '$app/state'
   import { Drawer, Resizable } from '$lib/components'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
   import ChallengeDetails from './challenge-details.svelte'
@@ -18,7 +20,26 @@
 
   const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
 
+  const urlChallengeId = $derived(page.url.searchParams.get('chall'))
   let selectedChallengeId = $state<string | null>(null)
+  let hasScrolledToUrl = $state(false)
+
+  $effect(() => {
+    if (urlChallengeId && challenges.length > 0) {
+      const exists = challenges.some(c => c.id === urlChallengeId)
+      if (exists && selectedChallengeId !== urlChallengeId) {
+        selectedChallengeId = urlChallengeId
+        if (!hasScrolledToUrl) {
+          hasScrolledToUrl = true
+          tick().then(() => {
+            const el = document.getElementById(`chall-${urlChallengeId}`)
+            el?.scrollIntoView({ behavior: 'instant', block: 'center' })
+          })
+        }
+      }
+    }
+  })
+
   let drawerOpen = $state(false)
   let innerWidth = $state(0)
 
@@ -31,6 +52,9 @@
 
   function handleSelect(challenge: Challenge) {
     selectedChallengeId = challenge.id
+    const url = new URL(window.location.href)
+    url.searchParams.set('chall', challenge.id)
+    history.replaceState(history.state, '', url)
     if (isMobile) {
       drawerOpen = true
     }

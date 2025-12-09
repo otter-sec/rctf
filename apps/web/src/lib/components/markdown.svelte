@@ -30,6 +30,7 @@
   }
 
   function hydrate() {
+    if (!container) return
     mounted.forEach(c => unmount(c))
     mounted = [...container.querySelectorAll('[data-alert]')].map(el =>
       mount(MarkdownAlert, {
