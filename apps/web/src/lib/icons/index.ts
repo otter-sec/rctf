@@ -66,6 +66,7 @@ export { default as IconLayoutSidebarLeftCollapse } from '@iconify-svelte/tabler
 export { default as IconLoader } from '@iconify-svelte/tabler/loader'
 export { default as IconLogout } from '@iconify-svelte/tabler/logout'
 export { default as IconLogin } from '@iconify-svelte/tabler/login'
+export { default as IconMenu2 } from '@iconify-svelte/tabler/menu-2'
 export { default as IconMicroscopeFilled } from '@iconify-svelte/tabler/microscope-filled'
 export { default as IconMinus } from '@iconify-svelte/tabler/minus'
 export { default as IconMoonFilled } from '@iconify-svelte/tabler/moon-filled'

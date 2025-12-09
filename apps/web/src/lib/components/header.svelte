@@ -6,7 +6,14 @@
   import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
-  import { Avatar, ButtonNavigation, DropdownMenu, ThemeToggle, Tooltip } from '$lib/components'
+  import {
+    Avatar,
+    ButtonNavigation,
+    DropdownMenu,
+    MobileNav,
+    ThemeToggle,
+    Tooltip,
+  } from '$lib/components'
   import {
     IconChartAreaLineFilled,
     IconCopy,
@@ -41,17 +48,18 @@
   }
 </script>
 
-<header class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-9 py-3">
+<header
+  class="sticky top-0 z-50 flex items-center justify-between bg-background-l0 px-4 py-3 md:px-9">
   <div class="flex items-center gap-4">
     <a href="/" class="flex shrink-0 items-center">
       <img src={wordmarkLight} alt="Logo" class="h-8 block dark:hidden" />
       <img src={wordmarkDark} alt="Logo" class="h-8 hidden dark:block" />
     </a>
 
-    <nav class="flex items-center gap-2">
+    <nav class="hidden items-center gap-2 md:flex">
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <ButtonNavigation href="/challs" activePath="/challs">
+          <ButtonNavigation href="/challenges" activePath="/challenges">
             {#snippet icon({ class: className })}
               <IconFlag3Filled class={className} />
             {/snippet}
@@ -84,7 +92,7 @@
     </nav>
   </div>
 
-  <div class="flex items-center gap-2">
+  <div class="hidden items-center gap-2 md:flex">
     {#if user}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
@@ -139,5 +147,9 @@
       </Tooltip.Root>
     {/if}
     <ThemeToggle />
+  </div>
+
+  <div class="md:hidden">
+    <MobileNav />
   </div>
 </header>

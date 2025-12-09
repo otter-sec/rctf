@@ -1,5 +1,5 @@
-import { MediaQuery } from 'svelte/reactivity'
 import { getContext, setContext } from 'svelte'
+import { MediaQuery } from 'svelte/reactivity'
 import { SIDEBAR_KEYBOARD_SHORTCUT } from './constants.js'
 
 const MOBILE_BREAKPOINT = 768

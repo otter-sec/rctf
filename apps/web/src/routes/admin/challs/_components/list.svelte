@@ -4,7 +4,13 @@
   import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
   import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
-  import { cn, getCategoryConfig, getCategoryOrder, getCategoryStyle, hasPermissions } from '$lib/utils'
+  import {
+    cn,
+    getCategoryConfig,
+    getCategoryOrder,
+    getCategoryStyle,
+    hasPermissions,
+  } from '$lib/utils'
   import Item from './list-item.svelte'
 
   interface Props {
@@ -144,7 +150,7 @@
               </div>
             </Accordion.Trigger>
             <Accordion.Content class="bg-category-background-l1 pb-0">
-              <ul class="flex flex-col @container">
+              <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
                   <Item
                     {challenge}

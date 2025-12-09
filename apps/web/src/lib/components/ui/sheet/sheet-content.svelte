@@ -26,6 +26,7 @@
   import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
   import { Dialog as SheetPrimitive } from 'bits-ui'
   import type { ComponentProps, Snippet } from 'svelte'
+  import Button from '../button/button.svelte'
   import SheetOverlay from './sheet-overlay.svelte'
   import SheetPortal from './sheet-portal.svelte'
 
@@ -51,10 +52,5 @@
     class={cn(sheetVariants({ side }), className)}
     {...restProps}>
     {@render children?.()}
-    <SheetPrimitive.Close
-      class="ring-offset-background-l1 focus-visible:ring-ring rounded-xs focus-visible:outline-hidden absolute end-4 top-4 opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none">
-      <IconX class="size-4" />
-      <span class="sr-only">Close</span>
-    </SheetPrimitive.Close>
   </SheetPrimitive.Content>
 </SheetPortal>

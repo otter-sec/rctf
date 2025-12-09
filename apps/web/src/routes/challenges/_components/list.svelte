@@ -95,7 +95,7 @@
   })
 </script>
 
-<div class="flex h-full flex-col overflow-hidden">
+<div class="@container/list flex h-full flex-col overflow-hidden">
   <Header
     pointsEarned={stats.pointsEarned}
     pointsTotal={stats.pointsTotal}
@@ -146,7 +146,7 @@
               </div>
             </Accordion.Trigger>
             <Accordion.Content class="pb-0 bg-category-background-l1">
-              <ul class="@container flex flex-col">
+              <ul class="flex flex-col">
                 {#each entries as challenge (challenge.id)}
                   <Item
                     {challenge}
