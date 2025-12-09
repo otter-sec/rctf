@@ -10,7 +10,7 @@
     Avatar,
     ButtonNavigation,
     DropdownMenu,
-    MobileNav,
+    NavigationMobile,
     ThemeToggle,
     Tooltip,
   } from '$lib/components'
@@ -152,6 +152,6 @@
   </div>
 
   <div class="md:hidden">
-    <MobileNav />
+    <NavigationMobile />
   </div>
 </header>

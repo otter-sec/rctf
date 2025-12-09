@@ -1,3 +1,4 @@
+<!-- TODO(enscribe): don't use this -->
 <script lang="ts">
   import { Tooltip } from '$lib/components'
   import {

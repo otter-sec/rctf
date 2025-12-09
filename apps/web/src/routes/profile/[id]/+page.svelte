@@ -2,7 +2,8 @@
   import { page } from '$app/state'
   import { Button, Card, Spinner } from '$lib/components'
   import { useChallenges, useClientConfig, useUserProfile } from '$lib/query'
-  import { ProfileLayout } from '../_components'
+  import ProfileDisplay from '../profile-display.svelte'
+  import ProfileSolves from '../profile-solves.svelte'
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived($clientConfigQuery.data)
@@ -24,11 +25,10 @@
 </svelte:head>
 
 {#if user && clientConfig}
-  <ProfileLayout
-    {user}
-    divisionLabel={clientConfig.divisions[user.division] ?? user.division}
-    {challenges}
-  />
+  <div class="mx-auto grid h-[calc(100vh-72px)] w-full max-w-5xl grid-cols-2 gap-4">
+    <ProfileDisplay {user} {clientConfig} />
+    <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
+  </div>
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />

@@ -1,7 +1,8 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
   import { useChallenges, useClientConfig, useCurrentUser } from '$lib/query'
-  import { MembersCard, ProfileLayout, UpdateAvatarCard, UpdateProfileCard } from './_components'
+  import ProfileSolves from './profile-solves.svelte'
+  import ProfileTeam from './profile-team.svelte'
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
@@ -13,17 +14,10 @@
 </script>
 
 {#if user && clientConfig}
-  <ProfileLayout
-    {user}
-    divisionLabel={clientConfig.divisions[user.division] ?? user.division}
-    {challenges}
-  >
-    <UpdateAvatarCard />
-    <UpdateProfileCard />
-    {#if clientConfig.userMembers}
-      <MembersCard />
-    {/if}
-  </ProfileLayout>
+  <div class="mx-auto grid h-[calc(100vh-72px)] w-full max-w-5xl grid-cols-2 gap-4">
+    <ProfileTeam {user} {clientConfig} showMembersSection={clientConfig.userMembers} />
+    <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
+  </div>
 {:else}
   <Card.Root>
     <Card.Header>

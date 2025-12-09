@@ -1,22 +1,25 @@
 <script lang="ts">
+  import type { ClientConfig, UserProfile } from '@rctf/types'
   import { GoodAvatarUpdated, ProtectedAction } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { Avatar, Button, Section, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
-  import { queryKeys, useClientConfig, useCurrentUser, useUpdateAvatarMutation } from '$lib/query'
+  import { queryKeys, useUpdateAvatarMutation } from '$lib/query'
   import { getInitials } from '$lib/utils'
+
+  interface Props {
+    user: UserProfile
+    clientConfig: ClientConfig
+  }
+
+  let { user, clientConfig }: Props = $props()
 
   const MAX_AVATAR_SIZE = 1024 * 1024
 
   const queryClient = useQueryClient()
-  const userQuery = useCurrentUser()
-  const clientConfigQuery = useClientConfig()
   const updateAvatarMutation = useUpdateAvatarMutation()
-
-  const user = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
   const loading = $derived($updateAvatarMutation.isPending)
 
   let fileInput: HTMLInputElement | null = $state(null)
@@ -96,8 +99,7 @@
   }
 </script>
 
-{#if user && clientConfig}
-  <Section.Root>
+<Section.Root>
     <Section.Header>Team avatar</Section.Header>
     <Section.Content>
       <div class="flex items-center gap-4">
@@ -143,4 +145,3 @@
       <CaptchaNotice config={clientConfig} action={ProtectedAction.AvatarUpload} class="mt-3" />
     </Section.Content>
   </Section.Root>
-{/if}

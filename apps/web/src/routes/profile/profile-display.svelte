@@ -1,16 +1,16 @@
 <script lang="ts">
-  import type { PublicUserProfile, UserProfile } from '@rctf/types'
-  import { Avatar, ScrollArea } from '$lib/components'
+  import type { ClientConfig, PublicUserProfile } from '@rctf/types'
+  import { Avatar } from '$lib/components'
   import { getInitials } from '$lib/utils'
-  import type { Snippet } from 'svelte'
 
   interface Props {
-    user: UserProfile | PublicUserProfile
-    divisionLabel: string
-    children?: Snippet
+    user: PublicUserProfile
+    clientConfig: ClientConfig
   }
 
-  let { user, divisionLabel, children }: Props = $props()
+  let { user, clientConfig }: Props = $props()
+
+  const divisionLabel = $derived(clientConfig.divisions[user.division] ?? user.division)
 </script>
 
 <div class="flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl bg-background-l1">
@@ -69,17 +69,4 @@
       </div>
     </div>
   </div>
-
-  {#if children}
-    <ScrollArea
-      class="min-h-0 flex-1"
-      fadeSize={32}
-      fadeColor="background-l1"
-      scrollbarYClasses="z-30"
-    >
-      <div class="flex flex-col gap-4 px-4 pt-2 pb-4">
-        {@render children()}
-      </div>
-    </ScrollArea>
-  {/if}
 </div>

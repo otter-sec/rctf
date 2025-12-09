@@ -4,7 +4,8 @@
   import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { apiRequest } from '$lib/api'
-  import { Button, RankRow, ScrollArea, Spinner } from '$lib/components'
+  import { Button, ScrollArea, Spinner } from '$lib/components'
+  import ChallengeRankRow from './challenge-rank-row.svelte'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import {
     formatFirstBloodTime,
@@ -80,7 +81,7 @@
           {@const solvePosition = index + 1}
           {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
           {@const variant = getRankVariant(solvePosition, isCurrentUser)}
-          <RankRow
+          <ChallengeRankRow
             {variant}
             rankLabel={solvePosition}
             name={solve.userName}

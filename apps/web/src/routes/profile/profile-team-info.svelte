@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { ClientConfig, UserProfile } from '@rctf/types'
   import {
     DeleteEmailRoute,
     GoodEmailRemoved,
@@ -12,14 +13,16 @@
   import { Button, Field, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
-  import { queryKeys, useClientConfig, useCurrentUser } from '$lib/query'
+  import { queryKeys } from '$lib/query'
+
+  interface Props {
+    user: UserProfile
+    clientConfig: ClientConfig
+  }
+
+  let { user, clientConfig }: Props = $props()
 
   const queryClient = useQueryClient()
-  const userQuery = useCurrentUser()
-  const clientConfigQuery = useClientConfig()
-
-  const user = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
 
   const invalidateUser = () => queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
 
@@ -46,7 +49,7 @@
   )
 
   $effect(() => {
-    if (user && !initialized) {
+    if (!initialized) {
       profileForm.setData({ name: user.name, division: user.division })
       emailForm.setData({ email: user.email ?? '' })
       initialized = true
@@ -54,35 +57,29 @@
   })
 
   const divisionOptions = $derived(
-    clientConfig
-      ? Object.entries(clientConfig.divisions).map(([value, label]) => ({
-          value,
-          label,
-        }))
-      : []
+    Object.entries(clientConfig.divisions).map(([value, label]) => ({
+      value,
+      label,
+    }))
   )
 
   const allowedDivisionOptions = $derived(
-    user ? divisionOptions.filter(d => user.allowedDivisions.includes(d.value)) : []
+    divisionOptions.filter(d => user.allowedDivisions.includes(d.value))
   )
 
   const selectedDivisionLabel = $derived(
-    clientConfig?.divisions[profileForm.data.division ?? ''] ?? 'Select division'
+    clientConfig.divisions[profileForm.data.division ?? ''] ?? 'Select division'
   )
 
   // Can only delete email if user has an alternative auth method (linked CTFtime)
-  const canDeleteEmail = $derived(clientConfig?.emailEnabled && user?.email && user?.ctftimeId)
+  const canDeleteEmail = $derived(clientConfig.emailEnabled && user.email && user.ctftimeId)
 
   const profileHasChanges = $derived(
-    user
-      ? (profileForm.data.name ?? '') !== user.name ||
-          (profileForm.data.division ?? '') !== user.division
-      : false
+    (profileForm.data.name ?? '') !== user.name ||
+      (profileForm.data.division ?? '') !== user.division
   )
 
-  const emailHasChanges = $derived(
-    user ? (emailForm.data.email ?? '') !== (user.email ?? '') : false
-  )
+  const emailHasChanges = $derived((emailForm.data.email ?? '') !== (user.email ?? ''))
 
   const loading = $derived(profileForm.submitting || emailForm.submitting || deletingEmail)
 
@@ -110,9 +107,8 @@
   }
 </script>
 
-{#if user && clientConfig}
-  <Section.Root>
-    <Section.Header>Update profile</Section.Header>
+<Section.Root>
+  <Section.Header>Update profile</Section.Header>
     <Section.Content>
       <form onsubmit={profileForm.submit} class="flex flex-col gap-3">
         <Field.Field data-invalid={!!profileForm.errors.name || undefined}>
@@ -228,4 +224,3 @@
       </form>
     </Section.Content>
   </Section.Root>
-{/if}

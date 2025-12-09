@@ -7,7 +7,7 @@
   import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
-  import { Avatar, Button, DropdownMenu, Separator, Sheet, ThemeToggle } from '$lib/components'
+  import { Avatar, DropdownMenu, Sheet, ThemeToggle } from '$lib/components'
   import {
     IconChartAreaLineFilled,
     IconCopy,

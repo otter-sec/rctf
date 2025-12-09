@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
-  import { RankRow } from '$lib/components'
+  import ChallengeRankRow from './challenge-rank-row.svelte'
   import { useChallengeSolves, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'
 
@@ -23,7 +23,7 @@
 </script>
 
 {#if currentUserSolve && currentUser && mySolvePosition}
-  <RankRow
+  <ChallengeRankRow
     variant="self"
     rankLabel={getOrdinal(mySolvePosition)}
     name={currentUser.name}
