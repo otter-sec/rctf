@@ -507,7 +507,9 @@
         </div>
 
         {#if showSelfRow && currentUser}
-          <div class="bg-background-l0 sticky bottom-0 z-20 mt-2 h-(--self-row-height)">
+          <div
+            class="bg-background-l0 sticky bottom-0 z-20 h-(--self-row-height) pt-3 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
+          >
             <div
               class={cn(
                 'bg-background-l1 data-row group flex min-w-0 rounded-lg',
@@ -564,7 +566,7 @@
     --team-column-width: 45vw;
     --header-height: 12rem;
     --name-row-height: 8rem;
-    --self-row-height: 4rem;
+    --self-row-height: 4.75rem;
     --diagonal-overflow: 5rem;
   }
 

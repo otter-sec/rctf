@@ -193,7 +193,9 @@
   </ScrollArea>
 
   {#if showSelfRow && currentUser}
-    <div class="bg-background-l0 sticky bottom-0 z-30 py-4">
+    <div
+      class="bg-background-l0 sticky bottom-0 z-30 pt-4 pb-4 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
+    >
       {@render mobileTeamRow(
         currentUser.id,
         currentUser.name,
