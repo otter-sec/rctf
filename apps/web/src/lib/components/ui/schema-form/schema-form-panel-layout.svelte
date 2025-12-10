@@ -13,11 +13,11 @@
 </script>
 
 <Section.Root>
-  <Section.Header class="sticky top-0 z-30">{label}</Section.Header>
+  <Section.Header>{label}</Section.Header>
   <Section.Content class="p-0">
     <div class="flex min-h-48">
       <div class="flex w-44 shrink-0 flex-col border-r-2">
-        <div class="sticky top-9 z-20">
+        <div class="sticky top-0 z-20">
           <div class="flex flex-col gap-0.5 p-2">
             {@render sidebar()}
           </div>
