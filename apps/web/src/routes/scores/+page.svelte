@@ -426,7 +426,7 @@
               >
                 <div
                   class={cn(
-                    'col-team sticky left-0 z-10 flex h-16 items-center px-4',
+                    'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center px-4',
                     viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
                   )}
                 >
