@@ -14,6 +14,8 @@
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
+    IconTriangleFilled,
+    IconTriangleInvertedFilled,
   } from '$lib/icons'
   import {
     useCurrentUser,
@@ -25,7 +27,7 @@
   import { getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils/categories'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { formatLocalTime } from '$lib/utils/time'
-  import { CUTOFF_TIME, PAGE_SIZE, SPARKLINE_WINDOW } from './constants'
+  import { CUTOFF_TIME, DELTA_WINDOW, PAGE_SIZE, SPARKLINE_WINDOW } from './constants'
   import Fades from './fades.svelte'
   import Graph from './graph.svelte'
   import Sparkline from './sparkline.svelte'
@@ -176,6 +178,63 @@
         .filter(p => p.time >= windowStart && p.time <= CUTOFF_TIME)
         .map(p => ({ time: p.time, score: p.score }))
       result.set(selfGraphData.id, filtered)
+    }
+
+    return result
+  })
+
+  const rankDeltaByTeam = $derived.by(() => {
+    const selfGraphData = $selfGraphQuery.data
+    const result = new Map<string, number>()
+
+    const allPoints = graphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
+    if (allPoints.length === 0) return result
+
+    const currentTime = Math.max(...allPoints.map(p => p.time))
+    const pastTime = currentTime - DELTA_WINDOW
+
+    function getScoreAtTime(points: { time: number; score: number }[], targetTime: number): number {
+      const filtered = points.filter(p => p.time <= targetTime && p.time <= CUTOFF_TIME)
+      if (filtered.length === 0) return 0
+      const latest = filtered.reduce<{ time: number; score: number } | null>(
+        (max, p) => (!max || p.time > max.time ? p : max),
+        null
+      )
+      return latest?.score ?? 0
+    }
+
+    const teamsWithScores: { id: string; currentScore: number; pastScore: number }[] = []
+
+    for (const team of graphData) {
+      const currentScore = getScoreAtTime(team.points, currentTime)
+      const pastScore = getScoreAtTime(team.points, pastTime)
+      teamsWithScores.push({ id: team.id, currentScore, pastScore })
+    }
+
+    if (selfGraphData && !teamsWithScores.some(t => t.id === selfGraphData.id)) {
+      const currentScore = getScoreAtTime(selfGraphData.points, currentTime)
+      const pastScore = getScoreAtTime(selfGraphData.points, pastTime)
+      teamsWithScores.push({ id: selfGraphData.id, currentScore, pastScore })
+    }
+
+    const currentRanks = [...teamsWithScores]
+      .sort((a, b) => b.currentScore - a.currentScore)
+      .map((t, i) => ({ id: t.id, rank: i + 1 }))
+    const currentRankMap = new Map(currentRanks.map(t => [t.id, t.rank]))
+
+    const pastRanks = [...teamsWithScores]
+      .sort((a, b) => b.pastScore - a.pastScore)
+      .map((t, i) => ({ id: t.id, rank: i + 1 }))
+    const pastRankMap = new Map(pastRanks.map(t => [t.id, t.rank]))
+
+    for (const team of teamsWithScores) {
+      const currentRank = currentRankMap.get(team.id) ?? 0
+      const pastRank = pastRankMap.get(team.id) ?? 0
+
+      const delta = pastRank - currentRank
+      if (delta !== 0) {
+        result.set(team.id, delta)
+      }
     }
 
     return result
@@ -341,6 +400,20 @@
   {/if}
 {/snippet}
 
+{#snippet deltaIndicator(delta: number | undefined)}
+  {#if delta && delta > 0}
+    <div class="text-foreground-success flex items-center gap-0.5 text-sm tabular-nums">
+      <IconTriangleFilled class="size-2.5" />
+      <span>{delta}</span>
+    </div>
+  {:else if delta && delta < 0}
+    <div class="text-foreground-destructive flex items-center gap-0.5 text-sm tabular-nums">
+      <IconTriangleInvertedFilled class="size-2.5" />
+      <span>{Math.abs(delta)}</span>
+    </div>
+  {/if}
+{/snippet}
+
 {#snippet mobileTeamRow(
   id: string,
   name: string,
@@ -350,7 +423,8 @@
   score: number,
   solveCount: number,
   rank: number,
-  isCurrentUser: boolean
+  isCurrentUser: boolean,
+  delta: number | undefined = undefined
 )}
   {@const styles = getRankStylesForPosition(rank, isCurrentUser)}
   <div
@@ -363,11 +437,16 @@
       ]
     )}
   >
-    <div class="flex w-12 shrink-0 flex-col items-center">
-      <span class={cn('text-lg tabular-nums', styles.fgL0)}>#{rank}</span>
-      {#if divisionPlace}
-        <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-      {/if}
+    <div class="flex shrink-0 items-center">
+      <div class="w-6">
+        {@render deltaIndicator(delta)}
+      </div>
+      <div class="flex w-12 flex-col items-center">
+        <span class={cn('text-lg tabular-nums', styles.fgL0)}>#{rank}</span>
+        {#if divisionPlace}
+          <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+        {/if}
+      </div>
     </div>
 
     <Avatar.Root class="size-10 shrink-0 rounded-lg">
@@ -407,7 +486,8 @@
   isFullWidth: boolean = false,
   sparklineData: { time: number; score: number }[] = [],
   onHover?: () => void,
-  onUnhover?: () => void
+  onUnhover?: () => void,
+  delta: number | undefined = undefined
 )}
   {@const styles = getRankStylesForPosition(rank, isCurrentUser)}
   <div
@@ -423,11 +503,16 @@
       ]
     )}
   >
-    <div class="flex w-16 shrink-0 flex-col items-center">
-      <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
-      {#if divisionPlace}
-        <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-      {/if}
+    <div class="flex shrink-0 items-center">
+      <div class="w-6">
+        {@render deltaIndicator(delta)}
+      </div>
+      <div class="flex w-16 flex-col items-center">
+        <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
+        {#if divisionPlace}
+          <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+        {/if}
+      </div>
     </div>
 
     <Avatar.Root class="size-12 shrink-0 rounded-lg">
@@ -598,7 +683,8 @@
             entry.score,
             entry.solves.length,
             rank,
-            isYou
+            isYou,
+            rankDeltaByTeam.get(entry.id)
           )}
         {/each}
       {/if}
@@ -616,7 +702,8 @@
         currentUser.score,
         currentUser.solves.length,
         currentUser.globalPlace ?? 0,
-        true
+        true,
+        rankDeltaByTeam.get(currentUser.id)
       )}
     </div>
   {/if}
@@ -1030,7 +1117,8 @@
                   viewMode === 'minimal',
                   sparklineDataByTeam.get(entry.id) ?? [],
                   () => (hoveredTeamId = entry.id),
-                  () => (hoveredTeamId = null)
+                  () => (hoveredTeamId = null),
+                  rankDeltaByTeam.get(entry.id)
                 )}
 
                 {#if viewMode !== 'minimal'}
@@ -1067,7 +1155,8 @@
                 viewMode === 'minimal',
                 sparklineDataByTeam.get(currentUser.id) ?? [],
                 () => (hoveredTeamId = currentUser.id),
-                () => (hoveredTeamId = null)
+                () => (hoveredTeamId = null),
+                rankDeltaByTeam.get(currentUser.id)
               )}
 
               {#if viewMode !== 'minimal'}
@@ -1119,6 +1208,12 @@
   @media (max-width: 768px) {
     .scoreboard {
       --team-column-width: 100%;
+    }
+  }
+
+  @media (min-width: 769px) and (max-width: 1280px) {
+    .scoreboard {
+      --team-column-width: 60vw;
     }
   }
 

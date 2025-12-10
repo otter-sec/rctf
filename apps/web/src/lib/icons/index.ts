@@ -82,6 +82,8 @@ export { default as IconSettingsFilled } from '@iconify-svelte/tabler/settings-f
 export { default as IconSunHighFilled } from '@iconify-svelte/tabler/sun-high-filled'
 export { default as IconFlag3Filled } from '@iconify-svelte/tabler/flag-3-filled'
 export { default as IconTrashFilled } from '@iconify-svelte/tabler/trash-filled'
+export { default as IconTriangleFilled } from '@iconify-svelte/tabler/triangle-filled'
+export { default as IconTriangleInvertedFilled } from '@iconify-svelte/tabler/triangle-inverted-filled'
 export { default as IconTrophyFilled } from '@iconify-svelte/tabler/trophy-filled'
 export { default as IconUserCog } from '@iconify-svelte/tabler/user-cog'
 export { default as IconUserFilled } from '@iconify-svelte/tabler/user-filled'

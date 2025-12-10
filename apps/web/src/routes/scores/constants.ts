@@ -1,5 +1,6 @@
 export const PAGE_SIZE = 10
-export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12
+export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12 // 12 hours
+export const DELTA_WINDOW = 60 * 60 * 1000 * 2 // 2 hours
 
 // TODO(enscribe): Remove cutoff filter
 export const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
