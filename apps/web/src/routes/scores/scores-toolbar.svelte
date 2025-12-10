@@ -96,14 +96,18 @@
   </div>
 
   <div class="flex items-center gap-4">
-    <div class="flex items-center gap-2">
-      <Checkbox
-        id="show-top3"
-        checked={showTop3Context}
-        onCheckedChange={v => onShowTop3ContextChange(v === true)}
-      />
-      <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm">Show top 3</Label>
-    </div>
+    {#if page > 1}
+      <div class="flex items-center gap-2">
+        <Checkbox
+          id="show-top3"
+          checked={showTop3Context}
+          onCheckedChange={v => onShowTop3ContextChange(v === true)}
+        />
+        <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm"
+          >Show top 3 in graph</Label
+        >
+      </div>
+    {/if}
 
     <div class="flex items-center gap-2">
       <button

@@ -216,6 +216,13 @@
   <div class="px-5">
     <div class="flex gap-1 overflow-hidden rounded-full">
       <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
+      {#if sortMode === 'category'}
+        <CollapseToggleButton
+          totalCount={categoryNames.length}
+          openCount={openCategories.length}
+          onToggle={toggleCollapse}
+        />
+      {/if}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={() => (hideUnsolved = !hideUnsolved)}
@@ -237,14 +244,6 @@
           {hideUnsolved ? 'Show unsolved' : 'Hide unsolved'}
         </Tooltip.Content>
       </Tooltip.Root>
-      {#if sortMode === 'category'}
-        <CollapseToggleButton
-          totalCount={categoryNames.length}
-          openCount={openCategories.length}
-          onToggle={toggleCollapse}
-          class="rounded-sm @sm/list:flex-none"
-        />
-      {/if}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
           onclick={cycleSortMode}

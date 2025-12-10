@@ -21,7 +21,7 @@
     onclick={onToggle}
     aria-label={label}
     class={cn(
-      'bg-background-l4 text-foreground-l1 hover:bg-background-l5 flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial',
+      'bg-background-l4 text-foreground-l1 hover:bg-background-l5 flex items-center justify-center rounded-sm px-4 py-2',
       className
     )}
   >
