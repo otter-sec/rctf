@@ -19,7 +19,7 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'hover:bg-category-background-l1-hover relative flex w-full flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
+      'hover:bg-category-background-l1-hover relative flex w-full cursor-pointer flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
       isSelected &&
         'ring-category-foreground-l1/25 after:from-category-background-l0 ring-2 ring-inset after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:to-transparent'
     )}

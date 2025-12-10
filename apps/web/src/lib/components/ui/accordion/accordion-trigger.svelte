@@ -26,7 +26,7 @@
     data-slot="accordion-trigger"
     bind:ref
     class={cn(
-      'focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center py-4 text-start text-sm transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]_.accordion-chevron]:rotate-90',
+      'focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 cursor-pointer items-center py-4 text-start text-sm transition-all outline-none hover:underline focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&[data-state=open]_.accordion-chevron]:rotate-90',
       className
     )}
     {...restProps}

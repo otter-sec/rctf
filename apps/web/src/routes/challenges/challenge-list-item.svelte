@@ -20,7 +20,7 @@
     type="button"
     onclick={onSelect}
     class={cn(
-      'hover:bg-category-background-l1-hover relative flex w-full flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
+      'hover:bg-category-background-l1-hover relative flex w-full cursor-pointer flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
       isSolved &&
         !isFirstBlood &&
         'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
