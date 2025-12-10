@@ -91,7 +91,7 @@
             userId={solve.userId}
             avatarUrl={solve.userAvatarUrl}
             division={showDivision ? solve.division : undefined}
-            divisionPlace={showDivision ? solve.divisionPlace : undefined}
+            divisionPlace={solve.divisionPlace}
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}

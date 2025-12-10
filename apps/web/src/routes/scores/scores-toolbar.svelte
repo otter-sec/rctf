@@ -1,6 +1,10 @@
 <script lang="ts">
   import { Checkbox, Label, Tooltip } from '$lib/components'
   import {
+    IconChevronLeft,
+    IconChevronLeftPipe,
+    IconChevronRight,
+    IconChevronRightPipe,
     IconLayoutListFilled,
     IconListFilled,
     IconSortAscendingNumbers,
@@ -58,8 +62,9 @@
             <Tooltip.Trigger>
               <button
                 class={cn(
-                  'text-foreground-l3 hover:text-foreground-l1 flex h-9 items-center justify-center rounded-lg px-3',
-                  viewMode === option.value && 'bg-background-l3 text-foreground-l1'
+                  'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-9 items-center justify-center rounded-md px-3',
+                  viewMode === option.value &&
+                    'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
                 )}
                 onclick={() => onViewModeChange(option.value)}
               >
@@ -81,8 +86,9 @@
               <Tooltip.Trigger>
                 <button
                   class={cn(
-                    'text-foreground-l3 hover:text-foreground-l1 flex h-9 items-center justify-center rounded-lg px-3',
-                    sortMode === option.value && 'bg-background-l3 text-foreground-l1'
+                    'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-9 items-center justify-center rounded-md px-3',
+                    sortMode === option.value &&
+                      'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
                   )}
                   onclick={() => onSortModeChange(option.value)}
                 >
@@ -105,29 +111,45 @@
           checked={showTop3Context}
           onCheckedChange={v => onShowTop3ContextChange(v === true)}
         />
-        <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm"
+        <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm font-normal"
           >Show top 3 in graph</Label
         >
       </div>
     {/if}
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-0.5">
       <button
-        class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
+        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
+        onclick={() => onPageChange(1)}
+        disabled={page === 1 || isFetching}
+      >
+        <IconChevronLeftPipe class="size-4" />
+      </button>
+      <button
+        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
         onclick={() => onPageChange(page - 1)}
         disabled={page === 1 || isFetching}
       >
-        Prev
+        <IconChevronLeft class="size-4" />
       </button>
-      <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
+      <span
+        class={cn('text-foreground-l3 min-w-16 text-center text-sm', isFetching && 'opacity-50')}
+      >
         Page {page}
       </span>
       <button
-        class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
+        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
         onclick={() => onPageChange(page + 1)}
         disabled={page >= totalPages || isFetching}
       >
-        Next
+        <IconChevronRight class="size-4" />
+      </button>
+      <button
+        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
+        onclick={() => onPageChange(totalPages)}
+        disabled={page >= totalPages || isFetching}
+      >
+        <IconChevronRightPipe class="size-4" />
       </button>
     </div>
   </div>

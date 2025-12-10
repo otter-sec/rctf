@@ -32,8 +32,10 @@
     variant="self"
     rankLabel={getOrdinal(mySolvePosition)}
     name={currentUser.name}
+    userId={currentUser.id}
     avatarUrl={currentUser.avatarUrl}
-    subtitle={showDivision ? currentUser.division : undefined}
+    division={showDivision ? currentUser.division : undefined}
+    divisionPlace={currentUser.divisionPlace ?? undefined}
     primaryValue={formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
     secondaryValue={formatLocalTime(currentUserSolve.createdAt)}
   />

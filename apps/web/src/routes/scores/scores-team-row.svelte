@@ -47,17 +47,53 @@
 
   // TODO(enscribe): don't randomize
   const COUNTRY_CODES = [
-    'UP', 'JP', 'GB', 'DE', 'FR', 'KR', 'CN', 'CA', 'AU', 'BR',
-    'IN', 'IL', 'ES', 'NL', 'SE', 'NO', 'FI', 'PL', 'RU', 'UA',
-    'TR', 'MX', 'AR', 'CH', 'AT', 'BE', 'DK', 'PT', 'CZ', 'RO',
-    'HU', 'GR', 'IT', 'SG', 'TW', 'VN', 'TH', 'MY', 'ID', 'PH'
+    'UP',
+    'JP',
+    'GB',
+    'DE',
+    'FR',
+    'KR',
+    'CN',
+    'CA',
+    'AU',
+    'BR',
+    'IN',
+    'IL',
+    'ES',
+    'NL',
+    'SE',
+    'NO',
+    'FI',
+    'PL',
+    'RU',
+    'UA',
+    'TR',
+    'MX',
+    'AR',
+    'CH',
+    'AT',
+    'BE',
+    'DK',
+    'PT',
+    'CZ',
+    'RO',
+    'HU',
+    'GR',
+    'IT',
+    'SG',
+    'TW',
+    'VN',
+    'TH',
+    'MY',
+    'ID',
+    'PH',
   ]
 
   function countryCodeToFlagFilename(code: string): string {
     const codePoints = code
       .toUpperCase()
       .split('')
-      .map((char) => (char.charCodeAt(0) + 127397).toString(16))
+      .map(char => (char.charCodeAt(0) + 127397).toString(16))
     return `${codePoints.join('-')}.svg`
   }
 
@@ -103,10 +139,10 @@
   )}
 >
   <div class="flex shrink-0 items-center">
-    <div class="w-6 hidden @lg/team-info-desktop:block">
+    <div class="hidden w-6 @lg/team-info-desktop:block">
       {@render deltaIndicator()}
     </div>
-    <div class="flex @lg/team-info-desktop:w-16 w-10 flex-col items-center">
+    <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
       {#if showDivision && divisionPlace}
         <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
@@ -127,11 +163,7 @@
     >
     <div class="flex items-center gap-1.5">
       {#if flagFilename && countryCode}
-        <img
-          src="/flags/{flagFilename}"
-          alt="{countryCode} flag"
-          class="h-6 w-auto shrink-0"
-        />
+        <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-6 w-auto shrink-0" />
       {/if}
       {#if showDivision}
         <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>

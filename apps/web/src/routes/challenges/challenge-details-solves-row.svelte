@@ -10,7 +10,6 @@
     name: string
     userId?: string
     avatarUrl?: string | null
-    subtitle?: string
     primaryValue?: string
     secondaryValue?: string
     division?: string
@@ -25,7 +24,6 @@
     name,
     userId,
     avatarUrl,
-    subtitle,
     primaryValue,
     secondaryValue,
     division,
@@ -34,16 +32,80 @@
     class: className,
   }: Props = $props()
 
-  const divisionLabel = $derived(
-    division && divisionPlace ? `${division} · #${divisionPlace}` : undefined
-  )
+  // TODO(enscribe): don't randomize
+  const COUNTRY_CODES = [
+    'UP',
+    'JP',
+    'GB',
+    'DE',
+    'FR',
+    'KR',
+    'CN',
+    'CA',
+    'AU',
+    'BR',
+    'IN',
+    'IL',
+    'ES',
+    'NL',
+    'SE',
+    'NO',
+    'FI',
+    'PL',
+    'RU',
+    'UA',
+    'TR',
+    'MX',
+    'AR',
+    'CH',
+    'AT',
+    'BE',
+    'DK',
+    'PT',
+    'CZ',
+    'RO',
+    'HU',
+    'GR',
+    'IT',
+    'SG',
+    'TW',
+    'VN',
+    'TH',
+    'MY',
+    'ID',
+    'PH',
+  ]
+
+  function countryCodeToFlagFilename(code: string): string {
+    const codePoints = code
+      .toUpperCase()
+      .split('')
+      .map(char => (char.charCodeAt(0) + 127397).toString(16))
+    return `${codePoints.join('-')}.svg`
+  }
+
+  function getRandomCountryCode(teamId: string): string | null {
+    let hash = 0
+    for (let i = 0; i < teamId.length; i++) {
+      hash = (hash << 5) - hash + teamId.charCodeAt(i)
+      hash |= 0
+    }
+    if (Math.abs(hash) % 5 === 0) return null
+    return COUNTRY_CODES[Math.abs(hash) % COUNTRY_CODES.length] ?? null
+  }
+
+  const countryCode = $derived(userId ? getRandomCountryCode(userId) : null)
+  const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
 
   const styles = $derived(getRankStyles(variant))
 </script>
 
 <div class={cn('flex items-center gap-2 rounded-lg px-4 py-2', styles.bg, className)}>
   <span
-    class={cn('w-10 shrink-0 text-center text-base tabular-nums sm:w-12 sm:text-xl', styles.fgL0)}
+    class={cn(
+      'min-w-10 shrink-0 text-center text-base tabular-nums sm:min-w-12 sm:text-xl',
+      styles.fgL0
+    )}
   >
     {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
   </span>
@@ -71,11 +133,22 @@
       </span>
     {/if}
 
-    {#if subtitle || divisionLabel}
-      <span class={cn('truncate text-base', styles.fgL1)}>
-        {subtitle ?? divisionLabel}
-      </span>
-    {/if}
+    <div class="flex items-center gap-1">
+      {#if flagFilename && countryCode}
+        <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+      {/if}
+      {#if flagFilename && countryCode && (division || divisionPlace)}
+        <span class={cn('mx-0.5 text-xl leading-none', styles.fgL1)}>·</span>
+      {/if}
+      {#if division}
+        <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
+        {#if divisionPlace}
+          <span class={cn('text-base', styles.fgL1)}>#{divisionPlace}</span>
+        {/if}
+      {:else if divisionPlace}
+        <span class={cn('text-base', styles.fgL1)}>#{divisionPlace}</span>
+      {/if}
+    </div>
   </div>
 
   {#if primaryValue || secondaryValue || children}
