@@ -43,7 +43,7 @@ export abstract class UploadProvider {
     if (previousUrl) {
       const oldKey = this.extractKeyFromUrl(previousUrl)
       if (oldKey) {
-        await this.deleteFile(oldKey).catch(() => {})
+        await this.deleteFile(oldKey)
       }
     }
 

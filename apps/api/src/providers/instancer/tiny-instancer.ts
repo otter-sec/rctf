@@ -326,7 +326,7 @@ const volumeSchema = z.object({
 const defaultService = {
   image: 'traefik/whoami:latest',
   environment: { tiny: 'instancer' },
-  networks: ['internal'],
+  networks: [],
   dns: [],
   dns_opt: [],
   dns_search: [],
@@ -381,9 +381,7 @@ const tinyInstancerConfigSchema = z
               ),
             networkSchema
           ),
-          {
-            internal: { driver: 'bridge', internal: true, driver_opts: {} },
-          }
+          {}
         )
       )
       .check(z.describe('Network definitions')),
