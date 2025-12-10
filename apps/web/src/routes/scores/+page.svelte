@@ -400,7 +400,7 @@
           {/if}
         </div>
 
-        <div class={cn('flex flex-col gap-1', $leaderboardQuery.isFetching && 'opacity-50')}>
+        <div class="flex flex-col gap-1">
           {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
             {#each Array(PAGE_SIZE) as _}
               <div

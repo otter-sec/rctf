@@ -154,7 +154,7 @@
   </div>
 
   <ScrollArea class="min-h-0 flex-1">
-    <div class={cn('flex flex-col gap-1', isFetching && 'opacity-50')}>
+    <div class="flex flex-col gap-1">
       {#if isLoading}
         {#each Array(PAGE_SIZE) as _}
           <div class="bg-background-l1 flex h-16 items-center gap-2 rounded-lg px-4">
