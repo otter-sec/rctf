@@ -1,8 +1,9 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, Spinner } from '$lib/components'
-  import { useChallenges, useClientConfig, useUserProfile } from '$lib/query'
-  import ProfileDisplay from '../profile-display.svelte'
+  import { Button, Card, ScrollArea, Spinner } from '$lib/components'
+  import { useChallenges, useClientConfig, useUserGraph, useUserProfile } from '$lib/query'
+  import ProfileGraph from '../profile-graph.svelte'
+  import ProfileHeader from '../profile-header.svelte'
   import ProfileSolves from '../profile-solves.svelte'
 
   const clientConfigQuery = useClientConfig()
@@ -14,6 +15,9 @@
   const user = $derived($userQuery.data)
   const isPending = $derived($userQuery.isPending)
   const error = $derived($userQuery.error?.message)
+
+  const graphQuery = $derived(user ? useUserGraph(page.params.id!, user.globalPlace) : null)
+  const graphData = $derived($graphQuery?.data ?? null)
 </script>
 
 <svelte:head>
@@ -25,9 +29,29 @@
 </svelte:head>
 
 {#if user && clientConfig}
-  <div class="mx-auto grid h-[calc(100vh-72px)] w-full max-w-5xl grid-cols-2 gap-4">
-    <ProfileDisplay {user} {clientConfig} />
-    <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
+  <div class="mx-auto h-[calc(100vh-72px)] w-full max-w-3xl">
+    <div class="bg-background-l1 flex h-full flex-col overflow-hidden rounded-t-3xl">
+      <!-- Sticky header -->
+      <div class="bg-background-l1 z-10 shrink-0 py-2">
+        <ProfileHeader {user} {clientConfig} />
+      </div>
+
+      <!-- Scrollable content: graph + solves -->
+      <ScrollArea
+        class="min-h-0 flex-1"
+        fadeSize={86}
+        fadeColor="background-l1"
+        scrollbarYClasses="z-30"
+      >
+        {#if graphData && graphData.points.length > 0}
+          <div class="px-4 pt-2">
+            <ProfileGraph class="h-40 w-full" {graphData} rank={user.globalPlace ?? 0} />
+          </div>
+        {/if}
+
+        <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
+      </ScrollArea>
+    </div>
   </div>
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">

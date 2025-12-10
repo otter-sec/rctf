@@ -139,7 +139,7 @@
     </div>
   {:else if status === InstanceStatus.STOPPED}
     <div class="flex flex-col items-center justify-center space-y-3 text-center">
-      <p class="text-foreground-l3 text-sm">No instance running</p>
+      <p class="text-foreground-l3 text-sm">No instance running.</p>
       <Button onclick={start} disabled={actioning} class="w-full">
         {#if actioning}<IconLoader class="animate-spin" />{/if}
         Start instance

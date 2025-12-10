@@ -18,6 +18,7 @@
     offset?: number
     solveHighlight?: { teamId: string; time: number } | null
     graphData?: GraphEntry[]
+    showTop3Context?: boolean
   }
 
   let {
@@ -26,6 +27,7 @@
     offset = 0,
     solveHighlight = null,
     graphData,
+    showTop3Context = true,
   }: Props = $props()
 
   const userQuery = useCurrentUser()
@@ -52,7 +54,8 @@
 
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
-    const rawTop3 = offset > 0 ? ($firstPageQuery.data?.graph ?? []) : []
+    const rawTop3 =
+      offset > 0 && showTop3Context ? ($firstPageQuery.data?.graph ?? []).slice(0, 3) : []
     const selfGraphData = $selfGraphQuery.data
 
     const filterByTime = (entries: GraphEntry[]) =>
@@ -250,7 +253,7 @@
               <div class="text-[10px]">{formatLocalTime(data.time)}</div>
             </div>
             <div class="flex items-center gap-2">
-              <div class="h-2.5 w-2.5 rounded-sm" style="background-color: {data.color}"></div>
+              <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
               <span class="font-medium wrap-anywhere">{data.teamName}</span>
               <span class="text-foreground-l3 ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts

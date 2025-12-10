@@ -249,6 +249,27 @@ export const selfUserGraphQueryOptions = (globalPlace: number | null) =>
     refetchInterval: 30 * 1000,
   })
 
+export const userGraphQueryOptions = (
+  userId: string,
+  globalPlace: number | null
+) =>
+  queryOptions({
+    queryKey: ['leaderboard', 'graph', 'user', userId, globalPlace] as const,
+    queryFn: async () => {
+      if (globalPlace === null || globalPlace < 1) return null
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, {
+        limit: 1,
+        offset: globalPlace - 1,
+      })
+      if (response.kind === GoodLeaderboardGraph.kind) {
+        return response.data.graph[0] ?? null
+      }
+      return null
+    },
+    enabled: globalPlace !== null && globalPlace >= 1,
+    staleTime: 1000 * 60 * 5,
+  })
+
 export const challengeSolvesQueryOptions = (
   id: string,
   params: { limit: number; offset: number }
@@ -399,6 +420,10 @@ export function useLeaderboardChallenges() {
 
 export function useSelfUserGraph(globalPlace: number | null) {
   return createQuery(selfUserGraphQueryOptions(globalPlace))
+}
+
+export function useUserGraph(userId: string, globalPlace: number | null) {
+  return createQuery(userGraphQueryOptions(userId, globalPlace))
 }
 
 export function useChallengeSolves(

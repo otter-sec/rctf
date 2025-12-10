@@ -12,7 +12,12 @@
   let { value, placeholder = 'Search...', class: className, onInput }: Props = $props()
 </script>
 
-<div class={cn('bg-background-l4 flex h-10 flex-1 items-center justify-between px-4', className)}>
+<div
+  class={cn(
+    'bg-background-l4 flex h-10 flex-1 items-center justify-between rounded-r-sm px-4',
+    className
+  )}
+>
   <input
     type="text"
     {placeholder}

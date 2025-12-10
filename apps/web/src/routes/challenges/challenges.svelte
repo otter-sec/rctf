@@ -50,6 +50,10 @@
   const listMinSize = $derived(innerWidth < 1280 ? 40 : 20)
   const isMobile = $derived(innerWidth < 768)
 
+  $effect(() => {
+    if (!isMobile) drawerOpen = false
+  })
+
   function handleSelect(challenge: Challenge) {
     selectedChallengeId = challenge.id
     const url = new URL(window.location.href)

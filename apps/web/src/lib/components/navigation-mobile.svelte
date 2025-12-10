@@ -126,7 +126,7 @@
       </Sheet.Close>
     </div>
 
-    <nav class="flex flex-1 flex-col gap-0.5 px-4">
+    <nav class="flex flex-1 flex-col gap-1 px-4">
       {#each navItems as item}
         {#if item.show}
           <button

@@ -102,7 +102,7 @@
 <Section.Root>
   <Section.Header>Team avatar</Section.Header>
   <Section.Content>
-    <div class="flex items-center gap-4">
+    <div class="flex items-center justify-center gap-4">
       <div class="relative">
         {#key displayAvatarUrl}
           <Avatar.Root class="size-18 rounded-lg">

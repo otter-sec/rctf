@@ -2,6 +2,7 @@
   import { ProtectedAction } from '@rctf/types'
   import type { ClientConfig } from '@rctf/types'
   import { getCaptchaProvider, isCaptchaProtected } from '$lib/utils'
+  import { cn } from '$lib/utils'
 
   interface Props {
     config: ClientConfig | undefined | null
@@ -16,7 +17,7 @@
 </script>
 
 {#if enabled && provider === 'captcha/recaptcha'}
-  <p class={`text-foreground-l4 block text-xs ${className}`}>
+  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
     This site is protected by reCAPTCHA. The Google
     <a
       class="text-foreground-prose-link hover:underline"
@@ -34,7 +35,7 @@
     apply.
   </p>
 {:else if enabled && provider === 'captcha/hcaptcha'}
-  <p class={`text-foreground-l4 block text-xs ${className}`}>
+  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
     This site is protected by hCaptcha and its
     <a
       class="text-foreground-prose-link hover:underline"
@@ -52,7 +53,7 @@
     apply.
   </p>
 {:else if enabled && provider === 'captcha/turnstile'}
-  <p class={`text-foreground-l4 block text-xs ${className}`}>
+  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
     This site is protected by Cloudflare Turnstile. The Cloudflare
     <a
       class="text-foreground-prose-link hover:underline"
@@ -70,7 +71,7 @@
     apply.
   </p>
 {:else if enabled && provider}
-  <p class={`text-foreground-l4 block text-xs ${className}`}>
+  <p class={cn('text-foreground-l4 block text-center text-xs text-balance', className)}>
     This site is protected by a captcha provider <code>{provider}</code>. No idea what are their
     copyrights for this though.
   </p>

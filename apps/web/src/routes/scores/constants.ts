@@ -1,23 +1,8 @@
 export const PAGE_SIZE = 10
-export const FADE_SIZE = 48
+export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12
 
 // TODO(enscribe): Remove cutoff filter
 export const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
-
-export const layout = {
-  teamColumn: 680,
-  cell: 48,
-  gap: 4,
-  padding: 16,
-  nameRowHeight: 128,
-  selfRowHeight: 80,
-  headerHeight: 190,
-  diagonal: {
-    maxTextWidth: 150,
-    charWidth: 9,
-    angle: Math.PI / 4,
-  },
-} as const
 
 export const MEDAL_COLORS = [
   'var(--foreground-gold-l0)',

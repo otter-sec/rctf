@@ -195,7 +195,7 @@
         </Card.Description>
       </Card.Header>
       <Card.Content>
-        <p class="text-foreground-l3 mb-4 text-sm">Please register one account per team.</p>
+        <p class="text-foreground-l3 mb-4 text-sm">Please register only one account per team.</p>
 
         {#if form.errors._form}
           <div
