@@ -14,6 +14,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadNotStarted,
   BadRateLimit,
   BadRecaptchaCode,
   BadToken,
@@ -37,7 +38,7 @@ export const GetUserRoute = defineRoute({
   path: '/v1/users/:id',
   method: 'GET',
   goodResponses: [GoodUserData],
-  badResponses: [BadUnknownUser],
+  badResponses: [BadUnknownUser, BadNotStarted],
   authRequired: false,
   params: z.object({
     id: z.string(),

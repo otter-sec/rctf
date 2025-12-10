@@ -2,8 +2,9 @@
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
   import { IconCircleDashed } from '$lib/icons'
-  import { ScrollArea } from '$lib/components'
+  import { CtfNotStarted, ScrollArea } from '$lib/components'
   import {
+    ApiError,
     useClientConfig,
     useCurrentUser,
     useLeaderboardChallenges,
@@ -60,6 +61,8 @@
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
   const clientConfig = $derived($clientConfigQuery.data)
+
+  const isNotStarted = $derived(ApiError.isNotStarted($leaderboardQuery.error))
 
   $effect(() => {
     if (!$leaderboardQuery.isLoading && total > 0 && page > totalPages) {
@@ -317,161 +320,212 @@
   })
 </script>
 
-<ScoresMobile
-  {entries}
-  {graphData}
-  {currentUser}
-  {page}
-  {totalPages}
-  {showSelfRow}
-  {rankDeltaByTeam}
-  isFetching={$leaderboardQuery.isFetching}
-  isLoading={$leaderboardQuery.isLoading}
-  {hoveredTeamId}
-  {solveHighlight}
-  {showTop3Context}
-  {showDivision}
-  onPageChange={p => setParam('page', p, 1)}
-/>
-
-<div class="hidden md:block">
-  <ScoresToolbar
-    {viewMode}
-    {sortMode}
+{#if isNotStarted}
+  <CtfNotStarted />
+{:else}
+  <ScoresMobile
+    {entries}
+    {graphData}
+    {currentUser}
     {page}
     {totalPages}
+    {showSelfRow}
+    {rankDeltaByTeam}
     isFetching={$leaderboardQuery.isFetching}
+    isLoading={$leaderboardQuery.isLoading}
+    {hoveredTeamId}
+    {solveHighlight}
     {showTop3Context}
-    onViewModeChange={v => setParam('view', v, 'challenges')}
-    onSortModeChange={s => setParam('sort', s, 'categories')}
+    {showDivision}
     onPageChange={p => setParam('page', p, 1)}
-    onShowTop3ContextChange={v => (showTop3Context = v)}
   />
 
-  <div class="flex justify-center px-9">
-    <div
-      class={cn(
-        'scoreboard relative',
-        viewMode === 'minimal' ? 'w-full max-w-2xl' : 'w-fit max-w-full'
-      )}
-      style:--self-row-offset={showSelfRow ? 'var(--self-row-height)' : '0px'}
-      style:--team-column-width={viewMode === 'minimal' ? '100%' : undefined}
-    >
-      <ScoresFades
-        showTop={showTopFade}
-        showBottom={showBottomFade}
-        showLeft={showLeftFade}
-        showRight={showRightFade}
-        {showSelfRow}
-        isMinimal={viewMode === 'minimal'}
-      />
+  <div class="hidden md:block">
+    <ScoresToolbar
+      {viewMode}
+      {sortMode}
+      {page}
+      {totalPages}
+      isFetching={$leaderboardQuery.isFetching}
+      {showTop3Context}
+      onViewModeChange={v => setParam('view', v, 'challenges')}
+      onSortModeChange={s => setParam('sort', s, 'categories')}
+      onPageChange={p => setParam('page', p, 1)}
+      onShowTop3ContextChange={v => (showTop3Context = v)}
+    />
 
-      <ScrollArea
-        class="h-[calc(100vh-140px)] rounded-lg"
-        orientation="both"
-        fadeSize={0}
-        scrollbarXStyles={viewMode === 'minimal'
-          ? ''
-          : 'padding-left: var(--team-column-width); margin-right: -10px; z-index: 40;'}
-        scrollbarYStyles="padding-top: var(--header-height); padding-bottom: calc(var(--self-row-offset) + 8px); z-index: 40;"
-        bind:viewportRef
+    <div class="flex justify-center px-9">
+      <div
+        class={cn(
+          'scoreboard relative',
+          viewMode === 'minimal' ? 'w-full max-w-2xl' : 'w-fit max-w-full'
+        )}
+        style:--self-row-offset={showSelfRow ? 'var(--self-row-height)' : '0px'}
+        style:--team-column-width={viewMode === 'minimal' ? '100%' : undefined}
       >
-        <div class="header-row bg-background-l0 sticky top-0 z-20 flex">
-          <div class="col-team bg-background-l0 sticky left-0 z-30">
-            <div
-              class={cn(
-                'h-(--header-height) rounded-3xl rounded-bl-lg',
-                viewMode !== 'minimal' && 'bg-background-l1 rounded-br-none'
-              )}
-            >
-              <ScoresGraph
-                class="h-full w-full"
-                {hoveredTeamId}
-                offset={(page - 1) * PAGE_SIZE}
-                {solveHighlight}
-                {graphData}
-                {showTop3Context}
-              />
+        <ScoresFades
+          showTop={showTopFade}
+          showBottom={showBottomFade}
+          showLeft={showLeftFade}
+          showRight={showRightFade}
+          {showSelfRow}
+          isMinimal={viewMode === 'minimal'}
+        />
+
+        <ScrollArea
+          class="h-[calc(100vh-140px)] rounded-lg"
+          orientation="both"
+          fadeSize={0}
+          scrollbarXStyles={viewMode === 'minimal'
+            ? ''
+            : 'padding-left: var(--team-column-width); margin-right: -10px; z-index: 40;'}
+          scrollbarYStyles="padding-top: var(--header-height); padding-bottom: calc(var(--self-row-offset) + 8px); z-index: 40;"
+          bind:viewportRef
+        >
+          <div class="header-row bg-background-l0 sticky top-0 z-20 flex">
+            <div class="col-team bg-background-l0 sticky left-0 z-30">
+              <div
+                class={cn(
+                  'h-(--header-height) rounded-3xl rounded-bl-lg',
+                  viewMode !== 'minimal' && 'bg-background-l1 rounded-br-none'
+                )}
+              >
+                <ScoresGraph
+                  class="h-full w-full"
+                  {hoveredTeamId}
+                  offset={(page - 1) * PAGE_SIZE}
+                  {solveHighlight}
+                  {graphData}
+                  {showTop3Context}
+                />
+              </div>
             </div>
+
+            {#if viewMode !== 'minimal' && !$challengesQuery.isLoading}
+              <ScoresChallengeHeader {viewMode} {sortMode} {categoryGroups} {challenges} />
+            {/if}
           </div>
 
-          {#if viewMode !== 'minimal' && !$challengesQuery.isLoading}
-            <ScoresChallengeHeader {viewMode} {sortMode} {categoryGroups} {challenges} />
-          {/if}
-        </div>
-
-        <div class="flex flex-col gap-1">
-          {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
-            {#each Array(PAGE_SIZE) as _}
-              <div
-                class={cn(
-                  'bg-background-l2 data-row flex rounded-lg',
-                  viewMode === 'minimal' ? 'w-full' : 'w-fit'
-                )}
-              >
-                <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-lg px-4">
-                  <div class="flex min-w-0 flex-1 items-center gap-3">
-                    <div class="flex w-16 flex-col items-center gap-1">
-                      <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                      <div class="bg-background-l3 h-4 w-8 rounded"></div>
-                    </div>
-                    <div class="bg-background-l3 size-12 rounded-lg"></div>
-                    <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
-                      <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            {/each}
-          {:else if $leaderboardQuery.isLoading}
-            {@const colCount =
-              viewMode === 'categories' ? categoryGroups.length : challenges.length}
-            {#each Array(PAGE_SIZE) as _}
-              <div
-                class={cn(
-                  'bg-background-l2 data-row flex rounded-lg',
-                  viewMode === 'minimal' ? 'w-full' : 'w-fit'
-                )}
-              >
+          <div class="flex flex-col gap-1">
+            {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
+              {#each Array(PAGE_SIZE) as _}
                 <div
                   class={cn(
-                    'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center px-4',
-                    viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
+                    'bg-background-l2 data-row flex rounded-lg',
+                    viewMode === 'minimal' ? 'w-full' : 'w-fit'
                   )}
                 >
-                  <div class="flex min-w-0 flex-1 items-center gap-3">
-                    <div class="flex w-16 flex-col items-center gap-1">
-                      <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                      <div class="bg-background-l3 h-4 w-8 rounded"></div>
-                    </div>
-                    <div class="bg-background-l3 size-12 rounded-lg"></div>
-                    <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
-                      <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
+                  <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-lg px-4">
+                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                      <div class="flex w-16 flex-col items-center gap-1">
+                        <div class="bg-background-l3 h-5 w-10 rounded"></div>
+                        <div class="bg-background-l3 h-4 w-8 rounded"></div>
+                      </div>
+                      <div class="bg-background-l3 size-12 rounded-lg"></div>
+                      <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                        <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                {#if viewMode !== 'minimal'}
+              {/each}
+            {:else if $leaderboardQuery.isLoading}
+              {@const colCount =
+                viewMode === 'categories' ? categoryGroups.length : challenges.length}
+              {#each Array(PAGE_SIZE) as _}
+                <div
+                  class={cn(
+                    'bg-background-l2 data-row flex rounded-lg',
+                    viewMode === 'minimal' ? 'w-full' : 'w-fit'
+                  )}
+                >
                   <div
-                    class="bg-background-l2 mr-(--diagonal-overflow) flex gap-1 rounded-r-md pr-4 pl-1"
+                    class={cn(
+                      'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center px-4',
+                      viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
+                    )}
                   >
-                    {#each Array(colCount) as _}
-                      <div class="bg-background-l2 flex h-16 w-12 items-center justify-center">
-                        <IconCircleDashed class="text-foreground-l5/25 size-7" />
+                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                      <div class="flex w-16 flex-col items-center gap-1">
+                        <div class="bg-background-l3 h-5 w-10 rounded"></div>
+                        <div class="bg-background-l3 h-4 w-8 rounded"></div>
                       </div>
-                    {/each}
+                      <div class="bg-background-l3 size-12 rounded-lg"></div>
+                      <div class="flex min-w-0 flex-1 flex-col gap-1">
+                        <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                        <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
+                      </div>
+                    </div>
                   </div>
-                {/if}
-              </div>
-            {/each}
-          {:else}
-            {#each entries as entry, i (entry.id)}
-              {@const rank = (page - 1) * PAGE_SIZE + i + 1}
-              {@const solves = solvesByTeam.get(entry.id)}
-              {@const solveTimes = solvesWithTimeByTeam.get(entry.id)}
-              {@const isYou = currentUser?.id === entry.id}
+                  {#if viewMode !== 'minimal'}
+                    <div
+                      class="bg-background-l2 mr-(--diagonal-overflow) flex gap-1 rounded-r-md pr-4 pl-1"
+                    >
+                      {#each Array(colCount) as _}
+                        <div class="bg-background-l2 flex h-16 w-12 items-center justify-center">
+                          <IconCircleDashed class="text-foreground-l5/25 size-7" />
+                        </div>
+                      {/each}
+                    </div>
+                  {/if}
+                </div>
+              {/each}
+            {:else}
+              {#each entries as entry, i (entry.id)}
+                {@const rank = (page - 1) * PAGE_SIZE + i + 1}
+                {@const solves = solvesByTeam.get(entry.id)}
+                {@const solveTimes = solvesWithTimeByTeam.get(entry.id)}
+                {@const isYou = currentUser?.id === entry.id}
 
+                <div
+                  class={cn(
+                    'bg-background-l1 data-row group flex min-w-0 rounded-lg',
+                    viewMode === 'minimal' ? 'w-full' : 'w-fit'
+                  )}
+                >
+                  <ScoresTeamRow
+                    id={entry.id}
+                    name={entry.name}
+                    avatarUrl={entry.avatarUrl}
+                    division={entry.division}
+                    divisionPlace={entry.divisionPlace}
+                    score={entry.score}
+                    solveCount={entry.solves.length}
+                    {rank}
+                    isCurrentUser={isYou}
+                    isFullWidth={viewMode === 'minimal'}
+                    sparklineData={sparklineDataByTeam.get(entry.id) ?? []}
+                    {page}
+                    delta={rankDeltaByTeam.get(entry.id)}
+                    {showDivision}
+                    onHover={() => (hoveredTeamId = entry.id)}
+                    onUnhover={() => (hoveredTeamId = null)}
+                  />
+
+                  {#if viewMode !== 'minimal'}
+                    <ScoresSolveCells
+                      teamId={entry.id}
+                      {viewMode}
+                      {sortMode}
+                      {categoryGroups}
+                      {challenges}
+                      getSolves={cid => solves?.has(cid) ?? false}
+                      getSolveTime={cid => solveTimes?.get(cid)}
+                      getCategoryStats={group => getCategoryStats(entry.id, group)}
+                      getBloodIndex={cid => getBloodIndex(cid, entry.id)}
+                      onCellHover={handleCellHover}
+                    />
+                  {/if}
+                </div>
+              {/each}
+            {/if}
+          </div>
+
+          {#if showSelfRow && currentUser}
+            <div
+              class="bg-background-l0 sticky bottom-0 z-20 h-(--self-row-height) pt-3 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
+            >
               <div
                 class={cn(
                   'bg-background-l1 data-row group flex min-w-0 rounded-lg',
@@ -479,93 +533,46 @@
                 )}
               >
                 <ScoresTeamRow
-                  id={entry.id}
-                  name={entry.name}
-                  avatarUrl={entry.avatarUrl}
-                  division={entry.division}
-                  divisionPlace={entry.divisionPlace}
-                  score={entry.score}
-                  solveCount={entry.solves.length}
-                  {rank}
-                  isCurrentUser={isYou}
+                  id={currentUser.id}
+                  name={currentUser.name}
+                  avatarUrl={currentUser.avatarUrl}
+                  division={currentUser.division}
+                  divisionPlace={currentUser.divisionPlace}
+                  score={currentUser.score}
+                  solveCount={currentUser.solves.length}
+                  rank={currentUser.globalPlace ?? 0}
+                  isCurrentUser={true}
                   isFullWidth={viewMode === 'minimal'}
-                  sparklineData={sparklineDataByTeam.get(entry.id) ?? []}
+                  sparklineData={sparklineDataByTeam.get(currentUser.id) ?? []}
                   {page}
-                  delta={rankDeltaByTeam.get(entry.id)}
+                  delta={rankDeltaByTeam.get(currentUser.id)}
                   {showDivision}
-                  onHover={() => (hoveredTeamId = entry.id)}
+                  onHover={() => (hoveredTeamId = currentUser.id)}
                   onUnhover={() => (hoveredTeamId = null)}
                 />
 
                 {#if viewMode !== 'minimal'}
                   <ScoresSolveCells
-                    teamId={entry.id}
+                    teamId={currentUser.id}
                     {viewMode}
                     {sortMode}
                     {categoryGroups}
                     {challenges}
-                    getSolves={cid => solves?.has(cid) ?? false}
-                    getSolveTime={cid => solveTimes?.get(cid)}
-                    getCategoryStats={group => getCategoryStats(entry.id, group)}
-                    getBloodIndex={cid => getBloodIndex(cid, entry.id)}
+                    getSolves={cid => currentUser.solves.some(s => s.id === cid)}
+                    getSolveTime={cid => currentUser.solves.find(s => s.id === cid)?.createdAt}
+                    getCategoryStats={getSelfCategoryStats}
+                    getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
                     onCellHover={handleCellHover}
                   />
                 {/if}
               </div>
-            {/each}
-          {/if}
-        </div>
-
-        {#if showSelfRow && currentUser}
-          <div
-            class="bg-background-l0 sticky bottom-0 z-20 h-(--self-row-height) pt-3 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
-          >
-            <div
-              class={cn(
-                'bg-background-l1 data-row group flex min-w-0 rounded-lg',
-                viewMode === 'minimal' ? 'w-full' : 'w-fit'
-              )}
-            >
-              <ScoresTeamRow
-                id={currentUser.id}
-                name={currentUser.name}
-                avatarUrl={currentUser.avatarUrl}
-                division={currentUser.division}
-                divisionPlace={currentUser.divisionPlace}
-                score={currentUser.score}
-                solveCount={currentUser.solves.length}
-                rank={currentUser.globalPlace ?? 0}
-                isCurrentUser={true}
-                isFullWidth={viewMode === 'minimal'}
-                sparklineData={sparklineDataByTeam.get(currentUser.id) ?? []}
-                {page}
-                delta={rankDeltaByTeam.get(currentUser.id)}
-                {showDivision}
-                onHover={() => (hoveredTeamId = currentUser.id)}
-                onUnhover={() => (hoveredTeamId = null)}
-              />
-
-              {#if viewMode !== 'minimal'}
-                <ScoresSolveCells
-                  teamId={currentUser.id}
-                  {viewMode}
-                  {sortMode}
-                  {categoryGroups}
-                  {challenges}
-                  getSolves={cid => currentUser.solves.some(s => s.id === cid)}
-                  getSolveTime={cid => currentUser.solves.find(s => s.id === cid)?.createdAt}
-                  getCategoryStats={getSelfCategoryStats}
-                  getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
-                  onCellHover={handleCellHover}
-                />
-              {/if}
             </div>
-          </div>
-        {/if}
-      </ScrollArea>
+          {/if}
+        </ScrollArea>
+      </div>
     </div>
   </div>
-</div>
+{/if}
 
 {#if tooltipData}
   <ScoresSolveTooltip data={tooltipData} x={tooltipX} y={tooltipY} />

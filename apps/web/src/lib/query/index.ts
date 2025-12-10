@@ -1,4 +1,5 @@
 import {
+  BadNotStarted,
   BadToken,
   CreateMemberRoute,
   CtftimeCallbackRoute,
@@ -62,10 +63,17 @@ import {
 
 export { QueryClientProvider } from '@tanstack/svelte-query'
 
-class ApiError extends Error {
-  constructor(public override readonly message: string) {
+export class ApiError extends Error {
+  constructor(
+    public readonly kind: string,
+    public override readonly message: string
+  ) {
     super(message)
     this.name = 'ApiError'
+  }
+
+  static isNotStarted(error: Error | null): boolean {
+    return error instanceof ApiError && error.kind === BadNotStarted.kind
   }
 }
 
@@ -94,7 +102,7 @@ export const clientConfigQueryOptions = queryOptions({
       setClientConfig(response.data)
       return response.data
     }
-    throw new ApiError(response.message)
+    throw new ApiError(response.kind, response.message)
   },
   staleTime: Infinity,
 })
@@ -122,7 +130,7 @@ export const userByIdQueryOptions = (id: string) =>
       if (response.kind === GoodUserDataV2.kind) {
         return response.data
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
   })
 
@@ -134,9 +142,12 @@ export const challengesQueryOptions = queryOptions({
       return response.data
     }
     if (response.kind === BadToken.kind) {
-      throw new ApiError('You need to be logged in to view challenges')
+      throw new ApiError(
+        response.kind,
+        'You need to be logged in to view challenges'
+      )
     }
-    throw new ApiError(response.message)
+    throw new ApiError(response.kind, response.message)
   },
   refetchInterval: 30 * 1000,
 })
@@ -148,7 +159,7 @@ export const adminChallengesQueryOptions = queryOptions({
     if (response.kind === GoodAdminChallengesV2.kind) {
       return response.data
     }
-    throw new ApiError(response.message)
+    throw new ApiError(response.kind, response.message)
   },
 })
 
@@ -160,7 +171,7 @@ export const adminChallengeQueryOptions = (id: string) =>
       if (response.kind === GoodAdminChallengeV2.kind) {
         return response.data
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
   })
 
@@ -176,7 +187,7 @@ export const leaderboardQueryOptions = (params: {
       if (response.kind === GoodLeaderboardV2.kind) {
         return response.data
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
     refetchOnWindowFocus: true,
   })
@@ -188,7 +199,7 @@ export const leaderboardChallengesQueryOptions = queryOptions({
     if (response.kind === GoodLeaderboardChallengesV2.kind) {
       return response.data.challenges
     }
-    throw new ApiError(response.message)
+    throw new ApiError(response.kind, response.message)
   },
   refetchOnWindowFocus: true,
   refetchInterval: 30 * 1000,
@@ -206,7 +217,7 @@ export const leaderboardGraphQueryOptions = (params: {
       if (response.kind === GoodLeaderboardGraph.kind) {
         return response.data.graph
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000,
@@ -224,7 +235,7 @@ export const leaderboardWithGraphQueryOptions = (params: {
       if (response.kind === GoodLeaderboardWithGraph.kind) {
         return response.data
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
     refetchOnWindowFocus: true,
     refetchInterval: 30 * 1000,
@@ -284,7 +295,7 @@ export const challengeSolvesQueryOptions = (
       if (response.kind === GoodChallengeSolvesV2.kind) {
         return response.data
       }
-      throw new ApiError(response.message)
+      throw new ApiError(response.kind, response.message)
     },
   })
 
@@ -295,7 +306,7 @@ export const membersQueryOptions = queryOptions({
     if (response.kind === GoodMemberData.kind) {
       return response.data
     }
-    throw new ApiError(response.message)
+    throw new ApiError(response.kind, response.message)
   },
 })
 
