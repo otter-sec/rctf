@@ -55,9 +55,17 @@
 
   const entries = $derived($leaderboardQuery.data?.leaderboard ?? [])
   const graphData = $derived($leaderboardQuery.data?.graph ?? [])
+  const total = $derived($leaderboardQuery.data?.total ?? 0)
+  const totalPages = $derived(Math.max(1, Math.ceil(total / PAGE_SIZE)))
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
   const clientConfig = $derived($clientConfigQuery.data)
+
+  $effect(() => {
+    if (!$leaderboardQuery.isLoading && total > 0 && page > totalPages) {
+      setParam('page', totalPages, 1)
+    }
+  })
 
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
@@ -314,6 +322,7 @@
   {graphData}
   {currentUser}
   {page}
+  {totalPages}
   {showSelfRow}
   {rankDeltaByTeam}
   isFetching={$leaderboardQuery.isFetching}
@@ -330,6 +339,7 @@
     {viewMode}
     {sortMode}
     {page}
+    {totalPages}
     isFetching={$leaderboardQuery.isFetching}
     {showTop3Context}
     onViewModeChange={v => setParam('view', v, 'challenges')}

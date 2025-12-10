@@ -12,6 +12,7 @@
     graphData: LeaderboardGraphEntry[]
     currentUser: UserProfile | null | undefined
     page: number
+    totalPages: number
     showSelfRow: boolean
     rankDeltaByTeam: Map<string, number>
     isFetching: boolean
@@ -28,6 +29,7 @@
     graphData,
     currentUser,
     page,
+    totalPages,
     showSelfRow,
     rankDeltaByTeam,
     isFetching,
@@ -132,7 +134,7 @@
         <button
           class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
           onclick={() => onPageChange(page + 1)}
-          disabled={isFetching}
+          disabled={page >= totalPages || isFetching}
         >
           Next
         </button>

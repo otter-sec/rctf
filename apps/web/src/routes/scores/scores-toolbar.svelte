@@ -14,6 +14,7 @@
     viewMode: ViewMode
     sortMode: SortMode
     page: number
+    totalPages: number
     isFetching: boolean
     showTop3Context: boolean
     onViewModeChange: (mode: ViewMode) => void
@@ -26,6 +27,7 @@
     viewMode,
     sortMode,
     page,
+    totalPages,
     isFetching,
     showTop3Context,
     onViewModeChange,
@@ -123,7 +125,7 @@
       <button
         class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
         onclick={() => onPageChange(page + 1)}
-        disabled={isFetching}
+        disabled={page >= totalPages || isFetching}
       >
         Next
       </button>
