@@ -96,12 +96,10 @@
     </Tabs.List>
   </div>
 
-  <div
-    class={cn('bg-background-l2 min-h-0 flex-1', isDisabled && 'pointer-events-none opacity-50')}
-  >
+  <div class="bg-background-l2 min-h-0 flex-1">
     <Tabs.Content value="details" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="flex flex-col gap-4 p-1 pb-4">
+        <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field.Field>
               <Field.Label>Name</Field.Label>
@@ -168,7 +166,7 @@
 
     <Tabs.Content value="scoring" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="flex flex-col gap-4 p-1 pb-4">
+        <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
           <Field.Field>
             <Field.Label>Flag</Field.Label>
             <Input
@@ -241,7 +239,7 @@
 
     <Tabs.Content value="files" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="p-1 pb-4">
+        <div class={cn('p-1 pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsAttachments {files} {isDisabled} {onFilesChange} />
         </div>
       </ScrollArea>
@@ -249,7 +247,7 @@
 
     <Tabs.Content value="instancer" class="h-full">
       <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
-        <div class="pb-4">
+        <div class={cn('pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsInstancer
             config={instancerConfig}
             {isDisabled}
