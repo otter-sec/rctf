@@ -386,8 +386,8 @@
             <div class="col-team bg-background-l0 sticky left-0 z-30">
               <div
                 class={cn(
-                  'h-(--header-height) rounded-3xl rounded-bl-lg',
-                  viewMode !== 'minimal' && 'bg-background-l1 rounded-br-none'
+                  'bg-background-l1 h-(--header-height) rounded-3xl rounded-b-lg',
+                  viewMode !== 'minimal' && 'rounded-br-none'
                 )}
               >
                 <ScoresGraph
@@ -415,16 +415,34 @@
                     viewMode === 'minimal' ? 'w-full' : 'w-fit'
                   )}
                 >
-                  <div class="col-team sticky left-0 z-10 flex h-16 items-center rounded-lg px-4">
-                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                  <div
+                    class="col-team sticky left-0 z-10 flex h-16 items-center gap-2 rounded-lg px-4"
+                  >
+                    <div class="flex shrink-0 items-center">
+                      <div class="w-6"></div>
                       <div class="flex w-16 flex-col items-center gap-1">
                         <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                        <div class="bg-background-l3 h-4 w-8 rounded"></div>
+                        {#if showDivision}
+                          <div class="bg-background-l3 h-4 w-8 rounded"></div>
+                        {/if}
                       </div>
-                      <div class="bg-background-l3 size-12 rounded-lg"></div>
-                      <div class="flex min-w-0 flex-1 flex-col gap-1">
-                        <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                    </div>
+                    <div class="bg-background-l3 size-12 shrink-0 rounded-lg"></div>
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                      {#if showDivision}
                         <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
+                      {/if}
+                    </div>
+                    <div class="flex shrink-0 items-center gap-4">
+                      <div class="flex w-28 flex-col items-end gap-1">
+                        <div class="bg-background-l3 h-5 w-20 rounded"></div>
+                        <div class="bg-background-l3 h-4 w-14 rounded"></div>
+                      </div>
+                      <div class="flex h-10 w-24 items-center justify-center">
+                        <div
+                          class="to-foreground-l5/20 h-0.5 w-full rounded-full bg-linear-to-r from-transparent"
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -442,19 +460,35 @@
                 >
                   <div
                     class={cn(
-                      'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center px-4',
+                      'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center gap-2 px-4',
                       viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
                     )}
                   >
-                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                    <div class="flex shrink-0 items-center">
+                      <div class="w-6"></div>
                       <div class="flex w-16 flex-col items-center gap-1">
                         <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                        <div class="bg-background-l3 h-4 w-8 rounded"></div>
+                        {#if showDivision}
+                          <div class="bg-background-l3 h-4 w-8 rounded"></div>
+                        {/if}
                       </div>
-                      <div class="bg-background-l3 size-12 rounded-lg"></div>
-                      <div class="flex min-w-0 flex-1 flex-col gap-1">
-                        <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                    </div>
+                    <div class="bg-background-l3 size-12 shrink-0 rounded-lg"></div>
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
+                      {#if showDivision}
                         <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
+                      {/if}
+                    </div>
+                    <div class="flex shrink-0 items-center gap-4">
+                      <div class="flex w-28 flex-col items-end gap-1">
+                        <div class="bg-background-l3 h-5 w-20 rounded"></div>
+                        <div class="bg-background-l3 h-4 w-14 rounded"></div>
+                      </div>
+                      <div class="flex h-10 w-24 items-center justify-center">
+                        <div
+                          class="to-foreground-l5/20 h-0.5 w-full rounded-full bg-linear-to-r from-transparent"
+                        ></div>
                       </div>
                     </div>
                   </div>
@@ -523,9 +557,7 @@
           </div>
 
           {#if showSelfRow && currentUser}
-            <div
-              class="bg-background-l0 sticky bottom-0 z-20 h-(--self-row-height) pt-3 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
-            >
+            <div class="bg-background-l0 sticky bottom-0 z-20 mt-4 h-(--self-row-height)">
               <div
                 class={cn(
                   'bg-background-l1 data-row group flex min-w-0 rounded-lg',
@@ -583,7 +615,7 @@
     --team-column-width: 45vw;
     --header-height: 12rem;
     --name-row-height: 8rem;
-    --self-row-height: 4.75rem;
+    --self-row-height: 4rem;
     --diagonal-overflow: 5rem;
   }
 
@@ -595,7 +627,7 @@
 
   @media (min-width: 769px) and (max-width: 1280px) {
     .scoreboard {
-      --team-column-width: 60vw;
+      --team-column-width: 50vw;
     }
   }
 

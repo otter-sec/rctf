@@ -221,6 +221,7 @@
           totalCount={categoryNames.length}
           openCount={openCategories.length}
           onToggle={toggleCollapse}
+          class="grow-0"
         />
       {/if}
       <Tooltip.Root disableCloseOnTriggerClick>

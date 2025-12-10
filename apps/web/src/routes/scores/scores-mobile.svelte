@@ -80,7 +80,7 @@
     )}
   >
     <div class="flex shrink-0 items-center">
-      <div class="flex w-10 flex-col items-center sm:w-12">
+      <div class="flex w-10 flex-col items-center">
         <span class={cn('text-lg tabular-nums', styles.fgL0)}>#{rank}</span>
         {#if showDivision && divisionPlace}
           <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
@@ -119,7 +119,7 @@
 <div class="relative flex h-[calc(100vh-72px)] flex-col px-4 md:hidden">
   <div class="bg-background-l0 sticky top-0 z-30 pb-2">
     <div class="flex items-center justify-between py-2">
-      <span class="text-foreground-l2 text-sm font-medium">Leaderboard</span>
+      <span class="text-foreground-l2 text-base">Scoreboard</span>
       <div class="flex items-center gap-2">
         <button
           class="bg-background-l2 text-foreground-l2 hover:bg-background-l3 rounded-lg px-3 py-1.5 text-sm disabled:opacity-50"
@@ -158,14 +158,18 @@
       {#if isLoading}
         {#each Array(PAGE_SIZE) as _}
           <div class="bg-background-l1 flex h-16 items-center gap-2 rounded-lg px-4">
-            <div class="flex w-12 flex-col items-center gap-1">
+            <div class="flex w-10 flex-col items-center gap-1">
               <div class="bg-background-l3 h-5 w-8 rounded"></div>
-              <div class="bg-background-l3 h-4 w-6 rounded"></div>
+              {#if showDivision}
+                <div class="bg-background-l3 h-4 w-6 rounded"></div>
+              {/if}
             </div>
             <div class="bg-background-l3 size-10 rounded-lg"></div>
             <div class="flex flex-1 flex-col gap-1">
               <div class="bg-background-l3 h-5 w-28 rounded"></div>
-              <div class="bg-background-l3 h-4 w-20 rounded"></div>
+              {#if showDivision}
+                <div class="bg-background-l3 h-4 w-20 rounded"></div>
+              {/if}
             </div>
             <div class="flex flex-col items-end gap-1">
               <div class="bg-background-l3 h-5 w-16 rounded"></div>
@@ -195,9 +199,7 @@
   </ScrollArea>
 
   {#if showSelfRow && currentUser}
-    <div
-      class="bg-background-l0 sticky bottom-0 z-30 pt-4 pb-4 shadow-[0_-8px_16px_rgba(0,0,0,0.3)]"
-    >
+    <div class="bg-background-l0 sticky bottom-0 z-30 my-4">
       {@render mobileTeamRow(
         currentUser.id,
         currentUser.name,

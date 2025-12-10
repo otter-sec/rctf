@@ -21,11 +21,14 @@
     onclick={onToggle}
     aria-label={label}
     class={cn(
-      'bg-background-l4 text-foreground-l1 hover:bg-background-l5 flex items-center justify-center rounded-sm px-4 py-2',
+      'flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial',
+      isAllCollapsed
+        ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
+        : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5',
       className
     )}
   >
-    <IconFold class={cn('size-5 shrink-0 transition-transform', isAllCollapsed && 'rotate-180')} />
+    <IconFold class="size-5 shrink-0" />
   </Tooltip.Trigger>
   <Tooltip.Content sideOffset={8}>{label}</Tooltip.Content>
 </Tooltip.Root>

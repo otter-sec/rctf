@@ -44,6 +44,35 @@
   }: Props = $props()
 
   const styles = $derived(getRankStylesForPosition(rank, isCurrentUser))
+
+  // TODO(enscribe): don't randomize
+  const COUNTRY_CODES = [
+    'UP', 'JP', 'GB', 'DE', 'FR', 'KR', 'CN', 'CA', 'AU', 'BR',
+    'IN', 'IL', 'ES', 'NL', 'SE', 'NO', 'FI', 'PL', 'RU', 'UA',
+    'TR', 'MX', 'AR', 'CH', 'AT', 'BE', 'DK', 'PT', 'CZ', 'RO',
+    'HU', 'GR', 'IT', 'SG', 'TW', 'VN', 'TH', 'MY', 'ID', 'PH'
+  ]
+
+  function countryCodeToFlagFilename(code: string): string {
+    const codePoints = code
+      .toUpperCase()
+      .split('')
+      .map((char) => (char.charCodeAt(0) + 127397).toString(16))
+    return `${codePoints.join('-')}.svg`
+  }
+
+  function getRandomCountryCode(teamId: string): string | null {
+    let hash = 0
+    for (let i = 0; i < teamId.length; i++) {
+      hash = (hash << 5) - hash + teamId.charCodeAt(i)
+      hash |= 0
+    }
+    if (Math.abs(hash) % 5 === 0) return null
+    return COUNTRY_CODES[Math.abs(hash) % COUNTRY_CODES.length] ?? null
+  }
+
+  const countryCode = $derived(getRandomCountryCode(id))
+  const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
 </script>
 
 {#snippet deltaIndicator()}
@@ -74,10 +103,10 @@
   )}
 >
   <div class="flex shrink-0 items-center">
-    <div class="w-6">
+    <div class="w-6 hidden @lg/team-info-desktop:block">
       {@render deltaIndicator()}
     </div>
-    <div class="flex w-16 flex-col items-center">
+    <div class="flex @lg/team-info-desktop:w-16 w-10 flex-col items-center">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
       {#if showDivision && divisionPlace}
         <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
@@ -96,9 +125,18 @@
     <a href="/profile/{id}" class={cn('block truncate text-xl hover:underline', styles.fgL0)}
       >{name}</a
     >
-    {#if showDivision}
-      <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
-    {/if}
+    <div class="flex items-center gap-1.5">
+      {#if flagFilename && countryCode}
+        <img
+          src="/flags/{flagFilename}"
+          alt="{countryCode} flag"
+          class="h-6 w-auto shrink-0"
+        />
+      {/if}
+      {#if showDivision}
+        <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
+      {/if}
+    </div>
   </div>
 
   <div class="flex shrink-0 items-center gap-4">

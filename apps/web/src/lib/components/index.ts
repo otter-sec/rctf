@@ -26,7 +26,6 @@ export { default as Markdown } from './markdown.svelte'
 export { default as NavigationMobile } from './navigation-mobile.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'
 export { default as NavigationButton } from './navigation-button.svelte'
-export { default as PaginationControls } from './pagination-controls.svelte'
 export { default as SearchInput } from './search-input.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 
