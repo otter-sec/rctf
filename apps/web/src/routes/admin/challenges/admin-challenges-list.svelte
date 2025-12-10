@@ -65,7 +65,7 @@
   })
 </script>
 
-<div class="flex h-full flex-col overflow-hidden">
+<div class="@container/list flex h-full flex-col overflow-hidden">
   <div class="flex shrink-0 flex-col gap-2 py-2">
     <div class="flex items-baseline justify-between px-9">
       <div class="flex items-baseline gap-1 whitespace-nowrap">
@@ -79,35 +79,43 @@
     </div>
 
     <div class="px-5">
-      <div class="flex gap-1 overflow-hidden rounded-full">
-        <SearchInput value={query} onInput={q => (query = q)} class="py-2" />
-        <Tooltip.Root disableCloseOnTriggerClick>
-          <Tooltip.Trigger
-            onclick={() => (collapsed = new Set(categories))}
-            aria-label="Collapse all"
-            class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-sm px-4 py-2"
-          >
-            <IconFold class="size-5" />
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
-        </Tooltip.Root>
-        {#if canWrite}
+      <div class="flex flex-wrap gap-1 @sm/list:overflow-hidden @sm/list:rounded-full">
+        <SearchInput
+          value={query}
+          onInput={q => (query = q)}
+          class="min-w-0 flex-1 rounded-full py-2 @sm/list:rounded-l-none @sm/list:rounded-r-sm"
+        />
+        <div
+          class="flex w-full gap-1 overflow-hidden rounded-full @sm/list:w-auto @sm/list:overflow-auto @sm/list:rounded-none"
+        >
           <Tooltip.Root disableCloseOnTriggerClick>
             <Tooltip.Trigger
-              onclick={onCreateNew}
-              aria-label="New challenge"
-              class={cn(
-                'rounded-l-sm px-4 py-2',
-                isCreatingNew
-                  ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
-                  : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
-              )}
+              onclick={() => (collapsed = new Set(categories))}
+              aria-label="Collapse all"
+              class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial"
             >
-              <IconLibraryPlusFilled class="size-5" />
+              <IconFold class="size-5 shrink-0" />
             </Tooltip.Trigger>
-            <Tooltip.Content sideOffset={8}>New challenge</Tooltip.Content>
+            <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
           </Tooltip.Root>
-        {/if}
+          {#if canWrite}
+            <Tooltip.Root disableCloseOnTriggerClick>
+              <Tooltip.Trigger
+                onclick={onCreateNew}
+                aria-label="New challenge"
+                class={cn(
+                  'flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial',
+                  isCreatingNew
+                    ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
+                    : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
+                )}
+              >
+                <IconLibraryPlusFilled class="size-5 shrink-0" />
+              </Tooltip.Trigger>
+              <Tooltip.Content sideOffset={8}>New challenge</Tooltip.Content>
+            </Tooltip.Root>
+          {/if}
+        </div>
       </div>
     </div>
   </div>

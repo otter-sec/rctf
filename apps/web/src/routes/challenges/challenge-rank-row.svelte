@@ -42,11 +42,13 @@
 </script>
 
 <div class={cn('flex items-center gap-2 rounded-lg px-4 py-2', styles.bg, className)}>
-  <span class={cn('w-[58px] shrink-0 text-center text-xl tabular-nums', styles.fgL0)}>
+  <span
+    class={cn('w-10 shrink-0 text-center text-base tabular-nums sm:w-12 sm:text-xl', styles.fgL0)}
+  >
     {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
   </span>
 
-  <Avatar.Root class="size-12 shrink-0 rounded-lg">
+  <Avatar.Root class="size-10 shrink-0 rounded-lg sm:size-12">
     {#if avatarUrl}
       <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
     {/if}
@@ -57,11 +59,14 @@
 
   <div class="flex min-w-0 flex-1 flex-col">
     {#if userId}
-      <a href="/profile/{userId}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>
+      <a
+        href="/profile/{userId}"
+        class={cn('truncate text-lg hover:underline sm:text-xl', styles.fgL0)}
+      >
         {name}
       </a>
     {:else}
-      <span class={cn('truncate text-xl', styles.fgL0)}>
+      <span class={cn('truncate text-lg sm:text-xl', styles.fgL0)}>
         {name}
       </span>
     {/if}
@@ -79,12 +84,12 @@
         {@render children()}
       {:else}
         {#if primaryValue}
-          <span class={cn('text-xl tabular-nums', styles.fgL0)}>
+          <span class={cn('text-base tabular-nums sm:text-xl', styles.fgL0)}>
             {primaryValue}
           </span>
         {/if}
         {#if secondaryValue}
-          <span class={cn('text-base', styles.fgL1)}>
+          <span class={cn('text-sm sm:text-base', styles.fgL1)}>
             {secondaryValue}
           </span>
         {/if}

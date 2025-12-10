@@ -186,69 +186,79 @@
 {#if showContent}
   {#key challenge?.id ?? 'new'}
     <div class="flex h-full flex-col">
-      <div class="flex items-start justify-between gap-4 px-9 py-6">
-        <div class="flex flex-col gap-1">
-          <h2 class="text-2xl">
-            {isCreating ? 'New Challenge' : form.name || 'Untitled'}
-          </h2>
-          <div class="text-foreground-l3 flex items-center gap-2 text-base">
-            <span>by {form.author || 'Unknown'}</span>
-            <span class="text-foreground-l5 text-2xl leading-none opacity-50">·</span>
-            <div class="flex gap-1">
+      <div class="flex flex-col gap-4 px-5 py-4 sm:px-9 sm:py-6">
+        <div
+          class="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+        >
+          <div class="flex min-w-0 flex-col gap-1">
+            <h2 class="truncate text-xl sm:text-2xl">
+              {isCreating ? 'New Challenge' : form.name || 'Untitled'}
+            </h2>
+            <div
+              class="text-foreground-l3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm sm:text-base"
+            >
+              <span class="shrink-0">by {form.author || 'Unknown'}</span>
               {#if form.category}
+                <span class="text-foreground-l5 hidden text-2xl leading-none opacity-50 sm:inline"
+                  >·</span
+                >
                 <span
-                  class="bg-category-background-l0 text-category-foreground-l1 inline-flex items-center gap-1 rounded-lg px-3 py-0.5 text-sm"
+                  class="bg-category-background-l0 text-category-foreground-l1 inline-flex shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-xs sm:px-3 sm:text-sm"
                   style={categoryStyle}
                 >
-                  <categoryConfig.icon class="size-3.5" />
+                  <categoryConfig.icon class="size-3 sm:size-3.5" />
                   {categoryConfig.name}
                 </span>
               {:else}
-                <span class="bg-background-l2 text-foreground-l4 rounded-lg px-3 py-0.5 text-sm">
+                <span class="text-foreground-l5 hidden text-2xl leading-none opacity-50 sm:inline"
+                  >·</span
+                >
+                <span
+                  class="bg-background-l2 text-foreground-l4 shrink-0 rounded-lg px-2 py-0.5 text-xs sm:px-3 sm:text-sm"
+                >
                   No category
                 </span>
               {/if}
             </div>
           </div>
-        </div>
-        <div class="flex items-center gap-2">
-          {#if isEditMode}
-            {#if !isCreating && challenge}
-              <Button
-                type="button"
-                variant="destructive"
-                onclick={handleDelete}
-                disabled={isDeletingChallenge}
-              >
-                {#if isDeletingChallenge}
+
+          <div class="flex shrink-0 flex-wrap items-center gap-2">
+            {#if isEditMode}
+              {#if !isCreating && challenge}
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onclick={handleDelete}
+                  disabled={isDeletingChallenge}
+                >
+                  {#if isDeletingChallenge}
+                    <Spinner class="size-4" />
+                  {:else}
+                    <IconTrashFilled class="size-4" />
+                  {/if}
+                  <span class="hidden sm:inline">Delete</span>
+                </Button>
+              {/if}
+              <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}>
+                Cancel
+              </Button>
+              <Button type="button" onclick={handleSave} disabled={isUpdating || !instancerValid}>
+                {#if isUpdating}
                   <Spinner class="size-4" />
-                {:else}
-                  <IconTrashFilled class="size-4" />
                 {/if}
-                Delete
+                {isCreating ? 'Create' : 'Save'}
+              </Button>
+            {:else if hasWritePerms}
+              <Button type="button" onclick={() => send({ type: 'EDIT' })}>
+                <IconPencilFilled class="size-4" />
+                Edit
               </Button>
             {/if}
-            <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}
-              >Cancel</Button
-            >
-            <Button type="button" onclick={handleSave} disabled={isUpdating || !instancerValid}>
-              {#if isUpdating}
-                <Spinner class="size-4" />
-              {/if}
-              {isCreating ? 'Create' : 'Save'}
-            </Button>
-          {:else if hasWritePerms}
-            <Button type="button" onclick={() => send({ type: 'EDIT' })}>
-              <IconPencilFilled class="size-4" />
-              Edit
-            </Button>
-          {/if}
+          </div>
         </div>
       </div>
 
-      <div
-        class={cn('flex min-h-0 flex-1 flex-col', isDisabled && 'pointer-events-none opacity-50')}
-      >
+      <div class="flex min-h-0 flex-1 flex-col">
         <AdminChallengesDetailsForm
           name={form.name}
           category={form.category}

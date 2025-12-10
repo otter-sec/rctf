@@ -30,6 +30,9 @@
   const clientConfig = $derived($clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const totalCount = $derived(challenge.solves ?? 0)
+  const showDivision = $derived(
+    clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
+  )
 
   const solvesQuery = $derived(
     createInfiniteQuery({
@@ -87,8 +90,8 @@
             name={solve.userName}
             userId={solve.userId}
             avatarUrl={solve.userAvatarUrl}
-            division={solve.division}
-            divisionPlace={solve.divisionPlace}
+            division={showDivision ? solve.division : undefined}
+            divisionPlace={showDivision ? solve.divisionPlace : undefined}
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}

@@ -8,6 +8,7 @@
     IconFileInfoFilled,
     IconFlagFilled,
   } from '$lib/icons'
+  import { cn } from '$lib/utils'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
 
@@ -74,8 +75,8 @@
 </script>
 
 <Tabs.Root bind:value={tab} class="flex h-full min-h-0 flex-col">
-  <div class="px-5">
-    <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
+  <div class="scrollbar-none overflow-x-auto px-5">
+    <Tabs.List class="h-auto w-max gap-0 rounded-none bg-transparent p-0">
       <Tabs.Trigger value="details" class={tabClass}>
         <IconFileInfoFilled class="size-4" />
         Details
@@ -95,7 +96,9 @@
     </Tabs.List>
   </div>
 
-  <div class="bg-background-l2 min-h-0 flex-1">
+  <div
+    class={cn('bg-background-l2 min-h-0 flex-1', isDisabled && 'pointer-events-none opacity-50')}
+  >
     <Tabs.Content value="details" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class="flex flex-col gap-4 p-1 pb-4">

@@ -50,8 +50,14 @@
   const listMinSize = $derived(innerWidth < 1280 ? 40 : 20)
   const isMobile = $derived(innerWidth < 768)
 
+  let wasMobile = $state(false)
   $effect(() => {
-    if (!isMobile) drawerOpen = false
+    if (!isMobile) {
+      drawerOpen = false
+    } else if (!wasMobile && isMobile && selectedChallengeId) {
+      drawerOpen = true
+    }
+    wasMobile = isMobile
   })
 
   function handleSelect(challenge: Challenge) {

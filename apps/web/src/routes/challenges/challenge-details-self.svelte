@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
-  import { useChallengeSolves, useCurrentUser } from '$lib/query'
+  import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'
   import ChallengeRankRow from './challenge-rank-row.svelte'
 
@@ -11,8 +11,10 @@
   let { challenge }: Props = $props()
 
   const userQuery = useCurrentUser()
+  const clientConfigQuery = useClientConfig()
 
   const currentUser = $derived($userQuery.data)
+  const clientConfig = $derived($clientConfigQuery.data)
   const currentUserSolve = $derived(
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
@@ -20,6 +22,9 @@
   const solvesQuery = $derived(useChallengeSolves(challenge.id, { limit: 10, offset: 0 }))
   const firstBloodTime = $derived($solvesQuery.data?.solves?.[0]?.createdAt ?? 0)
   const mySolvePosition = $derived($solvesQuery.data?.mySolvePosition ?? null)
+  const showDivision = $derived(
+    clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
+  )
 </script>
 
 {#if currentUserSolve && currentUser && mySolvePosition}
@@ -28,7 +33,7 @@
     rankLabel={getOrdinal(mySolvePosition)}
     name={currentUser.name}
     avatarUrl={currentUser.avatarUrl}
-    subtitle={currentUser.division}
+    subtitle={showDivision ? currentUser.division : undefined}
     primaryValue={formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
     secondaryValue={formatLocalTime(currentUserSolve.createdAt)}
   />
