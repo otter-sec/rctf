@@ -60,10 +60,13 @@
         </div>
       {/if}
 
-      {#if challenge.instancer}
+      {#if challenge.instancerLifetime}
         <div class="flex flex-col overflow-hidden rounded-lg border-2">
           <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Instancer</div>
-          <ChallengeDetailsInstancer challengeId={challenge.id} />
+          <ChallengeDetailsInstancer
+            challengeId={challenge.id}
+            instanceLifetime={challenge.instancerLifetime}
+          />
         </div>
       {/if}
     </div>

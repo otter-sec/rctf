@@ -13,14 +13,15 @@
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
-  import { CaptchaError, formatCountdown } from '$lib/utils'
+  import { formatCountdown } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
   interface Props {
     challengeId: string
+    instanceLifetime: number
   }
 
-  let { challengeId }: Props = $props()
+  let { challengeId, instanceLifetime }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived($clientConfigQuery.data)
@@ -75,6 +76,8 @@
       toast.success('Instance started')
     } else if (res.kind === 'badInstancerError') {
       toast.error(res.data.message)
+    } else {
+      toast.error(res.message)
     }
     actioning = false
   }
@@ -90,6 +93,8 @@
       toast.success('Instance stopped')
     } else if (res.kind === 'badInstancerError') {
       toast.error(res.data.message)
+    } else {
+      toast.error(res.message)
     }
     actioning = false
   }
@@ -105,6 +110,8 @@
       toast.success('Instance extended')
     } else if (res.kind === 'badInstancerError') {
       toast.error(res.data.message)
+    } else {
+      toast.error(res.message)
     }
     actioning = false
   }
@@ -150,8 +157,8 @@
     <div class="flex flex-1 flex-col gap-3">
       {#if status === InstanceStatus.STARTING || status === InstanceStatus.ERRORED}
         <div class="text-foreground-l3 flex items-center justify-center gap-2 text-sm">
-          <IconLoader class="size-4 animate-spin" />
           {#if status === InstanceStatus.STARTING}
+            <IconLoader class="size-4 animate-spin" />
             <span>Starting...</span>
           {:else}
             <span>Errored</span>
@@ -180,7 +187,7 @@
 
       {#if timeLeft !== null}
         <div class="mt-auto space-y-1.5">
-          <Progress value={timeLeft} max={120000} class="h-1.5" />
+          <Progress value={timeLeft} max={instanceLifetime} class="h-1.5" />
           <p class="text-foreground-l3 text-center text-sm">
             {formatCountdown(timeLeft)} remaining
           </p>

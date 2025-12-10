@@ -36,9 +36,14 @@ type SubmitResponseHelpers = ResponseHelpers<
 >
 
 type LeaderboardSolve = { challengeId: string; solveTime: number }
-type SolvesAvatars = {
+type UserDisplayInfo = {
+  avatarUrl: string | null
+  countryCode: string | null
+  statusText: string | null
+}
+type SolvesAndUserInfo = {
   solves: Map<string, LeaderboardSolve[]>
-  avatars: Map<string, string | null>
+  userInfo: Map<string, UserDisplayInfo>
 }
 
 type ChallengeSolvesWithPosition = {
@@ -49,6 +54,8 @@ type ChallengeSolvesWithPosition = {
     userId: string
     userName: string
     userAvatarUrl: string | null
+    userCountryCode: string | null
+    userStatusText: string | null
     globalPlace: number
     division: string
     divisionPlace: number
@@ -65,6 +72,8 @@ const createRankedSolves = (db: DatabaseClient) =>
         userId: solves.userid,
         userName: users.name,
         userAvatarUrl: users.avatarUrl,
+        userCountryCode: users.countryCode,
+        userStatusText: users.statusText,
         userDivision: users.division,
         createdAt: solves.createdat,
         position:
@@ -222,6 +231,8 @@ export const getChallengeSolvesWithPosition = async (
       userId: ranked.userId,
       userName: ranked.userName,
       userAvatarUrl: ranked.userAvatarUrl,
+      userCountryCode: ranked.userCountryCode,
+      userStatusText: ranked.userStatusText,
       userDivision: ranked.userDivision,
       userSolvePosition: sql<number | null>`(
         SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
@@ -257,6 +268,8 @@ export const getChallengeSolvesWithPosition = async (
         userId: r.userId,
         userName: r.userName,
         userAvatarUrl: r.userAvatarUrl,
+        userCountryCode: r.userCountryCode,
+        userStatusText: r.userStatusText,
         globalPlace: scores?.place ?? 0,
         division: r.userDivision,
         divisionPlace: scores?.divisionPlace ?? 0,
@@ -280,14 +293,14 @@ export const getUserChallengeSolves = async (
     .orderBy(asc(solves.createdat))
 }
 
-export const getSolvesAndAvatars = async (
+export const getSolvesAndUserInfo = async (
   db: DatabaseClient,
   userIds: string[]
-): Promise<SolvesAvatars> => {
+): Promise<SolvesAndUserInfo> => {
   if (userIds.length === 0) {
     return {
       solves: new Map(),
-      avatars: new Map(),
+      userInfo: new Map(),
     }
   }
 
@@ -296,6 +309,8 @@ export const getSolvesAndAvatars = async (
       challenge_id: solves.challengeid,
       user_id: solves.userid,
       avatar_url: users.avatarUrl,
+      country_code: users.countryCode,
+      status_text: users.statusText,
       created_at: solves.createdat,
     })
     .from(solves)
@@ -306,17 +321,23 @@ export const getSolvesAndAvatars = async (
   const solvesMap = new Map<string, LeaderboardSolve[]>(
     userIds.map(id => [id, []])
   )
-  const avatars = new Map<string, string | null>()
+  const userInfo = new Map<string, UserDisplayInfo>()
 
   for (const row of rows) {
-    avatars.set(row.user_id, avatars.get(row.user_id) ?? row.avatar_url)
+    if (!userInfo.has(row.user_id)) {
+      userInfo.set(row.user_id, {
+        avatarUrl: row.avatar_url,
+        countryCode: row.country_code,
+        statusText: row.status_text,
+      })
+    }
     solvesMap.get(row.user_id)?.push({
       challengeId: row.challenge_id,
       solveTime: new Date(row.created_at).getTime(),
     })
   }
 
-  return { solves: solvesMap, avatars }
+  return { solves: solvesMap, userInfo }
 }
 
 export const submitFlag = async (

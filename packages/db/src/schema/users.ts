@@ -24,6 +24,8 @@ export const users = pgTable(
       .defaultNow()
       .notNull(),
     avatarUrl: text('avatar_url'),
+    countryCode: text('country_code'),
+    statusText: text('status_text'),
   },
   table => [
     index('users_division_index').using(

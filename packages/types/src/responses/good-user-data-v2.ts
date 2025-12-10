@@ -22,5 +22,7 @@ export const GoodUserDataV2 = response('goodUserData', {
     divisionPlace: z.nullable(z.int()),
     solves: z.array(SolveSchema),
     avatarUrl: z.nullable(z.string()),
+    countryCode: z.nullable(z.string()),
+    statusText: z.nullable(z.string()),
   }),
 })

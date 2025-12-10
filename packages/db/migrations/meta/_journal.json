@@ -43,6 +43,13 @@
       "when": 1765198070464,
       "tag": "0005_add_more_indexes",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1765409137673,
+      "tag": "0006_add_flags_statuses",
+      "breakpoints": true
     }
   ]
 }

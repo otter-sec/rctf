@@ -100,7 +100,7 @@ export const updateUserInternal = async (
   db: DatabaseClient,
   redis: TypedRedis,
   id: string,
-  user: Pick<User, 'division' | 'name'>
+  user: Pick<User, 'division' | 'name' | 'countryCode' | 'statusText'>
 ): Promise<UpdateUserResult> => {
   let updated
 

@@ -30,6 +30,10 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
   const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user.id, {
     division: body.division ?? user.division,
     name: body.name ?? user.name,
+    countryCode:
+      body.countryCode !== undefined ? body.countryCode : user.countryCode,
+    statusText:
+      body.statusText !== undefined ? body.statusText : user.statusText,
   })
 
   if (!result.success) {
@@ -42,6 +46,8 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
       email: result.user.email ?? null,
       division: result.user.division,
       avatarUrl: result.user.avatarUrl ?? null,
+      countryCode: result.user.countryCode ?? null,
+      statusText: result.user.statusText ?? null,
     },
   })
 })

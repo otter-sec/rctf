@@ -10,7 +10,7 @@ import {
   type Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
-import { getSolvesAndAvatars } from './challenges'
+import { getSolvesAndUserInfo } from './challenges'
 import type { TypedRedis } from '../cache/scripts'
 
 const getUsers = async (
@@ -283,20 +283,25 @@ export const getLeaderboardWithTotal = async (
     division
   )
 
-  const { solves, avatars } = await getSolvesAndAvatars(
+  const { solves, userInfo } = await getSolvesAndUserInfo(
     db,
     leaderboard.map(e => e.id)
   )
 
   return {
     total,
-    leaderboard: leaderboard.map(entry => ({
-      ...entry,
-      avatarUrl: avatars.get(entry.id) ?? null,
-      solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
-        id: solve.challengeId,
-        solveTime: solve.solveTime,
-      })),
-    })),
+    leaderboard: leaderboard.map(entry => {
+      const info = userInfo.get(entry.id)
+      return {
+        ...entry,
+        avatarUrl: info?.avatarUrl ?? null,
+        countryCode: info?.countryCode ?? null,
+        statusText: info?.statusText ?? null,
+        solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
+          id: solve.challengeId,
+          solveTime: solve.solveTime,
+        })),
+      }
+    }),
   }
 }

@@ -20,5 +20,7 @@ usersGroup.route(GetUserSelfRouteV2, async ({ ctx, user, res }) => {
     allowedDivisions: allowedDivs,
     perms: user.perms,
     avatarUrl: fullUser.avatarUrl ?? null,
+    countryCode: fullUser.countryCode ?? null,
+    statusText: fullUser.statusText ?? null,
   })
 })

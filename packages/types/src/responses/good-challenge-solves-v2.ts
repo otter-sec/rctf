@@ -12,6 +12,8 @@ export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
         userId: z.string(),
         userName: z.string(),
         userAvatarUrl: z.nullable(z.string()),
+        userCountryCode: z.nullable(z.string()),
+        userStatusText: z.nullable(z.string()),
         globalPlace: z.int(),
         division: z.string(),
         divisionPlace: z.int(),

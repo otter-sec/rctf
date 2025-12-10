@@ -27,5 +27,7 @@ export const GoodUserSelfDataV2 = response('goodUserSelfData', {
     allowedDivisions: z.array(z.string()),
     perms: z.nullable(z.int()),
     avatarUrl: z.nullable(z.string()),
+    countryCode: z.nullable(z.string()),
+    statusText: z.nullable(z.string()),
   }),
 })

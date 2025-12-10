@@ -12,6 +12,8 @@ export const GoodLeaderboardWithGraph = response('goodLeaderboardWithGraph', {
         name: z.string(),
         score: z.int(),
         avatarUrl: z.nullable(z.string()),
+        countryCode: z.nullable(z.string()),
+        statusText: z.nullable(z.string()),
         solves: z.array(
           z.object({
             id: z.string(),

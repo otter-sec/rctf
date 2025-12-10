@@ -21,7 +21,7 @@ export const GoodChallengesV2 = response('goodChallenges', {
       points: z.int(),
       solves: z.int(),
       sortWeight: z.nullable(z.number()),
-      instancer: z.boolean(),
+      instancerLifetime: z.nullable(z.number()),
     })
   ),
 })

@@ -10,5 +10,7 @@ usersGroup.route(GetUserRouteV2, async ({ ctx, res, params: { id } }) => {
   return res.goodUserData({
     ...fullUser,
     avatarUrl: fullUser.avatarUrl ?? null,
+    countryCode: fullUser.countryCode ?? null,
+    statusText: fullUser.statusText ?? null,
   })
 })

@@ -10,6 +10,8 @@ export const GoodUserUpdateV2 = response('goodUserUpdate', {
       email: z.nullable(z.string()),
       division: z.string(),
       avatarUrl: z.nullable(z.string()),
+      countryCode: z.nullable(z.string()),
+      statusText: z.nullable(z.string()),
     }),
   }),
 })
