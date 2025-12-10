@@ -93,6 +93,15 @@
       openCategories = groups.map(([cat]) => cat)
     }
   })
+
+  const categoryNames = $derived(groups.map(([cat]) => cat))
+  function toggleCollapse() {
+    if (openCategories.length === 0) {
+      openCategories = [...categoryNames]
+    } else {
+      openCategories = []
+    }
+  }
 </script>
 
 <div class="@container/list flex h-full flex-col overflow-hidden">
@@ -103,9 +112,11 @@
     total={stats.total}
     {searchQuery}
     {hideSolved}
+    categoryCount={categoryNames.length}
+    openCategoryCount={openCategories.length}
     onSearchChange={q => (searchQuery = q)}
     onToggleHideSolved={() => (hideSolved = !hideSolved)}
-    onCollapseAll={() => (openCategories = [])}
+    onToggleCollapse={toggleCollapse}
   />
 
   <ScrollArea

@@ -19,6 +19,7 @@ import * as Tabs from './ui/tabs'
 import * as Tooltip from './ui/tooltip'
 
 export { default as Brainrot } from './brainrot.svelte'
+export { default as CollapseToggleButton } from './collapse-toggle-button.svelte'
 export { default as Navigation } from './navigation.svelte'
 export { default as Markdown } from './markdown.svelte'
 export { default as NavigationMobile } from './navigation-mobile.svelte'

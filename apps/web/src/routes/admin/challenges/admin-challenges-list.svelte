@@ -1,8 +1,15 @@
 <script lang="ts">
   import { Permissions } from '@rctf/types'
   import type { AdminChallenge } from '@rctf/types'
-  import { Accordion, EmptyState, ScrollArea, SearchInput, Tooltip } from '$lib/components'
-  import { IconFold, IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
+  import {
+    Accordion,
+    CollapseToggleButton,
+    EmptyState,
+    ScrollArea,
+    SearchInput,
+    Tooltip,
+  } from '$lib/components'
+  import { IconLibraryPlusFilled, IconZoomQuestionFilled } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
   import {
     cn,
@@ -63,6 +70,14 @@
     challs: challenges.length,
     cats: new Set(challenges.map(c => c.category)).size,
   })
+
+  function toggleCollapse() {
+    if (collapsed.size === categories.length) {
+      collapsed = new Set()
+    } else {
+      collapsed = new Set(categories)
+    }
+  }
 </script>
 
 <div class="@container/list flex h-full flex-col overflow-hidden">
@@ -88,16 +103,11 @@
         <div
           class="flex w-full gap-1 overflow-hidden rounded-full @sm/list:w-auto @sm/list:overflow-auto @sm/list:rounded-none"
         >
-          <Tooltip.Root disableCloseOnTriggerClick>
-            <Tooltip.Trigger
-              onclick={() => (collapsed = new Set(categories))}
-              aria-label="Collapse all"
-              class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial"
-            >
-              <IconFold class="size-5 shrink-0" />
-            </Tooltip.Trigger>
-            <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
-          </Tooltip.Root>
+          <CollapseToggleButton
+            totalCount={categories.length}
+            openCount={open.length}
+            onToggle={toggleCollapse}
+          />
           {#if canWrite}
             <Tooltip.Root disableCloseOnTriggerClick>
               <Tooltip.Trigger

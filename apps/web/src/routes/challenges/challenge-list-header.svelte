@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { SearchInput, Tooltip } from '$lib/components'
-  import { IconEyeClosed, IconEyeFilled, IconFold } from '$lib/icons'
+  import { CollapseToggleButton, SearchInput, Tooltip } from '$lib/components'
+  import { IconEyeClosed, IconEyeFilled } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   interface Props {
@@ -10,9 +10,11 @@
     total: number
     searchQuery: string
     hideSolved: boolean
+    categoryCount: number
+    openCategoryCount: number
     onSearchChange: (query: string) => void
     onToggleHideSolved: () => void
-    onCollapseAll: () => void
+    onToggleCollapse: () => void
   }
 
   let {
@@ -22,9 +24,11 @@
     total,
     searchQuery,
     hideSolved,
+    categoryCount,
+    openCategoryCount,
     onSearchChange,
     onToggleHideSolved,
-    onCollapseAll,
+    onToggleCollapse,
   }: Props = $props()
 </script>
 
@@ -79,16 +83,11 @@
             {hideSolved ? 'Show solved' : 'Hide solved'}
           </Tooltip.Content>
         </Tooltip.Root>
-        <Tooltip.Root disableCloseOnTriggerClick>
-          <Tooltip.Trigger
-            onclick={onCollapseAll}
-            aria-label="Collapse all"
-            class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 active:bg-background-accent active:text-foreground-accent flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial"
-          >
-            <IconFold class="size-5 shrink-0" />
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
-        </Tooltip.Root>
+        <CollapseToggleButton
+          totalCount={categoryCount}
+          openCount={openCategoryCount}
+          onToggle={onToggleCollapse}
+        />
       </div>
     </div>
   </div>

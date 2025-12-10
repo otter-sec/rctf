@@ -1,6 +1,12 @@
 <script lang="ts">
   import type { Challenge, Solve } from '@rctf/types'
-  import { Accordion, EmptyState, SearchInput, Tooltip } from '$lib/components'
+  import {
+    Accordion,
+    CollapseToggleButton,
+    EmptyState,
+    SearchInput,
+    Tooltip,
+  } from '$lib/components'
   import {
     IconCheck,
     IconClockFilled,
@@ -8,7 +14,6 @@
     IconEyeClosed,
     IconEyeFilled,
     IconFlagFilled,
-    IconFold,
     IconZoomQuestionFilled,
   } from '$lib/icons'
   import {
@@ -158,8 +163,13 @@
     }
   })
 
-  function collapseAll() {
-    openCategories = []
+  const categoryNames = $derived(groups.map(([cat]) => cat))
+  function toggleCollapse() {
+    if (openCategories.length === 0) {
+      openCategories = [...categoryNames]
+    } else {
+      openCategories = []
+    }
   }
 
   function cycleSortMode() {
@@ -228,16 +238,12 @@
         </Tooltip.Content>
       </Tooltip.Root>
       {#if sortMode === 'category'}
-        <Tooltip.Root disableCloseOnTriggerClick>
-          <Tooltip.Trigger
-            onclick={collapseAll}
-            aria-label="Collapse all"
-            class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-sm px-4 py-2"
-          >
-            <IconFold class="size-5" />
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>Collapse all</Tooltip.Content>
-        </Tooltip.Root>
+        <CollapseToggleButton
+          totalCount={categoryNames.length}
+          openCount={openCategories.length}
+          onToggle={toggleCollapse}
+          class="rounded-sm @sm/list:flex-none"
+        />
       {/if}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
