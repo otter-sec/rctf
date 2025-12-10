@@ -5,7 +5,7 @@
   import ChallengeDetailsHeader from './challenge-details-header.svelte'
   import ChallengeDetailsOverview from './challenge-details-overview.svelte'
   import ChallengeDetailsPodium from './challenge-details-podium.svelte'
-  import ChallengeDetailsSelf from './challenge-details-self.svelte'
+  import ChallengeDetailsSolvesSelf from './challenge-details-solves-self.svelte'
   import ChallengeDetailsSolves from './challenge-details-solves.svelte'
   import ChallengeDetailsSubmit from './challenge-details-submit.svelte'
 
@@ -60,7 +60,7 @@
         {#if tab === 'details'}
           <ChallengeDetailsPodium {challenge} {isSolved} />
         {:else if tab === 'solves' && !userVisible}
-          <ChallengeDetailsSelf {challenge} />
+          <ChallengeDetailsSolvesSelf {challenge} />
         {/if}
         <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
       </div>

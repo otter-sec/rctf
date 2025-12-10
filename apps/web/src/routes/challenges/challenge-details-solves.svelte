@@ -12,7 +12,7 @@
     formatRelativeToFirstBlood,
     getRankVariant,
   } from '$lib/utils'
-  import ChallengeRankRow from './challenge-rank-row.svelte'
+  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   const PAGE_SIZE = 10
 
@@ -84,7 +84,7 @@
           {@const solvePosition = index + 1}
           {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
           {@const variant = getRankVariant(solvePosition, isCurrentUser)}
-          <ChallengeRankRow
+          <ChallengeDetailsSolvesRow
             {variant}
             rankLabel={solvePosition}
             name={solve.userName}

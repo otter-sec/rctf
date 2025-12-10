@@ -2,7 +2,7 @@
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'
-  import ChallengeRankRow from './challenge-rank-row.svelte'
+  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   interface Props {
     challenge: Challenge
@@ -28,7 +28,7 @@
 </script>
 
 {#if currentUserSolve && currentUser && mySolvePosition}
-  <ChallengeRankRow
+  <ChallengeDetailsSolvesRow
     variant="self"
     rankLabel={getOrdinal(mySolvePosition)}
     name={currentUser.name}
