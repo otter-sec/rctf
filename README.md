@@ -270,3 +270,4 @@ output "bucket" {
 </details>
 
 - gcs tf now needs a `storage.objects.delete` permission
+- added bloodbot

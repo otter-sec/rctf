@@ -23,6 +23,8 @@ import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
 import { rateLimit } from './rate-limit'
+import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
+import { getUser } from './users'
 
 type SubmitResponseHelpers = ResponseHelpers<
   [
@@ -389,13 +391,30 @@ export const submitFlag = async (
     return res.badFlag()
   }
 
+  const solveId = crypto.randomUUID()
+  const createdAt = new Date().toISOString()
+
+  let bloodNumber: number
   try {
-    await db.insert(solves).values({
-      id: crypto.randomUUID(),
-      challengeid: params.challengeId,
-      userid: params.userId,
-      createdat: new Date().toISOString(),
-    })
+    const result = await db
+      .execute<{ blood_number: number }>(
+        sql`
+      WITH inserted AS (
+        INSERT INTO solves (id, challengeid, userid, createdat)
+        VALUES (${solveId}, ${params.challengeId}, ${params.userId}, ${createdAt})
+        RETURNING challengeid, createdat
+      )
+      SELECT (
+        SELECT COUNT(*) + 1
+        FROM solves s
+        WHERE s.challengeid = inserted.challengeid
+          AND s.createdat < inserted.createdat
+      )::int AS blood_number
+      FROM inserted
+    `
+      )
+      .then(takeUnique)
+    bloodNumber = result!.blood_number
   } catch (error) {
     const constraintName = getErrorConstraint(error)
     if (constraintName === 'uq') {
@@ -405,6 +424,19 @@ export const submitFlag = async (
       return res.badUnknownUser()
     }
     throw error
+  }
+
+  if (shouldNotifyBloodbot(bloodNumber)) {
+    getUser(db, params.userId)
+      .then(user => {
+        return sendBloodMessage(user!, challenge.data, bloodNumber)
+      })
+      .catch(err => {
+        log.error(
+          { err, challengeId: params.challengeId, userId: params.userId },
+          'bloodbot notification failed'
+        )
+      })
   }
 
   forceLeaderboardUpdate()

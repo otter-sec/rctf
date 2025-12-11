@@ -155,8 +155,38 @@ export const ServerConfigSchema = z.object({
     }),
     {}
   ),
-})
 
+  // First blood messages
+  bloodbot: z.optional(
+    z.object({
+      bloodsCount: z._default(z.number().check(z.minimum(1), z.maximum(3)), 1),
+      destinations: z.pipe(
+        z
+          .array(
+            z.object({
+              provider: ProviderConfigSchema,
+              messageTemplate: z.optional(z.string()),
+            })
+          )
+          .check(z.minLength(1)),
+        z.transform(val =>
+          val.map(({ provider, messageTemplate }) => {
+            // Telegram does not support [`...`](https://...) links, lol
+            // we also need to escape the ! character for telegram
+            const isTelegram = provider.name === 'messages/telegram'
+            return {
+              provider,
+              messageTemplate:
+                (messageTemplate ?? isTelegram)
+                  ? 'Congratulations to [*{teamName}*]({teamUrl}) for {bloodNumSentence} blood on `{challengeCategory}/{challengeName}`\\!'
+                  : 'Congratulations to [`{teamName}`]({teamUrl}) for {bloodNumSentence} blood on `{challengeCategory}/{challengeName}`!',
+            }
+          })
+        )
+      ),
+    })
+  ),
+})
 export type ProviderConfig = z.infer<typeof ProviderConfigSchema>
 export type Sponsor = z.infer<typeof SponsorSchema>
 export type ACL = z.infer<typeof ACLSchema>
