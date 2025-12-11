@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
   import { IconCircleDashed } from '$lib/icons'
@@ -24,6 +25,36 @@
   import ScoresToolbar from './scores-toolbar.svelte'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
+  const STORAGE_KEY = 'rctf:scores:preferences'
+
+  interface ScoresPreferences {
+    viewMode: ViewMode
+    sortMode: SortMode
+    showTop3Context: boolean
+  }
+
+  function loadPreferences(): Partial<ScoresPreferences> {
+    if (!browser) return {}
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      return stored ? JSON.parse(stored) : {}
+    } catch {
+      return {}
+    }
+  }
+
+  function savePreferences(prefs: Partial<ScoresPreferences>) {
+    if (!browser) return
+    try {
+      const current = loadPreferences()
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...prefs }))
+    } catch {
+      // ignore storage errors
+    }
+  }
+
+  const savedPrefs = loadPreferences()
+
   const page = $derived.by(() => {
     const n = parseInt(pageState.url.searchParams.get('page') ?? '1', 10)
     return isNaN(n) || n < 1 ? 1 : n
@@ -32,12 +63,15 @@
   const viewMode = $derived.by(() => {
     const v = pageState.url.searchParams.get('view')
     if (v === 'categories' || v === 'minimal') return v as ViewMode
+    if (v === null && savedPrefs.viewMode) return savedPrefs.viewMode
     return 'challenges' as ViewMode
   })
 
   const sortMode = $derived.by(() => {
     const s = pageState.url.searchParams.get('sort')
-    return s === 'solves' ? 'solves' : ('categories' as SortMode)
+    if (s === 'solves') return 'solves' as SortMode
+    if (s === null && savedPrefs.sortMode) return savedPrefs.sortMode
+    return 'categories' as SortMode
   })
 
   function setParam(key: string, value: string | number, defaultValue: string | number) {
@@ -45,6 +79,21 @@
     if (value === defaultValue) url.searchParams.delete(key)
     else url.searchParams.set(key, String(value))
     goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+  }
+
+  function setViewMode(v: ViewMode) {
+    savePreferences({ viewMode: v })
+    setParam('view', v, 'challenges')
+  }
+
+  function setSortMode(s: SortMode) {
+    savePreferences({ sortMode: s })
+    setParam('sort', s, 'categories')
+  }
+
+  function setShowTop3Context(v: boolean) {
+    savePreferences({ showTop3Context: v })
+    showTop3Context = v
   }
 
   const leaderboardQuery = $derived(
@@ -229,7 +278,7 @@
     return result
   })
 
-  let showTop3Context = $state(true)
+  let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
   let hoveredTeamId = $state<string | null>(null)
   let tooltipData = $state<TooltipData | null>(null)
   let tooltipX = $state(0)
@@ -348,10 +397,10 @@
       {totalPages}
       isFetching={$leaderboardQuery.isFetching}
       {showTop3Context}
-      onViewModeChange={v => setParam('view', v, 'challenges')}
-      onSortModeChange={s => setParam('sort', s, 'categories')}
+      onViewModeChange={setViewMode}
+      onSortModeChange={setSortMode}
       onPageChange={p => setParam('page', p, 1)}
-      onShowTop3ContextChange={v => (showTop3Context = v)}
+      onShowTop3ContextChange={setShowTop3Context}
     />
 
     <div class="flex justify-center px-9">
