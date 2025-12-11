@@ -3,7 +3,7 @@
   import { IconTriangleFilled, IconTriangleInvertedFilled } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
   import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
-  import { ALL_REGIONS } from '$lib/utils/countries'
+  import { ALL_REGIONS } from '@rctf/const'
   import Sparkline from './sparkline.svelte'
 
   interface Props {

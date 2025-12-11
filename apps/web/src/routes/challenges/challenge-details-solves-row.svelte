@@ -2,7 +2,7 @@
   import { Avatar, Tooltip } from '$lib/components'
   import type { RankVariant } from '$lib/utils'
   import { cn, getInitials, getRankStyles } from '$lib/utils'
-  import { ALL_REGIONS } from '$lib/utils/countries'
+  import { ALL_REGIONS } from '@rctf/const'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
 

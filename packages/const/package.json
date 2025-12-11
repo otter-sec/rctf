@@ -1,0 +1,12 @@
+{
+  "name": "@rctf/const",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {},
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

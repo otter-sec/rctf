@@ -2,7 +2,7 @@
   import type { ClientConfig, PublicUserProfile, UserProfile } from '@rctf/types'
   import { Avatar } from '$lib/components'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
-  import { ALL_REGIONS } from '$lib/utils/countries'
+  import { ALL_REGIONS } from '@rctf/const'
 
   interface Props {
     user: UserProfile | PublicUserProfile

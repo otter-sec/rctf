@@ -51,6 +51,7 @@
       "name": "@rctf/web",
       "version": "0.0.1",
       "dependencies": {
+        "@rctf/const": "workspace:*",
         "@rctf/types": "workspace:*",
         "@tanstack/svelte-query": "^5.62.16",
         "@tanstack/svelte-virtual": "^3.13.13",
@@ -106,6 +107,13 @@
         "typescript": "^5",
       },
     },
+    "packages/const": {
+      "name": "@rctf/const",
+      "version": "0.0.0",
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
     "packages/db": {
       "name": "@rctf/db",
       "version": "0.0.0",
@@ -127,6 +135,7 @@
       "name": "@rctf/types",
       "version": "0.0.0",
       "dependencies": {
+        "@rctf/const": "workspace:*",
         "email-validator": "^2.0.4",
         "zod": "^4.1.13",
       },
@@ -412,6 +421,8 @@
     "@rctf/api": ["@rctf/api@workspace:apps/api"],
 
     "@rctf/config": ["@rctf/config@workspace:packages/config"],
+
+    "@rctf/const": ["@rctf/const@workspace:packages/const"],
 
     "@rctf/db": ["@rctf/db@workspace:packages/db"],
 

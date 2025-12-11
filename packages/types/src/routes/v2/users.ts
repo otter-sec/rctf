@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
+import { ALL_REGIONS } from '@rctf/const'
 import {
   BadAvatarFile,
   BadAvatarFileSize,
@@ -52,9 +53,7 @@ export const UpdateUserRouteV2 = defineRoute({
   body: z.object({
     name: z.optional(UserName),
     division: z.optional(z.string()),
-    countryCode: z.optional(
-      z.nullable(z.string().check(z.regex(/^[A-Z]{2}$/)))
-    ),
+    countryCode: z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
     statusText: z.optional(z.nullable(z.string().check(z.maxLength(60)))),
   }),
   goodResponses: [GoodUserUpdateV2],

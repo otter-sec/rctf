@@ -3,7 +3,7 @@
   import { Command, Popover } from '$lib/components'
   import { IconCheck, IconSelector } from '$lib/icons'
   import { cn, countryCodeToFlagFilename } from '$lib/utils'
-  import { ALL_REGIONS, COUNTRIES, SPECIAL_REGIONS, TERRITORIES } from '$lib/utils/countries'
+  import { ALL_REGIONS, COUNTRIES, SPECIAL_REGIONS, TERRITORIES } from '@rctf/const'
 
   interface Props {
     value: string | null | undefined
