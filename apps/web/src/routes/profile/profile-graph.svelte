@@ -71,14 +71,16 @@
 
       <Tooltip.Root anchor="top-right" motion="none">
         {#snippet children({ data })}
-          <div class="bg-background-l4 z-50 rounded-lg border px-3 py-2 text-xs shadow-xl">
+          <div
+            class="border-border/50 bg-background-l1 z-50 rounded-lg border px-3 py-2 text-xs shadow-xl"
+          >
             <div class="text-foreground-l3 mb-1.5">
               <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
               <div class="text-[10px]">{formatLocalTime(data.time)}</div>
             </div>
             <div class="flex items-center gap-2">
               <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
-              <span class="max-w-48 truncate font-medium wrap-anywhere">{data.teamName}</span>
+              <span class="font-medium wrap-anywhere">{data.teamName}</span>
               <span class="text-foreground-l3 ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts
               </span>

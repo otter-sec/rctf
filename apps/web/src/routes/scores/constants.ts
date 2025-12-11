@@ -3,7 +3,8 @@ export const SPARKLINE_WINDOW = 60 * 60 * 1000 * 12 // 12 hours
 export const DELTA_WINDOW = 60 * 60 * 1000 * 2 // 2 hours
 
 // TODO(enscribe): Remove cutoff filter
-export const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
+// export const CUTOFF_TIME = new Date('2025-10-28T03:00:00.000Z').getTime()
+export const CUTOFF_TIME = 2**53 - 1
 
 export const MEDAL_COLORS = [
   'var(--foreground-gold-l0)',
