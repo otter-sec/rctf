@@ -10,71 +10,10 @@
     IconTriangleInvertedFilled,
   } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
+  import { countryCodeToFlagFilename } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
   import ScoresGraph from './scores-graph.svelte'
-
-  // TODO(enscribe): don't randomize
-  const COUNTRY_CODES = [
-    'UP',
-    'JP',
-    'GB',
-    'DE',
-    'FR',
-    'KR',
-    'CN',
-    'CA',
-    'AU',
-    'BR',
-    'IN',
-    'IL',
-    'ES',
-    'NL',
-    'SE',
-    'NO',
-    'FI',
-    'PL',
-    'RU',
-    'UA',
-    'TR',
-    'MX',
-    'AR',
-    'CH',
-    'AT',
-    'BE',
-    'DK',
-    'PT',
-    'CZ',
-    'RO',
-    'HU',
-    'GR',
-    'IT',
-    'SG',
-    'TW',
-    'VN',
-    'TH',
-    'MY',
-    'ID',
-    'PH',
-  ]
-
-  function countryCodeToFlagFilename(code: string): string {
-    const codePoints = code
-      .toUpperCase()
-      .split('')
-      .map(char => (char.charCodeAt(0) + 127397).toString(16))
-    return `${codePoints.join('-')}.svg`
-  }
-
-  function getRandomCountryCode(teamId: string): string | null {
-    let hash = 0
-    for (let i = 0; i < teamId.length; i++) {
-      hash = (hash << 5) - hash + teamId.charCodeAt(i)
-      hash |= 0
-    }
-    if (Math.abs(hash) % 5 === 0) return null
-    return COUNTRY_CODES[Math.abs(hash) % COUNTRY_CODES.length] ?? null
-  }
 
   interface Props {
     entries: LeaderboardEntry[]
@@ -131,6 +70,8 @@
   avatarUrl: string | null | undefined,
   division: string,
   divisionPlace: number | null,
+  countryCode: string | null | undefined,
+  statusText: string | null | undefined,
   score: number,
   solveCount: number,
   rank: number,
@@ -138,7 +79,6 @@
   delta: number | undefined = undefined
 )}
   {@const styles = getRankStylesForPosition(rank, isCurrentUser)}
-  {@const countryCode = getRandomCountryCode(id)}
   {@const flagFilename = countryCode ? countryCodeToFlagFilename(countryCode) : null}
   <div
     class={cn(
@@ -168,18 +108,24 @@
       <Avatar.Fallback class="rounded-lg text-sm">{getInitials(name)}</Avatar.Fallback>
     </Avatar.Root>
 
-    <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-      <a
-        href="/profile/{id}"
-        class={cn('block truncate text-lg/tight leading-[100%] hover:underline', styles.fgL0)}
-        >{name}</a
-      >
+    <div class="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
       <div class="flex items-center gap-1.5">
+        <a href="/profile/{id}" class={cn('truncate text-lg/tight hover:underline', styles.fgL0)}
+          >{name}</a
+        >
+        {#if showDivision}
+          <span class={cn('shrink-0 text-sm', styles.fgL1)}>({division})</span>
+        {/if}
+      </div>
+      <div class="flex items-center gap-1">
         {#if flagFilename && countryCode}
           <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
         {/if}
-        {#if showDivision}
-          <span class={cn('truncate text-sm', styles.fgL1)}>{division}</span>
+        {#if flagFilename && countryCode && statusText}
+          <span class={cn('text-lg leading-none', styles.fgL1)}>·</span>
+        {/if}
+        {#if statusText}
+          <span class={cn('truncate text-sm', styles.fgL1)}>{statusText}</span>
         {/if}
       </div>
     </div>
@@ -281,6 +227,8 @@
             entry.avatarUrl,
             entry.division,
             entry.divisionPlace,
+            entry.countryCode,
+            entry.statusText,
             entry.score,
             entry.solves.length,
             rank,
@@ -300,6 +248,8 @@
         currentUser.avatarUrl,
         currentUser.division,
         currentUser.divisionPlace,
+        currentUser.countryCode,
+        currentUser.statusText,
         currentUser.score,
         currentUser.solves.length,
         currentUser.globalPlace ?? 0,

@@ -52,7 +52,9 @@ export const UpdateUserRouteV2 = defineRoute({
   body: z.object({
     name: z.optional(UserName),
     division: z.optional(z.string()),
-    countryCode: z.optional(z.nullable(z.string().check(z.regex(/^[A-Z]{2}$/)))),
+    countryCode: z.optional(
+      z.nullable(z.string().check(z.regex(/^[A-Z]{2}$/)))
+    ),
     statusText: z.optional(z.nullable(z.string().check(z.maxLength(60)))),
   }),
   goodResponses: [GoodUserUpdateV2],

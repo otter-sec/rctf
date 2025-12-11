@@ -34,8 +34,10 @@
     name={currentUser.name}
     userId={currentUser.id}
     avatarUrl={currentUser.avatarUrl}
+    countryCode={currentUser.countryCode}
+    globalPlace={currentUser.globalPlace ?? undefined}
     division={showDivision ? currentUser.division : undefined}
-    divisionPlace={currentUser.divisionPlace ?? undefined}
+    divisionPlace={showDivision ? (currentUser.divisionPlace ?? undefined) : undefined}
     primaryValue={formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
     secondaryValue={formatLocalTime(currentUserSolve.createdAt)}
   />

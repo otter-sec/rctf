@@ -90,8 +90,10 @@
             name={solve.userName}
             userId={solve.userId}
             avatarUrl={solve.userAvatarUrl}
+            countryCode={solve.userCountryCode}
+            globalPlace={solve.globalPlace}
             division={showDivision ? solve.division : undefined}
-            divisionPlace={solve.divisionPlace}
+            divisionPlace={showDivision ? solve.divisionPlace : undefined}
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}

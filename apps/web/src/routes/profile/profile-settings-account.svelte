@@ -10,7 +10,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError, toast } from '$lib'
   import { apiRequest } from '$lib/api'
-  import { Button, Field, Input, Section, Select, Spinner } from '$lib/components'
+  import { Button, Field, FlagPicker, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
   import { queryKeys } from '$lib/query'
@@ -56,7 +56,12 @@
 
   $effect(() => {
     if (!initialized) {
-      profileForm.setData({ name: user.name, division: user.division })
+      profileForm.setData({
+        name: user.name,
+        division: user.division,
+        countryCode: user.countryCode,
+        statusText: user.statusText,
+      })
       emailForm.setData({ email: user.email ?? '' })
       initialized = true
     }
@@ -82,7 +87,9 @@
 
   const profileHasChanges = $derived(
     (profileForm.data.name ?? '') !== user.name ||
-      (profileForm.data.division ?? '') !== user.division
+      (profileForm.data.division ?? '') !== user.division ||
+      (profileForm.data.countryCode ?? null) !== (user.countryCode ?? null) ||
+      (profileForm.data.statusText ?? null) !== (user.statusText ?? null)
   )
 
   const emailHasChanges = $derived((emailForm.data.email ?? '') !== (user.email ?? ''))
@@ -155,6 +162,35 @@
           {/if}
         </Field.Field>
       {/if}
+
+      <Field.Field data-invalid={!!profileForm.errors.countryCode || undefined}>
+        <Field.Label>Country</Field.Label>
+        <FlagPicker
+          bind:value={profileForm.data.countryCode}
+          disabled={loading}
+          class="bg-background-l4 hover:bg-background-l5"
+        />
+        {#if profileForm.errors.countryCode}
+          <Field.Error>{profileForm.errors.countryCode}</Field.Error>
+        {/if}
+      </Field.Field>
+
+      <Field.Field data-invalid={!!profileForm.errors.statusText || undefined}>
+        <Field.Label>
+          Status
+          <Field.Hint>(max 60 characters)</Field.Hint>
+        </Field.Label>
+        <Input
+          type="text"
+          placeholder="Enter a status message"
+          maxlength={60}
+          bind:value={profileForm.data.statusText}
+          disabled={loading}
+        />
+        {#if profileForm.errors.statusText}
+          <Field.Error>{profileForm.errors.statusText}</Field.Error>
+        {/if}
+      </Field.Field>
 
       {#if profileForm.errors._form}
         <div

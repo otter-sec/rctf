@@ -3,12 +3,14 @@ import * as Avatar from './ui/avatar'
 import * as ButtonGroup from './ui/button-group'
 import * as Card from './ui/card'
 import * as Chart from './ui/chart'
+import * as Command from './ui/command'
 import * as Dialog from './ui/dialog'
 import * as Drawer from './ui/drawer'
 import * as DropdownMenu from './ui/dropdown-menu'
 import * as Field from './ui/field'
 import * as InputGroup from './ui/input-group'
 import * as Pagination from './ui/pagination'
+import * as Popover from './ui/popover'
 import * as Resizable from './ui/resizable'
 import * as Section from './ui/section'
 import * as Select from './ui/select'
@@ -21,6 +23,7 @@ import * as Tooltip from './ui/tooltip'
 export { default as Brainrot } from './brainrot.svelte'
 export { default as CollapseToggleButton } from './collapse-toggle-button.svelte'
 export { default as CtfNotStarted } from './ctf-not-started.svelte'
+export { default as FlagPicker } from './flag-picker.svelte'
 export { default as Navigation } from './navigation.svelte'
 export { default as Markdown } from './markdown.svelte'
 export { default as NavigationMobile } from './navigation-mobile.svelte'
@@ -57,12 +60,14 @@ export {
   ButtonGroup,
   Card,
   Chart,
+  Command,
   Dialog,
   Drawer,
   DropdownMenu,
   Field,
   InputGroup,
   Pagination,
+  Popover,
   Resizable,
   Section,
   Select,

@@ -2,6 +2,7 @@
   import { Avatar } from '$lib/components'
   import type { RankVariant } from '$lib/utils'
   import { cn, getInitials, getRankStyles } from '$lib/utils'
+  import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
 
   interface Props {
@@ -10,6 +11,8 @@
     name: string
     userId?: string
     avatarUrl?: string | null
+    countryCode?: string | null
+    globalPlace?: number
     primaryValue?: string
     secondaryValue?: string
     division?: string
@@ -24,6 +27,8 @@
     name,
     userId,
     avatarUrl,
+    countryCode,
+    globalPlace,
     primaryValue,
     secondaryValue,
     division,
@@ -32,71 +37,7 @@
     class: className,
   }: Props = $props()
 
-  // TODO(enscribe): don't randomize
-  const COUNTRY_CODES = [
-    'UP',
-    'JP',
-    'GB',
-    'DE',
-    'FR',
-    'KR',
-    'CN',
-    'CA',
-    'AU',
-    'BR',
-    'IN',
-    'IL',
-    'ES',
-    'NL',
-    'SE',
-    'NO',
-    'FI',
-    'PL',
-    'RU',
-    'UA',
-    'TR',
-    'MX',
-    'AR',
-    'CH',
-    'AT',
-    'BE',
-    'DK',
-    'PT',
-    'CZ',
-    'RO',
-    'HU',
-    'GR',
-    'IT',
-    'SG',
-    'TW',
-    'VN',
-    'TH',
-    'MY',
-    'ID',
-    'PH',
-  ]
-
-  function countryCodeToFlagFilename(code: string): string {
-    const codePoints = code
-      .toUpperCase()
-      .split('')
-      .map(char => (char.charCodeAt(0) + 127397).toString(16))
-    return `${codePoints.join('-')}.svg`
-  }
-
-  function getRandomCountryCode(teamId: string): string | null {
-    let hash = 0
-    for (let i = 0; i < teamId.length; i++) {
-      hash = (hash << 5) - hash + teamId.charCodeAt(i)
-      hash |= 0
-    }
-    if (Math.abs(hash) % 5 === 0) return null
-    return COUNTRY_CODES[Math.abs(hash) % COUNTRY_CODES.length] ?? null
-  }
-
-  const countryCode = $derived(userId ? getRandomCountryCode(userId) : null)
   const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
-
   const styles = $derived(getRankStyles(variant))
 </script>
 
@@ -137,16 +78,14 @@
       {#if flagFilename && countryCode}
         <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
       {/if}
-      {#if flagFilename && countryCode && (division || divisionPlace)}
+      {#if flagFilename && countryCode && globalPlace}
         <span class={cn('mx-0.5 text-xl leading-none', styles.fgL1)}>·</span>
       {/if}
-      {#if division}
-        <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
-        {#if divisionPlace}
-          <span class={cn('text-base', styles.fgL1)}>#{divisionPlace}</span>
-        {/if}
-      {:else if divisionPlace}
-        <span class={cn('text-base', styles.fgL1)}>#{divisionPlace}</span>
+      {#if globalPlace}
+        <span class={cn('text-base', styles.fgL1)}>#{globalPlace}</span>
+      {/if}
+      {#if division && divisionPlace}
+        <span class={cn('text-base', styles.fgL1)}>(#{divisionPlace} {division})</span>
       {/if}
     </div>
   </div>

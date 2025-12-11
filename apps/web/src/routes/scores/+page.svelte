@@ -524,6 +524,8 @@
                     avatarUrl={entry.avatarUrl}
                     division={entry.division}
                     divisionPlace={entry.divisionPlace}
+                    countryCode={entry.countryCode}
+                    statusText={entry.statusText}
                     score={entry.score}
                     solveCount={entry.solves.length}
                     {rank}
@@ -570,6 +572,8 @@
                   avatarUrl={currentUser.avatarUrl}
                   division={currentUser.division}
                   divisionPlace={currentUser.divisionPlace}
+                  countryCode={currentUser.countryCode}
+                  statusText={currentUser.statusText}
                   score={currentUser.score}
                   solveCount={currentUser.solves.length}
                   rank={currentUser.globalPlace ?? 0}

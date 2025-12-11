@@ -2,7 +2,7 @@
   import { Avatar } from '$lib/components'
   import { IconTriangleFilled, IconTriangleInvertedFilled } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
-  import { getRankStylesForPosition } from '$lib/utils/rank'
+  import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
   import Sparkline from './sparkline.svelte'
 
   interface Props {
@@ -11,6 +11,8 @@
     avatarUrl: string | null | undefined
     division: string
     divisionPlace: number | null
+    countryCode: string | null | undefined
+    statusText: string | null | undefined
     score: number
     solveCount: number
     rank: number
@@ -30,6 +32,8 @@
     avatarUrl,
     division,
     divisionPlace,
+    countryCode,
+    statusText,
     score,
     solveCount,
     rank,
@@ -44,70 +48,6 @@
   }: Props = $props()
 
   const styles = $derived(getRankStylesForPosition(rank, isCurrentUser))
-
-  // TODO(enscribe): don't randomize
-  const COUNTRY_CODES = [
-    'UP',
-    'JP',
-    'GB',
-    'DE',
-    'FR',
-    'KR',
-    'CN',
-    'CA',
-    'AU',
-    'BR',
-    'IN',
-    'IL',
-    'ES',
-    'NL',
-    'SE',
-    'NO',
-    'FI',
-    'PL',
-    'RU',
-    'UA',
-    'TR',
-    'MX',
-    'AR',
-    'CH',
-    'AT',
-    'BE',
-    'DK',
-    'PT',
-    'CZ',
-    'RO',
-    'HU',
-    'GR',
-    'IT',
-    'SG',
-    'TW',
-    'VN',
-    'TH',
-    'MY',
-    'ID',
-    'PH',
-  ]
-
-  function countryCodeToFlagFilename(code: string): string {
-    const codePoints = code
-      .toUpperCase()
-      .split('')
-      .map(char => (char.charCodeAt(0) + 127397).toString(16))
-    return `${codePoints.join('-')}.svg`
-  }
-
-  function getRandomCountryCode(teamId: string): string | null {
-    let hash = 0
-    for (let i = 0; i < teamId.length; i++) {
-      hash = (hash << 5) - hash + teamId.charCodeAt(i)
-      hash |= 0
-    }
-    if (Math.abs(hash) % 5 === 0) return null
-    return COUNTRY_CODES[Math.abs(hash) % COUNTRY_CODES.length] ?? null
-  }
-
-  const countryCode = $derived(getRandomCountryCode(id))
   const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
 </script>
 
@@ -158,15 +98,21 @@
   </Avatar.Root>
 
   <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-    <a href="/profile/{id}" class={cn('block truncate text-xl hover:underline', styles.fgL0)}
-      >{name}</a
-    >
     <div class="flex items-center gap-1.5">
-      {#if flagFilename && countryCode}
-        <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-6 w-auto shrink-0" />
-      {/if}
+      <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>{name}</a>
       {#if showDivision}
-        <span class={cn('truncate text-base', styles.fgL1)}>{division}</span>
+        <span class={cn('shrink-0 text-base', styles.fgL1)}>({division})</span>
+      {/if}
+    </div>
+    <div class="flex items-center gap-1">
+      {#if flagFilename && countryCode}
+        <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+      {/if}
+      {#if flagFilename && countryCode && statusText}
+        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
+      {/if}
+      {#if statusText}
+        <span class={cn('truncate text-base', styles.fgL1)}>{statusText}</span>
       {/if}
     </div>
   </div>

@@ -23,7 +23,7 @@
 
 <script lang="ts">
   import { IconX } from '$lib/icons'
-  import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
+  import { cn, type WithoutChildrenOrChild } from '$lib/utils'
   import { Dialog as SheetPrimitive } from 'bits-ui'
   import type { ComponentProps, Snippet } from 'svelte'
   import Button from '../button/button.svelte'

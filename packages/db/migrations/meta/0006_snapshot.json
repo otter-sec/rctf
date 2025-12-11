@@ -175,12 +175,8 @@
           "name": "uuid_fkey",
           "tableFrom": "solves",
           "tableTo": "users",
-          "columnsFrom": [
-            "userid"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userid"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -190,10 +186,7 @@
         "uq": {
           "name": "uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "challengeid",
-            "userid"
-          ]
+          "columns": ["challengeid", "userid"]
         }
       },
       "policies": {},
@@ -246,12 +239,8 @@
           "name": "uuid_fkey",
           "tableFrom": "user_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "userid"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userid"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -261,9 +250,7 @@
         "user_members_email_key": {
           "name": "user_members_email_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -377,23 +364,17 @@
         "users_name_key": {
           "name": "users_name_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         },
         "users_email_key": {
           "name": "users_email_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_ctftime_id_key": {
           "name": "users_ctftime_id_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "ctftime_id"
-          ]
+          "columns": ["ctftime_id"]
         }
       },
       "policies": {},

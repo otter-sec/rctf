@@ -80,7 +80,7 @@
             </div>
             <div class="flex items-center gap-2">
               <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
-              <span class="font-medium wrap-anywhere">{data.teamName}</span>
+              <span class="max-w-48 truncate font-medium wrap-anywhere">{data.teamName}</span>
               <span class="text-foreground-l3 ml-auto tabular-nums">
                 {data.score.toLocaleString()} pts
               </span>

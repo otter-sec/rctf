@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cn, type WithoutChildrenOrChild } from '$lib/utils.js'
+  import { cn, type WithoutChildrenOrChild } from '$lib/utils'
   import { Progress as ProgressPrimitive } from 'bits-ui'
 
   let {

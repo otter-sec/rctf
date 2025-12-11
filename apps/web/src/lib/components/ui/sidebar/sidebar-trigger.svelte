@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Button } from '$lib/components/ui/button/index.js'
   import { IconLayoutSidebarLeftCollapse } from '$lib/icons'
-  import { cn } from '$lib/utils.js'
+  import { cn } from '$lib/utils'
   import type { ComponentProps } from 'svelte'
   import { useSidebar } from './context.svelte.js'
 

@@ -7,7 +7,7 @@
   import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
-  import { Avatar, DropdownMenu, Sheet, ThemeToggle } from '$lib/components'
+  import { Sheet, ThemeToggle } from '$lib/components'
   import {
     IconChartAreaLineFilled,
     IconCopy,
@@ -21,7 +21,6 @@
     IconX,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
-  import { getInitials } from '$lib/utils'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
@@ -81,6 +80,13 @@
       label: 'Scoreboard',
       icon: IconChartAreaLineFilled,
       show: true,
+    },
+    {
+      href: '/profile',
+      activePath: '/profile',
+      label: 'Manage team',
+      icon: IconUserCog,
+      show: !!user,
     },
     {
       href: '/admin/challenges',
@@ -147,59 +153,32 @@
       {/each}
     </nav>
 
-    <div class="flex items-center gap-2 p-4">
-      {#if user}
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger
-            class="hover:bg-background-l2 flex flex-1 cursor-pointer items-center gap-3 rounded-lg"
-          >
-            {#key user.avatarUrl}
-              <Avatar.Root class="size-12 rounded-lg">
-                {#if user.avatarUrl}
-                  <Avatar.Image src={user.avatarUrl} alt={user.name} class="rounded-lg" />
-                {/if}
-                <Avatar.Fallback class="rounded-lg text-sm">
-                  {getInitials(user.name)}
-                </Avatar.Fallback>
-              </Avatar.Root>
-            {/key}
-            <div class="flex flex-1 flex-col overflow-hidden text-left">
-              <span class="text-foreground-l0 truncate text-lg leading-tight">
-                {user.name}
-              </span>
-              <span class="text-foreground-l3 truncate text-sm leading-tight">
-                {user.division ?? 'No Division'}
-              </span>
-            </div>
-          </DropdownMenu.Trigger>
+    <div class="flex items-center justify-between p-4">
+      <ThemeToggle />
 
-          <DropdownMenu.Content align="start" class="w-64">
-            <DropdownMenu.Item onclick={copyTeamToken} class="px-3 py-2 text-base">
-              Copy team token
-              <IconCopy class="ml-auto size-5" />
-            </DropdownMenu.Item>
-            <DropdownMenu.Item onclick={() => navigate('/profile')} class="px-3 py-2 text-base">
-              Manage team
-              <IconUserCog class="ml-auto size-5" />
-            </DropdownMenu.Item>
-            <DropdownMenu.Separator />
-            <DropdownMenu.Item onclick={handleLogout} class="px-3 py-2 text-base">
-              Log out
-              <IconLogout class="ml-auto size-5" />
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
+      {#if user}
+        <div class="flex items-center gap-2">
+          <button
+            onclick={copyTeamToken}
+            class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
+          >
+            <IconCopy class="text-foreground-l2 size-6" />
+          </button>
+          <button
+            onclick={handleLogout}
+            class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
+          >
+            <IconLogout class="text-foreground-l2 size-6" />
+          </button>
+        </div>
       {:else}
         <button
           onclick={() => navigate('/login')}
-          class="text-foreground-l1 hover:bg-background-l2 flex flex-1 items-center gap-3 rounded-lg px-3 py-2.5 text-left"
+          class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
         >
-          <IconLogin class="text-foreground-l2 size-5" />
-          <span class="font-medium">Login</span>
+          <IconLogin class="text-foreground-l2 size-6" />
         </button>
       {/if}
-
-      <ThemeToggle />
     </div>
   </Sheet.Content>
 </Sheet.Root>

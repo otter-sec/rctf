@@ -24,7 +24,7 @@
     IconUserCog,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
-  import { getInitials } from '$lib/utils'
+  import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
@@ -100,12 +100,28 @@
           class="hover:bg-background-l2 flex cursor-pointer items-center gap-3 rounded-lg pl-2"
         >
           <div class="flex flex-col items-end">
-            <span class="text-foreground-l0 text-lg leading-tight">
+            <span class="text-foreground-l0 max-w-64 truncate text-lg leading-tight">
               {user.name}
             </span>
-            <span class="text-foreground-l3 text-sm leading-tight">
-              {user.division ?? 'No Division'}
-            </span>
+            <div class="flex items-center gap-1">
+              {#if user.countryCode}
+                {@const flagFilename = countryCodeToFlagFilename(user.countryCode)}
+                <img
+                  src="/flags/{flagFilename}"
+                  alt="{user.countryCode} flag"
+                  class="h-5 w-auto shrink-0"
+                />
+              {/if}
+              {#if user.countryCode && user.statusText}
+                <span class="text-foreground-l3 text-xl leading-none">·</span>
+              {/if}
+              {#if user.statusText}
+                <span class="text-foreground-l3 max-w-32 truncate text-base">{user.statusText}</span
+                >
+              {:else if !user.countryCode}
+                <span class="text-foreground-l3 text-base">{user.division ?? 'No Division'}</span>
+              {/if}
+            </div>
           </div>
 
           {#key user.avatarUrl}
