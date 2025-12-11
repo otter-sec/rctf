@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { Avatar } from '$lib/components'
+  import { Avatar, Tooltip } from '$lib/components'
   import type { RankVariant } from '$lib/utils'
   import { cn, getInitials, getRankStyles } from '$lib/utils'
+  import { ALL_REGIONS } from '$lib/utils/countries'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
 
@@ -38,6 +39,9 @@
   }: Props = $props()
 
   const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
+  const countryName = $derived(
+    countryCode ? (ALL_REGIONS.find(r => r.code === countryCode)?.name ?? countryCode) : null
+  )
   const styles = $derived(getRankStyles(variant))
 </script>
 
@@ -75,8 +79,13 @@
     {/if}
 
     <div class="flex items-center gap-1">
-      {#if flagFilename && countryCode}
-        <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+      {#if flagFilename && countryCode && countryName}
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+          </Tooltip.Trigger>
+          <Tooltip.Content>{countryName}</Tooltip.Content>
+        </Tooltip.Root>
       {/if}
       {#if flagFilename && countryCode && globalPlace}
         <span class={cn('mx-0.5 text-xl leading-none', styles.fgL1)}>·</span>

@@ -66,7 +66,7 @@
               alt="{selectedRegion.code} flag"
               class="h-6 w-auto shrink-0"
             />
-            <span class="truncate">{selectedRegion.name}</span>
+            <span class="truncate text-base md:text-sm">{selectedRegion.name}</span>
           </span>
         {:else}
           <span class="text-foreground-l3">Select country...</span>

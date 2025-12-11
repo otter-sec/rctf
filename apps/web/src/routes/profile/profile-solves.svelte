@@ -36,7 +36,7 @@
   const solveMap = $derived(new Map(solves.map(s => [s.id, s])))
 
   let searchQuery = $state('')
-  let hideUnsolved = $state(false)
+  let hideSolved = $state(false)
   let sortMode = $state<'category' | 'time' | 'points'>('category')
 
   interface DisplayChallenge {
@@ -92,8 +92,8 @@
       )
     }
 
-    if (hideUnsolved) {
-      filtered = filtered.filter(c => c.isSolved)
+    if (hideSolved) {
+      filtered = filtered.filter(c => !c.isSolved)
     }
 
     return filtered
@@ -226,23 +226,23 @@
       {/if}
       <Tooltip.Root disableCloseOnTriggerClick>
         <Tooltip.Trigger
-          onclick={() => (hideUnsolved = !hideUnsolved)}
-          aria-label={hideUnsolved ? 'Show unsolved challenges' : 'Hide unsolved challenges'}
+          onclick={() => (hideSolved = !hideSolved)}
+          aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
           class={cn(
             'rounded-sm px-4 py-2',
-            hideUnsolved
+            hideSolved
               ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
               : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
           )}
         >
-          {#if hideUnsolved}
+          {#if hideSolved}
             <IconEyeClosed class="size-5" />
           {:else}
             <IconEyeFilled class="size-5" />
           {/if}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>
-          {hideUnsolved ? 'Show unsolved' : 'Hide unsolved'}
+          {hideSolved ? 'Show solved' : 'Hide solved'}
         </Tooltip.Content>
       </Tooltip.Root>
       <Tooltip.Root disableCloseOnTriggerClick>
