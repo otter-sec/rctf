@@ -144,6 +144,14 @@ export const ServerConfigSchema = z.object({
     {}
   ),
 
+  // Moderation
+  avatarsModeration: z.optional(
+    z.object({
+      provider: ProviderConfigSchema,
+      allowOnInternalError: z._default(z.boolean(), true),
+    })
+  ),
+
   // Proxy
   proxy: z.prefault(
     z.object({

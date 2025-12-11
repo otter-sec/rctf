@@ -24,6 +24,7 @@
     "ioredis": "^5.8.2",
     "mustache": "^4.2.0",
     "nodemailer": "^7.0.10",
+    "openai": "^6.10.0",
     "pino": "^10.1.0",
     "postgres": "^3.4.5",
     "sharp": "^0.34.5",

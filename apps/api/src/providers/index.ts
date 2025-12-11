@@ -6,6 +6,7 @@ import { instancerProviders } from './instancer'
 import { scoreProviders } from './scores'
 import { uploadProviders } from './uploads'
 import { messagesProviders } from './messages'
+import { moderationProviders } from './moderation'
 
 const loadProvider = <Base>(
   providers: Record<string, (options: any) => Base>,
@@ -70,4 +71,9 @@ export const captchaProvider = (() => {
 
 export const bloodbotProviders = config.bloodbot?.destinations.map(
   ({ provider }) => loadProvider(messagesProviders, provider)!
+)
+
+export const avatarModerationProvider = loadProvider(
+  moderationProviders,
+  config.avatarsModeration?.provider
 )

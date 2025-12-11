@@ -11,6 +11,7 @@ import {
   BadEnded,
   BadKnownEmail,
   BadKnownName,
+  BadModerationNotPassed,
   BadName,
   BadNotStarted,
   BadRateLimit,
@@ -79,6 +80,7 @@ export const UpdateAvatarRoute = defineRoute({
     BadAvatarFileSize,
     BadCaptcha,
     BadRateLimit,
+    BadModerationNotPassed,
   ],
   authRequired: true,
   body: z.object({

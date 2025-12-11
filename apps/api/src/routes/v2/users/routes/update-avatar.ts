@@ -1,10 +1,27 @@
 import { config } from '@rctf/config'
 import { UpdateAvatarRoute } from '@rctf/types'
 import sharp from 'sharp'
-import { uploadProvider } from '../../../../providers'
+import { avatarModerationProvider, uploadProvider } from '../../../../providers'
 import { rateLimit } from '../../../../services/rate-limit'
 import { updateUserAvatar } from '../../../../services/users'
 import usersGroup from '../group'
+import type { PinoLogger } from 'hono-pino'
+
+const moderateWebp = async (
+  log: PinoLogger,
+  buffer: Buffer
+): Promise<boolean> => {
+  if (!avatarModerationProvider) {
+    return true
+  }
+
+  try {
+    return await avatarModerationProvider.checkWebpImage(buffer)
+  } catch (e) {
+    log.error(e, 'Failed to moderate avatar')
+    return config.avatarsModeration?.allowOnInternalError ?? true
+  }
+}
 
 usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
   let url: string | null = null
@@ -34,6 +51,10 @@ usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
         .toBuffer()
     } catch (e) {
       return res.badAvatarFile()
+    }
+
+    if (!(await moderateWebp(ctx.var.logger, file))) {
+      return res.badModerationNotPassed()
     }
 
     url = await uploadProvider.uploadAvatar(
