@@ -1,14 +1,15 @@
 import type { MessageProvider } from './base'
-import { z } from 'zod/mini'
 
 export default class TelegramMessagesProvider implements MessageProvider {
   private readonly botToken: string
-  private readonly chatId: number
+  private readonly chatId: string | number
+  private readonly threadId: number | undefined
 
   constructor(_options: any) {
     const options = _options as Partial<{
       botToken: string
       chatId: string | number
+      threadId: number
     }>
     if (!options.botToken || !options.chatId) {
       throw new Error(
@@ -17,7 +18,8 @@ export default class TelegramMessagesProvider implements MessageProvider {
     }
 
     this.botToken = options.botToken
-    this.chatId = z.coerce.number().parse(options.chatId)
+    this.chatId = options.chatId
+    this.threadId = options.threadId
   }
 
   escapeText(text: string): string {
@@ -40,6 +42,7 @@ export default class TelegramMessagesProvider implements MessageProvider {
           chat_id: this.chatId,
           text: message,
           parse_mode: 'MarkdownV2',
+          message_thread_id: this.threadId,
         }),
       }
     )
