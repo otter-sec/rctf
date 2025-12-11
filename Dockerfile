@@ -9,6 +9,7 @@ COPY apps/web/package.json ./apps/web/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
+COPY packages/const/package.json ./packages/const/
 
 FROM base AS deps
 
