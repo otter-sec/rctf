@@ -93,7 +93,10 @@ export default class GcsProvider extends UploadProvider {
       const [metadata] = await file.getMetadata()
       return {
         url: this.toUrl(key),
-        size: typeof metadata.size === 'string' ? parseInt(metadata.size, 10) : (metadata.size ?? null),
+        size:
+          typeof metadata.size === 'string'
+            ? parseInt(metadata.size, 10)
+            : (metadata.size ?? null),
       }
     } catch {
       return { url: null, size: null }

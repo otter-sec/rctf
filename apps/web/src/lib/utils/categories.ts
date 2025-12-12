@@ -2,13 +2,14 @@ import {
   IconBinaryTreeFilled,
   IconBombFilled,
   IconCloudComputingFilled,
-  IconCoins,
+  IconCoinFilled,
   IconDice6Filled,
   IconEyeFilled,
   IconFlagFilled,
   IconKeyFilled,
   IconMicroscopeFilled,
   IconPuzzleFilled,
+  IconChessQueenFilled,
   type IconComponent,
 } from '$lib/icons'
 
@@ -27,6 +28,7 @@ export const categoryOrder = [
   'web',
   'misc',
   'ppc',
+  'koth',
   'osint',
 ]
 
@@ -60,7 +62,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   },
   blockchain: {
     name: 'Blockchain',
-    icon: IconCoins,
+    icon: IconCoinFilled,
     color: 'teal',
   },
   web: {
@@ -76,6 +78,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   ppc: {
     name: 'Professional Programming and Coding',
     icon: IconBinaryTreeFilled,
+    color: 'fuchsia',
+  },
+  koth: {
+    name: 'King of the Hill',
+    icon: IconChessQueenFilled,
     color: 'pink',
   },
   osint: {

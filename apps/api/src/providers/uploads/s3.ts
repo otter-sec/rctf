@@ -118,7 +118,10 @@ export default class S3Provider extends UploadProvider {
   override getFileInfo = async (key: string): Promise<FileInfo> => {
     try {
       const response = await this.client.send(
-        new HeadObjectCommand({ Bucket: this.bucketName, Key: `uploads/${key}` })
+        new HeadObjectCommand({
+          Bucket: this.bucketName,
+          Key: `uploads/${key}`,
+        })
       )
       return {
         url: this.toUrl(key),

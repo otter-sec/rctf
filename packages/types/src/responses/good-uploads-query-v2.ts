@@ -13,4 +13,3 @@ export const GoodUploadsQueryV2 = response('goodUploadsQuery', {
     })
   ),
 })
-

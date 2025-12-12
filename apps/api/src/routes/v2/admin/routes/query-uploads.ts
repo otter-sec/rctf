@@ -17,4 +17,3 @@ adminGroup.route(QueryUploadsRouteV2, async ({ body, res }) => {
     )
   )
 })
-
