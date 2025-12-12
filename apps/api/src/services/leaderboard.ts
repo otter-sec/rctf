@@ -84,6 +84,10 @@ export const calculateLeaderboard = async (
   const userInfos = await getUsers(db)
   const challengeInfos = await getChallenges(db)
 
+  for (const [, ch] of challengeInfos) {
+    ch.score = scoreProvider.calculate(ch.minPoints, ch.maxPoints, 0, 0)
+  }
+
   const dbSolves = await db
     .select({
       challengeid: solves.challengeid,
