@@ -21,6 +21,7 @@ export type CategoryConfig = {
 }
 
 export const categoryOrder = [
+  'sanity',
   'pwn',
   'reverse',
   'crypto',
@@ -31,7 +32,6 @@ export const categoryOrder = [
   'ppc',
   'koth',
   'osint',
-  'sanity',
 ]
 
 export const categoryAliases: Record<string, string> = {
@@ -42,6 +42,11 @@ export const categoryAliases: Record<string, string> = {
 }
 
 export const categoryConfigs: Record<string, CategoryConfig> = {
+  sanity: {
+    name: 'Sanity',
+    icon: IconMoodHappyFilled,
+    color: 'teal',
+  },
   pwn: {
     name: 'Binary Exploitation',
     icon: IconBombFilled,
@@ -91,11 +96,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     name: 'OSINT',
     icon: IconEyeFilled,
     color: 'gray',
-  },
-  sanity: {
-    name: 'Sanity',
-    icon: IconMoodHappyFilled,
-    color: 'red',
   },
 }
 
