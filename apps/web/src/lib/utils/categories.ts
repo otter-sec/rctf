@@ -95,7 +95,7 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
     icon: IconMoodHappyFilled,
-    color: 'amber',
+    color: 'red',
   },
 }
 
