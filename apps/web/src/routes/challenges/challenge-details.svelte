@@ -36,13 +36,15 @@
               <IconFileInfoFilled class="size-4" />
               Details
             </Tabs.Trigger>
-            <Tabs.Trigger
-              value="solves"
-              class="data-[state=active]:bg-background-l2 rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:shadow-none"
-            >
-              <IconTrophyFilled class="size-4" />
-              Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
-            </Tabs.Trigger>
+            {#if challenge.hasFlag}
+              <Tabs.Trigger
+                value="solves"
+                class="data-[state=active]:bg-background-l2 rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:shadow-none"
+              >
+                <IconTrophyFilled class="size-4" />
+                Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
+              </Tabs.Trigger>
+            {/if}
           </Tabs.List>
         </div>
 
@@ -50,20 +52,24 @@
           <Tabs.Content value="details" class="h-full">
             <ChallengeDetailsOverview {challenge} />
           </Tabs.Content>
-          <Tabs.Content value="solves" class="h-full">
-            <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
-          </Tabs.Content>
+          {#if challenge.hasFlag}
+            <Tabs.Content value="solves" class="h-full">
+              <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
+            </Tabs.Content>
+          {/if}
         </div>
       </Tabs.Root>
 
-      <div class="bg-background-l2 flex flex-col gap-2 px-5 py-4">
-        {#if tab === 'details'}
-          <ChallengeDetailsPodium {challenge} {isSolved} />
-        {:else if tab === 'solves' && !userVisible}
-          <ChallengeDetailsSolvesSelf {challenge} />
-        {/if}
-        <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
-      </div>
+      {#if challenge.hasFlag}
+        <div class="bg-background-l2 flex flex-col gap-2 px-5 py-4">
+          {#if tab === 'details'}
+            <ChallengeDetailsPodium {challenge} {isSolved} />
+          {:else if tab === 'solves' && !userVisible}
+            <ChallengeDetailsSolvesSelf {challenge} />
+          {/if}
+          <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
+        </div>
+      {/if}
     </div>
   {/key}
 {:else}

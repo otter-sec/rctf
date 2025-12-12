@@ -29,6 +29,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
           Boolean(config.instancerProvider)
             ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
             : null,
+        hasFlag: Boolean(item.data.flag),
       }
     })
   )

@@ -39,13 +39,17 @@
         </div>
       </div>
     </div>
-    <div class="flex shrink-0 flex-col items-end">
-      <h2 class="text-right text-xl whitespace-nowrap tabular-nums sm:text-2xl">
-        {challenge.points?.toLocaleString() ?? '0'} pts
-      </h2>
-      <p class="text-foreground-l3 text-right text-sm whitespace-nowrap tabular-nums sm:text-base">
-        {challenge.solves?.toLocaleString() ?? '0'} solves
-      </p>
-    </div>
+    {#if challenge.hasFlag}
+      <div class="flex shrink-0 flex-col items-end">
+        <h2 class="text-right text-xl whitespace-nowrap tabular-nums sm:text-2xl">
+          {challenge.points?.toLocaleString() ?? '0'} pts
+        </h2>
+        <p
+          class="text-foreground-l3 text-right text-sm whitespace-nowrap tabular-nums sm:text-base"
+        >
+          {challenge.solves?.toLocaleString() ?? '0'} solves
+        </p>
+      </div>
+    {/if}
   </div>
 </div>

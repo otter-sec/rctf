@@ -46,23 +46,25 @@
         {challenge.author}
       </span>
     </div>
-    <div
-      class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
-    >
-      {#if challenge.points !== null}
-        <div class="text-xl whitespace-nowrap tabular-nums">
-          <span class="text-category-foreground-l0">{challenge.points}</span>
-          <span class="text-category-foreground-l1">pts</span>
-        </div>
-      {/if}
-      {#if challenge.solves !== null}
-        <span
-          class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
-        >
-          {challenge.solves}
-          {challenge.solves === 1 ? 'solve' : 'solves'}
-        </span>
-      {/if}
-    </div>
+    {#if challenge.hasFlag}
+      <div
+        class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
+      >
+        {#if challenge.points !== null}
+          <div class="text-xl whitespace-nowrap tabular-nums">
+            <span class="text-category-foreground-l0">{challenge.points}</span>
+            <span class="text-category-foreground-l1">pts</span>
+          </div>
+        {/if}
+        {#if challenge.solves !== null}
+          <span
+            class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
+          >
+            {challenge.solves}
+            {challenge.solves === 1 ? 'solve' : 'solves'}
+          </span>
+        {/if}
+      </div>
+    {/if}
   </button>
 </li>
