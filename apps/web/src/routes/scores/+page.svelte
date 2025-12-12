@@ -62,8 +62,8 @@
 
   const viewMode = $derived.by(() => {
     const v = pageState.url.searchParams.get('view')
-    if (v === 'categories' || v === 'minimal') return v as ViewMode
-    if (v === null && savedPrefs.viewMode) return savedPrefs.viewMode
+    if (v === 'challenges' || v === 'categories' || v === 'minimal') return v as ViewMode
+    if (savedPrefs.viewMode) return savedPrefs.viewMode
     return 'challenges' as ViewMode
   })
 
@@ -83,7 +83,9 @@
 
   function setViewMode(v: ViewMode) {
     savePreferences({ viewMode: v })
-    setParam('view', v, 'challenges')
+    const url = new URL(pageState.url)
+    url.searchParams.set('view', v)
+    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
   }
 
   function setSortMode(s: SortMode) {
