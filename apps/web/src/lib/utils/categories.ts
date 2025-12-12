@@ -10,6 +10,7 @@ import {
   IconMicroscopeFilled,
   IconPuzzleFilled,
   IconChessQueenFilled,
+  IconMoodHappyFilled,
   type IconComponent,
 } from '$lib/icons'
 
@@ -30,6 +31,7 @@ export const categoryOrder = [
   'ppc',
   'koth',
   'osint',
+  'sanity',
 ]
 
 export const categoryAliases: Record<string, string> = {
@@ -89,6 +91,11 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
     name: 'OSINT',
     icon: IconEyeFilled,
     color: 'gray',
+  },
+  sanity: {
+    name: 'Sanity',
+    icon: IconMoodHappyFilled,
+    color: 'amber',
   },
 }
 
