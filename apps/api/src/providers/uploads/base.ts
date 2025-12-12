@@ -6,12 +6,18 @@ export const encodeKey = (key: string): string => {
   return components.map(encodeURIComponent).join('/')
 }
 
+export interface FileInfo {
+  url: string | null
+  size: number | null
+}
+
 export abstract class UploadProvider {
   abstract startupWebPart(app: Hono<AppEnv>): Promise<void>
 
   abstract uploadFile: (data: Buffer, key: string) => Promise<string>
   abstract deleteFile: (key: string) => Promise<void>
   abstract getFileUrl: (key: string) => Promise<string | null>
+  abstract getFileInfo: (key: string) => Promise<FileInfo>
 
   private getAttachmentKey(hash: string, name: string): string {
     return `${hash}/${name}`
@@ -32,6 +38,10 @@ export abstract class UploadProvider {
 
   async getAttachmentUrl(sha256: string, name: string): Promise<string | null> {
     return this.getFileUrl(this.getAttachmentKey(sha256, name))
+  }
+
+  async getAttachmentInfo(sha256: string, name: string): Promise<FileInfo> {
+    return this.getFileInfo(this.getAttachmentKey(sha256, name))
   }
 
   async uploadAvatar(

@@ -1,7 +1,7 @@
 import { Bucket, File, Storage } from '@google-cloud/storage'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
-import { encodeKey, UploadProvider } from './base'
+import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 interface GcsProviderOptions {
   projectId: string
@@ -85,5 +85,18 @@ export default class GcsProvider extends UploadProvider {
   protected override extractKeyFromUrl(url: string): string | null {
     const match = url.match(/\.storage\.googleapis\.com\/uploads\/(.+)$/)
     return match?.[1] ? decodeURIComponent(match[1]) : null
+  }
+
+  override getFileInfo = async (key: string): Promise<FileInfo> => {
+    const file = this.getGcsFile(key)
+    try {
+      const [metadata] = await file.getMetadata()
+      return {
+        url: this.toUrl(key),
+        size: typeof metadata.size === 'string' ? parseInt(metadata.size, 10) : (metadata.size ?? null),
+      }
+    } catch {
+      return { url: null, size: null }
+    }
   }
 }

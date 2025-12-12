@@ -17,6 +17,7 @@ import {
   GoodCreateUserTokenV2,
   GoodFilesUploadV2,
   GoodInstancerSchema,
+  GoodUploadsQueryV2,
 } from '../../responses'
 import {
   ChallengeFileSchemaV2,
@@ -115,6 +116,23 @@ export const GetInstancerSchemaRouteV2 = defineRoute({
   method: 'GET',
   goodResponses: [GoodInstancerSchema],
   badResponses: [BadEndpoint, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
+})
+
+export const QueryUploadsRouteV2 = defineRoute({
+  path: '/v2/admin/upload/query',
+  method: 'POST',
+  body: z.object({
+    uploads: z.array(
+      z.object({
+        sha256: z.string(),
+        name: z.string(),
+      })
+    ),
+  }),
+  goodResponses: [GoodUploadsQueryV2],
+  badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })

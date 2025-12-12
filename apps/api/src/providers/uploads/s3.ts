@@ -6,7 +6,7 @@ import {
 } from '@aws-sdk/client-s3'
 import type { Hono } from 'hono'
 import type { AppEnv } from '../../lib/app-env'
-import { encodeKey, UploadProvider } from './base'
+import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 interface S3ProviderOptions {
   bucketName: string
@@ -113,5 +113,19 @@ export default class S3Provider extends UploadProvider {
   protected override extractKeyFromUrl(url: string): string | null {
     const match = url.match(/\.amazonaws\.com\/uploads\/(.+)$/)
     return match?.[1] ? decodeURIComponent(match[1]) : null
+  }
+
+  override getFileInfo = async (key: string): Promise<FileInfo> => {
+    try {
+      const response = await this.client.send(
+        new HeadObjectCommand({ Bucket: this.bucketName, Key: `uploads/${key}` })
+      )
+      return {
+        url: this.toUrl(key),
+        size: response.ContentLength ?? null,
+      }
+    } catch {
+      return { url: null, size: null }
+    }
   }
 }

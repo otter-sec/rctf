@@ -3,7 +3,7 @@ import path from 'path'
 import type { Hono } from 'hono'
 import { serveStatic } from 'hono/bun'
 import type { AppEnv } from '../../lib/app-env'
-import { encodeKey, UploadProvider } from './base'
+import { encodeKey, UploadProvider, type FileInfo } from './base'
 
 export default class LocalProvider extends UploadProvider {
   private readonly uploadDirectory: string
@@ -63,5 +63,17 @@ export default class LocalProvider extends UploadProvider {
       return null
     }
     return `/uploads/${encodeKey(key)}`
+  }
+
+  override getFileInfo = async (key: string): Promise<FileInfo> => {
+    try {
+      const stats = await fs.promises.stat(path.join(this.uploadDirectory, key))
+      return {
+        url: `/uploads/${encodeKey(key)}`,
+        size: stats.size,
+      }
+    } catch {
+      return { url: null, size: null }
+    }
   }
 }
