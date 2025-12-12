@@ -10,7 +10,7 @@
   import {
     IconCheck,
     IconClockFilled,
-    IconCoins,
+    IconCoinFilled,
     IconEyeClosed,
     IconEyeFilled,
     IconFlagFilled,
@@ -256,7 +256,7 @@
           {:else if sortMode === 'time'}
             <IconClockFilled class="size-5" />
           {:else}
-            <IconCoins class="size-5" />
+            <IconCoinFilled class="size-5" />
           {/if}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>{sortLabel}</Tooltip.Content>
