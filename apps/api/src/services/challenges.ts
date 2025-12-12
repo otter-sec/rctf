@@ -354,7 +354,7 @@ export const submitFlag = async (
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
   const challenge = await getChallenge(db, params.challengeId)
-  if (!challenge) {
+  if (!challenge || !challenge.data.flag) {
     return res.badChallenge()
   }
 
