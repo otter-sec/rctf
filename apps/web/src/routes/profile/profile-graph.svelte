@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { LeaderboardGraphEntry } from '@rctf/types'
   import { Chart, type ChartConfig } from '$lib/components'
+  import { useClientConfig } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
   import { CUTOFF_TIME } from '../scores/constants'
@@ -12,6 +13,9 @@
   }
 
   let { class: className = '', graphData, rank }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   const color = $derived.by(() => {
     if (rank === 1) return 'var(--foreground-gold-l0)'
@@ -33,7 +37,7 @@
       }))
   )
 
-  const startTime = $derived(flatPoints.length > 0 ? Math.min(...flatPoints.map(p => p.time)) : 0)
+  const startTime = $derived(clientConfig?.startTime ?? 0)
 
   const chartConfig = $derived<ChartConfig>({
     [graphData.id]: { label: graphData.name, color },

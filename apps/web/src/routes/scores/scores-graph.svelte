@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Chart, type ChartConfig } from '$lib/components'
-  import { useCurrentUser, useLeaderboardWithGraph, useSelfUserGraph } from '$lib/query'
+  import { useClientConfig, useCurrentUser, useLeaderboardWithGraph, useSelfUserGraph } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
@@ -29,6 +29,9 @@
     graphData,
     showTop3Context = true,
   }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
 
   const userQuery = useCurrentUser()
   const currentUser = $derived($userQuery.data)
@@ -127,12 +130,11 @@
         }))
     })
 
-    const startTime = flatPoints.length > 0 ? Math.min(...flatPoints.map(p => p.time)) : 0
-
-    return { allTeams, teamMeta, flatPoints, startTime }
+    return { allTeams, teamMeta, flatPoints }
   })
 
-  const { flatPoints, teamMeta, startTime } = $derived(processedData)
+  const { flatPoints, teamMeta } = $derived(processedData)
+  const startTime = $derived(clientConfig?.startTime ?? 0)
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
   const solveHighlightPoint = $derived.by(() => {
