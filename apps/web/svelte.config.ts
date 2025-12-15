@@ -17,6 +17,18 @@ const config: Config = {
         cfg.extends = '../../../tsconfig.json'
       },
     },
+    csp: {
+      directives: {
+        'default-src': ['none'],
+        'script-src': ['self', 'static.cloudflareinsights.com', 'www.google.com', 'www.gstatic.com', 'js.hcaptcha.com', 'challenges.cloudflare.com'],
+        'style-src': ['self', 'unsafe-inline'],
+        'connect-src': ['self', 'cloudflareinsights.com'],
+        'img-src': ['*', 'blob:'],
+        'font-src': ['self'],
+        'frame-src': ['https://www.youtube.com', 'https://youtube.com', 'https://www.youtube-nocookie.com', 'https://www.google.com', 'https://newassets.hcaptcha.com', 'https://challenges.cloudflare.com'],
+        'frame-ancestors': ['self'],
+      },
+    },
   },
 }
 
