@@ -210,16 +210,16 @@ export const calculateLeaderboard = async (
     samples.push({ time: t, userScores })
   }
 
-  const graphSampleTime = config.leaderboard.graphSampleTime
+  const graphSampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
+  const end = Math.min(
+    Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
+    now
+  )
   if (graphSampleTime > 0 && dbSolves.length > 0) {
     const firstSolveTime = new Date(dbSolves[0]!.createdat).valueOf()
     const effectiveStart = Math.max(config.startTime, firstSolveTime)
 
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
-    const end = Math.min(
-      Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
-      now
-    )
 
     for (let i = start; i <= end; i += graphSampleTime) {
       runSample(i)
@@ -230,9 +230,9 @@ export const calculateLeaderboard = async (
     }
   }
 
-  // Run up to now (but dedupe if scores are the same)
-  if (now < config.endTime) {
-    runSample(now)
+  // Run up to now, or if end time can't be reached by adding sample times
+  if (solveIndex < dbSolves.length || end !== config.endTime) {
+    runSample(Math.min(now, config.endTime))
   }
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
@@ -258,7 +258,7 @@ export const calculateLeaderboard = async (
   }
 
   return {
-    leaderboardUpdate: now,
+    leaderboardUpdate: Math.min(now, config.endTime),
     users: Array.from(userInfos.values())
       .filter(u => u.lastSolve !== undefined)
       .sort(compareUsers)
