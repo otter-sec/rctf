@@ -272,3 +272,4 @@ output "bucket" {
 - gcs tf now needs a `storage.objects.delete` permission
 - added bloodbot
 - avatars moderation
+- rocket loader / cf analytics are not supported due to inconvenient CSP rules
