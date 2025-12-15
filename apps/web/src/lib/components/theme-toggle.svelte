@@ -54,9 +54,9 @@
       class="bg-background-l2 hover:bg-background-l4 flex items-center justify-center rounded-lg px-4 py-3"
     >
       {#if theme === 'dark'}
-        <IconSunHighFilled class="size-6 text-foreground-l2" />
+        <IconSunHighFilled class="text-foreground-l2 size-6" />
       {:else}
-        <IconMoonFilled class="size-6 text-foreground-l2" />
+        <IconMoonFilled class="text-foreground-l2 size-6" />
       {/if}
     </button>
   </Tooltip.Trigger>

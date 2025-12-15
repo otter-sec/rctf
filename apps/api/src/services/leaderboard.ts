@@ -231,7 +231,9 @@ export const calculateLeaderboard = async (
   }
 
   // Run up to now (but dedupe if scores are the same)
-  runSample(now)
+  if (now < config.endTime) {
+    runSample(now)
+  }
 
   const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     // 1. Score difference
