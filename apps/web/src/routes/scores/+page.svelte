@@ -557,7 +557,7 @@
             {:else if entries.length === 0}
               <div
                 class={cn(
-                  'bg-background-l1 rounded-lg',
+                  'bg-background-l1 rounded-b-3xl',
                   viewMode === 'minimal' ? 'w-full' : 'w-fit min-w-(--team-column-width)'
                 )}
               >
