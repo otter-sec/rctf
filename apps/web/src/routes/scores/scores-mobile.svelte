@@ -1,11 +1,12 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { Avatar, ScrollArea } from '$lib/components'
+  import { Avatar, EmptyState, ScrollArea } from '$lib/components'
   import {
     IconChevronLeft,
     IconChevronLeftPipe,
     IconChevronRight,
     IconChevronRightPipe,
+    IconMoodWrrrFilled,
     IconTriangleFilled,
     IconTriangleInvertedFilled,
   } from '$lib/icons'
@@ -217,6 +218,14 @@
             </div>
           </div>
         {/each}
+      {:else if entries.length === 0}
+        <div class="bg-background-l1 rounded-lg">
+          <EmptyState
+            icon={IconMoodWrrrFilled}
+            title="No solves yet"
+            subtitle="The leaderboard will populate as teams solve challenges"
+          />
+        </div>
       {:else}
         {#each entries as entry, i (entry.id)}
           {@const rank = (page - 1) * PAGE_SIZE + i + 1}

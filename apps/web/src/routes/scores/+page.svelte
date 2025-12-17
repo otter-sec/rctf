@@ -2,8 +2,8 @@
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
-  import { IconCircleDashed } from '$lib/icons'
-  import { CtfNotStarted, ScrollArea } from '$lib/components'
+  import { IconCircleDashed, IconMoodWrrrFilled } from '$lib/icons'
+  import { CtfNotStarted, EmptyState, ScrollArea } from '$lib/components'
   import {
     ApiError,
     useClientConfig,
@@ -554,6 +554,19 @@
                   {/if}
                 </div>
               {/each}
+            {:else if entries.length === 0}
+              <div
+                class={cn(
+                  'bg-background-l1 rounded-lg',
+                  viewMode === 'minimal' ? 'w-full' : 'w-fit min-w-(--team-column-width)'
+                )}
+              >
+                <EmptyState
+                  icon={IconMoodWrrrFilled}
+                  title="No solves yet"
+                  subtitle="The leaderboard will populate as teams solve challenges"
+                />
+              </div>
             {:else}
               {#each entries as entry, i (entry.id)}
                 {@const rank = (page - 1) * PAGE_SIZE + i + 1}
