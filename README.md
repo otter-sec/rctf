@@ -137,11 +137,13 @@ rCTF v1 frontend with rCTF v2 backend:
 - [ ] send prize emails (admin only)
 - [x] file sizes
 
-- [ ] add csp headers
+- [x] add csp headers
 
-- [x] instancer integration
+- [ ] instancer integration
+- - [x] docker
+- - [ ] k8s
 - [ ] admin bot integration
-- [ ] blood bot integration
+- [x] blood bot integration
 
 - [ ] discord auth
 
@@ -272,4 +274,3 @@ output "bucket" {
 - gcs tf now needs a `storage.objects.delete` permission
 - added bloodbot
 - avatars moderation
-- rocket loader / cf analytics are not supported due to inconvenient CSP rules
