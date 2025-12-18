@@ -8,6 +8,7 @@
     InstanceStatus,
     ProtectedAction,
   } from '@rctf/types'
+  import { onMount } from 'svelte'
   import { apiRequest } from '$lib/api'
   import { Button, Progress } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
@@ -116,7 +117,7 @@
     actioning = false
   }
 
-  $effect(() => {
+  onMount(() => {
     fetchStatus()
     const tick = setInterval(() => {
       if (status === InstanceStatus.RUNNING && timeLeft !== null && timeLeft > 0) {

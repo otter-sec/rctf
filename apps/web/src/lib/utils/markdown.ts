@@ -51,7 +51,7 @@ const alertExtension: TokenizerAndRendererExtension = {
   },
   renderer(token) {
     const { alertType, content } = token
-    const parsed = marked.parse(content) as string
+    const parsed = DOMPurify.sanitize(marked.parse(content) as string)
     return `<div data-alert data-type="${alertType}" data-content="${escapeHtml(content)}" data-parsed="${escapeHtml(parsed)}"></div>`
   },
 }

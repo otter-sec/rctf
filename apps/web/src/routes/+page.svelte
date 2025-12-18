@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Card } from '$lib/components'
-  import { marked } from 'marked'
+  import { parseMarkdown } from '$lib/utils'
 
   let { data } = $props()
 </script>
@@ -12,7 +12,7 @@
     </Card.Header>
     <Card.Content>
       <div class="prose max-w-none">
-        {@html marked(data.clientConfig.homeContent)}
+        {@html parseMarkdown(data.clientConfig.homeContent)}
       </div>
     </Card.Content>
   </Card.Root>
@@ -30,7 +30,7 @@
               <div class="flex flex-col gap-1">
                 <h3 class="font-medium">{sponsor.name}</h3>
                 <div class="prose max-w-none">
-                  {@html marked(sponsor.description)}
+                  {@html parseMarkdown(sponsor.description)}
                 </div>
               </div>
             </article>
