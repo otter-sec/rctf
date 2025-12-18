@@ -149,6 +149,8 @@ rCTF v1 frontend with rCTF v2 backend:
 
 - [ ] ticket bot?
 
+- [ ] analytics (google, cloudflare, something else?)
+
 ## New features compared to v1
 
 - No more verify.recover token type, we just use team tokens from now on

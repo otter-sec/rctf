@@ -33,8 +33,6 @@ const config: Config = {
             'default-src': ['none'],
             'script-src': [
               'self',
-              // cloudflare analytics
-              'https://static.cloudflareinsights.com',
               // recaptcha
               'https://www.google.com/recaptcha/',
               'https://www.gstatic.com/recaptcha/',
@@ -53,8 +51,6 @@ const config: Config = {
             ],
             'connect-src': [
               'self',
-              // cloudflare analytics
-              'https://cloudflareinsights.com',
               // hcaptcha
               'https://hcaptcha.com',
               'https://*.hcaptcha.com',
