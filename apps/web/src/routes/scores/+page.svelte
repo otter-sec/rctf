@@ -2,7 +2,7 @@
   import { browser } from '$app/environment'
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
-  import { IconCircleDashed, IconMoodWrrrFilled } from '$lib/icons'
+  import { IconMoodWrrrFilled } from '$lib/icons'
   import { CtfNotStarted, EmptyState, ScrollArea } from '$lib/components'
   import {
     ApiError,
@@ -23,6 +23,7 @@
   import ScoresSolveTooltip from './scores-solve-tooltip.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
+  import SkeletonRow from './skeleton-row.svelte'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   const STORAGE_KEY = 'rctf:scores:preferences'
@@ -184,100 +185,56 @@
 
   const sparklineDataByTeam = $derived.by(() => {
     const selfGraphData = $selfGraphQuery.data
+    const filterPoints = (points: { time: number; score: number }[], minTime = 0) =>
+      points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
-    const allPoints: { time: number; score: number }[][] = []
+    const allTeams =
+      selfGraphData && !graphData.some(t => t.id === selfGraphData.id)
+        ? [...graphData, selfGraphData]
+        : graphData
 
-    for (const team of graphData) {
-      const filtered = team.points
-        .filter(p => p.time <= CUTOFF_TIME)
-        .map(p => ({ time: p.time, score: p.score }))
-      allPoints.push(filtered)
-    }
-
-    if (selfGraphData) {
-      const filtered = selfGraphData.points
-        .filter(p => p.time <= CUTOFF_TIME)
-        .map(p => ({ time: p.time, score: p.score }))
-      allPoints.push(filtered)
-    }
-
-    const maxTime = Math.max(...allPoints.flatMap(pts => pts.map(p => p.time)), 0)
+    const maxTime = Math.max(...allTeams.flatMap(t => filterPoints(t.points).map(p => p.time)), 0)
     const windowStart = maxTime - SPARKLINE_WINDOW
 
-    const result = new Map<string, { time: number; score: number }[]>()
-
-    for (const team of graphData) {
-      const filtered = team.points
-        .filter(p => p.time >= windowStart && p.time <= CUTOFF_TIME)
-        .map(p => ({ time: p.time, score: p.score }))
-      result.set(team.id, filtered)
-    }
-
-    if (selfGraphData && !result.has(selfGraphData.id)) {
-      const filtered = selfGraphData.points
-        .filter(p => p.time >= windowStart && p.time <= CUTOFF_TIME)
-        .map(p => ({ time: p.time, score: p.score }))
-      result.set(selfGraphData.id, filtered)
-    }
-
-    return result
+    return new Map(allTeams.map(team => [team.id, filterPoints(team.points, windowStart)]))
   })
 
   const rankDeltaByTeam = $derived.by(() => {
     const selfGraphData = $selfGraphQuery.data
-    const result = new Map<string, number>()
-
     const allPoints = graphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
-    if (allPoints.length === 0) return result
+    if (allPoints.length === 0) return new Map<string, number>()
 
     const currentTime = Math.max(...allPoints.map(p => p.time))
     const pastTime = currentTime - DELTA_WINDOW
 
-    function getScoreAtTime(points: { time: number; score: number }[], targetTime: number): number {
-      const filtered = points.filter(p => p.time <= targetTime && p.time <= CUTOFF_TIME)
-      if (filtered.length === 0) return 0
-      const latest = filtered.reduce<{ time: number; score: number } | null>(
-        (max, p) => (!max || p.time > max.time ? p : max),
-        null
-      )
-      return latest?.score ?? 0
+    const getLatestScore = (points: { time: number; score: number }[], targetTime: number) => {
+      const valid = points.filter(p => p.time <= targetTime && p.time <= CUTOFF_TIME)
+      if (!valid.length) return 0
+      return valid.reduce((latest, p) => (p.time > latest.time ? p : latest)).score
     }
 
-    const teamsWithScores: { id: string; currentScore: number; pastScore: number }[] = []
+    const allTeams =
+      selfGraphData && !graphData.some(t => t.id === selfGraphData.id)
+        ? [...graphData, selfGraphData]
+        : graphData
 
-    for (const team of graphData) {
-      const currentScore = getScoreAtTime(team.points, currentTime)
-      const pastScore = getScoreAtTime(team.points, pastTime)
-      teamsWithScores.push({ id: team.id, currentScore, pastScore })
-    }
+    const teamsWithScores = allTeams.map(team => ({
+      id: team.id,
+      currentScore: getLatestScore(team.points, currentTime),
+      pastScore: getLatestScore(team.points, pastTime),
+    }))
 
-    if (selfGraphData && !teamsWithScores.some(t => t.id === selfGraphData.id)) {
-      const currentScore = getScoreAtTime(selfGraphData.points, currentTime)
-      const pastScore = getScoreAtTime(selfGraphData.points, pastTime)
-      teamsWithScores.push({ id: selfGraphData.id, currentScore, pastScore })
-    }
+    const getRanks = (key: 'currentScore' | 'pastScore') =>
+      new Map([...teamsWithScores].sort((a, b) => b[key] - a[key]).map((t, i) => [t.id, i + 1]))
 
-    const currentRanks = [...teamsWithScores]
-      .sort((a, b) => b.currentScore - a.currentScore)
-      .map((t, i) => ({ id: t.id, rank: i + 1 }))
-    const currentRankMap = new Map(currentRanks.map(t => [t.id, t.rank]))
+    const currentRankMap = getRanks('currentScore')
+    const pastRankMap = getRanks('pastScore')
 
-    const pastRanks = [...teamsWithScores]
-      .sort((a, b) => b.pastScore - a.pastScore)
-      .map((t, i) => ({ id: t.id, rank: i + 1 }))
-    const pastRankMap = new Map(pastRanks.map(t => [t.id, t.rank]))
-
-    for (const team of teamsWithScores) {
-      const currentRank = currentRankMap.get(team.id) ?? 0
-      const pastRank = pastRankMap.get(team.id) ?? 0
-
-      const delta = pastRank - currentRank
-      if (delta !== 0) {
-        result.set(team.id, delta)
-      }
-    }
-
-    return result
+    return new Map(
+      teamsWithScores
+        .map(t => [t.id, (pastRankMap.get(t.id) ?? 0) - (currentRankMap.get(t.id) ?? 0)] as const)
+        .filter(([, delta]) => delta !== 0)
+    )
   })
 
   let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
@@ -313,22 +270,14 @@
   }
 
   function getCategoryStats(teamId: string, group: CategoryGroup) {
-    const solves = solvesByTeam.get(teamId)
-    const solved = group.challenges.filter(c => solves?.has(c.id)).length
+    const isSelf = teamId === currentUser?.id
+    const solvedCount = isSelf
+      ? group.challenges.filter(c => currentUser!.solves.some(s => s.id === c.id)).length
+      : group.challenges.filter(c => solvesByTeam.get(teamId)?.has(c.id)).length
     return {
-      solved,
+      solved: solvedCount,
       total: group.challenges.length,
-      percent: (solved / group.challenges.length) * 100,
-    }
-  }
-
-  function getSelfCategoryStats(group: CategoryGroup) {
-    if (!currentUser) return { solved: 0, total: group.challenges.length, percent: 0 }
-    const solved = group.challenges.filter(c => currentUser.solves.some(s => s.id === c.id)).length
-    return {
-      solved,
-      total: group.challenges.length,
-      percent: (solved / group.challenges.length) * 100,
+      percent: (solvedCount / group.challenges.length) * 100,
     }
   }
 
@@ -460,101 +409,17 @@
           <div class="flex flex-col gap-1">
             {#if $leaderboardQuery.isLoading && $challengesQuery.isLoading}
               {#each Array(PAGE_SIZE) as _}
-                <div
-                  class={cn(
-                    'bg-background-l2 data-row flex rounded-lg',
-                    viewMode === 'minimal' ? 'w-full' : 'w-fit'
-                  )}
-                >
-                  <div
-                    class="col-team sticky left-0 z-10 flex h-16 items-center gap-2 rounded-lg px-4"
-                  >
-                    <div class="flex shrink-0 items-center">
-                      <div class="w-6"></div>
-                      <div class="flex w-16 flex-col items-center gap-1">
-                        <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                        {#if showDivision}
-                          <div class="bg-background-l3 h-4 w-8 rounded"></div>
-                        {/if}
-                      </div>
-                    </div>
-                    <div class="bg-background-l3 size-12 shrink-0 rounded-lg"></div>
-                    <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
-                      {#if showDivision}
-                        <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
-                      {/if}
-                    </div>
-                    <div class="flex shrink-0 items-center gap-4">
-                      <div class="flex w-28 flex-col items-end gap-1">
-                        <div class="bg-background-l3 h-5 w-20 rounded"></div>
-                        <div class="bg-background-l3 h-4 w-14 rounded"></div>
-                      </div>
-                      <div class="flex h-10 w-24 items-center justify-center">
-                        <div
-                          class="to-foreground-l5/20 h-0.5 w-full rounded-full bg-linear-to-r from-transparent"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <SkeletonRow {showDivision} isMinimal={viewMode === 'minimal'} />
               {/each}
             {:else if $leaderboardQuery.isLoading}
               {@const colCount =
                 viewMode === 'categories' ? categoryGroups.length : challenges.length}
               {#each Array(PAGE_SIZE) as _}
-                <div
-                  class={cn(
-                    'bg-background-l2 data-row flex rounded-lg',
-                    viewMode === 'minimal' ? 'w-full' : 'w-fit'
-                  )}
-                >
-                  <div
-                    class={cn(
-                      'col-team bg-background-l2 sticky left-0 z-10 flex h-16 items-center gap-2 px-4',
-                      viewMode === 'minimal' ? 'rounded-lg' : 'rounded-l-lg'
-                    )}
-                  >
-                    <div class="flex shrink-0 items-center">
-                      <div class="w-6"></div>
-                      <div class="flex w-16 flex-col items-center gap-1">
-                        <div class="bg-background-l3 h-5 w-10 rounded"></div>
-                        {#if showDivision}
-                          <div class="bg-background-l3 h-4 w-8 rounded"></div>
-                        {/if}
-                      </div>
-                    </div>
-                    <div class="bg-background-l3 size-12 shrink-0 rounded-lg"></div>
-                    <div class="flex min-w-0 flex-1 flex-col gap-1">
-                      <div class="bg-background-l3 h-5 w-32 max-w-full rounded"></div>
-                      {#if showDivision}
-                        <div class="bg-background-l3 h-4 w-20 max-w-full rounded"></div>
-                      {/if}
-                    </div>
-                    <div class="flex shrink-0 items-center gap-4">
-                      <div class="flex w-28 flex-col items-end gap-1">
-                        <div class="bg-background-l3 h-5 w-20 rounded"></div>
-                        <div class="bg-background-l3 h-4 w-14 rounded"></div>
-                      </div>
-                      <div class="flex h-10 w-24 items-center justify-center">
-                        <div
-                          class="to-foreground-l5/20 h-0.5 w-full rounded-full bg-linear-to-r from-transparent"
-                        ></div>
-                      </div>
-                    </div>
-                  </div>
-                  {#if viewMode !== 'minimal'}
-                    <div
-                      class="bg-background-l2 mr-(--diagonal-overflow) flex gap-1 rounded-r-md pr-4 pl-1"
-                    >
-                      {#each Array(colCount) as _}
-                        <div class="bg-background-l2 flex h-16 w-12 items-center justify-center">
-                          <IconCircleDashed class="text-foreground-l5/25 size-7" />
-                        </div>
-                      {/each}
-                    </div>
-                  {/if}
-                </div>
+                <SkeletonRow
+                  {showDivision}
+                  isMinimal={viewMode === 'minimal'}
+                  colCount={viewMode !== 'minimal' ? colCount : 0}
+                />
               {/each}
             {:else if entries.length === 0}
               <div
@@ -660,7 +525,7 @@
                     {challenges}
                     getSolves={cid => currentUser.solves.some(s => s.id === cid)}
                     getSolveTime={cid => currentUser.solves.find(s => s.id === cid)?.createdAt}
-                    getCategoryStats={getSelfCategoryStats}
+                    getCategoryStats={group => getCategoryStats(currentUser.id, group)}
                     getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
                     onCellHover={handleCellHover}
                   />

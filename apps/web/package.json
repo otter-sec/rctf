@@ -13,8 +13,8 @@
     "typecheck": "bun run check"
   },
   "dependencies": {
-    "@rctf/types": "workspace:*",
     "@rctf/const": "workspace:*",
+    "@rctf/types": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
     "@tanstack/svelte-virtual": "^3.13.13",
     "@types/d3-array": "^3.2.2",

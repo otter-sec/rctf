@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Avatar, Tooltip } from '$lib/components'
-  import { IconTriangleFilled, IconTriangleInvertedFilled } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
   import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
   import { ALL_REGIONS } from '@rctf/const'
+  import DeltaIndicator from './delta-indicator.svelte'
   import Sparkline from './sparkline.svelte'
 
   interface Props {
@@ -55,20 +55,6 @@
   )
 </script>
 
-{#snippet deltaIndicator()}
-  {#if delta && delta > 0}
-    <div class="text-foreground-success flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleFilled class="size-2.5" />
-      <span>{delta}</span>
-    </div>
-  {:else if delta && delta < 0}
-    <div class="text-foreground-destructive flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleInvertedFilled class="size-2.5" />
-      <span>{Math.abs(delta)}</span>
-    </div>
-  {/if}
-{/snippet}
-
 <div
   class={cn(
     'col-team @container/team-info-desktop sticky left-0 z-10 flex h-16 items-center gap-2 px-4',
@@ -84,7 +70,7 @@
 >
   <div class="flex shrink-0 items-center">
     <div class="hidden w-6 @lg/team-info-desktop:block">
-      {@render deltaIndicator()}
+      <DeltaIndicator {delta} />
     </div>
     <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>

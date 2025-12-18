@@ -1,10 +1,6 @@
 <script lang="ts">
   import { Checkbox, Label, Tooltip } from '$lib/components'
   import {
-    IconChevronLeft,
-    IconChevronLeftPipe,
-    IconChevronRight,
-    IconChevronRightPipe,
     IconLayoutListFilled,
     IconListFilled,
     IconSortAscendingNumbers,
@@ -12,6 +8,7 @@
     IconTableFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import Pagination from './pagination.svelte'
   import type { SortMode, ViewMode } from './types'
 
   interface Props {
@@ -117,40 +114,6 @@
       </div>
     {/if}
 
-    <div class="flex items-center gap-0.5">
-      <button
-        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-        onclick={() => onPageChange(1)}
-        disabled={page === 1 || isFetching}
-      >
-        <IconChevronLeftPipe class="size-4" />
-      </button>
-      <button
-        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-        onclick={() => onPageChange(page - 1)}
-        disabled={page === 1 || isFetching}
-      >
-        <IconChevronLeft class="size-4" />
-      </button>
-      <span
-        class={cn('text-foreground-l3 min-w-16 text-center text-sm', isFetching && 'opacity-50')}
-      >
-        Page {page}
-      </span>
-      <button
-        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-        onclick={() => onPageChange(page + 1)}
-        disabled={page >= totalPages || isFetching}
-      >
-        <IconChevronRight class="size-4" />
-      </button>
-      <button
-        class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-        onclick={() => onPageChange(totalPages)}
-        disabled={page >= totalPages || isFetching}
-      >
-        <IconChevronRightPipe class="size-4" />
-      </button>
-    </div>
+    <Pagination {page} {totalPages} {isFetching} {onPageChange} />
   </div>
 </div>

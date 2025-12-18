@@ -11,70 +11,45 @@
   }
 
   let { showTop, showBottom, showLeft, showRight, showSelfRow, isMinimal }: Props = $props()
+
+  type FadeConfig = { class: string; show: boolean }
+
+  const fades = $derived.by((): FadeConfig[] => {
+    if (isMinimal) {
+      return [
+        { class: 'fade-top-minimal', show: showTop },
+        { class: 'fade-bottom-minimal', show: showBottom },
+      ]
+    }
+
+    const base: FadeConfig[] = [
+      { class: 'fade-left-header', show: showLeft },
+      { class: 'fade-right-header', show: showRight },
+      { class: 'fade-top-team', show: showTop },
+      { class: 'fade-bottom-team', show: showBottom },
+      { class: 'fade-top-content', show: showTop },
+      { class: 'fade-bottom-content', show: showBottom },
+      { class: 'fade-left-content', show: showLeft },
+      { class: 'fade-right-content', show: showRight },
+    ]
+
+    if (showSelfRow) {
+      base.push(
+        { class: 'fade-left-self', show: showLeft },
+        { class: 'fade-right-self', show: showRight }
+      )
+    }
+
+    return base
+  })
 </script>
 
-{#if !isMinimal}
+{#each fades as fade}
   <div
-    class={cn('fade fade-left-header', showLeft ? 'opacity-100' : 'opacity-0')}
+    class={cn('fade', fade.class, fade.show ? 'opacity-100' : 'opacity-0')}
     aria-hidden="true"
   ></div>
-
-  <div
-    class={cn('fade fade-right-header', showRight ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-top-team', showTop ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-bottom-team', showBottom ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-top-content', showTop ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-bottom-content', showBottom ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-left-content', showLeft ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  <div
-    class={cn('fade fade-right-content', showRight ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-
-  {#if showSelfRow}
-    <div
-      class={cn('fade fade-left-self', showLeft ? 'opacity-100' : 'opacity-0')}
-      aria-hidden="true"
-    ></div>
-
-    <div
-      class={cn('fade fade-right-self', showRight ? 'opacity-100' : 'opacity-0')}
-      aria-hidden="true"
-    ></div>
-  {/if}
-{:else}
-  <div
-    class={cn('fade fade-top-minimal', showTop ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-  <div
-    class={cn('fade fade-bottom-minimal', showBottom ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
-{/if}
+{/each}
 
 <style>
   .fade {
