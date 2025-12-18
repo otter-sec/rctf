@@ -8,32 +8,29 @@
     IconTableFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import Pagination from './pagination.svelte'
   import type { SortMode, ViewMode } from './types'
 
   interface Props {
     viewMode: ViewMode
     sortMode: SortMode
-    page: number
-    totalPages: number
+    total: number
+    loadedCount: number
     isFetching: boolean
     showTop3Context: boolean
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
-    onPageChange: (page: number) => void
     onShowTop3ContextChange: (show: boolean) => void
   }
 
   let {
     viewMode,
     sortMode,
-    page,
-    totalPages,
+    total,
+    loadedCount,
     isFetching,
     showTop3Context,
     onViewModeChange,
     onSortModeChange,
-    onPageChange,
     onShowTop3ContextChange,
   }: Props = $props()
 
@@ -101,19 +98,19 @@
   </div>
 
   <div class="flex items-center gap-4">
-    {#if page > 1}
-      <div class="flex items-center gap-2">
-        <Checkbox
-          id="show-top3"
-          checked={showTop3Context}
-          onCheckedChange={v => onShowTop3ContextChange(v === true)}
-        />
-        <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm font-normal"
-          >Show top 3 in graph</Label
-        >
-      </div>
-    {/if}
+    <div class="flex items-center gap-2">
+      <Checkbox
+        id="show-top3"
+        checked={showTop3Context}
+        onCheckedChange={v => onShowTop3ContextChange(v === true)}
+      />
+      <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm font-normal"
+        >Show top 3 in graph</Label
+      >
+    </div>
 
-    <Pagination {page} {totalPages} {isFetching} {onPageChange} />
+    <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
+      {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
+    </span>
   </div>
 </div>

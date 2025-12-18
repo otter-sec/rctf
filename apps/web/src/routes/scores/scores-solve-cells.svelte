@@ -16,6 +16,7 @@
     teamId: string
     viewMode: ViewMode
     sortMode: SortMode
+    isScrolling?: boolean
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
     getSolves: (challengeId: string) => boolean
@@ -29,6 +30,7 @@
     teamId,
     viewMode,
     sortMode,
+    isScrolling = false,
     categoryGroups,
     challenges,
     getSolves,
@@ -108,7 +110,49 @@
 {/snippet}
 
 <div class="bg-background-l2 mr-(--diagonal-overflow) flex gap-1 rounded-r-md pr-4 pl-1">
-  {#if viewMode === 'categories'}
+  {#if isScrolling}
+    {#if viewMode === 'categories'}
+      {#each categoryGroups as group}
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-l-lg opacity-70 md:h-16"
+          style={getCategoryStyle(group.config.color)}
+          aria-hidden="true"
+        >
+          <div class="bg-category-foreground-l1/35 size-2.5 rounded-full"></div>
+        </div>
+      {/each}
+    {:else if sortMode === 'categories'}
+      {#each categoryGroups as group}
+        <div class="flex gap-1">
+          {#each group.challenges as challenge, ci}
+            <div
+              class={cn(
+                'flex h-16 w-12 items-center justify-center opacity-60',
+                ci === 0 && 'rounded-l-lg'
+              )}
+              style={getCategoryStyle(challenge.config.color)}
+              aria-hidden="true"
+            >
+              <div class="bg-category-foreground-l1/25 size-2.5 rounded-full"></div>
+            </div>
+          {/each}
+        </div>
+      {/each}
+    {:else}
+      {#each challenges as challenge, i}
+        <div
+          class={cn(
+            'flex h-16 w-12 items-center justify-center opacity-60',
+            i === 0 && 'rounded-l-lg'
+          )}
+          style={getCategoryStyle(challenge.config.color)}
+          aria-hidden="true"
+        >
+          <div class="bg-category-foreground-l1/25 size-2.5 rounded-full"></div>
+        </div>
+      {/each}
+    {/if}
+  {:else if viewMode === 'categories'}
     {#each categoryGroups as group}
       {@const stats = getCategoryStats(group)}
       <div

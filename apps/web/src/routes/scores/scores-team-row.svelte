@@ -20,7 +20,6 @@
     isCurrentUser: boolean
     isFullWidth?: boolean
     sparklineData?: { time: number; score: number }[]
-    page?: number
     delta?: number
     showDivision?: boolean
     onHover?: () => void
@@ -41,7 +40,6 @@
     isCurrentUser,
     isFullWidth = false,
     sparklineData = [],
-    page = 1,
     delta,
     showDivision = true,
     onHover,
@@ -124,7 +122,7 @@
     <div
       class="pointer-events-none absolute h-10 w-24 opacity-0 @lg/team-info-desktop:pointer-events-auto @lg/team-info-desktop:relative @lg/team-info-desktop:opacity-100"
     >
-      <Sparkline data={sparklineData} {rank} {isCurrentUser} {page} {onHover} {onUnhover} />
+      <Sparkline data={sparklineData} {rank} {isCurrentUser} {onHover} {onUnhover} />
     </div>
   </div>
 </div>

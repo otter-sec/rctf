@@ -1,12 +1,14 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { Avatar, EmptyState, ScrollArea } from '$lib/components'
+  import { createVirtualizer } from '@tanstack/svelte-virtual'
+  import { get } from 'svelte/store'
+  import type { Virtualizer } from '@tanstack/svelte-virtual'
+  import { Avatar, EmptyState, ScrollArea, Spinner } from '$lib/components'
   import { IconMoodWrrrFilled } from '$lib/icons'
   import { cn, countryCodeToFlagFilename, getInitials } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
   import DeltaIndicator from './delta-indicator.svelte'
-  import Pagination from './pagination.svelte'
   import ScoresGraph from './scores-graph.svelte'
   import type { TeamRowData } from './types'
 
@@ -14,35 +16,214 @@
     entries: LeaderboardEntry[]
     graphData: LeaderboardGraphEntry[]
     currentUser: UserProfile | null | undefined
-    page: number
-    totalPages: number
     showSelfRow: boolean
     rankDeltaByTeam: Map<string, number>
     isFetching: boolean
+    isFetchingNextPage: boolean
     isLoading: boolean
+    hasNextPage: boolean
     hoveredTeamId: string | null
     solveHighlight: { teamId: string; time: number } | null
     showTop3Context: boolean
     showDivision?: boolean
-    onPageChange: (page: number) => void
+    total: number
+    onLoadMore: () => void
   }
 
   let {
     entries,
     graphData,
     currentUser,
-    page,
-    totalPages,
     showSelfRow,
     rankDeltaByTeam,
     isFetching,
+    isFetchingNextPage,
     isLoading,
+    hasNextPage,
     hoveredTeamId,
     solveHighlight,
     showTop3Context,
     showDivision = true,
-    onPageChange,
+    total,
+    onLoadMore,
   }: Props = $props()
+
+  // FIXME
+  const ROW_HEIGHT = 68
+
+  let viewportRef = $state<HTMLElement | null>(null)
+
+  type ObserveRectCallback = (rect: { width: number; height: number }) => void
+  type ObserveOffsetCallback = (offset: number, isScrolling: boolean) => void
+
+  // horrible firefox workaround. FIXME
+  function observeElementRectRaf<T extends Element>(
+    instance: Virtualizer<T, any>,
+    cb: ObserveRectCallback
+  ) {
+    const element = instance.scrollElement as unknown as HTMLElement | null
+    if (!element) return
+    const targetWindow = instance.targetWindow
+    if (!targetWindow) return
+
+    let raf = 0
+    let lastWidth = -1
+    let lastHeight = -1
+    let hasNonZero = false
+    let ro: ResizeObserver | null = null
+
+    const measure = () => {
+      raf = 0
+
+      const { width, height } = element.getBoundingClientRect()
+      const w = Math.round(width)
+      const h = Math.round(height)
+
+      if (hasNonZero && (w === 0 || h === 0)) {
+        raf = targetWindow.requestAnimationFrame(measure)
+        return
+      }
+
+      if (w !== lastWidth || h !== lastHeight) {
+        lastWidth = w
+        lastHeight = h
+        if (w > 0 && h > 0) hasNonZero = true
+        cb({ width: w, height: h })
+      }
+
+      if (!hasNonZero) {
+        raf = targetWindow.requestAnimationFrame(measure)
+      }
+    }
+
+    const schedule = () => {
+      if (raf) return
+      raf = targetWindow.requestAnimationFrame(measure)
+    }
+
+    schedule()
+
+    const RO = targetWindow.ResizeObserver
+    if (RO) {
+      ro = new RO(schedule)
+      ro.observe(element, { box: 'border-box' })
+    }
+
+    return () => {
+      ro?.disconnect()
+      if (raf) targetWindow.cancelAnimationFrame(raf)
+    }
+  }
+
+  function observeElementOffsetRaf<T extends Element>(
+    instance: Virtualizer<T, any>,
+    cb: ObserveOffsetCallback
+  ) {
+    const element = instance.scrollElement
+    if (!element) return
+    const targetWindow = instance.targetWindow
+    if (!targetWindow) return
+
+    let raf = 0
+    let timeoutId: number | undefined
+    let latestOffset = 0
+    let latestIsScrolling = false
+
+    const computeOffset = () => {
+      const { horizontal, isRtl } = instance.options
+      return horizontal ? element.scrollLeft * ((isRtl && -1) || 1) : element.scrollTop
+    }
+
+    const schedule = () => {
+      if (raf) return
+      raf = targetWindow.requestAnimationFrame(() => {
+        raf = 0
+        cb(latestOffset, latestIsScrolling)
+      })
+    }
+
+    const notify = (isScrolling: boolean) => {
+      latestIsScrolling = isScrolling
+      latestOffset = computeOffset()
+      schedule()
+    }
+
+    const onScroll = () => {
+      notify(true)
+      if (timeoutId) targetWindow.clearTimeout(timeoutId)
+      timeoutId = targetWindow.setTimeout(
+        () => notify(false),
+        instance.options.isScrollingResetDelay
+      )
+    }
+
+    notify(false)
+
+    element.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      element.removeEventListener('scroll', onScroll)
+      if (raf) targetWindow.cancelAnimationFrame(raf)
+      if (timeoutId) targetWindow.clearTimeout(timeoutId)
+    }
+  }
+
+  const virtualizer = createVirtualizer({
+    count: 0,
+    getScrollElement: () => viewportRef,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 8,
+    observeElementRect: observeElementRectRaf,
+    observeElementOffset: observeElementOffsetRaf,
+    isScrollingResetDelay: 100,
+  })
+
+  let lastVirtualCount = -1
+  let lastVirtualScrollElement: HTMLElement | null = null
+  $effect(() => {
+    const scrollElement = viewportRef
+    const count = hasNextPage ? entries.length + 1 : entries.length
+    if (count === lastVirtualCount && scrollElement === lastVirtualScrollElement) return
+    lastVirtualCount = count
+    lastVirtualScrollElement = scrollElement
+    get(virtualizer).setOptions({ count })
+  })
+
+  let loadMoreTriggered = false
+  $effect(() => {
+    const v = viewportRef
+    if (!v) return
+
+    let raf = 0
+    const run = () => {
+      raf = 0
+      if (loadMoreTriggered || !hasNextPage || isFetchingNextPage) return
+
+      const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
+      if (scrollPercent > 0.7) {
+        loadMoreTriggered = true
+        onLoadMore()
+      }
+    }
+
+    const schedule = () => {
+      if (raf) return
+      raf = requestAnimationFrame(run)
+    }
+
+    v.addEventListener('scroll', schedule, { passive: true })
+    schedule()
+
+    return () => {
+      v.removeEventListener('scroll', schedule)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  })
+
+  $effect(() => {
+    if (!isFetchingNextPage) {
+      loadMoreTriggered = false
+    }
+  })
 </script>
 
 {#snippet mobileTeamRow(data: TeamRowData)}
@@ -118,14 +299,16 @@
   <div class="bg-background-l0 sticky top-0 z-30 pb-2">
     <div class="flex items-center justify-between py-2">
       <span class="text-foreground-l2 text-base">Scoreboard</span>
-      <Pagination {page} {totalPages} {isFetching} {onPageChange} />
+      <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
+        {entries.length.toLocaleString()} / {total.toLocaleString()}
+      </span>
     </div>
 
     <div class="bg-background-l1 h-48 w-full rounded-lg">
       <ScoresGraph
         class="h-full w-full"
         {hoveredTeamId}
-        offset={(page - 1) * PAGE_SIZE}
+        offset={0}
         {solveHighlight}
         {graphData}
         {showTop3Context}
@@ -133,27 +316,29 @@
     </div>
   </div>
 
-  <ScrollArea class="min-h-0 flex-1">
-    <div class="flex flex-col gap-1">
-      {#if isLoading}
-        {#each Array(PAGE_SIZE) as _}
-          <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
-            <div class="flex w-10 flex-col items-center gap-1">
-              <div class="bg-background-l3 h-5 w-8 rounded"></div>
-              {#if showDivision}<div class="bg-background-l3 h-4 w-6 rounded"></div>{/if}
+  <ScrollArea class="min-h-0 flex-1" bind:viewportRef>
+    <div class="relative" style="height: {$virtualizer.getTotalSize()}px; width: 100%;">
+      {#if isLoading && entries.length === 0}
+        <div class="flex flex-col gap-1">
+          {#each Array(PAGE_SIZE) as _}
+            <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
+              <div class="flex w-10 flex-col items-center gap-1">
+                <div class="bg-background-l3 h-5 w-8 rounded"></div>
+                {#if showDivision}<div class="bg-background-l3 h-4 w-6 rounded"></div>{/if}
+              </div>
+              <div class="bg-background-l3 size-10 rounded-lg"></div>
+              <div class="flex flex-1 flex-col gap-1">
+                <div class="bg-background-l3 h-5 w-28 rounded"></div>
+                {#if showDivision}<div class="bg-background-l3 h-4 w-20 rounded"></div>{/if}
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <div class="bg-background-l3 h-5 w-16 rounded"></div>
+                <div class="bg-background-l3 h-4 w-12 rounded"></div>
+              </div>
             </div>
-            <div class="bg-background-l3 size-10 rounded-lg"></div>
-            <div class="flex flex-1 flex-col gap-1">
-              <div class="bg-background-l3 h-5 w-28 rounded"></div>
-              {#if showDivision}<div class="bg-background-l3 h-4 w-20 rounded"></div>{/if}
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <div class="bg-background-l3 h-5 w-16 rounded"></div>
-              <div class="bg-background-l3 h-4 w-12 rounded"></div>
-            </div>
-          </div>
-        {/each}
-      {:else if entries.length === 0}
+          {/each}
+        </div>
+      {:else if entries.length === 0 && !isLoading}
         <div class="bg-background-l1 rounded-lg">
           <EmptyState
             icon={IconMoodWrrrFilled}
@@ -162,23 +347,40 @@
           />
         </div>
       {:else}
-        {#each entries as entry, i (entry.id)}
-          {@const rank = (page - 1) * PAGE_SIZE + i + 1}
-          {@const isYou = currentUser?.id === entry.id}
-          {@render mobileTeamRow({
-            id: entry.id,
-            name: entry.name,
-            avatarUrl: entry.avatarUrl,
-            division: entry.division,
-            divisionPlace: entry.divisionPlace,
-            countryCode: entry.countryCode,
-            statusText: entry.statusText,
-            score: entry.score,
-            solveCount: entry.solves.length,
-            rank,
-            isCurrentUser: isYou,
-            delta: rankDeltaByTeam.get(entry.id),
-          })}
+        {#each $virtualizer.getVirtualItems() as row (row.index)}
+          {#if row.index > entries.length - 1}
+            <div
+              class="absolute top-0 left-0 flex w-full items-center justify-center"
+              style="height: {row.size}px; transform: translateY({row.start}px);"
+            >
+              {#if hasNextPage}
+                <Spinner class="text-foreground-l3 size-5" />
+              {/if}
+            </div>
+          {:else if entries[row.index]}
+            {@const entry = entries[row.index]!}
+            {@const rank = row.index + 1}
+            {@const isYou = currentUser?.id === entry.id}
+            <div
+              class="absolute top-0 left-0 w-full"
+              style="height: {row.size}px; transform: translateY({row.start}px);"
+            >
+              {@render mobileTeamRow({
+                id: entry.id,
+                name: entry.name,
+                avatarUrl: entry.avatarUrl,
+                division: entry.division,
+                divisionPlace: entry.divisionPlace,
+                countryCode: entry.countryCode,
+                statusText: entry.statusText,
+                score: entry.score,
+                solveCount: entry.solves.length,
+                rank,
+                isCurrentUser: isYou,
+                delta: rankDeltaByTeam.get(entry.id),
+              })}
+            </div>
+          {/if}
         {/each}
       {/if}
     </div>

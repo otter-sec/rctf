@@ -78,7 +78,7 @@
 
   $effect(() => {
     const viewport = internalViewportRef
-    if (!viewport) return
+    if (!viewport || fadeSize <= 0) return
 
     updateFades()
 
