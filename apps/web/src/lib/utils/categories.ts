@@ -38,14 +38,13 @@ export const categoryAliases: Record<string, string> = {
   binary: 'pwn',
   rev: 'reverse',
   cryptography: 'crypto',
-  for: 'forensics',
 }
 
 export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
     icon: IconMoodHappyFilled,
-    color: 'teal',
+    color: 'gray',
   },
   pwn: {
     name: 'Binary Exploitation',

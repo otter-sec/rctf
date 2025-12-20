@@ -438,7 +438,9 @@
               <div
                 class={cn(
                   'bg-background-l1 h-(--header-height) rounded-3xl rounded-b-lg',
-                  viewMode !== 'minimal' && 'rounded-br-none'
+                  entries.length === 0
+                    ? 'rounded-b-none'
+                    : viewMode !== 'minimal' && 'rounded-br-none'
                 )}
               >
                 <ScoresGraph

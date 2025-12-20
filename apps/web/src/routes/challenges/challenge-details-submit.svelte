@@ -4,7 +4,8 @@
   import { showApiError, toast } from '$lib'
   import { Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
-  import { IconCheck, IconSend } from '$lib/icons'
+  import { IconCheck, IconClockFilled, IconSend } from '$lib/icons'
+  import { useClientConfig } from '$lib/query'
 
   interface Props {
     challenge: Challenge
@@ -13,6 +14,10 @@
   }
 
   let { challenge, isSolved, onSolve }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived($clientConfigQuery.data)
+  const isCtfEnded = $derived(clientConfig ? Date.now() > clientConfig.endTime : false)
 
   const form = useApiForm(SubmitFlagRoute, {
     onSuccess: response => {
@@ -56,6 +61,13 @@
         <IconCheck class="size-6 shrink-0" />
         <span class="truncate text-xl">Challenge solved!</span>
       </div>
+    {:else if isCtfEnded}
+      <div
+        class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
+      >
+        <IconClockFilled class="size-6 shrink-0" />
+        <span class="truncate text-xl">The CTF has ended.</span>
+      </div>
     {:else}
       <input
         type="text"
@@ -71,7 +83,7 @@
     {/if}
     <button
       type="submit"
-      disabled={form.submitting || isSolved}
+      disabled={form.submitting || isSolved || isCtfEnded}
       class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
     >
       {#if form.submitting}

@@ -4,7 +4,8 @@
   import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { apiRequest } from '$lib/api'
-  import { Button, ScrollArea, Spinner } from '$lib/components'
+  import { Button, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { IconTrophyFilled } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import {
     formatFirstBloodTime,
@@ -77,7 +78,12 @@
         <Spinner class="size-6" />
       </div>
     {:else if totalCount === 0}
-      <p class="text-foreground-l3 py-8 text-center">No solves yet</p>
+      <EmptyState
+        icon={IconTrophyFilled}
+        title="No solves yet"
+        subtitle="Be the first to solve this challenge!"
+        class="h-full"
+      />
     {:else}
       <div class="flex flex-col gap-2 px-5 pt-2">
         {#each allSolves as solve, index (solve.id)}

@@ -189,6 +189,7 @@
         <Axis
           placement="bottom"
           rule
+          ticks={flatPoints.length > 0 ? undefined : 0}
           format={(d: number) => formatRelativeHours(d, startTime)}
           tickLabelProps={{ textAnchor: 'start', dy: 4 }}
         />
