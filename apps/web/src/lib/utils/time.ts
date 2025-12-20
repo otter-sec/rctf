@@ -52,15 +52,8 @@ export function formatRelativeHours(
   timestamp: number,
   startTime: number
 ): string {
-  const totalHours = Math.round((timestamp - startTime) / 3_600_000)
-  if (totalHours === 0) return '0h'
-
-  const days = Math.floor(totalHours / 24)
-  const hours = totalHours % 24
-
-  if (days === 0) return `+${hours}h`
-  if (hours === 0) return `+${days}d`
-  return `+${days}d ${hours}h`
+  const hours = Math.round((timestamp - startTime) / 3_600_000)
+  return hours === 0 ? '0h' : `+${hours}h`
 }
 
 export function formatRelativeHoursMinutes(
@@ -68,18 +61,12 @@ export function formatRelativeHoursMinutes(
   startTime: number
 ): string {
   const totalMinutes = (timestamp - startTime) / 60_000
-  const days = Math.floor(totalMinutes / 1440)
-  const hours = Math.floor((totalMinutes % 1440) / 60)
+  const hours = Math.floor(totalMinutes / 60)
   const minutes = Math.round(totalMinutes % 60)
 
-  if (days === 0 && hours === 0 && minutes === 0) return '0h'
-
-  const parts: string[] = []
-  if (days > 0) parts.push(`${days}d`)
-  if (hours > 0) parts.push(`${hours}h`)
-  if (minutes > 0) parts.push(`${minutes}m`)
-
-  return `+${parts.join(' ')}`
+  if (hours === 0 && minutes === 0) return '0h'
+  if (minutes === 0) return `+${hours}h`
+  return `+${hours}h ${minutes}m`
 }
 
 export function formatCountdown(ms: number): string {

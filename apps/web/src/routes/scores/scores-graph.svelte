@@ -8,8 +8,22 @@
   } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
-  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
-  import { CUTOFF_TIME, MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
+  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
+  import {
+    CUTOFF_TIME,
+    MEDAL_COLORS,
+    PAGE_SIZE,
+    RANK_COLORS,
+    SELF_COLOR,
+    X_AXIS_DIVISIONS,
+  } from './constants'
+
+  function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
+    const [min, max] = scale.domain()
+    if (min === undefined || max === undefined) return []
+    const step = (max - min) / divisions
+    return Array.from({ length: divisions + 1 }, (_, i) => min + step * i)
+  }
 
   type GraphEntry = {
     id: string
@@ -142,6 +156,15 @@
   const startTime = $derived(clientConfig?.startTime ?? 0)
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
+  const useMinutesFormat = $derived.by(() => {
+    if (flatPoints.length === 0) return false
+    const times = flatPoints.map(p => p.time)
+    const minTime = Math.min(...times)
+    const maxTime = Math.max(...times)
+    const minRangeForHoursOnly = (X_AXIS_DIVISIONS + 1) * 60 * 60 * 1000
+    return maxTime - minTime < minRangeForHoursOnly
+  })
+
   const solveHighlightPoint = $derived.by(() => {
     if (!solveHighlight) return null
     const teamData = dataByTeam.find(([id]) => id === solveHighlight.teamId)
@@ -181,7 +204,7 @@
     y="score"
     yDomain={[0, null]}
     yNice
-    padding={{ bottom: 24, left: 4 }}
+    padding={{ bottom: 12 }}
     tooltip={{ mode: 'quadtree' }}
   >
     {#snippet children({ context })}
@@ -189,10 +212,17 @@
         <Axis
           placement="bottom"
           rule
-          ticks={flatPoints.length > 0 ? undefined : 0}
-          format={(d: number) => formatRelativeHours(d, startTime)}
-          tickLabelProps={{ textAnchor: 'start', dy: 4 }}
-        />
+          ticks={scale => (flatPoints.length > 0 ? generateAxisTicks(scale, X_AXIS_DIVISIONS) : [])}
+          format={(d: number) =>
+            useMinutesFormat
+              ? formatRelativeHoursMinutes(d, startTime)
+              : formatRelativeHours(d, startTime)}
+        >
+          {#snippet tickLabel({ props, index })}
+            {@const anchor = index === 0 ? 'start' : index === X_AXIS_DIVISIONS ? 'end' : 'middle'}
+            <Text {...props} textAnchor={anchor} dy={4} />
+          {/snippet}
+        </Axis>
 
         {#each dataByTeam as [teamId, points]}
           {@const meta = teamMeta.get(teamId)!}
@@ -241,7 +271,7 @@
             cy={y}
             r={5}
             fill={solveHighlightPoint.color}
-            stroke="var(--background-l0)"
+            stroke="var(--background-l1)"
             stroke-width={3}
             class="pointer-events-none"
             style="transition: all 150ms ease;"

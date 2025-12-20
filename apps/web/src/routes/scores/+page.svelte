@@ -13,7 +13,7 @@
     useSelfUserGraph,
   } from '$lib/query'
   import { cn } from '$lib/utils'
-  import { getCategoryConfig, getCategoryOrder } from '$lib/utils/categories'
+  import { getCategoryConfig, getScoreboardCategoryOrder } from '$lib/utils/categories'
   import { CUTOFF_TIME, DELTA_WINDOW, PAGE_SIZE, SPARKLINE_WINDOW } from './constants'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'
@@ -130,7 +130,7 @@
       .map(([id, info]) => ({
         id,
         ...info,
-        order: getCategoryOrder(info.category),
+        order: getScoreboardCategoryOrder(info.category),
         config: getCategoryConfig(info.category),
       }))
       .sort((a, b) => {
@@ -373,6 +373,14 @@
 
 {#if isNotStarted}
   <CtfNotStarted />
+{:else if entries.length === 0 && !$leaderboardQuery.isLoading}
+  <div class="flex h-[calc(100vh-72px)] items-center justify-center">
+    <EmptyState
+      icon={IconMoodWrrrFilled}
+      title="No solves yet"
+      subtitle="The leaderboard will populate as teams solve challenges"
+    />
+  </div>
 {:else}
   <ScoresMobile
     {entries}
@@ -437,7 +445,7 @@
             <div class="col-team bg-background-l0 sticky left-0 z-30">
               <div
                 class={cn(
-                  'bg-background-l1 h-(--header-height) rounded-3xl rounded-b-lg',
+                  'bg-background-l1 h-(--header-height) rounded-3xl rounded-b-lg p-3',
                   entries.length === 0
                     ? 'rounded-b-none'
                     : viewMode !== 'minimal' && 'rounded-br-none'
@@ -558,19 +566,6 @@
                   {/if}
                 </div>
               {/each}
-            {:else if entries.length === 0}
-              <div
-                class={cn(
-                  'bg-background-l1 rounded-b-3xl',
-                  viewMode === 'minimal' ? 'w-full' : 'w-fit min-w-(--team-column-width)'
-                )}
-              >
-                <EmptyState
-                  icon={IconMoodWrrrFilled}
-                  title="No solves yet"
-                  subtitle="The leaderboard will populate as teams solve challenges"
-                />
-              </div>
             {:else}
               {#each entries as entry, i (entry.id)}
                 {@const rank = (page - 1) * PAGE_SIZE + i + 1}
@@ -588,7 +583,7 @@
                     id={entry.id}
                     name={entry.name}
                     avatarUrl={entry.avatarUrl}
-                    division={entry.division}
+                    divisionLabel={clientConfig?.divisions[entry.division] ?? entry.division}
                     divisionPlace={entry.divisionPlace}
                     countryCode={entry.countryCode}
                     statusText={entry.statusText}
@@ -636,7 +631,8 @@
                   id={currentUser.id}
                   name={currentUser.name}
                   avatarUrl={currentUser.avatarUrl}
-                  division={currentUser.division}
+                  divisionLabel={clientConfig?.divisions[currentUser.division] ??
+                    currentUser.division}
                   divisionPlace={currentUser.divisionPlace}
                   countryCode={currentUser.countryCode}
                   statusText={currentUser.statusText}

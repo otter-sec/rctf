@@ -98,7 +98,7 @@
             avatarUrl={solve.userAvatarUrl}
             countryCode={solve.userCountryCode}
             globalPlace={solve.globalPlace}
-            division={showDivision ? solve.division : undefined}
+            divisionId={showDivision ? solve.division : undefined}
             divisionPlace={showDivision ? solve.divisionPlace : undefined}
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)

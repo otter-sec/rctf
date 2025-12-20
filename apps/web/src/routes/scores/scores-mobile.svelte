@@ -182,7 +182,7 @@
       </div>
     </div>
 
-    <div class="bg-background-l1 h-48 w-full rounded-lg">
+    <div class="bg-background-l1 h-48 w-full rounded-lg p-3">
       <ScoresGraph
         class="h-full w-full"
         {hoveredTeamId}

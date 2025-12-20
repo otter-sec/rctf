@@ -16,7 +16,7 @@
     globalPlace?: number
     primaryValue?: string
     secondaryValue?: string
-    division?: string
+    divisionId?: string
     divisionPlace?: number
     children?: Snippet
     class?: string
@@ -32,11 +32,13 @@
     globalPlace,
     primaryValue,
     secondaryValue,
-    division,
+    divisionId,
     divisionPlace,
     children,
     class: className,
   }: Props = $props()
+
+  const showDivisionPlace = $derived(divisionId && divisionPlace)
 
   const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
   const countryName = $derived(
@@ -88,13 +90,14 @@
         </Tooltip.Root>
       {/if}
       {#if flagFilename && countryCode && globalPlace}
-        <span class={cn('mx-0.5 text-xl leading-none', styles.fgL1)}>·</span>
+        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
       {/if}
       {#if globalPlace}
-        <span class={cn('text-base', styles.fgL1)}>#{globalPlace}</span>
+        <span class={cn('text-base', styles.fgL1)}>#{globalPlace} global</span>
       {/if}
-      {#if division && divisionPlace}
-        <span class={cn('text-base', styles.fgL1)}>(#{divisionPlace} {division})</span>
+      {#if showDivisionPlace}
+        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
+        <span class={cn('text-base', styles.fgL1)}>#{divisionPlace} {divisionId}</span>
       {/if}
     </div>
   </div>

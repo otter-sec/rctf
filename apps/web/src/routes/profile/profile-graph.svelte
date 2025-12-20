@@ -2,9 +2,20 @@
   import type { LeaderboardGraphEntry } from '@rctf/types'
   import { Chart, type ChartConfig } from '$lib/components'
   import { useClientConfig } from '$lib/query'
-  import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
-  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Tooltip } from 'layerchart'
-  import { CUTOFF_TIME } from '../scores/constants'
+  import {
+    formatLocalTime,
+    formatRelativeHours,
+    formatRelativeHoursMinutes,
+  } from '$lib/utils/time'
+  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
+  import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '../scores/constants'
+
+  function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
+    const [min, max] = scale.domain()
+    if (min === undefined || max === undefined) return []
+    const step = (max - min) / divisions
+    return Array.from({ length: divisions + 1 }, (_, i) => min + step * i)
+  }
 
   interface Props {
     class?: string
@@ -39,6 +50,15 @@
 
   const startTime = $derived(clientConfig?.startTime ?? 0)
 
+  const useMinutesFormat = $derived.by(() => {
+    if (flatPoints.length === 0) return false
+    const times = flatPoints.map(p => p.time)
+    const minTime = Math.min(...times)
+    const maxTime = Math.max(...times)
+    const minRangeForHoursOnly = (X_AXIS_DIVISIONS + 1) * 60 * 60 * 1000
+    return maxTime - minTime < minRangeForHoursOnly
+  })
+
   const chartConfig = $derived<ChartConfig>({
     [graphData.id]: { label: graphData.name, color },
   })
@@ -59,9 +79,17 @@
         <Axis
           placement="bottom"
           rule
-          format={(d: number) => formatRelativeHours(d, startTime)}
-          tickLabelProps={{ textAnchor: 'start', dy: 4 }}
-        />
+          ticks={scale => (flatPoints.length > 0 ? generateAxisTicks(scale, X_AXIS_DIVISIONS) : [])}
+          format={(d: number) =>
+            useMinutesFormat
+              ? formatRelativeHoursMinutes(d, startTime)
+              : formatRelativeHours(d, startTime)}
+        >
+          {#snippet tickLabel({ props, index })}
+            {@const anchor = index === 0 ? 'start' : index === X_AXIS_DIVISIONS ? 'end' : 'middle'}
+            <Text {...props} textAnchor={anchor} dy={4} />
+          {/snippet}
+        </Axis>
 
         <Spline
           data={flatPoints}

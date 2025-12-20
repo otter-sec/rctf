@@ -23,12 +23,18 @@
     IconLogout,
     IconUserCog,
   } from '$lib/icons'
-  import { useCurrentUser } from '$lib/query'
+  import { useClientConfig, useCurrentUser } from '$lib/query'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
+  const clientConfigQuery = useClientConfig()
   const user = $derived($userQuery.data ?? null)
+  const clientConfig = $derived($clientConfigQuery.data)
+
+  const divisionLabel = $derived(
+    user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'
+  )
 
   const isAdmin = $derived(
     user?.perms !== null && user?.perms !== undefined && (user.perms & Permissions.challsRead) !== 0
@@ -119,7 +125,7 @@
                 <span class="text-foreground-l3 max-w-32 truncate text-base">{user.statusText}</span
                 >
               {:else if !user.countryCode}
-                <span class="text-foreground-l3 text-base">{user.division ?? 'No Division'}</span>
+                <span class="text-foreground-l3 text-base">{divisionLabel}</span>
               {/if}
             </div>
           </div>
