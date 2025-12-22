@@ -11,7 +11,7 @@
     useSelfUserGraph,
     useTopGraphData,
   } from '$lib/query'
-  import { getCategoryConfig, getCategoryOrder } from '$lib/utils/categories'
+  import { getCategoryConfig, getScoreboardCategoryOrder } from '$lib/utils/categories'
   import { CtfNotStarted } from '$lib/components'
   import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from './constants'
   import ScoresDesktop from './scores-desktop.svelte'
@@ -111,7 +111,7 @@
       .map(([id, info]) => ({
         id,
         ...info,
-        order: getCategoryOrder(info.category),
+        order: getScoreboardCategoryOrder(info.category),
         config: getCategoryConfig(info.category),
       }))
       .sort((a, b) => {

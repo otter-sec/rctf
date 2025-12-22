@@ -3,7 +3,8 @@
   import { tick } from 'svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { page } from '$app/state'
-  import { Drawer, Resizable } from '$lib/components'
+  import { Drawer, EmptyState, Resizable } from '$lib/components'
+  import { IconFlag3Filled } from '$lib/icons'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
   import ChallengeDetails from './challenge-details.svelte'
   import ChallengeList from './challenge-list.svelte'
@@ -87,54 +88,64 @@
 
 <svelte:window bind:innerWidth />
 
-<div class="hidden h-[calc(100vh-72px)] md:block">
-  <Resizable.PaneGroup direction="horizontal" class="gap-2">
-    <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
-      <div class="bg-background-l1 h-full rounded-r-3xl">
-        <ChallengeList
-          {challenges}
-          {solvedIds}
-          {firstBloodIds}
-          selectedId={selectedChallenge?.id ?? null}
-          onSelect={handleSelect}
-        />
-      </div>
-    </Resizable.Pane>
-
-    <Resizable.Handle withHandle />
-
-    <Resizable.Pane defaultSize={60} minSize={40}>
-      <div class="bg-background-l1 h-full rounded-l-3xl">
-        <ChallengeDetails
-          challenge={selectedChallenge}
-          isSolved={selectedIsSolved}
-          onSolve={handleSolve}
-        />
-      </div>
-    </Resizable.Pane>
-  </Resizable.PaneGroup>
-</div>
-
-<div class="flex h-[calc(100vh-72px)] flex-col md:hidden">
-  <div class="bg-background-l1 h-full">
-    <ChallengeList
-      {challenges}
-      {solvedIds}
-      {firstBloodIds}
-      selectedId={selectedChallenge?.id ?? null}
-      onSelect={handleSelect}
+{#if challenges.length === 0}
+  <div class="flex h-[calc(100vh-72px)] items-center justify-center">
+    <EmptyState
+      icon={IconFlag3Filled}
+      title="No challenges yet"
+      subtitle="Check back soon for challenges!"
     />
   </div>
+{:else}
+  <div class="hidden h-[calc(100vh-72px)] md:block">
+    <Resizable.PaneGroup direction="horizontal" class="gap-2">
+      <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
+        <div class="bg-background-l1 h-full rounded-r-3xl">
+          <ChallengeList
+            {challenges}
+            {solvedIds}
+            {firstBloodIds}
+            selectedId={selectedChallenge?.id ?? null}
+            onSelect={handleSelect}
+          />
+        </div>
+      </Resizable.Pane>
 
-  <Drawer.Root bind:open={drawerOpen}>
-    <Drawer.Content class="h-full">
-      <div class="flex-1 overflow-auto">
-        <ChallengeDetails
-          challenge={selectedChallenge}
-          isSolved={selectedIsSolved}
-          onSolve={handleSolve}
-        />
-      </div>
-    </Drawer.Content>
-  </Drawer.Root>
-</div>
+      <Resizable.Handle withHandle />
+
+      <Resizable.Pane defaultSize={60} minSize={40}>
+        <div class="bg-background-l1 h-full rounded-l-3xl">
+          <ChallengeDetails
+            challenge={selectedChallenge}
+            isSolved={selectedIsSolved}
+            onSolve={handleSolve}
+          />
+        </div>
+      </Resizable.Pane>
+    </Resizable.PaneGroup>
+  </div>
+
+  <div class="flex h-[calc(100vh-72px)] flex-col md:hidden">
+    <div class="bg-background-l1 h-full">
+      <ChallengeList
+        {challenges}
+        {solvedIds}
+        {firstBloodIds}
+        selectedId={selectedChallenge?.id ?? null}
+        onSelect={handleSelect}
+      />
+    </div>
+
+    <Drawer.Root bind:open={drawerOpen}>
+      <Drawer.Content class="h-full">
+        <div class="flex-1 overflow-auto">
+          <ChallengeDetails
+            challenge={selectedChallenge}
+            isSolved={selectedIsSolved}
+            onSolve={handleSolve}
+          />
+        </div>
+      </Drawer.Content>
+    </Drawer.Root>
+  </div>
+{/if}

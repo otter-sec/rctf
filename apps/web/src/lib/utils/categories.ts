@@ -34,18 +34,31 @@ export const categoryOrder = [
   'osint',
 ]
 
+export const scoreboardCategoryOrder = [
+  'pwn',
+  'reverse',
+  'crypto',
+  'forensics',
+  'blockchain',
+  'web',
+  'misc',
+  'ppc',
+  'koth',
+  'osint',
+  'sanity',
+]
+
 export const categoryAliases: Record<string, string> = {
   binary: 'pwn',
   rev: 'reverse',
   cryptography: 'crypto',
-  for: 'forensics',
 }
 
 export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
     icon: IconMoodHappyFilled,
-    color: 'teal',
+    color: 'gray',
   },
   pwn: {
     name: 'Binary Exploitation',
@@ -126,5 +139,11 @@ export function getCategoryStyle(color: string): string {
 export function getCategoryOrder(category: string): number {
   const key = getCategoryKeyOrAlias(category)
   const idx = categoryOrder.indexOf(key)
+  return idx === -1 ? -1 : idx
+}
+
+export function getScoreboardCategoryOrder(category: string): number {
+  const key = getCategoryKeyOrAlias(category)
+  const idx = scoreboardCategoryOrder.indexOf(key)
   return idx === -1 ? -1 : idx
 }

@@ -10,7 +10,7 @@
     id: string
     name: string
     avatarUrl: string | null | undefined
-    division: string
+    divisionLabel: string
     divisionPlace: number | null
     countryCode: string | null | undefined
     statusText: string | null | undefined
@@ -30,7 +30,7 @@
     id,
     name,
     avatarUrl,
-    division,
+    divisionLabel,
     divisionPlace,
     countryCode,
     statusText,
@@ -73,7 +73,12 @@
     <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
       {#if showDivision && divisionPlace}
-        <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+        <Tooltip.Root>
+          <Tooltip.Trigger>
+            <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+          </Tooltip.Trigger>
+          <Tooltip.Content>{divisionLabel}</Tooltip.Content>
+        </Tooltip.Root>
       {/if}
     </div>
   </div>
@@ -88,9 +93,6 @@
   <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
     <div class="flex items-center gap-1.5">
       <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>{name}</a>
-      {#if showDivision}
-        <span class={cn('shrink-0 text-base', styles.fgL1)}>({division})</span>
-      {/if}
     </div>
     <div class="flex items-center gap-1">
       {#if flagFilename && countryCode && countryName}

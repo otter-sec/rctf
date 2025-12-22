@@ -1,8 +1,8 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { isAuthenticated } from '$lib'
   import { queryKeys, useClientConfig } from '$lib/query'
   import { Button, Card } from '$lib/components'
+  import { isAuthenticated } from '$lib'
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()
@@ -38,37 +38,40 @@
 </script>
 
 <div class="flex flex-1 items-center justify-center p-4">
-  <div class="w-full max-w-lg">
-    <Card.Root class="bg-background-l1 border-none">
-      <div class="flex flex-col items-center text-center">
-        <h2 class="text-xl font-semibold">CTF Not Started</h2>
-        <p class="text-foreground-l3 text-sm text-balance">The CTF has not started yet</p>
-      </div>
-      <Card.Content class="flex flex-col gap-6">
-        <div class="flex justify-center gap-3">
+  <div class="w-full max-w-md">
+    <Card.Root>
+      <Card.Header>
+        <Card.Title class="text-xl">CTF not started</Card.Title>
+        <Card.Description>The competition has not started yet. Check back soon!</Card.Description>
+      </Card.Header>
+      <Card.Content class="flex flex-col gap-4">
+        <div class="flex justify-center gap-2">
           {#if days > 0}
-            <div class="bg-background-l2 flex flex-col items-center rounded-xl px-4 py-3">
-              <span class="text-foreground-l0 text-3xl font-bold tabular-nums">{days}</span>
-              <span class="text-foreground-l4 text-xs tracking-wide uppercase">days</span>
+            <div class="flex flex-col items-center">
+              <span class="text-foreground-l0 text-2xl tabular-nums">{days}</span>
+              <span class="text-foreground-l4 text-xs">days</span>
             </div>
+            <span class="text-foreground-l4 text-2xl">:</span>
           {/if}
-          <div class="bg-background-l2 flex flex-col items-center rounded-xl px-4 py-3">
-            <span class="text-foreground-l0 text-3xl font-bold tabular-nums"
+          <div class="flex flex-col items-center">
+            <span class="text-foreground-l0 text-2xl tabular-nums"
               >{String(hours).padStart(2, '0')}</span
             >
-            <span class="text-foreground-l4 text-xs tracking-wide uppercase">hours</span>
+            <span class="text-foreground-l4 text-xs">hours</span>
           </div>
-          <div class="bg-background-l2 flex flex-col items-center rounded-xl px-4 py-3">
-            <span class="text-foreground-l0 text-3xl font-bold tabular-nums"
+          <span class="text-foreground-l4 text-2xl">:</span>
+          <div class="flex flex-col items-center">
+            <span class="text-foreground-l0 text-2xl tabular-nums"
               >{String(minutes).padStart(2, '0')}</span
             >
-            <span class="text-foreground-l4 text-xs tracking-wide uppercase">mins</span>
+            <span class="text-foreground-l4 text-xs">mins</span>
           </div>
-          <div class="bg-background-l2 flex flex-col items-center rounded-xl px-4 py-3">
-            <span class="text-foreground-l0 text-3xl font-bold tabular-nums"
+          <span class="text-foreground-l4 text-2xl">:</span>
+          <div class="flex flex-col items-center">
+            <span class="text-foreground-l0 text-2xl tabular-nums"
               >{String(seconds).padStart(2, '0')}</span
             >
-            <span class="text-foreground-l4 text-xs tracking-wide uppercase">secs</span>
+            <span class="text-foreground-l4 text-xs">secs</span>
           </div>
         </div>
 
