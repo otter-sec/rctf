@@ -47,7 +47,7 @@
     </div>
   </div>
   {#if !isMinimal && colCount > 0}
-    <div class="bg-background-l2 mr-(--diagonal-overflow) flex gap-1 rounded-r-md pr-4 pl-1">
+    <div class="bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1">
       {#each Array(colCount) as _}
         <div class="bg-background-l2 flex h-16 w-12 items-center justify-center">
           <IconCircleDashed class="text-foreground-l5/25 size-7" />

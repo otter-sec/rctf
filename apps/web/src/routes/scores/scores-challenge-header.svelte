@@ -87,7 +87,6 @@
 
 {#if viewMode !== 'minimal'}
   <div class="mr-(--diagonal-overflow) flex flex-col">
-    <!-- Name labels row -->
     <div
       class="flex h-(--name-row-height) items-end [&>div]:h-(--name-row-height)"
       class:gap-1={viewMode === 'challenges'}
@@ -105,7 +104,6 @@
       {/each}
     </div>
 
-    <!-- Points + icons row -->
     <div class="ml-1 flex items-stretch" class:gap-1={viewMode === 'challenges'}>
       {#if viewMode === 'categories'}
         <div class="flex gap-1">

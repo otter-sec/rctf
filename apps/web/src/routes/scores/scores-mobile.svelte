@@ -2,10 +2,15 @@
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
   import { createVirtualizer } from '@tanstack/svelte-virtual'
   import { get } from 'svelte/store'
-  import type { Virtualizer } from '@tanstack/svelte-virtual'
   import { Avatar, EmptyState, ScrollArea, Spinner } from '$lib/components'
   import { IconMoodWrrrFilled } from '$lib/icons'
-  import { cn, countryCodeToFlagFilename, getInitials } from '$lib/utils'
+  import {
+    cn,
+    countryCodeToFlagFilename,
+    getInitials,
+    observeElementOffset,
+    observeElementRect,
+  } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
   import DeltaIndicator from './delta-indicator.svelte'
@@ -48,147 +53,50 @@
     onLoadMore,
   }: Props = $props()
 
-  // FIXME
   const ROW_HEIGHT = 68
 
   let viewportRef = $state<HTMLElement | null>(null)
-
-  type ObserveRectCallback = (rect: { width: number; height: number }) => void
-  type ObserveOffsetCallback = (offset: number, isScrolling: boolean) => void
-
-  // horrible firefox workaround. FIXME
-  function observeElementRectRaf<T extends Element>(
-    instance: Virtualizer<T, any>,
-    cb: ObserveRectCallback
-  ) {
-    const element = instance.scrollElement as unknown as HTMLElement | null
-    if (!element) return
-    const targetWindow = instance.targetWindow
-    if (!targetWindow) return
-
-    let raf = 0
-    let lastWidth = -1
-    let lastHeight = -1
-    let hasNonZero = false
-    let ro: ResizeObserver | null = null
-
-    const measure = () => {
-      raf = 0
-
-      const { width, height } = element.getBoundingClientRect()
-      const w = Math.round(width)
-      const h = Math.round(height)
-
-      if (hasNonZero && (w === 0 || h === 0)) {
-        raf = targetWindow.requestAnimationFrame(measure)
-        return
-      }
-
-      if (w !== lastWidth || h !== lastHeight) {
-        lastWidth = w
-        lastHeight = h
-        if (w > 0 && h > 0) hasNonZero = true
-        cb({ width: w, height: h })
-      }
-
-      if (!hasNonZero) {
-        raf = targetWindow.requestAnimationFrame(measure)
-      }
-    }
-
-    const schedule = () => {
-      if (raf) return
-      raf = targetWindow.requestAnimationFrame(measure)
-    }
-
-    schedule()
-
-    const RO = targetWindow.ResizeObserver
-    if (RO) {
-      ro = new RO(schedule)
-      ro.observe(element, { box: 'border-box' })
-    }
-
-    return () => {
-      ro?.disconnect()
-      if (raf) targetWindow.cancelAnimationFrame(raf)
-    }
-  }
-
-  function observeElementOffsetRaf<T extends Element>(
-    instance: Virtualizer<T, any>,
-    cb: ObserveOffsetCallback
-  ) {
-    const element = instance.scrollElement
-    if (!element) return
-    const targetWindow = instance.targetWindow
-    if (!targetWindow) return
-
-    let raf = 0
-    let timeoutId: number | undefined
-    let latestOffset = 0
-    let latestIsScrolling = false
-
-    const computeOffset = () => {
-      const { horizontal, isRtl } = instance.options
-      return horizontal ? element.scrollLeft * ((isRtl && -1) || 1) : element.scrollTop
-    }
-
-    const schedule = () => {
-      if (raf) return
-      raf = targetWindow.requestAnimationFrame(() => {
-        raf = 0
-        cb(latestOffset, latestIsScrolling)
-      })
-    }
-
-    const notify = (isScrolling: boolean) => {
-      latestIsScrolling = isScrolling
-      latestOffset = computeOffset()
-      schedule()
-    }
-
-    const onScroll = () => {
-      notify(true)
-      if (timeoutId) targetWindow.clearTimeout(timeoutId)
-      timeoutId = targetWindow.setTimeout(
-        () => notify(false),
-        instance.options.isScrollingResetDelay
-      )
-    }
-
-    notify(false)
-
-    element.addEventListener('scroll', onScroll, { passive: true })
-    return () => {
-      element.removeEventListener('scroll', onScroll)
-      if (raf) targetWindow.cancelAnimationFrame(raf)
-      if (timeoutId) targetWindow.clearTimeout(timeoutId)
-    }
-  }
 
   const virtualizer = createVirtualizer({
     count: 0,
     getScrollElement: () => viewportRef,
     estimateSize: () => ROW_HEIGHT,
-    overscan: 8,
-    observeElementRect: observeElementRectRaf,
-    observeElementOffset: observeElementOffsetRaf,
-    isScrollingResetDelay: 100,
+    overscan: 20,
+    observeElementRect,
+    observeElementOffset,
+    isScrollingResetDelay: 50,
   })
 
   let lastVirtualCount = -1
   let lastVirtualScrollElement: HTMLElement | null = null
+  let hasMeasured = false
+
   $effect(() => {
     const scrollElement = viewportRef
     const count = hasNextPage ? entries.length + 1 : entries.length
-    if (count === lastVirtualCount && scrollElement === lastVirtualScrollElement) return
-    lastVirtualCount = count
-    lastVirtualScrollElement = scrollElement
-    get(virtualizer).setOptions({ count })
+
+    const v = get(virtualizer)
+
+    const needsUpdate = count !== lastVirtualCount || scrollElement !== lastVirtualScrollElement
+
+    if (needsUpdate) {
+      lastVirtualCount = count
+      lastVirtualScrollElement = scrollElement
+      v.setOptions({ count })
+    }
+
+    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
+      hasMeasured = true
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          v.measure()
+        })
+      })
+    }
   })
 
   let loadMoreTriggered = false
+
   $effect(() => {
     const v = viewportRef
     if (!v) return
@@ -317,7 +225,10 @@
   </div>
 
   <ScrollArea class="min-h-0 flex-1" bind:viewportRef>
-    <div class="relative" style="height: {$virtualizer.getTotalSize()}px; width: 100%;">
+    <div
+      class="virtual-list-container bg-background-l1 relative"
+      style="height: {$virtualizer.getTotalSize()}px; width: 100%;"
+    >
       {#if isLoading && entries.length === 0}
         <div class="flex flex-col gap-1">
           {#each Array(PAGE_SIZE) as _}
@@ -351,7 +262,7 @@
           {#if row.index > entries.length - 1}
             <div
               class="absolute top-0 left-0 flex w-full items-center justify-center"
-              style="height: {row.size}px; transform: translateY({row.start}px);"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
             >
               {#if hasNextPage}
                 <Spinner class="text-foreground-l3 size-5" />
@@ -363,7 +274,7 @@
             {@const isYou = currentUser?.id === entry.id}
             <div
               class="absolute top-0 left-0 w-full"
-              style="height: {row.size}px; transform: translateY({row.start}px);"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
             >
               {@render mobileTeamRow({
                 id: entry.id,
