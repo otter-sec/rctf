@@ -306,7 +306,8 @@ export function useInfiniteVirtualScroll(
     { threshold, onScroll }
   )
 
-  $effect(() => {
+  // update virtualizer BEFORE render, preventing state_unsafe_mutation
+  $effect.pre(() => {
     updateVirtualizer({
       count,
       scrollElement: viewportRef,
@@ -314,7 +315,7 @@ export function useInfiniteVirtualScroll(
     })
   })
 
-  $effect(() => {
+  $effect.pre(() => {
     if (!isFetching) {
       infiniteScroll.resetTrigger()
     }
