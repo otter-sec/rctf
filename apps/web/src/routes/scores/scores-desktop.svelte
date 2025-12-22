@@ -136,8 +136,6 @@
     scroll.state.scrollMargin = listScrollMargin
   })
 
-  const virtualizer = scroll.virtualizer
-
   function getCategoryStats(teamId: string, group: CategoryGroup) {
     const isSelf = teamId === currentUser?.id
     const solvedCount = isSelf
@@ -224,7 +222,7 @@
 
         <div
           class="virtual-list-container perf-contain-layout perf-backface-hidden bg-background-l1 relative"
-          style="height: {$virtualizer.getTotalSize()}px; width: 100%;"
+          style="height: {scroll.totalSize}px; width: 100%;"
         >
           {#if isLoading && challengesLoading && entries.length === 0}
             <div class="flex flex-col gap-1">
@@ -258,7 +256,7 @@
               />
             </div>
           {:else}
-            {#each $virtualizer.getVirtualItems() as row (row.index)}
+            {#each scroll.virtualItems as row (row.index)}
               {#if row.index > entries.length - 1}
                 <div
                   class="absolute top-0 left-0 flex w-full items-center justify-center"
@@ -345,7 +343,7 @@
                 rank={currentUser.globalPlace ?? 0}
                 isCurrentUser={true}
                 isFullWidth={viewMode === 'minimal'}
-                sparklineData={$virtualizer.isScrolling
+                sparklineData={scroll.isScrolling
                   ? []
                   : (sparklineDataByTeam.get(currentUser.id) ?? [])}
                 delta={rankDeltaByTeam.get(currentUser.id)}

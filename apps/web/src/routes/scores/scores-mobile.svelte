@@ -182,7 +182,8 @@
       </div>
     {:else}
       <VirtualList
-        virtualizer={scroll.virtualizer}
+        virtualItems={scroll.virtualItems}
+        totalSize={scroll.totalSize}
         items={entries}
         {hasNextPage}
         class="bg-background-l1"

@@ -290,6 +290,11 @@ export function useInfiniteVirtualScroll(
   let hasNextPage = $state(false)
   let isFetching = $state(false)
 
+  // Dirty workaround: cached virtualizer values to avoid store mutations during render
+  let virtualItems = $state<import('@tanstack/svelte-virtual').VirtualItem[]>([])
+  let totalSize = $state(0)
+  let isScrolling = $state(false)
+
   const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
     rowHeight,
     overscan,
@@ -306,7 +311,16 @@ export function useInfiniteVirtualScroll(
     { threshold, onScroll }
   )
 
-  // update virtualizer BEFORE render, preventing state_unsafe_mutation
+  // Subscribe to virtualizer and cache values outside render cycle
+  $effect(() => {
+    const unsubscribe = virtualizer.subscribe((v) => {
+      virtualItems = v.getVirtualItems()
+      totalSize = v.getTotalSize()
+      isScrolling = v.isScrolling
+    })
+    return unsubscribe
+  })
+
   $effect.pre(() => {
     updateVirtualizer({
       count,
@@ -328,7 +342,15 @@ export function useInfiniteVirtualScroll(
   })
 
   return {
-    virtualizer,
+    get virtualItems() {
+      return virtualItems
+    },
+    get totalSize() {
+      return totalSize
+    },
+    get isScrolling() {
+      return isScrolling
+    },
     state: {
       get viewportRef() {
         return viewportRef

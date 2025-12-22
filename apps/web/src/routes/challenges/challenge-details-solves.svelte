@@ -105,7 +105,8 @@
       />
     {:else}
       <VirtualList
-        virtualizer={scroll.virtualizer}
+        virtualItems={scroll.virtualItems}
+        totalSize={scroll.totalSize}
         items={allSolves}
         hasNextPage={$solvesQuery.hasNextPage}
         class="px-5 pt-2"

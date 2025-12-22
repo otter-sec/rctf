@@ -60,7 +60,7 @@ const config: Config = {
               'https://www.google.com/recaptcha/',
             ],
             'font-src': ['self'],
-            'img-src': ['https:', 'blob:', 'data:'],
+            'img-src': ['http:', 'https:', 'blob:', 'data:'],
             'frame-src': [
               // youtube iframes
               'https://www.youtube.com',
