@@ -277,7 +277,7 @@
 
                 <div
                   class={cn(
-                    'perf-contain-paint perf-will-transform perf-content-auto bg-background-l1 data-row group absolute top-0 left-0 flex min-w-0 rounded-lg',
+                    'perf-contain-paint perf-will-transform bg-background-l1 data-row group absolute top-0 left-0 flex min-w-0 rounded-lg',
                     viewMode === 'minimal' ? 'w-full' : 'w-fit'
                   )}
                   style="height: {row.size}px; transform: translate3d(0, {row.start -
