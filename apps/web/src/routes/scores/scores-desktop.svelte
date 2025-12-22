@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
   import { IconMoodWrrrFilled } from '$lib/icons'
-  import { EmptyState, ScrollArea, Spinner } from '$lib/components'
-  import { cn, createInfiniteVirtualizer, setupInfiniteScroll } from '$lib/utils'
+  import { EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
+  import { cn, useInfiniteVirtualScroll } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
@@ -81,7 +81,6 @@
 
   const ROW_HEIGHT = 68
 
-  let viewportRef = $state<HTMLElement | null>(null)
   let headerRowRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
 
@@ -108,7 +107,7 @@
   })
 
   function updateFades() {
-    const v = viewportRef
+    const v = scroll.state.viewportRef
     if (!v) return
 
     const threshold = 10
@@ -123,40 +122,21 @@
     if (showRightFade !== nextRight) showRightFade = nextRight
   }
 
-  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+  const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 20,
+    onLoadMore: () => onLoadMore(),
+    onScroll: updateFades,
   })
 
   $effect(() => {
-    updateVirtualizer({
-      count: hasNextPage ? entries.length + 1 : entries.length,
-      scrollElement: viewportRef,
-      scrollMargin: listScrollMargin,
-    })
+    scroll.state.count = hasNextPage ? entries.length + 1 : entries.length
+    scroll.state.hasNextPage = hasNextPage
+    scroll.state.isFetching = isFetchingNextPage
+    scroll.state.scrollMargin = listScrollMargin
   })
 
-  const infiniteScroll = setupInfiniteScroll(
-    {
-      getViewport: () => viewportRef,
-      hasNextPage: () => hasNextPage,
-      isFetching: () => isFetchingNextPage,
-      onLoadMore: () => onLoadMore(),
-    },
-    { onScroll: updateFades }
-  )
-
-  $effect(() => {
-    if (!isFetchingNextPage) {
-      infiniteScroll.resetTrigger()
-    }
-  })
-
-  $effect(() => {
-    const v = viewportRef
-    if (!v) return
-    return infiniteScroll.attach(v)
-  })
+  const virtualizer = scroll.virtualizer
 
   function getCategoryStats(teamId: string, group: CategoryGroup) {
     const isSelf = teamId === currentUser?.id
@@ -216,7 +196,7 @@
           ? ''
           : 'padding-left: var(--team-column-width); margin-right: -10px; z-index: 40;'}
         scrollbarYStyles="padding-top: var(--header-height); padding-bottom: calc(var(--self-row-offset) + 8px); z-index: 40;"
-        bind:viewportRef
+        bind:viewportRef={scroll.state.viewportRef}
       >
         <div class="header-row bg-background-l0 sticky top-0 z-20 flex" bind:this={headerRowRef}>
           <div class="col-team bg-background-l0 sticky left-0 z-30">

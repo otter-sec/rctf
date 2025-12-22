@@ -1,14 +1,8 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { Avatar, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { Avatar, EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconMoodWrrrFilled } from '$lib/icons'
-  import {
-    cn,
-    countryCodeToFlagFilename,
-    createInfiniteVirtualizer,
-    getInitials,
-    setupInfiniteScroll,
-  } from '$lib/utils'
+  import { cn, countryCodeToFlagFilename, getInitials, useInfiniteVirtualScroll } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
   import DeltaIndicator from './delta-indicator.svelte'
@@ -53,38 +47,17 @@
 
   const ROW_HEIGHT = 68
 
-  let viewportRef = $state<HTMLElement | null>(null)
-
-  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+  const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 20,
     isScrollingResetDelay: 50,
-  })
-
-  $effect(() => {
-    updateVirtualizer({
-      count: hasNextPage ? entries.length + 1 : entries.length,
-      scrollElement: viewportRef,
-    })
-  })
-
-  const infiniteScroll = setupInfiniteScroll({
-    getViewport: () => viewportRef,
-    hasNextPage: () => hasNextPage,
-    isFetching: () => isFetchingNextPage,
     onLoadMore: () => onLoadMore(),
   })
 
   $effect(() => {
-    if (!isFetchingNextPage) {
-      infiniteScroll.resetTrigger()
-    }
-  })
-
-  $effect(() => {
-    const v = viewportRef
-    if (!v) return
-    return infiniteScroll.attach(v)
+    scroll.state.count = hasNextPage ? entries.length + 1 : entries.length
+    scroll.state.hasNextPage = hasNextPage
+    scroll.state.isFetching = isFetchingNextPage
   })
 </script>
 
@@ -178,77 +151,62 @@
     </div>
   </div>
 
-  <ScrollArea class="min-h-0 flex-1" bind:viewportRef>
-    <div
-      class="virtual-list-container bg-background-l1 relative"
-      style="height: {$virtualizer.getTotalSize()}px; width: 100%;"
-    >
-      {#if isLoading && entries.length === 0}
-        <div class="flex flex-col gap-1">
-          {#each Array(PAGE_SIZE) as _}
-            <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
-              <div class="flex w-10 flex-col items-center gap-1">
-                <div class="bg-background-l3 h-5 w-8 rounded"></div>
-                {#if showDivision}<div class="bg-background-l3 h-4 w-6 rounded"></div>{/if}
-              </div>
-              <div class="bg-background-l3 size-10 rounded-lg"></div>
-              <div class="flex flex-1 flex-col gap-1">
-                <div class="bg-background-l3 h-5 w-28 rounded"></div>
-                {#if showDivision}<div class="bg-background-l3 h-4 w-20 rounded"></div>{/if}
-              </div>
-              <div class="flex flex-col items-end gap-1">
-                <div class="bg-background-l3 h-5 w-16 rounded"></div>
-                <div class="bg-background-l3 h-4 w-12 rounded"></div>
-              </div>
+  <ScrollArea class="min-h-0 flex-1" bind:viewportRef={scroll.state.viewportRef}>
+    {#if isLoading && entries.length === 0}
+      <div class="flex flex-col gap-1">
+        {#each Array(PAGE_SIZE) as _}
+          <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
+            <div class="flex w-10 flex-col items-center gap-1">
+              <div class="bg-background-l3 h-5 w-8 rounded"></div>
+              {#if showDivision}<div class="bg-background-l3 h-4 w-6 rounded"></div>{/if}
             </div>
-          {/each}
-        </div>
-      {:else if entries.length === 0 && !isLoading}
-        <div class="bg-background-l1 rounded-lg">
-          <EmptyState
-            icon={IconMoodWrrrFilled}
-            title="No solves yet"
-            subtitle="The leaderboard will populate as teams solve challenges"
-          />
-        </div>
-      {:else}
-        {#each $virtualizer.getVirtualItems() as row (row.index)}
-          {#if row.index > entries.length - 1}
-            <div
-              class="absolute top-0 left-0 flex w-full items-center justify-center"
-              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
-            >
-              {#if hasNextPage}
-                <Spinner class="text-foreground-l3 size-5" />
-              {/if}
+            <div class="bg-background-l3 size-10 rounded-lg"></div>
+            <div class="flex flex-1 flex-col gap-1">
+              <div class="bg-background-l3 h-5 w-28 rounded"></div>
+              {#if showDivision}<div class="bg-background-l3 h-4 w-20 rounded"></div>{/if}
             </div>
-          {:else if entries[row.index]}
-            {@const entry = entries[row.index]!}
-            {@const rank = row.index + 1}
-            {@const isYou = currentUser?.id === entry.id}
-            <div
-              class="absolute top-0 left-0 w-full"
-              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
-            >
-              {@render mobileTeamRow({
-                id: entry.id,
-                name: entry.name,
-                avatarUrl: entry.avatarUrl,
-                division: entry.division,
-                divisionPlace: entry.divisionPlace,
-                countryCode: entry.countryCode,
-                statusText: entry.statusText,
-                score: entry.score,
-                solveCount: entry.solves.length,
-                rank,
-                isCurrentUser: isYou,
-                delta: rankDeltaByTeam.get(entry.id),
-              })}
+            <div class="flex flex-col items-end gap-1">
+              <div class="bg-background-l3 h-5 w-16 rounded"></div>
+              <div class="bg-background-l3 h-4 w-12 rounded"></div>
             </div>
-          {/if}
+          </div>
         {/each}
-      {/if}
-    </div>
+      </div>
+    {:else if entries.length === 0 && !isLoading}
+      <div class="bg-background-l1 rounded-lg">
+        <EmptyState
+          icon={IconMoodWrrrFilled}
+          title="No solves yet"
+          subtitle="The leaderboard will populate as teams solve challenges"
+        />
+      </div>
+    {:else}
+      <VirtualList
+        virtualizer={scroll.virtualizer}
+        items={entries}
+        {hasNextPage}
+        class="bg-background-l1"
+      >
+        {#snippet children({ item: entry, index })}
+          {@const rank = index + 1}
+          {@const isYou = currentUser?.id === entry.id}
+          {@render mobileTeamRow({
+            id: entry.id,
+            name: entry.name,
+            avatarUrl: entry.avatarUrl,
+            division: entry.division,
+            divisionPlace: entry.divisionPlace,
+            countryCode: entry.countryCode,
+            statusText: entry.statusText,
+            score: entry.score,
+            solveCount: entry.solves.length,
+            rank,
+            isCurrentUser: isYou,
+            delta: rankDeltaByTeam.get(entry.id),
+          })}
+        {/snippet}
+      </VirtualList>
+    {/if}
   </ScrollArea>
 
   {#if showSelfRow && currentUser}

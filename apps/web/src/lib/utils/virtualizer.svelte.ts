@@ -262,3 +262,103 @@ export function setupInfiniteScroll(
 
   return { attach, resetTrigger }
 }
+
+export interface UseInfiniteVirtualScrollConfig {
+  rowHeight: number
+  overscan?: number
+  isScrollingResetDelay?: number
+  threshold?: number
+  onLoadMore: () => void
+  onScroll?: () => void
+}
+
+export function useInfiniteVirtualScroll(
+  config: UseInfiniteVirtualScrollConfig
+) {
+  const {
+    rowHeight,
+    overscan = 10,
+    isScrollingResetDelay = 100,
+    threshold = 0.7,
+    onLoadMore,
+    onScroll,
+  } = config
+
+  let viewportRef = $state<HTMLElement | null>(null)
+  let count = $state(0)
+  let scrollMargin = $state(0)
+  let hasNextPage = $state(false)
+  let isFetching = $state(false)
+
+  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+    rowHeight,
+    overscan,
+    isScrollingResetDelay,
+  })
+
+  const infiniteScroll = setupInfiniteScroll(
+    {
+      getViewport: () => viewportRef,
+      hasNextPage: () => hasNextPage,
+      isFetching: () => isFetching,
+      onLoadMore,
+    },
+    { threshold, onScroll }
+  )
+
+  $effect(() => {
+    updateVirtualizer({
+      count,
+      scrollElement: viewportRef,
+      scrollMargin,
+    })
+  })
+
+  $effect(() => {
+    if (!isFetching) {
+      infiniteScroll.resetTrigger()
+    }
+  })
+
+  $effect(() => {
+    const v = viewportRef
+    if (!v) return
+    return infiniteScroll.attach(v)
+  })
+
+  return {
+    virtualizer,
+    state: {
+      get viewportRef() {
+        return viewportRef
+      },
+      set viewportRef(el: HTMLElement | null) {
+        viewportRef = el
+      },
+      get count() {
+        return count
+      },
+      set count(n: number) {
+        count = n
+      },
+      get scrollMargin() {
+        return scrollMargin
+      },
+      set scrollMargin(n: number) {
+        scrollMargin = n
+      },
+      get hasNextPage() {
+        return hasNextPage
+      },
+      set hasNextPage(v: boolean) {
+        hasNextPage = v
+      },
+      get isFetching() {
+        return isFetching
+      },
+      set isFetching(v: boolean) {
+        isFetching = v
+      },
+    },
+  }
+}
