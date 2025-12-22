@@ -1,4 +1,4 @@
-import type { Virtualizer } from '@tanstack/svelte-virtual'
+import type { Virtualizer, VirtualItem } from '@tanstack/svelte-virtual'
 import { createVirtualizer } from '@tanstack/svelte-virtual'
 import { get } from 'svelte/store'
 
@@ -290,8 +290,7 @@ export function useInfiniteVirtualScroll(
   let hasNextPage = $state(false)
   let isFetching = $state(false)
 
-  // Dirty workaround: cached virtualizer values to avoid store mutations during render
-  let virtualItems = $state<import('@tanstack/svelte-virtual').VirtualItem[]>([])
+  let virtualItems = $state<VirtualItem[]>([])
   let totalSize = $state(0)
   let isScrolling = $state(false)
 
