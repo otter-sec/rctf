@@ -1,4 +1,6 @@
 import type { Virtualizer } from '@tanstack/svelte-virtual'
+import { createVirtualizer } from '@tanstack/svelte-virtual'
+import { get } from 'svelte/store'
 
 type ObserveRectCallback = (rect: { width: number; height: number }) => void
 type ObserveOffsetCallback = (offset: number, isScrolling: boolean) => void
@@ -127,4 +129,136 @@ export function observeElementOffset<T extends Element>(
     if (timeoutId) targetWindow.clearTimeout(timeoutId)
     if (pollId !== null) targetWindow.cancelAnimationFrame(pollId)
   }
+}
+
+export interface InfiniteVirtualizerConfig {
+  rowHeight: number
+  overscan?: number
+  scrollMargin?: number
+  isScrollingResetDelay?: number
+}
+
+export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
+  const {
+    rowHeight,
+    overscan = 10,
+    scrollMargin = 0,
+    isScrollingResetDelay = 100,
+  } = config
+
+  let scrollElementRef: HTMLElement | null = null
+  const virtualizer = createVirtualizer({
+    count: 0,
+    getScrollElement: () => scrollElementRef,
+    estimateSize: () => rowHeight,
+    overscan,
+    scrollMargin,
+    observeElementRect,
+    observeElementOffset,
+    isScrollingResetDelay,
+  })
+
+  let lastCount = -1
+  let lastScrollMargin = -1
+  let lastScrollElement: HTMLElement | null = null
+  let hasMeasured = false
+
+  function update(opts: {
+    count: number
+    scrollElement: HTMLElement | null
+    scrollMargin?: number
+  }) {
+    const {
+      count,
+      scrollElement,
+      scrollMargin: newScrollMargin = scrollMargin,
+    } = opts
+    const v = get(virtualizer)
+
+    const needsUpdate =
+      count !== lastCount ||
+      newScrollMargin !== lastScrollMargin ||
+      scrollElement !== lastScrollElement
+
+    scrollElementRef = scrollElement
+
+    if (needsUpdate) {
+      lastCount = count
+      lastScrollMargin = newScrollMargin
+      lastScrollElement = scrollElement
+      v.setOptions({ count, scrollMargin: newScrollMargin })
+    }
+
+    // Firefox bug workaround - needs double rAF to measure correctly :shrug:
+    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
+      hasMeasured = true
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          v.measure()
+        })
+      })
+    }
+  }
+
+  return { virtualizer, update }
+}
+
+export interface InfiniteScrollConfig {
+  threshold?: number
+  onScroll?: () => void
+}
+
+export function setupInfiniteScroll(
+  handlers: {
+    getViewport: () => HTMLElement | null
+    hasNextPage: () => boolean
+    isFetching: () => boolean
+    onLoadMore: () => void
+  },
+  config: InfiniteScrollConfig = {}
+) {
+  const { threshold = 0.7, onScroll } = config
+  let loadMoreTriggered = false
+  let raf = 0
+
+  function resetTrigger() {
+    loadMoreTriggered = false
+  }
+
+  function run() {
+    raf = 0
+    const v = handlers.getViewport()
+    if (!v) return
+
+    onScroll?.()
+
+    if (loadMoreTriggered || !handlers.hasNextPage() || handlers.isFetching())
+      return
+
+    const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
+    if (scrollPercent > threshold) {
+      loadMoreTriggered = true
+      handlers.onLoadMore()
+    }
+  }
+
+  function schedule() {
+    if (raf) return
+    raf = requestAnimationFrame(run)
+  }
+
+  function attach(viewport: HTMLElement) {
+    viewport.addEventListener('scroll', schedule, { passive: true })
+    const observer = new ResizeObserver(schedule)
+    observer.observe(viewport)
+    schedule()
+
+    return () => {
+      viewport.removeEventListener('scroll', schedule)
+      observer.disconnect()
+      if (raf) cancelAnimationFrame(raf)
+    }
+  }
+
+  return { attach, resetTrigger }
 }

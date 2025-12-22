@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { Challenge, Solve } from '@rctf/types'
+  import type { Solve } from '@rctf/types'
   import {
     Accordion,
     CollapseToggleButton,
@@ -24,8 +24,16 @@
     getCategoryStyle,
   } from '$lib/utils'
 
+  interface ChallengeInfo {
+    id: string
+    name: string
+    category: string
+    points: number
+    solves: number
+  }
+
   interface Props {
-    challenges: Challenge[]
+    challenges: ChallengeInfo[]
     solves: Solve[]
     showUnsolved?: boolean
   }

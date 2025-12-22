@@ -4,18 +4,21 @@
   import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { apiRequest } from '$lib/api'
-  import { Button, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { EmptyState, ScrollArea, Spinner } from '$lib/components'
   import { IconTrophyFilled } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import {
+    createInfiniteVirtualizer,
     formatFirstBloodTime,
     formatLocalTime,
     formatRelativeToFirstBlood,
     getRankVariant,
+    setupInfiniteScroll,
   } from '$lib/utils'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   const PAGE_SIZE = 10
+  const ROW_HEIGHT = 72 // 64px row + 8px gap
 
   interface Props {
     challenge: Challenge
@@ -60,6 +63,38 @@
   const allSolves = $derived($solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
+  let viewportRef = $state<HTMLElement | null>(null)
+  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+    rowHeight: ROW_HEIGHT,
+    overscan: 10,
+  })
+
+  $effect(() => {
+    updateVirtualizer({
+      count: $solvesQuery.hasNextPage ? allSolves.length + 1 : allSolves.length,
+      scrollElement: viewportRef,
+    })
+  })
+
+  const infiniteScroll = setupInfiniteScroll({
+    getViewport: () => viewportRef,
+    hasNextPage: () => $solvesQuery.hasNextPage ?? false,
+    isFetching: () => $solvesQuery.isFetchingNextPage,
+    onLoadMore: () => $solvesQuery.fetchNextPage(),
+  })
+
+  $effect(() => {
+    if (!$solvesQuery.isFetchingNextPage) {
+      infiniteScroll.resetTrigger()
+    }
+  })
+
+  $effect(() => {
+    const v = viewportRef
+    if (!v) return
+    return infiniteScroll.attach(v)
+  })
+
   $effect(() => {
     userVisibleInList = currentUser ? allSolves.some(s => s.userId === currentUser.id) : false
   })
@@ -72,7 +107,7 @@
 </script>
 
 <div class="flex h-full flex-col">
-  <ScrollArea class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l2">
+  <ScrollArea bind:viewportRef class="min-h-0 flex-1" fadeSize={64} fadeColor="background-l2">
     {#if $solvesQuery.isPending}
       <div class="flex items-center justify-center py-8">
         <Spinner class="size-6" />
@@ -85,45 +120,48 @@
         class="h-full"
       />
     {:else}
-      <div class="flex flex-col gap-2 px-5 pt-2">
-        {#each allSolves as solve, index (solve.id)}
-          {@const solvePosition = index + 1}
-          {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
-          {@const variant = getRankVariant(solvePosition, isCurrentUser)}
-          <ChallengeDetailsSolvesRow
-            {variant}
-            rankLabel={solvePosition}
-            name={solve.userName}
-            userId={solve.userId}
-            avatarUrl={solve.userAvatarUrl}
-            countryCode={solve.userCountryCode}
-            globalPlace={solve.globalPlace}
-            divisionId={showDivision ? solve.division : undefined}
-            divisionPlace={showDivision ? solve.divisionPlace : undefined}
-            primaryValue={solvePosition === 1
-              ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
-              : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-            secondaryValue={formatLocalTime(solve.createdAt)}
-          />
+      <div
+        class="virtual-list-container perf-contain-layout perf-backface-hidden relative px-5 pt-2"
+        style="height: {$virtualizer.getTotalSize()}px;"
+      >
+        {#each $virtualizer.getVirtualItems() as row (row.index)}
+          {#if row.index > allSolves.length - 1}
+            <div
+              class="absolute top-0 left-0 flex w-full items-center justify-center"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
+            >
+              {#if $solvesQuery.hasNextPage}
+                <Spinner class="text-foreground-l3 size-5" />
+              {/if}
+            </div>
+          {:else if allSolves[row.index]}
+            {@const solve = allSolves[row.index]!}
+            {@const solvePosition = row.index + 1}
+            {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
+            {@const variant = getRankVariant(solvePosition, isCurrentUser)}
+            <div
+              class="perf-contain-paint perf-will-transform absolute top-0 left-0 w-full"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
+            >
+              <ChallengeDetailsSolvesRow
+                {variant}
+                rankLabel={solvePosition}
+                name={solve.userName}
+                userId={solve.userId}
+                avatarUrl={solve.userAvatarUrl}
+                countryCode={solve.userCountryCode}
+                globalPlace={solve.globalPlace}
+                divisionId={showDivision ? solve.division : undefined}
+                divisionPlace={showDivision ? solve.divisionPlace : undefined}
+                primaryValue={solvePosition === 1
+                  ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
+                  : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
+                secondaryValue={formatLocalTime(solve.createdAt)}
+              />
+            </div>
+          {/if}
         {/each}
       </div>
-
-      {#if $solvesQuery.hasNextPage}
-        <div class="flex justify-center px-5 py-4">
-          <Button
-            class="w-full"
-            disabled={$solvesQuery.isFetchingNextPage}
-            onclick={() => $solvesQuery.fetchNextPage()}
-          >
-            {#if $solvesQuery.isFetchingNextPage}
-              <Spinner class="mr-2 size-4" />
-              Loading...
-            {:else}
-              Load more
-            {/if}
-          </Button>
-        </div>
-      {/if}
     {/if}
   </ScrollArea>
 </div>

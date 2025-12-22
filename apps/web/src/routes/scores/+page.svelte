@@ -102,9 +102,8 @@
 
   const isNotStarted = $derived(ApiError.isNotStarted($leaderboardQuery.error))
 
-  const showDivision = $derived(
-    clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
-  )
+  const divisions = $derived(clientConfig?.divisions ?? {})
+  const showDivision = $derived(Object.keys(divisions).length > 1)
 
   const challengesByCategory = $derived<ChallengeInfo[]>(
     Object.entries(challengesData)
@@ -278,6 +277,7 @@
     {showSelfRow}
     {showDivision}
     {showTop3Context}
+    {divisions}
     {solvesByTeam}
     {solvesWithTimeByTeam}
     {sparklineDataByTeam}

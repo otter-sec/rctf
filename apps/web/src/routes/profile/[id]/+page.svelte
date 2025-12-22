@@ -1,15 +1,28 @@
 <script lang="ts">
   import { page } from '$app/state'
   import { Button, Card, ScrollArea, Spinner } from '$lib/components'
-  import { useChallenges, useClientConfig, useUserGraph, useUserProfile } from '$lib/query'
+  import {
+    useClientConfig,
+    useLeaderboardChallenges,
+    useUserGraph,
+    useUserProfile,
+  } from '$lib/query'
   import ProfileGraph from '../profile-graph.svelte'
   import ProfileHeader from '../profile-header.svelte'
   import ProfileSolves from '../profile-solves.svelte'
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived($clientConfigQuery.data)
-  const challengesQuery = useChallenges()
-  const challenges = $derived($challengesQuery.data ?? [])
+  const challengesQuery = useLeaderboardChallenges()
+  const challenges = $derived(
+    Object.entries($challengesQuery.data ?? {}).map(([id, c]) => ({
+      id,
+      name: c.name,
+      category: c.category,
+      points: c.points,
+      solves: c.solves,
+    }))
+  )
 
   const userQuery = $derived(useUserProfile(page.params.id!))
   const user = $derived($userQuery.data)

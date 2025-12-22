@@ -1,15 +1,13 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { createVirtualizer } from '@tanstack/svelte-virtual'
-  import { get } from 'svelte/store'
   import { Avatar, EmptyState, ScrollArea, Spinner } from '$lib/components'
   import { IconMoodWrrrFilled } from '$lib/icons'
   import {
     cn,
     countryCodeToFlagFilename,
+    createInfiniteVirtualizer,
     getInitials,
-    observeElementOffset,
-    observeElementRect,
+    setupInfiniteScroll,
   } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
@@ -57,80 +55,36 @@
 
   let viewportRef = $state<HTMLElement | null>(null)
 
-  const virtualizer = createVirtualizer({
-    count: 0,
-    getScrollElement: () => viewportRef,
-    estimateSize: () => ROW_HEIGHT,
+  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+    rowHeight: ROW_HEIGHT,
     overscan: 20,
-    observeElementRect,
-    observeElementOffset,
     isScrollingResetDelay: 50,
   })
 
-  let lastVirtualCount = -1
-  let lastVirtualScrollElement: HTMLElement | null = null
-  let hasMeasured = false
-
   $effect(() => {
-    const scrollElement = viewportRef
-    const count = hasNextPage ? entries.length + 1 : entries.length
-
-    const v = get(virtualizer)
-
-    const needsUpdate = count !== lastVirtualCount || scrollElement !== lastVirtualScrollElement
-
-    if (needsUpdate) {
-      lastVirtualCount = count
-      lastVirtualScrollElement = scrollElement
-      v.setOptions({ count })
-    }
-
-    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
-      hasMeasured = true
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          v.measure()
-        })
-      })
-    }
+    updateVirtualizer({
+      count: hasNextPage ? entries.length + 1 : entries.length,
+      scrollElement: viewportRef,
+    })
   })
 
-  let loadMoreTriggered = false
-
-  $effect(() => {
-    const v = viewportRef
-    if (!v) return
-
-    let raf = 0
-    const run = () => {
-      raf = 0
-      if (loadMoreTriggered || !hasNextPage || isFetchingNextPage) return
-
-      const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
-      if (scrollPercent > 0.7) {
-        loadMoreTriggered = true
-        onLoadMore()
-      }
-    }
-
-    const schedule = () => {
-      if (raf) return
-      raf = requestAnimationFrame(run)
-    }
-
-    v.addEventListener('scroll', schedule, { passive: true })
-    schedule()
-
-    return () => {
-      v.removeEventListener('scroll', schedule)
-      if (raf) cancelAnimationFrame(raf)
-    }
+  const infiniteScroll = setupInfiniteScroll({
+    getViewport: () => viewportRef,
+    hasNextPage: () => hasNextPage,
+    isFetching: () => isFetchingNextPage,
+    onLoadMore: () => onLoadMore(),
   })
 
   $effect(() => {
     if (!isFetchingNextPage) {
-      loadMoreTriggered = false
+      infiniteScroll.resetTrigger()
     }
+  })
+
+  $effect(() => {
+    const v = viewportRef
+    if (!v) return
+    return infiniteScroll.attach(v)
   })
 </script>
 

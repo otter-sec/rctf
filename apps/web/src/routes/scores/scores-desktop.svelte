@@ -1,10 +1,8 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { get } from 'svelte/store'
-  import { createVirtualizer } from '@tanstack/svelte-virtual'
   import { IconMoodWrrrFilled } from '$lib/icons'
   import { EmptyState, ScrollArea, Spinner } from '$lib/components'
-  import { cn, observeElementOffset, observeElementRect } from '$lib/utils'
+  import { cn, createInfiniteVirtualizer, setupInfiniteScroll } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
@@ -27,6 +25,7 @@
     showSelfRow: boolean
     showDivision: boolean
     showTop3Context: boolean
+    divisions: Record<string, string>
     solvesByTeam: Map<string, Set<string>>
     solvesWithTimeByTeam: Map<string, Map<string, number>>
     sparklineDataByTeam: Map<string, { time: number; score: number }[]>
@@ -59,6 +58,7 @@
     showSelfRow,
     showDivision,
     showTop3Context,
+    divisions,
     solvesByTeam,
     solvesWithTimeByTeam,
     sparklineDataByTeam,
@@ -123,93 +123,39 @@
     if (showRightFade !== nextRight) showRightFade = nextRight
   }
 
-  const virtualizer = createVirtualizer({
-    count: 0,
-    getScrollElement: () => viewportRef,
-    estimateSize: () => ROW_HEIGHT,
+  const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
+    rowHeight: ROW_HEIGHT,
     overscan: 20,
-    scrollMargin: 0,
-    observeElementRect,
-    observeElementOffset,
-    isScrollingResetDelay: 100,
   })
-
-  let lastVirtualCount = -1
-  let lastVirtualScrollMargin = -1
-  let lastVirtualScrollElement: HTMLElement | null = null
-  let hasMeasured = false
 
   $effect(() => {
-    const scrollElement = viewportRef
-    const count = hasNextPage ? entries.length + 1 : entries.length
-    const scrollMargin = listScrollMargin
-
-    const v = get(virtualizer)
-
-    const needsUpdate =
-      count !== lastVirtualCount ||
-      scrollMargin !== lastVirtualScrollMargin ||
-      scrollElement !== lastVirtualScrollElement
-
-    if (needsUpdate) {
-      lastVirtualCount = count
-      lastVirtualScrollMargin = scrollMargin
-      lastVirtualScrollElement = scrollElement
-      v.setOptions({ count, scrollMargin })
-    }
-
-    // Firefox bug
-    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
-      hasMeasured = true
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          v.measure()
-        })
-      })
-    }
+    updateVirtualizer({
+      count: hasNextPage ? entries.length + 1 : entries.length,
+      scrollElement: viewportRef,
+      scrollMargin: listScrollMargin,
+    })
   })
 
-  let loadMoreTriggered = false
+  const infiniteScroll = setupInfiniteScroll(
+    {
+      getViewport: () => viewportRef,
+      hasNextPage: () => hasNextPage,
+      isFetching: () => isFetchingNextPage,
+      onLoadMore: () => onLoadMore(),
+    },
+    { onScroll: updateFades }
+  )
+
+  $effect(() => {
+    if (!isFetchingNextPage) {
+      infiniteScroll.resetTrigger()
+    }
+  })
 
   $effect(() => {
     const v = viewportRef
     if (!v) return
-
-    let raf = 0
-    const run = () => {
-      raf = 0
-      updateFades()
-
-      if (loadMoreTriggered || !hasNextPage || isFetchingNextPage) return
-
-      const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
-      if (scrollPercent > 0.7) {
-        loadMoreTriggered = true
-        onLoadMore()
-      }
-    }
-
-    const schedule = () => {
-      if (raf) return
-      raf = requestAnimationFrame(run)
-    }
-
-    v.addEventListener('scroll', schedule, { passive: true })
-    const observer = new ResizeObserver(schedule)
-    observer.observe(v)
-    schedule()
-
-    return () => {
-      v.removeEventListener('scroll', schedule)
-      observer.disconnect()
-      if (raf) cancelAnimationFrame(raf)
-    }
-  })
-
-  $effect(() => {
-    if (!isFetchingNextPage) {
-      loadMoreTriggered = false
-    }
+    return infiniteScroll.attach(v)
   })
 
   function getCategoryStats(teamId: string, group: CategoryGroup) {
@@ -360,7 +306,7 @@
                     id={entry.id}
                     name={entry.name}
                     avatarUrl={entry.avatarUrl}
-                    division={entry.division}
+                    divisionLabel={divisions[entry.division] ?? entry.division}
                     divisionPlace={entry.divisionPlace}
                     countryCode={entry.countryCode}
                     statusText={entry.statusText}
@@ -410,7 +356,7 @@
                 id={currentUser.id}
                 name={currentUser.name}
                 avatarUrl={currentUser.avatarUrl}
-                division={currentUser.division}
+                divisionLabel={divisions[currentUser.division] ?? currentUser.division}
                 divisionPlace={currentUser.divisionPlace}
                 countryCode={currentUser.countryCode}
                 statusText={currentUser.statusText}
@@ -467,15 +413,5 @@
 
   :global(.col-team) {
     width: var(--team-column-width);
-    overflow: hidden;
-  }
-
-  /* Firefox scroll flash fix */
-  :global([data-slot='scroll-area-viewport']) {
-    background: var(--background-l1) !important;
-  }
-
-  .scoreboard {
-    background: var(--background-l0);
   }
 </style>

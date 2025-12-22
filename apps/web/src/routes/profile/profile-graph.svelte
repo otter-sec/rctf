@@ -2,11 +2,7 @@
   import type { LeaderboardGraphEntry } from '@rctf/types'
   import { Chart, type ChartConfig } from '$lib/components'
   import { useClientConfig } from '$lib/query'
-  import {
-    formatLocalTime,
-    formatRelativeHours,
-    formatRelativeHoursMinutes,
-  } from '$lib/utils/time'
+  import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '../scores/constants'
 

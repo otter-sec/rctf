@@ -1,6 +1,11 @@
 <script lang="ts">
   import { Button, Card, ScrollArea } from '$lib/components'
-  import { useChallenges, useClientConfig, useCurrentUser, useUserGraph } from '$lib/query'
+  import {
+    useClientConfig,
+    useCurrentUser,
+    useLeaderboardChallenges,
+    useUserGraph,
+  } from '$lib/query'
   import ProfileGraph from './profile-graph.svelte'
   import ProfileHeader from './profile-header.svelte'
   import ProfileSettingsAccount from './profile-settings-account.svelte'
@@ -10,11 +15,19 @@
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const challengesQuery = useChallenges()
+  const challengesQuery = useLeaderboardChallenges()
 
   const user = $derived($userQuery.data)
   const clientConfig = $derived($clientConfigQuery.data)
-  const challenges = $derived($challengesQuery.data ?? [])
+  const challenges = $derived(
+    Object.entries($challengesQuery.data ?? {}).map(([id, c]) => ({
+      id,
+      name: c.name,
+      category: c.category,
+      points: c.points,
+      solves: c.solves,
+    }))
+  )
 
   const graphQuery = $derived(user ? useUserGraph(user.id, user.globalPlace) : null)
   const graphData = $derived($graphQuery?.data ?? null)
