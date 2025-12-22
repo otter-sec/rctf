@@ -410,14 +410,6 @@ export function useLeaderboard(params: {
   return createQuery(leaderboardQueryOptions(params))
 }
 
-export function useLeaderboardGraph(params: {
-  limit: number
-  offset: number
-  division?: string
-}) {
-  return createQuery(leaderboardGraphQueryOptions(params))
-}
-
 export function useLeaderboardWithGraph(params: {
   limit: number
   offset: number
@@ -480,6 +472,32 @@ export function useChallengeSolves(
   params: { limit: number; offset: number }
 ) {
   return createQuery(challengeSolvesQueryOptions(challengeId, params))
+}
+
+export function useInfiniteChallengeSolves(
+  challengeId: string,
+  totalCount: number,
+  pageSize = 100
+) {
+  return createInfiniteQuery({
+    queryKey: ['challenges', challengeId, 'solves', 'infinite'] as const,
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiRequest(GetChallengeSolvesRouteV2, {
+        id: challengeId,
+        limit: pageSize,
+        offset: pageParam,
+      })
+      if (response.kind === GoodChallengeSolvesV2.kind) {
+        return { solves: response.data.solves, offset: pageParam }
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => {
+      const nextOffset = lastPage.offset + lastPage.solves.length
+      return nextOffset < totalCount ? nextOffset : undefined
+    },
+  })
 }
 
 export function useMembers() {

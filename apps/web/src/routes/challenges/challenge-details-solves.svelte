@@ -1,12 +1,9 @@
 <script lang="ts">
-  import { GetChallengeSolvesRouteV2, GoodChallengeSolvesV2 } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
-  import { createInfiniteQuery } from '@tanstack/svelte-query'
   import { toast } from '$lib'
-  import { apiRequest } from '$lib/api'
   import { EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconTrophyFilled } from '$lib/icons'
-  import { useClientConfig, useCurrentUser } from '$lib/query'
+  import { useClientConfig, useCurrentUser, useInfiniteChallengeSolves } from '$lib/query'
   import {
     formatFirstBloodTime,
     formatLocalTime,
@@ -16,7 +13,6 @@
   } from '$lib/utils'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
-  const PAGE_SIZE = 100
   const ROW_HEIGHT = 72 // 64px row + 8px gap
 
   interface Props {
@@ -37,27 +33,7 @@
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )
 
-  const solvesQuery = $derived(
-    createInfiniteQuery({
-      queryKey: ['challenges', challenge.id, 'solves', 'infinite'] as const,
-      queryFn: async ({ pageParam = 0 }) => {
-        const response = await apiRequest(GetChallengeSolvesRouteV2, {
-          id: challenge.id,
-          limit: PAGE_SIZE,
-          offset: pageParam,
-        })
-        if (response.kind === GoodChallengeSolvesV2.kind) {
-          return { solves: response.data.solves, offset: pageParam }
-        }
-        throw new Error(response.message)
-      },
-      initialPageParam: 0,
-      getNextPageParam: lastPage => {
-        const nextOffset = lastPage.offset + lastPage.solves.length
-        return nextOffset < totalCount ? nextOffset : undefined
-      },
-    })
-  )
+  const solvesQuery = $derived(useInfiniteChallengeSolves(challenge.id, totalCount))
 
   const allSolves = $derived($solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
