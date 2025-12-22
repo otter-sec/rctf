@@ -1,31 +1,29 @@
 <script lang="ts">
   import { Layer, Chart as LayerChart, Spline } from 'layerchart'
-  import { MEDAL_COLORS, PAGE_SIZE, RANK_COLORS, SELF_COLOR } from './constants'
+  import { MEDAL_COLORS, RANK_COLORS, SELF_COLOR } from './constants'
 
   interface Props {
     data: { time: number; score: number }[]
     rank: number
     isCurrentUser: boolean
-    page?: number
     onHover?: () => void
     onUnhover?: () => void
   }
 
-  let { data, rank, isCurrentUser, page = 1, onHover, onUnhover }: Props = $props()
+  let { data, rank, isCurrentUser, onHover, onUnhover }: Props = $props()
 
-  const gradientId = $derived(`sparkline-gradient-${rank}-${page}`)
+  const gradientId = $derived(`sparkline-gradient-${rank}`)
 
   const strokeColor = $derived.by(() => {
     if (isCurrentUser) return SELF_COLOR
 
-    const indexInPage = (rank - 1) % PAGE_SIZE
-    const isFirstPage = page === 1
-
-    if (isFirstPage && indexInPage < 3) {
-      return MEDAL_COLORS[indexInPage]!
+    if (rank <= 3) {
+      return MEDAL_COLORS[rank - 1]!
     }
 
-    return RANK_COLORS[indexInPage]!
+    // Use rank colors based on position (cycling through 10 colors)
+    const colorIndex = (rank - 1) % RANK_COLORS.length
+    return RANK_COLORS[colorIndex]!
   })
 </script>
 

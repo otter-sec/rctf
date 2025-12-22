@@ -1,9 +1,9 @@
 <script lang="ts">
   import { Avatar, Tooltip } from '$lib/components'
-  import { IconTriangleFilled, IconTriangleInvertedFilled } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
   import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
   import { ALL_REGIONS } from '@rctf/const'
+  import DeltaIndicator from './delta-indicator.svelte'
   import Sparkline from './sparkline.svelte'
 
   interface Props {
@@ -20,7 +20,6 @@
     isCurrentUser: boolean
     isFullWidth?: boolean
     sparklineData?: { time: number; score: number }[]
-    page?: number
     delta?: number
     showDivision?: boolean
     onHover?: () => void
@@ -41,7 +40,6 @@
     isCurrentUser,
     isFullWidth = false,
     sparklineData = [],
-    page = 1,
     delta,
     showDivision = true,
     onHover,
@@ -54,20 +52,6 @@
     countryCode ? (ALL_REGIONS.find(r => r.code === countryCode)?.name ?? countryCode) : null
   )
 </script>
-
-{#snippet deltaIndicator()}
-  {#if delta && delta > 0}
-    <div class="text-foreground-success flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleFilled class="size-2.5" />
-      <span>{delta}</span>
-    </div>
-  {:else if delta && delta < 0}
-    <div class="text-foreground-destructive flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleInvertedFilled class="size-2.5" />
-      <span>{Math.abs(delta)}</span>
-    </div>
-  {/if}
-{/snippet}
 
 <div
   class={cn(
@@ -84,7 +68,7 @@
 >
   <div class="flex shrink-0 items-center">
     <div class="hidden w-6 @lg/team-info-desktop:block">
-      {@render deltaIndicator()}
+      <DeltaIndicator {delta} />
     </div>
     <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
@@ -140,7 +124,7 @@
     <div
       class="pointer-events-none absolute h-10 w-24 opacity-0 @lg/team-info-desktop:pointer-events-auto @lg/team-info-desktop:relative @lg/team-info-desktop:opacity-100"
     >
-      <Sparkline data={sparklineData} {rank} {isCurrentUser} {page} {onHover} {onUnhover} />
+      <Sparkline data={sparklineData} {rank} {isCurrentUser} {onHover} {onUnhover} />
     </div>
   </div>
 </div>

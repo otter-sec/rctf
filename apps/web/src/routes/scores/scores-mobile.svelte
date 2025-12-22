@@ -1,86 +1,142 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { Avatar, EmptyState, ScrollArea } from '$lib/components'
+  import { createVirtualizer } from '@tanstack/svelte-virtual'
+  import { get } from 'svelte/store'
+  import { Avatar, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { IconMoodWrrrFilled } from '$lib/icons'
   import {
-    IconChevronLeft,
-    IconChevronLeftPipe,
-    IconChevronRight,
-    IconChevronRightPipe,
-    IconMoodWrrrFilled,
-    IconTriangleFilled,
-    IconTriangleInvertedFilled,
-  } from '$lib/icons'
-  import { cn, getInitials } from '$lib/utils'
-  import { countryCodeToFlagFilename } from '$lib/utils'
+    cn,
+    countryCodeToFlagFilename,
+    getInitials,
+    observeElementOffset,
+    observeElementRect,
+  } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
+  import DeltaIndicator from './delta-indicator.svelte'
   import ScoresGraph from './scores-graph.svelte'
+  import type { TeamRowData } from './types'
 
   interface Props {
     entries: LeaderboardEntry[]
     graphData: LeaderboardGraphEntry[]
     currentUser: UserProfile | null | undefined
-    page: number
-    totalPages: number
     showSelfRow: boolean
     rankDeltaByTeam: Map<string, number>
     isFetching: boolean
+    isFetchingNextPage: boolean
     isLoading: boolean
+    hasNextPage: boolean
     hoveredTeamId: string | null
     solveHighlight: { teamId: string; time: number } | null
     showTop3Context: boolean
     showDivision?: boolean
-    onPageChange: (page: number) => void
+    total: number
+    onLoadMore: () => void
   }
 
   let {
     entries,
     graphData,
     currentUser,
-    page,
-    totalPages,
     showSelfRow,
     rankDeltaByTeam,
     isFetching,
+    isFetchingNextPage,
     isLoading,
+    hasNextPage,
     hoveredTeamId,
     solveHighlight,
     showTop3Context,
     showDivision = true,
-    onPageChange,
+    total,
+    onLoadMore,
   }: Props = $props()
+
+  const ROW_HEIGHT = 68
+
+  let viewportRef = $state<HTMLElement | null>(null)
+
+  const virtualizer = createVirtualizer({
+    count: 0,
+    getScrollElement: () => viewportRef,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 20,
+    observeElementRect,
+    observeElementOffset,
+    isScrollingResetDelay: 50,
+  })
+
+  let lastVirtualCount = -1
+  let lastVirtualScrollElement: HTMLElement | null = null
+  let hasMeasured = false
+
+  $effect(() => {
+    const scrollElement = viewportRef
+    const count = hasNextPage ? entries.length + 1 : entries.length
+
+    const v = get(virtualizer)
+
+    const needsUpdate = count !== lastVirtualCount || scrollElement !== lastVirtualScrollElement
+
+    if (needsUpdate) {
+      lastVirtualCount = count
+      lastVirtualScrollElement = scrollElement
+      v.setOptions({ count })
+    }
+
+    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
+      hasMeasured = true
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          v.measure()
+        })
+      })
+    }
+  })
+
+  let loadMoreTriggered = false
+
+  $effect(() => {
+    const v = viewportRef
+    if (!v) return
+
+    let raf = 0
+    const run = () => {
+      raf = 0
+      if (loadMoreTriggered || !hasNextPage || isFetchingNextPage) return
+
+      const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
+      if (scrollPercent > 0.7) {
+        loadMoreTriggered = true
+        onLoadMore()
+      }
+    }
+
+    const schedule = () => {
+      if (raf) return
+      raf = requestAnimationFrame(run)
+    }
+
+    v.addEventListener('scroll', schedule, { passive: true })
+    schedule()
+
+    return () => {
+      v.removeEventListener('scroll', schedule)
+      if (raf) cancelAnimationFrame(raf)
+    }
+  })
+
+  $effect(() => {
+    if (!isFetchingNextPage) {
+      loadMoreTriggered = false
+    }
+  })
 </script>
 
-{#snippet deltaIndicator(delta: number | undefined)}
-  {#if delta && delta > 0}
-    <div class="text-foreground-success flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleFilled class="size-2.5" />
-      <span>{delta}</span>
-    </div>
-  {:else if delta && delta < 0}
-    <div class="text-foreground-destructive flex items-center gap-0.5 text-sm tabular-nums">
-      <IconTriangleInvertedFilled class="size-2.5" />
-      <span>{Math.abs(delta)}</span>
-    </div>
-  {/if}
-{/snippet}
-
-{#snippet mobileTeamRow(
-  id: string,
-  name: string,
-  avatarUrl: string | null | undefined,
-  division: string,
-  divisionPlace: number | null,
-  countryCode: string | null | undefined,
-  statusText: string | null | undefined,
-  score: number,
-  solveCount: number,
-  rank: number,
-  isCurrentUser: boolean,
-  delta: number | undefined = undefined
-)}
-  {@const styles = getRankStylesForPosition(rank, isCurrentUser)}
-  {@const flagFilename = countryCode ? countryCodeToFlagFilename(countryCode) : null}
+{#snippet mobileTeamRow(data: TeamRowData)}
+  {@const styles = getRankStylesForPosition(data.rank, data.isCurrentUser)}
+  {@const flagFilename = data.countryCode ? countryCodeToFlagFilename(data.countryCode) : null}
   <div
     class={cn(
       'relative flex h-16 items-center gap-2 rounded-lg px-4',
@@ -93,49 +149,55 @@
   >
     <div class="flex shrink-0 items-center">
       <div class="flex w-10 flex-col items-center">
-        <span class={cn('text-lg tabular-nums', styles.fgL0)}>#{rank}</span>
-        {#if showDivision && divisionPlace}
-          <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-        {:else if delta}
-          {@render deltaIndicator(delta)}
+        <span class={cn('text-lg tabular-nums', styles.fgL0)}>#{data.rank}</span>
+        {#if showDivision && data.divisionPlace}
+          <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{data.divisionPlace}</span>
+        {:else if data.delta}
+          <DeltaIndicator delta={data.delta} />
         {/if}
       </div>
     </div>
 
     <Avatar.Root class="size-10 shrink-0 rounded-lg">
-      {#if avatarUrl}
-        <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
+      {#if data.avatarUrl}
+        <Avatar.Image src={data.avatarUrl} alt={data.name} class="rounded-lg" />
       {/if}
-      <Avatar.Fallback class="rounded-lg text-sm">{getInitials(name)}</Avatar.Fallback>
+      <Avatar.Fallback class="rounded-lg text-sm">{getInitials(data.name)}</Avatar.Fallback>
     </Avatar.Root>
 
     <div class="flex min-w-0 flex-1 flex-col gap-0.5 overflow-hidden">
       <div class="flex items-center gap-1.5">
-        <a href="/profile/{id}" class={cn('truncate text-lg/tight hover:underline', styles.fgL0)}
-          >{name}</a
+        <a
+          href="/profile/{data.id}"
+          class={cn('truncate text-lg/tight hover:underline', styles.fgL0)}>{data.name}</a
         >
         {#if showDivision}
-          <span class={cn('shrink-0 text-sm', styles.fgL1)}>({division})</span>
+          <span class={cn('shrink-0 text-sm', styles.fgL1)}>({data.division})</span>
         {/if}
       </div>
       <div class="flex items-center gap-1">
-        {#if flagFilename && countryCode}
-          <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+        {#if flagFilename && data.countryCode}
+          <img
+            src="/flags/{flagFilename}"
+            alt="{data.countryCode} flag"
+            class="h-5 w-auto shrink-0"
+          />
         {/if}
-        {#if flagFilename && countryCode && statusText}
+        {#if flagFilename && data.countryCode && data.statusText}
           <span class={cn('text-lg leading-none', styles.fgL1)}>·</span>
         {/if}
-        {#if statusText}
-          <span class={cn('truncate text-sm', styles.fgL1)}>{statusText}</span>
+        {#if data.statusText}
+          <span class={cn('truncate text-sm', styles.fgL1)}>{data.statusText}</span>
         {/if}
       </div>
     </div>
 
     <div class="flex shrink-0 flex-col items-end">
       <span class="text-foreground-l1 text-lg tabular-nums"
-        >{score.toLocaleString()} <span class="text-foreground-l3">pts</span></span
+        >{data.score.toLocaleString()} <span class="text-foreground-l3">pts</span></span
       >
-      <span class="text-foreground-l3 text-sm">{solveCount} solve{solveCount !== 1 ? 's' : ''}</span
+      <span class="text-foreground-l3 text-sm"
+        >{data.solveCount} solve{data.solveCount !== 1 ? 's' : ''}</span
       >
     </div>
   </div>
@@ -145,48 +207,16 @@
   <div class="bg-background-l0 sticky top-0 z-30 pb-2">
     <div class="flex items-center justify-between py-2">
       <span class="text-foreground-l2 text-base">Scoreboard</span>
-      <div class="flex items-center gap-0.5">
-        <button
-          class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-          onclick={() => onPageChange(1)}
-          disabled={page === 1 || isFetching}
-        >
-          <IconChevronLeftPipe class="size-4" />
-        </button>
-        <button
-          class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-          onclick={() => onPageChange(page - 1)}
-          disabled={page === 1 || isFetching}
-        >
-          <IconChevronLeft class="size-4" />
-        </button>
-        <span
-          class={cn('text-foreground-l3 min-w-16 text-center text-sm', isFetching && 'opacity-50')}
-        >
-          Page {page}
-        </span>
-        <button
-          class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-          onclick={() => onPageChange(page + 1)}
-          disabled={page >= totalPages || isFetching}
-        >
-          <IconChevronRight class="size-4" />
-        </button>
-        <button
-          class="bg-background-l3 text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex h-9 w-10 items-center justify-center rounded-md disabled:pointer-events-none disabled:opacity-50"
-          onclick={() => onPageChange(totalPages)}
-          disabled={page >= totalPages || isFetching}
-        >
-          <IconChevronRightPipe class="size-4" />
-        </button>
-      </div>
+      <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
+        {entries.length.toLocaleString()} / {total.toLocaleString()}
+      </span>
     </div>
 
     <div class="bg-background-l1 h-48 w-full rounded-lg p-3">
       <ScoresGraph
         class="h-full w-full"
         {hoveredTeamId}
-        offset={(page - 1) * PAGE_SIZE}
+        offset={0}
         {solveHighlight}
         {graphData}
         {showTop3Context}
@@ -194,31 +224,32 @@
     </div>
   </div>
 
-  <ScrollArea class="min-h-0 flex-1">
-    <div class="flex flex-col gap-1">
-      {#if isLoading}
-        {#each Array(PAGE_SIZE) as _}
-          <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
-            <div class="flex w-10 flex-col items-center gap-1">
-              <div class="bg-background-l3 h-5 w-8 rounded"></div>
-              {#if showDivision}
-                <div class="bg-background-l3 h-4 w-6 rounded"></div>
-              {/if}
+  <ScrollArea class="min-h-0 flex-1" bind:viewportRef>
+    <div
+      class="virtual-list-container bg-background-l1 relative"
+      style="height: {$virtualizer.getTotalSize()}px; width: 100%;"
+    >
+      {#if isLoading && entries.length === 0}
+        <div class="flex flex-col gap-1">
+          {#each Array(PAGE_SIZE) as _}
+            <div class="bg-background-l1 flex h-14 items-center gap-2 rounded-lg px-4">
+              <div class="flex w-10 flex-col items-center gap-1">
+                <div class="bg-background-l3 h-5 w-8 rounded"></div>
+                {#if showDivision}<div class="bg-background-l3 h-4 w-6 rounded"></div>{/if}
+              </div>
+              <div class="bg-background-l3 size-10 rounded-lg"></div>
+              <div class="flex flex-1 flex-col gap-1">
+                <div class="bg-background-l3 h-5 w-28 rounded"></div>
+                {#if showDivision}<div class="bg-background-l3 h-4 w-20 rounded"></div>{/if}
+              </div>
+              <div class="flex flex-col items-end gap-1">
+                <div class="bg-background-l3 h-5 w-16 rounded"></div>
+                <div class="bg-background-l3 h-4 w-12 rounded"></div>
+              </div>
             </div>
-            <div class="bg-background-l3 size-10 rounded-lg"></div>
-            <div class="flex flex-1 flex-col gap-1">
-              <div class="bg-background-l3 h-5 w-28 rounded"></div>
-              {#if showDivision}
-                <div class="bg-background-l3 h-4 w-20 rounded"></div>
-              {/if}
-            </div>
-            <div class="flex flex-col items-end gap-1">
-              <div class="bg-background-l3 h-5 w-16 rounded"></div>
-              <div class="bg-background-l3 h-4 w-12 rounded"></div>
-            </div>
-          </div>
-        {/each}
-      {:else if entries.length === 0}
+          {/each}
+        </div>
+      {:else if entries.length === 0 && !isLoading}
         <div class="bg-background-l1 rounded-lg">
           <EmptyState
             icon={IconMoodWrrrFilled}
@@ -227,23 +258,40 @@
           />
         </div>
       {:else}
-        {#each entries as entry, i (entry.id)}
-          {@const rank = (page - 1) * PAGE_SIZE + i + 1}
-          {@const isYou = currentUser?.id === entry.id}
-          {@render mobileTeamRow(
-            entry.id,
-            entry.name,
-            entry.avatarUrl,
-            entry.division,
-            entry.divisionPlace,
-            entry.countryCode,
-            entry.statusText,
-            entry.score,
-            entry.solves.length,
-            rank,
-            isYou,
-            rankDeltaByTeam.get(entry.id)
-          )}
+        {#each $virtualizer.getVirtualItems() as row (row.index)}
+          {#if row.index > entries.length - 1}
+            <div
+              class="absolute top-0 left-0 flex w-full items-center justify-center"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
+            >
+              {#if hasNextPage}
+                <Spinner class="text-foreground-l3 size-5" />
+              {/if}
+            </div>
+          {:else if entries[row.index]}
+            {@const entry = entries[row.index]!}
+            {@const rank = row.index + 1}
+            {@const isYou = currentUser?.id === entry.id}
+            <div
+              class="absolute top-0 left-0 w-full"
+              style="height: {row.size}px; transform: translate3d(0, {row.start}px, 0);"
+            >
+              {@render mobileTeamRow({
+                id: entry.id,
+                name: entry.name,
+                avatarUrl: entry.avatarUrl,
+                division: entry.division,
+                divisionPlace: entry.divisionPlace,
+                countryCode: entry.countryCode,
+                statusText: entry.statusText,
+                score: entry.score,
+                solveCount: entry.solves.length,
+                rank,
+                isCurrentUser: isYou,
+                delta: rankDeltaByTeam.get(entry.id),
+              })}
+            </div>
+          {/if}
         {/each}
       {/if}
     </div>
@@ -251,20 +299,20 @@
 
   {#if showSelfRow && currentUser}
     <div class="bg-background-l0 sticky bottom-0 z-30 my-4">
-      {@render mobileTeamRow(
-        currentUser.id,
-        currentUser.name,
-        currentUser.avatarUrl,
-        currentUser.division,
-        currentUser.divisionPlace,
-        currentUser.countryCode,
-        currentUser.statusText,
-        currentUser.score,
-        currentUser.solves.length,
-        currentUser.globalPlace ?? 0,
-        true,
-        rankDeltaByTeam.get(currentUser.id)
-      )}
+      {@render mobileTeamRow({
+        id: currentUser.id,
+        name: currentUser.name,
+        avatarUrl: currentUser.avatarUrl,
+        division: currentUser.division,
+        divisionPlace: currentUser.divisionPlace,
+        countryCode: currentUser.countryCode,
+        statusText: currentUser.statusText,
+        score: currentUser.score,
+        solveCount: currentUser.solves.length,
+        rank: currentUser.globalPlace ?? 0,
+        isCurrentUser: true,
+        delta: rankDeltaByTeam.get(currentUser.id),
+      })}
     </div>
   {/if}
 </div>

@@ -48,6 +48,7 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import {
+  createInfiniteQuery,
   createMutation,
   createQuery,
   QueryClient,
@@ -423,6 +424,43 @@ export function useLeaderboardWithGraph(params: {
   division?: string
 }) {
   return createQuery(leaderboardWithGraphQueryOptions(params))
+}
+
+export function useInfiniteLeaderboard(params: {
+  pageSize: number
+  division?: string
+}) {
+  return createInfiniteQuery({
+    queryKey: ['leaderboard', 'infinite', params] as const,
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiRequest(GetLeaderboardRouteV2, {
+        limit: params.pageSize,
+        offset: pageParam,
+        division: params.division,
+      })
+      if (response.kind === GoodLeaderboardV2.kind) {
+        return { ...response.data, offset: pageParam }
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages) => {
+      const nextOffset = lastPage.offset + lastPage.leaderboard.length
+      return nextOffset < lastPage.total ? nextOffset : undefined
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
+  })
+}
+
+export function useTopGraphData(params: { limit?: number; division?: string }) {
+  return createQuery(
+    leaderboardGraphQueryOptions({
+      limit: params.limit ?? 10,
+      offset: 0,
+      division: params.division,
+    })
+  )
 }
 
 export function useLeaderboardChallenges() {

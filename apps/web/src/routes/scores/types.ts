@@ -27,3 +27,18 @@ export interface CategoryGroup {
   config: ReturnType<typeof getCategoryConfig>
   challenges: ChallengeInfo[]
 }
+
+export interface TeamRowData {
+  id: string
+  name: string
+  avatarUrl: string | null | undefined
+  division: string
+  divisionPlace: number | null
+  countryCode: string | null | undefined
+  statusText: string | null | undefined
+  score: number
+  solveCount: number
+  rank: number
+  isCurrentUser: boolean
+  delta?: number
+}

@@ -97,6 +97,10 @@ const applyPath = (
 
 const applyQuery = (url: URL, query: Record<string, unknown> | undefined) => {
   for (const [key, rawValue] of Object.entries(query || {})) {
+    if (rawValue === undefined) {
+      continue
+    }
+
     url.searchParams.set(key, String(rawValue))
   }
 }
