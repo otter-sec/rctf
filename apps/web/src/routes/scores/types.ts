@@ -1,6 +1,7 @@
 import type { getCategoryConfig } from '$lib/utils/categories'
 
-export interface TooltipData {
+export interface ChallengeTooltipData {
+  type: 'challenge'
   teamId: string
   challengeName: string
   points: number
@@ -8,6 +9,16 @@ export interface TooltipData {
   bloodIndex: number
   solveTime?: number
 }
+
+export interface CategoryTooltipData {
+  type: 'category'
+  teamId: string
+  categoryName: string
+  solved: number
+  total: number
+}
+
+export type TooltipData = ChallengeTooltipData | CategoryTooltipData
 
 export type ViewMode = 'challenges' | 'categories' | 'minimal'
 export type SortMode = 'categories' | 'solves'

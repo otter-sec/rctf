@@ -493,7 +493,7 @@ export function useInfiniteChallengeSolves(
       throw new ApiError(response.kind, response.message)
     },
     initialPageParam: 0,
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: lastPage => {
       const nextOffset = lastPage.offset + lastPage.solves.length
       return nextOffset < totalCount ? nextOffset : undefined
     },

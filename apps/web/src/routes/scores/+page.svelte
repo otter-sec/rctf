@@ -223,7 +223,7 @@
   let hoverTimeout: ReturnType<typeof setTimeout> | null = null
 
   const solveHighlight = $derived(
-    tooltipData?.solved && tooltipData.solveTime
+    tooltipData?.type === 'challenge' && tooltipData.solved && tooltipData.solveTime
       ? { teamId: tooltipData.teamId, time: tooltipData.solveTime }
       : null
   )

@@ -221,7 +221,10 @@
         </div>
 
         <div
-          class="virtual-list-container perf-contain-layout perf-backface-hidden bg-background-l1 relative"
+          class={cn(
+            'virtual-list-container perf-contain-layout perf-backface-hidden bg-background-l1 relative',
+            scroll.isScrolling && 'is-scrolling'
+          )}
           style="height: {scroll.totalSize}px; width: 100%;"
         >
           {#if isLoading && challengesLoading && entries.length === 0}
@@ -274,7 +277,7 @@
 
                 <div
                   class={cn(
-                    'perf-contain-paint perf-will-transform bg-background-l1 data-row group absolute top-0 left-0 flex min-w-0 rounded-lg',
+                    'perf-contain-paint perf-will-transform perf-content-auto bg-background-l1 data-row group absolute top-0 left-0 flex min-w-0 rounded-lg',
                     viewMode === 'minimal' ? 'w-full' : 'w-fit'
                   )}
                   style="height: {row.size}px; transform: translate3d(0, {row.start -
@@ -314,6 +317,7 @@
                       getCategoryStats={group => getCategoryStats(entry.id, group)}
                       getBloodIndex={cid => getBloodIndex(cid, entry.id)}
                       {onCellHover}
+                      isScrolling={scroll.isScrolling}
                     />
                   {/if}
                 </div>

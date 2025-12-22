@@ -312,7 +312,7 @@ export function useInfiniteVirtualScroll(
 
   // Subscribe to virtualizer and cache values outside render cycle
   $effect(() => {
-    const unsubscribe = virtualizer.subscribe((v) => {
+    const unsubscribe = virtualizer.subscribe(v => {
       virtualItems = v.getVirtualItems()
       totalSize = v.getTotalSize()
       isScrolling = v.isScrolling

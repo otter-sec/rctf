@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { Tooltip } from '$lib/components'
-  import { IconCircleCheckFilled, IconCircleDashed } from '$lib/icons'
   import { getCategoryStyle } from '$lib/utils/categories'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
+
+  // Inlined for performance (avoids component instantiation overhead)
+  const ICON_CHECK_FILLED = `<path fill="currentColor" d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32"/>`
+  const ICON_CIRCLE_DASHED = `<path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.56 3.69a9 9 0 0 0-2.92 1.95M3.69 8.56A9 9 0 0 0 3 12m.69 3.44a9 9 0 0 0 1.95 2.92m2.92 1.95A9 9 0 0 0 12 21m3.44-.69a9 9 0 0 0 2.92-1.95m1.95-2.92A9 9 0 0 0 21 12m-.69-3.44a9 9 0 0 0-1.95-2.92m-2.92-1.95A9 9 0 0 0 12 3"/>`
 
   interface Props {
     teamId: string
@@ -15,6 +17,7 @@
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
     getBloodIndex: (challengeId: string) => number
     onCellHover: (data: TooltipData | null, x: number, y: number) => void
+    isScrolling?: boolean
   }
 
   let {
@@ -28,6 +31,7 @@
     getCategoryStats,
     getBloodIndex,
     onCellHover,
+    isScrolling = false,
   }: Props = $props()
 
   const CELL_WIDTH = 48
@@ -35,7 +39,9 @@
   const CELL_GAP = 4
   const ICON_RADIUS = 10
 
-  const svgContent = $derived.by(() => {
+  const CAT_CELL_SIZE = 48
+
+  const challengeSvgContent = $derived.by(() => {
     const list = sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
 
     const parts: string[] = []
@@ -47,8 +53,6 @@
       const cx = x + CELL_WIDTH / 2
       const cy = CELL_HEIGHT / 2
 
-      // We are inlining svgs, because somehow it will be more optimized for firefox than using a component.
-      // Do not ask me why.
       if (bloodIndex === 0) {
         parts.push(
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-gold-l0)"/>`
@@ -89,11 +93,38 @@
     }
   })
 
+  const categoryHtmlContent = $derived.by(() => {
+    const parts: string[] = []
+
+    for (const group of categoryGroups) {
+      const stats = getCategoryStats(group)
+      const style = getCategoryStyle(group.config.color)
+
+      let iconSvg: string
+      if (stats.solved === stats.total) {
+        iconSvg = `<svg class="size-7" style="color: var(--category-foreground-l1)" viewBox="0 0 24 24">${ICON_CHECK_FILLED}</svg>`
+      } else if (stats.solved > 0) {
+        const circumference = 2 * Math.PI * 10
+        const offset = circumference * (1 - stats.percent / 100)
+        iconSvg = `<svg class="size-7 -rotate-90" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="var(--foreground-l5)" stroke-opacity="0.2" stroke-width="2.5"/><circle cx="12" cy="12" r="10" fill="none" stroke="var(--category-foreground-l1)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg>`
+      } else {
+        iconSvg = `<svg class="size-7" style="color: var(--foreground-l5); opacity: 0.25" viewBox="0 0 24 24">${ICON_CIRCLE_DASHED}</svg>`
+      }
+
+      parts.push(
+        `<div class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16" style="${style}">${iconSvg}</div>`
+      )
+    }
+
+    return parts.join('')
+  })
+
   const challengeList = $derived(
     sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
   )
 
-  function handleMouseMove(e: MouseEvent) {
+  function handleChallengeMouseMove(e: MouseEvent) {
+    if (isScrolling) return
     const rect = (e.currentTarget as SVGElement).getBoundingClientRect()
     const x = e.clientX - rect.left
     const cellIndex = Math.floor(x / (CELL_WIDTH + CELL_GAP))
@@ -108,6 +139,7 @@
     const cellY = rect.top + CELL_HEIGHT / 2 - ICON_RADIUS
     onCellHover(
       {
+        type: 'challenge',
         teamId,
         challengeName: challenge.name,
         points: challenge.points,
@@ -120,75 +152,60 @@
     )
   }
 
+  function handleCategoryMouseMove(e: MouseEvent) {
+    if (isScrolling) return
+
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const cellIndex = Math.floor(x / (CAT_CELL_SIZE + CELL_GAP))
+
+    const group = categoryGroups[cellIndex]
+    if (!group) {
+      onCellHover(null, 0, 0)
+      return
+    }
+
+    const stats = getCategoryStats(group)
+    const cellX = rect.left + cellIndex * (CAT_CELL_SIZE + CELL_GAP) + CAT_CELL_SIZE / 2
+    const cellY = rect.top
+    onCellHover(
+      {
+        type: 'category',
+        teamId,
+        categoryName: group.config.name,
+        solved: stats.solved,
+        total: stats.total,
+      },
+      cellX,
+      cellY
+    )
+  }
+
   function handleMouseLeave() {
+    if (isScrolling) return
     onCellHover(null, 0, 0)
   }
 </script>
-
-{#snippet categoryCell(stats: { solved: number; total: number; percent: number })}
-  {#if stats.solved === stats.total}
-    <IconCircleCheckFilled class="text-category-foreground-l1 size-7" />
-  {:else if stats.solved > 0}
-    <svg class="size-7 -rotate-90" viewBox="0 0 24 24">
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        class="text-foreground-l5/20"
-      />
-      <circle
-        cx="12"
-        cy="12"
-        r="10"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-dasharray={2 * Math.PI * 10}
-        stroke-dashoffset={2 * Math.PI * 10 * (1 - stats.percent / 100)}
-        class="text-category-foreground-l1"
-      />
-    </svg>
-  {:else}
-    <IconCircleDashed class="text-foreground-l5/25 size-7" />
-  {/if}
-{/snippet}
 
 <div
   class="perf-scroll-optimized bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1"
 >
   {#if viewMode === 'categories'}
-    {#each categoryGroups as group}
-      {@const stats = getCategoryStats(group)}
-      <div
-        class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16"
-        style={getCategoryStyle(group.config.color)}
-      >
-        <Tooltip.Root>
-          <Tooltip.Trigger class="flex items-center justify-center">
-            {@render categoryCell(stats)}
-          </Tooltip.Trigger>
-          <Tooltip.Content side="top" sideOffset={4}>
-            <p class="capitalize">{group.config.name}</p>
-            <p class="text-foreground-l3">{stats.solved} / {stats.total} solved</p>
-          </Tooltip.Content>
-        </Tooltip.Root>
-      </div>
-    {/each}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="flex gap-1" onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
+      {@html categoryHtmlContent}
+    </div>
   {:else}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <svg
-      width={svgContent.width}
+      width={challengeSvgContent.width}
       height={CELL_HEIGHT}
-      viewBox="0 0 {svgContent.width} {CELL_HEIGHT}"
+      viewBox="0 0 {challengeSvgContent.width} {CELL_HEIGHT}"
       class="rounded-l-lg"
-      onmousemove={handleMouseMove}
+      onmousemove={handleChallengeMouseMove}
       onmouseleave={handleMouseLeave}
     >
-      {@html svgContent.html}
+      {@html challengeSvgContent.html}
     </svg>
   {/if}
 </div>

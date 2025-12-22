@@ -410,3 +410,19 @@
   transform: translateZ(0);
   will-change: transform;
 }
+
+/*
+ * 1. skips rendering content that's off-screen
+ * 2. must have contain-intrinsic-size set for proper layout
+ */
+.perf-content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 68px;
+}
+
+/*
+ * disable pointer events during scroll
+ */
+.is-scrolling .perf-scroll-optimized {
+  pointer-events: none;
+}
