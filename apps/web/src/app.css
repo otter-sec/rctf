@@ -365,48 +365,48 @@
   }
 }
 
-@layer perf {
-  /*
-   * 1. forces element to be rendered on the GPU
-   * 2. can be scrolled/transformed without triggering repaints
-   */
-  .perf-gpu-layer {
-    transform: translateZ(0);
-  }
+/*
+ * 1. forces element to be rendered on the GPU
+ * 2. can be scrolled/transformed without triggering repaints
+ */
+.perf-gpu-layer {
+  transform: translateZ(0);
+}
 
-  /*
-   * 1. isolates layout calculations from parent/siblings
-   * 2. isolates style recalculations
-   */
-  .perf-contain-layout {
-    contain: layout style;
-  }
+/*
+ * 1. isolates layout calculations from parent/siblings
+ * 2. isolates style recalculations
+ */
+.perf-contain-layout {
+  contain: layout style;
+}
 
-  /*
-   * 1. isolates layout, style, paint operations
-   * 2. browser won't repaint this when siblings change
-   */
-  .perf-contain-paint {
-    contain: layout style paint;
-  }
+/*
+ * 1. isolates layout, style, paint operations
+ * 2. browser won't repaint this when siblings change
+ */
+.perf-contain-paint {
+  contain: layout style paint;
+}
 
-  /*
-   * 1. keeps GPU memory allocated for this element
-   * 2. pre-optimizes rendering paths for transform changes
-   * 3. reduces jank during initial animation/scroll
-   */
-  .perf-will-transform {
-    will-change: transform;
-  }
+/*
+ * 1. keeps GPU memory allocated for this element
+ * 2. pre-optimizes rendering paths for transform changes
+ * 3. reduces jank during initial animation/scroll
+ */
+.perf-will-transform {
+  will-change: transform;
+}
 
-  /*
-   * 1. forces element to be rendered on the GPU, but on a different layer
-   */
-  .perf-backface-hidden {
-    backface-visibility: hidden;
-  }
+/*
+ * 1. forces element to be rendered on the GPU, but on a different layer
+ */
+.perf-backface-hidden {
+  backface-visibility: hidden;
+}
 
-  .perf-scroll-optimized {
-    @apply perf-contain-paint perf-gpu-layer perf-will-transform;
-  }
+.perf-scroll-optimized {
+  contain: layout style paint;
+  transform: translateZ(0);
+  will-change: transform;
 }
