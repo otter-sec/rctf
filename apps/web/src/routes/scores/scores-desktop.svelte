@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
   import { IconMoodWrrrFilled } from '$lib/icons'
-  import { EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
+  import { EmptyState, ScrollArea, Spinner } from '$lib/components'
   import { cn, useInfiniteVirtualScroll } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
@@ -205,7 +205,7 @@
               )}
             >
               <ScoresGraph
-                class="h-full w-full"
+                class="h-full w-full p-3"
                 {hoveredTeamId}
                 offset={0}
                 {solveHighlight}
@@ -221,10 +221,7 @@
         </div>
 
         <div
-          class={cn(
-            'virtual-list-container perf-contain-layout perf-backface-hidden bg-background-l1 relative',
-            scroll.isScrolling && 'is-scrolling'
-          )}
+          class="relative contain-[layout_style] backface-hidden"
           style="height: {scroll.totalSize}px; width: 100%;"
         >
           {#if isLoading && challengesLoading && entries.length === 0}
@@ -277,7 +274,7 @@
 
                 <div
                   class={cn(
-                    'perf-contain-paint perf-will-transform bg-background-l1 data-row group absolute top-0 left-0 flex min-w-0 rounded-lg',
+                    'data-row group absolute top-0 left-0 flex min-w-0 rounded-lg will-change-transform contain-[layout_style_paint]',
                     viewMode === 'minimal' ? 'w-full' : 'w-fit'
                   )}
                   style="height: {row.size}px; transform: translate3d(0, {row.start -
@@ -330,7 +327,7 @@
           <div class="bg-background-l0 sticky bottom-0 z-20 mt-4 h-(--self-row-height)">
             <div
               class={cn(
-                'perf-contain-paint perf-will-transform bg-background-l1 data-row group flex min-w-0 rounded-lg',
+                'bg-background-l1 data-row group flex min-w-0 rounded-lg will-change-transform contain-[layout_style_paint]',
                 viewMode === 'minimal' ? 'w-full' : 'w-fit'
               )}
             >

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
@@ -58,21 +59,21 @@
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-gold-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="white" font-size="12" font-weight="bold">1</text>`
+          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-family="var(--font-mono)" font-size="12" font-weight="bold">1</text>`
         )
       } else if (bloodIndex === 1) {
         parts.push(
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-silver-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="white" font-size="12" font-weight="bold">2</text>`
+          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-family="var(--font-mono)" font-size="12" font-weight="bold">2</text>`
         )
       } else if (bloodIndex === 2) {
         parts.push(
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-bronze-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="white" font-size="12" font-weight="bold">3</text>`
+          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-size="12" font-weight="bold">3</text>`
         )
       } else if (solved) {
         parts.push(
@@ -188,7 +189,10 @@
 </script>
 
 <div
-  class="perf-scroll-optimized bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1"
+  class={cn(
+    'bg-background-l2 flex transform-[translateZ(0)] gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 will-change-transform contain-[layout_style_paint]',
+    isScrolling && 'pointer-events-none'
+  )}
 >
   {#if viewMode === 'categories'}
     <!-- svelte-ignore a11y_no_static_element_interactions -->

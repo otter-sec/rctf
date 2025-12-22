@@ -30,7 +30,7 @@
 </script>
 
 <div
-  class={cn('virtual-list-container perf-contain-layout perf-backface-hidden relative', className)}
+  class={cn('relative contain-[layout_style] backface-hidden', className)}
   style="height: {totalSize}px;"
 >
   {#each virtualItems as row (row.index)}
@@ -49,7 +49,10 @@
       </div>
     {:else if items[row.index] !== undefined}
       <div
-        class={cn('perf-contain-paint perf-will-transform absolute top-0 left-0 w-full', itemClass)}
+        class={cn(
+          'absolute top-0 left-0 w-full will-change-transform contain-[layout_style_paint]',
+          itemClass
+        )}
         style="height: {row.size}px; transform: translate3d(0, {row.start - scrollMargin}px, 0);"
       >
         {@render children({ item: items[row.index]!, index: row.index, virtualItem: row })}

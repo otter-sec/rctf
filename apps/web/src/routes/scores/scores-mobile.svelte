@@ -186,7 +186,6 @@
         totalSize={scroll.totalSize}
         items={entries}
         {hasNextPage}
-        class="bg-background-l1"
       >
         {#snippet children({ item: entry, index })}
           {@const rank = index + 1}
