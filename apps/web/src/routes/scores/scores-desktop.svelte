@@ -10,7 +10,7 @@
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
-  import SkeletonRow from './skeleton-row.svelte'
+  import ScoresSkeletonRow from './scores-skeleton-row.svelte'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface Props {
@@ -227,7 +227,7 @@
           {#if isLoading && challengesLoading && entries.length === 0}
             <div class="flex flex-col gap-1">
               {#each Array(PAGE_SIZE) as _}
-                <SkeletonRow {showDivision} isMinimal={viewMode === 'minimal'} />
+                <ScoresSkeletonRow {showDivision} isMinimal={viewMode === 'minimal'} />
               {/each}
             </div>
           {:else if isLoading && entries.length === 0}
@@ -235,7 +235,7 @@
               viewMode === 'categories' ? categoryGroups.length : challenges.length}
             <div class="flex flex-col gap-1">
               {#each Array(PAGE_SIZE) as _}
-                <SkeletonRow
+                <ScoresSkeletonRow
                   {showDivision}
                   isMinimal={viewMode === 'minimal'}
                   colCount={viewMode !== 'minimal' ? colCount : 0}

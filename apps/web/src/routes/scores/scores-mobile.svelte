@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
-  import { Avatar, EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
+  import { Avatar, EmptyState, ScrollArea, VirtualList } from '$lib/components'
   import { IconMoodWrrrFilled } from '$lib/icons'
   import { cn, countryCodeToFlagFilename, getInitials, useInfiniteVirtualScroll } from '$lib/utils'
   import { getRankStylesForPosition } from '$lib/utils/rank'
   import { PAGE_SIZE } from './constants'
-  import DeltaIndicator from './delta-indicator.svelte'
+  import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
   import ScoresGraph from './scores-graph.svelte'
   import type { TeamRowData } from './types'
 
@@ -80,7 +80,7 @@
         {#if showDivision && data.divisionPlace}
           <span class={cn('text-sm tabular-nums', styles.fgL1)}>#{data.divisionPlace}</span>
         {:else if data.delta}
-          <DeltaIndicator delta={data.delta} />
+          <ScoresDeltaIndicator delta={data.delta} />
         {/if}
       </div>
     </div>

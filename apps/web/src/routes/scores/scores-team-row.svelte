@@ -3,8 +3,8 @@
   import { cn, getInitials } from '$lib/utils'
   import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
   import { ALL_REGIONS } from '@rctf/const'
-  import DeltaIndicator from './delta-indicator.svelte'
-  import Sparkline from './sparkline.svelte'
+  import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
+  import ScoresSparkline from './scores-sparkline.svelte'
 
   interface Props {
     id: string
@@ -68,7 +68,7 @@
 >
   <div class="flex shrink-0 items-center">
     <div class="hidden w-6 @lg/team-info-desktop:block">
-      <DeltaIndicator {delta} />
+      <ScoresDeltaIndicator {delta} />
     </div>
     <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
@@ -124,7 +124,7 @@
     <div
       class="pointer-events-none absolute h-10 w-24 opacity-0 @lg/team-info-desktop:pointer-events-auto @lg/team-info-desktop:relative @lg/team-info-desktop:opacity-100"
     >
-      <Sparkline data={sparklineData} {rank} {isCurrentUser} {onHover} {onUnhover} />
+      <ScoresSparkline data={sparklineData} {rank} {isCurrentUser} {onHover} {onUnhover} />
     </div>
   </div>
 </div>
