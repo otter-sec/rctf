@@ -58,8 +58,11 @@
     <ScrollArea class="-mx-6 min-h-0 flex-1 px-6">
       <div class="py-4">
         {#if description}
-          <div class="bg-background-l2 rounded-lg border-2 p-4">
-            <Markdown content={description} class="prose-sm max-w-none" />
+          <div class="overflow-hidden rounded-lg border-2">
+            <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Description</div>
+            <div class="bg-background-l2 px-4 pt-2 pb-4">
+              <Markdown content={description} class="prose-sm max-w-none" />
+            </div>
           </div>
         {:else}
           <p class="text-foreground-l3 py-8 text-center">No description to preview.</p>

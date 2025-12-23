@@ -73,7 +73,7 @@
 <Field.Field data-invalid={!!error || undefined}>
   {#if showLabel && label}
     <Field.Label>
-      {label}{#if required}<span class="text-foreground-destructive -ms-1">*</span>{/if}
+      {label}{#if required}<span class="text-foreground-destructive -ms-1.5">*</span>{/if}
       {#if description}
         <Field.Hint>({description})</Field.Hint>
       {/if}

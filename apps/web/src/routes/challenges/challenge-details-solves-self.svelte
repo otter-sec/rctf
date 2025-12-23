@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
-  import { formatLocalTime, formatRelativeToFirstBlood, getOrdinal } from '$lib/utils'
+  import { formatLocalTime, formatRelativeToFirstBlood } from '$lib/utils'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   interface Props {
@@ -30,7 +30,7 @@
 {#if currentUserSolve && currentUser && mySolvePosition}
   <ChallengeDetailsSolvesRow
     variant="self"
-    rankLabel={getOrdinal(mySolvePosition)}
+    rankLabel={mySolvePosition}
     name={currentUser.name}
     userId={currentUser.id}
     avatarUrl={currentUser.avatarUrl}

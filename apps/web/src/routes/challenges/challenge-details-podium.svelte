@@ -113,12 +113,12 @@
     {@const isYouUnsolved = isYouSlot && !isSolved}
     <div
       class={cn(
-        'flex h-14 items-center justify-between gap-2 rounded-lg py-1.5 pr-1.5 pl-2',
-        isEmpty || isYouUnsolved ? 'border-2 border-dashed' : style.bg
+        'flex h-14 items-center justify-between gap-2 rounded-lg border-2 border-transparent p-1',
+        isEmpty || isYouUnsolved ? 'border-border border-dashed' : style.bg
       )}
     >
       {#if item.label}
-        <span class={cn('text-base', isYouUnsolved ? 'text-foreground-l4' : style.fgL0)}>
+        <span class={cn('pl-1 text-base', isYouUnsolved ? 'text-foreground-l4' : style.fgL0)}>
           {item.label}
         </span>
       {/if}

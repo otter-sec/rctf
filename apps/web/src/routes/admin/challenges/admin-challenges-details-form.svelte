@@ -1,7 +1,17 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
-  import { Button, Field, Input, ScrollArea, Select, Tabs, Textarea } from '$lib/components'
   import {
+    Button,
+    Field,
+    Input,
+    ScrollArea,
+    Select,
+    Tabs,
+    Textarea,
+    Tooltip,
+  } from '$lib/components'
+  import {
+    IconAlertCircleFilled,
     IconCloudComputingFilled,
     IconEyeFilled,
     IconFileFilled,
@@ -25,6 +35,7 @@
     files: { name: string; url: string; size: number | null }[]
     instancerConfig: InstancerConfig | null
     isDisabled: boolean
+    formValid?: boolean
     instancerValid?: boolean
     onShowPreview: () => void
     onFilesChange: (files: Props['files']) => void
@@ -53,6 +64,7 @@
     files,
     instancerConfig,
     isDisabled,
+    formValid = $bindable(true),
     instancerValid = $bindable(true),
     onShowPreview,
     onFilesChange,
@@ -70,6 +82,34 @@
 
   let tab = $state('details')
 
+  let touched = $state({
+    name: false,
+    category: false,
+    author: false,
+    description: false,
+    flag: false,
+  })
+
+  const errors = $derived({
+    name: name.trim() === '' ? 'Name is required' : null,
+    category: category.trim() === '' ? 'Category is required' : null,
+    author: author.trim() === '' ? 'Author is required' : null,
+    description: description.trim() === '' ? 'Description is required' : null,
+    flag: flag.trim() === '' ? 'Flag is required' : null,
+  })
+
+  const isFormValid = $derived(
+    !errors.name && !errors.category && !errors.author && !errors.description && !errors.flag
+  )
+
+  const detailsTabHasErrors = $derived(
+    !!errors.name || !!errors.category || !!errors.author || !!errors.description || !!errors.flag
+  )
+
+  $effect(() => {
+    formValid = isFormValid
+  })
+
   const tabClass =
     'rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none'
 </script>
@@ -80,6 +120,14 @@
       <Tabs.Trigger value="details" class={tabClass}>
         <IconFileInfoFilled class="size-4" />
         Details
+        {#if detailsTabHasErrors}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <IconAlertCircleFilled class="text-foreground-destructive size-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Content>This tab has invalid fields</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
       </Tabs.Trigger>
       <Tabs.Trigger value="scoring" class={tabClass}>
         <IconFlagFilled class="size-4" />
@@ -92,6 +140,14 @@
       <Tabs.Trigger value="instancer" class={tabClass}>
         <IconCloudComputingFilled class="size-4" />
         Instancer
+        {#if !instancerValid}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <IconAlertCircleFilled class="text-foreground-destructive size-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Content>This tab has invalid fields</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
       </Tabs.Trigger>
     </Tabs.List>
   </div>
@@ -101,45 +157,67 @@
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field.Field>
-              <Field.Label>Name</Field.Label>
+            <Field.Field data-invalid={touched.name && errors.name ? true : undefined}>
+              <Field.Label
+                >Name<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
+              >
               <Input
                 type="text"
                 placeholder="Challenge name"
                 required
                 value={name}
                 oninput={e => onNameChange(e.currentTarget.value)}
+                onblur={() => (touched.name = true)}
+                aria-invalid={touched.name && !!errors.name}
                 disabled={isDisabled}
               />
+              {#if touched.name && errors.name}
+                <Field.Error>{errors.name}</Field.Error>
+              {/if}
             </Field.Field>
-            <Field.Field>
-              <Field.Label>Category</Field.Label>
+            <Field.Field data-invalid={touched.category && errors.category ? true : undefined}>
+              <Field.Label
+                >Category<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
+              >
               <Input
                 type="text"
                 placeholder="web, pwn, crypto, etc."
                 required
                 value={category}
                 oninput={e => onCategoryChange(e.currentTarget.value)}
+                onblur={() => (touched.category = true)}
+                aria-invalid={touched.category && !!errors.category}
                 disabled={isDisabled}
               />
+              {#if touched.category && errors.category}
+                <Field.Error>{errors.category}</Field.Error>
+              {/if}
             </Field.Field>
           </div>
 
-          <Field.Field>
-            <Field.Label>Author</Field.Label>
+          <Field.Field data-invalid={touched.author && errors.author ? true : undefined}>
+            <Field.Label
+              >Author<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
+            >
             <Input
               type="text"
               placeholder="Challenge author"
               required
               value={author}
               oninput={e => onAuthorChange(e.currentTarget.value)}
+              onblur={() => (touched.author = true)}
+              aria-invalid={touched.author && !!errors.author}
               disabled={isDisabled}
             />
+            {#if touched.author && errors.author}
+              <Field.Error>{errors.author}</Field.Error>
+            {/if}
           </Field.Field>
 
-          <Field.Field>
+          <Field.Field data-invalid={touched.description && errors.description ? true : undefined}>
             <Field.Label class="flex items-center">
-              Description <Field.Hint>(Markdown supported)</Field.Hint>
+              Description<span class="text-foreground-destructive -ms-1.5">*</span>
+              <Field.Hint>(Markdown supported)</Field.Hint>
               <Button
                 variant="secondary"
                 size="sm"
@@ -157,8 +235,32 @@
               required
               value={description}
               oninput={e => onDescriptionChange(e.currentTarget.value)}
+              onblur={() => (touched.description = true)}
+              aria-invalid={touched.description && !!errors.description}
               disabled={isDisabled}
             />
+            {#if touched.description && errors.description}
+              <Field.Error>{errors.description}</Field.Error>
+            {/if}
+          </Field.Field>
+
+          <Field.Field data-invalid={touched.flag && errors.flag ? true : undefined}>
+            <Field.Label>Flag<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
+            >
+            <Input
+              type="text"
+              placeholder={'flag{...}'}
+              class="font-mono"
+              required
+              value={flag}
+              oninput={e => onFlagChange(e.currentTarget.value)}
+              onblur={() => (touched.flag = true)}
+              aria-invalid={touched.flag && !!errors.flag}
+              disabled={isDisabled}
+            />
+            {#if touched.flag && errors.flag}
+              <Field.Error>{errors.flag}</Field.Error>
+            {/if}
           </Field.Field>
         </div>
       </ScrollArea>
@@ -167,19 +269,6 @@
     <Tabs.Content value="scoring" class="h-full">
       <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
         <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
-          <Field.Field>
-            <Field.Label>Flag</Field.Label>
-            <Input
-              type="text"
-              placeholder={'flag{...}'}
-              class="font-mono"
-              required
-              value={flag}
-              oninput={e => onFlagChange(e.currentTarget.value)}
-              disabled={isDisabled}
-            />
-          </Field.Field>
-
           <div class="grid grid-cols-2 gap-4">
             <Field.Field>
               <Field.Label>Minimum points <Field.Hint>(at max solves)</Field.Hint></Field.Label>

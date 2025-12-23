@@ -7,7 +7,7 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError, toast } from '$lib'
-  import { Button, EmptyState, Spinner } from '$lib/components'
+  import { Button, EmptyState, Spinner, Tooltip } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
   import { type editorMachine, type FormData } from '$lib/machines'
   import {
@@ -180,6 +180,7 @@
   }
 
   let showPreviewDialog = $state(false)
+  let formValid = $state(true)
   let instancerValid = $state(true)
 </script>
 
@@ -242,12 +243,21 @@
               <Button type="button" variant="outline" onclick={() => send({ type: 'CANCEL' })}>
                 Cancel
               </Button>
-              <Button type="button" onclick={handleSave} disabled={isUpdating || !instancerValid}>
-                {#if isUpdating}
-                  <Spinner class="size-4" />
-                {/if}
-                {isCreating ? 'Create' : 'Save'}
-              </Button>
+              <Tooltip.Root disabled={formValid && instancerValid}>
+                <Tooltip.Trigger>
+                  <Button
+                    type="button"
+                    onclick={handleSave}
+                    disabled={isUpdating || !formValid || !instancerValid}
+                  >
+                    {#if isUpdating}
+                      <Spinner class="size-4" />
+                    {/if}
+                    {isCreating ? 'Create' : 'Save'}
+                  </Button>
+                </Tooltip.Trigger>
+                <Tooltip.Content>Resolve all issues to save</Tooltip.Content>
+              </Tooltip.Root>
             {:else if hasWritePerms}
               <Button type="button" onclick={() => send({ type: 'EDIT' })}>
                 <IconPencilFilled class="size-4" />
@@ -272,6 +282,7 @@
           files={form.files}
           instancerConfig={form.instancerConfig}
           {isDisabled}
+          bind:formValid
           bind:instancerValid
           onShowPreview={() => (showPreviewDialog = true)}
           onFilesChange={files => send({ type: 'UPDATE_FILES', files })}

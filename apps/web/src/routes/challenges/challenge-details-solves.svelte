@@ -38,6 +38,10 @@
   const allSolves = $derived($solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
+  const userSolveIndex = $derived(
+    currentUser ? allSolves.findIndex(s => s.userId === currentUser.id) : -1
+  )
+
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 10,
@@ -51,7 +55,24 @@
   })
 
   $effect(() => {
-    userVisibleInList = currentUser ? allSolves.some(s => s.userId === currentUser.id) : false
+    if (userSolveIndex === -1) {
+      userVisibleInList = false
+      return
+    }
+
+    const viewport = scroll.state.viewportRef
+    if (!viewport) {
+      userVisibleInList = false
+      return
+    }
+
+    void scroll.virtualItems
+    const viewportTop = viewport.scrollTop
+    const viewportBottom = viewportTop + viewport.clientHeight
+    const itemTop = userSolveIndex * ROW_HEIGHT
+    const itemBottom = itemTop + ROW_HEIGHT
+
+    userVisibleInList = itemTop < viewportBottom && itemBottom > viewportTop
   })
 
   $effect(() => {
@@ -85,7 +106,7 @@
         totalSize={scroll.totalSize}
         items={allSolves}
         hasNextPage={$solvesQuery.hasNextPage}
-        class="px-5 pt-2"
+        class="mx-5 mt-4"
       >
         {#snippet children({ item, index })}
           {@const solve = item}
