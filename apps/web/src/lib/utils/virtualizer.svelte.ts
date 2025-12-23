@@ -114,6 +114,12 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
     let capturedScrollTop = 0
     let capturedScrollLeft = 0
 
+    // Fast scroll detection - skip frames during very fast scrolling
+    let lastScrollTop = 0
+    let skipFrames = 0
+    const FAST_SCROLL_THRESHOLD = 800 // pixels per frame
+    const MAX_SKIP_FRAMES = 3
+
     const processScroll = () => {
       scrollRaf = 0
       if (!currentElement) return
@@ -122,6 +128,15 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
       const scrollTop = capturedScrollTop
       const scrollLeft = capturedScrollLeft
+
+      const scrollDelta = Math.abs(scrollTop - lastScrollTop)
+      lastScrollTop = scrollTop
+
+      if (scrollDelta > FAST_SCROLL_THRESHOLD && skipFrames < MAX_SKIP_FRAMES) {
+        skipFrames++
+        return
+      }
+      skipFrames = 0
 
       const offset = horizontal
         ? scrollLeft * ((isRtl && -1) || 1)
@@ -156,6 +171,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
         capturedScrollTop = currentElement.scrollTop
         capturedScrollLeft = currentElement.scrollLeft
 
+        // Only update cached dimensions when needed (first scroll or scroll to top)
         if (cachedClientHeight === 0 || capturedScrollTop === 0) {
           cachedClientHeight = currentElement.clientHeight
           cachedClientWidth = currentElement.clientWidth
