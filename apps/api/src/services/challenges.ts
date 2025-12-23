@@ -61,6 +61,7 @@ type ChallengeSolvesWithPosition = {
     globalPlace: number
     division: string
     divisionPlace: number
+    bloodIndex: number | null
   }[]
   solvePosition: number | null
 }
@@ -236,6 +237,7 @@ export const getChallengeSolvesWithPosition = async (
       userCountryCode: ranked.userCountryCode,
       userStatusText: ranked.userStatusText,
       userDivision: ranked.userDivision,
+      position: ranked.position,
       userSolvePosition: sql<number | null>`(
         SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
       )`.as('user_solve_position'),
@@ -275,6 +277,7 @@ export const getChallengeSolvesWithPosition = async (
         globalPlace: scores?.place ?? 0,
         division: r.userDivision,
         divisionPlace: scores?.divisionPlace ?? 0,
+        bloodIndex: r.position <= 3 ? r.position - 1 : null,
       }
     }),
   }
@@ -283,16 +286,28 @@ export const getChallengeSolvesWithPosition = async (
 export const getUserChallengeSolves = async (
   db: DatabaseClient,
   userId: string
-): Promise<{ solve: Solve; challengeData: ChallengeData }[]> => {
-  return await db
+): Promise<
+  { solve: Solve; challengeData: ChallengeData; bloodIndex: number | null }[]
+> => {
+  const rows = await db
     .select({
       solve: solves,
       challengeData: challenges.data,
+      position:
+        sql<number>`(SELECT COUNT(*) + 1 FROM solves s2 WHERE s2.challengeid = ${solves.challengeid} AND s2.createdat < ${solves.createdat})::int`.as(
+          'position'
+        ),
     })
     .from(solves)
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
     .where(eq(solves.userid, userId))
     .orderBy(asc(solves.createdat))
+
+  return rows.map(row => ({
+    solve: row.solve,
+    challengeData: row.challengeData,
+    bloodIndex: row.position <= 3 ? row.position - 1 : null,
+  }))
 }
 
 export const getSolvesAndUserInfo = async (

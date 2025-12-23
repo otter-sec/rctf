@@ -11,6 +11,7 @@ export type SolveData = {
   createdAt: number
   solves: number | null
   points: number | null
+  bloodIndex: number | null
 }
 
 export type FullUser = Omit<User, 'email' | 'ctftimeId'> & {
@@ -47,6 +48,7 @@ export const getFullUser = async (
       createdAt: new Date(item.solve.createdat).getTime(),
       solves: challengeScores[index]?.solves ?? null,
       points: challengeScores[index]?.score ?? null,
+      bloodIndex: item.bloodIndex,
     })),
   }
 }

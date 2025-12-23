@@ -8,6 +8,7 @@ const SolveSchema = z.object({
   solves: z.nullable(z.int()),
   id: z.string(),
   createdAt: z.int(),
+  bloodIndex: z.nullable(z.int()),
 })
 
 export const GoodUserSelfDataV2 = response('goodUserSelfData', {

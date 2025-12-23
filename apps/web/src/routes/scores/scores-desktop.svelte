@@ -124,7 +124,7 @@
     overscan: 3,
     isScrollingResetDelay: 120,
     onLoadMore: () => onLoadMore(),
-    onScroll: (metrics) => updateFades(metrics),
+    onScroll: metrics => updateFades(metrics),
   })
 
   $effect(() => {

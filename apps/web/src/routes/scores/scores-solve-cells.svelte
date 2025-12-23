@@ -1,6 +1,19 @@
 <script lang="ts" module>
   const svgCache = new Map<string, { width: number; html: string }>()
   const categoryCache = new Map<string, string>()
+  let lastChallengeCount = 0
+  let lastCategoryCount = 0
+
+  function invalidateCachesIfNeeded(challengeCount: number, categoryCount: number) {
+    if (challengeCount !== lastChallengeCount) {
+      svgCache.clear()
+      lastChallengeCount = challengeCount
+    }
+    if (categoryCount !== lastCategoryCount) {
+      categoryCache.clear()
+      lastCategoryCount = categoryCount
+    }
+  }
 </script>
 
 <script lang="ts">
@@ -55,6 +68,8 @@
   const svgWidth = $derived(totalChallengeCount * (CELL_WIDTH + CELL_GAP))
 
   const challengeSvgContent = $derived.by(() => {
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length)
+
     const cached = svgCache.get(teamId)
     if (cached) {
       return cached
@@ -112,6 +127,8 @@
   })
 
   const categoryHtmlContent = $derived.by(() => {
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length)
+
     const cached = categoryCache.get(teamId)
     if (cached !== undefined) {
       return cached

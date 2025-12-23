@@ -17,6 +17,7 @@ export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
         globalPlace: z.int(),
         division: z.string(),
         divisionPlace: z.int(),
+        bloodIndex: z.nullable(z.int()),
       })
     ),
     mySolvePosition: z.nullable(z.int()),

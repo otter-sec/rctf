@@ -107,7 +107,11 @@
         {:else}
           <Tooltip.Root>
             <Tooltip.Trigger>
-              <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+              <img
+                src="/flags/{flagFilename}"
+                alt="{countryCode} flag"
+                class="h-5 w-auto shrink-0"
+              />
             </Tooltip.Trigger>
             <Tooltip.Content>{countryName}</Tooltip.Content>
           </Tooltip.Root>
