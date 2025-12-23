@@ -1,3 +1,8 @@
+<script lang="ts" module>
+  const svgCache = new Map<string, { width: number; html: string }>()
+  const categoryCache = new Map<string, string>()
+</script>
+
 <script lang="ts">
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
@@ -42,8 +47,21 @@
 
   const CAT_CELL_SIZE = 48
 
+  const totalChallengeCount = $derived(
+    sortMode === 'categories'
+      ? categoryGroups.reduce((n, g) => n + g.challenges.length, 0)
+      : challenges.length
+  )
+  const svgWidth = $derived(totalChallengeCount * (CELL_WIDTH + CELL_GAP))
+
   const challengeSvgContent = $derived.by(() => {
+    const cached = svgCache.get(teamId)
+    if (cached) {
+      return cached
+    }
+
     const list = sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
+    const width = svgWidth
 
     const parts: string[] = []
     let x = 0
@@ -88,13 +106,17 @@
       x += CELL_WIDTH + CELL_GAP
     }
 
-    return {
-      width: list.length * (CELL_WIDTH + CELL_GAP),
-      html: parts.join(''),
-    }
+    const result = { width, html: parts.join('') }
+    svgCache.set(teamId, result)
+    return result
   })
 
   const categoryHtmlContent = $derived.by(() => {
+    const cached = categoryCache.get(teamId)
+    if (cached !== undefined) {
+      return cached
+    }
+
     const parts: string[] = []
 
     for (const group of categoryGroups) {
@@ -117,7 +139,9 @@
       )
     }
 
-    return parts.join('')
+    const result = parts.join('')
+    categoryCache.set(teamId, result)
+    return result
   })
 
   const challengeList = $derived(

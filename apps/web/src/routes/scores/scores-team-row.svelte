@@ -22,6 +22,7 @@
     sparklineData?: { time: number; score: number }[]
     delta?: number
     showDivision?: boolean
+    isScrolling?: boolean
     onHover?: () => void
     onUnhover?: () => void
   }
@@ -42,6 +43,7 @@
     sparklineData = [],
     delta,
     showDivision = true,
+    isScrolling = false,
     onHover,
     onUnhover,
   }: Props = $props()
@@ -73,12 +75,16 @@
     <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
       <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
       {#if showDivision && divisionPlace}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-          </Tooltip.Trigger>
-          <Tooltip.Content>{divisionLabel}</Tooltip.Content>
-        </Tooltip.Root>
+        {#if isScrolling}
+          <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+        {:else}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
+            </Tooltip.Trigger>
+            <Tooltip.Content>{divisionLabel}</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
       {/if}
     </div>
   </div>
@@ -96,12 +102,16 @@
     </div>
     <div class="flex items-center gap-1">
       {#if flagFilename && countryCode && countryName}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
-          </Tooltip.Trigger>
-          <Tooltip.Content>{countryName}</Tooltip.Content>
-        </Tooltip.Root>
+        {#if isScrolling}
+          <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+        {:else}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+            </Tooltip.Trigger>
+            <Tooltip.Content>{countryName}</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
       {/if}
       {#if flagFilename && countryCode && statusText}
         <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>

@@ -2,7 +2,7 @@
   import type { LeaderboardEntry, LeaderboardGraphEntry, UserProfile } from '@rctf/types'
   import { IconMoodWrrrFilled } from '$lib/icons'
   import { EmptyState, ScrollArea, Spinner } from '$lib/components'
-  import { cn, useInfiniteVirtualScroll } from '$lib/utils'
+  import { cn, useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
   import { PAGE_SIZE } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
@@ -106,15 +106,12 @@
     return () => ro.disconnect()
   })
 
-  function updateFades() {
-    const v = scroll.state.viewportRef
-    if (!v) return
-
+  function updateFades(metrics: ScrollMetrics) {
     const threshold = 10
-    const nextTop = v.scrollTop > threshold
-    const nextBottom = v.scrollTop + v.clientHeight < v.scrollHeight - threshold
-    const nextLeft = v.scrollLeft > threshold
-    const nextRight = v.scrollLeft + v.clientWidth < v.scrollWidth - threshold
+    const nextTop = metrics.scrollTop > threshold
+    const nextBottom = metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold
+    const nextLeft = metrics.scrollLeft > threshold
+    const nextRight = metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold
 
     if (showTopFade !== nextTop) showTopFade = nextTop
     if (showBottomFade !== nextBottom) showBottomFade = nextBottom
@@ -124,9 +121,10 @@
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
-    overscan: 20,
+    overscan: 3,
+    isScrollingResetDelay: 120,
     onLoadMore: () => onLoadMore(),
-    onScroll: updateFades,
+    onScroll: (metrics) => updateFades(metrics),
   })
 
   $effect(() => {
@@ -293,9 +291,12 @@
                     {rank}
                     isCurrentUser={isYou}
                     isFullWidth={viewMode === 'minimal'}
-                    sparklineData={sparklineDataByTeam.get(entry.id) ?? []}
+                    sparklineData={scroll.isScrolling
+                      ? []
+                      : (sparklineDataByTeam.get(entry.id) ?? [])}
                     delta={rankDeltaByTeam.get(entry.id)}
                     {showDivision}
+                    isScrolling={scroll.isScrolling}
                     onHover={() => onHoverTeam(entry.id)}
                     onUnhover={() => onHoverTeam(null)}
                   />
@@ -349,6 +350,7 @@
                   : (sparklineDataByTeam.get(currentUser.id) ?? [])}
                 delta={rankDeltaByTeam.get(currentUser.id)}
                 {showDivision}
+                isScrolling={scroll.isScrolling}
                 onHover={() => onHoverTeam(currentUser.id)}
                 onUnhover={() => onHoverTeam(null)}
               />

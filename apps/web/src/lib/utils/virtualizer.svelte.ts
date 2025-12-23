@@ -67,68 +67,13 @@ export function observeElementRect<T extends Element>(
   }
 }
 
-/**
- * Handles delayed element availability and reports scroll position immediately.
- */
-export function observeElementOffset<T extends Element>(
-  instance: Virtualizer<T, Element>,
-  cb: ObserveOffsetCallback
-) {
-  const targetWindow = instance.targetWindow
-  if (!targetWindow) return
-
-  let timeoutId: number | undefined
-  let currentElement: Element | null = null
-  let pollId: number | null = null
-
-  const getOffset = () => {
-    if (!currentElement) return 0
-    const { horizontal, isRtl } = instance.options
-    return horizontal
-      ? currentElement.scrollLeft * ((isRtl && -1) || 1)
-      : currentElement.scrollTop
-  }
-
-  const onScroll = () => {
-    cb(getOffset(), true)
-
-    if (timeoutId) targetWindow.clearTimeout(timeoutId)
-    timeoutId = targetWindow.setTimeout(() => {
-      cb(getOffset(), false)
-    }, instance.options.isScrollingResetDelay)
-  }
-
-  const setup = (element: Element) => {
-    if (currentElement === element) return
-
-    if (currentElement) {
-      currentElement.removeEventListener('scroll', onScroll)
-    }
-
-    currentElement = element
-    element.addEventListener('scroll', onScroll, { passive: true })
-    cb(getOffset(), false)
-  }
-
-  const poll = () => {
-    const element = instance.scrollElement
-    if (element) {
-      setup(element)
-      pollId = null
-    } else {
-      pollId = targetWindow.requestAnimationFrame(poll)
-    }
-  }
-
-  poll()
-
-  return () => {
-    if (currentElement) {
-      currentElement.removeEventListener('scroll', onScroll)
-    }
-    if (timeoutId) targetWindow.clearTimeout(timeoutId)
-    if (pollId !== null) targetWindow.cancelAnimationFrame(pollId)
-  }
+export interface ScrollMetrics {
+  scrollTop: number
+  scrollLeft: number
+  scrollHeight: number
+  scrollWidth: number
+  clientHeight: number
+  clientWidth: number
 }
 
 export interface InfiniteVirtualizerConfig {
@@ -136,6 +81,7 @@ export interface InfiniteVirtualizerConfig {
   overscan?: number
   scrollMargin?: number
   isScrollingResetDelay?: number
+  onScrollMetrics?: (metrics: ScrollMetrics) => void
 }
 
 export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
@@ -144,9 +90,124 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
     overscan = 10,
     scrollMargin = 0,
     isScrollingResetDelay = 100,
+    onScrollMetrics,
   } = config
 
   let scrollElementRef: HTMLElement | null = null
+
+  const observeElementOffsetWithMetrics = <T extends Element>(
+    instance: Virtualizer<T, Element>,
+    cb: ObserveOffsetCallback
+  ) => {
+    const targetWindow = instance.targetWindow
+    if (!targetWindow) return
+
+    let timeoutId: number | undefined
+    let currentElement: HTMLElement | null = null
+    let pollId: number | null = null
+    let scrollRaf = 0
+
+    let cachedClientHeight = 0
+    let cachedClientWidth = 0
+    let cachedScrollHeight = 0
+
+    let capturedScrollTop = 0
+    let capturedScrollLeft = 0
+
+    const processScroll = () => {
+      scrollRaf = 0
+      if (!currentElement) return
+
+      const { horizontal, isRtl } = instance.options
+
+      const scrollTop = capturedScrollTop
+      const scrollLeft = capturedScrollLeft
+
+      const offset = horizontal
+        ? scrollLeft * ((isRtl && -1) || 1)
+        : scrollTop
+
+      cb(offset, true)
+
+      const metrics: ScrollMetrics = {
+        scrollTop,
+        scrollLeft: horizontal ? scrollLeft : 0,
+        scrollHeight: cachedScrollHeight,
+        scrollWidth: 0,
+        clientHeight: cachedClientHeight,
+        clientWidth: cachedClientWidth,
+      }
+      onScrollMetrics?.(metrics)
+
+      if (timeoutId) targetWindow.clearTimeout(timeoutId)
+      timeoutId = targetWindow.setTimeout(() => {
+        if (!currentElement) return
+        const endOffset = horizontal
+          ? currentElement.scrollLeft * ((isRtl && -1) || 1)
+          : currentElement.scrollTop
+        cb(endOffset, false)
+      }, instance.options.isScrollingResetDelay)
+    }
+
+    const onScroll = () => {
+      if (!currentElement) return
+
+      if (!scrollRaf) {
+        capturedScrollTop = currentElement.scrollTop
+        capturedScrollLeft = currentElement.scrollLeft
+
+        if (cachedClientHeight === 0 || capturedScrollTop === 0) {
+          cachedClientHeight = currentElement.clientHeight
+          cachedClientWidth = currentElement.clientWidth
+          cachedScrollHeight = currentElement.scrollHeight
+        }
+
+        scrollRaf = targetWindow.requestAnimationFrame(processScroll)
+      }
+    }
+
+    const getOffset = () => {
+      if (!currentElement) return 0
+      const { horizontal, isRtl } = instance.options
+      return horizontal
+        ? currentElement.scrollLeft * ((isRtl && -1) || 1)
+        : currentElement.scrollTop
+    }
+
+    const setup = (element: HTMLElement) => {
+      if (currentElement === element) return
+
+      if (currentElement) {
+        currentElement.removeEventListener('scroll', onScroll)
+      }
+
+      currentElement = element
+      element.addEventListener('scroll', onScroll, { passive: true })
+      cb(getOffset(), false)
+    }
+
+    const poll = () => {
+      const element = instance.scrollElement as HTMLElement | null
+      if (element) {
+        setup(element)
+        pollId = null
+      } else {
+        pollId = targetWindow.requestAnimationFrame(poll)
+      }
+    }
+
+    poll()
+
+    return () => {
+      if (currentElement) {
+        currentElement.removeEventListener('scroll', onScroll)
+      }
+      if (timeoutId) targetWindow.clearTimeout(timeoutId)
+      if (pollId !== null) targetWindow.cancelAnimationFrame(pollId)
+      if (scrollRaf) targetWindow.cancelAnimationFrame(scrollRaf)
+    }
+  }
+
   const virtualizer = createVirtualizer({
     count: 0,
     getScrollElement: () => scrollElementRef,
@@ -154,7 +215,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
     overscan,
     scrollMargin,
     observeElementRect,
-    observeElementOffset,
+    observeElementOffset: observeElementOffsetWithMetrics,
     isScrollingResetDelay,
   })
 
@@ -203,73 +264,13 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
   return { virtualizer, update }
 }
 
-export interface InfiniteScrollConfig {
-  threshold?: number
-  onScroll?: () => void
-}
-
-export function setupInfiniteScroll(
-  handlers: {
-    getViewport: () => HTMLElement | null
-    hasNextPage: () => boolean
-    isFetching: () => boolean
-    onLoadMore: () => void
-  },
-  config: InfiniteScrollConfig = {}
-) {
-  const { threshold = 0.7, onScroll } = config
-  let loadMoreTriggered = false
-  let raf = 0
-
-  function resetTrigger() {
-    loadMoreTriggered = false
-  }
-
-  function run() {
-    raf = 0
-    const v = handlers.getViewport()
-    if (!v) return
-
-    onScroll?.()
-
-    if (loadMoreTriggered || !handlers.hasNextPage() || handlers.isFetching())
-      return
-
-    const scrollPercent = (v.scrollTop + v.clientHeight) / v.scrollHeight
-    if (scrollPercent > threshold) {
-      loadMoreTriggered = true
-      handlers.onLoadMore()
-    }
-  }
-
-  function schedule() {
-    if (raf) return
-    raf = requestAnimationFrame(run)
-  }
-
-  function attach(viewport: HTMLElement) {
-    viewport.addEventListener('scroll', schedule, { passive: true })
-    const observer = new ResizeObserver(schedule)
-    observer.observe(viewport)
-    schedule()
-
-    return () => {
-      viewport.removeEventListener('scroll', schedule)
-      observer.disconnect()
-      if (raf) cancelAnimationFrame(raf)
-    }
-  }
-
-  return { attach, resetTrigger }
-}
-
 export interface UseInfiniteVirtualScrollConfig {
   rowHeight: number
   overscan?: number
   isScrollingResetDelay?: number
   threshold?: number
   onLoadMore: () => void
-  onScroll?: () => void
+  onScroll?: (metrics: ScrollMetrics) => void
 }
 
 export function useInfiniteVirtualScroll(
@@ -289,26 +290,42 @@ export function useInfiniteVirtualScroll(
   let scrollMargin = $state(0)
   let hasNextPage = $state(false)
   let isFetching = $state(false)
+  let loadMoreTriggered = false
 
   let virtualItems = $state<VirtualItem[]>([])
   let totalSize = $state(0)
   let isScrolling = $state(false)
+  let scrollingTimeoutId: number | undefined
+
+  const handleScrollMetrics = (metrics: ScrollMetrics) => {
+    if (!isScrolling) {
+      isScrolling = true
+    }
+
+    if (scrollingTimeoutId) {
+      clearTimeout(scrollingTimeoutId)
+    }
+    scrollingTimeoutId = window.setTimeout(() => {
+      isScrolling = false
+    }, isScrollingResetDelay)
+
+    onScroll?.(metrics)
+
+    if (loadMoreTriggered || !hasNextPage || isFetching) return
+
+    const scrollPercent = (metrics.scrollTop + metrics.clientHeight) / metrics.scrollHeight
+    if (scrollPercent > threshold) {
+      loadMoreTriggered = true
+      onLoadMore()
+    }
+  }
 
   const { virtualizer, update: updateVirtualizer } = createInfiniteVirtualizer({
     rowHeight,
     overscan,
     isScrollingResetDelay,
+    onScrollMetrics: handleScrollMetrics,
   })
-
-  const infiniteScroll = setupInfiniteScroll(
-    {
-      getViewport: () => viewportRef,
-      hasNextPage: () => hasNextPage,
-      isFetching: () => isFetching,
-      onLoadMore,
-    },
-    { threshold, onScroll }
-  )
 
   // Subscribe to virtualizer and cache values outside render cycle
   $effect(() => {
@@ -330,14 +347,8 @@ export function useInfiniteVirtualScroll(
 
   $effect.pre(() => {
     if (!isFetching) {
-      infiniteScroll.resetTrigger()
+      loadMoreTriggered = false
     }
-  })
-
-  $effect(() => {
-    const v = viewportRef
-    if (!v) return
-    return infiniteScroll.attach(v)
   })
 
   return {
