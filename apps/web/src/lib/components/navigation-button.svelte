@@ -11,7 +11,11 @@
 
   let { href, activePath, icon }: Props = $props()
 
-  const isActive = $derived(activePath ? page.url.pathname.startsWith(activePath) : false)
+  const isActive = $derived.by(() => {
+    if (!activePath) return false
+    if (activePath === '/') return page.url.pathname === '/'
+    return page.url.pathname.startsWith(activePath)
+  })
 </script>
 
 <a

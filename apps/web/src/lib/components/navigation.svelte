@@ -10,7 +10,9 @@
     Avatar,
     DropdownMenu,
     NavigationButton,
+    NavigationCountdown,
     NavigationMobile,
+    NavigationTeamStats,
     ThemeToggle,
     Tooltip,
   } from '$lib/components'
@@ -19,6 +21,7 @@
     IconCopy,
     IconFlag3Filled,
     IconGavel,
+    IconHomeFilled,
     IconLogin,
     IconLogout,
     IconUserCog,
@@ -66,6 +69,16 @@
     <nav class="hidden items-center gap-2 md:flex">
       <Tooltip.Root>
         <Tooltip.Trigger>
+          <NavigationButton href="/" activePath="/">
+            {#snippet icon({ class: className })}
+              <IconHomeFilled class={className} />
+            {/snippet}
+          </NavigationButton>
+        </Tooltip.Trigger>
+        <Tooltip.Content sideOffset={8}>Home</Tooltip.Content>
+      </Tooltip.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger>
           <NavigationButton href="/challenges" activePath="/challenges">
             {#snippet icon({ class: className })}
               <IconFlag3Filled class={className} />
@@ -100,7 +113,9 @@
   </div>
 
   <div class="hidden items-center gap-2 md:flex">
+    <NavigationCountdown />
     {#if user}
+      <NavigationTeamStats />
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           class="hover:bg-background-l2 flex cursor-pointer items-center gap-3 rounded-lg pl-2"

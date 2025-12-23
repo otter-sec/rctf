@@ -25,6 +25,8 @@ export { default as CollapseToggleButton } from './collapse-toggle-button.svelte
 export { default as CtfNotStarted } from './ctf-not-started.svelte'
 export { default as FlagPicker } from './flag-picker.svelte'
 export { default as Navigation } from './navigation.svelte'
+export { default as NavigationCountdown } from './navigation-countdown.svelte'
+export { default as NavigationTeamStats } from './navigation-team-stats.svelte'
 export { default as Markdown } from './markdown.svelte'
 export { default as NavigationMobile } from './navigation-mobile.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'
