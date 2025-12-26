@@ -97,13 +97,25 @@
   }
 
   let isDesktop = $state(true)
+  let isXl = $state(true)
 
   onMount(() => {
-    const mql = window.matchMedia('(min-width: 768px)')
-    const update = () => (isDesktop = mql.matches)
-    update()
-    mql.addEventListener('change', update)
-    return () => mql.removeEventListener('change', update)
+    const mqlDesktop = window.matchMedia('(min-width: 768px)')
+    const mqlXl = window.matchMedia('(min-width: 1280px)')
+
+    const updateDesktop = () => (isDesktop = mqlDesktop.matches)
+    const updateXl = () => (isXl = mqlXl.matches)
+
+    updateDesktop()
+    updateXl()
+
+    mqlDesktop.addEventListener('change', updateDesktop)
+    mqlXl.addEventListener('change', updateXl)
+
+    return () => {
+      mqlDesktop.removeEventListener('change', updateDesktop)
+      mqlXl.removeEventListener('change', updateXl)
+    }
   })
 
   const leaderboardQuery = useInfiniteLeaderboard({ pageSize: LEADERBOARD_PAGE_SIZE })
@@ -117,6 +129,11 @@
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
   const allGraphData = $derived($graphQuery.data?.pages.flatMap(p => p.graph) ?? [])
+
+  const mergeWithSelfGraph = <T extends { id: string }>(
+    data: T[],
+    selfData: T | null | undefined
+  ): T[] => (selfData && !data.some(t => t.id === selfData.id) ? [...data, selfData] : data)
 
   const isNotStarted = $derived(ApiError.isNotStarted($leaderboardQuery.error))
   const isLoading = $derived($leaderboardQuery.isLoading || $challengesQuery.isLoading)
@@ -233,15 +250,10 @@
   )
 
   const sparklineDataByTeam = $derived.by(() => {
-    const selfGraphData = $selfGraphQuery.data
     const filterPoints = (points: { time: number; score: number }[], minTime = 0) =>
       points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
-    const allTeams =
-      selfGraphData && !allGraphData.some(t => t.id === selfGraphData.id)
-        ? [...allGraphData, selfGraphData]
-        : allGraphData
-
+    const allTeams = mergeWithSelfGraph(allGraphData, $selfGraphQuery.data)
     const maxTime = Math.max(...allTeams.flatMap(t => filterPoints(t.points).map(p => p.time)), 0)
     const windowStart = maxTime - SPARKLINE_WINDOW
 
@@ -249,7 +261,6 @@
   })
 
   const rankDeltaByTeam = $derived.by(() => {
-    const selfGraphData = $selfGraphQuery.data
     const allPoints = allGraphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
     if (allPoints.length === 0) return new Map<string, number>()
 
@@ -263,11 +274,7 @@
       return valid.reduce((latest, p) => (p.time > latest.time ? p : latest)).score
     }
 
-    const allTeams =
-      selfGraphData && !allGraphData.some(t => t.id === selfGraphData.id)
-        ? [...allGraphData, selfGraphData]
-        : allGraphData
-
+    const allTeams = mergeWithSelfGraph(allGraphData, $selfGraphQuery.data)
     const teamsWithScores = allTeams.map(team => ({
       id: team.id,
       currentScore: getLatestScore(team.points, currentTime),
@@ -376,12 +383,32 @@
     })
   }
 
+  function maybeLoadMoreGraphData() {
+    if ($graphQuery.isFetchingNextPage || !$graphQuery.hasNextPage) return
+
+    const virtualItems = scroll.virtualItems
+    if (virtualItems.length === 0) return
+
+    const maxVisibleIndex = Math.max(...virtualItems.map(item => item.index))
+    const loadedGraphCount = allGraphData.length
+    const threshold = 5
+
+    if (maxVisibleIndex >= loadedGraphCount - threshold) {
+      $graphQuery.fetchNextPage()
+    }
+  }
+
+  function handleScroll(metrics: ScrollMetrics) {
+    updateFades(metrics)
+    maybeLoadMoreGraphData()
+  }
+
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 5,
     isScrollingResetDelay: 100,
     onLoadMore: () => $leaderboardQuery.fetchNextPage(),
-    onScroll: metrics => updateFades(metrics),
+    onScroll: handleScroll,
   })
 
   const contentWidth = $derived.by(() => {
@@ -425,7 +452,11 @@
     }
 
     if (showSelfRow && currentUser) {
-      visibleTeamIds.add(currentUser.id)
+      const selfRank = teamRanks.get(currentUser.id)
+      const selfInTop3 = selfRank !== undefined && selfRank <= 3
+      if (!selfInTop3 || showTop3Context) {
+        visibleTeamIds.add(currentUser.id)
+      }
     }
 
     return { visibleTeamIds, contextTeamIds }
@@ -436,6 +467,26 @@
   )
 
   const contextTeamIds = $derived(graphVisibility.contextTeamIds)
+
+  const graphProps = $derived({
+    hoveredTeamId,
+    offset: 0,
+    solveHighlight,
+    graphData: visibleGraphData,
+    teamRanks,
+    contextTeamIds,
+    showTop3Context,
+  })
+
+  const teamRowProps = $derived({
+    contentWidth,
+    viewMode,
+    sortMode,
+    categoryGroups,
+    challenges,
+    isScrolling: scroll.isScrolling,
+    onCellHover: handleCellHover,
+  })
 
   $effect(() => {
     const header = headerRowRef
@@ -454,63 +505,37 @@
     return () => ro.disconnect()
   })
 
+  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, isDesktop, isLoading })
+
   $effect(() => {
     const viewport = scroll.state.viewportRef
     if (!viewport) return
 
-    void contentWidth
-    void listScrollMargin
-    void showSelfRow
-    void isDesktop
-    void isLoading
+    fadeDeps
 
     updateFadesFromViewport()
 
     const ro = new ResizeObserver(() => updateFadesFromViewport())
     ro.observe(viewport, { box: 'border-box' })
 
-    let raf1 = 0
     let raf2 = 0
-    raf1 = requestAnimationFrame(() => {
+    const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => updateFadesFromViewport())
     })
 
     return () => {
       ro.disconnect()
-      if (raf1) cancelAnimationFrame(raf1)
+      cancelAnimationFrame(raf1)
       if (raf2) cancelAnimationFrame(raf2)
     }
   })
 
-  $effect(() => {
-    if (isLoading) {
-      scroll.state.count = 0
-      scroll.state.hasNextPage = false
-      scroll.state.isFetching = true
-      return
-    }
-
-    scroll.state.count = entries.length
-    scroll.state.hasNextPage = $leaderboardQuery.hasNextPage
-    scroll.state.isFetching = $leaderboardQuery.isFetchingNextPage
+  $effect.pre(() => {
+    scroll.state.count = isLoading ? 0 : entries.length
+    scroll.state.hasNextPage = isLoading ? false : $leaderboardQuery.hasNextPage
+    scroll.state.isFetching = isLoading || $leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
-
-  $effect(() => {
-    if ($graphQuery.isFetchingNextPage || !$graphQuery.hasNextPage) return
-
-    const virtualItems = scroll.virtualItems
-    if (virtualItems.length === 0) return
-
-    const maxVisibleIndex = Math.max(...virtualItems.map(item => item.index))
-    const loadedGraphCount = allGraphData.length
-    const threshold = 5
-
-    if (maxVisibleIndex >= loadedGraphCount - threshold) {
-      $graphQuery.fetchNextPage()
-    }
-  })
-
 </script>
 
 {#if isNotStarted}
@@ -539,8 +564,16 @@
       style:--header-height="{HEADER_HEIGHT}px"
       style:--name-row-height="128px"
       style:--diagonal-overflow="96px"
-      style:--team-column-width={isDesktop ? 'calc(45vw - 72px)' : '100%'}
-      style:--content-column-width={isDesktop ? 'calc(55vw + 72px)' : '0px'}
+      style:--team-column-width={isDesktop
+        ? isXl
+          ? 'calc(45vw - 72px)'
+          : 'calc(60vw - 72px)'
+        : '100%'}
+      style:--content-column-width={isDesktop
+        ? isXl
+          ? 'calc(55vw + 72px)'
+          : 'calc(40vw + 72px)'
+        : '0px'}
       style:--self-row-height="{ROW_HEIGHT}px"
       style:--self-row-offset={showSelfRow ? `${ROW_HEIGHT}px` : '0px'}
     >
@@ -554,16 +587,7 @@
       />
 
       <div class="bg-background-l1 mb-2 h-(--header-height) rounded-lg md:hidden">
-        <ScoresGraph
-          class="h-full w-full p-3"
-          {hoveredTeamId}
-          offset={0}
-          {solveHighlight}
-          graphData={visibleGraphData}
-          {teamRanks}
-          {contextTeamIds}
-          {showTop3Context}
-        />
+        <ScoresGraph class="h-full w-full p-3" {...graphProps} />
       </div>
 
       <ScrollArea
@@ -586,16 +610,7 @@
             <div
               class="bg-background-l1 sticky left-0 z-30 w-(--team-column-width) shrink-0 rounded-t-3xl rounded-bl-xl"
             >
-              <ScoresGraph
-                class="h-full w-full p-3"
-                {hoveredTeamId}
-                offset={0}
-                {solveHighlight}
-                graphData={visibleGraphData}
-                {teamRanks}
-                {contextTeamIds}
-                {showTop3Context}
-              />
+              <ScoresGraph class="h-full w-full p-3" {...graphProps} />
             </div>
             {#if !$challengesQuery.isLoading}
               <ScoresChallengeHeader {viewMode} {sortMode} {categoryGroups} {challenges} />
@@ -618,15 +633,9 @@
                     solves={null}
                     solveTimes={null}
                     isLoading
-                    isScrolling={scroll.isScrolling}
-                    {contentWidth}
-                    {viewMode}
-                    {sortMode}
-                    {categoryGroups}
-                    {challenges}
+                    {...teamRowProps}
                     getCategoryStats={group => getCategoryStatsForSolves(null, group)}
                     getBloodIndex={() => -1}
-                    onCellHover={handleCellHover}
                     onSparklineHover={() => {}}
                     onSparklineUnhover={() => {}}
                   />
@@ -660,15 +669,9 @@
                       }}
                       {solves}
                       {solveTimes}
-                      isScrolling={scroll.isScrolling}
-                      {contentWidth}
-                      {viewMode}
-                      {sortMode}
-                      {categoryGroups}
-                      {challenges}
+                      {...teamRowProps}
                       getCategoryStats={group => getCategoryStatsForSolves(solves, group)}
                       getBloodIndex={cid => getBloodIndex(cid, entry.id)}
-                      onCellHover={handleCellHover}
                       onSparklineHover={() => (hoveredTeamId = entry.id)}
                       onSparklineUnhover={() => (hoveredTeamId = null)}
                     />
@@ -702,15 +705,9 @@
                 solveTimes={isLoading ? null : selfSolveTimes}
                 isSelf
                 {isLoading}
-                isScrolling={scroll.isScrolling}
-                {contentWidth}
-                {viewMode}
-                {sortMode}
-                {categoryGroups}
-                {challenges}
+                {...teamRowProps}
                 getCategoryStats={group => getCategoryStatsForSolves(selfSolves, group)}
                 getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
-                onCellHover={handleCellHover}
                 onSparklineHover={() => (hoveredTeamId = currentUser.id)}
                 onSparklineUnhover={() => (hoveredTeamId = null)}
               />

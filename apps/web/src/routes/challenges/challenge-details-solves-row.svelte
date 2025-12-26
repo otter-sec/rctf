@@ -18,6 +18,7 @@
     secondaryValue?: string
     divisionId?: string
     divisionPlace?: number
+    isCurrentUser?: boolean
     children?: Snippet
     class?: string
   }
@@ -34,6 +35,7 @@
     secondaryValue,
     divisionId,
     divisionPlace,
+    isCurrentUser = false,
     children,
     class: className,
   }: Props = $props()
@@ -45,9 +47,24 @@
     countryCode ? (ALL_REGIONS.find(r => r.code === countryCode)?.name ?? countryCode) : null
   )
   const styles = $derived(getRankStyles(variant))
+  const isMedal = $derived(variant === 'first' || variant === 'second' || variant === 'third')
+  const isSelf = $derived(variant === 'self')
+  const showGradient = $derived(isMedal || isSelf)
 </script>
 
-<div class={cn('flex items-center gap-2 rounded-lg px-4 py-2', styles.bg, className)}>
+<div
+  class={cn(
+    'relative isolate flex items-center gap-2 rounded-lg px-4 py-2',
+    'before:absolute before:inset-0 before:-z-10 before:rounded-lg',
+    isCurrentUser ? 'before:bg-background-self-l1' : 'before:bg-background-l3',
+    showGradient &&
+      styles.gradient && [
+        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent',
+        styles.gradient,
+      ],
+    className
+  )}
+>
   <span
     class={cn(
       'min-w-10 shrink-0 text-center text-base tabular-nums sm:min-w-12 sm:text-xl',
@@ -108,12 +125,12 @@
         {@render children()}
       {:else}
         {#if primaryValue}
-          <span class={cn('text-base tabular-nums sm:text-xl', styles.fgL0)}>
+          <span class="text-foreground-l1 text-base tabular-nums sm:text-xl">
             {primaryValue}
           </span>
         {/if}
         {#if secondaryValue}
-          <span class={cn('text-sm sm:text-base', styles.fgL1)}>
+          <span class="text-foreground-l3 text-sm sm:text-base">
             {secondaryValue}
           </span>
         {/if}

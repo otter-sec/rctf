@@ -103,7 +103,7 @@
         onCheckedChange={v => onShowTop3ContextChange(v === true)}
       />
       <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm font-normal"
-        >Show top 3 in graph</Label
+        >Show top 3 when scrolling</Label
       >
     </div>
 

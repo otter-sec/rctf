@@ -1,18 +1,21 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { IconAwardFilled, IconCheck } from '$lib/icons'
-  import { cn } from '$lib/utils'
+  import { cn, getBloodStyles, type BloodIndex } from '$lib/utils'
 
   interface Props {
     challenge: Challenge
     category: string
     isSolved: boolean
-    isFirstBlood: boolean
+    bloodIndex: BloodIndex | null
     isSelected: boolean
     onSelect: () => void
   }
 
-  let { challenge, category, isSolved, isFirstBlood, isSelected, onSelect }: Props = $props()
+  let { challenge, category, isSolved, bloodIndex, isSelected, onSelect }: Props = $props()
+
+  const isBlood = $derived(bloodIndex !== null)
+  const bloodStyles = $derived(bloodIndex !== null ? getBloodStyles(bloodIndex) : null)
 </script>
 
 <li id="chall-{challenge.id}">
@@ -22,17 +25,20 @@
     class={cn(
       'hover:bg-category-background-l1-hover relative flex w-full cursor-pointer flex-col gap-1 px-9 py-3 text-left @sm/list:flex-row @sm/list:items-center @sm/list:justify-between',
       isSolved &&
-        !isFirstBlood &&
-        'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
-      isFirstBlood &&
-        'before:from-background-gold/50 dark:before:from-foreground-gold-l0/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+        !isBlood &&
+        'before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+      isBlood &&
+        bloodStyles && [
+          'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+          bloodStyles.gradient,
+        ],
       isSelected &&
         'ring-category-foreground-l1/25 after:from-category-background-l0 ring-2 ring-inset after:absolute after:inset-y-0 after:right-0 after:w-96 after:bg-linear-to-l after:to-transparent'
     )}
   >
-    {#if isFirstBlood}
+    {#if isBlood}
       <IconAwardFilled
-        class="text-foreground-gold-l0 absolute top-1/2 left-2 size-5 -translate-y-1/2"
+        class={cn('absolute top-1/2 left-2 size-5 -translate-y-1/2', bloodStyles?.iconColor)}
       />
     {:else if isSolved}
       <IconCheck class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2" />

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
-  import { formatLocalTime, formatRelativeToFirstBlood } from '$lib/utils'
+  import { formatLocalTime, formatRelativeToFirstBlood, getRankVariant } from '$lib/utils'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   interface Props {
@@ -25,11 +25,13 @@
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )
+
+  const variant = $derived(mySolvePosition ? getRankVariant(mySolvePosition, true) : 'self')
 </script>
 
 {#if currentUserSolve && currentUser && mySolvePosition}
   <ChallengeDetailsSolvesRow
-    variant="self"
+    {variant}
     rankLabel={mySolvePosition}
     name={currentUser.name}
     userId={currentUser.id}
@@ -38,6 +40,7 @@
     globalPlace={currentUser.globalPlace ?? undefined}
     divisionId={showDivision ? currentUser.division : undefined}
     divisionPlace={showDivision ? (currentUser.divisionPlace ?? undefined) : undefined}
+    isCurrentUser={true}
     primaryValue={formatRelativeToFirstBlood(currentUserSolve.createdAt, firstBloodTime)}
     secondaryValue={formatLocalTime(currentUserSolve.createdAt)}
   />

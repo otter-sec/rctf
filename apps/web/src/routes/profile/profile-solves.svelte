@@ -8,6 +8,7 @@
     Tooltip,
   } from '$lib/components'
   import {
+    IconAwardFilled,
     IconCheck,
     IconClockFilled,
     IconCoinFilled,
@@ -18,10 +19,12 @@
   } from '$lib/icons'
   import {
     cn,
+    getBloodStyles,
     getCategoryConfig,
     getCategoryKeyOrAlias,
     getCategoryOrder,
     getCategoryStyle,
+    type BloodIndex,
   } from '$lib/utils'
 
   interface ChallengeInfo {
@@ -55,6 +58,7 @@
     solves: number | null
     isSolved: boolean
     solvedAt?: number
+    bloodIndex?: number | null
   }
 
   function formatSolveTime(timestamp: number): string {
@@ -77,6 +81,7 @@
         solves: c.solves,
         isSolved: solvedIds.has(c.id),
         solvedAt: solveMap.get(c.id)?.createdAt,
+        bloodIndex: solveMap.get(c.id)?.bloodIndex,
       }))
     }
     return solves.map(s => ({
@@ -87,6 +92,7 @@
       solves: s.solves,
       isSolved: true,
       solvedAt: s.createdAt,
+      bloodIndex: s.bloodIndex,
     }))
   })
 
@@ -315,14 +321,34 @@
           <Accordion.Content class="bg-category-background-l1 pb-0">
             <ul class="flex flex-col">
               {#each entries as challenge (challenge.id)}
+                {@const isBlood =
+                  challenge.bloodIndex === 0 ||
+                  challenge.bloodIndex === 1 ||
+                  challenge.bloodIndex === 2}
+                {@const bloodStyles = isBlood
+                  ? getBloodStyles(challenge.bloodIndex as BloodIndex)
+                  : null}
                 <li
                   class={cn(
                     'border-category-foreground-l1/10 relative flex w-full flex-col justify-between border-b-2 px-9 py-2 text-left last:border-b-0 @md/solves-list:flex-row @md/solves-list:items-center @md/solves-list:gap-4 @md/solves-list:border-b-0',
                     challenge.isSolved &&
-                      'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent'
+                      !isBlood &&
+                      'before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+                    isBlood &&
+                      bloodStyles && [
+                        'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+                        bloodStyles.gradient,
+                      ]
                   )}
                 >
-                  {#if challenge.isSolved}
+                  {#if isBlood}
+                    <IconAwardFilled
+                      class={cn(
+                        'absolute top-1/2 left-2 size-5 -translate-y-1/2',
+                        bloodStyles?.iconColor
+                      )}
+                    />
+                  {:else if challenge.isSolved}
                     <IconCheck
                       class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2"
                     />
@@ -359,15 +385,28 @@
         {@const config = getCategoryConfig(challenge.category)}
         {@const catStyle = getCategoryStyle(config.color)}
         {@const categoryShort = getCategoryKeyOrAlias(challenge.category)}
+        {@const isBlood =
+          challenge.bloodIndex === 0 || challenge.bloodIndex === 1 || challenge.bloodIndex === 2}
+        {@const bloodStyles = isBlood ? getBloodStyles(challenge.bloodIndex as BloodIndex) : null}
         <li
           style={catStyle}
           class={cn(
             'bg-category-background-l1 relative flex w-full items-center justify-between gap-4 px-9 py-2 text-left',
             challenge.isSolved &&
-              'before:from-background-success/50 dark:before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent'
+              !isBlood &&
+              'before:from-foreground-success/20 before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+            isBlood &&
+              bloodStyles && [
+                'before:absolute before:inset-y-0 before:left-0 before:w-36 before:bg-linear-to-r before:to-transparent',
+                bloodStyles.gradient,
+              ]
           )}
         >
-          {#if challenge.isSolved}
+          {#if isBlood}
+            <IconAwardFilled
+              class={cn('absolute top-1/2 left-2 size-5 -translate-y-1/2', bloodStyles?.iconColor)}
+            />
+          {:else if challenge.isSolved}
             <IconCheck
               class="text-foreground-success absolute top-1/2 left-2 size-5 -translate-y-1/2"
             />

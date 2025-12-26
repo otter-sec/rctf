@@ -78,7 +78,8 @@
       styles?.gradient && [
         'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent md:after:rounded-r-none',
         styles.gradient,
-      ]
+      ],
+      data?.isCurrentUser && 'before:bg-background-self-l0'
     )}
   >
     {#if data}
@@ -164,7 +165,8 @@
   class={cn(
     'bg-background-l2 hidden h-(--row-height) shrink-0 transform-[translateZ(0)] rounded-r-lg will-change-transform contain-[layout_style_paint] md:flex',
     !isSelf && isScrolling && 'pointer-events-none',
-    isLoading && 'w-(--content-column-width) px-2'
+    isLoading && 'w-(--content-column-width) px-2',
+    data?.isCurrentUser && 'bg-background-self-l0'
   )}
   style:width={isLoading ? undefined : `${contentWidth}px`}
 >
@@ -181,6 +183,7 @@
       {getBloodIndex}
       {onCellHover}
       {isScrolling}
+      isCurrentUser={data.isCurrentUser}
     />
   {/if}
 </div>

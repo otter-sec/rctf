@@ -19,7 +19,11 @@
   let localSolvedIds = $state(new Set<string>())
   const solvedIds = $derived(new Set([...solves.map(s => s.id), ...localSolvedIds]))
 
-  const firstBloodIds = $derived(new Set(solves.filter(s => s.solves === 1).map(s => s.id)))
+  const bloodIds = $derived({
+    first: new Set(solves.filter(s => s.bloodIndex === 0).map(s => s.id)),
+    second: new Set(solves.filter(s => s.bloodIndex === 1).map(s => s.id)),
+    third: new Set(solves.filter(s => s.bloodIndex === 2).map(s => s.id)),
+  })
 
   let selectedChallengeId = $state<string | null>(null)
   let hasInitializedFromUrl = $state(false)
@@ -104,7 +108,7 @@
           <ChallengeList
             {challenges}
             {solvedIds}
-            {firstBloodIds}
+            {bloodIds}
             selectedId={selectedChallenge?.id ?? null}
             onSelect={handleSelect}
           />
@@ -130,7 +134,7 @@
       <ChallengeList
         {challenges}
         {solvedIds}
-        {firstBloodIds}
+        {bloodIds}
         selectedId={selectedChallenge?.id ?? null}
         onSelect={handleSelect}
       />

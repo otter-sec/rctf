@@ -32,6 +32,7 @@
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
   const firstBloodTime = $derived(topSolves[0]?.createdAt ?? 0)
+  const mySolvePosition = $derived($solvesQuery.data?.mySolvePosition ?? null)
 
   interface PodiumItem {
     label: string
@@ -81,9 +82,9 @@
     const fourthSolve = topSolves[3]
     if (isCurrentUserInPodium || !currentUser) {
       items.push(fourthSolve ? solveSlot(3, fourthSolve, false) : emptySlot(3))
-    } else if (isSolved && currentUserSolve) {
+    } else if (isSolved && currentUserSolve && mySolvePosition) {
       items.push({
-        label: 'You',
+        label: getOrdinal(mySolvePosition),
         variant: 'self',
         name: currentUser.name,
         avatarUrl: currentUser.avatarUrl ?? null,
@@ -101,24 +102,49 @@
 
     return items
   })
+
+  const selfIndex = $derived.by(() => {
+    const podiumSelfIndex = podiumItems.slice(0, 3).findIndex(item => item.variant === 'self')
+    if (podiumSelfIndex !== -1) return podiumSelfIndex
+
+    if (currentUser && !isCurrentUserInPodium) return 3
+
+    return -1
+  })
+
+  const getVisibilityClass = (index: number): string => {
+    if (index === selfIndex) return ''
+
+    const nonSelfIndices = [0, 1, 2, 3].filter(i => i !== selfIndex)
+
+    const hideOrder = selfIndex === 3 ? [2, 1, 0] : nonSelfIndices.reverse()
+
+    const hidePosition = hideOrder.indexOf(index)
+
+    if (hidePosition === 0) return 'hidden @4xl/details:flex'
+    if (hidePosition === 1) return 'hidden @2xl/details:flex'
+    if (hidePosition === 2) return 'hidden @md/details:flex'
+    return ''
+  }
 </script>
 
 <div
-  class="grid grid-cols-1 gap-2 *:nth-1:hidden *:nth-2:hidden *:nth-3:hidden @md/details:grid-cols-2 @md/details:*:nth-1:flex @2xl/details:grid-cols-3 @2xl/details:*:nth-2:flex @4xl/details:grid-cols-4 @4xl/details:*:nth-3:flex"
+  class="grid grid-cols-1 gap-2 @md/details:grid-cols-2 @2xl/details:grid-cols-3 @4xl/details:grid-cols-4"
 >
-  {#each podiumItems as item}
+  {#each podiumItems as item, index}
     {@const style = getRankStyles(item.variant)}
     {@const isEmpty = !item.name}
-    {@const isYouSlot = item.label === 'You'}
-    {@const isYouUnsolved = isYouSlot && !isSolved}
+    {@const isUnsolved = item.timeLabel === 'Unsolved'}
+    {@const visibilityClass = getVisibilityClass(index)}
     <div
       class={cn(
         'flex h-14 items-center justify-between gap-2 rounded-lg border-2 border-transparent p-1',
-        isEmpty || isYouUnsolved ? 'border-border border-dashed' : style.bg
+        isEmpty || isUnsolved ? 'border-border border-dashed' : style.bg,
+        visibilityClass
       )}
     >
       {#if item.label}
-        <span class={cn('pl-1 text-base', isYouUnsolved ? 'text-foreground-l4' : style.fgL0)}>
+        <span class={cn('pl-1 text-base', isUnsolved ? 'text-foreground-l4' : style.fgL0)}>
           {item.label}
         </span>
       {/if}
@@ -128,7 +154,7 @@
             <span
               class={cn(
                 'w-full truncate text-right text-base',
-                isYouUnsolved ? 'text-foreground-l4' : style.fgL0
+                isUnsolved ? 'text-foreground-l4' : style.fgL0
               )}
             >
               {item.name}
@@ -136,7 +162,7 @@
             <span
               class={cn(
                 'w-full truncate text-right text-sm',
-                isYouUnsolved ? 'text-foreground-l5/50' : style.fgL1
+                isUnsolved ? 'text-foreground-l5/50' : style.fgL1
               )}
             >
               {item.timeLabel}

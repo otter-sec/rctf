@@ -9,12 +9,12 @@
   interface Props {
     challenges: Challenge[]
     solvedIds: Set<string>
-    firstBloodIds: Set<string>
+    bloodIds: { first: Set<string>; second: Set<string>; third: Set<string> }
     selectedId: string | null
     onSelect: (challenge: Challenge) => void
   }
 
-  let { challenges, solvedIds, firstBloodIds, selectedId, onSelect }: Props = $props()
+  let { challenges, solvedIds, bloodIds, selectedId, onSelect }: Props = $props()
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
@@ -168,7 +168,13 @@
                     {challenge}
                     {category}
                     isSolved={solvedIds.has(challenge.id)}
-                    isFirstBlood={firstBloodIds.has(challenge.id)}
+                    bloodIndex={bloodIds.first.has(challenge.id)
+                      ? 0
+                      : bloodIds.second.has(challenge.id)
+                        ? 1
+                        : bloodIds.third.has(challenge.id)
+                          ? 2
+                          : null}
                     isSelected={selectedId === challenge.id}
                     onSelect={() => onSelect(challenge)}
                   />

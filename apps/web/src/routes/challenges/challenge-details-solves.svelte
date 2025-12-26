@@ -123,6 +123,7 @@
             globalPlace={solve.globalPlace}
             divisionId={showDivision ? solve.division : undefined}
             divisionPlace={showDivision ? solve.divisionPlace : undefined}
+            {isCurrentUser}
             primaryValue={solvePosition === 1
               ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
               : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
