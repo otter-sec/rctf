@@ -8,16 +8,16 @@
   import {
     ApiError,
     useCurrentUser,
+    useInfiniteGraphData,
     useInfiniteLeaderboard,
     useLeaderboardChallenges,
     useSelfUserGraph,
-    useTopGraphData,
   } from '$lib/query'
   import { useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
   import { getCategoryConfig, getScoreboardCategoryOrder } from '$lib/utils/categories'
   import { formatLocalTime } from '$lib/utils/time'
 
-  import { CUTOFF_TIME, SPARKLINE_WINDOW } from './constants'
+  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'
@@ -54,9 +54,7 @@
     try {
       const current = loadPreferences()
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...prefs }))
-    } catch {
-      // ignore storage errors
-    }
+    } catch {}
   }
 
   const savedPrefs = loadPreferences()
@@ -110,14 +108,15 @@
 
   const leaderboardQuery = useInfiniteLeaderboard({ pageSize: LEADERBOARD_PAGE_SIZE })
   const challengesQuery = $derived(useLeaderboardChallenges())
-  const graphQuery = useTopGraphData({ limit: 10 })
+  // TODO(enscribe): fix the 'catchup game' issue when scrolling too fast
+  const graphQuery = useInfiniteGraphData({ pageSize: 10 })
   const userQuery = useCurrentUser()
 
   const entries = $derived($leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
   const total = $derived($leaderboardQuery.data?.pages[0]?.total ?? 0)
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
-  const graphData = $derived($graphQuery.data ?? [])
+  const allGraphData = $derived($graphQuery.data?.pages.flatMap(p => p.graph) ?? [])
 
   const isNotStarted = $derived(ApiError.isNotStarted($leaderboardQuery.error))
   const isLoading = $derived($leaderboardQuery.isLoading || $challengesQuery.isLoading)
@@ -190,12 +189,42 @@
     currentUser ? entries.findIndex(e => e.id === currentUser.id) : -1
   )
 
-  let userVisibleInViewport = $state(false)
+  const viewportVisibility = $derived.by(() => {
+    const viewport = scroll.state.viewportRef
+    const visibleRanks: number[] = []
+
+    if (viewport && entries.length > 0) {
+      const viewportTop = viewport.scrollTop
+      const viewportBottom = viewportTop + viewport.clientHeight
+      const headerOffset = listScrollMargin
+
+      for (const item of scroll.virtualItems) {
+        if (item.index >= entries.length) continue
+
+        const itemTop = item.start
+        const itemBottom = item.start + item.size
+
+        const isInViewport = itemBottom > viewportTop + headerOffset && itemTop < viewportBottom
+        if (isInViewport) {
+          visibleRanks.push(item.index + 1)
+        }
+      }
+    }
+
+    const userVisible = userEntryIndex !== -1 && visibleRanks.includes(userEntryIndex + 1)
+
+    return {
+      visibleRanks,
+      minRank: visibleRanks.length > 0 ? Math.min(...visibleRanks) : 0,
+      maxRank: visibleRanks.length > 0 ? Math.max(...visibleRanks) : 0,
+      userVisible,
+    }
+  })
 
   const showSelfRow = $derived.by(() => {
     if (isLoading && currentUser) return true
     if (!currentUser?.globalPlace) return false
-    if (userVisibleInViewport) return false
+    if (viewportVisibility.userVisible) return false
     return true
   })
 
@@ -209,14 +238,53 @@
       points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
     const allTeams =
-      selfGraphData && !graphData.some(t => t.id === selfGraphData.id)
-        ? [...graphData, selfGraphData]
-        : graphData
+      selfGraphData && !allGraphData.some(t => t.id === selfGraphData.id)
+        ? [...allGraphData, selfGraphData]
+        : allGraphData
 
     const maxTime = Math.max(...allTeams.flatMap(t => filterPoints(t.points).map(p => p.time)), 0)
     const windowStart = maxTime - SPARKLINE_WINDOW
 
     return new Map(allTeams.map(team => [team.id, filterPoints(team.points, windowStart)]))
+  })
+
+  const rankDeltaByTeam = $derived.by(() => {
+    const selfGraphData = $selfGraphQuery.data
+    const allPoints = allGraphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
+    if (allPoints.length === 0) return new Map<string, number>()
+
+    const maxDataTime = Math.max(...allPoints.map(p => p.time))
+    const currentTime = Math.min(maxDataTime, CUTOFF_TIME)
+    const pastTime = currentTime - DELTA_WINDOW
+
+    const getLatestScore = (points: { time: number; score: number }[], targetTime: number) => {
+      const valid = points.filter(p => p.time <= targetTime)
+      if (!valid.length) return 0
+      return valid.reduce((latest, p) => (p.time > latest.time ? p : latest)).score
+    }
+
+    const allTeams =
+      selfGraphData && !allGraphData.some(t => t.id === selfGraphData.id)
+        ? [...allGraphData, selfGraphData]
+        : allGraphData
+
+    const teamsWithScores = allTeams.map(team => ({
+      id: team.id,
+      currentScore: getLatestScore(team.points, currentTime),
+      pastScore: getLatestScore(team.points, pastTime),
+    }))
+
+    const getRanks = (key: 'currentScore' | 'pastScore') =>
+      new Map([...teamsWithScores].sort((a, b) => b[key] - a[key]).map((t, i) => [t.id, i + 1]))
+
+    const currentRankMap = getRanks('currentScore')
+    const pastRankMap = getRanks('pastScore')
+
+    return new Map(
+      teamsWithScores
+        .map(t => [t.id, (pastRankMap.get(t.id) ?? 0) - (currentRankMap.get(t.id) ?? 0)] as const)
+        .filter(([, delta]) => delta !== 0)
+    )
   })
 
   let hoveredTeamId = $state<string | null>(null)
@@ -321,6 +389,54 @@
     return cellCount * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
   })
 
+  const teamRanks = $derived(new Map(entries.map((e, i) => [e.id, i + 1])))
+
+  const graphVisibility = $derived.by(() => {
+    if (isLoading || entries.length === 0) {
+      return { visibleTeamIds: new Set<string>(), contextTeamIds: new Set<string>() }
+    }
+
+    const { minRank, maxRank } = viewportVisibility
+    const visibleTeamIds = new Set<string>()
+    const contextTeamIds = new Set<string>()
+
+    if (maxRank <= 10) {
+      for (let i = 0; i < Math.min(10, entries.length); i++) {
+        visibleTeamIds.add(entries[i]!.id)
+      }
+    } else {
+      if (showTop3Context) {
+        for (let i = 0; i < Math.min(3, entries.length); i++) {
+          const teamId = entries[i]!.id
+          visibleTeamIds.add(teamId)
+          if (i + 1 < minRank) {
+            contextTeamIds.add(teamId)
+          }
+        }
+      }
+
+      const windowSize = showTop3Context ? 7 : 10
+      const windowStart = Math.max(showTop3Context ? 4 : 1, maxRank - windowSize + 1)
+      const windowEnd = maxRank
+
+      for (let rank = windowStart; rank <= windowEnd && rank <= entries.length; rank++) {
+        visibleTeamIds.add(entries[rank - 1]!.id)
+      }
+    }
+
+    if (showSelfRow && currentUser) {
+      visibleTeamIds.add(currentUser.id)
+    }
+
+    return { visibleTeamIds, contextTeamIds }
+  })
+
+  const visibleGraphData = $derived(
+    allGraphData.filter(team => graphVisibility.visibleTeamIds.has(team.id))
+  )
+
+  const contextTeamIds = $derived(graphVisibility.contextTeamIds)
+
   $effect(() => {
     const header = headerRowRef
     if (!header) {
@@ -381,32 +497,25 @@
   })
 
   $effect(() => {
-    if (userEntryIndex === -1) {
-      userVisibleInViewport = false
-      return
+    if ($graphQuery.isFetchingNextPage || !$graphQuery.hasNextPage) return
+
+    const virtualItems = scroll.virtualItems
+    if (virtualItems.length === 0) return
+
+    const maxVisibleIndex = Math.max(...virtualItems.map(item => item.index))
+    const loadedGraphCount = allGraphData.length
+    const threshold = 5
+
+    if (maxVisibleIndex >= loadedGraphCount - threshold) {
+      $graphQuery.fetchNextPage()
     }
-
-    const viewport = scroll.state.viewportRef
-    if (!viewport) {
-      userVisibleInViewport = false
-      return
-    }
-
-    void scroll.virtualItems
-
-    const visibleTop = viewport.scrollTop + listScrollMargin
-    const visibleBottom = viewport.scrollTop + viewport.clientHeight
-    const itemTop = userEntryIndex * ROW_HEIGHT + listScrollMargin
-    const itemBottom = itemTop + ROW_HEIGHT
-
-    userVisibleInViewport = itemTop < visibleBottom && itemBottom > visibleTop
   })
+
 </script>
 
 {#if isNotStarted}
   <CtfNotStarted />
 {:else}
-  <!-- Toolbar (desktop only) -->
   <div class="hidden md:block">
     <ScoresToolbar
       {viewMode}
@@ -450,7 +559,9 @@
           {hoveredTeamId}
           offset={0}
           {solveHighlight}
-          {graphData}
+          graphData={visibleGraphData}
+          {teamRanks}
+          {contextTeamIds}
           {showTop3Context}
         />
       </div>
@@ -480,7 +591,9 @@
                 {hoveredTeamId}
                 offset={0}
                 {solveHighlight}
-                {graphData}
+                graphData={visibleGraphData}
+                {teamRanks}
+                {contextTeamIds}
                 {showTop3Context}
               />
             </div>
@@ -541,6 +654,7 @@
                         statusText: entry.statusText,
                         score: entry.score,
                         solveCount: entry.solves.length,
+                        delta: rankDeltaByTeam.get(entry.id),
                         sparklineData: sparklineDataByTeam.get(entry.id),
                         isCurrentUser: currentUser?.id === entry.id,
                       }}
@@ -580,6 +694,7 @@
                   statusText: currentUser.statusText,
                   score: currentUser.score,
                   solveCount: currentUser.solves.length,
+                  delta: rankDeltaByTeam.get(currentUser.id),
                   sparklineData: sparklineDataByTeam.get(currentUser.id),
                   isCurrentUser: true,
                 }}

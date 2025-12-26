@@ -455,6 +455,34 @@ export function useTopGraphData(params: { limit?: number; division?: string }) {
   )
 }
 
+export function useInfiniteGraphData(params: {
+  pageSize?: number
+  division?: string
+}) {
+  const pageSize = params.pageSize ?? 10
+  return createInfiniteQuery({
+    queryKey: ['leaderboard', 'graph', 'infinite', params] as const,
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiRequest(GetLeaderboardGraphRouteV2, {
+        limit: pageSize,
+        offset: pageParam,
+        division: params.division,
+      })
+      if (response.kind === GoodLeaderboardGraph.kind) {
+        return { graph: response.data.graph, offset: pageParam }
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    initialPageParam: 0,
+    getNextPageParam: lastPage => {
+      if (lastPage.graph.length < pageSize) return undefined
+      return lastPage.offset + pageSize
+    },
+    refetchOnWindowFocus: true,
+    refetchInterval: 30 * 1000,
+  })
+}
+
 export function useLeaderboardChallenges() {
   return createQuery(leaderboardChallengesQueryOptions)
 }

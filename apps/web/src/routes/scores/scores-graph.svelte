@@ -37,6 +37,8 @@
     offset?: number
     solveHighlight?: { teamId: string; time: number } | null
     graphData?: GraphEntry[]
+    teamRanks?: Map<string, number>
+    contextTeamIds?: Set<string>
     showTop3Context?: boolean
   }
 
@@ -46,6 +48,8 @@
     offset = 0,
     solveHighlight = null,
     graphData,
+    teamRanks,
+    contextTeamIds,
     showTop3Context = true,
   }: Props = $props()
 
@@ -106,16 +110,26 @@
     })
 
     mainTeams.forEach((team, i) => {
-      const useMedal = offset === 0 && i < 3
+      const rank = teamRanks?.get(team.id)
       const isSelf = currentUser?.id === team.id
+      const isContext = contextTeamIds?.has(team.id) ?? false
+
+      let color: string
+      if (isSelf) {
+        color = SELF_COLOR
+      } else if (rank !== undefined && rank <= 3) {
+        color = MEDAL_COLORS[rank - 1]!
+      } else if (rank !== undefined) {
+        color = RANK_COLORS[(rank - 1) % RANK_COLORS.length]!
+      } else {
+        const hash = team.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+        color = RANK_COLORS[hash % RANK_COLORS.length]!
+      }
+
       teamMeta.set(team.id, {
         index: i,
-        color: isSelf
-          ? SELF_COLOR
-          : useMedal
-            ? MEDAL_COLORS[i]!
-            : RANK_COLORS[i % RANK_COLORS.length]!,
-        isContext: false,
+        color,
+        isContext,
         isSelf,
       })
     })
@@ -224,7 +238,7 @@
           {/snippet}
         </Axis>
 
-        {#each dataByTeam as [teamId, points]}
+        {#each dataByTeam as [teamId, points] (teamId)}
           {@const meta = teamMeta.get(teamId)!}
           {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
           <Spline
