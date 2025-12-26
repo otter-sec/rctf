@@ -109,7 +109,6 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
     let cachedClientHeight = 0
     let cachedClientWidth = 0
-    let cachedScrollHeight = 0
 
     let capturedScrollTop = 0
     let capturedScrollLeft = 0
@@ -130,7 +129,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       const metrics: ScrollMetrics = {
         scrollTop,
         scrollLeft: horizontal ? scrollLeft : 0,
-        scrollHeight: cachedScrollHeight,
+        scrollHeight: currentElement.scrollHeight,
         scrollWidth: 0,
         clientHeight: cachedClientHeight,
         clientWidth: cachedClientWidth,
@@ -154,11 +153,9 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
         capturedScrollTop = currentElement.scrollTop
         capturedScrollLeft = currentElement.scrollLeft
 
-        // Only update cached dimensions when needed (first scroll or scroll to top)
         if (cachedClientHeight === 0 || capturedScrollTop === 0) {
           cachedClientHeight = currentElement.clientHeight
           cachedClientWidth = currentElement.clientWidth
-          cachedScrollHeight = currentElement.scrollHeight
         }
 
         scrollRaf = targetWindow.requestAnimationFrame(processScroll)
@@ -289,7 +286,7 @@ export function useInfiniteVirtualScroll(
   let scrollMargin = $state(0)
   let hasNextPage = $state(false)
   let isFetching = $state(false)
-  let loadMoreTriggered = false
+  let lastTriggerCount = -1
 
   let virtualItems = $state<VirtualItem[]>([])
   let totalSize = $state(0)
@@ -310,12 +307,14 @@ export function useInfiniteVirtualScroll(
 
     onScroll?.(metrics)
 
-    if (loadMoreTriggered || !hasNextPage || isFetching) return
+    if (lastTriggerCount === count || !hasNextPage || isFetching) return
 
+    // Use count * rowHeight instead of metrics.scrollHeight - the DOM might not have updated yet
+    const estimatedScrollHeight = count * rowHeight
     const scrollPercent =
-      (metrics.scrollTop + metrics.clientHeight) / metrics.scrollHeight
+      (metrics.scrollTop + metrics.clientHeight) / estimatedScrollHeight
     if (scrollPercent > threshold) {
-      loadMoreTriggered = true
+      lastTriggerCount = count
       onLoadMore()
     }
   }
@@ -343,12 +342,6 @@ export function useInfiniteVirtualScroll(
       scrollElement: viewportRef,
       scrollMargin,
     })
-  })
-
-  $effect.pre(() => {
-    if (!isFetching) {
-      loadMoreTriggered = false
-    }
   })
 
   return {
