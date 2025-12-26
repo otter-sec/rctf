@@ -1,13 +1,21 @@
 <script lang="ts" module>
+  import type { SortMode } from './types'
+
   const svgCache = new Map<string, { width: number; html: string }>()
   const categoryCache = new Map<string, string>()
   let lastChallengeCount = 0
   let lastCategoryCount = 0
+  let lastSortMode: SortMode = 'categories'
 
-  function invalidateCachesIfNeeded(challengeCount: number, categoryCount: number) {
-    if (challengeCount !== lastChallengeCount) {
+  function invalidateCachesIfNeeded(
+    challengeCount: number,
+    categoryCount: number,
+    sortMode: SortMode
+  ) {
+    if (challengeCount !== lastChallengeCount || sortMode !== lastSortMode) {
       svgCache.clear()
       lastChallengeCount = challengeCount
+      lastSortMode = sortMode
     }
     if (categoryCount !== lastCategoryCount) {
       categoryCache.clear()
@@ -19,7 +27,7 @@
 <script lang="ts">
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
-  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
+  import type { CategoryGroup, ChallengeInfo, TooltipData, ViewMode } from './types'
 
   // Inlined for performance (avoids component instantiation overhead)
   const ICON_CHECK_FILLED = `<path fill="currentColor" d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32"/>`
@@ -68,7 +76,7 @@
   const svgWidth = $derived(totalChallengeCount * (CELL_WIDTH + CELL_GAP))
 
   const challengeSvgContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length)
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode)
 
     const cached = svgCache.get(teamId)
     if (cached) {
@@ -92,21 +100,21 @@
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-gold-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-family="var(--font-mono)" font-size="12" font-weight="bold">1</text>`
+          `<text x="${cx}" y="${cy + 4}" class="[text-anchor:middle] [fill:var(--background-l0)] select-none font-medium text-xs font-bold">1</text>`
         )
       } else if (bloodIndex === 1) {
         parts.push(
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-silver-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-family="var(--font-mono)" font-size="12" font-weight="bold">2</text>`
+          `<text x="${cx}" y="${cy + 4}" class="[text-anchor:middle] [fill:var(--background-l0)] select-none font-medium text-xs font-bold">2</text>`
         )
       } else if (bloodIndex === 2) {
         parts.push(
           `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="var(--foreground-bronze-l0)"/>`
         )
         parts.push(
-          `<text x="${cx}" y="${cy + 4}" text-anchor="middle" fill="var(--background-l0)" font-size="12" font-weight="bold">3</text>`
+          `<text x="${cx}" y="${cy + 4}" class="[text-anchor:middle] [fill:var(--background-l0)] select-none font-medium text-xs font-bold">3</text>`
         )
       } else if (solved) {
         parts.push(
@@ -127,7 +135,7 @@
   })
 
   const categoryHtmlContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length)
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode)
 
     const cached = categoryCache.get(teamId)
     if (cached !== undefined) {
@@ -168,17 +176,29 @@
   function handleChallengeMouseMove(e: MouseEvent) {
     if (isScrolling) return
     const rect = (e.currentTarget as SVGElement).getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const cellIndex = Math.floor(x / (CELL_WIDTH + CELL_GAP))
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
 
+    const cellIndex = Math.floor(mouseX / (CELL_WIDTH + CELL_GAP))
     const challenge = challengeList[cellIndex]
     if (!challenge) {
       onCellHover(null, 0, 0)
       return
     }
 
-    const cellX = rect.left + cellIndex * (CELL_WIDTH + CELL_GAP) + CELL_WIDTH / 2
-    const cellY = rect.top + CELL_HEIGHT / 2 - ICON_RADIUS
+    const circleCenterX = cellIndex * (CELL_WIDTH + CELL_GAP) + CELL_WIDTH / 2
+    const circleCenterY = CELL_HEIGHT / 2
+    const dx = mouseX - circleCenterX
+    const dy = mouseY - circleCenterY
+    const distanceSquared = dx * dx + dy * dy
+
+    if (distanceSquared > ICON_RADIUS * ICON_RADIUS) {
+      onCellHover(null, 0, 0)
+      return
+    }
+
+    const cellX = rect.left + circleCenterX
+    const cellY = rect.top + circleCenterY - ICON_RADIUS
     onCellHover(
       {
         type: 'challenge',
@@ -198,8 +218,9 @@
     if (isScrolling) return
 
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const cellIndex = Math.floor(x / (CAT_CELL_SIZE + CELL_GAP))
+    const mouseX = e.clientX - rect.left
+    const mouseY = e.clientY - rect.top
+    const cellIndex = Math.floor(mouseX / (CAT_CELL_SIZE + CELL_GAP))
 
     const group = categoryGroups[cellIndex]
     if (!group) {
@@ -207,9 +228,21 @@
       return
     }
 
+    const CAT_ICON_RADIUS = 14
+    const circleCenterX = cellIndex * (CAT_CELL_SIZE + CELL_GAP) + CAT_CELL_SIZE / 2
+    const circleCenterY = CELL_HEIGHT / 2
+    const dx = mouseX - circleCenterX
+    const dy = mouseY - circleCenterY
+    const distanceSquared = dx * dx + dy * dy
+
+    if (distanceSquared > CAT_ICON_RADIUS * CAT_ICON_RADIUS) {
+      onCellHover(null, 0, 0)
+      return
+    }
+
     const stats = getCategoryStats(group)
-    const cellX = rect.left + cellIndex * (CAT_CELL_SIZE + CELL_GAP) + CAT_CELL_SIZE / 2
-    const cellY = rect.top
+    const cellX = rect.left + circleCenterX
+    const cellY = rect.top + circleCenterY - CAT_ICON_RADIUS
     onCellHover(
       {
         type: 'category',
@@ -246,7 +279,6 @@
       width={challengeSvgContent.width}
       height={CELL_HEIGHT}
       viewBox="0 0 {challengeSvgContent.width} {CELL_HEIGHT}"
-      class="rounded-l-lg"
       onmousemove={handleChallengeMouseMove}
       onmouseleave={handleMouseLeave}
     >

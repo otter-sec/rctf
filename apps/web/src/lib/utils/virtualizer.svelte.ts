@@ -128,9 +128,9 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
       const metrics: ScrollMetrics = {
         scrollTop,
-        scrollLeft: horizontal ? scrollLeft : 0,
+        scrollLeft,
         scrollHeight: currentElement.scrollHeight,
-        scrollWidth: 0,
+        scrollWidth: currentElement.scrollWidth,
         clientHeight: cachedClientHeight,
         clientWidth: cachedClientWidth,
       }
@@ -286,7 +286,7 @@ export function useInfiniteVirtualScroll(
   let scrollMargin = $state(0)
   let hasNextPage = $state(false)
   let isFetching = $state(false)
-  let lastTriggerCount = -1
+  let loadMoreTriggered = false
 
   let virtualItems = $state<VirtualItem[]>([])
   let totalSize = $state(0)
@@ -307,14 +307,14 @@ export function useInfiniteVirtualScroll(
 
     onScroll?.(metrics)
 
-    if (lastTriggerCount === count || !hasNextPage || isFetching) return
+    if (loadMoreTriggered || !hasNextPage || isFetching) return
 
     // Use count * rowHeight instead of metrics.scrollHeight - the DOM might not have updated yet
     const estimatedScrollHeight = count * rowHeight
     const scrollPercent =
       (metrics.scrollTop + metrics.clientHeight) / estimatedScrollHeight
     if (scrollPercent > threshold) {
-      lastTriggerCount = count
+      loadMoreTriggered = true
       onLoadMore()
     }
   }
@@ -342,6 +342,12 @@ export function useInfiniteVirtualScroll(
       scrollElement: viewportRef,
       scrollMargin,
     })
+  })
+
+  $effect.pre(() => {
+    if (!isFetching) {
+      loadMoreTriggered = false
+    }
   })
 
   return {

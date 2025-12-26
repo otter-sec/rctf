@@ -1,144 +1,186 @@
 <script lang="ts">
   import { Avatar, Tooltip } from '$lib/components'
-  import { cn, getInitials } from '$lib/utils'
-  import { countryCodeToFlagFilename, getRankStylesForPosition } from '$lib/utils'
-  import { ALL_REGIONS } from '@rctf/const'
+  import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
+  import ScoresSolveCells from './scores-solve-cells.svelte'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
-  interface Props {
+  interface TeamData {
     id: string
+    rank: number | null
     name: string
-    avatarUrl: string | null | undefined
-    divisionLabel: string
-    divisionPlace: number | null
-    countryCode: string | null | undefined
-    statusText: string | null | undefined
+    avatarUrl: string | null
+    countryCode: string | null
+    statusText: string | null
     score: number
     solveCount: number
-    rank: number
-    isCurrentUser: boolean
-    isFullWidth?: boolean
-    sparklineData?: { time: number; score: number }[]
     delta?: number
-    showDivision?: boolean
+    sparklineData?: { time: number; score: number }[]
+    isCurrentUser: boolean
+  }
+
+  interface Props {
+    data: TeamData | null
+    solves: Set<string> | null
+    solveTimes: Map<string, number> | null
+    isSelf?: boolean
+    isLoading?: boolean
     isScrolling?: boolean
-    onHover?: () => void
-    onUnhover?: () => void
+    contentWidth: number
+    viewMode: ViewMode
+    sortMode: SortMode
+    categoryGroups: CategoryGroup[]
+    challenges: ChallengeInfo[]
+    getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
+    getBloodIndex: (challengeId: string) => number
+    onCellHover: (data: TooltipData | null, x: number, y: number) => void
+    onSparklineHover: () => void
+    onSparklineUnhover: () => void
   }
 
   let {
-    id,
-    name,
-    avatarUrl,
-    divisionLabel,
-    divisionPlace,
-    countryCode,
-    statusText,
-    score,
-    solveCount,
-    rank,
-    isCurrentUser,
-    isFullWidth = false,
-    sparklineData = [],
-    delta,
-    showDivision = true,
+    data,
+    solves,
+    solveTimes,
+    isSelf = false,
+    isLoading = false,
     isScrolling = false,
-    onHover,
-    onUnhover,
+    contentWidth,
+    viewMode,
+    sortMode,
+    categoryGroups,
+    challenges,
+    getCategoryStats,
+    getBloodIndex,
+    onCellHover,
+    onSparklineHover,
+    onSparklineUnhover,
   }: Props = $props()
 
-  const styles = $derived(getRankStylesForPosition(rank, isCurrentUser))
-  const flagFilename = $derived(countryCode ? countryCodeToFlagFilename(countryCode) : null)
-  const countryName = $derived(
-    countryCode ? (ALL_REGIONS.find(r => r.code === countryCode)?.name ?? countryCode) : null
+  const styles = $derived(
+    data ? getRankStylesForPosition(data.rank ?? 0, data.isCurrentUser) : null
+  )
+  const flagFilename = $derived(
+    data?.countryCode ? countryCodeToFlagFilename(data.countryCode) : null
   )
 </script>
 
 <div
   class={cn(
-    'col-team @container/team-info-desktop sticky left-0 z-10 flex h-16 items-center gap-2 px-4',
-    'before:bg-background-l2 before:absolute before:inset-0 before:-z-10',
-    isFullWidth ? 'rounded-lg before:rounded-lg' : 'rounded-l-lg before:rounded-l-lg',
-    styles.bg,
-    styles.gradient && [
-      'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:bg-linear-to-r after:to-transparent',
-      isFullWidth ? 'after:rounded-lg' : 'after:rounded-l-lg',
-      styles.gradient,
-    ]
+    'bg-background-l0 sticky left-0 h-(--row-height) w-(--team-column-width) shrink-0',
+    isSelf ? 'z-30' : 'z-10'
   )}
 >
-  <div class="flex shrink-0 items-center">
-    <div class="hidden w-6 @lg/team-info-desktop:block">
-      <ScoresDeltaIndicator {delta} />
-    </div>
-    <div class="flex w-10 flex-col items-center @lg/team-info-desktop:w-16">
-      <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{rank}</span>
-      {#if showDivision && divisionPlace}
-        {#if isScrolling}
-          <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-        {:else}
-          <Tooltip.Root>
-            <Tooltip.Trigger>
-              <span class={cn('text-base tabular-nums', styles.fgL1)}>#{divisionPlace}</span>
-            </Tooltip.Trigger>
-            <Tooltip.Content>{divisionLabel}</Tooltip.Content>
-          </Tooltip.Root>
+  <div
+    class={cn(
+      'before:bg-background-l2 relative flex h-full w-full items-center gap-2 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg md:rounded-r-none md:before:rounded-r-none',
+      styles?.gradient && [
+        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent md:after:rounded-r-none',
+        styles.gradient,
+      ]
+    )}
+  >
+    {#if data}
+      <div class="flex shrink-0 items-center">
+        <div class="hidden w-6 xl:block">
+          <ScoresDeltaIndicator delta={data.delta} />
+        </div>
+        <div class="flex w-10 flex-col items-center lg:w-16">
+          <span class={cn('text-xl tabular-nums', styles?.fgL0)}>#{data.rank ?? '?'}</span>
+        </div>
+      </div>
+
+      <Avatar.Root class="size-12 shrink-0 rounded-lg">
+        {#if data.avatarUrl}
+          <Avatar.Image src={data.avatarUrl} alt={data.name} class="rounded-lg" />
         {/if}
-      {/if}
-    </div>
-  </div>
+        <Avatar.Fallback class="rounded-lg text-sm">{getInitials(data.name)}</Avatar.Fallback>
+      </Avatar.Root>
 
-  <Avatar.Root class="size-12 shrink-0 rounded-lg">
-    {#if avatarUrl}
-      <Avatar.Image src={avatarUrl} alt={name} class="rounded-lg" />
-    {/if}
-    <Avatar.Fallback class="rounded-lg text-sm">{getInitials(name)}</Avatar.Fallback>
-  </Avatar.Root>
-
-  <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-    <div class="flex items-center gap-1.5">
-      <a href="/profile/{id}" class={cn('truncate text-xl hover:underline', styles.fgL0)}>{name}</a>
-    </div>
-    <div class="flex items-center gap-1">
-      {#if flagFilename && countryCode && countryName}
-        {#if isScrolling}
-          <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
-        {:else}
-          <Tooltip.Root>
-            <Tooltip.Trigger>
+      <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <div class="flex items-center gap-1.5">
+          <a href="/profile/{data.id}" class={cn('truncate text-xl hover:underline', styles?.fgL0)}>
+            {data.name}
+          </a>
+        </div>
+        <div class="flex items-center gap-1">
+          {#if flagFilename && data.countryCode}
+            {#if isScrolling}
               <img
                 src="/flags/{flagFilename}"
-                alt="{countryCode} flag"
+                alt="{data.countryCode} flag"
                 class="h-5 w-auto shrink-0"
               />
-            </Tooltip.Trigger>
-            <Tooltip.Content>{countryName}</Tooltip.Content>
-          </Tooltip.Root>
-        {/if}
-      {/if}
-      {#if flagFilename && countryCode && statusText}
-        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
-      {/if}
-      {#if statusText}
-        <span class={cn('truncate text-base', styles.fgL1)}>{statusText}</span>
-      {/if}
-    </div>
-  </div>
+            {:else}
+              <Tooltip.Root>
+                <Tooltip.Trigger>
+                  <img
+                    src="/flags/{flagFilename}"
+                    alt="{data.countryCode} flag"
+                    class="h-5 w-auto shrink-0"
+                  />
+                </Tooltip.Trigger>
+                <Tooltip.Content>{data.countryCode}</Tooltip.Content>
+              </Tooltip.Root>
+            {/if}
+          {/if}
+          {#if flagFilename && data.countryCode && data.statusText}
+            <span class={cn('text-xl leading-none', styles?.fgL1)}>·</span>
+          {/if}
+          {#if data.statusText}
+            <span class={cn('truncate text-base', styles?.fgL1)}>{data.statusText}</span>
+          {/if}
+        </div>
+      </div>
 
-  <div class="flex shrink-0 items-center gap-4">
-    <div class="flex w-28 flex-col items-end">
-      <span class="text-foreground-l1 text-xl tabular-nums"
-        >{score.toLocaleString()} <span class="text-foreground-l3">pts</span></span
-      >
-      <span class="text-foreground-l3 text-base"
-        >{solveCount} solve{solveCount !== 1 ? 's' : ''}</span
-      >
-    </div>
-    <div
-      class="pointer-events-none absolute h-10 w-24 opacity-0 @lg/team-info-desktop:pointer-events-auto @lg/team-info-desktop:relative @lg/team-info-desktop:opacity-100"
-    >
-      <ScoresSparkline data={sparklineData} {rank} {isCurrentUser} {onHover} {onUnhover} />
-    </div>
+      <div class="flex shrink-0 items-center gap-4">
+        <div class="flex w-28 flex-col items-end">
+          <span class="text-foreground-l1 text-xl tabular-nums">
+            {data.score.toLocaleString()} <span class="text-foreground-l3">pts</span>
+          </span>
+          <span class="text-foreground-l3 text-base">
+            {data.solveCount} solve{data.solveCount !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        <div
+          class="pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block xl:pointer-events-auto xl:relative xl:opacity-100"
+        >
+          <ScoresSparkline
+            data={data.sparklineData ?? []}
+            rank={data.rank ?? 0}
+            isCurrentUser={data.isCurrentUser}
+            onHover={onSparklineHover}
+            onUnhover={onSparklineUnhover}
+          />
+        </div>
+      </div>
+    {/if}
   </div>
+</div>
+
+<div
+  class={cn(
+    'bg-background-l2 hidden h-(--row-height) shrink-0 transform-[translateZ(0)] rounded-r-lg will-change-transform contain-[layout_style_paint] md:flex',
+    !isSelf && isScrolling && 'pointer-events-none',
+    isLoading && 'w-(--content-column-width) px-2'
+  )}
+  style:width={isLoading ? undefined : `${contentWidth}px`}
+>
+  {#if !isLoading && data}
+    <ScoresSolveCells
+      teamId={data.id}
+      {viewMode}
+      {sortMode}
+      {categoryGroups}
+      {challenges}
+      getSolves={cid => solves?.has(cid) ?? false}
+      getSolveTime={cid => solveTimes?.get(cid)}
+      {getCategoryStats}
+      {getBloodIndex}
+      {onCellHover}
+      {isScrolling}
+    />
+  {/if}
 </div>

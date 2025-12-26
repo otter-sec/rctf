@@ -20,7 +20,7 @@ export interface CategoryTooltipData {
 
 export type TooltipData = ChallengeTooltipData | CategoryTooltipData
 
-export type ViewMode = 'challenges' | 'categories' | 'minimal'
+export type ViewMode = 'challenges' | 'categories'
 export type SortMode = 'categories' | 'solves'
 
 export interface ChallengeInfo {

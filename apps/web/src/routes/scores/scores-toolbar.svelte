@@ -2,7 +2,6 @@
   import { Checkbox, Label, Tooltip } from '$lib/components'
   import {
     IconLayoutListFilled,
-    IconListFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
@@ -37,7 +36,6 @@
   const viewOptions = [
     { value: 'challenges' as const, icon: IconTableFilled, label: 'Challenges' },
     { value: 'categories' as const, icon: IconLayoutListFilled, label: 'Categories' },
-    { value: 'minimal' as const, icon: IconListFilled, label: 'Minimal' },
   ]
 
   const sortOptions = [

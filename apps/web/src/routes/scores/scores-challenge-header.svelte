@@ -85,100 +85,98 @@
   {/if}
 {/snippet}
 
-{#if viewMode !== 'minimal'}
-  <div class="mr-(--diagonal-overflow) flex flex-col">
-    <div
-      class="flex h-(--name-row-height) items-end [&>div]:h-(--name-row-height)"
-      class:gap-1={viewMode === 'challenges'}
-    >
-      {#each headerItems as itemGroup}
-        <div class="flex translate-x-1 gap-1">
-          {#each itemGroup as item}
-            {#if item.type === 'category'}
-              {@render challengeNameLabel(item.group, true)}
-            {:else}
-              {@render challengeNameLabel(item.challenge, false)}
-            {/if}
-          {/each}
-        </div>
-      {/each}
-    </div>
+<div class="mr-(--diagonal-overflow) flex flex-col">
+  <div
+    class="flex h-(--name-row-height) items-end [&>div]:h-(--name-row-height)"
+    class:gap-1={viewMode === 'challenges'}
+  >
+    {#each headerItems as itemGroup}
+      <div class="flex translate-x-1 gap-1">
+        {#each itemGroup as item}
+          {#if item.type === 'category'}
+            {@render challengeNameLabel(item.group, true)}
+          {:else}
+            {@render challengeNameLabel(item.challenge, false)}
+          {/if}
+        {/each}
+      </div>
+    {/each}
+  </div>
 
-    <div class="ml-1 flex items-stretch" class:gap-1={viewMode === 'challenges'}>
-      {#if viewMode === 'categories'}
-        <div class="flex gap-1">
-          {#each categoryGroups as group}
-            {@const totalPoints = group.challenges.reduce((s, c) => s + c.points, 0)}
-            <div
-              class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
-              style={getCategoryStyle(group.config.color)}
-            >
-              <Tooltip.Root>
-                <Tooltip.Trigger class="flex w-12 items-center justify-center py-1.5">
-                  <span
-                    class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
-                  >
-                    {totalPoints}
-                  </span>
-                </Tooltip.Trigger>
-                <Tooltip.Content side="bottom" sideOffset={4}>
-                  <p class="capitalize">{group.config.name}</p>
-                  <p class="text-foreground-l3">
-                    {group.challenges.length} challenge{group.challenges.length !== 1 ? 's' : ''} · {totalPoints}
-                    pts
-                  </p>
-                </Tooltip.Content>
-              </Tooltip.Root>
-              <div class="flex items-center justify-center px-2 pb-2">
-                {@render categoryIcon(group)}
-              </div>
-            </div>
-          {/each}
-        </div>
-      {:else if sortMode === 'categories'}
+  <div class="ml-1 flex items-stretch" class:gap-1={viewMode === 'challenges'}>
+    {#if viewMode === 'categories'}
+      <div class="flex gap-1">
         {#each categoryGroups as group}
+          {@const totalPoints = group.challenges.reduce((s, c) => s + c.points, 0)}
           <div
             class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
             style={getCategoryStyle(group.config.color)}
           >
-            <div class="flex gap-1 py-1.5">
-              {#each group.challenges as challenge}
-                {@render pointsBadge(challenge.points, {
-                  title: challenge.name,
-                  subtitle: `${challenge.points} pts · ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`,
-                })}
-              {/each}
-            </div>
-            <div
-              class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-2"
-              style:max-width="{group.challenges.length * 48}px"
-            >
-              {@render categoryIcon(group, true)}
+            <Tooltip.Root>
+              <Tooltip.Trigger class="flex w-12 items-center justify-center py-1.5">
+                <span
+                  class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
+                >
+                  {totalPoints}
+                </span>
+              </Tooltip.Trigger>
+              <Tooltip.Content side="bottom" sideOffset={4}>
+                <p class="capitalize">{group.config.name}</p>
+                <p class="text-foreground-l3">
+                  {group.challenges.length} challenge{group.challenges.length !== 1 ? 's' : ''} · {totalPoints}
+                  pts
+                </p>
+              </Tooltip.Content>
+            </Tooltip.Root>
+            <div class="flex items-center justify-center px-2 pb-2">
+              {@render categoryIcon(group)}
             </div>
           </div>
         {/each}
-      {:else}
-        {#each challenges as challenge}
-          <div
-            class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
-            style={getCategoryStyle(challenge.config.color)}
-          >
-            <div class="flex py-1.5">
+      </div>
+    {:else if sortMode === 'categories'}
+      {#each categoryGroups as group}
+        <div
+          class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
+          style={getCategoryStyle(group.config.color)}
+        >
+          <div class="flex gap-1 py-1.5">
+            {#each group.challenges as challenge}
               {@render pointsBadge(challenge.points, {
                 title: challenge.name,
                 subtitle: `${challenge.points} pts · ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`,
               })}
-            </div>
-            <div class="flex items-center justify-center px-2 pb-2">
-              {@render categoryIcon({
-                config: challenge.config,
-                category: challenge.category,
-                challenges: [],
-              })}
-            </div>
+            {/each}
           </div>
-        {/each}
-      {/if}
-    </div>
+          <div
+            class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-2"
+            style:max-width="{group.challenges.length * 48}px"
+          >
+            {@render categoryIcon(group, true)}
+          </div>
+        </div>
+      {/each}
+    {:else}
+      {#each challenges as challenge}
+        <div
+          class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
+          style={getCategoryStyle(challenge.config.color)}
+        >
+          <div class="flex py-1.5">
+            {@render pointsBadge(challenge.points, {
+              title: challenge.name,
+              subtitle: `${challenge.points} pts · ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`,
+            })}
+          </div>
+          <div class="flex items-center justify-center px-2 pb-2">
+            {@render categoryIcon({
+              config: challenge.config,
+              category: challenge.category,
+              challenges: [],
+            })}
+          </div>
+        </div>
+      {/each}
+    {/if}
   </div>
-{/if}
+</div>
