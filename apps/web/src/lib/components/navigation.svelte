@@ -157,7 +157,7 @@
           {/key}
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Content align="end" class="w-56">
+        <DropdownMenu.Content align="end" class="w-56 border-2">
           <DropdownMenu.Item onclick={copyTeamToken}>
             Copy team token
             <IconCopy class="ml-auto size-5" />
@@ -166,7 +166,7 @@
             Manage team
             <IconUserCog class="ml-auto size-5" />
           </DropdownMenu.Item>
-          <DropdownMenu.Separator />
+          <DropdownMenu.Separator class="border" />
           <DropdownMenu.Item onclick={handleLogout}>
             Log out
             <IconLogout class="ml-auto size-5" />

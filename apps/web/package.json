@@ -13,6 +13,7 @@
     "typecheck": "bun run check"
   },
   "dependencies": {
+    "@iconify/svelte": "^5.1.0",
     "@rctf/const": "workspace:*",
     "@rctf/types": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
@@ -25,6 +26,7 @@
     "date-fns": "^4.1.0",
     "dompurify": "^3.3.0",
     "marked": "^17.0.1",
+    "modern-screenshot": "^4.6.7",
     "xstate": "^5.24.0",
     "yaml": "^2.8.2"
   },

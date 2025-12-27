@@ -7,6 +7,7 @@
   import { CtfNotStarted } from '$lib/components'
   import {
     ApiError,
+    useClientConfig,
     useCurrentUser,
     useInfiniteGraphData,
     useInfiniteLeaderboard,
@@ -14,13 +15,18 @@
     useSelfUserGraph,
   } from '$lib/query'
   import { useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
-  import { getCategoryConfig, getScoreboardCategoryOrder } from '$lib/utils/categories'
+  import {
+    getCategoryConfig,
+    getCategoryKeyOrAlias,
+    getScoreboardCategoryOrder,
+  } from '$lib/utils/categories'
   import { formatLocalTime } from '$lib/utils/time'
 
   import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from './constants'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'
+  import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
@@ -123,6 +129,19 @@
   // TODO(enscribe): fix the 'catchup game' issue when scrolling too fast
   const graphQuery = useInfiniteGraphData({ pageSize: 10 })
   const userQuery = useCurrentUser()
+  const clientConfigQuery = useClientConfig()
+
+  let screenshotModalOpen = $state(false)
+
+  // Fetch more graph data when screenshot modal opens to support larger graph team counts
+  $effect(() => {
+    if (screenshotModalOpen && $graphQuery.hasNextPage && !$graphQuery.isFetchingNextPage) {
+      const currentCount = $graphQuery.data?.pages.flatMap(p => p.graph).length ?? 0
+      if (currentCount < 50) {
+        $graphQuery.fetchNextPage()
+      }
+    }
+  })
 
   const entries = $derived($leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
   const total = $derived($leaderboardQuery.data?.pages[0]?.total ?? 0)
@@ -146,6 +165,7 @@
         order: getScoreboardCategoryOrder(info.category),
         config: getCategoryConfig(info.category),
       }))
+      .filter(c => getCategoryKeyOrAlias(c.category) !== 'sanity')
       .sort((a, b) => {
         if (a.order !== b.order) {
           if (a.order === -1 && b.order === -1) return a.category.localeCompare(b.category)
@@ -536,6 +556,45 @@
     scroll.state.isFetching = isLoading || $leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
+
+  const screenshotTeams = $derived(
+    entries.map((entry, index) => ({
+      id: entry.id,
+      rank: index + 1,
+      name: entry.name,
+      avatarUrl: entry.avatarUrl,
+      countryCode: entry.countryCode,
+      statusText: entry.statusText,
+      score: entry.score,
+      solveCount: entry.solves.length,
+      isCurrentUser: currentUser?.id === entry.id,
+      sparklineData: sparklineDataByTeam.get(entry.id),
+    }))
+  )
+
+  const screenshotSelfTeam = $derived.by(() => {
+    if (!currentUser) return null
+    return {
+      id: currentUser.id,
+      rank: currentUser.globalPlace ?? 0,
+      name: currentUser.name,
+      avatarUrl: currentUser.avatarUrl,
+      countryCode: currentUser.countryCode,
+      statusText: currentUser.statusText,
+      score: currentUser.score,
+      solveCount: currentUser.solves.length,
+      isCurrentUser: true,
+      sparklineData: sparklineDataByTeam.get(currentUser.id),
+    }
+  })
+
+  const screenshotGraphData = $derived(
+    allGraphData.map(team => ({
+      id: team.id,
+      name: team.name,
+      points: team.points,
+    }))
+  )
 </script>
 
 {#if isNotStarted}
@@ -552,6 +611,7 @@
       onViewModeChange={setViewMode}
       onSortModeChange={setSortMode}
       onShowTop3ContextChange={setShowTop3Context}
+      onScreenshotClick={() => (screenshotModalOpen = true)}
     />
   </div>
 
@@ -736,3 +796,16 @@
     {/if}
   </Tooltip.Content>
 </Tooltip.Root>
+
+<ScoresScreenshotModal
+  bind:open={screenshotModalOpen}
+  onOpenChange={open => (screenshotModalOpen = open)}
+  teams={screenshotTeams}
+  selfTeam={screenshotSelfTeam}
+  graphData={screenshotGraphData}
+  {categoryGroups}
+  {solvesByTeam}
+  ctfName={$clientConfigQuery.data?.ctfName ?? ''}
+  startTime={$clientConfigQuery.data?.startTime ?? null}
+  endTime={$clientConfigQuery.data?.endTime ?? null}
+/>

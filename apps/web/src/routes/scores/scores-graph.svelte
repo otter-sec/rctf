@@ -40,6 +40,7 @@
     teamRanks?: Map<string, number>
     contextTeamIds?: Set<string>
     showTop3Context?: boolean
+    greyOutContext?: boolean
   }
 
   let {
@@ -51,6 +52,7 @@
     teamRanks,
     contextTeamIds,
     showTop3Context = true,
+    greyOutContext = false,
   }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
@@ -115,7 +117,9 @@
       const isContext = contextTeamIds?.has(team.id) ?? false
 
       let color: string
-      if (isSelf) {
+      if (isContext && greyOutContext) {
+        color = 'var(--foreground-l5)'
+      } else if (isSelf) {
         color = SELF_COLOR
       } else if (rank !== undefined && rank <= 3) {
         color = MEDAL_COLORS[rank - 1]!

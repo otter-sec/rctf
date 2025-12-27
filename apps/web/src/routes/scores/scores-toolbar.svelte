@@ -2,6 +2,7 @@
   import { Checkbox, Label, Tooltip } from '$lib/components'
   import {
     IconLayoutListFilled,
+    IconPhotoFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
@@ -19,6 +20,7 @@
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
     onShowTop3ContextChange: (show: boolean) => void
+    onScreenshotClick: () => void
   }
 
   let {
@@ -31,6 +33,7 @@
     onViewModeChange,
     onSortModeChange,
     onShowTop3ContextChange,
+    onScreenshotClick,
   }: Props = $props()
 
   const viewOptions = [
@@ -110,5 +113,13 @@
     <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
       {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
     </span>
+
+    <button
+      class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 flex h-9 items-center justify-center gap-2 rounded-md px-3"
+      onclick={onScreenshotClick}
+    >
+      <IconPhotoFilled class="size-4" />
+      <span class="text-foreground-l3 text-sm">Export screenshot</span>
+    </button>
   </div>
 </div>
