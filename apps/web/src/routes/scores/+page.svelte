@@ -133,7 +133,6 @@
 
   let screenshotModalOpen = $state(false)
 
-  // Fetch more graph data when screenshot modal opens to support larger graph team counts
   $effect(() => {
     if (screenshotModalOpen && $graphQuery.hasNextPage && !$graphQuery.isFetchingNextPage) {
       const currentCount = $graphQuery.data?.pages.flatMap(p => p.graph).length ?? 0
@@ -600,20 +599,18 @@
 {#if isNotStarted}
   <CtfNotStarted />
 {:else}
-  <div class="hidden md:block">
-    <ScoresToolbar
-      {viewMode}
-      {sortMode}
-      {total}
-      loadedCount={entries.length}
-      isFetching={$leaderboardQuery.isFetching}
-      {showTop3Context}
-      onViewModeChange={setViewMode}
-      onSortModeChange={setSortMode}
-      onShowTop3ContextChange={setShowTop3Context}
-      onScreenshotClick={() => (screenshotModalOpen = true)}
-    />
-  </div>
+  <ScoresToolbar
+    {viewMode}
+    {sortMode}
+    {total}
+    loadedCount={entries.length}
+    isFetching={$leaderboardQuery.isFetching}
+    {showTop3Context}
+    onViewModeChange={setViewMode}
+    onSortModeChange={setSortMode}
+    onShowTop3ContextChange={setShowTop3Context}
+    onScreenshotClick={() => (screenshotModalOpen = true)}
+  />
 
   <div class="flex justify-center px-4 md:px-9">
     <div
@@ -650,10 +647,12 @@
         <ScoresGraph class="h-full w-full p-3" {...graphProps} />
       </div>
 
+      <!-- 100vh - 72px (header) - 52px (toolbar) - 16px (bottom gap) -->
+      <!-- 100vh - 72px (header) - 52px (toolbar) - 8px (between graph and rows) - 192px (graph height) - 16px (bottom gap) -->
       <ScrollArea
         class={isDesktop
-          ? 'h-[calc(100vh-4.5rem-1rem-3rem)]'
-          : 'h-[calc(100vh-4.5rem-1rem-var(--header-height)-8px)]'}
+          ? 'h-[calc(100vh-72px-52px-16px)]'
+          : 'h-[calc(100vh-72px-52px-8px-192px-16px)]'}
         orientation={isDesktop ? 'both' : 'vertical'}
         fadeSize={0}
         bind:viewportRef={scroll.state.viewportRef}

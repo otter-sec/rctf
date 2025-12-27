@@ -47,8 +47,10 @@
   ]
 </script>
 
-<div class="flex items-center justify-between px-9 py-2">
-  <div class="flex items-center gap-4">
+<div class="flex items-center justify-between px-4 py-2 md:px-9">
+  <span class="text-foreground-l0 text-lg md:hidden">Scoreboard</span>
+
+  <div class="hidden items-center gap-4 md:flex">
     <div class="flex items-center gap-2">
       <span class="text-foreground-l3 text-sm">View</span>
       <div class="flex items-center gap-0.5">
@@ -98,20 +100,20 @@
     {/if}
   </div>
 
-  <div class="flex items-center gap-4">
-    <div class="flex items-center gap-2">
+  <div class="flex items-center gap-2 md:gap-4">
+    <div class="hidden items-center gap-2 md:flex">
       <Checkbox
         id="show-top3"
         checked={showTop3Context}
         onCheckedChange={v => onShowTop3ContextChange(v === true)}
       />
-      <Label for="show-top3" class="text-foreground-l3 cursor-pointer text-sm font-normal"
+      <Label for="show-top3" class="text-foreground-l3 cursor-pointer truncate text-sm font-normal"
         >Show top 3 when scrolling</Label
       >
     </div>
 
-    <span class={cn('text-foreground-l3 text-sm', isFetching && 'opacity-50')}>
-      {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
+    <span class={cn('text-foreground-l3 truncate text-sm', isFetching && 'opacity-50')}>
+      {loadedCount.toLocaleString()} / {total.toLocaleString()}
     </span>
 
     <button
@@ -119,7 +121,7 @@
       onclick={onScreenshotClick}
     >
       <IconPhotoFilled class="size-4" />
-      <span class="text-foreground-l3 text-sm">Export screenshot</span>
+      <span class="text-foreground-l3 truncate text-sm">Screenshot</span>
     </button>
   </div>
 </div>

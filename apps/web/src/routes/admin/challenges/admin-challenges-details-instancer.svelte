@@ -62,9 +62,7 @@
         if (typeof parsed === 'object' && parsed !== null) {
           update(c => ({ ...c, config: parsed }))
         }
-      } catch {
-        // Ignore parse errors on exit
-      }
+      } catch {}
     }
     advancedMode = false
   }

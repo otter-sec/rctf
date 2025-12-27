@@ -181,9 +181,11 @@
 <Dialog.Root bind:open onOpenChange={v => onOpenChange(v)}>
   <Dialog.Content
     showCloseButton={false}
-    class="bg-background-l2 flex h-[85vh] max-h-[900px] w-[95vw] max-w-[95vw]! flex-col gap-0 border-2 p-0"
+    class="bg-background-l2 flex h-[90svh] w-[90svw] flex-col gap-0 rounded-lg border-2 p-0 md:h-[85vh] md:max-h-[900px] md:w-[95vw] md:max-w-[95vw]!"
   >
-    <Dialog.Header class="flex flex-row items-center justify-between border-b-2 px-5 py-3">
+    <Dialog.Header
+      class="flex shrink-0 flex-row items-center justify-between border-b-2 px-4 py-3 md:px-5"
+    >
       <Dialog.Title>Export screenshot</Dialog.Title>
       <Dialog.Close
         class="text-foreground-l3 hover:text-foreground-l0 rounded-sm transition-colors"
@@ -193,10 +195,12 @@
       </Dialog.Close>
     </Dialog.Header>
 
-    <div class="flex min-h-0 flex-1 overflow-hidden">
-      <div class="flex w-86 shrink-0 flex-col border-r-2">
+    <div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
+      <div
+        class="flex max-h-[50vh] w-full shrink-0 flex-col border-b-2 md:max-h-none md:w-86 md:border-r-2 md:border-b-0"
+      >
         <ScrollArea class="min-h-0 flex-1" fadeColor="background-l2">
-          <div class="flex flex-col gap-3 px-5 py-3">
+          <div class="flex flex-col gap-3 px-4 py-3 md:px-5">
             <Section.Root>
               <Section.Header>Content</Section.Header>
               <Section.Content class="flex flex-col gap-3">
@@ -391,7 +395,7 @@
             </Section.Root>
           </div>
         </ScrollArea>
-        <div class="border-t-2 px-5 py-3">
+        <div class="border-t-2 px-4 py-3 md:px-5">
           <Button class="w-full" onclick={handleExport} disabled={isExporting}>
             {#if isExporting}
               <Spinner class="size-4" />
@@ -404,11 +408,11 @@
         </div>
       </div>
 
-      <div class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-br-lg">
+      <div class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-b-lg md:rounded-bl-none">
         <div class="min-h-0 flex-1">
           <ScrollArea class="h-full" orientation="both" fadeColor="background-l2">
             <div
-              class="checkerboard-bg flex items-center justify-center p-8"
+              class="checkerboard-bg flex items-center justify-center p-4 md:p-8"
               bind:this={previewRef}
             >
               <ScoresScreenshotPreview
