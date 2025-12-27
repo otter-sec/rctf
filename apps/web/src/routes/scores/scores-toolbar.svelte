@@ -113,7 +113,7 @@
     </div>
 
     <span class={cn('text-foreground-l3 truncate text-sm', isFetching && 'opacity-50')}>
-      {loadedCount.toLocaleString()} / {total.toLocaleString()}
+      {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
     </span>
 
     <button

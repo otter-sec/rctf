@@ -7,9 +7,6 @@
 
 <div class="flex flex-col gap-4">
   <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl">Overview</Card.Title>
-    </Card.Header>
     <Card.Content>
       <div class="prose max-w-none">
         {@html parseMarkdown(data.clientConfig.homeContent)}
@@ -39,4 +36,12 @@
       </Card.Content>
     </Card.Root>
   {/if}
+
+  <div class="text-foreground-l5 py-4 text-center text-sm">
+    Powered by <a
+      href="https://rctf.osec.io"
+      target="_blank"
+      class="text-foreground-l5 hover:text-foreground-l3 underline underline-offset-3">rCTF</a
+    >
+  </div>
 </div>
