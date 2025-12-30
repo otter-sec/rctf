@@ -220,7 +220,7 @@
           </div>
 
           {#if options.showAvatars}
-            <Avatar.Root class="size-11 shrink-0 rounded-lg">
+            <Avatar.Root class="size-12 shrink-0 rounded-lg">
               {#if team.avatarUrl}
                 <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-lg" />
               {/if}
@@ -241,21 +241,21 @@
                 />
                 {#if options.showStatuses && team.statusText}
                   <span class={cn('text-base leading-none', styles.fgL1)}>·</span>
-                  <span class={cn('truncate text-sm', styles.fgL1)}>{team.statusText}</span>
+                  <span class={cn('truncate text-base', styles.fgL1)}>{team.statusText}</span>
                 {/if}
               </div>
             {:else if options.showStatuses && team.statusText}
-              <span class={cn('truncate text-sm', styles.fgL1)}>{team.statusText}</span>
+              <span class={cn('truncate text-base', styles.fgL1)}>{team.statusText}</span>
             {/if}
           </div>
 
           <div class="flex shrink-0 items-center gap-4">
             <div class="flex flex-col items-end">
               <span class="text-foreground-l1 text-xl tabular-nums">
-                {team.score.toLocaleString()} <span class="text-foreground-l3 text-base">pts</span>
+                {team.score.toLocaleString()} <span class="text-foreground-l3 text-lg">pts</span>
               </span>
               {#if options.showSolveCount}
-                <span class="text-foreground-l3 text-sm">
+                <span class="text-foreground-l3 text-base">
                   {team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}
                 </span>
               {/if}

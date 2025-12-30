@@ -4,6 +4,7 @@ import {
   CreateMemberRoute,
   CtftimeCallbackRoute,
   DeleteChallengeRoute,
+  DeleteCtftimeRoute,
   DeleteEmailRoute,
   DeleteMemberRoute,
   GetAdminChallengeRouteV2,
@@ -37,6 +38,7 @@ import {
   LoginRoute,
   RecoverRouteV2,
   RegisterRouteV2,
+  SetCtftimeRoute,
   SetEmailRouteV2,
   SubmitFlagRoute,
   UpdateAvatarRoute,
@@ -570,6 +572,14 @@ export function useSetEmailMutation() {
 
 export function useDeleteEmailMutation() {
   return createApiMutation(DeleteEmailRoute)
+}
+
+export function useSetCtftimeMutation() {
+  return createApiMutation(SetCtftimeRoute)
+}
+
+export function useDeleteCtftimeMutation() {
+  return createApiMutation(DeleteCtftimeRoute)
 }
 
 export function useCreateMemberMutation() {

@@ -1,19 +1,25 @@
 <script lang="ts">
   import type { ClientConfig, UserProfile } from '@rctf/types'
   import {
+    DeleteCtftimeRoute,
     DeleteEmailRoute,
+    GoodCtftimeAuthSet,
+    GoodCtftimeRemoved,
     GoodEmailRemoved,
     ProtectedAction,
+    SetCtftimeRoute,
     SetEmailRouteV2,
     UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError, toast } from '$lib'
   import { apiRequest } from '$lib/api'
+  import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Field, FlagPicker, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
-  import { queryKeys } from '$lib/query'
+  import { queryKeys, useCtftimeCallbackMutation } from '$lib/query'
+  import { onDestroy, onMount } from 'svelte'
 
   interface Props {
     user: UserProfile
@@ -48,6 +54,11 @@
 
   let initialized = $state(false)
   let deletingEmail = $state(false)
+  let settingCtftime = $state(false)
+  let deletingCtftime = $state(false)
+  let ctftimeOauthState: string | null = $state(null)
+
+  const ctftimeMutation = useCtftimeCallbackMutation()
 
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   const isEmailValid = $derived(
@@ -85,6 +96,9 @@
   // Can only delete email if user has an alternative auth method (linked CTFtime)
   const canDeleteEmail = $derived(clientConfig.emailEnabled && user.email && user.ctftimeId)
 
+  // Can only delete CTFtime if user has an alternative auth method (email)
+  const canDeleteCtftime = $derived(clientConfig.ctftime && user.ctftimeId && user.email)
+
   const profileHasChanges = $derived(
     (profileForm.data.name ?? '') !== user.name ||
       (profileForm.data.division ?? '') !== user.division ||
@@ -94,7 +108,14 @@
 
   const emailHasChanges = $derived((emailForm.data.email ?? '') !== (user.email ?? ''))
 
-  const loading = $derived(profileForm.submitting || emailForm.submitting || deletingEmail)
+  const loading = $derived(
+    profileForm.submitting ||
+      emailForm.submitting ||
+      deletingEmail ||
+      settingCtftime ||
+      deletingCtftime ||
+      $ctftimeMutation.isPending
+  )
 
   async function deleteEmail() {
     deletingEmail = true
@@ -118,6 +139,105 @@
       emailForm.submit()
     }
   }
+
+  function getOauthState(): string {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map(v => v.toString(16).padStart(2, '0'))
+      .join('')
+  }
+
+  function openCtftimePopup() {
+    if (!clientConfig.ctftime) return
+
+    const state = getOauthState()
+    ctftimeOauthState = state
+
+    const w = 600
+    const h = 500
+    const systemZoom = window.innerWidth / window.screen.availWidth
+    const left = (window.innerWidth - w) / 2 / systemZoom + window.screenLeft
+    const top = (window.innerHeight - h) / 2 / systemZoom + window.screenTop
+
+    const url =
+      'https://oauth.ctftime.org/authorize' +
+      `?scope=${encodeURIComponent('team:read')}` +
+      `&client_id=${encodeURIComponent(clientConfig.ctftime.clientId)}` +
+      `&redirect_uri=${encodeURIComponent(`${location.origin}/integrations/ctftime/callback`)}` +
+      `&state=${encodeURIComponent(state)}`
+
+    const popup = window.open(
+      url,
+      'CTFtime',
+      [
+        'scrollbars',
+        'resizable',
+        `width=${w / systemZoom}`,
+        `height=${h / systemZoom}`,
+        `top=${top}`,
+        `left=${left}`,
+      ].join(',')
+    )
+    popup?.focus()
+  }
+
+  function handleCtftimePostMessage(evt: MessageEvent) {
+    if (evt.origin !== location.origin || evt.data.kind !== 'ctftimeCallback') {
+      return
+    }
+    if (ctftimeOauthState === null || evt.data.state !== ctftimeOauthState) {
+      return
+    }
+
+    $ctftimeMutation.mutate(
+      { ctftimeCode: evt.data.ctftimeCode },
+      {
+        onSuccess: async response => {
+          if (response.kind === 'goodCtftimeToken') {
+            await setCtftime(response.data.ctftimeToken)
+          } else {
+            showApiError(response)
+          }
+          ctftimeOauthState = null
+        },
+        onError: error => {
+          toast.error(error.message)
+          ctftimeOauthState = null
+        },
+      }
+    )
+  }
+
+  async function setCtftime(ctftimeToken: string) {
+    settingCtftime = true
+    const res = await apiRequest(SetCtftimeRoute, { ctftimeToken })
+    if (res.kind === GoodCtftimeAuthSet.kind) {
+      toast.success('CTFtime account linked!')
+      invalidateUser()
+    } else {
+      showApiError(res)
+    }
+    settingCtftime = false
+  }
+
+  async function deleteCtftime() {
+    deletingCtftime = true
+    const res = await apiRequest(DeleteCtftimeRoute, {})
+    if (res.kind === GoodCtftimeRemoved.kind) {
+      toast.success('CTFtime account unlinked!')
+      invalidateUser()
+    } else {
+      showApiError(res)
+    }
+    deletingCtftime = false
+  }
+
+  onMount(() => {
+    window.addEventListener('message', handleCtftimePostMessage)
+  })
+
+  onDestroy(() => {
+    window.removeEventListener('message', handleCtftimePostMessage)
+  })
 </script>
 
 <Section.Root>
@@ -262,3 +382,74 @@
     </form>
   </Section.Content>
 </Section.Root>
+
+{#if clientConfig.ctftime}
+  <Section.Root>
+    <Section.Header>CTFtime</Section.Header>
+    <Section.Content>
+      <div class="flex flex-col gap-3">
+        {#if user.ctftimeId}
+          <div class="bg-background-l4 flex items-center justify-between rounded-lg px-4 py-3">
+            <div class="flex items-center gap-3">
+              <span class="text-foreground-l3 inline-flex [&_svg]:h-5 [&_svg]:w-auto">
+                {@html CtftimeIcon}
+              </span>
+              <div class="flex flex-col">
+                <span class="text-foreground text-sm font-medium">Team #{user.ctftimeId}</span>
+                <a
+                  href="https://ctftime.org/team/{user.ctftimeId}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-foreground-l4 hover:text-foreground text-xs transition-colors"
+                >
+                  View on CTFtime →
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {#if canDeleteCtftime}
+            <Button
+              type="button"
+              variant="outline"
+              onclick={deleteCtftime}
+              disabled={loading}
+              class="w-full"
+            >
+              {#if deletingCtftime}
+                <Spinner class="size-4" />
+              {/if}
+              Unlink CTFtime
+            </Button>
+          {:else}
+            <p class="text-foreground-l4 text-xs">
+              Add an email address to your account before unlinking CTFtime.
+            </p>
+          {/if}
+        {:else}
+          <p class="text-foreground-l3 text-sm">
+            Link your CTFtime account to enable CTFtime login and display your team on your profile.
+          </p>
+
+          <Button
+            type="button"
+            variant="outline"
+            onclick={openCtftimePopup}
+            disabled={loading}
+            class="w-full py-0 [&_svg:not([class*='size-'])]:h-6 [&_svg:not([class*='size-'])]:w-auto"
+          >
+            {#if $ctftimeMutation.isPending || settingCtftime}
+              <Spinner class="size-4" />
+              <span>Connecting...</span>
+            {:else}
+              <span class="inline-flex">
+                {@html CtftimeIcon}
+              </span>
+              <span>Link CTFtime</span>
+            {/if}
+          </Button>
+        {/if}
+      </div>
+    </Section.Content>
+  </Section.Root>
+{/if}

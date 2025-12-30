@@ -100,7 +100,7 @@ rCTF v1 frontend with rCTF v2 backend:
 |----------|:-------:|:--------:|
 | `GET /api/v1/integrations/client/config` | ✅ | ✅ |
 | `GET /api/v1/integrations/ctftime/leaderboard` | ✅ | — |
-| `GET /api/v1/integrations/ctftime/callback` | ✅ | ❌ |
+| `POST /api/v1/integrations/ctftime/callback` | ✅ | ✅ |
 
 ### Users
 
@@ -114,8 +114,8 @@ rCTF v1 frontend with rCTF v2 backend:
 | `DELETE /api/v1/users/me/members/:id` | ✅ | ✅ |
 | `PUT /api/v1/users/me/auth/email` | ✅ | ✅ |
 | `DELETE /api/v1/users/me/auth/email` | ✅ | ✅ |
-| `PUT /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
-| `DELETE /api/v1/users/me/auth/ctftime` | ✅ | ❌ |
+| `PUT /api/v1/users/me/auth/ctftime` | ✅ | ✅ |
+| `DELETE /api/v1/users/me/auth/ctftime` | ✅ | ✅ |
 
 ### Other Tasks (v1)
 
