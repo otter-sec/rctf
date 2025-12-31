@@ -1,1 +1,6 @@
 @import 'tailwindcss';
+
+.vocs_TableCell .vocs_Strong, .vocs_List .vocs_Strong, .vocs_Paragraph .vocs_Strong {
+    @apply text-(--vocs-color_heading);
+}
+
