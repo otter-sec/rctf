@@ -2,10 +2,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-.vocs_TableCell .vocs_Strong, .vocs_List .vocs_Strong, .vocs_Paragraph .vocs_Strong {
-    @apply text-(--vocs-color_heading);
-}
-
-h2.vocs_H2 {
-    @apply mt-6!;
+@layer utilities {
+    .vocs_TableCell .vocs_Strong, .vocs_List .vocs_Strong, .vocs_Paragraph .vocs_Strong {
+        @apply text-(--vocs-color_heading);
+    }
+    
+    h2.vocs_H2 {
+        @apply mt-6!;
+    }
+    
+    .vocs_Outline_link, .vocs_Sidebar_item, .vocs_Sidebar_sectionTitle {
+        @apply font-["Outfit"] transition-none!;
+    }
 }
