@@ -5,107 +5,59 @@ description: Guide to deploying CTF challenges including shared remotes, instanc
 
 # Deploying challenges [Shared remotes, instanced remotes, and admin bots]
 
-Now that you have the CTF platform up and are able to create challenges, it's time to deploy the challenges. There are
-two primary types of challenge deployment types alongside static challenges:
-
-- shared remote
-
-- instanced remote
+With the CTF platform operational and challenges ready to be created, the next step is deployment. There are two primary deployment types alongside static challenges: **shared remote** and **instanced remote**.
 
 :::tip
-No matter how the challenge is deployed, it is considered a good practice to include a local setup of the challenge
-for debugging purposes, e.g. using Docker. This makes deploying the challenge on a remote also significantly easier, as most
-solutions are designed around running a provided Docker image.
+Regardless of deployment method, it is considered good practice to include a local setup of the challenge for debugging purposes (e.g., using Docker). This also simplifies remote deployment, as most solutions are designed around running a provided Docker image.
 :::
 
-Additionally, rCTF has support for hosting admin bots separately from the challenge to deal with spikes of page visits
-and providing more accurate setup to local admin bots, as it simulates an external visitor instead of possibly relying on
-internal IPs as expected in a local deployment.
+Additionally, rCTF supports hosting admin bots separately from the challenge to handle traffic spikes and provide a more accurate simulation of external visitors, rather than relying on internal IPs as would occur in a local deployment.
 
 ## Shared remote
 
-In a shared remote, every competitor gets access to a single shared instance between all competitors. This is convenient
-when the vulnerability does not depend on state or is sandboxed, for example, cryptographic vulnerability that proves
-you're able to recover the secret value from the server.
+In a shared remote, every competitor gets access to a single shared instance between all competitors. This is convenient when the vulnerability does not depend on state or is sandboxed, for example, cryptographic vulnerability that proves you're able to recover the secret value from the server.
 
-Google has created [kCTF](https://google.github.io/kctf/introduction.html) for this purpose, which lets you run the challenges
-on GCP while allowing you to scale the instances, have a healthcheck and automatically restart the instance if there are issues,
-and securely sandbox the instances running on shared hosts. Though if you want a simpler option, shared instances can be run
-on a traditional VPS either inside Docker or on the host itself as well.
+Google has created [kCTF](https://google.github.io/kctf/introduction.html) for this purpose, which enables challenge deployment on GCP with instance scaling, health checks, automatic restarts upon failure, and secure sandboxing on shared hosts. For a simpler alternative, shared instances can also be run on a traditional VPS either inside Docker or directly on the host.
 
 ### kCTF
 
-kCTF has its own documentation [here](https://google.github.io/kctf/) already so we will not focus as much on how to deploy it,
-and instead focus on things that may or may not be obvious especially when using it for the first time:
+kCTF maintains its own [documentation](https://google.github.io/kctf/), so this section focuses on considerations that may not be immediately apparent, particularly for first-time users:
 
-- When deploying kCTF, you have the option to control under which (sub)domain the challenges are available. The
-  `kctf cluster create` command has the `--domain-name` option responsible for this, and you should expect to either:
-
-    * use nameservers of Google if you want to host challenges under `*.example.com`, or
-    * use a subdomain with a `NS` records pointing to Google so that challenges are available under `*.subdomain.example.com`
-
-- By default, the created nodes are spot (cheaper) instances. This means that every 24 hours, the nodes will be changed and this
-  will cause temporary downtime for the challenges. You can trigger cluster resize and explicitly not provide the spot instance
-  flag to get rid of this behavior (e.g. `kctf cluster resize --min-nodes 1 --max-nodes 3 --num-nodes 1 --machine-type n2-standard-4`)
-  in favor of costing slightly more.
-
-- If a healthcheck fails, the challenge will be automatically restarted, which may seem like connectivity issues to the challenge.
-  In such scenarios, you should verify the output of `kctf chal status` to save some time debugging.
-
-- Monitor your GCP project's quotas (the dashboard is nice enough to let you know which ones are reached / close to being reached!).
-  Having too many challenges may cause the deployment to be stuck due to not enough available IPs due to low quota. Setting up kCTF
-  in advance is also an easy way to confirm your quotas are high enough and may increase your account's reputation for quota requests
-  to pass automatically.
-
-- Some challenges deployed to kCTF may require additional changes due to certain hardening features, again, setting up kCTF
-  in advance helps a lot with ironing out issues that would otherwise happen during the competition. [This](https://kubernetes.io/docs/concepts/workloads/pods/)
-  may also help in understanding what options you can configure in a kCTF challenge instance (for example, additional volumes as the file system is read-only by default).
+- When deploying kCTF, you have the option to control under which (sub)domain the challenges are available. The `kctf cluster create` command has the `--domain-name` option responsible for this, and you should expect to either use nameservers of Google if you want to host challenges under `*.example.com`, or use a subdomain with a `NS` records pointing to Google so that challenges are available under `*.subdomain.example.com`.
+- By default, the created nodes are spot (preemptible) instances. This means that every 24 hours, the nodes will be rotated, causing temporary downtime for the challenges. To avoid this behavior, trigger a cluster resize without the spot instance flag (e.g., `kctf cluster resize --min-nodes 1 --max-nodes 3 --num-nodes 1 --machine-type n2-standard-4`), which incurs slightly higher costs.
+- If a health check fails, the challenge will be automatically restarted, which may manifest as apparent connectivity issues. In such scenarios, verify the output of `kctf chal status` to expedite debugging.
+- Monitor your GCP project's quotas, as the dashboard indicates which limits have been reached or are approaching capacity. Deploying a large number of challenges may cause deployment failures due to insufficient IP addresses or other quota constraints. Configuring kCTF in advance serves as a practical method to verify that quotas are sufficient and may improve your account's standing for automatic quota increase approvals.
+- Some challenges deployed to kCTF may require additional modifications due to security hardening features. Configuring kCTF in advance is highly recommended to identify and resolve such issues before the competition begins. The [Kubernetes Pods documentation](https://kubernetes.io/docs/concepts/workloads/pods/) provides additional context on configurable options for kCTF challenge instances (for example, additional volumes, as the file system is read-only by default).
 
 ### Docker
 
-If the complexity of kCTF is not desirable due to requiring the use of GCP and running Kubernetes, a simple option is to
-use Docker for your challenges on a single (or multiple) hosts dedicated for hosting the challenges. One should avoid reusing
-the same VPS as for the CTF platform because people may send large amount of traffic towards them and isolating competitor's
-data from by-design vulnerable services is a great practice.
+If the complexity of kCTF is undesirable due to GCP and Kubernetes requirements, a simpler option is to deploy challenges using Docker on one or more dedicated hosts. It is advisable to avoid reusing the same VPS as the CTF platform, as challenges may receive significant traffic volumes and isolating participant data from intentionally vulnerable services is a recommended security practice.
 
-The easiest option to deploy this is to just use [Docker Compose](https://docs.docker.com/compose/) and start all the
-challenges on unique ports for each challenge. Keep in mind that if the challenge leads to RCE, there's a risk of container
-breakouts (especially if any of the challenges require additional privileges) or general malicious usage like filling up
-the disk. Wrapping the challenge in nsjail may also help with decreasing the attack surface and such issues happening.
+The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrapping challenges in nsjail can further reduce the attack surface and mitigate such risks.
 
 :::danger
-**It is extremely important to make sure competitors are not able to access any internal metadata services
-(e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
+**It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
 :::
 
 ### VM
 
-One other option is to also have a VM (or VPS) per instance. Although a bit pricier than just running the challenges on a
-single host, you reduce the blast radius from single challenge affecting every other challenge if someone decides to fill up
-the disk of the host, compromises the VM with a container breakout, and so on.
-
-There is no correct way to do this, and it usually depends on the challenge itself on how it was intended to be run.
+An alternative approach is to provision a separate VM (or VPS) for each challenge instance. Although more costly than running all challenges on a single host, this configuration reduces the blast radius, preventing a single compromised challenge from affecting others through disk exhaustion, container breakouts, or similar attacks. The optimal configuration depends on the specific requirements of each challenge.
 
 :::danger
-**It is extremely important to make sure competitors are not able to access any internal metadata services
-(e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
+**It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
 :::
 
 ## Instanced remote
 
-In an instanced remote, every competitor gets their personal instance. This is useful because certain vulnerabilities by
-design give file write or remote code execution, which then could be abused by competitors to make the challenge not work
-as intended, remove the flag, and so on.
+In an instanced remote configuration, each competitor receives a dedicated instance. This is necessary for challenges where the vulnerability inherently provides file write or remote code execution capabilities, which could otherwise be exploited by competitors to disrupt challenge functionality, remove flags, or interfere with other participants.
 
 ### Klodd
 
-One way to have instanced challenges on rCTF as of this moment is to use a third-party integration called [Klodd](https://klodd.tjcsec.club/).
-The architecture is close to kCTF where challenges are deployed onto a Kubernetes cluster on-demand, and they also have their own
-documentation on how to deploy and configure it.
+One method for deploying instanced challenges on rCTF is the third-party integration [Klodd](https://klodd.tjcsec.club/). Its architecture is similar to kCTF, with challenges deployed to a Kubernetes cluster on-demand. Comprehensive deployment and configuration documentation is available on the Klodd website.
 
 #### GCP
 
-Here's a quick start guide on how to set up the required prerequisites for Klodd on GCP using GKE:
+The following guide outlines the prerequisites for deploying Klodd on GCP using GKE:
 
 ::::steps
 
@@ -124,9 +76,7 @@ gcloud compute addresses list # note down the external IP of klodd-ip
 
 ### Set up Cloudflare Worker and certificate
 
-Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf).
-Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using
-a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
+Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf). Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
 
 ```bash [Terminal]
 certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer.example.com,*.instancer.example.com
@@ -134,8 +84,7 @@ certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer
 
 ### Deploy Klodd
 
-After that, we can deploy Klodd onto the created GKE cluster. We will use the files inside [our example CTF repository's](https://github.com/otter-sec/rctf-example-ctf)
-`klodd/` folder as the base:
+Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
 
 ```bash [Terminal]
 kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
@@ -148,29 +97,23 @@ kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and
 
 ### Configure DNS
 
-Create a wildcard `A` DNS record for `*.instancer.example.com` -> [klodd-ip] and `A` DNS record for `instancer.example.com` ->
-[klodd-ip]. After that, you should be able to follow [Klodd's guide](https://klodd.tjcsec.club/install-guide/challenges/) on how to deploy an individual challenge.
+Create a wildcard `A` DNS record for `*.instancer.example.com` pointing to [klodd-ip], and an `A` DNS record for `instancer.example.com` pointing to [klodd-ip]. Once configured, refer to [Klodd's challenge deployment guide](https://klodd.tjcsec.club/install-guide/challenges/) for instructions on deploying individual challenges.
 
 ::::
 
-The challenges will be available at the URL `https://instancer.example.com/challenge/[metadata.name]`, which you should be able to deploy successfully if everything
-is configured correctly.
+Challenges will be accessible at `https://instancer.example.com/challenge/[metadata.name]` once the configuration is complete.
 
 :::warning
-**Note that it's possible to deploy the instance even before the CTF has started, so be careful deploying challenges ahead of time if their name is guessable.**
+Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
 :::
 
 ### tiny-instancer
 
-As a more lightweight alternative, there is also [tiny-instancer](https://github.com/es3n1n/tiny-instancer) that can be run on a standalone machine. You can find
-more detailed information and instructions on how to install it in its README.
+A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tiny-instancer), which can be deployed on a standalone machine. Detailed installation instructions are available in the project's README.
 
 ## Admin bot
 
-To use the admin bot, we can use the examples found [here](https://github.com/otter-sec/rctf-admin-bot/tree/main/examples). First,
-we'll create our custom Docker image using the `image` folder as a base. The `config.js` folder should be modified to run
-standard Puppeteer actions required for the challenge. After that, we'll need to build the image and upload to a Docker registry. In this example,
-we'll use GCP's Artifact Registry for this:
+The admin bot can be configured using the examples available [here](https://github.com/otter-sec/rctf-admin-bot/tree/main/examples). Begin by creating a custom Docker image using the `image` folder as a base. Modify `config.js` to execute the Puppeteer actions required for the challenge. The image must then be built and uploaded to a Docker registry. The following example uses GCP's Artifact Registry:
 
 ::::steps
 
@@ -190,10 +133,7 @@ docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:lates
 
 ### Deploy with Terraform
 
-Then, we can use the `gcp` folder to automatically deploy everything required using [Terraform](https://developer.hashicorp.com/terraform).
-Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Inside that file, update
-project variable to contain your GCP project ID, and the image variable to the image path pushed above. Optionally, you can also configure
-reCAPTCHA to prevent spamming submissions if desired. Then, deploy the admin bot by running the following commands:
+The `gcp` folder provides [Terraform](https://developer.hashicorp.com/terraform) configuration for automated deployment. Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Update the `project` variable to contain the GCP project ID and the `image` variable to the image path from the previous step. Optionally, configure reCAPTCHA to prevent submission abuse. Deploy the admin bot with the following commands:
 
 ```bash [Terminal]
 terraform init
@@ -202,8 +142,6 @@ terraform apply # type `yes` when prompted
 
 ### Access your admin bot
 
-After a couple of minutes, you should get a submit URL that can be used to access the admin bot at `/[challenge name]`. If
-desired, you can also [map a custom domain](https://cloud.google.com/run/docs/mapping-custom-domains) for the submit Cloud Run
-in the GCP dashboard for a nicer looking link.
+After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains) to the Cloud Run service via the GCP dashboard for a more professional URL.
 
 ::::

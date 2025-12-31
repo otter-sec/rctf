@@ -1,6 +1,11 @@
 @import 'tailwindcss';
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 .vocs_TableCell .vocs_Strong, .vocs_List .vocs_Strong, .vocs_Paragraph .vocs_Strong {
     @apply text-(--vocs-color_heading);
 }
 
+h2.vocs_H2 {
+    @apply mt-6!;
+}
