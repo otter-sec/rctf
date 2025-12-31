@@ -92,15 +92,15 @@ export default defineConfig({
           link: '/running-a-successful-ctf/01-prerequisites',
         },
         {
-          text: 'Challenge design',
+          text: 'Challenge Design',
           link: '/running-a-successful-ctf/01b-challenge-design',
         },
         {
-          text: 'Setting up a CTF platform',
+          text: 'Setting Up a CTF Platform',
           link: '/running-a-successful-ctf/02-setup',
         },
         {
-          text: 'Deploying challenges',
+          text: 'Deploying Challenges',
           link: '/running-a-successful-ctf/03-deployment',
         },
         {

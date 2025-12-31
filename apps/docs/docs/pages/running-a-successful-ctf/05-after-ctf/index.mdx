@@ -5,13 +5,17 @@ description: Post-CTF tasks including uploading scoreboards to CTFtime, distribu
 
 # After the CTF [Scoreboards, prizes, feedback, and teardown]
 
+Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, and infrastructure teardown.
+
 ## Uploading scoreboard to CTFtime
+
+Submitting the final scoreboard to CTFtime enables participating teams to receive ranking points. The following procedure exports the scoreboard in the format CTFtime expects.
 
 ::::steps
 
 ### Update admin permissions
 
-We will update our admin user to also have permissions to fetch the final scoreboard in the format that CTFtime expects:
+The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
 
 ```bash [Terminal]
 docker exec -it rctf-postgres-1 bash
@@ -25,19 +29,19 @@ psql -U rctf
 UPDATE users SET perms = 7 WHERE email = '[...]';
 ```
 
-### Get your authentication token
+### Retrieve authentication token
 
-Then, login into the CTF platform as the admin account and run the following snippet in your browser's console:
+Log in to the CTF platform as the admin account and execute the following snippet in the browser's developer console:
 
 ```js [Browser console]
 localStorage.getItem('token')
 ```
 
-Take the authentication token and remove the `"` quotes around it.
+Copy the returned authentication token, removing the surrounding quotation marks.
 
 ### Export the scoreboard
 
-Replace `TOKEN` in the next command to get the scoreboard export:
+Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
 
 ```bash [Terminal]
 curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
@@ -46,17 +50,17 @@ curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
 
 ### Submit to CTFtime
 
-Finally, you can submit the output of the command in the CTFtime event dashboard.
+Submit the command output through the CTFtime event dashboard.
 
 :::info
-Do note that it may take around an hour for points to be awarded for previously organized CTFs, and new CTFs will award points only after a week from the moment it was organized when the weight voting period for it ends.
+Point distribution may take approximately one hour for established events. For first-time events, points are awarded only after the one-week weight voting period concludes.
 :::
 
 ::::
 
 ## Prize distribution
 
-If your CTF has prizes, you can fetch the team emails through the database (as after all, anyone can claim over Discord to be part of any team):
+For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
 
 ```bash [Terminal]
 docker exec -it rctf-postgres-1 bash
@@ -71,41 +75,43 @@ SELECT * FROM users WHERE name IN ('Team 1', 'Team 2', 'Team 3');
 ```
 
 :::tip
-If you use divisions, you can filter the scoreboard by divisions as well if needed.
+For competitions using divisions, the query can be extended to filter by division if prize distribution varies by category.
 :::
 
-## Feedback
+## Feedback collection
 
-It is common to also release a feedback form (e.g. Google Forms) where feedback is requested regarding various aspects of the competition:
+Releasing a post-competition feedback form (e.g., Google Forms) provides valuable insights for future events. Consider soliciting feedback on the following areas:
 
-| Category | What to ask |
-|----------|-------------|
-| Infrastructure | Were there any issues? |
-| Challenges | Were some challenges badly/well-designed? Should there be more/less of specific type of challenges? |
-| General organization | Free-form feedback, communicating towards competitors and vice versa, and so on |
+| Category | Topics to address |
+|----------|-------------------|
+| Infrastructure | Platform stability, challenge availability, response times |
+| Challenges | Difficulty balance, category distribution, quality of problem design |
+| Organization | Communication clarity, support responsiveness, overall experience |
 
-:::success
-These are especially helpful to review before organizing next year's CTF to improve the experience of the CTF.
+:::tip
+Feedback collected from participants is invaluable for improving subsequent events. Review responses thoroughly before planning the next competition.
 :::
 
-## Tearing down infrastructure
+## Writeup collection
 
-There are a couple of factors that decide when the infrastructure should be torn down:
+Encouraging participants to publish writeups benefits the broader CTF community and provides learning resources for future competitors. Consider the following approaches:
 
-- Budget
+- Announce a deadline for writeup submissions (typically one to two weeks after the event).
+- Offer incentives such as prizes for outstanding writeups or recognition in official channels.
+- Compile and share links to community writeups in the Discord server or on the event website.
+- Release official writeups for challenges that received few or no community solutions.
 
-- Desire for writeups (as competitors compare their solution against the remote)
+## Infrastructure teardown
 
-- Willingness to check that challenge remotes are still functional, or alternatively running them until they break
+The timing of infrastructure teardown depends on several factors: remaining budget, the desire to keep challenges accessible for writeup authors, and the willingness to maintain operational services. Most organizers scale down infrastructure shortly after the competition concludes while maintaining minimal services for several days to allow participants to verify their solutions.
 
-Most CTFs scale down the infrastructure right after the CTF and aim to have at least a couple of days when instances
-are still accessible but with minimal maintenance. In the case of infrastructure being sponsored by Google, usually one can leave
-it running until most of the credits are used.
+For infrastructure sponsored by cloud providers (e.g., Google Cloud credits), services may remain operational until credits are depleted, provided no sensitive data is at risk.
 
 :::warning[Teardown checklist]
-Here is a checklist of things to make sure have been deleted:
+Ensure the following resources are properly decommissioned to avoid unexpected costs:
 
-- CTF platform (consider making backup of this so it's easier to configure next year)
-- Remote instances (kCTF, VPSes, instancer, instancer GKE)
-- Various other cloud resources (IP addresses, DNS records, and so on)
+- Take down the CTF platform, and back up the database and configuration before deletion to simplify setup for future events.
+- Remove kCTF clusters, VPS instances, Klodd/tiny-instancer deployments, and associated GKE resources.
+- For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts.
+- Rotate or revoke any API keys, tokens, or credentials used during the event.
 :::
