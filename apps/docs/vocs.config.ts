@@ -17,6 +17,14 @@ export default defineConfig({
       google: 'Geist Mono',
     },
   },
+  markdown: {
+    code: {
+      themes: {
+        light: 'vitesse-light',
+        dark: 'vitesse-dark',
+      },
+    },
+  },
   iconUrl: '/favicon.svg',
   logoUrl: {
     light: '/wordmark-light.svg',
@@ -78,8 +86,13 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Development',
-          link: '/development',
+          text: 'Theming and Styling',
+          collapsed: true,
+          items: [
+            { text: 'Color System', link: '/theming/colors' },
+            { text: 'Categories', link: '/theming/categories' },
+            { text: 'Components', link: '/theming/components' },
+          ],
         },
       ],
     },

@@ -14,4 +14,12 @@
     .vocs_Outline_link, .vocs_Sidebar_item, .vocs_Sidebar_sectionTitle {
         @apply font-["Outfit"] transition-none!;
     }
+
+    :not(.vocs_Pre) > .vocs_Code {
+        @apply text-(--vocs-color_textRed)!;
+    }
+
+    .vocs_Callout_icon {
+        @apply shrink-0!
+    }
 }
