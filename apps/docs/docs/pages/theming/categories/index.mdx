@@ -3,7 +3,7 @@ title: Categories
 description: Challenge category configuration, colors, icons, and customization.
 ---
 
-import Swatch from '../../../components/Swatch'
+import Swatch from '../../../components/swatch'
 
 # Categories [Challenge category styling and configuration]
 
@@ -27,7 +27,7 @@ Each of the default categories uses a color specified in [Category colors](/them
 | `koth` | King of the Hill | <Swatch color="pink-400" label="pink" /> | <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a2 2 0 0 1 1.572 3.236l.793 1.983l1.702-1.702A2.003 2.003 0 0 1 18 3a2 2 0 0 1 .674 3.884l-1.69 9.295a1 1 0 0 1-.865.814L16 17H8a1 1 0 0 1-.956-.705l-.028-.116l-1.69-9.295a2 2 0 1 1 2.607-1.367l1.701 1.702l.794-1.983A2 2 0 0 1 12 2m6 16H6a1 1 0 0 0-1 1a2 2 0 0 0 2 2h10a2 2 0 0 0 1.987-1.768l.011-.174A1 1 0 0 0 18 18"/></svg> | `tabler:chess-queen-filled` |
 | `osint` | OSINT | <Swatch color="gray-400" label="gray" /> | <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4c4.29 0 7.863 2.429 10.665 7.154l.22.379l.045.1l.03.083l.014.055l.014.082l.011.1v.11l-.014.111a1 1 0 0 1-.026.11l-.039.108l-.036.075l-.016.03c-2.764 4.836-6.3 7.38-10.555 7.499L12 20c-4.396 0-8.037-2.549-10.868-7.504a1 1 0 0 1 0-.992C3.963 6.549 7.604 4 12 4m0 5a3 3 0 1 0 0 6a3 3 0 0 0 0-6"/></svg> | `tabler:eye-filled` |
 
-Category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) allow flexible naming while maintaining consistent styling.
+We additionally enable category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) to allow flexible naming.
 
 :::note[How category styling works]
 The `getCategoryStyle(color){:ts}` function generates inline CSS that binds a color's variables to generic category tokens:
@@ -53,7 +53,7 @@ Components apply this style to a container, then use generic classes:
 </div>
 ```
 
-Each color (red, orange, yellow, green, teal, blue, purple, pink, fuchsia, gray) has five variables defined in `app.css` for both light and dark modes: `background-l0`, `background-l1`, `background-l1-hover`, `foreground-l0`, and `foreground-l1`.
+Each color has five variables defined in `app.css` for both light and dark modes: `background-l0`, `background-l1`, `background-l1-hover`, `foreground-l0`, and `foreground-l1`.
 :::
 
 ## Adding a custom category
@@ -106,7 +106,7 @@ Categories not in this list appear alphabetically after listed ones.
 
 ### Add color variables (if using a new color)
 
-If your category uses a color not already in the palette, add variables to `app.css` following the existing pattern. Define `--background-{color}-l0{:css}`, `--background-{color}-l1{:css}`, `--background-{color}-l1-hover{:css}`, `--foreground-{color}-l0{:css}`, and `--foreground-{color}-l1{:css}` for both `:root` and `[data-theme='dark']{:css}`.
+If your category uses a color not already in the palette, add variables to `app.css` following the existing pattern. Define `--background-{color}-l0{:css}`, `--background-{color}-l1{:css}`, `--background-{color}-l1-hover{:css}`, `--foreground-{color}-l0{:css}`, and `--foreground-{color}-l1{:css}` for both `:root` and `[data-theme='dark']{:css}`. Don't forget to additionally map the colors in `@theme inline{:css}`.
 
 ::::
 

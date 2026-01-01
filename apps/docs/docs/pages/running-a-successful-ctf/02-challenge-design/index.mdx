@@ -5,37 +5,15 @@ description: Guidelines for planning, authoring, and testing CTF challenges, inc
 
 # Challenge design [Planning, authoring, and testing challenges]
 
-## Challenge planning
+Prior to authoring challenges, it is important to establish the general format and scope of the competition. The following are common characteristics of a well-organized CTF:
 
-Prior to authoring challenges, it is important to establish the general format and scope of the competition.
+- The event should last for either 24 or 48 hours and be held on a weekend or Friday night.
 
-### Event format
+- Challenges should conform to [standard CTF categories](/theming/categories#default-categories).
 
-The following are common characteristics of a well-organized CTF:
+- Each category should contain approximately 2-6 challenges, with a similar number of challenges across all categories.
 
-- The event lasts for either 24 or 48 hours and is held on a weekend or Friday night
-
-- Challenges conform to standard CTF categories (web, pwn, reverse, crypto, misc, etc.)
-
-- Each category contains approximately 2-6 challenges, with a similar number of challenges across all categories
-
-- Challenge difficulty is distributed across a range from easy to hard, accommodating participants of varying skill levels
-
-### Difficulty distribution
-
-A balanced difficulty distribution ensures engagement from both beginners and experienced players. A common distribution for a category with 5 challenges might be:
-
-| Difficulty | Count | Description |
-|------------|-------|-------------|
-| **Easy** | 1-2 | Solvable by beginners with good effort |
-| **Medium** | 2-3 | Requires solid understanding of the category |
-| **Hard** | 1-2 | Requires advanced knowledge and/or novel techniques |
-
-### Flag format
-
-Establish a consistent flag format before challenge development begins. Common formats include `flag{...}`, `CTF_NAME{...}`, and `ctf_name{...}`.
-
-The flag format should be clearly communicated to participants in the rules. Consider including a regex that handles all cases, including contents within the curly braces (e.g., `CTF_name\{[\x20-\x7e]+\}`).
+- Challenge difficulty should be distributed across a range from easy to hard, accommodating participants of varying skill levels. A common distribution is 1-2 easy, 2-3 medium, and 1-2 hard.
 
 ## Challenge authoring
 
@@ -61,7 +39,7 @@ Each challenge should include the following:
 |---------------|--------------------------------------------------|-----------------|
 | **Title**     | A memorable name. The typical convention is to use [Kebab case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case) for titles. Please be fun with the title rather than calling it `keygen` or `pwnme` or `warmup` or `crackme`. | Required        |
 | **Description** | Context and necessary information for the challenge. Descriptions are often themed and playful.                 | Required        |
-| **Hints** | Avoid actually using the "Hints" field, but rather use hints reactively during the CTF for unsolved challenges (e.g., after gauging progress at the 24-hour mark).                | Optional, uncommon        |
+| **Hints** | Avoid actually using the "Hints" field, but rather use hints reactively during the CTF for unsolved challenges (e.g., after gauging progress at the 24-hour mark). See [Hint policy](/running-a-successful-ctf/05-during-ctf#hint-policy) for more information.                | Optional, uncommon        |
 | **Category**  | The primary category (the one most aligned with the challenge, for challenges that fit multiple categories).                             | Required        |
 | **Author**    | The challenge author. Meta challenges, such as survey or sanity checks, should be authored by "Team" or some other umbrella name. | Optional, common        |
 | **Tags**      | Additional categorizations. Tags are often used for bounties, challenges part of a series, or challenges that fit into multiple categories. | Optional, common        |
@@ -74,32 +52,9 @@ Each challenge should include the following:
 
 ### Dockerization
 
-For challenges that require a remote component, containerization using Docker is strongly recommended. A typical challenge Dockerfile structure is as follows:
+For challenges that require a remote component, containerization using Docker is strongly recommended.
 
-```dockerfile [Dockerfile]
-FROM ubuntu:22.04
-
-# Install dependencies
-RUN apt-get update && apt-get install -y \
-    socat \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create challenge user
-RUN useradd -m challenge
-
-# Copy challenge files
-COPY --chown=challenge:challenge ./challenge /home/challenge/
-COPY --chown=root:root ./flag.txt /flag.txt
-RUN chmod 444 /flag.txt
-
-# Set working directory
-WORKDIR /home/challenge
-USER challenge
-
-# Expose port and run
-EXPOSE 1337
-CMD ["socat", "TCP-LISTEN:1337,reuseaddr,fork", "EXEC:./challenge"]
-```
+ES3N1N TODO
 
 ## Pre-event checklist
 

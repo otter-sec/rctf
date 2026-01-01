@@ -3,7 +3,7 @@ title: Components
 description: Overview of the rCTF UI component library based on shadcn-svelte.
 ---
 
-import Swatch from '../../../components/Swatch'
+import Swatch from '../../../components/swatch'
 
 # Components [UI component library overview]
 
@@ -94,31 +94,29 @@ Convert all heavy font weights to `font-medium` for visual consistency:
 
 ### Convert color tokens
 
-Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors). The mapping depends on context—use these as guidelines rather than strict rules:
+Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors). The mapping depends on context, so use these as guidelines rather than strict rules:
 
-| shadcn token | rCTF equivalent | Light | Dark | Context |
-|--------------|-----------------|-------|------|---------|
-| `bg-primary` | `bg-background-accent` | <Swatch color="background-accent" /> | <Swatch color="background-accent-dark" mode="dark" /> | Accent buttons, badges |
-| `text-primary-foreground` | `text-foreground-accent` | <Swatch color="foreground-accent" /> | <Swatch color="foreground-accent-dark" mode="dark" /> | Text on accent backgrounds |
-| `text-primary` | `text-foreground-accent` | <Swatch color="foreground-accent" /> | <Swatch color="foreground-accent-dark" mode="dark" /> | Accent-colored text |
-| `bg-secondary` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Secondary buttons, badges |
-| `text-secondary-foreground` | `text-foreground-l1` | <Swatch color="foreground-l1" /> | <Swatch color="foreground-l1-dark" mode="dark" /> | Text on secondary backgrounds |
-| `bg-muted` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Subtle backgrounds |
-| `text-muted-foreground` | `text-foreground-l3` | <Swatch color="foreground-l3" /> | <Swatch color="foreground-l3-dark" mode="dark" /> | Placeholders, hints |
-| `bg-accent` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Hover states, highlights |
-| `text-accent-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text on hover backgrounds |
-| `bg-popover` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Dropdowns, popovers |
-| `text-popover-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text in overlays |
-| `bg-card` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Card surfaces |
-| `text-card-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Card text |
-| `bg-background` | `bg-background-l0` | <Swatch color="background-l0" /> | <Swatch color="background-l0-dark" mode="dark" /> | Page background |
-| `text-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Primary body text |
-| `bg-destructive` | `bg-background-destructive` | <Swatch color="background-destructive" /> | <Swatch color="background-destructive-dark" mode="dark" /> | Error states |
-| `text-destructive` | `text-foreground-destructive` | <Swatch color="foreground-destructive" /> | <Swatch color="foreground-destructive-dark" mode="dark" /> | Error text |
-| `bg-input` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Form inputs |
-| `hover:bg-primary/90` | `hover:bg-background-accent-hover` | <Swatch color="background-accent-hover" /> | <Swatch color="background-accent-hover-dark" mode="dark" /> | Accent hover states |
-| `hover:bg-secondary/80` | `hover:bg-background-l5` | <Swatch color="background-l5" /> | <Swatch color="background-l5-dark" mode="dark" /> | Secondary hover states |
-| `hover:bg-accent` | `hover:bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Generic hover states |
+| rCTF token | Example | Light | Dark | Context |
+|--------------|--------|-------|------|---------|
+| `--background` | `bg-background-l0` | <Swatch color="background-l0" /> | <Swatch color="background-l0-dark" mode="dark" /> | Page background |
+| `--foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Primary body text |
+| `--card` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Card surfaces |
+| `--card-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Card text |
+| `--popover` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Dropdowns, popovers |
+| `--popover-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text in overlays |
+| `--primary` | `bg-background-accent` | <Swatch color="background-accent" /> | <Swatch color="background-accent-dark" mode="dark" /> | Accent buttons, badges |
+| `--primary-foreground` | `text-foreground-accent` | <Swatch color="foreground-accent" /> | <Swatch color="foreground-accent-dark" mode="dark" /> | Text on accent backgrounds/accent-colored text |
+| `--secondary` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Secondary buttons, badges |
+| `--secondary-foreground` | `text-foreground-l1` | <Swatch color="foreground-l1" /> | <Swatch color="foreground-l1-dark" mode="dark" /> | Text on secondary backgrounds |
+| `--muted` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Subtle backgrounds |
+| `--muted-foreground` | `text-foreground-l3` | <Swatch color="foreground-l3" /> | <Swatch color="foreground-l3-dark" mode="dark" /> | Placeholders, hints |
+| `--accent` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Hover states, highlights, generic hover |
+| `--accent-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text on hover backgrounds |
+| `--destructive` | `bg-background-destructive` | <Swatch color="background-destructive" /> | <Swatch color="background-destructive-dark" mode="dark" /> | Error states |
+| `--input` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Form inputs |
+| `hover:bg-background-accent-hover` | hover | <Swatch color="background-accent-hover" /> | <Swatch color="background-accent-hover-dark" mode="dark" /> | Accent hover states |
+| `hover:bg-background-l5` | hover | <Swatch color="background-l5" /> | <Swatch color="background-l5-dark" mode="dark" /> | Secondary hover states |
+
 
 Here's an example converting the `Badge` component variants:
 
@@ -140,32 +138,13 @@ variants: {
 },
 ```
 
-### Remove dark mode overrides
+### Remove dark mode overrides (optional)
 
-rCTF's color system handles dark mode automatically via CSS custom properties. Remove all `dark:` prefixed utilities:
-
-```ts [button.svelte]
-"dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive" // [!code --]
-"aria-invalid:border-foreground-destructive" // [!code ++]
-
-"dark:focus-visible:ring-destructive/40 dark:bg-destructive/60" // [!code --]
-// (removed entirely) // [!code ++]
-
-"dark:bg-input/30 dark:border-input dark:hover:bg-input/50" // [!code --]
-// (removed entirely) // [!code ++]
-
-"dark:hover:bg-accent/50" // [!code --]
-// (removed entirely) // [!code ++]
-```
+rCTF's color system handles dark mode automatically via CSS custom properties. Remove all `dark:` prefixed utilities.
 
 ### Remove transitions (optional)
 
-rCTF components generally don't use transition utilities for a snappier feel. Remove if present:
-
-```ts [button.svelte]
-base: "... transition-all outline-none ...", // [!code --]
-base: "... outline-none ...", // [!code ++]
-```
+rCTF components generally don't use transitions to avoid grogginess/exhaustion when repeatedly using the same interfaces. Remove if desired.
 
 :::
 
@@ -175,7 +154,7 @@ Here's the complete before and after for the Button component:
 
 :::code-group
 
-```svelte [Before (shadcn-svelte)]
+```svelte [Before (shadcn-svelte)] showLineNumbers
 <script lang="ts" module>
   import { cn, type WithElementRef } from "$lib/utils.js";
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
@@ -186,10 +165,8 @@ Here's the complete before and after for the Button component:
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs", // [!code focus]
-        destructive:
-          "bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs", // [!code focus]
-        outline:
-          "bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs", // [!code focus]
+        destructive: "bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs", // [!code focus]
+        outline: "bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs", // [!code focus]
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs", // [!code focus]
         ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50", // [!code focus]
         link: "text-primary underline-offset-4 hover:underline", // [!code focus]
@@ -209,57 +186,11 @@ Here's the complete before and after for the Button component:
     },
   });
 
-  export type ButtonVariant = VariantProps<typeof buttonVariants>["variant"];
-  export type ButtonSize = VariantProps<typeof buttonVariants>["size"];
-  export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
-    WithElementRef<HTMLAnchorAttributes> & {
-      variant?: ButtonVariant;
-      size?: ButtonSize;
-    };
+  // ...
 </script>
-
-<script lang="ts">
-  let {
-    class: className,
-    variant = "default",
-    size = "default",
-    ref = $bindable(null),
-    href = undefined,
-    type = "button",
-    disabled,
-    children,
-    ...restProps
-  }: ButtonProps = $props();
-</script>
-
-{#if href}
-  <a
-    bind:this={ref}
-    data-slot="button"
-    class={cn(buttonVariants({ variant, size }), className)}
-    href={disabled ? undefined : href}
-    aria-disabled={disabled}
-    role={disabled ? "link" : undefined}
-    tabindex={disabled ? -1 : undefined}
-    {...restProps}
-  >
-    {@render children?.()}
-  </a>
-{:else}
-  <button
-    bind:this={ref}
-    data-slot="button"
-    class={cn(buttonVariants({ variant, size }), className)}
-    {type}
-    {disabled}
-    {...restProps}
-  >
-    {@render children?.()}
-  </button>
-{/if}
 ```
 
-```svelte [After (rCTF)] wrap
+```svelte [After (rCTF)] showLineNumbers
 <script lang="ts" module>
   import { cn, type WithElementRef } from '$lib/utils'
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
@@ -269,13 +200,12 @@ Here's the complete before and after for the Button component:
     base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0", // [!code focus]
     variants: {
       variant: {
-        default: 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover', // [!code focus]
-        destructive:
-          'bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50', // [!code focus]
-        outline: 'bg-background-l1 hover:bg-background-l2 text-foreground-l1 border', // [!code focus]
-        secondary: 'bg-background-l4 text-foreground-l1 hover:bg-background-l5', // [!code focus]
-        ghost: 'hover:bg-background-l3 text-foreground-l1', // [!code focus]
-        link: 'text-foreground-prose-link underline-offset-4 hover:underline', // [!code focus]
+        default: "bg-background-accent text-foreground-accent hover:bg-background-accent-hover", // [!code focus]
+        destructive: "bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50", // [!code focus]
+        outline: "bg-background-l1 hover:bg-background-l2 text-foreground-l1 border", // [!code focus]
+        secondary: "bg-background-l4 text-foreground-l1 hover:bg-background-l5", // [!code focus]
+        ghost: "hover:bg-background-l3 text-foreground-l1", // [!code focus]
+        link: "text-foreground-prose-link underline-offset-4 hover:underline", // [!code focus]
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -291,55 +221,8 @@ Here's the complete before and after for the Button component:
       size: 'default',
     },
   })
-
-  export type ButtonVariant = VariantProps<typeof buttonVariants>['variant']
-  export type ButtonSize = VariantProps<typeof buttonVariants>['size']
-  export type ButtonProps = WithElementRef<HTMLButtonAttributes> &
-    WithElementRef<HTMLAnchorAttributes> & {
-      variant?: ButtonVariant
-      size?: ButtonSize
-    }
+  // ...
 </script>
-
-<script lang="ts">
-  let {
-    class: className,
-    variant = 'default',
-    size = 'default',
-    ref = $bindable(null),
-    href = undefined,
-    type = 'button',
-    disabled,
-    children,
-    ...restProps
-  }: ButtonProps = $props()
-</script>
-
-{#if href}
-  <a
-    bind:this={ref}
-    data-slot="button"
-    class={cn(buttonVariants({ variant, size }), className)}
-    href={disabled ? undefined : href}
-    aria-disabled={disabled}
-    role={disabled ? 'link' : undefined}
-    tabindex={disabled ? -1 : undefined}
-    {...restProps}
-  >
-    {@render children?.()}
-  </a>
-{:else}
-  <button
-    bind:this={ref}
-    data-slot="button"
-    class={cn(buttonVariants({ variant, size }), className)}
-    {type}
-    {disabled}
-    {...restProps}
-  >
-    {@render children?.()}
-  </button>
-{/if}
 ```
 
 :::
