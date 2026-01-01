@@ -96,9 +96,9 @@ ufw enable # answer `y` when prompted regarding enabling firewall
 
 ### Install and configure Nginx
 
-Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+Now, we can install Nginx using `apt update && apt install -y nginx{:bash}`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-```nginx [/etc/nginx/sites-available/rctf.conf]
+```nginx [/etc/nginx/sites-available/rctf.conf] showLineNumbers
 # Redirect HTTP -> HTTPS
 server {
     listen 80;
@@ -149,7 +149,7 @@ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
 nginx -t && nginx -s reload
 ```
 
-Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload{:bash}` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 ::::
 
@@ -164,9 +164,9 @@ on [certbot's website](https://certbot.eff.org/instructions?ws=nginx&os=pip) on 
 
 ### Install and configure Nginx
 
-Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+Now, we can install Nginx using `apt update && apt install -y nginx{:bash}`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-```nginx [/etc/nginx/sites-available/rctf.conf]
+```nginx [/etc/nginx/sites-available/rctf.conf] showLineNumbers
 # Redirect HTTP -> HTTPS
 server {
     listen 80;
@@ -212,7 +212,7 @@ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
 nginx -t && nginx -s reload
 ```
 
-Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload{:bash}` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 ::::
 

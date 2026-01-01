@@ -68,7 +68,7 @@ Each challenge should include the following:
 | **Difficulty**| Relative difficulty level. This is a contentious topic due to the subjective nature of difficulty ratings, so this is sometimes excluded. | Optional, uncommon        |
 | **Flag**      | The solution in the established format.           | Required        |
 | **Attachments**     | Any downloadable attachments. Attachments should be nicely zipped and uniquely named to avoid issues like `dist(4).tar.gz`.                  | Optional, common        |
-| **Remote**    | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>` rather than a `<code>`. rCTF provides a custom `[!CONNECTION]` callout for this purpose. | Optional, common        |
+| **Remote**    | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>{:html}` rather than a `<code>{:html}`. rCTF provides a custom `[!CONNECTION]{:md}` callout for this purpose. | Optional, common        |
 | **Instancer** | Configuration for instancer challenges (if applicable). This should not be public but rather documented internally, and open-sourced after the CTF. | Optional, uncommon        |
 | **Solution**  | A working solve script or writeup. This should be referenced internally during playtesting and released after the CTF.                 | Optional, recommended |
 

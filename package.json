@@ -16,7 +16,7 @@
     "test": "cd tests/server && bun test",
     "test:coverage": "cd tests/server && bun test --coverage",
     "test:integration": "cd tests/test-against-v1 && bun test",
-    "prettier": "prettier --write \"**/*.{ts,svelte,html,json}\" --ignore-path .gitignore",
+    "prettier": "prettier --write \"**/*.{ts,tsx,svelte,html,json}\" --ignore-path .gitignore",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun run --filter '@rctf/db' generate",
     "db:migrate": "bun run --filter '@rctf/db' migrate",
