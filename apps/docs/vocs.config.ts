@@ -106,23 +106,23 @@ export default defineConfig({
         },
         {
           text: 'Challenge Design',
-          link: '/running-a-successful-ctf/01b-challenge-design',
+          link: '/running-a-successful-ctf/02-challenge-design',
         },
         {
           text: 'Setting Up a CTF Platform',
-          link: '/running-a-successful-ctf/02-setup',
+          link: '/running-a-successful-ctf/03-setup',
         },
         {
           text: 'Deploying Challenges',
-          link: '/running-a-successful-ctf/03-deployment',
+          link: '/running-a-successful-ctf/04-deployment',
         },
         {
           text: 'During the CTF',
-          link: '/running-a-successful-ctf/04-during-ctf',
+          link: '/running-a-successful-ctf/05-during-ctf',
         },
         {
           text: 'After the CTF',
-          link: '/running-a-successful-ctf/05-after-ctf',
+          link: '/running-a-successful-ctf/06-after-ctf',
         },
       ],
     },

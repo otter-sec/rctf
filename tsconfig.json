@@ -4,6 +4,7 @@
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
+    "jsx": "react",
     "allowJs": true,
     "checkJs": true,
     "moduleResolution": "bundler",
