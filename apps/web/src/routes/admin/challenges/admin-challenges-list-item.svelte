@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { AdminChallenge } from '@rctf/types'
+  import { IconCloudComputingFilled } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   interface Props {
@@ -11,7 +12,7 @@
 
   let { challenge, category, isSelected, onSelect }: Props = $props()
 
-  const { name, author, points, files } = $derived(challenge)
+  const { name, author, points, files, instancerConfig } = $derived(challenge)
 </script>
 
 <li>
@@ -32,15 +33,21 @@
       <span class="text-category-foreground-l1 truncate text-base opacity-75">{author}</span>
     </div>
     <div
-      class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
+      class="z-1 flex shrink-0 flex-row items-end gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
     >
       <div class="text-xl whitespace-nowrap tabular-nums">
         <span class="text-category-foreground-l0">{points.min}–{points.max}</span>
         <span class="text-category-foreground-l1">pts</span>
       </div>
-      <span class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75">
-        {files.length} file{files.length === 1 ? '' : 's'}
-      </span>
+      <div
+        class="text-category-foreground-l1 flex items-center gap-1.5 text-base whitespace-nowrap tabular-nums opacity-75"
+      >
+        {#if instancerConfig}
+          <IconCloudComputingFilled class="size-4" />
+          <span class="text-category-foreground-l1/50">·</span>
+        {/if}
+        <span>{files.length} file{files.length === 1 ? '' : 's'}</span>
+      </div>
     </div>
   </button>
 </li>

@@ -190,7 +190,7 @@
       <div
         class="flex items-start justify-between gap-4 px-5 py-4 @lg/details:px-9 @lg/details:py-6"
       >
-        <div class="flex min-w-0 flex-col gap-1 @lg/details:gap-2">
+        <div class="flex min-w-0 flex-col gap-1">
           <h2 class="truncate text-2xl">
             {isCreating ? 'New Challenge' : form.name || 'Untitled'}
           </h2>
