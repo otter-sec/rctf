@@ -9,10 +9,10 @@
     ProtectedAction,
   } from '@rctf/types'
   import { onMount } from 'svelte'
-  import { apiRequest } from '$lib/api'
+  import { apiRequest, isAuthenticated } from '$lib/api'
   import { Button, Progress } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
-  import { IconCopy, IconLoader } from '$lib/icons'
+  import { IconCopy, IconLoader, IconLogin } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
   import { formatCountdown } from '$lib/utils'
   import { toast } from 'svelte-sonner'
@@ -136,7 +136,15 @@
 </script>
 
 <div class="flex h-full flex-col p-3">
-  {#if loading}
+  {#if !isAuthenticated()}
+    <div class="flex flex-col items-center justify-center space-y-3 text-center">
+      <p class="text-foreground-l3 text-sm">Login to use the instancer.</p>
+      <Button href="/login" class="w-full gap-2">
+        <IconLogin class="size-4" />
+        Login
+      </Button>
+    </div>
+  {:else if loading}
     <div class="flex flex-1 flex-col items-center justify-center">
       <IconLoader class="text-foreground-l4 size-5 animate-spin" />
     </div>

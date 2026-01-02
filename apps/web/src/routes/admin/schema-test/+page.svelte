@@ -29,7 +29,7 @@
 
 <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 p-6">
   <Card.Root>
-    <Card.Content class="flex gap-2">
+    <Card.Content class="flex flex-wrap gap-2">
       <Button variant="outline" onclick={reset}>Reset to defaults</Button>
       <Button variant="outline" onclick={clear}>Clear all</Button>
       <Button variant="outline" onclick={() => (showOutput = !showOutput)}>

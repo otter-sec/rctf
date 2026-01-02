@@ -179,8 +179,8 @@
               {disabled}
             />
           {/if}
-          <span class="text-foreground-l4 hidden @xs/record-inline:block">=</span>
           <div class="flex min-w-0 flex-1 items-center gap-2">
+            <span class="text-foreground-l4">=</span>
             {#if valueSchema.type === 'boolean'}
               <Select.Root
                 type="single"
@@ -256,25 +256,27 @@
             {disabled}
           />
         {/if}
-        <span class="text-foreground-l4 hidden @xs/record-inline:block">=</span>
-        <Button
-          size="sm"
-          onclick={() => {
-            if (keyEnumValues) {
-              if (selectedKey) {
-                addEntry(selectedKey)
-                selectedKey = ''
+        <div class="flex min-w-0 flex-1 items-center gap-2">
+          <span class="text-foreground-l4">=</span>
+          <Button
+            size="sm"
+            onclick={() => {
+              if (keyEnumValues) {
+                if (selectedKey) {
+                  addEntry(selectedKey)
+                  selectedKey = ''
+                }
+              } else {
+                addEntry(newKeyInput.trim())
               }
-            } else {
-              addEntry(newKeyInput.trim())
-            }
-          }}
-          disabled={disabled ||
-            (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}
-        >
-          <IconPlus class="size-4" />
-          Add
-        </Button>
+            }}
+            disabled={disabled ||
+              (keyEnumValues ? !selectedKey : !newKeyInput.trim() || isDuplicateKey)}
+          >
+            <IconPlus class="size-4" />
+            Add
+          </Button>
+        </div>
       </div>
       {#if isDuplicateKey}
         <Field.Error>Key already exists</Field.Error>

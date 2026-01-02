@@ -1,10 +1,10 @@
 <script lang="ts">
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
-  import { showApiError, toast } from '$lib'
-  import { Spinner } from '$lib/components'
+  import { isAuthenticated, showApiError, toast } from '$lib'
+  import { Button, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
-  import { IconCheck, IconClockFilled, IconSend } from '$lib/icons'
+  import { IconCheck, IconClockFilled, IconLogin, IconSend } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
 
   interface Props {
@@ -52,45 +52,52 @@
   }
 </script>
 
-<form class="flex flex-col gap-2" onsubmit={handleSubmit}>
-  <div class="flex h-12 gap-2">
-    {#if isSolved}
-      <div
-        class="bg-background-success text-foreground-success flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
-      >
-        <IconCheck class="size-6 shrink-0" />
-        <span class="truncate text-xl">Challenge solved!</span>
-      </div>
-    {:else if isCtfEnded}
-      <div
-        class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
-      >
-        <IconClockFilled class="size-6 shrink-0" />
-        <span class="truncate text-xl">The CTF has ended.</span>
-      </div>
-    {:else}
-      <input
-        type="text"
-        placeholder={'flag{...}'}
-        autocomplete="off"
-        autocorrect="off"
-        spellcheck="false"
-        class="bg-background-l4 text-foreground-l3 placeholder:text-foreground-l3 h-full min-w-0 flex-1 rounded-lg px-3 py-3.5 font-mono text-xl outline-none"
-        bind:value={form.data.flag}
-        disabled={form.submitting}
-        aria-invalid={!!form.errors._form || undefined}
-      />
-    {/if}
-    <button
-      type="submit"
-      disabled={form.submitting || isSolved || isCtfEnded}
-      class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
-    >
-      {#if form.submitting}
-        <Spinner class="size-6" />
+{#if !isAuthenticated()}
+  <Button href="/login" class="h-12 gap-2 text-xl">
+    <IconLogin class="size-5" />
+    Login to submit
+  </Button>
+{:else}
+  <form class="flex flex-col gap-2" onsubmit={handleSubmit}>
+    <div class="flex h-12 gap-2">
+      {#if isSolved}
+        <div
+          class="bg-background-success text-foreground-success flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
+        >
+          <IconCheck class="size-6 shrink-0" />
+          <span class="truncate text-xl">Challenge solved!</span>
+        </div>
+      {:else if isCtfEnded}
+        <div
+          class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
+        >
+          <IconClockFilled class="size-6 shrink-0" />
+          <span class="truncate text-xl">The CTF has ended.</span>
+        </div>
       {:else}
-        <IconSend class="size-6" />
+        <input
+          type="text"
+          placeholder={'flag{...}'}
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          class="bg-background-l4 text-foreground-l3 placeholder:text-foreground-l3 h-full min-w-0 flex-1 rounded-lg px-3 py-3.5 font-mono text-xl outline-none"
+          bind:value={form.data.flag}
+          disabled={form.submitting}
+          aria-invalid={!!form.errors._form || undefined}
+        />
       {/if}
-    </button>
-  </div>
-</form>
+      <button
+        type="submit"
+        disabled={form.submitting || isSolved || isCtfEnded}
+        class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {#if form.submitting}
+          <Spinner class="size-6" />
+        {:else}
+          <IconSend class="size-6" />
+        {/if}
+      </button>
+    </div>
+  </form>
+{/if}

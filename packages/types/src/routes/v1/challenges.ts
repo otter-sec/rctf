@@ -16,13 +16,12 @@ import {
   GoodFlag,
 } from '../../responses'
 
-// TODO(es3n1n): i dont like the idea of loginwalling challenges
 export const GetChallengesRoute = defineRoute({
   path: '/v1/challs',
   method: 'GET',
   goodResponses: [GoodChallenges],
-  badResponses: [BadNotStarted, BadToken],
-  authRequired: true,
+  badResponses: [BadNotStarted],
+  authRequired: false,
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
@@ -57,8 +56,8 @@ export const GetChallengeSolvesRoute = defineRoute({
   path: '/v1/challs/:id/solves',
   method: 'GET',
   goodResponses: [GoodChallengeSolves],
-  badResponses: [BadNotStarted, BadChallenge, BadToken, BadBody],
-  authRequired: true,
+  badResponses: [BadNotStarted, BadChallenge, BadBody],
+  authRequired: false,
   params: z.object({
     id: z.string(),
   }),
