@@ -221,7 +221,7 @@ export const getChallengeSolvesWithPosition = async (
   db: DatabaseClient,
   redis: TypedRedis,
   challengeId: string,
-  userId: string,
+  userId: string | null,
   limit: number,
   offset: number
 ): Promise<ChallengeSolvesWithPosition> => {

@@ -21,7 +21,7 @@ challsGroup.route(
         ctx.var.db,
         ctx.var.redis,
         params.id,
-        user.id,
+        user?.id ?? null,
         query.limit,
         query.offset
       )
