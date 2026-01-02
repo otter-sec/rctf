@@ -7,7 +7,7 @@
   import { clearToken } from '$lib/api'
   import wordmarkDark from '$lib/assets/wordmark-dark.svg'
   import wordmarkLight from '$lib/assets/wordmark-light.svg'
-  import { Sheet, ThemeToggle } from '$lib/components'
+  import { Sheet, ThemeToggle, Tooltip } from '$lib/components'
   import {
     IconChartAreaLineFilled,
     IconCopy,
@@ -158,18 +158,28 @@
 
       {#if user}
         <div class="flex items-center gap-2">
-          <button
-            onclick={copyTeamToken}
-            class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
-          >
-            <IconCopy class="text-foreground-l2 size-6" />
-          </button>
-          <button
-            onclick={handleLogout}
-            class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
-          >
-            <IconLogout class="text-foreground-l2 size-6" />
-          </button>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <button
+                onclick={copyTeamToken}
+                class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
+              >
+                <IconCopy class="text-foreground-l2 size-6" />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>Copy team token</Tooltip.Content>
+          </Tooltip.Root>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <button
+                onclick={handleLogout}
+                class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
+              >
+                <IconLogout class="text-foreground-l2 size-6" />
+              </button>
+            </Tooltip.Trigger>
+            <Tooltip.Content>Log out</Tooltip.Content>
+          </Tooltip.Root>
         </div>
       {:else}
         <button

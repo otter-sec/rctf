@@ -2,7 +2,6 @@
   import { ExposeKind, type InstancerConfig } from '@rctf/types'
   import {
     Button,
-    Checkbox,
     Field,
     Input,
     SchemaForm,
@@ -11,7 +10,8 @@
     Spinner,
     Textarea,
   } from '$lib/components'
-  import { IconPlus, IconTrashFilled } from '$lib/icons'
+  import { IconPlus, IconTrashFilled, IconX } from '$lib/icons'
+  import { cn } from '$lib/utils'
   import { useInstancerSchema } from '$lib/query'
   import * as yaml from 'yaml'
 
@@ -36,6 +36,7 @@
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
   let schemaFormValid = $state(true)
+  let selectedExposeIndex = $state(0)
 
   $effect(() => {
     if (!config) {
@@ -46,6 +47,14 @@
       isValid = schemaFormValid
     }
   })
+
+  $effect(() => {
+    if (config && selectedExposeIndex >= config.expose.length) {
+      selectedExposeIndex = Math.max(0, config.expose.length - 1)
+    }
+  })
+
+  const selectedExpose = $derived(config?.expose[selectedExposeIndex])
 
   function enterAdvancedMode() {
     if (config?.config) {
@@ -123,6 +132,9 @@
         },
       ],
     }))
+    if (config) {
+      selectedExposeIndex = config.expose.length
+    }
   }
 
   function removeExpose(i: number) {
@@ -169,7 +181,7 @@
       </Field.Field>
 
       {#if config}
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
           <Field.Field>
             <Field.Label>Integration ID</Field.Label>
             <Input
@@ -243,103 +255,176 @@
     </Section.Root>
 
     <Section.Root>
-      <Section.Header class="flex items-center justify-between">
-        <span>Exposed ports</span>
-        <Button size="sm" onclick={addExpose} disabled={isDisabled}>
-          <IconPlus class="size-4" />
-          Add
-        </Button>
-      </Section.Header>
-      {#if config.expose.length}
-        <div class="divide-border divide-y">
-          {#each config.expose as exp, i (i)}
-            <div class="flex flex-wrap items-center gap-3 px-4 py-2">
-              <Input
-                type="text"
-                placeholder="host prefix"
-                class="w-36 font-mono text-sm"
-                value={exp.hostPrefix}
-                oninput={e => updateExpose(i, { hostPrefix: e.currentTarget.value })}
-                disabled={isDisabled}
-              />
-
-              <Select.Root
-                type="single"
-                value={exp.kind}
-                onValueChange={v => updateExpose(i, { kind: v as ExposeKind })}
-                disabled={isDisabled}
+      <Section.Header>Exposed ports</Section.Header>
+      <Section.Content class="@container/panel p-0">
+        <div class="flex min-h-48 flex-col @md/panel:flex-row">
+          <div
+            class="flex w-full shrink-0 flex-col border-b-2 @md/panel:w-44 @md/panel:border-r-2 @md/panel:border-b-0"
+          >
+            <div class="sticky top-0 z-20">
+              <div
+                class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
               >
-                <Select.Trigger class="w-24">{exp.kind}</Select.Trigger>
-                <Select.Content>
-                  {#each Object.values(ExposeKind) as kind}
-                    <Select.Item value={kind} label={kind}>{kind}</Select.Item>
+                {#if config.expose.length === 0}
+                  <p class="text-foreground-l4 px-2 py-1.5 text-sm">No ports</p>
+                {:else}
+                  {#each config.expose as exp, i (i)}
+                    {@const active = selectedExposeIndex === i}
+                    <div
+                      class={cn(
+                        'group flex max-w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-sm @md/panel:w-full @md/panel:gap-2',
+                        active
+                          ? 'bg-background-l4 text-foreground-l0'
+                          : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
+                      )}
+                      role="button"
+                      tabindex="0"
+                      onclick={() => (selectedExposeIndex = i)}
+                      onkeydown={e =>
+                        (e.key === 'Enter' || e.key === ' ') &&
+                        (e.preventDefault(), (selectedExposeIndex = i))}
+                    >
+                      <span class="truncate font-mono @md/panel:min-w-0 @md/panel:flex-1">
+                        {exp.hostPrefix || `Port ${i + 1}`}
+                      </span>
+                      <span class="text-foreground-l5 hidden shrink-0 text-xs @md/panel:block"
+                        >{exp.kind}</span
+                      >
+                      <button
+                        type="button"
+                        class={cn(
+                          'hover:bg-background-destructive hover:text-foreground-destructive shrink-0 rounded p-0.5',
+                          active
+                            ? 'opacity-100'
+                            : 'opacity-0 group-hover:opacity-100 @max-md/panel:opacity-100'
+                        )}
+                        onclick={e => (e.stopPropagation(), removeExpose(i))}
+                        disabled={isDisabled}
+                      >
+                        <IconX class="size-3" />
+                      </button>
+                    </div>
                   {/each}
-                </Select.Content>
-              </Select.Root>
-
-              <span class="text-foreground-l4">→</span>
-
-              <Input
-                type="text"
-                placeholder="container"
-                class="w-28 font-mono text-sm"
-                value={exp.containerName}
-                oninput={e => updateExpose(i, { containerName: e.currentTarget.value })}
-                disabled={isDisabled}
-              />
-
-              <span class="text-foreground-l4">:</span>
-
-              <Input
-                type="number"
-                min={1}
-                max={65535}
-                placeholder="Port"
-                class="w-20"
-                value={exp.containerPort}
-                oninput={e => updateExpose(i, { containerPort: +e.currentTarget.value })}
-                disabled={isDisabled}
-              />
-
-              <div class="flex-1"></div>
-
-              <Input
-                type="text"
-                placeholder="title (optional)"
-                class="w-32 text-sm"
-                value={exp.title ?? ''}
-                oninput={e => updateExpose(i, { title: e.currentTarget.value || undefined })}
-                disabled={isDisabled}
-              />
-
-              <label
-                class="text-foreground-l4 flex items-center gap-2 text-sm"
-                title="Show to player"
-              >
-                <Checkbox
-                  checked={exp.shouldDisplay ?? true}
-                  onCheckedChange={v => updateExpose(i, { shouldDisplay: !!v })}
-                  disabled={isDisabled}
-                />
-                <span class="hidden sm:inline">Show to players</span>
-              </label>
-
-              <Button
-                variant="destructive"
-                size="icon-sm"
-                onclick={() => removeExpose(i)}
-                disabled={isDisabled}
-              >
-                <IconTrashFilled class="text-foreground-destructive size-4" />
-              </Button>
+                {/if}
+              </div>
+              <div class="shrink-0 border-t-2 p-2">
+                <Button size="sm" class="w-full" onclick={addExpose} disabled={isDisabled}>
+                  <IconPlus class="size-4" />
+                  Add
+                </Button>
+              </div>
             </div>
-          {/each}
+          </div>
+          <div class="min-w-0 flex-1 p-4">
+            {#if selectedExpose}
+              <div class="flex flex-col gap-4">
+                <div class="grid grid-cols-1 gap-3 @xl/panel:grid-cols-2">
+                  <Field.Field>
+                    <Field.Label>Protocol</Field.Label>
+                    <Select.Root
+                      type="single"
+                      value={selectedExpose.kind}
+                      onValueChange={v =>
+                        updateExpose(selectedExposeIndex, { kind: v as ExposeKind })}
+                      disabled={isDisabled}
+                    >
+                      <Select.Trigger class="w-full">{selectedExpose.kind}</Select.Trigger>
+                      <Select.Content>
+                        {#each Object.values(ExposeKind) as kind}
+                          <Select.Item value={kind} label={kind}>{kind}</Select.Item>
+                        {/each}
+                      </Select.Content>
+                    </Select.Root>
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Host prefix</Field.Label>
+                    <Input
+                      type="text"
+                      placeholder="my-challenge"
+                      class="font-mono text-sm"
+                      value={selectedExpose.hostPrefix}
+                      oninput={e =>
+                        updateExpose(selectedExposeIndex, { hostPrefix: e.currentTarget.value })}
+                      disabled={isDisabled}
+                    />
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Container name</Field.Label>
+                    <Input
+                      type="text"
+                      placeholder="app"
+                      class="font-mono text-sm"
+                      value={selectedExpose.containerName}
+                      oninput={e =>
+                        updateExpose(selectedExposeIndex, { containerName: e.currentTarget.value })}
+                      disabled={isDisabled}
+                    />
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Container port</Field.Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={65535}
+                      placeholder="80"
+                      class="font-mono"
+                      value={selectedExpose.containerPort}
+                      oninput={e =>
+                        updateExpose(selectedExposeIndex, {
+                          containerPort: +e.currentTarget.value,
+                        })}
+                      disabled={isDisabled}
+                    />
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Display title <Field.Hint>(optional)</Field.Hint></Field.Label>
+                    <Input
+                      type="text"
+                      placeholder="Web interface"
+                      class="text-sm"
+                      value={selectedExpose.title ?? ''}
+                      oninput={e =>
+                        updateExpose(selectedExposeIndex, {
+                          title: e.currentTarget.value || undefined,
+                        })}
+                      disabled={isDisabled}
+                    />
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Visibility</Field.Label>
+                    <Select.Root
+                      type="single"
+                      value={(selectedExpose.shouldDisplay ?? true) ? 'visible' : 'hidden'}
+                      onValueChange={v =>
+                        updateExpose(selectedExposeIndex, { shouldDisplay: v === 'visible' })}
+                      disabled={isDisabled}
+                    >
+                      <Select.Trigger class="w-full">
+                        {(selectedExpose.shouldDisplay ?? true) ? 'Visible to players' : 'Hidden'}
+                      </Select.Trigger>
+                      <Select.Content>
+                        <Select.Item value="visible" label="Visible to players"
+                          >Visible to players</Select.Item
+                        >
+                        <Select.Item value="hidden" label="Hidden">Hidden</Select.Item>
+                      </Select.Content>
+                    </Select.Root>
+                  </Field.Field>
+                </div>
+              </div>
+            {:else}
+              <div class="text-foreground-l4 flex h-full items-center justify-center text-sm">
+                Add a port to get started
+              </div>
+            {/if}
+          </div>
         </div>
-      {:else}
-        <Section.Content>
-          <p class="text-foreground-l4 text-sm">No exposed ports configured.</p>
-        </Section.Content>
-      {/if}
+      </Section.Content>
     </Section.Root>
   {/if}
 </div>

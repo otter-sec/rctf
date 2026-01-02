@@ -14,7 +14,7 @@
   const otherTags = $derived((challenge as Challenge & { tags?: string[] }).tags ?? [])
 </script>
 
-<div class="flex flex-col px-5 py-4 sm:px-9 sm:py-6">
+<div class="flex flex-col px-9 py-4 sm:py-6">
   <div class="flex items-start justify-between gap-4">
     <div class="flex min-w-0 flex-1 flex-col gap-1">
       <h2 class="truncate text-xl sm:text-2xl">{challenge.name}</h2>

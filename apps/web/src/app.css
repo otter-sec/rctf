@@ -5,7 +5,7 @@
 
 @theme inline {
   --font-sans:
-    Lexend, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    Outfit, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-mono:
     Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
@@ -125,8 +125,8 @@
 }
 
 @font-face {
-  font-family: 'Lexend';
-  src: url('/fonts/Lexend-VariableFont_wght.ttf') format('truetype');
+  font-family: 'Outfit';
+  src: url('/fonts/Outfit-VariableFont_wght.ttf') format('truetype-variations');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;

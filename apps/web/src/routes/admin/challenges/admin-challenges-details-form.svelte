@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
+  import type { Snippet } from 'svelte'
   import {
     Button,
     Field,
@@ -37,6 +38,7 @@
     isDisabled: boolean
     formValid?: boolean
     instancerValid?: boolean
+    actions?: Snippet
     onShowPreview: () => void
     onFilesChange: (files: Props['files']) => void
     onInstancerConfigChange: (config: InstancerConfig | null) => void
@@ -66,6 +68,7 @@
     isDisabled,
     formValid = $bindable(true),
     instancerValid = $bindable(true),
+    actions,
     onShowPreview,
     onFilesChange,
     onInstancerConfigChange,
@@ -110,14 +113,43 @@
     formValid = isFormValid
   })
 
-  const tabClass =
+  const tabClassMobile =
+    'rounded-lg px-3 py-2 text-sm bg-background-l2 data-[state=active]:bg-background-l4 data-[state=active]:shadow-none'
+  const tabClassDesktop =
     'rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:bg-background-l2 data-[state=active]:shadow-none'
 </script>
 
-<Tabs.Root bind:value={tab} class="flex h-full min-h-0 flex-col">
-  <div class="scrollbar-none overflow-x-auto px-5">
+<Tabs.Root bind:value={tab} class="@container/form flex h-full min-h-0 flex-col">
+  <div class="px-5 pb-4 @lg/form:hidden">
+    <Tabs.List class="grid h-auto w-full grid-cols-2 gap-1.5 rounded-none bg-transparent p-0">
+      <Tabs.Trigger value="details" class={tabClassMobile}>
+        <IconFileInfoFilled class="size-4" />
+        Details
+        {#if detailsTabHasErrors}
+          <IconAlertCircleFilled class="text-foreground-destructive size-3.5" />
+        {/if}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="scoring" class={tabClassMobile}>
+        <IconFlagFilled class="size-4" />
+        Scoring
+      </Tabs.Trigger>
+      <Tabs.Trigger value="files" class={tabClassMobile}>
+        <IconFileFilled class="size-4" />
+        Files{files.length ? ` (${files.length})` : ''}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="instancer" class={tabClassMobile}>
+        <IconCloudComputingFilled class="size-4" />
+        Instancer
+        {#if !instancerValid}
+          <IconAlertCircleFilled class="text-foreground-destructive size-3.5" />
+        {/if}
+      </Tabs.Trigger>
+    </Tabs.List>
+  </div>
+
+  <div class="scrollbar-none hidden overflow-x-auto px-5 @lg/form:block">
     <Tabs.List class="h-auto w-max gap-0 rounded-none bg-transparent p-0">
-      <Tabs.Trigger value="details" class={tabClass}>
+      <Tabs.Trigger value="details" class={tabClassDesktop}>
         <IconFileInfoFilled class="size-4" />
         Details
         {#if detailsTabHasErrors}
@@ -129,15 +161,15 @@
           </Tooltip.Root>
         {/if}
       </Tabs.Trigger>
-      <Tabs.Trigger value="scoring" class={tabClass}>
+      <Tabs.Trigger value="scoring" class={tabClassDesktop}>
         <IconFlagFilled class="size-4" />
         Scoring
       </Tabs.Trigger>
-      <Tabs.Trigger value="files" class={tabClass}>
+      <Tabs.Trigger value="files" class={tabClassDesktop}>
         <IconFileFilled class="size-4" />
         Files{files.length ? ` (${files.length})` : ''}
       </Tabs.Trigger>
-      <Tabs.Trigger value="instancer" class={tabClass}>
+      <Tabs.Trigger value="instancer" class={tabClassDesktop}>
         <IconCloudComputingFilled class="size-4" />
         Instancer
         {#if !instancerValid}
@@ -152,11 +184,11 @@
     </Tabs.List>
   </div>
 
-  <div class="bg-background-l2 min-h-0 flex-1">
-    <Tabs.Content value="details" class="h-full">
-      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+  <div class="bg-background-l2 flex min-h-0 flex-1 flex-col">
+    <Tabs.Content value="details" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-8" fadeSize={64} fadeColor="background-l2">
         <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
-          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
             <Field.Field data-invalid={touched.name && errors.name ? true : undefined}>
               <Field.Label
                 >Name<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
@@ -266,10 +298,10 @@
       </ScrollArea>
     </Tabs.Content>
 
-    <Tabs.Content value="scoring" class="h-full">
-      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+    <Tabs.Content value="scoring" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-8" fadeSize={64} fadeColor="background-l2">
         <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
             <Field.Field>
               <Field.Label>Minimum points <Field.Hint>(at max solves)</Field.Hint></Field.Label>
               <Input
@@ -294,7 +326,7 @@
             </Field.Field>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
             <Field.Field>
               <Field.Label>Sort weight <Field.Hint>(higher = first)</Field.Hint></Field.Label>
               <Input
@@ -326,16 +358,16 @@
       </ScrollArea>
     </Tabs.Content>
 
-    <Tabs.Content value="files" class="h-full">
-      <ScrollArea class="h-full px-8 pt-4" fadeSize={64} fadeColor="background-l2">
+    <Tabs.Content value="files" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-8" fadeSize={64} fadeColor="background-l2">
         <div class={cn('p-1 pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsAttachments {files} {isDisabled} {onFilesChange} />
         </div>
       </ScrollArea>
     </Tabs.Content>
 
-    <Tabs.Content value="instancer" class="h-full">
-      <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
+    <Tabs.Content value="instancer" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-5" fadeSize={64} fadeColor="background-l2">
         <div class={cn('pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsInstancer
             config={instancerConfig}
@@ -346,5 +378,13 @@
         </div>
       </ScrollArea>
     </Tabs.Content>
+
+    {#if actions}
+      <div
+        class="bg-background-l2 flex shrink-0 items-center justify-end gap-2 px-5 py-3 @lg/form:px-9 @xl/form:hidden"
+      >
+        {@render actions()}
+      </div>
+    {/if}
   </div>
 </Tabs.Root>

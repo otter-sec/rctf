@@ -154,7 +154,7 @@
   }
 </script>
 
-<Field.Field>
+<Field.Field class="@container/record-inline">
   <Field.Label>
     {label}
     {#if description}
@@ -165,53 +165,57 @@
     {#each entries as [key, val] (key)}
       {@const error = errors[key]}
       <Field.Field data-invalid={!!error || undefined}>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-col gap-2 @xs/record-inline:flex-row @xs/record-inline:items-center">
           {#if keyEnumValues}
-            <span class="text-foreground-l2 w-32 font-mono text-sm">{key}</span>
+            <span class="text-foreground-l2 shrink-0 font-mono text-sm @xs/record-inline:w-32"
+              >{key}</span
+            >
           {:else}
             <Input
               type="text"
-              class="w-32 font-mono text-sm"
+              class="shrink-0 font-mono text-sm @xs/record-inline:w-32"
               bind:value={keyInputs[key]}
               onblur={() => renameEntry(key, keyInputs[key] ?? key)}
               {disabled}
             />
           {/if}
-          <span class="text-foreground-l4">=</span>
-          {#if valueSchema.type === 'boolean'}
-            <Select.Root
-              type="single"
-              value={String(val ?? false)}
-              onValueChange={v => onChange([...path, key], v === 'true')}
-              {disabled}
-            >
-              <Select.Trigger class="flex-1">{val ? 'true' : 'false'}</Select.Trigger>
-              <Select.Content>
-                <Select.Item value="true" label="true">true</Select.Item>
-                <Select.Item value="false" label="false">false</Select.Item>
-              </Select.Content>
-            </Select.Root>
-          {:else}
-            <Input
-              type="text"
-              inputmode={isNumeric ? 'decimal' : 'text'}
-              class="flex-1 font-mono text-sm"
-              value={String(val ?? '')}
-              oninput={e => handleValueInput(key, e.currentTarget.value)}
-              aria-invalid={!!error}
-              {disabled}
-            />
-          {/if}
-          {#if !disabled}
-            <Button
-              type="button"
-              size="icon"
-              variant="destructive"
-              onclick={() => removeEntry(key)}
-            >
-              <IconX class="size-4" />
-            </Button>
-          {/if}
+          <span class="text-foreground-l4 hidden @xs/record-inline:block">=</span>
+          <div class="flex min-w-0 flex-1 items-center gap-2">
+            {#if valueSchema.type === 'boolean'}
+              <Select.Root
+                type="single"
+                value={String(val ?? false)}
+                onValueChange={v => onChange([...path, key], v === 'true')}
+                {disabled}
+              >
+                <Select.Trigger class="flex-1">{val ? 'true' : 'false'}</Select.Trigger>
+                <Select.Content>
+                  <Select.Item value="true" label="true">true</Select.Item>
+                  <Select.Item value="false" label="false">false</Select.Item>
+                </Select.Content>
+              </Select.Root>
+            {:else}
+              <Input
+                type="text"
+                inputmode={isNumeric ? 'decimal' : 'text'}
+                class="min-w-0 flex-1 font-mono text-sm"
+                value={String(val ?? '')}
+                oninput={e => handleValueInput(key, e.currentTarget.value)}
+                aria-invalid={!!error}
+                {disabled}
+              />
+            {/if}
+            {#if !disabled}
+              <Button
+                type="button"
+                size="icon"
+                variant="destructive"
+                onclick={() => removeEntry(key)}
+              >
+                <IconX class="size-4" />
+              </Button>
+            {/if}
+          </div>
         </div>
         {#if error}
           <Field.Error>{error}</Field.Error>
@@ -219,7 +223,7 @@
       </Field.Field>
     {/each}
     <Field.Field data-invalid={isDuplicateKey || undefined}>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-col gap-2 @xs/record-inline:flex-row @xs/record-inline:items-center">
         {#if keyEnumValues}
           <Select.Root
             type="single"
@@ -227,7 +231,7 @@
             onValueChange={v => (selectedKey = v)}
             disabled={disabled || availableKeys.length === 0}
           >
-            <Select.Trigger class="w-32 font-mono text-sm">
+            <Select.Trigger class="shrink-0 font-mono text-sm @xs/record-inline:w-32">
               {selectedKey || 'Select key...'}
             </Select.Trigger>
             <Select.Content>
@@ -239,7 +243,7 @@
         {:else}
           <Input
             type="text"
-            class="w-32 font-mono text-sm"
+            class="shrink-0 font-mono text-sm @xs/record-inline:w-32"
             placeholder="new key"
             bind:value={newKeyInput}
             onkeydown={e => {
@@ -252,7 +256,7 @@
             {disabled}
           />
         {/if}
-        <span class="text-foreground-l4">=</span>
+        <span class="text-foreground-l4 hidden @xs/record-inline:block">=</span>
         <Button
           size="sm"
           onclick={() => {

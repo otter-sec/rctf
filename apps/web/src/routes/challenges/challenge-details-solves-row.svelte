@@ -101,7 +101,11 @@
       {#if flagFilename && countryCode && countryName}
         <Tooltip.Root>
           <Tooltip.Trigger>
-            <img src="/flags/{flagFilename}" alt="{countryCode} flag" class="h-5 w-auto shrink-0" />
+            <img
+              src="/flags/{flagFilename}"
+              alt="{countryCode} flag"
+              class="size-5 min-w-5 shrink-0"
+            />
           </Tooltip.Trigger>
           <Tooltip.Content>{countryName}</Tooltip.Content>
         </Tooltip.Root>
@@ -110,11 +114,11 @@
         <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
       {/if}
       {#if globalPlace}
-        <span class={cn('text-base', styles.fgL1)}>#{globalPlace} global</span>
+        <span class={cn('truncate text-sm sm:text-base', styles.fgL1)}>#{globalPlace} global</span>
       {/if}
       {#if showDivisionPlace}
         <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
-        <span class={cn('text-base', styles.fgL1)}>#{divisionPlace} {divisionId}</span>
+        <span class={cn('text-sm sm:text-base', styles.fgL1)}>#{divisionPlace} {divisionId}</span>
       {/if}
     </div>
   </div>
@@ -125,7 +129,7 @@
         {@render children()}
       {:else}
         {#if primaryValue}
-          <span class="text-foreground-l1 text-base tabular-nums sm:text-xl">
+          <span class="text-foreground-l1 text-lg tabular-nums sm:text-xl">
             {primaryValue}
           </span>
         {/if}

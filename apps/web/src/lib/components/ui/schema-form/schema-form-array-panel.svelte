@@ -43,7 +43,7 @@
         {@const active = selectedIndex === i}
         <div
           class={cn(
-            'group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm',
+            'group flex max-w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-sm @md/panel:w-full @md/panel:gap-2',
             active
               ? 'bg-background-l4 text-foreground-l0'
               : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
@@ -54,12 +54,14 @@
           onkeydown={e =>
             (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), (selectedIndex = i))}
         >
-          <span class="flex-1 truncate">{getItemLabel(item, i, label)}</span>
+          <span class="truncate @md/panel:min-w-0 @md/panel:flex-1"
+            >{getItemLabel(item, i, label)}</span
+          >
           <button
             type="button"
             class={cn(
-              'hover:bg-background-destructive hover:text-foreground-destructive rounded p-0.5',
-              active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              'hover:bg-background-destructive hover:text-foreground-destructive shrink-0 rounded p-0.5',
+              active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 @max-md/panel:opacity-100'
             )}
             onclick={e => (e.stopPropagation(), remove(i))}
             {disabled}

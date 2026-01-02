@@ -14,11 +14,15 @@
 
 <Section.Root>
   <Section.Header>{label}</Section.Header>
-  <Section.Content class="p-0">
-    <div class="flex min-h-48">
-      <div class="flex w-44 shrink-0 flex-col border-r-2">
+  <Section.Content class="@container/panel p-0">
+    <div class="flex min-h-48 flex-col @md/panel:flex-row">
+      <div
+        class="flex w-full shrink-0 flex-col border-b-2 @md/panel:w-44 @md/panel:border-r-2 @md/panel:border-b-0"
+      >
         <div class="sticky top-0 z-20">
-          <div class="flex flex-col gap-0.5 p-2">
+          <div
+            class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
+          >
             {@render sidebar()}
           </div>
           <div class="shrink-0 border-t-2 p-2">
@@ -26,7 +30,7 @@
           </div>
         </div>
       </div>
-      <div class="flex-1 p-4">
+      <div class="min-w-0 flex-1 p-4">
         {@render content()}
       </div>
     </div>

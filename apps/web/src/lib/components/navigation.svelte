@@ -157,17 +157,19 @@
           {/key}
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Content align="end" class="w-56 border-2">
-          <DropdownMenu.Item onclick={copyTeamToken}>
+        <DropdownMenu.Content align="end" class="bg-background-l4 w-56 border-none">
+          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={copyTeamToken}>
             Copy team token
             <IconCopy class="ml-auto size-5" />
           </DropdownMenu.Item>
-          <DropdownMenu.Item onclick={() => goto('/profile')}>
+          <DropdownMenu.Item
+            class="data-highlighted:bg-background-l5"
+            onclick={() => goto('/profile')}
+          >
             Manage team
             <IconUserCog class="ml-auto size-5" />
           </DropdownMenu.Item>
-          <DropdownMenu.Separator class="border" />
-          <DropdownMenu.Item onclick={handleLogout}>
+          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={handleLogout}>
             Log out
             <IconLogout class="ml-auto size-5" />
           </DropdownMenu.Item>

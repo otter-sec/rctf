@@ -32,6 +32,12 @@
     wasMobile = isMobile
   })
 
+  $effect(() => {
+    if (isMobile && !selectedId && !isCreating) {
+      drawerOpen = false
+    }
+  })
+
   function handleSelect(challenge: AdminChallenge | null) {
     if (challenge) {
       send({ type: 'SELECT', challenge })
