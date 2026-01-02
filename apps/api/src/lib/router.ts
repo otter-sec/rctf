@@ -239,6 +239,8 @@ export const declareRouter = <
 
     const requiresAuth =
       definition.authRequired || (definition.permissions ?? 0) !== 0
+    const wantsOptionalAuth = definition.optionalAuth === true
+
     if (requiresAuth) {
       user = await getAuthenticatedUser(context)
       if (!user) {
@@ -251,6 +253,8 @@ export const declareRouter = <
       ) {
         return context.json(...respond.accessDenied())
       }
+    } else if (wantsOptionalAuth) {
+      user = await getAuthenticatedUser(context)
     }
 
     if (
@@ -367,6 +371,7 @@ export const declareRouter = <
         typeof definition
       >,
       ...(requiresAuth ? { user: user as User } : {}),
+      ...(wantsOptionalAuth ? { user } : {}),
     } as RouteHandlerArgs<ApiContext, User, typeof definition>
 
     const result = await handler(handlerArgs)

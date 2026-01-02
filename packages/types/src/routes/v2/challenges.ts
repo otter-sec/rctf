@@ -24,7 +24,7 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   method: 'GET',
   goodResponses: [GoodChallengeSolvesV2],
   badResponses: [BadNotStarted, BadChallenge, BadBody],
-  authRequired: false,
+  optionalAuth: true,
   params: z.object({
     id: z.string(),
   }),

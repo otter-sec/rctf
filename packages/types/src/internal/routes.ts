@@ -17,6 +17,7 @@ export interface RouteConfig {
   goodResponses: ResponseCollection
   badResponses?: ResponseCollection
   authRequired?: boolean
+  optionalAuth?: boolean
   body?: Schema
   params?: Schema
   query?: Schema
@@ -39,6 +40,9 @@ export interface RouteDefinition<T extends RouteConfig = RouteConfig> {
     : readonly []
   readonly authRequired: T['authRequired'] extends boolean
     ? T['authRequired']
+    : false
+  readonly optionalAuth: T['optionalAuth'] extends boolean
+    ? T['optionalAuth']
     : false
   readonly params: T['params']
   readonly query: T['query']
@@ -71,6 +75,8 @@ export function defineRoute<const T extends RouteConfig>(
       []) as RouteDefinition<T>['badResponses'],
     authRequired: (config.authRequired ??
       false) as RouteDefinition<T>['authRequired'],
+    optionalAuth: (config.optionalAuth ??
+      false) as RouteDefinition<T>['optionalAuth'],
     params: config.params,
     query: config.query,
     permissions: config.permissions,
@@ -112,8 +118,15 @@ type RequiresAuth<T extends AnyRouteDefinition> = T['authRequired'] extends true
     ? true
     : false
 
+type HasOptionalAuth<T extends AnyRouteDefinition> =
+  T['optionalAuth'] extends true ? true : false
+
 type AuthFields<T extends AnyRouteDefinition, TUser> =
-  RequiresAuth<T> extends true ? { user: TUser } : {}
+  RequiresAuth<T> extends true
+    ? { user: TUser }
+    : HasOptionalAuth<T> extends true
+      ? { user: TUser | undefined }
+      : {}
 
 export type RouteHandlerContext<
   TContext,
