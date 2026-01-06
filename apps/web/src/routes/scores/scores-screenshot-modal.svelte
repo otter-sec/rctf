@@ -126,13 +126,6 @@
 
       const dataUrl = await exportFn(container, {
         scale: exportSettings.scale,
-        fetch: {
-          requestInit: {
-            mode: 'no-cors',
-            cache: 'no-cache',
-          },
-          bypassingCache: true,
-        },
       })
 
       const timestamp = new Date().toISOString().slice(0, 10)
