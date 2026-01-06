@@ -414,19 +414,19 @@ export function useLeaderboardWithGraph(params: {
   return createQuery(leaderboardWithGraphQueryOptions(params))
 }
 
-export function useInfiniteLeaderboard(params: {
+export function useInfiniteLeaderboardWithGraph(params: {
   pageSize: number
   division?: string
 }) {
   return createInfiniteQuery({
-    queryKey: ['leaderboard', 'infinite', params] as const,
+    queryKey: ['leaderboard', 'graph', 'infinite', params] as const,
     queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiRequest(GetLeaderboardRouteV2, {
+      const response = await apiRequest(GetLeaderboardWithGraphRoute, {
         limit: params.pageSize,
         offset: pageParam,
         division: params.division,
       })
-      if (response.kind === GoodLeaderboardV2.kind) {
+      if (response.kind === GoodLeaderboardWithGraph.kind) {
         return { ...response.data, offset: pageParam }
       }
       throw new ApiError(response.kind, response.message)
@@ -449,34 +449,6 @@ export function useTopGraphData(params: { limit?: number; division?: string }) {
       division: params.division,
     })
   )
-}
-
-export function useInfiniteGraphData(params: {
-  pageSize?: number
-  division?: string
-}) {
-  const pageSize = params.pageSize ?? 10
-  return createInfiniteQuery({
-    queryKey: ['leaderboard', 'graph', 'infinite', params] as const,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiRequest(GetLeaderboardGraphRouteV2, {
-        limit: pageSize,
-        offset: pageParam,
-        division: params.division,
-      })
-      if (response.kind === GoodLeaderboardGraph.kind) {
-        return { graph: response.data.graph, offset: pageParam }
-      }
-      throw new ApiError(response.kind, response.message)
-    },
-    initialPageParam: 0,
-    getNextPageParam: lastPage => {
-      if (lastPage.graph.length < pageSize) return undefined
-      return lastPage.offset + pageSize
-    },
-    refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000,
-  })
 }
 
 export function useLeaderboardChallenges() {

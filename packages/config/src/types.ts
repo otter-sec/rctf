@@ -140,6 +140,7 @@ export const ServerConfigSchema = z.object({
       updateInterval: z.prefault(z.number(), 10_000), // 10s
       graphMaxTeams: z.prefault(z.number(), 10),
       graphSampleTime: z.prefault(z.number(), 1_800_000), // 30min
+      graphWithListLimit: z.prefault(z.number(), 100),
     }),
     {}
   ),

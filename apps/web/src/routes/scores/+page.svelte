@@ -9,8 +9,7 @@
     ApiError,
     useClientConfig,
     useCurrentUser,
-    useInfiniteGraphData,
-    useInfiniteLeaderboard,
+    useInfiniteLeaderboardWithGraph,
     useLeaderboardChallenges,
     useSelfUserGraph,
   } from '$lib/query'
@@ -124,29 +123,19 @@
     }
   })
 
-  const leaderboardQuery = useInfiniteLeaderboard({ pageSize: LEADERBOARD_PAGE_SIZE })
+  const leaderboardQuery = useInfiniteLeaderboardWithGraph({ pageSize: LEADERBOARD_PAGE_SIZE })
   const challengesQuery = $derived(useLeaderboardChallenges())
-  // TODO(enscribe): fix the 'catchup game' issue when scrolling too fast
-  const graphQuery = useInfiniteGraphData({ pageSize: 10 })
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
   let screenshotModalOpen = $state(false)
 
-  $effect(() => {
-    if (screenshotModalOpen && $graphQuery.hasNextPage && !$graphQuery.isFetchingNextPage) {
-      const currentCount = $graphQuery.data?.pages.flatMap(p => p.graph).length ?? 0
-      if (currentCount < 50) {
-        $graphQuery.fetchNextPage()
-      }
-    }
-  })
-
   const entries = $derived($leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
+  const allGraphData = $derived($leaderboardQuery.data?.pages.flatMap(p => p.graph) ?? [])
   const total = $derived($leaderboardQuery.data?.pages[0]?.total ?? 0)
+
   const currentUser = $derived($userQuery.data)
   const challengesData = $derived($challengesQuery.data ?? {})
-  const allGraphData = $derived($graphQuery.data?.pages.flatMap(p => p.graph) ?? [])
 
   const mergeWithSelfGraph = <T extends { id: string }>(
     data: T[],
@@ -402,32 +391,12 @@
     })
   }
 
-  function maybeLoadMoreGraphData() {
-    if ($graphQuery.isFetchingNextPage || !$graphQuery.hasNextPage) return
-
-    const virtualItems = scroll.virtualItems
-    if (virtualItems.length === 0) return
-
-    const maxVisibleIndex = Math.max(...virtualItems.map(item => item.index))
-    const loadedGraphCount = allGraphData.length
-    const threshold = 5
-
-    if (maxVisibleIndex >= loadedGraphCount - threshold) {
-      $graphQuery.fetchNextPage()
-    }
-  }
-
-  function handleScroll(metrics: ScrollMetrics) {
-    updateFades(metrics)
-    maybeLoadMoreGraphData()
-  }
-
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 5,
     isScrollingResetDelay: 100,
     onLoadMore: () => $leaderboardQuery.fetchNextPage(),
-    onScroll: handleScroll,
+    onScroll: updateFades,
   })
 
   const contentWidth = $derived.by(() => {

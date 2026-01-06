@@ -9,11 +9,7 @@ leaderboardGroup.route(
   async ({ ctx, res, query: { limit, offset, division } }) => {
     // NOTE: Handling manually because the value is loaded from config
     if (
-      limit >
-        Math.min(
-          config.leaderboard.graphMaxTeams,
-          config.leaderboard.maxLimit
-        ) ||
+      limit > config.leaderboard.graphWithListLimit ||
       offset > config.leaderboard.maxOffset
     ) {
       return res.badBody({
