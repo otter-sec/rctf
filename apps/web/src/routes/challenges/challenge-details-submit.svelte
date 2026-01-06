@@ -52,7 +52,16 @@
   }
 </script>
 
-{#if !isAuthenticated()}
+{#if isCtfEnded}
+  <div class="flex h-12 gap-2">
+    <div
+      class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
+    >
+      <IconClockFilled class="size-6 shrink-0" />
+      <span class="truncate text-xl">The CTF has ended.</span>
+    </div>
+  </div>
+{:else if !isAuthenticated()}
   <Button href="/login" class="h-12 gap-2 text-xl">
     <IconLogin class="size-5" />
     Login to submit
@@ -66,13 +75,6 @@
         >
           <IconCheck class="size-6 shrink-0" />
           <span class="truncate text-xl">Challenge solved!</span>
-        </div>
-      {:else if isCtfEnded}
-        <div
-          class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
-        >
-          <IconClockFilled class="size-6 shrink-0" />
-          <span class="truncate text-xl">The CTF has ended.</span>
         </div>
       {:else}
         <input
@@ -89,7 +91,7 @@
       {/if}
       <button
         type="submit"
-        disabled={form.submitting || isSolved || isCtfEnded}
+        disabled={form.submitting || isSolved}
         class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
       >
         {#if form.submitting}
