@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { domToPng, domToJpeg, domToSvg, domToWebp } from 'modern-screenshot'
+  import { domToPng, domToJpeg, domToWebp } from 'modern-screenshot'
   import {
     Button,
     Checkbox,
@@ -13,7 +13,6 @@
     Tooltip,
   } from '$lib/components'
   import { IconDownload, IconX } from '$lib/icons'
-  import { cn } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import ScoresScreenshotPreview, {
     type ScreenshotOptions,
@@ -81,7 +80,6 @@
     { value: 'png' as const, label: 'PNG' },
     { value: 'jpeg' as const, label: 'JPEG' },
     { value: 'webp' as const, label: 'WebP' },
-    { value: 'svg' as const, label: 'SVG' },
   ] as const
 
   let options = $state<ScreenshotOptions>({
@@ -103,7 +101,7 @@
 
   let exportSettings = $state({
     scale: 2,
-    format: 'png' as 'png' | 'jpeg' | 'webp' | 'svg',
+    format: 'png' as 'png' | 'jpeg' | 'webp',
   })
 
   async function handleExport() {
@@ -124,17 +122,17 @@
         png: domToPng,
         jpeg: domToJpeg,
         webp: domToWebp,
-        svg: domToSvg,
       }
       const exportFn = exportFns[exportSettings.format]
 
       const dataUrl = await exportFn(container, {
         scale: exportSettings.scale,
-        backgroundColor: '#0f0f0f',
-        quality: exportSettings.format === 'jpeg' || exportSettings.format === 'webp' ? 0.95 : 1,
-        style: {
-          transform: 'scale(1)',
-          transformOrigin: 'top left',
+        fetch: {
+          requestInit: {
+            mode: 'no-cors',
+            cache: 'no-cache',
+          },
+          bypassingCache: true,
         },
       })
 
@@ -143,6 +141,7 @@
       link.download = `leaderboard-${timestamp}.${exportSettings.format}`
       link.href = dataUrl
       link.click()
+      link.remove()
 
       toast.success('Screenshot exported successfully!')
     } catch (err) {
@@ -173,7 +172,7 @@
 
   function handleFormatChange(value: string | undefined) {
     if (value) {
-      exportSettings.format = value as 'png' | 'jpeg' | 'webp' | 'svg'
+      exportSettings.format = value as 'png' | 'jpeg' | 'webp'
     }
   }
 </script>
