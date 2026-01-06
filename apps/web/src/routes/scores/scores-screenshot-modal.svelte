@@ -111,7 +111,6 @@
     }
 
     isExporting = true
-
     try {
       const container = previewRef.querySelector('[data-screenshot-container]') as HTMLElement
       if (!container) {
@@ -136,12 +135,21 @@
         },
       })
 
-      const link = document.createElement('a')
       const timestamp = new Date().toISOString().slice(0, 10)
-      link.download = `leaderboard-${timestamp}.${exportSettings.format}`
-      link.href = dataUrl
+      const filename = `leaderboard-${timestamp}.${exportSettings.format}`
+
+      // Needed for webkit
+      const response = await fetch(dataUrl)
+      const blob = await response.blob()
+      const objectUrl = URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.download = filename
+      link.href = objectUrl
       link.click()
       link.remove()
+
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
 
       toast.success('Screenshot exported successfully!')
     } catch (err) {
