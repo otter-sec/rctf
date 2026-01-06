@@ -144,12 +144,6 @@ export const challengesQueryOptions = queryOptions({
     if (response.kind === GoodChallengesV2.kind) {
       return response.data
     }
-    if (response.kind === BadToken.kind) {
-      throw new ApiError(
-        response.kind,
-        'You need to be logged in to view challenges'
-      )
-    }
     throw new ApiError(response.kind, response.message)
   },
   refetchInterval: 30 * 1000,
