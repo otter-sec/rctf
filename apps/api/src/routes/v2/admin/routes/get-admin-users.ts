@@ -5,16 +5,8 @@ import adminGroup from '../group'
 adminGroup.route(
   GetAdminUsersRouteV2,
   async ({ ctx, res, query: { limit, offset } }) => {
-    const { total, users } = await getAllUsersWithScores(
-      ctx.var.db,
-      ctx.var.redis,
-      limit,
-      offset
+    return res.goodAdminUsers(
+      await getAllUsersWithScores(ctx.var.db, ctx.var.redis, limit, offset)
     )
-
-    return res.goodAdminUsers({
-      total,
-      users,
-    })
   }
 )
