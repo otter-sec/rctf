@@ -17,7 +17,7 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { count, desc, eq, or } from 'drizzle-orm'
+import { asc, count, eq, or } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
 import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
@@ -363,7 +363,7 @@ export const getAllUsersWithScores = async (
       .from(users)
       .leftJoin(solves, eq(users.id, solves.userid))
       .groupBy(users.id)
-      .orderBy(desc(users.createdAt))
+      .orderBy(asc(users.createdAt))
       .limit(limit)
       .offset(offset),
   ])
