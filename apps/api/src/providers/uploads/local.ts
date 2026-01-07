@@ -21,7 +21,6 @@ export default class LocalProvider extends UploadProvider {
       '/uploads/*',
       serveStatic({
         root: this.uploadDirectory,
-        precompressed: true,
         rewriteRequestPath: p => p.replace(/^\/uploads/, ''),
         onFound: (_path, ctx) => {
           ctx.res.headers.set(
