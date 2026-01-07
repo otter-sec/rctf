@@ -17,7 +17,6 @@ export type Solve = InferInsertModel<typeof schema.solves>
 export type User = InferInsertModel<typeof schema.users>
 export type UserMember = InferInsertModel<typeof schema.userMembers>
 
-// FIXME(es3n1n): shared type for db config
 export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient
   if (typeof params === 'string') {

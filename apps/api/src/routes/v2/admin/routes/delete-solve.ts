@@ -6,7 +6,7 @@ import adminGroup from '../group'
 adminGroup.route(DeleteChallengeSolveRouteV2, async ({ res, ctx, params }) => {
   const deletedSolve = await deleteSolve(ctx.var.db, params)
   if (!deletedSolve.length) {
-    // TODO: It would be nice to know if it was specifically challenge id / user id missing?
+    // TODO(trixter-osec): It would be nice to know if it was specifically challenge id / user id missing?
     return res.badUnknownSolve()
   }
 

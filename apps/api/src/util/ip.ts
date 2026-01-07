@@ -61,7 +61,12 @@ function getForwardedFor(ctx: Context, remoteIp: string | undefined): string[] {
 }
 
 export function getIp(ctx: Context): string | undefined {
-  const remoteIp = getConnInfo(ctx).remote.address
+  let remoteIp = getConnInfo(ctx).remote.address
+  // FIXME(es3n1n): is there a better way?
+  if (remoteIp?.startsWith('::ffff:')) {
+    remoteIp = remoteIp.slice(7)
+  }
+
   if (config.proxy.cloudflare) {
     return ctx.req.header('cf-connecting-ip') ?? remoteIp
   }

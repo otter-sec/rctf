@@ -1,5 +1,5 @@
 # terraform init && terraform apply -var="region=eu-west-3" -var="bucket_name=[...]"
-# TODO: CORS
+# TODO(es3n1n): CORS
 
 terraform {
   required_providers {
