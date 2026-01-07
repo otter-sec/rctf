@@ -1,6 +1,9 @@
 import type { DatabaseClient, User } from '@rctf/db'
-import { users } from '@rctf/db'
+import { solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
+import { count, eq, or } from 'drizzle-orm'
+import { getFullLeaderboard } from '../cache/leaderboard'
+import type { TypedRedis } from '../cache/scripts'
 import type {
   BadEmailNoExists,
   BadUnknownUser,
@@ -17,9 +20,7 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { eq, or } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
-import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
 
 type CreateUserResponseHelpers = ResponseHelpers<
@@ -322,4 +323,74 @@ export const getUserByCtftimeId = async (
     .where(eq(users.ctftimeId, ctftimeId))
     .limit(1)
     .then(takeUnique)
+}
+
+export type AdminUserInfo = {
+  id: string
+  name: string
+  email: string | null
+  division: string
+  perms: number
+  score: number
+  solveCount: number
+  avatarUrl: string | null
+  countryCode: string | null
+  statusText: string | null
+  createdAt: string
+}
+
+export const getAllUsersWithScores = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  limit: number,
+  offset: number
+): Promise<{ total: number; users: AdminUserInfo[] }> => {
+  const [{ leaderboard }, countResult, dbUsers] = await Promise.all([
+    getFullLeaderboard(redis),
+    db.select({ count: count() }).from(users),
+    db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        division: users.division,
+        perms: users.perms,
+        avatarUrl: users.avatarUrl,
+        countryCode: users.countryCode,
+        statusText: users.statusText,
+        createdAt: users.createdAt,
+        solveCount: count(solves.id),
+      })
+      .from(users)
+      .leftJoin(solves, eq(users.id, solves.userid))
+      .groupBy(users.id),
+  ])
+
+  const userScores = new Map(leaderboard.map(e => [e.id, e.score]))
+
+  const sortedUsers = dbUsers
+    .map(u => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      division: u.division,
+      perms: u.perms,
+      score: userScores.get(u.id) ?? 0,
+      solveCount: u.solveCount,
+      avatarUrl: u.avatarUrl,
+      countryCode: u.countryCode,
+      statusText: u.statusText,
+      createdAt: u.createdAt,
+    }))
+    .sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score
+      if (b.solveCount !== a.solveCount) return b.solveCount - a.solveCount
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
+    .slice(offset, offset + limit)
+
+  return {
+    total: countResult[0]?.count ?? 0,
+    users: sortedUsers,
+  }
 }
