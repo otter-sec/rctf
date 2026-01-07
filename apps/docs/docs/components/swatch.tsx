@@ -1,4 +1,6 @@
-const tailwind: Record<string, string> = {
+import React from 'react'
+
+const tailwind = {
   'red-50': 'oklch(97.1% 0.013 17.38)',
   'red-100': 'oklch(93.6% 0.032 17.717)',
   'red-200': 'oklch(88.5% 0.062 18.334)',
@@ -240,7 +242,7 @@ const tailwind: Record<string, string> = {
   'stone-700': 'oklch(37.4% 0.01 67.558)',
   'stone-800': 'oklch(26.8% 0.007 34.298)',
   'stone-900': 'oklch(21.6% 0.006 56.043)',
-}
+} as const
 
 const colors: Record<string, string> = {
   ...tailwind,
