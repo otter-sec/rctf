@@ -57,7 +57,7 @@ const getChallenges = async (
   const result = new Map<string, InternalChallengeInfo>()
   for (let i = 0; i < dbChalls.length; i++) {
     const ch = dbChalls[i]
-    if (!ch) {
+    if (!ch || ch.data.hidden) {
       continue
     }
 

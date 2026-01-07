@@ -45,6 +45,7 @@ export interface ChallengeData {
   tiebreakEligible: boolean
   sortWeight?: number
   instancerConfig?: InstancerConfig
+  hidden?: boolean
 }
 
 export const challenges = pgTable(

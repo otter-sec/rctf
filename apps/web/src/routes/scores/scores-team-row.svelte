@@ -87,12 +87,14 @@
         <div class="hidden w-6 xl:block">
           <ScoresDeltaIndicator delta={data.delta} />
         </div>
-        <div class="flex w-10 flex-col items-center lg:w-16">
-          <span class={cn('text-xl tabular-nums', styles?.fgL0)}>#{data.rank ?? '?'}</span>
+        <div class="flex w-8 flex-col items-center sm:w-10 lg:w-16">
+          <span class={cn('text-base tabular-nums sm:text-xl', styles?.fgL0)}
+            >#{data.rank ?? '?'}</span
+          >
         </div>
       </div>
 
-      <Avatar.Root class="size-12 shrink-0 rounded-lg">
+      <Avatar.Root class="size-10 shrink-0 rounded-lg sm:size-12">
         {#if data.avatarUrl}
           <Avatar.Image src={data.avatarUrl} alt={data.name} class="rounded-lg" />
         {/if}
@@ -101,17 +103,20 @@
 
       <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div class="flex items-center gap-1.5">
-          <a href="/profile/{data.id}" class={cn('truncate text-xl hover:underline', styles?.fgL0)}>
+          <a
+            href="/profile/{data.id}"
+            class={cn('truncate text-lg hover:underline sm:text-xl', styles?.fgL0)}
+          >
             {data.name}
           </a>
         </div>
-        <div class="flex items-center gap-1">
+        <div class="flex min-w-0 items-center gap-1">
           {#if flagFilename && data.countryCode}
             {#if isScrolling}
               <img
                 src="/flags/{flagFilename}"
                 alt="{data.countryCode} flag"
-                class="h-5 w-auto shrink-0"
+                class="size-5 min-w-5 shrink-0"
               />
             {:else}
               <Tooltip.Root>
@@ -119,7 +124,7 @@
                   <img
                     src="/flags/{flagFilename}"
                     alt="{data.countryCode} flag"
-                    class="h-5 w-auto shrink-0"
+                    class="size-5 min-w-5 shrink-0"
                   />
                 </Tooltip.Trigger>
                 <Tooltip.Content>{data.countryCode}</Tooltip.Content>
@@ -127,20 +132,20 @@
             {/if}
           {/if}
           {#if flagFilename && data.countryCode && data.statusText}
-            <span class={cn('text-xl leading-none', styles?.fgL1)}>·</span>
+            <span class={cn('shrink-0 text-xl leading-none', styles?.fgL1)}>·</span>
           {/if}
           {#if data.statusText}
-            <span class={cn('truncate text-base', styles?.fgL1)}>{data.statusText}</span>
+            <span class={cn('truncate text-sm sm:text-base', styles?.fgL1)}>{data.statusText}</span>
           {/if}
         </div>
       </div>
 
-      <div class="flex shrink-0 items-center gap-4">
-        <div class="flex w-28 flex-col items-end">
-          <span class="text-foreground-l1 text-xl tabular-nums">
+      <div class="flex shrink-0 items-center gap-2 sm:gap-4">
+        <div class="flex flex-col items-end">
+          <span class="text-foreground-l1 text-lg whitespace-nowrap tabular-nums sm:text-xl">
             {data.score.toLocaleString()} <span class="text-foreground-l3">pts</span>
           </span>
-          <span class="text-foreground-l3 text-base">
+          <span class="text-foreground-l3 text-sm whitespace-nowrap sm:text-base">
             {data.solveCount} solve{data.solveCount !== 1 ? 's' : ''}
           </span>
         </div>

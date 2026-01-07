@@ -25,6 +25,7 @@
     IconLogin,
     IconLogout,
     IconUserCog,
+    IconUserFilled,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
@@ -98,16 +99,31 @@
         <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
       </Tooltip.Root>
       {#if isAdmin}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <NavigationButton href="/admin/challenges" activePath="/admin">
+        <DropdownMenu.Root>
+          <DropdownMenu.Trigger>
+            <NavigationButton activePath="/admin">
               {#snippet icon({ class: className })}
                 <IconGavel class={className} />
               {/snippet}
             </NavigationButton>
-          </Tooltip.Trigger>
-          <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
-        </Tooltip.Root>
+          </DropdownMenu.Trigger>
+          <DropdownMenu.Content align="start" class="bg-background-l4 w-48 border-none">
+            <DropdownMenu.Item
+              class="data-highlighted:bg-background-l5"
+              onclick={() => goto('/admin/challenges')}
+            >
+              <IconFlag3Filled class="size-5" />
+              Manage challenges
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class="data-highlighted:bg-background-l5"
+              onclick={() => goto('/admin/teams')}
+            >
+              <IconUserFilled class="size-5" />
+              Manage teams
+            </DropdownMenu.Item>
+          </DropdownMenu.Content>
+        </DropdownMenu.Root>
       {/if}
     </nav>
   </div>

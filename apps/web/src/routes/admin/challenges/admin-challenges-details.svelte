@@ -13,6 +13,7 @@
   import {
     queryKeys,
     useAdminChallenge,
+    useChallenges,
     useCurrentUser,
     useDeleteChallengeMutation,
     useUpdateChallengeMutation,
@@ -33,6 +34,7 @@
   const userQuery = useCurrentUser()
   const updateMutation = useUpdateChallengeMutation()
   const deleteMutation = useDeleteChallengeMutation()
+  const challengesQuery = useChallenges()
 
   const user = $derived($userQuery.data)
   const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
@@ -42,6 +44,10 @@
 
   const challengeDetailQuery = $derived(useAdminChallenge(challenge?.id ?? '', !!challenge?.id))
   const challengeDetail = $derived($challengeDetailQuery.data)
+
+  const totalSolves = $derived(
+    $challengesQuery.data?.find(c => c.id === challenge?.id)?.solves ?? 0
+  )
 
   let prevDetailId: string | undefined = undefined
   $effect(() => {
@@ -100,6 +106,7 @@
           sortWeight: form.sortWeight || undefined,
           files: form.files,
           instancerConfig: form.instancerConfig,
+          hidden: form.hidden,
         },
       },
       {
@@ -128,6 +135,7 @@
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
                 instancerConfig: form.instancerConfig,
+                hidden: form.hidden,
               },
             })
           } else if (response.kind === BadInstancerConfig.kind) {
@@ -273,6 +281,9 @@
           sortWeight={form.sortWeight}
           files={form.files}
           instancerConfig={form.instancerConfig}
+          hidden={form.hidden}
+          challengeId={challenge?.id ?? null}
+          {totalSolves}
           {isDisabled}
           bind:formValid
           bind:instancerValid
@@ -289,6 +300,7 @@
           onPointsMaxChange={v => updateField('pointsMax', v)}
           onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
           onSortWeightChange={v => updateField('sortWeight', v)}
+          onHiddenChange={v => updateField('hidden', v)}
         >
           {#snippet actions()}
             {#if isEditMode}

@@ -2,13 +2,16 @@ import {
   BadNotStarted,
   BadToken,
   CreateMemberRoute,
+  CreateUserTokenRouteV2,
   CtftimeCallbackRoute,
   DeleteChallengeRoute,
+  DeleteChallengeSolveRouteV2,
   DeleteCtftimeRoute,
   DeleteEmailRoute,
   DeleteMemberRoute,
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
+  GetAdminUsersRouteV2,
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
   GetClientConfigRouteV2,
@@ -23,6 +26,7 @@ import {
   GetVerifyInfoRouteV2,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  GoodAdminUsersV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
   GoodClientConfigV2,
@@ -441,6 +445,27 @@ export function useInfiniteLeaderboardWithGraph(params: {
   })
 }
 
+export function useInfiniteAdminUsers(pageSize = 100) {
+  return createInfiniteQuery({
+    queryKey: ['admin', 'users', 'infinite', pageSize] as const,
+    queryFn: async ({ pageParam = 0 }) => {
+      const response = await apiRequest(GetAdminUsersRouteV2, {
+        limit: pageSize,
+        offset: pageParam,
+      })
+      if (response.kind === GoodAdminUsersV2.kind) {
+        return { ...response.data, offset: pageParam }
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    initialPageParam: 0,
+    getNextPageParam: lastPage => {
+      const nextOffset = lastPage.offset + lastPage.users.length
+      return nextOffset < lastPage.total ? nextOffset : undefined
+    },
+  })
+}
+
 export function useTopGraphData(params: { limit?: number; division?: string }) {
   return createQuery(
     leaderboardGraphQueryOptions({
@@ -574,4 +599,12 @@ export function useCtftimeCallbackMutation() {
 
 export function useUpdateAvatarMutation() {
   return createApiMutation(UpdateAvatarRoute)
+}
+
+export function useCreateUserTokenMutation() {
+  return createApiMutation(CreateUserTokenRouteV2)
+}
+
+export function useDeleteChallengeSolveMutation() {
+  return createApiMutation(DeleteChallengeSolveRouteV2)
 }

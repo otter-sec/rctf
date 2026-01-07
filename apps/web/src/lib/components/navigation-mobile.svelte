@@ -12,12 +12,12 @@
     IconChartAreaLineFilled,
     IconCopy,
     IconFlag3Filled,
-    IconGavel,
     IconHomeFilled,
     IconLogin,
     IconLogout,
     IconMenu2,
     IconUserCog,
+    IconUserFilled,
     IconX,
   } from '$lib/icons'
   import { useCurrentUser } from '$lib/query'
@@ -90,9 +90,16 @@
     },
     {
       href: '/admin/challenges',
-      activePath: '/admin',
-      label: 'Admin',
-      icon: IconGavel,
+      activePath: '/admin/challenges',
+      label: 'Manage challenges',
+      icon: IconFlag3Filled,
+      show: isAdmin,
+    },
+    {
+      href: '/admin/teams',
+      activePath: '/admin/teams',
+      label: 'Manage teams',
+      icon: IconUserFilled,
       show: isAdmin,
     },
   ])

@@ -87,6 +87,7 @@ export { default as IconSortDescendingShapesFilled } from '@iconify-svelte/table
 export { default as IconSend } from '@iconify-svelte/tabler/send'
 export { default as IconSettings } from '@iconify-svelte/tabler/settings'
 export { default as IconSettingsFilled } from '@iconify-svelte/tabler/settings-filled'
+export { default as IconShieldFilled } from '@iconify-svelte/tabler/shield-filled'
 export { default as IconSunHighFilled } from '@iconify-svelte/tabler/sun-high-filled'
 export { default as IconFlag3Filled } from '@iconify-svelte/tabler/flag-3-filled'
 export { default as IconTrashFilled } from '@iconify-svelte/tabler/trash-filled'

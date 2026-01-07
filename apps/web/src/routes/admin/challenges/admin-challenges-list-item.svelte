@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { AdminChallenge } from '@rctf/types'
-  import { IconCloudComputingFilled } from '$lib/icons'
+  import { IconCloudComputingFilled, IconEyeClosed } from '$lib/icons'
   import { cn } from '$lib/utils'
 
   interface Props {
@@ -12,7 +12,7 @@
 
   let { challenge, category, isSelected, onSelect }: Props = $props()
 
-  const { name, author, points, files, instancerConfig } = $derived(challenge)
+  const { name, author, points, files, instancerConfig, hidden } = $derived(challenge)
 </script>
 
 <li>
@@ -42,6 +42,10 @@
       <div
         class="text-category-foreground-l1 flex items-center gap-1.5 text-base whitespace-nowrap tabular-nums opacity-75"
       >
+        {#if hidden}
+          <IconEyeClosed class="size-4" />
+          <span class="text-category-foreground-l1/50">·</span>
+        {/if}
         {#if instancerConfig}
           <IconCloudComputingFilled class="size-4" />
           <span class="text-category-foreground-l1/50">·</span>

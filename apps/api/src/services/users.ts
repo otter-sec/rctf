@@ -1,5 +1,5 @@
 import type { DatabaseClient, User } from '@rctf/db'
-import { users } from '@rctf/db'
+import { solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadEmailNoExists,
@@ -17,8 +17,9 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { eq, or } from 'drizzle-orm'
+import { asc, count, eq, or } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
+import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
 
@@ -322,4 +323,61 @@ export const getUserByCtftimeId = async (
     .where(eq(users.ctftimeId, ctftimeId))
     .limit(1)
     .then(takeUnique)
+}
+
+export type AdminUserInfo = {
+  id: string
+  name: string
+  email: string | null
+  division: string
+  perms: number
+  score: number
+  solveCount: number
+  avatarUrl: string | null
+  countryCode: string | null
+  statusText: string | null
+  createdAt: string
+}
+
+export const getAllUsersWithScores = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  limit: number,
+  offset: number
+): Promise<{ total: number; users: AdminUserInfo[] }> => {
+  const [countResult, dbUsers] = await Promise.all([
+    db.select({ count: count() }).from(users),
+    db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        division: users.division,
+        perms: users.perms,
+        avatarUrl: users.avatarUrl,
+        countryCode: users.countryCode,
+        statusText: users.statusText,
+        createdAt: users.createdAt,
+        solveCount: count(solves.id),
+      })
+      .from(users)
+      .leftJoin(solves, eq(users.id, solves.userid))
+      .groupBy(users.id)
+      .orderBy(asc(users.createdAt))
+      .limit(limit)
+      .offset(offset),
+  ])
+
+  const userScores = await getUsersScores(
+    redis,
+    dbUsers.map(u => u.id)
+  )
+
+  return {
+    total: countResult[0]?.count ?? 0,
+    users: dbUsers.map(u => ({
+      ...u,
+      score: userScores.get(u.id)?.score ?? 0,
+    })),
+  }
 }
