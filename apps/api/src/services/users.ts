@@ -17,9 +17,9 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { count, eq, or } from 'drizzle-orm'
+import { count, desc, eq, or } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
-import { getFullLeaderboard } from '../cache/leaderboard'
+import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
 
@@ -339,15 +339,13 @@ export type AdminUserInfo = {
   createdAt: string
 }
 
-// this sorts by score only, without tiebreak handling due to calcuation overhead
 export const getAllUsersWithScores = async (
   db: DatabaseClient,
   redis: TypedRedis,
   limit: number,
   offset: number
 ): Promise<{ total: number; users: AdminUserInfo[] }> => {
-  const [{ leaderboard }, countResult, dbUsers] = await Promise.all([
-    getFullLeaderboard(redis),
+  const [countResult, dbUsers] = await Promise.all([
     db.select({ count: count() }).from(users),
     db
       .select({
@@ -364,20 +362,22 @@ export const getAllUsersWithScores = async (
       })
       .from(users)
       .leftJoin(solves, eq(users.id, solves.userid))
-      .groupBy(users.id),
+      .groupBy(users.id)
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(offset),
   ])
 
-  const userScores = new Map(leaderboard.map(e => [e.id, e.score]))
-
-  const sortedUsers = dbUsers
-    .map(u => ({ ...u, score: userScores.get(u.id) ?? 0 }))
-    .sort((a, b) => {
-      if (b.score !== a.score) return b.score - a.score
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    })
+  const userScores = await getUsersScores(
+    redis,
+    dbUsers.map(u => u.id)
+  )
 
   return {
     total: countResult[0]?.count ?? 0,
-    users: sortedUsers.slice(offset, offset + limit),
+    users: dbUsers.map(u => ({
+      ...u,
+      score: userScores.get(u.id)?.score ?? 0,
+    })),
   }
 }

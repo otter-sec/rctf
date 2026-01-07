@@ -7,11 +7,12 @@
   import type { Snippet } from 'svelte'
 
   interface Props {
-    variant: RankVariant
-    rankLabel: string | number
+    variant?: RankVariant
+    rankLabel?: string | number
     name: string
     userId?: string
     avatarUrl?: string | null
+    subtitle?: string
     countryCode?: string | null
     globalPlace?: number
     primaryValue?: string
@@ -30,6 +31,7 @@
     name,
     userId,
     avatarUrl,
+    subtitle,
     countryCode,
     globalPlace,
     primaryValue,
@@ -48,7 +50,7 @@
   const countryName = $derived(
     countryCode ? (ALL_REGIONS.find(r => r.code === countryCode)?.name ?? countryCode) : null
   )
-  const styles = $derived(getRankStyles(variant))
+  const styles = $derived(getRankStyles(variant ?? 'nth'))
   const isMedal = $derived(variant === 'first' || variant === 'second' || variant === 'third')
   const isSelf = $derived(variant === 'self')
   const showGradient = $derived(isMedal || isSelf)
@@ -67,14 +69,16 @@
     className
   )}
 >
-  <span
-    class={cn(
-      'min-w-10 shrink-0 text-center text-base tabular-nums sm:min-w-12 sm:text-xl',
-      styles.fgL0
-    )}
-  >
-    {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
-  </span>
+  {#if rankLabel !== undefined}
+    <span
+      class={cn(
+        'min-w-10 shrink-0 text-center text-base tabular-nums sm:min-w-12 sm:text-xl',
+        styles.fgL0
+      )}
+    >
+      {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
+    </span>
+  {/if}
 
   <Avatar.Root class="size-10 shrink-0 rounded-lg sm:size-12">
     {#if avatarUrl}
@@ -100,33 +104,37 @@
     {/if}
 
     <div class="flex min-w-0 items-center gap-1">
-      {#if flagFilename && countryCode && countryName}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <img
-              src="/flags/{flagFilename}"
-              alt="{countryCode} flag"
-              class="size-5 min-w-5 shrink-0"
-            />
-          </Tooltip.Trigger>
-          <Tooltip.Content>{countryName}</Tooltip.Content>
-        </Tooltip.Root>
-      {/if}
-      {#if flagFilename && countryCode && globalPlace}
-        <span class={cn('shrink-0 text-xl leading-none', styles.fgL1)}>·</span>
-      {/if}
-      {#if globalPlace}
-        <span class={cn('shrink-0 text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
-          >#{globalPlace} global</span
-        >
-      {/if}
-      {#if showDivisionPlace}
-        {#if flagFilename || globalPlace}
+      {#if subtitle}
+        <span class={cn('truncate text-sm sm:text-base', styles.fgL1)}>{subtitle}</span>
+      {:else}
+        {#if flagFilename && countryCode && countryName}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <img
+                src="/flags/{flagFilename}"
+                alt="{countryCode} flag"
+                class="size-5 min-w-5 shrink-0"
+              />
+            </Tooltip.Trigger>
+            <Tooltip.Content>{countryName}</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
+        {#if flagFilename && countryCode && globalPlace}
           <span class={cn('shrink-0 text-xl leading-none', styles.fgL1)}>·</span>
         {/if}
-        <span class={cn('truncate text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
-          >#{divisionPlace} {divisionId}</span
-        >
+        {#if globalPlace}
+          <span class={cn('shrink-0 text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
+            >#{globalPlace} global</span
+          >
+        {/if}
+        {#if showDivisionPlace}
+          {#if flagFilename || globalPlace}
+            <span class={cn('shrink-0 text-xl leading-none', styles.fgL1)}>·</span>
+          {/if}
+          <span class={cn('truncate text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
+            >#{divisionPlace} {divisionId}</span
+          >
+        {/if}
       {/if}
     </div>
   </div>

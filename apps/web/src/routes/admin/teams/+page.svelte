@@ -19,7 +19,7 @@
     useCurrentUser,
     useInfiniteAdminUsers,
   } from '$lib/query'
-  import { getRankVariant, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
+  import { formatLocalTime, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
   import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
 
   const ROW_HEIGHT = 68
@@ -171,19 +171,14 @@
           hasNextPage={$usersQuery.hasNextPage}
           class="mx-4 mt-4 md:mx-9"
         >
-          {#snippet children({ item: team, index })}
-            {@const rank = index + 1}
-            {@const variant = getRankVariant(rank, false)}
+          {#snippet children({ item: team })}
             {@const isCopying = copyingTeamId === team.id}
             {@const isAdmin = team.perms > 0}
             <ChallengeDetailsSolvesRow
-              {variant}
-              rankLabel={rank}
               name={team.name}
               userId={team.id}
               avatarUrl={team.avatarUrl}
-              countryCode={team.countryCode}
-              divisionId={clientConfig?.divisions[team.division] ?? team.division}
+              subtitle="Registered {formatLocalTime(new Date(team.createdAt).getTime())}"
               primaryValue="{team.score.toLocaleString()} pts"
               secondaryValue="{team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}"
             >
