@@ -5,7 +5,7 @@ export { ProtectedAction }
 
 export const ProviderConfigSchema = z.object({
   name: z.string(),
-  options: z.prefault(z.unknown(), {}),
+  options: z._default(z.unknown(), {}),
 })
 
 export const SponsorSchema = z.object({
@@ -30,9 +30,9 @@ export const SqlDatabaseSchema = z.union([
     user: z.string(),
     password: z.string(),
     database: z.string(),
-    maxPoolSize: z.prefault(z.int(), 20),
-    idleTimeout: z.prefault(z.int(), 30_000),
-    connectTimeout: z.prefault(z.int(), 3_000),
+    maxPoolSize: z._default(z.int(), 20),
+    idleTimeout: z._default(z.int(), 30_000),
+    connectTimeout: z._default(z.int(), 3_000),
   }),
 ])
 
@@ -51,13 +51,13 @@ export const ServerConfigSchema = z.object({
   ctfName: z.string(),
   origin: z.string(),
   tokenKey: z.string(),
-  instanceType: z.prefault(z.enum(['leaderboard', 'all', 'frontend']), 'all'),
+  instanceType: z._default(z.enum(['leaderboard', 'all', 'frontend']), 'all'),
 
   // Database
   database: z.object({
     sql: SqlDatabaseSchema,
     redis: RedisDatabaseSchema,
-    migrate: z.prefault(z.enum(['before', 'only', 'never']), 'never'),
+    migrate: z._default(z.enum(['before', 'only', 'never']), 'never'),
   }),
 
   // CTF timing
@@ -65,14 +65,14 @@ export const ServerConfigSchema = z.object({
   endTime: z.number(), // unix ms
 
   // Divisions
-  divisions: z.prefault(z.record(z.string(), z.string()), { open: 'Open' }), // id -> display name
+  divisions: z._default(z.record(z.string(), z.string()), { open: 'Open' }), // id -> display name
   defaultDivision: z.optional(z.string()),
   divisionACLs: z.optional(z.array(ACLSchema)),
 
   // Auth
-  registrationsEnabled: z.prefault(z.boolean(), true),
-  userMembers: z.prefault(z.boolean(), true),
-  loginTimeout: z.prefault(z.number(), 3_600_000),
+  registrationsEnabled: z._default(z.boolean(), true),
+  userMembers: z._default(z.boolean(), true),
+  loginTimeout: z._default(z.number(), 3_600_000),
   ctftime: z.optional(
     z.object({
       clientId: NumericString,
@@ -114,8 +114,8 @@ export const ServerConfigSchema = z.object({
   ),
 
   // UI
-  homeContent: z.prefault(z.string(), 'Home content. Markdown supported.'),
-  sponsors: z.prefault(z.array(SponsorSchema), []),
+  homeContent: z._default(z.string(), 'Home content. Markdown supported.'),
+  sponsors: z._default(z.array(SponsorSchema), []),
   meta: z.prefault(
     z.object({
       description: z.prefault(z.string(), 'rCTF event description'),
@@ -123,7 +123,7 @@ export const ServerConfigSchema = z.object({
     }),
     {}
   ),
-  faviconUrl: z.prefault(
+  faviconUrl: z._default(
     z.string(),
     'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'
   ),
@@ -132,15 +132,15 @@ export const ServerConfigSchema = z.object({
   globalSiteTag: z.optional(z.string()),
 
   // Limits
-  maxAvatarSize: z.prefault(z.number(), 1024 * 1024),
+  maxAvatarSize: z._default(z.number(), 1024 * 1024),
   leaderboard: z.prefault(
     z.object({
-      maxLimit: z.prefault(z.number(), 100),
-      maxOffset: z.prefault(z.number(), 4294967296),
-      updateInterval: z.prefault(z.number(), 10_000), // 10s
-      graphMaxTeams: z.prefault(z.number(), 10),
-      graphSampleTime: z.prefault(z.number(), 1_800_000), // 30min
-      graphWithListLimit: z.prefault(z.number(), 100),
+      maxLimit: z._default(z.number(), 100),
+      maxOffset: z._default(z.number(), 4294967296),
+      updateInterval: z._default(z.number(), 10_000), // 10s
+      graphMaxTeams: z._default(z.number(), 10),
+      graphSampleTime: z._default(z.number(), 1_800_000), // 30min
+      graphWithListLimit: z._default(z.number(), 100),
     }),
     {}
   ),
@@ -156,8 +156,8 @@ export const ServerConfigSchema = z.object({
   // Proxy
   proxy: z.prefault(
     z.object({
-      cloudflare: z.prefault(z.boolean(), false),
-      trust: z.prefault(
+      cloudflare: z._default(z.boolean(), false),
+      trust: z._default(
         z.union([z.boolean(), z.string(), z.array(z.string()), z.number()]),
         false
       ),
