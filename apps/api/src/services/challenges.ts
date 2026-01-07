@@ -244,6 +244,15 @@ export const getChallengeSolvesWithPosition = async (
   limit: number,
   offset: number
 ): Promise<ChallengeSolvesWithPosition> => {
+  const challenge = await getChallenge(db, challengeId)
+  if (!challenge) {
+    return {
+      challengeExists: false,
+      solvePosition: null,
+      solves: [],
+    }
+  }
+
   const ranked = createRankedSolves(db)
   const rows = await db
     .with(ranked)
@@ -268,9 +277,8 @@ export const getChallengeSolvesWithPosition = async (
     .offset(offset)
 
   if (rows.length === 0) {
-    const challengeExists = await getChallenge(db, challengeId)
     return {
-      challengeExists: !!challengeExists,
+      challengeExists: true,
       solvePosition: null,
       solves: [],
     }
@@ -322,11 +330,13 @@ export const getUserChallengeSolves = async (
     .where(eq(solves.userid, userId))
     .orderBy(asc(solves.createdat))
 
-  return rows.map(row => ({
-    solve: row.solve,
-    challengeData: row.challengeData,
-    bloodIndex: row.position <= 3 ? row.position - 1 : null,
-  }))
+  return rows
+    .filter(row => !row.challengeData.hidden)
+    .map(row => ({
+      solve: row.solve,
+      challengeData: row.challengeData,
+      bloodIndex: row.position <= 3 ? row.position - 1 : null,
+    }))
 }
 
 export const getSolvesAndUserInfo = async (
@@ -351,7 +361,13 @@ export const getSolvesAndUserInfo = async (
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
-    .where(inArray(solves.userid, userIds))
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(
+      and(
+        inArray(solves.userid, userIds),
+        sql`COALESCE((${challenges.data} ->> 'hidden')::boolean, false) = false`
+      )
+    )
     .orderBy(asc(solves.createdat))
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(
