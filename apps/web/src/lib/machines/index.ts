@@ -17,6 +17,7 @@ export interface FormData {
   sortWeight: number
   files: { name: string; url: string; size: number | null }[]
   instancerConfig: InstancerConfig | null
+  hidden: boolean
 }
 
 export interface EditorContext {
@@ -57,6 +58,7 @@ const emptyForm: FormData = {
   sortWeight: 0,
   files: [],
   instancerConfig: null,
+  hidden: false,
 }
 
 const fromChallenge = (c: AdminChallenge): FormData => ({
@@ -71,6 +73,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   sortWeight: c.sortWeight ?? 0,
   files: c.files ? [...c.files] : [],
   instancerConfig: c.instancerConfig ?? null,
+  hidden: c.hidden ?? false,
 })
 
 const fromDetail = (d: AdminChallengeDetail): FormData => ({
@@ -85,6 +88,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   sortWeight: d.sortWeight ?? 0,
   files: d.files ? [...d.files] : [],
   instancerConfig: d.instancerConfig ?? null,
+  hidden: d.hidden ?? false,
 })
 
 const isDirty = (form: FormData, original: FormData | null): boolean => {

@@ -5,7 +5,8 @@ import { getChallenges } from '../../../../services/challenges'
 import challsGroup from '../group'
 
 challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
-  const challenges = await getChallenges(ctx.var.db)
+  const allChallenges = await getChallenges(ctx.var.db)
+  const challenges = allChallenges.filter(item => !item.data.hidden)
   const scores = await getChallengeDynamicPointsValue(
     ctx.var.redis,
     challenges.map(item => item.id)

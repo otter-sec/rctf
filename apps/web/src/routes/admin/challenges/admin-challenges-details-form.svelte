@@ -18,10 +18,12 @@
     IconFileFilled,
     IconFileInfoFilled,
     IconFlagFilled,
+    IconTrophyFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
+  import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
 
   interface Props {
     name: string
@@ -35,6 +37,9 @@
     sortWeight: number
     files: { name: string; url: string; size: number | null }[]
     instancerConfig: InstancerConfig | null
+    hidden: boolean
+    challengeId: string | null
+    totalSolves: number
     isDisabled: boolean
     formValid?: boolean
     instancerValid?: boolean
@@ -51,6 +56,7 @@
     onPointsMaxChange: (v: number) => void
     onTiebreakEligibleChange: (v: boolean) => void
     onSortWeightChange: (v: number) => void
+    onHiddenChange: (v: boolean) => void
   }
 
   let {
@@ -65,6 +71,9 @@
     sortWeight,
     files,
     instancerConfig,
+    hidden,
+    challengeId,
+    totalSolves,
     isDisabled,
     formValid = $bindable(true),
     instancerValid = $bindable(true),
@@ -81,6 +90,7 @@
     onPointsMaxChange,
     onTiebreakEligibleChange,
     onSortWeightChange,
+    onHiddenChange,
   }: Props = $props()
 
   let tab = $state('details')
@@ -121,7 +131,7 @@
 
 <Tabs.Root bind:value={tab} class="@container/form flex h-full min-h-0 flex-col">
   <div class="px-5 pb-4 @lg/form:hidden">
-    <Tabs.List class="grid h-auto w-full grid-cols-2 gap-1.5 rounded-none bg-transparent p-0">
+    <Tabs.List class="grid h-auto w-full grid-cols-3 gap-1.5 rounded-none bg-transparent p-0">
       <Tabs.Trigger value="details" class={tabClassMobile}>
         <IconFileInfoFilled class="size-4" />
         Details
@@ -143,6 +153,10 @@
         {#if !instancerValid}
           <IconAlertCircleFilled class="text-foreground-destructive size-3.5" />
         {/if}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="solves" class={tabClassMobile}>
+        <IconTrophyFilled class="size-4" />
+        Solves{totalSolves ? ` (${totalSolves})` : ''}
       </Tabs.Trigger>
     </Tabs.List>
   </div>
@@ -180,6 +194,10 @@
             <Tooltip.Content>This tab has invalid fields</Tooltip.Content>
           </Tooltip.Root>
         {/if}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="solves" class={tabClassDesktop}>
+        <IconTrophyFilled class="size-4" />
+        Solves{totalSolves ? ` (${totalSolves})` : ''}
       </Tabs.Trigger>
     </Tabs.List>
   </div>
@@ -354,6 +372,24 @@
               </Select.Root>
             </Field.Field>
           </div>
+
+          <Field.Field>
+            <Field.Label>Visibility</Field.Label>
+            <Select.Root
+              type="single"
+              value={hidden ? 'hidden' : 'visible'}
+              onValueChange={v => onHiddenChange(v === 'hidden')}
+              disabled={isDisabled}
+            >
+              <Select.Trigger class="w-full"
+                >{hidden ? 'Hidden from players' : 'Visible to players'}</Select.Trigger
+              >
+              <Select.Content>
+                <Select.Item value="visible" label="Visible">Visible to players</Select.Item>
+                <Select.Item value="hidden" label="Hidden">Hidden from players</Select.Item>
+              </Select.Content>
+            </Select.Root>
+          </Field.Field>
         </div>
       </ScrollArea>
     </Tabs.Content>
@@ -377,6 +413,10 @@
           />
         </div>
       </ScrollArea>
+    </Tabs.Content>
+
+    <Tabs.Content value="solves" class="min-h-0 flex-1">
+      <AdminChallengesDetailsSolves {challengeId} {totalSolves} />
     </Tabs.Content>
 
     {#if actions}

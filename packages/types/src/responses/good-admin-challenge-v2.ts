@@ -18,6 +18,7 @@ export const AdminChallengeSchemaV2 = z.object({
   tiebreakEligible: z.boolean(),
   sortWeight: z.nullable(z.number()),
   instancerConfig: z.nullable(InstancerConfigSchema),
+  hidden: z.boolean(),
 })
 
 export const GoodAdminChallengeV2 = response('goodAdminChallenge', {

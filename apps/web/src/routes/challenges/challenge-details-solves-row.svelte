@@ -20,6 +20,7 @@
     divisionPlace?: number
     isCurrentUser?: boolean
     children?: Snippet
+    actions?: Snippet
     class?: string
   }
 
@@ -37,6 +38,7 @@
     divisionPlace,
     isCurrentUser = false,
     children,
+    actions,
     class: className,
   }: Props = $props()
 
@@ -54,7 +56,7 @@
 
 <div
   class={cn(
-    'relative isolate flex items-center gap-2 rounded-lg px-4 py-2',
+    'relative isolate flex h-16 items-center gap-2 rounded-lg px-4 py-2',
     'before:absolute before:inset-0 before:-z-10 before:rounded-lg',
     isCurrentUser ? 'before:bg-background-self-l1' : 'before:bg-background-l3',
     showGradient &&
@@ -83,7 +85,7 @@
     </Avatar.Fallback>
   </Avatar.Root>
 
-  <div class="flex min-w-0 flex-1 flex-col">
+  <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
     {#if userId}
       <a
         href="/profile/{userId}"
@@ -97,7 +99,7 @@
       </span>
     {/if}
 
-    <div class="flex items-center gap-1">
+    <div class="flex min-w-0 items-center gap-1">
       {#if flagFilename && countryCode && countryName}
         <Tooltip.Root>
           <Tooltip.Trigger>
@@ -111,14 +113,20 @@
         </Tooltip.Root>
       {/if}
       {#if flagFilename && countryCode && globalPlace}
-        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
+        <span class={cn('shrink-0 text-xl leading-none', styles.fgL1)}>·</span>
       {/if}
       {#if globalPlace}
-        <span class={cn('truncate text-sm sm:text-base', styles.fgL1)}>#{globalPlace} global</span>
+        <span class={cn('shrink-0 text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
+          >#{globalPlace} global</span
+        >
       {/if}
       {#if showDivisionPlace}
-        <span class={cn('text-xl leading-none', styles.fgL1)}>·</span>
-        <span class={cn('text-sm sm:text-base', styles.fgL1)}>#{divisionPlace} {divisionId}</span>
+        {#if flagFilename || globalPlace}
+          <span class={cn('shrink-0 text-xl leading-none', styles.fgL1)}>·</span>
+        {/if}
+        <span class={cn('truncate text-sm whitespace-nowrap sm:text-base', styles.fgL1)}
+          >#{divisionPlace} {divisionId}</span
+        >
       {/if}
     </div>
   </div>
@@ -129,16 +137,20 @@
         {@render children()}
       {:else}
         {#if primaryValue}
-          <span class="text-foreground-l1 text-lg tabular-nums sm:text-xl">
+          <span class="text-foreground-l1 text-lg whitespace-nowrap tabular-nums sm:text-xl">
             {primaryValue}
           </span>
         {/if}
         {#if secondaryValue}
-          <span class="text-foreground-l3 text-sm sm:text-base">
+          <span class="text-foreground-l3 text-sm whitespace-nowrap sm:text-base">
             {secondaryValue}
           </span>
         {/if}
       {/if}
     </div>
+  {/if}
+
+  {#if actions}
+    {@render actions()}
   {/if}
 </div>

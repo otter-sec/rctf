@@ -303,6 +303,7 @@ export const getLeaderboardWithTotal = async (
         avatarUrl: info?.avatarUrl ?? null,
         countryCode: info?.countryCode ?? null,
         statusText: info?.statusText ?? null,
+        perms: info?.perms ?? 0,
         solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
           id: solve.challengeId,
           solveTime: solve.solveTime,

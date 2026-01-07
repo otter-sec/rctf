@@ -42,6 +42,7 @@ type UserDisplayInfo = {
   avatarUrl: string | null
   countryCode: string | null
   statusText: string | null
+  perms: number
 }
 type SolvesAndUserInfo = {
   solves: Map<string, LeaderboardSolve[]>
@@ -124,6 +125,7 @@ const defaultChallengeData: ChallengeData = {
   points: { min: 0, max: 0 },
   flag: '',
   tiebreakEligible: true,
+  hidden: false,
 }
 
 const defaultInstancerConfig: InstancerConfig = {
@@ -328,6 +330,7 @@ export const getSolvesAndUserInfo = async (
       avatar_url: users.avatarUrl,
       country_code: users.countryCode,
       status_text: users.statusText,
+      perms: users.perms,
       created_at: solves.createdat,
     })
     .from(solves)
@@ -346,6 +349,7 @@ export const getSolvesAndUserInfo = async (
         avatarUrl: row.avatar_url,
         countryCode: row.country_code,
         statusText: row.status_text,
+        perms: row.perms,
       })
     }
     solvesMap.get(row.user_id)?.push({

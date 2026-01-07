@@ -4,7 +4,7 @@
   import type { Snippet } from 'svelte'
 
   interface Props {
-    href: string
+    href?: string
     activePath?: string
     icon: Snippet<[{ class: string }]>
   }
@@ -16,16 +16,27 @@
     if (activePath === '/') return page.url.pathname === '/'
     return page.url.pathname.startsWith(activePath)
   })
+
+  const className = $derived(
+    cn(
+      'flex items-center justify-center rounded-lg px-4 py-3',
+      isActive
+        ? 'bg-background-accent hover:bg-background-accent-hover'
+        : 'bg-background-l2 hover:bg-background-l3'
+    )
+  )
+
+  const iconClassName = $derived(
+    cn('size-6', isActive ? 'text-foreground-accent' : 'text-foreground-l2')
+  )
 </script>
 
-<a
-  {href}
-  class={cn(
-    'bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3',
-    isActive && 'bg-background-accent hover:bg-background-accent-hover'
-  )}
->
-  {@render icon({
-    class: cn('size-6', isActive ? 'text-foreground-accent' : 'text-foreground-l2'),
-  })}
-</a>
+{#if href}
+  <a {href} class={className}>
+    {@render icon({ class: iconClassName })}
+  </a>
+{:else}
+  <div class={className}>
+    {@render icon({ class: iconClassName })}
+  </div>
+{/if}

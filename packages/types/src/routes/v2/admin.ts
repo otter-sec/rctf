@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
+  BadBody,
   BadChallenge,
   BadEndpoint,
   BadInstancerConfig,
@@ -12,6 +13,7 @@ import {
   BadUserPrivileged,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  GoodAdminUsersV2,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -33,6 +35,19 @@ export const GetAdminChallengesRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
+})
+
+export const GetAdminUsersRouteV2 = defineRoute({
+  path: '/v2/admin/users',
+  method: 'GET',
+  query: z.object({
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+  }),
+  goodResponses: [GoodAdminUsersV2],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite,
 })
 
 const AdminChallengeParams = z.object({
@@ -64,6 +79,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
       files: z.optional(z.array(ChallengeFileSchemaV2)),
       sortWeight: z.optional(z.number()),
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
+      hidden: z.optional(z.boolean()),
     }),
   }),
   goodResponses: [GoodChallengeUpdateV2],

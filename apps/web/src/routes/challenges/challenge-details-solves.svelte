@@ -13,7 +13,7 @@
   } from '$lib/utils'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
-  const ROW_HEIGHT = 72 // 64px row + 8px gap
+  const ROW_HEIGHT = 68
 
   interface Props {
     challenge: Challenge
