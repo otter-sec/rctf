@@ -109,6 +109,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
     let cachedClientHeight = 0
     let cachedClientWidth = 0
+    let ro: ResizeObserver | null = null
 
     let capturedScrollTop = 0
     let capturedScrollLeft = 0
@@ -149,15 +150,10 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
     const onScroll = () => {
       if (!currentElement) return
 
+      capturedScrollTop = currentElement.scrollTop
+      capturedScrollLeft = currentElement.scrollLeft
+
       if (!scrollRaf) {
-        capturedScrollTop = currentElement.scrollTop
-        capturedScrollLeft = currentElement.scrollLeft
-
-        if (cachedClientHeight === 0 || capturedScrollTop === 0) {
-          cachedClientHeight = currentElement.clientHeight
-          cachedClientWidth = currentElement.clientWidth
-        }
-
         scrollRaf = targetWindow.requestAnimationFrame(processScroll)
       }
     }
@@ -179,6 +175,14 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
       currentElement = element
       element.addEventListener('scroll', onScroll, { passive: true })
+      ro?.disconnect()
+      ro = new ResizeObserver(() => {
+        cachedClientHeight = element.clientHeight
+        cachedClientWidth = element.clientWidth
+      })
+      ro.observe(element, { box: 'border-box' })
+      cachedClientHeight = element.clientHeight
+      cachedClientWidth = element.clientWidth
       cb(getOffset(), false)
     }
 
@@ -198,6 +202,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       if (currentElement) {
         currentElement.removeEventListener('scroll', onScroll)
       }
+      ro?.disconnect()
       if (timeoutId) targetWindow.clearTimeout(timeoutId)
       if (pollId !== null) targetWindow.cancelAnimationFrame(pollId)
       if (scrollRaf) targetWindow.cancelAnimationFrame(scrollRaf)
@@ -283,6 +288,7 @@ export function useInfiniteVirtualScroll(
 
   let viewportRef = $state<HTMLElement | null>(null)
   let count = $state(0)
+  let loadMoreCount = $state(0)
   let scrollMargin = $state(0)
   let hasNextPage = $state(false)
   let isFetching = $state(false)
@@ -309,8 +315,8 @@ export function useInfiniteVirtualScroll(
 
     if (loadMoreTriggered || !hasNextPage || isFetching) return
 
-    // Use count * rowHeight instead of metrics.scrollHeight - the DOM might not have updated yet
-    const estimatedScrollHeight = count * rowHeight
+    const effectiveCount = loadMoreCount > 0 ? loadMoreCount : count
+    const estimatedScrollHeight = effectiveCount * rowHeight
     const scrollPercent =
       (metrics.scrollTop + metrics.clientHeight) / estimatedScrollHeight
     if (scrollPercent > threshold) {
@@ -372,6 +378,12 @@ export function useInfiniteVirtualScroll(
       },
       set count(n: number) {
         count = n
+      },
+      get loadMoreCount() {
+        return loadMoreCount
+      },
+      set loadMoreCount(n: number) {
+        loadMoreCount = n
       },
       get scrollMargin() {
         return scrollMargin

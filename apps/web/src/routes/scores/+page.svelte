@@ -519,7 +519,11 @@
   })
 
   $effect.pre(() => {
-    scroll.state.count = isLoading ? 0 : entries.length
+    const visibleCount = isLoading ? 0 : entries.length
+    const totalCount = isLoading ? 0 : Math.max(total, entries.length)
+
+    scroll.state.count = totalCount
+    scroll.state.loadMoreCount = visibleCount
     scroll.state.hasNextPage = isLoading ? false : $leaderboardQuery.hasNextPage
     scroll.state.isFetching = isLoading || $leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
@@ -702,6 +706,23 @@
                       getBloodIndex={cid => getBloodIndex(cid, entry.id)}
                       onSparklineHover={() => (hoveredTeamId = entry.id)}
                       onSparklineUnhover={() => (hoveredTeamId = null)}
+                    />
+                  </div>
+                {:else}
+                  <div
+                    class="absolute top-0 left-0 flex h-(--row-height-full) w-full will-change-transform contain-[layout_style_paint] md:w-auto"
+                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                  >
+                    <ScoresTeamRow
+                      data={null}
+                      solves={null}
+                      solveTimes={null}
+                      isLoading
+                      {...teamRowProps}
+                      getCategoryStats={group => getCategoryStatsForSolves(null, group)}
+                      getBloodIndex={() => -1}
+                      onSparklineHover={() => {}}
+                      onSparklineUnhover={() => {}}
                     />
                   </div>
                 {/if}
