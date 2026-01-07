@@ -1,11 +1,11 @@
 import { config } from '@rctf/config'
 import { GetChallengesRouteV2 } from '@rctf/types'
 import { getChallengeDynamicPointsValue } from '../../../../cache/leaderboard'
-import { getPublicChallenges } from '../../../../services/challenges'
+import { getChallenges } from '../../../../services/challenges'
 import challsGroup from '../group'
 
 challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
-  const challenges = await getPublicChallenges(ctx.var.db)
+  const challenges = await getChallenges(ctx.var.db)
   const scores = await getChallengeDynamicPointsValue(
     ctx.var.redis,
     challenges.map(item => item.id)

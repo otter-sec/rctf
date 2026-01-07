@@ -88,7 +88,7 @@ const createRankedSolves = (db: DatabaseClient) =>
       .innerJoin(users, eq(users.id, solves.userid))
   )
 
-export const getChallenges = async (
+export const getPrivateChallenges = async (
   db: DatabaseClient
 ): Promise<Challenge[]> => {
   return await db
@@ -103,14 +103,7 @@ export const getChallenges = async (
     )
 }
 
-export const getPublicChallenges = async (
-  db: DatabaseClient
-): Promise<Challenge[]> => {
-  const allChallenges = await getChallenges(db)
-  return allChallenges.filter(c => !c.data.hidden)
-}
-
-export const getChallenge = async (
+export const getPrivateChallenge = async (
   db: DatabaseClient,
   id: string
 ): Promise<Challenge | undefined> => {
@@ -120,6 +113,24 @@ export const getChallenge = async (
     .where(eq(challenges.id, id))
     .limit(1)
     .then(takeUnique)
+}
+
+export const getChallenges = async (
+  db: DatabaseClient
+): Promise<Challenge[]> => {
+  const allChallenges = await getPrivateChallenges(db)
+  return allChallenges.filter(c => !c.data.hidden)
+}
+
+export const getChallenge = async (
+  db: DatabaseClient,
+  id: string
+): Promise<Challenge | undefined> => {
+  const result = await getPrivateChallenge(db, id)
+  if (!result || result.data.hidden) {
+    return undefined
+  }
+  return result
 }
 
 const defaultChallengeData: ChallengeData = {
@@ -150,7 +161,7 @@ export const upsertChallenge = async (
     }
   >
 ): Promise<Challenge> => {
-  const current = await getChallenge(db, id)
+  const current = await getPrivateChallenge(db, id)
   const { instancerConfig: partialInstancerConfig, ...partialRest } = partial
 
   // Handle instancerConfig: null = clear, undefined = keep current, object = merge
