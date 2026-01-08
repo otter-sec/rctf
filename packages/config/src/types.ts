@@ -187,8 +187,8 @@ export const ServerConfigSchema = z.object({
               provider,
               messageTemplate:
                 (messageTemplate ?? isTelegram)
-                  ? 'Congratulations to [*{teamName}*]({teamUrl}) for {bloodNumSentence} blood on `{challengeCategory}/{challengeName}`\\!'
-                  : 'Congratulations to [`{teamName}`]({teamUrl}) for {bloodNumSentence} blood on `{challengeCategory}/{challengeName}`!',
+                  ? 'Congratulations to [*{{teamName}}*]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`\\!'
+                  : 'Congratulations to [`{{teamName}}`]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`!',
             }
           })
         )

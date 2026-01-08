@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { getTimeOrdinal } from '@rctf/util'
 import type { ChallengeData, User } from '@rctf/db'
+import mustache from 'mustache'
 import { bloodbotProviders } from '../providers'
 
 export const shouldNotifyBloodbot = (bloodNumber: number) => {
@@ -23,13 +24,14 @@ export const sendBloodMessage = async (
     config.bloodbot.destinations.map((destination, index) => {
       const provider = bloodbotProviders![index]!
 
-      // TODO(es3n1n): use a template engine
-      const message = destination.messageTemplate
-        .replaceAll('{bloodNumSentence}', bloodNumSentence)
-        .replaceAll('{challengeCategory}', challenge.category)
-        .replaceAll('{challengeName}', challenge.name)
-        .replaceAll('{teamUrl}', provider.escapeUrl(teamUrl))
-        .replaceAll('{teamName}', provider.escapeText(user.name))
+      const view = {
+        bloodNumSentence,
+        challengeCategory: challenge.category,
+        challengeName: challenge.name,
+        teamUrl: provider.escapeUrl(teamUrl),
+        teamName: provider.escapeText(user.name),
+      }
+      const message = mustache.render(destination.messageTemplate, view)
       return provider.sendMarkdown(message)
     })
   )
