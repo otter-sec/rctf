@@ -5,7 +5,8 @@ export default defineConfig({
   description:
     "rCTF is redpwn's CTF platform. It is now developed and maintained by the OtterSec team.",
   editLink: {
-    pattern: 'https://github.com/otter-sec/rctf/edit/main/apps/docs/docs/pages/:path',
+    pattern:
+      'https://github.com/otter-sec/rctf/edit/main/apps/docs/docs/pages/:path',
     text: 'Edit on GitHub',
   },
   font: {

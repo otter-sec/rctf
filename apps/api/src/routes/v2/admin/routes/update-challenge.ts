@@ -1,4 +1,3 @@
-import type { InstancerConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
 import { instancerProvider } from '../../../../providers'
 import { upsertChallenge } from '../../../../services/challenges'
@@ -30,8 +29,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   const updated = await upsertChallenge(ctx.var.db, params.id, {
     ...body.data,
     files: body.data.files?.map(file => ({
-      name: file.name,
-      url: file.url,
+      ...file,
       size: file.size ?? undefined,
     })),
   })
@@ -41,8 +39,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
     id: updated.id,
     ...updated.data,
     files: updated.data.files.map(file => ({
-      name: file.name,
-      url: file.url,
+      ...file,
       size: file.size ?? null,
     })),
     sortWeight: updated.data.sortWeight ?? null,

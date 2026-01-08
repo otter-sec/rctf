@@ -12,8 +12,7 @@ adminGroup.route(GetAdminChallengeRouteV2, async ({ res, ctx, params }) => {
     id: data.id,
     ...data.data,
     files: data.data.files.map(file => ({
-      name: file.name,
-      url: file.url,
+      ...file,
       size: file.size ?? null,
     })),
     sortWeight: data.data.sortWeight ?? null,
