@@ -17,6 +17,7 @@
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
     "data-uri-to-buffer": "^6.0.2",
     "drizzle-orm": "^0.44.7",
     "hono": "^4.10.4",
@@ -28,7 +29,7 @@
     "pino": "^10.1.0",
     "postgres": "^3.4.5",
     "sharp": "^0.34.5",
-    "zod": "^4.1.13"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/bun": "latest",

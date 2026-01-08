@@ -1,5 +1,5 @@
 {
-  "name": "@rctf/const",
+  "name": "@rctf/util",
   "version": "0.0.0",
   "type": "module",
   "exports": {

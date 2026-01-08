@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Layer, Chart as LayerChart, Spline } from 'layerchart'
   import { useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
-  import { cn, getOrdinal } from '$lib/utils'
+  import { cn, getTimeOrdinal } from '$lib/utils'
   import { CUTOFF_TIME, SPARKLINE_WINDOW } from '../../routes/scores/constants'
 
   const userQuery = useCurrentUser()
@@ -69,7 +69,7 @@
   >
     <div class="flex min-w-0 flex-col justify-center">
       <span class={cn('text-base leading-tight', styles.fgL0)}>
-        {getOrdinal(globalPlace)}
+        {getTimeOrdinal(globalPlace)}
       </span>
       <span class={cn('text-xs leading-tight', styles.fgL1)}>
         of {totalTeams.toLocaleString()}

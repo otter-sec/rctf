@@ -8,7 +8,7 @@
     formatFirstBloodTime,
     formatRelativeToFirstBlood,
     getInitials,
-    getOrdinal,
+    getTimeOrdinal,
     getRankStyles,
   } from '$lib/utils'
 
@@ -62,7 +62,7 @@
       solve: (typeof topSolves)[number],
       isSelf: boolean
     ): PodiumItem => ({
-      label: getOrdinal(i + 1),
+      label: getTimeOrdinal(i + 1),
       variant: isSelf ? 'self' : (slotVariants[i] ?? 'nth'),
       name: solve.userName,
       avatarUrl: solve.userAvatarUrl ?? null,
@@ -84,7 +84,7 @@
       items.push(fourthSolve ? solveSlot(3, fourthSolve, false) : emptySlot(3))
     } else if (isSolved && currentUserSolve && mySolvePosition) {
       items.push({
-        label: getOrdinal(mySolvePosition),
+        label: getTimeOrdinal(mySolvePosition),
         variant: 'self',
         name: currentUser.name,
         avatarUrl: currentUser.avatarUrl ?? null,

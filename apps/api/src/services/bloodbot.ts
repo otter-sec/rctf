@@ -1,4 +1,5 @@
 import { config } from '@rctf/config'
+import { getTimeOrdinal } from '@rctf/util'
 import type { ChallengeData, User } from '@rctf/db'
 import { bloodbotProviders } from '../providers'
 
@@ -16,14 +17,7 @@ export const sendBloodMessage = async (
   }
 
   const teamUrl = `${config.origin}/profile/${user.id}`
-
-  // FIXME(es3n1n): there's an util for this somewhere
-  const bloodNumSentence =
-    {
-      1: 'first',
-      2: 'second',
-      3: 'third',
-    }[bloodNumber] ?? `${bloodNumber}th`
+  const bloodNumSentence = getTimeOrdinal(bloodNumber)
 
   await Promise.all(
     config.bloodbot.destinations.map((destination, index) => {

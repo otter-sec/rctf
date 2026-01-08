@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@iconify/svelte": "^5.1.0",
-    "@rctf/const": "workspace:*",
+    "@rctf/util": "workspace:*",
     "@rctf/types": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
     "@tanstack/svelte-virtual": "^3.13.13",

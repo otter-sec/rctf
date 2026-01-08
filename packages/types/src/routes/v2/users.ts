@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
-import { ALL_REGIONS } from '@rctf/const'
+import { ALL_REGIONS } from '@rctf/util'
 import {
   BadAvatarFile,
   BadAvatarFileSize,

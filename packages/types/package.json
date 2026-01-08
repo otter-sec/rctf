@@ -9,9 +9,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@rctf/const": "workspace:*",
+    "@rctf/util": "workspace:*",
     "email-validator": "^2.0.4",
-    "zod": "^4.1.13"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/bun": "latest"
