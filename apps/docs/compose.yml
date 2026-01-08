@@ -1,0 +1,6 @@
+services:
+  docs:
+    build: .
+    container_name: rctf-docs
+    ports:
+      - "127.0.0.1:8082:80"

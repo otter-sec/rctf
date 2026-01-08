@@ -195,3 +195,5 @@ bun run dev
 - [ ] discord auth
 - [ ] ticket bot?
 - [ ] analytics (google, cloudflare, something else?)
+- [ ] refactor bloodbot
+- [ ] cf worker for docs, get rid of docker compose temp setup
