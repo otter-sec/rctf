@@ -191,3 +191,4 @@ bun run dev
 - [x] analytics (google, cloudflare, something else?)
 - [x] refactor bloodbot
 - [ ] cf worker for docs, get rid of docker compose temp setup
+- [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
