@@ -3,6 +3,27 @@ import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
 import { captchaProvider } from '../../../../providers'
 import integrationsGroup from '../group'
 
+const getAnalyticsConfig = () => {
+  if (config.analytics?.provider) {
+    return {
+      provider: config.analytics.provider.name,
+      publicOptions: (config.analytics.provider.options ?? {}) as Record<
+        string,
+        string
+      >,
+    }
+  }
+
+  if (config.globalSiteTag) {
+    return {
+      provider: 'analytics/google',
+      publicOptions: { siteTag: config.globalSiteTag },
+    }
+  }
+
+  return null
+}
+
 integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
   return res.goodClientConfig({
     meta: config.meta,
@@ -16,7 +37,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
     endTime: config.endTime,
     userMembers: config.userMembers,
     emailEnabled: Boolean(config.email),
-    globalSiteTag: config.globalSiteTag ?? null,
+    analytics: getAnalyticsConfig(),
     faviconUrl: config.faviconUrl ?? null,
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,

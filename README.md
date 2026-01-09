@@ -158,6 +158,7 @@ bun run dev
 - GCS TF now needs a `storage.objects.delete` permission
 - Bloodbot integration
 - Avatar moderation
+- More analytics providers (`cloudflare`, `plausible`)
 
 
 ### v1 Todo
@@ -187,6 +188,6 @@ bun run dev
 - [x] blood bot integration
 - [ ] discord auth
 - [ ] ticket bot?
-- [ ] analytics (google, cloudflare, something else?)
+- [x] analytics (google, cloudflare, something else?)
 - [x] refactor bloodbot
 - [ ] cf worker for docs, get rid of docker compose temp setup

@@ -20,7 +20,12 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
         small: z.optional(z.boolean()),
       })
     ),
-    globalSiteTag: z.nullish(z.string()),
+    analytics: z.nullable(
+      z.object({
+        provider: z.string(),
+        publicOptions: z.record(z.string(), z.string()),
+      })
+    ),
     ctfName: z.string(),
     divisions: z.record(z.string(), z.string()),
     defaultDivision: z.nullish(z.string()),

@@ -128,7 +128,14 @@ export const ServerConfigSchema = z.object({
     'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'
   ),
 
-  // TODO(es3n1n): use this for analytics
+  // Analytics
+  analytics: z.optional(
+    z.object({
+      provider: ProviderConfigSchema,
+    })
+  ),
+
+  // Deprecated, use analytics.provider with name 'analytics/google' instead
   globalSiteTag: z.optional(z.string()),
 
   // Limits

@@ -41,8 +41,12 @@ const config: Config = {
               'https://*.hcaptcha.com',
               // turnstile
               'https://challenges.cloudflare.com',
-              // cloudflare analytics
+              // cloudflare web analytics
               'https://static.cloudflareinsights.com/',
+              // google analytics
+              'https://www.googletagmanager.com/',
+              // plausible analytics (self-hosted instances need manual CSP update)
+              'https://plausible.io/',
             ],
             'style-src': [
               'self',
@@ -58,6 +62,14 @@ const config: Config = {
               'https://*.hcaptcha.com',
               // recaptcha
               'https://www.google.com/recaptcha/',
+              // google analytics
+              'https://www.google-analytics.com/',
+              'https://*.google-analytics.com/',
+              'https://*.analytics.google.com/',
+              // cloudflare web analytics
+              'https://cloudflareinsights.com/',
+              // plausible analytics (self-hosted instances need manual CSP update)
+              'https://plausible.io/',
             ],
             'font-src': ['self'],
             'img-src': ['http:', 'https:', 'blob:', 'data:'],
