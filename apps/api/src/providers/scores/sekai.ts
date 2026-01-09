@@ -10,7 +10,7 @@ export default class SekaiProvider implements ScoreProvider {
     solves: number
   ) {
     const gradient = 10
-    const decay = 70
+    const decay = 60
 
     const min = 1 + (gradient - 1) / decay
     const x = 1 + ((gradient - 1) / decay) * solves
