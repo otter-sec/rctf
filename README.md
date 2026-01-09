@@ -52,7 +52,6 @@ database:
   migrate: before
 EOT
 
-bun run db:migrate
 bun run dev
 ```
 
@@ -104,13 +103,7 @@ bun run dev
      migrate: before
    ```
 
-4. Run database migrations:
-
-   ```sh
-   bun db:migrate
-   ```
-
-5. Start the development server:
+4. Start the development server:
    
    ```sh
    bun dev
@@ -195,5 +188,5 @@ bun run dev
 - [ ] discord auth
 - [ ] ticket bot?
 - [ ] analytics (google, cloudflare, something else?)
-- [ ] refactor bloodbot
+- [x] refactor bloodbot
 - [ ] cf worker for docs, get rid of docker compose temp setup
