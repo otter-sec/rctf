@@ -41,11 +41,12 @@ COPY --from=package-configs /app/package.json /app/bun.lock ./
 
 COPY apps ./apps
 COPY packages ./packages
+COPY scripts ./scripts
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
 RUN if [ "$LOW_RESOURCE" = "1" ]; then \
-    bun run --smol build; \
+    LOW_RESOURCE=1 bun --smol ./scripts/build-low-resource.ts; \
   else \
     bun run build; \
   fi
