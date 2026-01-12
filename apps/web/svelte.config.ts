@@ -10,7 +10,6 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
  */
 
 const dev = process.env.NODE_ENV === 'development'
-const lowResource = process.env.LOW_RESOURCE === '1'
 
 const config: Config = {
   preprocess: vitePreprocess(),
@@ -19,7 +18,7 @@ const config: Config = {
       pages: 'build',
       assets: 'build',
       fallback: 'index.html',
-      precompress: !lowResource,
+      precompress: true,
       strict: true,
     }),
     typescript: {

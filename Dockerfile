@@ -1,5 +1,3 @@
-ARG LOW_RESOURCE=0
-
 FROM oven/bun:1.3-alpine AS base
 WORKDIR /app
 
@@ -15,41 +13,25 @@ COPY packages/util/package.json ./packages/util/
 
 FROM base AS deps
 
-ARG LOW_RESOURCE
 COPY --from=package-configs /app/ ./
-RUN if [ "$LOW_RESOURCE" = "1" ]; then \
-    bun --smol install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --concurrent-scripts=1; \
-  else \
-    bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache; \
-  fi
+RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
 
 FROM base AS prod-deps
 
-ARG LOW_RESOURCE
 COPY --from=package-configs /app/ ./
-RUN if [ "$LOW_RESOURCE" = "1" ]; then \
-    bun --smol install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --concurrent-scripts=1; \
-  else \
-    bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache; \
-  fi
+RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
 
 FROM base AS build
 
-ARG LOW_RESOURCE
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=package-configs /app/package.json /app/bun.lock ./
 
 COPY apps ./apps
 COPY packages ./packages
-COPY scripts ./scripts
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
-RUN if [ "$LOW_RESOURCE" = "1" ]; then \
-    LOW_RESOURCE=1 bun --smol ./scripts/build-low-resource.ts; \
-  else \
-    bun run build; \
-  fi
+RUN bun run build
 
 FROM base AS production
 
