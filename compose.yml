@@ -1,7 +1,10 @@
 services:  
   rctf:
     image: ghcr.io/otter-sec/rctf-new:${RCTF_GIT_REF}
-    build: .
+    build:
+      context: .
+      args:
+        LOW_RESOURCE: ${RCTF_LOW_RESOURCE:-0}
     restart: unless-stopped
     ports:
       - '127.0.0.1:8080:80'
