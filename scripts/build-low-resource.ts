@@ -1,4 +1,5 @@
 import { Glob } from 'bun'
+import { dirname } from 'node:path'
 
 const rootPackage = JSON.parse(await Bun.file('package.json').text())
 const workspacePatterns = Array.isArray(rootPackage.workspaces)
@@ -9,13 +10,27 @@ const workspacePatterns = Array.isArray(rootPackage.workspaces)
 
 const workspacePaths: string[] = []
 const seen = new Set<string>()
+const hasGlob = (pattern: string) => /[*?[\]{}()!]/.test(pattern)
 
 for (const pattern of workspacePatterns) {
-  const glob = new Glob(pattern)
-  for await (const match of glob.scan('.')) {
-    if (!seen.has(match)) {
-      seen.add(match)
-      workspacePaths.push(match)
+  const normalized = pattern.replace(/\/+$/, '')
+  if (hasGlob(normalized)) {
+    const glob = new Glob(`${normalized}/package.json`)
+    for await (const match of glob.scan('.')) {
+      const workspace = dirname(match)
+      if (!seen.has(workspace)) {
+        seen.add(workspace)
+        workspacePaths.push(workspace)
+      }
+    }
+  } else {
+    const pkgPath = `${normalized}/package.json`
+    const pkgFile = Bun.file(pkgPath)
+    if (await pkgFile.exists()) {
+      if (!seen.has(normalized)) {
+        seen.add(normalized)
+        workspacePaths.push(normalized)
+      }
     }
   }
 }
