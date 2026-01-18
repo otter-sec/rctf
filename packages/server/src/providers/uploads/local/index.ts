@@ -27,7 +27,7 @@ export default class LocalProvider implements Provider {
       index: false,
       setHeaders: (res: ServerResponse) => {
         res.setHeader('cache-control', 'public, max-age=31557600, immutable')
-        res.setHeader('content-disposition', 'atttachment')
+        res.setHeader('content-disposition', 'attachment')
       },
     })
   }

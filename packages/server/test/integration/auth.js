@@ -4,13 +4,13 @@ import * as database from '../../src/database'
 import config from '../../src/config/server'
 import {
   badEmail,
-  badUnknownEmail,
   badKnownEmail,
   badKnownName,
   goodRegister,
   goodToken,
   goodUserUpdate,
   badRegistrationsDisabled,
+  goodVerifySent,
 } from '@rctf/api-types/responses'
 
 import * as auth from '../../src/auth'
@@ -45,7 +45,7 @@ test('fails with badEmail', async () => {
   expect(resp.body.kind).toBe('badEmail')
 })
 
-test('fails with badUnknownEmail', async () => {
+test('fails with goodVerifySent', async () => {
   config.email = oldEmail
 
   const unknownEmail = 'non-existent-email' + Math.random() + '@gmail.com'
@@ -54,9 +54,9 @@ test('fails with badUnknownEmail', async () => {
     .send({
       email: unknownEmail,
     })
-    .expect(badUnknownEmail.status)
+    .expect(goodVerifySent.status)
 
-  expect(resp.body.kind).toBe('badUnknownEmail')
+  expect(resp.body.kind).toBe('goodVerifySent')
 })
 
 test('when not email, succeeds with goodRegister', async () => {
