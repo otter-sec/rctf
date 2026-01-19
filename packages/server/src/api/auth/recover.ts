@@ -36,7 +36,7 @@ export default makeFastifyRoute(authRecoverPost, async ({ req, res }) => {
 
   const user = await getUserByEmail({ email })
   if (user === undefined) {
-    return res.badUnknownEmail()
+    return res.goodVerifySent()
   }
 
   const verifyUuid = uuidv4()
