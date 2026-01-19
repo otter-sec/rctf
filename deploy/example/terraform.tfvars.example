@@ -1,0 +1,5 @@
+cloudflare_api_token = ""
+letsencrypt_email_address = ""
+instancer_zone = ""
+instancer_subdomain = ""
+ctf_name = ""
