@@ -11,6 +11,7 @@ export enum InstanceStatus {
   STOPPED = 'stopped',
   RUNNING = 'running',
   STARTING = 'starting',
+  STOPPING = 'stopping',
   ERRORED = 'errored',
 }
 

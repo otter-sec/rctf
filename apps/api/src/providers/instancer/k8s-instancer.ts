@@ -222,21 +222,24 @@ export default class K8sInstancerProvider implements InstancerProvider {
         name: this.getResourceName(options.teamId, options.challengeIntegrationId),
       })
 
+      // TODO: in some rare circumstances `resource` can be undefined...? (which should throw 404 instead)
+
       if (resource.metadata.deletionTimestamp) {
-        // TODO: ideally, we'd return stopping here which is not a state...? they can instantly start while it's still not fully deleted -> error
         return {
           kind: 'instancerInstanceDetails',
           timeLeftMilliseconds: 0,
           endpoints: [],
-          status: InstanceStatus.STOPPED,
+          status: InstanceStatus.STOPPING,
         }
       }
 
       const readyStatus = resource.status.conditions.find((condition: any) => condition.type === 'Ready')
       if (readyStatus?.status === 'Unknown') {
         return {
-          kind: 'instancerError',
-          message: 'Instancer failed to deploy the instance, please report this to the admins.',
+          kind: 'instancerInstanceDetails',
+          timeLeftMilliseconds: 0,
+          endpoints: resource.status.endpoints ?? [],
+          status: InstanceStatus.ERRORED,
         }
       }
 
