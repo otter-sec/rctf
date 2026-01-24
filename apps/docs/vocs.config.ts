@@ -71,9 +71,16 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Admin Panel',
+          text: 'Administration',
           link: '/admin',
+          items: [
+            { text: 'Challenges', link: '/admin/challenges' },
+            { text: 'Teams', link: '/admin/teams' },
+            { text: 'Submissions', link: '/admin/submissions' },
+            { text: 'Uploading', link: '/admin/uploading' },
+          ],
         },
+      
         {
           text: 'API Reference',
           collapsed: true,
