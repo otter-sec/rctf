@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Button, Dialog, Markdown, ScrollArea, Spinner } from '$lib/components'
+  import { Button, Dialog, Markdown, ScrollArea, Section, Spinner } from '$lib/components'
   import { IconAlertTriangleFilled, IconTrashFilled } from '$lib/icons'
 
   interface Props {
@@ -50,28 +50,25 @@
 </Dialog.Root>
 
 <Dialog.Root open={showPreviewDialog} onOpenChange={open => !open && onClosePreview()}>
-  <Dialog.Content class="flex max-h-[80vh] flex-col sm:max-w-2xl">
+  <Dialog.Content class="sm:max-w-2xl">
     <Dialog.Header>
       <Dialog.Title>Description preview</Dialog.Title>
       <Dialog.Description>This is how the description will appear to players.</Dialog.Description>
     </Dialog.Header>
-    <ScrollArea class="-mx-6 min-h-0 flex-1 px-6">
-      <div class="py-4">
-        {#if description}
-          <div class="overflow-hidden rounded-lg border-2">
-            <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Description</div>
-            <div class="bg-background-l2 px-4 pt-2 pb-4">
+    {#if description}
+      <Section.Root>
+        <Section.Header>Description</Section.Header>
+        <Section.Content class="bg-background-l2 p-0">
+          <ScrollArea class="h-[60vh]" fadeColor="background-l2">
+            <div class="px-4 pt-2 pb-4">
               <Markdown content={description} class="prose-sm max-w-none" />
             </div>
-          </div>
-        {:else}
-          <p class="text-foreground-l3 py-8 text-center">No description to preview.</p>
-        {/if}
-      </div>
-    </ScrollArea>
-    <Dialog.Footer>
-      <Button onclick={onClosePreview}>Close</Button>
-    </Dialog.Footer>
+          </ScrollArea>
+        </Section.Content>
+      </Section.Root>
+    {:else}
+      <p class="text-foreground-l3 py-8 text-center">No description to preview.</p>
+    {/if}
   </Dialog.Content>
 </Dialog.Root>
 

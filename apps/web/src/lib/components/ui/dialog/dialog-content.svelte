@@ -1,5 +1,22 @@
+<script lang="ts" module>
+  import { getContext, setContext } from 'svelte'
+
+  const DIALOG_CONTEXT_KEY = Symbol('dialog-context')
+
+  interface DialogContext {
+    readonly showCloseButton: boolean
+  }
+
+  export function getDialogContext(): DialogContext {
+    return getContext(DIALOG_CONTEXT_KEY)
+  }
+
+  function setDialogContext(context: DialogContext) {
+    setContext(DIALOG_CONTEXT_KEY, context)
+  }
+</script>
+
 <script lang="ts">
-  import { IconX } from '$lib/icons'
   import { cn, type WithoutChildrenOrChild } from '$lib/utils'
   import { Dialog as DialogPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
@@ -17,6 +34,12 @@
     children: Snippet
     showCloseButton?: boolean
   } = $props()
+
+  setDialogContext({
+    get showCloseButton() {
+      return showCloseButton
+    },
+  })
 </script>
 
 <Dialog.Portal {...portalProps}>
@@ -31,13 +54,5 @@
     {...restProps}
   >
     {@render children?.()}
-    {#if showCloseButton}
-      <DialogPrimitive.Close
-        class="focus:ring-ring focus:ring-offset-background-l1 absolute end-4 top-4 rounded-xs opacity-70 hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
-      >
-        <IconX />
-        <span class="sr-only">Close</span>
-      </DialogPrimitive.Close>
-    {/if}
   </DialogPrimitive.Content>
 </Dialog.Portal>
