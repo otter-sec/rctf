@@ -78,9 +78,9 @@
       {@render children({ item, index: i, remove: () => remove(i) })}
     {:else}
       <span
-        class="bg-background-l5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-mono text-sm"
+        class="bg-background-l5 inline-flex max-w-full items-center gap-1 rounded px-1.5 py-0.5 font-mono text-sm"
       >
-        {item}
+        <span class="truncate">{item}</span>
         {#if !disabled}
           <button
             type="button"

@@ -45,9 +45,9 @@
 
 {#if clientConfig && (startTime > 0 || endTime > 0)}
   <div
-    class="bg-background-l2 hidden h-12 w-32 flex-col items-center justify-center rounded-lg px-5 lg:flex"
+    class="bg-background-l2 hidden h-12 min-w-32 flex-col items-center justify-center rounded-lg px-5 lg:flex"
   >
-    <span class="text-foreground-l0 text-base leading-tight tabular-nums">
+    <span class="text-foreground-l0 text-base leading-tight tabular-nums whitespace-nowrap">
       {countdownText}
     </span>
     <span class="text-foreground-l3 text-xs leading-tight">{label}</span>
