@@ -94,6 +94,13 @@
   }: Props = $props()
 
   let tab = $state('details')
+  let nameInputRef = $state<HTMLInputElement | null>(null)
+
+  $effect(() => {
+    if (!challengeId && nameInputRef) {
+      nameInputRef.focus()
+    }
+  })
 
   let touched = $state({
     name: false,
@@ -212,6 +219,7 @@
                 >Name<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
               >
               <Input
+                bind:ref={nameInputRef}
                 type="text"
                 placeholder="Challenge name"
                 required
