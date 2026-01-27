@@ -415,6 +415,7 @@
         <div class={cn('pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsInstancer
             config={instancerConfig}
+            {challengeId}
             {isDisabled}
             onConfigChange={onInstancerConfigChange}
             bind:isValid={instancerValid}
