@@ -12,7 +12,7 @@
     Tooltip,
     VirtualList,
   } from '$lib/components'
-  import { IconCopy, IconDots, IconKeyFilled, IconShieldFilled, IconUserFilled } from '$lib/icons'
+  import { IconCopy, IconDots, IconShieldFilled, IconUserFilled } from '$lib/icons'
   import {
     useClientConfig,
     useCreateUserTokenMutation,
@@ -50,11 +50,6 @@
 
   let copyingTeamId = $state<string | null>(null)
 
-  let showResetDialog = $state(false)
-  let selectedTeam = $state<{ id: string; name: string } | null>(null)
-  let generatedToken = $state<string | null>(null)
-  let isResetting = $state(false)
-
   async function handleCopyToken(team: { id: string; name: string }) {
     copyingTeamId = team.id
     $createTokenMutation.mutate(
@@ -76,42 +71,6 @@
         onError: err => {
           toast.error(err.message)
           copyingTeamId = null
-        },
-      }
-    )
-  }
-
-  function openResetDialog(team: { id: string; name: string }) {
-    selectedTeam = team
-    generatedToken = null
-    showResetDialog = true
-  }
-
-  function closeResetDialog() {
-    showResetDialog = false
-    selectedTeam = null
-    generatedToken = null
-  }
-
-  async function handleResetToken() {
-    if (!selectedTeam) return
-
-    isResetting = true
-    $createTokenMutation.mutate(
-      { id: selectedTeam.id },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodCreateUserTokenV2.kind) {
-            generatedToken = response.data.token
-            toast.success('Token reset successfully')
-          } else {
-            showApiError(response)
-          }
-          isResetting = false
-        },
-        onError: err => {
-          toast.error(err.message)
-          isResetting = false
         },
       }
     )
@@ -210,13 +169,6 @@
                             Copy new token
                             <IconCopy class="ml-auto size-5" />
                           </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            class="text-destructive data-highlighted:bg-background-l5 data-highlighted:text-destructive"
-                            onclick={() => openResetDialog(team)}
-                          >
-                            Reset token
-                            <IconKeyFilled class="ml-auto size-5" />
-                          </DropdownMenu.Item>
                         </DropdownMenu.Content>
                       </DropdownMenu.Root>
                     </div>
@@ -238,18 +190,6 @@
                         </Tooltip.Trigger>
                         <Tooltip.Content>Copy new token</Tooltip.Content>
                       </Tooltip.Root>
-                      <Tooltip.Root>
-                        <Tooltip.Trigger class="h-full">
-                          <Button
-                            variant="destructive"
-                            class="h-full px-3"
-                            onclick={() => openResetDialog(team)}
-                          >
-                            <IconKeyFilled class="size-5" />
-                          </Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>Reset token</Tooltip.Content>
-                      </Tooltip.Root>
                     </div>
                   {/if}
                 {/if}
@@ -261,45 +201,3 @@
     </ScrollArea>
   {/if}
 </div>
-
-<Dialog.Root bind:open={showResetDialog}>
-  <Dialog.Content class="max-w-md">
-    <Dialog.Header>
-      <Dialog.Title>Reset team token</Dialog.Title>
-      <Dialog.Description>
-        {#if generatedToken}
-          The token for <span class="text-foreground-l1 font-medium">{selectedTeam?.name}</span> has been
-          reset. Copy it now — you won't be able to see it again.
-        {:else}
-          This will generate a new login token for <span class="text-foreground-l1 font-medium"
-            >{selectedTeam?.name}</span
-          >. The old token will be invalidated.
-        {/if}
-      </Dialog.Description>
-    </Dialog.Header>
-
-    {#if generatedToken}
-      <div class="flex flex-col gap-4">
-        <div class="bg-background-l2 flex items-center gap-2 rounded-lg p-3">
-          <code class="flex-1 font-mono text-sm break-all">{generatedToken}</code>
-          <Button variant="secondary" size="sm" onclick={() => copyToken(generatedToken!)}>
-            <IconCopy class="size-4" />
-          </Button>
-        </div>
-        <Dialog.Footer>
-          <Button onclick={closeResetDialog}>Done</Button>
-        </Dialog.Footer>
-      </div>
-    {:else}
-      <Dialog.Footer>
-        <Button variant="secondary" onclick={closeResetDialog}>Cancel</Button>
-        <Button variant="destructive" onclick={handleResetToken} disabled={isResetting}>
-          {#if isResetting}
-            <Spinner class="size-4" />
-          {/if}
-          Reset token
-        </Button>
-      </Dialog.Footer>
-    {/if}
-  </Dialog.Content>
-</Dialog.Root>
