@@ -24,11 +24,9 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
         points: scores[index]?.score ?? 0,
         solves: scores[index]?.solves ?? 0,
         sortWeight: item.data.sortWeight ?? null,
-        instancerLifetime:
-          Boolean(item.data.instancerConfig?.challengeIntegrationId) &&
-          Boolean(config.instancerProvider)
-            ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
-            : null,
+        instancerLifetime: Boolean(config.instancerProvider)
+          ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
+          : null,
         hasFlag: Boolean(item.data.flag),
       }
     })

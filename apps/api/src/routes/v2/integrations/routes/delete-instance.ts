@@ -22,7 +22,7 @@ integrationsGroup.route(
     const instanceStatus = await instancerProvider!.deleteInstance({
       teamId: user.id,
       challengeIntegrationId:
-        challenge.data.instancerConfig!.challengeIntegrationId,
+        challenge.data.instancerConfig!.challengeIntegrationId ?? challenge.id,
     })
 
     return await returnInstanceStatusOrError(

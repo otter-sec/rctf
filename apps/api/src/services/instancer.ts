@@ -46,7 +46,7 @@ export const getInstancerChallenge = async (
     return { error: res.badChallenge() }
   }
 
-  if (!challenge.data.instancerConfig?.challengeIntegrationId) {
+  if (!challenge.data.instancerConfig) {
     return {
       error: res.badInstancerError({
         message: 'Challenge is not configured for instancer',

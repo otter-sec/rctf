@@ -6,6 +6,7 @@ import {
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
 import integrationsGroup from '../group'
+import { inferChallengeIntegrationId } from '../../../../util/instancer'
 
 integrationsGroup.route(
   GetInstanceStatusRouteV2,
@@ -21,8 +22,7 @@ integrationsGroup.route(
 
     let instanceStatus = await instancerProvider!.getInstance({
       teamId: user.id,
-      challengeIntegrationId:
-        challenge.data.instancerConfig!.challengeIntegrationId,
+      challengeIntegrationId: inferChallengeIntegrationId(challenge),
     })
 
     return await returnInstanceStatusOrError(

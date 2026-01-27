@@ -54,14 +54,14 @@ export const ExposeSchema = z.object({
 
 // NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
-  challengeIntegrationId: z.string().check(z.minLength(1)),
+  challengeIntegrationId: z.string(),
   config: z.record(z.string(), z.any()),
   expose: z.array(ExposeSchema),
   timeoutMilliseconds: z.int(),
 })
 
 export const PartialInstancerConfigSchema = z.object({
-  challengeIntegrationId: z.string().check(z.minLength(1)),
+  challengeIntegrationId: z.optional(z.string()),
   config: z.optional(z.record(z.string(), z.any())),
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: z.optional(z.int()),
