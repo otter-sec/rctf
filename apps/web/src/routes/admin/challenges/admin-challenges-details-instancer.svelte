@@ -17,29 +17,12 @@
 
   interface Props {
     config: InstancerConfig | null
-    challengeId: string | null
     isDisabled: boolean
     onConfigChange: (config: InstancerConfig | null) => void
     isValid?: boolean
   }
 
-  let {
-    config,
-    challengeId,
-    isDisabled,
-    onConfigChange,
-    isValid = $bindable(true),
-  }: Props = $props()
-
-  let localConfig = $state<InstancerConfig | null>(null)
-  let lastSyncedChallengeId = $state<string | null | undefined>(undefined)
-
-  $effect.pre(() => {
-    if (challengeId !== lastSyncedChallengeId) {
-      lastSyncedChallengeId = challengeId
-      localConfig = config
-    }
-  })
+  let { config, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
   const schemaData = $derived($schemaQuery.data)
@@ -55,15 +38,9 @@
   let schemaFormValid = $state(true)
   let selectedExposeIndex = $state(0)
 
-  const integrationIdError = $derived(
-    localConfig && !localConfig.challengeIntegrationId.trim() ? 'Integration ID is required' : null
-  )
-
   $effect(() => {
-    if (!localConfig) {
+    if (!config) {
       isValid = true
-    } else if (integrationIdError) {
-      isValid = false
     } else if (advancedMode) {
       isValid = !yamlError
     } else {
@@ -72,16 +49,16 @@
   })
 
   $effect(() => {
-    if (localConfig && selectedExposeIndex >= localConfig.expose.length) {
-      selectedExposeIndex = Math.max(0, localConfig.expose.length - 1)
+    if (config && selectedExposeIndex >= config.expose.length) {
+      selectedExposeIndex = Math.max(0, config.expose.length - 1)
     }
   })
 
-  const selectedExpose = $derived(localConfig?.expose[selectedExposeIndex])
+  const selectedExpose = $derived(config?.expose[selectedExposeIndex])
 
   function enterAdvancedMode() {
-    if (localConfig?.config) {
-      yamlText = yaml.stringify(localConfig.config)
+    if (config?.config) {
+      yamlText = yaml.stringify(config.config)
       yamlError = null
     }
     advancedMode = true
@@ -115,16 +92,14 @@
   }
 
   function update(fn: (c: InstancerConfig) => InstancerConfig) {
-    if (localConfig) {
-      const newConfig = fn(localConfig)
-      localConfig = newConfig
-      onConfigChange(newConfig)
+    if (config) {
+      onConfigChange(fn(config))
     }
   }
 
   function defaultConfig(): InstancerConfig {
     return {
-      challengeIntegrationId: challengeId ?? '',
+      challengeIntegrationId: '',
       config: schemaData?.defaults ?? {},
       expose: [
         {
@@ -157,8 +132,8 @@
         },
       ],
     }))
-    if (localConfig) {
-      selectedExposeIndex = localConfig.expose.length
+    if (config) {
+      selectedExposeIndex = config.expose.length
     }
   }
 
@@ -190,16 +165,12 @@
         {:else}
           <Select.Root
             type="single"
-            value={localConfig ? 'yes' : 'no'}
-            onValueChange={v => {
-              const newConfig = v === 'yes' ? defaultConfig() : null
-              localConfig = newConfig
-              onConfigChange(newConfig)
-            }}
+            value={config ? 'yes' : 'no'}
+            onValueChange={v => onConfigChange(v === 'yes' ? defaultConfig() : null)}
             disabled={isDisabled}
           >
             <Select.Trigger class="w-full">
-              {localConfig ? 'Enabled' : 'Disabled'}
+              {config ? 'Enabled' : 'Disabled'}
             </Select.Trigger>
             <Select.Content>
               <Select.Item value="no" label="Disabled">Disabled</Select.Item>
@@ -209,31 +180,25 @@
         {/if}
       </Field.Field>
 
-      {#if localConfig}
+      {#if config}
         <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
-          <Field.Field data-invalid={integrationIdError ? true : undefined}>
-            <Field.Label
-              >Integration ID<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
-            >
+          <Field.Field>
+            <Field.Label>Integration ID</Field.Label>
             <Input
               type="text"
               placeholder="challenge-id"
               class="font-mono"
-              value={localConfig.challengeIntegrationId}
+              value={config.challengeIntegrationId}
               oninput={e => update(c => ({ ...c, challengeIntegrationId: e.currentTarget.value }))}
               disabled={isDisabled}
-              aria-invalid={!!integrationIdError}
             />
-            {#if integrationIdError}
-              <Field.Error>{integrationIdError}</Field.Error>
-            {/if}
           </Field.Field>
           <Field.Field>
             <Field.Label>Timeout <Field.Hint>(seconds)</Field.Hint></Field.Label>
             <Input
               type="number"
               min={0}
-              value={Math.round(localConfig.timeoutMilliseconds / 1000)}
+              value={Math.round(config.timeoutMilliseconds / 1000)}
               oninput={e =>
                 update(c => ({ ...c, timeoutMilliseconds: +e.currentTarget.value * 1000 }))}
               disabled={isDisabled}
@@ -244,7 +209,7 @@
     </Section.Content>
   </Section.Root>
 
-  {#if localConfig}
+  {#if config}
     <Section.Root>
       <Section.Header class="flex items-center justify-between">
         <span>Provider config</span>
@@ -280,7 +245,7 @@
         {:else if schemaData}
           <SchemaForm
             schema={schemaData.schema}
-            value={localConfig.config}
+            value={config.config}
             onChange={handleConfigChange}
             disabled={isDisabled}
             bind:isValid={schemaFormValid}
@@ -300,10 +265,10 @@
               <div
                 class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
               >
-                {#if localConfig.expose.length === 0}
+                {#if config.expose.length === 0}
                   <p class="text-foreground-l4 px-2 py-1.5 text-sm">No ports</p>
                 {:else}
-                  {#each localConfig.expose as exp, i (i)}
+                  {#each config.expose as exp, i (i)}
                     {@const active = selectedExposeIndex === i}
                     <div
                       class={cn(

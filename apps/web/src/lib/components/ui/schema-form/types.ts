@@ -15,6 +15,7 @@ export interface JsonSchema {
   maximum?: number
   exclusiveMinimum?: number
   exclusiveMaximum?: number
+  multipleOf?: number
   minLength?: number
   maxLength?: number
   minItems?: number
