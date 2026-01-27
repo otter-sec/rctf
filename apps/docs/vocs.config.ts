@@ -80,7 +80,7 @@ export default defineConfig({
             { text: 'Uploading', link: '/admin/uploading' },
           ],
         },
-      
+
         {
           text: 'API Reference',
           collapsed: true,

@@ -47,7 +47,7 @@
   <div
     class="bg-background-l2 hidden h-12 min-w-32 flex-col items-center justify-center rounded-lg px-5 lg:flex"
   >
-    <span class="text-foreground-l0 text-base leading-tight tabular-nums whitespace-nowrap">
+    <span class="text-foreground-l0 text-base leading-tight whitespace-nowrap tabular-nums">
       {countdownText}
     </span>
     <span class="text-foreground-l3 text-xs leading-tight">{label}</span>

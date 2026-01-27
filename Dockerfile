@@ -1,4 +1,4 @@
-FROM oven/bun:1.3-alpine AS base
+FROM oven/bun:1.3.7-alpine AS base
 WORKDIR /app
 
 FROM base AS package-configs
