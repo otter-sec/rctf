@@ -6,6 +6,7 @@ import {
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
 import integrationsGroup from '../group'
+import { inferChallengeIntegrationId } from '../../../../util/instancer'
 
 integrationsGroup.route(
   DeleteInstanceRouteV2,
@@ -21,8 +22,7 @@ integrationsGroup.route(
 
     const instanceStatus = await instancerProvider!.deleteInstance({
       teamId: user.id,
-      challengeIntegrationId:
-        challenge.data.instancerConfig!.challengeIntegrationId ?? challenge.id,
+      challengeIntegrationId: inferChallengeIntegrationId(challenge),
     })
 
     return await returnInstanceStatusOrError(

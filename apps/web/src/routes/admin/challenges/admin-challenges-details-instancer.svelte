@@ -30,9 +30,15 @@
     onConfigChange,
     isValid = $bindable(true),
   }: Props = $props()
+
   let localConfig = $state<InstancerConfig | null>(null)
+  let lastSyncedChallengeId = $state<string | null | undefined>(undefined)
+
   $effect.pre(() => {
-    localConfig = config
+    if (challengeId !== lastSyncedChallengeId) {
+      lastSyncedChallengeId = challengeId
+      localConfig = config
+    }
   })
 
   const schemaQuery = useInstancerSchema()
