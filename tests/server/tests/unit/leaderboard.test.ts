@@ -575,6 +575,7 @@ describe('leaderboard cache', () => {
             },
           ],
         ]),
+        firstBloods: new Map(),
         samples: [],
       }
 
@@ -598,6 +599,7 @@ describe('leaderboard cache', () => {
           },
         ],
         challengeInfos: new Map(),
+        firstBloods: new Map(),
         samples: [
           {
             time: 1699990000,
@@ -622,6 +624,7 @@ describe('leaderboard cache', () => {
         leaderboardUpdate: 1700000000,
         users: [],
         challengeInfos: new Map(),
+        firstBloods: new Map(),
         samples: [],
       }
 
@@ -657,6 +660,7 @@ describe('leaderboard cache', () => {
             },
           ],
         ]),
+        firstBloods: new Map(),
         samples: [],
       }
 
@@ -673,6 +677,7 @@ describe('leaderboard cache', () => {
         leaderboardUpdate: 1700000000,
         users: [],
         challengeInfos: new Map(),
+        firstBloods: new Map(),
         samples: [
           {
             time: 1699990000,

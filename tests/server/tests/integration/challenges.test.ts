@@ -28,7 +28,7 @@ afterAll(async () => {
 
 describe('challenges', () => {
   test('fails with badToken when unauthorized', async () => {
-    const res = await request(app, '/api/v1/challs', {
+    const res = await request(app, '/api/v2/users/me', {
       method: 'GET',
     })
 

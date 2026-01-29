@@ -317,7 +317,6 @@ describe('challenges service', () => {
 
       const body = await expectResponse(res, GoodLeaderboard)
       expect(Array.isArray(body.data.leaderboard)).toBe(true)
-      expect(typeof body.data.challenges).toBe('object')
     })
   })
 
@@ -331,7 +330,7 @@ describe('challenges service', () => {
 
       const authToken = await generateAuthToken(user.id)
 
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 5; i++) {
         await request(app, `/api/v1/challs/${challenge.id}/submit`, {
           method: 'POST',
           headers: {

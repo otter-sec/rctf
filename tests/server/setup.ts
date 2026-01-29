@@ -7,28 +7,21 @@ process.env.LOG_LEVEL = 'silent'
 
 mock.module('@rctf/config', () => {
   const {
-    defaultConfig,
     loadFileConfigs,
     loadEnvConfig,
   } = require('../../packages/config/src/loader')
-  const realConfig: {
-    database: any
-    tokenKey: any
-  } = deepMerge.all([
-    defaultConfig,
-    ...loadFileConfigs(),
-    loadEnvConfig(),
-  ]) as any
+  const { ServerConfigSchema } = require('../../packages/config/src/types')
+  const realConfig = ServerConfigSchema.parse(
+    deepMerge.all([...loadFileConfigs(), loadEnvConfig()])
+  )
 
   const extractedHostCfg = {
     database: realConfig.database,
     tokenKey: realConfig.tokenKey,
   }
 
-  const config = deepMerge.all([
-    defaultConfig,
-    extractedHostCfg,
-    ...loadFileConfigs(mockTestConfigDir),
-  ])
+  const config = ServerConfigSchema.parse(
+    deepMerge.all([extractedHostCfg, ...loadFileConfigs(mockTestConfigDir)])
+  )
   return { config }
 })

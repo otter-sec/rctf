@@ -239,7 +239,9 @@ export const declareRouter = <
 
     const requiresAuth =
       definition.authRequired || (definition.permissions ?? 0) !== 0
-    const wantsOptionalAuth = definition.optionalAuth === true
+    const wantsOptionalAuth =
+      definition.optionalAuth === true ||
+      definition.onlyWhenStartedPermissionsBypass !== undefined
 
     if (requiresAuth) {
       user = await getAuthenticatedUser(context)
