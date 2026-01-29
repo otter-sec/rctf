@@ -10,7 +10,7 @@ rCTF is redpwnCTF's CTF platform. It is now developed and maintained by the [Ott
 
 ## Getting started
 
-To get started with rCTF, visit the docs at [rctf.osec.io](https://rctf.osec.io/installation/).
+To get started with rCTF, visit the docs at [rctf.osec.io](https://rctf.osec.io/rctf/installation/).
 
 If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
 
