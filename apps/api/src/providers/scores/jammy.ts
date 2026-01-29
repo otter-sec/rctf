@@ -38,7 +38,6 @@ export default class JammyProvider implements ScoreProvider {
       return maxPoints
     }
 
-    // Reference: tickrate = maximumScoreTime * eventLength / maxPoints
     const tickrate = (this.maximumScoreTime * eventLength) / maxPoints
     const timeSinceStart = firstSolveTime - eventStartTime
     const score = minPoints + Math.floor(timeSinceStart / tickrate)
