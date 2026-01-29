@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Check formatting
+        run: bunx prettier --check "**/*.{ts,tsx,svelte,html,json}" --ignore-path .gitignore
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Start development containers
+        run: docker compose -f compose.dev.yml up -d
+
+      - name: Create development config
+        run: |
+          mkdir -p rctf.d
+          cat <<EOF > rctf.d/00-development.yaml
+          database:
+            sql:
+              host: 127.0.0.1
+              user: rctf
+              password: DO_NOT_USE_ME
+              database: rctf
+            redis:
+              host: 127.0.0.1
+              password: DO_NOT_USE_ME
+            migrate: before
+          EOF
+
+      - name: Wait for containers to be ready
+        run: |
+          echo "Waiting for PostgreSQL..."
+          timeout 60 bash -c 'until docker compose -f compose.dev.yml exec -T postgres pg_isready -U rctf; do sleep 1; done'
+          echo "Waiting for Redis..."
+          timeout 60 bash -c 'until docker compose -f compose.dev.yml exec -T redis redis-cli -a DO_NOT_USE_ME ping | grep -q PONG; do sleep 1; done'
+
+      - name: Run tests
+        run: bun run test
