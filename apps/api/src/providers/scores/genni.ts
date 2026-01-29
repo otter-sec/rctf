@@ -1,14 +1,16 @@
-import type { ScoreProvider } from './base'
+import type { ScoreContext, ScoreContextField, ScoreProvider } from './base'
 
 export default class GenniProvider implements ScoreProvider {
-  constructor(_options: any) {}
+  readonly requiredFields: readonly ScoreContextField[] = [
+    'minPoints',
+    'maxPoints',
+    'solves',
+  ]
 
-  calculate(
-    minPoints: number,
-    maxPoints: number,
-    maxSolves: number,
-    solves: number
-  ) {
+  constructor(_options: unknown) {}
+
+  calculate(ctx: ScoreContext): number {
+    const { maxPoints, solves } = ctx
     return solves > 2 ? 0 : maxPoints
   }
 }

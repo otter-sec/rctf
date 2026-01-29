@@ -1,6 +1,7 @@
 import type { ScoreProvider } from './base'
 import ClassicProvider from './classic'
 import GenniProvider from './genni'
+import JammyProvider from './jammy'
 import LegacyProvider from './legacy'
 import SekaiProvider from './sekai'
 import SteepProvider from './steep'
@@ -16,4 +17,5 @@ export const scoreProviders: Record<string, (options: any) => ScoreProvider> = {
   'scores/genni': (options: any) => new GenniProvider(options),
   'scores/sekai': (options: any) => new SekaiProvider(options),
   'scores/steep': (options: any) => new SteepProvider(options),
+  'scores/jammy': (options: any) => new JammyProvider(options),
 }

@@ -1,4 +1,4 @@
-import type { ScoreProvider } from './base'
+import type { ScoreContext, ScoreContextField, ScoreProvider } from './base'
 
 const p0 = 0.7
 const p1 = 0.96
@@ -10,14 +10,17 @@ const b = (x: number): number =>
   (a((c1 - c0) * x + c0) - a(c1)) / (a(c0) - a(c1))
 
 export default class LegacyProvider implements ScoreProvider {
-  constructor(_options: any) {}
+  readonly requiredFields: readonly ScoreContextField[] = [
+    'minPoints',
+    'maxPoints',
+    'solves',
+    'maxSolves',
+  ]
 
-  calculate(
-    minPoints: number,
-    maxPoints: number,
-    maxSolves: number,
-    solves: number
-  ) {
+  constructor(_options: unknown) {}
+
+  calculate(ctx: ScoreContext): number {
+    const { minPoints, maxPoints, solves, maxSolves } = ctx
     const s = Math.max(1, maxSolves)
     const f = (x: number): number =>
       minPoints + (maxPoints - minPoints) * b(x / s)

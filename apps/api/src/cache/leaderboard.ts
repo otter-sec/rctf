@@ -24,6 +24,7 @@ export type InternalChallengeInfo = {
   minPoints: number
   maxPoints: number
   sortWeight: number | null
+  firstSolveTime: number | null
 }
 
 export type InternalUserInfo = {

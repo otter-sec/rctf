@@ -12,6 +12,7 @@ import {
 import { scoreProvider } from '../providers'
 import { getSolvesAndUserInfo } from './challenges'
 import type { TypedRedis } from '../cache/scripts'
+import type { ScoreContext } from '../providers/scores/base'
 
 const getUsers = async (
   db: DatabaseClient
@@ -72,9 +73,25 @@ const getChallenges = async (
       minPoints: points.min ?? 0,
       maxPoints: points.max ?? 0,
       sortWeight: ch.data.sortWeight ?? null,
+      firstSolveTime: null,
     })
   }
   return result
+}
+
+const buildScoreContext = (
+  ch: InternalChallengeInfo,
+  maxSolves: number
+): ScoreContext => {
+  return {
+    minPoints: ch.minPoints,
+    maxPoints: ch.maxPoints,
+    solves: ch.solves,
+    maxSolves: maxSolves,
+    eventStartTime: config.startTime,
+    eventEndTime: config.endTime,
+    firstSolveTime: ch.firstSolveTime,
+  }
 }
 
 export const calculateLeaderboard = async (
@@ -85,7 +102,7 @@ export const calculateLeaderboard = async (
   const challengeInfos = await getChallenges(db)
 
   for (const [, ch] of challengeInfos) {
-    ch.score = scoreProvider.calculate(ch.minPoints, ch.maxPoints, 0, 0)
+    ch.score = scoreProvider.calculate(buildScoreContext(ch, 0))
   }
 
   const dbSolves = await db
@@ -130,6 +147,10 @@ export const calculateLeaderboard = async (
         bloods.push(s.userid)
       }
 
+      if (chal.firstSolveTime === null) {
+        chal.firstSolveTime = createdAtMs
+      }
+
       chal.solves++
       user.lastSolve = createdAtMs
       if (chal.tiebreakEligible) {
@@ -143,17 +164,12 @@ export const calculateLeaderboard = async (
       return false
     }
 
-    // recompute challenge dynamic scores
-    const maxSolves = Math.max(
-      ...Array.from(challengeInfos.values()).map(ch => ch.solves)
-    )
+    const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
+      ? Math.max(...Array.from(challengeInfos.values()).map(ch => ch.solves))
+      : 0
+
     for (const [, ch] of challengeInfos) {
-      ch.score = scoreProvider.calculate(
-        ch.minPoints,
-        ch.maxPoints,
-        maxSolves,
-        ch.solves
-      )
+      ch.score = scoreProvider.calculate(buildScoreContext(ch, maxSolves))
     }
 
     // recompute user scores

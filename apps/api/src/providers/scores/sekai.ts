@@ -1,14 +1,16 @@
-import type { ScoreProvider } from './base'
+import type { ScoreContext, ScoreContextField, ScoreProvider } from './base'
 
 export default class SekaiProvider implements ScoreProvider {
-  constructor(_options: any) {}
+  readonly requiredFields: readonly ScoreContextField[] = [
+    'minPoints',
+    'maxPoints',
+    'solves',
+  ]
 
-  calculate(
-    minPoints: number,
-    maxPoints: number,
-    maxSolves: number,
-    solves: number
-  ) {
+  constructor(_options: unknown) {}
+
+  calculate(ctx: ScoreContext): number {
+    const { minPoints, maxPoints, solves } = ctx
     const gradient = 10
     const decay = 60
 
