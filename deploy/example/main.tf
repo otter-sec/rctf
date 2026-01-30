@@ -44,16 +44,14 @@ provider "acme" {
 module "gke" {
     source = "../terraform-modules/gke"
 
-    # TODO: make me configurable
-    project_id = "sandbox-476301"
-    region = "europe-west1"
-    zone = "europe-west1-b"
-    cluster_name = "rctf-instancer"
-    machine_type = "e2-standard-4"
-    min_node_count = 1
-    max_node_count = 1
+    project_id = var.gcp_project_id
+    region = var.gcp_region
+    zone = var.gcp_zone
+    cluster_name = var.gcp_instancer_cluster_name
+    machine_type = var.gcp_instancer_machine_type
+    min_node_count = var.gcp_instancer_min_node_count
+    max_node_count = var.gcp_instancer_max_node_count
 }
-# gcloud container clusters get-credentials [cluster-name] --project=[...] --location=[...]
 
 output "challenge_registry_url" {
     value = module.gke.challenge_repository_url

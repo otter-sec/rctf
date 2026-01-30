@@ -3,3 +3,12 @@ letsencrypt_email_address = ""
 instancer_zone = ""
 instancer_subdomain = ""
 ctf_name = ""
+
+# GCP-specific configuration (optional if you configure main.tf to use something else):
+gcp_project_id = ""
+gcp_region = ""
+gcp_zone = ""
+gcp_instancer_cluster_name = ""
+gcp_instancer_machine_type = ""
+gcp_instancer_min_node_count = 1
+gcp_instancer_max_node_count = 1
