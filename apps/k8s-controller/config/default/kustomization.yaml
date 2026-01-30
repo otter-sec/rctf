@@ -40,6 +40,9 @@ patches:
 - path: manager_metrics_patch.yaml
   target:
     kind: Deployment
+- path: instancer_host_patch.yaml
+  target:
+    kind: Deployment
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
