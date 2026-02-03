@@ -7,6 +7,11 @@ email:
 
 ctfName: rCTF
 origin: http://127.0.0.1:8080
+tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+
+database:
+  sql: postgres://test:test@localhost:5432/test
+  redis: redis://localhost:6379
 
 startTime: 1591500500000
 endTime: 32503680000000

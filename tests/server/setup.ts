@@ -1,27 +1,111 @@
 import { mock } from 'bun:test'
 import path from 'path'
-import deepMerge from 'deepmerge'
+import { DrizzleQueryError } from 'drizzle-orm'
+import { PGlite } from '@electric-sql/pglite'
+import { citext } from '@electric-sql/pglite/contrib/citext'
+import { drizzle } from 'drizzle-orm/pglite'
+import { migrate } from 'drizzle-orm/pglite/migrator'
+import * as schema from '../../packages/db/src/schema'
+import { loadLuaCommands } from '../../apps/api/src/cache/scripts'
+import RedisMock from 'ioredis-mock'
 
-const mockTestConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')
+const testConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')
+const migrationsFolder = path.resolve(
+  import.meta.dir,
+  '../../packages/db/migrations'
+)
 process.env.LOG_LEVEL = 'silent'
 
-mock.module('@rctf/config', () => {
-  const {
-    loadFileConfigs,
-    loadEnvConfig,
-  } = require('../../packages/config/src/loader')
-  const { ServerConfigSchema } = require('../../packages/config/src/types')
-  const realConfig = ServerConfigSchema.parse(
-    deepMerge.all([...loadFileConfigs(), loadEnvConfig()])
-  )
+const pgliteClient = new PGlite({
+  extensions: { citext },
+})
+await pgliteClient.waitReady
 
-  const extractedHostCfg = {
-    database: realConfig.database,
-    tokenKey: realConfig.tokenKey,
+const rawPgliteDb = drizzle(pgliteClient, { schema })
+await migrate(rawPgliteDb, { migrationsFolder })
+
+// pglite's execute returns { rows: [...] } while postgres-js returns [...] directly
+const pgliteDb = new Proxy(rawPgliteDb, {
+  get(target, prop, receiver) {
+    if (prop === 'execute') {
+      return async (...args: any[]) => {
+        const result = await (target as any).execute(...args)
+        if (result && typeof result === 'object' && 'rows' in result) {
+          return result.rows
+        }
+        return result
+      }
+    }
+    return Reflect.get(target, prop, receiver)
+  },
+})
+
+// pglite errors have a different structure than postgres-js errors
+const getErrorConstraint = (error: any): string | undefined => {
+  if (!(error instanceof DrizzleQueryError)) {
+    return undefined
   }
+  const cause = error.cause as any
+  if (cause?.constraint_name) {
+    return cause.constraint_name
+  }
+  if (cause?.constraint) {
+    return cause.constraint
+  }
+  const message = cause?.message || ''
+  if (message.includes('unique constraint')) {
+    const match = message.match(/unique constraint "([^"]+)"/)
+    if (match) {
+      return match[1]
+    }
+  }
+  if (message.includes('foreign key constraint')) {
+    const match = message.match(/foreign key constraint "([^"]+)"/)
+    if (match) {
+      return match[1]
+    }
+  }
+  return undefined
+}
 
-  const config = ServerConfigSchema.parse(
-    deepMerge.all([extractedHostCfg, ...loadFileConfigs(mockTestConfigDir)])
-  )
+const takeUnique = <T extends any[]>(values: T): T[number] | undefined => {
+  if (values.length !== 1) {
+    return undefined
+  }
+  return values[0]
+}
+
+mock.module('@rctf/db', () => {
+  return {
+    ...schema,
+    createDatabase: () => {
+      return { client: pgliteClient, db: pgliteDb }
+    },
+  }
+})
+
+mock.module('@rctf/db/util', () => {
+  return {
+    getErrorConstraint,
+    takeUnique,
+  }
+})
+
+mock.module('@rctf/config', () => {
+  const { loadFileConfigs } = require('../../packages/config/src/loader')
+  const { ServerConfigSchema } = require('../../packages/config/src/types')
+  const config = ServerConfigSchema.parse(loadFileConfigs(testConfigDir)[0])
   return { config }
 })
+
+mock.module('../../apps/api/src/util/redis', () => {
+  return {
+    createRedis: async () => {
+      const mockRedisInstance = new RedisMock()
+      const typedMockRedis = await loadLuaCommands(mockRedisInstance)
+      return typedMockRedis
+    },
+  }
+})
+
+export { pgliteClient, pgliteDb }

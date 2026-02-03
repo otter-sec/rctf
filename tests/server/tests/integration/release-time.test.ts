@@ -18,12 +18,16 @@ import { getApp, request } from '../../app'
 import {
   expectResponse,
   generateAuthToken,
+  generateChallengeWithReleaseTime,
   generateRealTestUser,
 } from '../../util'
 
 let app: Hono<any>
 const createdUserCleanups: Array<() => Promise<void>> = []
 const createdChallengeCleanups: Array<() => Promise<void>> = []
+
+// Use mocked createDatabase - it returns pglite instance
+const getDb = () => createDatabase(config.database.sql).db
 
 beforeAll(async () => {
   app = await getApp()
@@ -37,37 +41,6 @@ afterAll(async () => {
     await cleanup()
   }
 })
-
-const generateChallengeWithReleaseTime = async (releaseTime: number | null) => {
-  const db = createDatabase(config.database.sql).db
-  const id = crypto.randomUUID()
-  const flag = crypto.randomUUID()
-
-  const data: ChallengeData = {
-    name: crypto.randomUUID(),
-    description: crypto.randomUUID(),
-    category: crypto.randomUUID(),
-    author: crypto.randomUUID(),
-    files: [],
-    flag,
-    tiebreakEligible: true,
-    points: {
-      min: 100,
-      max: 500,
-    },
-    releaseTime,
-  }
-
-  await db.insert(challenges).values({ id, data })
-
-  return {
-    challenge: { id, ...data, flag },
-    cleanup: async () => {
-      await db.delete(solves).where(eq(solves.challengeid, id))
-      await db.delete(challenges).where(eq(challenges.id, id))
-    },
-  }
-}
 
 describe('challenge release time', () => {
   describe('isChallengePublic via getChallenges', () => {
@@ -166,7 +139,7 @@ describe('challenge release time', () => {
 
   describe('hidden takes priority over releaseTime', () => {
     test('hidden challenge with past releaseTime is NOT visible', async () => {
-      const db = createDatabase(config.database.sql).db
+      const db = getDb()
       const { user, cleanup } = await generateRealTestUser()
       createdUserCleanups.push(cleanup)
 

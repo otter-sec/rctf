@@ -12,6 +12,9 @@ import type { ResponseDefinition } from '@rctf/types'
 import { eq } from 'drizzle-orm'
 import { createToken, TokenKind } from '../../apps/api/src/lib/tokens'
 
+// Use mocked createDatabase - it returns pglite instance
+const getDb = () => createDatabase(config.database.sql).db
+
 export const expectResponse = async <T extends ResponseDefinition<string, any>>(
   res: Response,
   expected: T
@@ -33,7 +36,7 @@ export const generateAuthToken = async (userId: string) => {
 }
 
 export const generateRealTestUser = async (perms = 0) => {
-  const db = createDatabase(config.database.sql).db
+  const db = getDb()
   const userData = generateTestUser()
   const id = crypto.randomUUID()
 
@@ -56,7 +59,7 @@ export const generateRealTestUser = async (perms = 0) => {
 }
 
 export const generateChallenge = async () => {
-  const db = createDatabase(config.database.sql).db
+  const db = getDb()
   const id = crypto.randomUUID()
   const flag = crypto.randomUUID()
 
@@ -85,10 +88,43 @@ export const generateChallenge = async () => {
   }
 }
 
+export const generateChallengeWithReleaseTime = async (
+  releaseTime: number | null | undefined
+) => {
+  const db = getDb()
+  const id = crypto.randomUUID()
+  const flag = crypto.randomUUID()
+
+  const data: ChallengeData = {
+    name: crypto.randomUUID(),
+    description: crypto.randomUUID(),
+    category: crypto.randomUUID(),
+    author: crypto.randomUUID(),
+    files: [],
+    flag,
+    tiebreakEligible: true,
+    points: {
+      min: 100,
+      max: 500,
+    },
+    releaseTime,
+  }
+
+  await db.insert(challenges).values({ id, data })
+
+  return {
+    challenge: { id, ...data, flag },
+    cleanup: async () => {
+      await db.delete(solves).where(eq(solves.challengeid, id))
+      await db.delete(challenges).where(eq(challenges.id, id))
+    },
+  }
+}
+
 export const getUserByEmail = async (
   email: string
 ): Promise<User | undefined> => {
-  const db = createDatabase(config.database.sql).db
+  const db = getDb()
   return await db
     .select()
     .from(users)
@@ -98,7 +134,7 @@ export const getUserByEmail = async (
 }
 
 export const deleteUserByEmail = async (email: string): Promise<void> => {
-  const db = createDatabase(config.database.sql).db
+  const db = getDb()
   const user = await getUserByEmail(email)
   if (user) {
     await db.delete(solves).where(eq(solves.userid, user.id))
