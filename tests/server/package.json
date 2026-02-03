@@ -6,9 +6,12 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@electric-sql/pglite": "*",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
-    "@rctf/types": "workspace:*"
+    "@rctf/types": "workspace:*",
+    "drizzle-orm": "*",
+    "ioredis-mock": "*"
   },
   "devDependencies": {
     "@types/bun": "latest"
