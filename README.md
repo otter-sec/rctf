@@ -193,4 +193,4 @@ bun run dev
 - [ ] cf worker for docs, get rid of docker compose temp setup
 - [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
 - [ ] rctf2pages
-- [ ] run tests in ci 
+- [x] run tests in ci 
