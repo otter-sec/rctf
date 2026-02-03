@@ -16,9 +16,10 @@ export const AdminChallengeSchemaV2 = z.object({
   points: ChallengePointsSchema,
   flag: z.string(),
   tiebreakEligible: z.boolean(),
-  sortWeight: z.nullable(z.number()),
-  instancerConfig: z.nullable(InstancerConfigSchema),
+  sortWeight: z.nullish(z.number()),
+  instancerConfig: z.nullish(InstancerConfigSchema),
   hidden: z.boolean(),
+  releaseTime: z.nullish(z.number()),
 })
 
 export const GoodAdminChallengeV2 = response('goodAdminChallenge', {

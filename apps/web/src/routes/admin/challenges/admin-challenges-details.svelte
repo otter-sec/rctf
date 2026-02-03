@@ -107,6 +107,7 @@
           files: form.files,
           instancerConfig: form.instancerConfig,
           hidden: form.hidden,
+          releaseTime: form.releaseTime,
         },
       },
       {
@@ -136,6 +137,7 @@
                 sortWeight: form.sortWeight,
                 instancerConfig: form.instancerConfig,
                 hidden: form.hidden,
+                releaseTime: form.releaseTime,
               },
             })
           } else if (response.kind === BadInstancerConfig.kind) {
@@ -301,6 +303,7 @@
           onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
           onSortWeightChange={v => updateField('sortWeight', v)}
           onHiddenChange={v => updateField('hidden', v)}
+          onReleaseTimeChange={v => updateField('releaseTime', v)}
         >
           {#snippet actions()}
             {#if isEditMode}

@@ -42,8 +42,6 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       ...file,
       size: file.size ?? null,
     })),
-    sortWeight: updated.data.sortWeight ?? null,
-    instancerConfig: updated.data.instancerConfig ?? null,
     hidden: updated.data.hidden ?? false,
   })
 })

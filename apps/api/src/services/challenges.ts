@@ -115,11 +115,19 @@ export const getPrivateChallenge = async (
     .then(takeUnique)
 }
 
+export const isChallengePublic = (challenge: Challenge): boolean => {
+  // Hidden takes priority over releaseTime
+  if (challenge.data.hidden) {
+    return false
+  }
+  return +new Date() >= (challenge.data.releaseTime ?? 0)
+}
+
 export const getChallenges = async (
   db: DatabaseClient
 ): Promise<Challenge[]> => {
   const allChallenges = await getPrivateChallenges(db)
-  return allChallenges.filter(c => !c.data.hidden)
+  return allChallenges.filter(isChallengePublic)
 }
 
 export const getChallenge = async (
@@ -127,7 +135,7 @@ export const getChallenge = async (
   id: string
 ): Promise<Challenge | undefined> => {
   const result = await getPrivateChallenge(db, id)
-  if (!result || result.data.hidden) {
+  if (!result || !isChallengePublic(result)) {
     return undefined
   }
   return result

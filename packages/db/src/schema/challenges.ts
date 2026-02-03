@@ -46,6 +46,7 @@ export interface ChallengeData {
   sortWeight?: number
   instancerConfig?: InstancerConfig
   hidden?: boolean
+  releaseTime?: number | null
 }
 
 export const challenges = pgTable(

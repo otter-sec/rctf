@@ -80,6 +80,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
       sortWeight: z.optional(z.number()),
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
       hidden: z.optional(z.boolean()),
+      releaseTime: z.optional(z.nullable(z.number())),
     }),
   }),
   goodResponses: [GoodChallengeUpdateV2],

@@ -57,6 +57,7 @@
     onTiebreakEligibleChange: (v: boolean) => void
     onSortWeightChange: (v: number) => void
     onHiddenChange: (v: boolean) => void
+    onReleaseTimeChange: (v: number | null) => void
   }
 
   let {
@@ -91,6 +92,7 @@
     onTiebreakEligibleChange,
     onSortWeightChange,
     onHiddenChange,
+    onReleaseTimeChange,
   }: Props = $props()
 
   let tab = $state('details')
@@ -397,6 +399,17 @@
                 <Select.Item value="hidden" label="Hidden">Hidden from players</Select.Item>
               </Select.Content>
             </Select.Root>
+          </Field.Field>
+
+          <Field.Field>
+            <Field.Label>Release time</Field.Label>
+            <Input
+              type="number"
+              min={0}
+              onchange={e =>
+                onReleaseTimeChange(+e.currentTarget.value === 0 ? null : +e.currentTarget.value)}
+              disabled={isDisabled}
+            />
           </Field.Field>
         </div>
       </ScrollArea>

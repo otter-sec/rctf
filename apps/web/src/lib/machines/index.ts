@@ -18,6 +18,7 @@ export interface FormData {
   files: { name: string; url: string; size: number | null }[]
   instancerConfig: InstancerConfig | null
   hidden: boolean
+  releaseTime: number | null
 }
 
 export interface EditorContext {
@@ -59,6 +60,7 @@ const emptyForm: FormData = {
   files: [],
   instancerConfig: null,
   hidden: false,
+  releaseTime: null,
 }
 
 const fromChallenge = (c: AdminChallenge): FormData => ({
@@ -74,6 +76,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   files: c.files ? [...c.files] : [],
   instancerConfig: c.instancerConfig ?? null,
   hidden: c.hidden ?? false,
+  releaseTime: c.releaseTime ?? null,
 })
 
 const fromDetail = (d: AdminChallengeDetail): FormData => ({
@@ -89,6 +92,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   files: d.files ? [...d.files] : [],
   instancerConfig: d.instancerConfig ?? null,
   hidden: d.hidden ?? false,
+  releaseTime: d.releaseTime ?? null,
 })
 
 const isDirty = (form: FormData, original: FormData | null): boolean => {
