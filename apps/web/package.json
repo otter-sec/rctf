@@ -14,8 +14,8 @@
   },
   "dependencies": {
     "@iconify/svelte": "^5.1.0",
-    "@rctf/util": "workspace:*",
     "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
     "@tanstack/svelte-query": "^5.62.16",
     "@tanstack/svelte-virtual": "^3.13.13",
     "@types/d3-array": "^3.2.2",
@@ -26,7 +26,8 @@
     "marked": "^17.0.1",
     "modern-screenshot": "^4.6.7",
     "xstate": "^5.24.0",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@iconify-svelte/tabler": "^1.0.0",
