@@ -6,7 +6,8 @@
   "workspaces": [
     "apps/api",
     "apps/web",
-    "packages/*"
+    "packages/*",
+    "tests/server"
   ],
   "scripts": {
     "dev": "bun --ellide-lines=0 run --filter '@rctf/api' --filter '@rctf/web' dev",
@@ -23,10 +24,7 @@
     "db:pull": "bun run --filter '@rctf/db' pull"
   },
   "devDependencies": {
-    "@electric-sql/pglite": "^0.3.15",
     "@types/bun": "latest",
-    "@types/ioredis-mock": "^8.2.6",
-    "ioredis-mock": "^8.13.1",
     "prettier": "^3.6.2",
     "prettier-plugin-svelte": "^3.4.0",
     "prettier-plugin-tailwindcss": "^0.7.1"

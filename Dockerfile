@@ -10,16 +10,17 @@ COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 COPY packages/util/package.json ./packages/util/
+COPY tests/server/package.json ./tests/server/
 
 FROM base AS deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
+RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests'
 
 FROM base AS prod-deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
+RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests'
 
 FROM base AS build
 

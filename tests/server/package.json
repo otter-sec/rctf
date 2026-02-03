@@ -10,6 +10,7 @@
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/types": "workspace:*",
+    "@types/ioredis-mock": "^8.2.6",
     "drizzle-orm": "*",
     "ioredis-mock": "*"
   },
