@@ -194,3 +194,4 @@ bun run dev
 - [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
 - [ ] rctf2pages
 - [x] run tests in ci 
+- [ ] flag signing
