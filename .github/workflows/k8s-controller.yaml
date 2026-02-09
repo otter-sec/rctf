@@ -19,7 +19,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}/rctf-k8s-controller
   CONTEXT: apps/k8s-controller
 
-# TODO(trixter-osec): after we release rctf v2, switch to only pushing on a release
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -45,6 +44,8 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=branch
+            type=ref,event=tag
 
       - name: Build and push
         uses: docker/build-push-action@v6
