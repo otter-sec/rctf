@@ -129,7 +129,9 @@
 
   $effect(() => {
     if (status === InstanceStatus.STOPPED) return
-    const interval = status === InstanceStatus.STARTING ? 2_000 : 10_000
+    const interval = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)
+      ? 2_000
+      : 10_000
     const poll = setInterval(fetchStatus, interval)
     return () => clearInterval(poll)
   })
@@ -164,11 +166,14 @@
     </div>
   {:else}
     <div class="flex flex-1 flex-col gap-3">
-      {#if status === InstanceStatus.STARTING || status === InstanceStatus.ERRORED}
+      {#if [InstanceStatus.STARTING, InstanceStatus.STOPPING, InstanceStatus.ERRORED].includes(status)}
         <div class="text-foreground-l3 flex items-center justify-center gap-2 text-sm">
           {#if status === InstanceStatus.STARTING}
             <IconLoader class="size-4 animate-spin" />
             <span>Starting...</span>
+          {:else if status === InstanceStatus.STOPPING}
+            <IconLoader class="size-4 animate-spin" />
+            <span>Stopping...</span>
           {:else}
             <span>Errored</span>
           {/if}
@@ -207,7 +212,8 @@
         <Button
           variant="secondary"
           onclick={extend}
-          disabled={actioning || status === InstanceStatus.STARTING}
+          disabled={actioning ||
+            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           class="flex-1"
         >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
@@ -216,7 +222,8 @@
         <Button
           variant="destructive"
           onclick={stop}
-          disabled={actioning || status === InstanceStatus.STARTING}
+          disabled={actioning ||
+            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           class="flex-1"
         >
           {#if actioning}<IconLoader class="animate-spin" />{/if}

@@ -181,9 +181,9 @@ bun run dev
 - [ ] send prize emails (admin only)
 - [x] file sizes
 - [x] add csp headers
-- [ ] instancer integration
+- [x] instancer integration
 - - [x] docker
-- - [ ] k8s
+- - [x] k8s
 - [ ] admin bot integration
 - [x] blood bot integration
 - [ ] discord auth
