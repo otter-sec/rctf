@@ -53,7 +53,7 @@ resource "kubernetes_token_request_v1" "rctf" {
     }
 
     spec {
-        expiration_seconds = 31536000 # 1 year
+        expiration_seconds = 2628000 # 1 month
     }
 }
 

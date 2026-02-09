@@ -104,7 +104,12 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		namespaceName := getNamespaceForInstance(instance)
 
-		_ = r.Delete(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}})
+		if err := r.Delete(ctx, &corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: namespaceName}}); err != nil {
+			if !apierrors.IsNotFound(err) {
+				log.Error(err, "Unable to delete namespace")
+				return ctrl.Result{}, err
+			}
+		}
 
 		err := r.Get(ctx, types.NamespacedName{Name: namespaceName}, &corev1.Namespace{})
 		if err == nil {
@@ -214,6 +219,18 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 func (r *ChallengeInstanceReconciler) EnsureNamespace(ctx context.Context, instance *rctfinstancerv1.ChallengeInstance) error {
 	log := logf.FromContext(ctx)
 
+	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeNamespaceDeployed); condition == nil {
+		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
+			Type:   typeNamespaceDeployed,
+			Status: metav1.ConditionFalse,
+			Reason: "DeployInProgress",
+		})
+		if err := r.Status().Update(ctx, instance); err != nil {
+			log.Error(err, "Unable to update ChallengeInstance")
+			return err
+		}
+	}
+
 	namespaceName := getNamespaceForInstance(*instance)
 
 	err := r.Get(ctx, types.NamespacedName{Name: namespaceName}, &corev1.Namespace{})
@@ -228,7 +245,7 @@ func (r *ChallengeInstanceReconciler) EnsureNamespace(ctx context.Context, insta
 	namespace := corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespaceName,
-			Annotations: map[string]string{
+			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": managedBy,
 				labelTeamId:                    instance.Spec.TeamId,
 				labelChallengeId:               instance.Spec.ChallengeId,
@@ -286,7 +303,7 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespaceName,
 				Name:      "isolate-namespace",
-				Annotations: map[string]string{
+				Labels: map[string]string{
 					"app.kubernetes.io/managed-by": managedBy,
 					labelTeamId:                    instance.Spec.TeamId,
 					labelChallengeId:               instance.Spec.ChallengeId,
@@ -493,7 +510,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespaceName,
 				Name:      pod.Name,
-				Annotations: map[string]string{
+				Labels: map[string]string{
 					"app.kubernetes.io/managed-by": managedBy,
 					labelTeamId:                    instance.Spec.TeamId,
 					labelChallengeId:               instance.Spec.ChallengeId,
@@ -575,7 +592,7 @@ func (r *ChallengeInstanceReconciler) EnsureServices(ctx context.Context, instan
 			ObjectMeta: metav1.ObjectMeta{
 				Namespace: namespaceName,
 				Name:      pod.Name,
-				Annotations: map[string]string{
+				Labels: map[string]string{
 					"app.kubernetes.io/managed-by": managedBy,
 					labelTeamId:                    instance.Spec.TeamId,
 					labelChallengeId:               instance.Spec.ChallengeId,
@@ -636,7 +653,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-http", expose.ContainerName),
-					Annotations: map[string]string{
+					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
 						labelChallengeId:               instance.Spec.ChallengeId,
@@ -681,8 +698,8 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.IngressRoute{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-http", expose.ContainerName),
-					Annotations: map[string]string{
+					Name:      fmt.Sprintf("%s-http-redirect", expose.ContainerName),
+					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
 						labelChallengeId:               instance.Spec.ChallengeId,
@@ -694,7 +711,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 						{
 							Kind:     "Rule",
 							Match:    fmt.Sprintf("Host(`%s`)", hostname),
-							Priority: 10,
+							Priority: 5, // if there's HTTP on the same host prefix, we want that to have the priority over this
 							Middlewares: []v1alpha1.MiddlewareRef{
 								{
 									Name: fmt.Sprintf("%s-redirect", expose.ContainerName),
@@ -717,7 +734,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-https", expose.ContainerName),
-					Annotations: map[string]string{
+					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
 						labelChallengeId:               instance.Spec.ChallengeId,
@@ -751,7 +768,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
 					Name:      fmt.Sprintf("%s-tcp-ssl", expose.ContainerName),
-					Annotations: map[string]string{
+					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
 						labelChallengeId:               instance.Spec.ChallengeId,

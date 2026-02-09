@@ -38,7 +38,7 @@ var _ = Describe("ChallengeInstance Controller", func() {
 
 		typeNamespacedName := types.NamespacedName{
 			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
+			Namespace: "default", // TODO(user): Modify as needed
 		}
 		challengeinstance := &rctfinstancerv1.ChallengeInstance{}
 

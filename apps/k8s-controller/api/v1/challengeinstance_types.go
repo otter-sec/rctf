@@ -39,7 +39,7 @@ type ChallengeInstanceExpose struct {
 	Kind ExposeType `json:"kind"`
 
 	// +required
-	// +kubebuilder:valdiation:MinLength=1
+	// +kubebuilder:validation:MinLength=1
 	HostPrefix string `json:"hostPrefix"`
 
 	// +required

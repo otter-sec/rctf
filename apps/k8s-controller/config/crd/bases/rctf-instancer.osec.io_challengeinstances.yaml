@@ -41,6 +41,7 @@ spec:
                     containerPort:
                       type: integer
                     hostPrefix:
+                      minLength: 1
                       type: string
                     kind:
                       type: string
