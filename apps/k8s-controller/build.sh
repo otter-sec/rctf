@@ -1,7 +1,8 @@
 #!/bin/bash
 set -xe
 
-export IMG="europe-west1-docker.pkg.dev/sandbox-476301/challenge-registry/rctf-instancer:latest" # TODO: push to ghcr
+# TODO: delete this file after ghcr image is publicly available with the manifest
+export IMG="europe-west1-docker.pkg.dev/sandbox-476301/challenge-registry/rctf-instancer:latest"
 
 make build-installer IMG="$IMG"
 docker build -t $IMG .
