@@ -129,7 +129,9 @@
 
   $effect(() => {
     if (status === InstanceStatus.STOPPED) return
-    const interval = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status) ? 2_000 : 10_000
+    const interval = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)
+      ? 2_000
+      : 10_000
     const poll = setInterval(fetchStatus, interval)
     return () => clearInterval(poll)
   })
@@ -210,7 +212,8 @@
         <Button
           variant="secondary"
           onclick={extend}
-          disabled={actioning || [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+          disabled={actioning ||
+            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           class="flex-1"
         >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
@@ -219,7 +222,8 @@
         <Button
           variant="destructive"
           onclick={stop}
-          disabled={actioning || [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+          disabled={actioning ||
+            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           class="flex-1"
         >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
