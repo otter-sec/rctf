@@ -1,5 +1,6 @@
 <script lang="ts">
   import {
+    BadAdminBotConfig,
     BadInstancerConfig,
     GoodChallengeDelete,
     GoodChallengeUpdateV2,
@@ -106,6 +107,7 @@
           sortWeight: form.sortWeight || undefined,
           files: form.files,
           instancerConfig: form.instancerConfig,
+          adminBotConfig: form.adminBotConfig.enabled ? { code: form.adminBotConfig.code } : null,
           hidden: form.hidden,
           releaseTime: form.releaseTime,
         },
@@ -136,10 +138,14 @@
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
                 instancerConfig: form.instancerConfig,
+                adminBotConfig: response.data.adminBotConfig,
                 hidden: form.hidden,
                 releaseTime: form.releaseTime,
               },
             })
+          } else if (response.kind === BadAdminBotConfig.kind) {
+            toast.error(`Admin bot config error: ${response.data.error}`)
+            send({ type: 'SAVE_ERROR' })
           } else if (response.kind === BadInstancerConfig.kind) {
             toast.error(`Instancer config error: ${response.data.error}`)
             send({ type: 'SAVE_ERROR' })
@@ -283,6 +289,7 @@
           sortWeight={form.sortWeight}
           files={form.files}
           instancerConfig={form.instancerConfig}
+          adminBotConfig={form.adminBotConfig}
           hidden={form.hidden}
           challengeId={challenge?.id ?? null}
           {totalSolves}
@@ -293,6 +300,8 @@
           onFilesChange={files => send({ type: 'UPDATE_FILES', files })}
           onInstancerConfigChange={config =>
             send({ type: 'UPDATE_INSTANCER', instancerConfig: config })}
+          onAdminBotConfigChange={config =>
+            send({ type: 'UPDATE_ADMIN_BOT', adminBotConfig: config })}
           onNameChange={v => updateField('name', v)}
           onCategoryChange={v => updateField('category', v)}
           onAuthorChange={v => updateField('author', v)}

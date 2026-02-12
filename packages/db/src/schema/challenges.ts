@@ -34,6 +34,13 @@ export interface InstancerConfig {
   timeoutMilliseconds: number
 }
 
+export interface AdminBotConfig {
+  code: string
+  inputs: Record<string, string>
+  revision: string
+  timeoutMilliseconds: number
+}
+
 export interface ChallengeData {
   name: string
   description: string
@@ -45,6 +52,7 @@ export interface ChallengeData {
   tiebreakEligible: boolean
   sortWeight?: number
   instancerConfig?: InstancerConfig
+  adminBotConfig?: AdminBotConfig
   hidden?: boolean
   releaseTime?: number | null
 }

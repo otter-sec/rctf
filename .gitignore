@@ -32,3 +32,4 @@ vite.config.ts.timestamp-*
 build/
 .cursor/
 uploads/
+.browser-cache/

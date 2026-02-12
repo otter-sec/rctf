@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 import {
+  AdminBotConfigSchema,
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   InstancerConfigSchema,
@@ -18,6 +19,7 @@ export const AdminChallengeSchemaV2 = z.object({
   tiebreakEligible: z.boolean(),
   sortWeight: z.nullish(z.number()),
   instancerConfig: z.nullish(InstancerConfigSchema),
+  adminBotConfig: z.nullish(AdminBotConfigSchema),
   hidden: z.boolean(),
   releaseTime: z.nullish(z.number()),
 })

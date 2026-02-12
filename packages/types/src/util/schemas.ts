@@ -67,3 +67,17 @@ export const PartialInstancerConfigSchema = z.object({
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: z.optional(z.int()),
 })
+
+export const AdminBotConfigSchema = z.object({
+  code: z.string(),
+  inputs: z.record(z.string(), z.string()),
+  revision: z.string(),
+  timeoutMilliseconds: z.int(),
+})
+
+export enum AdminBotJobStatus {
+  QUEUED = 'queued',
+  RUNNING = 'running',
+  COMPLETED = 'completed',
+  FAILED = 'failed',
+}

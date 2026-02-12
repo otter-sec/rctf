@@ -7,6 +7,7 @@ import { scoreProviders } from './scores'
 import { uploadProviders } from './uploads'
 import { messagesProviders } from './messages'
 import { moderationProviders } from './moderation'
+import { adminBotProviders } from './admin-bot'
 
 const loadProvider = <Base>(
   providers: Record<string, (options: any) => Base>,
@@ -76,4 +77,9 @@ export const bloodbotProviders = config.bloodbot?.destinations.map(
 export const avatarModerationProvider = loadProvider(
   moderationProviders,
   config.avatarsModeration?.provider
+)
+
+export const adminBotProvider = loadProvider(
+  adminBotProviders,
+  config.adminBotProvider
 )

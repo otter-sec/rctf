@@ -5,6 +5,11 @@ import type {
 } from '@rctf/types'
 import { assign, setup } from 'xstate'
 
+export interface AdminBotConfig {
+  enabled: boolean
+  code: string
+}
+
 export interface FormData {
   name: string
   category: string
@@ -17,6 +22,7 @@ export interface FormData {
   sortWeight: number
   files: { name: string; url: string; size: number | null }[]
   instancerConfig: InstancerConfig | null
+  adminBotConfig: AdminBotConfig
   hidden: boolean
   releaseTime: number | null
 }
@@ -46,6 +52,7 @@ type EditorEvent =
   | { type: 'UPDATE_FORM'; field: keyof FormData; value: unknown }
   | { type: 'UPDATE_FILES'; files: FormData['files'] }
   | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
+  | { type: 'UPDATE_ADMIN_BOT'; adminBotConfig: AdminBotConfig }
 
 const emptyForm: FormData = {
   name: '',
@@ -59,9 +66,15 @@ const emptyForm: FormData = {
   sortWeight: 0,
   files: [],
   instancerConfig: null,
+  adminBotConfig: { enabled: false, code: '' },
   hidden: false,
   releaseTime: null,
 }
+
+const adminBotConfigFromServer = (
+  config: AdminChallenge['adminBotConfig']
+): AdminBotConfig =>
+  config ? { enabled: true, code: config.code } : { enabled: false, code: '' }
 
 const fromChallenge = (c: AdminChallenge): FormData => ({
   name: c.name,
@@ -75,6 +88,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   sortWeight: c.sortWeight ?? 0,
   files: c.files ? [...c.files] : [],
   instancerConfig: c.instancerConfig ?? null,
+  adminBotConfig: adminBotConfigFromServer(c.adminBotConfig),
   hidden: c.hidden ?? false,
   releaseTime: c.releaseTime ?? null,
 })
@@ -91,6 +105,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   sortWeight: d.sortWeight ?? 0,
   files: d.files ? [...d.files] : [],
   instancerConfig: d.instancerConfig ?? null,
+  adminBotConfig: adminBotConfigFromServer(d.adminBotConfig),
   hidden: d.hidden ?? false,
   releaseTime: d.releaseTime ?? null,
 })
@@ -153,6 +168,12 @@ export const editorMachine = setup({
         form: { ...context.form, instancerConfig: event.instancerConfig },
       }
     }),
+    updateAdminBot: assign(({ context, event }) => {
+      if (event.type !== 'UPDATE_ADMIN_BOT') return {}
+      return {
+        form: { ...context.form, adminBotConfig: event.adminBotConfig },
+      }
+    }),
     resetForm: assign(({ context }) => ({
       form: context.originalForm ? { ...context.originalForm } : emptyForm,
     })),
@@ -196,6 +217,7 @@ export const editorMachine = setup({
         UPDATE_FORM: { actions: 'updateForm' },
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
+        UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
         CANCEL: [
           { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'viewing', actions: 'resetForm' },
@@ -217,6 +239,7 @@ export const editorMachine = setup({
         UPDATE_FORM: { actions: 'updateForm' },
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
+        UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
         CANCEL: [
           { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'idle', actions: 'reset' },

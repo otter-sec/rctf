@@ -105,6 +105,7 @@ export const ServerConfigSchema = z.object({
     name: 'scores/classic',
   }),
   instancerProvider: z.optional(ProviderConfigSchema),
+  adminBotProvider: z.optional(ProviderConfigSchema),
   email: z.optional(
     z.object({
       provider: ProviderConfigSchema,

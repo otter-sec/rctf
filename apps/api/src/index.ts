@@ -8,7 +8,7 @@ import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
-import { uploadProvider } from './providers'
+import { adminBotProvider, uploadProvider } from './providers'
 import { routeModules } from './routes'
 import { startLeaderboardWorker } from './workers'
 
@@ -56,8 +56,20 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
 export const setupApp = async () => {
   const app = createApp()
 
+  if (adminBotProvider) {
+    // TODO(es3n1n): I don't like doing this, but what are the alternatives
+    app.use('/api/v2/admin/admin-bot/jobs/*', adminBotProvider.authMiddleware)
+    app.use(
+      '/api/v2/admin/admin-bot/challenges/*',
+      adminBotProvider.authMiddleware
+    )
+  }
+
   registerApiRoutes(app)
   await uploadProvider.startupWebPart(app)
+  if (adminBotProvider) {
+    await adminBotProvider.startupWebPart(app)
+  }
   registerErrorHandlers(app)
 
   return app
