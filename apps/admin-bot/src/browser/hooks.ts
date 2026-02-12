@@ -124,7 +124,11 @@ export const applyHooks = async (
       if (!normalizedConfig.showBrowserErrors) {
         return
       }
-      log(output, 'error', `${id} >> request ${request.url()} failed: ${request.failure()!.errorText}`)
+      log(
+        output,
+        'error',
+        `${id} >> request ${request.url()} failed: ${request.failure()!.errorText}`
+      )
     })
   }
 

@@ -63,16 +63,13 @@ export const setupApp = async () => {
   const adminBotAuthMiddleware: MiddlewareHandler = adminBotProvider
     ? adminBotProvider.authMiddleware
     : async (c, next) => {
-      return c.json(
-        { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
-        BadEndpoint.status as ContentfulStatusCode
-      )
-    }
+        return c.json(
+          { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
+          BadEndpoint.status as ContentfulStatusCode
+        )
+      }
   app.use('/api/v2/admin/admin-bot/jobs/*', adminBotAuthMiddleware)
-  app.use(
-    '/api/v2/admin/admin-bot/challenges/*',
-    adminBotAuthMiddleware
-  )
+  app.use('/api/v2/admin/admin-bot/challenges/*', adminBotAuthMiddleware)
 
   registerApiRoutes(app)
   await uploadProvider.startupWebPart(app)

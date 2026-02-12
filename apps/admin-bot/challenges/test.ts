@@ -14,7 +14,7 @@ export const challenge = new Challenge({
 
     try {
       await page.goto(ctx.input.url!)
-    } catch(e) {
+    } catch (e) {
       // Without this, the error propagated is that something went wrong. Ideally, there would be automagic so you don't need to do this,
       // but page navigations throw a normal error and searching in a string is... ugly.
       // @see https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/cdp/Frame.ts#L210-L212

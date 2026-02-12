@@ -28,7 +28,7 @@ export class BufferedOutputHandler implements OutputHandler {
     this.maxChars = maxChars === undefined ? defaultMaxOutputChars : maxChars
   }
 
-  writeLine(line: string): void {
+  writeLine(line: string) {
     if (this.closed) {
       return
     }
@@ -49,9 +49,9 @@ export class BufferedOutputHandler implements OutputHandler {
     this.buffer += entry
   }
 
-  flush(): void {}
+  flush() {}
 
-  close(): void {
+  close() {
     this.closed = true
   }
 
