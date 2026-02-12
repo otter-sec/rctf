@@ -4,6 +4,7 @@ import type { PlatformClient, PulledJob } from './platform'
 import { BrowserManager } from '../browser/manager'
 import { handleSubmission } from './runner'
 import { BufferedOutputHandler } from './output'
+import { log as outputLog } from '../types'
 
 const logger = pino().child({ module: 'poller' })
 const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS ?? 5000)
@@ -78,10 +79,20 @@ const processJob = async (
     )
 
     log.info('job completed successfully')
+    outputLog(output, 'admin-bot', 'finished visiting')
+    output.flush()
     await platform.completeJob(job.id, output.getOutput())
   } catch (err) {
     log.error({ err }, 'job failed')
+    if (err instanceof Error && err.message === 'timeout') {
+      outputLog(output, 'admin-bot', 'timed out')
+    } else {
+      outputLog(output, 'admin-bot', 'hit internal server error')
+    }
+    output.flush()
     await platform.failJob(job.id, output.getOutput())
+  } finally {
+    output.close()
   }
 }
 

@@ -1,5 +1,5 @@
 import { Browser, Frame, Page, Protocol, Target, WebWorker } from 'puppeteer'
-import type { OutputHandler } from '../types'
+import { log, type OutputHandler } from '../types'
 
 // Heavily inspired (and copy pasted from) https://github.com/kevin-mizu/bot-ctf-template
 // Thank you, mizu!
@@ -8,20 +8,11 @@ import type { OutputHandler } from '../types'
 // - extension pages logging
 // - console logs from service workers
 
-// TODO(es3n1n): should we maybe also show network/error events as well?
 export interface HooksConfig {
   showConsoleLogs?: boolean
+  showBrowserErrors?: boolean
   showNavigation?: boolean
   limitTabsNumber?: number
-}
-
-const log = (
-  output: OutputHandler,
-  prefix: 'console' | 'navigation',
-  line: string
-): void => {
-  output.writeLine(`${+new Date()} >> ${prefix} >> ${line}`)
-  output.flush()
 }
 
 const getTargetId = (target: Target): string => {
@@ -35,6 +26,7 @@ export const applyHooks = async (
 ): Promise<void> => {
   const normalizedConfig = {
     showConsoleLogs: config?.showConsoleLogs ?? true,
+    showBrowserErrors: config?.showBrowserErrors ?? true,
     showNavigation: config?.showNavigation ?? true,
     limitTabsNumber: config?.limitTabsNumber ?? 0,
   }
@@ -119,6 +111,20 @@ export const applyHooks = async (
         return
       }
       log(output, 'navigation', `${id} >> navigating to ${frame.url()}`)
+    })
+
+    page.on('pageerror', error => {
+      if (!normalizedConfig.showBrowserErrors || !(error instanceof Error)) {
+        return
+      }
+      log(output, 'error', `${id} >> page error: ${error.message}`)
+    })
+
+    page.on('requestfailed', request => {
+      if (!normalizedConfig.showBrowserErrors) {
+        return
+      }
+      log(output, 'error', `${id} >> request ${request.url()} failed: ${request.failure()!.errorText}`)
     })
   }
 

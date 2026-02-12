@@ -1,17 +1,26 @@
 import { sleep } from 'bun'
-import { Challenge, type ChallengeContext } from '../src/types'
+import { Challenge, type ChallengeContext, log } from '../src/types'
 
 export const challenge = new Challenge({
   // required:
   timeoutMilliseconds: 30_000,
 
   inputs: {
-    url: 'https://*',
+    url: '^http(s?)://.*',
   },
 
   handler: async (ctx: ChallengeContext): Promise<void> => {
     const page = await ctx.browserContext.newPage()
-    await page.goto('http://127.0.0.1:8000/index.html')
+
+    try {
+      await page.goto(ctx.input.url!)
+    } catch(e) {
+      // Without this, the error propagated is that something went wrong. Ideally, there would be automagic so you don't need to do this,
+      // but page navigations throw a normal error and searching in a string is... ugly.
+      // @see https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/cdp/Frame.ts#L210-L212
+      log(ctx.output, 'admin-bot', `failed to visit provided URL: ${e}`)
+      return
+    }
     await sleep(15_000)
     await page.close()
   },
@@ -24,6 +33,7 @@ export const challenge = new Challenge({
 
   hooksConfig: {
     showConsoleLogs: true,
+    showBrowserErrors: true,
     showNavigation: true,
     limitTabsNumber: 5,
   },

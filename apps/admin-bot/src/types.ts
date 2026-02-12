@@ -3,9 +3,18 @@ import type { Logger } from 'pino'
 import type { HooksConfig } from './browser/hooks'
 
 export interface OutputHandler {
-  writeLine(line: string): Promise<void>
-  flush(): Promise<void>
-  close(): Promise<void>
+  writeLine(line: string): void
+  flush(): void
+  close(): void
+}
+
+export const log = (
+  output: OutputHandler,
+  prefix: 'console' | 'navigation' | 'error' | 'admin-bot' | 'challenge',
+  line: string
+): void => {
+  output.writeLine(`${+new Date()} >> ${prefix} >> ${line}`)
+  output.flush()
 }
 
 export interface JobMetadata {

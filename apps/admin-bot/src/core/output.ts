@@ -4,16 +4,16 @@ import { defaultMaxOutputChars } from './const'
 export class ConsoleOutputHandler implements OutputHandler {
   private closed: boolean = false
 
-  async writeLine(line: string): Promise<void> {
+  writeLine(line: string) {
     if (this.closed) {
       return
     }
     console.log(line)
   }
 
-  async flush(): Promise<void> {}
+  flush() {}
 
-  async close(): Promise<void> {
+  close() {
     this.closed = true
   }
 }
@@ -28,7 +28,7 @@ export class BufferedOutputHandler implements OutputHandler {
     this.maxChars = maxChars === undefined ? defaultMaxOutputChars : maxChars
   }
 
-  async writeLine(line: string): Promise<void> {
+  writeLine(line: string): void {
     if (this.closed) {
       return
     }
@@ -49,9 +49,9 @@ export class BufferedOutputHandler implements OutputHandler {
     this.buffer += entry
   }
 
-  async flush(): Promise<void> {}
+  flush(): void {}
 
-  async close(): Promise<void> {
+  close(): void {
     this.closed = true
   }
 
