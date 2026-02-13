@@ -1,6 +1,6 @@
-import { pino } from 'pino'
+import { createLogger } from './logger'
 
-const logger = pino().child({ module: 'platform' })
+const logger = createLogger('platform')
 
 interface InstancerInstance {
   type: string

@@ -1,8 +1,9 @@
-import { pino } from 'pino'
 import { Challenge } from '../types'
 import * as TypesModule from '../types'
 
-const logger = pino().child({ module: 'loader' })
+import { createLogger } from './logger'
+
+const logger = createLogger('loader')
 
 const MODULES_MAPPING: Map<string[], any> = new Map([
   [

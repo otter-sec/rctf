@@ -1,4 +1,3 @@
-import { pino } from 'pino'
 import { Hono } from 'hono'
 import { ChallengeLoader } from './core/loader'
 import { BrowserManager, type BrowserVersion } from './browser/manager'
@@ -6,11 +5,12 @@ import { PlatformClient } from './core/platform'
 import { startPoller } from './core/poller'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
+import { createLogger } from './core/logger'
 
 const app = new Hono()
 const browserManager = new BrowserManager()
 const challenges = new ChallengeLoader()
-const logger = pino().child({ module: 'index' })
+const logger = createLogger('index')
 
 const RCTF_BASE_URL = process.env.RCTF_BASE_URL
 const RCTF_SECRET_KEY = process.env.RCTF_SECRET_KEY

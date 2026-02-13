@@ -1,11 +1,11 @@
-import { pino } from 'pino'
 import type { ChallengeLoader } from './loader'
 import type { PlatformClient, PulledJob } from './platform'
 import { BrowserManager } from '../browser/manager'
 import { handleSubmission } from './runner'
 import { BufferedOutputHandler } from './output'
+import { createLogger } from './logger'
 
-const logger = pino().child({ module: 'poller' })
+const logger = createLogger('poller')
 const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS ?? 5000)
 
 const ensureChallengeLoaded = async (

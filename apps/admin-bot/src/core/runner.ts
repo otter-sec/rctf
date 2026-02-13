@@ -1,4 +1,3 @@
-import { pino } from 'pino'
 import type { ChallengeLoader } from './loader'
 import { join } from 'node:path'
 import { BrowserManager } from '../browser/manager'
@@ -8,8 +7,9 @@ import { applyHooks } from '../browser/hooks'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { randomUUID } from 'node:crypto'
+import { createLogger } from './logger'
 
-const logger = pino({}).child({ module: 'runner' })
+const logger = createLogger('runner')
 export const handleSubmission = async (
   challenges: ChallengeLoader,
   browserManager: BrowserManager,

@@ -5,7 +5,6 @@ import {
   detectBrowserPlatform,
   computeExecutablePath,
 } from '@puppeteer/browsers'
-import { pino } from 'pino'
 import { existsSync, readdirSync } from 'fs'
 import { rm } from 'fs/promises'
 import { join } from 'path'
@@ -15,8 +14,9 @@ import {
   defaultFirefoxArguments,
   defaultFirefoxPreferences,
 } from '../core/const'
+import { createLogger } from '../core/logger'
 
-const logger = pino().child({ module: 'browser-manager' })
+const logger = createLogger('browser-manager')
 const platform = detectBrowserPlatform()
 const LAUNCH_TIMEOUT_MS = 30_000
 
