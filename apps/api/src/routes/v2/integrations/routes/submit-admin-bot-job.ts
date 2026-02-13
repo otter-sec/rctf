@@ -43,7 +43,7 @@ integrationsGroup.route(
         }
       } catch {
         return res.badAdminBotConfig({
-          error: `Regex for input "${name}" is not valid`,
+          error: `Regex for input "${name}" is not valid, contact challenge author`,
         })
       }
     }

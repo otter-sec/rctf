@@ -50,6 +50,16 @@ export class Challenge {
 
   constructor(config: ChallengeConfig) {
     this.config = config
-    // Maybe we will add some more stuff here at some point?...
+    this.validateInputs()
+  }
+
+  private validateInputs(): void {
+    for (const [key, value] of Object.entries(this.config.inputs)) {
+      try {
+        new RegExp(value)
+      } catch (err) {
+        throw new Error(`Regex pattern ${value} for value ${key} is invalid`)
+      }
+    }
   }
 }
