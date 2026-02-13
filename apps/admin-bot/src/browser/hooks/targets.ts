@@ -1,4 +1,4 @@
-import type { Browser, Target } from 'puppeteer'
+import type { Browser, Target } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
 import type { NormalizedHooksConfig } from './index'
 import { createConsoleCallback } from './console'

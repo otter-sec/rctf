@@ -1,4 +1,4 @@
-import type { Browser } from 'puppeteer'
+import type { Browser } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
 import { TargetTracker } from './targets'
 

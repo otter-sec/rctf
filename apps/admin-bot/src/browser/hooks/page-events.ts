@@ -1,4 +1,4 @@
-import type { Frame, Page } from 'puppeteer'
+import type { Frame, Page } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
 import type { NormalizedHooksConfig } from './index'
 import { consoleMsgTypeToLevel } from './console'

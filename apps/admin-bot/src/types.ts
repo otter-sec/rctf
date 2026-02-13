@@ -1,4 +1,4 @@
-import type { BrowserContext } from 'puppeteer'
+import type { BrowserContext } from 'puppeteer-core'
 import type { Logger } from 'pino'
 import type { HooksConfig } from './browser/hooks'
 import type { OutputHandler } from './core/output'

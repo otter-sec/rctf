@@ -1,4 +1,4 @@
-import type { Protocol } from 'puppeteer'
+import type { Protocol } from 'puppeteer-core'
 import type { LogLevel, OutputHandler } from '../../core/output'
 import type { NormalizedHooksConfig } from './index'
 

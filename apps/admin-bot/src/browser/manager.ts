@@ -8,7 +8,7 @@ import {
 import { existsSync, readdirSync } from 'fs'
 import { rm } from 'fs/promises'
 import { join } from 'path'
-import { Browser as PuppeteerBrowser, launch } from 'puppeteer'
+import { Browser as PuppeteerBrowser, launch } from 'puppeteer-core'
 import {
   defaultChromeArguments,
   defaultFirefoxArguments,
