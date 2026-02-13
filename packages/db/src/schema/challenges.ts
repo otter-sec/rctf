@@ -39,6 +39,7 @@ export interface AdminBotConfig {
   inputs: Record<string, string>
   revision: string
   timeoutMilliseconds: number
+  requireInstancerInstancesRunning: boolean
 }
 
 export interface ChallengeData {

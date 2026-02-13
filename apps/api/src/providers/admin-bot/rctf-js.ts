@@ -8,6 +8,7 @@ import { z } from 'zod/mini'
 export const TestEndpointResponseSchema = z.object({
   inputs: z.record(z.string(), z.string()),
   timeoutMilliseconds: z.number(),
+  requireInstancerInstancesRunning: z.boolean(),
 })
 
 export default class RctfJSProvider implements AdminBotProvider {

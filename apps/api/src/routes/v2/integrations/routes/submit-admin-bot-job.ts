@@ -66,24 +66,44 @@ integrationsGroup.route(
     }
 
     let instancerInstances: InstancerInstance[] = []
-    if (instancerProvider && challenge.data.instancerConfig) {
+    if (
+      adminBotConfig.requireInstancerInstancesRunning &&
+      instancerProvider &&
+      challenge.data.instancerConfig
+    ) {
       const instanceStatus = await instancerProvider.getInstance({
         teamId: user.id,
         challengeIntegrationId: inferChallengeIntegrationId(challenge),
       })
 
       if (
-        instanceStatus.kind === 'instancerInstanceDetails' &&
-        instanceStatus.status === InstanceStatus.RUNNING &&
-        instanceStatus.endpoints
+        instanceStatus.kind !== 'instancerInstanceDetails' ||
+        instanceStatus.status !== InstanceStatus.RUNNING ||
+        !instanceStatus.endpoints
       ) {
-        for (const endpoint of instanceStatus.endpoints) {
-          instancerInstances.push({
-            ...endpoint,
-            type: endpoint.kind,
-          })
-        }
+        return res.badInstancerState({
+          error:
+            'Adminbot for this challenge requires an active instance provisioned by the instancer',
+        })
       }
+
+      // We assume the adminbot will pick up this job immediately
+      if (
+        !instanceStatus.timeLeftMilliseconds ||
+        instanceStatus.timeLeftMilliseconds < adminBotConfig.timeoutMilliseconds
+      ) {
+        return res.badInstancerState({
+          error:
+            'The instance will die midway through your submission, please extend it',
+        })
+      }
+
+      instancerInstances = instanceStatus.endpoints.map(instance => {
+        return {
+          ...instance,
+          type: instance.kind,
+        }
+      })
     }
 
     const job = await createJob(ctx.var.db, {

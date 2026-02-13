@@ -155,7 +155,6 @@
 
     if (res.kind === 'goodAdminBotJobSubmitted') {
       toast.success('Admin bot job submitted!')
-      values = {}
       errors = {}
       logsOpen = false
       expandedLines = new Set()
@@ -168,7 +167,7 @@
       }
       // Fetch actual queue position from server
       fetchJobStatus()
-    } else if (res.kind === 'badAdminBotConfig') {
+    } else if (res.kind === 'badAdminBotConfig' || res.kind === 'badInstancerState') {
       toast.error(res.data.error)
     } else {
       showApiError(res)
@@ -275,7 +274,7 @@
                 disabled={!expandable}
               >
                 <span
-                  class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center pt-1.5"
+                  class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center py-1.5"
                 >
                   {#if expandable}
                     <IconChevronRight
@@ -283,14 +282,14 @@
                     />
                   {/if}
                 </span>
-                <span class="text-foreground-l4 shrink-0 pt-1.5 pr-2 tabular-nums"
+                <span class="text-foreground-l4 shrink-0 py-1.5 pr-2 tabular-nums"
                   >{formatTime(entry.time)}</span
                 >
                 <span
-                  class="shrink-0 pt-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
+                  class="shrink-0 py-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
                     entry.level
                   ] ?? 'text-foreground-l3'}"
-                  style="font-size: 0.6rem;"
+                  style="font-size: 0.6rem; line-height: 1rem;"
                   >{entry.level === 'info'
                     ? 'I'
                     : entry.level === 'warn'

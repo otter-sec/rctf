@@ -6,6 +6,7 @@ export interface LoadedAdminBotConfig {
   // key is string name, value is regex
   inputs: Record<string, string>
   timeoutMilliseconds: number
+  requireInstancerInstancesRunning: boolean
 }
 
 export enum AdminBotConfigLanguage {

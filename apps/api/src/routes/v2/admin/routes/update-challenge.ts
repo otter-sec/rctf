@@ -53,6 +53,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       inputs: result.inputs,
       revision: sha256Hex(body.data.adminBotConfig.code),
       timeoutMilliseconds: result.timeoutMilliseconds,
+      requireInstancerInstancesRunning: result.requireInstancerInstancesRunning,
     }
   } else if (body.data.adminBotConfig === null) {
     resolvedAdminBotConfig = null

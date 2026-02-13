@@ -7,6 +7,7 @@ import {
   BadChallenge,
   BadEndpoint,
   BadInstancerError,
+  BadInstancerState,
   BadRateLimit,
   BadToken,
   ErrorInternal,
@@ -122,6 +123,7 @@ export const SubmitAdminBotJobRouteV2 = defineRoute({
   goodResponses: [GoodAdminBotJobSubmitted],
   badResponses: [
     BadAdminBotConfig,
+    BadInstancerState,
     BadEndpoint,
     BadChallenge,
     BadRateLimit,

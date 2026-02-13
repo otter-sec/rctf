@@ -31,6 +31,7 @@ export interface ChallengeContext {
 
 export interface ChallengeConfig {
   timeoutMilliseconds: number
+
   inputs: Record<string, string>
   maxLogLines?: number | null
   maxLogValueChars?: number | null
@@ -43,6 +44,8 @@ export interface ChallengeConfig {
 
   hooksConfig?: HooksConfig
   restrictDomains?: Record<string, Array<string>>
+
+  requireInstancerInstancesRunning?: boolean
 }
 
 export class Challenge {

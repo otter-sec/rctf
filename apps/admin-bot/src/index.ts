@@ -54,6 +54,8 @@ app.post(
       {
         inputs: result.config.inputs,
         timeoutMilliseconds: result.config.timeoutMilliseconds,
+        requireInstancerInstancesRunning:
+          result.config.requireInstancerInstancesRunning ?? false,
       },
       200
     )
