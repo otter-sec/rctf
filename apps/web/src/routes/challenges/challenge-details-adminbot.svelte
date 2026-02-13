@@ -6,7 +6,7 @@
     SubmitAdminBotJobRouteV2,
   } from '@rctf/types'
   import { onMount } from 'svelte'
-  import { apiRequest, isAuthenticated } from '$lib/api'
+  import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
   import { Button, Input, ScrollArea } from '$lib/components'
   import {
     IconAlertCircleFilled,
@@ -170,10 +170,8 @@
       fetchJobStatus()
     } else if (res.kind === 'badAdminBotConfig') {
       toast.error(res.data.error)
-    } else if (res.kind === 'badRateLimit') {
-      toast.error('Rate limited, please try again later')
     } else {
-      toast.error(res.message)
+      showApiError(res)
     }
     submitting = false
   }
