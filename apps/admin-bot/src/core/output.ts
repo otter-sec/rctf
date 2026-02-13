@@ -26,6 +26,7 @@ export type LogPrefix =
   | 'network'
   | 'admin-bot'
   | 'challenge'
+  | 'dialog'
 
 export abstract class OutputHandler {
   protected readonly maxValueChars: number | null

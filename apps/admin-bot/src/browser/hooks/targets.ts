@@ -40,22 +40,16 @@ export class TargetTracker {
         }
 
         const t = this.getTabInternalId(target)
-        this.output.info('navigation', `tab created`, {
+        const openUrl = target.url()
+        this.output.info('navigation', `tab created, url: ${openUrl}`, {
           id: t,
         })
 
+        // TODO(es3n1n): there's technically a race condition here, but i have no idea how to fix it.
+        //  maybe we should just switch entirely to CDP, and use this impl as a fallback for firefox.
         const page = await target.page()
         if (page) {
-          await hookPageEvents(page, t, this.output, this.config)
-
-          // Log the current URL after hooks are set up — by now the page
-          // may have already navigated past about:blank
-          const currentUrl = page.url()
-          if (currentUrl && currentUrl !== 'about:blank') {
-            this.output.info('navigation', `navigating to ${currentUrl}`, {
-              id: t,
-            })
-          }
+          hookPageEvents(page, t, this.output, this.config)
         }
         break
       case 'background_page':

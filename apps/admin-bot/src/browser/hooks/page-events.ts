@@ -1,44 +1,34 @@
 import type { Frame, Page } from 'puppeteer'
 import type { OutputHandler } from '../../core/output'
 import type { NormalizedHooksConfig } from './index'
-import { consoleMsgTypeToLevel, createConsoleCallback } from './console'
+import { consoleMsgTypeToLevel } from './console'
 
-export const hookPageEvents = async (
+export const hookPageEvents = (
   page: Page,
   id: string,
   output: OutputHandler,
   config: NormalizedHooksConfig
-): Promise<void> => {
-  try {
-    const client = await page.createCDPSession()
-    await client.send('Runtime.enable')
-    client.on(
-      'Runtime.consoleAPICalled',
-      createConsoleCallback(output, config, id)
-    )
-  } catch (err) {
-    // fallback to simple console listener implementation for firefox:
-    if (config.showConsoleLogs) {
-      page.on('console', msg => {
-        const msgType = msg.type()
-        const text = msg.text()
-        output.log(
-          consoleMsgTypeToLevel[msgType] ?? 'info',
-          'console',
-          `console.${msgType}: ${text}`,
-          {
-            id,
-          }
-        )
-      })
-    }
-  }
+): void => {
+  // NOTE(es3n1n): mixing async stuff in here might create race conditions
+
+  page.on('request', request => {
+    if (!config.showNavigation) return
+    if (!request.isNavigationRequest()) return
+    if (request.frame() !== page.mainFrame()) return
+    output.info('navigation', `navigation started: ${request.url()}`, {
+      id,
+    })
+  })
 
   page.on('framenavigated', (frame: Frame) => {
-    if (!config.showNavigation || frame !== page.mainFrame()) {
-      return
-    }
-    output.info('navigation', `navigating to ${frame.url()}`, {
+    if (!config.showNavigation || frame !== page.mainFrame()) return
+    output.info('navigation', `navigation completed: ${frame.url()}`, {
+      id,
+    })
+  })
+
+  page.on('dialog', dialog => {
+    output.info('dialog', `${dialog.type()}: ${dialog.message()}`, {
       id,
     })
   })
@@ -62,5 +52,19 @@ export const hookPageEvents = async (
     output.error('network', `request to ${errorUrl} failed: ${errorText}`, {
       id,
     })
+  })
+
+  page.on('console', msg => {
+    const msgType = msg.type()
+    const text = msg.text()
+
+    output.log(
+      consoleMsgTypeToLevel[msgType] ?? 'info',
+      'console',
+      `console.${msgType}: ${text}`,
+      {
+        id,
+      }
+    )
   })
 }

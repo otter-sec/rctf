@@ -54,7 +54,7 @@
 
       setTimeout(() => {
         console.log('Test 21: Opening new window...')
-        const newWindow = window.open('about:blank', '_blank')
+        const newWindow = window.open(window.location.href, '_blank')
         if (newWindow) {
           setTimeout(() => {
             newWindow.document.write('<h1>New Tab Test</h1>')
