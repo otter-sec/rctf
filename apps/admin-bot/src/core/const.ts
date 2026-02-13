@@ -1,7 +1,8 @@
-export const defaultMaxOutputChars = 4096
+export const defaultMaxLogLines = 64
+export const defaultMaxLogParamChars = 2048
 
 export const defaultChromeArguments: string[] = [
-  // TODO(es3n1n): review to make sure we're disable what's needed
+  // TODO(es3n1n): review to make sure we're disabling what's needed
   '--no-sandbox',
   '--disable-jit',
   '--disable-wasm',

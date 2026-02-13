@@ -1,21 +1,7 @@
 import type { BrowserContext } from 'puppeteer'
 import type { Logger } from 'pino'
 import type { HooksConfig } from './browser/hooks'
-
-export interface OutputHandler {
-  writeLine(line: string): void
-  flush(): void
-  close(): void
-}
-
-export const log = (
-  output: OutputHandler,
-  prefix: 'console' | 'navigation' | 'error' | 'admin-bot' | 'challenge',
-  line: string
-): void => {
-  output.writeLine(`${+new Date()} >> ${prefix} >> ${line}`)
-  output.flush()
-}
+import type { OutputHandler } from './core/output'
 
 export interface JobMetadata {
   challengeId: string
@@ -46,7 +32,8 @@ export interface ChallengeContext {
 export interface ChallengeConfig {
   timeoutMilliseconds: number
   inputs: Record<string, string>
-  maxOutputChars?: number | null
+  maxLogLines?: number | null
+  maxLogValueChars?: number | null
 
   browser?: 'chrome' | 'firefox'
   browserArguments?: Array<string>

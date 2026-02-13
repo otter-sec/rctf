@@ -2,8 +2,8 @@ import { pino } from 'pino'
 import type { ChallengeLoader } from './loader'
 import { join } from 'node:path'
 import { BrowserManager } from '../browser/manager'
-import { log as outputLog } from '../types'
-import type { ChallengeContext, JobMetadata, OutputHandler } from '../types'
+import { OutputHandler } from './output'
+import type { ChallengeContext, JobMetadata } from '../types'
 import { applyHooks } from '../browser/hooks'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -21,12 +21,12 @@ export const handleSubmission = async (
   const challenge = challenges.get(job.challengeId, job.configRevision)
   if (!challenge) {
     log.error('challenge not found')
-    outputLog(output, 'admin-bot', 'challenge not found')
+    output.fatal('admin-bot', 'challenge not found')
     return
   }
 
   log.info('visiting')
-  outputLog(output, 'admin-bot', 'setting up browser')
+  output.info('admin-bot', 'setting up browser')
 
   const userDataDir = await mkdtemp(join(tmpdir(), `adminbot-${randomUUID()}-`))
   log.debug({ userDataDir }, 'created temp directory')
@@ -55,7 +55,7 @@ export const handleSubmission = async (
 
   let handlerError: unknown = undefined
   try {
-    outputLog(output, 'admin-bot', 'running challenge handler')
+    output.info('admin-bot', 'running challenge handler')
     await Promise.race([
       challenge.config.handler(visitCtx),
       new Promise<never>((_, reject) => {

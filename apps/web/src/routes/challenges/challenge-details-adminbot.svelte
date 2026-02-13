@@ -11,6 +11,7 @@
   import {
     IconAlertCircleFilled,
     IconChevronDown,
+    IconChevronRight,
     IconCircleCheckFilled,
     IconClockFilled,
     IconDownload,
@@ -19,6 +20,14 @@
     IconSend,
   } from '$lib/icons'
   import { toast } from 'svelte-sonner'
+
+  interface LogEntry {
+    time: number
+    level: 'info' | 'warn' | 'error' | 'fatal'
+    prefix: string
+    line: string
+    extra: Record<string, unknown>
+  }
 
   interface Props {
     challengeId: string
@@ -33,6 +42,7 @@
   let errors = $state<Record<string, string | null>>({})
   let submitting = $state(false)
   let logsOpen = $state(false)
+  let expandedLines = $state<Set<number>>(new Set())
 
   let job = $state<{
     id: string
@@ -45,6 +55,52 @@
   const isJobActive = $derived(
     job?.status === AdminBotJobStatus.QUEUED || job?.status === AdminBotJobStatus.RUNNING
   )
+
+  function parseLogEntries(logs: string): LogEntry[] {
+    return logs
+      .split('\n')
+      .filter(l => l.trim())
+      .map(l => {
+        try {
+          return JSON.parse(l) as LogEntry
+        } catch {
+          return null
+        }
+      })
+      .filter((e): e is LogEntry => e !== null)
+  }
+
+  const logEntries = $derived(job?.logs ? parseLogEntries(job.logs) : [])
+
+  function hasExtra(entry: LogEntry): boolean {
+    return Object.keys(entry.extra).length > 0
+  }
+
+  function toggleLine(index: number) {
+    if (expandedLines.has(index)) {
+      expandedLines.delete(index)
+    } else {
+      expandedLines.add(index)
+    }
+    expandedLines = new Set(expandedLines)
+  }
+
+  function formatTime(ts: number): string {
+    const d = new Date(ts)
+    return d.toLocaleTimeString('en-US', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    })
+  }
+
+  const levelColors: Record<string, string> = {
+    info: 'text-foreground-l3',
+    warn: 'text-yellow-400',
+    error: 'text-foreground-destructive',
+    fatal: 'text-foreground-destructive',
+  }
 
   function validate(name: string, value: string): string | null {
     if (!value.trim()) return `${name} is required`
@@ -102,6 +158,7 @@
       values = {}
       errors = {}
       logsOpen = false
+      expandedLines = new Set()
       job = {
         id: res.data.jobId,
         status: AdminBotJobStatus.QUEUED,
@@ -203,12 +260,66 @@
 
       {#if job.logs && logsOpen}
         <ScrollArea
-          class="bg-background-l2 mb-3 max-h-48 rounded-md"
+          class="bg-background-l2 mb-3 max-h-64 rounded-md"
           orientation="both"
           fadeColor="background-l2"
         >
-          <pre
-            class="text-foreground-l3 w-max min-w-full p-3 text-xs leading-relaxed">{job.logs}</pre>
+          <div class="w-max min-w-full font-mono text-xs">
+            {#each logEntries as entry, i}
+              {@const expanded = expandedLines.has(i)}
+              {@const expandable = hasExtra(entry)}
+              <button
+                type="button"
+                class="flex w-full items-start gap-0 text-left transition-colors
+                  {expandable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default'}
+                  {i > 0 ? 'border-t border-white/[0.04]' : ''}"
+                onclick={() => expandable && toggleLine(i)}
+                disabled={!expandable}
+              >
+                <span
+                  class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center pt-1.5"
+                >
+                  {#if expandable}
+                    <IconChevronRight
+                      class="size-3 transition-transform {expanded ? 'rotate-90' : ''}"
+                    />
+                  {/if}
+                </span>
+                <span class="text-foreground-l4 shrink-0 pt-1.5 pr-2 tabular-nums"
+                  >{formatTime(entry.time)}</span
+                >
+                <span
+                  class="shrink-0 pt-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
+                    entry.level
+                  ] ?? 'text-foreground-l3'}"
+                  style="font-size: 0.6rem;"
+                  >{entry.level === 'info'
+                    ? 'I'
+                    : entry.level === 'warn'
+                      ? 'W'
+                      : entry.level === 'error'
+                        ? 'E'
+                        : 'F'}</span
+                >
+                <span class="flex-1 py-1.5 pr-3">
+                  <span class="text-foreground-accent">[{entry.prefix}]</span>
+                  <span class={levelColors[entry.level] ?? 'text-foreground-l3'}>{entry.line}</span>
+                </span>
+              </button>
+              {#if expanded}
+                <div class="border-t border-white/[0.04] bg-white/[0.02] py-1.5 pr-3 pl-8">
+                  {#each Object.entries(entry.extra) as [key, value]}
+                    <div class="flex gap-2 py-0.5">
+                      <span class="text-foreground-l4 shrink-0">{key}:</span>
+                      <span class="text-foreground-l3 break-all"
+                        >{typeof value === 'string' ? value : JSON.stringify(value)}</span
+                      >
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            {/each}
+          </div>
         </ScrollArea>
       {/if}
     {/if}

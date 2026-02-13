@@ -1,5 +1,5 @@
 import { Browser, Frame, Page, Protocol, Target, WebWorker } from 'puppeteer'
-import { log, type OutputHandler } from '../types'
+import type { LogLevel, OutputHandler } from '../core/output'
 
 // Heavily inspired (and copy pasted from) https://github.com/kevin-mizu/bot-ctf-template
 // Thank you, mizu!
@@ -19,6 +19,12 @@ const getTargetId = (target: Target): string => {
   return (target as any)._targetId
 }
 
+const consoleMsgTypeToLevel: Record<string, LogLevel> = {
+  error: 'error',
+  warning: 'warn',
+  // if not defined fallbacks to info
+}
+
 export const applyHooks = async (
   output: OutputHandler,
   browser: Browser,
@@ -28,7 +34,7 @@ export const applyHooks = async (
     showConsoleLogs: config?.showConsoleLogs ?? true,
     showBrowserErrors: config?.showBrowserErrors ?? true,
     showNavigation: config?.showNavigation ?? true,
-    limitTabsNumber: config?.limitTabsNumber ?? 0,
+    limitTabsNumber: config?.limitTabsNumber ?? -1,
   }
 
   let extensions: number = 0
@@ -87,7 +93,14 @@ export const applyHooks = async (
         })
         .join(' ')
 
-      log(output, 'console', `${id} >> console.${msgType} >> ${message}`)
+      output.log(
+        consoleMsgTypeToLevel[msgType] ?? 'info',
+        'console',
+        `console.${msgType}: ${message}`,
+        {
+          id,
+        }
+      )
     }
 
   const hookPageEvents = async function (page: Page, id: string) {
@@ -101,7 +114,14 @@ export const applyHooks = async (
         page.on('console', msg => {
           const msgType = msg.type()
           const text = msg.text()
-          log(output, 'console', `${id} >> console.${msgType} >> ${text}`)
+          output.log(
+            consoleMsgTypeToLevel[msgType] ?? 'info',
+            'console',
+            `console.${msgType}: ${text}`,
+            {
+              id,
+            }
+          )
         })
       }
     }
@@ -110,30 +130,31 @@ export const applyHooks = async (
       if (!normalizedConfig.showNavigation || frame !== page.mainFrame()) {
         return
       }
-      log(output, 'navigation', `${id} >> navigating to ${frame.url()}`)
+      output.info('navigation', `navigating to ${frame.url()}`, {
+        id,
+      })
     })
 
     page.on('pageerror', error => {
       if (!normalizedConfig.showBrowserErrors || !(error instanceof Error)) {
         return
       }
-      log(output, 'error', `${id} >> page error: ${error.message}`)
+      output.error('navigation', `page error: ${error.message}`, {
+        id,
+      })
     })
 
     page.on('requestfailed', request => {
       if (!normalizedConfig.showBrowserErrors) {
         return
       }
-      log(
-        output,
-        'error',
-        `${id} >> request ${request.url()} failed: ${request.failure()!.errorText}`
-      )
-    })
-  }
 
-  const hookWorkerEvents = async function (worker: WebWorker, id: string) {
-    worker.client.on('Runtime.consoleAPICalled', consoleCalledApiCallback(id))
+      const errorUrl = request.url()
+      const errorText = request.failure()!.errorText
+      output.error('network', `request to ${errorUrl} failed: ${errorText}`, {
+        id,
+      })
+    })
   }
 
   const targetCreatedHook = async (target: Target): Promise<void> => {
@@ -141,8 +162,9 @@ export const applyHooks = async (
       case 'page':
         tabs.push(getTargetId(target))
 
+        // If limitTabsNumber is set to 0, prevent opening any tabs
         if (
-          normalizedConfig.limitTabsNumber > 0 &&
+          normalizedConfig.limitTabsNumber >= 0 &&
           tabs.length > normalizedConfig.limitTabsNumber
         ) {
           await browser.close()
@@ -152,7 +174,9 @@ export const applyHooks = async (
         }
 
         const t = getTabInternalId(target)
-        log(output, 'navigation', `${t} >> tab created`)
+        output.info('navigation', `tab created`, {
+          id: t,
+        })
 
         const page = await target.page()
         if (page) {
@@ -162,7 +186,9 @@ export const applyHooks = async (
           // may have already navigated past about:blank
           const currentUrl = page.url()
           if (currentUrl && currentUrl !== 'about:blank') {
-            log(output, 'navigation', `${t} >> navigating to ${currentUrl}`)
+            output.info('navigation', `navigating to ${currentUrl}`, {
+              id: t,
+            })
           }
         }
         break
@@ -171,27 +197,32 @@ export const applyHooks = async (
       case 'service_worker':
         const serviceId = `S${workers++}`
         if (normalizedConfig.showNavigation) {
-          log(output, 'navigation', `${serviceId} >> service worker created`)
+          output.info('navigation', 'service worker created', {
+            id: serviceId,
+          })
         }
 
         try {
           const worker = await target.worker()
           if (!worker) {
-            log(
-              output,
+            output.warn(
               'navigation',
-              `${serviceId} >> service worker created, but can not be accessed!`
+              'service worker created, but can not be accessed!',
+              {
+                id: serviceId,
+              }
             )
             return
           }
 
-          await hookWorkerEvents(worker, serviceId)
-        } catch (err) {
-          log(
-            output,
-            'navigation',
-            `${serviceId} >> failed to attach to service worker`
+          worker.client.on(
+            'Runtime.consoleAPICalled',
+            consoleCalledApiCallback(serviceId)
           )
+        } catch (err) {
+          output.error('navigation', 'failed to attach to service worker', {
+            id: serviceId,
+          })
         }
         break
       case 'browser':
@@ -211,12 +242,13 @@ export const applyHooks = async (
         }
 
         const id = `E${extensions++}`
-        log(
-          output,
+        output.info(
           'navigation',
-          `${id} >> extension page created, navigating to ${info.targetInfo.url}`
+          `extension page created, navigating to ${info.targetInfo.url}`,
+          {
+            id,
+          }
         )
-
         client.on('Runtime.consoleAPICalled', consoleCalledApiCallback(id))
         break
     }
@@ -226,7 +258,9 @@ export const applyHooks = async (
     switch (target.type()) {
       case 'page':
         if (normalizedConfig.showNavigation) {
-          log(output, 'navigation', `${getTabInternalId(target)} >> tab closed`)
+          output.info('navigation', `tab closed`, {
+            id: getTabInternalId(target),
+          })
         }
         break
     }
