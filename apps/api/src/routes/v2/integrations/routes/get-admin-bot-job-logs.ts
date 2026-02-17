@@ -16,7 +16,7 @@ integrationsGroup.route(
       return res.badChallenge()
     }
 
-    const logs = await getJobLogs(ctx.var.db, params.jobId, user.id)
+    const logs = await getJobLogs(ctx.var.db, params.jobId, params.id, user.id)
     return res.goodAdminBotJobLogs({ logs })
   }
 )

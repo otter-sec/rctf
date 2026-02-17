@@ -120,6 +120,11 @@ integrationsGroup.route(
       instancerInstances,
       timeoutMs: adminBotConfig.timeoutMilliseconds,
     })
+    if (!job) {
+      return res.badAdminBotConfig({
+        error: 'You already have an active admin bot job for this challenge',
+      })
+    }
     return res.goodAdminBotJobSubmitted({ jobId: job.id })
   }
 )

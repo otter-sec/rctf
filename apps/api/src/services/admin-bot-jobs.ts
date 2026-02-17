@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { adminBotJobs, type InstancerInstance } from '@rctf/db'
-import { takeUnique } from '@rctf/db/util'
+import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import { AdminBotJobStatus } from '@rctf/types'
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 
@@ -76,7 +76,7 @@ export const getJobHistory = async (
 ): Promise<JobHistoryEntry[]> => {
   // Return up to N jobs with logs, plus any between them
   return await db.execute<JobHistoryEntry>(sql`
-    SELECT id, status, created_at AS "createdAt", (logs IS NOT NULL) AS "hasLogs"
+    SELECT id, status, created_at AS "createdAt", (logs IS NOT NULL)::boolean AS "hasLogs"
     FROM admin_bot_jobs
     WHERE challenge_id = ${challengeId}
       AND user_id = ${userId}
@@ -106,6 +106,7 @@ export const getJobHistory = async (
 export const getJobLogs = async (
   db: DatabaseClient,
   jobId: string,
+  challengeId: string,
   userId: string
 ): Promise<string | null> => {
   const job = await db
@@ -114,6 +115,7 @@ export const getJobLogs = async (
     .where(
       and(
         eq(adminBotJobs.id, jobId),
+        eq(adminBotJobs.challengeId, challengeId),
         eq(adminBotJobs.userId, userId),
         isNotNull(adminBotJobs.logs)
       )
@@ -175,7 +177,15 @@ export const createJob = async (
     updatedAt: now,
   }
 
-  await db.insert(adminBotJobs).values(job)
+  try {
+    await db.insert(adminBotJobs).values(job)
+  } catch (error) {
+    const constraintName = getErrorConstraint(error)
+    if (constraintName === 'admin_bot_jobs_active_job_unique') {
+      return undefined
+    }
+    throw error
+  }
   return job
 }
 
@@ -271,25 +281,27 @@ export const saveJobLogs = async (
     logs: string
   }
 ): Promise<void> => {
-  await db
-    .update(adminBotJobs)
-    .set({ logs: params.logs })
-    .where(eq(adminBotJobs.id, params.jobId))
+  await db.transaction(async tx => {
+    await tx
+      .update(adminBotJobs)
+      .set({ logs: params.logs })
+      .where(eq(adminBotJobs.id, params.jobId))
 
-  // Clear logs from old jobs beyond the retention limit
-  await db.execute(sql`
-    UPDATE admin_bot_jobs
-    SET logs = NULL
-    WHERE challenge_id = ${params.challengeId}
-      AND user_id = ${params.userId}
-      AND logs IS NOT NULL
-      AND id NOT IN (
-        SELECT id FROM admin_bot_jobs
-        WHERE challenge_id = ${params.challengeId}
-          AND user_id = ${params.userId}
-          AND logs IS NOT NULL
-        ORDER BY created_at DESC
-        LIMIT ${MAX_LOGS_PER_USER_CHALLENGE}
-      )
-  `)
+    // Clear logs from old jobs beyond the retention limit
+    await tx.execute(sql`
+      UPDATE admin_bot_jobs
+      SET logs = NULL
+      WHERE challenge_id = ${params.challengeId}
+        AND user_id = ${params.userId}
+        AND logs IS NOT NULL
+        AND id NOT IN (
+          SELECT id FROM admin_bot_jobs
+          WHERE challenge_id = ${params.challengeId}
+            AND user_id = ${params.userId}
+            AND logs IS NOT NULL
+          ORDER BY created_at DESC
+          LIMIT ${MAX_LOGS_PER_USER_CHALLENGE}
+        )
+    `)
+  })
 }
