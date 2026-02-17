@@ -74,6 +74,7 @@ const buildPac = (restrictedDomains: Record<string, Array<string>>): string => {
 export class BrowserManager {
   private cacheDir: string
   private installedVersions = new Map<string, string>()
+  private resolvedBuildIds = new Map<string, string>()
   private downloadPromises = new Map<string, Promise<string>>()
 
   // TODO(es3n1n): a better path for browser cache for production?
@@ -115,14 +116,20 @@ export class BrowserManager {
 
     const browserType =
       browserVersion.browser === 'chrome' ? Browser.CHROME : Browser.FIREFOX
-    const buildId = await resolveBuildId(
-      browserType,
-      platform,
-      browserVersion.version
-    )
 
-    const log = logger.child({ browserVersion, buildId })
-    log.info('resolving browser version')
+    const log = logger.child({ browserVersion })
+
+    let buildId = this.resolvedBuildIds.get(key)
+    if (!buildId) {
+      log.info('resolving browser version')
+      buildId = await resolveBuildId(
+        browserType,
+        platform,
+        browserVersion.version
+      )
+      this.resolvedBuildIds.set(key, buildId)
+      log.info({ buildId }, 'resolved browser version')
+    }
 
     const expectedPath = computeExecutablePath({
       browser: browserType,

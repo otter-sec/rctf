@@ -12,6 +12,8 @@ import {
   BadToken,
   ErrorInternal,
   GoodAdminBotConfig,
+  GoodAdminBotJobHistory,
+  GoodAdminBotJobLogs,
   GoodAdminBotJobStatus,
   GoodAdminBotJobSubmitted,
   GoodClientConfigV2,
@@ -106,6 +108,33 @@ export const GetAdminBotJobStatusRouteV2 = defineRoute({
   authRequired: true,
   params: z.object({
     id: z.string(),
+  }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
+
+export const GetAdminBotJobHistoryRouteV2 = defineRoute({
+  path: '/v2/integrations/challs/:id/admin-bot/history',
+  method: 'GET',
+  goodResponses: [GoodAdminBotJobHistory],
+  badResponses: [BadEndpoint, BadChallenge, BadToken],
+  authRequired: true,
+  params: z.object({
+    id: z.string(),
+  }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
+
+export const GetAdminBotJobLogsRouteV2 = defineRoute({
+  path: '/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs',
+  method: 'GET',
+  goodResponses: [GoodAdminBotJobLogs],
+  badResponses: [BadEndpoint, BadChallenge, BadToken],
+  authRequired: true,
+  params: z.object({
+    id: z.string(),
+    jobId: z.string(),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

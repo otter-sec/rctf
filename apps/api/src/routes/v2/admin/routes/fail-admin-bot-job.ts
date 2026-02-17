@@ -1,5 +1,5 @@
 import { FailAdminBotJobRouteV2 } from '@rctf/types'
-import { failJob, upsertJobLogs } from '../../../../services/admin-bot-jobs'
+import { failJob, saveJobLogs } from '../../../../services/admin-bot-jobs'
 import adminGroup from '../group'
 
 adminGroup.route(FailAdminBotJobRouteV2, async ({ ctx, res, params, body }) => {
@@ -9,7 +9,7 @@ adminGroup.route(FailAdminBotJobRouteV2, async ({ ctx, res, params, body }) => {
   }
 
   if (body.logs) {
-    await upsertJobLogs(ctx.var.db, {
+    await saveJobLogs(ctx.var.db, {
       challengeId: job.challengeId,
       userId: job.userId,
       jobId: job.id,

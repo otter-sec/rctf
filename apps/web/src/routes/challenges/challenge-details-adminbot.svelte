@@ -2,6 +2,8 @@
   import {
     AdminBotJobStatus,
     GetAdminBotConfigRouteV2,
+    GetAdminBotJobHistoryRouteV2,
+    GetAdminBotJobLogsRouteV2,
     GetAdminBotJobStatusRouteV2,
     SubmitAdminBotJobRouteV2,
   } from '@rctf/types'
@@ -44,6 +46,19 @@
   let logsOpen = $state(false)
   let expandedLines = $state<Set<number>>(new Set())
 
+  interface HistoryJob {
+    id: string
+    status: AdminBotJobStatus
+    createdAt: string
+    hasLogs: boolean
+  }
+  let history = $state<HistoryJob[]>([])
+  let historyOpen = $state(false)
+  let historyLogsJobId = $state<string | null>(null)
+  let historyLogs = $state<string | null>(null)
+  let historyLogsLoading = $state(false)
+  let historyExpandedLines = $state<Set<number>>(new Set())
+
   let job = $state<{
     id: string
     status: AdminBotJobStatus
@@ -71,6 +86,7 @@
   }
 
   const logEntries = $derived(job?.logs ? parseLogEntries(job.logs) : [])
+  const historyLogEntries = $derived(historyLogs ? parseLogEntries(historyLogs) : [])
 
   function hasExtra(entry: LogEntry): boolean {
     return Object.keys(entry.extra).length > 0
@@ -142,6 +158,7 @@
       job = res.data.job
     }
     jobLoading = false
+    fetchHistory()
   }
 
   async function submit() {
@@ -191,6 +208,56 @@
     URL.revokeObjectURL(url)
   }
 
+  async function fetchHistory() {
+    const res = await apiRequest(GetAdminBotJobHistoryRouteV2, { id: challengeId })
+    if (res.kind === 'goodAdminBotJobHistory') {
+      history = (res.data.jobs as HistoryJob[]).filter(h => h.id !== job?.id)
+    }
+  }
+
+  async function viewHistoryLogs(jobId: string) {
+    if (historyLogsJobId === jobId) {
+      historyLogsJobId = null
+      historyLogs = null
+      historyExpandedLines = new Set()
+      return
+    }
+
+    historyLogsJobId = jobId
+    historyLogs = null
+    historyLogsLoading = true
+    historyExpandedLines = new Set()
+
+    const res = await apiRequest(GetAdminBotJobLogsRouteV2, {
+      id: challengeId,
+      jobId,
+    })
+    if (res.kind === 'goodAdminBotJobLogs') {
+      historyLogs = res.data.logs
+    }
+    historyLogsLoading = false
+  }
+
+  function toggleHistoryLine(index: number) {
+    if (historyExpandedLines.has(index)) {
+      historyExpandedLines.delete(index)
+    } else {
+      historyExpandedLines.add(index)
+    }
+    historyExpandedLines = new Set(historyExpandedLines)
+  }
+
+  function formatDate(iso: string): string {
+    const d = new Date(iso)
+    return d.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
+  }
+
   onMount(() => {
     fetchJobStatus()
   })
@@ -201,6 +268,75 @@
     return () => clearInterval(poll)
   })
 </script>
+
+{#snippet logViewer(entries: LogEntry[], expanded: Set<number>, toggle: (i: number) => void)}
+  <ScrollArea
+    class="bg-background-l2 mb-3 max-h-64 rounded-md"
+    orientation="both"
+    fadeColor="background-l2"
+  >
+    <div class="w-max min-w-full font-mono text-xs">
+      {#each entries as entry, i}
+        {@const isExpanded = expanded.has(i)}
+        {@const expandable = hasExtra(entry)}
+        <button
+          type="button"
+          class="flex w-full items-start gap-0 text-left transition-colors
+            {expandable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default'}
+            {i > 0 ? 'border-t border-white/[0.04]' : ''}"
+          onclick={() => expandable && toggle(i)}
+          disabled={!expandable}
+        >
+          <span class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center py-1.5">
+            {#if expandable}
+              <IconChevronRight
+                class="size-3 transition-transform {isExpanded ? 'rotate-90' : ''}"
+              />
+            {/if}
+          </span>
+          <span class="text-foreground-l4 shrink-0 py-1.5 pr-2 tabular-nums"
+            >{formatTime(entry.time)}</span
+          >
+          <span
+            class="shrink-0 py-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
+              entry.level
+            ] ?? 'text-foreground-l3'}"
+            style="font-size: 0.6rem; line-height: 1rem;"
+            >{entry.level.charAt(0).toUpperCase()}</span
+          >
+          <span class="flex-1 py-1.5 pr-3">
+            <span class="text-foreground-accent">[{entry.prefix}]</span>
+            <span class={levelColors[entry.level] ?? 'text-foreground-l3'}>{entry.line}</span>
+          </span>
+        </button>
+        {#if isExpanded}
+          <div class="border-t border-white/[0.04] bg-white/[0.02] py-1.5 pr-3 pl-8">
+            {#each Object.entries(entry.extra) as [key, value]}
+              <div class="flex gap-2 py-0.5">
+                <span class="text-foreground-l4 shrink-0">{key}:</span>
+                <span class="text-foreground-l3 break-all"
+                  >{typeof value === 'string' ? value : JSON.stringify(value)}</span
+                >
+              </div>
+            {/each}
+          </div>
+        {/if}
+      {/each}
+    </div>
+  </ScrollArea>
+{/snippet}
+
+{#snippet jobStatusIcon(status: AdminBotJobStatus)}
+  {#if status === AdminBotJobStatus.QUEUED}
+    <IconClockFilled class="text-foreground-l3 size-3.5 shrink-0" />
+  {:else if status === AdminBotJobStatus.RUNNING}
+    <IconLoader class="text-foreground-l3 size-3.5 shrink-0 animate-spin" />
+  {:else if status === AdminBotJobStatus.COMPLETED}
+    <IconCircleCheckFilled class="text-foreground-accent size-3.5 shrink-0" />
+  {:else if status === AdminBotJobStatus.FAILED}
+    <IconAlertCircleFilled class="text-foreground-destructive size-3.5 shrink-0" />
+  {/if}
+{/snippet}
 
 <div class="flex h-full flex-col p-3">
   {#if !isAuthenticated()}
@@ -256,68 +392,61 @@
       </div>
 
       {#if job.logs && logsOpen}
-        <ScrollArea
-          class="bg-background-l2 mb-3 max-h-64 rounded-md"
-          orientation="both"
-          fadeColor="background-l2"
-        >
-          <div class="w-max min-w-full font-mono text-xs">
-            {#each logEntries as entry, i}
-              {@const expanded = expandedLines.has(i)}
-              {@const expandable = hasExtra(entry)}
+        {@render logViewer(logEntries, expandedLines, toggleLine)}
+      {/if}
+    {/if}
+
+    {#if history.length > 0}
+      <button
+        type="button"
+        class="text-foreground-l4 hover:text-foreground-l3 mb-3 flex w-full items-center gap-2 text-xs transition-colors"
+        onclick={() => (historyOpen = !historyOpen)}
+      >
+        <IconChevronRight class="size-3.5 transition-transform {historyOpen ? 'rotate-90' : ''}" />
+        <span>Previous jobs ({history.length})</span>
+      </button>
+
+      {#if historyOpen}
+        <div class="mb-3 space-y-1">
+          {#each history as historyJob}
+            <div>
               <button
                 type="button"
-                class="flex w-full items-start gap-0 text-left transition-colors
-                  {expandable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default'}
-                  {i > 0 ? 'border-t border-white/[0.04]' : ''}"
-                onclick={() => expandable && toggleLine(i)}
-                disabled={!expandable}
+                class="bg-background-l4 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors hover:bg-white/[0.06]"
+                onclick={() => historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
+                disabled={!historyJob.hasLogs}
               >
-                <span
-                  class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center py-1.5"
+                {@render jobStatusIcon(historyJob.status)}
+                <span class="text-foreground-l3 tabular-nums"
+                  >{formatDate(historyJob.createdAt)}</span
                 >
-                  {#if expandable}
-                    <IconChevronRight
-                      class="size-3 transition-transform {expanded ? 'rotate-90' : ''}"
+                <span class="text-foreground-l4 capitalize">{historyJob.status}</span>
+                {#if historyJob.hasLogs}
+                  <span
+                    class="ml-auto flex items-center gap-1 opacity-60 transition-opacity hover:opacity-100"
+                  >
+                    Logs
+                    <IconChevronDown
+                      class="size-3 transition-transform {historyLogsJobId === historyJob.id
+                        ? 'rotate-180'
+                        : ''}"
                     />
-                  {/if}
-                </span>
-                <span class="text-foreground-l4 shrink-0 py-1.5 pr-2 tabular-nums"
-                  >{formatTime(entry.time)}</span
-                >
-                <span
-                  class="shrink-0 py-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
-                    entry.level
-                  ] ?? 'text-foreground-l3'}"
-                  style="font-size: 0.6rem; line-height: 1rem;"
-                  >{entry.level === 'info'
-                    ? 'I'
-                    : entry.level === 'warn'
-                      ? 'W'
-                      : entry.level === 'error'
-                        ? 'E'
-                        : 'F'}</span
-                >
-                <span class="flex-1 py-1.5 pr-3">
-                  <span class="text-foreground-accent">[{entry.prefix}]</span>
-                  <span class={levelColors[entry.level] ?? 'text-foreground-l3'}>{entry.line}</span>
-                </span>
+                  </span>
+                {/if}
               </button>
-              {#if expanded}
-                <div class="border-t border-white/[0.04] bg-white/[0.02] py-1.5 pr-3 pl-8">
-                  {#each Object.entries(entry.extra) as [key, value]}
-                    <div class="flex gap-2 py-0.5">
-                      <span class="text-foreground-l4 shrink-0">{key}:</span>
-                      <span class="text-foreground-l3 break-all"
-                        >{typeof value === 'string' ? value : JSON.stringify(value)}</span
-                      >
-                    </div>
-                  {/each}
-                </div>
+
+              {#if historyLogsJobId === historyJob.id}
+                {#if historyLogsLoading}
+                  <div class="flex justify-center py-3">
+                    <IconLoader class="text-foreground-l4 size-4 animate-spin" />
+                  </div>
+                {:else if historyLogs}
+                  {@render logViewer(historyLogEntries, historyExpandedLines, toggleHistoryLine)}
+                {/if}
               {/if}
-            {/each}
-          </div>
-        </ScrollArea>
+            </div>
+          {/each}
+        </div>
       {/if}
     {/if}
 

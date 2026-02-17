@@ -1,8 +1,12 @@
+import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { adminBotJobLogs, adminBotJobs, type InstancerInstance } from '@rctf/db'
+import { adminBotJobs, type InstancerInstance } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { AdminBotJobStatus } from '@rctf/types'
-import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
+
+const MAX_LOGS_PER_USER_CHALLENGE =
+  config.adminBot?.maxLogsPerUserChallenge ?? 5
 
 type PulledJob = Record<string, unknown> & {
   id: string
@@ -44,13 +48,7 @@ export const getLatestJob = async (
             AND q.created_at < ${adminBotJobs.createdAt}
         ) ELSE NULL END
       `.as('queue_position'),
-      logs: sql<string | null>`(
-        SELECT ${adminBotJobLogs.logs}
-        FROM ${adminBotJobLogs}
-        WHERE ${adminBotJobLogs.challengeId} = ${adminBotJobs.challengeId}
-          AND ${adminBotJobLogs.userId} = ${adminBotJobs.userId}
-          AND ${adminBotJobLogs.jobId} = ${adminBotJobs.id}
-      )`.as('logs'),
+      logs: adminBotJobs.logs,
     })
     .from(adminBotJobs)
     .where(
@@ -62,6 +60,67 @@ export const getLatestJob = async (
     .orderBy(desc(adminBotJobs.createdAt))
     .limit(1)
     .then(takeUnique)
+}
+
+type JobHistoryEntry = {
+  id: string
+  status: string
+  createdAt: string
+  hasLogs: boolean
+}
+
+export const getJobHistory = async (
+  db: DatabaseClient,
+  challengeId: string,
+  userId: string
+): Promise<JobHistoryEntry[]> => {
+  // Return up to N jobs with logs, plus any between them
+  return await db.execute<JobHistoryEntry>(sql`
+    SELECT id, status, created_at AS "createdAt", (logs IS NOT NULL) AS "hasLogs"
+    FROM admin_bot_jobs
+    WHERE challenge_id = ${challengeId}
+      AND user_id = ${userId}
+      AND status IN ('completed', 'failed')
+      AND created_at >= COALESCE(
+        (
+          SELECT created_at FROM admin_bot_jobs
+          WHERE challenge_id = ${challengeId}
+            AND user_id = ${userId}
+            AND status IN ('completed', 'failed')
+            AND logs IS NOT NULL
+          ORDER BY created_at DESC
+          LIMIT 1 OFFSET ${MAX_LOGS_PER_USER_CHALLENGE - 1}
+        ),
+        (
+          SELECT MIN(created_at) FROM admin_bot_jobs
+          WHERE challenge_id = ${challengeId}
+            AND user_id = ${userId}
+            AND status IN ('completed', 'failed')
+            AND logs IS NOT NULL
+        )
+      )
+    ORDER BY created_at DESC
+  `)
+}
+
+export const getJobLogs = async (
+  db: DatabaseClient,
+  jobId: string,
+  userId: string
+): Promise<string | null> => {
+  const job = await db
+    .select({ logs: adminBotJobs.logs })
+    .from(adminBotJobs)
+    .where(
+      and(
+        eq(adminBotJobs.id, jobId),
+        eq(adminBotJobs.userId, userId),
+        isNotNull(adminBotJobs.logs)
+      )
+    )
+    .limit(1)
+    .then(takeUnique)
+  return job?.logs ?? null
 }
 
 export const hasActiveJob = async (
@@ -203,8 +262,7 @@ export const failJob = async (
     .then(takeUnique)
 }
 
-// We store logs only from last submission
-export const upsertJobLogs = async (
+export const saveJobLogs = async (
   db: DatabaseClient,
   params: {
     challengeId: string
@@ -214,20 +272,24 @@ export const upsertJobLogs = async (
   }
 ): Promise<void> => {
   await db
-    .insert(adminBotJobLogs)
-    .values({
-      challengeId: params.challengeId,
-      userId: params.userId,
-      jobId: params.jobId,
-      logs: params.logs,
-      updatedAt: new Date().toISOString(),
-    })
-    .onConflictDoUpdate({
-      target: [adminBotJobLogs.challengeId, adminBotJobLogs.userId],
-      set: {
-        jobId: params.jobId,
-        logs: params.logs,
-        updatedAt: new Date().toISOString(),
-      },
-    })
+    .update(adminBotJobs)
+    .set({ logs: params.logs })
+    .where(eq(adminBotJobs.id, params.jobId))
+
+  // Clear logs from old jobs beyond the retention limit
+  await db.execute(sql`
+    UPDATE admin_bot_jobs
+    SET logs = NULL
+    WHERE challenge_id = ${params.challengeId}
+      AND user_id = ${params.userId}
+      AND logs IS NOT NULL
+      AND id NOT IN (
+        SELECT id FROM admin_bot_jobs
+        WHERE challenge_id = ${params.challengeId}
+          AND user_id = ${params.userId}
+          AND logs IS NOT NULL
+        ORDER BY created_at DESC
+        LIMIT ${MAX_LOGS_PER_USER_CHALLENGE}
+      )
+  `)
 }

@@ -1,5 +1,5 @@
 import { CompleteAdminBotJobRouteV2 } from '@rctf/types'
-import { completeJob, upsertJobLogs } from '../../../../services/admin-bot-jobs'
+import { completeJob, saveJobLogs } from '../../../../services/admin-bot-jobs'
 import adminGroup from '../group'
 
 adminGroup.route(
@@ -11,7 +11,7 @@ adminGroup.route(
     }
 
     if (body.logs) {
-      await upsertJobLogs(ctx.var.db, {
+      await saveJobLogs(ctx.var.db, {
         challengeId: job.challengeId,
         userId: job.userId,
         jobId: job.id,

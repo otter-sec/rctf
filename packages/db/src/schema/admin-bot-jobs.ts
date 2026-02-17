@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
   foreignKey,
   index,
@@ -7,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core'
 import { challenges } from './challenges'
 import { users } from './users'
@@ -39,6 +41,7 @@ export const adminBotJobs = pgTable(
       .$type<InstancerInstance[]>()
       .notNull(),
     timeoutMs: integer('timeout_ms').notNull(),
+    logs: text(),
     createdAt: timestamp('created_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
       .notNull(),
@@ -60,6 +63,9 @@ export const adminBotJobs = pgTable(
       table.status.asc().nullsLast(),
       table.createdAt.asc().nullsLast()
     ),
+    uniqueIndex('admin_bot_jobs_active_job_unique')
+      .on(table.userId, table.challengeId)
+      .where(sql`status IN ('queued', 'running')`),
     foreignKey({
       columns: [table.userId],
       foreignColumns: [users.id],

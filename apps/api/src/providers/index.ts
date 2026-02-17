@@ -81,5 +81,5 @@ export const avatarModerationProvider = loadProvider(
 
 export const adminBotProvider = loadProvider(
   adminBotProviders,
-  config.adminBotProvider
+  config.adminBot?.provider
 )
