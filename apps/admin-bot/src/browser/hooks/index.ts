@@ -10,13 +10,6 @@ import { TargetTracker } from './targets'
 // - console logs from service workers
 
 export interface HooksConfig {
-  showConsoleLogs?: boolean
-  showBrowserErrors?: boolean
-  showNavigation?: boolean
-  limitTabsNumber?: number
-}
-
-export interface NormalizedHooksConfig {
   showConsoleLogs: boolean
   showBrowserErrors: boolean
   showNavigation: boolean
@@ -26,16 +19,9 @@ export interface NormalizedHooksConfig {
 export const applyHooks = async (
   output: OutputHandler,
   browser: Browser,
-  config?: HooksConfig
+  config: HooksConfig
 ): Promise<void> => {
-  const normalizedConfig: NormalizedHooksConfig = {
-    showConsoleLogs: config?.showConsoleLogs ?? true,
-    showBrowserErrors: config?.showBrowserErrors ?? true,
-    showNavigation: config?.showNavigation ?? true,
-    limitTabsNumber: config?.limitTabsNumber ?? -1,
-  }
-
-  const tracker = new TargetTracker(output, browser, normalizedConfig)
+  const tracker = new TargetTracker(output, browser, config)
   browser.on('targetcreated', tracker.onTargetCreated)
   browser.on('targetdestroyed', tracker.onTargetDestroyed)
 }

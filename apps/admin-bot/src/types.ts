@@ -42,7 +42,7 @@ export interface ChallengeConfig {
   handler: (ctx: ChallengeContext) => Promise<void>
   puppeteerLaunchOptionsExtra?: Record<string, unknown>
 
-  hooksConfig?: HooksConfig
+  hooksConfig: HooksConfig
   restrictDomains?: Record<string, Array<string>>
 
   requireInstancerInstancesRunning?: boolean

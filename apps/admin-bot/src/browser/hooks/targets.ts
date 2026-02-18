@@ -1,6 +1,6 @@
 import type { Browser, Target } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
-import type { NormalizedHooksConfig } from './index'
+import type { HooksConfig } from './index'
 import { createConsoleCallback } from './console'
 import { hookPageEvents } from './page-events'
 
@@ -16,7 +16,7 @@ export class TargetTracker {
   constructor(
     private readonly output: OutputHandler,
     private readonly browser: Browser,
-    private readonly config: NormalizedHooksConfig
+    private readonly config: HooksConfig
   ) {}
 
   private getTabInternalId(target: Target): string {

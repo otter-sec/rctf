@@ -1,6 +1,6 @@
 import type { Protocol } from 'puppeteer-core'
 import type { LogLevel, OutputHandler } from '../../core/output'
-import type { NormalizedHooksConfig } from './index'
+import type { HooksConfig } from './index'
 
 export const consoleMsgTypeToLevel: Record<string, LogLevel> = {
   error: 'error',
@@ -46,7 +46,7 @@ const serializeRemoteObject = (arg: Protocol.Runtime.RemoteObject): string => {
 
 // ref: https://stackoverflow.com/a/74223105
 export const createConsoleCallback =
-  (output: OutputHandler, config: NormalizedHooksConfig, id: string) =>
+  (output: OutputHandler, config: HooksConfig, id: string) =>
   (event: Protocol.Runtime.ConsoleAPICalledEvent) => {
     if (!config.showConsoleLogs) {
       return

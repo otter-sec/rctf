@@ -38,18 +38,19 @@ export const challenge = new Challenge({
     await page.close()
   },
 
+  hooksConfig: {
+    showConsoleLogs: true,
+    showBrowserErrors: true,
+    showNavigation: true,
+    limitTabsNumber: -1, // no limit
+  },
+
   // optional:
   browser: 'chrome',
   browserArguments: undefined, // argv array
   browserVersion: 'stable',
   puppeteerLaunchOptionsExtra: undefined, // Record<string, unknown>
 
-  hooksConfig: {
-    showConsoleLogs: true,
-    showBrowserErrors: true,
-    showNavigation: true,
-    limitTabsNumber: 5,
-  },
   maxLogValueChars: 4096, // limit number of characters within strings in logs
   maxLogLines: 64, // limit the number of lines stored per submission
 
