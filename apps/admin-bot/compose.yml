@@ -1,0 +1,32 @@
+services:
+  admin-bot:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:21337:21337"
+    environment:
+      RCTF_BASE_URL: "http://rctf:80"
+      RCTF_SECRET_KEY: "beans"
+      # POLL_INTERVAL_MS: "5000"
+      # PORT: "21337"
+    volumes:
+      - browser-cache:/data/browser-cache
+    tmpfs:
+      - /tmp:size=512M,mode=1777
+      - /var/cache/fontconfig:size=64M,mode=1777
+    shm_size: "512m"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    networks:
+      - rctf_network
+
+volumes:
+  browser-cache:
+
+networks:
+  rctf_network:
+    name: rctf_network
+    external: true

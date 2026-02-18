@@ -22,6 +22,7 @@ export const GoodChallengesV2 = response('goodChallenges', {
       solves: z.int(),
       sortWeight: z.nullable(z.number()),
       instancerLifetime: z.nullable(z.number()),
+      adminBotInputs: z.nullish(z.record(z.string(), z.string())),
       hasFlag: z.boolean(),
     })
   ),

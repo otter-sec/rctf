@@ -2,7 +2,7 @@ import type { SqlDatabaseSchema } from '@rctf/config'
 import type { InferInsertModel, InferSelectModel } from 'drizzle-orm'
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
-import { z } from 'zod'
+import { z } from 'zod/mini'
 import * as schema from './schema'
 
 export * from './schema'
@@ -16,6 +16,7 @@ export type Challenge = InferInsertModel<typeof schema.challenges>
 export type Solve = InferInsertModel<typeof schema.solves>
 export type User = InferInsertModel<typeof schema.users>
 export type UserMember = InferInsertModel<typeof schema.userMembers>
+export type AdminBotJob = InferInsertModel<typeof schema.adminBotJobs>
 
 export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient

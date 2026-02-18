@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <body>
+    <script>
+      console.log('Test 1: Basic string log')
+      console.warn('Test 2: Warning message')
+      console.error('Test 3: Error message')
+      console.info('Test 4: Info message')
+      console.debug('Test 5: Debug message')
+      console.log('Test 6: Multiple arguments:', 'arg1', 'arg2', 'arg3')
+      console.log('Test 7: Numbers:', 42, 3.14, -999)
+      console.log('Test 8: Booleans:', true, false)
+      console.log('Test 9: Null and undefined:', null, undefined)
+      console.log('Test 10: Array:', [1, 2, 3, 4, 5])
+      console.log('Test 11: Mixed array:', ['string', 123, true, null])
+      console.log('Test 12: Special values:', Infinity, -Infinity, NaN)
+      console.log('Test 13: Date:', new Date())
+      console.log('Test 14: RegExp:', /test.*pattern/gi)
+      console.log('Test 15: Error object:', new Error('Test error'))
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .register('/sw.js') // 404
+          .then(reg => {
+            console.log('Service worker registered:', reg)
+          })
+          .catch(err => {
+            console.error('Service worker failed:', err)
+          })
+      }
+
+      console.time('Test 16: Timer test')
+      setTimeout(() => {
+        console.timeEnd('Test 16: Timer test')
+      }, 1000)
+
+      console.table([
+        { name: 'Alice', age: 25 },
+        { name: 'Bob', age: 30 },
+        { name: 'Charlie', age: 35 },
+      ])
+
+      console.group('Test 17: Grouped logs')
+      console.log('Inside group 1')
+      console.log('Inside group 2')
+      console.groupEnd()
+
+      console.assert(true, 'Test 18: This should not appear')
+      console.assert(false, 'Test 19: This assertion should fail')
+
+      for (let i = 0; i < 3; i++) {
+        console.count('Test 20: Counter')
+      }
+
+      setTimeout(() => {
+        console.log('Test 21: Opening new window...')
+        const newWindow = window.open(window.location.href, '_blank')
+        if (newWindow) {
+          setTimeout(() => {
+            newWindow.document.write('<h1>New Tab Test</h1>')
+            newWindow.console.log('Test 22: Log from new tab')
+            setTimeout(() => {
+              console.log('Test 23: Closing new tab...')
+              newWindow.close()
+            }, 1000)
+          }, 500)
+        }
+      }, 2000)
+
+      setTimeout(() => {
+        console.log('Test 24: Creating iframe...')
+        const iframe = document.createElement('iframe')
+        iframe.src = 'about:blank'
+        document.body.appendChild(iframe)
+
+        setTimeout(() => {
+          iframe.contentWindow.console.log('Test 25: Log from iframe')
+        }, 500)
+      }, 4000)
+
+      const testDomain = async (url, testNumber, description) => {
+        try {
+          const response = await fetch(url, { mode: 'no-cors' })
+          console.log(
+            `Test ${testNumber}: ${description} - ALLOWED (status: ${response.status || 'opaque'})`
+          )
+        } catch (err) {
+          console.log(
+            `Test ${testNumber}: ${description} - BLOCKED (${err.message})`
+          )
+        }
+      }
+
+      setTimeout(async () => {
+        await testDomain(
+          'https://www.example.com',
+          27,
+          'Allowed domain: www.example.com'
+        )
+        await testDomain(
+          'https://example.com',
+          28,
+          'Blocked subdomain: example.com'
+        )
+      }, 7000)
+
+      setTimeout(() => {
+        console.log('Test 26: All tests completed!')
+      }, 8000)
+    </script>
+  </body>
+</html>

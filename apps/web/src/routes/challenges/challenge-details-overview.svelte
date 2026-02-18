@@ -3,6 +3,7 @@
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
   import { formatFileSize } from '$lib/utils'
+  import ChallengeDetailsAdminbot from './challenge-details-adminbot.svelte'
   import ChallengeDetailsInstancer from './challenge-details-instancer.svelte'
 
   interface Props {
@@ -67,6 +68,13 @@
             challengeId={challenge.id}
             instanceLifetime={challenge.instancerLifetime}
           />
+        </div>
+      {/if}
+
+      {#if challenge.adminBotInputs}
+        <div class="flex flex-col overflow-hidden rounded-lg border-2">
+          <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Admin bot</div>
+          <ChallengeDetailsAdminbot challengeId={challenge.id} inputs={challenge.adminBotInputs} />
         </div>
       {/if}
     </div>

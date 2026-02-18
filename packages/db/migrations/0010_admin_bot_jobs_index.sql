@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "admin_bot_jobs_active_job_unique" ON "admin_bot_jobs" USING btree ("user_id","challenge_id") WHERE status IN ('queued', 'running');

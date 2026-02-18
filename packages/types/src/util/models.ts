@@ -18,6 +18,7 @@ export type AdminChallengeDetail = ResponseData<typeof GoodAdminChallengeV2>
 export type InstancerConfig = NonNullable<
   AdminChallengeDetail['instancerConfig']
 >
+export type AdminBotConfig = NonNullable<AdminChallengeDetail['adminBotConfig']>
 
 export type Challenge = ResponseData<typeof GoodChallengesV2>[number]
 export type ChallengeSolve = ResponseData<

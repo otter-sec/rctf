@@ -1,0 +1,3 @@
+CREATE TYPE "public"."admin_bot_job_status" AS ENUM('queued', 'running', 'completed', 'failed');--> statement-breakpoint
+ALTER TABLE "admin_bot_jobs" ALTER COLUMN "status" SET DATA TYPE "public"."admin_bot_job_status" USING "status"::"public"."admin_bot_job_status";--> statement-breakpoint
+CREATE INDEX "admin_bot_jobs_status_created_at_index" ON "admin_bot_jobs" USING btree ("status","created_at");

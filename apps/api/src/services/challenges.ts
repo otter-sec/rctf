@@ -1,4 +1,5 @@
 import type {
+  AdminBotConfig,
   Challenge,
   ChallengeData,
   DatabaseClient,
@@ -164,15 +165,20 @@ export const upsertChallenge = async (
   db: DatabaseClient,
   id: string,
   partial: Partial<
-    Omit<ChallengeData, 'instancerConfig'> & {
+    Omit<ChallengeData, 'instancerConfig' | 'adminBotConfig'> & {
       instancerConfig?: Partial<InstancerConfig> | null
+      adminBotConfig?: AdminBotConfig | null
     }
   >
 ): Promise<Challenge> => {
   const current = await getPrivateChallenge(db, id)
-  const { instancerConfig: partialInstancerConfig, ...partialRest } = partial
+  const {
+    instancerConfig: partialInstancerConfig,
+    adminBotConfig: partialAdminBotConfig,
+    ...partialRest
+  } = partial
 
-  // Handle instancerConfig: null = clear, undefined = keep current, object = merge
+  // null = clear, undefined = keep current, object = merge
   let instancerConfig: InstancerConfig | undefined
   if (partialInstancerConfig === null) {
     instancerConfig = undefined // Explicitly cleared
@@ -186,6 +192,16 @@ export const upsertChallenge = async (
     instancerConfig = current?.data.instancerConfig
   }
 
+  // null = clear, undefined = keep current, object = replace
+  let adminBotConfig: AdminBotConfig | undefined
+  if (partialAdminBotConfig === null) {
+    adminBotConfig = undefined
+  } else if (partialAdminBotConfig !== undefined) {
+    adminBotConfig = partialAdminBotConfig
+  } else {
+    adminBotConfig = current?.data.adminBotConfig
+  }
+
   // Filter out undefined values, otherwise we will include them
   const filteredPartial = Object.fromEntries(
     Object.entries(partialRest).filter(([_, v]) => v !== undefined)
@@ -196,6 +212,7 @@ export const upsertChallenge = async (
     ...current?.data,
     ...filteredPartial,
     instancerConfig,
+    adminBotConfig,
   }
 
   const challenge: Challenge = {

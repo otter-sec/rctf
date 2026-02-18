@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
   import type { Snippet } from 'svelte'
+  import type { AdminBotConfig } from '$lib/machines'
   import {
     Button,
     Field,
@@ -18,9 +19,11 @@
     IconFileFilled,
     IconFileInfoFilled,
     IconFlagFilled,
+    IconRobot,
     IconTrophyFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
   import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
@@ -37,6 +40,7 @@
     sortWeight: number
     files: { name: string; url: string; size: number | null }[]
     instancerConfig: InstancerConfig | null
+    adminBotConfig: AdminBotConfig
     hidden: boolean
     challengeId: string | null
     totalSolves: number
@@ -47,6 +51,7 @@
     onShowPreview: () => void
     onFilesChange: (files: Props['files']) => void
     onInstancerConfigChange: (config: InstancerConfig | null) => void
+    onAdminBotConfigChange: (config: AdminBotConfig) => void
     onNameChange: (v: string) => void
     onCategoryChange: (v: string) => void
     onAuthorChange: (v: string) => void
@@ -72,6 +77,7 @@
     sortWeight,
     files,
     instancerConfig,
+    adminBotConfig,
     hidden,
     challengeId,
     totalSolves,
@@ -82,6 +88,7 @@
     onShowPreview,
     onFilesChange,
     onInstancerConfigChange,
+    onAdminBotConfigChange,
     onNameChange,
     onCategoryChange,
     onAuthorChange,
@@ -163,6 +170,10 @@
           <IconAlertCircleFilled class="text-foreground-destructive size-3.5" />
         {/if}
       </Tabs.Trigger>
+      <Tabs.Trigger value="adminbot" class={tabClassMobile}>
+        <IconRobot class="size-4" />
+        Admin bot
+      </Tabs.Trigger>
       <Tabs.Trigger value="solves" class={tabClassMobile}>
         <IconTrophyFilled class="size-4" />
         Solves{totalSolves ? ` (${totalSolves})` : ''}
@@ -203,6 +214,10 @@
             <Tooltip.Content>This tab has invalid fields</Tooltip.Content>
           </Tooltip.Root>
         {/if}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="adminbot" class={tabClassDesktop}>
+        <IconRobot class="size-4" />
+        Admin bot
       </Tabs.Trigger>
       <Tabs.Trigger value="solves" class={tabClassDesktop}>
         <IconTrophyFilled class="size-4" />
@@ -431,6 +446,18 @@
             {isDisabled}
             onConfigChange={onInstancerConfigChange}
             bind:isValid={instancerValid}
+          />
+        </div>
+      </ScrollArea>
+    </Tabs.Content>
+
+    <Tabs.Content value="adminbot" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-5" fadeSize={64} fadeColor="background-l2">
+        <div class={cn('pb-4', isDisabled && 'opacity-60')}>
+          <AdminChallengesDetailsAdminbot
+            config={adminBotConfig}
+            {isDisabled}
+            onConfigChange={onAdminBotConfigChange}
           />
         </div>
       </ScrollArea>

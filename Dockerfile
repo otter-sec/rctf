@@ -1,26 +1,27 @@
-FROM oven/bun:1.3.7-alpine AS base
+FROM oven/bun:1.3.9-alpine AS base
 WORKDIR /app
 
 FROM base AS package-configs
 
 COPY package.json bun.lock ./
-COPY apps/api/package.json ./apps/api/
-COPY apps/web/package.json ./apps/web/
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 COPY packages/util/package.json ./packages/util/
 COPY tests/server/package.json ./tests/server/
+COPY apps/admin-bot/package.json ./apps/admin-bot/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
 
 FROM base AS deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests'
+RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests' --filter '!@rctf/admin-bot'
 
 FROM base AS prod-deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests'
+RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests' --filter '!@rctf/admin-bot'
 
 FROM base AS build
 
@@ -32,7 +33,8 @@ COPY packages ./packages
 COPY tsconfig.json ./
 
 ENV NODE_ENV=production
-RUN bun run build
+RUN bun run --filter '@rctf/api' build
+RUN bun run --filter '@rctf/web' build
 
 FROM base AS production
 

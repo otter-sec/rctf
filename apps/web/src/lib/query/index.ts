@@ -10,6 +10,7 @@ import {
   DeleteEmailRoute,
   DeleteMemberRoute,
   GetAdminChallengeRouteV2,
+  GetAdminBotStatusRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminUsersRouteV2,
   GetChallengeSolvesRouteV2,
@@ -24,6 +25,7 @@ import {
   GetUserRouteV2,
   GetUserSelfRouteV2,
   GetVerifyInfoRouteV2,
+  GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodAdminUsersV2,
@@ -311,6 +313,18 @@ export const membersQueryOptions = queryOptions({
   },
 })
 
+export const adminBotStatusQueryOptions = queryOptions({
+  queryKey: ['admin', 'admin-bot', 'status'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetAdminBotStatusRouteV2)
+    if (response.kind === GoodAdminBotStatus.kind) {
+      return response.data
+    }
+    return null
+  },
+  staleTime: Infinity,
+})
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -365,6 +379,7 @@ export const queryKeys = {
     challengeSolvesQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
   instancerSchema: instancerSchemaQueryOptions.queryKey,
+  adminBotStatus: adminBotStatusQueryOptions.queryKey,
 }
 
 export function createApiMutation<TRoute extends AnyRouteDefinition>(
@@ -523,6 +538,10 @@ export function useInfiniteChallengeSolves(
 
 export function useMembers() {
   return createQuery(membersQueryOptions)
+}
+
+export function useAdminBotStatus() {
+  return createQuery(adminBotStatusQueryOptions)
 }
 
 export function useInstancerSchema() {

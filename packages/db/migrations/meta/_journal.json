@@ -50,6 +50,34 @@
       "when": 1765409137673,
       "tag": "0006_add_flags_statuses",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1770886322380,
+      "tag": "0007_add_admin_bot",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1770889171056,
+      "tag": "0008_add_index_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1771325186869,
+      "tag": "0009_admin_bot_logs_column",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1771327436402,
+      "tag": "0010_admin_bot_jobs_index",
+      "breakpoints": true
     }
   ]
 }

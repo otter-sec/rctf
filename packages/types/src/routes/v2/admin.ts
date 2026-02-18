@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
+  BadAdminBotConfig,
   BadBody,
   BadChallenge,
   BadEndpoint,
@@ -11,6 +12,10 @@ import {
   BadUnknownSolveV2,
   BadUnknownUser,
   BadUserPrivileged,
+  GoodAdminBotChallengeSource,
+  GoodAdminBotJobPull,
+  GoodAdminBotJobUpdate,
+  GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodAdminUsersV2,
@@ -79,12 +84,13 @@ export const UpdateChallengeRouteV2 = defineRoute({
       files: z.optional(z.array(ChallengeFileSchemaV2)),
       sortWeight: z.optional(z.number()),
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
+      adminBotConfig: z.nullish(z.object({ code: z.string() })),
       hidden: z.optional(z.boolean()),
       releaseTime: z.optional(z.nullable(z.number())),
     }),
   }),
   goodResponses: [GoodChallengeUpdateV2],
-  badResponses: [BadInstancerConfig, BadPerms, BadToken],
+  badResponses: [BadAdminBotConfig, BadInstancerConfig, BadPerms, BadToken],
   authRequired: true,
   params: AdminChallengeParams,
   permissions: Permissions.challsWrite,
@@ -137,6 +143,15 @@ export const GetInstancerSchemaRouteV2 = defineRoute({
   permissions: Permissions.challsRead,
 })
 
+export const GetAdminBotStatusRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/status',
+  method: 'GET',
+  goodResponses: [GoodAdminBotStatus],
+  badResponses: [BadEndpoint, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
+})
+
 export const QueryUploadsRouteV2 = defineRoute({
   path: '/v2/admin/upload/query',
   method: 'POST',
@@ -152,4 +167,44 @@ export const QueryUploadsRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
+})
+
+export const GetAdminBotChallengeSourceRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/challenges/:id/source',
+  method: 'GET',
+  goodResponses: [GoodAdminBotChallengeSource],
+  badResponses: [BadEndpoint],
+  authRequired: false, // adminbot auth will be checked by the middleware
+  params: z.object({ id: z.string() }),
+})
+
+export const PullAdminBotJobRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/jobs/pull',
+  method: 'POST',
+  goodResponses: [GoodAdminBotJobPull],
+  authRequired: false, // adminbot auth will be checked by the middleware
+})
+
+export const CompleteAdminBotJobRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/jobs/:id/complete',
+  method: 'POST',
+  body: z.object({
+    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
+  }),
+  goodResponses: [GoodAdminBotJobUpdate],
+  badResponses: [BadEndpoint],
+  authRequired: false, // adminbot auth will be checked by the middleware
+  params: z.object({ id: z.string() }),
+})
+
+export const FailAdminBotJobRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/jobs/:id/fail',
+  method: 'POST',
+  body: z.object({
+    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
+  }),
+  goodResponses: [GoodAdminBotJobUpdate],
+  badResponses: [BadEndpoint],
+  authRequired: false, // adminbot auth will be checked by the middleware
+  params: z.object({ id: z.string() }),
 })
