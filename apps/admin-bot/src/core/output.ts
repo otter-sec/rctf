@@ -116,14 +116,17 @@ export class ConsoleOutputHandler extends OutputHandler {
 
 export class BufferedOutputHandler extends OutputHandler {
   private closed: boolean = false
-  private lines: string[] = []
   private readonly maxLines: number | null
+  private buffer: string[]
+  private head: number = 0
+  private count: number = 0
 
   constructor(maxLines?: number | null, maxValueChars?: number | null) {
     super(maxValueChars)
 
     // null = disable limit (do not do that)
     this.maxLines = maxLines === undefined ? defaultMaxLogLines : maxLines
+    this.buffer = this.maxLines !== null ? new Array(this.maxLines) : []
   }
 
   writeLine(line: string) {
@@ -132,12 +135,14 @@ export class BufferedOutputHandler extends OutputHandler {
     }
 
     if (this.maxLines !== null) {
-      while (this.lines.length >= this.maxLines) {
-        this.lines.shift()
+      this.buffer[this.head] = line
+      this.head = (this.head + 1) % this.maxLines
+      if (this.count < this.maxLines) {
+        this.count++
       }
+    } else {
+      this.buffer.push(line)
     }
-
-    this.lines.push(line)
   }
 
   close() {
@@ -145,6 +150,17 @@ export class BufferedOutputHandler extends OutputHandler {
   }
 
   getOutput(): string {
-    return this.lines.join('\n')
+    if (this.maxLines === null) {
+      return this.buffer.join('\n')
+    }
+
+    const result = new Array(this.count)
+    for (let i = 0; i < this.count; i++) {
+      result[i] =
+        this.buffer[
+          (this.head - this.count + i + this.maxLines) % this.maxLines
+        ]
+    }
+    return result.join('\n')
   }
 }

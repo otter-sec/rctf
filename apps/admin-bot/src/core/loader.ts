@@ -24,6 +24,7 @@ const cacheKey = (id: string, revision: string): string => `${id}:${revision}`
 export class ChallengeLoader {
   // key is "id:revision"
   private challenges = new Map<string, Challenge>()
+  private currentRevisions = new Map<string, string>()
 
   async loadChallenge(source: string): Promise<Challenge | string> {
     try {
@@ -111,7 +112,14 @@ export class ChallengeLoader {
       return undefined
     }
 
+    const oldKey = this.currentRevisions.get(id)
+    if (oldKey && oldKey !== key) {
+      this.challenges.delete(oldKey)
+      log.info({ evictedKey: oldKey }, 'evicted old challenge revision')
+    }
+
     this.challenges.set(key, challenge)
+    this.currentRevisions.set(id, key)
     log.info('loaded challenge from source')
     return challenge
   }
@@ -121,6 +129,9 @@ export class ChallengeLoader {
     const existed = this.challenges.has(key)
     this.challenges.delete(key)
     if (existed) {
+      if (this.currentRevisions.get(id) === key) {
+        this.currentRevisions.delete(id)
+      }
       logger.info({ id, revision }, 'unloaded challenge')
     }
     return existed

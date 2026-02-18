@@ -77,8 +77,6 @@ export class BrowserManager {
   private resolvedBuildIds = new Map<string, string>()
   private downloadPromises = new Map<string, Promise<string>>()
 
-  // TODO(es3n1n): a better path for browser cache for production?
-  // TODO(es3n1n): make sure if you get RCE within this container, that you can't modify any binaries, etc
   constructor(cacheDir?: string) {
     this.cacheDir = cacheDir ?? '.browser-cache'
   }
@@ -245,21 +243,26 @@ export class BrowserManager {
       }
     }
 
-    return Promise.race([
-      launch({
-        headless: true,
-        browser: version.browser,
-        args,
-        executablePath,
-        extraPrefsFirefox,
-        ...(options.puppeteerLaunchOptionsExtra ?? {}),
-      }),
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error('browser launch timed out')),
-          LAUNCH_TIMEOUT_MS
-        )
-      ),
-    ])
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    try {
+      return await Promise.race([
+        launch({
+          headless: true,
+          browser: version.browser,
+          args,
+          executablePath,
+          extraPrefsFirefox,
+          ...(options.puppeteerLaunchOptionsExtra ?? {}),
+        }),
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
+            () => reject(new Error('browser launch timed out')),
+            LAUNCH_TIMEOUT_MS
+          )
+        }),
+      ])
+    } finally {
+      clearTimeout(timeoutId)
+    }
   }
 }

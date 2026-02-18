@@ -57,11 +57,12 @@ export const handleSubmission = async (
   output.info('admin-bot', 'running challenge handler')
 
   let handlerError: unknown = undefined
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
   try {
     await Promise.race([
       challenge.config.handler(visitCtx),
       new Promise<never>((_, reject) => {
-        setTimeout(
+        timeoutId = setTimeout(
           () => reject(new Error('timeout')),
           challenge.config.timeoutMilliseconds
         )
@@ -75,6 +76,7 @@ export const handleSubmission = async (
       log.error({ err }, 'challenge failed')
     }
   } finally {
+    clearTimeout(timeoutId)
     try {
       await visitCtx.browserContext.close()
     } catch (err) {

@@ -53,13 +53,18 @@ export const hookPageEvents = (
     }
 
     const errorUrl = request.url()
-    const errorText = request.failure()!.errorText
+    const failure = request.failure()
+    const errorText = failure?.errorText ?? 'no error text'
     output.error('network', `request to ${errorUrl} failed: ${errorText}`, {
       id,
     })
   })
 
   page.on('console', msg => {
+    if (!config.showConsoleLogs) {
+      return
+    }
+
     const msgType = msg.type()
     const text = msg.text()
 
