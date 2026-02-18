@@ -118,7 +118,10 @@ const isDirty = (form: FormData, original: FormData | null): boolean => {
       form.author ||
       form.description ||
       form.flag ||
-      form.files.length
+      form.files.length ||
+      form.adminBotConfig.enabled ||
+      form.adminBotConfig.code ||
+      form.instancerConfig !== null
     )
   }
   return JSON.stringify(form) !== JSON.stringify(original)

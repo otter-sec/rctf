@@ -153,11 +153,15 @@
   }
 
   async function fetchJobStatus() {
-    const res = await apiRequest(GetAdminBotJobStatusRouteV2, { id: challengeId })
-    if (res.kind === 'goodAdminBotJobStatus') {
-      job = res.data.job
+    try {
+      const res = await apiRequest(GetAdminBotJobStatusRouteV2, { id: challengeId })
+      if (res.kind === 'goodAdminBotJobStatus') {
+        job = res.data.job
+      }
+    } catch {
+    } finally {
+      jobLoading = false
     }
-    jobLoading = false
     fetchHistory()
   }
 
@@ -165,31 +169,36 @@
     if (!validateAll()) return
 
     submitting = true
-    const res = await apiRequest(SubmitAdminBotJobRouteV2, {
-      id: challengeId,
-      inputs: Object.fromEntries(inputNames.map(name => [name, values[name] ?? ''])),
-    })
+    try {
+      const res = await apiRequest(SubmitAdminBotJobRouteV2, {
+        id: challengeId,
+        inputs: Object.fromEntries(inputNames.map(name => [name, values[name] ?? ''])),
+      })
 
-    if (res.kind === 'goodAdminBotJobSubmitted') {
-      toast.success('Admin bot job submitted!')
-      errors = {}
-      logsOpen = false
-      expandedLines = new Set()
-      job = {
-        id: res.data.jobId,
-        status: AdminBotJobStatus.QUEUED,
-        createdAt: new Date().toISOString(),
-        queuePosition: null,
-        logs: null,
+      if (res.kind === 'goodAdminBotJobSubmitted') {
+        toast.success('Admin bot job submitted!')
+        errors = {}
+        logsOpen = false
+        expandedLines = new Set()
+        job = {
+          id: res.data.jobId,
+          status: AdminBotJobStatus.QUEUED,
+          createdAt: new Date().toISOString(),
+          queuePosition: null,
+          logs: null,
+        }
+        // Fetch actual queue position from server
+        fetchJobStatus()
+      } else if (res.kind === 'badAdminBotConfig' || res.kind === 'badInstancerState') {
+        toast.error(res.data.error)
+      } else {
+        showApiError(res)
       }
-      // Fetch actual queue position from server
-      fetchJobStatus()
-    } else if (res.kind === 'badAdminBotConfig' || res.kind === 'badInstancerState') {
-      toast.error(res.data.error)
-    } else {
-      showApiError(res)
+    } catch {
+      toast.error('Network error, please try again')
+    } finally {
+      submitting = false
     }
-    submitting = false
   }
 
   async function downloadConfig() {

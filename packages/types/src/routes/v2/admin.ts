@@ -189,7 +189,7 @@ export const CompleteAdminBotJobRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/jobs/:id/complete',
   method: 'POST',
   body: z.object({
-    logs: z.optional(z.string()),
+    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
   }),
   goodResponses: [GoodAdminBotJobUpdate],
   badResponses: [BadEndpoint],
@@ -201,7 +201,7 @@ export const FailAdminBotJobRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/jobs/:id/fail',
   method: 'POST',
   body: z.object({
-    logs: z.optional(z.string()),
+    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
   }),
   goodResponses: [GoodAdminBotJobUpdate],
   badResponses: [BadEndpoint],

@@ -73,6 +73,7 @@ export const AdminBotConfigSchema = z.object({
   inputs: z.record(z.string(), z.string()),
   revision: z.string(),
   timeoutMilliseconds: z.int(),
+  requireInstancerInstancesRunning: z.optional(z.boolean()),
 })
 
 export enum AdminBotJobStatus {

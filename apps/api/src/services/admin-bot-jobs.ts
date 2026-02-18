@@ -224,84 +224,65 @@ interface UpdatedJob {
   userId: string
 }
 
-export const completeJob = async (
+const finishJob = async (
   db: DatabaseClient,
-  jobId: string
+  jobId: string,
+  status: AdminBotJobStatus.COMPLETED | AdminBotJobStatus.FAILED,
+  logs?: string
 ): Promise<UpdatedJob | undefined> => {
-  return await db
-    .update(adminBotJobs)
-    .set({
-      status: AdminBotJobStatus.COMPLETED,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(
-      and(
-        eq(adminBotJobs.id, jobId),
-        eq(adminBotJobs.status, AdminBotJobStatus.RUNNING)
-      )
-    )
-    .returning({
-      id: adminBotJobs.id,
-      challengeId: adminBotJobs.challengeId,
-      userId: adminBotJobs.userId,
-    })
-    .then(takeUnique)
-}
-
-export const failJob = async (
-  db: DatabaseClient,
-  jobId: string
-): Promise<UpdatedJob | undefined> => {
-  return await db
-    .update(adminBotJobs)
-    .set({
-      status: AdminBotJobStatus.FAILED,
-      updatedAt: new Date().toISOString(),
-    })
-    .where(
-      and(
-        eq(adminBotJobs.id, jobId),
-        eq(adminBotJobs.status, AdminBotJobStatus.RUNNING)
-      )
-    )
-    .returning({
-      id: adminBotJobs.id,
-      challengeId: adminBotJobs.challengeId,
-      userId: adminBotJobs.userId,
-    })
-    .then(takeUnique)
-}
-
-export const saveJobLogs = async (
-  db: DatabaseClient,
-  params: {
-    challengeId: string
-    userId: string
-    jobId: string
-    logs: string
-  }
-): Promise<void> => {
-  await db.transaction(async tx => {
-    await tx
+  return await db.transaction(async tx => {
+    const job = await tx
       .update(adminBotJobs)
-      .set({ logs: params.logs })
-      .where(eq(adminBotJobs.id, params.jobId))
-
-    // Clear logs from old jobs beyond the retention limit
-    await tx.execute(sql`
-      UPDATE admin_bot_jobs
-      SET logs = NULL
-      WHERE challenge_id = ${params.challengeId}
-        AND user_id = ${params.userId}
-        AND logs IS NOT NULL
-        AND id NOT IN (
-          SELECT id FROM admin_bot_jobs
-          WHERE challenge_id = ${params.challengeId}
-            AND user_id = ${params.userId}
-            AND logs IS NOT NULL
-          ORDER BY created_at DESC
-          LIMIT ${MAX_LOGS_PER_USER_CHALLENGE}
+      .set({
+        status,
+        updatedAt: new Date().toISOString(),
+        ...(logs !== undefined && { logs }),
+      })
+      .where(
+        and(
+          eq(adminBotJobs.id, jobId),
+          eq(adminBotJobs.status, AdminBotJobStatus.RUNNING)
         )
-    `)
+      )
+      .returning({
+        id: adminBotJobs.id,
+        challengeId: adminBotJobs.challengeId,
+        userId: adminBotJobs.userId,
+      })
+      .then(takeUnique)
+
+    if (job && logs) {
+      await tx.execute(sql`
+        UPDATE admin_bot_jobs
+        SET logs = NULL
+        WHERE challenge_id = ${job.challengeId}
+          AND user_id = ${job.userId}
+          AND logs IS NOT NULL
+          AND id NOT IN (
+            SELECT id FROM admin_bot_jobs
+            WHERE challenge_id = ${job.challengeId}
+              AND user_id = ${job.userId}
+              AND logs IS NOT NULL
+            ORDER BY created_at DESC
+            LIMIT ${MAX_LOGS_PER_USER_CHALLENGE}
+          )
+      `)
+    }
+
+    return job
   })
 }
+
+export const completeJob = (
+  db: DatabaseClient,
+  jobId: string,
+  logs?: string
+): Promise<UpdatedJob | undefined> =>
+  finishJob(db, jobId, AdminBotJobStatus.COMPLETED, logs)
+
+export const failJob = (
+  db: DatabaseClient,
+  jobId: string,
+  logs?: string
+): Promise<UpdatedJob | undefined> =>
+  finishJob(db, jobId, AdminBotJobStatus.FAILED, logs)

@@ -33,10 +33,12 @@ export class TargetTracker {
           this.config.limitTabsNumber >= 0 &&
           this.tabs.length > this.config.limitTabsNumber
         ) {
-          await this.browser.close()
-          throw new Error(
-            `Opened more than ${this.config.limitTabsNumber} tabs`
+          this.output.error(
+            'navigation',
+            `tab limit exceeded (${this.tabs.length} > ${this.config.limitTabsNumber}), closing browser`
           )
+          await this.browser.close()
+          return
         }
 
         const t = this.getTabInternalId(target)
