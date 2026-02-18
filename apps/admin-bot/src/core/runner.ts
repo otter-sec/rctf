@@ -53,9 +53,11 @@ export const handleSubmission = async (
 
   await applyHooks(visitCtx.output, browser, challenge.config.hooksConfig)
 
+  log.info('running challenge handler')
+  output.info('admin-bot', 'running challenge handler')
+
   let handlerError: unknown = undefined
   try {
-    output.info('admin-bot', 'running challenge handler')
     await Promise.race([
       challenge.config.handler(visitCtx),
       new Promise<never>((_, reject) => {

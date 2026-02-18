@@ -65,7 +65,10 @@ export class PlatformClient {
     )
 
     if (!res.ok) {
-      logger.error({ status: res.status }, 'failed to pull job')
+      logger.error(
+        { status: res.status, text: await res.text() },
+        'failed to pull job'
+      )
       return null
     }
 

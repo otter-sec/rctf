@@ -79,8 +79,8 @@ export class BrowserManager {
 
   // TODO(es3n1n): a better path for browser cache for production?
   // TODO(es3n1n): make sure if you get RCE within this container, that you can't modify any binaries, etc
-  constructor(cacheDir: string = '.browser-cache') {
-    this.cacheDir = cacheDir
+  constructor(cacheDir?: string) {
+    this.cacheDir = cacheDir ?? '.browser-cache'
   }
 
   async getBrowserPath(config: BrowserVersion): Promise<string> {

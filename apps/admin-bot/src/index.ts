@@ -8,7 +8,7 @@ import { validator } from 'hono/validator'
 import { createLogger } from './core/logger'
 
 const app = new Hono()
-const browserManager = new BrowserManager()
+const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
 const challenges = new ChallengeLoader()
 const logger = createLogger('index')
 
