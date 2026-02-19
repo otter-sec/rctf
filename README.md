@@ -87,14 +87,14 @@ bun run dev
 
     database:
       sql:
-        # host: 127.0.0.1
-        host: postgres
+        host: 127.0.0.1
+        # host: postgres
         user: rctf
         password: DO_NOT_USE_ME
         database: rctf
       redis:
-        # host: 127.0.0.1
-        host: redis
+        host: 127.0.0.1
+        # host: redis
         password: DO_NOT_USE_ME
       migrate: before
 
