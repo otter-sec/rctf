@@ -57,6 +57,9 @@ const config: Config = {
             ],
             'connect-src': [
               'self',
+              // scoreboard export
+              'data:',
+              'blob:',
               // hcaptcha
               'https://hcaptcha.com',
               'https://*.hcaptcha.com',
