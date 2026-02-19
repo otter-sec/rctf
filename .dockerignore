@@ -15,4 +15,7 @@ data/
 uploads/
 rctf.d/
 deploy/
-!deploy/docker/
+!deploy/rctf/
+!deploy/docs/
+!deploy/docker-instancer/Dockerfile
+**/__pycache__/**

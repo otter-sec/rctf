@@ -9,6 +9,8 @@ _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env
 .env.fish
+deploy/docker-instancer/.env
+deploy/docker-instancer/.data/
 .eslintcache
 .cache
 *.tsbuildinfo
@@ -30,3 +32,5 @@ build/
 CLAUDE.md
 uploads/
 .browser-cache/
+**/__pycache__/**
+deploy/docker-instancer/certs/*.pem

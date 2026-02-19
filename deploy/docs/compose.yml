@@ -1,8 +1,8 @@
 services:
   docs:
     build:
-      context: ..
-      dockerfile: deploy/docker/docs.Dockerfile
+      context: ../..
+      dockerfile: deploy/docs/Dockerfile
     container_name: rctf-docs
     ports:
       - "127.0.0.1:8082:80"

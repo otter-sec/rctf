@@ -6,8 +6,8 @@ on:
     paths:
       - "apps/docs/**"
       - "packages/**"
-      - "deploy/docker/docs.Dockerfile"
-      - "deploy/docker/nginx-static.conf"
+      - "deploy/docs/Dockerfile"
+      - "deploy/docs/nginx-static.conf"
 
 permissions:
   contents: read
@@ -21,7 +21,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/docs
   CONTEXT: .
-  DOCKERFILE: deploy/docker/docs.Dockerfile
+  DOCKERFILE: deploy/docs/Dockerfile
 
 jobs:
   build-and-push:

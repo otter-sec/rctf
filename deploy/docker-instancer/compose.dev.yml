@@ -1,0 +1,30 @@
+services:
+  traefik:
+    image: traefik:v3.6.8
+    restart: unless-stopped
+    container_name: ti-traefik
+    command:
+      - --configFile=/etc/traefik/traefik.yml
+    env_file:
+      - .env
+    ports:
+      - "${TRAEFIK_HTTPS_PORT:-443}:${TRAEFIK_HTTPS_PORT:-443}"
+      - "${TRAEFIK_HTTP_PORT:-80}:${TRAEFIK_HTTP_PORT:-80}"
+      - "${TRAEFIK_TCP_PORT:-1337}:${TRAEFIK_TCP_PORT:-1337}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./conf/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./conf/tls.yml:/etc/traefik/dynamic/tls.yml:ro
+      - ./conf/middlewares.yml:/etc/traefik/dynamic/middlewares.yml:ro
+      - ./certs/:/certs/:ro
+  cache:
+    image: bitnami/redis:latest
+    restart: unless-stopped
+    container_name: ti-cache
+    env_file:
+      - .env
+    volumes:
+      - ./.data/redis:/data
+    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 0
+    ports:
+      - "6379:6379"

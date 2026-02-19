@@ -1,0 +1,59 @@
+[project]
+name = "docker-instancer"
+version = "1.0.0"
+description = "rctf docker instancer"
+authors = [
+    {name = "es3n1n"}
+]
+requires-python = ">=3.14"
+dependencies = [
+    "aiodocker",
+    "fastapi>=0.119.1",
+    "filelock>=3.20.0",
+    "loguru>=0.7.3",
+    "orjson>=3.11.4",
+    "pydantic-settings>=2.11.0",
+    "redis[hiredis]>=6.4.0",
+    "uvicorn>=0.38.0",
+    "uvloop>=0.21.0; sys_platform != 'win32'",
+]
+
+[dependency-groups]
+dev = [
+    "ty>=0.0.1a7",
+    "pytest>=8.4.2",
+    "ruff>=0.14.7",
+]
+
+[tool.uv.sources]
+aiodocker = { git = "https://github.com/es3n1n/aiodocker.git", branch = "add-3.14" }
+
+[tool.ruff]
+target-version = "py314"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "COM812", "ISC001", "W391", "D",
+    "FIX001", "FIX002", "TD003", "S104",
+    "TD001", "T201", "T203", "S101",
+    "EXE001", "TC001", "TC002",
+]
+flake8-quotes.inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"
+line-ending = "lf"
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+combine-as-imports = false
+
+[tool.ruff.lint.pylint]
+max-args = 6
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]

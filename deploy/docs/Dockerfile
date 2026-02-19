@@ -17,7 +17,7 @@ RUN bun run build
 FROM base AS production
 
 RUN apk add --no-cache nginx nginx-mod-http-brotli
-COPY deploy/docker/nginx-static.conf /etc/nginx/http.d/default.conf
+COPY deploy/docs/nginx-static.conf /etc/nginx/http.d/default.conf
 
 COPY --from=build /app/docs/dist ./static
 

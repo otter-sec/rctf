@@ -1,11 +1,11 @@
 import type { InstancerProvider } from './base'
-import TinyInstancerProvider from './tiny-instancer'
+import DockerInstancerProvider from './docker-instancer'
 import K8sInstancerProvider from './k8s-instancer'
 
 export const instancerProviders: Record<
   string,
   (options: unknown) => InstancerProvider
 > = {
-  'instancer/tiny-instancer': options => new TinyInstancerProvider(options),
+  'instancer/docker-instancer': options => new DockerInstancerProvider(options),
   'instancer/k8s-instancer': options => new K8sInstancerProvider(options),
 }

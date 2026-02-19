@@ -7,9 +7,9 @@ on:
       - "apps/api/**"
       - "apps/web/**"
       - "packages/**"
-      - "deploy/docker/rctf.Dockerfile"
-      - "deploy/docker/nginx.conf"
-      - "deploy/docker/supervisord.conf"
+      - "deploy/rctf/Dockerfile"
+      - "deploy/rctf/nginx.conf"
+      - "deploy/rctf/supervisord.conf"
 
 permissions:
   contents: read
@@ -23,7 +23,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   CONTEXT: .
-  DOCKERFILE: deploy/docker/rctf.Dockerfile
+  DOCKERFILE: deploy/rctf/Dockerfile
 
 jobs:
   build-and-push:

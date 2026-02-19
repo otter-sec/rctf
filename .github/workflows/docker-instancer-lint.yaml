@@ -1,0 +1,47 @@
+name: Lint docker-instancer
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "apps/docker-instancer/**"
+  pull_request:
+    paths:
+      - "apps/docker-instancer/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-instancer-lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: apps/docker-instancer
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Set up Python
+        run: uv python install 3.14
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Type check
+        run: uv run ty check instancer/

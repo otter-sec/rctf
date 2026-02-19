@@ -1,8 +1,8 @@
 services:
   admin-bot:
     build:
-      context: ..
-      dockerfile: deploy/docker/admin-bot.Dockerfile
+      context: ../..
+      dockerfile: deploy/admin-bot/Dockerfile
     restart: unless-stopped
     ports:
       - "127.0.0.1:21337:21337"

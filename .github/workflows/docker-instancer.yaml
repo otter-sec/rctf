@@ -1,26 +1,25 @@
-name: Build and push admin-bot
+name: Build and push docker-instancer
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "apps/admin-bot/**"
-      - "packages/**"
-      - "deploy/admin-bot/Dockerfile"
+      - "apps/docker-instancer/**"
+      - "deploy/docker-instancer/Dockerfile"
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: admin-bot
+  group: docker-instancer
   cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/admin-bot
+  IMAGE_NAME: ${{ github.repository }}/docker-instancer
   CONTEXT: .
-  DOCKERFILE: deploy/admin-bot/Dockerfile
+  DOCKERFILE: deploy/docker-instancer/Dockerfile
 
 jobs:
   build-and-push:

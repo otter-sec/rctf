@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - "apps/k8s-controller/**"
-      - "deploy/docker/k8s-controller.Dockerfile"
+      - "deploy/k8s-controller/Dockerfile"
 
 permissions:
   contents: read
@@ -19,7 +19,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/k8s-controller
   CONTEXT: .
-  DOCKERFILE: deploy/docker/k8s-controller.Dockerfile
+  DOCKERFILE: deploy/k8s-controller/Dockerfile
 
 jobs:
   build-and-push:
