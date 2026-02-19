@@ -39,8 +39,8 @@ RUN bun run --filter '@rctf/web' build
 FROM base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
-COPY docker/supervisord.conf /etc/supervisord.conf
-COPY docker/nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/docker/supervisord.conf /etc/supervisord.conf
+COPY deploy/docker/nginx.conf /etc/nginx/http.d/default.conf
 
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules

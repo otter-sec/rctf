@@ -3,14 +3,12 @@ FROM oven/bun:1.3.9-debian AS base
 FROM base AS build
 WORKDIR /app
 
-# TODO(es3n1n): actual lockfile whenever we consolidate all dockerfiles to something more sane
-COPY package.json tsconfig.json ./
+COPY apps/admin-bot/package.json ./
 RUN bun install --frozen-lockfile
 
-# TODO(es3n1n): this should be replaced with our actual tsconfig whenever we consolidate all dockerfiles to something sane
-RUN echo '{"compilerOptions":{"lib":["ESNext"],"target":"ESNext","module":"Preserve","moduleDetection":"force","moduleResolution":"bundler","skipLibCheck":true,"outDir":"dist"},"include":["src/**/*"]}' > tsconfig.json
-
-COPY src/ ./src/
+COPY tsconfig.json /tsconfig.json
+COPY apps/admin-bot/tsconfig.json ./
+COPY apps/admin-bot/src/ ./src/
 RUN bun run build
 
 FROM base
@@ -65,7 +63,7 @@ ENV XDG_CONFIG_HOME=/tmp/.config
 ENV XDG_RUNTIME_DIR=/tmp/.run
 RUN mkdir -p /data/browser-cache && chown -R adminbot:adminbot /data
 
-COPY package.json ./
+COPY apps/admin-bot/package.json ./
 RUN bun install --production
 
 COPY --from=build /app/dist ./dist/

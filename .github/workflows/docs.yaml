@@ -1,25 +1,27 @@
-name: Build and push k8s-controller
+name: Build and push docs
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "apps/k8s-controller/**"
-      - "deploy/docker/k8s-controller.Dockerfile"
+      - "apps/docs/**"
+      - "packages/**"
+      - "deploy/docker/docs.Dockerfile"
+      - "deploy/docker/nginx-static.conf"
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: k8s-controller
+  group: docs
   cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/k8s-controller
+  IMAGE_NAME: ${{ github.repository }}/docs
   CONTEXT: .
-  DOCKERFILE: deploy/docker/k8s-controller.Dockerfile
+  DOCKERFILE: deploy/docker/docs.Dockerfile
 
 jobs:
   build-and-push:

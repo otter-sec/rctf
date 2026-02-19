@@ -1,25 +1,29 @@
-name: Build and push k8s-controller
+name: Build and push rctf
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - "apps/k8s-controller/**"
-      - "deploy/docker/k8s-controller.Dockerfile"
+      - "apps/api/**"
+      - "apps/web/**"
+      - "packages/**"
+      - "deploy/docker/rctf.Dockerfile"
+      - "deploy/docker/nginx.conf"
+      - "deploy/docker/supervisord.conf"
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: k8s-controller
+  group: rctf
   cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/k8s-controller
+  IMAGE_NAME: ${{ github.repository }}
   CONTEXT: .
-  DOCKERFILE: deploy/docker/k8s-controller.Dockerfile
+  DOCKERFILE: deploy/docker/rctf.Dockerfile
 
 jobs:
   build-and-push:

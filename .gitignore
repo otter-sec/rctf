@@ -8,17 +8,12 @@ logs
 _.log
 report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
 .env.fish
 .eslintcache
 .cache
 *.tsbuildinfo
 .idea
 .DS_Store
-.cursor
 **/drizzle/
 *.db
 *.db-journal
@@ -31,5 +26,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 build/
 .cursor/
+.claude/
+CLAUDE.md
 uploads/
 .browser-cache/

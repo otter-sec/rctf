@@ -10,10 +10,9 @@ apps/api/dist
 .env.*
 *.md
 LICENSE*
-Dockerfile*
-compose*.yml
-docker-compose*.yml
 data/
 .data/
 uploads/
 rctf.d/
+deploy/
+!deploy/docker/

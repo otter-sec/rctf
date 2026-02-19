@@ -1,6 +1,6 @@
 data "kubectl_file_documents" "rctf-instancer-controller" {
     content = replace(
-        file("${path.module}/../../../apps/k8s-controller/dist/install.yaml"),
+        file("${path.module}/../../../../../apps/k8s-controller/dist/install.yaml"),
         "INSTANCER_HOST",
         var.instancer_host
     )

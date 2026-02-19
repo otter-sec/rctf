@@ -1,15 +1,15 @@
-FROM oven/bun:1.3-alpine AS base
+FROM oven/bun:1.3.9-alpine AS base
 WORKDIR /app
 
 FROM base AS build
 
 RUN apk add --no-cache git
 
-COPY package.json bun.lock ./
+COPY apps/docs/package.json apps/docs/bun.lock ./
 RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache
 
-COPY . .
-RUN echo '{"include": ["docs/**/*"]}' > tsconfig.json
+COPY tsconfig.json /tsconfig.json
+COPY apps/docs/ .
 
 ENV NODE_ENV=production
 RUN bun run build
@@ -17,7 +17,7 @@ RUN bun run build
 FROM base AS production
 
 RUN apk add --no-cache nginx nginx-mod-http-brotli
-COPY nginx.conf /etc/nginx/http.d/default.conf
+COPY deploy/docker/nginx-static.conf /etc/nginx/http.d/default.conf
 
 COPY --from=build /app/docs/dist ./static
 

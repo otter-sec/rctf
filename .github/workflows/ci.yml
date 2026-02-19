@@ -3,7 +3,6 @@ name: Tests
 on:
   workflow_dispatch:
   push:
-    branches: [main]
   pull_request:
 
 permissions:
@@ -25,7 +24,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Check formatting
-        run: bunx prettier --check "**/*.{ts,tsx,svelte,html,json}" --ignore-path .gitignore
+        run: bun run prettier -- --check
 
       - name: Typecheck
         run: bun run typecheck

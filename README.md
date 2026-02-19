@@ -109,46 +109,6 @@ bun run dev
    bun dev
    ```
 
-> [!NOTE]
-> To run an rCTF v1 frontend with a v2 backend:
->
-> 1. `bun run dev:api` in this repo
-> 2. `yarn workspace @rctf/client dev` in the old repo
-> 3. Open [http://127.0.0.1:8080](http://127.0.0.1:8080)
-
-## Roadmap
-| Endpoint | `/apps/api` | `/apps/web` |
-| --- | :-: | :--: |
-| `POST /api/v1/auth/register` | ✅ | ✅ |
-| `POST /api/v1/auth/verify` | ✅ | ✅ |
-| `POST /api/v1/auth/login` | ✅ | ✅ |
-| `POST /api/v1/auth/recover` | ✅ | ✅ |
-| `GET /api/v1/auth/test` | ✅ | — |
-| `GET /api/v1/challs` | ✅ | ✅ |
-| `POST /api/v1/challs/:id/submit` | ✅ | ✅ |
-| `GET /api/v1/challs/:id/solves` | ✅ | ✅ |
-| `GET /api/v1/admin/challs` | ✅ | ✅ |
-| `GET /api/v1/admin/challs/:id` | ✅ | ✅ |
-| `PUT /api/v1/admin/challs/:id` | ✅ | ✅ |
-| `DELETE /api/v1/admin/challs/:id` | ✅ | ✅ |
-| `POST /api/v1/admin/upload` | ✅ | ✅ |
-| `POST /api/v1/admin/upload/query` | ✅ | — |
-| `GET /api/v1/leaderboard/now` | ✅ | ✅ |
-| `GET /api/v1/leaderboard/graph` | ✅ | ✅ |
-| `GET /api/v1/integrations/client/config` | ✅ | ✅ |
-| `GET /api/v1/integrations/ctftime/leaderboard` | ✅ | — |
-| `POST /api/v1/integrations/ctftime/callback` | ✅ | ✅ |
-| `GET /api/v1/users/me` | ✅ | ✅ |
-| `PATCH /api/v1/users/me` | ✅ | ✅ |
-| `GET /api/v1/users/:id` | ✅ | ✅ |
-| `GET /api/v1/users/me/members` | ✅ | ✅ |
-| `POST /api/v1/users/me/members` | ✅ | ✅ |
-| `DELETE /api/v1/users/me/members/:id` | ✅ | ✅ |
-| `PUT /api/v1/users/me/auth/email` | ✅ | ✅ |
-| `DELETE /api/v1/users/me/auth/email` | ✅ | ✅ |
-| `PUT /api/v1/users/me/auth/ctftime` | ✅ | ✅ |
-| `DELETE /api/v1/users/me/auth/ctftime` | ✅ | ✅ |
-
 ## New features compared to v1
 
 - No more `verify.recover` token type, we just use team tokens from now on
@@ -157,9 +117,10 @@ bun run dev
 - New `s3` upload provider
 - GCS TF now needs a `storage.objects.delete` permission
 - Bloodbot integration
+- Adminbot integration
+- Instancer integration
 - Avatar moderation
 - More analytics providers (`cloudflare`, `plausible`)
-
 
 ### v1 Todo
 
@@ -178,20 +139,24 @@ bun run dev
 - [x] delete a solve (admin only)
 - [x] resetting teams token (admin only)
 - [ ] update client config (admin only)
-- [ ] send prize emails (admin only)
 - [x] file sizes
 - [x] add csp headers
 - [x] instancer integration
 - - [x] docker
 - - [x] k8s
-- [ ] admin bot integration
+- [x] admin bot integration
 - [x] blood bot integration
-- [ ] discord auth
-- [ ] ticket bot?
 - [x] analytics (google, cloudflare, something else?)
 - [x] refactor bloodbot
 - [ ] cf worker for docs, get rid of docker compose temp setup
 - [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
 - [ ] rctf2pages
-- [x] run tests in ci 
+- [x] run tests in ci
 - [ ] flag signing
+
+### Features we will **NEVER** implement
+
+- First blood bonus points
+- Leaderboard freeze
+- Limited number of flag submission attempts
+- Requiring to be authorized to see challenges or leaderboard

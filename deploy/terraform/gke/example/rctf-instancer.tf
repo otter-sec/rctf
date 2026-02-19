@@ -1,5 +1,5 @@
 module "rctf-k8s" {
-    source = "../terraform-modules/k8s"
+    source = "../modules/k8s"
 
     ctf_name = var.ctf_name
     instancer_host = "${var.instancer_subdomain}.${var.instancer_zone}"
