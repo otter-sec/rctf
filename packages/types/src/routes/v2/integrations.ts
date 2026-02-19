@@ -143,15 +143,18 @@ export const GetAdminBotJobLogsRouteV2 = defineRoute({
 export const SubmitAdminBotJobRouteV2 = defineRoute({
   path: '/v2/integrations/challs/:id/admin-bot',
   method: 'POST',
+  captchaAction: ProtectedAction.AdminBotSubmit,
   body: z.object({
     inputs: z.record(
       z.string().check(z.maxLength(256)),
       z.string().check(z.maxLength(1024))
     ),
+    captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodAdminBotJobSubmitted],
   badResponses: [
     BadAdminBotConfig,
+    BadCaptcha,
     BadInstancerState,
     BadEndpoint,
     BadChallenge,

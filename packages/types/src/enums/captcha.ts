@@ -5,4 +5,5 @@ export enum ProtectedAction {
   InstancerStart = 'instancerStart',
   InstancerExtend = 'instancerExtend',
   AvatarUpload = 'avatarUpload',
+  AdminBotSubmit = 'adminBotSubmit',
 }
