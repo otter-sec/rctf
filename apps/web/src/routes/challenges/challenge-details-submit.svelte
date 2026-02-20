@@ -16,7 +16,7 @@
   let { challenge, isSolved, onSolve }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const isCtfEnded = $derived(clientConfig ? Date.now() > clientConfig.endTime : false)
 
   const form = useApiForm(SubmitFlagRoute, {

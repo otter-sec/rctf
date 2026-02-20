@@ -123,27 +123,29 @@
     }
   })
 
-  const leaderboardQuery = useInfiniteLeaderboardWithGraph({ pageSize: LEADERBOARD_PAGE_SIZE })
-  const challengesQuery = $derived(useLeaderboardChallenges())
+  const leaderboardQuery = useInfiniteLeaderboardWithGraph(() => ({
+    pageSize: LEADERBOARD_PAGE_SIZE,
+  }))
+  const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
   let screenshotModalOpen = $state(false)
 
-  const entries = $derived($leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
-  const allGraphData = $derived($leaderboardQuery.data?.pages.flatMap(p => p.graph) ?? [])
-  const total = $derived($leaderboardQuery.data?.pages[0]?.total ?? 0)
+  const entries = $derived(leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
+  const allGraphData = $derived(leaderboardQuery.data?.pages.flatMap(p => p.graph) ?? [])
+  const total = $derived(leaderboardQuery.data?.pages[0]?.total ?? 0)
 
-  const currentUser = $derived($userQuery.data)
-  const challengesData = $derived($challengesQuery.data ?? {})
+  const currentUser = $derived(userQuery.data)
+  const challengesData = $derived(challengesQuery.data ?? {})
 
   const mergeWithSelfGraph = <T extends { id: string }>(
     data: T[],
     selfData: T | null | undefined
   ): T[] => (selfData && !data.some(t => t.id === selfData.id) ? [...data, selfData] : data)
 
-  const isNotStarted = $derived(ApiError.isNotStarted($leaderboardQuery.error))
-  const isLoading = $derived($leaderboardQuery.isLoading || $challengesQuery.isLoading)
+  const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
+  const isLoading = $derived(leaderboardQuery.isLoading || challengesQuery.isLoading)
 
   const challengesByCategory = $derived<ChallengeInfo[]>(
     Object.entries(challengesData)
@@ -253,15 +255,15 @@
     return true
   })
 
-  const selfGraphQuery = $derived(
-    useSelfUserGraph(showSelfRow && currentUser?.globalPlace ? currentUser.globalPlace : null)
+  const selfGraphQuery = useSelfUserGraph(() =>
+    showSelfRow && currentUser?.globalPlace ? currentUser.globalPlace : null
   )
 
   const sparklineDataByTeam = $derived.by(() => {
     const filterPoints = (points: { time: number; score: number }[], minTime = 0) =>
       points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
-    const allTeams = mergeWithSelfGraph(allGraphData, $selfGraphQuery.data)
+    const allTeams = mergeWithSelfGraph(allGraphData, selfGraphQuery.data)
     const maxTime = Math.max(...allTeams.flatMap(t => filterPoints(t.points).map(p => p.time)), 0)
     const windowStart = maxTime - SPARKLINE_WINDOW
 
@@ -282,7 +284,7 @@
       return valid.reduce((latest, p) => (p.time > latest.time ? p : latest)).score
     }
 
-    const allTeams = mergeWithSelfGraph(allGraphData, $selfGraphQuery.data)
+    const allTeams = mergeWithSelfGraph(allGraphData, selfGraphQuery.data)
     const teamsWithScores = allTeams.map(team => ({
       id: team.id,
       currentScore: getLatestScore(team.points, currentTime),
@@ -395,7 +397,7 @@
     rowHeight: ROW_HEIGHT,
     overscan: 5,
     isScrollingResetDelay: 100,
-    onLoadMore: () => $leaderboardQuery.fetchNextPage(),
+    onLoadMore: () => leaderboardQuery.fetchNextPage(),
     onScroll: updateFades,
   })
 
@@ -524,8 +526,8 @@
 
     scroll.state.count = totalCount
     scroll.state.loadMoreCount = visibleCount
-    scroll.state.hasNextPage = isLoading ? false : $leaderboardQuery.hasNextPage
-    scroll.state.isFetching = isLoading || $leaderboardQuery.isFetchingNextPage
+    scroll.state.hasNextPage = isLoading ? false : leaderboardQuery.hasNextPage
+    scroll.state.isFetching = isLoading || leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
 
@@ -577,7 +579,7 @@
     {sortMode}
     {total}
     loadedCount={entries.length}
-    isFetching={$leaderboardQuery.isFetching}
+    isFetching={leaderboardQuery.isFetching}
     {showTop3Context}
     onViewModeChange={setViewMode}
     onSortModeChange={setSortMode}
@@ -644,7 +646,7 @@
             >
               <ScoresGraph class="h-full w-full p-3" {...graphProps} />
             </div>
-            {#if !$challengesQuery.isLoading}
+            {#if !challengesQuery.isLoading}
               <ScoresChallengeHeader {viewMode} {sortMode} {categoryGroups} {challenges} />
             {/if}
           </div>
@@ -794,7 +796,7 @@
   graphData={screenshotGraphData}
   {categoryGroups}
   {solvesByTeam}
-  ctfName={$clientConfigQuery.data?.ctfName ?? ''}
-  startTime={$clientConfigQuery.data?.startTime ?? null}
-  endTime={$clientConfigQuery.data?.endTime ?? null}
+  ctfName={clientConfigQuery.data?.ctfName ?? ''}
+  startTime={clientConfigQuery.data?.startTime ?? null}
+  endTime={clientConfigQuery.data?.endTime ?? null}
 />

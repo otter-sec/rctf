@@ -5,20 +5,20 @@
   import { CUTOFF_TIME, SPARKLINE_WINDOW } from '../../routes/scores/constants'
 
   const userQuery = useCurrentUser()
-  const user = $derived($userQuery.data)
+  const user = $derived(userQuery.data)
   const globalPlace = $derived(user?.globalPlace ?? null)
 
-  const graphQuery = $derived(useSelfUserGraph(globalPlace))
+  const graphQuery = useSelfUserGraph(() => globalPlace)
   const graphData = $derived.by(() => {
-    const points = $graphQuery.data?.points ?? []
+    const points = graphQuery.data?.points ?? []
     const filteredPoints = points.filter(p => p.time <= CUTOFF_TIME)
     const maxTime = Math.max(...filteredPoints.map(p => p.time), 0)
     const windowStart = maxTime - SPARKLINE_WINDOW
     return filteredPoints.filter(p => p.time >= windowStart)
   })
 
-  const leaderboardQuery = $derived(useLeaderboard({ limit: 1, offset: 0 }))
-  const totalTeams = $derived($leaderboardQuery.data?.total ?? 0)
+  const leaderboardQuery = useLeaderboard(() => ({ limit: 1, offset: 0 }))
+  const totalTeams = $derived(leaderboardQuery.data?.total ?? 0)
 
   const gradientId = $derived(`nav-sparkline-gradient-${globalPlace ?? 0}`)
 

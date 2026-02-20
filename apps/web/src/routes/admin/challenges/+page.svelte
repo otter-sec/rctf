@@ -4,12 +4,12 @@
   import AdminChallenges from './admin-challenges.svelte'
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const challengesQuery = useAdminChallenges()
-  const challenges = $derived($challengesQuery.data)
-  const isPending = $derived($challengesQuery.isPending)
-  const error = $derived($challengesQuery.error?.message)
+  const challenges = $derived(challengesQuery.data)
+  const isPending = $derived(challengesQuery.isPending)
+  const error = $derived(challengesQuery.error?.message)
 </script>
 
 <svelte:head>

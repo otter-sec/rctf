@@ -22,7 +22,7 @@
     const items = Array.from(list)
     if (!items.length) return
 
-    $upload.mutate(
+    upload.mutate(
       { files: items },
       {
         onSuccess: res => {
@@ -65,9 +65,9 @@
       ondrop={onDrop}
       ondragover={e => (e.preventDefault(), !isDisabled && (dragging = true))}
       ondragleave={() => (dragging = false)}
-      disabled={$upload.isPending}
+      disabled={upload.isPending}
     >
-      {#if $upload.isPending}
+      {#if upload.isPending}
         <Spinner class="text-foreground-l3 size-8" />
         <span class="text-foreground-l3 text-sm">Uploading...</span>
       {:else}
@@ -85,7 +85,7 @@
       type="file"
       multiple
       onchange={onInput}
-      disabled={$upload.isPending}
+      disabled={upload.isPending}
       class="hidden"
     />
   {/if}

@@ -7,7 +7,7 @@
   let { children } = $props()
 
   const userQuery = useCurrentUser()
-  const user = $derived($userQuery.data)
+  const user = $derived(userQuery.data)
 
   const hasReadPerms = $derived(hasPermissions(user, Permissions.challsRead))
 

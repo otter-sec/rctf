@@ -14,7 +14,7 @@
   const loginMutation = useLoginMutation()
   const clientConfigQuery = useClientConfig()
 
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const form = useApiForm(LoginRoute, {
     onSuccess: res => {
@@ -39,7 +39,7 @@
   }
 
   function handleTokenLogin(token: string) {
-    $loginMutation.mutate(
+    loginMutation.mutate(
       { teamToken: token },
       {
         onSuccess: response => {
@@ -75,7 +75,7 @@
     ctftimeName: string
     ctftimeId: string
   }) {
-    $loginMutation.mutate(
+    loginMutation.mutate(
       { ctftimeToken: ctftimeData.ctftimeToken },
       {
         onSuccess: response => {
@@ -96,7 +96,7 @@
     )
   }
 
-  const isPending = $derived(form.submitting || $loginMutation.isPending)
+  const isPending = $derived(form.submitting || loginMutation.isPending)
 </script>
 
 <svelte:head>

@@ -25,7 +25,7 @@
   let { challengeId, instanceLifetime }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   let status = $state(InstanceStatus.STOPPED)
   let endpoints = $state<{ kind: ExposeKind; host: string; port: number; title?: string }[]>([])

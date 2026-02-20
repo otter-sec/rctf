@@ -19,20 +19,23 @@
 
   let { challenge, isSolved }: Props = $props()
 
-  const solvesQuery = $derived(useChallengeSolves(challenge.id, { limit: 10, offset: 0 }))
-  const topSolves = $derived($solvesQuery.data?.solves.slice(0, 4) ?? [])
+  const solvesQuery = useChallengeSolves(
+    () => challenge.id,
+    () => ({ limit: 10, offset: 0 })
+  )
+  const topSolves = $derived(solvesQuery.data?.solves.slice(0, 4) ?? [])
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
-  const currentUser = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const currentUser = $derived(userQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const currentUserSolve = $derived(
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
   const firstBloodTime = $derived(topSolves[0]?.createdAt ?? 0)
-  const mySolvePosition = $derived($solvesQuery.data?.mySolvePosition ?? null)
+  const mySolvePosition = $derived(solvesQuery.data?.mySolvePosition ?? null)
 
   interface PodiumItem {
     label: string

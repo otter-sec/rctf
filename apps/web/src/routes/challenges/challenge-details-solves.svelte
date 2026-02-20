@@ -25,17 +25,20 @@
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
-  const currentUser = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const currentUser = $derived(userQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const totalCount = $derived(challenge.solves ?? 0)
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )
 
-  const solvesQuery = $derived(useInfiniteChallengeSolves(challenge.id, totalCount))
+  const solvesQuery = useInfiniteChallengeSolves(
+    () => challenge.id,
+    () => totalCount
+  )
 
-  const allSolves = $derived($solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
+  const allSolves = $derived(solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
   const userSolveIndex = $derived(
@@ -45,13 +48,13 @@
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 10,
-    onLoadMore: () => $solvesQuery.fetchNextPage(),
+    onLoadMore: () => solvesQuery.fetchNextPage(),
   })
 
   $effect(() => {
-    scroll.state.count = $solvesQuery.hasNextPage ? allSolves.length + 1 : allSolves.length
-    scroll.state.hasNextPage = $solvesQuery.hasNextPage ?? false
-    scroll.state.isFetching = $solvesQuery.isFetchingNextPage
+    scroll.state.count = solvesQuery.hasNextPage ? allSolves.length + 1 : allSolves.length
+    scroll.state.hasNextPage = solvesQuery.hasNextPage ?? false
+    scroll.state.isFetching = solvesQuery.isFetchingNextPage
   })
 
   $effect(() => {
@@ -76,8 +79,8 @@
   })
 
   $effect(() => {
-    if ($solvesQuery.isError) {
-      toast.error($solvesQuery.error?.message ?? 'Failed to load solves')
+    if (solvesQuery.isError) {
+      toast.error(solvesQuery.error?.message ?? 'Failed to load solves')
     }
   })
 </script>
@@ -89,7 +92,7 @@
     fadeSize={64}
     fadeColor="background-l2"
   >
-    {#if $solvesQuery.isPending}
+    {#if solvesQuery.isPending}
       <div class="flex items-center justify-center py-8">
         <Spinner class="size-6" />
       </div>
@@ -105,7 +108,7 @@
         virtualItems={scroll.virtualItems}
         totalSize={scroll.totalSize}
         items={allSolves}
-        hasNextPage={$solvesQuery.hasNextPage}
+        hasNextPage={solvesQuery.hasNextPage}
         class="mx-5 mt-4"
       >
         {#snippet children({ item, index })}

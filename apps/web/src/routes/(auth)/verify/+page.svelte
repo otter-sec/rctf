@@ -12,10 +12,10 @@
   const clientConfigQuery = useClientConfig()
 
   const verifyToken = $derived(page.url.searchParams.get('token'))
-  const verifyInfoQuery = $derived(useVerifyInfo(verifyToken))
-  const verifyInfo = $derived($verifyInfoQuery.data)
+  const verifyInfoQuery = useVerifyInfo(() => verifyToken)
+  const verifyInfo = $derived(verifyInfoQuery.data)
 
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   let error = $state<string | null>(null)
   let emailSet = $state(false)
@@ -53,7 +53,7 @@
 
     error = null
 
-    $verifyMutation.mutate(
+    verifyMutation.mutate(
       { verifyToken },
       {
         onSuccess: response => {
@@ -119,8 +119,8 @@
         </div>
       {/if}
 
-      <Button onclick={handleVerify} disabled={$verifyMutation.isPending} class="w-full">
-        {#if $verifyMutation.isPending}
+      <Button onclick={handleVerify} disabled={verifyMutation.isPending} class="w-full">
+        {#if verifyMutation.isPending}
           <Spinner class="size-4" />
         {/if}
         {#if verifyInfo?.kind === 'register'}

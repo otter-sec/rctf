@@ -6,7 +6,7 @@
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const startTime = $derived(clientConfig?.startTime ?? 0)
 

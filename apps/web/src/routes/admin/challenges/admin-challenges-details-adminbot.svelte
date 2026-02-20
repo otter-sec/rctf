@@ -12,11 +12,11 @@
   let { config, isDisabled, onConfigChange }: Props = $props()
 
   const statusQuery = useAdminBotStatus()
-  const statusData = $derived($statusQuery.data)
-  const statusLoading = $derived($statusQuery.isPending)
+  const statusData = $derived(statusQuery.data)
+  const statusLoading = $derived(statusQuery.isPending)
   const statusError = $derived(
-    $statusQuery.error?.message ??
-      ($statusQuery.isSuccess && !statusData ? 'Admin bot not configured on backend' : null)
+    statusQuery.error?.message ??
+      (statusQuery.isSuccess && !statusData ? 'Admin bot not configured on backend' : null)
   )
 
   const configLanguage = $derived(statusData?.configLanguage ?? 'typescript')

@@ -31,7 +31,7 @@
   let { challenges, selectedId, isCreatingNew, onSelect, onCreateNew }: Props = $props()
 
   const userQuery = useCurrentUser()
-  const canWrite = $derived(hasPermissions($userQuery.data, Permissions.challsWrite))
+  const canWrite = $derived(hasPermissions(userQuery.data, Permissions.challsWrite))
 
   let query = $state('')
   let collapsed = $state<Set<string>>(new Set())

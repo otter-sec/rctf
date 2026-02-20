@@ -25,11 +25,11 @@
   let { config, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
-  const schemaData = $derived($schemaQuery.data)
-  const schemaLoading = $derived($schemaQuery.isPending)
+  const schemaData = $derived(schemaQuery.data)
+  const schemaLoading = $derived(schemaQuery.isPending)
   const schemaError = $derived(
-    $schemaQuery.error?.message ??
-      ($schemaQuery.isSuccess && !schemaData ? 'Instancer not configured' : null)
+    schemaQuery.error?.message ??
+      (schemaQuery.isSuccess && !schemaData ? 'Instancer not configured' : null)
   )
 
   let advancedMode = $state(false)

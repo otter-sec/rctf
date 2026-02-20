@@ -56,10 +56,10 @@
   }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const userQuery = useCurrentUser()
-  const currentUser = $derived($userQuery.data)
+  const currentUser = $derived(userQuery.data)
   const globalPlace = $derived(currentUser?.globalPlace ?? null)
 
   const selfIsOnCurrentPage = $derived.by(() => {
@@ -69,10 +69,10 @@
     return globalPlace >= startRank && globalPlace <= endRank
   })
 
-  const selfGraphQuery = $derived(useSelfUserGraph(selfIsOnCurrentPage ? null : globalPlace))
+  const selfGraphQuery = useSelfUserGraph(() => (selfIsOnCurrentPage ? null : globalPlace))
 
   // NOTE(es3n1n): heavily relying on a fact that this will be cached
-  const firstPageQuery = $derived(useLeaderboardWithGraph({ limit: PAGE_SIZE, offset: 0 }))
+  const firstPageQuery = useLeaderboardWithGraph(() => ({ limit: PAGE_SIZE, offset: 0 }))
   type TeamMeta = {
     index: number
     color: string
@@ -83,8 +83,8 @@
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
     const rawTop3 =
-      offset > 0 && showTop3Context ? ($firstPageQuery.data?.graph ?? []).slice(0, 3) : []
-    const selfGraphData = $selfGraphQuery.data
+      offset > 0 && showTop3Context ? (firstPageQuery.data?.graph ?? []).slice(0, 3) : []
+    const selfGraphData = selfGraphQuery.data
 
     const filterByTime = (entries: GraphEntry[]) =>
       entries

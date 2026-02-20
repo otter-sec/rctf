@@ -13,8 +13,8 @@
   const challengesQuery = useChallenges()
   const userQuery = useCurrentUser()
 
-  const challenges = $derived($challengesQuery.data ?? [])
-  const solves = $derived($userQuery.data?.solves ?? [])
+  const challenges = $derived(challengesQuery.data ?? [])
+  const solves = $derived(userQuery.data?.solves ?? [])
 
   let localSolvedIds = $state(new Set<string>())
   const solvedIds = $derived(new Set([...solves.map(s => s.id), ...localSolvedIds]))

@@ -26,24 +26,24 @@
   const PAGE_SIZE = 100
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const userQuery = useCurrentUser()
-  const user = $derived($userQuery.data)
+  const user = $derived(userQuery.data)
   const hasWritePerms = $derived(hasPermissions(user, Permissions.usersWrite))
 
-  const usersQuery = $derived(useInfiniteAdminUsers(PAGE_SIZE))
-  const allTeams = $derived($usersQuery.data?.pages.flatMap(page => page.users) ?? [])
+  const usersQuery = useInfiniteAdminUsers(() => PAGE_SIZE)
+  const allTeams = $derived(usersQuery.data?.pages.flatMap(page => page.users) ?? [])
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 10,
-    onLoadMore: () => $usersQuery.fetchNextPage(),
+    onLoadMore: () => usersQuery.fetchNextPage(),
   })
 
   $effect(() => {
-    scroll.state.count = $usersQuery.hasNextPage ? allTeams.length + 1 : allTeams.length
-    scroll.state.hasNextPage = $usersQuery.hasNextPage ?? false
-    scroll.state.isFetching = $usersQuery.isFetchingNextPage
+    scroll.state.count = usersQuery.hasNextPage ? allTeams.length + 1 : allTeams.length
+    scroll.state.hasNextPage = usersQuery.hasNextPage ?? false
+    scroll.state.isFetching = usersQuery.isFetchingNextPage
   })
 
   const createTokenMutation = useCreateUserTokenMutation()
@@ -52,7 +52,7 @@
 
   async function handleCopyToken(team: { id: string; name: string }) {
     copyingTeamId = team.id
-    $createTokenMutation.mutate(
+    createTokenMutation.mutate(
       { id: team.id },
       {
         onSuccess: async response => {
@@ -93,18 +93,18 @@
 </svelte:head>
 
 <div class="flex h-[calc(100vh-72px)] flex-col">
-  {#if $usersQuery.isPending}
+  {#if usersQuery.isPending}
     <div class="flex flex-1 items-center justify-center">
       <Spinner class="size-6" />
     </div>
-  {:else if $usersQuery.error}
+  {:else if usersQuery.error}
     <div class="flex flex-1 items-center justify-center p-4">
       <Card.Root class="max-w-md">
         <Card.Header>
           <Card.Title>Error</Card.Title>
         </Card.Header>
         <Card.Content>
-          <p class="text-foreground-l3">{$usersQuery.error.message}</p>
+          <p class="text-foreground-l3">{usersQuery.error.message}</p>
         </Card.Content>
       </Card.Root>
     </div>
@@ -127,7 +127,7 @@
           virtualItems={scroll.virtualItems}
           totalSize={scroll.totalSize}
           items={allTeams}
-          hasNextPage={$usersQuery.hasNextPage}
+          hasNextPage={usersQuery.hasNextPage}
           class="mx-4 mt-4 md:mx-9"
         >
           {#snippet children({ item: team })}

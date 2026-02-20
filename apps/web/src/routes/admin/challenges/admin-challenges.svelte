@@ -10,7 +10,7 @@
   const challengesQuery = useAdminChallenges()
   const { snapshot, send } = useMachine(editorMachine)
 
-  const challenges = $derived($challengesQuery.data ?? [])
+  const challenges = $derived(challengesQuery.data ?? [])
   const selectedId = $derived(
     $snapshot.matches('idle') ? null : ($snapshot.context.challenge?.id ?? null)
   )

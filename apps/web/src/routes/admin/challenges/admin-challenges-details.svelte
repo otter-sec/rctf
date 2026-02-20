@@ -37,18 +37,19 @@
   const deleteMutation = useDeleteChallengeMutation()
   const challengesQuery = useChallenges()
 
-  const user = $derived($userQuery.data)
+  const user = $derived(userQuery.data)
   const hasWritePerms = $derived(hasPermissions(user, Permissions.challsWrite))
 
   const challenge = $derived(snapshot.context.challenge)
   const form = $derived(snapshot.context.form)
 
-  const challengeDetailQuery = $derived(useAdminChallenge(challenge?.id ?? '', !!challenge?.id))
-  const challengeDetail = $derived($challengeDetailQuery.data)
-
-  const totalSolves = $derived(
-    $challengesQuery.data?.find(c => c.id === challenge?.id)?.solves ?? 0
+  const challengeDetailQuery = useAdminChallenge(
+    () => challenge?.id ?? '',
+    () => !!challenge?.id
   )
+  const challengeDetail = $derived(challengeDetailQuery.data)
+
+  const totalSolves = $derived(challengesQuery.data?.find(c => c.id === challenge?.id)?.solves ?? 0)
 
   let prevDetailId: string | undefined = undefined
   $effect(() => {
@@ -73,8 +74,8 @@
   const isEditMode = $derived(isEditing || isCreating)
   const isDisabled = $derived(!isEditMode)
   const showContent = $derived(!isIdle)
-  const isUpdating = $derived(isSaving || $updateMutation.isPending)
-  const isDeletingChallenge = $derived(isDeleting || $deleteMutation.isPending)
+  const isUpdating = $derived(isSaving || updateMutation.isPending)
+  const isDeletingChallenge = $derived(isDeleting || deleteMutation.isPending)
 
   const categoryConfig = $derived(getCategoryConfig(form.category || 'misc'))
   const categoryStyle = $derived(getCategoryStyle(categoryConfig.color))
@@ -93,7 +94,7 @@
 
     send({ type: 'SAVE' })
 
-    $updateMutation.mutate(
+    updateMutation.mutate(
       {
         id,
         data: {
@@ -172,7 +173,7 @@
 
     send({ type: 'DELETE_CONFIRM' })
 
-    $deleteMutation.mutate(
+    deleteMutation.mutate(
       { id: challenge.id },
       {
         onSuccess: response => {

@@ -20,7 +20,7 @@
   const loginMutation = useLoginMutation()
   const clientConfigQuery = useClientConfig()
 
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   let verifySent = $state(false)
   let ctftimeToken = $state<string | null>(null)
@@ -36,7 +36,7 @@
     },
   })
 
-  const isPending = $derived(form.submitting || $loginMutation.isPending)
+  const isPending = $derived(form.submitting || loginMutation.isPending)
 
   onMount(() => {
     const storedToken = sessionStorage.getItem('ctftimeToken')
@@ -75,7 +75,7 @@
   }) {
     form.clearErrors()
 
-    $loginMutation.mutate(
+    loginMutation.mutate(
       { ctftimeToken: ctftimeData.ctftimeToken },
       {
         onSuccess: response => {

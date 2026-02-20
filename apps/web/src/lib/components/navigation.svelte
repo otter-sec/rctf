@@ -33,8 +33,8 @@
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
-  const user = $derived($userQuery.data ?? null)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const user = $derived(userQuery.data ?? null)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const divisionLabel = $derived(
     user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'

@@ -11,7 +11,7 @@
   const queryClient = useQueryClient()
   const membersQuery = useMembers()
 
-  const members = $derived($membersQuery.data ?? [])
+  const members = $derived(membersQuery.data ?? [])
   const memberEmails = $derived(members.map(m => m.email))
 
   const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: queryKeys.members })
@@ -68,7 +68,7 @@
     <Badge variant="secondary">{members.length}</Badge>
   </Section.Header>
   <Section.Content class="flex flex-col gap-3">
-    {#if $membersQuery.isPending}
+    {#if membersQuery.isPending}
       <div class="flex items-center justify-center py-3">
         <Spinner class="size-5" />
       </div>

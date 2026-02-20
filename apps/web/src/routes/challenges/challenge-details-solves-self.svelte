@@ -13,15 +13,18 @@
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
-  const currentUser = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const currentUser = $derived(userQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const currentUserSolve = $derived(
     currentUser?.solves.find((s: UserSolve) => s.id === challenge.id)
   )
 
-  const solvesQuery = $derived(useChallengeSolves(challenge.id, { limit: 10, offset: 0 }))
-  const firstBloodTime = $derived($solvesQuery.data?.solves?.[0]?.createdAt ?? 0)
-  const mySolvePosition = $derived($solvesQuery.data?.mySolvePosition ?? null)
+  const solvesQuery = useChallengeSolves(
+    () => challenge.id,
+    () => ({ limit: 10, offset: 0 })
+  )
+  const firstBloodTime = $derived(solvesQuery.data?.solves?.[0]?.createdAt ?? 0)
+  const mySolvePosition = $derived(solvesQuery.data?.mySolvePosition ?? null)
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
   )

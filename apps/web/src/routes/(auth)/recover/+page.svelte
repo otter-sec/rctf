@@ -7,7 +7,7 @@
   import { useClientConfig } from '$lib/query'
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   let verifySent = $state(false)
 

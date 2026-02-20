@@ -22,7 +22,7 @@
   let { class: className = '', graphData, rank }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const color = $derived.by(() => {
     if (rank === 1) return 'var(--foreground-gold-l0)'

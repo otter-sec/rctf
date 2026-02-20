@@ -5,12 +5,12 @@
   import Challenges from './challenges.svelte'
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const challengesQuery = useChallenges()
-  const challenges = $derived($challengesQuery.data)
-  const isPending = $derived($challengesQuery.isPending)
-  const error = $derived($challengesQuery.error)
+  const challenges = $derived(challengesQuery.data)
+  const isPending = $derived(challengesQuery.isPending)
+  const error = $derived(challengesQuery.error)
   const isNotStarted = $derived(ApiError.isNotStarted(error))
 </script>
 

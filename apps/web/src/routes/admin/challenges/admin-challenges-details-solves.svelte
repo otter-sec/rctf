@@ -35,8 +35,8 @@
   const clientConfigQuery = useClientConfig()
   const deleteMutation = useDeleteChallengeSolveMutation()
 
-  const user = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const user = $derived(userQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const hasSolveWritePerms = $derived(hasPermissions(user, Permissions.challsSolveWrite))
   const showDivision = $derived(
     clientConfig ? Object.keys(clientConfig.divisions).length > 1 : true
@@ -44,27 +44,23 @@
 
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
 
-  const solvesQuery = $derived(
-    challengeId ? useInfiniteChallengeSolves(challengeId, totalSolves) : null
+  const solvesQuery = useInfiniteChallengeSolves(
+    () => challengeId,
+    () => totalSolves
   )
-  const allSolves = $derived(
-    solvesQuery ? ($solvesQuery?.data?.pages.flatMap(page => page.solves) ?? []) : []
-  )
+  const allSolves = $derived(solvesQuery.data?.pages.flatMap(page => page.solves) ?? [])
   const firstBloodTime = $derived(allSolves[0]?.createdAt ?? 0)
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 10,
-    onLoadMore: () => {
-      if (solvesQuery) $solvesQuery?.fetchNextPage()
-    },
+    onLoadMore: () => solvesQuery.fetchNextPage(),
   })
 
   $effect(() => {
-    if (!solvesQuery) return
-    scroll.state.count = $solvesQuery?.hasNextPage ? allSolves.length + 1 : allSolves.length
-    scroll.state.hasNextPage = $solvesQuery?.hasNextPage ?? false
-    scroll.state.isFetching = $solvesQuery?.isFetchingNextPage ?? false
+    scroll.state.count = solvesQuery.hasNextPage ? allSolves.length + 1 : allSolves.length
+    scroll.state.hasNextPage = solvesQuery.hasNextPage ?? false
+    scroll.state.isFetching = solvesQuery.isFetchingNextPage ?? false
   })
 
   // Delete dialog state
@@ -86,7 +82,7 @@
     if (!selectedSolve || !challengeId) return
 
     isDeleting = true
-    $deleteMutation.mutate(
+    deleteMutation.mutate(
       { challengeId, userId: selectedSolve.userId },
       {
         onSuccess: response => {
@@ -116,7 +112,7 @@
     subtitle="Select a challenge to view its solves"
     class="h-full"
   />
-{:else if solvesQuery && $solvesQuery?.isPending}
+{:else if solvesQuery.isPending}
   <div class="flex h-full items-center justify-center">
     <Spinner class="size-6" />
   </div>
@@ -139,7 +135,7 @@
         virtualItems={scroll.virtualItems}
         totalSize={scroll.totalSize}
         items={allSolves}
-        hasNextPage={solvesQuery ? $solvesQuery?.hasNextPage : false}
+        hasNextPage={solvesQuery.hasNextPage ?? false}
         class="mx-5 mt-4"
       >
         {#snippet children({ item: solve, index })}

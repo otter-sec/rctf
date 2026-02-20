@@ -12,10 +12,10 @@
   import ProfileSolves from '../profile-solves.svelte'
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const challengesQuery = useLeaderboardChallenges()
   const challenges = $derived(
-    Object.entries($challengesQuery.data ?? {}).map(([id, c]) => ({
+    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
       id,
       name: c.name,
       category: c.category,
@@ -24,13 +24,16 @@
     }))
   )
 
-  const userQuery = $derived(useUserProfile(page.params.id!))
-  const user = $derived($userQuery.data)
-  const isPending = $derived($userQuery.isPending)
-  const error = $derived($userQuery.error?.message)
+  const userQuery = useUserProfile(() => page.params.id!)
+  const user = $derived(userQuery.data)
+  const isPending = $derived(userQuery.isPending)
+  const error = $derived(userQuery.error?.message)
 
-  const graphQuery = $derived(user ? useUserGraph(page.params.id!, user.globalPlace) : null)
-  const graphData = $derived($graphQuery?.data ?? null)
+  const graphQuery = useUserGraph(
+    () => page.params.id!,
+    () => user?.globalPlace ?? null
+  )
+  const graphData = $derived(graphQuery.data ?? null)
 </script>
 
 <svelte:head>

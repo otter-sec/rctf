@@ -114,7 +114,7 @@
       deletingEmail ||
       settingCtftime ||
       deletingCtftime ||
-      $ctftimeMutation.isPending
+      ctftimeMutation.isPending
   )
 
   async function deleteEmail() {
@@ -188,7 +188,7 @@
       return
     }
 
-    $ctftimeMutation.mutate(
+    ctftimeMutation.mutate(
       { ctftimeCode: evt.data.ctftimeCode },
       {
         onSuccess: async response => {
@@ -438,7 +438,7 @@
             disabled={loading}
             class="w-full py-0 [&_svg:not([class*='size-'])]:h-6 [&_svg:not([class*='size-'])]:w-auto"
           >
-            {#if $ctftimeMutation.isPending || settingCtftime}
+            {#if ctftimeMutation.isPending || settingCtftime}
               <Spinner class="size-4" />
               <span>Connecting...</span>
             {:else}

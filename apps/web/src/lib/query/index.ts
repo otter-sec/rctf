@@ -385,171 +385,197 @@ export const queryKeys = {
 export function createApiMutation<TRoute extends AnyRouteDefinition>(
   route: TRoute
 ) {
-  return createMutation<RouteResponse<TRoute>, Error, InlineArgs<TRoute>>({
-    mutationFn: (args: InlineArgs<TRoute>) => apiRequest(route, args),
-  })
+  return createMutation(() => ({
+    mutationFn: (args: InlineArgs<TRoute>) =>
+      apiRequest(route, args) as Promise<RouteResponse<TRoute>>,
+  }))
 }
 
 export function useClientConfig() {
-  return createQuery(clientConfigQueryOptions)
+  return createQuery(() => clientConfigQueryOptions)
 }
 
 export function useCurrentUser() {
-  return createQuery(userSelfQueryOptions)
+  return createQuery(() => userSelfQueryOptions)
 }
 
-export function useUserProfile(id: string) {
-  return createQuery(userByIdQueryOptions(id))
+export function useUserProfile(id: () => string) {
+  return createQuery(() => userByIdQueryOptions(id()))
 }
 
 export function useChallenges() {
-  return createQuery(challengesQueryOptions)
+  return createQuery(() => challengesQueryOptions)
 }
 
 export function useAdminChallenges() {
-  return createQuery(adminChallengesQueryOptions)
+  return createQuery(() => adminChallengesQueryOptions)
 }
 
-export function useAdminChallenge(id: string, enabled = true) {
-  return createQuery({
-    ...adminChallengeQueryOptions(id),
-    enabled: enabled && browser,
+export function useAdminChallenge(
+  id: () => string,
+  enabled: () => boolean = () => true
+) {
+  return createQuery(() => ({
+    ...adminChallengeQueryOptions(id()),
+    enabled: enabled() && browser,
+  }))
+}
+
+export function useLeaderboard(
+  params: () => {
+    limit: number
+    offset: number
+    division?: string
+  }
+) {
+  return createQuery(() => leaderboardQueryOptions(params()))
+}
+
+export function useLeaderboardWithGraph(
+  params: () => {
+    limit: number
+    offset: number
+    division?: string
+  }
+) {
+  return createQuery(() => leaderboardWithGraphQueryOptions(params()))
+}
+
+export function useInfiniteLeaderboardWithGraph(
+  params: () => {
+    pageSize: number
+    division?: string
+  }
+) {
+  return createInfiniteQuery(() => {
+    const p = params()
+    return {
+      queryKey: ['leaderboard', 'graph', 'infinite', p] as const,
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiRequest(GetLeaderboardWithGraphRoute, {
+          limit: p.pageSize,
+          offset: pageParam,
+          division: p.division,
+        })
+        if (response.kind === GoodLeaderboardWithGraph.kind) {
+          return { ...response.data, offset: pageParam }
+        }
+        throw new ApiError(response.kind, response.message)
+      },
+      initialPageParam: 0,
+      getNextPageParam: (lastPage, _allPages) => {
+        const nextOffset = lastPage.offset + lastPage.leaderboard.length
+        return nextOffset < lastPage.total ? nextOffset : undefined
+      },
+      refetchOnWindowFocus: true,
+      refetchInterval: 30 * 1000,
+    }
   })
 }
 
-export function useLeaderboard(params: {
-  limit: number
-  offset: number
-  division?: string
-}) {
-  return createQuery(leaderboardQueryOptions(params))
-}
-
-export function useLeaderboardWithGraph(params: {
-  limit: number
-  offset: number
-  division?: string
-}) {
-  return createQuery(leaderboardWithGraphQueryOptions(params))
-}
-
-export function useInfiniteLeaderboardWithGraph(params: {
-  pageSize: number
-  division?: string
-}) {
-  return createInfiniteQuery({
-    queryKey: ['leaderboard', 'graph', 'infinite', params] as const,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiRequest(GetLeaderboardWithGraphRoute, {
-        limit: params.pageSize,
-        offset: pageParam,
-        division: params.division,
-      })
-      if (response.kind === GoodLeaderboardWithGraph.kind) {
-        return { ...response.data, offset: pageParam }
-      }
-      throw new ApiError(response.kind, response.message)
-    },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, _allPages) => {
-      const nextOffset = lastPage.offset + lastPage.leaderboard.length
-      return nextOffset < lastPage.total ? nextOffset : undefined
-    },
-    refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000,
+export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
+  return createInfiniteQuery(() => {
+    const ps = pageSize()
+    return {
+      queryKey: ['admin', 'users', 'infinite', ps] as const,
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiRequest(GetAdminUsersRouteV2, {
+          limit: ps,
+          offset: pageParam,
+        })
+        if (response.kind === GoodAdminUsersV2.kind) {
+          return { ...response.data, offset: pageParam }
+        }
+        throw new ApiError(response.kind, response.message)
+      },
+      initialPageParam: 0,
+      getNextPageParam: lastPage => {
+        const nextOffset = lastPage.offset + lastPage.users.length
+        return nextOffset < lastPage.total ? nextOffset : undefined
+      },
+    }
   })
 }
 
-export function useInfiniteAdminUsers(pageSize = 100) {
-  return createInfiniteQuery({
-    queryKey: ['admin', 'users', 'infinite', pageSize] as const,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiRequest(GetAdminUsersRouteV2, {
-        limit: pageSize,
-        offset: pageParam,
-      })
-      if (response.kind === GoodAdminUsersV2.kind) {
-        return { ...response.data, offset: pageParam }
-      }
-      throw new ApiError(response.kind, response.message)
-    },
-    initialPageParam: 0,
-    getNextPageParam: lastPage => {
-      const nextOffset = lastPage.offset + lastPage.users.length
-      return nextOffset < lastPage.total ? nextOffset : undefined
-    },
-  })
-}
-
-export function useTopGraphData(params: { limit?: number; division?: string }) {
-  return createQuery(
-    leaderboardGraphQueryOptions({
-      limit: params.limit ?? 10,
+export function useTopGraphData(
+  params: () => { limit?: number; division?: string }
+) {
+  return createQuery(() => {
+    const p = params()
+    return leaderboardGraphQueryOptions({
+      limit: p.limit ?? 10,
       offset: 0,
-      division: params.division,
+      division: p.division,
     })
-  )
+  })
 }
 
 export function useLeaderboardChallenges() {
-  return createQuery(leaderboardChallengesQueryOptions)
+  return createQuery(() => leaderboardChallengesQueryOptions)
 }
 
-export function useSelfUserGraph(globalPlace: number | null) {
-  return createQuery(selfUserGraphQueryOptions(globalPlace))
+export function useSelfUserGraph(globalPlace: () => number | null) {
+  return createQuery(() => selfUserGraphQueryOptions(globalPlace()))
 }
 
-export function useUserGraph(userId: string, globalPlace: number | null) {
-  return createQuery(userGraphQueryOptions(userId, globalPlace))
+export function useUserGraph(
+  userId: () => string,
+  globalPlace: () => number | null
+) {
+  return createQuery(() => userGraphQueryOptions(userId(), globalPlace()))
 }
 
 export function useChallengeSolves(
-  challengeId: string,
-  params: { limit: number; offset: number }
+  challengeId: () => string,
+  params: () => { limit: number; offset: number }
 ) {
-  return createQuery(challengeSolvesQueryOptions(challengeId, params))
+  return createQuery(() => challengeSolvesQueryOptions(challengeId(), params()))
 }
 
 export function useInfiniteChallengeSolves(
-  challengeId: string,
-  totalCount: number,
+  challengeId: () => string | null,
+  totalCount: () => number,
   pageSize = 100
 ) {
-  return createInfiniteQuery({
-    queryKey: ['challenges', challengeId, 'solves', 'infinite'] as const,
-    queryFn: async ({ pageParam = 0 }) => {
-      const response = await apiRequest(GetChallengeSolvesRouteV2, {
-        id: challengeId,
-        limit: pageSize,
-        offset: pageParam,
-      })
-      if (response.kind === GoodChallengeSolvesV2.kind) {
-        return { solves: response.data.solves, offset: pageParam }
-      }
-      throw new ApiError(response.kind, response.message)
-    },
-    initialPageParam: 0,
-    getNextPageParam: lastPage => {
-      const nextOffset = lastPage.offset + lastPage.solves.length
-      return nextOffset < totalCount ? nextOffset : undefined
-    },
+  return createInfiniteQuery(() => {
+    const id = challengeId()
+    return {
+      queryKey: ['challenges', id, 'solves', 'infinite'] as const,
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiRequest(GetChallengeSolvesRouteV2, {
+          id: id!,
+          limit: pageSize,
+          offset: pageParam,
+        })
+        if (response.kind === GoodChallengeSolvesV2.kind) {
+          return { solves: response.data.solves, offset: pageParam }
+        }
+        throw new ApiError(response.kind, response.message)
+      },
+      enabled: !!id,
+      initialPageParam: 0,
+      getNextPageParam: lastPage => {
+        const nextOffset = lastPage.offset + lastPage.solves.length
+        return nextOffset < totalCount() ? nextOffset : undefined
+      },
+    }
   })
 }
 
 export function useMembers() {
-  return createQuery(membersQueryOptions)
+  return createQuery(() => membersQueryOptions)
 }
 
 export function useAdminBotStatus() {
-  return createQuery(adminBotStatusQueryOptions)
+  return createQuery(() => adminBotStatusQueryOptions)
 }
 
 export function useInstancerSchema() {
-  return createQuery(instancerSchemaQueryOptions)
+  return createQuery(() => instancerSchemaQueryOptions)
 }
 
-export function useVerifyInfo(token: string | null) {
-  return createQuery(verifyInfoQueryOptions(token))
+export function useVerifyInfo(token: () => string | null) {
+  return createQuery(() => verifyInfoQueryOptions(token()))
 }
 
 export function useLoginMutation() {

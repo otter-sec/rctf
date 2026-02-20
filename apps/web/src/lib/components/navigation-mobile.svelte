@@ -24,7 +24,7 @@
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()
-  const user = $derived($userQuery.data ?? null)
+  const user = $derived(userQuery.data ?? null)
 
   const isAdmin = $derived(
     user?.perms !== null && user?.perms !== undefined && (user.perms & Permissions.challsRead) !== 0

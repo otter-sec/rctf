@@ -64,7 +64,7 @@
       return
     }
 
-    $ctftimeMutation.mutate(
+    ctftimeMutation.mutate(
       { ctftimeCode: evt.data.ctftimeCode },
       {
         onSuccess: response => {
@@ -102,9 +102,9 @@
   size="lg"
   class="w-full py-0 [&_svg:not([class*='size-'])]:h-6 [&_svg:not([class*='size-'])]:w-auto"
   onclick={openPopup}
-  disabled={disabled || $ctftimeMutation.isPending}
+  disabled={disabled || ctftimeMutation.isPending}
 >
-  {#if $ctftimeMutation.isPending}
+  {#if ctftimeMutation.isPending}
     <Spinner class="size-4" />
     <span>Connecting...</span>
   {:else}

@@ -17,10 +17,10 @@
   const clientConfigQuery = useClientConfig()
   const challengesQuery = useLeaderboardChallenges()
 
-  const user = $derived($userQuery.data)
-  const clientConfig = $derived($clientConfigQuery.data)
+  const user = $derived(userQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
   const challenges = $derived(
-    Object.entries($challengesQuery.data ?? {}).map(([id, c]) => ({
+    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
       id,
       name: c.name,
       category: c.category,
@@ -29,8 +29,11 @@
     }))
   )
 
-  const graphQuery = $derived(user ? useUserGraph(user.id, user.globalPlace) : null)
-  const graphData = $derived($graphQuery?.data ?? null)
+  const graphQuery = useUserGraph(
+    () => user?.id ?? '',
+    () => user?.globalPlace ?? null
+  )
+  const graphData = $derived(graphQuery.data ?? null)
 </script>
 
 <svelte:head>

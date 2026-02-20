@@ -20,7 +20,7 @@
 
   const queryClient = useQueryClient()
   const updateAvatarMutation = useUpdateAvatarMutation()
-  const loading = $derived($updateAvatarMutation.isPending)
+  const loading = $derived(updateAvatarMutation.isPending)
 
   let fileInput: HTMLInputElement | null = $state(null)
   let previewUrl = $state<string | null>(null)
@@ -52,7 +52,7 @@
   }
 
   function uploadAvatar(file: File) {
-    $updateAvatarMutation.mutate(
+    updateAvatarMutation.mutate(
       { avatar: file },
       {
         onSuccess: response => {
@@ -74,7 +74,7 @@
 
   function removeAvatar() {
     isRemoving = true
-    $updateAvatarMutation.mutate(
+    updateAvatarMutation.mutate(
       {},
       {
         onSuccess: response => {

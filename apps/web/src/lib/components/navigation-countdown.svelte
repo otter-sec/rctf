@@ -4,7 +4,7 @@
   import { onDestroy } from 'svelte'
 
   const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived($clientConfigQuery.data)
+  const clientConfig = $derived(clientConfigQuery.data)
 
   const startTime = $derived(clientConfig?.startTime ?? 0)
   const endTime = $derived(clientConfig?.endTime ?? 0)
