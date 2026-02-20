@@ -8,7 +8,7 @@ import { createLogger } from './logger'
 const logger = createLogger('poller')
 const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS ?? 5000)
 
-const ensureChallengeLoaded = async (
+export const ensureChallengeLoaded = async (
   challenges: ChallengeLoader,
   platform: PlatformClient,
   challengeId: string,
@@ -32,7 +32,7 @@ const ensureChallengeLoaded = async (
   return challenge !== undefined
 }
 
-const processJob = async (
+export const processJob = async (
   challenges: ChallengeLoader,
   browserManager: BrowserManager,
   platform: PlatformClient,

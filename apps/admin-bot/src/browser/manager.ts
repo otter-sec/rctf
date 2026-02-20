@@ -43,7 +43,9 @@ const getKey = (config: Required<BrowserVersion>): string => {
   return `${config.browser}-${config.version}`
 }
 
-const buildPac = (restrictedDomains: Record<string, Array<string>>): string => {
+export const buildPac = (
+  restrictedDomains: Record<string, Array<string>>
+): string => {
   let result = 'function FindProxyForURL(url, host) {'
   // 1. Explicitly allow allowed domains:
   result +=

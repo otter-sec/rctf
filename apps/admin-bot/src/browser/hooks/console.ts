@@ -4,11 +4,14 @@ import type { HooksConfig } from './index'
 
 export const consoleMsgTypeToLevel: Record<string, LogLevel> = {
   error: 'error',
-  warning: 'warn',
+  warning: 'warn', // CDP Runtime.consoleAPICalled type
+  warn: 'warn', // Puppeteer page.on('console') type
   // if not defined fallbacks to info
 }
 
-const serializeRemoteObject = (arg: Protocol.Runtime.RemoteObject): string => {
+export const serializeRemoteObject = (
+  arg: Protocol.Runtime.RemoteObject
+): string => {
   if (arg.type === 'undefined') {
     return 'undefined'
   }

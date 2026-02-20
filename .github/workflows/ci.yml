@@ -29,5 +29,11 @@ jobs:
       - name: Typecheck
         run: bun run typecheck
 
-      - name: Run tests
-        run: bun run test
+      - name: Run server tests
+        run: bun run test:server
+
+      - name: Run admin-bot tests
+        run: bun run test:admin-bot
+
+      - name: Run admin-bot e2e tests
+        run: bun run test:admin-bot:e2e

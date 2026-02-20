@@ -7,9 +7,9 @@ import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
 import { createLogger } from './core/logger'
 
-const app = new Hono()
-const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
-const challenges = new ChallengeLoader()
+export const app = new Hono()
+export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)
+export const challenges = new ChallengeLoader()
 const logger = createLogger('index')
 
 const RCTF_BASE_URL = process.env.RCTF_BASE_URL
@@ -18,7 +18,7 @@ if (!RCTF_BASE_URL || !RCTF_SECRET_KEY) {
   throw new Error('Please set RCTF_BASE_URL and RCTF_SECRET_KEY env variables')
 }
 
-const platform = new PlatformClient(RCTF_BASE_URL, RCTF_SECRET_KEY)
+export const platform = new PlatformClient(RCTF_BASE_URL, RCTF_SECRET_KEY)
 
 app.use('/*', bearerAuth({ token: RCTF_SECRET_KEY }))
 
