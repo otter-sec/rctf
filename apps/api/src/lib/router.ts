@@ -166,7 +166,7 @@ const getAuthenticatedUser = async (
 }
 
 const hasPermissions = (user: User, perms: Permissions): boolean =>
-  (user.perms & perms) !== 0
+  (user.perms & perms) === perms
 
 const isCompetitionStarted = (
   user: User | undefined,

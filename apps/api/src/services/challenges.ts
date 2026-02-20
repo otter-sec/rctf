@@ -346,7 +346,7 @@ export const getUserChallengeSolves = async (
       solve: solves,
       challengeData: challenges.data,
       position:
-        sql<number>`(SELECT COUNT(*) + 1 FROM solves s2 WHERE s2.challengeid = ${solves.challengeid} AND s2.createdat < ${solves.createdat})::int`.as(
+        sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`.as(
           'position'
         ),
     })

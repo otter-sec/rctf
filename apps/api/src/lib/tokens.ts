@@ -63,8 +63,8 @@ interface InternalTokenData<Kind extends TokenKind> {
 export const tokenExpiries: Record<TokenKind, number> = {
   [TokenKind.Auth]: Infinity,
   [TokenKind.Team]: Infinity,
-  [TokenKind.Verify]: config.loginTimeout,
-  [TokenKind.CtftimeAuth]: config.loginTimeout,
+  [TokenKind.Verify]: Math.floor(config.loginTimeout / 1000),
+  [TokenKind.CtftimeAuth]: Math.floor(config.loginTimeout / 1000),
 }
 
 const timeNow = () => Math.floor(Date.now() / 1000)
