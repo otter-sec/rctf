@@ -9,7 +9,7 @@ const validChallengeSource = `
 const { Challenge } = require('../types')
 export const challenge = new Challenge({
   timeoutMilliseconds: 5000,
-  inputs: { url: '^https?://.*' },
+  inputs: { url: { pattern: '^https?://.*' } },
   handler: async (ctx) => {
     // do nothing, just succeed
   },
@@ -83,7 +83,7 @@ describe('handleSubmission', () => {
       const { Challenge } = require('../types')
       export const challenge = new Challenge({
         timeoutMilliseconds: 50,
-        inputs: { url: '^https?://.*' },
+        inputs: { url: { pattern: '^https?://.*' } },
         handler: async (ctx) => {
           await new Promise(() => {})
         },
@@ -119,7 +119,7 @@ describe('handleSubmission', () => {
       const { Challenge } = require('../types')
       export const challenge = new Challenge({
         timeoutMilliseconds: 5000,
-        inputs: { url: '^https?://.*' },
+        inputs: { url: { pattern: '^https?://.*' } },
         handler: async (ctx) => {
           throw new Error('handler failure')
         },

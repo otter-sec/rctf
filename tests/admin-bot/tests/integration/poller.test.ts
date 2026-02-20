@@ -12,7 +12,7 @@ const validChallengeSource = `
 const { Challenge } = require('../types')
 export const challenge = new Challenge({
   timeoutMilliseconds: 100,
-  inputs: { url: '^https?://.*' },
+  inputs: { url: { pattern: '^https?://.*' } },
   handler: async (ctx) => {},
   hooksConfig: {
     showConsoleLogs: false,
@@ -186,7 +186,7 @@ describe('processJob', () => {
       const { Challenge } = require('../types')
       export const challenge = new Challenge({
         timeoutMilliseconds: 50,
-        inputs: { url: '^https?://.*' },
+        inputs: { url: { pattern: '^https?://.*' } },
         handler: async (ctx) => {
           await new Promise(resolve => setTimeout(resolve, 10000))
         },
@@ -211,7 +211,7 @@ describe('processJob', () => {
       const { Challenge } = require('../types')
       export const challenge = new Challenge({
         timeoutMilliseconds: 5000,
-        inputs: { url: '^https?://.*' },
+        inputs: { url: { pattern: '^https?://.*' } },
         handler: async (ctx) => {
           throw new Error('something broke')
         },

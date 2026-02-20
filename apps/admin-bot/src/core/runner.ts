@@ -38,6 +38,7 @@ export const handleSubmission = async (
     },
     arguments: challenge.config.browserArguments,
     restrictedDomains: challenge.config.restrictDomains,
+    extraPrefsFirefox: challenge.config.extraPrefsFirefox,
     puppeteerLaunchOptionsExtra: {
       userDataDir,
     },

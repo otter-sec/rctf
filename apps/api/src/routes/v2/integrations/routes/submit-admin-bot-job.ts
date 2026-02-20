@@ -26,7 +26,7 @@ integrationsGroup.route(
       })
     }
 
-    for (const [name, pattern] of Object.entries(adminBotConfig.inputs)) {
+    for (const [name, rule] of Object.entries(adminBotConfig.inputs)) {
       const value = body.inputs[name]
       if (value === undefined) {
         return res.badAdminBotConfig({
@@ -35,7 +35,7 @@ integrationsGroup.route(
       }
 
       try {
-        const regex = new RegExp(pattern)
+        const regex = new RegExp(rule.pattern, rule.flags)
         if (!regex.test(value)) {
           return res.badAdminBotConfig({
             error: `Input "${name}" does not match the required format`,

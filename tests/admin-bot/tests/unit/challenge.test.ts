@@ -1,7 +1,10 @@
 import { describe, test, expect } from 'bun:test'
 import { Challenge } from '../../../../apps/admin-bot/src/types'
+import type { RegexRule } from '../../../../apps/admin-bot/src/core/pac'
 
-const minimalConfig = (inputs: Record<string, string> = {}) => ({
+const r = (pattern: string, flags?: string): RegexRule => ({ pattern, flags })
+
+const minimalConfig = (inputs: Record<string, RegexRule> = {}) => ({
   timeoutMilliseconds: 5000,
   inputs,
   handler: async () => {},
@@ -17,12 +20,14 @@ describe('Challenge constructor', () => {
   test('accepts valid regex patterns in inputs', () => {
     const challenge = new Challenge(
       minimalConfig({
-        url: '^http(s?)://.*',
-        flag: '^flag\\{[a-zA-Z0-9]+\\}$',
+        url: r('^http(s?)://.*'),
+        flag: r('^flag\\{[a-zA-Z0-9]+\\}$'),
       })
     )
-    expect(challenge.config.inputs.url).toBe('^http(s?)://.*')
-    expect(challenge.config.inputs.flag).toBe('^flag\\{[a-zA-Z0-9]+\\}$')
+    expect(challenge.config.inputs.url.pattern).toBe('^http(s?)://.*')
+    expect(challenge.config.inputs.flag.pattern).toBe(
+      '^flag\\{[a-zA-Z0-9]+\\}$'
+    )
   })
 
   test('throws on invalid regex with pattern and key name in error', () => {
@@ -30,7 +35,7 @@ describe('Challenge constructor', () => {
       () =>
         new Challenge(
           minimalConfig({
-            badField: '[invalid(',
+            badField: r('[invalid('),
           })
         )
     ).toThrow(/\[invalid\(/)
@@ -38,7 +43,7 @@ describe('Challenge constructor', () => {
       () =>
         new Challenge(
           minimalConfig({
-            badField: '[invalid(',
+            badField: r('[invalid('),
           })
         )
     ).toThrow(/badField/)

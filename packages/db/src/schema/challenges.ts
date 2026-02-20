@@ -34,9 +34,14 @@ export interface InstancerConfig {
   timeoutMilliseconds: number
 }
 
+export interface RegexRule {
+  pattern: string
+  flags?: string
+}
+
 export interface AdminBotConfig {
   code: string
-  inputs: Record<string, string>
+  inputs: Record<string, RegexRule>
   revision: string
   timeoutMilliseconds: number
   requireInstancerInstancesRunning: boolean

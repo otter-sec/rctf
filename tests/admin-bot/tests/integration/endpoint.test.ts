@@ -7,7 +7,7 @@ const validChallengeSource = `
 const { Challenge } = require('../types')
 export const challenge = new Challenge({
   timeoutMilliseconds: 10000,
-  inputs: { url: '^https?://.*' },
+  inputs: { url: { pattern: '^https?://.*' } },
   handler: async (ctx) => {},
   hooksConfig: {
     showConsoleLogs: false,
@@ -98,7 +98,7 @@ describe('/v1/test endpoint', () => {
       })
       expect(res.status).toBe(200)
       const body = await res.json()
-      expect(body.inputs).toEqual({ url: '^https?://.*' })
+      expect(body.inputs).toEqual({ url: { pattern: '^https?://.*' } })
       expect(body.timeoutMilliseconds).toBe(10000)
       expect(body.requireInstancerInstancesRunning).toBe(true)
     })

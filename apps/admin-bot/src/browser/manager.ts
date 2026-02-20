@@ -15,6 +15,7 @@ import {
   defaultFirefoxPreferences,
 } from '../core/const'
 import { createLogger } from '../core/logger'
+import { buildPac, type RestrictedDomainsConfig } from '../core/pac'
 
 const logger = createLogger('browser-manager')
 const platform = detectBrowserPlatform()
@@ -28,8 +29,9 @@ export interface BrowserVersion {
 export interface BrowserLaunchOptions {
   version: BrowserVersion
   arguments?: Array<string>
-  restrictedDomains?: Record<string, Array<string>>
+  restrictedDomains?: RestrictedDomainsConfig
   puppeteerLaunchOptionsExtra?: Record<string, unknown>
+  extraPrefsFirefox?: Record<string, unknown>
 }
 
 const getVersion = (config: BrowserVersion): Required<BrowserVersion> => {
@@ -41,36 +43,6 @@ const getVersion = (config: BrowserVersion): Required<BrowserVersion> => {
 
 const getKey = (config: Required<BrowserVersion>): string => {
   return `${config.browser}-${config.version}`
-}
-
-export const buildPac = (
-  restrictedDomains: Record<string, Array<string>>
-): string => {
-  let result = 'function FindProxyForURL(url, host) {'
-  // 1. Explicitly allow allowed domains:
-  result +=
-    '\n' +
-    Object.values(restrictedDomains)
-      .flat()
-      .map(
-        subdomain =>
-          `  if (host.toLowerCase() == "${subdomain.toLowerCase()}") return "DIRECT";`
-      )
-      .join('\n')
-  // 2. Disallow other domains
-  // TODO(es3n1n): shExpMatch? but this will change the format of banned domains pattern from just `example.com` to `*.example.com`
-  result +=
-    '\n' +
-    Object.keys(restrictedDomains)
-      .map(
-        domain =>
-          `  if (host.toLowerCase().endsWith("${domain.toLowerCase()}")) return "PROXY 127.0.0.1:1";`
-      )
-      .join('\n')
-  // 3. Allow everything else:
-  result += '\n  return "DIRECT";'
-  result += '\n}'
-  return result
 }
 
 export class BrowserManager {
@@ -227,7 +199,9 @@ export class BrowserManager {
 
     let extraPrefsFirefox: Record<string, any> | undefined
     if (version.browser === 'firefox') {
-      extraPrefsFirefox = { ...defaultFirefoxPreferences }
+      extraPrefsFirefox = options.extraPrefsFirefox ?? {
+        ...defaultFirefoxPreferences,
+      }
     }
 
     if (options.restrictedDomains) {

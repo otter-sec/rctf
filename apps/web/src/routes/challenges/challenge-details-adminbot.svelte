@@ -31,9 +31,14 @@
     extra: Record<string, unknown>
   }
 
+  interface RegexRule {
+    pattern: string
+    flags?: string
+  }
+
   interface Props {
     challengeId: string
-    inputs: Record<string, string>
+    inputs: Record<string, RegexRule>
   }
 
   let { challengeId, inputs }: Props = $props()
@@ -120,11 +125,11 @@
 
   function validate(name: string, value: string): string | null {
     if (!value.trim()) return `${name} is required`
-    const pattern = inputs[name]
-    if (!pattern) return null
+    const rule = inputs[name]
+    if (!rule) return null
     try {
-      const regex = new RegExp(pattern)
-      if (!regex.test(value)) return `Does not match the required format (${pattern})`
+      const regex = new RegExp(rule.pattern, rule.flags)
+      if (!regex.test(value)) return `Does not match the required format (${rule.pattern})`
     } catch {
       // Invalid regex on server side, skip validation
     }
@@ -472,7 +477,7 @@
           <Input
             id="adminbot-{name}"
             type="text"
-            placeholder={inputs[name] ?? name}
+            placeholder={inputs[name]?.pattern ?? name}
             class="font-mono text-sm"
             value={values[name] ?? ''}
             oninput={e => handleInput(name, e.currentTarget.value)}

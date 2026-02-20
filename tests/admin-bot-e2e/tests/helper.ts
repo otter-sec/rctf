@@ -4,6 +4,10 @@ import { BrowserManager } from '../../../apps/admin-bot/src/browser/manager'
 import { handleSubmission } from '../../../apps/admin-bot/src/core/runner'
 import { BufferedOutputHandler } from '../../../apps/admin-bot/src/core/output'
 import type { JobMetadata } from '../../../apps/admin-bot/src/types'
+import type {
+  RegexRule,
+  RestrictedDomainsConfig,
+} from '../../../apps/admin-bot/src/core/pac'
 
 const BROWSER_CACHE_DIR = resolve(import.meta.dir, '..', '.browser-cache')
 export const browserManager = new BrowserManager(BROWSER_CACHE_DIR)
@@ -28,7 +32,7 @@ export const htmlPage = (html: string): string =>
 export const challengeSource = (opts: {
   handler: string
   timeout?: number
-  inputs?: Record<string, string>
+  inputs?: Record<string, RegexRule>
   hooksConfig?: {
     showConsoleLogs?: boolean
     showBrowserErrors?: boolean
@@ -36,7 +40,8 @@ export const challengeSource = (opts: {
     limitTabsNumber?: number
   }
   browser?: 'chrome' | 'firefox'
-  restrictDomains?: Record<string, Array<string>>
+  browserArguments?: string[]
+  restrictDomains?: RestrictedDomainsConfig
   maxLogLines?: number
   maxLogValueChars?: number
 }): string => {
@@ -46,6 +51,7 @@ export const challengeSource = (opts: {
     inputs = {},
     hooksConfig = {},
     browser = 'chrome',
+    browserArguments,
     restrictDomains,
     maxLogLines,
     maxLogValueChars,
@@ -67,7 +73,7 @@ export const challenge = new Challenge({
   handler: async (ctx) => {
 ${handler}
   },
-  hooksConfig: ${JSON.stringify(hooks)},${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
+  hooksConfig: ${JSON.stringify(hooks)},${browserArguments ? `\n  browserArguments: ${JSON.stringify(browserArguments)},` : ''}${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
 })`
 }
 

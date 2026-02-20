@@ -5,8 +5,13 @@ import type { AdminBotProvider, LoadedAdminBotConfig } from './base'
 import { AdminBotConfigLanguage } from './base'
 import { z } from 'zod/mini'
 
+const RegexRuleSchema = z.object({
+  pattern: z.string(),
+  flags: z.optional(z.string()),
+})
+
 export const TestEndpointResponseSchema = z.object({
-  inputs: z.record(z.string(), z.string()),
+  inputs: z.record(z.string(), RegexRuleSchema),
   timeoutMilliseconds: z.number(),
   requireInstancerInstancesRunning: z.boolean(),
 })

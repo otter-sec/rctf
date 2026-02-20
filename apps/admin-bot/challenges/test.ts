@@ -6,7 +6,7 @@ export const challenge = new Challenge({
   timeoutMilliseconds: 30_000,
 
   inputs: {
-    url: '^http(s?)://.*',
+    url: { pattern: '^http(s?)://.*' },
   },
 
   handler: async (ctx: ChallengeContext): Promise<void> => {
@@ -47,16 +47,33 @@ export const challenge = new Challenge({
 
   // optional:
   browser: 'chrome',
-  browserArguments: undefined, // argv array
+  // vvv argv array. by default we apply some default argv values,
+  //   but if you override this we'll not add anything to the list!
+  browserArguments: undefined,
   browserVersion: 'stable',
   puppeteerLaunchOptionsExtra: undefined, // Record<string, unknown>
+  // vvv Record<string, unknown>. by default we apply some default values,
+  //  but if you override this we'll not add anything to this mapping!
+  extraPrefsFirefox: undefined,
 
   maxLogValueChars: 4096, // limit number of characters within strings in logs
   maxLogLines: 64, // limit the number of lines stored per submission
 
   restrictDomains: {
-    // allow www.example.com and disallow other *.example.com
-    'example.com': ['www.example.com'],
+    // note on case sensitivity:
+    // - `host` is always lowercased by the browser
+    // - `url` param preserves the original casing of the path/query
+
+    // allow example.com, but not any other example.com subdomain
+    host: {
+      allowRegex: [{ pattern: '^example.com$' }],
+      disallowRegex: [{ pattern: '^.*\\.example\\.com$' }],
+    },
+    // allow example.com/kek, but not any other urls on example.com
+    url: {
+      allowRegex: [{ pattern: 'example.com\\/kek' }],
+      disallowRegex: [{ pattern: 'example.com' }],
+    },
   },
 
   // 1. If challenge has no instancer configured, this value will be ignored.

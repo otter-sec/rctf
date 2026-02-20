@@ -2,9 +2,13 @@ import type { Hono } from 'hono'
 import type { MiddlewareHandler } from 'hono/types'
 import type { AppEnv } from '../../lib/app-env'
 
+export interface RegexRule {
+  pattern: string
+  flags?: string
+}
+
 export interface LoadedAdminBotConfig {
-  // key is string name, value is regex
-  inputs: Record<string, string>
+  inputs: Record<string, RegexRule>
   timeoutMilliseconds: number
   requireInstancerInstancesRunning: boolean
 }

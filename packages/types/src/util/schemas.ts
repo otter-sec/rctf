@@ -68,9 +68,14 @@ export const PartialInstancerConfigSchema = z.object({
   timeoutMilliseconds: z.optional(z.int()),
 })
 
+export const RegexRuleSchema = z.object({
+  pattern: z.string(),
+  flags: z.optional(z.string()),
+})
+
 export const AdminBotConfigSchema = z.object({
   code: z.string(),
-  inputs: z.record(z.string(), z.string()),
+  inputs: z.record(z.string(), RegexRuleSchema),
   revision: z.string(),
   timeoutMilliseconds: z.int(),
   requireInstancerInstancesRunning: z.optional(z.boolean()),

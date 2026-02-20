@@ -2,6 +2,7 @@ import type { BrowserContext } from 'puppeteer-core'
 import type { Logger } from 'pino'
 import type { HooksConfig } from './browser/hooks'
 import type { OutputHandler } from './core/output'
+import type { RegexRule, RestrictedDomainsConfig } from './core/pac'
 
 export interface JobMetadata {
   challengeId: string
@@ -32,7 +33,7 @@ export interface ChallengeContext {
 export interface ChallengeConfig {
   timeoutMilliseconds: number
 
-  inputs: Record<string, string>
+  inputs: Record<string, RegexRule>
   maxLogLines?: number | null
   maxLogValueChars?: number | null
 
@@ -41,9 +42,10 @@ export interface ChallengeConfig {
   browserVersion?: string
   handler: (ctx: ChallengeContext) => Promise<void>
   puppeteerLaunchOptionsExtra?: Record<string, unknown>
+  extraPrefsFirefox?: Record<string, unknown>
 
   hooksConfig: HooksConfig
-  restrictDomains?: Record<string, Array<string>>
+  restrictDomains?: RestrictedDomainsConfig
 
   requireInstancerInstancesRunning?: boolean
 }
@@ -53,15 +55,42 @@ export class Challenge {
 
   constructor(config: ChallengeConfig) {
     this.config = config
-    this.validateInputs()
+    this.validate()
   }
 
-  private validateInputs(): void {
-    for (const [key, value] of Object.entries(this.config.inputs)) {
+  private validate(): void {
+    const validateRegexp = (
+      pattern: string,
+      name: string,
+      flags?: string
+    ): void => {
       try {
-        new RegExp(value)
+        new RegExp(pattern, flags)
       } catch (err) {
-        throw new Error(`Regex pattern ${value} for value ${key} is invalid`)
+        throw new Error(`Regex pattern ${pattern} of ${name} is invalid`)
+      }
+    }
+
+    for (const [key, value] of Object.entries(this.config.inputs)) {
+      validateRegexp(value.pattern, key, value.flags)
+    }
+
+    if (this.config.restrictDomains) {
+      for (const [scope, set] of Object.entries(this.config.restrictDomains)) {
+        for (const rule of set?.allowRegex ?? []) {
+          validateRegexp(
+            rule.pattern,
+            `restrictDomains.${scope}.allowRegex`,
+            rule.flags
+          )
+        }
+        for (const rule of set?.disallowRegex ?? []) {
+          validateRegexp(
+            rule.pattern,
+            `restrictDomains.${scope}.disallowRegex`,
+            rule.flags
+          )
+        }
       }
     }
   }
