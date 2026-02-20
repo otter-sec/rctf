@@ -9,6 +9,8 @@ COPY packages/db/package.json ./packages/db/
 COPY packages/types/package.json ./packages/types/
 COPY packages/util/package.json ./packages/util/
 COPY tests/server/package.json ./tests/server/
+COPY tests/admin-bot/package.json ./tests/admin-bot/
+COPY tests/admin-bot-e2e/package.json ./tests/admin-bot-e2e/
 COPY apps/admin-bot/package.json ./apps/admin-bot/
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
@@ -16,12 +18,29 @@ COPY apps/web/package.json ./apps/web/
 FROM base AS deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests' --filter '!@rctf/admin-bot'
+RUN bun install \
+    --frozen-lockfile \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache \
+    --filter '!@rctf/admin-bot' \
+    --filter '!server-tests' \
+    --filter '!admin-bot-tests' \
+    --filter '!admin-bot-e2e-tests'
 
 FROM base AS prod-deps
 
 COPY --from=package-configs /app/ ./
-RUN bun install --production --frozen-lockfile --linker=hoisted --backend=copyfile --no-cache --filter '!server-tests' --filter '!@rctf/admin-bot'
+RUN bun install \
+    --production \
+    --frozen-lockfile \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache \
+    --filter '!@rctf/admin-bot' \
+    --filter '!server-tests' \
+    --filter '!admin-bot-tests' \
+    --filter '!admin-bot-e2e-tests'
 
 FROM base AS build
 
