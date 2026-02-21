@@ -60,9 +60,11 @@ const config: Config = {
               // scoreboard export
               'data:',
               'blob:',
+              // icons in scoreboard screenshot
+              'https://api.iconify.design/',
               // hcaptcha
-              'https://hcaptcha.com',
-              'https://*.hcaptcha.com',
+              'https://hcaptcha.com/',
+              'https://*.hcaptcha.com/',
               // recaptcha
               'https://www.google.com/recaptcha/',
               // google analytics
