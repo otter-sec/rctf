@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
+      - "package.json"
       - "apps/api/**"
       - "apps/web/**"
       - "packages/**"

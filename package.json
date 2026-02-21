@@ -4,9 +4,10 @@
   "type": "module",
   "private": true,
   "workspaces": [
-    "apps/api",
-    "apps/web",
     "apps/admin-bot",
+    "apps/api",
+    "apps/docs",
+    "apps/web",
     "packages/*",
     "tests/server",
     "tests/admin-bot",
