@@ -54,10 +54,17 @@ export default class S3Provider extends UploadProvider {
 
   override async startupWebPart(_app: Hono<AppEnv>): Promise<void> {}
 
+  private getObjectKey(key: string): string {
+    return `uploads/${key}`
+  }
+
   private async objectExists(key: string): Promise<boolean> {
     try {
       await this.client.send(
-        new HeadObjectCommand({ Bucket: this.bucketName, Key: key })
+        new HeadObjectCommand({
+          Bucket: this.bucketName,
+          Key: this.getObjectKey(key),
+        })
       )
       return true
     } catch (error: any) {
@@ -82,7 +89,7 @@ export default class S3Provider extends UploadProvider {
       await this.client.send(
         new PutObjectCommand({
           Bucket: this.bucketName,
-          Key: `uploads/${key}`,
+          Key: this.getObjectKey(key),
           Body: data,
           ACL: 'public-read',
           CacheControl: 'public, max-age=31536000, immutable',
@@ -97,7 +104,7 @@ export default class S3Provider extends UploadProvider {
     await this.client.send(
       new DeleteObjectCommand({
         Bucket: this.bucketName,
-        Key: `uploads/${key}`,
+        Key: this.getObjectKey(key),
       })
     )
   }
@@ -120,7 +127,7 @@ export default class S3Provider extends UploadProvider {
       const response = await this.client.send(
         new HeadObjectCommand({
           Bucket: this.bucketName,
-          Key: `uploads/${key}`,
+          Key: this.getObjectKey(key),
         })
       )
       return {
