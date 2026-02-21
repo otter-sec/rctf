@@ -67,7 +67,7 @@
   class={cn(
     'bg-background-l4 flex min-h-9 w-full flex-wrap items-center gap-1 rounded-md border px-2 py-1 transition-colors',
     'has-focus-visible:border-ring has-focus-visible:ring-ring/50 has-focus-visible:ring-[3px]',
-    'has-[:aria-invalid=true]:ring-foreground-destructive/20 has-[:aria-invalid=true]:border-foreground-destructive',
+    'has-[[aria-invalid=true]]:ring-foreground-destructive/20 has-[[aria-invalid=true]]:border-foreground-destructive',
     'data-invalid:border-foreground-destructive data-invalid:ring-foreground-destructive/20 data-invalid:ring-[3px]',
     disabled && 'cursor-not-allowed opacity-50',
     className

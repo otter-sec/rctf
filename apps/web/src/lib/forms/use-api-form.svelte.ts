@@ -4,7 +4,7 @@ import type {
   RouteSuccessResponse,
 } from '@rctf/types'
 import { apiRequest, type InlineArgs } from '$lib/api'
-import { core, prettifyError } from 'zod/mini'
+import { prettifyError, type core } from 'zod/mini'
 
 type FormErrors<T> = Partial<Record<keyof T | '_form', string>>
 
