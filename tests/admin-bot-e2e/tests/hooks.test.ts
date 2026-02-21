@@ -111,6 +111,69 @@ describe('navigation hooks', () => {
     )
     expect(navLogs.length).toBe(0)
   }, 30_000)
+
+  test('limitTabsNumber tracks only active tabs', async () => {
+    const urlOne = htmlPage(`<h1>First Tab</h1>`)
+    const urlTwo = htmlPage(`<h1>Second Tab</h1>`)
+
+    const result = await runChallenge({
+      source: challengeSource({
+        handler: `
+    const pageOne = await ctx.browserContext.newPage()
+    await pageOne.goto('${urlOne}')
+    await new Promise(r => setTimeout(r, 300))
+    await pageOne.close()
+    await new Promise(r => setTimeout(r, 300))
+
+    const pageTwo = await ctx.browserContext.newPage()
+    await pageTwo.goto('${urlTwo}')
+    await new Promise(r => setTimeout(r, 300))
+    await pageTwo.close()
+    await new Promise(r => setTimeout(r, 200))`,
+        hooksConfig: { limitTabsNumber: 1 },
+      }),
+    })
+
+    expect(result.success).toBe(true)
+    expect(result.parsed.some(l => l.line.includes('tab limit exceeded'))).toBe(
+      false
+    )
+
+    const createdTabLogs = result.parsed.filter(
+      l => l.prefix === 'navigation' && l.line.includes('tab created')
+    )
+    expect(createdTabLogs.length).toBeGreaterThanOrEqual(2)
+  }, 30_000)
+
+  test('limitTabsNumber exceeding stops run before challenge timeout', async () => {
+    const url = htmlPage(`<h1>Limit Exit</h1>`)
+    const timeoutMs = 20_000
+
+    const startedAt = Date.now()
+    const result = await runChallenge({
+      source: challengeSource({
+        handler: `
+    const pageOne = await ctx.browserContext.newPage()
+    await pageOne.goto('${url}')
+
+    const pageTwo = await ctx.browserContext.newPage()
+    // Keep interacting with the browser; once limiter closes it, this should reject quickly.
+    while (true) {
+      await pageTwo.evaluate(() => document.title)
+      await new Promise(r => setTimeout(r, 50))
+    }`,
+        timeout: timeoutMs,
+        hooksConfig: { limitTabsNumber: 1 },
+      }),
+    })
+    const elapsedMs = Date.now() - startedAt
+
+    expect(result.success).toBe(false)
+    expect(result.parsed.some(l => l.line.includes('tab limit exceeded'))).toBe(
+      true
+    )
+    expect(elapsedMs).toBeLessThan(timeoutMs / 2)
+  }, 40_000)
 })
 
 describe('error hooks', () => {

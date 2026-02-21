@@ -126,9 +126,15 @@ export class TargetTracker {
   onTargetDestroyed = (target: Target): void => {
     switch (target.type()) {
       case 'page':
+        const targetId = getTargetId(target)
+        const tabIndex = this.tabs.indexOf(targetId)
+        if (tabIndex !== -1) {
+          this.tabs.splice(tabIndex, 1)
+        }
+
         if (this.config.showNavigation) {
           this.output.info('navigation', `tab closed`, {
-            id: this.getTabInternalId(target),
+            id: tabIndex === -1 ? 'T?' : `T${tabIndex + 1}`,
           })
         }
         break
