@@ -4,121 +4,133 @@ import {
   challengeSource,
   htmlPage,
   browserManager,
+  browsers,
 } from './helper'
 
-beforeAll(async () => {
-  await browserManager.getBrowserPath({ browser: 'chrome', version: 'stable' })
-}, 120_000)
+for (const browser of browsers) {
+  describe(`console hooks [${browser}]`, () => {
+    beforeAll(async () => {
+      await browserManager.getBrowserPath({ browser, version: 'stable' })
+    }, 120_000)
 
-describe('console hooks', () => {
-  test('captures log, error, warn at correct levels', async () => {
-    const url = htmlPage(`
-      <script>
-        setTimeout(() => {
-          console.log('msg-log');
-          console.error('msg-error');
-          console.warn('msg-warn');
-        }, 300);
-      </script>
-    `)
+    test('captures log, error, warn at correct levels', async () => {
+      const url = htmlPage(`
+        <script>
+          setTimeout(() => {
+            console.log('msg-log');
+            console.error('msg-error');
+            console.warn('msg-warn');
+          }, 300);
+        </script>
+      `)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 2000))`,
-      }),
-    })
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const consoleLogs = result.parsed.filter(l => l.prefix === 'console')
-    expect(consoleLogs.length).toBe(3)
-    expect(
-      consoleLogs.some(l => l.line.includes('msg-log') && l.level === 'info')
-    ).toBe(true)
-    expect(
-      consoleLogs.some(l => l.line.includes('msg-error') && l.level === 'error')
-    ).toBe(true)
-    expect(
-      consoleLogs.some(l => l.line.includes('msg-warn') && l.level === 'warn')
-    ).toBe(true)
-  }, 30_000)
+      expect(result.success).toBe(true)
+      const consoleLogs = result.parsed.filter(l => l.prefix === 'console')
+      expect(consoleLogs.length).toBe(3)
+      expect(
+        consoleLogs.some(l => l.line.includes('msg-log') && l.level === 'info')
+      ).toBe(true)
+      expect(
+        consoleLogs.some(
+          l => l.line.includes('msg-error') && l.level === 'error'
+        )
+      ).toBe(true)
+      expect(
+        consoleLogs.some(l => l.line.includes('msg-warn') && l.level === 'warn')
+      ).toBe(true)
+    }, 30_000)
 
-  test('suppressed when showConsoleLogs is false', async () => {
-    const url = htmlPage(`<script>console.log('hidden')</script>`)
+    test('suppressed when showConsoleLogs is false', async () => {
+      const url = htmlPage(`<script>console.log('hidden')</script>`)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 500))`,
-        hooksConfig: { showConsoleLogs: false },
-      }),
-    })
+          hooksConfig: { showConsoleLogs: false },
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const consoleLogs = result.parsed.filter(l => l.prefix === 'console')
-    expect(consoleLogs.length).toBe(0)
-  }, 30_000)
-})
+      expect(result.success).toBe(true)
+      const consoleLogs = result.parsed.filter(l => l.prefix === 'console')
+      expect(consoleLogs.length).toBe(0)
+    }, 30_000)
+  })
 
-describe('navigation hooks', () => {
-  test('captures tab created, navigation completed, and tab closed', async () => {
-    const url = htmlPage(`<h1>Nav Test</h1>`)
+  describe(`navigation hooks [${browser}]`, () => {
+    beforeAll(async () => {
+      await browserManager.getBrowserPath({ browser, version: 'stable' })
+    }, 120_000)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+    test('captures tab created, navigation completed, and tab closed', async () => {
+      const url = htmlPage(`<h1>Nav Test</h1>`)
+
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 500))
     await page.close()
     await new Promise(r => setTimeout(r, 200))`,
-      }),
-    })
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const navLogs = result.parsed.filter(l => l.prefix === 'navigation')
-    expect(navLogs.some(l => l.line.includes('tab created'))).toBe(true)
-    expect(navLogs.some(l => l.line.includes('navigation completed'))).toBe(
-      true
-    )
-    expect(navLogs.some(l => l.line.includes('tab closed'))).toBe(true)
-  }, 30_000)
+      expect(result.success).toBe(true)
+      const navLogs = result.parsed.filter(l => l.prefix === 'navigation')
+      expect(navLogs.some(l => l.line.includes('tab created'))).toBe(true)
+      expect(navLogs.some(l => l.line.includes('navigation completed'))).toBe(
+        true
+      )
+      expect(navLogs.some(l => l.line.includes('tab closed'))).toBe(true)
+    }, 30_000)
 
-  test('suppressed when showNavigation is false', async () => {
-    const url = htmlPage(`<h1>Hidden Nav</h1>`)
+    test('suppressed when showNavigation is false', async () => {
+      const url = htmlPage(`<h1>Hidden Nav</h1>`)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 500))`,
-        hooksConfig: { showNavigation: false },
-      }),
-    })
+          hooksConfig: { showNavigation: false },
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const navLogs = result.parsed.filter(
-      l =>
-        l.prefix === 'navigation' &&
-        (l.line.includes('navigation started') ||
-          l.line.includes('navigation completed') ||
-          l.line.includes('tab closed'))
-    )
-    expect(navLogs.length).toBe(0)
-  }, 30_000)
+      expect(result.success).toBe(true)
+      const navLogs = result.parsed.filter(
+        l =>
+          l.prefix === 'navigation' &&
+          (l.line.includes('navigation started') ||
+            l.line.includes('navigation completed') ||
+            l.line.includes('tab closed'))
+      )
+      expect(navLogs.length).toBe(0)
+    }, 30_000)
 
-  test('limitTabsNumber tracks only active tabs', async () => {
-    const urlOne = htmlPage(`<h1>First Tab</h1>`)
-    const urlTwo = htmlPage(`<h1>Second Tab</h1>`)
+    test('limitTabsNumber tracks only active tabs', async () => {
+      const urlOne = htmlPage(`<h1>First Tab</h1>`)
+      const urlTwo = htmlPage(`<h1>Second Tab</h1>`)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const pageOne = await ctx.browserContext.newPage()
     await pageOne.goto('${urlOne}')
     await new Promise(r => setTimeout(r, 300))
@@ -130,29 +142,30 @@ describe('navigation hooks', () => {
     await new Promise(r => setTimeout(r, 300))
     await pageTwo.close()
     await new Promise(r => setTimeout(r, 200))`,
-        hooksConfig: { limitTabsNumber: 1 },
-      }),
-    })
+          hooksConfig: { limitTabsNumber: 1 },
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    expect(result.parsed.some(l => l.line.includes('tab limit exceeded'))).toBe(
-      false
-    )
+      expect(result.success).toBe(true)
+      expect(
+        result.parsed.some(l => l.line.includes('tab limit exceeded'))
+      ).toBe(false)
 
-    const createdTabLogs = result.parsed.filter(
-      l => l.prefix === 'navigation' && l.line.includes('tab created')
-    )
-    expect(createdTabLogs.length).toBeGreaterThanOrEqual(2)
-  }, 30_000)
+      const createdTabLogs = result.parsed.filter(
+        l => l.prefix === 'navigation' && l.line.includes('tab created')
+      )
+      expect(createdTabLogs.length).toBeGreaterThanOrEqual(2)
+    }, 30_000)
 
-  test('limitTabsNumber exceeding stops run before challenge timeout', async () => {
-    const url = htmlPage(`<h1>Limit Exit</h1>`)
-    const timeoutMs = 20_000
+    test('limitTabsNumber exceeding stops run before challenge timeout', async () => {
+      const url = htmlPage(`<h1>Limit Exit</h1>`)
+      const timeoutMs = 20_000
 
-    const startedAt = Date.now()
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const startedAt = Date.now()
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const pageOne = await ctx.browserContext.newPage()
     await pageOne.goto('${url}')
 
@@ -162,107 +175,125 @@ describe('navigation hooks', () => {
       await pageTwo.evaluate(() => document.title)
       await new Promise(r => setTimeout(r, 50))
     }`,
-        timeout: timeoutMs,
-        hooksConfig: { limitTabsNumber: 1 },
-      }),
-    })
-    const elapsedMs = Date.now() - startedAt
+          timeout: timeoutMs,
+          hooksConfig: { limitTabsNumber: 1 },
+          browser,
+        }),
+      })
+      const elapsedMs = Date.now() - startedAt
 
-    expect(result.success).toBe(false)
-    expect(result.parsed.some(l => l.line.includes('tab limit exceeded'))).toBe(
-      true
-    )
-    expect(elapsedMs).toBeLessThan(timeoutMs / 2)
-  }, 40_000)
-})
+      expect(result.success).toBe(false)
+      expect(
+        result.parsed.some(l => l.line.includes('tab limit exceeded'))
+      ).toBe(true)
+      expect(elapsedMs).toBeLessThan(timeoutMs / 2)
+    }, 40_000)
+  })
 
-describe('error hooks', () => {
-  test('captures uncaught page errors', async () => {
-    const url = htmlPage(`
-      <script>throw new Error('uncaught-test-error')</script>
-    `)
+  describe(`error hooks [${browser}]`, () => {
+    beforeAll(async () => {
+      await browserManager.getBrowserPath({ browser, version: 'stable' })
+    }, 120_000)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+    test('captures uncaught page errors', async () => {
+      const url = htmlPage(`
+        <script>throw new Error('uncaught-test-error')</script>
+      `)
+
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 1000))`,
-      }),
-    })
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const errorLogs = result.parsed.filter(l => l.line.includes('page error'))
-    expect(errorLogs.some(l => l.line.includes('uncaught-test-error'))).toBe(
-      true
-    )
-    expect(errorLogs[0]?.level).toBe('error')
-  }, 30_000)
+      expect(result.success).toBe(true)
+      const errorLogs = result.parsed.filter(l => l.line.includes('page error'))
+      expect(errorLogs.some(l => l.line.includes('uncaught-test-error'))).toBe(
+        true
+      )
+      expect(errorLogs[0]?.level).toBe('error')
+    }, 30_000)
 
-  test('captures failed network requests', async () => {
-    const url = htmlPage(`
-      <img src="http://localhost:1/nonexistent.png">
-    `)
+    test('captures failed network requests', async () => {
+      const url = htmlPage(`
+        <script>
+          setTimeout(() => {
+            fetch('http://localhost:9999/nonexistent.png').catch(() => {})
+          }, 300)
+        </script>
+      `)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 2000))`,
-      }),
-    })
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const networkErrors = result.parsed.filter(l => l.prefix === 'network')
-    expect(
-      networkErrors.some(
-        l => l.line.includes('localhost:1') && l.line.includes('failed')
-      )
-    ).toBe(true)
-  }, 30_000)
+      expect(result.success).toBe(true)
+      const networkErrors = result.parsed.filter(l => l.prefix === 'network')
+      expect(
+        networkErrors.some(
+          l => l.line.includes('localhost:9999') && l.line.includes('failed')
+        )
+      ).toBe(true)
+    }, 30_000)
 
-  test('suppressed when showBrowserErrors is false', async () => {
-    const url = htmlPage(`
-      <script>throw new Error('hidden-error')</script>
-      <img src="http://localhost:1/hidden.png">
-    `)
+    test('suppressed when showBrowserErrors is false', async () => {
+      const url = htmlPage(`
+        <script>throw new Error('hidden-error')</script>
+        <img src="http://localhost:9999/hidden.png">
+      `)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 1500))`,
-        hooksConfig: { showBrowserErrors: false },
-      }),
-    })
+          hooksConfig: { showBrowserErrors: false },
+          browser,
+        }),
+      })
 
-    expect(result.success).toBe(true)
-    const errorLogs = result.parsed.filter(
-      l => l.line.includes('page error') || l.prefix === 'network'
-    )
-    expect(errorLogs.length).toBe(0)
-  }, 30_000)
-})
+      expect(result.success).toBe(true)
+      const errorLogs = result.parsed.filter(
+        l => l.line.includes('page error') || l.prefix === 'network'
+      )
+      expect(errorLogs.length).toBe(0)
+    }, 30_000)
+  })
 
-describe('dialog hooks', () => {
-  test('captures alert dialogs', async () => {
-    const url = htmlPage(`<script>alert('test-alert-msg')</script>`)
+  describe(`dialog hooks [${browser}]`, () => {
+    beforeAll(async () => {
+      await browserManager.getBrowserPath({ browser, version: 'stable' })
+    }, 120_000)
 
-    const result = await runChallenge({
-      source: challengeSource({
-        handler: `
+    test('captures alert dialogs', async () => {
+      const url = htmlPage(`<script>alert('test-alert-msg')</script>`)
+
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: `
     const page = await ctx.browserContext.newPage()
     page.on('dialog', d => d.dismiss())
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 1000))`,
-        timeout: 10_000,
-      }),
-    })
+          timeout: 10_000,
+          browser,
+        }),
+      })
 
-    const dialogLogs = result.parsed.filter(l => l.prefix === 'dialog')
-    expect(dialogLogs.some(l => l.line.includes('test-alert-msg'))).toBe(true)
-    expect(dialogLogs.some(l => l.line.includes('alert'))).toBe(true)
-  }, 30_000)
-})
+      const dialogLogs = result.parsed.filter(l => l.prefix === 'dialog')
+      expect(dialogLogs.some(l => l.line.includes('test-alert-msg'))).toBe(true)
+      expect(dialogLogs.some(l => l.line.includes('alert'))).toBe(true)
+    }, 30_000)
+  })
+}

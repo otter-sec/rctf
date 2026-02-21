@@ -215,6 +215,7 @@ export class BrowserManager {
           ...extraPrefsFirefox,
           'network.proxy.type': 2, // PAC
           'network.proxy.autoconfig_url': pacDataUrl,
+          'network.proxy.autoconfig_url.include_path': true,
         }
       }
     }

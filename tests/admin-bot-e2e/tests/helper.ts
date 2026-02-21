@@ -12,6 +12,9 @@ import type {
 const BROWSER_CACHE_DIR = resolve(import.meta.dir, '..', '.browser-cache')
 export const browserManager = new BrowserManager(BROWSER_CACHE_DIR)
 
+export const browsers = ['chrome', 'firefox'] as const
+export type BrowserType = (typeof browsers)[number]
+
 export interface ParsedLog {
   time: number
   level: string
@@ -41,6 +44,7 @@ export const challengeSource = (opts: {
   }
   browser?: 'chrome' | 'firefox'
   browserArguments?: string[]
+  extraPrefsFirefox?: Record<string, unknown>
   restrictDomains?: RestrictedDomainsConfig
   maxLogLines?: number
   maxLogValueChars?: number
@@ -52,6 +56,7 @@ export const challengeSource = (opts: {
     hooksConfig = {},
     browser = 'chrome',
     browserArguments,
+    extraPrefsFirefox,
     restrictDomains,
     maxLogLines,
     maxLogValueChars,
@@ -73,7 +78,7 @@ export const challenge = new Challenge({
   handler: async (ctx) => {
 ${handler}
   },
-  hooksConfig: ${JSON.stringify(hooks)},${browserArguments ? `\n  browserArguments: ${JSON.stringify(browserArguments)},` : ''}${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
+  hooksConfig: ${JSON.stringify(hooks)},${browserArguments ? `\n  browserArguments: ${JSON.stringify(browserArguments)},` : ''}${extraPrefsFirefox ? `\n  extraPrefsFirefox: ${JSON.stringify(extraPrefsFirefox)},` : ''}${restrictDomains ? `\n  restrictDomains: ${JSON.stringify(restrictDomains)},` : ''}${maxLogLines !== undefined ? `\n  maxLogLines: ${maxLogLines},` : ''}${maxLogValueChars !== undefined ? `\n  maxLogValueChars: ${maxLogValueChars},` : ''}
 })`
 }
 
