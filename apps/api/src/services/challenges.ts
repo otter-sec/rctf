@@ -355,21 +355,21 @@ export const getUserChallengeSolves = async (
 ): Promise<
   { solve: Solve; challengeData: ChallengeData; bloodIndex: number | null }[]
 > => {
+  const ranked = createRankedSolves(db)
   const rows = await db
+    .with(ranked)
     .select({
       solve: solves,
       challengeData: challenges.data,
-      position:
-        sql<number>`row_number() over (partition by ${solves.challengeid} order by ${solves.createdat})::int`.as(
-          'position'
-        ),
+      position: ranked.position,
     })
-    .from(solves)
+    .from(ranked)
+    .innerJoin(solves, eq(solves.id, ranked.solveId))
     .innerJoin(
       challenges,
       and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
     )
-    .where(eq(solves.userid, userId))
+    .where(eq(ranked.userId, userId))
     .orderBy(asc(solves.createdat))
 
   return rows.map(row => ({
