@@ -31,7 +31,7 @@ export default class DiscordMessagesProvider implements MessageProvider {
       body: JSON.stringify({ content: message }),
     })
 
-    if (resp.status != 200) {
+    if (!resp.ok) {
       throw new Error(`Discord error ${resp.status}: ${await resp.text()}`)
     }
   }
