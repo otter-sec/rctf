@@ -30,7 +30,7 @@ export const SqlDatabaseSchema = z.union([
     user: z.string(),
     password: z.string(),
     database: z.string(),
-    maxPoolSize: z._default(z.int(), 20),
+    maxPoolSize: z._default(z.int(), 100),
     idleTimeout: z._default(z.int(), 30_000),
     connectTimeout: z._default(z.int(), 3_000),
   }),
@@ -150,7 +150,7 @@ export const ServerConfigSchema = z.object({
     z.object({
       maxLimit: z._default(z.number(), 100),
       maxOffset: z._default(z.number(), 4294967296),
-      updateInterval: z._default(z.number(), 10_000), // 10s
+      updateInterval: z._default(z.number(), 30_000), // 30s, but we force recalc when needed
       graphMaxTeams: z._default(z.number(), 10),
       graphSampleTime: z._default(z.number(), 1_800_000), // 30min
       graphWithListLimit: z._default(z.number(), 100),
