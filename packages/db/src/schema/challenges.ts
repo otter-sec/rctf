@@ -74,5 +74,9 @@ export const challenges = pgTable(
       'btree',
       sql`((${table.data} ->> 'sortWeight')::int)`
     ),
+    index('challenges_hidden_index').using(
+      'btree',
+      sql`(COALESCE((${table.data} ->> 'hidden')::boolean, false))`
+    ),
   ]
 )

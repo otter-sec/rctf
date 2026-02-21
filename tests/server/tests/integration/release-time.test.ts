@@ -7,6 +7,7 @@ import {
   type ChallengeData,
 } from '@rctf/db'
 import {
+  BadBody,
   BadChallenge,
   GoodChallenges,
   GoodFlag,
@@ -305,6 +306,33 @@ describe('challenge release time', () => {
       expect(res.status).toBe(200)
       body = await res.json()
       expect(body.data.releaseTime).toBeNull()
+    })
+
+    test('rejects fractional releaseTime', async () => {
+      const adminPerms = Permissions.challsRead | Permissions.challsWrite
+      const { user, cleanup } = await generateRealTestUser(adminPerms)
+      createdUserCleanups.push(cleanup)
+
+      const { challenge, cleanup: challengeCleanup } =
+        await generateChallengeWithReleaseTime(null)
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const authToken = await generateAuthToken(user.id)
+
+      const res = await request(app, `/api/v2/admin/challs/${challenge.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          data: {
+            releaseTime: Date.now() + 0.5,
+          },
+        }),
+      })
+
+      await expectResponse(res, BadBody)
     })
   })
 })

@@ -1,0 +1,2 @@
+CREATE INDEX "challenges_hidden_index" ON "challenges" USING btree ((COALESCE(("data" ->> 'hidden')::boolean, false)));--> statement-breakpoint
+CREATE INDEX "users_created_at_index" ON "users" USING btree ("created_at" timestamptz_ops);

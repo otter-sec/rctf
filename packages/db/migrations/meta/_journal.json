@@ -78,6 +78,13 @@
       "when": 1771327436402,
       "tag": "0010_admin_bot_jobs_index",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1771686038267,
+      "tag": "0011_more_indices",
+      "breakpoints": true
     }
   ]
 }

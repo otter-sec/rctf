@@ -10,7 +10,7 @@ import {
   type Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
-import { getSolvesAndUserInfo } from './challenges'
+import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 import type { TypedRedis } from '../cache/scripts'
 import type { ScoreContext } from '../providers/scores/base'
 
@@ -54,14 +54,11 @@ const getChallenges = async (
       data: challenges.data,
     })
     .from(challenges)
+    .where(challengeIsPublicSql)
 
   const result = new Map<string, InternalChallengeInfo>()
   for (let i = 0; i < dbChalls.length; i++) {
-    const ch = dbChalls[i]
-    if (!ch || ch.data.hidden) {
-      continue
-    }
-
+    const ch = dbChalls[i]!
     const points = ch.data.points ?? { min: 0, max: 0 }
     result.set(ch.id, {
       id: ch.id,

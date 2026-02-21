@@ -28,6 +28,10 @@ export const users = pgTable(
     statusText: text('status_text'),
   },
   table => [
+    index('users_created_at_index').using(
+      'btree',
+      table.createdAt.asc().nullsLast().op('timestamptz_ops')
+    ),
     index('users_division_index').using(
       'btree',
       table.division.asc().nullsLast().op('text_ops')

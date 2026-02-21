@@ -98,10 +98,7 @@ export const getPrivateChallenges = async (
       data: challenges.data,
     })
     .from(challenges)
-    .orderBy(
-      sql`((${challenges.data} ->> 'sortWeight')::int) NULLS LAST`,
-      desc(challenges.id)
-    )
+    .orderBy(...challengeDefaultOrder)
 }
 
 export const getPrivateChallenge = async (
@@ -124,22 +121,39 @@ export const isChallengePublic = (challenge: Challenge): boolean => {
   return +new Date() >= (challenge.data.releaseTime ?? 0)
 }
 
+export const challengeIsPublicSql = and(
+  sql`COALESCE((${challenges.data} ->> 'hidden')::boolean, false) = false`,
+  sql`COALESCE((${challenges.data} ->> 'releaseTime')::bigint, 0) <= ${sql.raw('extract(epoch from now())::bigint * 1000')}`
+)!
+
+const challengeDefaultOrder = [
+  sql`((${challenges.data} ->> 'sortWeight')::int) NULLS LAST`,
+  desc(challenges.id),
+] as const
+
 export const getChallenges = async (
   db: DatabaseClient
 ): Promise<Challenge[]> => {
-  const allChallenges = await getPrivateChallenges(db)
-  return allChallenges.filter(isChallengePublic)
+  return await db
+    .select({
+      id: challenges.id,
+      data: challenges.data,
+    })
+    .from(challenges)
+    .where(challengeIsPublicSql)
+    .orderBy(...challengeDefaultOrder)
 }
 
 export const getChallenge = async (
   db: DatabaseClient,
   id: string
 ): Promise<Challenge | undefined> => {
-  const result = await getPrivateChallenge(db, id)
-  if (!result || !isChallengePublic(result)) {
-    return undefined
-  }
-  return result
+  return await db
+    .select()
+    .from(challenges)
+    .where(and(eq(challenges.id, id), challengeIsPublicSql))
+    .limit(1)
+    .then(takeUnique)
 }
 
 const defaultChallengeData: ChallengeData = {
@@ -351,17 +365,18 @@ export const getUserChallengeSolves = async (
         ),
     })
     .from(solves)
-    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .innerJoin(
+      challenges,
+      and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
+    )
     .where(eq(solves.userid, userId))
     .orderBy(asc(solves.createdat))
 
-  return rows
-    .filter(row => !row.challengeData.hidden)
-    .map(row => ({
-      solve: row.solve,
-      challengeData: row.challengeData,
-      bloodIndex: row.position <= 3 ? row.position - 1 : null,
-    }))
+  return rows.map(row => ({
+    solve: row.solve,
+    challengeData: row.challengeData,
+    bloodIndex: row.position <= 3 ? row.position - 1 : null,
+  }))
 }
 
 export const getSolvesAndUserInfo = async (
@@ -387,12 +402,7 @@ export const getSolvesAndUserInfo = async (
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(
-      and(
-        inArray(solves.userid, userIds),
-        sql`COALESCE((${challenges.data} ->> 'hidden')::boolean, false) = false`
-      )
-    )
+    .where(and(inArray(solves.userid, userIds), challengeIsPublicSql))
     .orderBy(asc(solves.createdat))
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(

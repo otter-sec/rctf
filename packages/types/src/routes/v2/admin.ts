@@ -86,7 +86,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
       adminBotConfig: z.nullish(z.object({ code: z.string() })),
       hidden: z.optional(z.boolean()),
-      releaseTime: z.optional(z.nullable(z.number())),
+      releaseTime: z.optional(z.nullable(z.int())),
     }),
   }),
   goodResponses: [GoodChallengeUpdateV2],
