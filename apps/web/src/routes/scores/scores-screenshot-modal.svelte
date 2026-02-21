@@ -183,9 +183,7 @@
     showCloseButton={false}
     class="bg-background-l2 flex h-[90svh] w-[90svw] flex-col gap-0 rounded-lg border-2 p-0 md:h-[85vh] md:max-h-[900px] md:w-[95vw] md:max-w-[95vw]!"
   >
-    <Dialog.Header
-      class="flex shrink-0 flex-row items-center justify-between border-b-2 px-4 py-3 md:px-5"
-    >
+    <div class="flex shrink-0 flex-row items-center justify-between border-b-2 px-4 py-3 md:px-5">
       <Dialog.Title>Export screenshot</Dialog.Title>
       <Dialog.Close
         class="text-foreground-l3 hover:text-foreground-l0 rounded-sm transition-colors"
@@ -193,7 +191,7 @@
         <IconX class="size-5" />
         <span class="sr-only">Close</span>
       </Dialog.Close>
-    </Dialog.Header>
+    </div>
 
     <div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
       <div
