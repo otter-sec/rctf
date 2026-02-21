@@ -672,12 +672,8 @@ describe('incremental vs full rebuild equivalence', () => {
     for (const scrSample of fromScratch.calculated.samples) {
       const incSample = incSamplesByTime.get(scrSample.time)
       expect(incSample).toBeDefined()
-      const incScores = new Map(
-        incSample!.userScores.map(s => [s.id, s.score])
-      )
-      const scrScores = new Map(
-        scrSample.userScores.map(s => [s.id, s.score])
-      )
+      const incScores = new Map(incSample!.userScores.map(s => [s.id, s.score]))
+      const scrScores = new Map(scrSample.userScores.map(s => [s.id, s.score]))
       expect(incScores).toEqual(scrScores)
     }
   })

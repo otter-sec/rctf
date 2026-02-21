@@ -299,7 +299,7 @@
         <Highlight points lines />
       </Layer>
 
-      <Tooltip.Root anchor="top-right" motion="none">
+      <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data })}
           <div class="bg-background-l4 z-50 rounded-lg border px-3 py-2 text-xs shadow-xl">
             <div class="text-foreground-l3 mb-1.5">
