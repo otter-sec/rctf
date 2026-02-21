@@ -13,6 +13,7 @@ export interface ScoreContext {
 export type ScoreContextField = keyof ScoreContext
 
 export interface ScoreProvider {
+  readonly revision: string
   readonly requiredFields: readonly ScoreContextField[]
   calculate: (context: ScoreContext) => number
 }

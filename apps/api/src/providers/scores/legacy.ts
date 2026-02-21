@@ -10,6 +10,7 @@ const b = (x: number): number =>
   (a((c1 - c0) * x + c0) - a(c1)) / (a(c0) - a(c1))
 
 export default class LegacyProvider implements ScoreProvider {
+  readonly revision = '1'
   readonly requiredFields: readonly ScoreContextField[] = [
     'minPoints',
     'maxPoints',

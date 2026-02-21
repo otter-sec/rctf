@@ -1,6 +1,7 @@
 import type { ScoreContext, ScoreContextField, ScoreProvider } from './base'
 
 export default class SteepProvider implements ScoreProvider {
+  readonly revision = '1'
   readonly requiredFields: readonly ScoreContextField[] = [
     'minPoints',
     'maxPoints',

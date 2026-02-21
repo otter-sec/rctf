@@ -1,7 +1,7 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
-import { asc } from 'drizzle-orm'
+import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   getLeaderboard,
   type CalculatedLeaderboard,
@@ -13,68 +13,9 @@ import { scoreProvider } from '../providers'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 import type { TypedRedis } from '../cache/scripts'
 import type { ScoreContext } from '../providers/scores/base'
+import { takeUnique } from '@rctf/db/util'
 
-const getUsers = async (
-  db: DatabaseClient
-): Promise<Map<string, InternalUserInfo>> => {
-  const dbUsers = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      division: users.division,
-    })
-    .from(users)
-
-  const result = new Map<string, InternalUserInfo>()
-  for (let i = 0; i < dbUsers.length; i++) {
-    const u = dbUsers[i]
-    if (!u) {
-      continue
-    }
-
-    result.set(u.id, {
-      id: u.id,
-      name: u.name,
-      division: u.division ?? null,
-      score: 0,
-      lastSolve: undefined,
-      lastTiebreakEligibleSolve: undefined,
-      solvedChallengeIds: [],
-    })
-  }
-  return result
-}
-
-const getChallenges = async (
-  db: DatabaseClient
-): Promise<Map<string, InternalChallengeInfo>> => {
-  const dbChalls = await db
-    .select({
-      id: challenges.id,
-      data: challenges.data,
-    })
-    .from(challenges)
-    .where(challengeIsPublicSql)
-
-  const result = new Map<string, InternalChallengeInfo>()
-  for (let i = 0; i < dbChalls.length; i++) {
-    const ch = dbChalls[i]!
-    const points = ch.data.points ?? { min: 0, max: 0 }
-    result.set(ch.id, {
-      id: ch.id,
-      name: ch.data.name ?? '',
-      category: ch.data.category ?? '',
-      tiebreakEligible: ch.data.tiebreakEligible ?? false,
-      solves: 0,
-      score: 0,
-      minPoints: points.min ?? 0,
-      maxPoints: points.max ?? 0,
-      sortWeight: ch.data.sortWeight ?? null,
-      firstSolveTime: null,
-    })
-  }
-  return result
-}
+const numberOfBloods = 3
 
 const buildScoreContext = (
   ch: InternalChallengeInfo,
@@ -91,136 +32,398 @@ const buildScoreContext = (
   }
 }
 
-export const calculateLeaderboard = async (
-  db: DatabaseClient
-): Promise<CalculatedLeaderboard> => {
-  const now = Date.now()
-  const userInfos = await getUsers(db)
-  const challengeInfos = await getChallenges(db)
+type SolveCursor = {
+  createdat: string
+  id: string
+}
 
-  for (const [, ch] of challengeInfos) {
-    ch.score = scoreProvider.calculate(buildScoreContext(ch, 0))
+type LeaderboardRuntimeState = {
+  providerIdentity: string
+  challengesFingerprint: string
+  userInfos: Map<string, InternalUserInfo>
+  challengeInfos: Map<string, InternalChallengeInfo>
+  firstBloods: Map<string, string[]>
+  samples: CalculatedLeaderboard['samples']
+  prevScoreMap: Map<string, number> | null
+  processedSolveCount: number
+  lastSolveCursor: SolveCursor | null
+  firstEverSolveTime: number | null
+}
+
+type UserSnapshot = {
+  id: string
+  name: string
+  division: string | null
+}
+
+type PublicChallengeSnapshot = {
+  id: string
+  data: {
+    name?: string
+    category?: string
+    tiebreakEligible?: boolean
+    points?: {
+      min?: number
+      max?: number
+    }
+    sortWeight?: number
+    hidden?: boolean
+    releaseTime?: number | null
+  }
+}
+
+type SolveRow = {
+  id: string
+  challengeid: string
+  userid: string
+  createdat: string
+}
+
+type LeaderboardRebuildSeed = {
+  providerIdentity: string
+  challengesFingerprint: string
+  dbUsers: UserSnapshot[]
+  dbChallenges: PublicChallengeSnapshot[]
+}
+
+export type CachedLeaderboardComputation = {
+  calculated: CalculatedLeaderboard
+  changed: boolean
+  recomputedFromScratch: boolean
+}
+
+const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
+  // 1. Score difference
+  const scoreDiff = b.score - a.score
+  if (scoreDiff !== 0) {
+    return scoreDiff
   }
 
-  const dbSolves = await db
+  // 2. Last tiebreak eligible solve difference
+  const lastTiebreakEligibleSolveDiff =
+    (a.lastTiebreakEligibleSolve ?? Infinity) -
+    (b.lastTiebreakEligibleSolve ?? Infinity)
+  if (
+    !isNaN(lastTiebreakEligibleSolveDiff) &&
+    lastTiebreakEligibleSolveDiff !== 0
+  ) {
+    return lastTiebreakEligibleSolveDiff
+  }
+
+  // 3. Last solve difference
+  return (a.lastSolve ?? Infinity) - (b.lastSolve ?? Infinity)
+}
+
+const getUsersSnapshot = async (
+  db: DatabaseClient
+): Promise<UserSnapshot[]> => {
+  return await db
     .select({
+      id: users.id,
+      name: users.name,
+      division: users.division,
+    })
+    .from(users)
+    .orderBy(asc(users.id))
+}
+
+const getPublicChallengesSnapshot = async (
+  db: DatabaseClient
+): Promise<PublicChallengeSnapshot[]> => {
+  return await db
+    .select({
+      id: challenges.id,
+      data: challenges.data,
+    })
+    .from(challenges)
+    .where(challengeIsPublicSql)
+    .orderBy(asc(challenges.id))
+}
+
+const getSolveCount = async (db: DatabaseClient): Promise<number> => {
+  const row = await db
+    .select({
+      count: sql<number>`count(*)::int`,
+    })
+    .from(solves)
+    .then(takeUnique)
+  return row?.count ?? 0
+}
+
+const getAllSolvesOrdered = async (db: DatabaseClient): Promise<SolveRow[]> => {
+  return await db
+    .select({
+      id: solves.id,
       challengeid: solves.challengeid,
       userid: solves.userid,
       createdat: solves.createdat,
     })
     .from(solves)
-    .orderBy(asc(solves.createdat))
+    .orderBy(asc(solves.createdat), asc(solves.id))
+}
 
-  const numberOfBloods = 3
-  const firstBloods = new Map<string, string[]>()
+const getSolvesAfterCursor = async (
+  db: DatabaseClient,
+  cursor: SolveCursor | null
+): Promise<SolveRow[]> => {
+  if (!cursor) {
+    return await getAllSolvesOrdered(db)
+  }
 
-  let solveIndex = 0
-  const applySolvesUntil = (untilEpochMs: number): boolean => {
-    let changed = false
+  return await db
+    .select({
+      id: solves.id,
+      challengeid: solves.challengeid,
+      userid: solves.userid,
+      createdat: solves.createdat,
+    })
+    .from(solves)
+    .where(
+      or(
+        gt(solves.createdat, cursor.createdat),
+        and(eq(solves.createdat, cursor.createdat), gt(solves.id, cursor.id))
+      )
+    )
+    .orderBy(asc(solves.createdat), asc(solves.id))
+}
 
-    for (; solveIndex < dbSolves.length; solveIndex++) {
-      const s = dbSolves[solveIndex]
-      if (!s) {
+const patchUsers = (
+  state: LeaderboardRuntimeState,
+  dbUsers: UserSnapshot[]
+): boolean => {
+  let changed = false
+  const freshIds = new Set<string>()
+
+  for (const user of dbUsers) {
+    freshIds.add(user.id)
+    const info = state.userInfos.get(user.id)
+
+    if (!info) {
+      state.userInfos.set(user.id, {
+        id: user.id,
+        name: user.name,
+        division: user.division ?? null,
+        score: 0,
+        lastSolve: undefined,
+        lastTiebreakEligibleSolve: undefined,
+        solvedChallengeIds: [],
+      })
+      continue
+    }
+
+    if (info.name !== user.name) {
+      info.name = user.name
+      changed = true
+    }
+    if (info.division !== (user.division ?? null)) {
+      info.division = user.division ?? null
+      changed = true
+    }
+  }
+
+  for (const [id, info] of state.userInfos) {
+    if (!freshIds.has(id)) {
+      state.userInfos.delete(id)
+      // only counts as a visible change if they were on the leaderboard
+      if (info.lastSolve !== undefined) {
+        changed = true
+      }
+    }
+  }
+
+  return changed
+}
+
+const buildChallengesFingerprint = (
+  dbChallenges: PublicChallengeSnapshot[]
+): string =>
+  JSON.stringify(
+    dbChallenges.map(ch => [
+      ch.id,
+      ch.data.name ?? '',
+      ch.data.category ?? '',
+      ch.data.tiebreakEligible ?? false,
+      ch.data.points?.min ?? 0,
+      ch.data.points?.max ?? 0,
+      ch.data.sortWeight ?? null,
+    ])
+  )
+
+const createRuntimeState = (
+  seed: LeaderboardRebuildSeed
+): LeaderboardRuntimeState => {
+  const userInfos = new Map<string, InternalUserInfo>()
+  for (const user of seed.dbUsers) {
+    userInfos.set(user.id, {
+      id: user.id,
+      name: user.name,
+      division: user.division ?? null,
+      score: 0,
+      lastSolve: undefined,
+      lastTiebreakEligibleSolve: undefined,
+      solvedChallengeIds: [],
+    })
+  }
+
+  const challengeInfos = new Map<string, InternalChallengeInfo>()
+  for (const challenge of seed.dbChallenges) {
+    const points = challenge.data.points ?? { min: 0, max: 0 }
+    challengeInfos.set(challenge.id, {
+      id: challenge.id,
+      name: challenge.data.name ?? '',
+      category: challenge.data.category ?? '',
+      tiebreakEligible: challenge.data.tiebreakEligible ?? false,
+      solves: 0,
+      score: 0,
+      minPoints: points.min ?? 0,
+      maxPoints: points.max ?? 0,
+      sortWeight: challenge.data.sortWeight ?? null,
+      firstSolveTime: null,
+    })
+  }
+
+  const runtimeState: LeaderboardRuntimeState = {
+    providerIdentity: seed.providerIdentity,
+    challengesFingerprint: seed.challengesFingerprint,
+    userInfos,
+    challengeInfos,
+    firstBloods: new Map<string, string[]>(),
+    samples: [],
+    prevScoreMap: null,
+    processedSolveCount: 0,
+    lastSolveCursor: null,
+    firstEverSolveTime: null,
+  }
+
+  recomputeScores(runtimeState)
+  return runtimeState
+}
+
+const recomputeScores = (state: LeaderboardRuntimeState): void => {
+  const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
+    ? Math.max(
+        0,
+        ...Array.from(state.challengeInfos.values()).map(
+          challenge => challenge.solves
+        )
+      )
+    : 0
+
+  for (const [, challengeInfo] of state.challengeInfos) {
+    challengeInfo.score = scoreProvider.calculate(
+      buildScoreContext(challengeInfo, maxSolves)
+    )
+  }
+
+  for (const [, userInfo] of state.userInfos) {
+    userInfo.score = 0
+    for (const challengeId of userInfo.solvedChallengeIds) {
+      const challengeInfo = state.challengeInfos.get(challengeId)
+      if (!challengeInfo) {
         continue
       }
 
-      const createdAtMs = new Date(s.createdat).valueOf()
+      userInfo.score += challengeInfo.score
+    }
+  }
+}
+
+const applySolve = (
+  state: LeaderboardRuntimeState,
+  solve: SolveRow,
+  createdAtMs: number
+): boolean => {
+  const challengeInfo = state.challengeInfos.get(solve.challengeid)
+  const userInfo = state.userInfos.get(solve.userid)
+  if (!challengeInfo || !userInfo) {
+    return false
+  }
+
+  let bloods = state.firstBloods.get(solve.challengeid)
+  if (!bloods) {
+    bloods = []
+    state.firstBloods.set(solve.challengeid, bloods)
+  }
+  if (bloods.length < numberOfBloods) {
+    bloods.push(solve.userid)
+  }
+
+  if (challengeInfo.firstSolveTime === null) {
+    challengeInfo.firstSolveTime = createdAtMs
+  }
+
+  challengeInfo.solves++
+  userInfo.lastSolve = createdAtMs
+  if (challengeInfo.tiebreakEligible) {
+    userInfo.lastTiebreakEligibleSolve = createdAtMs
+  }
+  userInfo.solvedChallengeIds.push(solve.challengeid)
+
+  return true
+}
+
+const processSolveBatch = (
+  state: LeaderboardRuntimeState,
+  solveRows: SolveRow[],
+  now: number
+): {
+  changed: boolean
+  hadUnappliedSolves: boolean
+  consumedSolveCount: number
+  lastConsumedSolveCursor: SolveCursor | null
+} => {
+  let solveIndex = 0
+  let hadLeaderboardChanges = false
+  let hadUnappliedSolves = false
+
+  const applySolvesUntil = (untilEpochMs: number): void => {
+    let changed = false
+
+    for (; solveIndex < solveRows.length; solveIndex++) {
+      const solve = solveRows[solveIndex]!
+      const createdAtMs = new Date(solve.createdat).valueOf()
       if (createdAtMs > untilEpochMs) {
         break
       }
 
-      const chal = challengeInfos.get(s.challengeid)
-      const user = userInfos.get(s.userid)
-      if (!chal || !user) {
+      if (!applySolve(state, solve, createdAtMs)) {
+        hadUnappliedSolves = true
         continue
       }
 
-      let bloods = firstBloods.get(s.challengeid)
-      if (!bloods) {
-        bloods = []
-        firstBloods.set(s.challengeid, bloods)
-      }
-      if (bloods.length < numberOfBloods) {
-        bloods.push(s.userid)
-      }
-
-      if (chal.firstSolveTime === null) {
-        chal.firstSolveTime = createdAtMs
-      }
-
-      chal.solves++
-      user.lastSolve = createdAtMs
-      if (chal.tiebreakEligible) {
-        user.lastTiebreakEligibleSolve = createdAtMs
-      }
-      user.solvedChallengeIds.push(s.challengeid)
       changed = true
     }
 
     if (!changed) {
-      return false
+      return
     }
 
-    const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
-      ? Math.max(...Array.from(challengeInfos.values()).map(ch => ch.solves))
-      : 0
-
-    for (const [, ch] of challengeInfos) {
-      ch.score = scoreProvider.calculate(buildScoreContext(ch, maxSolves))
-    }
-
-    // recompute user scores
-    for (const [, u] of userInfos) {
-      u.score = 0
-
-      for (let i = 0; i < u.solvedChallengeIds.length; i++) {
-        const ch = challengeInfos.get(u.solvedChallengeIds[i] ?? '')
-        if (!ch) {
-          continue
-        }
-
-        u.score += ch.score
-      }
-    }
-
-    return true
+    recomputeScores(state)
+    hadLeaderboardChanges = true
   }
 
-  const usersWithScores = new Set<string>()
-  const samples: CalculatedLeaderboard['samples'] = []
-  let prevScoreMap: Map<string, number> | null = null
-
-  const runSample = (t: number): void => {
-    applySolvesUntil(t)
+  const runSample = (time: number): void => {
+    applySolvesUntil(time)
 
     const userScores: Sample['userScores'] = []
-    for (const [id, u] of userInfos) {
-      if (u.score > 0) {
-        userScores.push({ id, score: u.score })
-        usersWithScores.add(id)
+    for (const [id, userInfo] of state.userInfos) {
+      if (userInfo.score > 0) {
+        userScores.push({ id, score: userInfo.score })
       }
     }
 
-    // dedupe
-    if (prevScoreMap !== null) {
-      let changed = false
-      if (userScores.length !== prevScoreMap.size) {
-        changed = true
-      } else {
-        for (const { id, score } of userScores) {
-          if (prevScoreMap.get(id) !== score) {
-            changed = true
-            break
-          }
-        }
-      }
+    if (state.prevScoreMap !== null) {
+      const changed =
+        userScores.length !== state.prevScoreMap.size ||
+        userScores.some(s => state.prevScoreMap!.get(s.id) !== s.score)
+
       if (!changed) {
         return
       }
     }
 
-    prevScoreMap = new Map(userScores.map(({ id, score }) => [id, score]))
-    samples.push({ time: t, userScores })
+    state.prevScoreMap = new Map(userScores.map(({ id, score }) => [id, score]))
+    state.samples.push({ time, userScores })
   }
 
   const graphSampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
@@ -228,63 +431,225 @@ export const calculateLeaderboard = async (
     Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
     now
   )
-  if (graphSampleTime > 0 && dbSolves.length > 0) {
-    const firstSolveTime = new Date(dbSolves[0]!.createdat).valueOf()
-    const effectiveStart = Math.max(config.startTime, firstSolveTime)
 
+  if (state.firstEverSolveTime === null && solveRows.length > 0) {
+    state.firstEverSolveTime = new Date(solveRows[0]!.createdat).valueOf()
+  }
+
+  if (state.firstEverSolveTime !== null) {
+    const effectiveStart = Math.max(config.startTime, state.firstEverSolveTime)
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
 
     for (let i = start; i <= end; i += graphSampleTime) {
       runSample(i)
 
-      if (solveIndex >= dbSolves.length) {
+      if (solveIndex >= solveRows.length) {
         break
       }
     }
   }
 
-  // Run up to now, or if end time can't be reached by adding sample times
-  if (solveIndex < dbSolves.length || end !== config.endTime) {
+  if (solveIndex < solveRows.length || end !== config.endTime) {
     runSample(Math.min(now, config.endTime))
   }
 
-  const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
-    // 1. Score difference
-    const scoreDiff = b.score - a.score
-    if (scoreDiff !== 0) {
-      return scoreDiff
-    }
+  const lastConsumedSolve =
+    solveIndex > 0 ? solveRows[solveIndex - 1] : undefined
 
-    // 2. Last tiebreak eligible solve difference
-    const lastTiebreakEligibleSolveDiff =
-      (a.lastTiebreakEligibleSolve ?? Infinity) -
-      (b.lastTiebreakEligibleSolve ?? Infinity)
-    if (
-      !isNaN(lastTiebreakEligibleSolveDiff) &&
-      lastTiebreakEligibleSolveDiff !== 0
-    ) {
-      return lastTiebreakEligibleSolveDiff
-    }
-
-    // 3. Last solve difference
-    return (a.lastSolve ?? Infinity) - (b.lastSolve ?? Infinity)
+  return {
+    changed: hadLeaderboardChanges,
+    hadUnappliedSolves,
+    consumedSolveCount: solveIndex,
+    lastConsumedSolveCursor: lastConsumedSolve
+      ? {
+          createdat: lastConsumedSolve.createdat,
+          id: lastConsumedSolve.id,
+        }
+      : null,
   }
+}
+
+const cloneCalculatedLeaderboard = (
+  state: LeaderboardRuntimeState,
+  now: number
+): CalculatedLeaderboard => {
+  const usersWithScores = Array.from(state.userInfos.values())
+    .filter(userInfo => userInfo.lastSolve !== undefined)
+    .sort(compareUsers)
+    .map(userInfo => ({
+      id: userInfo.id,
+      name: userInfo.name,
+      division: userInfo.division,
+      score: userInfo.score,
+      hadAnySolve: true,
+    }))
+
+  const challengeInfos: CalculatedLeaderboard['challengeInfos'] = new Map()
+  for (const [id, challengeInfo] of state.challengeInfos) {
+    challengeInfos.set(id, {
+      score: challengeInfo.score,
+      solves: challengeInfo.solves,
+      name: challengeInfo.name,
+      category: challengeInfo.category,
+      sortWeight: challengeInfo.sortWeight,
+    })
+  }
+
+  const firstBloods = new Map<string, string[]>(
+    Array.from(state.firstBloods.entries()).map(([challengeId, bloods]) => [
+      challengeId,
+      [...bloods],
+    ])
+  )
+
+  const samples = state.samples.map(sample => ({
+    time: sample.time,
+    userScores: sample.userScores.map(userScore => ({ ...userScore })),
+  }))
 
   return {
     leaderboardUpdate: Math.min(now, config.endTime),
-    users: Array.from(userInfos.values())
-      .filter(u => u.lastSolve !== undefined)
-      .sort(compareUsers)
-      .map(u => ({
-        id: u.id,
-        name: u.name,
-        division: u.division,
-        score: u.score,
-        hadAnySolve: true,
-      })),
-    challengeInfos: challengeInfos,
+    users: usersWithScores,
+    challengeInfos,
     firstBloods,
     samples,
+  }
+}
+
+const rebuildRuntimeState = async (
+  db: DatabaseClient,
+  seed: LeaderboardRebuildSeed,
+  now: number
+): Promise<LeaderboardRuntimeState> => {
+  const state = createRuntimeState(seed)
+  const allSolves = await getAllSolvesOrdered(db)
+
+  const batchResult = processSolveBatch(state, allSolves, now)
+  state.processedSolveCount = batchResult.consumedSolveCount
+  state.lastSolveCursor = batchResult.lastConsumedSolveCursor
+
+  return state
+}
+
+export const getCurrentScoreProviderIdentity = (): string =>
+  `${config.scoreProvider.name}@${scoreProvider.revision}`
+
+export const calculateLeaderboard = async (
+  db: DatabaseClient
+): Promise<CalculatedLeaderboard> => {
+  const now = Date.now()
+  const providerIdentity = getCurrentScoreProviderIdentity()
+  const [dbUsers, dbChallenges] = await Promise.all([
+    getUsersSnapshot(db),
+    getPublicChallengesSnapshot(db),
+  ])
+  const runtimeState = await rebuildRuntimeState(
+    db,
+    {
+      providerIdentity,
+      challengesFingerprint: buildChallengesFingerprint(dbChallenges),
+      dbUsers,
+      dbChallenges,
+    },
+    now
+  )
+  return cloneCalculatedLeaderboard(runtimeState, now)
+}
+
+export const createCachedLeaderboardCalculator = () => {
+  let state: LeaderboardRuntimeState | null = null
+  return async (
+    db: DatabaseClient,
+    providerIdentityOverride?: string
+  ): Promise<CachedLeaderboardComputation> => {
+    const now = Date.now()
+    const providerIdentity =
+      providerIdentityOverride ?? getCurrentScoreProviderIdentity()
+    const [dbUsers, dbChallenges] = await Promise.all([
+      getUsersSnapshot(db),
+      getPublicChallengesSnapshot(db),
+    ])
+
+    const challengesFingerprint = buildChallengesFingerprint(dbChallenges)
+
+    const rebuild = async (): Promise<CachedLeaderboardComputation> => {
+      const [freshUsers, freshChallenges] = await Promise.all([
+        getUsersSnapshot(db),
+        getPublicChallengesSnapshot(db),
+      ])
+      state = await rebuildRuntimeState(
+        db,
+        {
+          providerIdentity,
+          challengesFingerprint: buildChallengesFingerprint(freshChallenges),
+          dbUsers: freshUsers,
+          dbChallenges: freshChallenges,
+        },
+        now
+      )
+
+      return {
+        calculated: cloneCalculatedLeaderboard(state, now),
+        changed: true,
+        recomputedFromScratch: true,
+      }
+    }
+
+    // initial
+    if (!state) {
+      return await rebuild()
+    }
+
+    // provider changed
+    if (state.providerIdentity !== providerIdentity) {
+      return await rebuild()
+    }
+
+    // challenges changed
+    if (state.challengesFingerprint !== challengesFingerprint) {
+      return await rebuild()
+    }
+
+    // user changes don't affect scoring
+    const usersChanged = patchUsers(state, dbUsers)
+    const deltaSolves = await getSolvesAfterCursor(db, state.lastSolveCursor)
+
+    if (deltaSolves.length === 0) {
+      // verify no solves were deleted while none were added
+      const totalSolves = await getSolveCount(db)
+      if (totalSolves !== state.processedSolveCount) {
+        return await rebuild()
+      }
+
+      return {
+        calculated: cloneCalculatedLeaderboard(state, now),
+        changed: usersChanged,
+        recomputedFromScratch: false,
+      }
+    }
+
+    // validate delta matches expected count (detects deletes + re-inserts)
+    const totalSolves = await getSolveCount(db)
+    const expectedDelta = totalSolves - state.processedSolveCount
+    if (deltaSolves.length !== expectedDelta) {
+      return await rebuild()
+    }
+
+    const batchResult = processSolveBatch(state, deltaSolves, now)
+    if (batchResult.hadUnappliedSolves) {
+      return await rebuild()
+    }
+
+    state.processedSolveCount += batchResult.consumedSolveCount
+    if (batchResult.lastConsumedSolveCursor) {
+      state.lastSolveCursor = batchResult.lastConsumedSolveCursor
+    }
+
+    return {
+      calculated: cloneCalculatedLeaderboard(state, now),
+      changed: batchResult.changed || usersChanged,
+      recomputedFromScratch: false,
+    }
   }
 }
 

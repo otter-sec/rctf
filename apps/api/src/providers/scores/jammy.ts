@@ -7,6 +7,7 @@ interface JammyOptions {
 // Reference Python implementation:
 // https://github.com/RealJammy/Jammy-Scoring
 export default class JammyProvider implements ScoreProvider {
+  readonly revision = '1'
   readonly requiredFields: readonly ScoreContextField[] = [
     'minPoints',
     'maxPoints',

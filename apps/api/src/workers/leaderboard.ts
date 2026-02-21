@@ -1,13 +1,19 @@
 import { config } from '@rctf/config'
 import { createDatabase } from '@rctf/db'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
-import { calculateLeaderboard } from '../services/leaderboard'
+import { createCachedLeaderboardCalculator } from '../services/leaderboard'
 import { createRedis } from '../util/redis'
+import { pino } from 'pino'
 
+const logger = pino().child({ module: 'leaderboard-worker' })
 const { db } = createDatabase(config.database.sql)
 const redis = await createRedis()
+let calculateCachedLeaderboard = createCachedLeaderboardCalculator()
 
 let running = false
+let lastUpdatedAt = 0
+let consecutiveFailures = 0
+let pendingCacheWrite = false
 const tick = async () => {
   if (running) {
     return
@@ -15,10 +21,31 @@ const tick = async () => {
 
   running = true
   try {
-    const calculated = await calculateLeaderboard(db)
-    await cacheLeaderboardAndGraph(redis, calculated)
+    const currentTime = Date.now()
+    const result = await calculateCachedLeaderboard(db)
+
+    let shouldCache = result.changed || pendingCacheWrite
+    if (!shouldCache) {
+      shouldCache = currentTime - lastUpdatedAt > 60_000
+    }
+
+    if (shouldCache) {
+      pendingCacheWrite = true
+      await cacheLeaderboardAndGraph(redis, result.calculated)
+      pendingCacheWrite = false
+      lastUpdatedAt = currentTime
+    }
+
+    consecutiveFailures = 0
   } catch (err) {
-    console.error('leaderboard update failed', err)
+    consecutiveFailures++
+    logger.error({ err }, 'leaderboard update failed')
+
+    if (consecutiveFailures >= 3) {
+      logger.warn('resetting leaderboard cache')
+      calculateCachedLeaderboard = createCachedLeaderboardCalculator()
+      consecutiveFailures = 0
+    }
   } finally {
     running = false
   }
