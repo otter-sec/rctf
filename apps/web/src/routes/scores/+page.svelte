@@ -212,6 +212,34 @@
     }
   }
 
+  let listScrollMargin = $state(0)
+
+  let showTopFade = $state(false)
+  let showBottomFade = $state(false)
+  let showLeftFade = $state(false)
+  let showRightFade = $state(false)
+
+  function updateFades(metrics: ScrollMetrics) {
+    const threshold = 10
+    const nextTop = metrics.scrollTop > threshold
+    const nextBottom = metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold
+    const nextLeft = metrics.scrollLeft > threshold
+    const nextRight = metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold
+
+    if (showTopFade !== nextTop) showTopFade = nextTop
+    if (showBottomFade !== nextBottom) showBottomFade = nextBottom
+    if (showLeftFade !== nextLeft) showLeftFade = nextLeft
+    if (showRightFade !== nextRight) showRightFade = nextRight
+  }
+
+  const scroll = useInfiniteVirtualScroll({
+    rowHeight: ROW_HEIGHT,
+    overscan: 5,
+    isScrollingResetDelay: 100,
+    onLoadMore: () => leaderboardQuery.fetchNextPage(),
+    onScroll: updateFades,
+  })
+
   const userEntryIndex = $derived(
     currentUser ? entries.findIndex(e => e.id === currentUser.id) : -1
   )
@@ -360,25 +388,6 @@
   }
 
   let headerRowRef = $state<HTMLElement | null>(null)
-  let listScrollMargin = $state(0)
-
-  let showTopFade = $state(false)
-  let showBottomFade = $state(false)
-  let showLeftFade = $state(false)
-  let showRightFade = $state(false)
-
-  function updateFades(metrics: ScrollMetrics) {
-    const threshold = 10
-    const nextTop = metrics.scrollTop > threshold
-    const nextBottom = metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold
-    const nextLeft = metrics.scrollLeft > threshold
-    const nextRight = metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold
-
-    if (showTopFade !== nextTop) showTopFade = nextTop
-    if (showBottomFade !== nextBottom) showBottomFade = nextBottom
-    if (showLeftFade !== nextLeft) showLeftFade = nextLeft
-    if (showRightFade !== nextRight) showRightFade = nextRight
-  }
 
   function updateFadesFromViewport() {
     const viewport = scroll.state.viewportRef
@@ -392,14 +401,6 @@
       clientWidth: viewport.clientWidth,
     })
   }
-
-  const scroll = useInfiniteVirtualScroll({
-    rowHeight: ROW_HEIGHT,
-    overscan: 5,
-    isScrollingResetDelay: 100,
-    onLoadMore: () => leaderboardQuery.fetchNextPage(),
-    onScroll: updateFades,
-  })
 
   const contentWidth = $derived.by(() => {
     const cellCount = viewMode === 'categories' ? categoryGroups.length : challenges.length
