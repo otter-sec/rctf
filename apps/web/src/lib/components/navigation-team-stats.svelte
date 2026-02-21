@@ -2,7 +2,7 @@
   import { Layer, Chart as LayerChart, Spline } from 'layerchart'
   import { useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
   import { cn, getTimeOrdinal } from '$lib/utils'
-  import { CUTOFF_TIME, SPARKLINE_WINDOW } from '../../routes/scores/constants'
+  import { CUTOFF_TIME, SPARKLINE_WINDOW } from '$lib/constants/scores'
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)

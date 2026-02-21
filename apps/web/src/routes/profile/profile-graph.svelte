@@ -4,7 +4,7 @@
   import { useClientConfig } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
-  import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '../scores/constants'
+  import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()

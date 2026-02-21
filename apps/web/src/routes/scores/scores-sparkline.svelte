@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Layer, Chart as LayerChart, Spline } from 'layerchart'
-  import { MEDAL_COLORS, RANK_COLORS, SELF_COLOR } from './constants'
+  import { MEDAL_COLORS, RANK_COLORS, SELF_COLOR } from '$lib/constants/scores'
 
   interface Props {
     data: { time: number; score: number }[]

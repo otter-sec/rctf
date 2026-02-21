@@ -16,7 +16,7 @@
     RANK_COLORS,
     SELF_COLOR,
     X_AXIS_DIVISIONS,
-  } from './constants'
+  } from '$lib/constants/scores'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()

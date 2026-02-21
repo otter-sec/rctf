@@ -21,7 +21,7 @@
   } from '$lib/utils/categories'
   import { formatLocalTime } from '$lib/utils/time'
 
-  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from './constants'
+  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from '$lib/constants/scores'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'
