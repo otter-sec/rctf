@@ -1,4 +1,5 @@
 import { describe, test, expect, beforeAll } from 'bun:test'
+import { createServer } from 'node:net'
 import {
   runChallenge,
   challengeSource,
@@ -219,31 +220,54 @@ for (const browser of browsers) {
     }, 30_000)
 
     test('captures failed network requests', async () => {
+      const resetServer = createServer(socket => {
+        socket.destroy()
+      })
+      await new Promise<void>((resolve, reject) => {
+        resetServer.once('error', reject)
+        resetServer.listen(0, '127.0.0.1', () => {
+          resetServer.off('error', reject)
+          resolve()
+        })
+      })
+
+      const address = resetServer.address()
+      if (!address || typeof address === 'string') {
+        throw new Error('failed to bind reset server')
+      }
+
+      const failingUrl = `http://127.0.0.1:${address.port}/nonexistent`
       const url = htmlPage(`
         <script>
           setTimeout(() => {
-            fetch('http://localhost:9999/nonexistent.png').catch(() => {})
-          }, 300)
+            fetch('${failingUrl}').catch(() => {})
+          }, 100)
         </script>
       `)
 
-      const result = await runChallenge({
-        source: challengeSource({
-          handler: `
+      try {
+        const result = await runChallenge({
+          source: challengeSource({
+            handler: `
     const page = await ctx.browserContext.newPage()
     await page.goto('${url}')
     await new Promise(r => setTimeout(r, 2000))`,
-          browser,
-        }),
-      })
+            browser,
+          }),
+        })
 
-      expect(result.success).toBe(true)
-      const networkErrors = result.parsed.filter(l => l.prefix === 'network')
-      expect(
-        networkErrors.some(
-          l => l.line.includes('localhost:9999') && l.line.includes('failed')
-        )
-      ).toBe(true)
+        expect(result.success).toBe(true)
+        const networkErrors = result.parsed.filter(l => l.prefix === 'network')
+        expect(
+          networkErrors.some(
+            l => l.line.includes(failingUrl) && l.line.includes('failed')
+          )
+        ).toBe(true)
+      } finally {
+        await new Promise<void>(resolve => {
+          resetServer.close(() => resolve())
+        })
+      }
     }, 30_000)
 
     test('suppressed when showBrowserErrors is false', async () => {
