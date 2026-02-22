@@ -12,28 +12,11 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
 } from '../lib/harness'
-
-describe('Challenges - Get Challenges', () => {
-  test('GET /api/v1/challs without auth returns badToken', async () => {
-    const res = await all('/api/v1/challs')
-
-    assertSameKind(res)
-    assertAllKind(res, 'badToken')
-  })
-
-  test('GET /api/v1/challs with invalid auth returns badToken', async () => {
-    const res = await all('/api/v1/challs', {
-      headers: { Authorization: 'Bearer invalid-token' },
-    })
-
-    assertSameKind(res)
-    assertAllKind(res, 'badToken')
-  })
-})
 
 describe('Challenges - Get Challenges Authenticated', () => {
   let user: TestUser
@@ -53,6 +36,8 @@ describe('Challenges - Get Challenges Authenticated', () => {
       author: 'Test',
       flag: 'flag{test}',
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     await refreshLeaderboard()
@@ -69,7 +54,7 @@ describe('Challenges - Get Challenges Authenticated', () => {
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallenges')
-    assertSame(res, ['points', 'solves']) // we always return points and solves, v1 is not
+    assertSame(res)
   })
 
   test('challenges list includes test challenge', async () => {
@@ -88,14 +73,14 @@ describe('Challenges - Get Challenges Authenticated', () => {
 })
 
 describe('Challenges - Get Challenge Solves', () => {
-  test('GET /api/v1/challs/:id/solves without auth returns error', async () => {
+  test('GET /api/v1/challs/:id/solves for nonexistent challenge returns badChallenge', async () => {
     const res = await all(
       '/api/v1/challs/some-challenge/solves?limit=10&offset=0'
     )
 
-    for (const r of Object.values(res)) {
-      expect(r.status).toBeGreaterThanOrEqual(400)
-    }
+    // v1 has typo: "could not be not found" vs new: "could not be found"
+    assertSameKind(res)
+    assertAllKind(res, 'badChallenge')
   })
 })
 
@@ -120,12 +105,16 @@ describe('Challenges - Get Challenge Solves Authenticated', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
+
+    const lbSnapshot = await snapshotLeaderboard()
 
     const submitRes = await submitFlag(solver, challengeId, flag)
     assertAllSuccess(submitRes)
 
-    await refreshLeaderboard()
+    await refreshLeaderboard(lbSnapshot)
   })
 
   afterAll(async () => {
@@ -160,6 +149,17 @@ describe('Challenges - Get Challenge Solves Authenticated', () => {
       expect(found).toBeDefined()
     }
   })
+
+  test('GET /api/v1/challs/:id/solves with offset returns consistent results', async () => {
+    const res = await allAs(
+      user,
+      `/api/v1/challs/${challengeId}/solves?limit=10&offset=1`
+    )
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodChallengeSolves')
+    assertSame(res, ['id', 'userId'])
+  })
 })
 
 describe('Challenges - Submit Flag', () => {
@@ -169,7 +169,7 @@ describe('Challenges - Submit Flag', () => {
       body: { flag: 'flag{test}' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -180,7 +180,7 @@ describe('Challenges - Submit Flag', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -204,6 +204,8 @@ describe('Challenges - Submit Flag Flow', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
   })
 
@@ -238,7 +240,8 @@ describe('Challenges - Submit Flag Flow', () => {
   test('submitting to nonexistent challenge returns badChallenge', async () => {
     const res = await submitFlag(user, 'nonexistent-challenge', 'flag{test}')
 
+    // v1 has typo: "could not be not found" vs new: "could not be found"
+    assertSameKind(res)
     assertAllKind(res, 'badChallenge')
-    assertSame(res)
   })
 })

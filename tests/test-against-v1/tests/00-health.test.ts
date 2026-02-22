@@ -49,4 +49,10 @@ describe('Health Check', () => {
     assertAllSuccess(res)
     assertSame(res)
   })
+
+  test('GET /api/v1/nonexistent returns badEndpoint', async () => {
+    const res = await all('/api/v1/nonexistent')
+
+    assertSame(res)
+  })
 })

@@ -1,10 +1,12 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
   all,
+  allAs,
   assertAllKind,
   assertSame,
   assertSameKind,
   cleanupUser,
+  loginWithTeamToken,
   registerUser,
   testId,
   type TestUser,
@@ -44,6 +46,16 @@ describe('Auth - Registration', () => {
 })
 
 describe('Auth - Login', () => {
+  let user: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('LoginUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
   test('POST /api/v1/auth/login without credentials returns error', async () => {
     const res = await all('/api/v1/auth/login', {
       method: 'POST',
@@ -79,6 +91,13 @@ describe('Auth - Login', () => {
       expect(r.status).toBeGreaterThanOrEqual(400)
     }
   })
+
+  test('POST /api/v1/auth/login with valid teamToken returns goodLogin', async () => {
+    const res = await loginWithTeamToken(user)
+
+    assertAllKind(res, 'goodLogin')
+    assertSame(res, ['authToken'])
+  })
 })
 
 describe('Auth - Recover', () => {
@@ -100,7 +119,7 @@ describe('Auth - Verify', () => {
       body: { verifyToken: 'invalid-verify-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badTokenVerification')
   })
 
@@ -118,10 +137,20 @@ describe('Auth - Verify', () => {
 })
 
 describe('Auth - Test Auth', () => {
+  let user: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('AuthTestUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
   test('GET /api/v1/auth/test without auth returns badToken', async () => {
     const res = await all('/api/v1/auth/test')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -130,7 +159,14 @@ describe('Auth - Test Auth', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
+  })
+
+  test('GET /api/v1/auth/test with valid auth returns goodToken', async () => {
+    const res = await allAs(user, '/api/v1/auth/test')
+
+    assertSame(res)
+    assertAllKind(res, 'goodToken')
   })
 })

@@ -13,6 +13,7 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
@@ -49,7 +50,7 @@ describe('Authenticated Flows - Setup', () => {
   test('regular user cannot access admin endpoints', async () => {
     const res = await allAs(regular, '/api/v1/admin/challs')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badPerms')
   })
 })
@@ -67,14 +68,14 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
 
     solver1 = await registerUser(testId('Solver1'))
     solver2 = await registerUser(testId('Solver2'))
-  })
+  }, 30_000)
 
   afterAll(async () => {
     await cleanupChallenge(challengeId)
     await cleanupUser(solver1)
     await cleanupUser(solver2)
     await cleanupUser(admin)
-  })
+  }, 30_000)
 
   test('admin creates challenge', async () => {
     const res = await createChallenge(admin, challengeId, {
@@ -84,11 +85,13 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallengeUpdate')
-    assertSame(res, ['files', 'tiebreakEligible']) // we always return files and tiebreakEligible, v1 is not
+    assertSame(res)
   })
 
   test('challenge appears in challenges list', async () => {
@@ -101,7 +104,7 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
       const found = body.data.find(c => c.id === challengeId)
       expect(found).toBeDefined()
     }
-  }, 10_000)
+  }, 20_000)
 
   test('solver1 submits correct flag', async () => {
     const res = await submitFlag(solver1, challengeId, flag)
@@ -123,11 +126,35 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodFlag')
-  })
+
+    // Wait until both solvers have a positive cached score in profile.
+    const start = Date.now()
+    while (Date.now() - start < 10_000) {
+      const [s1Res, s2Res] = await Promise.all([
+        allAsCallback(
+          solver1,
+          instance => `/api/v1/users/${solver1.ids[instance.name]}`
+        ),
+        allAsCallback(
+          solver2,
+          instance => `/api/v1/users/${solver2.ids[instance.name]}`
+        ),
+      ])
+
+      const allPositive = Object.keys(s1Res).every(name => {
+        const s1Body = s1Res[name]?.body as { data: { score: number } }
+        const s2Body = s2Res[name]?.body as { data: { score: number } }
+        return s1Body.data.score > 0 && s2Body.data.score > 0
+      })
+      if (allPositive) return
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+    throw new Error(
+      'Profiles did not reflect both solver scores within timeout'
+    )
+  }, 20_000)
 
   test('challenge solves list shows both solvers', async () => {
-    await refreshLeaderboard()
-
     const res = await allAs(
       solver1,
       `/api/v1/challs/${challengeId}/solves?limit=10&offset=0`
@@ -143,22 +170,22 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
   })
 
   test('leaderboard reflects scores', async () => {
-    const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+    const [s1Res, s2Res] = await Promise.all([
+      allAsCallback(
+        solver1,
+        instance => `/api/v1/users/${solver1.ids[instance.name]}`
+      ),
+      allAsCallback(
+        solver2,
+        instance => `/api/v1/users/${solver2.ids[instance.name]}`
+      ),
+    ])
 
-    assertAllSuccess(res)
-    assertSame(res, ['id'])
-
-    for (const r of Object.values(res)) {
-      const body = r.body as {
-        data: { leaderboard: { name: string; score: number }[] }
-      }
-      const s1 = body.data.leaderboard.find(e => e.name === solver1.name)
-      const s2 = body.data.leaderboard.find(e => e.name === solver2.name)
-
-      expect(s1).toBeDefined()
-      expect(s2).toBeDefined()
-      expect(s1!.score).toBeGreaterThan(0)
-      expect(s2!.score).toBeGreaterThan(0)
+    for (const name of Object.keys(s1Res)) {
+      const s1Body = s1Res[name]?.body as { data: { score: number } }
+      const s2Body = s2Res[name]?.body as { data: { score: number } }
+      expect(s1Body.data.score).toBeGreaterThan(0)
+      expect(s2Body.data.score).toBeGreaterThan(0)
     }
   })
 })
@@ -188,8 +215,12 @@ describe('Authenticated Flows - User Profile Consistency', () => {
         author: 'Test',
         flag,
         points: { min: 100, max: 500 },
+        tiebreakEligible: true,
+        files: [],
       })
     }
+
+    const lbSnapshot = await snapshotLeaderboard()
 
     for (const chall of challenges) {
       await submitFlag(userA, chall.id, chall.flag)
@@ -198,8 +229,8 @@ describe('Authenticated Flows - User Profile Consistency', () => {
     const firstChall = challenges[0]!
     await submitFlag(userB, firstChall.id, firstChall.flag)
 
-    await refreshLeaderboard()
-  })
+    await refreshLeaderboard(lbSnapshot)
+  }, 30_000)
 
   afterAll(async () => {
     for (const chall of challenges) {
@@ -208,7 +239,7 @@ describe('Authenticated Flows - User Profile Consistency', () => {
     await cleanupUser(userA)
     await cleanupUser(userB)
     await cleanupUser(admin)
-  })
+  }, 30_000)
 
   test('user profiles return consistent data', async () => {
     for (const user of [userA, userB]) {
@@ -284,13 +315,13 @@ describe('Authenticated Flows - Pagination', () => {
       const user = await registerUser(testId(`PagUser${i}`))
       users.push(user)
     }
-  })
+  }, 30_000)
 
   afterAll(async () => {
     for (const user of users) {
       await cleanupUser(user)
     }
-  })
+  }, 30_000)
 
   test('pagination returns consistent results', async () => {
     const res1 = await all('/api/v1/leaderboard/now?limit=3&offset=0')

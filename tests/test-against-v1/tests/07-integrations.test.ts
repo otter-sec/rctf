@@ -12,22 +12,21 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
 } from '../lib/harness'
 
 describe('Integrations - CTFtime Callback', () => {
-  test('POST /api/v1/integrations/ctftime/callback returns error when ctftime not configured', async () => {
+  test('POST /api/v1/integrations/ctftime/callback with code returns badEndpoint when not configured', async () => {
     const res = await all('/api/v1/integrations/ctftime/callback', {
       method: 'POST',
       body: { ctftimeCode: 'fake-code' },
     })
 
-    // Both should return an error (badEndpoint or similar)
-    for (const r of Object.values(res)) {
-      expect(r.status).toBeGreaterThanOrEqual(400)
-    }
+    assertSame(res)
+    assertAllKind(res, 'badEndpoint')
   })
 
   test('POST /api/v1/integrations/ctftime/callback without code returns error', async () => {
@@ -47,7 +46,7 @@ describe('Integrations - CTFtime Leaderboard', () => {
   test('GET /api/v1/integrations/ctftime/leaderboard without auth returns badToken', async () => {
     const res = await all('/api/v1/integrations/ctftime/leaderboard')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -56,7 +55,7 @@ describe('Integrations - CTFtime Leaderboard', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -115,18 +114,23 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     // Create users who solve the challenge
     for (let i = 0; i < 3; i++) {
       const user = await registerUser(testId(`IntUser${i}`))
       users.push(user)
+    }
 
+    const lbSnapshot = await snapshotLeaderboard()
+    for (const user of users) {
       const submitRes = await submitFlag(user, challengeId, flag)
       assertAllSuccess(submitRes)
     }
 
-    await refreshLeaderboard()
+    await refreshLeaderboard(lbSnapshot)
   })
 
   afterAll(async () => {
@@ -138,17 +142,32 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
   })
 
   test('ctftime leaderboard returns consistent data', async () => {
-    await refreshLeaderboard()
     const res = await allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
 
     assertAllSuccess(res)
     assertSame(res)
-  }, 10_000)
+  })
 
   test('ctftime leaderboard has standings', async () => {
-    const res = await allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
+    const start = Date.now()
+    while (Date.now() - start < 10_000) {
+      const res = await allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
+      const allHaveStandings = Object.values(res).every(r => {
+        const body = r.body as {
+          standings: { team: string; score: number }[]
+        }
+        return Array.isArray(body.standings) && body.standings.length > 0
+      })
 
-    for (const r of Object.values(res)) {
+      if (allHaveStandings) return
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    const finalRes = await allAs(
+      admin,
+      '/api/v1/integrations/ctftime/leaderboard'
+    )
+    for (const r of Object.values(finalRes)) {
       const body = r.body as {
         standings: { team: string; score: number }[]
       }
