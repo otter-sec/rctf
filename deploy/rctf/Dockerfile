@@ -70,7 +70,15 @@ COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
 COPY --from=build /app/apps/api/dist ./apps/api/dist
 COPY --from=prod-deps /app/node_modules ./node_modules
 
-COPY --from=build /app/packages ./packages
+COPY --from=build /app/packages/config/package.json ./packages/config/package.json
+COPY --from=build /app/packages/db/package.json ./packages/db/package.json
+COPY --from=build /app/packages/types/package.json ./packages/types/package.json
+COPY --from=build /app/packages/util/package.json ./packages/util/package.json
+COPY --from=build /app/packages/config/src ./packages/config/src
+COPY --from=build /app/packages/db/src ./packages/db/src
+COPY --from=build /app/packages/db/migrations ./packages/db/migrations
+COPY --from=build /app/packages/types/src ./packages/types/src
+COPY --from=build /app/packages/util/src ./packages/util/src
 COPY --from=build /app/apps/api/templates ./apps/api/templates
 
 COPY --from=build /app/package.json ./

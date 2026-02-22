@@ -1,4 +1,4 @@
-FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS build
 
 RUN apt-get update && apt-get install -yq --no-install-recommends \
     git \
@@ -8,7 +8,6 @@ WORKDIR /app
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
-ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=apps/docker-instancer/uv.lock,target=uv.lock \
@@ -19,6 +18,10 @@ COPY apps/docker-instancer/pyproject.toml apps/docker-instancer/uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+FROM python:3.14-slim-trixie
+
+WORKDIR /app
+COPY --from=build /app/.venv .venv/
 COPY apps/docker-instancer/instancer ./instancer/
 
 ENV PATH="/app/.venv/bin:$PATH"
