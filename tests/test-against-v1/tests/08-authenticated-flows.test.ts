@@ -127,6 +127,8 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
     assertAllSuccess(res)
     assertAllKind(res, 'goodFlag')
 
+    await Bun.sleep(5000)
+
     // Wait until both solvers have a positive cached score in profile.
     const start = Date.now()
     while (Date.now() - start < 10_000) {
@@ -274,6 +276,8 @@ describe('Authenticated Flows - User Profile Consistency', () => {
   })
 
   test('leaderboard order reflects solve counts', async () => {
+    await Bun.sleep(5000)
+
     const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
 
     assertAllSuccess(res)
