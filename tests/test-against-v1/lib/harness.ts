@@ -474,8 +474,34 @@ export async function cleanupSolves(challengeId: string): Promise<void> {
   })
 }
 
-export async function refreshLeaderboard(): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 4000))
+export async function snapshotLeaderboard(): Promise<Record<string, string>> {
+  const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+  return Object.fromEntries(
+    Object.entries(res).map(([name, r]) => [name, JSON.stringify(r.body)])
+  )
+}
+
+export async function refreshLeaderboard(
+  snapshot?: Record<string, string>,
+  timeout = 5000
+): Promise<boolean> {
+  if (!snapshot) {
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    return true
+  }
+
+  const start = Date.now()
+  while (Date.now() - start < timeout) {
+    const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+    const allChanged = Object.entries(snapshot).every(
+      ([name, prev]) => JSON.stringify(res[name]?.body) !== prev
+    )
+    if (allChanged) return true
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+
+  // A recomputation can legitimately produce the same visible top-N response.
+  return false
 }
 
 export function testId(prefix: string): string {

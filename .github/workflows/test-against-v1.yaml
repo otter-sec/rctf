@@ -36,11 +36,10 @@ jobs:
 
       - name: Start services
         working-directory: tests/test-against-v1
-        run: docker compose up -d --build --wait --wait-timeout 60
+        run: docker compose up --build -d
 
       - name: Run tests
-        working-directory: tests/test-against-v1
-        run: bun test tests/
+        run: bun run test:against-v1
 
       - name: Show logs on failure
         if: failure()

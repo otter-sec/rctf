@@ -1,4 +1,5 @@
 [test]
 preload = ["./setup.ts"]
 bail = true
+timeout = 15000
 

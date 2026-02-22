@@ -12,6 +12,7 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
@@ -108,10 +109,12 @@ describe('Challenges - Get Challenge Solves Authenticated', () => {
       files: [],
     })
 
+    const lbSnapshot = await snapshotLeaderboard()
+
     const submitRes = await submitFlag(solver, challengeId, flag)
     assertAllSuccess(submitRes)
 
-    await refreshLeaderboard()
+    await refreshLeaderboard(lbSnapshot)
   })
 
   afterAll(async () => {

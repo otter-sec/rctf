@@ -15,6 +15,7 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
@@ -426,11 +427,13 @@ describe('Users - Profile With Solves', () => {
       files: [],
     })
 
+    const lbSnapshot = await snapshotLeaderboard()
+
     // User solves the challenge
     const submitRes = await submitFlag(user, challengeId, flag)
     assertAllSuccess(submitRes)
 
-    await refreshLeaderboard()
+    await refreshLeaderboard(lbSnapshot)
   })
 
   afterAll(async () => {
@@ -458,9 +461,20 @@ describe('Users - Profile With Solves', () => {
   })
 
   test('user score is positive after solve', async () => {
-    const res = await allUserProfile(user)
+    const start = Date.now()
+    while (Date.now() - start < 10_000) {
+      const res = await allUserProfile(user)
+      const allPositive = Object.values(res).every(r => {
+        const body = r.body as { data: { score: number } }
+        return body.data.score > 0
+      })
 
-    for (const r of Object.values(res)) {
+      if (allPositive) return
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    const finalRes = await allUserProfile(user)
+    for (const r of Object.values(finalRes)) {
       const body = r.body as { data: { score: number } }
       expect(body.data.score).toBeGreaterThan(0)
     }

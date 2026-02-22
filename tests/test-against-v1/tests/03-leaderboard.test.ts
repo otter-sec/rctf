@@ -12,6 +12,7 @@ import {
   makeAdmin,
   refreshLeaderboard,
   registerUser,
+  snapshotLeaderboard,
   submitFlag,
   testId,
   type TestUser,
@@ -135,14 +136,17 @@ describe('Leaderboard - With Test Data', () => {
     for (let i = 0; i < 3; i++) {
       const user = await registerUser(testId(`LBSolver${i}`))
       solvers.push(user)
+    }
 
-      const submitRes = await submitFlag(user, challengeId, flag)
+    const lbSnapshot = await snapshotLeaderboard()
+    for (let i = 0; i < solvers.length; i++) {
+      const submitRes = await submitFlag(solvers[i]!, challengeId, flag)
       assertAllSuccess(submitRes)
       assertAllKind(submitRes, 'goodFlag')
     }
 
-    await refreshLeaderboard()
-  })
+    await refreshLeaderboard(lbSnapshot)
+  }, 30_000)
 
   afterAll(async () => {
     await cleanupChallenge(challengeId)
@@ -150,10 +154,9 @@ describe('Leaderboard - With Test Data', () => {
       await cleanupUser(user)
     }
     await cleanupUser(admin)
-  })
+  }, 30_000)
 
   test('leaderboard includes solvers with scores', async () => {
-    await refreshLeaderboard()
     const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
 
     assertAllSuccess(res)
@@ -168,5 +171,5 @@ describe('Leaderboard - With Test Data', () => {
       )
       expect(hasSolver).toBe(true)
     }
-  }, 10_000)
+  })
 })

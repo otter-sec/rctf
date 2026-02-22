@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "test": "bun test tests/"
+    "test": "bun test --timeout 15000 tests/"
   },
   "devDependencies": {
     "@types/bun": "latest",

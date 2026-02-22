@@ -14,7 +14,7 @@ endTime: 99999999999999
 userMembers: true
 
 leaderboard:
-  updateInterval: 1000
+  updateInterval: 500
 
 scoreProvider:
   # use v1 scoring
