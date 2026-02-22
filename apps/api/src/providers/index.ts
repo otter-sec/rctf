@@ -70,7 +70,7 @@ export const captchaProvider = (() => {
   return loadProvider(captchaProviders, config.captcha?.provider)
 })()
 
-export const bloodbotProviders = config.bloodbot?.destinations.map(
+export const bloodBotProviders = config.bloodBot?.destinations.map(
   ({ provider }) => loadProvider(messagesProviders, provider)!
 )
 

@@ -2,10 +2,10 @@ import { config } from '@rctf/config'
 import { getTimeOrdinal } from '@rctf/util'
 import type { ChallengeData, User } from '@rctf/db'
 import mustache from 'mustache'
-import { bloodbotProviders } from '../providers'
+import { bloodBotProviders } from '../providers'
 
 export const shouldNotifyBloodbot = (bloodNumber: number) => {
-  return config.bloodbot && bloodNumber <= config.bloodbot.bloodsCount
+  return config.bloodBot && bloodNumber <= config.bloodBot.bloodsCount
 }
 
 export const sendBloodMessage = async (
@@ -13,7 +13,7 @@ export const sendBloodMessage = async (
   challenge: ChallengeData,
   bloodNumber: number
 ) => {
-  if (!config.bloodbot) {
+  if (!config.bloodBot) {
     return
   }
 
@@ -21,8 +21,8 @@ export const sendBloodMessage = async (
   const bloodNumSentence = getTimeOrdinal(bloodNumber)
 
   await Promise.all(
-    config.bloodbot.destinations.map((destination, index) => {
-      const provider = bloodbotProviders![index]!
+    config.bloodBot.destinations.map((destination, index) => {
+      const provider = bloodBotProviders![index]!
 
       const view = {
         bloodNumSentence,

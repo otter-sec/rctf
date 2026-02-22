@@ -130,7 +130,7 @@ bun run dev
     #     - avatarUpload
     #     - adminBotSubmit
 
-    # bloodbot:
+    # bloodBot:
     #   bloodsCount: 1
     #   destinations:
     #     - provider:
@@ -142,6 +142,13 @@ bun run dev
     #         options:
     #           botToken: 'bot-token'
     #           chatId: 1337
+
+    # adminBot:
+    #   provider:
+    #     name: 'admin-bot/rctf-js'
+    #     options:
+    #       secretKey: beans
+    #       endpoint: 'http://admin-bot:21337'
 
     # avatarsModeration:
     #   provider:

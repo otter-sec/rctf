@@ -179,7 +179,7 @@ export const ServerConfigSchema = z.object({
   ),
 
   // First blood messages
-  bloodbot: z.optional(
+  bloodBot: z.optional(
     z.object({
       bloodsCount: z._default(z.number().check(z.minimum(1), z.maximum(3)), 1),
       destinations: z.pipe(
