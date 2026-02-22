@@ -1,7 +1,5 @@
-FROM oven/bun:1.3.9-alpine AS base
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.9-alpine AS build
 WORKDIR /app
-
-FROM base AS build
 
 RUN apk add --no-cache git
 
@@ -14,12 +12,12 @@ COPY apps/docs/ .
 ENV NODE_ENV=production
 RUN bun run build
 
-FROM base AS production
+FROM alpine:3.21 AS production
 
 RUN apk add --no-cache nginx nginx-mod-http-brotli
 COPY deploy/docs/nginx-static.conf /etc/nginx/http.d/default.conf
 
-COPY --from=build /app/docs/dist ./static
+COPY --from=build /app/docs/dist /app/static
 
 ENV NODE_ENV=production
 CMD ["/usr/sbin/nginx", "-g", "daemon off;"]

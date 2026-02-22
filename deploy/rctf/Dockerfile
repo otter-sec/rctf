@@ -1,7 +1,10 @@
-FROM oven/bun:1.3.9-alpine AS base
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.9-alpine AS build-base
 WORKDIR /app
 
-FROM base AS package-configs
+FROM oven/bun:1.3.9-alpine AS runtime-base
+WORKDIR /app
+
+FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
 COPY packages/config/package.json ./packages/config/
@@ -16,7 +19,7 @@ COPY apps/api/package.json ./apps/api/
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/web/package.json ./apps/web/
 
-FROM base AS deps
+FROM build-base AS deps
 
 COPY --from=package-configs /app/ ./
 RUN bun install \
@@ -30,7 +33,7 @@ RUN bun install \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
 
-FROM base AS prod-deps
+FROM runtime-base AS prod-deps
 
 COPY --from=package-configs /app/ ./
 RUN bun install \
@@ -45,7 +48,7 @@ RUN bun install \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
 
-FROM base AS build
+FROM build-base AS build
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=package-configs /app/package.json /app/bun.lock ./
@@ -58,7 +61,7 @@ ENV NODE_ENV=production
 RUN bun run --filter '@rctf/api' build
 RUN bun run --filter '@rctf/web' build
 
-FROM base AS production
+FROM runtime-base AS production
 
 RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
 COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
