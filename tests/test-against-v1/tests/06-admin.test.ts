@@ -20,7 +20,7 @@ describe('Admin - Get Admin Challenges', () => {
   test('GET /api/v1/admin/challs without auth returns badToken', async () => {
     const res = await all('/api/v1/admin/challs')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -29,7 +29,7 @@ describe('Admin - Get Admin Challenges', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -38,7 +38,7 @@ describe('Admin - Get Single Admin Challenge', () => {
   test('GET /api/v1/admin/challs/:id without auth returns badToken', async () => {
     const res = await all('/api/v1/admin/challs/some-challenge-id')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -47,7 +47,7 @@ describe('Admin - Get Single Admin Challenge', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -68,7 +68,7 @@ describe('Admin - Update Challenge', () => {
       },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -88,7 +88,7 @@ describe('Admin - Update Challenge', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -99,7 +99,7 @@ describe('Admin - Delete Challenge', () => {
       method: 'DELETE',
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -109,19 +109,19 @@ describe('Admin - Delete Challenge', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
 
 describe('Admin - Upload Files', () => {
+  // v1 validates body first (badBody), new validates auth first (badToken).
   test('POST /api/v1/admin/upload without auth returns error', async () => {
     const res = await all('/api/v1/admin/upload', {
       method: 'POST',
       body: {},
     })
 
-    // v1 validates body first (badBody), new validates auth first (badToken)
     for (const r of Object.values(res)) {
       expect(r.status).toBeGreaterThanOrEqual(400)
     }
@@ -134,9 +134,24 @@ describe('Admin - Upload Files', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    // v1 validates body first (badBody), new validates auth first (badToken)
     for (const r of Object.values(res)) {
       expect(r.status).toBeGreaterThanOrEqual(400)
+    }
+  })
+
+  test('POST /api/v1/admin/upload with valid admin auth and empty files returns same response', async () => {
+    const admin = await registerUser(testId('UploadAdmin'))
+    await makeAdmin(admin)
+
+    try {
+      const res = await allAs(admin, '/api/v1/admin/upload', {
+        method: 'POST',
+        body: { files: [] },
+      })
+
+      assertSame(res)
+    } finally {
+      await cleanupUser(admin)
     }
   })
 })
@@ -148,7 +163,7 @@ describe('Admin - Query Uploads', () => {
       body: { uploads: [] },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -159,7 +174,7 @@ describe('Admin - Query Uploads', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -178,7 +193,7 @@ describe('Admin - Permissions', () => {
   test('regular user cannot access admin endpoints', async () => {
     const res = await allAs(regularUser, '/api/v1/admin/challs')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badPerms')
   })
 })
@@ -205,11 +220,13 @@ describe('Admin - Challenge CRUD Flow', () => {
       author: 'Test',
       flag: 'flag{admin-crud}',
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallengeUpdate')
-    assertSame(res, ['files', 'tiebreakEligible']) // we always return files and tiebreakEligible, v1 is not
+    assertSame(res)
   })
 
   test('admin can list challenges', async () => {
@@ -245,13 +262,15 @@ describe('Admin - Challenge CRUD Flow', () => {
           author: 'Test',
           flag: 'flag{updated}',
           points: { min: 200, max: 600 },
+          tiebreakEligible: true,
+          files: [],
         },
       },
     })
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallengeUpdate')
-    assertSame(res, ['files', 'tiebreakEligible']) // we always return files and tiebreakEligible, v1 is not
+    assertSame(res)
   })
 
   test('admin can delete challenge', async () => {
@@ -265,6 +284,7 @@ describe('Admin - Challenge CRUD Flow', () => {
   test('deleted challenge is no longer accessible', async () => {
     const res = await allAs(admin, `/api/v1/admin/challs/${challengeId}`)
 
+    // v1 has typo: "could not be not found" vs new: "could not be found"
     assertSameKind(res)
     assertAllKind(res, 'badChallenge')
   })

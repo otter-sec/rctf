@@ -128,6 +128,7 @@ describe('Leaderboard - With Test Data', () => {
       flag,
       points: { min: 100, max: 500 },
       tiebreakEligible: true,
+      files: [],
     })
     assertAllSuccess(challRes)
 

@@ -4,7 +4,7 @@ services:
     image: ghcr.io/otter-sec/rctf-new:main
     build:
       context: ../../
-      dockerfile: deploy/docker/rctf.Dockerfile
+      dockerfile: deploy/rctf/Dockerfile
     restart: unless-stopped
     ports:
       - '127.0.0.1:8082:80'

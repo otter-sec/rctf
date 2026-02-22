@@ -18,16 +18,14 @@ import {
 } from '../lib/harness'
 
 describe('Integrations - CTFtime Callback', () => {
-  test('POST /api/v1/integrations/ctftime/callback returns error when ctftime not configured', async () => {
+  test('POST /api/v1/integrations/ctftime/callback with code returns badEndpoint when not configured', async () => {
     const res = await all('/api/v1/integrations/ctftime/callback', {
       method: 'POST',
       body: { ctftimeCode: 'fake-code' },
     })
 
-    // Both should return an error (badEndpoint or similar)
-    for (const r of Object.values(res)) {
-      expect(r.status).toBeGreaterThanOrEqual(400)
-    }
+    assertSame(res)
+    assertAllKind(res, 'badEndpoint')
   })
 
   test('POST /api/v1/integrations/ctftime/callback without code returns error', async () => {
@@ -47,7 +45,7 @@ describe('Integrations - CTFtime Leaderboard', () => {
   test('GET /api/v1/integrations/ctftime/leaderboard without auth returns badToken', async () => {
     const res = await all('/api/v1/integrations/ctftime/leaderboard')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -56,7 +54,7 @@ describe('Integrations - CTFtime Leaderboard', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -115,6 +113,8 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     // Create users who solve the challenge

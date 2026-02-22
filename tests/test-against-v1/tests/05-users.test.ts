@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
   all,
   allAs,
+  allAsCallback,
   allUserProfile,
   assertAllKind,
   assertAllSuccess,
@@ -10,6 +11,7 @@ import {
   cleanupChallenge,
   cleanupUser,
   createChallenge,
+  instances,
   makeAdmin,
   refreshLeaderboard,
   registerUser,
@@ -73,7 +75,7 @@ describe('Users - Get User Self (Authenticated)', () => {
   test('GET /api/v1/users/me without auth returns badToken', async () => {
     const res = await all('/api/v1/users/me')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -82,7 +84,7 @@ describe('Users - Get User Self (Authenticated)', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 })
@@ -123,7 +125,7 @@ describe('Users - Update User (Authenticated)', () => {
       body: { name: 'NewName' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -134,8 +136,59 @@ describe('Users - Update User (Authenticated)', () => {
       headers: { Authorization: 'Bearer invalid-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
+  })
+})
+
+describe('Users - Update User Name', () => {
+  let user: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('UpdateUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
+  test('PATCH /api/v1/users/me name update returns goodUserUpdate', async () => {
+    const newName = testId('Renamed')
+    const res = await allAs(user, '/api/v1/users/me', {
+      method: 'PATCH',
+      body: { name: newName },
+    })
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodUserUpdate')
+    assertSame(res)
+
+    user.name = newName
+  })
+})
+
+describe('Users - Update User Duplicate Name', () => {
+  let user: TestUser
+  let otherUser: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('DupUser'))
+    otherUser = await registerUser(testId('DupTarget'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+    await cleanupUser(otherUser)
+  })
+
+  test('PATCH /api/v1/users/me with duplicate name returns badKnownName', async () => {
+    const res = await allAs(user, '/api/v1/users/me', {
+      method: 'PATCH',
+      body: { name: otherUser.name },
+    })
+
+    assertAllKind(res, 'badKnownName')
+    assertSame(res)
   })
 })
 
@@ -143,7 +196,7 @@ describe('Users - Members (Authenticated)', () => {
   test('GET /api/v1/users/me/members without auth returns badToken', async () => {
     const res = await all('/api/v1/users/me/members')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -153,7 +206,7 @@ describe('Users - Members (Authenticated)', () => {
       body: { email: 'test@example.com' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -162,8 +215,87 @@ describe('Users - Members (Authenticated)', () => {
       method: 'DELETE',
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
+  })
+})
+
+describe('Users - Members CRUD Flow', () => {
+  let user: TestUser
+  const memberIds: Record<string, string> = {}
+
+  beforeAll(async () => {
+    user = await registerUser(testId('MemberUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
+  test('GET /api/v1/users/me/members returns empty list', async () => {
+    const res = await allAs(user, '/api/v1/users/me/members')
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodMemberData')
+    assertSame(res, ['id', 'userid'])
+  })
+
+  test('POST /api/v1/users/me/members creates member', async () => {
+    const res = await allAs(user, '/api/v1/users/me/members', {
+      method: 'POST',
+      body: { name: 'Test Member', email: 'member@test.local' },
+    })
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodMemberCreate')
+    assertSame(res, ['id', 'userid'])
+  })
+
+  test('GET /api/v1/users/me/members shows created member', async () => {
+    const res = await allAs(user, '/api/v1/users/me/members')
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodMemberData')
+    assertSame(res, ['id', 'userid'])
+
+    for (const instance of instances) {
+      const body = res[instance.name]?.body as {
+        data: { id: string }[]
+      }
+      if (body?.data?.[0]?.id) {
+        memberIds[instance.name] = body.data[0].id
+      }
+    }
+
+    for (const r of Object.values(res)) {
+      const body = r.body as { data: unknown[] }
+      expect(body.data.length).toBe(1)
+    }
+  })
+
+  test('DELETE /api/v1/users/me/members/:id deletes member', async () => {
+    const res = await allAsCallback(
+      user,
+      instance => `/api/v1/users/me/members/${memberIds[instance.name]}`,
+      { method: 'DELETE' }
+    )
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodMemberDelete')
+    assertSame(res)
+  })
+
+  test('GET /api/v1/users/me/members is empty again', async () => {
+    const res = await allAs(user, '/api/v1/users/me/members')
+
+    assertAllSuccess(res)
+    assertAllKind(res, 'goodMemberData')
+    assertSame(res, ['id', 'userid'])
+
+    for (const r of Object.values(res)) {
+      const body = r.body as { data: unknown[] }
+      expect(body.data.length).toBe(0)
+    }
   })
 })
 
@@ -174,7 +306,7 @@ describe('Users - Email (Authenticated)', () => {
       body: { email: 'test@example.com' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -183,8 +315,39 @@ describe('Users - Email (Authenticated)', () => {
       method: 'DELETE',
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
+  })
+})
+
+describe('Users - Email Flow', () => {
+  let user: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('EmailUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
+  test('PUT /api/v1/users/me/auth/email sets email (no email provider)', async () => {
+    const res = await allAs(user, '/api/v1/users/me/auth/email', {
+      method: 'PUT',
+      body: { email: 'newemail@test.local' },
+    })
+
+    assertAllKind(res, 'goodEmailSet')
+    assertSame(res)
+  })
+
+  test('DELETE /api/v1/users/me/auth/email returns badEndpoint (no email provider)', async () => {
+    const res = await allAs(user, '/api/v1/users/me/auth/email', {
+      method: 'DELETE',
+    })
+
+    assertAllKind(res, 'badEndpoint')
+    assertSame(res)
   })
 })
 
@@ -195,7 +358,7 @@ describe('Users - CTFtime (Authenticated)', () => {
       body: { ctftimeToken: 'fake-token' },
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
   })
 
@@ -204,8 +367,39 @@ describe('Users - CTFtime (Authenticated)', () => {
       method: 'DELETE',
     })
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badToken')
+  })
+})
+
+describe('Users - CTFtime Flow', () => {
+  let user: TestUser
+
+  beforeAll(async () => {
+    user = await registerUser(testId('CTFtimeUser'))
+  })
+
+  afterAll(async () => {
+    await cleanupUser(user)
+  })
+
+  test('PUT /api/v1/users/me/auth/ctftime returns badEndpoint (not configured)', async () => {
+    const res = await allAs(user, '/api/v1/users/me/auth/ctftime', {
+      method: 'PUT',
+      body: { ctftimeToken: 'fake-token' },
+    })
+
+    assertAllKind(res, 'badEndpoint')
+    assertSame(res)
+  })
+
+  test('DELETE /api/v1/users/me/auth/ctftime returns badEndpoint (not configured)', async () => {
+    const res = await allAs(user, '/api/v1/users/me/auth/ctftime', {
+      method: 'DELETE',
+    })
+
+    assertAllKind(res, 'badEndpoint')
+    assertSame(res)
   })
 })
 
@@ -228,6 +422,8 @@ describe('Users - Profile With Solves', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     // User solves the challenge

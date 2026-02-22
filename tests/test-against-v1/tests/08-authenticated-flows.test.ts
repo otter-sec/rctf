@@ -49,7 +49,7 @@ describe('Authenticated Flows - Setup', () => {
   test('regular user cannot access admin endpoints', async () => {
     const res = await allAs(regular, '/api/v1/admin/challs')
 
-    assertSameKind(res)
+    assertSame(res)
     assertAllKind(res, 'badPerms')
   })
 })
@@ -84,11 +84,13 @@ describe('Authenticated Flows - Challenge Lifecycle', () => {
       author: 'Test',
       flag,
       points: { min: 100, max: 500 },
+      tiebreakEligible: true,
+      files: [],
     })
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallengeUpdate')
-    assertSame(res, ['files', 'tiebreakEligible']) // we always return files and tiebreakEligible, v1 is not
+    assertSame(res)
   })
 
   test('challenge appears in challenges list', async () => {
@@ -188,6 +190,8 @@ describe('Authenticated Flows - User Profile Consistency', () => {
         author: 'Test',
         flag,
         points: { min: 100, max: 500 },
+        tiebreakEligible: true,
+        files: [],
       })
     }
 

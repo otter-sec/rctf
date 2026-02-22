@@ -24,7 +24,7 @@
     "test:admin-bot": "cd tests/admin-bot && bun test",
     "test:admin-bot:coverage": "cd tests/admin-bot && bun test --coverage",
     "test:admin-bot:e2e": "cd tests/admin-bot-e2e && bun test",
-    "test:integration": "cd tests/test-against-v1 && bun test",
+    "test:against-v1": "cd tests/test-against-v1 && bun test",
     "prettier": "prettier --write \"**/*.{ts,tsx,svelte,html,json}\" --ignore-path .gitignore",
     "typecheck": "bun run --filter '*' typecheck",
     "db:generate": "bun run --filter '@rctf/db' generate",

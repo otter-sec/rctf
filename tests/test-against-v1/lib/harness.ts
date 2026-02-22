@@ -342,6 +342,41 @@ export async function registerUser(name: string): Promise<TestUser> {
   return user
 }
 
+export async function loginWithTeamToken(
+  user: TestUser
+): Promise<AllResponses> {
+  const results = await Promise.all(
+    instances.map(async instance => {
+      const token = user.tokens[instance.name]
+      if (!token) {
+        throw new Error(
+          `No auth token for user ${user.name} on instance ${instance.name}`
+        )
+      }
+
+      const meRes = await req(instance.url, '/api/v1/users/me', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const meBody = meRes.body as { data?: { teamToken?: string } }
+      const teamToken = meBody.data?.teamToken
+      if (!teamToken) {
+        throw new Error(
+          `No teamToken for user ${user.name} on instance ${instance.name}`
+        )
+      }
+
+      return req(instance.url, '/api/v1/auth/login', {
+        method: 'POST',
+        body: { teamToken },
+      })
+    })
+  )
+
+  return Object.fromEntries(
+    instances.map((i, idx) => [i.name, results[idx] as ApiResponse])
+  )
+}
+
 export async function makeAdmin(user: TestUser): Promise<void> {
   for (const instance of instances) {
     const userId = user.ids[instance.name]
