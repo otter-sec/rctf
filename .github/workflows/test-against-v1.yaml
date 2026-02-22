@@ -1,0 +1,53 @@
+name: Test against v1
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: test-against-v1-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-against-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install test dependencies
+        working-directory: tests/test-against-v1
+        run: bun install --frozen-lockfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start services
+        working-directory: tests/test-against-v1
+        run: docker compose up -d --build --wait --wait-timeout 60
+
+      - name: Run tests
+        working-directory: tests/test-against-v1
+        run: bun test tests/
+
+      - name: Show logs on failure
+        if: failure()
+        working-directory: tests/test-against-v1
+        run: docker compose logs
+
+      - name: Stop services
+        if: always()
+        working-directory: tests/test-against-v1
+        run: docker compose down -v
