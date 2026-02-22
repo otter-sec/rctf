@@ -5,11 +5,13 @@
     GetAdminBotJobHistoryRouteV2,
     GetAdminBotJobLogsRouteV2,
     GetAdminBotJobStatusRouteV2,
+    ProtectedAction,
     SubmitAdminBotJobRouteV2,
   } from '@rctf/types'
   import { onMount } from 'svelte'
   import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
   import { Button, Input, ScrollArea } from '$lib/components'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import {
     IconAlertCircleFilled,
     IconChevronDown,
@@ -21,6 +23,7 @@
     IconLogin,
     IconSend,
   } from '$lib/icons'
+  import { useClientConfig } from '$lib/query'
   import { toast } from 'svelte-sonner'
 
   interface LogEntry {
@@ -43,6 +46,8 @@
 
   let { challengeId, inputs }: Props = $props()
 
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived(clientConfigQuery.data)
   const inputNames = $derived(Object.keys(inputs))
 
   let values = $state<Record<string, string>>({})
@@ -504,6 +509,7 @@
           <IconDownload class="size-4" />
           Download config
         </Button>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.AdminBotSubmit} />
       </div>
     </form>
   {/if}
