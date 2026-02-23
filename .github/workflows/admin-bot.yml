@@ -1,4 +1,4 @@
-name: Build and push admin-bot
+name: Build admin-bot
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
       - "deploy/admin-bot/Dockerfile"
 
 concurrency:
-  group: admin-bot
+  group: admin-bot-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

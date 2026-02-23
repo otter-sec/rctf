@@ -1,4 +1,4 @@
-name: Build and push docker-instancer
+name: Build docker-instancer
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - "deploy/docker-instancer/Dockerfile"
 
 concurrency:
-  group: docker-instancer
+  group: docker-instancer-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -1,4 +1,4 @@
-name: Build and push docs
+name: Build docs
 
 on:
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
       - "deploy/docs/nginx-static.conf"
 
 concurrency:
-  group: docs
+  group: docs-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

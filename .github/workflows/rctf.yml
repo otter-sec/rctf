@@ -1,4 +1,4 @@
-name: Build and push rctf
+name: Build rctf
 
 on:
   workflow_dispatch:
@@ -15,7 +15,7 @@ on:
       - "deploy/rctf/supervisord.conf"
 
 concurrency:
-  group: rctf
+  group: rctf-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

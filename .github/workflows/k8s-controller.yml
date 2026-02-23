@@ -1,4 +1,4 @@
-name: Build and push k8s-controller
+name: Build k8s-controller
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
       - "deploy/k8s-controller/Dockerfile"
 
 concurrency:
-  group: k8s-controller
+  group: k8s-controller-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
