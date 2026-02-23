@@ -18,6 +18,7 @@
     delta?: number
     sparklineData?: { time: number; score: number }[]
     isCurrentUser: boolean
+    divisionPlace?: number | null
   }
 
   interface Props {
@@ -91,6 +92,9 @@
           <span class={cn('text-base tabular-nums sm:text-xl', styles?.fgL0)}
             >#{data.rank ?? '?'}</span
           >
+          {#if data.divisionPlace}
+            <span class="text-foreground-l3 text-xs tabular-nums">#{data.divisionPlace}</span>
+          {/if}
         </div>
       </div>
 

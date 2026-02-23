@@ -146,6 +146,9 @@
 
   const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
   const isLoading = $derived(leaderboardQuery.isLoading || challengesQuery.isLoading)
+  const showDivision = $derived(
+    clientConfigQuery.data ? Object.keys(clientConfigQuery.data.divisions).length > 1 : false
+  )
 
   const challengesByCategory = $derived<ChallengeInfo[]>(
     Object.entries(challengesData)
@@ -701,6 +704,7 @@
                         delta: rankDeltaByTeam.get(entry.id),
                         sparklineData: sparklineDataByTeam.get(entry.id),
                         isCurrentUser: currentUser?.id === entry.id,
+                        divisionPlace: showDivision ? entry.divisionPlace : undefined,
                       }}
                       {solves}
                       {solveTimes}
@@ -752,6 +756,7 @@
                   delta: rankDeltaByTeam.get(currentUser.id),
                   sparklineData: sparklineDataByTeam.get(currentUser.id),
                   isCurrentUser: true,
+                  divisionPlace: showDivision ? currentUser.divisionPlace : undefined,
                 }}
                 solves={isLoading ? null : selfSolves}
                 solveTimes={isLoading ? null : selfSolveTimes}

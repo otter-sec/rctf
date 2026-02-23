@@ -201,7 +201,7 @@ bun run dev
 - [x] better file upload route
 - [x] specific position in solves
 - [x] in solves list for a chal return also team's scoreboard position (global + division)
-- [ ] in global leaderboard return division positions
+- [x] in global leaderboard return division positions
 - [x] delete a solve (admin only)
 - [x] resetting teams token (admin only)
 - [x] update client config (admin only)

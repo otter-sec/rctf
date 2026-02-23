@@ -22,6 +22,7 @@ import { invalidateUserCache } from '../cache/auth-cache'
 import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
+import { forceLeaderboardUpdate } from '../workers'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -121,6 +122,7 @@ export const updateUserInternal = async (
   }
 
   await invalidateUserCache(redis, id)
+  forceLeaderboardUpdate()
   return { success: true, user: updated! }
 }
 
