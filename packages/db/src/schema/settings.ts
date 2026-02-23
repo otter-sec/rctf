@@ -4,7 +4,7 @@ export interface EditableSponsor {
   name: string
   icon: string
   description: string
-  small?: boolean
+  url?: string
 }
 
 export interface EditableSettings {

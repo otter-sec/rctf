@@ -2,16 +2,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { toast } from '$lib'
   import { showApiError } from '$lib/api'
-  import {
-    Button,
-    Card,
-    Checkbox,
-    Field,
-    Input,
-    Markdown,
-    Spinner,
-    Textarea,
-  } from '$lib/components'
+  import { Button, Card, Field, Input, Markdown, Spinner, Textarea } from '$lib/components'
   import { IconPlus, IconX } from '$lib/icons'
   import {
     queryKeys,
@@ -33,7 +24,7 @@
   let homeContent = $state('')
   let metaDescription = $state('')
   let metaImageUrl = $state('')
-  let sponsors = $state<{ name: string; icon: string; description: string; small: boolean }[]>([])
+  let sponsors = $state<{ name: string; icon: string; description: string; url: string }[]>([])
 
   let overrides = $state<Record<string, boolean>>({})
   let initialized = $state(false)
@@ -54,7 +45,7 @@
         name: s.name,
         icon: s.icon,
         description: s.description,
-        small: s.small ?? false,
+        url: s.url ?? '',
       }))
 
       overrides = {
@@ -92,7 +83,7 @@
           name: s.name,
           icon: s.icon,
           description: s.description,
-          small: s.small ?? false,
+          url: s.url ?? '',
         }))
         break
       }
@@ -105,7 +96,7 @@
   }
 
   function addSponsor() {
-    sponsors = [...sponsors, { name: '', icon: '', description: '', small: false }]
+    sponsors = [...sponsors, { name: '', icon: '', description: '', url: '' }]
     markOverridden('sponsors')
   }
 
@@ -148,7 +139,7 @@
         name: s.name,
         icon: s.icon,
         description: s.description,
-        ...(s.small ? { small: true } : {}),
+        ...(s.url ? { url: s.url } : {}),
       }))
     } else if (settings?.overrides.sponsors !== undefined) {
       patch.sponsors = null
@@ -402,17 +393,18 @@
                 placeholder="Sponsor description"
               />
             </Field.Field>
-            <label class="flex items-center gap-2">
-              <Checkbox
-                checked={sponsor.small}
-                onCheckedChange={v => {
-                  sponsor.small = v === true
+            <Field.Field>
+              <Field.Label>URL</Field.Label>
+              <Input
+                value={sponsor.url}
+                oninput={e => {
+                  sponsor.url = e.currentTarget.value
                   sponsors = sponsors
                   markOverridden('sponsors')
                 }}
+                placeholder="https://..."
               />
-              <span class="text-foreground-l2 text-sm">Small</span>
-            </label>
+            </Field.Field>
           </div>
         {/each}
         {#if sponsors.length === 0}

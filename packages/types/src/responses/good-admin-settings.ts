@@ -10,7 +10,7 @@ export const AdminSettingsSchema = z.object({
         name: z.string(),
         icon: z.string(),
         description: z.string(),
-        small: z.optional(z.boolean()),
+        url: z.optional(z.string()),
       })
     )
   ),

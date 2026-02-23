@@ -261,7 +261,7 @@ describe('admin settings', () => {
           name: 'Beta',
           icon: 'https://beta.com/logo.png',
           description: 'B',
-          small: true,
+          url: 'https://beta.com',
         },
       ]
       const res = await request(app, '/api/v2/admin/settings', {

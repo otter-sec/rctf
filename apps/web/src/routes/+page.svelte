@@ -22,15 +22,49 @@
       <Card.Content>
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           {#each data.clientConfig.sponsors as sponsor (sponsor.name)}
-            <article class="bg-background-l2 flex flex-col gap-6 rounded-md p-4">
-              <img src={sponsor.icon} alt={sponsor.name} class="h-auto w-full p-2 dark:invert" />
-              <div class="flex flex-col gap-1">
-                <h3 class="font-medium">{sponsor.name}</h3>
-                <div class="prose max-w-none">
-                  {@html parseMarkdown(sponsor.description)}
+            {@const content = {
+              icon: sponsor.icon,
+              name: sponsor.name,
+              description: sponsor.description,
+            }}
+            {#if sponsor.url}
+              <a
+                href={sponsor.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="bg-background-l2 hover:bg-background-l3 flex flex-col gap-6 rounded-md p-4 transition-colors"
+              >
+                {#if content.icon}
+                  <img
+                    src={content.icon}
+                    alt={content.name}
+                    class="h-auto w-full p-2 dark:invert"
+                  />
+                {/if}
+                <div class="flex flex-col gap-1">
+                  <h3 class="font-medium">{content.name}</h3>
+                  <div class="prose max-w-none">
+                    {@html parseMarkdown(content.description)}
+                  </div>
                 </div>
-              </div>
-            </article>
+              </a>
+            {:else}
+              <article class="bg-background-l2 flex flex-col gap-6 rounded-md p-4">
+                {#if content.icon}
+                  <img
+                    src={content.icon}
+                    alt={content.name}
+                    class="h-auto w-full p-2 dark:invert"
+                  />
+                {/if}
+                <div class="flex flex-col gap-1">
+                  <h3 class="font-medium">{content.name}</h3>
+                  <div class="prose max-w-none">
+                    {@html parseMarkdown(content.description)}
+                  </div>
+                </div>
+              </article>
+            {/if}
           {/each}
         </div>
       </Card.Content>

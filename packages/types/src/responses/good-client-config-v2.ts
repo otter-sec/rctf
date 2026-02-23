@@ -17,7 +17,7 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
         name: z.string(),
         icon: z.string(),
         description: z.string(),
-        small: z.optional(z.boolean()),
+        url: z.optional(z.string()),
       })
     ),
     analytics: z.nullable(

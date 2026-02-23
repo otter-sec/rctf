@@ -16,7 +16,7 @@ export const GoodClientConfig = response('goodClientConfig', {
         name: z.string(),
         icon: z.string(),
         description: z.string(),
-        small: z.optional(z.boolean()),
+        url: z.optional(z.string()),
       })
     ),
     globalSiteTag: z.nullish(z.string()),
