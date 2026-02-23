@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
+  AdminSettingsSchema,
   BadAdminBotConfig,
   BadBody,
   BadChallenge,
@@ -18,6 +19,8 @@ import {
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  GoodAdminSettings,
+  GoodAdminSettingsUpdate,
   GoodAdminUsersV2,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
@@ -195,6 +198,49 @@ export const CompleteAdminBotJobRouteV2 = defineRoute({
   badResponses: [BadEndpoint],
   authRequired: false, // adminbot auth will be checked by the middleware
   params: z.object({ id: z.string() }),
+})
+
+export const GetAdminSettingsRouteV2 = defineRoute({
+  path: '/v2/admin/settings',
+  method: 'GET',
+  goodResponses: [GoodAdminSettings],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.settingsWrite,
+})
+
+const AdminSettingsUpdateBody = z.object({
+  data: z.object({
+    ctfName: z.nullish(z.string()),
+    homeContent: z.nullish(z.string()),
+    sponsors: z.nullish(
+      z.array(
+        z.object({
+          name: z.string(),
+          icon: z.string(),
+          description: z.string(),
+          small: z.optional(z.boolean()),
+        })
+      )
+    ),
+    meta: z.nullish(
+      z.object({
+        description: z.optional(z.string()),
+        imageUrl: z.optional(z.string()),
+      })
+    ),
+    faviconUrl: z.nullish(z.string()),
+  }),
+})
+
+export const UpdateAdminSettingsRouteV2 = defineRoute({
+  path: '/v2/admin/settings',
+  method: 'PUT',
+  body: AdminSettingsUpdateBody,
+  goodResponses: [GoodAdminSettingsUpdate],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.settingsWrite,
 })
 
 export const FailAdminBotJobRouteV2 = defineRoute({

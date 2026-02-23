@@ -24,6 +24,7 @@
     IconHomeFilled,
     IconLogin,
     IconLogout,
+    IconSettingsFilled,
     IconUserCog,
     IconUserFilled,
   } from '$lib/icons'
@@ -121,6 +122,13 @@
             >
               <IconUserFilled class="size-5" />
               Manage teams
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class="data-highlighted:bg-background-l5"
+              onclick={() => goto('/admin/settings')}
+            >
+              <IconSettingsFilled class="size-5" />
+              Settings
             </DropdownMenu.Item>
           </DropdownMenu.Content>
         </DropdownMenu.Root>

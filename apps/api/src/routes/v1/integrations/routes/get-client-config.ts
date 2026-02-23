@@ -1,13 +1,13 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRoute } from '@rctf/types'
+import { getSettings, resolveSettings } from '../../../../services/settings'
 import integrationsGroup from '../group'
 
-integrationsGroup.route(GetClientConfigRoute, async ({ res }) => {
+integrationsGroup.route(GetClientConfigRoute, async ({ res, ctx }) => {
+  const dbSettings = await getSettings(ctx.var.db)
+  const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
-    meta: config.meta,
-    homeContent: config.homeContent,
-    sponsors: config.sponsors,
-    ctfName: config.ctfName,
+    ...resolved,
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,
     origin: config.origin,
@@ -16,7 +16,6 @@ integrationsGroup.route(GetClientConfigRoute, async ({ res }) => {
     userMembers: config.userMembers,
     emailEnabled: Boolean(config.email),
     globalSiteTag: config.globalSiteTag ?? null,
-    faviconUrl: config.faviconUrl ?? null,
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
     recaptcha:

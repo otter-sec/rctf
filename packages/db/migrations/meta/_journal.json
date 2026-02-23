@@ -85,6 +85,13 @@
       "when": 1771686038267,
       "tag": "0011_more_indices",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1771859668862,
+      "tag": "0012_add_admin_settings",
+      "breakpoints": true
     }
   ]
 }

@@ -68,6 +68,7 @@ export { default as IconPuzzleFilled } from '@iconify-svelte/tabler/puzzle-fille
 export { default as IconRobot } from '@iconify-svelte/tabler/robot'
 export { default as IconSearch } from '@iconify-svelte/tabler/search'
 export { default as IconSelector } from '@iconify-svelte/tabler/selector'
+export { default as IconSettingsFilled } from '@iconify-svelte/tabler/settings-filled'
 export { default as IconSortAscendingNumbers } from '@iconify-svelte/tabler/sort-ascending-numbers'
 export { default as IconSortDescendingShapesFilled } from '@iconify-svelte/tabler/sort-descending-shapes-filled'
 export { default as IconSend } from '@iconify-svelte/tabler/send'

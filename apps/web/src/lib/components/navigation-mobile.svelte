@@ -16,6 +16,7 @@
     IconLogin,
     IconLogout,
     IconMenu2,
+    IconSettingsFilled,
     IconUserCog,
     IconUserFilled,
     IconX,
@@ -100,6 +101,13 @@
       activePath: '/admin/teams',
       label: 'Manage teams',
       icon: IconUserFilled,
+      show: isAdmin,
+    },
+    {
+      href: '/admin/settings',
+      activePath: '/admin/settings',
+      label: 'Settings',
+      icon: IconSettingsFilled,
       show: isAdmin,
     },
   ])

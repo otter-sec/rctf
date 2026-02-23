@@ -1,0 +1,443 @@
+<script lang="ts">
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import {
+    Button,
+    Card,
+    Checkbox,
+    Field,
+    Input,
+    Markdown,
+    Spinner,
+    Textarea,
+  } from '$lib/components'
+  import { IconPlus, IconX } from '$lib/icons'
+  import {
+    queryKeys,
+    useAdminSettings,
+    useClientConfig,
+    useUpdateSettingsMutation,
+  } from '$lib/query'
+
+  const queryClient = useQueryClient()
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived(clientConfigQuery.data)
+  const settingsQuery = useAdminSettings()
+  const settings = $derived(settingsQuery.data)
+  const isPending = $derived(settingsQuery.isPending)
+  const mutation = useUpdateSettingsMutation()
+
+  let ctfName = $state('')
+  let faviconUrl = $state('')
+  let homeContent = $state('')
+  let metaDescription = $state('')
+  let metaImageUrl = $state('')
+  let sponsors = $state<{ name: string; icon: string; description: string; small: boolean }[]>([])
+
+  let overrides = $state<Record<string, boolean>>({})
+  let initialized = $state(false)
+
+  $effect(() => {
+    if (settings && !initialized) {
+      const o = settings.overrides
+      const d = settings.defaults
+
+      ctfName = o.ctfName ?? d.ctfName ?? ''
+      faviconUrl = o.faviconUrl ?? d.faviconUrl ?? ''
+      homeContent = o.homeContent ?? d.homeContent ?? ''
+      metaDescription = o.meta?.description ?? d.meta?.description ?? ''
+      metaImageUrl = o.meta?.imageUrl ?? d.meta?.imageUrl ?? ''
+
+      const sponsorArr = o.sponsors ?? d.sponsors ?? []
+      sponsors = sponsorArr.map(s => ({
+        name: s.name,
+        icon: s.icon,
+        description: s.description,
+        small: s.small ?? false,
+      }))
+
+      overrides = {
+        ctfName: o.ctfName !== undefined,
+        faviconUrl: o.faviconUrl !== undefined,
+        homeContent: o.homeContent !== undefined,
+        meta: o.meta !== undefined,
+        sponsors: o.sponsors !== undefined,
+      }
+
+      initialized = true
+    }
+  })
+
+  function resetField(field: string) {
+    if (!settings) return
+    const d = settings.defaults
+    switch (field) {
+      case 'ctfName':
+        ctfName = d.ctfName ?? ''
+        break
+      case 'faviconUrl':
+        faviconUrl = d.faviconUrl ?? ''
+        break
+      case 'homeContent':
+        homeContent = d.homeContent ?? ''
+        break
+      case 'meta':
+        metaDescription = d.meta?.description ?? ''
+        metaImageUrl = d.meta?.imageUrl ?? ''
+        break
+      case 'sponsors': {
+        const sponsorArr = d.sponsors ?? []
+        sponsors = sponsorArr.map(s => ({
+          name: s.name,
+          icon: s.icon,
+          description: s.description,
+          small: s.small ?? false,
+        }))
+        break
+      }
+    }
+    overrides[field] = false
+  }
+
+  function markOverridden(field: string) {
+    overrides[field] = true
+  }
+
+  function addSponsor() {
+    sponsors = [...sponsors, { name: '', icon: '', description: '', small: false }]
+    markOverridden('sponsors')
+  }
+
+  function removeSponsor(index: number) {
+    sponsors = sponsors.filter((_, i) => i !== index)
+    markOverridden('sponsors')
+  }
+
+  const isSaving = $derived(mutation.isPending)
+
+  async function handleSave() {
+    const patch: Record<string, unknown> = {}
+
+    if (overrides.ctfName) {
+      patch.ctfName = ctfName
+    } else if (settings?.overrides.ctfName !== undefined) {
+      patch.ctfName = null
+    }
+
+    if (overrides.faviconUrl) {
+      patch.faviconUrl = faviconUrl
+    } else if (settings?.overrides.faviconUrl !== undefined) {
+      patch.faviconUrl = null
+    }
+
+    if (overrides.homeContent) {
+      patch.homeContent = homeContent
+    } else if (settings?.overrides.homeContent !== undefined) {
+      patch.homeContent = null
+    }
+
+    if (overrides.meta) {
+      patch.meta = { description: metaDescription, imageUrl: metaImageUrl }
+    } else if (settings?.overrides.meta !== undefined) {
+      patch.meta = null
+    }
+
+    if (overrides.sponsors) {
+      patch.sponsors = sponsors.map(s => ({
+        name: s.name,
+        icon: s.icon,
+        description: s.description,
+        ...(s.small ? { small: true } : {}),
+      }))
+    } else if (settings?.overrides.sponsors !== undefined) {
+      patch.sponsors = null
+    }
+
+    if (Object.keys(patch).length === 0) {
+      toast.info('No changes to save.')
+      return
+    }
+
+    mutation.mutate({ data: patch } as any, {
+      onSuccess: (response: { kind: string; message: string; data?: unknown }) => {
+        if (response.kind === 'goodAdminSettingsUpdate') {
+          toast.success('Settings saved.')
+          queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
+          queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
+        } else {
+          showApiError(response as any)
+        }
+      },
+      onError: () => {
+        toast.error('Failed to save settings.')
+      },
+    })
+  }
+
+  let showPreview = $state(false)
+</script>
+
+<svelte:head>
+  {#if clientConfig}
+    <title>Settings | {clientConfig.ctfName}</title>
+  {/if}
+</svelte:head>
+
+{#if settings && initialized}
+  <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 p-4 pb-12 md:p-8">
+    <div class="flex items-center justify-between">
+      <h1 class="text-foreground-l0 text-2xl font-bold">Settings</h1>
+      <Button onclick={handleSave} disabled={isSaving}>
+        {#if isSaving}
+          <Spinner class="size-4" />
+        {/if}
+        Save changes
+      </Button>
+    </div>
+
+    <Card.Root>
+      <Card.Header>
+        <Card.Title>General</Card.Title>
+      </Card.Header>
+      <Card.Content class="flex flex-col gap-4">
+        <Field.Field>
+          <div class="flex items-center justify-between">
+            <Field.Label>CTF Name</Field.Label>
+            {#if overrides.ctfName}
+              <button
+                class="text-foreground-l3 hover:text-foreground-l1 text-xs"
+                onclick={() => resetField('ctfName')}
+              >
+                Reset to default
+              </button>
+            {/if}
+          </div>
+          <Input
+            value={ctfName}
+            oninput={e => {
+              ctfName = e.currentTarget.value
+              markOverridden('ctfName')
+            }}
+            placeholder={settings.defaults.ctfName}
+          />
+          {#if overrides.ctfName}
+            <p class="text-foreground-l3 text-xs">
+              Config default: {settings.defaults.ctfName}
+            </p>
+          {/if}
+        </Field.Field>
+
+        <Field.Field>
+          <div class="flex items-center justify-between">
+            <Field.Label>Favicon URL</Field.Label>
+            {#if overrides.faviconUrl}
+              <button
+                class="text-foreground-l3 hover:text-foreground-l1 text-xs"
+                onclick={() => resetField('faviconUrl')}
+              >
+                Reset to default
+              </button>
+            {/if}
+          </div>
+          <Input
+            value={faviconUrl}
+            oninput={e => {
+              faviconUrl = e.currentTarget.value
+              markOverridden('faviconUrl')
+            }}
+            placeholder={settings.defaults.faviconUrl}
+          />
+          {#if overrides.faviconUrl}
+            <p class="text-foreground-l3 text-xs">
+              Config default: {settings.defaults.faviconUrl}
+            </p>
+          {/if}
+        </Field.Field>
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root>
+      <Card.Header>
+        <div class="flex items-center justify-between">
+          <Card.Title>Home Content</Card.Title>
+          <div class="flex items-center gap-2">
+            {#if overrides.homeContent}
+              <button
+                class="text-foreground-l3 hover:text-foreground-l1 text-xs"
+                onclick={() => resetField('homeContent')}
+              >
+                Reset to default
+              </button>
+            {/if}
+            <Button variant="ghost" size="sm" onclick={() => (showPreview = !showPreview)}>
+              {showPreview ? 'Edit' : 'Preview'}
+            </Button>
+          </div>
+        </div>
+      </Card.Header>
+      <Card.Content>
+        {#if showPreview}
+          <div class="bg-background-l1 min-h-32 rounded-md p-4">
+            <Markdown content={homeContent} />
+          </div>
+        {:else}
+          <Textarea
+            value={homeContent}
+            oninput={e => {
+              homeContent = e.currentTarget.value
+              markOverridden('homeContent')
+            }}
+            rows={8}
+            placeholder="Markdown content for the home page..."
+          />
+        {/if}
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root>
+      <Card.Header>
+        <div class="flex items-center justify-between">
+          <Card.Title>Meta</Card.Title>
+          {#if overrides.meta}
+            <button
+              class="text-foreground-l3 hover:text-foreground-l1 text-xs"
+              onclick={() => resetField('meta')}
+            >
+              Reset to default
+            </button>
+          {/if}
+        </div>
+      </Card.Header>
+      <Card.Content class="flex flex-col gap-4">
+        <Field.Field>
+          <Field.Label>Description</Field.Label>
+          <Input
+            value={metaDescription}
+            oninput={e => {
+              metaDescription = e.currentTarget.value
+              markOverridden('meta')
+            }}
+            placeholder={settings.defaults.meta?.description}
+          />
+        </Field.Field>
+        <Field.Field>
+          <Field.Label>Image URL</Field.Label>
+          <Input
+            value={metaImageUrl}
+            oninput={e => {
+              metaImageUrl = e.currentTarget.value
+              markOverridden('meta')
+            }}
+            placeholder={settings.defaults.meta?.imageUrl}
+          />
+        </Field.Field>
+      </Card.Content>
+    </Card.Root>
+
+    <Card.Root>
+      <Card.Header>
+        <div class="flex items-center justify-between">
+          <Card.Title>Sponsors</Card.Title>
+          <div class="flex items-center gap-2">
+            {#if overrides.sponsors}
+              <button
+                class="text-foreground-l3 hover:text-foreground-l1 text-xs"
+                onclick={() => resetField('sponsors')}
+              >
+                Reset to default
+              </button>
+            {/if}
+            <Button variant="ghost" size="icon-sm" onclick={addSponsor}>
+              <IconPlus class="size-4" />
+            </Button>
+          </div>
+        </div>
+      </Card.Header>
+      <Card.Content class="flex flex-col gap-4">
+        {#each sponsors as sponsor, i (i)}
+          <div class="bg-background-l1 flex flex-col gap-3 rounded-md p-4">
+            <div class="flex items-start justify-between">
+              <span class="text-foreground-l2 text-sm font-medium">Sponsor {i + 1}</span>
+              <Button variant="ghost" size="icon-sm" onclick={() => removeSponsor(i)}>
+                <IconX class="text-foreground-destructive size-4" />
+              </Button>
+            </div>
+            <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <Field.Field>
+                <Field.Label>Name</Field.Label>
+                <Input
+                  value={sponsor.name}
+                  oninput={e => {
+                    sponsor.name = e.currentTarget.value
+                    sponsors = sponsors
+                    markOverridden('sponsors')
+                  }}
+                  placeholder="Sponsor name"
+                />
+              </Field.Field>
+              <Field.Field>
+                <Field.Label>Icon URL</Field.Label>
+                <Input
+                  value={sponsor.icon}
+                  oninput={e => {
+                    sponsor.icon = e.currentTarget.value
+                    sponsors = sponsors
+                    markOverridden('sponsors')
+                  }}
+                  placeholder="https://..."
+                />
+              </Field.Field>
+            </div>
+            <Field.Field>
+              <Field.Label>Description</Field.Label>
+              <Textarea
+                value={sponsor.description}
+                oninput={e => {
+                  sponsor.description = e.currentTarget.value
+                  sponsors = sponsors
+                  markOverridden('sponsors')
+                }}
+                rows={2}
+                placeholder="Sponsor description"
+              />
+            </Field.Field>
+            <label class="flex items-center gap-2">
+              <Checkbox
+                checked={sponsor.small}
+                onCheckedChange={v => {
+                  sponsor.small = v === true
+                  sponsors = sponsors
+                  markOverridden('sponsors')
+                }}
+              />
+              <span class="text-foreground-l2 text-sm">Small</span>
+            </label>
+          </div>
+        {/each}
+        {#if sponsors.length === 0}
+          <p class="text-foreground-l3 text-sm">No sponsors configured.</p>
+        {/if}
+      </Card.Content>
+    </Card.Root>
+  </div>
+{:else if isPending}
+  <div class="flex flex-1 items-center justify-center">
+    <Spinner class="size-4" />
+  </div>
+{:else}
+  <div class="flex flex-1 items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <Card.Root>
+        <Card.Header>
+          <Card.Title class="text-xl">Settings</Card.Title>
+        </Card.Header>
+        <Card.Content>
+          <p class="text-foreground-l3">
+            {settingsQuery.error?.message ?? 'Failed to load settings.'}
+          </p>
+        </Card.Content>
+      </Card.Root>
+    </div>
+  </div>
+{/if}

@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
 import { captchaProvider } from '../../../../providers'
+import { getSettings, resolveSettings } from '../../../../services/settings'
 import integrationsGroup from '../group'
 
 const getAnalyticsConfig = () => {
@@ -24,12 +25,11 @@ const getAnalyticsConfig = () => {
   return null
 }
 
-integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
+integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
+  const dbSettings = await getSettings(ctx.var.db)
+  const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
-    meta: config.meta,
-    homeContent: config.homeContent,
-    sponsors: config.sponsors,
-    ctfName: config.ctfName,
+    ...resolved,
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,
     origin: config.origin,
@@ -38,7 +38,6 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res }) => {
     userMembers: config.userMembers,
     emailEnabled: Boolean(config.email),
     analytics: getAnalyticsConfig(),
-    faviconUrl: config.faviconUrl ?? null,
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
     instancerEnabled: Boolean(config.instancerProvider),

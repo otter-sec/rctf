@@ -204,7 +204,7 @@ bun run dev
 - [ ] in global leaderboard return division positions
 - [x] delete a solve (admin only)
 - [x] resetting teams token (admin only)
-- [ ] update client config (admin only)
+- [x] update client config (admin only)
 - [x] file sizes
 - [x] add csp headers
 - [x] instancer integration

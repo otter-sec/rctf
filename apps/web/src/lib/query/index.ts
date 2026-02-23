@@ -12,6 +12,7 @@ import {
   GetAdminChallengeRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengesRouteV2,
+  GetAdminSettingsRouteV2,
   GetAdminUsersRouteV2,
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
@@ -28,6 +29,7 @@ import {
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  GoodAdminSettings,
   GoodAdminUsersV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
@@ -48,6 +50,7 @@ import {
   SetEmailRouteV2,
   SubmitFlagRoute,
   UpdateAvatarRoute,
+  UpdateAdminSettingsRouteV2,
   UpdateChallengeRouteV2,
   UpdateUserRouteV2,
   UploadFilesRouteV2,
@@ -325,6 +328,17 @@ export const adminBotStatusQueryOptions = queryOptions({
   staleTime: Infinity,
 })
 
+export const adminSettingsQueryOptions = queryOptions({
+  queryKey: ['admin', 'settings'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetAdminSettingsRouteV2)
+    if (response.kind === GoodAdminSettings.kind) {
+      return response.data
+    }
+    throw new ApiError(response.kind, response.message)
+  },
+})
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -380,6 +394,7 @@ export const queryKeys = {
   members: membersQueryOptions.queryKey,
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
+  adminSettings: adminSettingsQueryOptions.queryKey,
 }
 
 export function createApiMutation<TRoute extends AnyRouteDefinition>(
@@ -570,6 +585,10 @@ export function useAdminBotStatus() {
   return createQuery(() => adminBotStatusQueryOptions)
 }
 
+export function useAdminSettings() {
+  return createQuery(() => adminSettingsQueryOptions)
+}
+
 export function useInstancerSchema() {
   return createQuery(() => instancerSchemaQueryOptions)
 }
@@ -652,4 +671,8 @@ export function useCreateUserTokenMutation() {
 
 export function useDeleteChallengeSolveMutation() {
   return createApiMutation(DeleteChallengeSolveRouteV2)
+}
+
+export function useUpdateSettingsMutation() {
+  return createApiMutation(UpdateAdminSettingsRouteV2)
 }

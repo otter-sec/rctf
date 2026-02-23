@@ -4,4 +4,5 @@ export enum Permissions {
   leaderboardRead = 1 << 2,
   challsSolveWrite = 1 << 3,
   usersWrite = 1 << 4,
+  settingsWrite = 1 << 5,
 }
