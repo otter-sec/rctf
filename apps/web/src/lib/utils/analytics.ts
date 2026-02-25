@@ -6,6 +6,7 @@ interface AnalyticsHandler {
 }
 
 let analyticsInitPromise: Promise<void> | null = null
+const ANALYTICS_SCRIPT_URL = '/api/v2/integrations/analytics/script'
 
 // Google Analytics (GA4)
 const googleHandler: AnalyticsHandler = {
@@ -15,9 +16,7 @@ const googleHandler: AnalyticsHandler = {
       throw new Error('Google Analytics requires siteTag')
     }
 
-    await loadScriptOnce(
-      `https://www.googletagmanager.com/gtag/js?id=${siteTag}`
-    )
+    await loadScriptOnce(ANALYTICS_SCRIPT_URL)
 
     window.dataLayer = window.dataLayer || []
     window.gtag = function () {
@@ -36,9 +35,7 @@ const cloudflareHandler: AnalyticsHandler = {
       throw new Error('Cloudflare Web Analytics requires token')
     }
 
-    await loadScriptOnce(
-      `https://static.cloudflareinsights.com/beacon.min.js?token=${token}`
-    )
+    await loadScriptOnce(ANALYTICS_SCRIPT_URL)
   },
 }
 
@@ -55,7 +52,7 @@ const plausibleHandler: AnalyticsHandler = {
     script.defer = true
     script.dataset.domain = domain
     script.dataset.api = `${apiHost}/api/event`
-    script.src = `${apiHost}/js/script.js`
+    script.src = ANALYTICS_SCRIPT_URL
     document.head.appendChild(script)
 
     await new Promise<void>((resolve, reject) => {

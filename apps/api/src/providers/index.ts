@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
+import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
 import { emailProviders } from './emails'
 import { instancerProviders } from './instancer'
@@ -47,27 +48,25 @@ export const instancerProvider = loadProvider(
 )
 
 export const captchaProvider = (() => {
-  // NOTE(es3n1n): backporting v1 recaptcha config
-  if (config.recaptcha) {
-    if (config.captcha) {
-      throw new Error(
-        'Captcha provider and recaptcha config cannot be used together'
-      )
-    }
-
-    config.captcha = {
-      provider: {
-        name: 'captcha/recaptcha',
-        options: {
-          secretKey: config.recaptcha.secretKey,
-          siteKey: config.recaptcha.siteKey,
-        },
-      },
-      protectedEndpoints: config.recaptcha.protectedActions ?? [],
-    }
+  if (config.captcha?.provider) {
+    return loadProvider(captchaProviders, config.captcha.provider)
   }
 
-  return loadProvider(captchaProviders, config.captcha?.provider)
+  // NOTE(es3n1n): backporting v1 google captcha config
+  if (config.recaptcha) {
+    config.captcha = {}
+    config.captcha.protectedEndpoints = config.recaptcha.protectedActions ?? []
+
+    return loadProvider(captchaProviders, {
+      name: 'captcha/recaptcha',
+      options: {
+        secretKey: config.recaptcha.secretKey,
+        siteKey: config.recaptcha.siteKey,
+      },
+    })
+  }
+
+  return undefined
 })()
 
 export const bloodBotProviders = config.bloodBot?.destinations.map(
@@ -83,3 +82,19 @@ export const adminBotProvider = loadProvider(
   adminBotProviders,
   config.adminBot?.provider
 )
+
+export const analyticsProvider = (() => {
+  if (config.analytics?.provider) {
+    return loadProvider(analyticsProviders, config.analytics.provider)
+  }
+
+  // NOTE(es3n1n): backporting v1 google analytics config
+  if (config.globalSiteTag) {
+    return loadProvider(analyticsProviders, {
+      name: 'analytics/google',
+      options: { siteTag: config.globalSiteTag },
+    })
+  }
+
+  return undefined
+})()

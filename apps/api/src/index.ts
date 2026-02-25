@@ -10,6 +10,7 @@ import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
 import { adminBotProvider, uploadProvider } from './providers'
 import { routeModules } from './routes'
+import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
 import { startLeaderboardWorker } from './workers'
 
 const logger = pino({
@@ -71,6 +72,7 @@ export const setupApp = async () => {
   app.use('/api/v2/admin/admin-bot/jobs/*', adminBotAuthMiddleware)
   app.use('/api/v2/admin/admin-bot/challenges/*', adminBotAuthMiddleware)
 
+  app.get('/api/v2/integrations/analytics/script', analyticsScriptHandler)
   registerApiRoutes(app)
   await uploadProvider.startupWebPart(app)
   if (adminBotProvider) {
