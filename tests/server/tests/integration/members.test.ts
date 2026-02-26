@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   BadKnownEmail,
+  BadTooManyMembers,
   GoodMemberCreate,
   GoodMemberData,
   GoodMemberDelete,
@@ -16,6 +17,7 @@ import {
 
 let app: Hono<any>
 let oldUserMembers: typeof config.userMembers
+let oldMaxMembers: typeof config.maxMembers
 
 // Track users and cleanups
 const createdUserCleanups: Array<() => Promise<void>> = []
@@ -23,12 +25,14 @@ const createdUserCleanups: Array<() => Promise<void>> = []
 beforeAll(async () => {
   app = await getApp()
   oldUserMembers = config.userMembers
+  oldMaxMembers = config.maxMembers
   // Enable userMembers for testing
   config.userMembers = true
 })
 
 afterAll(async () => {
   config.userMembers = oldUserMembers
+  config.maxMembers = oldMaxMembers
   for (const cleanup of createdUserCleanups) {
     await cleanup()
   }
@@ -88,6 +92,147 @@ describe('members service', () => {
       })
 
       await expectResponse(res, BadKnownEmail)
+    })
+
+    test('allows same email on different teams', async () => {
+      const { user: user1, cleanup: cleanup1 } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup1)
+      const { user: user2, cleanup: cleanup2 } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup2)
+
+      const memberEmail = `shared-${crypto.randomUUID()}@test.com`
+
+      const res1 = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(user1.id)}`,
+        },
+        body: JSON.stringify({ email: memberEmail }),
+      })
+      await expectResponse(res1, GoodMemberCreate)
+
+      const res2 = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(user2.id)}`,
+        },
+        body: JSON.stringify({ email: memberEmail }),
+      })
+      await expectResponse(res2, GoodMemberCreate)
+    })
+
+    test('fails with badTooManyMembers when limit is reached', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+      config.maxMembers = 2
+
+      for (let i = 0; i < 2; i++) {
+        const res = await request(app, '/api/v1/users/me/members', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            email: `limit-${i}-${crypto.randomUUID()}@test.com`,
+          }),
+        })
+        await expectResponse(res, GoodMemberCreate)
+      }
+
+      const res = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          email: `limit-overflow-${crypto.randomUUID()}@test.com`,
+        }),
+      })
+      await expectResponse(res, BadTooManyMembers)
+
+      config.maxMembers = oldMaxMembers
+    })
+
+    test('allows creating member after deleting when at limit', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+      config.maxMembers = 1
+
+      const createRes = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          email: `recycle-${crypto.randomUUID()}@test.com`,
+        }),
+      })
+      const body = await expectResponse(createRes, GoodMemberCreate)
+
+      await request(app, `/api/v1/users/me/members/${body.data.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+
+      const res = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          email: `recycle-new-${crypto.randomUUID()}@test.com`,
+        }),
+      })
+      await expectResponse(res, GoodMemberCreate)
+
+      config.maxMembers = oldMaxMembers
+    })
+
+    test('member limit is per-team, not global', async () => {
+      const { user: user1, cleanup: cleanup1 } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup1)
+      const { user: user2, cleanup: cleanup2 } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup2)
+
+      config.maxMembers = 1
+
+      // User1 adds a member (at limit)
+      const res1 = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(user1.id)}`,
+        },
+        body: JSON.stringify({
+          email: `per-team-1-${crypto.randomUUID()}@test.com`,
+        }),
+      })
+      await expectResponse(res1, GoodMemberCreate)
+
+      // User2 should still be able to add their own member
+      const res2 = await request(app, '/api/v1/users/me/members', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(user2.id)}`,
+        },
+        body: JSON.stringify({
+          email: `per-team-2-${crypto.randomUUID()}@test.com`,
+        }),
+      })
+      await expectResponse(res2, GoodMemberCreate)
+
+      config.maxMembers = oldMaxMembers
     })
   })
 

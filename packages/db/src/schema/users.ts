@@ -65,6 +65,6 @@ export const userMembers = pgTable(
     })
       .onUpdate('cascade')
       .onDelete('cascade'),
-    unique('user_members_email_key').on(table.email),
+    unique('user_members_userid_email_key').on(table.userid, table.email),
   ]
 )

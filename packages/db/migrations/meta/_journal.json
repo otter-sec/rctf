@@ -92,6 +92,13 @@
       "when": 1771859668862,
       "tag": "0012_add_admin_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1772093658357,
+      "tag": "0013_change_members_unique",
+      "breakpoints": true
     }
   ]
 }

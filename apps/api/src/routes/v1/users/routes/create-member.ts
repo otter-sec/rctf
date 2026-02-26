@@ -7,5 +7,11 @@ usersGroup.route(CreateMemberRoute, async ({ ctx, res, body, user }) => {
   if (!config.userMembers) {
     return res.badEndpoint()
   }
-  return await createMember(res, ctx.var.db, user.id, body.email)
+  return await createMember(
+    res,
+    ctx.var.db,
+    user.id,
+    body.email,
+    config.maxMembers
+  )
 })

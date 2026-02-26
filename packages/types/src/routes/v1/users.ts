@@ -14,6 +14,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadTooManyMembers,
   BadNotStarted,
   BadRateLimit,
   BadRecaptchaCode,
@@ -89,7 +90,14 @@ export const CreateMemberRoute = defineRoute({
     email: UserEmail,
   }),
   goodResponses: [GoodMemberCreate],
-  badResponses: [BadEndpoint, BadEnded, BadEmail, BadKnownEmail, BadToken],
+  badResponses: [
+    BadEndpoint,
+    BadEnded,
+    BadEmail,
+    BadKnownEmail,
+    BadTooManyMembers,
+    BadToken,
+  ],
   authRequired: true,
 })
 
