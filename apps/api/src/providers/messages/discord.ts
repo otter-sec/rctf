@@ -15,7 +15,7 @@ export default class DiscordMessagesProvider implements MessageProvider {
   }
 
   escapeText(text: string): string {
-    return text.replace(/[_*~`|\\]/g, '\\$&')
+    return text.replace(/[_*~`|\\<>:!\[\]()]/g, '\\$&')
   }
 
   escapeUrl(text: string): string {
@@ -28,7 +28,10 @@ export default class DiscordMessagesProvider implements MessageProvider {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ content: message }),
+      body: JSON.stringify({
+        content: message,
+        allowed_mentions: { parse: [] },
+      }),
     })
 
     if (!resp.ok) {
