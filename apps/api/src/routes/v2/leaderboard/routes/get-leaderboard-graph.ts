@@ -16,7 +16,7 @@ leaderboardGroup.route(
       })
     }
 
-    if (division && !config.divisions[division]) {
+    if (division && !Object.hasOwn(config.divisions, division)) {
       return res.badBody({
         reason: 'Invalid division',
       })
