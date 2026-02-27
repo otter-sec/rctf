@@ -12,51 +12,6 @@ To get started with rCTF, visit the [documentation](https://rctf.osec.io). If yo
 
 rCTF requires [Bun v1.0+](https://bun.sh/).
 
-<details>
-<summary>Quick-start script:</summary>
-
-```sh
-docker compose -f compose.dev.yml up -d
-bun i
-
-cat <<EOT > rctf.d/00-development.yaml
-ctfName: rCTF Development
-meta:
-  description: 'Example rCTF instance'
-  imageUrl: 'https://example.com'
-homeContent: 'A description of your CTF. Markdown supported.'
-
-origin: http://127.0.0.1:8080
-divisions:
-  open: Open
-tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-startTime: 0
-endTime: 99999999999999
-
-# email:
-#   from: no-reply@example.com
-#   provider:
-#     name: 'emails/smtp'
-#     options:
-#       smtpUrl: 'smtp://username:password@example.com'
-
-database:
-  sql:
-    host: 127.0.0.1
-    user: rctf
-    password: DO_NOT_USE_ME
-    database: rctf
-  redis:
-    host: 127.0.0.1
-    password: DO_NOT_USE_ME
-  migrate: before
-EOT
-
-bun run dev
-```
-
-</details>
-
 1. Install dependencies:
 
    ```sh
@@ -76,7 +31,7 @@ bun run dev
     meta:
       description: 'Example rCTF instance'
       imageUrl: 'https://example.com'
-    homeContent: 'A description of your CTF. Markdown supported.'
+    homeContent: "A description of your CTF. Markdown supported.\n\n<timer></timer>"
 
     origin: http://127.0.0.1:5173
     divisions:

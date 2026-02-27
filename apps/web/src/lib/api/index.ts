@@ -41,6 +41,10 @@ export function setClientConfig(config: ClientConfig): void {
   cachedClientConfig = config
 }
 
+export function getClientConfig(): ClientConfig | null {
+  return cachedClientConfig
+}
+
 type SectionPayload<T> = [T] extends [undefined]
   ? {}
   : T extends Record<string, unknown>

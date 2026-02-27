@@ -67,7 +67,24 @@ function isAlertType(value: string): value is AlertType {
   ].includes(value)
 }
 
-marked.use({ extensions: [alertExtension] })
+const timerExtension: TokenizerAndRendererExtension = {
+  name: 'timer',
+  level: 'inline',
+  start: src => src.match(/<timer/i)?.index,
+  tokenizer(src) {
+    const match = /^<timer\s*\/?>(?:<\/timer>)?/i.exec(src)
+    if (!match) return
+    return {
+      type: 'timer',
+      raw: match[0],
+    }
+  },
+  renderer() {
+    return '<span data-timer></span>'
+  },
+}
+
+marked.use({ extensions: [alertExtension, timerExtension] })
 
 // TODO(es3n1n): a better way how to make marked not treat lines after html code as continuation of the html block
 const ensureHtmlBlockSeparation = (content: string) =>
@@ -80,6 +97,12 @@ export const parseMarkdown = (content: string) =>
   DOMPurify.sanitize(
     marked.parse(ensureHtmlBlockSeparation(content)) as string,
     {
-      ADD_ATTR: ['data-alert', 'data-type', 'data-content', 'data-parsed'],
+      ADD_ATTR: [
+        'data-alert',
+        'data-type',
+        'data-content',
+        'data-parsed',
+        'data-timer',
+      ],
     }
   )

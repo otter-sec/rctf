@@ -2,6 +2,7 @@
   import { parseMarkdown, type AlertType } from '$lib/utils'
   import { mount, onMount, unmount } from 'svelte'
   import MarkdownAlert from './markdown-alert.svelte'
+  import MarkdownTimer from './markdown-timer.svelte'
 
   interface Props {
     content: string
@@ -32,16 +33,21 @@
   function hydrate() {
     if (!container) return
     mounted.forEach(c => unmount(c))
-    mounted = [...container.querySelectorAll('[data-alert]')].map(el =>
-      mount(MarkdownAlert, {
-        target: el,
-        props: {
-          type: getAlertType(el),
-          content: el.getAttribute('data-content') ?? '',
-          parsedContent: el.getAttribute('data-parsed') ?? '',
-        },
-      })
-    )
+    mounted = [
+      ...[...container.querySelectorAll('[data-alert]')].map(el =>
+        mount(MarkdownAlert, {
+          target: el,
+          props: {
+            type: getAlertType(el),
+            content: el.getAttribute('data-content') ?? '',
+            parsedContent: el.getAttribute('data-parsed') ?? '',
+          },
+        })
+      ),
+      ...[...container.querySelectorAll('[data-timer]')].map(el =>
+        mount(MarkdownTimer, { target: el })
+      ),
+    ]
   }
 
   onMount(() => {

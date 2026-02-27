@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Card } from '$lib/components'
+  import { Card, Markdown } from '$lib/components'
   import { parseMarkdown } from '$lib/utils'
 
   let { data } = $props()
@@ -8,9 +8,7 @@
 <div class="flex flex-col gap-4">
   <Card.Root>
     <Card.Content>
-      <div class="prose max-w-none">
-        {@html parseMarkdown(data.clientConfig.homeContent)}
-      </div>
+      <Markdown content={data.clientConfig.homeContent} class="max-w-none" />
     </Card.Content>
   </Card.Root>
 
