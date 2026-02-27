@@ -488,7 +488,7 @@ export default class K8sInstancerProvider implements InstancerProvider {
             ca: k8sAgent.options.ca,
             cert: k8sAgent.options.cert,
             key: k8sAgent.options.key,
-            rejectUnauthorized: false,
+            rejectUnauthorized: true,
           },
         } as any)
 
