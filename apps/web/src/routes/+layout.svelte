@@ -16,6 +16,27 @@
 <svelte:head>
   <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
   <title>{data.clientConfig.ctfName}</title>
+
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <meta name="description" content={data.clientConfig.meta.description} />
+
+  <meta name="theme-color" content="#111111" />
+  <link rel="canonical" href={data.clientConfig.origin} />
+
+  <!-- TODO(es3n1n): inject these somehow at serve time so that twitter/other platforms can parse these -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={data.clientConfig.ctfName} />
+  <meta property="og:description" content={data.clientConfig.meta.description} />
+  <meta property="og:image" content={data.clientConfig.meta.imageUrl} />
+  <meta property="og:url" content={data.clientConfig.origin} />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={data.clientConfig.ctfName} />
+  <meta name="twitter:description" content={data.clientConfig.meta.description} />
+  <meta name="twitter:image" content={data.clientConfig.meta.imageUrl} />
+  <meta name="twitter:url" content={data.clientConfig.origin} />
 </svelte:head>
 
 <QueryClientProvider client={data.queryClient}>
