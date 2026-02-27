@@ -31,6 +31,8 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
           .join(', '),
       })
     }
+
+    body.data.instancerConfig.config = configResult.data
   }
 
   let resolvedAdminBotConfig: AdminBotConfig | null | undefined
