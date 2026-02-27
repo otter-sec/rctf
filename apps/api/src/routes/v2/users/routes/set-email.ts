@@ -3,9 +3,14 @@ import { SetEmailRouteV2 } from '@rctf/types'
 import { createLoginVerification } from '../../../../cache/auth-cache'
 import { sendVerificationEmail } from '../../../../services/emails'
 import { getUserByEmail, updateUserEmail } from '../../../../services/users'
+import { divisionAllowed } from '../../../../util/acl'
 import usersGroup from '../group'
 
 usersGroup.route(SetEmailRouteV2, async ({ ctx, res, body, user }) => {
+  if (!divisionAllowed(body.email, user.division)) {
+    return res.badEmailChangeDivision()
+  }
+
   if (config.email) {
     const conflict = await getUserByEmail(ctx.var.db, body.email)
     if (conflict) {

@@ -8,6 +8,7 @@ import {
   BadCaptcha,
   BadDivisionNotAllowed,
   BadEmail,
+  BadEmailChangeDivision,
   BadEnded,
   BadKnownEmail,
   BadKnownName,
@@ -99,6 +100,13 @@ export const SetEmailRouteV2 = defineRoute({
     captchaCode: z.optional(z.string()),
   }),
   goodResponses: [GoodEmailSet, GoodVerifySent],
-  badResponses: [BadEmail, BadKnownEmail, BadUnknownUser, BadCaptcha, BadToken],
+  badResponses: [
+    BadEmail,
+    BadKnownEmail,
+    BadEmailChangeDivision,
+    BadUnknownUser,
+    BadCaptcha,
+    BadToken,
+  ],
   authRequired: true,
 })

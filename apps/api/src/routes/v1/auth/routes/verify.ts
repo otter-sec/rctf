@@ -10,6 +10,7 @@ import {
   getUser,
   updateUserEmail,
 } from '../../../../services/users'
+import { divisionAllowed } from '../../../../util/acl'
 import authGroup from '../group'
 
 authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
@@ -47,6 +48,15 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
   }
 
   if (data.kind === 'update') {
+    const user = await getUser(ctx.var.db, data.userId)
+    if (!user) {
+      return res.badUnknownUser()
+    }
+
+    if (!divisionAllowed(data.email, user.division)) {
+      return res.badEmailChangeDivision()
+    }
+
     return await updateUserEmail(res, ctx.var.db, ctx.var.redis, data.userId, {
       email: data.email,
     })
