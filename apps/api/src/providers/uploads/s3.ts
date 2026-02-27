@@ -93,6 +93,7 @@ export default class S3Provider extends UploadProvider {
           Body: data,
           ACL: 'public-read',
           CacheControl: 'public, max-age=31536000, immutable',
+          ContentDisposition: 'attachment',
         })
       )
     }

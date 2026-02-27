@@ -59,7 +59,7 @@ export default class GcsProvider extends UploadProvider {
         public: true,
         resumable: false,
         metadata: {
-          contentDisposition: 'download',
+          contentDisposition: 'attachment',
           cacheControl: 'public, max-age=31536000, immutable',
         },
       })
