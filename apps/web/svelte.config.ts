@@ -86,7 +86,7 @@ const config: Config = {
               // turnstile
               'https://challenges.cloudflare.com',
             ],
-            'frame-ancestors': ['self'],
+            // NOTE(es3n1n): frame-ancestors is ignored from meta tags, we set `X-Frame-Options` from nginx
             'base-uri': ['self'],
             'form-action': ['self'],
             'object-src': ['none'],
