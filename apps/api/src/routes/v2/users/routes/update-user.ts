@@ -7,7 +7,6 @@ import usersGroup from '../group'
 usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
   if (
     body.division !== undefined &&
-    user.email &&
     !divisionAllowed(user.email, body.division)
   ) {
     return res.badDivisionNotAllowed()

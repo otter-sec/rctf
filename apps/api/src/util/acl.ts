@@ -55,7 +55,8 @@ export const allowedDivisions = ({
   email: string | null | undefined
   defaultOnly: boolean
 }): (string | undefined)[] => {
-  if (!config.divisionACLs || !email || !config.email) {
+  // No ACLs with ctftime auth
+  if (config.ctftime || !config.divisionACLs || !email || !config.email) {
     return defaultOnly ? [defaultDivision] : allDivisions
   }
 
@@ -70,7 +71,7 @@ export const allowedDivisions = ({
 }
 
 export const divisionAllowed = (
-  email: string | undefined,
+  email: string | null | undefined,
   division: string
 ): boolean => {
   return allowedDivisions({
