@@ -443,15 +443,6 @@ export const submitFlag = async (
     return res.badChallenge()
   }
 
-  log.info(
-    {
-      user: params.userId,
-      chall: challenge.id,
-      flag: params.flag,
-    },
-    'flag submission attempt'
-  )
-
   // burst 5, then 1 per 5s
   const timeLeft = await rateLimit(
     redis,
@@ -464,7 +455,6 @@ export const submitFlag = async (
       {
         user: params.userId,
         chall: challenge.id,
-        flag: params.flag,
         timeLeft,
       },
       'flag submission rate limit exceeded'
@@ -475,6 +465,15 @@ export const submitFlag = async (
   if (!verifyDefaultFlag(params.flag, challenge.data.flag)) {
     return res.badFlag()
   }
+
+  log.info(
+    {
+      user: params.userId,
+      chall: challenge.id,
+      flag: params.flag,
+    },
+    'successfull flag submission'
+  )
 
   const solveId = crypto.randomUUID()
   const createdAt = new Date().toISOString()
