@@ -69,7 +69,17 @@ function isAlertType(value: string): value is AlertType {
 
 marked.use({ extensions: [alertExtension] })
 
+// TODO(es3n1n): a better way how to make marked not treat lines after html code as continuation of the html block
+const ensureHtmlBlockSeparation = (content: string) =>
+  content.replace(
+    /(<\/(?:div|p|blockquote|pre|table|dl|ol|ul|fieldset|details|dialog|figure|figcaption|footer|form|header|hr|main|nav|search|section|h[1-6])>|<(?:hr|br|img|input|source|track|wbr)\b[^>]*\/?>)\n(?!\n)/gi,
+    '$1\n\n'
+  )
+
 export const parseMarkdown = (content: string) =>
-  DOMPurify.sanitize(marked.parse(content) as string, {
-    ADD_ATTR: ['data-alert', 'data-type', 'data-content', 'data-parsed'],
-  })
+  DOMPurify.sanitize(
+    marked.parse(ensureHtmlBlockSeparation(content)) as string,
+    {
+      ADD_ATTR: ['data-alert', 'data-type', 'data-content', 'data-parsed'],
+    }
+  )
