@@ -1,4 +1,5 @@
 from enum import StrEnum
+from hmac import compare_digest
 from typing import Literal
 
 from fastapi import HTTPException
@@ -11,7 +12,7 @@ class BaseRCTFRequest(BaseModel):
     rctf_auth_token: SecretStr = Field(validation_alias='rctfAuthToken')
 
     def check_token(self) -> None:
-        if self.rctf_auth_token.get_secret_value() != config.AUTH_TOKEN.get_secret_value():
+        if not compare_digest(self.rctf_auth_token.get_secret_value(), config.AUTH_TOKEN.get_secret_value()):
             raise HTTPException(status_code=422, detail='Invalid token')
 
 
