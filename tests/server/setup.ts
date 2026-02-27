@@ -25,20 +25,27 @@ const rawPgliteDb = drizzle(pgliteClient, { schema })
 await migrate(rawPgliteDb, { migrationsFolder })
 
 // pglite's execute returns { rows: [...] } while postgres-js returns [...] directly
-const pgliteDb = new Proxy(rawPgliteDb, {
-  get(target, prop, receiver) {
-    if (prop === 'execute') {
-      return async (...args: any[]) => {
-        const result = await (target as any).execute(...args)
-        if (result && typeof result === 'object' && 'rows' in result) {
-          return result.rows
+const wrapExecute = (target: any) =>
+  new Proxy(target, {
+    get(target, prop, receiver) {
+      if (prop === 'execute') {
+        return async (...args: any[]) => {
+          const result = await target.execute(...args)
+          if (result && typeof result === 'object' && 'rows' in result) {
+            return result.rows
+          }
+          return result
         }
-        return result
       }
-    }
-    return Reflect.get(target, prop, receiver)
-  },
-})
+      if (prop === 'transaction') {
+        return async (fn: any, ...rest: any[]) => {
+          return target.transaction((tx: any) => fn(wrapExecute(tx)), ...rest)
+        }
+      }
+      return Reflect.get(target, prop, receiver)
+    },
+  })
+const pgliteDb = wrapExecute(rawPgliteDb)
 
 // pglite errors have a different structure than postgres-js errors
 const getErrorConstraint = (error: any): string | undefined => {

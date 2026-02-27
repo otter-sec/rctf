@@ -476,29 +476,34 @@ export const submitFlag = async (
   )
 
   const solveId = crypto.randomUUID()
-  const createdAt = new Date().toISOString()
 
   let bloodNumber: number
   try {
-    const result = await db
-      .execute<{ blood_number: number }>(
-        sql`
-      WITH inserted AS (
-        INSERT INTO solves (id, challengeid, userid, createdat)
-        VALUES (${solveId}, ${params.challengeId}, ${params.userId}, ${createdAt})
-        RETURNING challengeid, createdat
+    bloodNumber = await db.transaction(async tx => {
+      await tx.execute(
+        sql`SELECT pg_advisory_xact_lock(hashtext(${params.challengeId}))`
       )
-      SELECT (
-        SELECT COUNT(*) + 1
-        FROM solves s
-        WHERE s.challengeid = inserted.challengeid
-          AND s.createdat < inserted.createdat
-      )::int AS blood_number
-      FROM inserted
-    `
-      )
-      .then(takeUnique)
-    bloodNumber = result!.blood_number
+      // TODO(es3n1n): 1-based bloods everywhere, iirc somewhere we're using 0-based blood index
+      const result = await tx
+        .execute<{ blood_number: number }>(
+          sql`
+        WITH inserted AS (
+          INSERT INTO solves (id, challengeid, userid, createdat)
+          VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW())
+          RETURNING challengeid, createdat
+        )
+        SELECT (
+          SELECT COUNT(*)
+          FROM solves s
+          WHERE s.challengeid = inserted.challengeid
+            AND s.createdat <= inserted.createdat
+        )::int AS blood_number
+        FROM inserted
+      `
+        )
+        .then(takeUnique)
+      return result!.blood_number
+    })
   } catch (error) {
     const constraintName = getErrorConstraint(error)
     if (constraintName === 'uq') {
