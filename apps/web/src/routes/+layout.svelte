@@ -14,7 +14,7 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
+  <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
   <title>{data.clientConfig.ctfName}</title>
 </svelte:head>
 
