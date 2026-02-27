@@ -29,13 +29,13 @@
 <div class="not-prose my-4 flex flex-col items-center gap-2">
   <span class="text-foreground-l3 text-sm">{label}</span>
   {#if !hasEnded}
-    <div class="flex items-center gap-2">
+    <div class="flex items-start gap-2">
       {#if days > 0}
         <div class="flex flex-col items-center">
           <span class="text-foreground-l0 text-2xl tabular-nums">{days}</span>
           <span class="text-foreground-l4 text-xs">days</span>
         </div>
-        <span class="text-foreground-l4 text-2xl">:</span>
+        <span class="text-foreground-l4 text-2xl leading-8">:</span>
       {/if}
       <div class="flex flex-col items-center">
         <span class="text-foreground-l0 text-2xl tabular-nums"
@@ -43,14 +43,14 @@
         >
         <span class="text-foreground-l4 text-xs">hours</span>
       </div>
-      <span class="text-foreground-l4 text-2xl">:</span>
+      <span class="text-foreground-l4 text-2xl leading-8">:</span>
       <div class="flex flex-col items-center">
         <span class="text-foreground-l0 text-2xl tabular-nums"
           >{String(minutes).padStart(2, '0')}</span
         >
         <span class="text-foreground-l4 text-xs">mins</span>
       </div>
-      <span class="text-foreground-l4 text-2xl">:</span>
+      <span class="text-foreground-l4 text-2xl leading-8">:</span>
       <div class="flex flex-col items-center">
         <span class="text-foreground-l0 text-2xl tabular-nums"
           >{String(seconds).padStart(2, '0')}</span
