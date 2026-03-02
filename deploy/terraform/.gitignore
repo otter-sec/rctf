@@ -1,0 +1,6 @@
+**/terraform.tfstate
+**/.terraform/*
+**/.terraform.lock.hcl
+
+# output (beware)
+**/*.json
