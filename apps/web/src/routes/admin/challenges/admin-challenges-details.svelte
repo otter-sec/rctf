@@ -314,6 +314,7 @@
           onSortWeightChange={v => updateField('sortWeight', v)}
           onHiddenChange={v => updateField('hidden', v)}
           onReleaseTimeChange={v => updateField('releaseTime', v)}
+          releaseTime={form.releaseTime}
         >
           {#snippet actions()}
             {#if isEditMode}

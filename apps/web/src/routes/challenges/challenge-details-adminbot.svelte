@@ -10,7 +10,7 @@
   } from '@rctf/types'
   import { onMount } from 'svelte'
   import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
-  import { Button, Input, ScrollArea } from '$lib/components'
+  import { Button, Field, Input, ScrollArea } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import {
     IconAlertCircleFilled,
@@ -123,7 +123,7 @@
 
   const levelColors: Record<string, string> = {
     info: 'text-foreground-l3',
-    warn: 'text-yellow-400',
+    warn: 'text-foreground-l2',
     error: 'text-foreground-destructive',
     fatal: 'text-foreground-destructive',
   }
@@ -301,8 +301,9 @@
         <button
           type="button"
           class="flex w-full items-start gap-0 text-left transition-colors
-            {expandable ? 'cursor-pointer hover:bg-white/[0.03]' : 'cursor-default'}
-            {i > 0 ? 'border-t border-white/[0.04]' : ''}"
+            {expandable ? 'cursor-pointer hover:bg-background-l3' : 'cursor-default'}
+            {i > 0 ? 'border-t border-background-l4' : ''}"
+          aria-expanded={expandable ? isExpanded : undefined}
           onclick={() => expandable && toggle(i)}
           disabled={!expandable}
         >
@@ -329,7 +330,7 @@
           </span>
         </button>
         {#if isExpanded}
-          <div class="border-t border-white/[0.04] bg-white/[0.02] py-1.5 pr-3 pl-8">
+          <div class="border-t border-background-l4 bg-background-l3 py-1.5 pr-3 pl-8">
             {#each Object.entries(entry.extra) as [key, value]}
               <div class="flex gap-2 py-0.5">
                 <span class="text-foreground-l4 shrink-0">{key}:</span>
@@ -419,6 +420,7 @@
       <button
         type="button"
         class="text-foreground-l4 hover:text-foreground-l3 mb-3 flex w-full items-center gap-2 text-xs transition-colors"
+        aria-expanded={historyOpen}
         onclick={() => (historyOpen = !historyOpen)}
       >
         <IconChevronRight class="size-3.5 transition-transform {historyOpen ? 'rotate-90' : ''}" />
@@ -431,7 +433,8 @@
             <div>
               <button
                 type="button"
-                class="bg-background-l4 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors hover:bg-white/[0.06]"
+                class="bg-background-l4 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors hover:bg-background-l3"
+                aria-expanded={historyLogsJobId === historyJob.id}
                 onclick={() => historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
                 disabled={!historyJob.hasLogs}
               >
@@ -477,8 +480,8 @@
       }}
     >
       {#each inputNames as name}
-        <div class="space-y-1">
-          <label for="adminbot-{name}" class="text-foreground-l3 text-sm">{name}</label>
+        <Field.Field data-invalid={errors[name] ? true : undefined}>
+          <Field.Label>{name}</Field.Label>
           <Input
             id="adminbot-{name}"
             type="text"
@@ -491,9 +494,9 @@
             disabled={submitting || isJobActive}
           />
           {#if errors[name]}
-            <p class="text-foreground-destructive text-xs">{errors[name]}</p>
+            <Field.Error>{errors[name]}</Field.Error>
           {/if}
-        </div>
+        </Field.Field>
       {/each}
 
       <div class="mt-auto flex flex-col gap-2">
