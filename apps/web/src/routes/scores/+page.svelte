@@ -80,6 +80,23 @@
 
   let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
 
+  const clientConfigQuery = useClientConfig()
+
+  const divisions = $derived(clientConfigQuery.data?.divisions ?? {})
+
+  const division = $derived.by((): string | undefined => {
+    const d = pageState.url.searchParams.get('division')
+    if (d && divisions[d]) return d
+    return undefined
+  })
+
+  function setDivision(d: string | undefined) {
+    const url = new URL(pageState.url)
+    if (d) url.searchParams.set('division', d)
+    else url.searchParams.delete('division')
+    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+  }
+
   function setViewMode(v: ViewMode) {
     savePreferences({ viewMode: v })
     const url = new URL(pageState.url)
@@ -125,10 +142,10 @@
 
   const leaderboardQuery = useInfiniteLeaderboardWithGraph(() => ({
     pageSize: LEADERBOARD_PAGE_SIZE,
+    division,
   }))
   const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
-  const clientConfigQuery = useClientConfig()
 
   let screenshotModalOpen = $state(false)
 
@@ -585,8 +602,11 @@
     loadedCount={entries.length}
     isFetching={leaderboardQuery.isFetching}
     {showTop3Context}
+    {divisions}
+    {division}
     onViewModeChange={setViewMode}
     onSortModeChange={setSortMode}
+    onDivisionChange={setDivision}
     onShowTop3ContextChange={setShowTop3Context}
     onScreenshotClick={() => (screenshotModalOpen = true)}
   />

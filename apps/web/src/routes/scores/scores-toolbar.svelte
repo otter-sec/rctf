@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Checkbox, Label, Tooltip } from '$lib/components'
+  import { Checkbox, Label, Select, Tooltip } from '$lib/components'
   import {
     IconLayoutListFilled,
     IconPhotoFilled,
@@ -17,8 +17,11 @@
     loadedCount: number
     isFetching: boolean
     showTop3Context: boolean
+    divisions: Record<string, string>
+    division: string | undefined
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
+    onDivisionChange: (division: string | undefined) => void
     onShowTop3ContextChange: (show: boolean) => void
     onScreenshotClick: () => void
   }
@@ -30,11 +33,18 @@
     loadedCount,
     isFetching,
     showTop3Context,
+    divisions,
+    division,
     onViewModeChange,
     onSortModeChange,
+    onDivisionChange,
     onShowTop3ContextChange,
     onScreenshotClick,
   }: Props = $props()
+
+  const hasDivisions = $derived(Object.keys(divisions).length > 1)
+  const divisionOptions = $derived(Object.entries(divisions).map(([value, label]) => ({ value, label })))
+  const selectedDivisionLabel = $derived(division ? (divisions[division] ?? division) : 'All divisions')
 
   const viewOptions = [
     { value: 'challenges' as const, icon: IconTableFilled, label: 'Challenges' },
@@ -101,6 +111,26 @@
   </div>
 
   <div class="flex items-center gap-2 md:gap-4">
+    {#if hasDivisions}
+      <Select.Root
+        type="single"
+        value={division ?? '__all__'}
+        onValueChange={v => onDivisionChange(v === '__all__' ? undefined : v)}
+      >
+        <Select.Trigger size="sm" class="w-auto gap-1.5">
+          {selectedDivisionLabel}
+        </Select.Trigger>
+        <Select.Content>
+          <Select.Item value="__all__" label="All divisions">All divisions</Select.Item>
+          {#each divisionOptions as option (option.value)}
+            <Select.Item value={option.value} label={option.label}>
+              {option.label}
+            </Select.Item>
+          {/each}
+        </Select.Content>
+      </Select.Root>
+    {/if}
+
     <div class="hidden items-center gap-2 md:flex">
       <Checkbox
         id="show-top3"

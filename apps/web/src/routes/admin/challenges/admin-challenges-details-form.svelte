@@ -63,6 +63,7 @@
     onSortWeightChange: (v: number) => void
     onHiddenChange: (v: boolean) => void
     onReleaseTimeChange: (v: number | null) => void
+    releaseTime: number | null
   }
 
   let {
@@ -100,7 +101,21 @@
     onSortWeightChange,
     onHiddenChange,
     onReleaseTimeChange,
+    releaseTime,
   }: Props = $props()
+
+  function timestampToDatetimeLocal(ts: number | null): string {
+    if (!ts) return ''
+    const d = new Date(ts)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  function datetimeLocalToTimestamp(value: string): number | null {
+    if (!value) return null
+    const ts = new Date(value).getTime()
+    return isNaN(ts) ? null : ts
+  }
 
   let tab = $state('details')
   let nameInputRef = $state<HTMLInputElement | null>(null)
@@ -417,12 +432,23 @@
           </Field.Field>
 
           <Field.Field>
-            <Field.Label>Release time</Field.Label>
+            <Field.Label class="flex items-center">
+              Release time
+              {#if releaseTime}
+                <button
+                  type="button"
+                  class="text-foreground-l3 hover:text-foreground-l1 ml-auto text-xs"
+                  onclick={() => onReleaseTimeChange(null)}
+                  disabled={isDisabled}
+                >
+                  Clear
+                </button>
+              {/if}
+            </Field.Label>
             <Input
-              type="number"
-              min={0}
-              onchange={e =>
-                onReleaseTimeChange(+e.currentTarget.value === 0 ? null : +e.currentTarget.value)}
+              type="datetime-local"
+              value={timestampToDatetimeLocal(releaseTime)}
+              onchange={e => onReleaseTimeChange(datetimeLocalToTimestamp(e.currentTarget.value))}
               disabled={isDisabled}
             />
           </Field.Field>
