@@ -301,8 +301,8 @@
         <button
           type="button"
           class="flex w-full items-start gap-0 text-left transition-colors
-            {expandable ? 'cursor-pointer hover:bg-background-l3' : 'cursor-default'}
-            {i > 0 ? 'border-t border-background-l4' : ''}"
+            {expandable ? 'hover:bg-background-l3 cursor-pointer' : 'cursor-default'}
+            {i > 0 ? 'border-background-l4 border-t' : ''}"
           aria-expanded={expandable ? isExpanded : undefined}
           onclick={() => expandable && toggle(i)}
           disabled={!expandable}
@@ -330,7 +330,7 @@
           </span>
         </button>
         {#if isExpanded}
-          <div class="border-t border-background-l4 bg-background-l3 py-1.5 pr-3 pl-8">
+          <div class="border-background-l4 bg-background-l3 border-t py-1.5 pr-3 pl-8">
             {#each Object.entries(entry.extra) as [key, value]}
               <div class="flex gap-2 py-0.5">
                 <span class="text-foreground-l4 shrink-0">{key}:</span>
@@ -433,7 +433,7 @@
             <div>
               <button
                 type="button"
-                class="bg-background-l4 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors hover:bg-background-l3"
+                class="bg-background-l4 hover:bg-background-l3 flex w-full items-center gap-2 rounded-md px-3 py-1.5 text-xs transition-colors"
                 aria-expanded={historyLogsJobId === historyJob.id}
                 onclick={() => historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
                 disabled={!historyJob.hasLogs}

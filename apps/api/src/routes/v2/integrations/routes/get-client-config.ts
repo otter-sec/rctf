@@ -30,6 +30,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
   const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
     ...resolved,
+    flagFormatPlaceholder: config.flagFormatPlaceholder,
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,
     origin: config.origin,

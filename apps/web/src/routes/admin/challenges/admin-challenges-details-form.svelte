@@ -23,6 +23,7 @@
     IconTrophyFilled,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import { useClientConfig } from '$lib/query'
   import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
@@ -103,6 +104,9 @@
     onReleaseTimeChange,
     releaseTime,
   }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived(clientConfigQuery.data)
 
   function timestampToDatetimeLocal(ts: number | null): string {
     if (!ts) return ''
@@ -339,7 +343,7 @@
             >
             <Input
               type="text"
-              placeholder={'flag{...}'}
+              placeholder={clientConfig?.flagFormatPlaceholder ?? 'flag{...}'}
               class="font-mono"
               required
               value={flag}

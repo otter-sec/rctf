@@ -20,6 +20,7 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
         url: z.optional(z.string()),
       })
     ),
+    flagFormatPlaceholder: z.string(),
     analytics: z.nullable(
       z.object({
         provider: z.string(),

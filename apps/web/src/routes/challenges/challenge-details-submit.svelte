@@ -79,7 +79,7 @@
       {:else}
         <input
           type="text"
-          placeholder={'flag{...}'}
+          placeholder={clientConfig?.flagFormatPlaceholder ?? 'flag{...}'}
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"

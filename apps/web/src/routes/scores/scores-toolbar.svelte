@@ -43,8 +43,12 @@
   }: Props = $props()
 
   const hasDivisions = $derived(Object.keys(divisions).length > 1)
-  const divisionOptions = $derived(Object.entries(divisions).map(([value, label]) => ({ value, label })))
-  const selectedDivisionLabel = $derived(division ? (divisions[division] ?? division) : 'All divisions')
+  const divisionOptions = $derived(
+    Object.entries(divisions).map(([value, label]) => ({ value, label }))
+  )
+  const selectedDivisionLabel = $derived(
+    division ? (divisions[division] ?? division) : 'All divisions'
+  )
 
   const viewOptions = [
     { value: 'challenges' as const, icon: IconTableFilled, label: 'Challenges' },

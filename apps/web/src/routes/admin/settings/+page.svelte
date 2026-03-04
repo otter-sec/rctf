@@ -185,7 +185,6 @@
       },
     })
   }
-
 </script>
 
 <svelte:head>
@@ -443,10 +442,8 @@
     </div>
   </ScrollArea>
 
-  <div
-    class="pointer-events-none fixed right-0 bottom-0 left-0 flex justify-center"
-  >
-    <div class="bg-background-l0 pointer-events-auto w-full max-w-3xl px-4 pb-4 pt-2">
+  <div class="pointer-events-none fixed right-0 bottom-0 left-0 flex justify-center">
+    <div class="bg-background-l0 pointer-events-auto w-full max-w-3xl px-4 pt-2 pb-4">
       <Button onclick={handleSave} disabled={isSaving} class="w-full">
         {#if isSaving}
           <Spinner class="size-4" />
