@@ -601,6 +601,16 @@ export default class K8sInstancerProvider implements InstancerProvider {
         }
       }
 
+      // hasn't been reconciled yet
+      if (!resource.status?.conditions) {
+        return {
+          kind: 'instancerInstanceDetails',
+          timeLeftMilliseconds: 0,
+          endpoints: [],
+          status: InstanceStatus.STARTING,
+        }
+      }
+
       const readyStatus = resource.status.conditions.find(
         (condition: any) => condition.type === 'Ready'
       )
