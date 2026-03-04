@@ -46,15 +46,16 @@ resource "kubernetes_cluster_role_binding_v1" "rctf" {
     }
 }
 
-resource "kubernetes_token_request_v1" "rctf" {
+resource "kubernetes_secret_v1" "rctf_token" {
     metadata {
-        name = kubernetes_service_account_v1.rctf.metadata[0].name
+        name = "rctf-token"
         namespace = kubernetes_service_account_v1.rctf.metadata[0].namespace
+        annotations = {
+            "kubernetes.io/service-account.name" = kubernetes_service_account_v1.rctf.metadata[0].name
+        }
     }
 
-    spec {
-        expiration_seconds = 2628000 # 1 month
-    }
+    type = "kubernetes.io/service-account-token"
 }
 
 output "rctf_instancer_api_url" {
@@ -67,6 +68,6 @@ output "rctf_instancer_ca_certificate" {
 }
 
 output "rctf_instancer_auth_token" {
-    value = kubernetes_token_request_v1.rctf.token
+    value = kubernetes_secret_v1.rctf_token.data["token"]
     sensitive = true
 }

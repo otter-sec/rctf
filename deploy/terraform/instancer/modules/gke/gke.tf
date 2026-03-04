@@ -6,7 +6,8 @@ resource "google_service_account" "gke" {
 resource "google_container_cluster" "cluster" {
     name = var.cluster_name
     location = var.region
-    node_locations = [var.zone]
+    # omit zone if region is zone. if region is zone = we're deploying 1 zone cluster, otherwise multi-zone
+    node_locations = var.zone != var.region ? [var.zone] : null
 
     remove_default_node_pool = true
     initial_node_count = 1

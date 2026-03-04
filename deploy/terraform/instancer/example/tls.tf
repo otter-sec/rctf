@@ -16,10 +16,19 @@ resource "acme_certificate" "certificate" {
     common_name = "${var.instancer_subdomain}.${var.instancer_zone}"
     subject_alternative_names = ["*.${var.instancer_subdomain}.${var.instancer_zone}"]
 
+    # Cloudflare:
+    # dns_challenge {
+    #     provider = "cloudflare"
+    #     config = {
+    #         CF_DNS_API_TOKEN = var.cloudflare_api_token
+    #     }
+    # }
+
+    # GCP Cloud DNS:
     dns_challenge {
-        provider = "cloudflare"
+        provider = "gcloud"
         config = {
-            CF_DNS_API_TOKEN = var.cloudflare_api_token
+            GCE_PROJECT = var.gcp_project_id
         }
     }
 }
@@ -39,8 +48,8 @@ resource "kubernetes_secret_v1" "instancer_wildcard_tls" {
     depends_on = [module.rctf-k8s]
 }
 
-resource "kubernetes_manifest" "tlsstore" {
-    manifest = {
+resource "kubectl_manifest" "tlsstore" {
+    yaml_body = yamlencode({
         apiVersion = "traefik.io/v1alpha1"
         kind = "TLSStore"
         metadata = {
@@ -57,7 +66,7 @@ resource "kubernetes_manifest" "tlsstore" {
                 secretName = kubernetes_secret_v1.instancer_wildcard_tls.metadata[0].name
             }
         }
-    }
+    })
 
     depends_on = [module.rctf-k8s]
 }

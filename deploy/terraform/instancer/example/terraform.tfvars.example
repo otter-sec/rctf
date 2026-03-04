@@ -1,4 +1,4 @@
-cloudflare_api_token = ""
+cloudflare_api_token = ""  # required if cloudflare is dns provider
 letsencrypt_email_address = ""
 instancer_zone = ""
 instancer_subdomain = ""
@@ -8,6 +8,7 @@ ctf_name = ""
 gcp_project_id = ""
 gcp_region = ""
 gcp_zone = ""
+gcp_dns_managed_zone_name = ""  # required if gcp is dns provider
 gcp_instancer_cluster_name = ""
 gcp_instancer_machine_type = ""
 gcp_instancer_min_node_count = 1

@@ -1,6 +1,7 @@
-variable "cloudflare_api_token" {
-    type = string
-}
+# uncomment for cloudflare
+# variable "cloudflare_api_token" {
+#     type = string
+# }
 
 variable "letsencrypt_email_address" {
     type = string
@@ -16,6 +17,11 @@ variable "instancer_subdomain" {
 
 variable "ctf_name" {
     type = string
+}
+
+variable "gcp_dns_managed_zone_name" {
+    type    = string
+    default = ""
 }
 
 # GCP-specific configuration:

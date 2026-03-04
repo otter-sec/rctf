@@ -16,9 +16,9 @@ terraform {
             source  = "gavinbunney/kubectl"
             version = ">= 1.7.0"
         }
-        cloudflare = {
-            source = "cloudflare/cloudflare"
-            version = "4.52.5"
+        google = {
+            source = "hashicorp/google"
+            version = "7.15.0"
         }
     }
 }
@@ -39,6 +39,11 @@ provider "acme" {
 #         config_context = "kind-rctf"
 #     }
 # }
+
+provider "google" {
+    project = var.gcp_project_id
+    region  = var.gcp_region
+}
 
 # GKE:
 module "gke" {

@@ -33,7 +33,9 @@ resource "helm_release" "traefik" {
                     }
                     exposedPort = 80
                     protocol = "TCP"
-                    middlewares = ["traefik-global-errors@kubernetescrd"]
+                    http = {
+                        middlewares = ["traefik-global-errors@kubernetescrd"]
+                    }
                 }
 
                 websecure = {
@@ -43,7 +45,9 @@ resource "helm_release" "traefik" {
                     }
                     exposedPort = 443
                     protocol = "TCP"
-                    middlewares = ["traefik-global-errors@kubernetescrd"]
+                    http = {
+                        middlewares = ["traefik-global-errors@kubernetescrd"]
+                    }
                 }
 
                 tcp = {
@@ -194,8 +198,8 @@ resource "kubernetes_service_v1" "error-pages" {
     }
 }
 
-resource "kubernetes_manifest" "global-errors" {
-    manifest = {
+resource "kubectl_manifest" "global-errors" {
+    yaml_body = yamlencode({
         apiVersion = "traefik.io/v1alpha1"
         kind = "Middleware"
 
@@ -218,11 +222,11 @@ resource "kubernetes_manifest" "global-errors" {
                 query = "/.rctf-instancer/{status}.html"
             }
         }
-    }
+    })
 }
 
-resource "kubernetes_manifest" "catch-all" {
-    manifest = {
+resource "kubectl_manifest" "catch-all" {
+    yaml_body = yamlencode({
         apiVersion = "traefik.io/v1alpha1"
         kind       = "IngressRoute"
 
@@ -247,5 +251,5 @@ resource "kubernetes_manifest" "catch-all" {
                 }
             ]
         }
-    }
+    })
 }

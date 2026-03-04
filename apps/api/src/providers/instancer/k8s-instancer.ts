@@ -224,16 +224,12 @@ const volumeMountSchema = z.catchall(
 )
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L3662-L3670
-const restartPolicySchema = z.prefault(
-  z.enum(['Always', 'OnFailure', 'Never']),
-  'Always'
-)
+const restartPolicyEnum = z.enum(['Always', 'OnFailure', 'Never'])
+const restartPolicySchema = z.prefault(restartPolicyEnum, 'Always')
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2750-L2761
-const imagePullPolicySchema = z.prefault(
-  z.enum(['Always', 'Never', 'IfNotPresent']),
-  'Always'
-)
+const imagePullPolicyEnum = z.enum(['Always', 'Never', 'IfNotPresent'])
+const imagePullPolicySchema = z.prefault(imagePullPolicyEnum, 'Always')
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2341-L2365
 const containerPortSchema = z.catchall(
@@ -278,7 +274,7 @@ const containerSchema = z.catchall(
     env: z.optional(z.array(envVarSchema)).check(z.describe('Env')),
     resources: z.optional(resourcesSchema).check(z.describe('Resources')),
     restartPolicy: z
-      .optional(restartPolicySchema)
+      .optional(restartPolicyEnum)
       .check(z.describe('Restart policy')),
     volumeMounts: z
       .optional(z.array(volumeMountSchema))
@@ -288,7 +284,7 @@ const containerSchema = z.catchall(
       .optional(probeSchema)
       .check(z.describe('Readiness probe')),
     imagePullPolicy: z
-      .optional(imagePullPolicySchema)
+      .optional(imagePullPolicyEnum)
       .check(z.describe('Image pull policy')),
     securityContext: z
       .optional(securityContextSchema)
@@ -639,6 +635,7 @@ export default class K8sInstancerProvider implements InstancerProvider {
         }
       }
 
+      // TODO(es3n1n): logger
       console.error('Failed to fetch instancer status', err)
       return {
         kind: 'instancerError',
