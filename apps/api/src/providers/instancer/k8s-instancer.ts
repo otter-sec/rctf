@@ -55,7 +55,7 @@ const defaultPod = {
 }
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L1237-L1248
-const protocolSchema = z.prefault(z.enum(['TCP', 'UDP', 'SCTP']), 'TCP')
+const protocolSchema = z.enum(['TCP', 'UDP', 'SCTP'])
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L6186-L6245
 const servicePortSchema = z.catchall(
@@ -183,23 +183,20 @@ const tcpSocketActionSchema = z.catchall(
 const probeSchema = z.catchall(
   z.object({
     initialDelaySeconds: z
-      .optional(z.prefault(z.int32().check(z.gte(1)), 1))
+      .optional(z.int32().check(z.gte(1)))
       .check(z.describe('Initial delay seconds')),
     timeoutSeconds: z
-      .optional(z.prefault(z.int32().check(z.gte(1)), 1))
+      .optional(z.int32().check(z.gte(1)))
       .check(z.describe('Timeout seconds')),
     periodSeconds: z
-      .optional(z.prefault(z.int32().check(z.gte(1)), 10))
+      .optional(z.int32().check(z.gte(1)))
       .check(z.describe('Period seconds')),
     successThreshold: z
-      .optional(z.prefault(z.int32().check(z.gte(1)), 1))
+      .optional(z.int32().check(z.gte(1)))
       .check(z.describe('Success threshold')),
     failureThreshold: z
-      .optional(z.prefault(z.int32().check(z.gte(1)), 3))
+      .optional(z.int32().check(z.gte(1)))
       .check(z.describe('Failure threshold')),
-    terminationGracePeriodSeconds: z
-      .optional(z.prefault(z.int().check(z.gte(0)), 30))
-      .check(z.describe('Termination grace period seconds')),
     // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L3106-L3121
     exec: z.optional(execActionSchema).check(z.describe('Execute')),
     httpGet: z.optional(httpGetActionSchema).check(z.describe('HTTP GET')),
@@ -214,7 +211,7 @@ const probeSchema = z.catchall(
 const volumeMountSchema = z.catchall(
   z.object({
     name: z.string().check(z.minLength(1), z.describe('Name')),
-    readOnly: z.prefault(z.boolean(), false).check(z.describe('Read only')),
+    readOnly: z.optional(z.boolean()).check(z.describe('Read only')),
     mountPath: z.string().check(z.minLength(1), z.describe('Mount path')),
     subPath: z
       .optional(z.string().check(z.minLength(1)))
@@ -225,11 +222,9 @@ const volumeMountSchema = z.catchall(
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L3662-L3670
 const restartPolicyEnum = z.enum(['Always', 'OnFailure', 'Never'])
-const restartPolicySchema = z.prefault(restartPolicyEnum, 'Always')
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2750-L2761
 const imagePullPolicyEnum = z.enum(['Always', 'Never', 'IfNotPresent'])
-const imagePullPolicySchema = z.prefault(imagePullPolicyEnum, 'Always')
 
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2341-L2365
 const containerPortSchema = z.catchall(
@@ -305,8 +300,8 @@ const volumeSchema = z.catchall(
           z.object({
             path: z.string().check(z.describe('Path')),
             // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L900-L922
-            type: z.optional(
-              z.prefault(
+            type: z
+              .optional(
                 z.enum([
                   '',
                   'DirectoryOrCreate',
@@ -316,10 +311,9 @@ const volumeSchema = z.catchall(
                   'Socket',
                   'CharDevice',
                   'BlockDevice',
-                ]),
-                ''
+                ])
               )
-            ),
+              .check(z.describe('Type')),
           }),
           z.any()
         )
@@ -380,10 +374,10 @@ const podSpecSchema = z.catchall(
       .optional(z.array(containerSchema))
       .check(z.describe('Containers')),
     restartPolicy: z
-      .optional(restartPolicySchema)
+      .optional(restartPolicyEnum)
       .check(z.describe('Restart policy')),
     terminationGracePeriodSeconds: z
-      .optional(z.prefault(z.int().check(z.gte(0)), 30))
+      .optional(z.int().check(z.gte(0)))
       .check(z.describe('Termination grace period seconds')),
     automountServiceAccountToken: z
       .optional(z.prefault(z.boolean(), false))
