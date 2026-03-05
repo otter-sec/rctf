@@ -201,6 +201,16 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, err
 	}
 
+	// At this point all resources are deployed, so we no longer treat errors as deploy failures.
+	ready, err := r.AreDeploymentsReady(ctx, &instance)
+	if err != nil {
+		log.Error(err, "Unable to check deployment readiness")
+		return ctrl.Result{RequeueAfter: 3 * time.Second}, nil
+	}
+	if !ready {
+		return ctrl.Result{RequeueAfter: 3 * time.Second}, nil
+	}
+
 	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 		Type:   typeReady,
 		Status: metav1.ConditionTrue,
@@ -558,6 +568,28 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 	}
 
 	return nil
+}
+
+func (r *ChallengeInstanceReconciler) AreDeploymentsReady(ctx context.Context, instance *rctfinstancerv1.ChallengeInstance) (bool, error) {
+	namespaceName := getNamespaceForInstance(*instance)
+
+	for _, pod := range instance.Spec.Pods {
+		var deployment v1.Deployment
+		if err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: pod.Name}, &deployment); err != nil {
+			return false, fmt.Errorf("getting deployment %s failed: %w", pod.Name, err)
+		}
+
+		expectedReplicas := int32(1)
+		if deployment.Spec.Replicas != nil {
+			expectedReplicas = *deployment.Spec.Replicas
+		}
+
+		if deployment.Status.ReadyReplicas < expectedReplicas {
+			return false, nil
+		}
+	}
+
+	return true, nil
 }
 
 func (r *ChallengeInstanceReconciler) EnsureServices(ctx context.Context, instance *rctfinstancerv1.ChallengeInstance) error {
