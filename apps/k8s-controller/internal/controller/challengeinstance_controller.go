@@ -776,6 +776,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 				},
 				Spec: v1alpha1.IngressRouteTCPSpec{
 					EntryPoints: []string{"tcp"},
+					TLS:         &v1alpha1.TLSTCP{},
 					Routes: []v1alpha1.RouteTCP{
 						{
 							Match:    fmt.Sprintf("HostSNI(`%s`)", hostname),
