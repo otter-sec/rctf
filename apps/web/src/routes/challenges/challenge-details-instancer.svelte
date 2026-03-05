@@ -120,7 +120,11 @@
   onMount(() => {
     fetchStatus()
     const tick = setInterval(() => {
-      if (status === InstanceStatus.RUNNING && timeLeft !== null && timeLeft > 0) {
+      if (
+        [InstanceStatus.RUNNING, InstanceStatus.STARTING].includes(status) &&
+        timeLeft !== null &&
+        timeLeft > 0
+      ) {
         timeLeft = Math.max(0, timeLeft - 1000)
       }
     }, 1_000)
@@ -183,19 +187,27 @@
       {#each endpoints as { kind, host, port, title }, i}
         {@const url = formatEndpoint(kind, host, port)}
         {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
-        <div class="space-y-1">
+        {@const pending = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+        <div class="space-y-1" class:opacity-50={pending}>
           <div class="text-foreground-l3 flex justify-between text-sm">
             <span>{label}</span>
             <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
           </div>
-          <button
-            type="button"
+          <div
             class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
-            onclick={() => copy(url)}
+            class:cursor-not-allowed={pending}
           >
-            <span class="text-foreground-accent truncate font-mono text-sm">{url}</span>
-            <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
-          </button>
+            <span
+              class="truncate font-mono text-sm"
+              class:text-foreground-accent={!pending}
+              class:text-foreground-l4={pending}>{url}</span
+            >
+            {#if !pending}
+              <button type="button" onclick={() => copy(url)}>
+                <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
+              </button>
+            {/if}
+          </div>
         </div>
       {/each}
 
