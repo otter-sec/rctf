@@ -403,7 +403,7 @@ const podSpecSchema = z.catchall(
 // ChallengeInstancePod
 const podSchema = z.object({
   name: z.string().check(z.describe('Name')),
-  ports: z.array(servicePortSchema).check(z.describe('Ports')),
+  ports: z.optional(z.array(servicePortSchema)).check(z.describe('Ports')),
   spec: podSpecSchema.check(z.describe('Pod spec')),
   egress: z.optional(z.boolean()).check(z.describe('Egress')),
 })
