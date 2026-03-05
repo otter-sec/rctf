@@ -20,6 +20,12 @@ integrationsGroup.route(
       return error
     }
 
+    if (challenge.data.instancerConfig!.extendable === false) {
+      return res.badInstancerError({
+        message: 'Extending is disabled for this challenge',
+      })
+    }
+
     const instanceStatus = await instancerProvider!.extendInstance({
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),

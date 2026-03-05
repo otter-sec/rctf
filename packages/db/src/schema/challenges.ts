@@ -32,6 +32,7 @@ export interface InstancerConfig {
   config: Record<string, unknown>
   expose: InstancerExpose[]
   timeoutMilliseconds: number
+  extendable?: boolean
 }
 
 export interface RegexRule {

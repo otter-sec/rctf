@@ -20,9 +20,10 @@
   interface Props {
     challengeId: string
     instanceLifetime: number
+    extendable: boolean
   }
 
-  let { challengeId, instanceLifetime }: Props = $props()
+  let { challengeId, instanceLifetime, extendable }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
@@ -221,16 +222,18 @@
       {/if}
 
       <div class="flex gap-2">
-        <Button
-          variant="secondary"
-          onclick={extend}
-          disabled={actioning ||
-            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
-          class="flex-1"
-        >
-          {#if actioning}<IconLoader class="animate-spin" />{/if}
-          Extend
-        </Button>
+        {#if extendable}
+          <Button
+            variant="secondary"
+            onclick={extend}
+            disabled={actioning ||
+              [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+            class="flex-1"
+          >
+            {#if actioning}<IconLoader class="animate-spin" />{/if}
+            Extend
+          </Button>
+        {/if}
         <Button
           variant="destructive"
           onclick={stop}

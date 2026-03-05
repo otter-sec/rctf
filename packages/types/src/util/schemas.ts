@@ -59,6 +59,7 @@ export const InstancerConfigSchema = z.object({
   config: z.record(z.string(), z.any()),
   expose: z.array(ExposeSchema),
   timeoutMilliseconds: z.int(),
+  extendable: z.optional(z.boolean()),
 })
 
 export const PartialInstancerConfigSchema = z.object({
@@ -66,6 +67,7 @@ export const PartialInstancerConfigSchema = z.object({
   config: z.optional(z.record(z.string(), z.any())),
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: z.optional(z.int()),
+  extendable: z.optional(z.boolean()),
 })
 
 export const RegexRuleSchema = z.object({

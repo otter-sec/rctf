@@ -67,6 +67,7 @@
           <ChallengeDetailsInstancer
             challengeId={challenge.id}
             instanceLifetime={challenge.instancerLifetime}
+            extendable={challenge.instancerExtendable}
           />
         </div>
       {/if}

@@ -27,6 +27,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
         instancerLifetime: Boolean(config.instancerProvider)
           ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
           : null,
+        instancerExtendable: item.data.instancerConfig?.extendable !== false,
         adminBotInputs: item.data.adminBotConfig?.inputs ?? null,
         hasFlag: Boolean(item.data.flag),
       }
