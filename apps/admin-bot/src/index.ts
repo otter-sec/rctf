@@ -18,7 +18,15 @@ if (!RCTF_BASE_URL || !RCTF_SECRET_KEY) {
   throw new Error('Please set RCTF_BASE_URL and RCTF_SECRET_KEY env variables')
 }
 
-export const platform = new PlatformClient(RCTF_BASE_URL, RCTF_SECRET_KEY)
+const extraHeaders: Record<string, string> = process.env.RCTF_EXTRA_HEADERS
+  ? JSON.parse(process.env.RCTF_EXTRA_HEADERS)
+  : {}
+
+export const platform = new PlatformClient(
+  RCTF_BASE_URL,
+  RCTF_SECRET_KEY,
+  extraHeaders
+)
 
 app.use('/*', bearerAuth({ token: RCTF_SECRET_KEY }))
 

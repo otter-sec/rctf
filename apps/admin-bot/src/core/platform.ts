@@ -47,10 +47,24 @@ interface ChallengeSourceResponse {
 export class PlatformClient {
   private readonly baseUrl: string
   private readonly secretKey: string
+  private readonly extraHeaders: Record<string, string>
 
-  constructor(baseUrl: string, secretKey: string) {
+  constructor(
+    baseUrl: string,
+    secretKey: string,
+    extraHeaders?: Record<string, string>
+  ) {
     this.baseUrl = baseUrl.replace(/\/+$/, '')
     this.secretKey = secretKey
+    this.extraHeaders = extraHeaders ?? {}
+  }
+
+  private headers(extra?: Record<string, string>): Record<string, string> {
+    return {
+      Authorization: `Bearer ${this.secretKey}`,
+      ...this.extraHeaders,
+      ...extra,
+    }
   }
 
   async pullJob(): Promise<PulledJob | null> {
@@ -58,9 +72,7 @@ export class PlatformClient {
       `${this.baseUrl}/api/v2/admin/admin-bot/jobs/pull`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.secretKey}`,
-        },
+        headers: this.headers(),
       }
     )
 
@@ -83,9 +95,7 @@ export class PlatformClient {
       `${this.baseUrl}/api/v2/admin/admin-bot/challenges/${challengeId}/source`,
       {
         method: 'GET',
-        headers: {
-          Authorization: `Bearer ${this.secretKey}`,
-        },
+        headers: this.headers(),
       }
     )
 
@@ -106,10 +116,7 @@ export class PlatformClient {
       `${this.baseUrl}/api/v2/admin/admin-bot/jobs/${jobId}/complete`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.secretKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: this.headers({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ logs }),
       }
     )
@@ -128,10 +135,7 @@ export class PlatformClient {
       `${this.baseUrl}/api/v2/admin/admin-bot/jobs/${jobId}/fail`,
       {
         method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.secretKey}`,
-          'Content-Type': 'application/json',
-        },
+        headers: this.headers({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ logs }),
       }
     )

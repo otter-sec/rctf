@@ -189,6 +189,15 @@ export const createJob = async (
   return job
 }
 
+export const getQueueDepth = async (db: DatabaseClient): Promise<number> => {
+  const result = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(adminBotJobs)
+    .where(eq(adminBotJobs.status, AdminBotJobStatus.QUEUED))
+    .then(takeUnique)
+  return result?.count ?? 0
+}
+
 export const pullNextJob = async (
   db: DatabaseClient
 ): Promise<PulledJob | undefined> => {

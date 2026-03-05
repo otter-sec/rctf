@@ -16,6 +16,7 @@ import {
   GoodAdminBotChallengeSource,
   GoodAdminBotJobPull,
   GoodAdminBotJobUpdate,
+  GoodAdminBotQueueDepth,
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
@@ -179,6 +180,13 @@ export const GetAdminBotChallengeSourceRouteV2 = defineRoute({
   badResponses: [BadEndpoint],
   authRequired: false, // adminbot auth will be checked by the middleware
   params: z.object({ id: z.string() }),
+})
+
+export const GetAdminBotQueueDepthRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/queue-depth',
+  method: 'GET',
+  goodResponses: [GoodAdminBotQueueDepth],
+  authRequired: false, // adminbot auth will be checked by the middleware
 })
 
 export const PullAdminBotJobRouteV2 = defineRoute({
