@@ -205,6 +205,24 @@
             />
           </Field.Field>
         </div>
+
+        <Field.Field>
+          <Field.Label>Allow extending</Field.Label>
+          <Select.Root
+            type="single"
+            value={(config.extendable ?? true) ? 'yes' : 'no'}
+            onValueChange={v => update(c => ({ ...c, extendable: v === 'yes' }))}
+            disabled={isDisabled}
+          >
+            <Select.Trigger class="w-full">
+              {(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
+            </Select.Trigger>
+            <Select.Content>
+              <Select.Item value="yes" label="Enabled">Enabled</Select.Item>
+              <Select.Item value="no" label="Disabled">Disabled</Select.Item>
+            </Select.Content>
+          </Select.Root>
+        </Field.Field>
       {/if}
     </Section.Content>
   </Section.Root>
