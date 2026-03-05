@@ -276,4 +276,4 @@ export const ALL_REGIONS: Country[] = [
   ...COUNTRIES,
   ...TERRITORIES,
   ...SPECIAL_REGIONS,
-]
+].sort((a, b) => a.name.localeCompare(b.name))

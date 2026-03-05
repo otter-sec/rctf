@@ -3,7 +3,7 @@
   import { Command, Popover } from '$lib/components'
   import { IconCheck, IconSelector } from '$lib/icons'
   import { cn, countryCodeToFlagFilename } from '$lib/utils'
-  import { ALL_REGIONS, COUNTRIES, SPECIAL_REGIONS, TERRITORIES } from '@rctf/util'
+  import { ALL_REGIONS } from '@rctf/util'
 
   interface Props {
     value: string | null | undefined
@@ -87,20 +87,8 @@
           </Command.Item>
         </Command.Group>
         <Command.Separator />
-        <Command.Group heading="Countries">
-          {#each COUNTRIES as country (country.code)}
-            {@render regionItem(country.code, country.name)}
-          {/each}
-        </Command.Group>
-        <Command.Separator />
-        <Command.Group heading="Territories">
-          {#each TERRITORIES as territory (territory.code)}
-            {@render regionItem(territory.code, territory.name)}
-          {/each}
-        </Command.Group>
-        <Command.Separator />
-        <Command.Group heading="Special regions">
-          {#each SPECIAL_REGIONS as region (region.code)}
+        <Command.Group>
+          {#each ALL_REGIONS as region (region.code)}
             {@render regionItem(region.code, region.name)}
           {/each}
         </Command.Group>
