@@ -5,8 +5,8 @@
   import { page } from '$app/state'
   import { toast } from '$lib'
   import { clearToken } from '$lib/api'
-  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import { Sheet, ThemeToggle, Tooltip } from '$lib/components'
   import {
     IconChartAreaLineFilled,
@@ -21,9 +21,13 @@
     IconUserFilled,
     IconX,
   } from '$lib/icons'
-  import { useCurrentUser } from '$lib/query'
+  import { useClientConfig, useCurrentUser } from '$lib/query'
 
   const queryClient = useQueryClient()
+  const clientConfigQuery = useClientConfig()
+  const clientConfig = $derived(clientConfigQuery.data)
+  const wordmarkLight = $derived(clientConfig?.logoLightUrl || defaultWordmarkLight)
+  const wordmarkDark = $derived(clientConfig?.logoDarkUrl || defaultWordmarkDark)
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data ?? null)
 

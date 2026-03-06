@@ -14,13 +14,17 @@
     Tabs,
     Textarea,
   } from '$lib/components'
-  import { IconPlus, IconX } from '$lib/icons'
+  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
+  import { IconCloudUpload, IconPlus, IconTrashFilled, IconX } from '$lib/icons'
   import {
     queryKeys,
     useAdminSettings,
     useClientConfig,
     useUpdateSettingsMutation,
+    useUploadFilesMutation,
   } from '$lib/query'
+  import { GoodFilesUploadV2 } from '@rctf/types'
   import { cn } from '$lib/utils'
 
   const queryClient = useQueryClient()
@@ -30,12 +34,49 @@
   const settings = $derived(settingsQuery.data)
   const isPending = $derived(settingsQuery.isPending)
   const mutation = useUpdateSettingsMutation()
+  const uploadMutation = useUploadFilesMutation()
+
+  let logoLightInput: HTMLInputElement | null = $state(null)
+  let logoDarkInput: HTMLInputElement | null = $state(null)
+
+  function handleLogoUpload(file: File, target: 'light' | 'dark') {
+    uploadMutation.mutate(
+      { files: [file] },
+      {
+        onSuccess: res => {
+          if (res.kind === GoodFilesUploadV2.kind && res.data[0]) {
+            if (target === 'light') logoLightUrl = res.data[0].url
+            else logoDarkUrl = res.data[0].url
+            markOverridden('logo')
+          } else {
+            showApiError(res as any)
+          }
+        },
+        onError: () => toast.error('Failed to upload image.'),
+      }
+    )
+  }
+
+  function handleLogoFileSelect(e: Event, target: 'light' | 'dark') {
+    const input = e.target as HTMLInputElement
+    const file = input.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file')
+      input.value = ''
+      return
+    }
+    handleLogoUpload(file, target)
+    input.value = ''
+  }
 
   let ctfName = $state('')
   let faviconUrl = $state('')
   let homeContent = $state('')
   let metaDescription = $state('')
   let metaImageUrl = $state('')
+  let logoLightUrl = $state('')
+  let logoDarkUrl = $state('')
   let sponsors = $state<{ name: string; icon: string; description: string; url: string }[]>([])
 
   let overrides = $state<Record<string, boolean>>({})
@@ -51,6 +92,8 @@
       homeContent = o.homeContent ?? d.homeContent ?? ''
       metaDescription = o.meta?.description ?? d.meta?.description ?? ''
       metaImageUrl = o.meta?.imageUrl ?? d.meta?.imageUrl ?? ''
+      logoLightUrl = o.logoLightUrl ?? d.logoLightUrl ?? ''
+      logoDarkUrl = o.logoDarkUrl ?? d.logoDarkUrl ?? ''
 
       const sponsorArr = o.sponsors ?? d.sponsors ?? []
       sponsors = sponsorArr.map(s => ({
@@ -65,6 +108,7 @@
         faviconUrl: o.faviconUrl !== undefined,
         homeContent: o.homeContent !== undefined,
         meta: o.meta !== undefined,
+        logo: o.logoLightUrl !== undefined || o.logoDarkUrl !== undefined,
         sponsors: o.sponsors !== undefined,
       }
 
@@ -88,6 +132,10 @@
       case 'meta':
         metaDescription = d.meta?.description ?? ''
         metaImageUrl = d.meta?.imageUrl ?? ''
+        break
+      case 'logo':
+        logoLightUrl = d.logoLightUrl ?? ''
+        logoDarkUrl = d.logoDarkUrl ?? ''
         break
       case 'sponsors': {
         const sponsorArr = d.sponsors ?? []
@@ -152,6 +200,14 @@
       patch.meta = { description: metaDescription, imageUrl: metaImageUrl }
     } else if (settings?.overrides.meta !== undefined) {
       patch.meta = null
+    }
+
+    if (overrides.logo) {
+      patch.logoLightUrl = logoLightUrl
+      patch.logoDarkUrl = logoDarkUrl
+    } else {
+      if (settings?.overrides.logoLightUrl !== undefined) patch.logoLightUrl = null
+      if (settings?.overrides.logoDarkUrl !== undefined) patch.logoDarkUrl = null
     }
 
     if (overrides.sponsors) {
@@ -250,6 +306,67 @@
               <Field.Hint>Config default: {settings.defaults.faviconUrl}</Field.Hint>
             {/if}
           </Field.Field>
+        </Section.Content>
+      </Section.Root>
+
+      <Section.Root class="bg-background-l1">
+        <Section.Header class="flex items-center justify-between">
+          <span>Logo</span>
+          {@render resetButton('logo')}
+        </Section.Header>
+        <Section.Content class="flex flex-col gap-4">
+          <input
+            bind:this={logoLightInput}
+            type="file"
+            accept="image/*"
+            class="hidden"
+            onchange={e => handleLogoFileSelect(e, 'light')}
+          />
+          <input
+            bind:this={logoDarkInput}
+            type="file"
+            accept="image/*"
+            class="hidden"
+            onchange={e => handleLogoFileSelect(e, 'dark')}
+          />
+
+          {#each [{ label: 'Light mode', url: logoLightUrl, fallback: defaultWordmarkLight, bg: 'bg-[oklch(98%_0_0)]', inputRef: logoLightInput, target: 'light' as const }, { label: 'Dark mode', url: logoDarkUrl, fallback: defaultWordmarkDark, bg: 'bg-[oklch(15%_0_0)]', inputRef: logoDarkInput, target: 'dark' as const }] as item}
+            <Field.Field>
+              <Field.Label>{item.label}</Field.Label>
+              <div class="flex items-center gap-3">
+                <div class={cn('flex h-18 flex-1 items-center rounded-md border px-4', item.bg)}>
+                  <img
+                    src={item.url || item.fallback}
+                    alt="{item.label} logo"
+                    class="max-h-10 max-w-56"
+                  />
+                </div>
+                <div class="flex shrink-0 gap-1.5">
+                  <Button
+                    size="sm"
+                    onclick={() => item.inputRef?.click()}
+                    disabled={uploadMutation.isPending}
+                  >
+                    <IconCloudUpload class="size-4" />
+                    {item.url ? 'Change' : 'Upload'}
+                  </Button>
+                  {#if item.url}
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onclick={() => {
+                        if (item.target === 'light') logoLightUrl = ''
+                        else logoDarkUrl = ''
+                        markOverridden('logo')
+                      }}
+                    >
+                      <IconTrashFilled class="size-4" />
+                    </Button>
+                  {/if}
+                </div>
+              </div>
+            </Field.Field>
+          {/each}
         </Section.Content>
       </Section.Root>
 

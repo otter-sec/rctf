@@ -35,6 +35,8 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
     endTime: z.int(),
     userMembers: z.boolean(),
     faviconUrl: z.nullable(z.string()),
+    logoLightUrl: z.nullable(z.string()),
+    logoDarkUrl: z.nullable(z.string()),
     emailEnabled: z.boolean(),
     registrationsEnabled: z.nullable(z.boolean()),
     ctftime: z.nullable(

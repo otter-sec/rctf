@@ -25,7 +25,7 @@
 
 @layer components {
   .prose {
-    @apply text-foreground-l0 text-base leading-7 *:first:mt-0! [&>:first-child_*]:mt-0! *:last:mb-0! [&>:last-child_*]:mb-0!;
+    @apply text-foreground-l0 text-base leading-7 *:first:mt-0! *:last:mb-0! [&>:first-child_*]:mt-0! [&>:last-child_*]:mb-0!;
 
     :where(p):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground-prose my-5;

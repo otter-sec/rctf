@@ -54,6 +54,8 @@ export function getConfigDefaults(): EditableSettings {
     sponsors: config.sponsors,
     meta: config.meta,
     faviconUrl: config.faviconUrl,
+    logoLightUrl: config.logoLightUrl,
+    logoDarkUrl: config.logoDarkUrl,
   }
 }
 
@@ -67,5 +69,7 @@ export function resolveSettings(overrides: EditableSettings) {
       imageUrl: overrides.meta?.imageUrl ?? config.meta.imageUrl,
     },
     faviconUrl: overrides.faviconUrl ?? config.faviconUrl ?? null,
+    logoLightUrl: (overrides.logoLightUrl ?? config.logoLightUrl) || null,
+    logoDarkUrl: (overrides.logoDarkUrl ?? config.logoDarkUrl) || null,
   }
 }
