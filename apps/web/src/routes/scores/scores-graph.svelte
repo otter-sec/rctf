@@ -296,7 +296,7 @@
           />
         {/if}
 
-        <Highlight points lines />
+        <Highlight points={{ r: 3, strokeWidth: 4 }} lines />
       </Layer>
 
       <Tooltip.Root anchor="top-right" motion="none" variant="none">

@@ -3,7 +3,7 @@
   import { page as pageState } from '$app/state'
   import { onMount } from 'svelte'
 
-  import { ScrollArea, Tooltip } from '$lib/components'
+  import { ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { CtfNotStarted } from '$lib/components'
   import {
     ApiError,
@@ -592,7 +592,11 @@
   )
 </script>
 
-{#if isNotStarted}
+{#if leaderboardQuery.isPending}
+  <div class="flex flex-1 items-center justify-center">
+    <Spinner class="size-4" />
+  </div>
+{:else if isNotStarted}
   <CtfNotStarted />
 {:else}
   <ScoresToolbar

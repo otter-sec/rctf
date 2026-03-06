@@ -121,7 +121,10 @@
         value={division ?? '__all__'}
         onValueChange={v => onDivisionChange(v === '__all__' ? undefined : v)}
       >
-        <Select.Trigger size="sm" class="w-auto gap-1.5">
+        <Select.Trigger
+          size="sm"
+          class="bg-background-l2 hover:bg-background-l3 w-auto gap-1.5 border-none"
+        >
           {selectedDivisionLabel}
         </Select.Trigger>
         <Select.Content>
@@ -146,7 +149,12 @@
       >
     </div>
 
-    <span class={cn('text-foreground-l3 truncate text-sm', isFetching && 'opacity-50')}>
+    <span
+      class={cn(
+        'text-foreground-l3 hidden truncate text-sm xl:inline',
+        isFetching && 'opacity-50'
+      )}
+    >
       {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
     </span>
 

@@ -289,12 +289,12 @@
 
       <Section.Root class="bg-background-l1">
         <Section.Header class="flex items-center justify-between">
-          <span>Meta</span>
+          <span>Open Graph</span>
           {@render resetButton('meta')}
         </Section.Header>
         <Section.Content class="flex flex-col gap-3">
           <Field.Field>
-            <Field.Label>Description</Field.Label>
+            <Field.Label>OG Description</Field.Label>
             <Input
               value={metaDescription}
               oninput={e => {
@@ -305,7 +305,7 @@
             />
           </Field.Field>
           <Field.Field>
-            <Field.Label>Image URL</Field.Label>
+            <Field.Label>OG Image URL</Field.Label>
             <Input
               value={metaImageUrl}
               oninput={e => {
