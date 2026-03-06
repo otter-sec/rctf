@@ -238,6 +238,8 @@ const AdminSettingsUpdateBody = z.object({
       })
     ),
     faviconUrl: z.nullish(z.string()),
+    logoLightUrl: z.nullish(z.string()),
+    logoDarkUrl: z.nullish(z.string()),
   }),
 })
 

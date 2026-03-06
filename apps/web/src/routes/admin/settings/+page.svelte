@@ -36,6 +36,8 @@
   let homeContent = $state('')
   let metaDescription = $state('')
   let metaImageUrl = $state('')
+  let logoLightUrl = $state('')
+  let logoDarkUrl = $state('')
   let sponsors = $state<{ name: string; icon: string; description: string; url: string }[]>([])
 
   let overrides = $state<Record<string, boolean>>({})
@@ -51,6 +53,8 @@
       homeContent = o.homeContent ?? d.homeContent ?? ''
       metaDescription = o.meta?.description ?? d.meta?.description ?? ''
       metaImageUrl = o.meta?.imageUrl ?? d.meta?.imageUrl ?? ''
+      logoLightUrl = o.logoLightUrl ?? d.logoLightUrl ?? ''
+      logoDarkUrl = o.logoDarkUrl ?? d.logoDarkUrl ?? ''
 
       const sponsorArr = o.sponsors ?? d.sponsors ?? []
       sponsors = sponsorArr.map(s => ({
@@ -65,6 +69,7 @@
         faviconUrl: o.faviconUrl !== undefined,
         homeContent: o.homeContent !== undefined,
         meta: o.meta !== undefined,
+        logo: o.logoLightUrl !== undefined || o.logoDarkUrl !== undefined,
         sponsors: o.sponsors !== undefined,
       }
 
@@ -88,6 +93,10 @@
       case 'meta':
         metaDescription = d.meta?.description ?? ''
         metaImageUrl = d.meta?.imageUrl ?? ''
+        break
+      case 'logo':
+        logoLightUrl = d.logoLightUrl ?? ''
+        logoDarkUrl = d.logoDarkUrl ?? ''
         break
       case 'sponsors': {
         const sponsorArr = d.sponsors ?? []
@@ -152,6 +161,14 @@
       patch.meta = { description: metaDescription, imageUrl: metaImageUrl }
     } else if (settings?.overrides.meta !== undefined) {
       patch.meta = null
+    }
+
+    if (overrides.logo) {
+      patch.logoLightUrl = logoLightUrl
+      patch.logoDarkUrl = logoDarkUrl
+    } else {
+      if (settings?.overrides.logoLightUrl !== undefined) patch.logoLightUrl = null
+      if (settings?.overrides.logoDarkUrl !== undefined) patch.logoDarkUrl = null
     }
 
     if (overrides.sponsors) {
@@ -249,6 +266,37 @@
             {#if overrides.faviconUrl}
               <Field.Hint>Config default: {settings.defaults.faviconUrl}</Field.Hint>
             {/if}
+          </Field.Field>
+        </Section.Content>
+      </Section.Root>
+
+      <Section.Root class="bg-background-l1">
+        <Section.Header class="flex items-center justify-between">
+          <span>Logo</span>
+          {@render resetButton('logo')}
+        </Section.Header>
+        <Section.Content class="flex flex-col gap-3">
+          <Field.Field>
+            <Field.Label>Light mode URL</Field.Label>
+            <Input
+              value={logoLightUrl}
+              oninput={e => {
+                logoLightUrl = e.currentTarget.value
+                markOverridden('logo')
+              }}
+              placeholder={settings.defaults.logoLightUrl || 'Built-in wordmark'}
+            />
+          </Field.Field>
+          <Field.Field>
+            <Field.Label>Dark mode URL</Field.Label>
+            <Input
+              value={logoDarkUrl}
+              oninput={e => {
+                logoDarkUrl = e.currentTarget.value
+                markOverridden('logo')
+              }}
+              placeholder={settings.defaults.logoDarkUrl || 'Built-in wordmark'}
+            />
           </Field.Field>
         </Section.Content>
       </Section.Root>

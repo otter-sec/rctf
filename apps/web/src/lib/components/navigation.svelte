@@ -4,8 +4,8 @@
   import { goto } from '$app/navigation'
   import { toast } from '$lib'
   import { clearToken } from '$lib/api'
-  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import wordmarkLight from '$lib/assets/wordmark-light.svg'
+  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
     Avatar,
     DropdownMenu,
@@ -36,6 +36,8 @@
   const clientConfigQuery = useClientConfig()
   const user = $derived(userQuery.data ?? null)
   const clientConfig = $derived(clientConfigQuery.data)
+  const wordmarkLight = $derived(clientConfig?.logoLightUrl || defaultWordmarkLight)
+  const wordmarkDark = $derived(clientConfig?.logoDarkUrl || defaultWordmarkDark)
 
   const divisionLabel = $derived(
     user?.division ? (clientConfig?.divisions[user.division] ?? user.division) : 'No Division'

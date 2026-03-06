@@ -2,7 +2,8 @@
   import Icon from '@iconify/svelte'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
   import { Avatar } from '$lib/components'
-  import wordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import { useClientConfig } from '$lib/query'
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import ScoresGraph from './scores-graph.svelte'
@@ -70,6 +71,9 @@
     endTime,
     class: className = '',
   }: Props = $props()
+
+  const clientConfigQuery = useClientConfig()
+  const wordmarkDark = $derived(clientConfigQuery.data?.logoDarkUrl || defaultWordmarkDark)
 
   const ctfDateInfo = $derived.by(() => {
     if (!startTime || !endTime) return null

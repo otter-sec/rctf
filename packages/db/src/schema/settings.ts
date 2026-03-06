@@ -16,6 +16,8 @@ export interface EditableSettings {
     imageUrl?: string
   }
   faviconUrl?: string
+  logoLightUrl?: string
+  logoDarkUrl?: string
 }
 
 export const settings = pgTable('settings', {

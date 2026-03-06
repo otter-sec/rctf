@@ -21,6 +21,8 @@ export const AdminSettingsSchema = z.object({
     })
   ),
   faviconUrl: z.optional(z.string()),
+  logoLightUrl: z.optional(z.string()),
+  logoDarkUrl: z.optional(z.string()),
 })
 
 const AdminSettingsResponseData = z.object({
