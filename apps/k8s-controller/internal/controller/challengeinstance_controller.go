@@ -266,6 +266,7 @@ func (r *ChallengeInstanceReconciler) EnsureNamespace(ctx context.Context, insta
 		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 			Type:    typeNamespaceDeployed,
 			Status:  metav1.ConditionFalse,
+			Reason:  "DeployFailed",
 			Message: err.Error(),
 		})
 		if err := r.Status().Update(ctx, instance); err != nil {
