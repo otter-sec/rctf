@@ -150,10 +150,7 @@
     </div>
 
     <span
-      class={cn(
-        'text-foreground-l3 hidden truncate text-sm xl:inline',
-        isFetching && 'opacity-50'
-      )}
+      class={cn('text-foreground-l3 hidden truncate text-sm xl:inline', isFetching && 'opacity-50')}
     >
       {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
     </span>

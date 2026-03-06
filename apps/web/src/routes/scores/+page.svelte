@@ -3,7 +3,8 @@
   import { page as pageState } from '$app/state'
   import { onMount } from 'svelte'
 
-  import { ScrollArea, Spinner, Tooltip } from '$lib/components'
+  import { EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
+  import { IconChartAreaLineFilled } from '$lib/icons'
   import { CtfNotStarted } from '$lib/components'
   import {
     ApiError,
@@ -598,6 +599,14 @@
   </div>
 {:else if isNotStarted}
   <CtfNotStarted />
+{:else if !isLoading && entries.length === 0}
+  <div class="flex h-[calc(100vh-72px)] items-center justify-center">
+    <EmptyState
+      icon={IconChartAreaLineFilled}
+      title="No scores yet"
+      subtitle="Check back soon for scores!"
+    />
+  </div>
 {:else}
   <ScoresToolbar
     {viewMode}
