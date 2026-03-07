@@ -226,8 +226,7 @@
           <Button
             variant="secondary"
             onclick={extend}
-            disabled={actioning ||
-              [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+            disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
             class="flex-1"
           >
             {#if actioning}<IconLoader class="animate-spin" />{/if}
@@ -237,8 +236,7 @@
         <Button
           variant="destructive"
           onclick={stop}
-          disabled={actioning ||
-            [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+          disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
           class="flex-1"
         >
           {#if actioning}<IconLoader class="animate-spin" />{/if}
