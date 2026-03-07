@@ -1,6 +1,7 @@
 # TODO: should this be part of the GKE module or separate?
 resource "google_artifact_registry_repository" "challenge_registry" {
     repository_id = "challenge-registry"
+    location = regex("^(.*)-[a-z]$", var.zone)[0]
 
     description = "Docker Registry for challenges"
     format = "DOCKER"
@@ -24,6 +25,7 @@ resource "google_artifact_registry_repository" "challenge_registry" {
 
 resource "google_artifact_registry_repository_iam_member" "gke_artifact_reader" {
     repository = google_artifact_registry_repository.challenge_registry.name
+    location = google_artifact_registry_repository.challenge_registry.location
     role = "roles/artifactregistry.writer"
     member = "serviceAccount:${google_service_account.gke.email}"
 

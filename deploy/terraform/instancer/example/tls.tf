@@ -13,24 +13,24 @@ resource "acme_registration" "reg" {
 
 resource "acme_certificate" "certificate" {
     account_key_pem = acme_registration.reg.account_key_pem
-    common_name = "${var.instancer_subdomain}.${var.instancer_zone}"
-    subject_alternative_names = ["*.${var.instancer_subdomain}.${var.instancer_zone}"]
+    common_name = var.instancer_subdomain != "" ? "${var.instancer_subdomain}.${var.instancer_zone}" : var.instancer_zone
+    subject_alternative_names = [var.instancer_subdomain != "" ? "*.${var.instancer_subdomain}.${var.instancer_zone}" : "*.${var.instancer_zone}"]
 
     # Cloudflare:
-    # dns_challenge {
-    #     provider = "cloudflare"
-    #     config = {
-    #         CF_DNS_API_TOKEN = var.cloudflare_api_token
-    #     }
-    # }
-
-    # GCP Cloud DNS:
     dns_challenge {
-        provider = "gcloud"
+        provider = "cloudflare"
         config = {
-            GCE_PROJECT = var.gcp_project_id
+            CF_DNS_API_TOKEN = var.cloudflare_api_token
         }
     }
+
+    # GCP Cloud DNS:
+    # dns_challenge {
+    #     provider = "gcloud"
+    #     config = {
+    #         GCE_PROJECT = var.gcp_project_id
+    #     }
+    # }
 }
 
 resource "kubernetes_secret_v1" "instancer_wildcard_tls" {

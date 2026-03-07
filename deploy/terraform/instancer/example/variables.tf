@@ -1,7 +1,6 @@
-# uncomment for cloudflare
-# variable "cloudflare_api_token" {
-#     type = string
-# }
+variable "cloudflare_api_token" {
+    type = string
+}
 
 variable "letsencrypt_email_address" {
     type = string

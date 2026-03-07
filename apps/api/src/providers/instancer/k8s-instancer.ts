@@ -26,7 +26,7 @@ interface K8sInstancerProviderOptions {
 }
 
 const defaultPod = {
-  name: 'whoami',
+  name: 'app',
   egress: true,
   ports: [
     {
@@ -37,7 +37,7 @@ const defaultPod = {
     automountServiceAccountToken: false,
     containers: [
       {
-        name: 'whoami',
+        name: 'app',
         image: 'traefik/whoami:latest',
         resources: {
           requests: {
