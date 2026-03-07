@@ -7,5 +7,6 @@ challsGroup.route(SubmitFlagRoute, async ({ res, ctx, params, body, user }) => {
     userId: user.id,
     challengeId: params.id,
     flag: body.flag,
+    submissionIp: ctx.var.ip,
   })
 })

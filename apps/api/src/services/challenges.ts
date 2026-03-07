@@ -436,6 +436,7 @@ export const submitFlag = async (
     userId: string
     challengeId: string
     flag: string
+    submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
   const challenge = await getChallenge(db, params.challengeId)
@@ -488,8 +489,8 @@ export const submitFlag = async (
         .execute<{ blood_number: number }>(
           sql`
         WITH inserted AS (
-          INSERT INTO solves (id, challengeid, userid, createdat)
-          VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW())
+          INSERT INTO solves (id, challengeid, userid, createdat, submissionip)
+          VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
           RETURNING challengeid, createdat
         )
         SELECT (

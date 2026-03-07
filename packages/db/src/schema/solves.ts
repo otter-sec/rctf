@@ -16,6 +16,7 @@ export const solves = pgTable(
     challengeid: text().notNull(),
     userid: text().notNull(),
     createdat: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
+    submissionip: text(),
   },
   table => [
     index().using(

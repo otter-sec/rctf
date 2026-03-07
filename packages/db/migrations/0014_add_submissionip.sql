@@ -1,0 +1,1 @@
+ALTER TABLE "solves" ADD COLUMN "submissionip" text;
