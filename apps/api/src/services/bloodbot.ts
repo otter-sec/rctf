@@ -31,7 +31,12 @@ export const sendBloodMessage = async (
         teamUrl: provider.escapeUrl(teamUrl),
         teamName: provider.escapeText(user.name),
       }
-      const message = mustache.render(destination.messageTemplate, view)
+      const message = mustache.render(
+        destination.messageTemplate,
+        view,
+        {},
+        { escape: (v: string) => v }
+      )
       return provider.sendMarkdown(message)
     })
   )
