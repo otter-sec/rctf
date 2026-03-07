@@ -156,6 +156,40 @@ export const getChallenge = async (
     .then(takeUnique)
 }
 
+export const createSolveAndGetBloodNumber = async (
+  db: DatabaseClient,
+  params: {
+    challengeId: string
+    userId: string
+    submissionIp?: string | null
+  }
+): Promise<number> => {
+  const solveId = crypto.randomUUID()
+
+  return await db.transaction(async tx => {
+    await tx.execute(
+      sql`SELECT pg_advisory_xact_lock(hashtext(${params.challengeId}))`
+    )
+
+    const result = await tx
+      .execute<{ solve_count: number }>(
+        sql`
+        SELECT COUNT(*)::int AS solve_count
+        FROM solves
+        WHERE challengeid = ${params.challengeId}
+      `
+      )
+      .then(takeUnique)
+
+    await tx.execute(sql`
+      INSERT INTO solves (id, challengeid, userid, createdat, submissionip)
+      VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
+    `)
+
+    return result!.solve_count + 1
+  })
+}
+
 const defaultChallengeData: ChallengeData = {
   name: '',
   description: '',
@@ -476,34 +510,12 @@ export const submitFlag = async (
     'successfull flag submission'
   )
 
-  const solveId = crypto.randomUUID()
-
   let bloodNumber: number
   try {
-    bloodNumber = await db.transaction(async tx => {
-      await tx.execute(
-        sql`SELECT pg_advisory_xact_lock(hashtext(${params.challengeId}))`
-      )
-      // TODO(es3n1n): 1-based bloods everywhere, iirc somewhere we're using 0-based blood index
-      const result = await tx
-        .execute<{ blood_number: number }>(
-          sql`
-        WITH inserted AS (
-          INSERT INTO solves (id, challengeid, userid, createdat, submissionip)
-          VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
-          RETURNING challengeid, createdat
-        )
-        SELECT (
-          SELECT COUNT(*)
-          FROM solves s
-          WHERE s.challengeid = inserted.challengeid
-            AND s.createdat <= inserted.createdat
-        )::int AS blood_number
-        FROM inserted
-      `
-        )
-        .then(takeUnique)
-      return result!.blood_number
+    bloodNumber = await createSolveAndGetBloodNumber(db, {
+      challengeId: params.challengeId,
+      userId: params.userId,
+      submissionIp: params.submissionIp,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)
