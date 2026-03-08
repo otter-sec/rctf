@@ -313,7 +313,14 @@
       points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
     const allTeams = mergeWithSelfGraph(allGraphData, selfGraphQuery.data)
-    const maxTime = Math.max(...allTeams.flatMap(t => filterPoints(t.points).map(p => p.time)), 0)
+    // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
+    //  hence why we're doing this manually
+    let maxTime = 0
+    for (const t of allTeams) {
+      for (const p of filterPoints(t.points)) {
+        if (p.time > maxTime) maxTime = p.time
+      }
+    }
     const windowStart = maxTime - SPARKLINE_WINDOW
 
     return new Map(allTeams.map(team => [team.id, filterPoints(team.points, windowStart)]))
@@ -323,7 +330,12 @@
     const allPoints = allGraphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
     if (allPoints.length === 0) return new Map<string, number>()
 
-    const maxDataTime = Math.max(...allPoints.map(p => p.time))
+    // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
+    //  hence why we're doing this manually
+    let maxDataTime = -Infinity
+    for (const p of allPoints) {
+      if (p.time > maxDataTime) maxDataTime = p.time
+    }
     const currentTime = Math.min(maxDataTime, CUTOFF_TIME)
     const pastTime = currentTime - DELTA_WINDOW
 

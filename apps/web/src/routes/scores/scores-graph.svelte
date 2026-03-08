@@ -176,9 +176,14 @@
 
   const useMinutesFormat = $derived.by(() => {
     if (flatPoints.length === 0) return false
-    const times = flatPoints.map(p => p.time)
-    const minTime = Math.min(...times)
-    const maxTime = Math.max(...times)
+    // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
+    //  hence why we're doing this manually
+    let minTime = Infinity
+    let maxTime = -Infinity
+    for (const p of flatPoints) {
+      if (p.time < minTime) minTime = p.time
+      if (p.time > maxTime) maxTime = p.time
+    }
     const minRangeForHoursOnly = (X_AXIS_DIVISIONS + 1) * 60 * 60 * 1000
     return maxTime - minTime < minRangeForHoursOnly
   })
