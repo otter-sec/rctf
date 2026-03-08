@@ -536,6 +536,11 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{
+							// Allow the cluster autoscaler to evict these pods during scale-down,
+							// otherwise it blocks on orphaned pods mid-namespace-deletion.
+							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
+						},
 						Labels: map[string]string{
 							labelTeamId:      instance.Spec.TeamId,
 							labelChallengeId: instance.Spec.ChallengeId,
