@@ -948,6 +948,180 @@ describe('first bloods tracking', () => {
 })
 
 describe('graph samples', () => {
+  test('includes final sample at endTime when event ends off the sample boundary', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const ch1 = await insertChallenge({ points: { min: 100, max: 500 } })
+    const ch2 = await insertChallenge({ points: { min: 100, max: 500 } })
+
+    const originalNow = Date.now
+    const originalEndTime = config.endTime
+    const originalGraphSampleTime = config.leaderboard.graphSampleTime
+    const sampleTime = 60_000
+    const sampleBoundary =
+      Math.ceil((config.startTime + sampleTime * 2) / sampleTime) * sampleTime
+    const offBoundaryEndTime = sampleBoundary + 45_000
+
+    config.leaderboard.graphSampleTime = sampleTime
+    config.endTime = offBoundaryEndTime
+
+    try {
+      await insertSolve({
+        challengeId: ch1.id,
+        userId: user.id,
+        createdAt: isoAt(sampleBoundary - 30_000),
+      })
+      await insertSolve({
+        challengeId: ch2.id,
+        userId: user.id,
+        createdAt: isoAt(sampleBoundary + 15_000),
+      })
+
+      Date.now = () => offBoundaryEndTime + 5_000
+      const result = await calculateLeaderboard(db)
+
+      expect(result.samples.map(sample => sample.time)).toEqual([
+        sampleBoundary,
+        offBoundaryEndTime,
+      ])
+      expect(result.samples.at(-1)?.time).toBe(offBoundaryEndTime)
+    } finally {
+      Date.now = originalNow
+      config.endTime = originalEndTime
+      config.leaderboard.graphSampleTime = originalGraphSampleTime
+    }
+  })
+
+  test('incremental updates replace trailing samples instead of accumulating them', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const ch1 = await insertChallenge({ points: { min: 100, max: 500 } })
+    const ch2 = await insertChallenge({ points: { min: 100, max: 500 } })
+    const ch3 = await insertChallenge({ points: { min: 100, max: 500 } })
+
+    const calc = createCachedLeaderboardCalculator()
+    const originalNow = Date.now
+    const originalGraphSampleTime = config.leaderboard.graphSampleTime
+    const sampleTime = 60_000
+    const sampleBoundary =
+      Math.ceil((config.startTime + sampleTime * 2) / sampleTime) * sampleTime
+    const solve1Time = sampleBoundary - 40_000
+    const now1 = sampleBoundary - 20_000
+    const solve2Time = sampleBoundary - 10_000
+    const now2 = sampleBoundary - 5_000
+    const solve3Time = sampleBoundary + 10_000
+    const now3 = sampleBoundary + 30_000
+
+    config.leaderboard.graphSampleTime = sampleTime
+
+    try {
+      await insertSolve({
+        challengeId: ch1.id,
+        userId: user.id,
+        createdAt: isoAt(solve1Time),
+      })
+
+      Date.now = () => now1
+      const first = await calc(db)
+      expect(first.calculated.samples.map(sample => sample.time)).toEqual([
+        now1,
+      ])
+
+      await insertSolve({
+        challengeId: ch2.id,
+        userId: user.id,
+        createdAt: isoAt(solve2Time),
+      })
+
+      Date.now = () => now2
+      const second = await calc(db)
+      expect(second.calculated.samples.map(sample => sample.time)).toEqual([
+        now2,
+      ])
+
+      await insertSolve({
+        challengeId: ch3.id,
+        userId: user.id,
+        createdAt: isoAt(solve3Time),
+      })
+
+      Date.now = () => now3
+      const incremental = await calc(db)
+      const fresh = await calculateLeaderboard(db)
+
+      expect(incremental.calculated.samples).toEqual(fresh.samples)
+      expect(
+        incremental.calculated.samples.filter(
+          sample => sample.time % sampleTime !== 0
+        )
+      ).toHaveLength(1)
+      expect(incremental.calculated.samples.at(-1)?.time).toBe(now3)
+    } finally {
+      Date.now = originalNow
+      config.leaderboard.graphSampleTime = originalGraphSampleTime
+    }
+  })
+
+  test('incremental updates do not revisit old boundaries with trailing-state scores', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const ch1 = await insertChallenge({ points: { min: 100, max: 500 } })
+    const ch2 = await insertChallenge({ points: { min: 100, max: 500 } })
+    const ch3 = await insertChallenge({ points: { min: 100, max: 500 } })
+
+    const calc = createCachedLeaderboardCalculator()
+    const originalNow = Date.now
+    const originalGraphSampleTime = config.leaderboard.graphSampleTime
+    const sampleTime = 60_000
+    const sampleBoundary =
+      Math.ceil((config.startTime + sampleTime * 2) / sampleTime) * sampleTime
+    const solve1Time = sampleBoundary - 20_000
+    const solve2Time = sampleBoundary + 10_000
+    const now1 = sampleBoundary + 30_000
+    const solve3Time = sampleBoundary + sampleTime + 10_000
+    const now2 = sampleBoundary + sampleTime + 30_000
+
+    config.leaderboard.graphSampleTime = sampleTime
+
+    try {
+      await insertSolve({
+        challengeId: ch1.id,
+        userId: user.id,
+        createdAt: isoAt(solve1Time),
+      })
+      await insertSolve({
+        challengeId: ch2.id,
+        userId: user.id,
+        createdAt: isoAt(solve2Time),
+      })
+
+      Date.now = () => now1
+      const first = await calc(db)
+      expect(first.calculated.samples.map(sample => sample.time)).toEqual([
+        sampleBoundary,
+        now1,
+      ])
+
+      await insertSolve({
+        challengeId: ch3.id,
+        userId: user.id,
+        createdAt: isoAt(solve3Time),
+      })
+
+      Date.now = () => now2
+      const incremental = await calc(db)
+      const fresh = await calculateLeaderboard(db)
+
+      expect(incremental.calculated.samples).toEqual(fresh.samples)
+      expect(incremental.calculated.samples.map(sample => sample.time)).toEqual(
+        [sampleBoundary, sampleBoundary + sampleTime, now2]
+      )
+    } finally {
+      Date.now = originalNow
+      config.leaderboard.graphSampleTime = originalGraphSampleTime
+    }
+  })
+
   test('samples contain correct user scores', async () => {
     const db = getDb()
     const user = await insertUser()

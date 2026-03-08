@@ -44,6 +44,7 @@ type LeaderboardRuntimeState = {
   challengeInfos: Map<string, InternalChallengeInfo>
   firstBloods: Map<string, string[]>
   samples: CalculatedLeaderboard['samples']
+  lastSampleIsTrailing: boolean
   prevScoreMap: Map<string, number> | null
   processedSolveCount: number
   lastSolveCursor: SolveCursor | null
@@ -289,6 +290,7 @@ const createRuntimeState = (
     challengeInfos,
     firstBloods: new Map<string, string[]>(),
     samples: [],
+    lastSampleIsTrailing: false,
     prevScoreMap: null,
     processedSolveCount: 0,
     lastSolveCursor: null,
@@ -327,6 +329,11 @@ const recomputeScores = (state: LeaderboardRuntimeState): void => {
     }
   }
 }
+
+const buildSampleScoreMap = (
+  userScores: Sample['userScores']
+): Map<string, number> =>
+  new Map(userScores.map(({ id, score }) => [id, score]))
 
 const applySolve = (
   state: LeaderboardRuntimeState,
@@ -375,6 +382,17 @@ const processSolveBatch = (
   let solveIndex = 0
   let hadLeaderboardChanges = false
   let hadUnappliedSolves = false
+  const graphSampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
+
+  if (state.lastSampleIsTrailing) {
+    state.samples.pop()
+    state.lastSampleIsTrailing = false
+
+    const prevSample = state.samples[state.samples.length - 1]
+    state.prevScoreMap = prevSample
+      ? buildSampleScoreMap(prevSample.userScores)
+      : null
+  }
 
   const applySolvesUntil = (untilEpochMs: number): void => {
     let changed = false
@@ -402,7 +420,7 @@ const processSolveBatch = (
     hadLeaderboardChanges = true
   }
 
-  const runSample = (time: number): void => {
+  const runSample = (time: number, isTrailing: boolean): void => {
     applySolvesUntil(time)
 
     const userScores: Sample['userScores'] = []
@@ -422,11 +440,11 @@ const processSolveBatch = (
       }
     }
 
-    state.prevScoreMap = new Map(userScores.map(({ id, score }) => [id, score]))
+    state.prevScoreMap = buildSampleScoreMap(userScores)
     state.samples.push({ time, userScores })
+    state.lastSampleIsTrailing = isTrailing
   }
 
-  const graphSampleTime = Math.max(1000, config.leaderboard.graphSampleTime)
   const end = Math.min(
     Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
     now
@@ -439,9 +457,24 @@ const processSolveBatch = (
   if (state.firstEverSolveTime !== null) {
     const effectiveStart = Math.max(config.startTime, state.firstEverSolveTime)
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
+    const lastProcessedSolveTime =
+      state.lastSolveCursor !== null
+        ? new Date(state.lastSolveCursor.createdat).valueOf()
+        : null
 
-    for (let i = start; i <= end; i += graphSampleTime) {
-      runSample(i)
+    // samples are point-in-time snapshots, 
+    //  so later solves do not rewrite earlier boundaries
+    const loopStart =
+      lastProcessedSolveTime !== null
+        ? Math.max(
+            start,
+            Math.ceil(lastProcessedSolveTime / graphSampleTime) *
+              graphSampleTime
+          )
+        : start
+
+    for (let i = loopStart; i <= end; i += graphSampleTime) {
+      runSample(i, false)
 
       if (solveIndex >= solveRows.length) {
         break
@@ -450,7 +483,7 @@ const processSolveBatch = (
   }
 
   if (solveIndex < solveRows.length || end !== config.endTime) {
-    runSample(Math.min(now, config.endTime))
+    runSample(Math.min(now, config.endTime), true)
   }
 
   const lastConsumedSolve =
