@@ -56,6 +56,9 @@ const config: Config = {
               'blob:',
               // icons in scoreboard screenshot
               'https://api.iconify.design/',
+              // cloud storage providers (screenshot export fetches avatars/images)
+              'https://*.storage.googleapis.com/',
+              'https://*.amazonaws.com/',
               // hcaptcha
               'https://hcaptcha.com/',
               'https://*.hcaptcha.com/',
