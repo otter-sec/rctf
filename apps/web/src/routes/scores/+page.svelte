@@ -703,10 +703,19 @@
     loadedCount={entries.length}
     {divisions}
     {division}
+    focusedChallenge={focusedChallengeId && challengesData[focusedChallengeId]
+      ? {
+          id: focusedChallengeId,
+          name: challengesData[focusedChallengeId].name,
+          icon: getCategoryConfig(challengesData[focusedChallengeId].category).icon,
+          color: getCategoryConfig(challengesData[focusedChallengeId].category).color,
+        }
+      : null}
     onViewModeChange={setViewMode}
     onSortModeChange={setSortMode}
     onDivisionChange={setDivision}
     onScreenshotClick={() => (screenshotModalOpen = true)}
+    onChallengeFocusClear={() => setFocusedChallenge(null)}
   />
 
   <div class="flex justify-center px-4 md:px-9">

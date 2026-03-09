@@ -7,8 +7,11 @@
     IconSortDescendingShapesFilled,
     IconTableFilled,
     IconUsersGroup,
+    IconX,
+    type IconComponent,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import { getCategoryStyle } from '$lib/utils/categories'
   import type { SortMode, ViewMode } from './types'
 
   interface Props {
@@ -18,10 +21,12 @@
     loadedCount: number
     divisions: Record<string, string>
     division: string | undefined
+    focusedChallenge: { id: string; name: string; icon: IconComponent; color: string } | null
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
     onDivisionChange: (division: string | undefined) => void
     onScreenshotClick: () => void
+    onChallengeFocusClear: () => void
   }
 
   let {
@@ -31,10 +36,12 @@
     loadedCount,
     divisions,
     division,
+    focusedChallenge,
     onViewModeChange,
     onSortModeChange,
     onDivisionChange,
     onScreenshotClick,
+    onChallengeFocusClear,
   }: Props = $props()
 
   const hasDivisions = $derived(Object.keys(divisions).length > 1)
@@ -110,7 +117,27 @@
   </div>
 
   <div class="flex items-center gap-2">
-    <span class="text-foreground-l3 hidden items-center gap-1.5 pr-2 text-sm tabular-nums xl:flex">
+    {#if focusedChallenge}
+      <div class="flex h-9 items-center gap-1.5 bg-background-l2 rounded-md px-3">
+        <span class="text-foreground-l3 text-sm">Filtering by</span>
+        <a
+          href="/challenges?challenge={focusedChallenge.id}"
+          class="text-category-foreground-l1 flex items-center gap-1 truncate text-sm underline decoration-current/50 underline-offset-2 transition-all hover:decoration-current"
+          style={getCategoryStyle(focusedChallenge.color)}
+        >
+          <focusedChallenge.icon class="size-4 shrink-0" />
+          <span>{focusedChallenge.name}</span>
+        </a>
+        <button
+          class="text-foreground-l3 hover:text-foreground-l1 -mr-1.5 flex size-5 shrink-0 items-center justify-center rounded transition-colors"
+          onclick={onChallengeFocusClear}
+        >
+          <IconX class="size-3.5" />
+        </button>
+      </div>
+    {/if}
+
+    <span class="text-foreground-l3 hidden items-center gap-1.5 px-2 text-sm tabular-nums xl:flex">
       <IconUsersGroup class="size-4" />
       {loadedCount.toLocaleString()} / {total.toLocaleString()}
     </span>
@@ -143,7 +170,7 @@
       onclick={onScreenshotClick}
     >
       <IconPhotoFilled class="size-4" />
-      <span class="text-foreground-l3 truncate text-sm">Screenshot</span>
+      <span class="text-foreground-l3 hidden truncate text-sm xl:inline">Screenshot</span>
     </button>
   </div>
 </div>

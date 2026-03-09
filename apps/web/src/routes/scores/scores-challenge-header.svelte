@@ -46,13 +46,13 @@
   >
     {#if !isCategory}
       <button
-        class="text-category-foreground-l1 absolute bottom-0 left-1/2 flex max-w-[150px] cursor-pointer items-center gap-1 origin-bottom-left -rotate-45 text-lg"
+        class="group/focus text-category-foreground-l1 absolute bottom-0 left-1/2 flex max-w-[150px] cursor-pointer items-center gap-1 origin-bottom-left -rotate-45 text-lg transition-transform hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline"
         title={(item as ChallengeInfo).name}
         onclick={() => onChallengeFocus((item as ChallengeInfo).id)}
       >
         <span class="truncate">{(item as ChallengeInfo).name}</span>
         {#if isFocused}
-          <IconX class="size-4 shrink-0" />
+          <IconX class="size-4 shrink-0 opacity-50 transition-opacity group-hover/focus:opacity-100" />
         {/if}
       </button>
     {:else}
@@ -108,8 +108,7 @@
 
 <div class="mr-(--diagonal-overflow) flex flex-col">
   <div
-    class="flex h-(--name-row-height) flex-row-reverse translate-x-1 items-end justify-end overflow-visible [&>div]:h-(--name-row-height)"
-    class:gap-1={viewMode === 'challenges'}
+    class="flex h-(--name-row-height) flex-row-reverse translate-x-1 items-end justify-end gap-1 overflow-visible [&>div]:h-(--name-row-height)"
   >
     {#each [...headerItems].reverse() as itemGroup}
       {#each [...itemGroup].reverse() as item}
