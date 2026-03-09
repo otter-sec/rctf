@@ -64,18 +64,19 @@
   }
 
   const savedPrefs = loadPreferences()
+  let hasInteracted = $state(false)
 
   const viewMode = $derived.by((): ViewMode => {
     const v = pageState.url.searchParams.get('view')
     if (v === 'challenges' || v === 'categories') return v
-    if (savedPrefs.viewMode) return savedPrefs.viewMode
+    if (!hasInteracted && savedPrefs.viewMode) return savedPrefs.viewMode
     return 'challenges'
   })
 
   const sortMode = $derived.by((): SortMode => {
     const s = pageState.url.searchParams.get('sort')
     if (s === 'solves') return 'solves'
-    if (s === null && savedPrefs.sortMode) return savedPrefs.sortMode
+    if (!hasInteracted && savedPrefs.sortMode) return savedPrefs.sortMode
     return 'categories'
   })
 
@@ -99,6 +100,7 @@
   }
 
   function setViewMode(v: ViewMode) {
+    hasInteracted = true
     savePreferences({ viewMode: v })
     const url = new URL(pageState.url)
     if (v === 'challenges') url.searchParams.delete('view')
@@ -107,6 +109,7 @@
   }
 
   function setSortMode(s: SortMode) {
+    hasInteracted = true
     savePreferences({ sortMode: s })
     const url = new URL(pageState.url)
     if (s === 'categories') url.searchParams.delete('sort')
