@@ -45,7 +45,7 @@
 </svelte:head>
 
 {#if user && clientConfig}
-  <div class="mx-auto h-[calc(100vh-72px)] w-full max-w-3xl">
+  <div class="mx-auto h-[calc(100dvh-72px)] w-full max-w-3xl">
     <div class="bg-background-l1 flex h-full flex-col overflow-hidden rounded-t-3xl">
       <div class="bg-background-l1 z-10 shrink-0 py-2">
         <ProfileHeader {user} {clientConfig} />

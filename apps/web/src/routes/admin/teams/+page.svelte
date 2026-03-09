@@ -92,7 +92,7 @@
   {/if}
 </svelte:head>
 
-<div class="flex h-[calc(100vh-72px)] flex-col">
+<div class="flex h-[calc(100dvh-72px)] flex-col">
   {#if usersQuery.isPending}
     <div class="flex flex-1 items-center justify-center">
       <Spinner class="size-6" />

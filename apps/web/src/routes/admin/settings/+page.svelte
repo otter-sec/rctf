@@ -262,7 +262,7 @@
 
 {#if settings && initialized}
   <ScrollArea
-    class="h-[calc(100vh-72px)]"
+    class="h-[calc(100dvh-72px)]"
     fadeSize={64}
     fadeColor="background-l0"
     fadeOffsets={{ bottom: 60 }}

@@ -69,9 +69,9 @@
     </div>
   </div>
 
-  <div class="mx-auto hidden h-[calc(100vh-72px)] w-full max-w-4xl grid-cols-5 gap-4 lg:grid">
+  <div class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-4xl grid-cols-5 gap-4 lg:grid">
     <div
-      class="bg-background-l1 col-span-3 flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl"
+      class="bg-background-l1 col-span-3 flex h-[calc(100dvh-72px)] flex-col overflow-hidden rounded-t-3xl"
     >
       <div class="bg-background-l1 z-10 shrink-0 py-2">
         <ProfileHeader {user} {clientConfig} />
@@ -94,7 +94,7 @@
     </div>
 
     <div
-      class="bg-background-l1 col-span-2 flex h-[calc(100vh-72px)] flex-col overflow-hidden rounded-t-3xl"
+      class="bg-background-l1 col-span-2 flex h-[calc(100dvh-72px)] flex-col overflow-hidden rounded-t-3xl"
     >
       <ScrollArea
         class="min-h-0 flex-1"

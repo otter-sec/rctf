@@ -688,7 +688,7 @@
 {:else if isNotStarted}
   <CtfNotStarted />
 {:else if !isLoading && entries.length === 0}
-  <div class="flex h-[calc(100vh-72px)] items-center justify-center">
+  <div class="flex h-[calc(100dvh-72px)] items-center justify-center">
     <EmptyState
       icon={IconChartAreaLineFilled}
       title="No scores yet"
@@ -762,12 +762,12 @@
         <ScoresGraph class="h-full w-full p-3" {...graphProps} />
       </div>
 
-      <!-- 100vh - 72px (header) - 52px (toolbar) - 16px (bottom gap) -->
-      <!-- 100vh - 72px (header) - 52px (toolbar) - 8px (between graph and rows) - 192px (graph height) - 16px (bottom gap) -->
+      <!-- 100dvh - 72px (header) - 52px (toolbar) - 16px (bottom gap) -->
+      <!-- 100dvh - 72px (header) - 52px (toolbar) - 8px (between graph and rows) - 192px (graph height) - 16px (bottom gap) -->
       <ScrollArea
         class={isDesktop
-          ? 'h-[calc(100vh-72px-52px-16px)]'
-          : 'h-[calc(100vh-72px-52px-8px-192px-16px)]'}
+          ? 'h-[calc(100dvh-72px-52px-16px)]'
+          : 'h-[calc(100dvh-72px-52px-8px-192px-16px)]'}
         orientation={isDesktop ? 'both' : 'vertical'}
         fadeSize={0}
         bind:viewportRef={scroll.state.viewportRef}

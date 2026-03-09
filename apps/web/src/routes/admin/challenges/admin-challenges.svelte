@@ -57,7 +57,7 @@
 
 <svelte:window bind:innerWidth />
 
-<div class="hidden h-[calc(100vh-72px)] md:block">
+<div class="hidden h-[calc(100dvh-72px)] md:block">
   <Resizable.PaneGroup direction="horizontal" class="gap-2">
     <Resizable.Pane defaultSize={40} minSize={listMinSize} maxSize={50}>
       <div class="bg-background-l1 h-full rounded-r-3xl">
@@ -81,7 +81,7 @@
   </Resizable.PaneGroup>
 </div>
 
-<div class="flex h-[calc(100vh-72px)] flex-col md:hidden">
+<div class="flex h-[calc(100dvh-72px)] flex-col md:hidden">
   <div class="bg-background-l1 h-full">
     <AdminChallengesList
       {challenges}
