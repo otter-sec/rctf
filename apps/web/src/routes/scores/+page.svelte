@@ -338,6 +338,12 @@
     return true
   })
 
+  const selfRowPosition = $derived.by((): 'top' | 'bottom' => {
+    if (!currentUser?.globalPlace) return 'bottom'
+    if (userEntryIndex === -1) return 'bottom'
+    return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
+  })
+
   const selfGraphQuery = useSelfUserGraph(() =>
     showSelfRow && currentUser?.globalPlace ? currentUser.globalPlace : null
   )
@@ -564,7 +570,19 @@
     return () => ro.disconnect()
   })
 
-  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, isDesktop, isLoading, focusedChallengeId, entryCount: entries.length })
+  const scrollbarYPadding = $derived.by(() => {
+    const isSelfTop = showSelfRow && selfRowPosition === 'top'
+    const selfRowPb = 'pb-[calc(var(--row-height-full)+4px)]'
+    const selfRowPt = isDesktop
+      ? 'pt-[calc(var(--header-height)+var(--row-height-full)+4px)]'
+      : 'pt-[calc(var(--row-height-full)+4px)]'
+
+    if (isSelfTop) return `${selfRowPt} pb-2`
+    if (showSelfRow) return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
+    return `${isDesktop ? 'pt-(--header-height)' : ''} pb-2`
+  })
+
+  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, selfRowPosition, isDesktop, isLoading, focusedChallengeId, entryCount: entries.length })
 
   $effect(() => {
     const viewport = scroll.state.viewportRef
@@ -690,7 +708,8 @@
           : 'calc(40vw + 72px)'
         : '0px'}
       style:--self-row-height="{ROW_HEIGHT}px"
-      style:--self-row-offset={showSelfRow ? `${ROW_HEIGHT}px` : '0px'}
+      style:--self-row-offset={showSelfRow && selfRowPosition === 'bottom' ? `${ROW_HEIGHT}px` : '0px'}
+      style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top' ? `${ROW_HEIGHT}px` : '0px'}
     >
       <ScoresFades
         showTop={showTopFade}
@@ -698,6 +717,7 @@
         showLeft={isDesktop && showLeftFade}
         showRight={isDesktop && showRightFade}
         {showSelfRow}
+        {selfRowPosition}
         isMinimal={!isDesktop}
       />
 
@@ -731,9 +751,7 @@
         fadeSize={0}
         bind:viewportRef={scroll.state.viewportRef}
         scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
-        scrollbarYClasses={isDesktop
-          ? `pt-(--header-height) z-40 ${showSelfRow ? 'pb-[calc(var(--row-height-full)+4px)]' : 'pb-2'}`
-          : `z-40 ${showSelfRow ? 'pb-[calc(var(--row-height-full)+4px)]' : 'pb-2'}`}
+        scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
       >
         <div class="flex min-h-full flex-col">
           <div
@@ -868,7 +886,13 @@
             {@const selfSolves = new Set(currentUser.solves.map(s => s.id))}
             {@const selfSolveTimes = new Map(currentUser.solves.map(s => [s.id, s.createdAt]))}
             <div
-              class="bg-background-l0 sticky bottom-0 z-20 mt-auto flex h-(--row-height-full) pt-1 will-change-transform contain-[layout_style_paint]"
+              class={cn(
+                'bg-background-l0 sticky z-20 flex h-(--row-height-full) will-change-transform contain-[layout_style_paint]',
+                selfRowPosition === 'top'
+                  ? 'order-first pb-1'
+                  : 'bottom-0 mt-auto pt-1'
+              )}
+              style={selfRowPosition === 'top' ? `top: ${listScrollMargin}px` : undefined}
             >
               <ScoresTeamRow
                 data={{

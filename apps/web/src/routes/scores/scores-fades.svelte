@@ -7,10 +7,13 @@
     showLeft: boolean
     showRight: boolean
     showSelfRow: boolean
+    selfRowPosition?: 'top' | 'bottom'
     isMinimal: boolean
   }
 
-  let { showTop, showBottom, showLeft, showRight, showSelfRow, isMinimal }: Props = $props()
+  let { showTop, showBottom, showLeft, showRight, showSelfRow, selfRowPosition = 'bottom', isMinimal }: Props = $props()
+
+  const selfTop = $derived(showSelfRow && selfRowPosition === 'top')
 
   type FadeConfig = { class: string; show: boolean }
 
@@ -35,8 +38,8 @@
 
     if (showSelfRow) {
       base.push(
-        { class: 'fade-left-self', show: showLeft },
-        { class: 'fade-right-self', show: showRight }
+        { class: selfTop ? 'fade-left-self-top' : 'fade-left-self', show: showLeft },
+        { class: selfTop ? 'fade-right-self-top' : 'fade-right-self', show: showRight }
       )
     }
 
@@ -77,7 +80,7 @@
   }
 
   .fade-top-team {
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
     left: 0;
     width: var(--team-column-width);
     height: var(--fade-size);
@@ -93,7 +96,7 @@
   }
 
   .fade-top-content {
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
     left: var(--team-column-width);
     right: 0;
     height: var(--fade-size);
@@ -109,7 +112,7 @@
   }
 
   .fade-left-content {
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
     bottom: var(--self-row-offset, 0px);
     left: var(--team-column-width);
     width: var(--fade-size);
@@ -117,7 +120,7 @@
   }
 
   .fade-right-content {
-    top: var(--header-height);
+    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
     bottom: var(--self-row-offset, 0px);
     right: 0;
     width: var(--fade-size);
@@ -140,8 +143,24 @@
     background: linear-gradient(to left, var(--background-l0), transparent);
   }
 
-  .fade-top-minimal {
+  .fade-left-self-top {
     top: var(--header-height);
+    left: var(--team-column-width);
+    height: var(--self-row-height);
+    width: var(--fade-size);
+    background: linear-gradient(to right, var(--background-l0), transparent);
+  }
+
+  .fade-right-self-top {
+    top: var(--header-height);
+    right: 0;
+    height: var(--self-row-height);
+    width: var(--fade-size);
+    background: linear-gradient(to left, var(--background-l0), transparent);
+  }
+
+  .fade-top-minimal {
+    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
     left: 0;
     right: 0;
     height: var(--fade-size);
