@@ -10,6 +10,7 @@
     Spinner,
     Textarea,
   } from '$lib/components'
+  import ChallengeDetailsInstancer from '../../challenges/challenge-details-instancer.svelte'
   import { IconPlus, IconTrashFilled, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { useInstancerSchema } from '$lib/query'
@@ -17,12 +18,13 @@
 
   interface Props {
     config: InstancerConfig | null
+    challengeId: string | null
     isDisabled: boolean
     onConfigChange: (config: InstancerConfig | null) => void
     isValid?: boolean
   }
 
-  let { config, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
+  let { config, challengeId, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
   const schemaData = $derived(schemaQuery.data)
@@ -444,5 +446,18 @@
         </div>
       </Section.Content>
     </Section.Root>
+
+    {#if challengeId}
+      <Section.Root>
+        <Section.Header>Instance management</Section.Header>
+        <Section.Content>
+          <ChallengeDetailsInstancer
+            {challengeId}
+            instanceLifetime={config.timeoutMilliseconds}
+            extendable={config.extendable ?? true}
+          />
+        </Section.Content>
+      </Section.Root>
+    {/if}
   {/if}
 </div>
