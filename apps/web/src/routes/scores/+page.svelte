@@ -880,6 +880,7 @@
                         sparklineData: sparklineDataByTeam.get(entry.id),
                         isCurrentUser: currentUser?.id === entry.id,
                         divisionPlace: showDivision ? entry.divisionPlace : undefined,
+                        divisionName: showDivision ? divisions[entry.division] : undefined,
                       }}
                       {solves}
                       {solveTimes}
@@ -939,6 +940,7 @@
                   sparklineData: sparklineDataByTeam.get(currentUser.id),
                   isCurrentUser: true,
                   divisionPlace: showDivision ? currentUser.divisionPlace : undefined,
+                  divisionName: showDivision && currentUser.division ? divisions[currentUser.division] : undefined,
                 }}
                 solves={isLoading ? null : selfSolves}
                 solveTimes={isLoading ? null : selfSolveTimes}

@@ -19,6 +19,7 @@
     sparklineData?: { time: number; score: number }[]
     isCurrentUser: boolean
     divisionPlace?: number | null
+    divisionName?: string | null
   }
 
   interface Props {
@@ -90,12 +91,21 @@
         <div class="hidden w-6 xl:block">
           <ScoresDeltaIndicator delta={data.delta} />
         </div>
-        <div class="flex w-8 flex-col items-center sm:w-10 lg:w-16">
+        <div class="flex w-8 flex-col items-center leading-none sm:w-10 lg:w-16">
           <span class={cn('text-base tabular-nums sm:text-xl', styles?.fgL0)}
             >#{data.rank ?? '?'}</span
           >
           {#if data.divisionPlace}
-            <span class="text-foreground-l3 text-xs tabular-nums">#{data.divisionPlace}</span>
+            {#if data.divisionName}
+              <Tooltip.Root disableHoverableContent>
+                <Tooltip.Trigger class="leading-none">
+                  <span class="text-foreground-l3 text-xs tabular-nums leading-none">#{data.divisionPlace}</span>
+                </Tooltip.Trigger>
+                <Tooltip.Content>{data.divisionName}</Tooltip.Content>
+              </Tooltip.Root>
+            {:else}
+              <span class="text-foreground-l3 text-xs tabular-nums leading-none">#{data.divisionPlace}</span>
+            {/if}
           {/if}
         </div>
       </div>
