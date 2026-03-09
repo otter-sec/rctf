@@ -6,16 +6,19 @@
   let lastChallengeCount = 0
   let lastCategoryCount = 0
   let lastSortMode: SortMode = 'categories'
+  let lastFocusedChallengeId: string | null = null
 
   function invalidateCachesIfNeeded(
     challengeCount: number,
     categoryCount: number,
-    sortMode: SortMode
+    sortMode: SortMode,
+    focusedId: string | null
   ) {
-    if (challengeCount !== lastChallengeCount || sortMode !== lastSortMode) {
+    if (challengeCount !== lastChallengeCount || sortMode !== lastSortMode || focusedId !== lastFocusedChallengeId) {
       svgCache.clear()
       lastChallengeCount = challengeCount
       lastSortMode = sortMode
+      lastFocusedChallengeId = focusedId
     }
     if (categoryCount !== lastCategoryCount) {
       categoryCache.clear()
@@ -39,6 +42,7 @@
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
+    focusedChallengeId: string | null
     getSolves: (challengeId: string) => boolean
     getSolveTime: (challengeId: string) => number | undefined
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
@@ -54,6 +58,7 @@
     sortMode,
     categoryGroups,
     challenges,
+    focusedChallengeId,
     getSolves,
     getSolveTime,
     getCategoryStats,
@@ -79,7 +84,7 @@
   const svgWidth = $derived(totalChallengeCount * (CELL_WIDTH + CELL_GAP))
 
   const challengeSvgContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode)
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode, focusedChallengeId)
 
     const cached = svgCache.get(teamId)
     if (cached) {
@@ -120,26 +125,29 @@
       const bloodIndex = getBloodIndex(challenge.id)
       const cx = x + CELL_WIDTH / 2
       const cy = CELL_HEIGHT / 2
+      const isDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id
+      const gOpen = isDimmed ? `<g opacity="0.25">` : ''
+      const gClose = isDimmed ? '</g>' : ''
 
       if (bloodIndex === 0) {
         parts.push(
-          `<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-gold-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m.994 5.886c-.083-.777-1.008-1.16-1.617-.67l-.084.077l-2 2l-.083.094a1 1 0 0 0 0 1.226l.083.094l.094.083a1 1 0 0 0 1.226 0l.094-.083l.293-.293V16l.007.117a1 1 0 0 0 1.986 0L13 16V8z"/></svg>`
+          `${gOpen}<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-gold-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m.994 5.886c-.083-.777-1.008-1.16-1.617-.67l-.084.077l-2 2l-.083.094a1 1 0 0 0 0 1.226l.083.094l.094.083a1 1 0 0 0 1.226 0l.094-.083l.293-.293V16l.007.117a1 1 0 0 0 1.986 0L13 16V8z"/></svg>${gClose}`
         )
       } else if (bloodIndex === 1) {
         parts.push(
-          `<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-silver-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-3l-.117.007a1 1 0 0 0 0 1.986L10 9h3v2h-2l-.15.005a2 2 0 0 0-1.844 1.838L9 13v2l.005.15a2 2 0 0 0 1.838 1.844L11 17h3l.117-.007a1 1 0 0 0 0-1.986L14 15h-3v-2h2l.15-.005a2 2 0 0 0 1.844-1.838L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z"/></svg>`
+          `${gOpen}<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-silver-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-3l-.117.007a1 1 0 0 0 0 1.986L10 9h3v2h-2l-.15.005a2 2 0 0 0-1.844 1.838L9 13v2l.005.15a2 2 0 0 0 1.838 1.844L11 17h3l.117-.007a1 1 0 0 0 0-1.986L14 15h-3v-2h2l.15-.005a2 2 0 0 0 1.844-1.838L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z"/></svg>${gClose}`
         )
       } else if (bloodIndex === 2) {
         parts.push(
-          `<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-bronze-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-2l-.15.005A2 2 0 0 0 9 9a1 1 0 0 0 1.974.23l.02-.113L11 9h2v2h-2l-.133.007c-1.111.12-1.154 1.73-.128 1.965l.128.021L11 13h2v2h-2l-.007-.117A1 1 0 0 0 9 15a2 2 0 0 0 1.85 1.995L11 17h2l.15-.005a2 2 0 0 0 1.844-1.838L15 15v-2l-.005-.15a2 2 0 0 0-.17-.667l-.075-.152l-.019-.032l.02-.03a2 2 0 0 0 .242-.795L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z"/></svg>`
+          `${gOpen}<svg x="${cx - BLOOD_ICON_SIZE / 2}" y="${cy - BLOOD_ICON_SIZE / 2}" width="${BLOOD_ICON_SIZE}" height="${BLOOD_ICON_SIZE}" viewBox="0 0 24 24"><path fill="var(--foreground-bronze-l0)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-2l-.15.005A2 2 0 0 0 9 9a1 1 0 0 0 1.974.23l.02-.113L11 9h2v2h-2l-.133.007c-1.111.12-1.154 1.73-.128 1.965l.128.021L11 13h2v2h-2l-.007-.117A1 1 0 0 0 9 15a2 2 0 0 0 1.85 1.995L11 17h2l.15-.005a2 2 0 0 0 1.844-1.838L15 15v-2l-.005-.15a2 2 0 0 0-.17-.667l-.075-.152l-.019-.032l.02-.03a2 2 0 0 0 .242-.795L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z"/></svg>${gClose}`
         )
       } else if (solved) {
         parts.push(
-          `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="none" stroke="var(--foreground-success)" stroke-opacity="0.75" stroke-width="2"/>`
+          `${gOpen}<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="none" stroke="var(--foreground-success)" stroke-opacity="0.75" stroke-width="2"/>${gClose}`
         )
       } else {
         parts.push(
-          `<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="none" stroke="var(--foreground-l5)" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="4 3"/>`
+          `${gOpen}<circle cx="${cx}" cy="${cy}" r="${ICON_RADIUS}" fill="none" stroke="var(--foreground-l5)" stroke-opacity="0.25" stroke-width="2" stroke-dasharray="4 3"/>${gClose}`
         )
       }
 
@@ -152,7 +160,7 @@
   })
 
   const categoryHtmlContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode)
+    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode, focusedChallengeId)
 
     const cached = categoryCache.get(teamId)
     if (cached !== undefined) {
@@ -181,7 +189,7 @@
       }
 
       parts.push(
-        `<div class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16" style="${style}${shade}">${iconSvg}</div>`
+        `<div class="flex h-12 w-12 items-center justify-center md:h-16" style="${style}${shade}">${iconSvg}</div>`
       )
     }
 

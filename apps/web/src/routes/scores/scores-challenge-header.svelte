@@ -1,5 +1,7 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
+  import { IconX } from '$lib/icons'
+  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
 
@@ -8,9 +10,11 @@
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
+    focusedChallengeId: string | null
+    onChallengeFocus: (id: string) => void
   }
 
-  let { viewMode, sortMode, categoryGroups, challenges }: Props = $props()
+  let { viewMode, sortMode, categoryGroups, challenges, focusedChallengeId, onChallengeFocus }: Props = $props()
 
   type HeaderItem =
     | { type: 'category'; group: CategoryGroup }
@@ -34,13 +38,30 @@
 </script>
 
 {#snippet challengeNameLabel(item: ChallengeInfo | CategoryGroup, isCategory: boolean)}
-  <div class="relative w-12 translate-x-1" style={getCategoryStyle(item.config.color)}>
-    <span
-      class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg"
-      class:capitalize={isCategory}
-    >
-      {isCategory ? (item as CategoryGroup).config.name : (item as ChallengeInfo).name}
-    </span>
+  {@const isFocused = !isCategory && focusedChallengeId === (item as ChallengeInfo).id}
+  {@const isDimmed = !isCategory && focusedChallengeId !== null && !isFocused}
+  <div
+    class={cn('relative w-12 translate-x-1 overflow-visible', isDimmed && 'opacity-25')}
+    style={getCategoryStyle(item.config.color)}
+  >
+    {#if !isCategory}
+      <button
+        class="text-category-foreground-l1 absolute bottom-0 left-1/2 flex max-w-[150px] cursor-pointer items-center gap-1 origin-bottom-left -rotate-45 text-lg"
+        title={(item as ChallengeInfo).name}
+        onclick={() => onChallengeFocus((item as ChallengeInfo).id)}
+      >
+        <span class="truncate">{(item as ChallengeInfo).name}</span>
+        {#if isFocused}
+          <IconX class="size-4 shrink-0" />
+        {/if}
+      </button>
+    {:else}
+      <span
+        class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize"
+      >
+        {(item as CategoryGroup).config.name}
+      </span>
+    {/if}
   </div>
 {/snippet}
 
@@ -87,19 +108,17 @@
 
 <div class="mr-(--diagonal-overflow) flex flex-col">
   <div
-    class="flex h-(--name-row-height) items-end [&>div]:h-(--name-row-height)"
+    class="flex h-(--name-row-height) flex-row-reverse translate-x-1 items-end justify-end overflow-visible [&>div]:h-(--name-row-height)"
     class:gap-1={viewMode === 'challenges'}
   >
-    {#each headerItems as itemGroup}
-      <div class="flex translate-x-1 gap-1">
-        {#each itemGroup as item}
-          {#if item.type === 'category'}
-            {@render challengeNameLabel(item.group, true)}
-          {:else}
-            {@render challengeNameLabel(item.challenge, false)}
-          {/if}
-        {/each}
-      </div>
+    {#each [...headerItems].reverse() as itemGroup}
+      {#each [...itemGroup].reverse() as item}
+        {#if item.type === 'category'}
+          {@render challengeNameLabel(item.group, true)}
+        {:else}
+          {@render challengeNameLabel(item.challenge, false)}
+        {/if}
+      {/each}
     {/each}
   </div>
 
@@ -136,16 +155,24 @@
       </div>
     {:else if sortMode === 'categories'}
       {#each categoryGroups as group}
+        {@const groupHasFocused = focusedChallengeId !== null && group.challenges.some(c => c.id === focusedChallengeId)}
+        {@const groupIsDimmed = focusedChallengeId !== null && !groupHasFocused}
         <div
-          class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
+          class={cn(
+            'bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg',
+            groupIsDimmed && 'opacity-25'
+          )}
           style={getCategoryStyle(group.config.color)}
         >
           <div class="flex gap-1 py-1.5">
             {#each group.challenges as challenge}
-              {@render pointsBadge(challenge.points, {
-                title: challenge.name,
-                subtitle: `${challenge.points} pts · ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`,
-              })}
+              {@const isDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id}
+              <div class={cn(isDimmed && !groupIsDimmed && 'opacity-25')}>
+                {@render pointsBadge(challenge.points, {
+                  title: challenge.name,
+                  subtitle: `${challenge.points} pts · ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`,
+                })}
+              </div>
             {/each}
           </div>
           <div
@@ -158,8 +185,13 @@
       {/each}
     {:else}
       {#each challenges as challenge}
+        {@const isFocused = focusedChallengeId === challenge.id}
+        {@const isDimmed = focusedChallengeId !== null && !isFocused}
         <div
-          class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
+          class={cn(
+            'bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg',
+            isDimmed && 'opacity-25'
+          )}
           style={getCategoryStyle(challenge.config.color)}
         >
           <div class="flex py-1.5">

@@ -33,6 +33,7 @@
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
+    focusedChallengeId: string | null
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
     getBloodIndex: (challengeId: string) => number
     onCellHover: (data: TooltipData | null, x: number, y: number) => void
@@ -52,6 +53,7 @@
     sortMode,
     categoryGroups,
     challenges,
+    focusedChallengeId,
     getCategoryStats,
     getBloodIndex,
     onCellHover,
@@ -186,6 +188,7 @@
       {sortMode}
       {categoryGroups}
       {challenges}
+      {focusedChallengeId}
       getSolves={cid => solves?.has(cid) ?? false}
       getSolveTime={cid => solveTimes?.get(cid)}
       {getCategoryStats}

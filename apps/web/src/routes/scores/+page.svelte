@@ -105,6 +105,7 @@
     const url = new URL(pageState.url)
     if (v === 'challenges') url.searchParams.delete('view')
     else url.searchParams.set('view', v)
+    url.searchParams.delete('challenge')
     goto(url, { replaceState: true, keepFocus: true, noScroll: true })
   }
 
@@ -114,6 +115,7 @@
     const url = new URL(pageState.url)
     if (s === 'categories') url.searchParams.delete('sort')
     else url.searchParams.set('sort', s)
+    url.searchParams.delete('challenge')
     goto(url, { replaceState: true, keepFocus: true, noScroll: true })
   }
 
@@ -152,13 +154,42 @@
   const userQuery = useCurrentUser()
 
   let screenshotModalOpen = $state(false)
+  const focusedChallengeId = $derived(pageState.url.searchParams.get('challenge') ?? null)
 
-  const entries = $derived(leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
+  function setFocusedChallenge(id: string | null) {
+    const url = new URL(pageState.url)
+    if (id) url.searchParams.set('challenge', id)
+    else url.searchParams.delete('challenge')
+    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+  }
+
+  const rawEntries = $derived(leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
+  type LeaderboardEntry = (typeof rawEntries)[number]
+  const originalRankByTeam = $derived(new Map(rawEntries.map((e, i) => [e.id, i + 1])))
+
+  $effect(() => {
+    if (focusedChallengeId && leaderboardQuery.hasNextPage && !leaderboardQuery.isFetchingNextPage) {
+      leaderboardQuery.fetchNextPage()
+    }
+  })
+
+  const entries = $derived.by((): LeaderboardEntry[] => {
+    if (!focusedChallengeId) return rawEntries
+
+    return rawEntries
+      .filter(e => e.solves.some(s => s.id === focusedChallengeId))
+      .sort((a, b) => {
+        const aTime = a.solves.find(s => s.id === focusedChallengeId)?.solveTime ?? Infinity
+        const bTime = b.solves.find(s => s.id === focusedChallengeId)?.solveTime ?? Infinity
+        return aTime - bTime
+      })
+  })
   const allGraphData = $derived(leaderboardQuery.data?.pages.flatMap(p => p.graph) ?? [])
   const total = $derived(leaderboardQuery.data?.pages[0]?.total ?? 0)
 
   const currentUser = $derived(userQuery.data)
   const challengesData = $derived(challengesQuery.data ?? {})
+
 
   const mergeWithSelfGraph = <T extends { id: string }>(
     data: T[],
@@ -443,7 +474,7 @@
     return cellCount * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
   })
 
-  const teamRanks = $derived(new Map(entries.map((e, i) => [e.id, i + 1])))
+  const teamRanks = $derived(focusedChallengeId ? originalRankByTeam : new Map(entries.map((e, i) => [e.id, i + 1])))
 
   const graphVisibility = $derived.by(() => {
     if (isLoading || entries.length === 0) {
@@ -511,6 +542,7 @@
     sortMode,
     categoryGroups,
     challenges,
+    focusedChallengeId,
     isScrolling: scroll.isScrolling,
     onCellHover: handleCellHover,
   })
@@ -532,7 +564,7 @@
     return () => ro.disconnect()
   })
 
-  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, isDesktop, isLoading })
+  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, isDesktop, isLoading, focusedChallengeId, entryCount: entries.length })
 
   $effect(() => {
     const viewport = scroll.state.viewportRef
@@ -544,6 +576,8 @@
 
     const ro = new ResizeObserver(() => updateFadesFromViewport())
     ro.observe(viewport, { box: 'border-box' })
+    const content = viewport.firstElementChild
+    if (content) ro.observe(content, { box: 'border-box' })
 
     let raf2 = 0
     const raf1 = requestAnimationFrame(() => {
@@ -559,11 +593,11 @@
 
   $effect.pre(() => {
     const visibleCount = isLoading ? 0 : entries.length
-    const totalCount = isLoading ? 0 : Math.max(total, entries.length)
+    const totalCount = isLoading ? 0 : (focusedChallengeId ? entries.length : Math.max(total, entries.length))
 
     scroll.state.count = totalCount
     scroll.state.loadMoreCount = visibleCount
-    scroll.state.hasNextPage = isLoading ? false : leaderboardQuery.hasNextPage
+    scroll.state.hasNextPage = isLoading ? false : (focusedChallengeId ? false : leaderboardQuery.hasNextPage)
     scroll.state.isFetching = isLoading || leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
@@ -707,28 +741,44 @@
             bind:this={headerRowRef}
           >
             <div
-              class="group/graph bg-background-l1 sticky left-0 z-30 w-(--team-column-width) shrink-0 rounded-t-3xl rounded-bl-xl"
+              class="group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0"
             >
-              <button
-                title="Pin top 3 to graph"
-                class={cn(
-                  'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
-                  showTop3Context
-                    ? 'bg-background-l3 text-foreground-l1'
-                    : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
-                )}
-                onclick={() => setShowTop3Context(!showTop3Context)}
-              >
-                {#if showTop3Context}
-                  <IconPinnedFilled class="size-3.5" />
-                {:else}
-                  <IconPinFilled class="size-3.5" />
-                {/if}
-              </button>
-              <ScoresGraph class="h-full w-full p-3" {...graphProps} />
+              <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
+                <button
+                  title="Pin top 3 to graph"
+                  class={cn(
+                    'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
+                    showTop3Context
+                      ? 'bg-background-l3 text-foreground-l1'
+                      : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
+                  )}
+                  onclick={() => setShowTop3Context(!showTop3Context)}
+                >
+                  {#if showTop3Context}
+                    <IconPinnedFilled class="size-3.5" />
+                  {:else}
+                    <IconPinFilled class="size-3.5" />
+                  {/if}
+                </button>
+                <ScoresGraph class="h-full w-full p-3" {...graphProps} />
+              </div>
             </div>
             {#if !challengesQuery.isLoading}
-              <ScoresChallengeHeader {viewMode} {sortMode} {categoryGroups} {challenges} />
+              <ScoresChallengeHeader
+                {viewMode}
+                {sortMode}
+                {categoryGroups}
+                {challenges}
+                {focusedChallengeId}
+                onChallengeFocus={id => {
+                  const wasFocused = focusedChallengeId === id
+                  setFocusedChallenge(wasFocused ? null : id)
+                  if (!wasFocused) {
+                    const viewport = scroll.state.viewportRef
+                    if (viewport) viewport.scrollTop = 0
+                  }
+                }}
+              />
             {/if}
           </div>
 
@@ -771,7 +821,7 @@
                     <ScoresTeamRow
                       data={{
                         id: entry.id,
-                        rank: row.index + 1,
+                        rank: focusedChallengeId ? (originalRankByTeam.get(entry.id) ?? row.index + 1) : row.index + 1,
                         name: entry.name,
                         avatarUrl: entry.avatarUrl,
                         countryCode: entry.countryCode,
