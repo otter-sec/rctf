@@ -132,6 +132,7 @@ export const userSelfQueryOptions = queryOptions({
     return null
   },
   staleTime: 1000 * 60 * 5,
+  refetchInterval: 30 * 1000,
 })
 
 export const userByIdQueryOptions = (id: string) =>

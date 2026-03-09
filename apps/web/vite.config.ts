@@ -5,6 +5,7 @@ import { defineConfig } from 'vite'
 // const DEV_API_URL = 'https://rctf-new-dev.es3n1n.io'
 const DEV_API_URL = 'http://127.0.0.1:3000'
 // const DEV_API_URL = 'https://bp25.osec.io'
+// const DEV_API_URL = 'https://ctf.dicega.ng'
 
 export default defineConfig({
   plugins: [tailwindcss(), sveltekit()],
