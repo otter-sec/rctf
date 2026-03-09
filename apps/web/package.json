@@ -13,7 +13,6 @@
     "typecheck": "bun run check"
   },
   "dependencies": {
-    "@iconify/svelte": "^5.2.1",
     "@rctf/types": "workspace:*",
     "@rctf/util": "workspace:*",
     "@tanstack/svelte-query": "^6.0.18",
@@ -30,7 +29,6 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@iconify-svelte/tabler": "^1.0.3",
     "@internationalized/date": "^3.11.0",
     "@sveltejs/adapter-auto": "^7.0.1",
     "@sveltejs/adapter-static": "^3.0.10",

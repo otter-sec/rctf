@@ -18,7 +18,6 @@
     IconMenu2,
     IconSettingsFilled,
     IconUserCog,
-    IconUserFilled,
     IconX,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
@@ -44,10 +43,11 @@
     open = false
   }
 
-  function copyTeamToken() {
+  function copyLoginUrl() {
     if (user?.teamToken) {
-      navigator.clipboard.writeText(user.teamToken)
-      toast.success('Team token copied to clipboard!')
+      const url = `${window.location.origin}/login?token=${encodeURIComponent(user.teamToken)}`
+      navigator.clipboard.writeText(url)
+      toast.success('Login URL copied to clipboard!')
     }
   }
 
@@ -104,7 +104,7 @@
       href: '/admin/teams',
       activePath: '/admin/teams',
       label: 'Manage teams',
-      icon: IconUserFilled,
+      icon: IconUserCog,
       show: isAdmin,
     },
     {
@@ -180,13 +180,13 @@
           <Tooltip.Root>
             <Tooltip.Trigger>
               <button
-                onclick={copyTeamToken}
+                onclick={copyLoginUrl}
                 class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"
               >
                 <IconCopy class="text-foreground-l2 size-6" />
               </button>
             </Tooltip.Trigger>
-            <Tooltip.Content>Copy team token</Tooltip.Content>
+            <Tooltip.Content>Copy login URL</Tooltip.Content>
           </Tooltip.Root>
           <Tooltip.Root>
             <Tooltip.Trigger>

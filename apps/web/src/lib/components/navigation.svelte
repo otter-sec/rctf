@@ -26,7 +26,6 @@
     IconLogout,
     IconSettingsFilled,
     IconUserCog,
-    IconUserFilled,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
@@ -53,10 +52,11 @@
     goto('/login')
   }
 
-  function copyTeamToken() {
+  function copyLoginUrl() {
     if (user?.teamToken) {
-      navigator.clipboard.writeText(user.teamToken)
-      toast.success('Team token copied to clipboard!')
+      const url = `${window.location.origin}/login?token=${encodeURIComponent(user.teamToken)}`
+      navigator.clipboard.writeText(url)
+      toast.success('Login URL copied to clipboard!')
     }
   }
 </script>
@@ -122,7 +122,7 @@
               class="data-highlighted:bg-background-l5"
               onclick={() => goto('/admin/teams')}
             >
-              <IconUserFilled class="size-5" />
+              <IconUserCog class="size-5" />
               Manage teams
             </DropdownMenu.Item>
             <DropdownMenu.Item
@@ -184,8 +184,8 @@
         </DropdownMenu.Trigger>
 
         <DropdownMenu.Content align="end" class="bg-background-l4 w-56 border-none">
-          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={copyTeamToken}>
-            Copy team token
+          <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={copyLoginUrl}>
+            Copy login URL
             <IconCopy class="ml-auto size-5" />
           </DropdownMenu.Item>
           <DropdownMenu.Item
