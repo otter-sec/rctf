@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { Checkbox, Label, Select, Tooltip } from '$lib/components'
+  import { Select, Tooltip } from '$lib/components'
   import {
     IconLayoutListFilled,
     IconPhotoFilled,
     IconSortAscendingNumbers,
     IconSortDescendingShapesFilled,
     IconTableFilled,
+    IconUsersGroup,
   } from '$lib/icons'
   import { cn } from '$lib/utils'
   import type { SortMode, ViewMode } from './types'
@@ -15,14 +16,11 @@
     sortMode: SortMode
     total: number
     loadedCount: number
-    isFetching: boolean
-    showTop3Context: boolean
     divisions: Record<string, string>
     division: string | undefined
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
     onDivisionChange: (division: string | undefined) => void
-    onShowTop3ContextChange: (show: boolean) => void
     onScreenshotClick: () => void
   }
 
@@ -31,14 +29,11 @@
     sortMode,
     total,
     loadedCount,
-    isFetching,
-    showTop3Context,
     divisions,
     division,
     onViewModeChange,
     onSortModeChange,
     onDivisionChange,
-    onShowTop3ContextChange,
     onScreenshotClick,
   }: Props = $props()
 
@@ -114,7 +109,12 @@
     {/if}
   </div>
 
-  <div class="flex items-center gap-2 md:gap-4">
+  <div class="flex items-center gap-2">
+    <span class="text-foreground-l3 hidden items-center gap-1.5 pr-2 text-sm tabular-nums xl:flex">
+      <IconUsersGroup class="size-4" />
+      {loadedCount.toLocaleString()} / {total.toLocaleString()}
+    </span>
+
     {#if hasDivisions}
       <Select.Root
         type="single"
@@ -123,7 +123,7 @@
       >
         <Select.Trigger
           size="sm"
-          class="bg-background-l2 hover:bg-background-l3 w-auto gap-1.5 border-none"
+          class="bg-background-l2 text-foreground-l3 hover:bg-background-l3 h-9! w-auto gap-1.5 border-none"
         >
           {selectedDivisionLabel}
         </Select.Trigger>
@@ -137,23 +137,6 @@
         </Select.Content>
       </Select.Root>
     {/if}
-
-    <div class="hidden items-center gap-2 md:flex">
-      <Checkbox
-        id="show-top3"
-        checked={showTop3Context}
-        onCheckedChange={v => onShowTop3ContextChange(v === true)}
-      />
-      <Label for="show-top3" class="text-foreground-l3 cursor-pointer truncate text-sm font-normal"
-        >Show top 3 when scrolling</Label
-      >
-    </div>
-
-    <span
-      class={cn('text-foreground-l3 hidden truncate text-sm xl:inline', isFetching && 'opacity-50')}
-    >
-      {loadedCount.toLocaleString()} / {total.toLocaleString()} teams
-    </span>
 
     <button
       class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 flex h-9 items-center justify-center gap-2 rounded-md px-3"

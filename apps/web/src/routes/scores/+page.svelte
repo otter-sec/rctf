@@ -4,7 +4,7 @@
   import { onMount } from 'svelte'
 
   import { EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
-  import { IconChartAreaLineFilled } from '$lib/icons'
+  import { IconChartAreaLineFilled, IconPinFilled, IconPinnedFilled } from '$lib/icons'
   import { CtfNotStarted } from '$lib/components'
   import {
     ApiError,
@@ -14,7 +14,7 @@
     useLeaderboardChallenges,
     useSelfUserGraph,
   } from '$lib/query'
-  import { useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
+  import { cn, useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
   import {
     getCategoryConfig,
     getCategoryKeyOrAlias,
@@ -625,14 +625,11 @@
     {sortMode}
     {total}
     loadedCount={entries.length}
-    isFetching={leaderboardQuery.isFetching}
-    {showTop3Context}
     {divisions}
     {division}
     onViewModeChange={setViewMode}
     onSortModeChange={setSortMode}
     onDivisionChange={setDivision}
-    onShowTop3ContextChange={setShowTop3Context}
     onScreenshotClick={() => (screenshotModalOpen = true)}
   />
 
@@ -667,7 +664,23 @@
         isMinimal={!isDesktop}
       />
 
-      <div class="bg-background-l1 mb-2 h-(--header-height) rounded-lg md:hidden">
+      <div class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden">
+        <button
+          title="Pin top 3 to graph"
+          class={cn(
+            'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
+            showTop3Context
+              ? 'bg-background-l3 text-foreground-l1'
+              : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
+          )}
+          onclick={() => setShowTop3Context(!showTop3Context)}
+        >
+          {#if showTop3Context}
+            <IconPinnedFilled class="size-3.5" />
+          {:else}
+            <IconPinFilled class="size-3.5" />
+          {/if}
+        </button>
         <ScoresGraph class="h-full w-full p-3" {...graphProps} />
       </div>
 
@@ -682,8 +695,8 @@
         bind:viewportRef={scroll.state.viewportRef}
         scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
         scrollbarYClasses={isDesktop
-          ? 'pt-(--header-height) pb-[calc(var(--row-height-full)+4px)] z-40'
-          : 'pb-[calc(var(--row-height-full)+4px)] z-40'}
+          ? `pt-(--header-height) z-40 ${showSelfRow ? 'pb-[calc(var(--row-height-full)+4px)]' : 'pb-2'}`
+          : `z-40 ${showSelfRow ? 'pb-[calc(var(--row-height-full)+4px)]' : 'pb-2'}`}
       >
         <div class="flex min-h-full flex-col">
           <div
@@ -691,8 +704,24 @@
             bind:this={headerRowRef}
           >
             <div
-              class="bg-background-l1 sticky left-0 z-30 w-(--team-column-width) shrink-0 rounded-t-3xl rounded-bl-xl"
+              class="group/graph bg-background-l1 sticky left-0 z-30 w-(--team-column-width) shrink-0 rounded-t-3xl rounded-bl-xl"
             >
+              <button
+                title="Pin top 3 to graph"
+                class={cn(
+                  'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
+                  showTop3Context
+                    ? 'bg-background-l3 text-foreground-l1'
+                    : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
+                )}
+                onclick={() => setShowTop3Context(!showTop3Context)}
+              >
+                {#if showTop3Context}
+                  <IconPinnedFilled class="size-3.5" />
+                {:else}
+                  <IconPinFilled class="size-3.5" />
+                {/if}
+              </button>
               <ScoresGraph class="h-full w-full p-3" {...graphProps} />
             </div>
             {#if !challengesQuery.isLoading}

@@ -92,6 +92,29 @@
     const parts: string[] = []
     let x = 0
 
+    if (sortMode === 'categories') {
+      let bgX = 0
+      for (let gi = 0; gi < categoryGroups.length; gi++) {
+        const group = categoryGroups[gi]!
+        const groupWidth = group.challenges.length * (CELL_WIDTH + CELL_GAP)
+        if (gi % 2 === 0) {
+          parts.push(
+            `<rect x="${bgX}" y="0" width="${groupWidth - CELL_GAP}" height="${CELL_HEIGHT}" fill="var(--foreground-l0)" opacity="0.03"/>`
+          )
+        }
+        bgX += groupWidth
+      }
+    } else {
+      for (let i = 0; i < list.length; i++) {
+        if (i % 2 === 0) {
+          const colX = i * (CELL_WIDTH + CELL_GAP)
+          parts.push(
+            `<rect x="${colX}" y="0" width="${CELL_WIDTH}" height="${CELL_HEIGHT}" fill="var(--foreground-l0)" opacity="0.03"/>`
+          )
+        }
+      }
+    }
+
     for (const challenge of list) {
       const solved = getSolves(challenge.id)
       const bloodIndex = getBloodIndex(challenge.id)
@@ -138,9 +161,11 @@
 
     const parts: string[] = []
 
-    for (const group of categoryGroups) {
+    for (let gi = 0; gi < categoryGroups.length; gi++) {
+      const group = categoryGroups[gi]!
       const stats = getCategoryStats(group)
       const style = getCategoryStyle(group.config.color)
+      const shade = gi % 2 === 0 ? 'background: color-mix(in srgb, var(--foreground-l0) 3%, transparent);' : ''
 
       let iconSvg: string
       if (stats.solved === stats.total) {
@@ -156,7 +181,7 @@
       }
 
       parts.push(
-        `<div class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16" style="${style}">${iconSvg}</div>`
+        `<div class="flex h-12 w-12 items-center justify-center rounded-l-lg md:h-16" style="${style}${shade}">${iconSvg}</div>`
       )
     }
 
