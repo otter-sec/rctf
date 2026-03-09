@@ -273,8 +273,11 @@
   let showBottomFade = $state(false)
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
+  let scrollMetrics = $state<ScrollMetrics | null>(null)
 
   function updateFades(metrics: ScrollMetrics) {
+    scrollMetrics = metrics
+
     const threshold = 10
     const nextTop = metrics.scrollTop > threshold
     const nextBottom = metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold
@@ -300,12 +303,12 @@
   )
 
   const viewportVisibility = $derived.by(() => {
-    const viewport = scroll.state.viewportRef
+    const metrics = scrollMetrics
     const visibleRanks: number[] = []
 
-    if (viewport && entries.length > 0) {
-      const viewportTop = viewport.scrollTop
-      const viewportBottom = viewportTop + viewport.clientHeight
+    if (metrics && entries.length > 0) {
+      const viewportTop = metrics.scrollTop
+      const viewportBottom = viewportTop + metrics.clientHeight
       const headerOffset = listScrollMargin
 
       for (const item of scroll.virtualItems) {
@@ -321,13 +324,26 @@
       }
     }
 
-    const userVisible = userEntryIndex !== -1 && visibleRanks.includes(userEntryIndex + 1)
+    let userVisible = false
+    let userClippedTop = false
+    if (userEntryIndex !== -1 && metrics) {
+      const userItem = scroll.virtualItems.find(item => item.index === userEntryIndex)
+      if (userItem) {
+        const vTop = metrics.scrollTop + listScrollMargin
+        const vBottom = metrics.scrollTop + metrics.clientHeight
+        const itemTop = userItem.start
+        const itemBottom = userItem.start + userItem.size
+        userVisible = itemTop >= vTop && itemBottom <= vBottom
+        userClippedTop = itemTop < vTop
+      }
+    }
 
     return {
       visibleRanks,
       minRank: visibleRanks.length > 0 ? Math.min(...visibleRanks) : 0,
       maxRank: visibleRanks.length > 0 ? Math.max(...visibleRanks) : 0,
       userVisible,
+      userClippedTop,
     }
   })
 
@@ -341,7 +357,12 @@
   const selfRowPosition = $derived.by((): 'top' | 'bottom' => {
     if (!currentUser?.globalPlace) return 'bottom'
     if (userEntryIndex === -1) return 'bottom'
-    return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
+    if (viewportVisibility.userClippedTop) return 'top'
+    const userItem = scroll.virtualItems.find(item => item.index === userEntryIndex)
+    if (!userItem) {
+      return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
+    }
+    return 'bottom'
   })
 
   const selfGraphQuery = useSelfUserGraph(() =>
@@ -885,14 +906,15 @@
           {#if showSelfRow && currentUser}
             {@const selfSolves = new Set(currentUser.solves.map(s => s.id))}
             {@const selfSolveTimes = new Map(currentUser.solves.map(s => [s.id, s.createdAt]))}
+            {@const isTop = selfRowPosition === 'top'}
             <div
               class={cn(
                 'bg-background-l0 sticky z-20 flex h-(--row-height-full) will-change-transform contain-[layout_style_paint]',
-                selfRowPosition === 'top'
-                  ? 'order-first pb-1'
-                  : 'bottom-0 mt-auto pt-1'
+                isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1'
               )}
-              style={selfRowPosition === 'top' ? `top: ${listScrollMargin}px` : undefined}
+              style:top={isTop ? `${listScrollMargin}px` : undefined}
+              style:order={isTop ? '-1' : undefined}
+              style:margin-bottom={isTop ? `-${ROW_HEIGHT}px` : undefined}
             >
               <ScoresTeamRow
                 data={{
