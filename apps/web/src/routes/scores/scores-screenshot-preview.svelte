@@ -1,5 +1,4 @@
 <script lang="ts">
-  import Icon from '@iconify/svelte'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
   import { Avatar } from '$lib/components'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
@@ -182,7 +181,7 @@
                 group.config.color
               )}; width: {CELL_SIZE}px; height: {CELL_SIZE}px;"
             >
-              <Icon icon={group.config.iconName} class="text-category-foreground-l1 size-5" />
+              <group.config.icon class="text-category-foreground-l1 size-5" />
             </div>
           {/each}
         </div>

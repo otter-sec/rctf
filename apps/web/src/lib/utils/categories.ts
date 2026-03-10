@@ -17,8 +17,6 @@ import {
 export type CategoryConfig = {
   name: string
   icon: IconComponent
-  /** Icon name for @iconify/svelte (renders full inline SVG for screenshot export) */
-  iconName: string
   color: string
 }
 
@@ -60,67 +58,56 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   sanity: {
     name: 'Sanity',
     icon: IconMoodHappyFilled,
-    iconName: 'tabler:mood-happy-filled',
     color: 'gray',
   },
   pwn: {
     name: 'Binary Exploitation',
     icon: IconBombFilled,
-    iconName: 'tabler:bomb-filled',
     color: 'red',
   },
   reverse: {
     name: 'Reverse Engineering',
     icon: IconPuzzleFilled,
-    iconName: 'tabler:puzzle-filled',
     color: 'orange',
   },
   crypto: {
     name: 'Cryptography',
     icon: IconKeyFilled,
-    iconName: 'tabler:key-filled',
     color: 'yellow',
   },
   forensics: {
     name: 'Forensics',
     icon: IconMicroscopeFilled,
-    iconName: 'tabler:microscope-filled',
     color: 'green',
   },
   blockchain: {
     name: 'Blockchain',
     icon: IconCoinFilled,
-    iconName: 'tabler:coin-filled',
     color: 'teal',
   },
   web: {
     name: 'Web',
     icon: IconCloudComputingFilled,
-    iconName: 'tabler:cloud-computing-filled',
     color: 'blue',
   },
   misc: {
     name: 'Miscellaneous',
     icon: IconDice6Filled,
-    iconName: 'tabler:dice-6-filled',
     color: 'purple',
   },
   ppc: {
     name: 'Professional Programming and Coding',
     icon: IconBinaryTreeFilled,
-    iconName: 'tabler:binary-tree-filled',
     color: 'fuchsia',
   },
   koth: {
     name: 'King of the Hill',
     icon: IconChessQueenFilled,
-    iconName: 'tabler:chess-queen-filled',
     color: 'pink',
   },
   osint: {
     name: 'OSINT',
     icon: IconEyeFilled,
-    iconName: 'tabler:eye-filled',
     color: 'gray',
   },
 }
@@ -128,7 +115,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
 const defaultConfig: CategoryConfig = {
   name: '',
   icon: IconFlagFilled,
-  iconName: 'tabler:flag-filled',
   color: 'gray',
 }
 
