@@ -11,7 +11,15 @@
     isMinimal: boolean
   }
 
-  let { showTop, showBottom, showLeft, showRight, showSelfRow, selfRowPosition = 'bottom', isMinimal }: Props = $props()
+  let {
+    showTop,
+    showBottom,
+    showLeft,
+    showRight,
+    showSelfRow,
+    selfRowPosition = 'bottom',
+    isMinimal,
+  }: Props = $props()
 
   const selfTop = $derived(showSelfRow && selfRowPosition === 'top')
 

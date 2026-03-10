@@ -168,7 +168,11 @@
   const originalRankByTeam = $derived(new Map(rawEntries.map((e, i) => [e.id, i + 1])))
 
   $effect(() => {
-    if (focusedChallengeId && leaderboardQuery.hasNextPage && !leaderboardQuery.isFetchingNextPage) {
+    if (
+      focusedChallengeId &&
+      leaderboardQuery.hasNextPage &&
+      !leaderboardQuery.isFetchingNextPage
+    ) {
       leaderboardQuery.fetchNextPage()
     }
   })
@@ -189,7 +193,6 @@
 
   const currentUser = $derived(userQuery.data)
   const challengesData = $derived(challengesQuery.data ?? {})
-
 
   const mergeWithSelfGraph = <T extends { id: string }>(
     data: T[],
@@ -501,7 +504,9 @@
     return cellCount * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
   })
 
-  const teamRanks = $derived(focusedChallengeId ? originalRankByTeam : new Map(entries.map((e, i) => [e.id, i + 1])))
+  const teamRanks = $derived(
+    focusedChallengeId ? originalRankByTeam : new Map(entries.map((e, i) => [e.id, i + 1]))
+  )
 
   const graphVisibility = $derived.by(() => {
     if (isLoading || entries.length === 0) {
@@ -603,7 +608,16 @@
     return `${isDesktop ? 'pt-(--header-height)' : ''} pb-2`
   })
 
-  const fadeDeps = $derived({ contentWidth, listScrollMargin, showSelfRow, selfRowPosition, isDesktop, isLoading, focusedChallengeId, entryCount: entries.length })
+  const fadeDeps = $derived({
+    contentWidth,
+    listScrollMargin,
+    showSelfRow,
+    selfRowPosition,
+    isDesktop,
+    isLoading,
+    focusedChallengeId,
+    entryCount: entries.length,
+  })
 
   $effect(() => {
     const viewport = scroll.state.viewportRef
@@ -632,11 +646,19 @@
 
   $effect.pre(() => {
     const visibleCount = isLoading ? 0 : entries.length
-    const totalCount = isLoading ? 0 : (focusedChallengeId ? entries.length : Math.max(total, entries.length))
+    const totalCount = isLoading
+      ? 0
+      : focusedChallengeId
+        ? entries.length
+        : Math.max(total, entries.length)
 
     scroll.state.count = totalCount
     scroll.state.loadMoreCount = visibleCount
-    scroll.state.hasNextPage = isLoading ? false : (focusedChallengeId ? false : leaderboardQuery.hasNextPage)
+    scroll.state.hasNextPage = isLoading
+      ? false
+      : focusedChallengeId
+        ? false
+        : leaderboardQuery.hasNextPage
     scroll.state.isFetching = isLoading || leaderboardQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
@@ -738,8 +760,12 @@
           : 'calc(40vw + 72px)'
         : '0px'}
       style:--self-row-height="{ROW_HEIGHT}px"
-      style:--self-row-offset={showSelfRow && selfRowPosition === 'bottom' ? `${ROW_HEIGHT}px` : '0px'}
-      style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top' ? `${ROW_HEIGHT}px` : '0px'}
+      style:--self-row-offset={showSelfRow && selfRowPosition === 'bottom'
+        ? `${ROW_HEIGHT}px`
+        : '0px'}
+      style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top'
+        ? `${ROW_HEIGHT}px`
+        : '0px'}
     >
       <ScoresFades
         showTop={showTopFade}
@@ -751,7 +777,9 @@
         isMinimal={!isDesktop}
       />
 
-      <div class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden">
+      <div
+        class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden"
+      >
         <button
           title="Pin top 3 to graph"
           class={cn(
@@ -869,7 +897,9 @@
                     <ScoresTeamRow
                       data={{
                         id: entry.id,
-                        rank: focusedChallengeId ? (originalRankByTeam.get(entry.id) ?? row.index + 1) : row.index + 1,
+                        rank: focusedChallengeId
+                          ? (originalRankByTeam.get(entry.id) ?? row.index + 1)
+                          : row.index + 1,
                         name: entry.name,
                         avatarUrl: entry.avatarUrl,
                         countryCode: entry.countryCode,
@@ -940,7 +970,10 @@
                   sparklineData: sparklineDataByTeam.get(currentUser.id),
                   isCurrentUser: true,
                   divisionPlace: showDivision ? currentUser.divisionPlace : undefined,
-                  divisionName: showDivision && currentUser.division ? divisions[currentUser.division] : undefined,
+                  divisionName:
+                    showDivision && currentUser.division
+                      ? divisions[currentUser.division]
+                      : undefined,
                 }}
                 solves={isLoading ? null : selfSolves}
                 solveTimes={isLoading ? null : selfSolveTimes}

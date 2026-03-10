@@ -24,7 +24,13 @@
     isValid?: boolean
   }
 
-  let { config, challengeId, isDisabled, onConfigChange, isValid = $bindable(true) }: Props = $props()
+  let {
+    config,
+    challengeId,
+    isDisabled,
+    onConfigChange,
+    isValid = $bindable(true),
+  }: Props = $props()
 
   const schemaQuery = useInstancerSchema()
   const schemaData = $derived(schemaQuery.data)

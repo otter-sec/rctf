@@ -99,12 +99,16 @@
             {#if data.divisionName}
               <Tooltip.Root disableHoverableContent>
                 <Tooltip.Trigger class="leading-none">
-                  <span class="text-foreground-l3 text-xs tabular-nums leading-none">#{data.divisionPlace}</span>
+                  <span class="text-foreground-l3 text-xs leading-none tabular-nums"
+                    >#{data.divisionPlace}</span
+                  >
                 </Tooltip.Trigger>
                 <Tooltip.Content>{data.divisionName}</Tooltip.Content>
               </Tooltip.Root>
             {:else}
-              <span class="text-foreground-l3 text-xs tabular-nums leading-none">#{data.divisionPlace}</span>
+              <span class="text-foreground-l3 text-xs leading-none tabular-nums"
+                >#{data.divisionPlace}</span
+              >
             {/if}
           {/if}
         </div>

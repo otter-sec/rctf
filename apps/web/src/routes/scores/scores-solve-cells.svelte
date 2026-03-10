@@ -14,7 +14,11 @@
     sortMode: SortMode,
     focusedId: string | null
   ) {
-    if (challengeCount !== lastChallengeCount || sortMode !== lastSortMode || focusedId !== lastFocusedChallengeId) {
+    if (
+      challengeCount !== lastChallengeCount ||
+      sortMode !== lastSortMode ||
+      focusedId !== lastFocusedChallengeId
+    ) {
       svgCache.clear()
       lastChallengeCount = challengeCount
       lastSortMode = sortMode
@@ -84,7 +88,12 @@
   const svgWidth = $derived(totalChallengeCount * (CELL_WIDTH + CELL_GAP))
 
   const challengeSvgContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode, focusedChallengeId)
+    invalidateCachesIfNeeded(
+      totalChallengeCount,
+      categoryGroups.length,
+      sortMode,
+      focusedChallengeId
+    )
 
     const cached = svgCache.get(teamId)
     if (cached) {
@@ -160,7 +169,12 @@
   })
 
   const categoryHtmlContent = $derived.by(() => {
-    invalidateCachesIfNeeded(totalChallengeCount, categoryGroups.length, sortMode, focusedChallengeId)
+    invalidateCachesIfNeeded(
+      totalChallengeCount,
+      categoryGroups.length,
+      sortMode,
+      focusedChallengeId
+    )
 
     const cached = categoryCache.get(teamId)
     if (cached !== undefined) {
@@ -173,7 +187,8 @@
       const group = categoryGroups[gi]!
       const stats = getCategoryStats(group)
       const style = getCategoryStyle(group.config.color)
-      const shade = gi % 2 === 0 ? 'background: color-mix(in srgb, var(--foreground-l0) 3%, transparent);' : ''
+      const shade =
+        gi % 2 === 0 ? 'background: color-mix(in srgb, var(--foreground-l0) 3%, transparent);' : ''
 
       let iconSvg: string
       if (stats.solved === stats.total) {

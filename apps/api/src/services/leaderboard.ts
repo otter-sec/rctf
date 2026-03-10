@@ -462,7 +462,7 @@ const processSolveBatch = (
         ? new Date(state.lastSolveCursor.createdat).valueOf()
         : null
 
-    // samples are point-in-time snapshots, 
+    // samples are point-in-time snapshots,
     //  so later solves do not rewrite earlier boundaries
     const loopStart =
       lastProcessedSolveTime !== null

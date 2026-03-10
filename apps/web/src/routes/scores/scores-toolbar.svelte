@@ -118,7 +118,7 @@
 
   <div class="flex items-center gap-2">
     {#if focusedChallenge}
-      <div class="flex h-9 items-center gap-1.5 bg-background-l2 rounded-md px-3">
+      <div class="bg-background-l2 flex h-9 items-center gap-1.5 rounded-md px-3">
         <span class="text-foreground-l3 text-sm">Filtering by</span>
         <a
           href="/challenges?challenge={focusedChallenge.id}"
