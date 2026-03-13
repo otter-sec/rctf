@@ -1,5 +1,3 @@
-import React from 'react'
-
 const tailwind = {
   'red-50': 'oklch(97.1% 0.013 17.38)',
   'red-100': 'oklch(93.6% 0.032 17.717)',
