@@ -1,9 +1,8 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "types": ["react"]
-  },
-  "include": ["docs/**/*"]
+    "jsxImportSource": "react",
+    "strictNullChecks": true
+  }
 }

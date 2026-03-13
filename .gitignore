@@ -34,3 +34,32 @@ uploads/
 .browser-cache/
 **/__pycache__/**
 deploy/docker-instancer/certs/*.pem
+.astro/
+ /triage/
+ /compiler/
+.vercel
+.netlify
+_site/
+scripts/smoke/*-main/
+scripts/memory/project/src/pages/
+benchmark/projects/
+benchmark/results/
+test-results/
+*.log
+package-lock.json
+.turbo/
+.pnpm-store
+.vscode-test/
+packages/astro/src/**/*.prebuilt.ts
+packages/astro/src/**/*.prebuilt-dev.ts
+packages/astro/test/units/_temp-fixtures/*
+!packages/astro/test/units/_temp-fixtures/package.json
+packages/integrations/**/.netlify/
+packages/**/test/**/fixtures/**/.astro/
+packages/**/test/**/fixtures/**/env.d.ts
+packages/**/e2e/**/fixtures/**/.astro/
+packages/**/e2e/**/fixtures/**/env.d.ts
+examples/**/.astro/
+examples/**/env.d.ts
+*.code-workspace
+packages/astro/e2e/fixtures/cloudflare/.wrangler/deploy/config.json

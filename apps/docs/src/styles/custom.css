@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500&family=Geist+Mono:wght@300;400&display=swap');
+
+:root {
+  --sl-font: 'Outfit', system-ui, sans-serif;
+  --sl-font-mono: 'Geist Mono', 'Fira Code', monospace;
+
+  --sl-color-accent-low: oklch(93% 0.04 27);
+  --sl-color-accent: #c10007;
+  --sl-color-accent-high: #c10007;
+
+  --sl-color-white: #ffffff;
+  --sl-color-black: #121113;
+
+  --sl-color-gray-1: #202020;
+  --sl-color-gray-2: #4c4c4c;
+  --sl-color-gray-3: #838383;
+  --sl-color-gray-4: #cecece;
+  --sl-color-gray-5: #ececec;
+  --sl-color-gray-6: #f0f0f0;
+  --sl-color-gray-7: #f9f9f9;
+
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #f9f9f9;
+  --sl-color-bg-inline-code: #f0f0f0;
+  --sl-color-hairline: #ececec;
+  --sl-color-hairline-light: #f0f0f0;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: oklch(28% 0.11 17);
+  --sl-color-accent: #ff6467;
+  --sl-color-accent-high: oklch(82% 0.12 17);
+
+  --sl-color-white: #ffffff;
+  --sl-color-black: #0e0d0f;
+
+  --sl-color-gray-1: rgba(255, 255, 255, 0.80);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.70);
+  --sl-color-gray-3: rgba(255, 255, 255, 0.50);
+  --sl-color-gray-4: #3c393f;
+  --sl-color-gray-5: #2b292d;
+  --sl-color-gray-6: #232225;
+  --sl-color-gray-7: #1a191b;
+
+  --sl-color-bg: #121113;
+  --sl-color-bg-nav: #1a191b;
+  --sl-color-bg-sidebar: #1a191b;
+  --sl-color-bg-inline-code: #232225;
+  --sl-color-hairline: #2b292d;
+  --sl-color-hairline-light: #232225;
+}
+
+.site-title img {
+  height: 1.1rem;
+}
+
+.site-title {
+  padding-block: 0.6rem;
+}
+
+:not(pre) > code {
+  color: var(--sl-color-accent) !important;
+}
+
+.sl-markdown-content h2 {
+  margin-top: 1.5rem !important;
+}
+
+td strong,
+li strong,
+p strong {
+  color: var(--sl-color-white);
+}
+
+.starlight-aside__icon {
+  flex-shrink: 0 !important;
+}
+
+.sidebar-content a,
+.right-sidebar a {
+  font-family: 'Outfit', system-ui, sans-serif;
+  transition: none !important;
+}
