@@ -22,6 +22,7 @@ export const GoodLeaderboardV2 = response('goodLeaderboard', {
         ),
         division: z.string(),
         divisionPlace: z.int(),
+        globalPlace: z.nullable(z.int()),
       })
     ),
   }),

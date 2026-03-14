@@ -9,6 +9,7 @@
   interface TeamData {
     id: string
     rank: number | null
+    globalRank?: number | null
     name: string
     avatarUrl: string | null
     countryCode: string | null
@@ -63,7 +64,7 @@
   }: Props = $props()
 
   const styles = $derived(
-    data ? getRankStylesForPosition(data.rank ?? 0, data.isCurrentUser) : null
+    data ? getRankStylesForPosition(data.globalRank ?? data.rank ?? 0, data.isCurrentUser) : null
   )
   const flagFilename = $derived(
     data?.countryCode ? countryCodeToFlagFilename(data.countryCode) : null

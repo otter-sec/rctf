@@ -22,6 +22,7 @@ export const GoodLeaderboardWithGraph = response('goodLeaderboardWithGraph', {
         ),
         division: z.string(),
         divisionPlace: z.int(),
+        globalPlace: z.nullable(z.int()),
       })
     ),
     graph: z.array(

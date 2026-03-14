@@ -5,6 +5,7 @@ import { takeUnique } from '@rctf/db/util'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   getLeaderboard,
+  getUsersScores,
   type CalculatedLeaderboard,
   type InternalChallengeInfo,
   type InternalUserInfo,
@@ -700,17 +701,22 @@ export const getLeaderboardWithTotal = async (
     division
   )
 
-  const { solves, userInfo } = await getSolvesAndUserInfo(
-    db,
-    leaderboard.map(e => e.id)
-  )
+  const teamIds = leaderboard.map(e => e.id)
+  const [{ solves, userInfo }, globalScores] = await Promise.all([
+    getSolvesAndUserInfo(db, teamIds),
+    division ? getUsersScores(redis, teamIds) : null,
+  ])
 
   return {
     total,
-    leaderboard: leaderboard.map(entry => {
+    leaderboard: leaderboard.map((entry, idx) => {
       const info = userInfo.get(entry.id)
+      const globalPlace = division
+        ? (globalScores?.get(entry.id)?.place ?? null)
+        : offset + idx + 1
       return {
         ...entry,
+        globalPlace,
         avatarUrl: info?.avatarUrl ?? null,
         countryCode: info?.countryCode ?? null,
         statusText: info?.statusText ?? null,

@@ -897,6 +897,7 @@
                         rank: focusedChallengeId
                           ? (originalRankByTeam.get(entry.id) ?? row.index + 1)
                           : row.index + 1,
+                        globalRank: entry.globalPlace,
                         name: entry.name,
                         avatarUrl: entry.avatarUrl,
                         countryCode: entry.countryCode,
@@ -957,6 +958,7 @@
                 data={{
                   id: currentUser.id,
                   rank: currentUser.globalPlace ?? null,
+                  globalRank: currentUser.globalPlace ?? undefined,
                   name: currentUser.name,
                   avatarUrl: currentUser.avatarUrl,
                   countryCode: currentUser.countryCode,
