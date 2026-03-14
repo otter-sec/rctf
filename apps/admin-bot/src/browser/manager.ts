@@ -1,14 +1,14 @@
-import {
-  install,
-  Browser,
-  resolveBuildId,
-  detectBrowserPlatform,
-  computeExecutablePath,
-} from '@puppeteer/browsers'
 import { existsSync, readdirSync } from 'fs'
 import { rm } from 'fs/promises'
 import { join } from 'path'
-import { Browser as PuppeteerBrowser, launch } from 'puppeteer-core'
+import {
+  Browser,
+  computeExecutablePath,
+  detectBrowserPlatform,
+  install,
+  resolveBuildId,
+} from '@puppeteer/browsers'
+import { launch, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import {
   defaultChromeArguments,
   defaultFirefoxArguments,

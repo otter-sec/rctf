@@ -2,7 +2,6 @@
   import { Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
-  import { toast } from 'svelte-sonner'
   import { clearToken } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
@@ -28,6 +27,7 @@
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
   const userQuery = useCurrentUser()

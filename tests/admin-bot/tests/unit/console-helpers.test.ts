@@ -1,8 +1,8 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import {
-  serializeRemoteObject,
   consoleMsgTypeToLevel,
   createConsoleCallback,
+  serializeRemoteObject,
 } from '../../../../apps/admin-bot/src/browser/hooks/console'
 import { BufferedOutputHandler } from '../../../../apps/admin-bot/src/core/output'
 

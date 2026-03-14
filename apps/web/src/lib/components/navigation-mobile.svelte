@@ -3,7 +3,6 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { toast } from 'svelte-sonner'
   import { clearToken } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
@@ -21,6 +20,7 @@
     IconX,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
+  import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()

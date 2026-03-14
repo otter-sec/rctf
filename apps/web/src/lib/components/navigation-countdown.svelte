@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { intervalToDuration } from 'date-fns'
   import { useClientConfig } from '$lib/query'
+  import { intervalToDuration } from 'date-fns'
   import { onDestroy } from 'svelte'
 
   const clientConfigQuery = useClientConfig()

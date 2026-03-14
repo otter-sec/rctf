@@ -1,11 +1,3 @@
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  describe,
-  expect,
-  test,
-} from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase, settings } from '@rctf/db'
 import {
@@ -17,6 +9,14 @@ import {
   GoodClientConfigV2,
   Permissions,
 } from '@rctf/types'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+} from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'

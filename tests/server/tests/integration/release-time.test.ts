@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   challenges,
@@ -13,6 +12,7 @@ import {
   GoodFlag,
   Permissions,
 } from '@rctf/types'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'

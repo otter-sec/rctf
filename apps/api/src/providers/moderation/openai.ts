@@ -1,5 +1,5 @@
-import type { ModerationProvider } from './base'
 import OpenAI, { type ClientOptions } from 'openai'
+import type { ModerationProvider } from './base'
 
 export default class OpenAIModerationProvider implements ModerationProvider {
   private readonly client: OpenAI

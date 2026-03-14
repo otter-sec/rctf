@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
+import { takeUnique } from '@rctf/db/util'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   getLeaderboard,
@@ -9,11 +10,10 @@ import {
   type InternalUserInfo,
   type Sample,
 } from '../cache/leaderboard'
-import { scoreProvider } from '../providers'
-import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 import type { TypedRedis } from '../cache/scripts'
+import { scoreProvider } from '../providers'
 import type { ScoreContext } from '../providers/scores/base'
-import { takeUnique } from '@rctf/db/util'
+import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 
 const numberOfBloods = 3
 

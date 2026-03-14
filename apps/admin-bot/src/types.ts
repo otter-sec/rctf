@@ -1,5 +1,5 @@
-import type { BrowserContext } from 'puppeteer-core'
 import type { Logger } from 'pino'
+import type { BrowserContext } from 'puppeteer-core'
 import type { HooksConfig } from './browser/hooks'
 import type { OutputHandler } from './core/output'
 import type { RegexRule, RestrictedDomainsConfig } from './core/pac'

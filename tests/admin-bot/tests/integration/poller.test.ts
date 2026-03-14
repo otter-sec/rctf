@@ -1,12 +1,12 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
-import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
-import {
-  processJob,
-  ensureChallengeLoaded,
-} from '../../../../apps/admin-bot/src/core/poller'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { BrowserManager } from '../../../../apps/admin-bot/src/browser/manager'
+import { ChallengeLoader } from '../../../../apps/admin-bot/src/core/loader'
 import { PlatformClient } from '../../../../apps/admin-bot/src/core/platform'
 import type { PulledJob } from '../../../../apps/admin-bot/src/core/platform'
+import {
+  ensureChallengeLoaded,
+  processJob,
+} from '../../../../apps/admin-bot/src/core/poller'
 
 const browsers = ['chrome', 'firefox'] as const
 const validChallengeSource = (browser: 'chrome' | 'firefox') => `

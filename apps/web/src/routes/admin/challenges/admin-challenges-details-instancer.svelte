@@ -10,11 +10,11 @@
     Spinner,
     Textarea,
   } from '$lib/components'
-  import ChallengeDetailsInstancer from '../../challenges/challenge-details-instancer.svelte'
   import { IconPlus, IconTrashFilled, IconX } from '$lib/icons'
-  import { cn } from '$lib/utils'
   import { useInstancerSchema } from '$lib/query'
+  import { cn } from '$lib/utils'
   import * as yaml from 'yaml'
+  import ChallengeDetailsInstancer from '../../challenges/challenge-details-instancer.svelte'
 
   interface Props {
     config: InstancerConfig | null

@@ -1,7 +1,7 @@
 <script lang="ts" generics="T">
-  import type { Snippet } from 'svelte'
   import type { VirtualItem } from '@tanstack/svelte-virtual'
   import { cn } from '$lib/utils'
+  import type { Snippet } from 'svelte'
   import { Spinner } from '../spinner'
 
   interface Props {

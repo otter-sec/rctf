@@ -1,7 +1,7 @@
 import type { Browser, Target } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
-import type { HooksConfig } from './index'
 import { createConsoleCallback } from './console'
+import type { HooksConfig } from './index'
 import { hookPageEvents } from './page-events'
 
 const getTargetId = (target: Target): string => {

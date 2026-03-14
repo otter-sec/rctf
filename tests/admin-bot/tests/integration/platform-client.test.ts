@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeEach, afterEach } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test'
 import { PlatformClient } from '../../../../apps/admin-bot/src/core/platform'
 
 describe('PlatformClient', () => {

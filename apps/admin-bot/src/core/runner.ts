@@ -1,13 +1,13 @@
-import type { ChallengeLoader } from './loader'
-import { join } from 'node:path'
-import { BrowserManager } from '../browser/manager'
-import { OutputHandler } from './output'
-import type { ChallengeContext, JobMetadata } from '../types'
-import { applyHooks } from '../browser/hooks'
+import { randomUUID } from 'node:crypto'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
-import { randomUUID } from 'node:crypto'
+import { join } from 'node:path'
+import { applyHooks } from '../browser/hooks'
+import { BrowserManager } from '../browser/manager'
+import type { ChallengeContext, JobMetadata } from '../types'
+import type { ChallengeLoader } from './loader'
 import { createLogger } from './logger'
+import { OutputHandler } from './output'
 
 const logger = createLogger('runner')
 export const handleSubmission = async (

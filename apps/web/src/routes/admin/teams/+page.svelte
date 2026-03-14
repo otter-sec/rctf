@@ -1,7 +1,6 @@
 <script lang="ts">
   import { GoodCreateUserTokenV2, Permissions } from '@rctf/types'
   import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import {
     Button,
     Card,
@@ -21,6 +20,7 @@
     useInfiniteAdminUsers,
   } from '$lib/query'
   import { formatLocalTime, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
 
   const ROW_HEIGHT = 68

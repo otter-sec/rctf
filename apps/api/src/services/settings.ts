@@ -1,9 +1,9 @@
 import { config } from '@rctf/config'
 import {
+  settings,
   type DatabaseClient,
   type EditableSettings,
   type EditableSponsor,
-  settings,
 } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq } from 'drizzle-orm'

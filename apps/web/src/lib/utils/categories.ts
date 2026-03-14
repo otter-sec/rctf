@@ -1,6 +1,7 @@
 import {
   IconBinaryTreeFilled,
   IconBombFilled,
+  IconChessQueenFilled,
   IconCloudComputingFilled,
   IconCoinFilled,
   IconDice6Filled,
@@ -8,9 +9,8 @@ import {
   IconFlagFilled,
   IconKeyFilled,
   IconMicroscopeFilled,
-  IconPuzzleFilled,
-  IconChessQueenFilled,
   IconMoodHappyFilled,
+  IconPuzzleFilled,
   type IconComponent,
 } from '$lib/icons'
 

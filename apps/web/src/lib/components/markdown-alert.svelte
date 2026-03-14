@@ -1,7 +1,7 @@
 <script lang="ts">
   import { IconCheck, IconCopy } from '$lib/icons'
-  import type { AlertType } from '$lib/utils/markdown'
   import { cn } from '$lib/utils'
+  import type { AlertType } from '$lib/utils/markdown'
 
   interface AlertConfig {
     label: string

@@ -1,14 +1,14 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
+import { adminBotProviders } from './admin-bot'
 import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
 import { emailProviders } from './emails'
 import { instancerProviders } from './instancer'
-import { scoreProviders } from './scores'
-import { uploadProviders } from './uploads'
 import { messagesProviders } from './messages'
 import { moderationProviders } from './moderation'
-import { adminBotProviders } from './admin-bot'
+import { scoreProviders } from './scores'
+import { uploadProviders } from './uploads'
 
 const loadProvider = <Base>(
   providers: Record<string, (options: any) => Base>,

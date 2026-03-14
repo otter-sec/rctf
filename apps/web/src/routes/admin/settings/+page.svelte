@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { GoodFilesUploadV2 } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from 'svelte-sonner'
   import { showApiError } from '$lib/api'
+  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
     Button,
     Card,
@@ -14,8 +16,6 @@
     Tabs,
     Textarea,
   } from '$lib/components'
-  import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import { IconCloudUpload, IconPlus, IconTrashFilled, IconX } from '$lib/icons'
   import {
     queryKeys,
@@ -24,8 +24,8 @@
     useUpdateSettingsMutation,
     useUploadFilesMutation,
   } from '$lib/query'
-  import { GoodFilesUploadV2 } from '@rctf/types'
   import { cn } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()

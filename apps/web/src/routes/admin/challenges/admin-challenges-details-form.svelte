@@ -1,7 +1,5 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
-  import type { Snippet } from 'svelte'
-  import type { AdminBotConfig } from '$lib/machines'
   import {
     Button,
     Field,
@@ -22,8 +20,10 @@
     IconRobot,
     IconTrophyFilled,
   } from '$lib/icons'
-  import { cn } from '$lib/utils'
+  import type { AdminBotConfig } from '$lib/machines'
   import { useClientConfig } from '$lib/query'
+  import { cn } from '$lib/utils'
+  import type { Snippet } from 'svelte'
   import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'

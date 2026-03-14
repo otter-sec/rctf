@@ -4,9 +4,9 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Button, Card, Spinner } from '$lib/components'
   import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
+  import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
   const verifyMutation = useVerifyMutation()

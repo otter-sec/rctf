@@ -1,11 +1,11 @@
 <script lang="ts">
   import { GoodCtftimeToken } from '@rctf/types'
   import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Spinner } from '$lib/components'
   import { useCtftimeCallbackMutation } from '$lib/query'
   import { onDestroy, onMount } from 'svelte'
+  import { toast } from 'svelte-sonner'
 
   interface Props {
     clientId: string

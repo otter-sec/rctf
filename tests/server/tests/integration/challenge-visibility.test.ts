@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   challenges,
@@ -13,9 +12,10 @@ import {
   GoodUserData,
   GoodUserSelfData,
 } from '@rctf/types'
-import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { calculateLeaderboard } from '../../../../apps/api/src/services/leaderboard'
 import { getApp, request } from '../../app'
 import {
   expectResponse,

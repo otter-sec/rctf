@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
-import { getTimeOrdinal } from '@rctf/util'
 import type { ChallengeData, User } from '@rctf/db'
+import { getTimeOrdinal } from '@rctf/util'
 import mustache from 'mustache'
 import { bloodBotProviders } from '../providers'
 

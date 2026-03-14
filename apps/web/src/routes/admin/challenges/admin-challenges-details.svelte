@@ -8,7 +8,6 @@
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Button, EmptyState, Spinner, Tooltip } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
   import { type editorMachine, type FormData } from '$lib/machines'
@@ -21,6 +20,7 @@
     useUpdateChallengeMutation,
   } from '$lib/query'
   import { cn, getCategoryConfig, getCategoryStyle, hasPermissions } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
   import type { SnapshotFrom } from 'xstate'
   import AdminChallengesDetailsDialogs from './admin-challenges-details-dialogs.svelte'
   import AdminChallengesDetailsForm from './admin-challenges-details-form.svelte'

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import JammyProvider from '../../../../apps/api/src/providers/scores/jammy'
 import type { ScoreContext } from '../../../../apps/api/src/providers/scores/base'
+import JammyProvider from '../../../../apps/api/src/providers/scores/jammy'
 
 describe('jammy-scoring', () => {
   // Test data generated from reference Python implementation

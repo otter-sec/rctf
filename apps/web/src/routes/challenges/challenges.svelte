@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
-  import { tick } from 'svelte'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { page } from '$app/state'
   import { Drawer, EmptyState, Resizable } from '$lib/components'
   import { IconFlag3Filled } from '$lib/icons'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
+  import { tick } from 'svelte'
   import ChallengeDetails from './challenge-details.svelte'
   import ChallengeList from './challenge-list.svelte'
 

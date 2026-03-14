@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { tick } from 'svelte'
+  import { ALL_REGIONS } from '@rctf/util'
   import { Command, Popover } from '$lib/components'
   import { IconCheck, IconSelector } from '$lib/icons'
   import { cn, countryCodeToFlagFilename } from '$lib/utils'
-  import { ALL_REGIONS } from '@rctf/util'
+  import { tick } from 'svelte'
 
   interface Props {
     value: string | null | undefined

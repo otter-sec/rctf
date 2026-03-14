@@ -1,8 +1,8 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardWithGraphRoute } from '@rctf/types'
 import { getGraph } from '../../../../cache/leaderboard'
-import leaderboardGroup from '../group'
 import { getLeaderboardWithTotal } from '../../../../services/leaderboard'
+import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
   GetLeaderboardWithGraphRoute,

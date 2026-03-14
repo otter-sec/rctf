@@ -1,7 +1,7 @@
-import { afterAll, beforeAll, describe, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase, users } from '@rctf/db'
 import { BadEmailChangeDivision, GoodEmailSet } from '@rctf/types'
+import { afterAll, beforeAll, describe, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { compiledACLs } from '../../../../apps/api/src/util/acl'

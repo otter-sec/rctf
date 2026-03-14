@@ -1,6 +1,5 @@
 import { Challenge } from '../types'
 import * as TypesModule from '../types'
-
 import { createLogger } from './logger'
 
 const logger = createLogger('loader')

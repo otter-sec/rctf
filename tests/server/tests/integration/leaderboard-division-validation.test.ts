@@ -1,6 +1,6 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { BadBody, GoodLeaderboard, GoodLeaderboardGraph } from '@rctf/types'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import { expectResponse } from '../../util'

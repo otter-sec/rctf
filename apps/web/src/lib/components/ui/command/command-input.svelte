@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { Command as CommandPrimitive } from 'bits-ui'
   import { IconSearch } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import { Command as CommandPrimitive } from 'bits-ui'
 
   let {
     ref = $bindable(null),

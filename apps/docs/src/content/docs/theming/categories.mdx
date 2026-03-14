@@ -3,8 +3,8 @@ title: Categories
 description: Challenge category configuration, colors, icons, and customization.
 ---
 
-import Swatch from '../../../components/Swatch'
 import { Steps } from '@astrojs/starlight/components'
+import Swatch from '../../../components/Swatch'
 
 Each challenge category in rCTF has a dedicated color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0`, which components reference via Tailwind classes such as `text-category-foreground-l0`.
 

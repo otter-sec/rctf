@@ -1,9 +1,9 @@
 import { config } from '@rctf/config'
 import { createDatabase } from '@rctf/db'
+import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
 import { createCachedLeaderboardCalculator } from '../services/leaderboard'
 import { createRedis } from '../util/redis'
-import { pino } from 'pino'
 
 const logger = pino().child({ module: 'leaderboard-worker' })
 const { db } = createDatabase(config.database.sql)

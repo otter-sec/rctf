@@ -5,8 +5,8 @@ import {
   getInstancerChallenge,
   returnInstanceStatusOrError,
 } from '../../../../services/instancer'
-import integrationsGroup from '../group'
 import { inferChallengeIntegrationId } from '../../../../util/instancer'
+import integrationsGroup from '../group'
 
 integrationsGroup.route(
   DeleteInstanceRouteV2,

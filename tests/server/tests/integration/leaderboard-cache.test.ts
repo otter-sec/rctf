@@ -1,4 +1,3 @@
-import { afterEach, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import {
   challenges,
@@ -7,13 +6,14 @@ import {
   users,
   type ChallengeData,
 } from '@rctf/db'
+import { afterEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
+import type { ScoreContext } from '../../../../apps/api/src/providers/scores/base'
+import ClassicProvider from '../../../../apps/api/src/providers/scores/classic'
 import {
   calculateLeaderboard,
   createCachedLeaderboardCalculator,
 } from '../../../../apps/api/src/services/leaderboard'
-import ClassicProvider from '../../../../apps/api/src/providers/scores/classic'
-import type { ScoreContext } from '../../../../apps/api/src/providers/scores/base'
 
 const getDb = () => createDatabase(config.database.sql).db
 

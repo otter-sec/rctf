@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { app } from '../../../../apps/admin-bot/src/index'
 
 const SECRET_KEY = process.env.RCTF_SECRET_KEY!

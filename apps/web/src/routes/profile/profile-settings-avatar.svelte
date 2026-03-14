@@ -3,12 +3,12 @@
   import { GoodAvatarUpdated, ProtectedAction } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Avatar, Button, Section, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
   import { queryKeys, useUpdateAvatarMutation } from '$lib/query'
   import { getInitials } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
 
   interface Props {
     user: UserProfile

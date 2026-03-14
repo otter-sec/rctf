@@ -2,7 +2,6 @@
   import { GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Button, Dialog, EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconTrashFilled, IconTrophyFilled } from '$lib/icons'
   import {
@@ -20,6 +19,7 @@
     hasPermissions,
     useInfiniteVirtualScroll,
   } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
 
   const ROW_HEIGHT = 68

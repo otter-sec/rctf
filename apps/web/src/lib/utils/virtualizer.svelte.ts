@@ -1,4 +1,4 @@
-import type { Virtualizer, VirtualItem } from '@tanstack/svelte-virtual'
+import type { VirtualItem, Virtualizer } from '@tanstack/svelte-virtual'
 import { createVirtualizer } from '@tanstack/svelte-virtual'
 import { get } from 'svelte/store'
 

@@ -11,8 +11,8 @@ import {
   type RouteResponse,
 } from '@rctf/types'
 import { browser } from '$app/environment'
-import { toast } from 'svelte-sonner'
 import { CaptchaError, getCaptchaCode } from '$lib/utils'
+import { toast } from 'svelte-sonner'
 
 export function showApiError(response: {
   kind: string

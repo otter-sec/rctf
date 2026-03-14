@@ -2,6 +2,14 @@
   import * as Chart from '$lib/components/ui/chart'
   import { type ChartConfig } from '$lib/components/ui/chart'
   import {
+    CUTOFF_TIME,
+    MEDAL_COLORS,
+    PAGE_SIZE,
+    RANK_COLORS,
+    SELF_COLOR,
+    X_AXIS_DIVISIONS,
+  } from '$lib/constants/scores'
+  import {
     useClientConfig,
     useCurrentUser,
     useLeaderboardWithGraph,
@@ -10,14 +18,6 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
-  import {
-    CUTOFF_TIME,
-    MEDAL_COLORS,
-    PAGE_SIZE,
-    RANK_COLORS,
-    SELF_COLOR,
-    X_AXIS_DIVISIONS,
-  } from '$lib/constants/scores'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()

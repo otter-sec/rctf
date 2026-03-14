@@ -2,11 +2,11 @@
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
   import { isAuthenticated, showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Button, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { IconCheck, IconClockFilled, IconLogin, IconSend } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
+  import { toast } from 'svelte-sonner'
 
   interface Props {
     challenge: Challenge

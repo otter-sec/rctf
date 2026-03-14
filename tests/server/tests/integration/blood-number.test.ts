@@ -1,6 +1,6 @@
-import { afterAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase } from '@rctf/db'
+import { afterAll, describe, expect, test } from 'bun:test'
 import { createSolveAndGetBloodNumber } from '../../../../apps/api/src/services/challenges'
 import { generateChallenge, generateRealTestUser } from '../../util'
 

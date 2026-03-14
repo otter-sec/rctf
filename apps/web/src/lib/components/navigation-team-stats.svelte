@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { Layer, Chart as LayerChart, Spline } from 'layerchart'
+  import { CUTOFF_TIME, SPARKLINE_WINDOW } from '$lib/constants/scores'
   import { useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
   import { cn, getTimeOrdinal } from '$lib/utils'
-  import { CUTOFF_TIME, SPARKLINE_WINDOW } from '$lib/constants/scores'
+  import { Layer, Chart as LayerChart, Spline } from 'layerchart'
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)

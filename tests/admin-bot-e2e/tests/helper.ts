@@ -1,13 +1,13 @@
 import { resolve } from 'path'
-import { ChallengeLoader } from '../../../apps/admin-bot/src/core/loader'
 import { BrowserManager } from '../../../apps/admin-bot/src/browser/manager'
-import { handleSubmission } from '../../../apps/admin-bot/src/core/runner'
+import { ChallengeLoader } from '../../../apps/admin-bot/src/core/loader'
 import { BufferedOutputHandler } from '../../../apps/admin-bot/src/core/output'
-import type { JobMetadata } from '../../../apps/admin-bot/src/types'
 import type {
   RegexRule,
   RestrictedDomainsConfig,
 } from '../../../apps/admin-bot/src/core/pac'
+import { handleSubmission } from '../../../apps/admin-bot/src/core/runner'
+import type { JobMetadata } from '../../../apps/admin-bot/src/types'
 
 const BROWSER_CACHE_DIR = resolve(import.meta.dir, '..', '.browser-cache')
 export const browserManager = new BrowserManager(BROWSER_CACHE_DIR)

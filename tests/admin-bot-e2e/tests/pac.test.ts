@@ -1,17 +1,17 @@
-import { describe, test, expect, beforeAll, afterAll } from 'bun:test'
-import {
-  runChallenge,
-  challengeSource,
-  browserManager,
-  browsers,
-  type BrowserType,
-  type ParsedLog,
-} from './helper'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import {
   defaultChromeArguments,
   defaultFirefoxArguments,
   defaultFirefoxPreferences,
 } from '../../../apps/admin-bot/src/core/const'
+import {
+  browserManager,
+  browsers,
+  challengeSource,
+  runChallenge,
+  type BrowserType,
+  type ParsedLog,
+} from './helper'
 
 const TEST_TIMEOUT = 30_000
 // Both Chrome and Firefox bypass proxy for localhost/127.0.0.1 by default.

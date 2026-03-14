@@ -2,8 +2,8 @@
   import { Avatar, Tooltip } from '$lib/components'
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
-  import ScoresSparkline from './scores-sparkline.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
+  import ScoresSparkline from './scores-sparkline.svelte'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface TeamData {

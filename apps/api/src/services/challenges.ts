@@ -23,8 +23,8 @@ import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
-import { rateLimit } from './rate-limit'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
+import { rateLimit } from './rate-limit'
 import { getUser } from './users'
 
 type SubmitResponseHelpers = ResponseHelpers<

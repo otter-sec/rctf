@@ -1,7 +1,7 @@
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase, solves } from '@rctf/db'
 import { GoodUserDataV2, GoodUserSelfDataV2 } from '@rctf/types'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import {

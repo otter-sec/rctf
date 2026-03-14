@@ -1,10 +1,10 @@
-import { describe, test, expect, beforeAll } from 'bun:test'
+import { beforeAll, describe, expect, test } from 'bun:test'
 import { Hono } from 'hono'
-import { challengeSource, htmlPage, browserManager, browsers } from './helper'
 import { ChallengeLoader } from '../../../apps/admin-bot/src/core/loader'
 import { PlatformClient } from '../../../apps/admin-bot/src/core/platform'
 import type { PulledJob } from '../../../apps/admin-bot/src/core/platform'
 import { processJob } from '../../../apps/admin-bot/src/core/poller'
+import { browserManager, browsers, challengeSource, htmlPage } from './helper'
 
 const createMockPlatform = (
   source: string

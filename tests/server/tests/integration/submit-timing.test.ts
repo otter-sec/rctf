@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, test } from 'bun:test'
 import { config } from '@rctf/config'
 import { BadEnded, BadNotStarted } from '@rctf/types'
+import { afterAll, beforeAll, describe, test } from 'bun:test'
 import type { Hono } from 'hono'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
 import { getApp, request } from '../../app'

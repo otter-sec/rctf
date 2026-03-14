@@ -8,13 +8,13 @@
     InstanceStatus,
     ProtectedAction,
   } from '@rctf/types'
-  import { onMount } from 'svelte'
   import { apiRequest, isAuthenticated } from '$lib/api'
   import { Button, Progress } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader, IconLogin } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
   import { formatCountdown } from '$lib/utils'
+  import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
 
   interface Props {

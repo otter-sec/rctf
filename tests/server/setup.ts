@@ -1,13 +1,13 @@
-import { mock } from 'bun:test'
 import path from 'path'
-import { DrizzleQueryError } from 'drizzle-orm'
 import { PGlite } from '@electric-sql/pglite'
 import { citext } from '@electric-sql/pglite/contrib/citext'
+import { mock } from 'bun:test'
+import { DrizzleQueryError } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import * as schema from '../../packages/db/src/schema'
-import { loadLuaCommands } from '../../apps/api/src/cache/scripts'
 import RedisMock from 'ioredis-mock'
+import { loadLuaCommands } from '../../apps/api/src/cache/scripts'
+import * as schema from '../../packages/db/src/schema'
 
 const testConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')
 const migrationsFolder = path.resolve(

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import type { AdminBotConfig } from '$lib/machines'
   import { Field, Section, Select, Spinner, Textarea } from '$lib/components'
+  import type { AdminBotConfig } from '$lib/machines'
   import { useAdminBotStatus } from '$lib/query'
 
   interface Props {

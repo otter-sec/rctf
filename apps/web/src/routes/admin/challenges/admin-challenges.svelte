@@ -1,9 +1,9 @@
 <script lang="ts">
+  import type { AdminChallenge } from '@rctf/types'
   import { useMachine } from '@xstate/svelte'
   import { Drawer, Resizable } from '$lib/components'
   import { editorMachine } from '$lib/machines'
   import { useAdminChallenges } from '$lib/query'
-  import type { AdminChallenge } from '@rctf/types'
   import AdminChallengesDetails from './admin-challenges-details.svelte'
   import AdminChallengesList from './admin-challenges-list.svelte'
 

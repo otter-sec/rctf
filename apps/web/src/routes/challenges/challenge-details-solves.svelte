@@ -1,6 +1,5 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
-  import { toast } from 'svelte-sonner'
   import { EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconTrophyFilled } from '$lib/icons'
   import { useClientConfig, useCurrentUser, useInfiniteChallengeSolves } from '$lib/query'
@@ -11,6 +10,7 @@
     getRankVariant,
     useInfiniteVirtualScroll,
   } from '$lib/utils'
+  import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
 
   const ROW_HEIGHT = 68

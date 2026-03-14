@@ -1,8 +1,7 @@
 <script lang="ts">
   import { ProtectedAction } from '@rctf/types'
   import type { ClientConfig } from '@rctf/types'
-  import { getCaptchaProvider, isCaptchaProtected } from '$lib/utils'
-  import { cn } from '$lib/utils'
+  import { cn, getCaptchaProvider, isCaptchaProtected } from '$lib/utils'
 
   interface Props {
     config: ClientConfig | undefined | null

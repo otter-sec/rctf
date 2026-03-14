@@ -1,7 +1,7 @@
 import type { Frame, Page } from 'puppeteer-core'
 import type { OutputHandler } from '../../core/output'
-import type { HooksConfig } from './index'
 import { consoleMsgTypeToLevel } from './console'
+import type { HooksConfig } from './index'
 
 export const hookPageEvents = (
   page: Page,

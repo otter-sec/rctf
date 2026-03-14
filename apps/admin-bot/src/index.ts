@@ -1,11 +1,11 @@
 import { Hono } from 'hono'
-import { ChallengeLoader } from './core/loader'
-import { BrowserManager, type BrowserVersion } from './browser/manager'
-import { PlatformClient } from './core/platform'
-import { startPoller } from './core/poller'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
+import { BrowserManager, type BrowserVersion } from './browser/manager'
+import { ChallengeLoader } from './core/loader'
 import { createLogger } from './core/logger'
+import { PlatformClient } from './core/platform'
+import { startPoller } from './core/poller'
 
 export const app = new Hono()
 export const browserManager = new BrowserManager(process.env.BROWSER_CACHE_DIR)

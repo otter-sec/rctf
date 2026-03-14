@@ -4,11 +4,11 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken, showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
+  import { toast } from 'svelte-sonner'
   import ButtonCtftime from '../button-ctftime.svelte'
 
   const queryClient = useQueryClient()

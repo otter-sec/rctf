@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'bun:test'
+import { describe, expect, test } from 'bun:test'
 import { buildPac } from '../../../../apps/admin-bot/src/core/pac'
 import type { RestrictedDomainsConfig } from '../../../../apps/admin-bot/src/core/pac'
 

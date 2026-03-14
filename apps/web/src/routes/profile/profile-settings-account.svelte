@@ -12,15 +12,14 @@
     UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError } from '$lib/api'
-  import { toast } from 'svelte-sonner'
-  import { apiRequest } from '$lib/api'
+  import { apiRequest, showApiError } from '$lib/api'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Field, FlagPicker, Input, Section, Select, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useCtftimeCallbackMutation } from '$lib/query'
   import { onDestroy, onMount } from 'svelte'
+  import { toast } from 'svelte-sonner'
 
   interface Props {
     user: UserProfile

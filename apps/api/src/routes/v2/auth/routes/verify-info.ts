@@ -1,7 +1,7 @@
 import { GetVerifyInfoRouteV2 } from '@rctf/types'
 import { parseTokenWithMultipleKinds, TokenKind } from '../../../../lib/tokens'
-import authGroup from '../group'
 import { getUser, getUserByEmail } from '../../../../services/users'
+import authGroup from '../group'
 
 authGroup.route(GetVerifyInfoRouteV2, async ({ ctx, query, res }) => {
   const result = await parseTokenWithMultipleKinds(

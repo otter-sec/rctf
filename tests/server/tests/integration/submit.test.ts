@@ -1,4 +1,3 @@
-import { afterAll, beforeAll, describe, test } from 'bun:test'
 import {
   BadAlreadySolvedChallenge,
   BadChallenge,
@@ -7,6 +6,7 @@ import {
   BadToken,
   GoodFlag,
 } from '@rctf/types'
+import { afterAll, beforeAll, describe, test } from 'bun:test'
 import type { Hono } from 'hono'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
 import { getApp, request } from '../../app'

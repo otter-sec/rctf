@@ -1,10 +1,10 @@
 <script lang="ts">
   import '../app.css'
-  import { onMount } from 'svelte'
   import favicon from '$lib/assets/favicon.svg'
   import { Brainrot, Navigation, Toaster, Tooltip } from '$lib/components'
   import { QueryClientProvider } from '$lib/query'
   import { initAnalytics } from '$lib/utils/analytics'
+  import { onMount } from 'svelte'
 
   let { data, children } = $props()
 

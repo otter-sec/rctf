@@ -1,9 +1,9 @@
 import type { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
+import { z } from 'zod/mini'
 import type { AppEnv } from '../../lib/app-env'
 import type { AdminBotProvider, LoadedAdminBotConfig } from './base'
 import { AdminBotConfigLanguage } from './base'
-import { z } from 'zod/mini'
 
 const RegexRuleSchema = z.object({
   pattern: z.string(),

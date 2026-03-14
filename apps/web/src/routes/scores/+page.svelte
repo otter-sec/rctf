@@ -1,11 +1,9 @@
 <script lang="ts">
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
-  import { onMount } from 'svelte'
-
-  import { EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
+  import { CtfNotStarted, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
+  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from '$lib/constants/scores'
   import { IconChartAreaLineFilled, IconPinFilled, IconPinnedFilled } from '$lib/icons'
-  import { CtfNotStarted } from '$lib/components'
   import {
     ApiError,
     useClientConfig,
@@ -21,8 +19,7 @@
     getScoreboardCategoryOrder,
   } from '$lib/utils/categories'
   import { formatLocalTime } from '$lib/utils/time'
-
-  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from '$lib/constants/scores'
+  import { onMount } from 'svelte'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'

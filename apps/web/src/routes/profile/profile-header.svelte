@@ -1,8 +1,8 @@
 <script lang="ts">
   import type { ClientConfig, PublicUserProfile, UserProfile } from '@rctf/types'
+  import { ALL_REGIONS } from '@rctf/util'
   import { Avatar } from '$lib/components'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
-  import { ALL_REGIONS } from '@rctf/util'
 
   interface Props {
     user: UserProfile | PublicUserProfile

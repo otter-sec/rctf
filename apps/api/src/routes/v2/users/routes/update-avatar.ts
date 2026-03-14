@@ -1,11 +1,11 @@
 import { config } from '@rctf/config'
 import { UpdateAvatarRoute } from '@rctf/types'
+import type { PinoLogger } from 'hono-pino'
 import sharp from 'sharp'
 import { avatarModerationProvider, uploadProvider } from '../../../../providers'
 import { rateLimit } from '../../../../services/rate-limit'
 import { updateUserAvatar } from '../../../../services/users'
 import usersGroup from '../group'
-import type { PinoLogger } from 'hono-pino'
 
 const moderateWebp = async (
   log: PinoLogger,

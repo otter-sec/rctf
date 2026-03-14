@@ -8,7 +8,6 @@
     ProtectedAction,
     SubmitAdminBotJobRouteV2,
   } from '@rctf/types'
-  import { onMount } from 'svelte'
   import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
   import { Button, Field, Input, ScrollArea } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
@@ -24,6 +23,7 @@
     IconSend,
   } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
+  import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
 
   interface LogEntry {

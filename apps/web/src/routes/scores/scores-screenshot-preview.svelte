@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { format, formatDuration, intervalToDuration } from 'date-fns'
-  import { Avatar } from '$lib/components'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
+  import { Avatar } from '$lib/components'
   import { useClientConfig } from '$lib/query'
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
+  import { format, formatDuration, intervalToDuration } from 'date-fns'
   import ScoresGraph from './scores-graph.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
   import type { CategoryGroup } from './types'

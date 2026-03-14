@@ -8,8 +8,8 @@
     formatFirstBloodTime,
     formatRelativeToFirstBlood,
     getInitials,
-    getTimeOrdinal,
     getRankStyles,
+    getTimeOrdinal,
   } from '$lib/utils'
 
   interface Props {
