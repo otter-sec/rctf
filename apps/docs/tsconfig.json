@@ -4,5 +4,6 @@
     "jsx": "react-jsx",
     "jsxImportSource": "react",
     "strictNullChecks": true
-  }
+  },
+  "exclude": ["dist", "build"]
 }

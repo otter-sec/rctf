@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM oven/bun:1.3.9-debian AS build
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.10-debian AS build
 WORKDIR /app
 
 COPY apps/admin-bot/package.json ./
@@ -9,7 +9,7 @@ COPY apps/admin-bot/tsconfig.json ./
 COPY apps/admin-bot/src/ ./src/
 RUN bun run build
 
-FROM oven/bun:1.3.9-debian
+FROM oven/bun:1.3.10-debian
 WORKDIR /app
 
 RUN groupadd -r adminbot && useradd -r -g adminbot -m -s /usr/sbin/nologin adminbot

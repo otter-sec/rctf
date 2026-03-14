@@ -1,9 +1,10 @@
-FROM --platform=$BUILDPLATFORM oven/bun:1.3.9-alpine AS build-base
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.10-alpine AS build-base
 WORKDIR /app
 
-FROM oven/bun:1.3.9-alpine AS runtime-base
+FROM oven/bun:1.3.10-alpine AS runtime-base
 WORKDIR /app
 
+# TODO(es3n1n): deduplicate it once we settle on a sane shared Docker build pattern
 FROM build-base AS package-configs
 
 COPY package.json bun.lock ./
