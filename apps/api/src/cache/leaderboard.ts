@@ -129,14 +129,6 @@ const cacheLeaderboard = async (
   data: CalculatedLeaderboard
 ): Promise<void> => {
   const divisions = Object.keys(config.divisions)
-  const keys = [
-    keyScorePositions,
-    keyChallengeInfo,
-    keyLeaderboard(),
-    keyLeaderboardUpdate,
-    keyFirstBloods,
-    ...divisions.map(d => keyLeaderboard(d)),
-  ]
 
   const wireLeaderboard: string[] = []
   for (const userInfo of data.users) {
@@ -173,6 +165,7 @@ const cacheLeaderboard = async (
     data.leaderboardUpdate.toString(),
     divisions.length.toString(),
     ...divisions,
+    ...divisions.map(d => keyLeaderboard(d)),
     wireLeaderboard.length.toString(),
     ...wireLeaderboard,
     wireChallengeInfos.length.toString(),
@@ -181,7 +174,14 @@ const cacheLeaderboard = async (
     ...wireFirstBloods,
   ]
 
-  await redis.rctfSetLeaderboard(keys.length, ...keys, ...argv)
+  await redis.rctfSetLeaderboard(
+    keyScorePositions,
+    keyChallengeInfo,
+    keyLeaderboard(),
+    keyLeaderboardUpdate,
+    keyFirstBloods,
+    ...argv
+  )
 }
 
 const cacheGraph = async (
@@ -211,7 +211,7 @@ const cacheGraph = async (
     argv.push(id, points.join(','))
   }
 
-  await redis.rctfSetGraph(2, keyGraphUpdate, keyGraphData, ...argv)
+  await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
 }
 
 interface GraphPoint {
@@ -305,7 +305,7 @@ const getLeaderboardInternal = async (
   }
 
   return {
-    total: Number.parseInt(result[result.length - 1] ?? '0') / keysPerUser,
+    total: Math.floor(Number(result[result.length - 1] ?? 0) / keysPerUser),
     leaderboard,
   }
 }
@@ -328,6 +328,60 @@ export const getLeaderboard = async (
   const start = offset * keysPerUser
   const end = start + limit * keysPerUser - 1
   return await getLeaderboardInternal(redis, key, start, end, division, offset)
+}
+
+export type LeaderboardWithGlobalScoresResult = LeaderboardResult & {
+  globalScores: Map<string, UserScoreResult>
+}
+
+export const getLeaderboardWithGlobalScores = async (
+  redis: TypedRedis,
+  limit: number,
+  offset: number,
+  division: string
+): Promise<LeaderboardWithGlobalScoresResult> => {
+  const key = keyLeaderboard(division)
+  const keysPerUser = keysPerUserDivision
+  if (limit === 0) {
+    return {
+      total: Math.floor((await redis.llen(key)) / keysPerUser),
+      leaderboard: [],
+      globalScores: new Map(),
+    }
+  }
+
+  const start = offset * keysPerUser
+  const end = start + limit * keysPerUser - 1
+
+  const [range, totalRaw, scores] = await redis.rctfGetRangeWithScores(
+    key,
+    keyScorePositions,
+    start.toString(),
+    end.toString(),
+    keysPerUser.toString()
+  )
+
+  const leaderboard: LeaderboardResult['leaderboard'] = []
+  const globalScores = new Map<string, UserScoreResult>()
+
+  for (let i = 0; i < range.length; i += keysPerUser) {
+    const idx = Math.floor(i / keysPerUser)
+    const id = range[i] ?? ''
+    leaderboard.push({
+      id,
+      name: range[i + 1] ?? '',
+      score: Number.parseInt(range[i + 2] ?? '0'),
+      division,
+      divisionPlace: offset + idx + 1,
+    })
+    globalScores.set(id, parseUserScoreResult(scores[idx] ?? null))
+  }
+
+  return {
+    total: Math.floor(Number(totalRaw ?? 0) / keysPerUser),
+    leaderboard,
+    globalScores,
+  }
 }
 
 export const getFullLeaderboard = async (

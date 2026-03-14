@@ -4,13 +4,13 @@
 -- 3: global-leaderboard
 -- 4: leaderboard-update
 -- 5: first-bloods
--- 6..N: division-leaderboard:<division>
 --
 -- ARGV:
 -- [1]: leaderboardUpdate (number as string)
 -- [2]: numDivisions
 -- [3..3+numDivisions-1]: division names
--- [3+numDivisions]: numLeaderboardElements (numUsers * 4)
+-- [3+numDivisions..3+numDivisions*2-1]: division leaderboard key names
+-- [next]: numLeaderboardElements (numUsers * 4)
 -- [next..]: leaderboard elements [id, name, division, score, ...] repeated
 -- [after leaderboard]: numChallengeElements (numChallenges * 2)
 -- [after..]: challenge info elements [id, json payload, ...] repeated
@@ -41,6 +41,12 @@ idx = idx + 1
 local divisions = {}
 for i = 1, numDivisions do
   divisions[i] = ARGV[idx]
+  idx = idx + 1
+end
+
+local divisionKeys = {}
+for i = 1, numDivisions do
+  divisionKeys[i] = ARGV[idx]
   idx = idx + 1
 end
 
@@ -115,8 +121,16 @@ for i = 1, numFirstBloodsElements do
   firstBloodsArgs[i] = ARGV[firstBloodsStart + i - 1]
 end
 
+local allKeys = {}
+for i = 1, 5 do
+  allKeys[i] = KEYS[i]
+end
+for i = 1, numDivisions do
+  allKeys[5 + i] = divisionKeys[i]
+end
+
 -- Clear existing keys
-redis.call('DEL', unpack(KEYS))
+redis.call('DEL', unpack(allKeys))
 
 -- Write challenge-info hash
 if #challengeInfoArgs > 0 then
@@ -131,7 +145,7 @@ end
 -- Write division leaderboard lists
 for d = 1, numDivisions do
   local div = divisions[d]
-  local key = KEYS[5 + d]
+  local key = divisionKeys[d]
   local board = divisionBoards[div]
   if board and #board > 0 then
     chunkCall('RPUSH', key, board)

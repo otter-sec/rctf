@@ -15,6 +15,13 @@ import { createToken, TokenKind } from '../../apps/api/src/lib/tokens'
 // Use mocked createDatabase - it returns pglite instance
 const getDb = () => createDatabase(config.database.sql).db
 
+export const clearDatabase = async () => {
+  const db = getDb()
+  await db.delete(solves)
+  await db.delete(challenges)
+  await db.delete(users)
+}
+
 export const expectResponse = async <T extends ResponseDefinition<string, any>>(
   res: Response,
   expected: T

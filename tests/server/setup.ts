@@ -105,13 +105,12 @@ mock.module('@rctf/config', () => {
   return { config }
 })
 
+const mockRedisInstance = new RedisMock()
+const typedMockRedis = await loadLuaCommands(mockRedisInstance)
+
 mock.module('../../apps/api/src/util/redis', () => {
   return {
-    createRedis: async () => {
-      const mockRedisInstance = new RedisMock()
-      const typedMockRedis = await loadLuaCommands(mockRedisInstance)
-      return typedMockRedis
-    },
+    createRedis: async () => typedMockRedis,
   }
 })
 

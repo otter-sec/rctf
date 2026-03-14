@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test'
+import { describe, expect, mock, test } from 'bun:test'
 import {
   cacheLeaderboardAndGraph,
   getCachedChallenges,
@@ -6,7 +6,9 @@ import {
   getGraph,
   getLeaderboard,
   getLeaderboardWithChallenges,
+  getLeaderboardWithGlobalScores,
   getUserScore,
+  getUsersScores,
   type CalculatedLeaderboard,
 } from '../../../../apps/api/src/cache/leaderboard'
 import type { TypedRedis } from '../../../../apps/api/src/cache/scripts'
@@ -50,8 +52,8 @@ const createMockRedis = () => {
       }
       return result
     }),
-    rctfSetLeaderboard: mock(async (_keys: number, ..._args: string[]) => {}),
-    rctfSetGraph: mock(async (_keys: number, ..._args: string[]) => {}),
+    rctfSetLeaderboard: mock(async (..._args: string[]) => {}),
+    rctfSetGraph: mock(async (..._args: string[]) => {}),
     rctfGetLeaderboardWithChallenges: mock(
       async (
         _leaderboardKey: string,
@@ -82,6 +84,17 @@ const createMockRedis = () => {
         _end: string
       ): Promise<string[]> => {
         return []
+      }
+    ),
+    rctfGetRangeWithScores: mock(
+      async (
+        _leaderboardKey: string,
+        _scorePositionsKey: string,
+        _start: string,
+        _end: string,
+        _keysPerUser: string
+      ): Promise<[string[], number | string, (string | null)[]]> => {
+        return [[], 0, []]
       }
     ),
   } as unknown as TypedRedis & {
@@ -699,6 +712,166 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(redis, data)
 
       expect(redis.rctfSetGraph).toHaveBeenCalled()
+    })
+  })
+
+  describe('getUsersScores', () => {
+    test('returns empty map for empty userIds', async () => {
+      const redis = createMockRedis()
+
+      const result = await getUsersScores(redis, [])
+
+      expect(result.size).toBe(0)
+      expect(redis.hmget).not.toHaveBeenCalled()
+    })
+
+    test('returns parsed scores for multiple users', async () => {
+      const redis = createMockRedis()
+      const scoreHash = new Map<string, string>()
+      scoreHash.set('user1', '150,3,1')
+      scoreHash.set('user2', '80,7,2')
+      redis.hashStore.set('score-positions', scoreHash)
+
+      const result = await getUsersScores(redis, ['user1', 'user2'])
+
+      expect(result.size).toBe(2)
+      expect(result.get('user1')).toEqual({
+        score: 150,
+        place: 3,
+        divisionPlace: 1,
+      })
+      expect(result.get('user2')).toEqual({
+        score: 80,
+        place: 7,
+        divisionPlace: 2,
+      })
+    })
+
+    test('returns null values for unknown users', async () => {
+      const redis = createMockRedis()
+      redis.hashStore.set('score-positions', new Map())
+
+      const result = await getUsersScores(redis, ['unknown1', 'unknown2'])
+
+      expect(result.size).toBe(2)
+      expect(result.get('unknown1')).toEqual({
+        score: null,
+        place: null,
+        divisionPlace: null,
+      })
+    })
+
+    test('handles mix of known and unknown users', async () => {
+      const redis = createMockRedis()
+      const scoreHash = new Map<string, string>()
+      scoreHash.set('user1', '200,1,1')
+      redis.hashStore.set('score-positions', scoreHash)
+
+      const result = await getUsersScores(redis, ['user1', 'ghost'])
+
+      expect(result.get('user1')!.score).toBe(200)
+      expect(result.get('ghost')).toEqual({
+        score: null,
+        place: null,
+        divisionPlace: null,
+      })
+    })
+  })
+
+  describe('getLeaderboardWithGlobalScores', () => {
+    test('returns empty leaderboard and scores when limit is 0', async () => {
+      const redis = createMockRedis()
+      redis.listStore.set('division-leaderboard:open', Array(9).fill('item'))
+
+      const result = await getLeaderboardWithGlobalScores(redis, 0, 0, 'open')
+
+      expect(result.total).toBe(3)
+      expect(result.leaderboard).toEqual([])
+      expect(result.globalScores.size).toBe(0)
+      expect(redis.rctfGetRangeWithScores).not.toHaveBeenCalled()
+    })
+
+    test('returns leaderboard with global scores in a single call', async () => {
+      const redis = createMockRedis()
+      redis.rctfGetRangeWithScores = mock(async () => [
+        ['user1', 'User One', '100', 'user2', 'User Two', '80'],
+        6, // total
+        ['100,2,1', '80,5,2'],
+      ])
+
+      const result = await getLeaderboardWithGlobalScores(redis, 10, 0, 'open')
+
+      expect(result.total).toBe(2)
+      expect(result.leaderboard).toHaveLength(2)
+      expect(result.leaderboard[0]).toEqual({
+        id: 'user1',
+        name: 'User One',
+        score: 100,
+        division: 'open',
+        divisionPlace: 1,
+      })
+      expect(result.leaderboard[1]).toEqual({
+        id: 'user2',
+        name: 'User Two',
+        score: 80,
+        division: 'open',
+        divisionPlace: 2,
+      })
+      expect(result.globalScores.get('user1')).toEqual({
+        score: 100,
+        place: 2,
+        divisionPlace: 1,
+      })
+      expect(result.globalScores.get('user2')).toEqual({
+        score: 80,
+        place: 5,
+        divisionPlace: 2,
+      })
+    })
+
+    test('passes correct keys and args to redis', async () => {
+      const redis = createMockRedis()
+
+      await getLeaderboardWithGlobalScores(redis, 5, 2, 'student')
+
+      expect(redis.rctfGetRangeWithScores).toHaveBeenCalledWith(
+        'division-leaderboard:student',
+        'score-positions',
+        '6', // offset (2) * keysPerUser (3)
+        '20', // start (6) + limit (5) * keysPerUser (3) - 1
+        '3' // keysPerUserDivision
+      )
+    })
+
+    test('handles offset for divisionPlace', async () => {
+      const redis = createMockRedis()
+      redis.rctfGetRangeWithScores = mock(async () => [
+        ['user3', 'User Three', '50'],
+        12, // total
+        ['50,10,5'],
+      ])
+
+      const result = await getLeaderboardWithGlobalScores(redis, 5, 3, 'open')
+
+      expect(result.leaderboard[0]!.divisionPlace).toBe(4) // offset (3) + idx (0) + 1
+      expect(result.globalScores.get('user3')!.place).toBe(10)
+    })
+
+    test('handles null global scores for users not in score-positions', async () => {
+      const redis = createMockRedis()
+      redis.rctfGetRangeWithScores = mock(async () => [
+        ['user1', 'User One', '100'],
+        3,
+        [null], // user not in score-positions hash
+      ])
+
+      const result = await getLeaderboardWithGlobalScores(redis, 10, 0, 'open')
+
+      expect(result.globalScores.get('user1')).toEqual({
+        score: null,
+        place: null,
+        divisionPlace: null,
+      })
     })
   })
 })

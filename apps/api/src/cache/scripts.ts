@@ -2,8 +2,8 @@ import path from 'node:path'
 import type Redis from 'ioredis'
 
 export type TypedRedis = Redis & {
-  rctfSetLeaderboard: (keys: number, ...args: string[]) => Promise<void>
-  rctfSetGraph: (keys: number, ...args: string[]) => Promise<void>
+  rctfSetLeaderboard: (...args: string[]) => Promise<void>
+  rctfSetGraph: (...args: string[]) => Promise<void>
   rctfGetLeaderboardWithChallenges: (
     leaderboardKey: string,
     challengeInfoKey: string,
@@ -24,6 +24,13 @@ export type TypedRedis = Redis & {
     start: string,
     end: string
   ) => Promise<string[]>
+  rctfGetRangeWithScores: (
+    leaderboardKey: string,
+    scorePositionsKey: string,
+    start: string,
+    end: string,
+    keysPerUser: string
+  ) => Promise<[string[], number | string, (string | null)[]]>
   rctfRateLimit: (key: string, limit: string, ttlMs: string) => Promise<number>
 }
 
@@ -35,6 +42,7 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
   }
 
   redis.defineCommand('rctfSetLeaderboard', {
+    numberOfKeys: 5,
     lua: await loadLuaScript('set-leaderboard.lua'),
   })
   redis.defineCommand('rctfGetLeaderboardWithChallenges', {
@@ -42,6 +50,7 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
     lua: await loadLuaScript('get-leaderboard-with-challenges.lua'),
   })
   redis.defineCommand('rctfSetGraph', {
+    numberOfKeys: 2,
     lua: await loadLuaScript('set-graph.lua'),
   })
   redis.defineCommand('rctfGetGraph', {
@@ -51,6 +60,10 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
   redis.defineCommand('rctfGetRange', {
     numberOfKeys: 1,
     lua: await loadLuaScript('get-range.lua'),
+  })
+  redis.defineCommand('rctfGetRangeWithScores', {
+    numberOfKeys: 2,
+    lua: await loadLuaScript('get-range-with-scores.lua'),
   })
   redis.defineCommand('rctfRateLimit', {
     numberOfKeys: 1,
