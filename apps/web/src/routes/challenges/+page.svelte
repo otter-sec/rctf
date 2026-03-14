@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { isAuthenticated } from '$lib'
+  import { isAuthenticated } from '$lib/api'
   import { Button, Card, CtfNotStarted, Spinner } from '$lib/components'
   import { ApiError, useChallenges, useClientConfig } from '$lib/query'
   import Challenges from './challenges.svelte'

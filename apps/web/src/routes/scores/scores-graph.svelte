@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Chart, type ChartConfig } from '$lib/components'
+  import * as Chart from '$lib/components/ui/chart'
+  import { type ChartConfig } from '$lib/components/ui/chart'
   import {
     useClientConfig,
     useCurrentUser,

@@ -2,7 +2,7 @@
   import { Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
-  import { toast } from '$lib'
+  import { toast } from 'svelte-sonner'
   import { clearToken } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
@@ -12,7 +12,6 @@
     NavigationButton,
     NavigationCountdown,
     NavigationMobile,
-    NavigationTeamStats,
     ThemeToggle,
     Tooltip,
   } from '$lib/components'
@@ -141,7 +140,9 @@
   <div class="hidden items-center gap-2 md:flex">
     <NavigationCountdown />
     {#if user}
-      <NavigationTeamStats />
+      {#await import('$lib/components/navigation-team-stats.svelte') then { default: NavigationTeamStats }}
+        <NavigationTeamStats />
+      {/await}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
           class="hover:bg-background-l2 flex cursor-pointer items-center gap-3 rounded-lg pl-2"

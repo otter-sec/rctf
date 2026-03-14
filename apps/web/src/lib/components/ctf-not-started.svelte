@@ -2,7 +2,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { queryKeys, useClientConfig } from '$lib/query'
   import { Button, Card } from '$lib/components'
-  import { isAuthenticated } from '$lib'
+  import { isAuthenticated } from '$lib/api'
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()

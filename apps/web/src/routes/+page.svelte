@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Card, Markdown } from '$lib/components'
-  import { parseMarkdown } from '$lib/utils'
+  import { parseMarkdown } from '$lib/utils/markdown'
 
   let { data } = $props()
 </script>

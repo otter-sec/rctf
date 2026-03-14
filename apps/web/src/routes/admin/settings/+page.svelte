@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { toast } from '$lib'
+  import { toast } from 'svelte-sonner'
   import { showApiError } from '$lib/api'
   import {
     Button,

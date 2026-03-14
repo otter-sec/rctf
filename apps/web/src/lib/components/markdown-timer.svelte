@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getClientConfig } from '$lib'
+  import { getClientConfig } from '$lib/api'
   import { onDestroy } from 'svelte'
 
   const clientConfig = getClientConfig()

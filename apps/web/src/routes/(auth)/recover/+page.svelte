@@ -1,6 +1,6 @@
 <script lang="ts">
   import { GoodVerifySent, ProtectedAction, RecoverRouteV2 } from '@rctf/types'
-  import { toast } from '$lib'
+  import { toast } from 'svelte-sonner'
   import { Button, Card, Field, Input, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'

@@ -1,7 +1,8 @@
 <script lang="ts">
   import { CreateMemberRoute, DeleteMemberRoute, GoodMemberDelete } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { apiRequest } from '$lib/api'
   import { Badge, Field, Section, Spinner } from '$lib/components'
   import { TagInput } from '$lib/components/ui/tag-input'

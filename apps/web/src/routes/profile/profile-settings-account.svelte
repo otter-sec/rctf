@@ -12,7 +12,8 @@
     UpdateUserRouteV2,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { apiRequest } from '$lib/api'
   import CtftimeIcon from '$lib/assets/ctftime.svg?raw'
   import { Button, Field, FlagPicker, Input, Section, Select, Spinner } from '$lib/components'

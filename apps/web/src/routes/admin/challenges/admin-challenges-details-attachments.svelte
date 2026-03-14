@@ -1,6 +1,7 @@
 <script lang="ts">
   import { GoodFilesUploadV2 } from '@rctf/types'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { Button, Spinner } from '$lib/components'
   import { IconCloudUpload, IconFileFilled, IconTrashFilled } from '$lib/icons'
   import { useUploadFilesMutation } from '$lib/query'

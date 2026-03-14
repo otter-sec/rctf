@@ -1,6 +1,7 @@
 <script lang="ts">
   import { GoodCreateUserTokenV2, Permissions } from '@rctf/types'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import {
     Button,
     Card,

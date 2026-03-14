@@ -7,7 +7,8 @@
     Permissions,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { Button, EmptyState, Spinner, Tooltip } from '$lib/components'
   import { IconHammer, IconPencilFilled, IconTrashFilled } from '$lib/icons'
   import { type editorMachine, type FormData } from '$lib/machines'

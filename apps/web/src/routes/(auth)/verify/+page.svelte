@@ -3,7 +3,8 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { setToken, toast } from '$lib'
+  import { setToken } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { Button, Card, Spinner } from '$lib/components'
   import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
 

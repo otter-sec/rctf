@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { parseMarkdown, type AlertType } from '$lib/utils'
+  import { parseMarkdown, type AlertType } from '$lib/utils/markdown'
   import { mount, onMount, unmount } from 'svelte'
   import MarkdownAlert from './markdown-alert.svelte'
   import MarkdownTimer from './markdown-timer.svelte'

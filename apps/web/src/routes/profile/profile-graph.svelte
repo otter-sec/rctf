@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { LeaderboardGraphEntry } from '@rctf/types'
-  import { Chart, type ChartConfig } from '$lib/components'
+  import * as Chart from '$lib/components/ui/chart'
+  import { type ChartConfig } from '$lib/components/ui/chart'
   import { useClientConfig } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'

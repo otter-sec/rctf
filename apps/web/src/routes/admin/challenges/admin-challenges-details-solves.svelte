@@ -1,7 +1,8 @@
 <script lang="ts">
   import { GoodChallengeSolveDeleteV2, Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError, toast } from '$lib'
+  import { showApiError } from '$lib/api'
+  import { toast } from 'svelte-sonner'
   import { Button, Dialog, EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconTrashFilled, IconTrophyFilled } from '$lib/icons'
   import {

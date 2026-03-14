@@ -2,7 +2,6 @@ import * as Accordion from './ui/accordion'
 import * as Avatar from './ui/avatar'
 import * as ButtonGroup from './ui/button-group'
 import * as Card from './ui/card'
-import * as Chart from './ui/chart'
 import * as Command from './ui/command'
 import * as Dialog from './ui/dialog'
 import * as Drawer from './ui/drawer'
@@ -26,7 +25,6 @@ export { default as CtfNotStarted } from './ctf-not-started.svelte'
 export { default as FlagPicker } from './flag-picker.svelte'
 export { default as Navigation } from './navigation.svelte'
 export { default as NavigationCountdown } from './navigation-countdown.svelte'
-export { default as NavigationTeamStats } from './navigation-team-stats.svelte'
 export { default as Markdown } from './markdown.svelte'
 export { default as NavigationMobile } from './navigation-mobile.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'
@@ -62,7 +60,6 @@ export {
   Avatar,
   ButtonGroup,
   Card,
-  Chart,
   Command,
   Dialog,
   Drawer,
@@ -80,5 +77,3 @@ export {
   Tabs,
   Tooltip,
 }
-
-export { type ChartConfig } from './ui/chart'

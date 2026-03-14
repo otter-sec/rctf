@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { domToPng, domToJpeg, domToWebp } from 'modern-screenshot'
   import {
     Button,
     Checkbox,
@@ -117,6 +116,7 @@
         throw new Error('Screenshot container not found')
       }
 
+      const { domToPng, domToJpeg, domToWebp } = await import('modern-screenshot')
       const exportFns = {
         png: domToPng,
         jpeg: domToJpeg,

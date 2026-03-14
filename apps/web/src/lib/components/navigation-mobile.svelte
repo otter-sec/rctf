@@ -3,7 +3,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
-  import { toast } from '$lib'
+  import { toast } from 'svelte-sonner'
   import { clearToken } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
