@@ -3,7 +3,6 @@ title: During the CTF
 description: Operational procedures for monitoring, incident response, and issue resolution during an active CTF competition.
 ---
 
-
 Now that you've deployed the challenges and the CTF platform is up and running, it's time to start the competition. This section covers monitoring practices, incident response procedures, and operational guidelines for handling issues that arise during the event.
 
 ## Monitoring

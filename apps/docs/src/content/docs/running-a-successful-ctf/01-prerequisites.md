@@ -3,12 +3,12 @@ title: Prerequisites
 description: Organizational structure, timeline, CTFtime registration, sponsorships, rules, and communication setup for your CTF.
 ---
 
-
 Running a CTF is a significant undertaking that requires coordination across challenge development, infrastructure, sponsorship, and communication. The following sections outline the organizational and logistical foundations you'll need to establish before technical details are covered.
 
 ## Organizational structure
 
 A successful CTF requires a dedicated team with clearly defined roles and responsibilities.
+
 - **Organizers** are the core coordinators, responsible for managing the event from start to finish. Their duties include managing timelines, overseeing team operations, making final decisions, maintaining sponsor relationships, and handling logistics such as merchandise orders and prize distribution.
 - **Challenge authors** create and implement the CTF's challenges. In addition to developing problems, authors typically playtest each other's work to ensure quality and balance.
 - **Infrastructure leads** manage the technical aspects of the competition. Their responsibilities include deploying the platform, hosting challenges, maintaining system health, enforcing security (such as firewalls and anti-DDoS measures), and scaling resources when appropriate. They should be available throughout the competition for incident response, or the team should be organized into shifts to provide continuous coverage (leveraging different time zones can help here).
@@ -21,6 +21,7 @@ For a typical 24-48 hour CTF with 20-30 challenges, a team of 5-10 organizers is
 ### Timeline
 
 It is advisable to begin preparations at least 2-3 months before the event. The following is a suggested timeline:
+
 - **Three months** before the event, the organizers should finalize the competition date, ideate challenges, and reach out to sponsors. The event should also be registered on CTFtime (see [CTFtime](#ctftime) for more information).
 - **Two months** before the event, challenge development should begin.
 - **Two weeks** before the event, challenge testing and platform setup should begin. Internal playtesting, challenge revisions, and infrastructure testing should also be conducted.
@@ -35,6 +36,7 @@ Be sure that your event does not conflict with very large events on CTFtime (e.g
 :::
 
 To list your CTF on CTFtime, you need to complete three steps:
+
 1. [Create your team](https://ctftime.org/team/new/). A team can both partake and organize CTFs.
 2. [Register your event](https://ctftime.org/event/mail/). This creates an entry for your recurring CTF series, such as "My CTF." Event registration must be reviewed and manually approved by the CTFtime team, so be sure to start this process early, well before your event date, to ensure your listing appears in time.
 3. [Add an edition of your event](https://ctftime.org/event/new/). Each instance of your CTF (for example, "My CTF 2026" held on April 1st, 2026) is considered an edition. Once your event is registered and approved, you can add a new edition for each specific competition date.
@@ -72,6 +74,7 @@ Clear rules are essential for fair competition and participant expectations. The
 While not strictly mandatory, the majority of competitions choose to provide prizes for the top three teams. Additionally, some events award prizes for outstanding write-ups, as these serve as valuable learning resources for the community. To obtain such funding, it is often necessary to obtain sponsorship from companies, organizations, or individuals.
 
 The following are some general rules of thumb when seeking sponsorships:
+
 - It is advisable to begin outreach to potential sponsors well in advance (the above [timeline](#timeline) advises 2-3 months), as companies may require considerable time to evaluate and confirm sponsorship arrangements.
 - Consider preparing a sponsorship proposal document that outlines the benefits of sponsoring the event. This typically also includes multiple sponsorship tiers/options.
 - Consider leveraging existing relationships with companies or organizations that have sponsored similar events in the past.
@@ -83,6 +86,7 @@ The following are potential sponsors to consider:
 - Additional sponsors may be identified by reviewing the sponsor lists of [upcoming](https://ctftime.org/event/list/upcoming) and [past](https://ctftime.org/event/list/past) CTF events.
 
 In exchange for sponsorship, sponsors typically expect certain benefits. These may include:
+
 - Logo placement on the CTF homepage and merchandise, if applicable
 - Shoutouts on social media and announcement channels
 - Special usage of particular frameworks or tools for challenges or infrastructure
@@ -97,15 +101,15 @@ The majority of CTFs utilize Discord as the primary communication platform for a
 
 A typical Discord server configuration for a CTF includes the following channels:
 
-| Channel | Purpose |
-|---------|---------|
-| `#rules` | Discord and CTF-specific rules |
-| `#announcements` | Registration status, CTF start/end times, challenge updates, and feedback requests |
-| `#first-bloods` | Recognition of teams who achieved the first solve on a challenge |
-| `#support` | Support ticket creation for issues such as broken challenges (e.g., via [Ticket Tool](https://tickettool.xyz/)) |
-| `#general` | General discussion |
-| `#looking-for-team` | Team formation for participants seeking teammates |
-| `#web`/`#rev`/`#pwn`/... | Category-specific discussion channels, if desired |
+| Channel                  | Purpose                                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `#rules`                 | Discord and CTF-specific rules                                                                                  |
+| `#announcements`         | Registration status, CTF start/end times, challenge updates, and feedback requests                              |
+| `#first-bloods`          | Recognition of teams who achieved the first solve on a challenge                                                |
+| `#support`               | Support ticket creation for issues such as broken challenges (e.g., via [Ticket Tool](https://tickettool.xyz/)) |
+| `#general`               | General discussion                                                                                              |
+| `#looking-for-team`      | Team formation for participants seeking teammates                                                               |
+| `#web`/`#rev`/`#pwn`/... | Category-specific discussion channels, if desired                                                               |
 
 It is common to receive a high volume of support requests from participants. For this reason, it is significantly more efficient and manageable to handle such inquiries within a centralized server environment rather than through individual direct messages. Typical support requests may include issues related to the CTF platform, malfunctioning challenges, incorrect flags, or requests for hints.
 

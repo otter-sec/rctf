@@ -5,7 +5,6 @@ description: Complete guide to deploying rCTF, configuring Nginx with TLS, and c
 
 import { Steps } from '@astrojs/starlight/components'
 
-
 There are two primary CTF platforms that are publicly available:
 
 - [rCTF](https://rctf.osec.io) (you are here!)
@@ -34,9 +33,11 @@ All the examples will use `example.com` which refers to the domain name hosting 
 1. **SSH into your VPS**
 
    After you've deployed a VPS in your preferred provider, you'll need to SSH into it using:
+
    ```bash title="Terminal"
    ssh root@123.123.123.123
    ```
+
    All the subsequent commands should be run inside the VPS as the root user.
 
 2. **Run the installation script**
@@ -52,7 +53,6 @@ All the examples will use `example.com` which refers to the domain name hosting 
 3. **Configure your instance**
 
    The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration). Consider configuring at least the following:
-
    - CTF name, description, image, origin, home content, start and end time
    - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
    - `proxy.cloudflare` if behind Cloudflare

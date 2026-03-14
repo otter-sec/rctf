@@ -5,7 +5,6 @@ description: Post-CTF tasks including uploading scoreboards to CTFtime, distribu
 
 import { Steps } from '@astrojs/starlight/components'
 
-
 Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, and infrastructure teardown.
 
 ## Uploading scoreboard to CTFtime
@@ -83,11 +82,11 @@ For competitions using divisions, the query can be extended to filter by divisio
 
 Releasing a post-competition feedback form (e.g., Google Forms) provides valuable insights for future events. Consider soliciting feedback on the following areas:
 
-| Category | Topics to address |
-|----------|-------------------|
-| Infrastructure | Platform stability, challenge availability, response times |
-| Challenges | Difficulty balance, category distribution, quality of problem design |
-| Organization | Communication clarity, support responsiveness, overall experience |
+| Category       | Topics to address                                                    |
+| -------------- | -------------------------------------------------------------------- |
+| Infrastructure | Platform stability, challenge availability, response times           |
+| Challenges     | Difficulty balance, category distribution, quality of problem design |
+| Organization   | Communication clarity, support responsiveness, overall experience    |
 
 :::tip
 Feedback collected from participants is invaluable for improving subsequent events. Review responses thoroughly before planning the next competition.
@@ -115,4 +114,4 @@ Ensure the following resources are properly decommissioned to avoid unexpected c
 - Remove kCTF clusters, VPS instances, Klodd/tiny-instancer deployments, and associated GKE resources.
 - For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts.
 - Rotate or revoke any API keys, tokens, or credentials used during the event.
-:::
+  :::

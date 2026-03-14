@@ -37,7 +37,6 @@
   --sl-color-purple-low: color-mix(in oklch, #a855f7 5%, #ffffff);
   --sl-color-orange-low: color-mix(in oklch, #f97316 5%, #ffffff);
   --sl-color-red-low: color-mix(in oklch, #ef4444 5%, #ffffff);
-
 }
 
 :root[data-theme='light'] {
@@ -56,9 +55,9 @@
   --sl-color-white: #ffffff;
   --sl-color-black: #0e0e0e;
 
-  --sl-color-gray-1: rgba(255, 255, 255, 0.80);
-  --sl-color-gray-2: rgba(255, 255, 255, 0.70);
-  --sl-color-gray-3: rgba(255, 255, 255, 0.50);
+  --sl-color-gray-1: rgba(255, 255, 255, 0.8);
+  --sl-color-gray-2: rgba(255, 255, 255, 0.7);
+  --sl-color-gray-3: rgba(255, 255, 255, 0.5);
   --sl-color-gray-4: #3a3a3a;
   --sl-color-gray-5: #2a2a2a;
   --sl-color-gray-6: #222222;
@@ -88,7 +87,11 @@
 .sidebar-content a[aria-current='page'],
 .sidebar-content a[aria-current='page']:hover,
 .sidebar-content a[aria-current='page']:focus {
-  background-color: color-mix(in oklch, var(--sl-color-accent) 12%, transparent) !important;
+  background-color: color-mix(
+    in oklch,
+    var(--sl-color-accent) 12%,
+    transparent
+  ) !important;
   color: var(--sl-color-accent-high) !important;
 }
 
@@ -150,7 +153,11 @@ h1,
 }
 
 :root:not([data-theme='dark']) .starlight-aside {
-  background-color: color-mix(in oklch, var(--sl-color-asides-border) 4%, transparent) !important;
+  background-color: color-mix(
+    in oklch,
+    var(--sl-color-asides-border) 4%,
+    transparent
+  ) !important;
 }
 
 :root:not([data-theme='dark']) .expressive-code {
