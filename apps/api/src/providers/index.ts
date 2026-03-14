@@ -54,16 +54,19 @@ export const captchaProvider = (() => {
 
   // NOTE(es3n1n): backporting v1 google captcha config
   if (config.recaptcha) {
-    config.captcha = {}
-    config.captcha.protectedEndpoints = config.recaptcha.protectedActions ?? []
-
-    return loadProvider(captchaProviders, {
-      name: 'captcha/recaptcha',
+    const provider = {
+      name: 'captcha/recaptcha' as const,
       options: {
         secretKey: config.recaptcha.secretKey,
         siteKey: config.recaptcha.siteKey,
       },
-    })
+    }
+    config.captcha = {
+      provider,
+      protectedEndpoints: config.recaptcha.protectedActions ?? [],
+    }
+
+    return loadProvider(captchaProviders, provider)
   }
 
   return undefined
