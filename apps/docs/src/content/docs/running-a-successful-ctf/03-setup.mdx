@@ -99,11 +99,11 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers
+   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
    # Redirect HTTP -> HTTPS
    server {
        listen 80;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name // [!code highlight]
+       server_name ctf.example.com; # TODO: update me to CTF platform domain name
        return 301 https://$host$request_uri;
    }
 
@@ -114,7 +114,7 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    server {
        listen 443 ssl;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name // [!code highlight]
+       server_name ctf.example.com; # TODO: update me to CTF platform domain name
        ssl_certificate /etc/ssl/cf_fullchain.pem;
        ssl_certificate_key /etc/ssl/cf_privkey.pem;
 
@@ -167,11 +167,11 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers
+   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
    # Redirect HTTP -> HTTPS
    server {
        listen 80;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name // [!code highlight]
+       server_name ctf.example.com; # TODO: update me to CTF platform domain name
        return 301 https://$host$request_uri;
    }
 
@@ -182,9 +182,9 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    server {
        listen 443 ssl;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name // [!code highlight]
-       ssl_certificate /etc/letsencrypt/live/ctf.example.com/fullchain.pem; # TODO: update path to CTF platform domain name // [!code highlight]
-       ssl_certificate_key /etc/letsencrypt/live/ctf.example.com/privkey.pem; # TODO: update path to CTF platform domain name // [!code highlight]
+       server_name ctf.example.com; # TODO: update me to CTF platform domain name
+       ssl_certificate /etc/letsencrypt/live/ctf.example.com/fullchain.pem; # TODO: update path to CTF platform domain name
+       ssl_certificate_key /etc/letsencrypt/live/ctf.example.com/privkey.pem; # TODO: update path to CTF platform domain name
 
        location / {
            # Uncomment the following if you want to only allow yourself to access the platform for now.

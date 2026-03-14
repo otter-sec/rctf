@@ -1,22 +1,13 @@
 ---
 title: rCTF
 description: An open-source CTF platform with indestructible performance and a modern user experience.
-template: splash
-hero:
-  title: rCTF
-  tagline: An open-source capture-the-flag platform, serving thousands of teams with indestructible performance and a modern user experience.
-  image:
-    file: ../../assets/banner.svg
-  actions:
-    - text: Get Started
-      link: /installation
-      icon: right-arrow
-      variant: primary
-    - text: GitHub
-      link: https://github.com/otter-sec/rctf
-      icon: github
-      variant: minimal
+tableOfContents: false
 ---
+
+import { Image } from 'astro:assets'
+import banner from '../../assets/banner.svg'
+
+<Image src={banner} alt="rCTF banner" style="max-width: 480px; margin-block: 1.5rem;" />
 
 rCTF is an open-source capture-the-flag platform, serving thousands of teams with indestructible performance and a modern user experience. It is developed and maintained by the [OtterSec](https://osec.io) team.
 

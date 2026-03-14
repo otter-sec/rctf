@@ -27,6 +27,22 @@ export default defineConfig({
       customCss: ['./src/styles/custom.css'],
       expressiveCode: {
         themes: ['vitesse-light', 'vitesse-dark'],
+        styleOverrides: {
+          codeBackground: ({ theme }) =>
+            theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+          frames: {
+            editorBackground: ({ theme }) =>
+              theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+            terminalBackground: ({ theme }) =>
+              theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+            terminalTitlebarBackground: ({ theme }) =>
+              theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+            editorTabBarBackground: ({ theme }) =>
+              theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+            editorActiveTabBackground: ({ theme }) =>
+              theme.type === 'dark' ? '#1e1e1e' : '#f0f0f0',
+          },
+        },
       },
       sidebar: [
         {

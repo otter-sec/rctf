@@ -37,7 +37,7 @@ If the complexity of kCTF is undesirable due to GCP and Kubernetes requirements,
 The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrapping challenges in nsjail can further reduce the attack surface and mitigate such risks.
 
 :::danger
-**It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
 :::
 
 ### VM
@@ -45,7 +45,7 @@ The most straightforward deployment method is [Docker Compose](https://docs.dock
 An alternative approach is to provision a separate VM (or VPS) for each challenge instance. Although more costly than running all challenges on a single host, this configuration reduces the blast radius, preventing a single compromised challenge from affecting others through disk exhaustion, container breakouts, or similar attacks. The optimal configuration depends on the specific requirements of each challenge.
 
 :::danger
-**It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).**
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
 :::
 
 ## Instanced remote
@@ -87,13 +87,13 @@ The following guide outlines the prerequisites for deploying Klodd on GCP using 
 
    Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
 
-   ```bash title="Terminal"
+   ```bash title="Terminal" mark={3,6}
    kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
    kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
-   kubectl apply -f 00-traefik.yaml # remember to update the load balancer IP // [!code highlight]
+   kubectl apply -f 00-traefik.yaml # remember to update the load balancer IP
    kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml
    kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml
-   kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and all the instancer.example.com URLs here // [!code highlight]
+   kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and all the instancer.example.com URLs here
    ```
 
 4. **Configure DNS**

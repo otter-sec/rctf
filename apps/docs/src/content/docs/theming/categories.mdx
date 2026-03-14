@@ -64,16 +64,16 @@ Each color has five variables defined in `app.css` for both light and dark modes
 
    Add an entry to `categoryConfigs` with a name, icon component, Iconify name (for exports), and color key:
 
-   ```ts title="lib/utils/categories.ts"
+   ```ts title="lib/utils/categories.ts" ins={5-9}
    import { IconCpuFilled } from '$lib/icons'
 
    export const categoryConfigs: Record<string, CategoryConfig> = {
      // ... existing
-     hardware: { // [!code ++]
-       name: 'Hardware', // [!code ++]
-       icon: IconCpuFilled, // [!code ++]
-       iconName: 'tabler:cpu-filled', // [!code ++]
-       color: 'teal', // [!code ++] Use an existing color, or add a new one
+     hardware: {
+       name: 'Hardware',
+       icon: IconCpuFilled,
+       iconName: 'tabler:cpu-filled',
+       color: 'teal', // Use an existing color, or add a new one
      },
    }
    ```
@@ -82,10 +82,10 @@ Each color has five variables defined in `app.css` for both light and dark modes
 
    In `lib/icons/index.ts`, export the icon:
 
-   ```ts title="lib/icons/index.ts"
+   ```ts title="lib/icons/index.ts" ins={3}
    export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
    export { default as IconCameraFilled } from '@iconify-svelte/tabler/camera-filled'
-   export { default as IconCpuFilled } from '@iconify-svelte/tabler/cpu-filled' // [!code ++]
+   export { default as IconCpuFilled } from '@iconify-svelte/tabler/cpu-filled'
    export { default as IconPhotoFilled } from '@iconify-svelte/tabler/photo-filled'
    export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
    ```
@@ -94,11 +94,11 @@ Each color has five variables defined in `app.css` for both light and dark modes
 
    Add your category to `categoryOrder` to control its position in the challenge list:
 
-   ```ts title="lib/utils/categories.ts"
+   ```ts title="lib/utils/categories.ts" ins={4}
    export const categoryOrder = [
      'sanity', 'pwn', 'reverse', 'crypto', 'forensics',
      'blockchain', 'web', 'misc', 'ppc', 'koth', 'osint',
-     'hardware', // [!code ++]
+     'hardware',
    ]
    ```
 

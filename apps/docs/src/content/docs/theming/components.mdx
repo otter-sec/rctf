@@ -43,16 +43,16 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
    Add the component to the barrel export in `apps/web/src/lib/components/index.ts`:
 
-   ```ts title="lib/components/index.ts"
+   ```ts title="lib/components/index.ts" ins={3-9}
    export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'
    export { default as EmptyState } from './empty-state.svelte'
-   export { // [!code ++]
-     Button, // [!code ++]
-     buttonVariants, // [!code ++]
-     type ButtonProps, // [!code ++]
-     type ButtonSize, // [!code ++]
-     type ButtonVariant, // [!code ++]
-   } from './ui/button' // [!code ++]
+   export {
+     Button,
+     buttonVariants,
+     type ButtonProps,
+     type ButtonSize,
+     type ButtonVariant,
+   } from './ui/button'
    export { Checkbox } from './ui/checkbox'
    export { Input } from './ui/input'
    export { Label } from './ui/label'
@@ -62,20 +62,20 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
    rCTF uses a flat design language. Remove all shadow utilities from the component:
 
-   ```ts title="button.svelte"
+   ```ts title="button.svelte" del={2,6,8,10,12} ins={3,7,9,11,13}
    export const buttonVariants = tv({
-     base: "... shadow-xs", // [!code --]
-     base: "...", // [!code ++]
+     base: "... shadow-xs",
+     base: "...",
      variants: {
        variant: {
-         default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs", // [!code --]
-         default: "bg-primary text-primary-foreground hover:bg-primary/90", // [!code ++]
-         destructive: "bg-destructive hover:bg-destructive/90 ... shadow-xs", // [!code --]
-         destructive: "bg-destructive hover:bg-destructive/90 ...", // [!code ++]
-         outline: "bg-background hover:bg-accent ... shadow-xs", // [!code --]
-         outline: "bg-background hover:bg-accent ...", // [!code ++]
-         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs", // [!code --]
-         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80", // [!code ++]
+         default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs",
+         default: "bg-primary text-primary-foreground hover:bg-primary/90",
+         destructive: "bg-destructive hover:bg-destructive/90 ... shadow-xs",
+         destructive: "bg-destructive hover:bg-destructive/90 ...",
+         outline: "bg-background hover:bg-accent ... shadow-xs",
+         outline: "bg-background hover:bg-accent ...",
+         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs",
+         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
        },
      },
    })
@@ -119,20 +119,20 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
    Here's an example converting the `Badge` component variants:
 
-   ```ts title="badge.svelte"
+   ```ts title="badge.svelte" del={3,6,9,12} ins={4,7,10,13}
    variants: {
      variant: {
-       default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90 border-transparent", // [!code --]
-       default: "bg-background-accent text-foreground-accent [a&]:hover:bg-background-accent/90 border-transparent", // [!code ++]
+       default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90 border-transparent",
+       default: "bg-background-accent text-foreground-accent [a&]:hover:bg-background-accent/90 border-transparent",
 
-       secondary: "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 border-transparent", // [!code --]
-       secondary: "bg-background-l4 text-foreground-l1 [a&]:hover:bg-background-l5 border-transparent", // [!code ++]
+       secondary: "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 border-transparent",
+       secondary: "bg-background-l4 text-foreground-l1 [a&]:hover:bg-background-l5 border-transparent",
 
-       destructive: "bg-destructive [a&]:hover:bg-destructive/90 ... dark:bg-destructive/70 border-transparent text-white", // [!code --]
-       destructive: "bg-background-destructive text-foreground-destructive [a&]:hover:bg-background-destructive/90 ... border-transparent", // [!code ++]
+       destructive: "bg-destructive [a&]:hover:bg-destructive/90 ... dark:bg-destructive/70 border-transparent text-white",
+       destructive: "bg-background-destructive text-foreground-destructive [a&]:hover:bg-background-destructive/90 ... border-transparent",
 
-       outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground", // [!code --]
-       outline: "text-foreground-l1 [a&]:hover:bg-background-l2", // [!code ++]
+       outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+       outline: "text-foreground-l1 [a&]:hover:bg-background-l2",
      },
    },
    ```
@@ -153,22 +153,22 @@ Here's the complete before and after for the Button component:
 
 <Tabs>
 <TabItem label="Before (shadcn-svelte)">
-```svelte showLineNumbers
+```svelte showLineNumbers mark={7,10-15}
 <script lang="ts" module>
   import { cn, type WithElementRef } from "$lib/utils.js";
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from "svelte/elements";
   import { type VariantProps, tv } from "tailwind-variants";
 
   export const buttonVariants = tv({
-    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4", // [!code focus]
+    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs", // [!code focus]
-        destructive: "bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs", // [!code focus]
-        outline: "bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs", // [!code focus]
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs", // [!code focus]
-        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50", // [!code focus]
-        link: "text-primary underline-offset-4 hover:underline", // [!code focus]
+        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs",
+        destructive: "bg-destructive hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60 text-white shadow-xs",
+        outline: "bg-background hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 border shadow-xs",
+        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs",
+        ghost: "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
@@ -190,22 +190,22 @@ Here's the complete before and after for the Button component:
 ```
 </TabItem>
 <TabItem label="After (rCTF)">
-```svelte showLineNumbers
+```svelte showLineNumbers mark={7,10-15}
 <script lang="ts" module>
   import { cn, type WithElementRef } from '$lib/utils'
   import type { HTMLAnchorAttributes, HTMLButtonAttributes } from 'svelte/elements'
   import { tv, type VariantProps } from 'tailwind-variants'
 
   export const buttonVariants = tv({
-    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0", // [!code focus]
+    base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
     variants: {
       variant: {
-        default: "bg-background-accent text-foreground-accent hover:bg-background-accent-hover", // [!code focus]
-        destructive: "bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50", // [!code focus]
-        outline: "bg-background-l1 hover:bg-background-l2 text-foreground-l1 border", // [!code focus]
-        secondary: "bg-background-l4 text-foreground-l1 hover:bg-background-l5", // [!code focus]
-        ghost: "hover:bg-background-l3 text-foreground-l1", // [!code focus]
-        link: "text-foreground-prose-link underline-offset-4 hover:underline", // [!code focus]
+        default: "bg-background-accent text-foreground-accent hover:bg-background-accent-hover",
+        destructive: "bg-background-destructive text-foreground-destructive hover:bg-background-destructive-hover focus-visible:ring-foreground-destructive/20 border-foreground-destructive/50",
+        outline: "bg-background-l1 hover:bg-background-l2 text-foreground-l1 border",
+        secondary: "bg-background-l4 text-foreground-l1 hover:bg-background-l5",
+        ghost: "hover:bg-background-l3 text-foreground-l1",
+        link: "text-foreground-prose-link underline-offset-4 hover:underline",
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
