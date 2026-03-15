@@ -1,5 +1,5 @@
 import { UpdateUserRouteV2 } from '@rctf/types'
-import { rateLimit } from '../../../../services/rate-limit'
+import { rateLimitUpdateProfile } from '../../../../services/rate-limit'
 import { updateUserInternal } from '../../../../services/users'
 import { divisionAllowed } from '../../../../util/acl'
 import usersGroup from '../group'
@@ -13,13 +13,7 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
   }
 
   if (body.name !== undefined) {
-    // burst 3, 1 per 1min
-    const timeLeft = await rateLimit(
-      ctx.var.redis,
-      `rl:UPDATE_PROFILE:${user.id}`,
-      3,
-      180_000
-    )
+    const timeLeft = await rateLimitUpdateProfile(ctx.var.redis, user.id)
 
     if (timeLeft) {
       return res.badRateLimit({ timeLeft })

@@ -4,6 +4,7 @@ import {
   getCachedChallenges,
   getFullLeaderboard,
   getGraph,
+  getGraphForEntries,
   getLeaderboard,
   getLeaderboardWithChallenges,
   getLeaderboardWithGlobalScores,
@@ -220,6 +221,30 @@ describe('leaderboard cache', () => {
       expect(result[0]!.points[0]!.time).toBe(1700000000) // most recent first
       expect(result[0]!.points[1]!.time).toBe(1699990000)
       expect(result[0]!.points[2]!.time).toBe(1699980000)
+    })
+  })
+
+  describe('getGraphForEntries', () => {
+    test('returns graph entries for the provided users and preserves order', async () => {
+      const redis = createMockRedis()
+      redis.store.set('leaderboard-update', '1700000000')
+      redis.hashStore.set(
+        'graph-data',
+        new Map([
+          ['user2', '1699990000,40'],
+          ['user1', '1699995000,80'],
+        ])
+      )
+
+      const result = await getGraphForEntries(redis, [
+        { id: 'user2', name: 'User Two', score: 60 },
+        { id: 'user1', name: 'User One', score: 100 },
+      ])
+
+      expect(result.map(entry => entry.id)).toEqual(['user2', 'user1'])
+      expect(result[0]!.points[0]).toEqual({ time: 1700000000, score: 60 })
+      expect(result[1]!.points[0]).toEqual({ time: 1700000000, score: 100 })
+      expect(redis.hmget).toHaveBeenCalledWith('graph-data', 'user2', 'user1')
     })
   })
 

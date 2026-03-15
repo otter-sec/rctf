@@ -3,7 +3,7 @@ import { InstanceStatus, SubmitAdminBotJobRouteV2 } from '@rctf/types'
 import { adminBotProvider, instancerProvider } from '../../../../providers'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
-import { rateLimit } from '../../../../services/rate-limit'
+import { rateLimitAdminBot } from '../../../../services/rate-limit'
 import { inferChallengeIntegrationId } from '../../../../util/instancer'
 import integrationsGroup from '../group'
 
@@ -54,13 +54,7 @@ integrationsGroup.route(
       })
     }
 
-    // burst 1, 1 per 10s per user per challenge
-    const timeLeft = await rateLimit(
-      ctx.var.redis,
-      `rl:ADMIN_BOT:${user.id}:${params.id}`,
-      1,
-      10_000
-    )
+    const timeLeft = await rateLimitAdminBot(ctx.var.redis, user.id, params.id)
     if (timeLeft) {
       return res.badRateLimit({ timeLeft })
     }

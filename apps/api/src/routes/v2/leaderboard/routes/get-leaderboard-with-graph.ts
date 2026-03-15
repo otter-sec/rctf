@@ -1,12 +1,16 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardWithGraphRoute } from '@rctf/types'
-import { getGraph } from '../../../../cache/leaderboard'
-import { getLeaderboardWithTotal } from '../../../../services/leaderboard'
+import { getGraph, getGraphForEntries } from '../../../../cache/leaderboard'
+import {
+  getLeaderboardWithTotal,
+  searchLeaderboard,
+} from '../../../../services/leaderboard'
+import { rateLimitSearch } from '../../../../services/rate-limit'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
   GetLeaderboardWithGraphRoute,
-  async ({ ctx, res, query: { limit, offset, division } }) => {
+  async ({ ctx, res, query: { limit, offset, division, search } }) => {
     // NOTE: Handling manually because the value is loaded from config
     if (
       limit > config.leaderboard.graphWithListLimit ||
@@ -21,6 +25,24 @@ leaderboardGroup.route(
       return res.badBody({
         reason: 'Invalid division',
       })
+    }
+
+    if (search) {
+      const timeLeft = await rateLimitSearch(ctx.var.redis, ctx.var.ip)
+      if (timeLeft) {
+        return res.badRateLimit({ timeLeft })
+      }
+
+      const { total, leaderboard } = await searchLeaderboard(
+        ctx.var.redis,
+        ctx.var.db,
+        search,
+        limit,
+        offset,
+        division
+      )
+      const graph = await getGraphForEntries(ctx.var.redis, leaderboard)
+      return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
     }
 
     // TODO(es3n1n): i think we can combine multiple queries into single redis pipeline here,

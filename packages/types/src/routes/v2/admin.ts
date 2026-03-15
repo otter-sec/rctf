@@ -52,6 +52,9 @@ export const GetAdminUsersRouteV2 = defineRoute({
   query: z.object({
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+    search: z.optional(
+      z.string().check(z.minLength(2)).check(z.maxLength(100))
+    ),
   }),
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],

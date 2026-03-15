@@ -1,6 +1,7 @@
 import path from 'path'
 import { PGlite } from '@electric-sql/pglite'
 import { citext } from '@electric-sql/pglite/contrib/citext'
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm'
 import { mock } from 'bun:test'
 import { DrizzleQueryError } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
@@ -17,7 +18,7 @@ const migrationsFolder = path.resolve(
 process.env.LOG_LEVEL = 'silent'
 
 const pgliteClient = new PGlite({
-  extensions: { citext },
+  extensions: { citext, pg_trgm },
 })
 await pgliteClient.waitReady
 

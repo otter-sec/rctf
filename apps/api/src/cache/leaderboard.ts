@@ -225,6 +225,45 @@ interface GraphEntry {
   points: Array<GraphPoint>
 }
 
+type GraphSourceEntry = Pick<
+  LeaderboardResult['leaderboard'][number],
+  'id' | 'name' | 'score'
+>
+
+const parseGraphPoints = (
+  lastUpdate: number,
+  curScore: number,
+  packedPoints: string | null
+): Array<GraphPoint> => {
+  const points: Array<GraphPoint> = []
+  if (lastUpdate > 0) {
+    points.push({ time: lastUpdate, score: curScore })
+  }
+
+  if (packedPoints) {
+    const parts = packedPoints.split(',')
+    for (let i = 0; i < parts.length; i += 2) {
+      points.push({
+        time: Number.parseInt(parts[i] ?? '0'),
+        score: Number.parseInt(parts[i + 1] ?? '0'),
+      })
+    }
+  }
+
+  points.sort((a, b) => b.time - a.time)
+  return points
+}
+
+const buildGraphEntry = (
+  lastUpdate: number,
+  entry: GraphSourceEntry,
+  packedPoints: string | null
+): GraphEntry => ({
+  id: entry.id,
+  name: entry.name,
+  points: parseGraphPoints(lastUpdate, entry.score, packedPoints),
+})
+
 export const getGraph = async (
   redis: TypedRedis,
   limit: number,
@@ -250,33 +289,37 @@ export const getGraph = async (
 
   const result: Array<GraphEntry> = []
   for (let i = 0; i < latest.length; i += keysPerUser) {
-    const id = latest[i] ?? ''
-    const name = latest[i + 1] ?? ''
-    const curScore = Number.parseInt(latest[i + 2] ?? '0')
-
+    const entry = {
+      id: latest[i] ?? '',
+      name: latest[i + 1] ?? '',
+      score: Number.parseInt(latest[i + 2] ?? '0'),
+    }
     const userIdx = Math.floor(i / keysPerUser)
-    const packedPoints = graphData[userIdx]
-
-    const points: Array<GraphPoint> = []
-    if (lastUpdate > 0) {
-      points.push({ time: lastUpdate, score: curScore })
-    }
-
-    if (packedPoints) {
-      const parts = packedPoints.split(',')
-      for (let j = 0; j < parts.length; j += 2) {
-        points.push({
-          time: Number.parseInt(parts[j] ?? '0'),
-          score: Number.parseInt(parts[j + 1] ?? '0'),
-        })
-      }
-    }
-
-    points.sort((a, b) => b.time - a.time)
-    result.push({ id, name, points })
+    result.push(buildGraphEntry(lastUpdate, entry, graphData[userIdx] ?? null))
   }
 
   return result
+}
+
+export const getGraphForEntries = async (
+  redis: TypedRedis,
+  leaderboard: Array<GraphSourceEntry>
+): Promise<Array<GraphEntry>> => {
+  if (leaderboard.length === 0) {
+    return []
+  }
+
+  const [lastUpdateRaw, graphData] = await Promise.all([
+    redis.get(keyLeaderboardUpdate),
+    redis.hmget(keyGraphData, ...leaderboard.map(entry => entry.id)) as Promise<
+      Array<string | null>
+    >,
+  ])
+
+  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
+  return leaderboard.map((entry, idx) =>
+    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
+  )
 }
 
 const getLeaderboardInternal = async (

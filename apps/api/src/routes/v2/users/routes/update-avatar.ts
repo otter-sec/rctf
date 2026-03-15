@@ -3,7 +3,7 @@ import { UpdateAvatarRoute } from '@rctf/types'
 import type { PinoLogger } from 'hono-pino'
 import sharp from 'sharp'
 import { avatarModerationProvider, uploadProvider } from '../../../../providers'
-import { rateLimit } from '../../../../services/rate-limit'
+import { rateLimitUpdateAvatar } from '../../../../services/rate-limit'
 import { updateUserAvatar } from '../../../../services/users'
 import usersGroup from '../group'
 
@@ -32,13 +32,7 @@ usersGroup.route(UpdateAvatarRoute, async ({ ctx, user, body, res }) => {
       })
     }
 
-    // burst 2, 1 per 1min
-    const timeLeft = await rateLimit(
-      ctx.var.redis,
-      `rl:UPDATE_AVATAR:${user.id}`,
-      2,
-      120_000
-    )
+    const timeLeft = await rateLimitUpdateAvatar(ctx.var.redis, user.id)
     if (timeLeft) {
       return res.badRateLimit({ timeLeft })
     }

@@ -24,7 +24,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
-import { rateLimit } from './rate-limit'
+import { rateLimitFlag } from './rate-limit'
 import { getUser } from './users'
 
 type SubmitResponseHelpers = ResponseHelpers<
@@ -478,13 +478,7 @@ export const submitFlag = async (
     return res.badChallenge()
   }
 
-  // burst 5, then 1 per 5s
-  const timeLeft = await rateLimit(
-    redis,
-    `rl:FLAG:${params.challengeId}:${params.userId}`,
-    5,
-    25_000
-  )
+  const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
   if (timeLeft !== undefined) {
     log.info(
       {

@@ -42,6 +42,7 @@ export const users = pgTable(
     unique('users_name_key').on(table.name),
     unique('users_email_key').on(table.email),
     unique('users_ctftime_id_key').on(table.ctftimeId),
+    index('users_name_trgm_idx').using('gin', sql`${table.name} gin_trgm_ops`),
     check(
       'require_email_or_ctftime_id',
       sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL)`

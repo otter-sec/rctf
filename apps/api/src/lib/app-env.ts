@@ -9,7 +9,7 @@ export type AppEnv = {
     db: DatabaseClient
     logger: PinoLogger
     redis: TypedRedis
-    ip: string | undefined
+    ip: string
   }
 }
 export type ApiContext = Context<AppEnv>

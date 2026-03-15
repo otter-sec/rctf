@@ -60,8 +60,13 @@ function getForwardedFor(ctx: Context, remoteIp: string | undefined): string[] {
   return result
 }
 
-export function getIp(ctx: Context): string | undefined {
-  let remoteIp = getConnInfo(ctx).remote.address
+export function getIp(ctx: Context): string {
+  const rawIp = getConnInfo(ctx).remote.address
+  if (!rawIp) {
+    throw new Error('Could not determine remote IP address')
+  }
+
+  let remoteIp = rawIp
   // FIXME(es3n1n): is there a better way?
   if (remoteIp?.startsWith('::ffff:')) {
     remoteIp = remoteIp.slice(7)

@@ -6,6 +6,7 @@ import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   getLeaderboard,
   getLeaderboardWithGlobalScores,
+  getUsersScores,
   type CalculatedLeaderboard,
   type InternalChallengeInfo,
   type InternalUserInfo,
@@ -15,6 +16,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
 import type { ScoreContext } from '../providers/scores/base'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
+import { userNameSearchFilter } from './users'
 
 const numberOfBloods = 3
 
@@ -687,6 +689,83 @@ export const createCachedLeaderboardCalculator = () => {
   }
 }
 
+export const searchLeaderboard = async (
+  redis: TypedRedis,
+  db: DatabaseClient,
+  search: string,
+  limit: number,
+  offset: number,
+  division?: string
+) => {
+  const searchFilter = userNameSearchFilter(search)
+
+  // only include users with at least one solve, consistent with the cached leaderboard
+  const hasSolves = sql`exists (select 1 from ${solves} where ${solves.userid} = ${users.id})`
+  const whereClause = and(
+    searchFilter,
+    hasSolves,
+    division ? eq(users.division, division) : undefined
+  )
+
+  // NOTE(es3n1n): ORDER BY similarity() is not index-accelerated by gin
+  // it computes similarity() for every row passing the WHERE filter, then sorts 
+  // the trigram WHERE prunes aggressively though, so this is fine for typical ctf user counts 
+  // if it ever becomes a problem, a gist index with the <=> distance operator would allow index-ordered scans.
+  // TODO(es3n1n): 2+2 queries are a bit wasteful but good enough
+  const [totalRow, matchingUsers] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .where(whereClause)
+      .then(takeUnique),
+    db
+      .select({
+        id: users.id,
+        name: users.name,
+        division: users.division,
+      })
+      .from(users)
+      .where(whereClause)
+      .orderBy(sql`similarity(${users.name}, ${search}) DESC`, asc(users.id))
+      .limit(limit)
+      .offset(offset),
+  ])
+
+  const total = totalRow?.count ?? 0
+  if (matchingUsers.length === 0) {
+    return { total, leaderboard: [] }
+  }
+
+  const userIds = matchingUsers.map(u => u.id)
+  const [scores, { solves: userSolves, userInfo }] = await Promise.all([
+    getUsersScores(redis, userIds),
+    getSolvesAndUserInfo(db, userIds),
+  ])
+
+  return {
+    total,
+    leaderboard: matchingUsers.map(entry => {
+      const s = scores.get(entry.id)
+      const info = userInfo.get(entry.id)
+      return {
+        id: entry.id,
+        name: entry.name,
+        division: entry.division,
+        score: s?.score ?? 0,
+        divisionPlace: s?.divisionPlace ?? 0,
+        globalPlace: s?.place ?? null,
+        avatarUrl: info?.avatarUrl ?? null,
+        countryCode: info?.countryCode ?? null,
+        statusText: info?.statusText ?? null,
+        solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
+          id: solve.challengeId,
+          solveTime: solve.solveTime,
+        })),
+      }
+    }),
+  }
+}
+
 export const getLeaderboardWithTotal = async (
   redis: TypedRedis,
   db: DatabaseClient,
@@ -702,7 +781,10 @@ export const getLeaderboardWithTotal = async (
       }
 
   const teamIds = leaderboard.map(e => e.id)
-  const { solves, userInfo } = await getSolvesAndUserInfo(db, teamIds)
+  const { solves: userSolves, userInfo } = await getSolvesAndUserInfo(
+    db,
+    teamIds
+  )
 
   return {
     total,
@@ -717,7 +799,7 @@ export const getLeaderboardWithTotal = async (
         avatarUrl: info?.avatarUrl ?? null,
         countryCode: info?.countryCode ?? null,
         statusText: info?.statusText ?? null,
-        solves: Array.from(solves.get(entry.id) ?? []).map(solve => ({
+        solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
           id: solve.challengeId,
           solveTime: solve.solveTime,
         })),

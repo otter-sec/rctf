@@ -4,6 +4,7 @@ import { defineRoute } from '../../internal'
 import {
   BadBody,
   BadNotStarted,
+  BadRateLimit,
   GoodLeaderboardChallengesV2,
   GoodLeaderboardGraph,
   GoodLeaderboardV2,
@@ -14,13 +15,16 @@ export const GetLeaderboardRouteV2 = defineRoute({
   path: '/v2/leaderboard/now',
   method: 'GET',
   goodResponses: [GoodLeaderboardV2],
-  badResponses: [BadNotStarted, BadBody],
+  badResponses: [BadNotStarted, BadBody, BadRateLimit],
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     division: z.optional(z.string()),
+    search: z.optional(
+      z.string().check(z.minLength(2)).check(z.maxLength(100))
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
@@ -56,13 +60,16 @@ export const GetLeaderboardWithGraphRoute = defineRoute({
   path: '/v2/leaderboard/with-graph',
   method: 'GET',
   goodResponses: [GoodLeaderboardWithGraph],
-  badResponses: [BadNotStarted, BadBody],
+  badResponses: [BadNotStarted, BadBody, BadRateLimit],
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     division: z.optional(z.string()),
+    search: z.optional(
+      z.string().check(z.minLength(2)).check(z.maxLength(100))
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,

@@ -4,9 +4,15 @@ import adminGroup from '../group'
 
 adminGroup.route(
   GetAdminUsersRouteV2,
-  async ({ ctx, res, query: { limit, offset } }) => {
+  async ({ ctx, res, query: { limit, offset, search } }) => {
     return res.goodAdminUsers(
-      await getAllUsersWithScores(ctx.var.db, ctx.var.redis, limit, offset)
+      await getAllUsersWithScores(
+        ctx.var.db,
+        ctx.var.redis,
+        limit,
+        offset,
+        search
+      )
     )
   }
 )

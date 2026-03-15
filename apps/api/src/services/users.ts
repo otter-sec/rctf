@@ -17,7 +17,7 @@ import {
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { asc, count, eq, or } from 'drizzle-orm'
+import { asc, count, eq, or, sql } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
 import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
@@ -341,14 +341,19 @@ export type AdminUserInfo = {
   createdAt: string
 }
 
+export const userNameSearchFilter = (search: string) =>
+  sql`(${users.name} % ${search} OR ${search} <% ${users.name})`
+
 export const getAllUsersWithScores = async (
   db: DatabaseClient,
   redis: TypedRedis,
   limit: number,
-  offset: number
+  offset: number,
+  search?: string
 ): Promise<{ total: number; users: AdminUserInfo[] }> => {
+  const searchFilter = search ? userNameSearchFilter(search) : undefined
   const [countResult, dbUsers] = await Promise.all([
-    db.select({ count: count() }).from(users),
+    db.select({ count: count() }).from(users).where(searchFilter),
     db
       .select({
         id: users.id,
@@ -364,8 +369,13 @@ export const getAllUsersWithScores = async (
       })
       .from(users)
       .leftJoin(solves, eq(users.id, solves.userid))
+      .where(searchFilter)
       .groupBy(users.id)
-      .orderBy(asc(users.createdAt))
+      .orderBy(
+        ...(search
+          ? [sql`similarity(${users.name}, ${search}) DESC`, asc(users.id)]
+          : [asc(users.createdAt)])
+      )
       .limit(limit)
       .offset(offset),
   ])

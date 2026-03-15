@@ -1,11 +1,15 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardRouteV2 } from '@rctf/types'
-import { getLeaderboardWithTotal } from '../../../../services/leaderboard'
+import {
+  getLeaderboardWithTotal,
+  searchLeaderboard,
+} from '../../../../services/leaderboard'
+import { rateLimitSearch } from '../../../../services/rate-limit'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
   GetLeaderboardRouteV2,
-  async ({ ctx, res, query: { limit, offset, division } }) => {
+  async ({ ctx, res, query: { limit, offset, division, search } }) => {
     if (
       limit > config.leaderboard.maxLimit ||
       offset > config.leaderboard.maxOffset
@@ -19,6 +23,24 @@ leaderboardGroup.route(
       return res.badBody({
         reason: 'Invalid division',
       })
+    }
+
+    if (search) {
+      const timeLeft = await rateLimitSearch(ctx.var.redis, ctx.var.ip)
+      if (timeLeft) {
+        return res.badRateLimit({ timeLeft })
+      }
+
+      return res.goodLeaderboard(
+        await searchLeaderboard(
+          ctx.var.redis,
+          ctx.var.db,
+          search,
+          limit,
+          offset,
+          division
+        )
+      )
     }
 
     return res.goodLeaderboard(
