@@ -896,7 +896,7 @@
                         id: entry.id,
                         rank: focusedChallengeId
                           ? (originalRankByTeam.get(entry.id) ?? row.index + 1)
-                          : row.index + 1,
+                          : (entry.globalPlace ?? row.index + 1),
                         globalRank: entry.globalPlace,
                         name: entry.name,
                         avatarUrl: entry.avatarUrl,
