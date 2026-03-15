@@ -128,7 +128,7 @@ const getUsersSnapshot = async (
       division: users.division,
     })
     .from(users)
-    .orderBy(asc(users.id))
+    .orderBy(asc(users.createdAt))
 }
 
 const getPublicChallengesSnapshot = async (
@@ -708,8 +708,8 @@ export const searchLeaderboard = async (
   )
 
   // NOTE(es3n1n): ORDER BY similarity() is not index-accelerated by gin
-  // it computes similarity() for every row passing the WHERE filter, then sorts 
-  // the trigram WHERE prunes aggressively though, so this is fine for typical ctf user counts 
+  // it computes similarity() for every row passing the WHERE filter, then sorts
+  // the trigram WHERE prunes aggressively though, so this is fine for typical ctf user counts
   // if it ever becomes a problem, a gist index with the <=> distance operator would allow index-ordered scans.
   // TODO(es3n1n): 2+2 queries are a bit wasteful but good enough
   const [totalRow, matchingUsers] = await Promise.all([
@@ -726,7 +726,10 @@ export const searchLeaderboard = async (
       })
       .from(users)
       .where(whereClause)
-      .orderBy(sql`similarity(${users.name}, ${search}) DESC`, asc(users.id))
+      .orderBy(
+        sql`similarity(${users.name}, ${search}) DESC`,
+        asc(users.createdAt)
+      )
       .limit(limit)
       .offset(offset),
   ])

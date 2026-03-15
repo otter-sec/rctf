@@ -373,7 +373,10 @@ export const getAllUsersWithScores = async (
       .groupBy(users.id)
       .orderBy(
         ...(search
-          ? [sql`similarity(${users.name}, ${search}) DESC`, asc(users.id)]
+          ? [
+              sql`similarity(${users.name}, ${search}) DESC`,
+              asc(users.createdAt),
+            ]
           : [asc(users.createdAt)])
       )
       .limit(limit)
