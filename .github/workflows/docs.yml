@@ -8,8 +8,7 @@ on:
       - ".github/workflows/docs.yaml"
       - "apps/docs/**"
       - "packages/**"
-      - "deploy/docs/Dockerfile"
-      - "deploy/docs/nginx-static.conf"
+      - "deploy/docs/**"
 
 concurrency:
   group: docs-${{ github.ref }}

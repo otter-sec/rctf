@@ -10,9 +10,7 @@ on:
       - "apps/api/**"
       - "apps/web/**"
       - "packages/**"
-      - "deploy/rctf/Dockerfile"
-      - "deploy/rctf/nginx.conf"
-      - "deploy/rctf/supervisord.conf"
+      - "deploy/rctf/**"
 
 concurrency:
   group: rctf-${{ github.ref }}

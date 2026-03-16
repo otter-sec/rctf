@@ -18,6 +18,7 @@ COPY tests/admin-bot-e2e/package.json ./tests/admin-bot-e2e/
 COPY apps/admin-bot/package.json ./apps/admin-bot/
 COPY apps/api/package.json ./apps/api/
 COPY apps/docs/package.json ./apps/docs/
+COPY apps/export/package.json ./apps/export/
 COPY apps/web/package.json ./apps/web/
 
 FROM build-base AS deps
@@ -30,6 +31,7 @@ RUN bun install \
     --no-cache \
     --filter '!@rctf/admin-bot' \
     --filter '!@rctf/docs' \
+    --filter '!@rctf/export' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
@@ -45,6 +47,7 @@ RUN bun install \
     --no-cache \
     --filter '!@rctf/admin-bot' \
     --filter '!@rctf/docs' \
+    --filter '!@rctf/export' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'

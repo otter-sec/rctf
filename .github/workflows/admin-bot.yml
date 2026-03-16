@@ -8,7 +8,7 @@ on:
       - ".github/workflows/admin-bot.yaml"
       - "apps/admin-bot/**"
       - "packages/**"
-      - "deploy/admin-bot/Dockerfile"
+      - "deploy/admin-bot/**"
 
 concurrency:
   group: admin-bot-${{ github.ref }}
