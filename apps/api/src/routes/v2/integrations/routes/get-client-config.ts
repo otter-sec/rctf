@@ -42,6 +42,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
     instancerEnabled: Boolean(config.instancerProvider),
+    isArchived: false,
     captcha: captchaProvider
       ? {
           provider: config.captcha!.provider!.name,

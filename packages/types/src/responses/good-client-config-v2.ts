@@ -45,6 +45,7 @@ export const GoodClientConfigV2 = response('goodClientConfig', {
       })
     ),
     instancerEnabled: z.boolean(),
+    isArchived: z.boolean(),
     captcha: z.nullable(
       z.object({
         provider: z.string(),
