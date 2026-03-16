@@ -171,7 +171,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
 - [x] refactor bloodbot
 - [ ] cf worker for docs, get rid of docker compose temp setup
 - [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
-- [ ] rctf2pages
+- [x] rctf2pages
 - [x] run tests in ci
 - [ ] flag signing
 

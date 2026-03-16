@@ -11,6 +11,8 @@
   const interval = setInterval(() => (now = Date.now()), 1000)
   onDestroy(() => clearInterval(interval))
 
+  const isArchived = clientConfig?.isArchived ?? false
+
   const hasStarted = $derived(now >= startTime)
   const hasEnded = $derived(now >= endTime)
   const targetTime = $derived(hasStarted ? endTime : startTime)
@@ -22,7 +24,13 @@
   const seconds = $derived(Math.floor((timeLeft % (1000 * 60)) / 1000))
 
   const label = $derived(
-    hasEnded ? 'The CTF is over.' : hasStarted ? 'CTF ends in' : 'CTF starts in'
+    isArchived
+      ? 'The CTF is archived.'
+      : hasEnded
+        ? 'The CTF is over.'
+        : hasStarted
+          ? 'CTF ends in'
+          : 'CTF starts in'
   )
 </script>
 

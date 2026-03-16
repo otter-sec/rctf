@@ -34,6 +34,7 @@
   const clientConfigQuery = useClientConfig()
   const user = $derived(userQuery.data ?? null)
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
   const wordmarkLight = $derived(clientConfig?.logoLightUrl || defaultWordmarkLight)
   const wordmarkDark = $derived(clientConfig?.logoDarkUrl || defaultWordmarkDark)
 
@@ -139,7 +140,7 @@
 
   <div class="hidden items-center gap-2 md:flex">
     <NavigationCountdown />
-    {#if user}
+    {#if user && !isArchived}
       {#await import('$lib/components/navigation-team-stats.svelte') then { default: NavigationTeamStats }}
         <NavigationTeamStats />
       {/await}
@@ -202,7 +203,7 @@
           </DropdownMenu.Item>
         </DropdownMenu.Content>
       </DropdownMenu.Root>
-    {:else}
+    {:else if !isArchived}
       <Tooltip.Root>
         <Tooltip.Trigger>
           <NavigationButton href="/login">

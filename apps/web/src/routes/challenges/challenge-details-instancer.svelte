@@ -27,6 +27,7 @@
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   let status = $state(InstanceStatus.STOPPED)
   let endpoints = $state<{ kind: ExposeKind; host: string; port: number; title?: string }[]>([])
@@ -142,108 +143,114 @@
   })
 </script>
 
-<div class="flex h-full flex-col p-3">
-  {#if !isAuthenticated()}
-    <div class="flex flex-col items-center justify-center space-y-3 text-center">
-      <p class="text-foreground-l3 text-sm">Login to use the instancer.</p>
-      <Button href="/login" class="w-full gap-2">
-        <IconLogin class="size-4" />
-        Login
-      </Button>
-    </div>
-  {:else if loading}
-    <div class="flex flex-1 flex-col items-center justify-center">
-      <IconLoader class="text-foreground-l4 size-5 animate-spin" />
-    </div>
-  {:else if error}
-    <div class="flex flex-col items-center justify-center space-y-2 text-center">
-      <p class="text-foreground-destructive text-sm">{error}</p>
-      <Button size="sm" onclick={fetchStatus}>Retry</Button>
-    </div>
-  {:else if status === InstanceStatus.STOPPED}
-    <div class="flex flex-col items-center justify-center space-y-3 text-center">
-      <p class="text-foreground-l3 text-sm">No instance running.</p>
-      <Button onclick={start} disabled={actioning} class="w-full">
-        {#if actioning}<IconLoader class="animate-spin" />{/if}
-        Start instance
-      </Button>
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} />
-    </div>
-  {:else}
-    <div class="flex flex-1 flex-col gap-3">
-      {#if [InstanceStatus.STARTING, InstanceStatus.STOPPING, InstanceStatus.ERRORED].includes(status)}
-        <div class="text-foreground-l3 flex items-center justify-center gap-2 text-sm">
-          {#if status === InstanceStatus.STARTING}
-            <IconLoader class="size-4 animate-spin" />
-            <span>Starting...</span>
-          {:else if status === InstanceStatus.STOPPING}
-            <IconLoader class="size-4 animate-spin" />
-            <span>Stopping...</span>
-          {:else}
-            <span>Errored</span>
-          {/if}
-        </div>
-      {/if}
-
-      {#each endpoints as { kind, host, port, title }, i}
-        {@const url = formatEndpoint(kind, host, port)}
-        {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
-        {@const pending = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
-        <div class="space-y-1" class:opacity-50={pending}>
-          <div class="text-foreground-l3 flex justify-between text-sm">
-            <span>{label}</span>
-            <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
-          </div>
-          <div
-            class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
-            class:cursor-not-allowed={pending}
-          >
-            <span
-              class="truncate font-mono text-sm"
-              class:text-foreground-accent={!pending}
-              class:text-foreground-l4={pending}>{url}</span
-            >
-            {#if !pending}
-              <button type="button" onclick={() => copy(url)}>
-                <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
-              </button>
+{#if isArchived}
+  <div class="flex h-full flex-col items-center justify-center p-3">
+    <p class="text-foreground-l3 text-sm">Instancer is not available in archived mode.</p>
+  </div>
+{:else}
+  <div class="flex h-full flex-col p-3">
+    {#if !isAuthenticated()}
+      <div class="flex flex-col items-center justify-center space-y-3 text-center">
+        <p class="text-foreground-l3 text-sm">Login to use the instancer.</p>
+        <Button href="/login" class="w-full gap-2">
+          <IconLogin class="size-4" />
+          Login
+        </Button>
+      </div>
+    {:else if loading}
+      <div class="flex flex-1 flex-col items-center justify-center">
+        <IconLoader class="text-foreground-l4 size-5 animate-spin" />
+      </div>
+    {:else if error}
+      <div class="flex flex-col items-center justify-center space-y-2 text-center">
+        <p class="text-foreground-destructive text-sm">{error}</p>
+        <Button size="sm" onclick={fetchStatus}>Retry</Button>
+      </div>
+    {:else if status === InstanceStatus.STOPPED}
+      <div class="flex flex-col items-center justify-center space-y-3 text-center">
+        <p class="text-foreground-l3 text-sm">No instance running.</p>
+        <Button onclick={start} disabled={actioning} class="w-full">
+          {#if actioning}<IconLoader class="animate-spin" />{/if}
+          Start instance
+        </Button>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} />
+      </div>
+    {:else}
+      <div class="flex flex-1 flex-col gap-3">
+        {#if [InstanceStatus.STARTING, InstanceStatus.STOPPING, InstanceStatus.ERRORED].includes(status)}
+          <div class="text-foreground-l3 flex items-center justify-center gap-2 text-sm">
+            {#if status === InstanceStatus.STARTING}
+              <IconLoader class="size-4 animate-spin" />
+              <span>Starting...</span>
+            {:else if status === InstanceStatus.STOPPING}
+              <IconLoader class="size-4 animate-spin" />
+              <span>Stopping...</span>
+            {:else}
+              <span>Errored</span>
             {/if}
           </div>
-        </div>
-      {/each}
+        {/if}
 
-      {#if timeLeft !== null}
-        <div class="mt-auto space-y-1.5">
-          <Progress value={timeLeft} max={instanceLifetime} class="h-1.5" />
-          <p class="text-foreground-l3 text-center text-sm">
-            {formatCountdown(timeLeft)} remaining
-          </p>
-        </div>
-      {/if}
+        {#each endpoints as { kind, host, port, title }, i}
+          {@const url = formatEndpoint(kind, host, port)}
+          {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
+          {@const pending = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
+          <div class="space-y-1" class:opacity-50={pending}>
+            <div class="text-foreground-l3 flex justify-between text-sm">
+              <span>{label}</span>
+              <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
+            </div>
+            <div
+              class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
+              class:cursor-not-allowed={pending}
+            >
+              <span
+                class="truncate font-mono text-sm"
+                class:text-foreground-accent={!pending}
+                class:text-foreground-l4={pending}>{url}</span
+              >
+              {#if !pending}
+                <button type="button" onclick={() => copy(url)}>
+                  <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
+                </button>
+              {/if}
+            </div>
+          </div>
+        {/each}
 
-      <div class="flex gap-2">
-        {#if extendable}
+        {#if timeLeft !== null}
+          <div class="mt-auto space-y-1.5">
+            <Progress value={timeLeft} max={instanceLifetime} class="h-1.5" />
+            <p class="text-foreground-l3 text-center text-sm">
+              {formatCountdown(timeLeft)} remaining
+            </p>
+          </div>
+        {/if}
+
+        <div class="flex gap-2">
+          {#if extendable}
+            <Button
+              variant="secondary"
+              onclick={extend}
+              disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+              class="flex-1"
+            >
+              {#if actioning}<IconLoader class="animate-spin" />{/if}
+              Extend
+            </Button>
+          {/if}
           <Button
-            variant="secondary"
-            onclick={extend}
+            variant="destructive"
+            onclick={stop}
             disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
             class="flex-1"
           >
             {#if actioning}<IconLoader class="animate-spin" />{/if}
-            Extend
+            Stop
           </Button>
-        {/if}
-        <Button
-          variant="destructive"
-          onclick={stop}
-          disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
-          class="flex-1"
-        >
-          {#if actioning}<IconLoader class="animate-spin" />{/if}
-          Stop
-        </Button>
+        </div>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} class="mt-2" />
       </div>
-      <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} class="mt-2" />
-    </div>
-  {/if}
-</div>
+    {/if}
+  </div>
+{/if}

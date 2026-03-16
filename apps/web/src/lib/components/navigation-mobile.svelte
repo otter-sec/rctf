@@ -25,6 +25,7 @@
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
   const wordmarkLight = $derived(clientConfig?.logoLightUrl || defaultWordmarkLight)
   const wordmarkDark = $derived(clientConfig?.logoDarkUrl || defaultWordmarkDark)
   const userQuery = useCurrentUser()
@@ -91,7 +92,7 @@
       activePath: '/profile',
       label: 'Manage team',
       icon: IconUserCog,
-      show: !!user,
+      show: !!user && !isArchived,
     },
     {
       href: '/admin/challenges',
@@ -175,7 +176,7 @@
     <div class="flex items-center justify-between p-4">
       <ThemeToggle />
 
-      {#if user}
+      {#if user && !isArchived}
         <div class="flex items-center gap-2">
           <Tooltip.Root>
             <Tooltip.Trigger>
@@ -200,7 +201,7 @@
             <Tooltip.Content>Log out</Tooltip.Content>
           </Tooltip.Root>
         </div>
-      {:else}
+      {:else if !isArchived}
         <button
           onclick={() => navigate('/login')}
           class="bg-background-l2 hover:bg-background-l3 flex items-center justify-center rounded-lg px-4 py-3"

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { GoodVerifySent, ProtectedAction, RecoverRouteV2 } from '@rctf/types'
-  import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { ArchivedNotice, Button, Card, Field, Input, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
   import { useClientConfig } from '$lib/query'
@@ -8,6 +8,7 @@
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   let verifySent = $state(false)
 
@@ -27,7 +28,9 @@
   {/if}
 </svelte:head>
 
-{#if verifySent}
+{#if clientConfig?.isArchived}
+  <ArchivedNotice message="Account recovery is not available." />
+{:else if verifySent}
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Recovery email sent</Card.Title>

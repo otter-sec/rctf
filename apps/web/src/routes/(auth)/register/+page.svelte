@@ -9,7 +9,7 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { setToken } from '$lib/api'
-  import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { ArchivedNotice, Button, Card, Field, Input, Spinner } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
@@ -22,6 +22,7 @@
   const clientConfigQuery = useClientConfig()
 
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   let verifySent = $state(false)
   let ctftimeToken = $state<string | null>(null)
@@ -111,7 +112,9 @@
   {/if}
 </svelte:head>
 
-{#if clientConfig}
+{#if clientConfig && isArchived}
+  <ArchivedNotice message="Registration is not available." />
+{:else if clientConfig}
   {#if verifySent}
     <Card.Root>
       <Card.Header>

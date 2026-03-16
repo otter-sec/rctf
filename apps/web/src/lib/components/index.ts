@@ -19,6 +19,7 @@ import * as Table from './ui/table'
 import * as Tabs from './ui/tabs'
 import * as Tooltip from './ui/tooltip'
 
+export { default as ArchivedNotice } from './archived-notice.svelte'
 export { default as Brainrot } from './brainrot.svelte'
 export { default as CollapseToggleButton } from './collapse-toggle-button.svelte'
 export { default as CtfNotStarted } from './ctf-not-started.svelte'

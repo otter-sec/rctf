@@ -4,7 +4,7 @@
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
   import { setToken, showApiError } from '$lib/api'
-  import { Button, Card, Field, Input, Spinner } from '$lib/components'
+  import { ArchivedNotice, Button, Card, Field, Input, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { queryKeys, useClientConfig, useLoginMutation } from '$lib/query'
   import { onMount } from 'svelte'
@@ -16,6 +16,7 @@
   const clientConfigQuery = useClientConfig()
 
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   const form = useApiForm(LoginRoute, {
     onSuccess: res => {
@@ -106,7 +107,9 @@
   {/if}
 </svelte:head>
 
-{#if clientConfig}
+{#if clientConfig && isArchived}
+  <ArchivedNotice message="Authentication is not available." />
+{:else if clientConfig}
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Login</Card.Title>

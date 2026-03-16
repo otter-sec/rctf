@@ -18,6 +18,7 @@
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
   const isCtfEnded = $derived(clientConfig ? Date.now() > clientConfig.endTime : false)
 
   const form = useApiForm(SubmitFlagRoute, {
@@ -53,7 +54,16 @@
   }
 </script>
 
-{#if isCtfEnded}
+{#if isArchived}
+  <div class="flex h-12 gap-2">
+    <div
+      class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"
+    >
+      <IconClockFilled class="size-6 shrink-0" />
+      <span class="truncate text-xl">The CTF is archived.</span>
+    </div>
+  </div>
+{:else if isCtfEnded}
   <div class="flex h-12 gap-2">
     <div
       class="bg-background-l4 text-foreground-l3 flex h-full min-w-0 flex-1 items-center gap-3 rounded-lg px-3"

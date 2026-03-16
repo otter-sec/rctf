@@ -19,7 +19,10 @@
   const hasStarted = $derived(now >= startTime)
   const hasEnded = $derived(now >= endTime)
   const targetTime = $derived(hasStarted ? endTime : startTime)
-  const label = $derived(hasEnded ? 'CTF ended' : hasStarted ? 'to CTF end' : 'to CTF start')
+  const isArchived = $derived(clientConfig?.isArchived ?? false)
+  const label = $derived(
+    isArchived ? 'Archived' : hasEnded ? 'CTF ended' : hasStarted ? 'to CTF end' : 'to CTF start'
+  )
 
   const countdownText = $derived.by(() => {
     if (hasEnded) return '--:--:--'
