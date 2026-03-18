@@ -22,7 +22,13 @@ leaderboardGroup.route(
       })
     }
 
-    const graph = await getGraph(ctx.var.redis, limit, offset, division)
+    const graph = await getGraph(
+      ctx.var.db,
+      ctx.var.redis,
+      limit,
+      offset,
+      division
+    )
     return res.goodLeaderboardGraph({ graph })
   }
 )

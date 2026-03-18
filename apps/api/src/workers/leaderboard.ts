@@ -31,7 +31,7 @@ const tick = async () => {
 
     if (shouldCache) {
       pendingCacheWrite = true
-      await cacheLeaderboardAndGraph(redis, result.calculated)
+      await cacheLeaderboardAndGraph(db, redis, result.calculated)
       pendingCacheWrite = false
       lastUpdatedAt = currentTime
     }

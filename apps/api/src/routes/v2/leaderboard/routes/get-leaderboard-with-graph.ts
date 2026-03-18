@@ -34,7 +34,6 @@ leaderboardGroup.route(
       }
 
       const { total, leaderboard } = await searchLeaderboard(
-        ctx.var.redis,
         ctx.var.db,
         search,
         limit,
@@ -45,17 +44,9 @@ leaderboardGroup.route(
       return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
     }
 
-    // TODO(es3n1n): i think we can combine multiple queries into single redis pipeline here,
-    //  probably same goes for the postgres
     const [graph, { total, leaderboard }] = await Promise.all([
-      getGraph(ctx.var.redis, limit, offset, division),
-      getLeaderboardWithTotal(
-        ctx.var.redis,
-        ctx.var.db,
-        limit,
-        offset,
-        division
-      ),
+      getGraph(ctx.var.db, ctx.var.redis, limit, offset, division),
+      getLeaderboardWithTotal(ctx.var.db, limit, offset, division),
     ])
 
     return res.goodLeaderboardWithGraph({ graph, total, leaderboard })

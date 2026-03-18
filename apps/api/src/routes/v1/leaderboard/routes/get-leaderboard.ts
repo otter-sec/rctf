@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardRoute } from '@rctf/types'
-import { getLeaderboard } from '../../../../cache/leaderboard'
+import { getLeaderboardWithTotal } from '../../../../services/leaderboard'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
@@ -21,8 +21,8 @@ leaderboardGroup.route(
       })
     }
 
-    const { total, leaderboard } = await getLeaderboard(
-      ctx.var.redis,
+    const { total, leaderboard } = await getLeaderboardWithTotal(
+      ctx.var.db,
       limit,
       offset,
       division

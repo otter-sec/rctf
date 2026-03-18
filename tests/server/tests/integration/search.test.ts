@@ -31,7 +31,7 @@ const recomputeLeaderboard = async () => {
   const db = getDb()
   const redis = await createRedis()
   const result = await calculateLeaderboard(db)
-  await cacheLeaderboardAndGraph(redis, result)
+  await cacheLeaderboardAndGraph(db, redis, result)
 }
 
 type TestUser = {

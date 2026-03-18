@@ -26,6 +26,17 @@ export const users = pgTable(
     avatarUrl: text('avatar_url'),
     countryCode: text('country_code'),
     statusText: text('status_text'),
+    score: integer().notNull().default(0),
+    globalRank: integer('global_rank'),
+    divisionRank: integer('division_rank'),
+    lastSolveAt: timestamp('last_solve_at', {
+      withTimezone: true,
+      mode: 'string',
+    }),
+    lastTiebreakSolveAt: timestamp('last_tiebreak_solve_at', {
+      withTimezone: true,
+      mode: 'string',
+    }),
   },
   table => [
     index('users_created_at_index').using(
@@ -47,6 +58,12 @@ export const users = pgTable(
       'require_email_or_ctftime_id',
       sql`(email IS NOT NULL) OR (ctftime_id IS NOT NULL)`
     ),
+    index('users_global_leaderboard_idx')
+      .using('btree', sql`global_rank ASC`)
+      .where(sql`global_rank IS NOT NULL`),
+    index('users_division_leaderboard_idx')
+      .using('btree', sql`division, global_rank ASC`)
+      .where(sql`global_rank IS NOT NULL`),
   ]
 )
 

@@ -6,13 +6,7 @@ adminGroup.route(
   GetAdminUsersRouteV2,
   async ({ ctx, res, query: { limit, offset, search } }) => {
     return res.goodAdminUsers(
-      await getAllUsersWithScores(
-        ctx.var.db,
-        ctx.var.redis,
-        limit,
-        offset,
-        search
-      )
+      await getAllUsersWithScores(ctx.var.db, limit, offset, search)
     )
   }
 )

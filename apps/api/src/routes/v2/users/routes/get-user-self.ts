@@ -6,7 +6,7 @@ import usersGroup from '../group'
 
 usersGroup.route(GetUserSelfRouteV2, async ({ ctx, user, res }) => {
   const [fullUser, teamToken] = await Promise.all([
-    getFullUser(ctx.var.db, ctx.var.redis, user),
+    getFullUser(ctx.var.db, user),
     createToken(TokenKind.Team, user.id),
   ])
   const allowedDivs = allowedDivisions({

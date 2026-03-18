@@ -32,25 +32,12 @@ leaderboardGroup.route(
       }
 
       return res.goodLeaderboard(
-        await searchLeaderboard(
-          ctx.var.redis,
-          ctx.var.db,
-          search,
-          limit,
-          offset,
-          division
-        )
+        await searchLeaderboard(ctx.var.db, search, limit, offset, division)
       )
     }
 
     return res.goodLeaderboard(
-      await getLeaderboardWithTotal(
-        ctx.var.redis,
-        ctx.var.db,
-        limit,
-        offset,
-        division
-      )
+      await getLeaderboardWithTotal(ctx.var.db, limit, offset, division)
     )
   }
 )

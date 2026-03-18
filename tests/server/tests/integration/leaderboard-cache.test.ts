@@ -657,15 +657,6 @@ describe('incremental vs full rebuild equivalence', () => {
       expect(incInfo.solves).toBe(scrInfo!.solves)
     }
 
-    expect(incremental.calculated.firstBloods.size).toBe(
-      fromScratch.calculated.firstBloods.size
-    )
-    for (const [id, incBloods] of incremental.calculated.firstBloods) {
-      const scrBloods = fromScratch.calculated.firstBloods.get(id)!
-      expect(scrBloods).toBeDefined()
-      expect(incBloods).toEqual(scrBloods)
-    }
-
     const incSamplesByTime = new Map(
       incremental.calculated.samples.map(s => [s.time, s])
     )
@@ -841,109 +832,6 @@ describe('leaderboard ordering and tiebreaks', () => {
     expect(result.users[0]?.score).toBe(result.users[1]?.score)
     expect(result.users[0]?.id).toBe(userEarly.id)
     expect(result.users[1]?.id).toBe(userLate.id)
-  })
-})
-
-describe('first bloods tracking', () => {
-  test('tracks first 3 solvers per challenge', async () => {
-    const db = getDb()
-    const user1 = await insertUser()
-    const user2 = await insertUser()
-    const user3 = await insertUser()
-    const user4 = await insertUser()
-    const ch = await insertChallenge()
-
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user1.id,
-      createdAt: isoAt(T0),
-    })
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user2.id,
-      createdAt: isoAt(T1),
-    })
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user3.id,
-      createdAt: isoAt(T2),
-    })
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user4.id,
-      createdAt: isoAt(T3),
-    })
-
-    const result = await calculateLeaderboard(db)
-    const bloods = result.firstBloods.get(ch.id)
-
-    expect(bloods).toBeDefined()
-    expect(bloods).toHaveLength(3)
-    expect(bloods![0]).toBe(user1.id)
-    expect(bloods![1]).toBe(user2.id)
-    expect(bloods![2]).toBe(user3.id)
-  })
-
-  test('handles challenge with fewer than 3 solves', async () => {
-    const db = getDb()
-    const user1 = await insertUser()
-    const ch = await insertChallenge()
-
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user1.id,
-      createdAt: isoAt(T0),
-    })
-
-    const result = await calculateLeaderboard(db)
-    const bloods = result.firstBloods.get(ch.id)
-
-    expect(bloods).toBeDefined()
-    expect(bloods).toHaveLength(1)
-    expect(bloods![0]).toBe(user1.id)
-  })
-
-  test('first bloods preserved through incremental updates', async () => {
-    const db = getDb()
-    const user1 = await insertUser()
-    const user2 = await insertUser()
-    const user3 = await insertUser()
-    const user4 = await insertUser()
-    const ch = await insertChallenge()
-
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user1.id,
-      createdAt: isoAt(T0),
-    })
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user2.id,
-      createdAt: isoAt(T1),
-    })
-
-    const calc = createCachedLeaderboardCalculator()
-    const first = await calc(db)
-    expect(first.calculated.firstBloods.get(ch.id)).toHaveLength(2)
-
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user3.id,
-      createdAt: isoAt(T2),
-    })
-    await insertSolve({
-      challengeId: ch.id,
-      userId: user4.id,
-      createdAt: isoAt(T3),
-    })
-
-    const second = await calc(db)
-    const bloods = second.calculated.firstBloods.get(ch.id)
-
-    expect(bloods).toHaveLength(3)
-    expect(bloods![0]).toBe(user1.id)
-    expect(bloods![1]).toBe(user2.id)
-    expect(bloods![2]).toBe(user3.id)
   })
 })
 
@@ -1229,11 +1117,9 @@ describe('calculateLeaderboard standalone', () => {
 
     expect(result.users).toEqual([])
     expect(result.challengeInfos.size).toBe(0)
-    expect(result.firstBloods.size).toBe(0)
     for (const sample of result.samples) {
       expect(sample.userScores).toEqual([])
     }
-    expect(typeof result.leaderboardUpdate).toBe('number')
   })
 
   test('returns correct structure with data', async () => {
@@ -1260,9 +1146,6 @@ describe('calculateLeaderboard standalone', () => {
     expect(chInfo!.name).toBe('test-challenge')
     expect(chInfo!.category).toBe('misc')
     expect(chInfo!.solves).toBe(1)
-
-    expect(result.firstBloods.get(ch.id)).toEqual([user.id])
-    expect(typeof result.leaderboardUpdate).toBe('number')
   })
 
   test('produces same result as cached calculator on first call', async () => {
@@ -1435,6 +1318,8 @@ describe('edge cases', () => {
       division: null,
       score: 999,
       hadAnySolve: false,
+      lastSolve: undefined,
+      lastTiebreakEligibleSolve: undefined,
     })
 
     expect(second.calculated.users.find(u => u.id === 'fake')).toBeUndefined()

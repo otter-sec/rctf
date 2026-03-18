@@ -19,7 +19,6 @@ import type {
 } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
-import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
@@ -96,6 +95,8 @@ export const getPrivateChallenges = async (
     .select({
       id: challenges.id,
       data: challenges.data,
+      score: challenges.score,
+      solveCount: challenges.solveCount,
     })
     .from(challenges)
     .orderBy(...challengeDefaultOrder)
@@ -138,6 +139,8 @@ export const getChallenges = async (
     .select({
       id: challenges.id,
       data: challenges.data,
+      score: challenges.score,
+      solveCount: challenges.solveCount,
     })
     .from(challenges)
     .where(challengeIsPublicSql)
@@ -311,7 +314,6 @@ export const getChallengeSolves = async (
 
 export const getChallengeSolvesWithPosition = async (
   db: DatabaseClient,
-  redis: TypedRedis,
   challengeId: string,
   userId: string | null,
   limit: number,
@@ -338,12 +340,15 @@ export const getChallengeSolvesWithPosition = async (
       userCountryCode: ranked.userCountryCode,
       userStatusText: ranked.userStatusText,
       userDivision: ranked.userDivision,
+      userGlobalRank: users.globalRank,
+      userDivisionRank: users.divisionRank,
       position: ranked.position,
       userSolvePosition: sql<number | null>`(
         SELECT position FROM ranked WHERE challengeid = ${challengeId} AND userid = ${userId}
       )`.as('user_solve_position'),
     })
     .from(ranked)
+    .innerJoin(users, eq(users.id, ranked.userId))
     .where(eq(ranked.challengeId, challengeId))
     .orderBy(asc(ranked.position))
     .limit(limit)
@@ -357,29 +362,22 @@ export const getChallengeSolvesWithPosition = async (
     }
   }
 
-  const userScores = await getUsersScores(
-    redis,
-    rows.map(r => r.userId)
-  )
   return {
     challengeExists: true,
     solvePosition: rows[0]!.userSolvePosition,
-    solves: rows.map(r => {
-      const scores = userScores.get(r.userId)
-      return {
-        id: r.solveId,
-        createdAt: r.createdAt,
-        userId: r.userId,
-        userName: r.userName,
-        userAvatarUrl: r.userAvatarUrl,
-        userCountryCode: r.userCountryCode,
-        userStatusText: r.userStatusText,
-        globalPlace: scores?.place ?? 0,
-        division: r.userDivision,
-        divisionPlace: scores?.divisionPlace ?? 0,
-        bloodIndex: r.position <= 3 ? r.position - 1 : null,
-      }
-    }),
+    solves: rows.map(r => ({
+      id: r.solveId,
+      createdAt: r.createdAt,
+      userId: r.userId,
+      userName: r.userName,
+      userAvatarUrl: r.userAvatarUrl,
+      userCountryCode: r.userCountryCode,
+      userStatusText: r.userStatusText,
+      globalPlace: r.userGlobalRank ?? 0,
+      division: r.userDivision,
+      divisionPlace: r.userDivisionRank ?? 0,
+      bloodIndex: r.position <= 3 ? r.position - 1 : null,
+    })),
   }
 }
 

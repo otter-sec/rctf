@@ -4,15 +4,13 @@ import { challenges, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
-  getLeaderboard,
-  getLeaderboardWithGlobalScores,
-  getUsersScores,
+  leaderboardOrderSql,
+  userIsRankedSql,
   type CalculatedLeaderboard,
   type InternalChallengeInfo,
   type InternalUserInfo,
   type Sample,
 } from '../cache/leaderboard'
-import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
 import type { ScoreContext } from '../providers/scores/base'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
@@ -506,8 +504,7 @@ const processSolveBatch = (
 }
 
 const cloneCalculatedLeaderboard = (
-  state: LeaderboardRuntimeState,
-  now: number
+  state: LeaderboardRuntimeState
 ): CalculatedLeaderboard => {
   const usersWithScores = Array.from(state.userInfos.values())
     .filter(userInfo => userInfo.lastSolve !== undefined)
@@ -518,6 +515,8 @@ const cloneCalculatedLeaderboard = (
       division: userInfo.division,
       score: userInfo.score,
       hadAnySolve: true,
+      lastSolve: userInfo.lastSolve,
+      lastTiebreakEligibleSolve: userInfo.lastTiebreakEligibleSolve,
     }))
 
   const challengeInfos: CalculatedLeaderboard['challengeInfos'] = new Map()
@@ -531,23 +530,14 @@ const cloneCalculatedLeaderboard = (
     })
   }
 
-  const firstBloods = new Map<string, string[]>(
-    Array.from(state.firstBloods.entries()).map(([challengeId, bloods]) => [
-      challengeId,
-      [...bloods],
-    ])
-  )
-
   const samples = state.samples.map(sample => ({
     time: sample.time,
     userScores: sample.userScores.map(userScore => ({ ...userScore })),
   }))
 
   return {
-    leaderboardUpdate: Math.min(now, config.endTime),
     users: usersWithScores,
     challengeInfos,
-    firstBloods,
     samples,
   }
 }
@@ -589,7 +579,7 @@ export const calculateLeaderboard = async (
     },
     now
   )
-  return cloneCalculatedLeaderboard(runtimeState, now)
+  return cloneCalculatedLeaderboard(runtimeState)
 }
 
 export const createCachedLeaderboardCalculator = () => {
@@ -625,7 +615,7 @@ export const createCachedLeaderboardCalculator = () => {
       )
 
       return {
-        calculated: cloneCalculatedLeaderboard(state, now),
+        calculated: cloneCalculatedLeaderboard(state),
         changed: true,
         recomputedFromScratch: true,
       }
@@ -658,7 +648,7 @@ export const createCachedLeaderboardCalculator = () => {
       }
 
       return {
-        calculated: cloneCalculatedLeaderboard(state, now),
+        calculated: cloneCalculatedLeaderboard(state),
         changed: usersChanged,
         recomputedFromScratch: false,
       }
@@ -682,7 +672,7 @@ export const createCachedLeaderboardCalculator = () => {
     }
 
     return {
-      calculated: cloneCalculatedLeaderboard(state, now),
+      calculated: cloneCalculatedLeaderboard(state),
       changed: batchResult.changed || usersChanged,
       recomputedFromScratch: false,
     }
@@ -690,7 +680,6 @@ export const createCachedLeaderboardCalculator = () => {
 }
 
 export const searchLeaderboard = async (
-  redis: TypedRedis,
   db: DatabaseClient,
   search: string,
   limit: number,
@@ -699,19 +688,13 @@ export const searchLeaderboard = async (
 ) => {
   const searchFilter = userNameSearchFilter(search)
 
-  // only include users with at least one solve, consistent with the cached leaderboard
-  const hasSolves = sql`exists (select 1 from ${solves} where ${solves.userid} = ${users.id})`
+  // only include users on the leaderboard (have ranks assigned by the leaderboard worker)
   const whereClause = and(
     searchFilter,
-    hasSolves,
+    userIsRankedSql,
     division ? eq(users.division, division) : undefined
   )
 
-  // NOTE(es3n1n): ORDER BY similarity() is not index-accelerated by gin
-  // it computes similarity() for every row passing the WHERE filter, then sorts
-  // the trigram WHERE prunes aggressively though, so this is fine for typical ctf user counts
-  // if it ever becomes a problem, a gist index with the <=> distance operator would allow index-ordered scans.
-  // TODO(es3n1n): 2+2 queries are a bit wasteful but good enough
   const [totalRow, matchingUsers] = await Promise.all([
     db
       .select({ count: sql<number>`count(*)::int` })
@@ -723,6 +706,9 @@ export const searchLeaderboard = async (
         id: users.id,
         name: users.name,
         division: users.division,
+        score: users.score,
+        globalRank: users.globalRank,
+        divisionRank: users.divisionRank,
       })
       .from(users)
       .where(whereClause)
@@ -740,23 +726,22 @@ export const searchLeaderboard = async (
   }
 
   const userIds = matchingUsers.map(u => u.id)
-  const [scores, { solves: userSolves, userInfo }] = await Promise.all([
-    getUsersScores(redis, userIds),
-    getSolvesAndUserInfo(db, userIds),
-  ])
+  const { solves: userSolves, userInfo } = await getSolvesAndUserInfo(
+    db,
+    userIds
+  )
 
   return {
     total,
     leaderboard: matchingUsers.map(entry => {
-      const s = scores.get(entry.id)
       const info = userInfo.get(entry.id)
       return {
         id: entry.id,
         name: entry.name,
         division: entry.division,
-        score: s?.score ?? 0,
-        divisionPlace: s?.divisionPlace ?? 0,
-        globalPlace: s?.place ?? null,
+        score: entry.score,
+        divisionPlace: entry.divisionRank ?? 0,
+        globalPlace: entry.globalRank ?? null,
         avatarUrl: info?.avatarUrl ?? null,
         countryCode: info?.countryCode ?? null,
         statusText: info?.statusText ?? null,
@@ -770,43 +755,67 @@ export const searchLeaderboard = async (
 }
 
 export const getLeaderboardWithTotal = async (
-  redis: TypedRedis,
   db: DatabaseClient,
   limit: number,
   offset: number,
   division?: string
 ) => {
-  const { total, leaderboard, globalScores } = division
-    ? await getLeaderboardWithGlobalScores(redis, limit, offset, division)
-    : {
-        ...(await getLeaderboard(redis, limit, offset)),
-        globalScores: null,
-      }
+  const whereClause = and(
+    userIsRankedSql,
+    division ? eq(users.division, division) : undefined
+  )
+
+  const [totalRow, leaderboard] = await Promise.all([
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(users)
+      .where(whereClause)
+      .then(takeUnique),
+    limit > 0
+      ? db
+          .select({
+            id: users.id,
+            name: users.name,
+            score: users.score,
+            division: users.division,
+            divisionRank: users.divisionRank,
+            globalRank: users.globalRank,
+            avatarUrl: users.avatarUrl,
+            countryCode: users.countryCode,
+            statusText: users.statusText,
+          })
+          .from(users)
+          .where(whereClause)
+          .orderBy(leaderboardOrderSql)
+          .limit(limit)
+          .offset(offset)
+      : Promise.resolve([]),
+  ])
+
+  const total = totalRow?.count ?? 0
 
   const teamIds = leaderboard.map(e => e.id)
-  const { solves: userSolves, userInfo } = await getSolvesAndUserInfo(
-    db,
-    teamIds
-  )
+  const { solves: userSolves } =
+    teamIds.length > 0
+      ? await getSolvesAndUserInfo(db, teamIds)
+      : { solves: new Map<string, never[]>() }
 
   return {
     total,
-    leaderboard: leaderboard.map((entry, idx) => {
-      const info = userInfo.get(entry.id)
-      const globalPlace = division
-        ? (globalScores?.get(entry.id)?.place ?? null)
-        : offset + idx + 1
-      return {
-        ...entry,
-        globalPlace,
-        avatarUrl: info?.avatarUrl ?? null,
-        countryCode: info?.countryCode ?? null,
-        statusText: info?.statusText ?? null,
-        solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
-          id: solve.challengeId,
-          solveTime: solve.solveTime,
-        })),
-      }
-    }),
+    leaderboard: leaderboard.map(entry => ({
+      id: entry.id,
+      name: entry.name,
+      division: entry.division,
+      score: entry.score,
+      divisionPlace: entry.divisionRank ?? 0,
+      globalPlace: entry.globalRank ?? null,
+      avatarUrl: entry.avatarUrl ?? null,
+      countryCode: entry.countryCode ?? null,
+      statusText: entry.statusText ?? null,
+      solves: Array.from(userSolves.get(entry.id) ?? []).map(solve => ({
+        id: solve.challengeId,
+        solveTime: solve.solveTime,
+      })),
+    })),
   }
 }

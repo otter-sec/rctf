@@ -19,7 +19,6 @@ import {
 } from '@rctf/types'
 import { asc, count, eq, or, sql } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
-import { getUsersScores } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate } from '../workers'
@@ -346,7 +345,6 @@ export const userNameSearchFilter = (search: string) =>
 
 export const getAllUsersWithScores = async (
   db: DatabaseClient,
-  redis: TypedRedis,
   limit: number,
   offset: number,
   search?: string
@@ -361,6 +359,7 @@ export const getAllUsersWithScores = async (
         email: users.email,
         division: users.division,
         perms: users.perms,
+        score: users.score,
         avatarUrl: users.avatarUrl,
         countryCode: users.countryCode,
         statusText: users.statusText,
@@ -383,16 +382,11 @@ export const getAllUsersWithScores = async (
       .offset(offset),
   ])
 
-  const userScores = await getUsersScores(
-    redis,
-    dbUsers.map(u => u.id)
-  )
-
   return {
     total: countResult[0]?.count ?? 0,
     users: dbUsers.map(u => ({
       ...u,
-      score: userScores.get(u.id)?.score ?? 0,
+      score: u.score,
     })),
   }
 }

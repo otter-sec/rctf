@@ -19,7 +19,6 @@ challsGroup.route(
     const { challengeExists, solves, solvePosition } =
       await getChallengeSolvesWithPosition(
         ctx.var.db,
-        ctx.var.redis,
         params.id,
         user?.id ?? null,
         query.limit,

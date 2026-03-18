@@ -1,6 +1,11 @@
 import { config } from '@rctf/config'
-import { createDatabase, users } from '@rctf/db'
-import { GoodFlag, GoodLeaderboardV2 } from '@rctf/types'
+import { createDatabase, solves, users } from '@rctf/db'
+import {
+  GoodFlag,
+  GoodLeaderboardChallengesV2,
+  GoodLeaderboardV2,
+  Permissions,
+} from '@rctf/types'
 import {
   afterEach,
   beforeAll,
@@ -36,7 +41,7 @@ const recomputeLeaderboard = async () => {
   const db = getDb()
   const redis = await createRedis()
   const result = await calculateLeaderboard(db)
-  await cacheLeaderboardAndGraph(redis, result)
+  await cacheLeaderboardAndGraph(db, redis, result)
 }
 
 const submitFlag = async (
@@ -238,5 +243,270 @@ describe('submit flag → leaderboard e2e', () => {
     for (let i = 0; i < page2.data.leaderboard.length; i++) {
       expect(page2.data.leaderboard[i].globalPlace).toBe(i + 2)
     }
+  })
+})
+
+describe('first bloods via leaderboard challenges endpoint', () => {
+  const cleanups: Array<() => Promise<void>> = []
+
+  beforeEach(clearDatabase)
+
+  afterEach(async () => {
+    await Promise.all(cleanups.splice(0).map(fn => fn()))
+    await recomputeLeaderboard()
+  })
+
+  test('returns first 3 solvers per challenge in correct order', async () => {
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const solvers = []
+    for (let i = 0; i < 4; i++) {
+      const { user, cleanup } = await generateRealTestUser()
+      cleanups.push(cleanup)
+      solvers.push(user)
+    }
+
+    for (const solver of solvers) {
+      const token = await createToken(TokenKind.Auth, solver.id)
+      await expectResponse(
+        await submitFlag(ch.challenge.id, ch.challenge.flag, token),
+        GoodFlag
+      )
+    }
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData).toBeDefined()
+    expect(challData.firstSolvers).toHaveLength(3)
+    expect(challData.firstSolvers[0].id).toBe(solvers[0]!.id)
+    expect(challData.firstSolvers[1].id).toBe(solvers[1]!.id)
+    expect(challData.firstSolvers[2].id).toBe(solvers[2]!.id)
+  })
+
+  test('returns fewer than 3 solvers when challenge has fewer solves', async () => {
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const { user, cleanup } = await generateRealTestUser()
+    cleanups.push(cleanup)
+
+    const token = await createToken(TokenKind.Auth, user.id)
+    await expectResponse(
+      await submitFlag(ch.challenge.id, ch.challenge.flag, token),
+      GoodFlag
+    )
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData).toBeDefined()
+    expect(challData.firstSolvers).toHaveLength(1)
+    expect(challData.firstSolvers[0].id).toBe(user.id)
+  })
+
+  test('uses solve id as a deterministic tiebreaker for same-timestamp first bloods', async () => {
+    const db = getDb()
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const solverIds: string[] = []
+    for (let i = 0; i < 3; i++) {
+      const { user, cleanup } = await generateRealTestUser()
+      cleanups.push(cleanup)
+      solverIds.push(user.id)
+    }
+
+    const createdAt = new Date().toISOString()
+    await db.insert(solves).values([
+      {
+        id: '00000000-0000-0000-0000-000000000002',
+        challengeid: ch.challenge.id,
+        userid: solverIds[1]!,
+        createdat: createdAt,
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        challengeid: ch.challenge.id,
+        userid: solverIds[0]!,
+        createdat: createdAt,
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000003',
+        challengeid: ch.challenge.id,
+        userid: solverIds[2]!,
+        createdat: createdAt,
+      },
+    ])
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData).toBeDefined()
+    expect(challData.firstSolvers.map((solver: any) => solver.id)).toEqual(
+      solverIds
+    )
+  })
+
+  test('returns correct score and solve count', async () => {
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const { user, cleanup } = await generateRealTestUser()
+    cleanups.push(cleanup)
+
+    const token = await createToken(TokenKind.Auth, user.id)
+    await expectResponse(
+      await submitFlag(ch.challenge.id, ch.challenge.flag, token),
+      GoodFlag
+    )
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData.solves).toBe(1)
+    expect(challData.points).toBeGreaterThan(0)
+    expect(challData.name).toBe(ch.challenge.name)
+    expect(challData.category).toBe(ch.challenge.category)
+  })
+
+  test('unsolved challenge has empty firstSolvers', async () => {
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData).toBeDefined()
+    expect(challData.firstSolvers).toHaveLength(0)
+    expect(challData.solves).toBe(0)
+  })
+})
+
+describe('CTFtime leaderboard endpoint', () => {
+  const cleanups: Array<() => Promise<void>> = []
+
+  beforeEach(clearDatabase)
+
+  afterEach(async () => {
+    await Promise.all(cleanups.splice(0).map(fn => fn()))
+    await recomputeLeaderboard()
+  })
+
+  test('returns standings in CTFtime format with correct ordering', async () => {
+    const ch1 = await generateChallenge()
+    const ch2 = await generateChallenge()
+    cleanups.push(ch1.cleanup, ch2.cleanup)
+
+    const { user: userA, cleanup: cleanupA } = await generateRealTestUser()
+    const { user: userB, cleanup: cleanupB } = await generateRealTestUser()
+    cleanups.push(cleanupA, cleanupB)
+
+    const tokenA = await createToken(TokenKind.Auth, userA.id)
+    const tokenB = await createToken(TokenKind.Auth, userB.id)
+
+    await expectResponse(
+      await submitFlag(ch1.challenge.id, ch1.challenge.flag, tokenA),
+      GoodFlag
+    )
+    await expectResponse(
+      await submitFlag(ch2.challenge.id, ch2.challenge.flag, tokenA),
+      GoodFlag
+    )
+    await expectResponse(
+      await submitFlag(ch1.challenge.id, ch1.challenge.flag, tokenB),
+      GoodFlag
+    )
+
+    await recomputeLeaderboard()
+
+    const db = getDb()
+    const adminId = crypto.randomUUID()
+    await db.insert(users).values({
+      id: adminId,
+      name: `ctftime-admin-${crypto.randomUUID()}`,
+      email: `${crypto.randomUUID()}@test.com`,
+      division: Object.keys(config.divisions)[0]!,
+      perms: Permissions.leaderboardRead,
+    })
+    cleanups.push(async () => {
+      await db.delete(users).where(eq(users.id, adminId))
+    })
+    const adminToken = await createToken(TokenKind.Auth, adminId)
+
+    const res = await request(app, '/api/v1/integrations/ctftime/leaderboard', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+
+    expect(body.standings.length).toBeGreaterThanOrEqual(2)
+    expect(body.standings[0].pos).toBe(1)
+    expect(body.standings[0].team).toBe(userA.name)
+    expect(body.standings[0].score).toBeGreaterThan(body.standings[1].score)
+    expect(body.standings[1].pos).toBe(2)
+    expect(body.standings[1].team).toBe(userB.name)
+
+    for (let i = 0; i < body.standings.length; i++) {
+      expect(body.standings[i].pos).toBe(i + 1)
+    }
+  })
+
+  test('excludes unranked users from CTFtime standings', async () => {
+    const { user: unranked, cleanup } = await generateRealTestUser()
+    cleanups.push(cleanup)
+
+    await recomputeLeaderboard()
+
+    const db = getDb()
+    const adminId = crypto.randomUUID()
+    await db.insert(users).values({
+      id: adminId,
+      name: `ctftime-admin2-${crypto.randomUUID()}`,
+      email: `${crypto.randomUUID()}@test.com`,
+      division: Object.keys(config.divisions)[0]!,
+      perms: Permissions.leaderboardRead,
+    })
+    cleanups.push(async () => {
+      await db.delete(users).where(eq(users.id, adminId))
+    })
+    const adminToken = await createToken(TokenKind.Auth, adminId)
+
+    const res = await request(app, '/api/v1/integrations/ctftime/leaderboard', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+
+    const teams = body.standings.map((s: any) => s.team)
+    expect(teams).not.toContain(unranked.name)
   })
 })

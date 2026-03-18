@@ -1,6 +1,6 @@
 import { ExposeKind } from '@rctf/types'
 import { sql } from 'drizzle-orm'
-import { index, jsonb, pgTable, text } from 'drizzle-orm/pg-core'
+import { index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core'
 
 export { ExposeKind }
 
@@ -69,6 +69,8 @@ export const challenges = pgTable(
   {
     id: text().primaryKey().notNull(),
     data: jsonb().$type<ChallengeData>().notNull(),
+    score: integer().notNull().default(0),
+    solveCount: integer('solve_count').notNull().default(0),
   },
   table => [
     index('challenges_sortweight_index').using(
