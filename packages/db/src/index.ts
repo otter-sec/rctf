@@ -22,7 +22,7 @@ export type Settings = InferInsertModel<typeof schema.settings>
 export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient
   if (typeof params === 'string') {
-    client = postgres(params)
+    client = postgres(params, { onnotice: () => {} })
   } else {
     client = postgres({
       host: params.host,
@@ -33,6 +33,7 @@ export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
       max: params.maxPoolSize,
       idle_timeout: params.idleTimeout / 1000,
       connect_timeout: params.connectTimeout / 1000,
+      onnotice: () => {},
     })
   }
 
