@@ -121,12 +121,14 @@
     showTop3Context = v
   }
 
+  let themeRenderEpoch = $state(0)
   let isDesktop = $state(true)
   let isXl = $state(true)
 
   onMount(() => {
     const mqlDesktop = window.matchMedia('(min-width: 768px)')
     const mqlXl = window.matchMedia('(min-width: 1280px)')
+    const root = document.documentElement
 
     const updateDesktop = () => (isDesktop = mqlDesktop.matches)
     const updateXl = () => (isXl = mqlXl.matches)
@@ -137,9 +139,20 @@
     mqlDesktop.addEventListener('change', updateDesktop)
     mqlXl.addEventListener('change', updateXl)
 
+    const themeObserver = new MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+          themeRenderEpoch = Date.now()
+          break
+        }
+      }
+    })
+    themeObserver.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+
     return () => {
       mqlDesktop.removeEventListener('change', updateDesktop)
       mqlXl.removeEventListener('change', updateXl)
+      themeObserver.disconnect()
     }
   })
 
@@ -200,6 +213,14 @@
   const isLoading = $derived(leaderboardQuery.isLoading || challengesQuery.isLoading)
   const showDivision = $derived(
     clientConfigQuery.data ? Object.keys(clientConfigQuery.data.divisions).length > 1 : false
+  )
+  const renderEpoch = $derived(
+    Math.max(
+      leaderboardQuery.dataUpdatedAt ?? 0,
+      challengesQuery.dataUpdatedAt ?? 0,
+      userQuery.dataUpdatedAt ?? 0,
+      themeRenderEpoch
+    )
   )
 
   const challengesByCategory = $derived<ChallengeInfo[]>(
@@ -292,7 +313,7 @@
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
-    overscan: 5,
+    overscan: 10,
     isScrollingResetDelay: 100,
     onLoadMore: () => leaderboardQuery.fetchNextPage(),
     onScroll: updateFades,
@@ -590,6 +611,8 @@
     categoryGroups,
     challenges,
     focusedChallengeId,
+    themeEpoch: themeRenderEpoch,
+    renderEpoch,
     isScrolling: scroll.isScrolling,
     isDesktop,
     onCellHover: handleCellHover,
@@ -826,6 +849,7 @@
           ? 'h-[calc(100dvh-72px-52px-16px)]'
           : 'h-[calc(100dvh-72px-52px-8px-192px-16px)]'}
         orientation={isDesktop ? 'both' : 'vertical'}
+        type={isDesktop ? 'always' : 'auto'}
         fadeSize={0}
         bind:viewportRef={scroll.state.viewportRef}
         scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
@@ -887,7 +911,7 @@
               {#each Array(10) as _, i}
                 <div
                   class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
-                  style:transform="translateY({i * ROW_HEIGHT}px)"
+                  style:transform="translate3d(0, {i * ROW_HEIGHT}px, 0)"
                 >
                   <ScoresTeamRow
                     data={null}
@@ -912,7 +936,7 @@
                   <div
                     class="absolute top-0 left-0 flex w-full contain-[layout_style_paint] md:w-auto"
                     style:height="{row.size}px"
-                    style:transform="translateY({row.start - listScrollMargin}px)"
+                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
                   >
                     <ScoresTeamRow
                       data={{
@@ -945,7 +969,7 @@
                 {:else}
                   <div
                     class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
-                    style:transform="translateY({row.start - listScrollMargin}px)"
+                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
                   >
                     <ScoresTeamRow
                       data={null}

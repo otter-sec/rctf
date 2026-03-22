@@ -26,6 +26,8 @@
     data: TeamData | null
     solves: Set<string> | null
     solveTimes: Map<string, number> | null
+    themeEpoch: number
+    renderEpoch: number
     isSelf?: boolean
     isLoading?: boolean
     isScrolling?: boolean
@@ -47,6 +49,8 @@
     data,
     solves,
     solveTimes,
+    themeEpoch,
+    renderEpoch,
     isSelf = false,
     isLoading = false,
     isScrolling = false,
@@ -202,6 +206,8 @@
         {categoryGroups}
         {challenges}
         {focusedChallengeId}
+        {themeEpoch}
+        {renderEpoch}
         getSolves={cid => solves?.has(cid) ?? false}
         getSolveTime={cid => solveTimes?.get(cid)}
         {getCategoryStats}
