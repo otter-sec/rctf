@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Avatar, Tooltip } from '$lib/components'
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
@@ -30,6 +29,7 @@
     isSelf?: boolean
     isLoading?: boolean
     isScrolling?: boolean
+    isDesktop?: boolean
     contentWidth: number
     viewMode: ViewMode
     sortMode: SortMode
@@ -50,6 +50,7 @@
     isSelf = false,
     isLoading = false,
     isScrolling = false,
+    isDesktop = true,
     contentWidth,
     viewMode,
     sortMode,
@@ -69,6 +70,9 @@
   const flagFilename = $derived(
     data?.countryCode ? countryCodeToFlagFilename(data.countryCode) : null
   )
+  const initials = $derived(data ? getInitials(data.name) : '')
+
+  let imgFailed = $state(false)
 </script>
 
 <div
@@ -97,30 +101,33 @@
             >#{data.rank ?? '?'}</span
           >
           {#if data.divisionPlace}
-            {#if data.divisionName}
-              <Tooltip.Root disableHoverableContent>
-                <Tooltip.Trigger class="leading-none">
-                  <span class="text-foreground-l3 text-xs leading-none tabular-nums"
-                    >#{data.divisionPlace}</span
-                  >
-                </Tooltip.Trigger>
-                <Tooltip.Content>{data.divisionName}</Tooltip.Content>
-              </Tooltip.Root>
-            {:else}
-              <span class="text-foreground-l3 text-xs leading-none tabular-nums"
-                >#{data.divisionPlace}</span
-              >
-            {/if}
+            <span
+              class="text-foreground-l3 text-xs leading-none tabular-nums"
+              title={data.divisionName ?? undefined}>#{data.divisionPlace}</span
+            >
           {/if}
         </div>
       </div>
 
-      <Avatar.Root class="size-10 shrink-0 rounded-lg sm:size-12">
-        {#if data.avatarUrl}
-          <Avatar.Image src={data.avatarUrl} alt={data.name} class="rounded-lg" />
+      <div
+        class="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg sm:size-12"
+        data-slot="avatar"
+      >
+        {#if data.avatarUrl && !imgFailed}
+          <img
+            src={data.avatarUrl}
+            alt={data.name}
+            class="aspect-square size-full rounded-lg object-cover"
+            onerror={() => (imgFailed = true)}
+          />
+        {:else}
+          <!-- we need something more lightweight than bits-ui's avatar -->
+          <span
+            class="bg-background-l4 text-foreground-l3 flex size-full items-center justify-center rounded-lg text-sm"
+            >{initials}</span
+          >
         {/if}
-        <Avatar.Fallback class="rounded-lg text-sm">{getInitials(data.name)}</Avatar.Fallback>
-      </Avatar.Root>
+      </div>
 
       <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div class="flex items-center gap-1.5">
@@ -133,24 +140,12 @@
         </div>
         <div class="flex min-w-0 items-center gap-1">
           {#if flagFilename && data.countryCode}
-            {#if isScrolling}
-              <img
-                src="/flags/{flagFilename}"
-                alt="{data.countryCode} flag"
-                class="size-5 min-w-5 shrink-0"
-              />
-            {:else}
-              <Tooltip.Root>
-                <Tooltip.Trigger>
-                  <img
-                    src="/flags/{flagFilename}"
-                    alt="{data.countryCode} flag"
-                    class="size-5 min-w-5 shrink-0"
-                  />
-                </Tooltip.Trigger>
-                <Tooltip.Content>{data.countryCode}</Tooltip.Content>
-              </Tooltip.Root>
-            {/if}
+            <img
+              src="/flags/{flagFilename}"
+              alt="{data.countryCode} flag"
+              title={data.countryCode}
+              class="size-5 min-w-5 shrink-0"
+            />
           {/if}
           {#if flagFilename && data.countryCode && data.statusText}
             <span class={cn('shrink-0 text-xl leading-none', styles?.fgL1)}>·</span>
@@ -171,46 +166,50 @@
           </span>
         </div>
 
-        <div
-          class="pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block xl:pointer-events-auto xl:relative xl:opacity-100"
-        >
-          <ScoresSparkline
-            data={data.sparklineData ?? []}
-            rank={data.rank ?? 0}
-            isCurrentUser={data.isCurrentUser}
-            onHover={onSparklineHover}
-            onUnhover={onSparklineUnhover}
-          />
-        </div>
+        {#if isDesktop}
+          <div
+            class="pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block xl:pointer-events-auto xl:relative xl:opacity-100"
+          >
+            <ScoresSparkline
+              data={data.sparklineData ?? []}
+              rank={data.rank ?? 0}
+              isCurrentUser={data.isCurrentUser}
+              onHover={onSparklineHover}
+              onUnhover={onSparklineUnhover}
+            />
+          </div>
+        {/if}
       </div>
     {/if}
   </div>
 </div>
 
-<div
-  class={cn(
-    'bg-background-l2 hidden h-(--row-height) shrink-0 transform-[translateZ(0)] rounded-r-lg will-change-transform contain-[layout_style_paint] md:flex',
-    !isSelf && isScrolling && 'pointer-events-none',
-    isLoading && 'w-(--content-column-width) px-2',
-    data?.isCurrentUser && 'bg-background-self-l0'
-  )}
-  style:width={isLoading ? undefined : `${contentWidth}px`}
->
-  {#if !isLoading && data}
-    <ScoresSolveCells
-      teamId={data.id}
-      {viewMode}
-      {sortMode}
-      {categoryGroups}
-      {challenges}
-      {focusedChallengeId}
-      getSolves={cid => solves?.has(cid) ?? false}
-      getSolveTime={cid => solveTimes?.get(cid)}
-      {getCategoryStats}
-      {getBloodIndex}
-      {onCellHover}
-      {isScrolling}
-      isCurrentUser={data.isCurrentUser}
-    />
-  {/if}
-</div>
+{#if isDesktop}
+  <div
+    class={cn(
+      'bg-background-l2 hidden h-(--row-height) shrink-0 rounded-r-lg contain-[layout_style_paint] md:flex',
+      !isSelf && isScrolling && 'pointer-events-none',
+      isLoading && 'w-(--content-column-width) px-2',
+      data?.isCurrentUser && 'bg-background-self-l0'
+    )}
+    style:width={isLoading ? undefined : `${contentWidth}px`}
+  >
+    {#if !isLoading && data}
+      <ScoresSolveCells
+        teamId={data.id}
+        {viewMode}
+        {sortMode}
+        {categoryGroups}
+        {challenges}
+        {focusedChallengeId}
+        getSolves={cid => solves?.has(cid) ?? false}
+        getSolveTime={cid => solveTimes?.get(cid)}
+        {getCategoryStats}
+        {getBloodIndex}
+        {onCellHover}
+        {isScrolling}
+        isCurrentUser={data.isCurrentUser}
+      />
+    {/if}
+  </div>
+{/if}

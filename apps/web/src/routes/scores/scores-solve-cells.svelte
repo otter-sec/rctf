@@ -308,7 +308,7 @@
 
 <div
   class={cn(
-    'bg-background-l2 flex transform-[translateZ(0)] gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 will-change-transform contain-[layout_style_paint]',
+    'bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 contain-[layout_style_paint]',
     isScrolling && 'pointer-events-none',
     isCurrentUser && 'bg-background-self-l0'
   )}

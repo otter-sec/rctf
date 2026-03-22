@@ -109,10 +109,19 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
 
     let cachedClientHeight = 0
     let cachedClientWidth = 0
+    let cachedScrollHeight = 0
+    let cachedScrollWidth = 0
     let ro: ResizeObserver | null = null
+    let contentRo: ResizeObserver | null = null
 
     let capturedScrollTop = 0
     let capturedScrollLeft = 0
+
+    const updateScrollDimensions = () => {
+      if (!currentElement) return
+      cachedScrollHeight = currentElement.scrollHeight
+      cachedScrollWidth = currentElement.scrollWidth
+    }
 
     const processScroll = () => {
       scrollRaf = 0
@@ -130,8 +139,8 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       const metrics: ScrollMetrics = {
         scrollTop,
         scrollLeft,
-        scrollHeight: currentElement.scrollHeight,
-        scrollWidth: currentElement.scrollWidth,
+        scrollHeight: cachedScrollHeight,
+        scrollWidth: cachedScrollWidth,
         clientHeight: cachedClientHeight,
         clientWidth: cachedClientWidth,
       }
@@ -179,10 +188,20 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       ro = new ResizeObserver(() => {
         cachedClientHeight = element.clientHeight
         cachedClientWidth = element.clientWidth
+        updateScrollDimensions()
       })
       ro.observe(element, { box: 'border-box' })
       cachedClientHeight = element.clientHeight
       cachedClientWidth = element.clientWidth
+
+      contentRo?.disconnect()
+      const content = element.firstElementChild
+      if (content) {
+        contentRo = new ResizeObserver(updateScrollDimensions)
+        contentRo.observe(content, { box: 'border-box' })
+      }
+      updateScrollDimensions()
+
       cb(getOffset(), false)
     }
 
@@ -203,6 +222,7 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
         currentElement.removeEventListener('scroll', onScroll)
       }
       ro?.disconnect()
+      contentRo?.disconnect()
       if (timeoutId) targetWindow.clearTimeout(timeoutId)
       if (pollId !== null) targetWindow.cancelAnimationFrame(pollId)
       if (scrollRaf) targetWindow.cancelAnimationFrame(scrollRaf)

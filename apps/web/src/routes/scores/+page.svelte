@@ -483,16 +483,21 @@
 
   let headerRowRef = $state<HTMLElement | null>(null)
 
+  let fadeRaf = 0
   function updateFadesFromViewport() {
-    const viewport = scroll.state.viewportRef
-    if (!viewport) return
-    updateFades({
-      scrollTop: viewport.scrollTop,
-      scrollLeft: viewport.scrollLeft,
-      scrollHeight: viewport.scrollHeight,
-      scrollWidth: viewport.scrollWidth,
-      clientHeight: viewport.clientHeight,
-      clientWidth: viewport.clientWidth,
+    if (fadeRaf) return
+    fadeRaf = requestAnimationFrame(() => {
+      fadeRaf = 0
+      const viewport = scroll.state.viewportRef
+      if (!viewport?.isConnected) return
+      updateFades({
+        scrollTop: viewport.scrollTop,
+        scrollLeft: viewport.scrollLeft,
+        scrollHeight: viewport.scrollHeight,
+        scrollWidth: viewport.scrollWidth,
+        clientHeight: viewport.clientHeight,
+        clientWidth: viewport.clientWidth,
+      })
     })
   }
 
@@ -573,6 +578,7 @@
     challenges,
     focusedChallengeId,
     isScrolling: scroll.isScrolling,
+    isDesktop,
     onCellHover: handleCellHover,
   })
 
@@ -638,6 +644,10 @@
       ro.disconnect()
       cancelAnimationFrame(raf1)
       if (raf2) cancelAnimationFrame(raf2)
+      if (fadeRaf) {
+        cancelAnimationFrame(fadeRaf)
+        fadeRaf = 0
+      }
     }
   })
 
@@ -856,15 +866,15 @@
           </div>
 
           <div
-            class="relative contain-[layout_style] backface-hidden"
+            class="relative contain-[layout_style]"
             style:height={isLoading ? `${10 * ROW_HEIGHT}px` : `${scroll.totalSize}px`}
             style:width={isDesktop ? `calc(var(--team-column-width) + ${contentWidth}px)` : '100%'}
           >
             {#if isLoading}
               {#each Array(10) as _, i}
                 <div
-                  class="absolute top-0 left-0 flex h-(--row-height-full) w-full will-change-transform contain-[layout_style_paint] md:w-auto"
-                  style:transform="translate3d(0, {i * ROW_HEIGHT}px, 0)"
+                  class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
+                  style:transform="translateY({i * ROW_HEIGHT}px)"
                 >
                   <ScoresTeamRow
                     data={null}
@@ -887,9 +897,9 @@
                   {@const solveTimes = solveTimesByTeam.get(entry.id) ?? null}
 
                   <div
-                    class="absolute top-0 left-0 flex w-full will-change-transform contain-[layout_style_paint] md:w-auto"
+                    class="absolute top-0 left-0 flex w-full contain-[layout_style_paint] md:w-auto"
                     style:height="{row.size}px"
-                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    style:transform="translateY({row.start - listScrollMargin}px)"
                   >
                     <ScoresTeamRow
                       data={{
@@ -921,8 +931,8 @@
                   </div>
                 {:else}
                   <div
-                    class="absolute top-0 left-0 flex h-(--row-height-full) w-full will-change-transform contain-[layout_style_paint] md:w-auto"
-                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
+                    style:transform="translateY({row.start - listScrollMargin}px)"
                   >
                     <ScoresTeamRow
                       data={null}
@@ -947,7 +957,7 @@
             {@const isTop = selfRowPosition === 'top'}
             <div
               class={cn(
-                'bg-background-l0 sticky z-20 flex h-(--row-height-full) will-change-transform contain-[layout_style_paint]',
+                'bg-background-l0 sticky z-20 flex h-(--row-height-full) contain-[layout_style_paint]',
                 isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1'
               )}
               style:top={isTop ? `${listScrollMargin}px` : undefined}
