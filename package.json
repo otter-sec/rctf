@@ -20,6 +20,8 @@
     "dev:web": "bun run --filter '@rctf/web' dev",
     "dev:docs": "bun run --filter '@rctf/docs' dev",
     "build": "bun run --filter '*' build",
+    "build:api": "bun run --filter '@rctf/api' build",
+    "build:web": "bun run --filter '@rctf/web' build",
     "test": "bun run test:server && bun run test:admin-bot && bun run test:admin-bot:e2e",
     "test:server": "cd tests/server && bun test",
     "test:server:coverage": "cd tests/server && bun test --coverage",
