@@ -127,6 +127,14 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       scrollRaf = 0
       if (!currentElement) return
 
+      // read scroll position at the start of the raf callback, not during the
+      // synchronous scroll event handler. in chromium, reading scrollTop always
+      // calls `UpdateStyleAndLayoutForNode()` which forces a full synchronous
+      // layout flush. by deferring the read to raf, we read after the browser
+      // has already laid out and painted the previous frame
+      capturedScrollTop = currentElement.scrollTop
+      capturedScrollLeft = currentElement.scrollLeft
+
       const { horizontal, isRtl } = instance.options
 
       const scrollTop = capturedScrollTop
@@ -150,18 +158,17 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       timeoutId = targetWindow.setTimeout(() => {
         if (!currentElement) return
         const endOffset = horizontal
-          ? currentElement.scrollLeft * ((isRtl && -1) || 1)
-          : currentElement.scrollTop
+          ? capturedScrollLeft * ((isRtl && -1) || 1)
+          : capturedScrollTop
         cb(endOffset, false)
       }, instance.options.isScrollingResetDelay)
     }
 
     const onScroll = () => {
-      if (!currentElement) return
-
-      capturedScrollTop = currentElement.scrollTop
-      capturedScrollLeft = currentElement.scrollLeft
-
+      // schedule a raf to process the scroll - do NOT read scrollTop here.
+      // reading scroll properties synchronously in the scroll handler forces
+      // layout if any dom mutations are pending from the previous frame's
+      // reactive updates
       if (!scrollRaf) {
         scrollRaf = targetWindow.requestAnimationFrame(processScroll)
       }

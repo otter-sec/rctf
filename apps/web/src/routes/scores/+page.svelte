@@ -325,7 +325,9 @@
 
   const viewportVisibility = $derived.by(() => {
     const metrics = scrollMetrics
-    const visibleRanks: number[] = []
+    let minRank = Infinity
+    let maxRank = 0
+    let visibleCount = 0
 
     if (metrics && entries.length > 0) {
       const viewportTop = metrics.scrollTop
@@ -340,7 +342,10 @@
 
         const isInViewport = itemBottom > viewportTop + headerOffset && itemTop < viewportBottom
         if (isInViewport) {
-          visibleRanks.push(item.index + 1)
+          const rank = item.index + 1
+          if (rank < minRank) minRank = rank
+          if (rank > maxRank) maxRank = rank
+          visibleCount++
         }
       }
     }
@@ -360,9 +365,8 @@
     }
 
     return {
-      visibleRanks,
-      minRank: visibleRanks.length > 0 ? Math.min(...visibleRanks) : 0,
-      maxRank: visibleRanks.length > 0 ? Math.max(...visibleRanks) : 0,
+      minRank: visibleCount > 0 ? minRank : 0,
+      maxRank: visibleCount > 0 ? maxRank : 0,
       userVisible,
       userClippedTop,
     }
@@ -395,8 +399,6 @@
       points.filter(p => p.time >= minTime && p.time <= CUTOFF_TIME)
 
     const allTeams = mergeWithSelfGraph(allGraphData, selfGraphQuery.data)
-    // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
-    //  hence why we're doing this manually
     let maxTime = 0
     for (const t of allTeams) {
       for (const p of filterPoints(t.points)) {
@@ -412,8 +414,6 @@
     const allPoints = allGraphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
     if (allPoints.length === 0) return new Map<string, number>()
 
-    // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
-    //  hence why we're doing this manually
     let maxDataTime = -Infinity
     for (const p of allPoints) {
       if (p.time > maxDataTime) maxDataTime = p.time

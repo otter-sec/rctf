@@ -2,7 +2,7 @@
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
-    url: string
+    svg: string
     width: number
   }
 
@@ -65,16 +65,7 @@
   let cachedPalette: RenderPalette | null = null
   let activeStripConsumers = 0
 
-  function revokeUrl(url: string) {
-    if (typeof URL !== 'undefined' && url.startsWith('blob:')) {
-      URL.revokeObjectURL(url)
-    }
-  }
-
   function clearStripCache() {
-    for (const strip of stripCache.values()) {
-      revokeUrl(strip.url)
-    }
     stripCache.clear()
   }
 
@@ -109,20 +100,13 @@
   }
 
   function cacheStrip(key: string, strip: RenderedStrip) {
-    const previous = stripCache.get(key)
-    if (previous) {
-      revokeUrl(previous.url)
-      stripCache.delete(key)
-    }
-
+    stripCache.delete(key)
     stripCache.set(key, strip)
 
     while (stripCache.size > MAX_RENDER_CACHE_ENTRIES) {
       const oldestKey = stripCache.keys().next().value
       if (oldestKey === undefined) break
-      const oldestStrip = stripCache.get(oldestKey)!
       stripCache.delete(oldestKey)
-      revokeUrl(oldestStrip.url)
     }
   }
 
@@ -159,17 +143,6 @@
       category,
     }
     return cachedPalette
-  }
-
-  function createSvgUrl(svg: string): string {
-    if (
-      typeof Blob !== 'undefined' &&
-      typeof URL !== 'undefined' &&
-      typeof URL.createObjectURL === 'function'
-    ) {
-      return URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }))
-    }
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   }
 
   function wrapSvg(width: number, content: string): string {
@@ -433,7 +406,7 @@
             palette,
           })
 
-    const next = { width: rendered.width, url: createSvgUrl(rendered.svg) }
+    const next: RenderedStrip = { svg: rendered.svg, width: rendered.width }
     cacheStrip(key, next)
     return next
   })
@@ -527,17 +500,15 @@
 >
   {#snippet stripImage()}
     {#if strip}
-      <img
-        src={strip.url}
-        alt=""
-        aria-hidden="true"
-        draggable="false"
-        decoding="async"
+      <!-- inline svg renders synchronously with the row, avoiding the async
+           image loading pipeline that causes challenge circles to lag behind -->
+      <div
         class="block h-16 shrink-0 select-none"
         style:width={strip.width + 'px'}
-        width={strip.width}
-        height={CELL_HEIGHT}
-      />
+        aria-hidden="true"
+      >
+        {@html strip.svg}
+      </div>
     {:else}
       <div class="h-16 shrink-0" style:width={imageWidth + 'px'}></div>
     {/if}
