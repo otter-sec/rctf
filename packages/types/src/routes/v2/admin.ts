@@ -181,7 +181,7 @@ export const GetAdminBotChallengeSourceRouteV2 = defineRoute({
   method: 'GET',
   goodResponses: [GoodAdminBotChallengeSource],
   badResponses: [BadEndpoint],
-  authRequired: false, // adminbot auth will be checked by the middleware
+  serviceAuth: 'adminBot',
   params: z.object({ id: z.string() }),
 })
 
@@ -189,14 +189,14 @@ export const GetAdminBotQueueDepthRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/queue-depth',
   method: 'GET',
   goodResponses: [GoodAdminBotQueueDepth],
-  authRequired: false, // adminbot auth will be checked by the middleware
+  serviceAuth: 'adminBot',
 })
 
 export const PullAdminBotJobRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/jobs/pull',
   method: 'POST',
   goodResponses: [GoodAdminBotJobPull],
-  authRequired: false, // adminbot auth will be checked by the middleware
+  serviceAuth: 'adminBot',
 })
 
 export const CompleteAdminBotJobRouteV2 = defineRoute({
@@ -207,7 +207,19 @@ export const CompleteAdminBotJobRouteV2 = defineRoute({
   }),
   goodResponses: [GoodAdminBotJobUpdate],
   badResponses: [BadEndpoint],
-  authRequired: false, // adminbot auth will be checked by the middleware
+  serviceAuth: 'adminBot',
+  params: z.object({ id: z.string() }),
+})
+
+export const FailAdminBotJobRouteV2 = defineRoute({
+  path: '/v2/admin/admin-bot/jobs/:id/fail',
+  method: 'POST',
+  body: z.object({
+    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
+  }),
+  goodResponses: [GoodAdminBotJobUpdate],
+  badResponses: [BadEndpoint],
+  serviceAuth: 'adminBot',
   params: z.object({ id: z.string() }),
 })
 
@@ -254,16 +266,4 @@ export const UpdateAdminSettingsRouteV2 = defineRoute({
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.settingsWrite,
-})
-
-export const FailAdminBotJobRouteV2 = defineRoute({
-  path: '/v2/admin/admin-bot/jobs/:id/fail',
-  method: 'POST',
-  body: z.object({
-    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
-  }),
-  goodResponses: [GoodAdminBotJobUpdate],
-  badResponses: [BadEndpoint],
-  authRequired: false, // adminbot auth will be checked by the middleware
-  params: z.object({ id: z.string() }),
 })

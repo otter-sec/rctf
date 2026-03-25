@@ -28,6 +28,7 @@ export interface RouteConfig {
   returnBodyAsIs?: boolean
   bodyFormat?: BodyFormat
   captchaAction?: ProtectedAction
+  serviceAuth?: 'adminBot'
 }
 
 export interface RouteDefinition<T extends RouteConfig = RouteConfig> {
@@ -61,6 +62,7 @@ export interface RouteDefinition<T extends RouteConfig = RouteConfig> {
     ? T['bodyFormat']
     : 'json'
   readonly captchaAction: T['captchaAction']
+  readonly serviceAuth: T['serviceAuth']
 }
 
 export function defineRoute<const T extends RouteConfig>(
@@ -90,6 +92,7 @@ export function defineRoute<const T extends RouteConfig>(
     bodyFormat: (config.bodyFormat ??
       'json') as RouteDefinition<T>['bodyFormat'],
     captchaAction: config.captchaAction,
+    serviceAuth: config.serviceAuth,
   } as RouteDefinition<T>
 }
 

@@ -8,7 +8,11 @@ import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
-import { adminBotProvider, uploadProvider } from './providers'
+import {
+  adminBotProvider,
+  analyticsProvider,
+  uploadProvider,
+} from './providers'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
 import { startLeaderboardWorker } from './workers'
@@ -31,9 +35,26 @@ const createApp = () => {
   return app
 }
 
-const registerApiRoutes = (app: Hono<AppEnv>) => {
+const registerApiRoutes = (
+  app: Hono<AppEnv>,
+  serviceAuth: Partial<Record<string, MiddlewareHandler>>
+) => {
   for (const { router, handler } of routeModules) {
-    app.on(router.definition.method, `/api${router.definition.path}`, handler)
+    const path = `/api${router.definition.path}`
+    const middlewareName = router.definition.serviceAuth
+    const middleware = middlewareName
+      ? serviceAuth[router.definition.serviceAuth]
+      : undefined
+
+    if (middlewareName && !middleware) {
+      throw new Error(`Unsupported API middleware: ${middlewareName}`)
+    }
+
+    if (middleware) {
+      app.on(router.definition.method, path, middleware, handler)
+    } else {
+      app.on(router.definition.method, path, handler)
+    }
   }
 }
 
@@ -57,23 +78,20 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
 export const setupApp = async () => {
   const app = createApp()
 
-  // For some context, if we only applied the middleware when admin bot provider is configured, it would still let you
-  // fetch existing pending jobs without authentication (e.g. consider someone disabling admin bot temporarily). The /pull
-  // endpoint does not require admin bot provider either, and it's safer to just always enforce this.
-  // TODO(es3n1n): I don't like doing this, but what are the alternatives
-  const adminBotAuthMiddleware: MiddlewareHandler = adminBotProvider
-    ? adminBotProvider.authMiddleware
-    : async (c, next) => {
-        return c.json(
-          { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
-          BadEndpoint.status as ContentfulStatusCode
-        )
-      }
-  app.use('/api/v2/admin/admin-bot/jobs/*', adminBotAuthMiddleware)
-  app.use('/api/v2/admin/admin-bot/challenges/*', adminBotAuthMiddleware)
+  const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
+    return c.json(
+      { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
+      BadEndpoint.status as ContentfulStatusCode
+    )
+  }
 
-  app.get('/api/v2/integrations/analytics/script', analyticsScriptHandler)
-  registerApiRoutes(app)
+  app.get(
+    '/api/v2/integrations/analytics/script',
+    analyticsProvider ? analyticsScriptHandler : badEndpointMiddleware
+  )
+  registerApiRoutes(app, {
+    adminBot: adminBotProvider?.authMiddleware || badEndpointMiddleware,
+  })
   await uploadProvider.startupWebPart(app)
   if (adminBotProvider) {
     await adminBotProvider.startupWebPart(app)
