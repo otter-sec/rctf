@@ -82,6 +82,82 @@ const extractFetchResults = (
 const testUrl = (path: string): string =>
   `http://${TEST_HOST}:${serverPort}${path}`
 
+describe('PAC e2e [firefox] — localhost/loopback bypass regression', () => {
+  const { browserArgs, extraPrefsFirefox } = pacBrowserConfigs['firefox']
+
+  beforeAll(async () => {
+    await browserManager.getBrowserPath({
+      browser: 'firefox',
+      version: 'stable',
+    })
+  }, 120_000)
+
+  const makeLoopbackFetchHandler = (hosts: string[]): string => {
+    const urls = hosts.map(h => `http://${h}:${serverPort}/loopback-test`)
+    return `
+    const page = await ctx.browserContext.newPage()
+    await page.goto('about:blank')
+
+    const urls = ${JSON.stringify(urls)}
+    for (const url of urls) {
+      const result = await page.evaluate(async (fetchUrl) => {
+        try {
+          const res = await fetch(fetchUrl)
+          const body = await res.text()
+          return 'fetch:' + new URL(fetchUrl).pathname + ':' + res.status + ':' + body
+        } catch (e) {
+          return 'fetch:' + new URL(fetchUrl).pathname + ':error:' + e.message
+        }
+      }, url)
+      ctx.output.info('challenge', result)
+    }
+
+    await page.close()`
+  }
+
+  test(
+    'disallowRegex blocks localhost in Firefox',
+    async () => {
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: makeLoopbackFetchHandler(['localhost']),
+          browser: 'firefox',
+          browserArguments: browserArgs,
+          extraPrefsFirefox,
+          restrictDomains: {
+            host: { disallowRegex: [r('^localhost$')] },
+          },
+        }),
+      })
+
+      const fetches = extractFetchResults(result.parsed)
+      expect(fetches['/loopback-test']?.status).toBe('error')
+    },
+    TEST_TIMEOUT
+  )
+
+  test(
+    'disallowRegex blocks 127.0.0.1 in Firefox',
+    async () => {
+      const result = await runChallenge({
+        source: challengeSource({
+          handler: makeLoopbackFetchHandler(['127.0.0.1']),
+          browser: 'firefox',
+          browserArguments: browserArgs,
+          extraPrefsFirefox,
+          restrictDomains: {
+            host: { disallowRegex: [r('^127\\.0\\.0\\.1$')] },
+          },
+        }),
+      })
+
+      const fetches = extractFetchResults(result.parsed)
+      expect(fetches['/loopback-test']?.status).toBe('error')
+    },
+    TEST_TIMEOUT
+  )
+})
+
 for (const browser of browsers) {
   const { browserArgs, extraPrefsFirefox } = pacBrowserConfigs[browser]
 
