@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { ProtectedAction } from '../../enums'
+import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
   BadCtftimeNoExists,
@@ -44,6 +44,8 @@ export const GetUserRoute = defineRoute({
   params: z.object({
     id: z.string(),
   }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
 export const GetUserSelfRoute = defineRoute({
