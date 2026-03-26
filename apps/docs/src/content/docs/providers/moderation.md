@@ -1,4 +1,58 @@
 ---
 title: Moderation Providers
-description: Configuring moderation providers in rCTF.
+description: Configure avatar content moderation with OpenAI's moderation API.
 ---
+
+Moderation providers check uploaded avatar images for inappropriate content. This is an optional feature - without a moderation provider, all avatars are accepted.
+
+## Configuration
+
+```yaml
+avatarsModeration:
+  provider:
+    name: moderation/openai
+    options:
+      apiKey: sk-...
+  allowOnInternalError: true
+```
+
+| Field                                    | Type    | Default | Description                                                   |
+| ---------------------------------------- | ------- | ------- | ------------------------------------------------------------- |
+| `avatarsModeration.provider`             | object  | -       | Moderation provider configuration                             |
+| `avatarsModeration.allowOnInternalError` | boolean | `true`  | Whether to allow avatar uploads when the moderation API fails |
+
+:::tip
+Setting `allowOnInternalError: true` (the default) ensures that temporary OpenAI API outages do not prevent users from uploading avatars. Set to `false` if strict moderation is required.
+:::
+
+## Providers
+
+### moderation/openai
+
+Uses [OpenAI's moderation API](https://platform.openai.com/docs/guides/moderation) to check avatar images for policy violations.
+
+```yaml
+avatarsModeration:
+  provider:
+    name: moderation/openai
+    options:
+      apiKey: sk-...
+      model: omni-moderation-latest # Optional
+```
+
+| Option   | Environment Variable                                 | Default                  | Description             |
+| -------- | ---------------------------------------------------- | ------------------------ | ----------------------- |
+| `apiKey` | `RCTF_MODERATION_OPENAI_API_KEY` or `OPENAI_API_KEY` | -                        | OpenAI API key          |
+| `model`  | `RCTF_MODERATION_OPENAI_MODEL`                       | `omni-moderation-latest` | OpenAI moderation model |
+
+The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image is flagged as inappropriate, the upload is rejected with an error.
+
+## Moderation pipeline
+
+When a user uploads an avatar, the following pipeline runs:
+
+1. Image is validated against `maxAvatarSize` (default 1 MB)
+2. Image is resized to 256x256 pixels and converted to WebP
+3. If a moderation provider is configured, the image is checked
+4. If approved (or no provider configured), the image is uploaded via the upload provider
+5. The previous avatar, if any, is deleted

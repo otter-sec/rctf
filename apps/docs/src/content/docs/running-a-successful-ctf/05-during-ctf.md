@@ -11,7 +11,17 @@ Effective monitoring is essential for identifying and resolving issues before th
 
 ### Infrastructure monitoring
 
-TODO
+Monitor the following components throughout the competition:
+
+- **rCTF platform** - Watch API server logs for elevated error rates.
+- **PostgreSQL** - Monitor connection pool usage, query latency, and disk space. High connection counts may indicate a connection leak or excessive load.
+- **Redis** - Monitor memory usage and connected clients. Redis is used for caching, rate limiting, and leaderboard computation. If Redis becomes unavailable, rate limiting and caching will fail.
+- **Challenge containers** - Monitor CPU, memory, and network usage for hosted challenges.
+- **Reverse proxy (Nginx)** - Monitor request rates, error rates (5xx), and response times. If behind Cloudflare, use the Cloudflare dashboard for DDoS metrics.
+
+:::tip
+Consider setting up a simple uptime monitor (e.g., [UptimeRobot](https://uptimerobot.com/), [Hetrix Tools](https://hetrixtools.com/)) that pings your CTF platform and alerts via Discord or email if it goes down.
+:::
 
 ### Staffing and shift coverage
 
@@ -25,7 +35,9 @@ Despite thorough preparation, issues will inevitably arise during the competitio
 
 If a challenge becomes unavailable, the response depends on the deployment method:
 
-TODO
+- **Docker containers** - Check container status with `docker ps` and logs with `docker logs <container>`. Restart with `docker compose up -d --force-recreate <service>` if needed.
+- **Instancer-managed challenges** - Verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
+- **Static challenges** (no remote) - Verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
 
 Once the issue is resolved, post an announcement in the `#announcements` channel informing participants that the challenge is back online.
 
@@ -33,7 +45,11 @@ Once the issue is resolved, post an announcement in the `#announcements` channel
 
 If the rCTF platform itself becomes unresponsive:
 
-TODO
+1. **Check API server logs** - Look for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker: `docker logs rctf-app-1`.
+2. **Verify database connectivity** - Ensure PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries: `docker exec -it rctf-postgres-1 psql -U rctf -c "SELECT count(*) FROM pg_stat_activity;"`.
+3. **Verify Redis connectivity** - Ensure Redis is running: `docker exec -it rctf-redis-1 redis-cli ping`.
+4. **Restart the rCTF service** - If the issue is not immediately identifiable: `cd /opt/rctf && docker compose restart app` (or the relevant service name).
+5. **Check resource usage** - Verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 
 For extended outages, consider extending the competition end time to compensate for lost time.
 

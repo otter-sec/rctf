@@ -1,4 +1,90 @@
 ---
-title: Users API
-description: rCTF Users API reference.
+title: Authentication and Accounts
+description: How registration, login, recovery, team tokens, and user profiles work in rCTF.
 ---
+
+## Team model
+
+rCTF uses a team-based authentication model. Each team shares a single login token - there is no concept of individual user accounts within a team. All team members log in with the same token.
+
+## Registration
+
+There are two ways to register:
+
+### Email registration
+
+1. The user provides a team name and email address
+2. If email verification is enabled, a verification email is sent with a one-time token
+3. The user clicks the verification link or submits the token to complete registration
+4. An auth token is returned for logging in
+
+If no email provider is configured and CTFtime auth is not set up, registration is not possible.
+
+### CTFtime registration
+
+1. The user authenticates with CTFtime via OAuth
+2. They provide a team name and the CTFtime token
+3. Registration completes immediately - no email verification needed
+
+:::note
+When CTFtime authentication is configured, [division ACLs](/configuration#division-acls) are bypassed entirely since ACLs are email-based.
+:::
+
+## Login
+
+Teams log in by providing either their team token or a CTFtime OAuth token. Auth tokens are encrypted, never expire, and are tied to the team account.
+
+## Account recovery
+
+If a team loses their token, they can recover their account by requesting a recovery email. The platform sends a team token to the registered email address.
+
+:::note
+The recovery flow always returns a success response regardless of whether the email is registered. This prevents user enumeration.
+:::
+
+## Token lifecycle
+
+- **Auth tokens** never expire - once issued, they work indefinitely
+- **Team tokens** never expire - they are the primary recovery mechanism
+- **Verification tokens** expire after `loginTimeout` (default 1 hour) and are stored in Redis
+- **CTFtime tokens** expire after `loginTimeout`
+
+All tokens are encrypted with AES-GCM using the `tokenKey` from the configuration. If `tokenKey` changes, all existing tokens become invalid.
+
+## User cache
+
+User data is cached in Redis with a 30-second TTL to reduce database load. The cache is automatically invalidated when user data changes (email updates, CTFtime linking, etc.).
+
+## Profile fields
+
+Teams have the following profile data:
+
+| Field        | Description                                         |
+| ------------ | --------------------------------------------------- |
+| Name         | Team display name (2-64 printable ASCII characters) |
+| Email        | Optional, used for registration and recovery        |
+| Division     | Assigned at registration, changeable if ACLs allow  |
+| CTFtime ID   | Linked CTFtime account (optional)                   |
+| Avatar       | Team avatar image (v2, resized to 256x256 WebP)     |
+| Country code | ISO 3166-1 alpha-2 code (v2)                        |
+| Status text  | Short status message, max 60 characters (v2)        |
+
+### Avatar pipeline
+
+When a team uploads an avatar:
+
+1. The image is validated against `maxAvatarSize` (default 1 MB)
+2. It is resized to 256x256 pixels and converted to WebP format
+3. If a [moderation provider](/providers/moderation) is configured, the image is checked for inappropriate content
+4. The image is uploaded via the configured [upload provider](/providers/uploads)
+5. The previous avatar, if any, is deleted
+
+Avatar uploads are rate-limited (2 per 2 minutes) and can be protected by captcha.
+
+## Team members
+
+When `userMembers` is enabled (default), teams can add members by email. This is informational - members share the same team token and it does not create separate accounts. The maximum number of members is controlled by `maxMembers` (default 50).
+
+## Account requirements
+
+Every account must have at least one authentication method: an email address or a linked CTFtime ID. This is enforced by a database constraint. A team cannot remove their email if they have no CTFtime ID linked, and vice versa.

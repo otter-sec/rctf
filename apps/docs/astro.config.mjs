@@ -86,6 +86,7 @@ export default defineConfig({
             {
               label: 'Administration',
               items: [
+                { label: 'Overview', slug: 'admin' },
                 { label: 'Challenges', slug: 'admin/challenges' },
                 { label: 'Teams', slug: 'admin/teams' },
                 { label: 'Submissions', slug: 'admin/submissions' },

@@ -1113,7 +1113,7 @@ describe('calculateLeaderboard standalone', () => {
   test('returns valid structure with no data', async () => {
     const db = getDb()
 
-    // Ensure clean state — other tests may leave data in shared PGlite
+    // Ensure clean state - other tests may leave data in shared PGlite
     await db.delete(solves)
     await db.delete(users)
     await db.delete(challenges)

@@ -1,4 +1,86 @@
 ---
 title: Blood Bot
-description: Setting up a blood bot with rCTF.
+description: Configure first blood announcements to Discord and Telegram.
 ---
+
+The blood bot automatically announces first blood achievements to Discord and/or Telegram channels when teams solve a challenge among the first.
+
+## Configuration
+
+```yaml title="rctf.d/bloodbot.yaml"
+bloodBot:
+  bloodsCount: 3
+  destinations:
+    - provider:
+        name: messages/discord
+        options:
+          url: https://discord.com/api/webhooks/123456/abcdef
+    - provider:
+        name: messages/telegram
+        options:
+          botToken: '123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11'
+          chatId: '-1001234567890'
+```
+
+| Field          | Type   | Default | Description                             |
+| -------------- | ------ | ------- | --------------------------------------- |
+| `bloodsCount`  | number | `1`     | Number of blood tiers to announce (1-3) |
+| `destinations` | array  | -       | At least one destination required       |
+
+Setting `bloodsCount: 3` announces first, second, and third blood. Setting it to `1` only announces first blood.
+
+## Message providers
+
+### messages/discord
+
+Sends announcements via a Discord webhook.
+
+| Option | Description         |
+| ------ | ------------------- |
+| `url`  | Discord webhook URL |
+
+To create a webhook: Server Settings > Integrations > Webhooks > New Webhook. Copy the webhook URL.
+
+### messages/telegram
+
+Sends announcements via a Telegram bot.
+
+| Option     | Description                                                    |
+| ---------- | -------------------------------------------------------------- |
+| `botToken` | Telegram bot token (from [@BotFather](https://t.me/BotFather)) |
+| `chatId`   | Target chat or group ID                                        |
+| `threadId` | Message thread ID for forum/topic channels (optional)          |
+
+## Custom message templates
+
+Each destination can have a custom `messageTemplate`:
+
+```yaml
+bloodBot:
+  bloodsCount: 1
+  destinations:
+    - provider:
+        name: messages/discord
+        options:
+          url: https://discord.com/api/webhooks/...
+      messageTemplate: '{{teamName}} got {{bloodNumSentence}} blood on {{challengeCategory}}/{{challengeName}}!'
+```
+
+### Template variables
+
+| Variable                | Description         | Example                                |
+| ----------------------- | ------------------- | -------------------------------------- |
+| `{{teamName}}`          | Team display name   | `SuperHackers`                         |
+| `{{teamUrl}}`           | URL to team profile | `https://ctf.example.com/users/abc123` |
+| `{{bloodNumSentence}}`  | Blood ordinal       | `first`, `second`, `third`             |
+| `{{challengeCategory}}` | Challenge category  | `web`                                  |
+| `{{challengeName}}`     | Challenge name      | `SQL Injection 101`                    |
+
+### Default templates
+
+If no custom template is provided, default templates are used:
+
+- **Discord**: ``Congratulations to [`{{teamName}}`]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`!``
+- **Telegram**: ``Congratulations to [*{{teamName}}*]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`\!``
+
+The Telegram template uses MarkdownV2 syntax and escapes the `!` character as required by the Telegram API.

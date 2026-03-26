@@ -1,4 +1,33 @@
 ---
-title: Challenges API
-description: rCTF Challenges API reference.
+title: Challenges
+description: How challenges, flag submission, scoring, and solves work in rCTF.
 ---
+
+## Dynamic scoring
+
+Each challenge defines a point range with `points.min` and `points.max`. The current score starts at `maxPoints` when no one has solved the challenge and decreases toward `minPoints` as more teams solve it. The exact curve depends on the configured [scoring provider](/providers/scores).
+
+When a challenge is created or updated, the leaderboard is automatically recalculated to reflect any point changes.
+
+## First bloods
+
+The first three teams to solve a challenge are tracked as "bloods":
+
+- **First blood** (index 0)
+- **Second blood** (index 1)
+- **Third blood** (index 2)
+
+Blood status is determined by solve timestamp. If a [blood bot](/integrations/bloodbot) is configured, announcements are sent automatically when these milestones are reached.
+
+## Challenge visibility
+
+Challenges support two visibility controls:
+
+- **Hidden** - When `hidden` is set to `true`, the challenge is completely invisible to non-admin users
+- **Release time** - When `releaseTime` is set to a Unix millisecond timestamp, the challenge becomes visible only after that time. Set to `null` to make it visible immediately when the CTF starts.
+
+These controls allow organizers to prepare challenges in advance and release them on a schedule.
+
+## File attachments
+
+Challenges can have downloadable file attachments. Files are uploaded through the admin panel and stored via the configured [upload provider](/providers/uploads). Each file has a name, URL, and size. Files are deduplicated by SHA256 hash - uploading the same content twice returns the existing URL.

@@ -41,7 +41,7 @@ To list your CTF on CTFtime, you need to complete three steps:
 2. [Register your event](https://ctftime.org/event/mail/). This creates an entry for your recurring CTF series, such as "My CTF." Event registration must be reviewed and manually approved by the CTFtime team, so be sure to start this process early, well before your event date, to ensure your listing appears in time.
 3. [Add an edition of your event](https://ctftime.org/event/new/). Each instance of your CTF (for example, "My CTF 2026" held on April 1st, 2026) is considered an edition. Once your event is registered and approved, you can add a new edition for each specific competition date.
 
-Following the conclusion of the CTF, it is highly recommended to upload the final scoreboard to the event page. This enables participating teams to receive points, which contribute to their global ranking. The longer an event has been organized—that is, the more editions it has—[the higher weight](https://ctftime.org/faq/#weight-vote) it may achieve based on competitor votes.
+Following the conclusion of the CTF, it is highly recommended to upload the final scoreboard to the event page. This enables participating teams to receive points, which contribute to their global ranking. The longer an event has been organized-that is, the more editions it has-[the higher weight](https://ctftime.org/faq/#weight-vote) it may achieve based on competitor votes.
 
 :::note
 Additional information regarding CTF organization is available on CTFtime's [organizer resources page](https://ctftime.org/for-organizers/).

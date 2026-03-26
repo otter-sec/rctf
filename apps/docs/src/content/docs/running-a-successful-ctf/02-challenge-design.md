@@ -50,9 +50,47 @@ Each challenge should include the following:
 
 ### Dockerization
 
-For challenges that require a remote component, containerization using Docker is strongly recommended.
+For challenges that require a remote component, containerization using Docker is strongly recommended. Containers provide reproducible builds, easy deployment, and isolation between challenges.
 
-ES3N1N TODO
+#### Best practices
+
+- **One challenge per container** - Keep each challenge self-contained. If a challenge requires multiple services (e.g., a web app and a database), use Docker Compose.
+- **Minimal base images** - Use lightweight images like `alpine` or `debian-slim` to reduce build times and attack surface.
+- **Build artifacts separately** - Use multi-stage builds to compile binaries in one stage and copy only the final artifact into the runtime image.
+- **Non-root users** - Run challenge services as a non-root user inside the container to limit the impact of container escapes.
+- **Read-only filesystem** - Where possible, mount the root filesystem as read-only (`readOnly: true` or `--read-only`) and use a tmpfs for writable directories.
+
+#### Security defaults
+
+When deploying challenges, apply the following security settings:
+
+- `cap_drop: ALL` - Drop all Linux capabilities
+- `no-new-privileges: true` - Prevent privilege escalation
+- Memory and PID limits - Prevent resource exhaustion (e.g., fork bombs)
+- Network isolation - Use internal networks for multi-container challenges where services should not be directly reachable
+
+#### Example Dockerfile
+
+```dockerfile title="Dockerfile"
+FROM python:3.12-slim
+
+RUN useradd -m ctf
+WORKDIR /home/ctf
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY app.py flag.txt ./
+RUN chmod 444 flag.txt
+
+USER ctf
+EXPOSE 5000
+CMD ["python", "app.py"]
+```
+
+#### Using with rCTF instancer
+
+If you are using rCTF's [instancer integration](/integrations/instancer), the Docker Compose-like configuration is defined in the challenge's `instancerConfig` field. The instancer handles container lifecycle, networking, and cleanup automatically.
 
 ## Pre-event checklist
 

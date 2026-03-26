@@ -82,7 +82,7 @@ const extractFetchResults = (
 const testUrl = (path: string): string =>
   `http://${TEST_HOST}:${serverPort}${path}`
 
-describe('PAC e2e [firefox] — localhost/loopback bypass regression', () => {
+describe('PAC e2e [firefox] - localhost/loopback bypass regression', () => {
   const { browserArgs, extraPrefsFirefox } = pacBrowserConfigs['firefox']
 
   beforeAll(async () => {
@@ -193,7 +193,7 @@ for (const browser of browsers) {
     }, 120_000)
 
     test(
-      'no restrictions — all fetches succeed',
+      'no restrictions - all fetches succeed',
       async () => {
         const result = await runChallenge({
           source: challengeSource({
