@@ -63,6 +63,13 @@ export const challenge = new Challenge({
     // note on case sensitivity:
     // - `host` is always lowercased by the browser
     // - `url` param preserves the original casing of the path/query
+    //
+    // note on dns rebinding bypasses:
+    // pac rules match on host/url strings only - they do not resolve DNS.
+    // a blocklist-only config (disallowRegex without a catch-all) can be
+    // bypassed by aliases that resolve to internal IPs (e.g. 127.0.0.1.nip.io).
+    // to prevent this, pair allowRegex with a catch-all disallowRegex
+    // so that only explicitly allowed hosts can be reached.
 
     // allow example.com, but not any other example.com subdomain
     host: {
