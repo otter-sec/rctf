@@ -51,8 +51,7 @@ const alertExtension: TokenizerAndRendererExtension = {
   },
   renderer(token) {
     const { alertType, content } = token
-    const parsed = DOMPurify.sanitize(marked.parse(content) as string)
-    return `<div data-alert data-type="${alertType}" data-content="${escapeHtml(content)}" data-parsed="${escapeHtml(parsed)}"></div>`
+    return `<div data-alert data-type="${alertType}" data-content="${escapeHtml(content)}"></div>`
   },
 }
 
@@ -93,16 +92,13 @@ const ensureHtmlBlockSeparation = (content: string) =>
     '$1\n\n'
   )
 
+export const parseAlertContent = (content: string) =>
+  DOMPurify.sanitize(marked.parse(content) as string)
+
 export const parseMarkdown = (content: string) =>
   DOMPurify.sanitize(
     marked.parse(ensureHtmlBlockSeparation(content)) as string,
     {
-      ADD_ATTR: [
-        'data-alert',
-        'data-type',
-        'data-content',
-        'data-parsed',
-        'data-timer',
-      ],
+      ADD_ATTR: ['data-alert', 'data-type', 'data-content', 'data-timer'],
     }
   )

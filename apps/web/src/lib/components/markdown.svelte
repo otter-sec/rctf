@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { parseMarkdown, type AlertType } from '$lib/utils/markdown'
+  import { parseAlertContent, parseMarkdown, type AlertType } from '$lib/utils/markdown'
   import { mount, onMount, unmount } from 'svelte'
   import MarkdownAlert from './markdown-alert.svelte'
   import MarkdownTimer from './markdown-timer.svelte'
@@ -40,7 +40,7 @@
           props: {
             type: getAlertType(el),
             content: el.getAttribute('data-content') ?? '',
-            parsedContent: el.getAttribute('data-parsed') ?? '',
+            parsedContent: parseAlertContent(el.getAttribute('data-content') ?? ''),
           },
         })
       ),
