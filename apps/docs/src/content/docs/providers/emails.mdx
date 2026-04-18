@@ -1,0 +1,108 @@
+---
+title: Email providers
+description: Configure email delivery with SMTP, Amazon SES, Postmark, or Mailgun.
+---
+
+import Callout from '@/components/callout.astro'
+
+Email providers handle sending verification and recovery emails. An email provider is required for email-based registration, account recovery, and email changes.
+
+## Configuration
+
+Email configuration includes the provider, a sender address, and an optional logo URL for email templates:
+
+```yaml
+email:
+  provider:
+    name: emails/smtp
+    options:
+      smtpUrl: smtp://user:password@mail.example.com:587
+  from: noreply@example.com
+  logoUrl: https://example.com/logo.png # Optional
+```
+
+<Callout variant="note">
+
+Email is required for registration when CTFtime authentication is not configured. Without an email provider, users cannot register, recover their accounts, or use email-based division ACLs.
+
+</Callout>
+## Providers
+
+### emails/smtp
+
+Sends emails via SMTP using Nodemailer.
+
+```yaml
+email:
+  provider:
+    name: emails/smtp
+    options:
+      smtpUrl: smtp://user:password@mail.example.com:587
+  from: noreply@example.com
+```
+
+| Option    | Environment Variable | Description         |
+| --------- | -------------------- | ------------------- |
+| `smtpUrl` | `RCTF_SMTP_URL`      | SMTP connection URL |
+
+### emails/ses
+
+Sends emails via Amazon Simple Email Service.
+
+```yaml
+email:
+  provider:
+    name: emails/ses
+    options:
+      awsKeyId: AKIAIOSFODNN7EXAMPLE
+      awsKeySecret: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      awsRegion: us-east-1
+  from: noreply@example.com
+```
+
+| Option         | Environment Variable  | Description           |
+| -------------- | --------------------- | --------------------- |
+| `awsKeyId`     | `RCTF_SES_KEY_ID`     | AWS access key ID     |
+| `awsKeySecret` | `RCTF_SES_KEY_SECRET` | AWS secret access key |
+| `awsRegion`    | `RCTF_SES_REGION`     | AWS region            |
+
+<Callout variant="warning">
+
+Ensure your SES account is out of the sandbox and the sender address is verified before use.
+
+</Callout>
+### emails/postmark
+
+Sends emails via the [Postmark](https://postmarkapp.com/) API.
+
+```yaml
+email:
+  provider:
+    name: emails/postmark
+    options:
+      serverToken: your-server-token
+  from: noreply@example.com
+```
+
+| Option        | Environment Variable         | Description           |
+| ------------- | ---------------------------- | --------------------- |
+| `serverToken` | `RCTF_POSTMARK_SERVER_TOKEN` | Postmark server token |
+
+### emails/mailgun
+
+Sends emails via the [Mailgun](https://www.mailgun.com/) API.
+
+```yaml
+email:
+  provider:
+    name: emails/mailgun
+    options:
+      apiKey: your-api-key
+      domain: mail.example.com
+  from: noreply@example.com
+```
+
+| Option   | Environment Variable   | Description            |
+| -------- | ---------------------- | ---------------------- |
+| `apiKey` | `RCTF_MAILGUN_API_KEY` | Mailgun API key        |
+| `domain` | `RCTF_MAILGUN_DOMAIN`  | Mailgun sending domain |

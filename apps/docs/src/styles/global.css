@@ -1,0 +1,115 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap');
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme inline {
+  --font-sans:
+    'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMonoVF.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: oklch(0.205 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --muted: #f0f0f0;
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: #c10007;
+  --accent-foreground: #ffffff;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #ececec;
+  --ring: oklch(0.708 0 0);
+}
+
+[data-theme='dark'] {
+  --background: #121212;
+  --foreground: rgba(255, 255, 255, 0.88);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --muted: #222222;
+  --muted-foreground: rgba(255, 255, 255, 0.55);
+  --accent: #ff6467;
+  --accent-foreground: #0e0e0e;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #2a2a2a;
+  --ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    @apply border-border outline-ring/50 tracking-tight;
+  }
+
+  /* Inline code gets the accent color, rctf-style */
+  :not(pre) > code {
+    color: var(--accent);
+  }
+}
+
+@layer components {
+  /* Sidebar group chevron: scope to the immediate parent <details> only,
+     so nested details don't drag their children's chevrons open. */
+  [data-sidebar-group][open] > summary [data-sidebar-chevron] {
+    transform: rotate(90deg);
+  }
+
+  .file-tree ul {
+    list-style: none;
+    margin: 0;
+    padding-left: 1rem;
+  }
+  .file-tree > ul {
+    padding-left: 0;
+  }
+  .file-tree li {
+    position: relative;
+    padding: 0.125rem 0 0.125rem 1.25rem;
+    line-height: 1.5;
+  }
+  .file-tree li::before {
+    content: '├─';
+    position: absolute;
+    left: 0;
+    color: var(--muted-foreground);
+    opacity: 0.6;
+    font-family: var(--font-mono);
+  }
+  .file-tree li:last-child::before {
+    content: '└─';
+  }
+}

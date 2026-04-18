@@ -1,0 +1,124 @@
+---
+title: Manual installation
+description: Set up rCTF from source for development or custom deployments.
+---
+
+import Callout from '@/components/callout.astro'
+
+This guide covers setting up rCTF from source without Docker, suitable for development or environments where you need full control over the stack.
+
+## Prerequisites
+
+- [Bun](https://bun.sh/) 1.2 or later
+- PostgreSQL 15+ with the `pg_trgm` extension enabled
+- Redis 7+
+
+## Setup
+
+### 1. Clone and install dependencies
+
+```bash title="Terminal"
+git clone https://github.com/otter-sec/rctf.git
+cd rctf
+bun i
+```
+
+### 2. Create a configuration directory
+
+rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one at the project root:
+
+```bash title="Terminal"
+mkdir rctf.d
+```
+
+Create a minimal configuration file:
+
+```yaml title="rctf.d/01-base.yaml"
+ctfName: My CTF
+origin: https://ctf.example.com
+
+# Generate with: openssl rand -base64 32
+tokenKey: <base64-encoded-32-byte-key>
+
+database:
+  sql: postgres://user:password@localhost:5432/rctf
+  redis: redis://localhost:6379
+  migrate: before
+
+startTime: 1735689600000 # Unix milliseconds
+endTime: 1735776000000
+
+divisions:
+  open: Open
+```
+
+<Callout variant="tip" title="Generating a token key">
+
+The `tokenKey` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
+
+```bash title="Terminal"
+openssl rand -base64 32
+```
+
+</Callout>
+You can also set configuration values through environment variables. See [Configuration](/configuration) for the full reference.
+
+### 3. Run database migrations
+
+```bash title="Terminal"
+bun run db:migrate
+```
+
+Alternatively, set `database.migrate: before` in your config to run migrations automatically on startup.
+
+### 4. Start the development servers
+
+```bash title="Terminal"
+bun dev
+```
+
+This starts both the API server on `http://127.0.0.1:3000` and the SvelteKit dev server on `http://127.0.0.1:5173`. The dev server proxies API requests to the backend.
+
+To run them separately:
+
+```bash title="Terminal"
+bun run dev:api   # API only on :3000
+bun run dev:web   # Frontend only on :5173
+```
+
+## Production build
+
+Build both the API and frontend:
+
+```bash title="Terminal"
+bun run --filter '@rctf/web' build   # Builds static frontend
+bun run --filter '@rctf/api' start   # Starts API server
+```
+
+The API server listens on the port specified by the `PORT` environment variable (default `3000`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+
+## Scaling with instance types
+
+The `instanceType` configuration option controls which components run in a given process:
+
+| Value           | Behavior                                            |
+| --------------- | --------------------------------------------------- |
+| `all` (default) | Runs both the API server and the leaderboard worker |
+| `frontend`      | Runs the API server only                            |
+| `leaderboard`   | Runs the leaderboard computation worker only        |
+
+This allows horizontal scaling by running separate `frontend` and `leaderboard` instances:
+
+```yaml title="rctf.d/02-scaling.yaml"
+instanceType: frontend # or 'leaderboard'
+```
+
+## Running tests
+
+Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
+
+```bash title="Terminal"
+bun test                    # Run all tests from root
+bun run test:coverage       # With coverage
+bun run typecheck           # Typecheck all workspaces
+```

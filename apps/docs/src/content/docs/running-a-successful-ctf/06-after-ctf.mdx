@@ -3,15 +3,13 @@ title: After the CTF
 description: Post-CTF tasks including uploading scoreboards to CTFtime, distributing prizes, collecting feedback, and tearing down infrastructure.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import Callout from '@/components/callout.astro'
 
 Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, and infrastructure teardown.
 
 ## Uploading scoreboard to CTFtime
 
 Submitting the final scoreboard to CTFtime enables participating teams to receive ranking points. The following procedure exports the scoreboard in the format CTFtime expects.
-
-<Steps>
 
 1. **Update admin permissions**
 
@@ -52,12 +50,11 @@ Submitting the final scoreboard to CTFtime enables participating teams to receiv
 
    Submit the command output through the CTFtime event dashboard.
 
-   :::note
+   <Callout variant="note">
+
    Point distribution may take approximately one hour for established events. For first-time events, points are awarded only after the one-week weight voting period concludes.
-   :::
 
-</Steps>
-
+   </Callout>
 ## Prize distribution
 
 For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
@@ -74,10 +71,11 @@ psql -U rctf
 SELECT * FROM users WHERE name IN ('Team 1', 'Team 2', 'Team 3');
 ```
 
-:::tip
-For competitions using divisions, the query can be extended to filter by division if prize distribution varies by category.
-:::
+<Callout variant="tip">
 
+For competitions using divisions, the query can be extended to filter by division if prize distribution varies by category.
+
+</Callout>
 ## Feedback collection
 
 Releasing a post-competition feedback form (e.g., Google Forms) provides valuable insights for future events. Consider soliciting feedback on the following areas:
@@ -88,10 +86,11 @@ Releasing a post-competition feedback form (e.g., Google Forms) provides valuabl
 | Challenges     | Difficulty balance, category distribution, quality of problem design |
 | Organization   | Communication clarity, support responsiveness, overall experience    |
 
-:::tip
-Feedback collected from participants is invaluable for improving subsequent events. Review responses thoroughly before planning the next competition.
-:::
+<Callout variant="tip">
 
+Feedback collected from participants is invaluable for improving subsequent events. Review responses thoroughly before planning the next competition.
+
+</Callout>
 ## Writeup collection
 
 Encouraging participants to publish writeups benefits the broader CTF community and provides learning resources for future competitors. Consider the following approaches:
@@ -107,11 +106,13 @@ The timing of infrastructure teardown depends on several factors: remaining budg
 
 For infrastructure sponsored by cloud providers (e.g., Google Cloud credits), services may remain operational until credits are depleted, provided no sensitive data is at risk.
 
-:::caution[Teardown checklist]
+<Callout variant="warning" title="Teardown checklist">
+
 Ensure the following resources are properly decommissioned to avoid unexpected costs:
 
 - Take down the CTF platform, and back up the database and configuration before deletion to simplify setup for future events.
 - Remove kCTF clusters, VPS instances, Klodd/tiny-instancer deployments, and associated GKE resources.
 - For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts.
 - Rotate or revoke any API keys, tokens, or credentials used during the event.
-  :::
+
+</Callout>

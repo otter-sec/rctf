@@ -1,0 +1,86 @@
+---
+import DocLayout from '@/layouts/doc.astro'
+import {
+  docHref,
+  docSlugFromId,
+  getAllDocs,
+  getEditUrl,
+  resolveLastUpdated,
+  resolveTOC,
+  type Doc,
+} from '@/lib/docs'
+import { gitLastUpdated } from '@/lib/git-lastmod'
+import { mdxComponents } from '@/lib/mdx-components'
+import { getPrevNext, getSidebarTree } from '@/lib/sidebar'
+import { titleCase } from '@/lib/utils'
+import { render } from 'astro:content'
+
+export async function getStaticPaths() {
+  const docs = await getAllDocs()
+  return docs.map((doc) => ({
+    params: { slug: docSlugFromId(doc.id) },
+    props: { doc },
+  }))
+}
+
+interface Props {
+  doc: Doc
+}
+
+const { doc } = Astro.props
+const { Content, headings } = await render(doc)
+
+const href = docHref(doc.id)
+const sidebar = await getSidebarTree(href)
+const { prev, next } = await getPrevNext(href)
+const editUrl = getEditUrl(doc)
+
+const frontmatterLastUpdated = resolveLastUpdated(doc)
+const lastUpdated =
+  frontmatterLastUpdated ??
+  (doc.data.lastUpdated === false
+    ? null
+    : doc.filePath
+      ? gitLastUpdated(doc.filePath)
+      : null)
+
+const toc = resolveTOC(doc)
+
+function buildBreadcrumbs() {
+  const crumbs: { label: string; href?: string; icon?: string }[] = []
+  if (doc.id === 'index') return crumbs
+
+  const idWithoutIndex = doc.id.endsWith('/index')
+    ? doc.id.slice(0, -'/index'.length)
+    : doc.id
+  const parts = idWithoutIndex.split('/')
+
+  for (let i = 0; i < parts.length; i++) {
+    const isLast = i === parts.length - 1
+    const path = '/' + parts.slice(0, i + 1).join('/') + '/'
+    crumbs.push({
+      label: isLast ? doc.data.title : titleCase(parts[i]),
+      href: isLast ? undefined : path,
+    })
+  }
+  return crumbs
+}
+
+const breadcrumbs = buildBreadcrumbs()
+---
+
+<DocLayout
+  doc={doc}
+  headings={headings}
+  sidebar={sidebar}
+  prev={prev}
+  next={next}
+  editUrl={editUrl}
+  lastUpdated={lastUpdated}
+  tocMinDepth={toc.minDepth}
+  tocMaxDepth={toc.maxDepth}
+  tocEnabled={toc.enabled}
+  breadcrumbs={breadcrumbs}
+>
+  <Content components={mdxComponents} />
+</DocLayout>

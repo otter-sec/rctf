@@ -1,0 +1,70 @@
+---
+title: Admin panel
+description: Overview of rCTF administration, permissions, and settings management.
+---
+
+import Callout from '@/components/callout.astro'
+
+The rCTF admin panel provides challenge management, user administration, and platform settings through the web interface.
+
+## Permissions
+
+rCTF uses a bitwise permission system. Each permission is a flag that can be combined to create different admin roles.
+
+| Permission         | Value | Description                                         |
+| ------------------ | ----- | --------------------------------------------------- |
+| `challsRead`       | 1     | View challenges in admin panel                      |
+| `challsWrite`      | 2     | Create, update, and delete challenges               |
+| `leaderboardRead`  | 4     | View leaderboard data (required for CTFtime export) |
+| `challsSolveWrite` | 8     | Delete solves                                       |
+| `usersWrite`       | 16    | Manage users and generate team tokens               |
+| `settingsWrite`    | 32    | Modify platform settings                            |
+
+A full admin has all permissions combined: `1 + 2 + 4 + 8 + 16 + 32 = 63`.
+
+### Creating admin accounts
+
+After registering a normal account, grant admin permissions via the database:
+
+```sql
+-- Full admin (all permissions)
+UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
+
+-- Challenge manager only (read + write challenges)
+UPDATE users SET perms = 3 WHERE email = 'author@example.com';
+```
+
+If using Docker:
+
+```bash title="Terminal"
+docker exec -it rctf-postgres-1 bash
+psql -U rctf
+UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
+```
+
+<Callout variant="warning">
+
+Permission changes take effect after the user cache expires (30 seconds) or when the user updates their profile. There is no need to restart the server.
+
+</Callout>
+### Permission bypass
+
+Users with appropriate permissions can bypass competition timeline restrictions. For example, a user with `challsRead` can view challenges before the CTF starts.
+
+## Runtime settings
+
+Platform settings can be modified at runtime without restarting the server. This requires `settingsWrite` permission.
+
+Editable settings:
+
+| Setting           | Description                                 |
+| ----------------- | ------------------------------------------- |
+| CTF name          | Display name of the competition             |
+| Home content      | Home page markdown content                  |
+| Sponsors          | Sponsor list (name, icon, description, URL) |
+| Meta description  | HTML meta description                       |
+| Meta image URL    | HTML meta image URL                         |
+| Favicon URL       | Browser favicon                             |
+| Logo (light/dark) | Platform logos for light and dark mode      |
+
+These settings override values from the config files. Setting a value to `null` reverts to the config file default.

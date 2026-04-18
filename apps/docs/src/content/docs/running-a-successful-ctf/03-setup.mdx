@@ -3,7 +3,7 @@ title: Setting up a CTF platform
 description: Complete guide to deploying rCTF, configuring Nginx with TLS, and creating admin accounts.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import Callout from '@/components/callout.astro'
 
 There are two primary CTF platforms that are publicly available:
 
@@ -22,13 +22,12 @@ For this guide, you'll need at least the following:
 
 Additionally, you'll want a TLS certificate either by using something like [Cloudflare](https://cloudflare.com) with proxied host or [certbot](https://certbot.eff.org/instructions) to manually provision it.
 
-:::note
+<Callout variant="note">
+
 All the examples will use `example.com` which refers to the domain name hosting the CTF platform, and `123.123.123.123` which is the deployed VPS hosting the CTF platform. All these occurrences should be replaced with your own values respectively.
-:::
 
+</Callout>
 ## Installing rCTF
-
-<Steps>
 
 1. **SSH into your VPS**
 
@@ -66,15 +65,11 @@ All the examples will use `example.com` which refers to the domain name hosting 
    cd /opt/rctf && docker compose up -d --force-recreate --build
    ```
 
-</Steps>
-
 ## Setting up the web server
 
 By default, the CTF platform is only directly accessible from the VPS itself. For this, we'll set up Nginx to act as a webserver handling TLS and proxying the traffic forward to rCTF. It is also helpful to have Cloudflare in front so that you can deal with DDoS attacks and implement easy rate-limiting.
 
 ### Using Cloudflare
-
-<Steps>
 
 1. **Configure Cloudflare DNS**
 
@@ -152,11 +147,7 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
 
-</Steps>
-
 ### Using something else
-
-<Steps>
 
 1. **Configure DNS**
 
@@ -215,11 +206,7 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
 
-</Steps>
-
 ## Creating an admin account
-
-<Steps>
 
 1. **Register a new account**
 
@@ -245,8 +232,8 @@ By default, the CTF platform is only directly accessible from the VPS itself. Fo
 
    After becoming an admin, you can confirm that you have permissions to create challenges by navigating to `https://ctf.example.com/admin/challs`.
 
-   :::caution
-   If the page does not load or you don't see the challenge upload screen, something went wrong and you should double check the output of the previous commands when updating your permissions.
-   :::
+   <Callout variant="warning">
 
-</Steps>
+   If the page does not load or you don't see the challenge upload screen, something went wrong and you should double check the output of the previous commands when updating your permissions.
+
+   </Callout>

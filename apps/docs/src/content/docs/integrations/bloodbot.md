@@ -1,5 +1,5 @@
 ---
-title: Blood Bot
+title: Blood bot
 description: Configure first blood announcements to Discord and Telegram.
 ---
 

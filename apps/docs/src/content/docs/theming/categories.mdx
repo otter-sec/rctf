@@ -3,8 +3,8 @@ title: Categories
 description: Challenge category configuration, colors, icons, and customization.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
-import Swatch from '../../../components/Swatch'
+import Callout from '@/components/callout.astro'
+import Swatch from '@/components/mdx/swatch'
 
 Each challenge category in rCTF has a dedicated color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0`, which components reference via Tailwind classes such as `text-category-foreground-l0`.
 
@@ -28,7 +28,8 @@ Each of the default categories uses a color specified in [Category colors](/them
 
 We additionally enable category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) to allow flexible naming.
 
-:::note[How category styling works]
+<Callout variant="note" title="How category styling works">
+
 The `getCategoryStyle(color)` function generates inline CSS that binds a color's variables to generic category tokens:
 
 ```ts
@@ -53,11 +54,9 @@ Components apply this style to a container, then use generic classes:
 ```
 
 Each color has five variables defined in `app.css` for both light and dark modes: `background-l0`, `background-l1`, `background-l1-hover`, `foreground-l0`, and `foreground-l1`.
-:::
 
+</Callout>
 ## Adding a custom category
-
-<Steps>
 
 1. **Define the category**
 
@@ -115,8 +114,6 @@ Each color has five variables defined in `app.css` for both light and dark modes
 4. **Add color variables (if using a new color)**
 
    If your category uses a color not already in the palette, add variables to `app.css` following the existing pattern. Define `--background-{color}-l0`, `--background-{color}-l1`, `--background-{color}-l1-hover`, `--foreground-{color}-l0`, and `--foreground-{color}-l1` for both `:root` and `[data-theme='dark']`. Don't forget to additionally map the colors in `@theme inline`.
-
-</Steps>
 
 ## Utility functions
 

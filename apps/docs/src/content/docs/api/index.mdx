@@ -1,0 +1,90 @@
+---
+title: API reference
+description: Overview of the rCTF API concepts - authentication, errors, rate limiting, and more.
+---
+
+import Callout from '@/components/callout.astro'
+
+The rCTF API is a JSON REST API served under the `/api` prefix. This section describes the core concepts that apply across the platform.
+
+## Versioning
+
+The API has two versions available simultaneously:
+
+- **V1** - Original API, fully supported
+- **V2** - Extended API with additional features and richer responses
+
+V2 is recommended for new integrations. See [Upgrading from v1](/installation/upgrading) for differences between the versions.
+
+## Authentication
+
+Authenticated actions require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <token>
+```
+
+Tokens are obtained through registration or login. They are encrypted with AES-GCM and use the `tokenKey` from your [configuration](/configuration).
+
+### Token types
+
+| Token       | Lifetime                    | Purpose                              |
+| ----------- | --------------------------- | ------------------------------------ |
+| Auth        | Infinite                    | User authentication (login sessions) |
+| Team        | Infinite                    | Team access token (sent on recovery) |
+| Verify      | `loginTimeout` (default 1h) | Email verification and recovery      |
+| CtftimeAuth | `loginTimeout` (default 1h) | CTFtime OAuth flow                   |
+
+<Callout variant="note">
+
+Auth and team tokens never expire. Only verification and CTFtime tokens expire according to the `loginTimeout` configuration value.
+
+</Callout>
+## Response format
+
+All responses follow a consistent format:
+
+```json
+{
+  "kind": "goodChallenges",
+  "message": "The challenges were retrieved",
+  "data": { ... }
+}
+```
+
+- `kind` - Unique identifier for the response type
+- `message` - Human-readable description
+- `data` - Response payload (may be `null` for errors)
+
+## Error responses
+
+Common error responses returned across the platform:
+
+| Kind            | Status | Description                                                |
+| --------------- | ------ | ---------------------------------------------------------- |
+| `badToken`      | 401    | Missing, invalid, or expired authentication token          |
+| `badPerms`      | 403    | Insufficient permissions for the requested action          |
+| `badBody`       | 400    | Request body failed validation (includes `reason` in data) |
+| `badNotStarted` | 400    | Competition has not started yet                            |
+| `badEnded`      | 400    | Competition has ended                                      |
+| `badCaptcha`    | 400    | Captcha verification failed                                |
+| `badEndpoint`   | 404    | Route not found                                            |
+| `errorInternal` | 500    | Unexpected server error                                    |
+
+## Rate limiting
+
+Several actions are rate-limited using a token bucket algorithm:
+
+| Action             | Rate             | Scope                  |
+| ------------------ | ---------------- | ---------------------- |
+| Flag submission    | 5 per 25 seconds | Per user per challenge |
+| Profile update     | 3 per 3 minutes  | Per user               |
+| Avatar upload      | 2 per 2 minutes  | Per user               |
+| Admin bot submit   | 1 per 10 seconds | Per user per challenge |
+| Leaderboard search | 3 per 3 seconds  | Per IP address         |
+
+When rate-limited, the response includes the number of milliseconds until the next attempt is allowed.
+
+## Captcha
+
+Actions can optionally require captcha verification. Which actions require captcha is controlled by the `captcha.protectedEndpoints` [configuration](/configuration#captcha). See [Captcha Providers](/providers/captcha) for setup details.

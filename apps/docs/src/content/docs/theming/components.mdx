@@ -3,8 +3,9 @@ title: Components
 description: Overview of the rCTF UI component library based on shadcn-svelte.
 ---
 
-import { Steps, TabItem, Tabs } from '@astrojs/starlight/components'
-import Swatch from '../../../components/Swatch'
+import Tabs from '@/components/mdx/tabs.astro'
+import Tab from '@/components/mdx/tab.astro'
+import Swatch from '@/components/mdx/swatch'
 
 The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a port of shadcn/ui for Svelte 5. Components live in `apps/web/src/lib/components/ui/` and use [tailwind-variants](https://www.tailwind-variants.org/) for variant-based styling. Application-specific components (Navigation, Markdown, ThemeToggle) are in the parent `components/` directory. Icons come from [Tabler Icons](https://tabler.io/icons) via `@iconify-svelte`.
 
@@ -25,8 +26,6 @@ The following components are available in rCTF:
 ## Adding components
 
 When adding a new shadcn-svelte component to rCTF, you need to install it, register it in the barrel file, and convert its styling to match rCTF's design system. This section walks through the full process using `Button` as an example.
-
-<Steps>
 
 1. **Install the component**
 
@@ -147,14 +146,12 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
    rCTF components generally don't use transitions to avoid grogginess/exhaustion when repeatedly using the same interfaces. Remove if desired.
 
-</Steps>
-
 ## Full example
 
 Here's the complete before and after for the Button component:
 
-<Tabs>
-<TabItem label="Before (shadcn-svelte)">
+<Tabs items={['Before (shadcn-svelte)', 'After (rCTF)']}>
+<Tab>
 ```svelte showLineNumbers mark={7,10-15}
 <script lang="ts" module>
   import { cn, type WithElementRef } from "$lib/utils.js";
@@ -196,8 +193,8 @@ export const buttonVariants = tv({
 
 </script>
 ```
-</TabItem>
-<TabItem label="After (rCTF)">
+</Tab>
+<Tab>
 ```svelte showLineNumbers mark={7,10-15}
 <script lang="ts" module>
   import { cn, type WithElementRef } from '$lib/utils'
@@ -236,5 +233,5 @@ export const buttonVariants = tv({
 
 </script>
 ```
-</TabItem>
+</Tab>
 </Tabs>

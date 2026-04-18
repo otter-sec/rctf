@@ -3,14 +3,15 @@ title: Deploying challenges
 description: Guide to deploying CTF challenges including shared remotes, instanced remotes, kCTF, Docker, and admin bots.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import Callout from '@/components/callout.astro'
 
 With the CTF platform operational and challenges ready to be created, the next step is deployment. There are two primary deployment types alongside static challenges: **shared remote** and **instanced remote**.
 
-:::tip
-Regardless of deployment method, it is considered good practice to include a local setup of the challenge for debugging purposes (e.g., using Docker). This also simplifies remote deployment, as most solutions are designed around running a provided Docker image.
-:::
+<Callout variant="tip">
 
+Regardless of deployment method, it is considered good practice to include a local setup of the challenge for debugging purposes (e.g., using Docker). This also simplifies remote deployment, as most solutions are designed around running a provided Docker image.
+
+</Callout>
 Additionally, rCTF supports hosting admin bots separately from the challenge to handle traffic spikes and provide a more accurate simulation of external visitors, rather than relying on internal IPs as would occur in a local deployment.
 
 ## Shared remote
@@ -35,18 +36,20 @@ If the complexity of kCTF is undesirable due to GCP and Kubernetes requirements,
 
 The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrapping challenges in nsjail can further reduce the attack surface and mitigate such risks.
 
-:::danger
-It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
-:::
+<Callout variant="danger">
 
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
+
+</Callout>
 ### VM
 
 An alternative approach is to provision a separate VM (or VPS) for each challenge instance. Although more costly than running all challenges on a single host, this configuration reduces the blast radius, preventing a single compromised challenge from affecting others through disk exhaustion, container breakouts, or similar attacks. The optimal configuration depends on the specific requirements of each challenge.
 
-:::danger
-It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
-:::
+<Callout variant="danger">
 
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
+
+</Callout>
 ## Instanced remote
 
 In an instanced remote configuration, each competitor receives a dedicated instance. This is necessary for challenges where the vulnerability inherently provides file write or remote code execution capabilities, which could otherwise be exploited by competitors to disrupt challenge functionality, remove flags, or interfere with other participants.
@@ -58,8 +61,6 @@ One method for deploying instanced challenges on rCTF is the third-party integra
 #### GCP
 
 The following guide outlines the prerequisites for deploying Klodd on GCP using GKE:
-
-<Steps>
 
 1. **Create GKE cluster**
 
@@ -99,14 +100,13 @@ The following guide outlines the prerequisites for deploying Klodd on GCP using 
 
    Create a wildcard `A` DNS record for `*.instancer.example.com` pointing to [klodd-ip], and an `A` DNS record for `instancer.example.com` pointing to [klodd-ip]. Once configured, refer to [Klodd's challenge deployment guide](https://klodd.tjcsec.club/install-guide/challenges/) for instructions on deploying individual challenges.
 
-</Steps>
-
 Challenges will be accessible at `https://instancer.example.com/challenge/[metadata.name]` once the configuration is complete.
 
-:::caution
-Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
-:::
+<Callout variant="warning">
 
+Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
+
+</Callout>
 ### tiny-instancer
 
 A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tiny-instancer), which can be deployed on a standalone machine. Detailed installation instructions are available in the project's README.
@@ -114,8 +114,6 @@ A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tin
 ## Admin bot
 
 The admin bot can be configured using the examples available [here](https://github.com/otter-sec/rctf-admin-bot/tree/main/examples). Begin by creating a custom Docker image using the `image` folder as a base. Modify `config.js` to execute the Puppeteer actions required for the challenge. The image must then be built and uploaded to a Docker registry. The following example uses GCP's Artifact Registry:
-
-<Steps>
 
 1. **Create Artifact Registry and build image**
 
@@ -144,4 +142,3 @@ The admin bot can be configured using the examples available [here](https://gith
 
    After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains) to the Cloud Run service via the GCP dashboard for a more professional URL.
 
-</Steps>

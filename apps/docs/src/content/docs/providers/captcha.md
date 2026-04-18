@@ -1,5 +1,5 @@
 ---
-title: Captcha Providers
+title: Captcha providers
 description: Configure captcha verification with reCAPTCHA, hCaptcha, or Cloudflare Turnstile.
 ---
 
