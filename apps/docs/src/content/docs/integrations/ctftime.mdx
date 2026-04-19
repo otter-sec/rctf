@@ -9,13 +9,15 @@ import Callout from '@/components/callout.astro'
 
 ## Setup
 
-### 1. Register an OAuth application
+<Steps>
+<Step title="Register an OAuth application">
 
 Go to your team page on CTFtime and register a new OAuth application. You will receive a **client ID** (numeric) and a **client secret**.
 
 Set the callback URL to: `https://your-ctf-domain.com/integrations/ctftime/callback`
 
-### 2. Configure rCTF
+</Step>
+<Step title="Configure rCTF">
 
 ```yaml title="rctf.d/ctftime.yaml"
 ctftime:
@@ -29,6 +31,9 @@ Or via environment variables:
 | ---------------------------- | ---------------------------------------- |
 | `RCTF_CTFTIME_CLIENT_ID`     | CTFtime OAuth client ID (numeric string) |
 | `RCTF_CTFTIME_CLIENT_SECRET` | CTFtime OAuth client secret              |
+
+</Step>
+</Steps>
 
 ## Authentication flow
 

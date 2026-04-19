@@ -27,124 +27,134 @@ The following components are available in rCTF:
 
 When adding a new shadcn-svelte component to rCTF, you need to install it, register it in the barrel file, and convert its styling to match rCTF's design system. This section walks through the full process using `Button` as an example.
 
-1. **Install the component**
+<Steps>
+<Step title="Install the component">
 
-   Use the shadcn-svelte CLI to scaffold the component into your project:
+Use the shadcn-svelte CLI to scaffold the component into your project:
 
-   ```bash title="Terminal"
-   bunx shadcn-svelte@latest add button
-   ```
+```bash title="Terminal"
+bunx shadcn-svelte@latest add button
+```
 
-   This creates the component files in `apps/web/src/lib/components/ui/button/`.
+This creates the component files in `apps/web/src/lib/components/ui/button/`.
 
-2. **Register in the barrel file**
+</Step>
+<Step title="Register in the barrel file">
 
-   Add the component to the barrel export in `apps/web/src/lib/components/index.ts`:
+Add the component to the barrel export in `apps/web/src/lib/components/index.ts`:
 
-   ```ts title="lib/components/index.ts" ins={3-9}
-   export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'
-   export { default as EmptyState } from './empty-state.svelte'
-   export {
-     Button,
-     buttonVariants,
-     type ButtonProps,
-     type ButtonSize,
-     type ButtonVariant,
-   } from './ui/button'
-   export { Checkbox } from './ui/checkbox'
-   export { Input } from './ui/input'
-   export { Label } from './ui/label'
-   ```
+```ts title="lib/components/index.ts" ins={3-9}
+export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'
+export { default as EmptyState } from './empty-state.svelte'
+export {
+  Button,
+  buttonVariants,
+  type ButtonProps,
+  type ButtonSize,
+  type ButtonVariant,
+} from './ui/button'
+export { Checkbox } from './ui/checkbox'
+export { Input } from './ui/input'
+export { Label } from './ui/label'
+```
 
-3. **Remove shadows**
+</Step>
+<Step title="Remove shadows">
 
-   rCTF uses a flat design language. Remove all shadow utilities from the component:
+rCTF uses a flat design language. Remove all shadow utilities from the component:
 
-   ```ts title="button.svelte" del={2,6,8,10,12} ins={3,7,9,11,13}
-   export const buttonVariants = tv({
-     base: '... shadow-xs',
-     base: '...',
-     variants: {
-       variant: {
-         default:
-           'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs',
-         default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-         destructive: 'bg-destructive hover:bg-destructive/90 ... shadow-xs',
-         destructive: 'bg-destructive hover:bg-destructive/90 ...',
-         outline: 'bg-background hover:bg-accent ... shadow-xs',
-         outline: 'bg-background hover:bg-accent ...',
-         secondary:
-           'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs',
-         secondary:
-           'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-       },
-     },
-   })
-   ```
+```ts title="button.svelte" del={2,6,8,10,12} ins={3,7,9,11,13}
+export const buttonVariants = tv({
+  base: '... shadow-xs',
+  base: '...',
+  variants: {
+    variant: {
+      default:
+        'bg-primary text-primary-foreground hover:bg-primary/90 shadow-xs',
+      default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+      destructive: 'bg-destructive hover:bg-destructive/90 ... shadow-xs',
+      destructive: 'bg-destructive hover:bg-destructive/90 ...',
+      outline: 'bg-background hover:bg-accent ... shadow-xs',
+      outline: 'bg-background hover:bg-accent ...',
+      secondary:
+        'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs',
+      secondary:
+        'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+    },
+  },
+})
+```
 
-4. **Normalize font weights**
+</Step>
+<Step title="Normalize font weights">
 
-   Convert all heavy font weights to `font-medium` for visual consistency:
+Convert all heavy font weights to `font-medium` for visual consistency:
 
-   | Original         | Replace with  |
-   | ---------------- | ------------- |
-   | `font-bold`      | `font-medium` |
-   | `font-semibold`  | `font-medium` |
-   | `font-black`     | `font-medium` |
-   | `font-extrabold` | `font-medium` |
+| Original         | Replace with  |
+| ---------------- | ------------- |
+| `font-bold`      | `font-medium` |
+| `font-semibold`  | `font-medium` |
+| `font-black`     | `font-medium` |
+| `font-extrabold` | `font-medium` |
 
-5. **Convert color tokens**
+</Step>
+<Step title="Convert color tokens">
 
-   Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors). The mapping depends on context, so use these as guidelines rather than strict rules:
+Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors). The mapping depends on context, so use these as guidelines rather than strict rules:
 
-   | rCTF token                         | Example                     | Light                                      | Dark                                                        | Context                                        |
-   | ---------------------------------- | --------------------------- | ------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------- |
-   | `--background`                     | `bg-background-l0`          | <Swatch color="background-l0" />           | <Swatch color="background-l0-dark" mode="dark" />           | Page background                                |
-   | `--foreground`                     | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Primary body text                              |
-   | `--card`                           | `bg-background-l1`          | <Swatch color="background-l1" />           | <Swatch color="background-l1-dark" mode="dark" />           | Card surfaces                                  |
-   | `--card-foreground`                | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Card text                                      |
-   | `--popover`                        | `bg-background-l1`          | <Swatch color="background-l1" />           | <Swatch color="background-l1-dark" mode="dark" />           | Dropdowns, popovers                            |
-   | `--popover-foreground`             | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Text in overlays                               |
-   | `--primary`                        | `bg-background-accent`      | <Swatch color="background-accent" />       | <Swatch color="background-accent-dark" mode="dark" />       | Accent buttons, badges                         |
-   | `--primary-foreground`             | `text-foreground-accent`    | <Swatch color="foreground-accent" />       | <Swatch color="foreground-accent-dark" mode="dark" />       | Text on accent backgrounds/accent-colored text |
-   | `--secondary`                      | `bg-background-l4`          | <Swatch color="background-l4" />           | <Swatch color="background-l4-dark" mode="dark" />           | Secondary buttons, badges                      |
-   | `--secondary-foreground`           | `text-foreground-l1`        | <Swatch color="foreground-l1" />           | <Swatch color="foreground-l1-dark" mode="dark" />           | Text on secondary backgrounds                  |
-   | `--muted`                          | `bg-background-l2`          | <Swatch color="background-l2" />           | <Swatch color="background-l2-dark" mode="dark" />           | Subtle backgrounds                             |
-   | `--muted-foreground`               | `text-foreground-l3`        | <Swatch color="foreground-l3" />           | <Swatch color="foreground-l3-dark" mode="dark" />           | Placeholders, hints                            |
-   | `--accent`                         | `bg-background-l2`          | <Swatch color="background-l2" />           | <Swatch color="background-l2-dark" mode="dark" />           | Hover states, highlights, generic hover        |
-   | `--accent-foreground`              | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Text on hover backgrounds                      |
-   | `--destructive`                    | `bg-background-destructive` | <Swatch color="background-destructive" />  | <Swatch color="background-destructive-dark" mode="dark" />  | Error states                                   |
-   | `--input`                          | `bg-background-l4`          | <Swatch color="background-l4" />           | <Swatch color="background-l4-dark" mode="dark" />           | Form inputs                                    |
-   | `hover:bg-background-accent-hover` | hover                       | <Swatch color="background-accent-hover" /> | <Swatch color="background-accent-hover-dark" mode="dark" /> | Accent hover states                            |
-   | `hover:bg-background-l5`           | hover                       | <Swatch color="background-l5" />           | <Swatch color="background-l5-dark" mode="dark" />           | Secondary hover states                         |
+| rCTF token                         | Example                     | Light                                      | Dark                                                        | Context                                        |
+| ---------------------------------- | --------------------------- | ------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------- |
+| `--background`                     | `bg-background-l0`          | <Swatch color="background-l0" />           | <Swatch color="background-l0-dark" mode="dark" />           | Page background                                |
+| `--foreground`                     | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Primary body text                              |
+| `--card`                           | `bg-background-l1`          | <Swatch color="background-l1" />           | <Swatch color="background-l1-dark" mode="dark" />           | Card surfaces                                  |
+| `--card-foreground`                | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Card text                                      |
+| `--popover`                        | `bg-background-l1`          | <Swatch color="background-l1" />           | <Swatch color="background-l1-dark" mode="dark" />           | Dropdowns, popovers                            |
+| `--popover-foreground`             | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Text in overlays                               |
+| `--primary`                        | `bg-background-accent`      | <Swatch color="background-accent" />       | <Swatch color="background-accent-dark" mode="dark" />       | Accent buttons, badges                         |
+| `--primary-foreground`             | `text-foreground-accent`    | <Swatch color="foreground-accent" />       | <Swatch color="foreground-accent-dark" mode="dark" />       | Text on accent backgrounds/accent-colored text |
+| `--secondary`                      | `bg-background-l4`          | <Swatch color="background-l4" />           | <Swatch color="background-l4-dark" mode="dark" />           | Secondary buttons, badges                      |
+| `--secondary-foreground`           | `text-foreground-l1`        | <Swatch color="foreground-l1" />           | <Swatch color="foreground-l1-dark" mode="dark" />           | Text on secondary backgrounds                  |
+| `--muted`                          | `bg-background-l2`          | <Swatch color="background-l2" />           | <Swatch color="background-l2-dark" mode="dark" />           | Subtle backgrounds                             |
+| `--muted-foreground`               | `text-foreground-l3`        | <Swatch color="foreground-l3" />           | <Swatch color="foreground-l3-dark" mode="dark" />           | Placeholders, hints                            |
+| `--accent`                         | `bg-background-l2`          | <Swatch color="background-l2" />           | <Swatch color="background-l2-dark" mode="dark" />           | Hover states, highlights, generic hover        |
+| `--accent-foreground`              | `text-foreground-l0`        | <Swatch color="foreground-l0" />           | <Swatch color="foreground-l0-dark" mode="dark" />           | Text on hover backgrounds                      |
+| `--destructive`                    | `bg-background-destructive` | <Swatch color="background-destructive" />  | <Swatch color="background-destructive-dark" mode="dark" />  | Error states                                   |
+| `--input`                          | `bg-background-l4`          | <Swatch color="background-l4" />           | <Swatch color="background-l4-dark" mode="dark" />           | Form inputs                                    |
+| `hover:bg-background-accent-hover` | hover                       | <Swatch color="background-accent-hover" /> | <Swatch color="background-accent-hover-dark" mode="dark" /> | Accent hover states                            |
+| `hover:bg-background-l5`           | hover                       | <Swatch color="background-l5" />           | <Swatch color="background-l5-dark" mode="dark" />           | Secondary hover states                         |
 
-   Here's an example converting the `Badge` component variants:
+Here's an example converting the `Badge` component variants:
 
-   ```ts title="badge.svelte" del={3,6,9,12} ins={4,7,10,13}
-   variants: {
-     variant: {
-       default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90 border-transparent",
-       default: "bg-background-accent text-foreground-accent [a&]:hover:bg-background-accent/90 border-transparent",
+```ts title="badge.svelte" del={3,6,9,12} ins={4,7,10,13}
+variants: {
+  variant: {
+    default: "bg-primary text-primary-foreground [a&]:hover:bg-primary/90 border-transparent",
+    default: "bg-background-accent text-foreground-accent [a&]:hover:bg-background-accent/90 border-transparent",
 
-       secondary: "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 border-transparent",
-       secondary: "bg-background-l4 text-foreground-l1 [a&]:hover:bg-background-l5 border-transparent",
+    secondary: "bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90 border-transparent",
+    secondary: "bg-background-l4 text-foreground-l1 [a&]:hover:bg-background-l5 border-transparent",
 
-       destructive: "bg-destructive [a&]:hover:bg-destructive/90 ... dark:bg-destructive/70 border-transparent text-white",
-       destructive: "bg-background-destructive text-foreground-destructive [a&]:hover:bg-background-destructive/90 ... border-transparent",
+    destructive: "bg-destructive [a&]:hover:bg-destructive/90 ... dark:bg-destructive/70 border-transparent text-white",
+    destructive: "bg-background-destructive text-foreground-destructive [a&]:hover:bg-background-destructive/90 ... border-transparent",
 
-       outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
-       outline: "text-foreground-l1 [a&]:hover:bg-background-l2",
-     },
-   },
-   ```
+    outline: "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+    outline: "text-foreground-l1 [a&]:hover:bg-background-l2",
+  },
+},
+```
 
-6. **Remove dark mode overrides (optional)**
+</Step>
+<Step title="Remove dark mode overrides (optional)">
 
-   rCTF's color system handles dark mode automatically via CSS custom properties. Remove all `dark:` prefixed utilities.
+rCTF's color system handles dark mode automatically via CSS custom properties. Remove all `dark:` prefixed utilities.
 
-7. **Remove transitions (optional)**
+</Step>
+<Step title="Remove transitions (optional)">
 
-   rCTF components generally don't use transitions to avoid grogginess/exhaustion when repeatedly using the same interfaces. Remove if desired.
+rCTF components generally don't use transitions to avoid grogginess/exhaustion when repeatedly using the same interfaces. Remove if desired.
+
+</Step>
+</Steps>
 
 ## Full example
 

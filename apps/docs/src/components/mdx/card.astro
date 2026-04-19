@@ -17,7 +17,7 @@ const baseClass = cn(
   className,
 )
 const linkClass = cn(
-  'group hover:border-foreground/30 transition-colors no-underline',
+  'group hover:border-foreground/30 no-underline',
   baseClass,
 )
 ---
@@ -28,22 +28,22 @@ const linkClass = cn(
       {icon && (
         <Icon
           name={icon}
-          class="text-muted-foreground group-hover:text-foreground size-5 transition-colors"
+          class="text-muted-foreground group-hover:text-foreground size-5"
         />
       )}
       <h3 class="text-foreground text-base font-medium leading-tight m-0">
         {title}
       </h3>
-      <p class="text-muted-foreground text-sm leading-relaxed m-0">
+      <div class="text-muted-foreground text-sm leading-relaxed [&_p]:m-0">
         <slot />
-      </p>
-      <span class="text-muted-foreground group-hover:text-foreground mt-2 inline-flex items-center gap-1 text-xs transition-colors">
+      </div>
+      {/* <span class="text-muted-foreground group-hover:text-foreground mt-2 inline-flex items-center gap-1 text-xs">
         Learn more
         <Icon
           name="lucide:arrow-right"
-          class="size-3 transition-transform group-hover:translate-x-0.5"
+          class="size-3"
         />
-      </span>
+      </span> */}
     </Link>
   ) : (
     <div class={baseClass}>
@@ -51,9 +51,9 @@ const linkClass = cn(
       <h3 class="text-foreground text-base font-medium leading-tight m-0">
         {title}
       </h3>
-      <p class="text-muted-foreground text-sm leading-relaxed m-0">
+      <div class="text-muted-foreground text-sm leading-relaxed [&_p]:m-0">
         <slot />
-      </p>
+      </div>
     </div>
   )
 }

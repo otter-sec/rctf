@@ -11,50 +11,57 @@ Following the conclusion of the competition, several administrative tasks remain
 
 Submitting the final scoreboard to CTFtime enables participating teams to receive ranking points. The following procedure exports the scoreboard in the format CTFtime expects.
 
-1. **Update admin permissions**
+<Steps>
+<Step title="Update admin permissions">
 
-   The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
+The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
 
-   ```bash title="Terminal"
-   docker exec -it rctf-postgres-1 bash
-   ```
+```bash title="Terminal"
+docker exec -it rctf-postgres-1 bash
+```
 
-   ```bash title="Inside the postgres container"
-   psql -U rctf
-   ```
+```bash title="Inside the postgres container"
+psql -U rctf
+```
 
-   ```sql title="Inside the postgres shell"
-   UPDATE users SET perms = 7 WHERE email = '[...]';
-   ```
+```sql title="Inside the postgres shell"
+UPDATE users SET perms = 7 WHERE email = '[...]';
+```
 
-2. **Retrieve authentication token**
+</Step>
+<Step title="Retrieve authentication token">
 
-   Log in to the CTF platform as the admin account and execute the following snippet in the browser's developer console:
+Log in to the CTF platform as the admin account and execute the following snippet in the browser's developer console:
 
-   ```js title="Browser console"
-   localStorage.getItem('token')
-   ```
+```js title="Browser console"
+localStorage.getItem('token')
+```
 
-   Copy the returned authentication token, removing the surrounding quotation marks.
+Copy the returned authentication token, removing the surrounding quotation marks.
 
-3. **Export the scoreboard**
+</Step>
+<Step title="Export the scoreboard">
 
-   Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
+Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
 
-   ```bash title="Terminal"
-   curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
-     -H "Authorization: Bearer TOKEN"
-   ```
+```bash title="Terminal"
+curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
+  -H "Authorization: Bearer TOKEN"
+```
 
-4. **Submit to CTFtime**
+</Step>
+<Step title="Submit to CTFtime">
 
-   Submit the command output through the CTFtime event dashboard.
+Submit the command output through the CTFtime event dashboard.
 
-   <Callout variant="note">
+<Callout variant="note">
 
-   Point distribution may take approximately one hour for established events. For first-time events, points are awarded only after the one-week weight voting period concludes.
+Point distribution may take approximately one hour for established events. For first-time events, points are awarded only after the one-week weight voting period concludes.
 
-   </Callout>
+</Callout>
+
+</Step>
+</Steps>
 ## Prize distribution
 
 For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.

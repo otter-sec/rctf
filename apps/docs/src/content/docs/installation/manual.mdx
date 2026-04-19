@@ -15,7 +15,8 @@ This guide covers setting up rCTF from source without Docker, suitable for devel
 
 ## Setup
 
-### 1. Clone and install dependencies
+<Steps>
+<Step title="Clone and install dependencies">
 
 ```bash title="Terminal"
 git clone https://github.com/otter-sec/rctf.git
@@ -23,7 +24,8 @@ cd rctf
 bun i
 ```
 
-### 2. Create a configuration directory
+</Step>
+<Step title="Create a configuration directory">
 
 rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one at the project root:
 
@@ -61,9 +63,11 @@ openssl rand -base64 32
 ```
 
 </Callout>
+
 You can also set configuration values through environment variables. See [Configuration](/configuration) for the full reference.
 
-### 3. Run database migrations
+</Step>
+<Step title="Run database migrations">
 
 ```bash title="Terminal"
 bun run db:migrate
@@ -71,7 +75,8 @@ bun run db:migrate
 
 Alternatively, set `database.migrate: before` in your config to run migrations automatically on startup.
 
-### 4. Start the development servers
+</Step>
+<Step title="Start the development servers">
 
 ```bash title="Terminal"
 bun dev
@@ -85,6 +90,9 @@ To run them separately:
 bun run dev:api   # API only on :3000
 bun run dev:web   # Frontend only on :5173
 ```
+
+</Step>
+</Steps>
 
 ## Production build
 
