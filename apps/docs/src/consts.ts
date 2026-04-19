@@ -1,7 +1,6 @@
 import type {
   DocsConfig,
   IconMap,
-  NavLink,
   Site,
   SocialLink,
 } from '@/types'
@@ -14,8 +13,6 @@ export const SITE: Site = {
   author: 'otter-sec',
   locale: 'en-US',
 }
-
-export const NAV_LINKS: NavLink[] = []
 
 export const SOCIAL_LINKS: SocialLink[] = [
   { href: 'https://github.com/otter-sec', label: 'GitHub' },
@@ -41,7 +38,7 @@ export const DOCS: DocsConfig = {
   defaultTableOfContents: { minDepth: 2, maxDepth: 4 },
   search: {
     enabled: true,
-    hotkey: { mac: '⌘K', windows: 'Ctrl K' },
+    hotkey: { mac: '⌘ K', windows: 'Ctrl K' },
   },
   announcement: null,
 }

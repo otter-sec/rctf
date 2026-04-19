@@ -6,12 +6,6 @@ export type Site = {
   locale: string
 }
 
-export type NavLink = {
-  href: string
-  label: string
-  external?: boolean
-}
-
 export type SocialLink = {
   href: string
   label: string

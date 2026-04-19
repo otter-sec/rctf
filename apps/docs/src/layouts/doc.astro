@@ -24,7 +24,6 @@ interface Props {
   tocMinDepth: number
   tocMaxDepth: number
   tocEnabled: boolean
-  breadcrumbs: { label: string; href?: string; icon?: string }[]
 }
 
 const {
@@ -38,7 +37,6 @@ const {
   tocMinDepth,
   tocMaxDepth,
   tocEnabled,
-  breadcrumbs,
 } = Astro.props
 
 const isSplash = doc.data.template === 'splash'

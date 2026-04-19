@@ -8,11 +8,6 @@ export async function getAllDocs(): Promise<Doc[]> {
   return docs.filter((doc) => !doc.data.draft)
 }
 
-export async function getDocById(id: string): Promise<Doc | null> {
-  const docs = await getAllDocs()
-  return docs.find((doc) => doc.id === id) ?? null
-}
-
 export function docHref(id: string): string {
   if (id === 'index') return '/'
   if (id.endsWith('/index')) return '/' + id.slice(0, -'/index'.length) + '/'
