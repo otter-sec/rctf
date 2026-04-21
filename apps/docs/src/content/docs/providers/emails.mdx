@@ -28,7 +28,8 @@ Email is required for registration when CTFtime authentication is not configured
 </Callout>
 ## Providers
 
-### emails/smtp
+<Tabs items={['emails/smtp', 'emails/ses', 'emails/postmark', 'emails/mailgun']}>
+<Tab>
 
 Sends emails via SMTP using Nodemailer.
 
@@ -45,7 +46,8 @@ email:
 | --------- | -------------------- | ------------------- |
 | `smtpUrl` | `RCTF_SMTP_URL`      | SMTP connection URL |
 
-### emails/ses
+</Tab>
+<Tab>
 
 Sends emails via Amazon Simple Email Service.
 
@@ -71,7 +73,9 @@ email:
 Ensure your SES account is out of the sandbox and the sender address is verified before use.
 
 </Callout>
-### emails/postmark
+
+</Tab>
+<Tab>
 
 Sends emails via the [Postmark](https://postmarkapp.com/) API.
 
@@ -88,7 +92,8 @@ email:
 | ------------- | ---------------------------- | --------------------- |
 | `serverToken` | `RCTF_POSTMARK_SERVER_TOKEN` | Postmark server token |
 
-### emails/mailgun
+</Tab>
+<Tab>
 
 Sends emails via the [Mailgun](https://www.mailgun.com/) API.
 
@@ -106,3 +111,6 @@ email:
 | -------- | ---------------------- | ---------------------- |
 | `apiKey` | `RCTF_MAILGUN_API_KEY` | Mailgun API key        |
 | `domain` | `RCTF_MAILGUN_DOMAIN`  | Mailgun sending domain |
+
+</Tab>
+</Tabs>

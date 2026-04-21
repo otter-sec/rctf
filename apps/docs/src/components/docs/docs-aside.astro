@@ -45,7 +45,7 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
 
     <SearchTrigger />
 
-    <nav class="-mx-2 min-h-0 flex-1" aria-label="Documentation">
+    <nav class="-mx-2 min-h-0 flex-1" aria-label="Documentation" data-sidebar-nav>
       <Sidebar tree={tree} class="h-full px-2" />
     </nav>
 
@@ -82,6 +82,30 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
 </aside>
 
 <script>
+  function setupScrollFades() {
+    const nav = document.querySelector<HTMLElement>('[data-sidebar-nav]')
+    const viewport = nav?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]')
+    if (!nav || !viewport) return
+
+    function update() {
+      const atTop = viewport.scrollTop <= 1
+      const atBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1
+
+      nav.style.maskImage =
+        atTop && atBottom ? 'none'
+        : atTop ? 'linear-gradient(to bottom, black calc(100% - 2rem), transparent)'
+        : atBottom ? 'linear-gradient(to bottom, transparent, black 2rem)'
+        : 'linear-gradient(to bottom, transparent, black 2rem, black calc(100% - 2rem), transparent)'
+    }
+
+    update()
+    viewport.addEventListener('scroll', update, { passive: true })
+    new ResizeObserver(update).observe(viewport)
+  }
+
+  setupScrollFades()
+  document.addEventListener('astro:after-swap', setupScrollFades)
+
   function updateEditLink() {
     const link = document.getElementById('docs-edit-link')
     if (!link) return

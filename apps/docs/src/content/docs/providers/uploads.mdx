@@ -27,7 +27,8 @@ uploadProvider:
 
 ## Providers
 
-### uploads/local
+<Tabs items={['uploads/local', 'uploads/s3', 'uploads/gcs']}>
+<Tab>
 
 Stores files on the local filesystem. This is the **default** provider.
 
@@ -49,7 +50,9 @@ Files are served via the API server at `/uploads/*`. Path traversal protection i
 The local provider is suitable for development and small CTFs. For production deployments with many participants, consider using S3 or GCS to reduce load on the platform server.
 
 </Callout>
-### uploads/s3
+
+</Tab>
+<Tab>
 
 Stores files in an Amazon S3 bucket.
 
@@ -72,7 +75,8 @@ uploadProvider:
 
 Files are stored with `public-read` ACL and `attachment` content disposition. The bucket must allow public reads.
 
-### uploads/gcs
+</Tab>
+<Tab>
 
 Stores files in a Google Cloud Storage bucket.
 
@@ -97,3 +101,6 @@ uploadProvider:
 | `credentials` | `RCTF_GCS_CREDENTIALS` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket must be configured to allow public access.
+
+</Tab>
+</Tabs>

@@ -3,7 +3,7 @@ title: Instancer
 description: Configure per-team challenge instances with Docker or Kubernetes.
 ---
 
-The instancer integration provides per-team challenge instances - isolated environments that are created, managed, and cleaned up automatically. This is essential for challenges where teams need their own running service (e.g., pwn, web exploitation).
+The instancer integration provides per-team challenge instances — isolated environments that are created, managed, and cleaned up automatically. This is essential for challenges where teams need their own running service (e.g., pwn, web exploitation).
 
 ## Configuration
 
@@ -19,7 +19,8 @@ instancerProvider:
 
 ## Providers
 
-### instancer/docker-instancer
+<Tabs items={['instancer/docker-instancer', 'instancer/k8s-instancer']}>
+<Tab>
 
 Uses [tiny-instancer](https://github.com/otter-sec/tiny-instancer) or a compatible Docker-based instancer API.
 
@@ -36,7 +37,8 @@ instancerProvider:
 | `apiUrl`    | `TINY_INSTANCER_API_URL`    | Instancer API URL    |
 | `authToken` | `TINY_INSTANCER_AUTH_TOKEN` | Authentication token |
 
-### instancer/k8s-instancer
+</Tab>
+<Tab>
 
 Uses Kubernetes for instance management, creating ChallengeInstance custom resources.
 
@@ -57,6 +59,9 @@ instancerProvider:
 | `apiUrl`        | `K8S_INSTANCER_API_URL`        | K8s instancer API URL         |
 | `authToken`     | `K8S_INSTANCER_AUTH_TOKEN`     | Authentication token          |
 | `caCertificate` | `K8S_INSTANCER_CA_CERTIFICATE` | TLS CA certificate (optional) |
+
+</Tab>
+</Tabs>
 
 ## Challenge configuration
 

@@ -76,7 +76,8 @@ cd /opt/rctf && docker compose up -d --force-recreate --build
 
 By default, the CTF platform is only directly accessible from the VPS itself. For this, we'll set up Nginx to act as a webserver handling TLS and proxying the traffic forward to rCTF. It is also helpful to have Cloudflare in front so that you can deal with DDoS attacks and implement easy rate-limiting.
 
-### Using Cloudflare
+<Tabs items={['Using Cloudflare', 'Using certbot']}>
+<Tab>
 
 <Steps>
 <Step title="Configure Cloudflare DNS">
@@ -162,7 +163,8 @@ Every time you update the configuration, run `nginx -t && nginx -s reload` to va
 </Step>
 </Steps>
 
-### Using something else
+</Tab>
+<Tab>
 
 <Steps>
 <Step title="Configure DNS">
@@ -225,6 +227,9 @@ Every time you update the configuration, run `nginx -t && nginx -s reload` to va
 
 </Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Creating an admin account
 

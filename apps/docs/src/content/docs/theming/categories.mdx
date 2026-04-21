@@ -32,7 +32,7 @@ We additionally enable category aliases (`binary` → `pwn`, `rev` → `reverse`
 
 The `getCategoryStyle(color)` function generates inline CSS that binds a color's variables to generic category tokens:
 
-```ts
+```ts showLineNumbers=false
 getCategoryStyle('red')
 // Returns:
 // "--category-foreground-l0: var(--foreground-red-l0);
@@ -44,7 +44,7 @@ getCategoryStyle('red')
 
 Components apply this style to a container, then use generic classes:
 
-```svelte
+```svelte showLineNumbers=false
 <div style={getCategoryStyle(config.color)}>
   <span class="text-category-foreground-l0">{challenge.name}</span>
   <span class="bg-category-background-l0 text-category-foreground-l1">

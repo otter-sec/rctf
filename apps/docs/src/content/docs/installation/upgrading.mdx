@@ -3,6 +3,9 @@ title: Upgrading from v1
 description: Migration guide from rCTF v1 to v2, covering database changes, API differences, and configuration updates.
 ---
 
+import Tabs from '@/components/mdx/tabs.astro'
+import Tab from '@/components/mdx/tab.astro'
+
 This guide covers the changes between rCTF v1 and v2 and what you need to do to upgrade.
 
 ## Database migration
@@ -83,7 +86,10 @@ The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files 
 
 The v1 `recaptcha` top-level config is automatically converted to the new `captcha.provider` format at startup. However, migrating to the new format is recommended:
 
-```yaml title="v1 (deprecated)"
+<Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
+<Tab>
+
+```yaml title="v1"
 recaptcha:
   siteKey: your-site-key
   secretKey: your-secret-key
@@ -91,7 +97,10 @@ recaptcha:
     - register
 ```
 
-```yaml title="v2 (recommended)"
+</Tab>
+<Tab>
+
+```yaml title="v2"
 captcha:
   provider:
     name: captcha/recaptcha
@@ -101,6 +110,9 @@ captcha:
   protectedEndpoints:
     - register
 ```
+
+</Tab>
+</Tabs>
 
 The new format also supports `captcha/hcaptcha` and `captcha/turnstile` providers.
 

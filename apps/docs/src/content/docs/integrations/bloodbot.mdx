@@ -31,7 +31,8 @@ Setting `bloodsCount: 3` announces first, second, and third blood. Setting it to
 
 ## Message providers
 
-### messages/discord
+<Tabs items={['messages/discord', 'messages/telegram']}>
+<Tab>
 
 Sends announcements via a Discord webhook.
 
@@ -41,7 +42,8 @@ Sends announcements via a Discord webhook.
 
 To create a webhook: Server Settings > Integrations > Webhooks > New Webhook. Copy the webhook URL.
 
-### messages/telegram
+</Tab>
+<Tab>
 
 Sends announcements via a Telegram bot.
 
@@ -50,6 +52,9 @@ Sends announcements via a Telegram bot.
 | `botToken` | Telegram bot token (from [@BotFather](https://t.me/BotFather)) |
 | `chatId`   | Target chat or group ID                                        |
 | `threadId` | Message thread ID for forum/topic channels (optional)          |
+
+</Tab>
+</Tabs>
 
 ## Custom message templates
 

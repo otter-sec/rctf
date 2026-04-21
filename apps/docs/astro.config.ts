@@ -137,12 +137,13 @@ export default defineConfig({
             `[data-theme="${theme.name.split('-')[1]}"]`,
           defaultProps: {
             wrap: true,
+            showLineNumbers: true,
             collapseStyle: 'collapsible-auto',
             overridesByLang: {
               'ansi,bat,bash,batch,cmd,console,powershell,ps,ps1,psd1,psm1,sh,shell,shellscript,shellsession,text,zsh':
-                {
-                  showLineNumbers: false,
-                },
+                { showLineNumbers: false },
+              'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx':
+                { showLineNumbers: false },
             },
           },
           styleOverrides: {

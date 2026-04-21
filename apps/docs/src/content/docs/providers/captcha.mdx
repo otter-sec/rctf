@@ -3,6 +3,8 @@ title: Captcha providers
 description: Configure captcha verification with reCAPTCHA, hCaptcha, or Cloudflare Turnstile.
 ---
 
+import Callout from '@/components/callout.astro'
+
 Captcha providers protect sensitive endpoints from automated abuse. rCTF supports three captcha services.
 
 ## Configuration
@@ -39,7 +41,8 @@ Only the actions listed in `protectedEndpoints` will require captcha. Unlisted a
 
 ## Providers
 
-### captcha/recaptcha
+<Tabs items={['captcha/recaptcha', 'captcha/hcaptcha', 'captcha/turnstile']}>
+<Tab>
 
 Google reCAPTCHA (v2 or v3).
 
@@ -57,7 +60,8 @@ captcha:
 | `siteKey`   | `RCTF_RECAPTCHA_SITE_KEY`   | reCAPTCHA site key   |
 | `secretKey` | `RCTF_RECAPTCHA_SECRET_KEY` | reCAPTCHA secret key |
 
-### captcha/hcaptcha
+</Tab>
+<Tab>
 
 [hCaptcha](https://www.hcaptcha.com/) verification.
 
@@ -75,7 +79,8 @@ captcha:
 | `siteKey`   | `RCTF_HCAPTCHA_SITE_KEY`   | hCaptcha site key   |
 | `secretKey` | `RCTF_HCAPTCHA_SECRET_KEY` | hCaptcha secret key |
 
-### captcha/turnstile
+</Tab>
+<Tab>
 
 [Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) verification.
 
@@ -93,11 +98,17 @@ captcha:
 | `siteKey`   | `RCTF_TURNSTILE_SITE_KEY`   | Turnstile site key   |
 | `secretKey` | `RCTF_TURNSTILE_SECRET_KEY` | Turnstile secret key |
 
+</Tab>
+</Tabs>
+
 ## Migrating from v1
 
 If you are using the legacy `recaptcha` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
 
-```yaml title="v1 (deprecated)"
+<Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
+<Tab>
+
+```yaml
 recaptcha:
   siteKey: your-site-key
   secretKey: your-secret-key
@@ -105,7 +116,10 @@ recaptcha:
     - register
 ```
 
-```yaml title="v2 (recommended)"
+</Tab>
+<Tab>
+
+```yaml
 captcha:
   provider:
     name: captcha/recaptcha
@@ -115,3 +129,6 @@ captcha:
   protectedEndpoints:
     - register
 ```
+
+</Tab>
+</Tabs>
