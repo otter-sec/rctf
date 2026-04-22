@@ -21,7 +21,6 @@ import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
 import tailwindcss from '@tailwindcss/vite'
 import { extname, resolve } from 'node:path'
 import { readFile } from 'node:fs/promises'
-import type { Plugin } from 'vite'
 
 /**
  * Dev-only: serve `/pagefind/*` from `./dist/pagefind/*`.
@@ -54,7 +53,7 @@ function rehypeWrapTables() {
   }
 }
 
-function pagefindDevServer(): Plugin {
+function pagefindDevServer() {
   const mime: Record<string, string> = {
     js: 'application/javascript',
     mjs: 'application/javascript',
@@ -64,9 +63,9 @@ function pagefindDevServer(): Plugin {
   }
   return {
     name: 'pagefind-dev-server',
-    apply: 'serve',
-    configureServer(server) {
-      server.middlewares.use('/pagefind', async (req, res, next) => {
+    apply: 'serve' as const,
+    configureServer(server: any) {
+      server.middlewares.use('/pagefind', async (req: any, res: any, next: any) => {
         const url = (req.url ?? '/').split('?')[0]
         if (url === '' || url === '/') return next()
         try {

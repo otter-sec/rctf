@@ -88,10 +88,10 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
     if (!nav || !viewport) return
 
     function update() {
-      const atTop = viewport.scrollTop <= 1
-      const atBottom = viewport.scrollTop + viewport.clientHeight >= viewport.scrollHeight - 1
+      const atTop = viewport!.scrollTop <= 1
+      const atBottom = viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
 
-      nav.style.maskImage =
+      nav!.style.maskImage =
         atTop && atBottom ? 'none'
         : atTop ? 'linear-gradient(to bottom, black calc(100% - 2rem), transparent)'
         : atBottom ? 'linear-gradient(to bottom, transparent, black 2rem)'
