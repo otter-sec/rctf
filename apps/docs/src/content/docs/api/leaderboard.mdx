@@ -7,7 +7,7 @@ import Callout from '@/components/callout.astro'
 
 ## Scoring computation
 
-The leaderboard is computed by a background worker that runs at a configurable interval (default 30 seconds, controlled by `leaderboard.updateInterval`). The worker:
+The leaderboard is computed by a background worker that runs at a configurable interval (default 30 seconds, controlled by `leaderboard.updateInterval{:yaml}`). The worker:
 
 1. Collects all solves and computes each challenge's current point value using the [scoring provider](/providers/scores)
 2. Sums each team's points across all solved challenges
@@ -27,7 +27,7 @@ When teams have equal scores, the following rules determine their ranking:
 
 1. **Score** (descending) - Higher score ranks higher
 2. **Last solve time** - Among teams with equal scores, the team that reached that score first ranks higher (earlier last solve wins)
-3. **Last tiebreak-eligible solve time** - Further tiebreaking considers only solves from challenges marked as `tiebreakEligible`
+3. **Last tiebreak-eligible solve time** - Further tiebreaking considers only solves from challenges marked as `tiebreakEligible{:yaml}`
 
 This means that solving a challenge earlier gives a competitive advantage when scores are tied.
 
@@ -45,8 +45,8 @@ The leaderboard supports fuzzy team name search. Searches require at least 2 cha
 
 ## Score graph
 
-The platform captures periodic snapshots of team scores over time to power the score graph visualization. Data points are sampled at intervals controlled by `leaderboard.graphSampleTime` (default 30 minutes). The graph shows the top N teams (controlled by `leaderboard.graphMaxTeams`, default 10).
+The platform captures periodic snapshots of team scores over time to power the score graph visualization. Data points are sampled at intervals controlled by `leaderboard.graphSampleTime{:yaml}` (default 30 minutes). The graph shows the top N teams (controlled by `leaderboard.graphMaxTeams{:yaml}`, default `10{:ts}`).
 
 ## Pagination
 
-Leaderboard queries support `limit` and `offset` pagination. Maximum values are controlled by the `leaderboard.maxLimit` (default 100) and `leaderboard.maxOffset` configuration options.
+Leaderboard queries support `limit{:yaml}` and `offset{:yaml}` pagination. Maximum values are controlled by the `leaderboard.maxLimit{:yaml}` (default `100{:ts}`) and `leaderboard.maxOffset{:yaml}` configuration options.

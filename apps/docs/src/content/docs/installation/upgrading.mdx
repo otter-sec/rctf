@@ -16,7 +16,7 @@ Database schema changes are handled automatically by Drizzle ORM. Run migrations
 bun run db:migrate
 ```
 
-Or set `database.migrate: before` in your configuration to migrate on startup.
+Or set `database.migrate{:yaml}` to `before{:yaml}` in your configuration to migrate on startup.
 
 ### New tables
 
@@ -51,7 +51,7 @@ All v1 routes continue to work. The v2 API is available at `/api/v2/...` and inc
 
 ### Captcha field rename
 
-V2 routes use `captchaCode` instead of `recaptchaCode` in request bodies. This applies to all endpoints that support captcha validation.
+V2 routes use `captchaCode{:yaml}` instead of `recaptchaCode{:yaml}` in request bodies. This applies to all endpoints that support captcha validation.
 
 ### File uploads
 
@@ -84,7 +84,7 @@ The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files 
 
 ### Captcha provider
 
-The v1 `recaptcha` top-level config is automatically converted to the new `captcha.provider` format at startup. However, migrating to the new format is recommended:
+The v1 `recaptcha{:yaml}` top-level config is automatically converted to the new `captcha.provider{:yaml}` format at startup. However, migrating to the new format is recommended:
 
 <Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
 <Tab>
@@ -114,11 +114,11 @@ captcha:
 </Tab>
 </Tabs>
 
-The new format also supports `captcha/hcaptcha` and `captcha/turnstile` providers.
+The new format also supports `captcha/hcaptcha{:yaml}` and `captcha/turnstile{:yaml}` providers.
 
 ### Analytics provider
 
-The v1 `globalSiteTag` config is automatically converted to the `analytics.provider` format. Migrate to:
+The v1 `globalSiteTag{:yaml}` config is automatically converted to the `analytics.provider{:yaml}` format. Migrate to:
 
 ```yaml title="v2 (recommended)"
 analytics:
@@ -128,7 +128,7 @@ analytics:
       siteTag: G-XXXXXXXX
 ```
 
-Additional analytics providers are available: `analytics/cloudflare` and `analytics/plausible`.
+Additional analytics providers are available: `analytics/cloudflare{:yaml}` and `analytics/plausible{:yaml}`.
 
 ### New configuration sections
 
@@ -136,11 +136,11 @@ The following configuration sections are new in v2:
 
 | Section             | Purpose                                      |
 | ------------------- | -------------------------------------------- |
-| `adminBot`          | Admin bot provider and settings              |
-| `avatarsModeration` | Avatar content moderation (OpenAI)           |
-| `bloodBot`          | First blood notifications (Discord/Telegram) |
-| `analytics`         | Analytics provider                           |
-| `proxy`             | Reverse proxy and Cloudflare settings        |
-| `maxAvatarSize`     | Maximum avatar upload size (default 1 MB)    |
+| `adminBot{:yaml}`          | Admin bot provider and settings              |
+| `avatarsModeration{:yaml}` | Avatar content moderation (OpenAI)           |
+| `bloodBot{:yaml}`          | First blood notifications (Discord/Telegram) |
+| `analytics{:yaml}`         | Analytics provider                           |
+| `proxy{:yaml}`             | Reverse proxy and Cloudflare settings        |
+| `maxAvatarSize{:yaml}`     | Maximum avatar upload size (default 1 MB)    |
 
 See the [Configuration](/configuration) reference for full details on all options.

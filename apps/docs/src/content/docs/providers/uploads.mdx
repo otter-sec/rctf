@@ -23,7 +23,7 @@ uploadProvider:
 
 - **Deduplication**: Files are stored by their SHA256 hash. Uploading the same file content twice does not create a duplicate.
 - **Caching**: All uploaded files are served with immutable cache headers (`max-age=31536000`).
-- **Avatars**: Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `maxAvatarSize` config option (default 1 MB).
+- **Avatars**: Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `maxAvatarSize{:yaml}` config option (default 1 MB).
 
 ## Providers
 
@@ -41,7 +41,7 @@ uploadProvider:
 
 | Option            | Default         | Description                |
 | ----------------- | --------------- | -------------------------- |
-| `uploadDirectory` | `{cwd}/uploads` | Directory for file storage |
+| `uploadDirectory{:yaml}` | `{cwd}/uploads` | Directory for file storage |
 
 Files are served via the API server at `/uploads/*`. Path traversal protection is built in.
 
@@ -68,10 +68,10 @@ uploadProvider:
 
 | Option         | Environment Variable | Description           |
 | -------------- | -------------------- | --------------------- |
-| `bucketName`   | `RCTF_S3_BUCKET`     | S3 bucket name        |
-| `awsKeyId`     | `RCTF_S3_KEY_ID`     | AWS access key ID     |
-| `awsKeySecret` | `RCTF_S3_KEY_SECRET` | AWS secret access key |
-| `awsRegion`    | `RCTF_S3_REGION`     | AWS region            |
+| `bucketName{:yaml}`   | `RCTF_S3_BUCKET{:sh}`     | S3 bucket name        |
+| `awsKeyId{:yaml}`     | `RCTF_S3_KEY_ID{:sh}`     | AWS access key ID     |
+| `awsKeySecret{:yaml}` | `RCTF_S3_KEY_SECRET{:sh}` | AWS secret access key |
+| `awsRegion{:yaml}`    | `RCTF_S3_REGION{:sh}`     | AWS region            |
 
 Files are stored with `public-read` ACL and `attachment` content disposition. The bucket must allow public reads.
 
@@ -96,9 +96,9 @@ uploadProvider:
 
 | Option        | Environment Variable   | Description                                          |
 | ------------- | ---------------------- | ---------------------------------------------------- |
-| `projectId`   | `RCTF_GCS_PROJECT_ID`  | GCP project ID                                       |
-| `bucketName`  | `RCTF_GCS_BUCKET`      | GCS bucket name                                      |
-| `credentials` | `RCTF_GCS_CREDENTIALS` | GCP credentials object (env var accepts JSON string) |
+| `projectId{:yaml}`   | `RCTF_GCS_PROJECT_ID{:sh}`  | GCP project ID                                       |
+| `bucketName{:yaml}`  | `RCTF_GCS_BUCKET{:sh}`      | GCS bucket name                                      |
+| `credentials{:yaml}` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket must be configured to allow public access.
 

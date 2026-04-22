@@ -1,0 +1,72 @@
+---
+title: Analytics providers
+description: Track visitor metrics with Google Analytics, Cloudflare Web Analytics, or Plausible.
+---
+
+Analytics providers inject a tracking script into the frontend. No data is collected server-side.
+
+## Configuration
+
+```yaml
+analytics:
+  provider:
+    name: analytics/google
+    options:
+      siteTag: G-XXXXXXXX
+```
+
+## Providers
+
+<Tabs items={['analytics/google', 'analytics/cloudflare', 'analytics/plausible']}>
+<Tab>
+
+Google Analytics 4.
+
+```yaml
+analytics:
+  provider:
+    name: analytics/google
+    options:
+      siteTag: G-XXXXXXXX
+```
+
+| Option    | Description                       |
+| --------- | --------------------------------- |
+| `siteTag{:yaml}` | Google Analytics 4 measurement ID |
+
+</Tab>
+<Tab>
+
+[Cloudflare Web Analytics](https://developers.cloudflare.com/analytics/web-analytics/).
+
+```yaml
+analytics:
+  provider:
+    name: analytics/cloudflare
+    options:
+      token: your-cf-token
+```
+
+| Option  | Description                    |
+| ------- | ------------------------------ |
+| `token{:yaml}` | Cloudflare Web Analytics token |
+
+</Tab>
+<Tab>
+
+[Plausible](https://plausible.io/) analytics. Supports self-hosted instances.
+
+```yaml
+analytics:
+  provider:
+    name: analytics/plausible
+    options:
+      apiHost: https://plausible.io
+```
+
+| Option    | Default                | Description                        |
+| --------- | ---------------------- | ---------------------------------- |
+| `apiHost{:yaml}` | `https://plausible.io` | API host, override for self-hosted |
+
+</Tab>
+</Tabs>

@@ -50,10 +50,10 @@ The recovery flow always returns a success response regardless of whether the em
 
 - **Auth tokens** never expire - once issued, they work indefinitely
 - **Team tokens** never expire - they are the primary recovery mechanism
-- **Verification tokens** expire after `loginTimeout` (default 1 hour) and are stored in Redis
-- **CTFtime tokens** expire after `loginTimeout`
+- **Verification tokens** expire after `loginTimeout{:yaml}` (default 1 hour) and are stored in Redis
+- **CTFtime tokens** expire after `loginTimeout{:yaml}`
 
-All tokens are encrypted with AES-GCM using the `tokenKey` from the configuration. If `tokenKey` changes, all existing tokens become invalid.
+All tokens are encrypted with AES-GCM using the `tokenKey{:yaml}` from the configuration. If `tokenKey{:yaml}` changes, all existing tokens become invalid.
 
 ## User cache
 
@@ -77,7 +77,7 @@ Teams have the following profile data:
 
 When a team uploads an avatar:
 
-1. The image is validated against `maxAvatarSize` (default 1 MB)
+1. The image is validated against `maxAvatarSize{:yaml}` (default 1 MB)
 2. It is resized to 256x256 pixels and converted to WebP format
 3. If a [moderation provider](/providers/moderation) is configured, the image is checked for inappropriate content
 4. The image is uploaded via the configured [upload provider](/providers/uploads)
@@ -87,7 +87,7 @@ Avatar uploads are rate-limited (2 per 2 minutes) and can be protected by captch
 
 ## Team members
 
-When `userMembers` is enabled (default), teams can add members by email. This is informational - members share the same team token and it does not create separate accounts. The maximum number of members is controlled by `maxMembers` (default 50).
+When `userMembers{:yaml}` is enabled (default), teams can add members by email. This is informational - members share the same team token and it does not create separate accounts. The maximum number of members is controlled by `maxMembers{:yaml}` (default `50{:ts}`).
 
 ## Account requirements
 

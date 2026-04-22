@@ -20,12 +20,12 @@ avatarsModeration:
 
 | Field                                    | Type    | Default | Description                                                   |
 | ---------------------------------------- | ------- | ------- | ------------------------------------------------------------- |
-| `avatarsModeration.provider`             | object  | -       | Moderation provider configuration                             |
-| `avatarsModeration.allowOnInternalError` | boolean | `true`  | Whether to allow avatar uploads when the moderation API fails |
+| `avatarsModeration.provider{:yaml}`             | `object{:ts}`  | -       | Moderation provider configuration                             |
+| `avatarsModeration.allowOnInternalError{:yaml}` | `boolean{:ts}` | `true{:ts}`  | Whether to allow avatar uploads when the moderation API fails |
 
 <Callout variant="tip">
 
-Setting `allowOnInternalError: true` (the default) ensures that temporary OpenAI API outages do not prevent users from uploading avatars. Set to `false` if strict moderation is required.
+Setting `allowOnInternalError{:yaml}` to `true{:ts}` (the default) ensures that temporary OpenAI API outages do not prevent users from uploading avatars. Set to `false{:ts}` if strict moderation is required.
 
 </Callout>
 ## Providers
@@ -45,8 +45,8 @@ avatarsModeration:
 
 | Option   | Environment Variable                                 | Default                  | Description             |
 | -------- | ---------------------------------------------------- | ------------------------ | ----------------------- |
-| `apiKey` | `RCTF_MODERATION_OPENAI_API_KEY` or `OPENAI_API_KEY` | -                        | OpenAI API key          |
-| `model`  | `RCTF_MODERATION_OPENAI_MODEL`                       | `omni-moderation-latest` | OpenAI moderation model |
+| `apiKey{:yaml}` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | -                        | OpenAI API key          |
+| `model{:yaml}`  | `RCTF_MODERATION_OPENAI_MODEL{:sh}`                       | `omni-moderation-latest` | OpenAI moderation model |
 
 The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image is flagged as inappropriate, the upload is rejected with an error.
 
@@ -54,7 +54,7 @@ The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI mode
 
 When a user uploads an avatar, the following pipeline runs:
 
-1. Image is validated against `maxAvatarSize` (default 1 MB)
+1. Image is validated against `maxAvatarSize{:yaml}` (default 1 MB)
 2. Image is resized to 256x256 pixels and converted to WebP
 3. If a moderation provider is configured, the image is checked
 4. If approved (or no provider configured), the image is uploaded via the upload provider

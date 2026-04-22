@@ -29,8 +29,8 @@ Or via environment variables:
 
 | Variable                     | Description                              |
 | ---------------------------- | ---------------------------------------- |
-| `RCTF_CTFTIME_CLIENT_ID`     | CTFtime OAuth client ID (numeric string) |
-| `RCTF_CTFTIME_CLIENT_SECRET` | CTFtime OAuth client secret              |
+| `RCTF_CTFTIME_CLIENT_ID{:sh}`     | CTFtime OAuth client ID (numeric string) |
+| `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | CTFtime OAuth client secret              |
 
 </Step>
 </Steps>
@@ -62,6 +62,6 @@ When CTFtime authentication is configured, division ACLs are **bypassed entirely
 
 After the CTF ends, you can export the leaderboard in CTFtime's format for scoreboard submission.
 
-The platform provides a leaderboard export in CTFtime's JSON format, accessible to users with `leaderboardRead` permission.
+The platform provides a leaderboard export in CTFtime's JSON format, accessible to users with `leaderboardRead{:yaml}` permission.
 
 See [After the CTF](/running-a-successful-ctf/06-after-ctf) for the full scoreboard submission procedure.

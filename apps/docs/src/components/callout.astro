@@ -177,7 +177,16 @@ const { title, variant = 'note', defaultOpen = true, ...rest } = Astro.props
       )}
     />
   </summary>
-  <div>
+  <div data-callout-body>
     <slot />
   </div>
 </details>
+
+<style>
+  [data-callout-body] :global(*:first-child) {
+    margin-top: 0 !important;
+  }
+  [data-callout-body] :global(*:last-child) {
+    margin-bottom: 0 !important;
+  }
+</style>

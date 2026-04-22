@@ -9,16 +9,17 @@ rCTF is configured through YAML or JSON files in a `rctf.d/` directory and optio
 
 ## Configuration loading
 
-Configuration is loaded from a directory named `rctf.d/`. The loader searches upward from the `packages/config/` directory, or you can specify a path via the `RCTF_CONF_PATH` environment variable.
+Configuration is loaded from a directory named `rctf.d/`. The loader searches upward from the `packages/config/` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
 
 All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order. This allows you to split configuration across multiple files for organization:
 
-```
-rctf.d/
-  01-base.yaml         # Core settings
-  02-providers.yaml    # Provider configuration
-  03-overrides.yaml    # Environment-specific overrides
-```
+<FileTree>
+  <Dir name="rctf.d">
+    <File name="01-base.yaml" comment="Core settings" />
+    <File name="02-providers.yaml" comment="Provider configuration" />
+    <File name="03-overrides.yaml" comment="Environment-specific overrides" />
+  </Dir>
+</FileTree>
 
 Environment variables are applied last, overriding any file-based values.
 
@@ -30,70 +31,70 @@ The following environment variables are supported. They override values from con
 
 | Variable             | Type   | Description                                      |
 | -------------------- | ------ | ------------------------------------------------ |
-| `RCTF_NAME`          | string | CTF display name                                 |
-| `RCTF_ORIGIN`        | string | CTF origin URL (e.g., `https://ctf.example.com`) |
-| `RCTF_TOKEN_KEY`     | string | Base64-encoded 32-byte key for token encryption  |
-| `RCTF_INSTANCE_TYPE` | string | `all`, `frontend`, or `leaderboard`              |
-| `RCTF_CONF_PATH`     | string | Path to config directory (overrides search)      |
+| `RCTF_NAME{:sh}`          | `string{:ts}` | CTF display name                                 |
+| `RCTF_ORIGIN{:sh}`        | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
+| `RCTF_TOKEN_KEY{:sh}`     | `string{:ts}` | Base64-encoded 32-byte key for token encryption  |
+| `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `all{:yaml}`, `frontend{:yaml}`, or `leaderboard{:yaml}`              |
+| `RCTF_CONF_PATH{:sh}`     | `string{:ts}` | Path to config directory (overrides search)      |
 
 ### Database
 
 | Variable                 | Type    | Description                        |
 | ------------------------ | ------- | ---------------------------------- |
-| `RCTF_DATABASE_URL`      | string  | PostgreSQL connection string       |
-| `RCTF_DATABASE_HOST`     | string  | PostgreSQL host (if not using URL) |
-| `RCTF_DATABASE_PORT`     | integer | PostgreSQL port                    |
-| `RCTF_DATABASE_USERNAME` | string  | PostgreSQL user                    |
-| `RCTF_DATABASE_PASSWORD` | string  | PostgreSQL password                |
-| `RCTF_DATABASE_DATABASE` | string  | PostgreSQL database name           |
-| `RCTF_DATABASE_MIGRATE`  | string  | `before`, `only`, or `never`       |
-| `RCTF_REDIS_URL`         | string  | Redis connection string            |
-| `RCTF_REDIS_HOST`        | string  | Redis host (if not using URL)      |
-| `RCTF_REDIS_PORT`        | integer | Redis port                         |
-| `RCTF_REDIS_PASSWORD`    | string  | Redis password                     |
-| `RCTF_REDIS_DATABASE`    | integer | Redis database number              |
+| `RCTF_DATABASE_URL{:sh}`      | `string{:ts}`  | PostgreSQL connection string       |
+| `RCTF_DATABASE_HOST{:sh}`     | `string{:ts}`  | PostgreSQL host (if not using URL) |
+| `RCTF_DATABASE_PORT{:sh}`     | `integer{:ts}` | PostgreSQL port                    |
+| `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}`  | PostgreSQL user                    |
+| `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}`  | PostgreSQL password                |
+| `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}`  | PostgreSQL database name           |
+| `RCTF_DATABASE_MIGRATE{:sh}`  | `string{:ts}`  | `before{:yaml}`, `only{:yaml}`, or `never{:yaml}`       |
+| `RCTF_REDIS_URL{:sh}`         | `string{:ts}`  | Redis connection string            |
+| `RCTF_REDIS_HOST{:sh}`        | `string{:ts}`  | Redis host (if not using URL)      |
+| `RCTF_REDIS_PORT{:sh}`        | `integer{:ts}` | Redis port                         |
+| `RCTF_REDIS_PASSWORD{:sh}`    | `string{:ts}`  | Redis password                     |
+| `RCTF_REDIS_DATABASE{:sh}`    | `integer{:ts}` | Redis database number              |
 
 ### Timing and auth
 
 | Variable                     | Type    | Description                                |
 | ---------------------------- | ------- | ------------------------------------------ |
-| `RCTF_START_TIME`            | integer | Competition start time (Unix milliseconds) |
-| `RCTF_END_TIME`              | integer | Competition end time (Unix milliseconds)   |
-| `RCTF_LOGIN_TIMEOUT`         | integer | Verification token expiry in milliseconds  |
-| `RCTF_USER_MEMBERS`          | boolean | Enable team members feature                |
-| `RCTF_CTFTIME_CLIENT_ID`     | string  | CTFtime OAuth client ID                    |
-| `RCTF_CTFTIME_CLIENT_SECRET` | string  | CTFtime OAuth client secret                |
+| `RCTF_START_TIME{:sh}`            | `integer{:ts}` | Competition start time (Unix milliseconds) |
+| `RCTF_END_TIME{:sh}`              | `integer{:ts}` | Competition end time (Unix milliseconds)   |
+| `RCTF_LOGIN_TIMEOUT{:sh}`         | `integer{:ts}` | Verification token expiry in milliseconds  |
+| `RCTF_USER_MEMBERS{:sh}`          | `boolean{:ts}` | Enable team members feature                |
+| `RCTF_CTFTIME_CLIENT_ID{:sh}`     | `string{:ts}`  | CTFtime OAuth client ID                    |
+| `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | `string{:ts}`  | CTFtime OAuth client secret                |
 
 ### UI and meta
 
 | Variable                | Type   | Description                                                 |
 | ----------------------- | ------ | ----------------------------------------------------------- |
-| `RCTF_HOME_CONTENT`     | string | Home page markdown content                                  |
-| `RCTF_FAVICON_URL`      | string | Favicon URL                                                 |
-| `RCTF_META_DESCRIPTION` | string | Meta description                                            |
-| `RCTF_IMAGE_URL`        | string | Meta image URL                                              |
-| `RCTF_GLOBAL_SITE_TAG`  | string | Google Analytics tag (deprecated, use `analytics.provider`) |
+| `RCTF_HOME_CONTENT{:sh}`     | `string{:ts}` | Home page markdown content                                  |
+| `RCTF_FAVICON_URL{:sh}`      | `string{:ts}` | Favicon URL                                                 |
+| `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description                                            |
+| `RCTF_IMAGE_URL{:sh}`        | `string{:ts}` | Meta image URL                                              |
+| `RCTF_GLOBAL_SITE_TAG{:sh}`  | `string{:ts}` | Google Analytics tag (deprecated, use `analytics.provider{:yaml}`) |
 
 ### Email
 
 | Variable              | Type   | Description                 |
 | --------------------- | ------ | --------------------------- |
-| `RCTF_EMAIL_FROM`     | string | Email sender address        |
-| `RCTF_EMAIL_LOGO_URL` | string | Logo URL in email templates |
+| `RCTF_EMAIL_FROM{:sh}`     | `string{:ts}` | Email sender address        |
+| `RCTF_EMAIL_LOGO_URL{:sh}` | `string{:ts}` | Logo URL in email templates |
 
 ### Leaderboard
 
 | Variable                             | Type    | Description                      |
 | ------------------------------------ | ------- | -------------------------------- |
-| `RCTF_LEADERBOARD_MAX_LIMIT`         | integer | Max teams per leaderboard page   |
-| `RCTF_LEADERBOARD_MAX_OFFSET`        | integer | Max leaderboard offset           |
-| `RCTF_LEADERBOARD_UPDATE_INTERVAL`   | integer | Leaderboard recalc interval (ms) |
-| `RCTF_LEADERBOARD_GRAPH_MAX_TEAMS`   | integer | Max teams on score graph         |
-| `RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME` | integer | Graph sample interval (ms)       |
+| `RCTF_LEADERBOARD_MAX_LIMIT{:sh}`         | `integer{:ts}` | Max teams per leaderboard page   |
+| `RCTF_LEADERBOARD_MAX_OFFSET{:sh}`        | `integer{:ts}` | Max leaderboard offset           |
+| `RCTF_LEADERBOARD_UPDATE_INTERVAL{:sh}`   | `integer{:ts}` | Leaderboard recalc interval (ms) |
+| `RCTF_LEADERBOARD_GRAPH_MAX_TEAMS{:sh}`   | `integer{:ts}` | Max teams on score graph         |
+| `RCTF_LEADERBOARD_GRAPH_SAMPLE_TIME{:sh}` | `integer{:ts}` | Graph sample interval (ms)       |
 
 <Callout variant="note">
 
-Boolean environment variables accept `true`, `yes`, `y`, or `1` as truthy values. Anything else is treated as false.
+Boolean environment variables accept `true{:yaml}`, `yes{:yaml}`, `y{:yaml}`, or `1{:yaml}` as truthy values. Anything else is treated as false.
 
 </Callout>
 ## Configuration reference
@@ -111,14 +112,14 @@ instanceType: all # all | frontend | leaderboard
 
 | Field          | Type   | Default | Description                                                                                                         |
 | -------------- | ------ | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| `ctfName`      | string | -       | Display name of your CTF                                                                                            |
-| `origin`       | string | -       | Public URL of your CTF (no trailing slash)                                                                          |
-| `tokenKey`     | string | -       | Base64-encoded 32-byte key for AES-GCM token encryption                                                             |
-| `instanceType` | string | `all`   | Controls which components run: `all` (API + leaderboard worker), `frontend` (API only), `leaderboard` (worker only) |
+| `ctfName{:yaml}`      | `string{:ts}` | -       | Display name of your CTF                                                                                            |
+| `origin{:yaml}`       | `string{:ts}` | -       | Public URL of your CTF (no trailing slash)                                                                          |
+| `tokenKey{:yaml}`     | `string{:ts}` | -       | Base64-encoded 32-byte key for AES-GCM token encryption                                                             |
+| `instanceType{:yaml}` | `string{:ts}` | `all{:yaml}`   | Controls which components run: `all{:yaml}` (API + leaderboard worker), `frontend{:yaml}` (API only), `leaderboard{:yaml}` (worker only) |
 
 <Callout variant="warning">
 
-The `tokenKey` is critical for security. All authentication tokens are encrypted with this key. If it is lost or changed, all existing tokens become invalid and users will need to re-authenticate.
+The `tokenKey{:yaml}` is critical for security. All authentication tokens are encrypted with this key. If it is lost or changed, all existing tokens become invalid and users will need to re-authenticate.
 
 </Callout>
 ### Database
@@ -130,7 +131,7 @@ database:
   migrate: never
 ```
 
-The `sql` field accepts either a connection string or an object:
+The `sql{:yaml}` field accepts either a connection string or an object:
 
 ```yaml
 database:
@@ -145,7 +146,7 @@ database:
     connectTimeout: 3000 # Default: 3000 (ms)
 ```
 
-The `redis` field accepts either a connection string or an object:
+The `redis{:yaml}` field accepts either a connection string or an object:
 
 ```yaml
 database:
@@ -158,9 +159,9 @@ database:
 
 | Field              | Type             | Default | Description                                                                          |
 | ------------------ | ---------------- | ------- | ------------------------------------------------------------------------------------ |
-| `database.sql`     | string \| object | -       | PostgreSQL connection (required)                                                     |
-| `database.redis`   | string \| object | -       | Redis connection (required)                                                          |
-| `database.migrate` | string           | `never` | `before` runs migrations on startup, `only` runs migrations and exits, `never` skips |
+| `database.sql{:yaml}`     | `string{:ts}` \| `object{:ts}` | -       | PostgreSQL connection (required)                                                     |
+| `database.redis{:yaml}`   | `string{:ts}` \| `object{:ts}` | -       | Redis connection (required)                                                          |
+| `database.migrate{:yaml}` | `string{:ts}`           | `never{:yaml}` | `before{:yaml}` runs migrations on startup, `only{:yaml}` runs migrations and exits, `never{:yaml}` skips |
 
 ### Timing
 
@@ -171,12 +172,12 @@ endTime: 1735776000000 # January 2, 2025 00:00 UTC
 
 | Field       | Type   | Default | Description                                            |
 | ----------- | ------ | ------- | ------------------------------------------------------ |
-| `startTime` | number | -       | Competition start time in Unix milliseconds (required) |
-| `endTime`   | number | -       | Competition end time in Unix milliseconds (required)   |
+| `startTime{:yaml}` | `number{:ts}` | -       | Competition start time in Unix milliseconds (required) |
+| `endTime{:yaml}`   | `number{:ts}` | -       | Competition end time in Unix milliseconds (required)   |
 
 <Callout variant="tip">
 
-To convert a date to Unix milliseconds: `date -d "2025-01-01T00:00:00Z" +%s000` or use `new Date('2025-01-01T00:00:00Z').getTime()` in JavaScript.
+To convert a date to Unix milliseconds: `date -d "2025-01-01T00:00:00Z" +%s000{:sh}` or use `new Date('2025-01-01T00:00:00Z').getTime()` in JavaScript.
 
 </Callout>
 ### Divisions
@@ -197,9 +198,9 @@ divisionACLs:
 
 | Field             | Type   | Default            | Description                                   |
 | ----------------- | ------ | ------------------ | --------------------------------------------- |
-| `divisions`       | object | `{ open: "Open" }` | Map of division ID to display name            |
-| `defaultDivision` | string | -                  | Default division for new users (optional)     |
-| `divisionACLs`    | array  | -                  | Access control rules for divisions (optional) |
+| `divisions{:yaml}`       | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name            |
+| `defaultDivision{:yaml}` | `string{:ts}` | -                  | Default division for new users (optional)     |
+| `divisionACLs{:yaml}`    | `array{:ts}`  | -                  | Access control rules for divisions (optional) |
 
 #### Division ACLs
 
@@ -207,9 +208,9 @@ ACLs control which divisions a user can register for based on their email. Each 
 
 | Field       | Description                                                                            |
 | ----------- | -------------------------------------------------------------------------------------- |
-| `match`     | Match type: `domain`, `email`, `regex`, or `any`                                       |
-| `value`     | Value to match against (domain suffix, exact email, regex pattern, or empty for `any`) |
-| `divisions` | Array of division IDs this rule grants access to                                       |
+| `match{:yaml}`     | Match type: `domain{:yaml}`, `email{:yaml}`, `regex{:yaml}`, or `any{:yaml}`                                       |
+| `value{:yaml}`     | Value to match against (domain suffix, exact email, regex pattern, or empty for `any{:yaml}`) |
+| `divisions{:yaml}` | Array of division IDs this rule grants access to                                       |
 
 ACL rules are evaluated in order. The first matching rule determines the user's allowed divisions.
 
@@ -232,16 +233,16 @@ ctftime:
 
 | Field                  | Type    | Default   | Description                                                |
 | ---------------------- | ------- | --------- | ---------------------------------------------------------- |
-| `registrationsEnabled` | boolean | `true`    | Whether new registrations are allowed                      |
-| `userMembers`          | boolean | `true`    | Enable team members feature                                |
-| `maxMembers`           | number  | `50`      | Maximum members per team                                   |
-| `loginTimeout`         | number  | `3600000` | Verification/CTFtime token expiry in milliseconds (1 hour) |
-| `ctftime.clientId`     | string  | -         | CTFtime OAuth client ID (numeric string)                   |
-| `ctftime.clientSecret` | string  | -         | CTFtime OAuth client secret                                |
+| `registrationsEnabled{:yaml}` | `boolean{:ts}` | `true{:ts}`    | Whether new registrations are allowed                      |
+| `userMembers{:yaml}`          | `boolean{:ts}` | `true{:ts}`    | Enable team members feature                                |
+| `maxMembers{:yaml}`           | `number{:ts}`  | `50{:ts}`      | Maximum members per team                                   |
+| `loginTimeout{:yaml}`         | `number{:ts}`  | `3600000{:ts}` | Verification/CTFtime token expiry in milliseconds (1 hour) |
+| `ctftime.clientId{:yaml}`     | `string{:ts}`  | -         | CTFtime OAuth client ID (numeric string)                   |
+| `ctftime.clientSecret{:yaml}` | `string{:ts}`  | -         | CTFtime OAuth client secret                                |
 
 <Callout variant="note">
 
-Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `loginTimeout`.
+Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `loginTimeout{:yaml}`.
 
 </Callout>
 ### Captcha
@@ -260,10 +261,10 @@ captcha:
 
 | Field                        | Type   | Default | Description                                  |
 | ---------------------------- | ------ | ------- | -------------------------------------------- |
-| `captcha.provider`           | object | -       | Captcha provider config (`name` + `options`) |
-| `captcha.protectedEndpoints` | array  | -       | List of actions requiring captcha            |
+| `captcha.provider{:yaml}`           | `object{:ts}` | -       | Captcha provider config (`name{:yaml}` + `options{:yaml}`) |
+| `captcha.protectedEndpoints{:yaml}` | `array{:ts}`  | -       | List of actions requiring captcha            |
 
-Available captcha actions: `register`, `recover`, `setEmail`, `instancerStart`, `instancerExtend`, `avatarUpload`, `adminBotSubmit`.
+Available captcha actions: `register{:yaml}`, `recover{:yaml}`, `setEmail{:yaml}`, `instancerStart{:yaml}`, `instancerExtend{:yaml}`, `avatarUpload{:yaml}`, `adminBotSubmit{:yaml}`.
 
 See [Captcha Providers](/providers/captcha) for provider-specific configuration.
 
@@ -288,9 +289,9 @@ instancerProvider:
 
 | Field               | Type   | Default                      | Description                             |
 | ------------------- | ------ | ---------------------------- | --------------------------------------- |
-| `uploadProvider`    | object | `{ name: "uploads/local" }`  | File upload provider                    |
-| `scoreProvider`     | object | `{ name: "scores/classic" }` | Scoring algorithm provider              |
-| `instancerProvider` | object | -                            | Challenge instancer provider (optional) |
+| `uploadProvider{:yaml}`    | `object{:ts}` | `{ name: "uploads/local" }`  | File upload provider                    |
+| `scoreProvider{:yaml}`     | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider              |
+| `instancerProvider{:yaml}` | `object{:ts}` | -                            | Challenge instancer provider (optional) |
 
 See the [Providers](/providers) section for detailed configuration of each provider.
 
@@ -306,8 +307,8 @@ adminBot:
 
 | Field                              | Type    | Default | Description                                   |
 | ---------------------------------- | ------- | ------- | --------------------------------------------- |
-| `adminBot.provider`                | object  | -       | Admin bot provider config                     |
-| `adminBot.maxLogsPerUserChallenge` | integer | `5`     | Max stored log entries per user per challenge |
+| `adminBot.provider{:yaml}`                | `object{:ts}`  | -       | Admin bot provider config                     |
+| `adminBot.maxLogsPerUserChallenge{:yaml}` | `integer{:ts}` | `5{:ts}`     | Max stored log entries per user per challenge |
 
 ### Email
 
@@ -323,9 +324,9 @@ email:
 
 | Field            | Type   | Default | Description                                      |
 | ---------------- | ------ | ------- | ------------------------------------------------ |
-| `email.provider` | object | -       | Email provider config                            |
-| `email.from`     | string | -       | Sender email address (required if email enabled) |
-| `email.logoUrl`  | string | -       | Logo URL for email templates (optional)          |
+| `email.provider{:yaml}` | `object{:ts}` | -       | Email provider config                            |
+| `email.from{:yaml}`     | `string{:ts}` | -       | Sender email address (required if email enabled) |
+| `email.logoUrl{:yaml}`  | `string{:ts}` | -       | Logo URL for email templates (optional)          |
 
 <Callout variant="note">
 
@@ -357,18 +358,18 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 
 | Field                   | Type   | Default                               | Description                                              |
 | ----------------------- | ------ | ------------------------------------- | -------------------------------------------------------- |
-| `homeContent`           | string | `"Home content. Markdown supported."` | Home page content (Markdown)                             |
-| `sponsors`              | array  | `[]`                                  | List of sponsors (`name`, `icon`, `description`, `url?`) |
-| `meta.description`      | string | `"rCTF event description"`            | HTML meta description                                    |
-| `meta.imageUrl`         | string | `""`                                  | HTML meta image URL                                      |
-| `faviconUrl`            | string | rCTF default                          | Favicon URL                                              |
-| `logoLightUrl`          | string | `""`                                  | Logo for light mode                                      |
-| `logoDarkUrl`           | string | `""`                                  | Logo for dark mode                                       |
-| `flagFormatPlaceholder` | string | `"flag{[\\x20-\\x7e]+}"`              | Flag format hint shown to participants                   |
+| `homeContent{:yaml}`           | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown)                             |
+| `sponsors{:yaml}`              | `array{:ts}`  | `[]`                                  | List of sponsors (`name{:yaml}`, `icon{:yaml}`, `description{:yaml}`, `url{:yaml}`) |
+| `meta.description{:yaml}`      | `string{:ts}` | `"rCTF event description"`            | HTML meta description                                    |
+| `meta.imageUrl{:yaml}`         | `string{:ts}` | `""`                                  | HTML meta image URL                                      |
+| `faviconUrl{:yaml}`            | `string{:ts}` | rCTF default                          | Favicon URL                                              |
+| `logoLightUrl{:yaml}`          | `string{:ts}` | `""`                                  | Logo for light mode                                      |
+| `logoDarkUrl{:yaml}`           | `string{:ts}` | `""`                                  | Logo for dark mode                                       |
+| `flagFormatPlaceholder{:yaml}` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"`              | Flag format hint shown to participants                   |
 
 <Callout variant="tip">
 
-Most UI settings (`ctfName`, `homeContent`, `sponsors`, `meta`, `faviconUrl`, `logoLightUrl`, `logoDarkUrl`) can also be changed at runtime through the admin settings API without restarting the server.
+Most UI settings (`ctfName{:yaml}`, `homeContent{:yaml}`, `sponsors{:yaml}`, `meta{:yaml}`, `faviconUrl{:yaml}`, `logoLightUrl{:yaml}`, `logoDarkUrl{:yaml}`) can also be changed at runtime through the admin settings API without restarting the server.
 
 </Callout>
 ### Analytics
@@ -384,7 +385,7 @@ analytics:
 
 | Field                | Type   | Default | Description                                                                            |
 | -------------------- | ------ | ------- | -------------------------------------------------------------------------------------- |
-| `analytics.provider` | object | -       | Analytics provider (`analytics/google`, `analytics/cloudflare`, `analytics/plausible`) |
+| `analytics.provider{:yaml}` | `object{:ts}` | -       | Analytics provider (`analytics/google{:yaml}`, `analytics/cloudflare{:yaml}`, `analytics/plausible{:yaml}`) |
 
 ### Limits
 
@@ -401,13 +402,13 @@ leaderboard:
 
 | Field                            | Type   | Default           | Description                                         |
 | -------------------------------- | ------ | ----------------- | --------------------------------------------------- |
-| `maxAvatarSize`                  | number | `1048576` (1 MB)  | Maximum avatar upload size in bytes                 |
-| `leaderboard.maxLimit`           | number | `100`             | Max teams returned per leaderboard request          |
-| `leaderboard.maxOffset`          | number | `4294967296`      | Max pagination offset                               |
-| `leaderboard.updateInterval`     | number | `30000` (30s)     | Leaderboard recalculation interval in ms            |
-| `leaderboard.graphMaxTeams`      | number | `10`              | Max teams displayed on score graph                  |
-| `leaderboard.graphSampleTime`    | number | `1800000` (30min) | Time between graph data points in ms                |
-| `leaderboard.graphWithListLimit` | number | `100`             | Max teams for combined leaderboard + graph endpoint |
+| `maxAvatarSize{:yaml}`                  | `number{:ts}` | `1048576{:ts}` (1 MB)  | Maximum avatar upload size in bytes                 |
+| `leaderboard.maxLimit{:yaml}`           | `number{:ts}` | `100{:ts}`             | Max teams returned per leaderboard request          |
+| `leaderboard.maxOffset{:yaml}`          | `number{:ts}` | `4294967296{:ts}`      | Max pagination offset                               |
+| `leaderboard.updateInterval{:yaml}`     | `number{:ts}` | `30000{:ts}` (30s)     | Leaderboard recalculation interval in ms            |
+| `leaderboard.graphMaxTeams{:yaml}`      | `number{:ts}` | `10{:ts}`              | Max teams displayed on score graph                  |
+| `leaderboard.graphSampleTime{:yaml}`    | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms                |
+| `leaderboard.graphWithListLimit{:yaml}` | `number{:ts}` | `100{:ts}`             | Max teams for combined leaderboard + graph endpoint |
 
 ### Moderation
 
@@ -422,8 +423,8 @@ avatarsModeration:
 
 | Field                                    | Type    | Default | Description                                 |
 | ---------------------------------------- | ------- | ------- | ------------------------------------------- |
-| `avatarsModeration.provider`             | object  | -       | Moderation provider for avatar uploads      |
-| `avatarsModeration.allowOnInternalError` | boolean | `true`  | Allow avatar upload if moderation API fails |
+| `avatarsModeration.provider{:yaml}`             | `object{:ts}`  | -       | Moderation provider for avatar uploads      |
+| `avatarsModeration.allowOnInternalError{:yaml}` | `boolean{:ts}` | `true{:ts}`  | Allow avatar upload if moderation API fails |
 
 See [Moderation Providers](/providers/moderation) for details.
 
@@ -437,12 +438,12 @@ proxy:
 
 | Field              | Type                                    | Default | Description                                                                                                                                     |
 | ------------------ | --------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `proxy.cloudflare` | boolean                                 | `false` | Trust Cloudflare `CF-Connecting-IP` header for client IP                                                                                        |
-| `proxy.trust`      | boolean \| string \| string[] \| number | `false` | Proxy trust setting for `X-Forwarded-For`. `true` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
+| `proxy.cloudflare{:yaml}` | `boolean{:ts}`                                 | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP                                                                                        |
+| `proxy.trust{:yaml}`      | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
 
 <Callout variant="warning">
 
-Set `proxy.cloudflare: true` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `proxy.trust` instead.
+Set `proxy.cloudflare{:yaml}` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `proxy.trust{:yaml}` instead.
 
 </Callout>
 ### Blood bot
@@ -464,10 +465,10 @@ bloodBot:
 
 | Field                                     | Type   | Default | Description                             |
 | ----------------------------------------- | ------ | ------- | --------------------------------------- |
-| `bloodBot.bloodsCount`                    | number | `1`     | Number of blood tiers to announce (1-3) |
-| `bloodBot.destinations`                   | array  | -       | At least one destination (required)     |
-| `bloodBot.destinations[].provider`        | object | -       | Messages provider config                |
-| `bloodBot.destinations[].messageTemplate` | string | -       | Custom message template (optional)      |
+| `bloodBot.bloodsCount{:yaml}`                    | `number{:ts}` | `1{:ts}`     | Number of blood tiers to announce (1-3) |
+| `bloodBot.destinations{:yaml}`                   | `array{:ts}`  | -       | At least one destination (required)     |
+| `bloodBot.destinations[].provider{:yaml}`        | `object{:ts}` | -       | Messages provider config                |
+| `bloodBot.destinations[].messageTemplate{:yaml}` | `string{:ts}` | -       | Custom message template (optional)      |
 
 Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 

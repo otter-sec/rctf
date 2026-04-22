@@ -6,22 +6,29 @@ interface Props {
 const { title } = Astro.props
 ---
 
-<div class="step grid grid-cols-[2rem_1fr] gap-x-4">
+<div class="step grid grid-cols-[1.75rem_1fr] gap-x-3 sm:grid-cols-[2rem_1fr] sm:gap-x-4">
   <div class="flex flex-col items-center">
-    <div class="step-num bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-medium tabular-nums" />
+    <div class="step-num bg-muted text-muted-foreground flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-medium tabular-nums sm:size-8 sm:text-sm" />
     <div class="step-connector bg-border mt-1 w-px grow" />
   </div>
-  <div class="step-content pb-8 pt-1">
+  <div class="step-content min-w-0 pb-6 pt-1 sm:pb-8">
     {title && (
-      <span class="text-foreground mb-3 block text-lg leading-tight">{title}</span>
+      <span class="text-foreground mb-3 block text-base leading-tight sm:text-lg">{title}</span>
     )}
-    <div class="prose max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+    <div class="prose max-w-none" data-step-content>
       <slot />
     </div>
   </div>
 </div>
 
 <style>
+  [data-step-content] :global(*:first-child) {
+    margin-top: 0 !important;
+  }
+  [data-step-content] :global(*:last-child) {
+    margin-bottom: 0 !important;
+  }
+
   .step {
     counter-increment: step;
   }

@@ -57,7 +57,7 @@ When prompted if rCTF should be started, answer `y`. The installation script con
 The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration). Consider configuring at least the following:
 - CTF name, description, image, origin, home content, start and end time
 - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
-- `proxy.cloudflare` if behind Cloudflare
+- `proxy.cloudflare{:yaml}` if behind Cloudflare
 - GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/providers/uploads))
 
 </Step>
@@ -158,7 +158,7 @@ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
 nginx -t && nginx -s reload
 ```
 
-Every time you update the configuration, run `nginx -t && nginx -s reload` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 </Step>
 </Steps>
@@ -223,7 +223,7 @@ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
 nginx -t && nginx -s reload
 ```
 
-Every time you update the configuration, run `nginx -t && nginx -s reload` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 </Step>
 </Steps>

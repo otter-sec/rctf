@@ -44,7 +44,7 @@ email:
 
 | Option    | Environment Variable | Description         |
 | --------- | -------------------- | ------------------- |
-| `smtpUrl` | `RCTF_SMTP_URL`      | SMTP connection URL |
+| `smtpUrl{:yaml}` | `RCTF_SMTP_URL{:sh}`      | SMTP connection URL |
 
 </Tab>
 <Tab>
@@ -64,9 +64,9 @@ email:
 
 | Option         | Environment Variable  | Description           |
 | -------------- | --------------------- | --------------------- |
-| `awsKeyId`     | `RCTF_SES_KEY_ID`     | AWS access key ID     |
-| `awsKeySecret` | `RCTF_SES_KEY_SECRET` | AWS secret access key |
-| `awsRegion`    | `RCTF_SES_REGION`     | AWS region            |
+| `awsKeyId{:yaml}`     | `RCTF_SES_KEY_ID{:sh}`     | AWS access key ID     |
+| `awsKeySecret{:yaml}` | `RCTF_SES_KEY_SECRET{:sh}` | AWS secret access key |
+| `awsRegion{:yaml}`    | `RCTF_SES_REGION{:sh}`     | AWS region            |
 
 <Callout variant="warning">
 
@@ -90,7 +90,7 @@ email:
 
 | Option        | Environment Variable         | Description           |
 | ------------- | ---------------------------- | --------------------- |
-| `serverToken` | `RCTF_POSTMARK_SERVER_TOKEN` | Postmark server token |
+| `serverToken{:yaml}` | `RCTF_POSTMARK_SERVER_TOKEN{:sh}` | Postmark server token |
 
 </Tab>
 <Tab>
@@ -109,8 +109,8 @@ email:
 
 | Option   | Environment Variable   | Description            |
 | -------- | ---------------------- | ---------------------- |
-| `apiKey` | `RCTF_MAILGUN_API_KEY` | Mailgun API key        |
-| `domain` | `RCTF_MAILGUN_DOMAIN`  | Mailgun sending domain |
+| `apiKey{:yaml}` | `RCTF_MAILGUN_API_KEY{:sh}` | Mailgun API key        |
+| `domain{:yaml}` | `RCTF_MAILGUN_DOMAIN{:sh}`  | Mailgun sending domain |
 
 </Tab>
 </Tabs>

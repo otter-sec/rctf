@@ -34,8 +34,8 @@ instancerProvider:
 
 | Option      | Environment Variable        | Description          |
 | ----------- | --------------------------- | -------------------- |
-| `apiUrl`    | `TINY_INSTANCER_API_URL`    | Instancer API URL    |
-| `authToken` | `TINY_INSTANCER_AUTH_TOKEN` | Authentication token |
+| `apiUrl{:yaml}`    | `TINY_INSTANCER_API_URL{:sh}`    | Instancer API URL    |
+| `authToken{:yaml}` | `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Authentication token |
 
 </Tab>
 <Tab>
@@ -56,40 +56,40 @@ instancerProvider:
 
 | Option          | Environment Variable           | Description                   |
 | --------------- | ------------------------------ | ----------------------------- |
-| `apiUrl`        | `K8S_INSTANCER_API_URL`        | K8s instancer API URL         |
-| `authToken`     | `K8S_INSTANCER_AUTH_TOKEN`     | Authentication token          |
-| `caCertificate` | `K8S_INSTANCER_CA_CERTIFICATE` | TLS CA certificate (optional) |
+| `apiUrl{:yaml}`        | `K8S_INSTANCER_API_URL{:sh}`        | K8s instancer API URL         |
+| `authToken{:yaml}`     | `K8S_INSTANCER_AUTH_TOKEN{:sh}`     | Authentication token          |
+| `caCertificate{:yaml}` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | TLS CA certificate (optional) |
 
 </Tab>
 </Tabs>
 
 ## Challenge configuration
 
-Each challenge that uses the instancer needs an `instancerConfig` in its challenge data. This is set through the admin challenge editor.
+Each challenge that uses the instancer needs an `instancerConfig{:yaml}` in its challenge data. This is set through the admin challenge editor.
 
-Key fields in `instancerConfig`:
+Key fields in `instancerConfig{:yaml}`:
 
 | Field                 | Description                                                                |
 | --------------------- | -------------------------------------------------------------------------- |
-| `config`              | Provider-specific instance configuration (Docker compose-like or K8s spec) |
-| `expose`              | Array of endpoints to expose to participants                               |
-| `timeoutMilliseconds` | Instance lifetime before automatic cleanup                                 |
-| `extendable`          | Whether participants can extend the instance lifetime                      |
+| `config{:yaml}`              | Provider-specific instance configuration (Docker compose-like or K8s spec) |
+| `expose{:yaml}`              | Array of endpoints to expose to participants                               |
+| `timeoutMilliseconds{:yaml}` | Instance lifetime before automatic cleanup                                 |
+| `extendable{:yaml}`          | Whether participants can extend the instance lifetime                      |
 
 ### Endpoint exposure
 
-The `expose` array controls which ports and services are visible to participants:
+The `expose{:yaml}` array controls which ports and services are visible to participants:
 
 | Field           | Description                                    |
 | --------------- | ---------------------------------------------- |
-| `kind`          | Endpoint type (e.g., `tcp`, `http`)            |
-| `hostPrefix`    | Prefix for the endpoint URL                    |
-| `containerName` | Name of the container exposing the port        |
-| `containerPort` | Port number inside the container               |
-| `shouldDisplay` | Whether this endpoint is shown to participants |
-| `title`         | Display label for the endpoint                 |
+| `kind{:yaml}`          | Endpoint type (e.g., `tcp{:yaml}`, `http{:yaml}`)            |
+| `hostPrefix{:yaml}`    | Prefix for the endpoint URL                    |
+| `containerName{:yaml}` | Name of the container exposing the port        |
+| `containerPort{:yaml}` | Port number inside the container               |
+| `shouldDisplay{:yaml}` | Whether this endpoint is shown to participants |
+| `title{:yaml}`         | Display label for the endpoint                 |
 
-Only endpoints with `shouldDisplay: true` are shown to participants. This allows internal service ports to remain hidden.
+Only endpoints with `shouldDisplay{:yaml}` set to `true{:ts}` are shown to participants. This allows internal service ports to remain hidden.
 
 ## Instance lifecycle
 
@@ -102,7 +102,7 @@ Participants can manage their instances through the platform:
 | Extend | Extend instance lifetime (if the challenge allows it) |
 | Delete | Manually stop an instance                             |
 
-The create and extend actions can be protected with captcha (see [Captcha Providers](/providers/captcha)).
+The create and extend actions can be protected with captcha (see [Captcha Providers](/providers/captcha)). Use `instancerStart{:yaml}` and `instancerExtend{:yaml}` in `protectedEndpoints{:yaml}`.
 
 ## Instancer config schema
 

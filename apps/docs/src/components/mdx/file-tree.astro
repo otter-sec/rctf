@@ -8,11 +8,11 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<div
+<ul
   class={cn(
-    'file-tree not-prose bg-muted/20 text-foreground my-6 rounded-lg border p-4 font-mono text-sm',
+    'not-prose bg-muted/20 text-foreground my-6 list-none space-y-0.5 overflow-x-auto rounded-lg border p-4 font-mono text-sm',
     className,
   )}
 >
   <slot />
-</div>
+</ul>

@@ -15,8 +15,8 @@ Challenges are created and updated through the admin panel. Each challenge has a
 
 Challenges support two visibility controls:
 
-- **`hidden: true`** - Challenge is completely hidden from non-admin users
-- **`releaseTime`** - Challenge becomes visible only after this timestamp (Unix milliseconds). Set to `null` to make it visible immediately when the CTF starts.
+- **`hidden{:yaml}`** set to **`true{:ts}`** - Challenge is completely hidden from non-admin users
+- **`releaseTime{:yaml}`** - Challenge becomes visible only after this timestamp (Unix milliseconds). Set to `null{:ts}` to make it visible immediately when the CTF starts.
 
 This allows you to prepare challenges ahead of time and release them on schedule.
 
@@ -37,5 +37,5 @@ Challenge deletion is irreversible and removes all solve records for that challe
 
 Challenges can optionally include:
 
-- **`instancerConfig`** - Configuration for per-team instances. When set, the configuration is validated against the instancer provider's schema. See [Instancer](/integrations/instancer) for details.
-- **`adminBotConfig`** - JavaScript code for admin bot testing. The code defines inputs (with regex validation) and a timeout. The admin bot provider validates the configuration when saving.
+- **`instancerConfig{:yaml}`** - Configuration for per-team instances. When set, the configuration is validated against the instancer provider's schema. See [Instancer](/integrations/instancer) for details.
+- **`adminBotConfig{:yaml}`** - JavaScript code for admin bot testing. The code defines inputs (with regex validation) and a timeout. The admin bot provider validates the configuration when saving.

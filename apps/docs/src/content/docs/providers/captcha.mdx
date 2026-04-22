@@ -25,19 +25,19 @@ captcha:
 
 ## Protected endpoints
 
-The `protectedEndpoints` array controls which actions require captcha verification:
+The `protectedEndpoints{:yaml}` array controls which actions require captcha verification:
 
 | Action            | Description                             |
 | ----------------- | --------------------------------------- |
-| `register`        | New account registration                |
-| `recover`         | Account recovery via email              |
-| `setEmail`        | Changing account email                  |
-| `instancerStart`  | Starting a challenge instance           |
-| `instancerExtend` | Extending a challenge instance lifetime |
-| `avatarUpload`    | Uploading a team avatar                 |
-| `adminBotSubmit`  | Submitting a job to the admin bot       |
+| `register{:yaml}`        | New account registration                |
+| `recover{:yaml}`         | Account recovery via email              |
+| `setEmail{:yaml}`        | Changing account email                  |
+| `instancerStart{:yaml}`  | Starting a challenge instance           |
+| `instancerExtend{:yaml}` | Extending a challenge instance lifetime |
+| `avatarUpload{:yaml}`    | Uploading a team avatar                 |
+| `adminBotSubmit{:yaml}`  | Submitting a job to the admin bot       |
 
-Only the actions listed in `protectedEndpoints` will require captcha. Unlisted actions proceed without verification.
+Only the actions listed in `protectedEndpoints{:yaml}` will require captcha. Unlisted actions proceed without verification.
 
 ## Providers
 
@@ -57,8 +57,8 @@ captcha:
 
 | Option      | Environment Variable        | Description          |
 | ----------- | --------------------------- | -------------------- |
-| `siteKey`   | `RCTF_RECAPTCHA_SITE_KEY`   | reCAPTCHA site key   |
-| `secretKey` | `RCTF_RECAPTCHA_SECRET_KEY` | reCAPTCHA secret key |
+| `siteKey{:yaml}`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
+| `secretKey{:yaml}` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
 
 </Tab>
 <Tab>
@@ -76,8 +76,8 @@ captcha:
 
 | Option      | Environment Variable       | Description         |
 | ----------- | -------------------------- | ------------------- |
-| `siteKey`   | `RCTF_HCAPTCHA_SITE_KEY`   | hCaptcha site key   |
-| `secretKey` | `RCTF_HCAPTCHA_SECRET_KEY` | hCaptcha secret key |
+| `siteKey{:yaml}`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
+| `secretKey{:yaml}` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
 
 </Tab>
 <Tab>
@@ -95,15 +95,15 @@ captcha:
 
 | Option      | Environment Variable        | Description          |
 | ----------- | --------------------------- | -------------------- |
-| `siteKey`   | `RCTF_TURNSTILE_SITE_KEY`   | Turnstile site key   |
-| `secretKey` | `RCTF_TURNSTILE_SECRET_KEY` | Turnstile secret key |
+| `siteKey{:yaml}`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
+| `secretKey{:yaml}` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
 
 </Tab>
 </Tabs>
 
 ## Migrating from v1
 
-If you are using the legacy `recaptcha` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
+If you are using the legacy `recaptcha{:yaml}` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
 
 <Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
 <Tab>

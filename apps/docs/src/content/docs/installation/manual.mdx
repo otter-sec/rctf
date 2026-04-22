@@ -33,6 +33,12 @@ rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JS
 mkdir rctf.d
 ```
 
+<FileTree>
+  <Dir name="rctf.d">
+    <File name="01-base.yaml" highlight comment="create this next" />
+  </Dir>
+</FileTree>
+
 Create a minimal configuration file:
 
 ```yaml title="rctf.d/01-base.yaml"
@@ -56,7 +62,7 @@ divisions:
 
 <Callout variant="tip" title="Generating a token key">
 
-The `tokenKey` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
+The `tokenKey{:yaml}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
 
 ```bash title="Terminal"
 openssl rand -base64 32
@@ -73,7 +79,7 @@ You can also set configuration values through environment variables. See [Config
 bun run db:migrate
 ```
 
-Alternatively, set `database.migrate: before` in your config to run migrations automatically on startup.
+Alternatively, set `database.migrate{:yaml}` to `before{:yaml}` in your config to run migrations automatically on startup.
 
 </Step>
 <Step title="Start the development servers">
@@ -103,19 +109,19 @@ bun run --filter '@rctf/web' build   # Builds static frontend
 bun run --filter '@rctf/api' start   # Starts API server
 ```
 
-The API server listens on the port specified by the `PORT` environment variable (default `3000`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
 ## Scaling with instance types
 
-The `instanceType` configuration option controls which components run in a given process:
+The `instanceType{:yaml}` configuration option controls which components run in a given process:
 
 | Value           | Behavior                                            |
 | --------------- | --------------------------------------------------- |
-| `all` (default) | Runs both the API server and the leaderboard worker |
-| `frontend`      | Runs the API server only                            |
-| `leaderboard`   | Runs the leaderboard computation worker only        |
+| `all{:yaml}` (default) | Runs both the API server and the leaderboard worker |
+| `frontend{:yaml}`      | Runs the API server only                            |
+| `leaderboard{:yaml}`   | Runs the leaderboard computation worker only        |
 
-This allows horizontal scaling by running separate `frontend` and `leaderboard` instances:
+This allows horizontal scaling by running separate `frontend{:yaml}` and `leaderboard{:yaml}` instances:
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard'
