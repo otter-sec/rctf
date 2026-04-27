@@ -27,7 +27,7 @@ import { Icon } from 'astro-icon/components'
   </form>
   <div
     id="search-results"
-    class="flex max-h-[min(24rem,60vh)] flex-col overflow-y-auto p-2 text-sm"
+    class="flex min-h-28 max-h-[min(24rem,60vh)] flex-col overflow-y-auto p-2 text-sm"
   >
     <p
       id="search-empty"
@@ -61,6 +61,8 @@ import { Icon } from 'astro-icon/components'
 
   const pagefindModulePath = '/pagefind/pagefind.js'
   let pagefindPromise: Promise<Pagefind | null> | null = null
+  let searchRequestId = 0
+  let searchController: AbortController | null = null
 
   async function loadPagefind(): Promise<Pagefind | null> {
     if (pagefindPromise) return pagefindPromise
@@ -94,69 +96,89 @@ import { Icon } from 'astro-icon/components'
       .replace(/<\/mark>/g, '</mark>')
   }
 
+  function renderStatus(message: string) {
+    const p = document.createElement('p')
+    p.id = 'search-empty'
+    p.className = 'text-muted-foreground px-3 py-8 text-center text-sm'
+    p.textContent = message
+    return p
+  }
+
   async function runSearch(query: string) {
+    const requestId = ++searchRequestId
     const results = document.getElementById('search-results')
     if (!results) return
 
-    const empty = document.getElementById('search-empty')
-    if (empty) empty.remove()
-    results.innerHTML = ''
-
-    if (!query.trim()) {
-      const p = document.createElement('p')
-      p.id = 'search-empty'
-      p.className = 'text-muted-foreground px-3 py-8 text-center text-sm'
-      p.textContent = 'Start typing to search the docs.'
-      results.appendChild(p)
+    const trimmedQuery = query.trim()
+    if (!trimmedQuery) {
+      results.removeAttribute('aria-busy')
+      results.replaceChildren(renderStatus('Start typing to search the docs.'))
       return
+    }
+
+    results.setAttribute('aria-busy', 'true')
+    if (!results.querySelector('[data-search-result]')) {
+      results.replaceChildren(renderStatus('Searching...'))
     }
 
     const pagefind = await loadPagefind()
+    if (requestId !== searchRequestId) return
+
     if (!pagefind) {
-      const p = document.createElement('p')
-      p.className = 'text-muted-foreground px-3 py-8 text-center text-sm'
-      p.textContent =
-        'Search index not available. Run `bun run build` to generate it.'
-      results.appendChild(p)
+      results.removeAttribute('aria-busy')
+      results.replaceChildren(
+        renderStatus(
+          'Search index not available. Run `bun run build` to generate it.',
+        ),
+      )
       return
     }
 
-    const { results: found } = await pagefind.search(query)
-    if (found.length === 0) {
-      const p = document.createElement('p')
-      p.className = 'text-muted-foreground px-3 py-8 text-center text-sm'
-      p.textContent = 'No results found.'
-      results.appendChild(p)
-      return
+    try {
+      const { results: found } = await pagefind.search(trimmedQuery)
+      if (requestId !== searchRequestId) return
+
+      if (found.length === 0) {
+        results.removeAttribute('aria-busy')
+        results.replaceChildren(renderStatus('No results found.'))
+        return
+      }
+
+      const list = document.createElement('ul')
+      list.className = 'flex flex-col gap-1'
+
+      const top = await Promise.all(found.slice(0, 8).map((r) => r.data()))
+      if (requestId !== searchRequestId) return
+
+      top.forEach((data, index) => {
+        const li = document.createElement('li')
+        const a = document.createElement('a')
+        a.href = data.url
+        a.className =
+          'hover:bg-muted focus:bg-muted flex flex-col gap-1 rounded-md px-3 py-2 no-underline outline-none'
+        a.dataset.searchResult = String(index)
+
+        const title = document.createElement('span')
+        title.className = 'text-foreground text-sm font-medium'
+        title.textContent = data.meta.title ?? 'Untitled'
+
+        const excerpt = document.createElement('span')
+        excerpt.className = 'text-muted-foreground text-xs leading-relaxed'
+        excerpt.innerHTML = highlight(data.excerpt)
+
+        a.appendChild(title)
+        a.appendChild(excerpt)
+        li.appendChild(a)
+        list.appendChild(li)
+      })
+
+      results.removeAttribute('aria-busy')
+      results.replaceChildren(list)
+    } catch {
+      if (requestId !== searchRequestId) return
+      results.removeAttribute('aria-busy')
+      results.replaceChildren(renderStatus('Search failed. Try again.'))
     }
-
-    const list = document.createElement('ul')
-    list.className = 'flex flex-col gap-1'
-
-    const top = await Promise.all(found.slice(0, 8).map((r) => r.data()))
-    top.forEach((data, index) => {
-      const li = document.createElement('li')
-      const a = document.createElement('a')
-      a.href = data.url
-      a.className =
-        'hover:bg-muted focus:bg-muted flex flex-col gap-1 rounded-md px-3 py-2 no-underline outline-none'
-      a.dataset.searchResult = String(index)
-
-      const title = document.createElement('span')
-      title.className = 'text-foreground text-sm font-medium'
-      title.textContent = data.meta.title ?? 'Untitled'
-
-      const excerpt = document.createElement('span')
-      excerpt.className = 'text-muted-foreground text-xs leading-relaxed'
-      excerpt.innerHTML = highlight(data.excerpt)
-
-      a.appendChild(title)
-      a.appendChild(excerpt)
-      li.appendChild(a)
-      list.appendChild(li)
-    })
-
-    results.appendChild(list)
   }
 
   const debouncedSearch = debounce(runSearch, 120)
@@ -174,6 +196,10 @@ import { Icon } from 'astro-icon/components'
 
     if (!dialog || !input) return
 
+    searchController?.abort()
+    searchController = new AbortController()
+    const { signal } = searchController
+
     const open = () => {
       if (!dialog.open) dialog.showModal()
       setTimeout(() => input.focus(), 20)
@@ -182,13 +208,23 @@ import { Icon } from 'astro-icon/components'
       if (dialog.open) dialog.close()
     }
 
-    triggers.forEach((trigger) => trigger.addEventListener('click', open))
+    triggers.forEach((trigger) =>
+      trigger.addEventListener('click', open, { signal }),
+    )
 
-    input.addEventListener('input', () => debouncedSearch(input.value))
+    input.addEventListener('input', () => debouncedSearch(input.value), {
+      signal,
+    })
+
+    dialog.addEventListener('submit', (event) => event.preventDefault(), {
+      signal,
+    })
 
     dialog.addEventListener('click', (event) => {
+      const target = event.target
+      if (target instanceof Element && target.closest('a[href]')) close()
       if (event.target === dialog) close()
-    })
+    }, { signal })
 
     document.addEventListener('keydown', (event) => {
       const isHotkey =
@@ -223,11 +259,7 @@ import { Icon } from 'astro-icon/components'
         if (index <= 0) input.focus()
         else results[index - 1].focus()
       }
-    })
-
-    dialog
-      .querySelectorAll<HTMLAnchorElement>('a[href]')
-      .forEach((link) => link.addEventListener('click', close))
+    }, { signal })
   }
 
   setupSearch()
