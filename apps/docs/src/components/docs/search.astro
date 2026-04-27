@@ -59,18 +59,20 @@ import { Icon } from 'astro-icon/components'
     init?: () => Promise<void>
   }
 
+  const pagefindModulePath = '/pagefind/pagefind.js'
   let pagefindPromise: Promise<Pagefind | null> | null = null
 
   async function loadPagefind(): Promise<Pagefind | null> {
     if (pagefindPromise) return pagefindPromise
     pagefindPromise = (async () => {
       try {
-        // @ts-ignore — runtime-only module
-        const mod = await import(
-          /* @vite-ignore */ `${window.location.origin}/pagefind/pagefind.js`
-        )
+        // Pagefind writes this module into dist/pagefind after Astro builds,
+        // so Vite cannot resolve it as a static source import.
+        const mod = (await import(
+          /* @vite-ignore */ pagefindModulePath
+        )) as Pagefind
         if (mod.init) await mod.init()
-        return mod as Pagefind
+        return mod
       } catch {
         return null
       }

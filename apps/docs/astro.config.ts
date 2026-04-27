@@ -1,5 +1,3 @@
-import { readFile } from 'node:fs/promises'
-import { extname, resolve } from 'node:path'
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import react from '@astrojs/react'
@@ -9,6 +7,7 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import rehypeShiki from '@shikijs/rehype'
 import tailwindcss from '@tailwindcss/vite'
 import icon from 'astro-icon'
+import pagefind from 'astro-pagefind'
 import { defineConfig } from 'astro/config'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeExpressiveCode from 'rehype-expressive-code'
@@ -18,14 +17,6 @@ import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
 
-/**
- * Dev-only: serve `/pagefind/*` from `./dist/pagefind/*`.
- *
- * Pagefind writes its index into the built `dist/` folder, but Astro's
- * dev server only serves `public/` and source. Without this plugin the
- * search dialog 404s on pagefind.js during `bun run dev`, even after a
- * successful `bun run build`.
- */
 function rehypeWrapTables() {
   return (tree: any) => {
     const visit = (node: any, parent: any, index: number | null) => {
@@ -54,43 +45,11 @@ function rehypeWrapTables() {
   }
 }
 
-function pagefindDevServer() {
-  const mime: Record<string, string> = {
-    js: 'application/javascript',
-    mjs: 'application/javascript',
-    css: 'text/css',
-    json: 'application/json',
-    wasm: 'application/wasm',
-  }
-  return {
-    name: 'pagefind-dev-server',
-    apply: 'serve' as const,
-    configureServer(server: any) {
-      server.middlewares.use(
-        '/pagefind',
-        async (req: any, res: any, next: any) => {
-          const url = (req.url ?? '/').split('?')[0]
-          if (url === '' || url === '/') return next()
-          try {
-            const filePath = resolve(process.cwd(), 'dist', 'pagefind' + url)
-            const data = await readFile(filePath)
-            const ext = extname(url).slice(1)
-            if (mime[ext]) res.setHeader('Content-Type', mime[ext])
-            res.end(data)
-          } catch {
-            next()
-          }
-        }
-      )
-    },
-  }
-}
-
 export default defineConfig({
   site: 'https://astro-erudocs.vercel.app',
-  integrations: [mdx(), react(), sitemap(), icon()],
+  integrations: [mdx(), react(), sitemap(), icon(), pagefind()],
   vite: {
-    plugins: [tailwindcss(), pagefindDevServer()],
+    plugins: [tailwindcss()],
   },
   server: {
     port: 1234,
