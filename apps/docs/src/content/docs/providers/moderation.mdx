@@ -18,10 +18,10 @@ avatarsModeration:
   allowOnInternalError: true
 ```
 
-| Field                                    | Type    | Default | Description                                                   |
-| ---------------------------------------- | ------- | ------- | ------------------------------------------------------------- |
-| `avatarsModeration.provider{:yaml}`             | `object{:ts}`  | -       | Moderation provider configuration                             |
-| `avatarsModeration.allowOnInternalError{:yaml}` | `boolean{:ts}` | `true{:ts}`  | Whether to allow avatar uploads when the moderation API fails |
+| Field                                           | Type           | Default     | Description                                                   |
+| ----------------------------------------------- | -------------- | ----------- | ------------------------------------------------------------- |
+| `avatarsModeration.provider{:yaml}`             | `object{:ts}`  | -           | Moderation provider configuration                             |
+| `avatarsModeration.allowOnInternalError{:yaml}` | `boolean{:ts}` | `true{:ts}` | Whether to allow avatar uploads when the moderation API fails |
 
 <Callout variant="tip">
 
@@ -43,10 +43,10 @@ avatarsModeration:
       model: omni-moderation-latest # Optional
 ```
 
-| Option   | Environment Variable                                 | Default                  | Description             |
-| -------- | ---------------------------------------------------- | ------------------------ | ----------------------- |
+| Option          | Environment Variable                                           | Default                  | Description             |
+| --------------- | -------------------------------------------------------------- | ------------------------ | ----------------------- |
 | `apiKey{:yaml}` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | -                        | OpenAI API key          |
-| `model{:yaml}`  | `RCTF_MODERATION_OPENAI_MODEL{:sh}`                       | `omni-moderation-latest` | OpenAI moderation model |
+| `model{:yaml}`  | `RCTF_MODERATION_OPENAI_MODEL{:sh}`                            | `omni-moderation-latest` | OpenAI moderation model |
 
 The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image is flagged as inappropriate, the upload is rejected with an error.
 

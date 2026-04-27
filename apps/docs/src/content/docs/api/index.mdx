@@ -28,10 +28,10 @@ Tokens are obtained through registration or login. They are encrypted with AES-G
 
 ### Token types
 
-| Token       | Lifetime                    | Purpose                              |
-| ----------- | --------------------------- | ------------------------------------ |
-| Auth        | Infinite                    | User authentication (login sessions) |
-| Team        | Infinite                    | Team access token (sent on recovery) |
+| Token       | Lifetime                           | Purpose                              |
+| ----------- | ---------------------------------- | ------------------------------------ |
+| Auth        | Infinite                           | User authentication (login sessions) |
+| Team        | Infinite                           | Team access token (sent on recovery) |
 | Verify      | `loginTimeout{:yaml}` (default 1h) | Email verification and recovery      |
 | CtftimeAuth | `loginTimeout{:yaml}` (default 1h) | CTFtime OAuth flow                   |
 

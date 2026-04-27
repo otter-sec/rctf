@@ -1,3 +1,5 @@
+import { docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
+import { isCurrentPath, titleCase, trimTrailingSlash } from '@/lib/utils'
 import type {
   FlatDoc,
   MetaFile,
@@ -7,8 +9,6 @@ import type {
   SidebarLink,
   SidebarNode,
 } from '@/types'
-import { docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
-import { isCurrentPath, titleCase, trimTrailingSlash } from '@/lib/utils'
 
 const metaModules = {
   ...(import.meta.glob('/src/content/docs/_meta.ts', {
@@ -36,9 +36,9 @@ type TreeNode = {
 function ensureNode(
   parent: TreeNode,
   name: string,
-  fullPath: string,
+  fullPath: string
 ): TreeNode {
-  let existing = parent.children.find((c) => c.name === name)
+  let existing = parent.children.find(c => c.name === name)
   if (!existing) {
     existing = { name, fullPath, children: [] }
     parent.children.push(existing)
@@ -77,7 +77,7 @@ function compareByOrder(a: OrderKey, b: OrderKey): number {
 function resolveDocLink(
   node: TreeNode,
   parentMeta: MetaFile,
-  pathname: string,
+  pathname: string
 ): { link: SidebarLink; sortKey: OrderKey } | null {
   const doc = node.doc!
   if (doc.data.sidebar?.hidden) return null
@@ -106,7 +106,7 @@ function resolveDocLink(
 function resolveGroup(
   node: TreeNode,
   parentMeta: MetaFile,
-  pathname: string,
+  pathname: string
 ): { group: SidebarGroup; sortKey: OrderKey } | null {
   const own = metaFor(node.fullPath)
   if (own.hidden) return null
@@ -124,8 +124,7 @@ function resolveGroup(
       const href = docHref(node.doc.id)
       const label =
         node.doc.data.sidebar?.label ?? indexOverride.label ?? 'Overview'
-      const badge =
-        node.doc.data.sidebar?.badge ?? indexOverride.badge
+      const badge = node.doc.data.sidebar?.badge ?? indexOverride.badge
       items.unshift({
         type: 'link',
         label,
@@ -145,9 +144,9 @@ function resolveGroup(
   const forceOpen = override.forceOpen ?? own.forceOpen ?? false
 
   const hasActiveDescendant = items.some(
-    (i) =>
+    i =>
       (i.type === 'link' && i.isCurrent) ||
-      (i.type === 'group' && i.hasActiveDescendant),
+      (i.type === 'group' && i.hasActiveDescendant)
   )
 
   return {
@@ -167,7 +166,7 @@ function resolveGroup(
 function buildNodes(
   parent: TreeNode,
   parentMeta: MetaFile,
-  pathname: string,
+  pathname: string
 ): SidebarNode[] {
   const resolved: Array<{ node: SidebarNode; sortKey: OrderKey }> = []
 
@@ -178,8 +177,7 @@ function buildNodes(
     if (child.children.length > 0) {
       // Group (may also carry an index doc).
       const result = resolveGroup(child, parentMeta, pathname)
-      if (result)
-        resolved.push({ node: result.group, sortKey: result.sortKey })
+      if (result) resolved.push({ node: result.group, sortKey: result.sortKey })
     } else if (child.doc) {
       // Pure leaf doc.
       const result = resolveDocLink(child, parentMeta, pathname)
@@ -188,11 +186,11 @@ function buildNodes(
   }
 
   resolved.sort((a, b) => compareByOrder(a.sortKey, b.sortKey))
-  return resolved.map((r) => r.node)
+  return resolved.map(r => r.node)
 }
 
 export async function getSidebarTree(
-  pathname: string = '/',
+  pathname: string = '/'
 ): Promise<SidebarNode[]> {
   const docs = await getAllDocs()
   const tree = buildTree(docs)
@@ -200,10 +198,7 @@ export async function getSidebarTree(
   return buildNodes(tree, rootMeta, pathname)
 }
 
-function flattenTree(
-  nodes: SidebarNode[],
-  acc: FlatDoc[] = [],
-): FlatDoc[] {
+function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
   for (const node of nodes) {
     if (node.type === 'link') {
       acc.push({
@@ -226,13 +221,11 @@ export async function getFlatDocOrder(): Promise<FlatDoc[]> {
 }
 
 export async function getPrevNext(
-  currentHref: string,
+  currentHref: string
 ): Promise<{ prev: FlatDoc | null; next: FlatDoc | null }> {
   const flat = await getFlatDocOrder()
   const normalized = trimTrailingSlash(currentHref)
-  const index = flat.findIndex(
-    (d) => trimTrailingSlash(d.href) === normalized,
-  )
+  const index = flat.findIndex(d => trimTrailingSlash(d.href) === normalized)
   if (index === -1) {
     if (normalized === '/') {
       return { prev: null, next: flat[0] ?? null }

@@ -27,8 +27,8 @@ captcha:
 
 The `protectedEndpoints{:yaml}` array controls which actions require captcha verification:
 
-| Action            | Description                             |
-| ----------------- | --------------------------------------- |
+| Action                   | Description                             |
+| ------------------------ | --------------------------------------- |
 | `register{:yaml}`        | New account registration                |
 | `recover{:yaml}`         | Account recovery via email              |
 | `setEmail{:yaml}`        | Changing account email                  |
@@ -55,8 +55,8 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option      | Environment Variable        | Description          |
-| ----------- | --------------------------- | -------------------- |
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
 | `siteKey{:yaml}`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
 | `secretKey{:yaml}` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
 
@@ -74,8 +74,8 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option      | Environment Variable       | Description         |
-| ----------- | -------------------------- | ------------------- |
+| Option             | Environment Variable            | Description         |
+| ------------------ | ------------------------------- | ------------------- |
 | `siteKey{:yaml}`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
 | `secretKey{:yaml}` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
 
@@ -93,8 +93,8 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option      | Environment Variable        | Description          |
-| ----------- | --------------------------- | -------------------- |
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
 | `siteKey{:yaml}`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
 | `secretKey{:yaml}` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
 

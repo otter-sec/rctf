@@ -3,9 +3,9 @@ title: Components
 description: Overview of the rCTF UI component library based on shadcn-svelte.
 ---
 
-import Tabs from '@/components/mdx/tabs.astro'
-import Tab from '@/components/mdx/tab.astro'
 import Swatch from '@/components/mdx/swatch'
+import Tab from '@/components/mdx/tab.astro'
+import Tabs from '@/components/mdx/tabs.astro'
 
 The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a port of shadcn/ui for Svelte 5. Components live in `apps/web/src/lib/components/ui/` and use [tailwind-variants](https://www.tailwind-variants.org/) for variant-based styling. Application-specific components (Navigation, Markdown, ThemeToggle) are in the parent `components/` directory. Icons come from [Tabler Icons](https://tabler.io/icons) via `@iconify-svelte`.
 
@@ -78,8 +78,7 @@ export const buttonVariants = tv({
       outline: 'bg-background hover:bg-accent ...',
       secondary:
         'bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-xs',
-      secondary:
-        'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
     },
   },
 })

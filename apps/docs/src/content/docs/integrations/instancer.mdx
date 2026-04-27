@@ -32,8 +32,8 @@ instancerProvider:
     authToken: your-auth-token
 ```
 
-| Option      | Environment Variable        | Description          |
-| ----------- | --------------------------- | -------------------- |
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
 | `apiUrl{:yaml}`    | `TINY_INSTANCER_API_URL{:sh}`    | Instancer API URL    |
 | `authToken{:yaml}` | `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Authentication token |
 
@@ -54,8 +54,8 @@ instancerProvider:
       -----END CERTIFICATE-----
 ```
 
-| Option          | Environment Variable           | Description                   |
-| --------------- | ------------------------------ | ----------------------------- |
+| Option                 | Environment Variable                | Description                   |
+| ---------------------- | ----------------------------------- | ----------------------------- |
 | `apiUrl{:yaml}`        | `K8S_INSTANCER_API_URL{:sh}`        | K8s instancer API URL         |
 | `authToken{:yaml}`     | `K8S_INSTANCER_AUTH_TOKEN{:sh}`     | Authentication token          |
 | `caCertificate{:yaml}` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | TLS CA certificate (optional) |
@@ -69,8 +69,8 @@ Each challenge that uses the instancer needs an `instancerConfig{:yaml}` in its 
 
 Key fields in `instancerConfig{:yaml}`:
 
-| Field                 | Description                                                                |
-| --------------------- | -------------------------------------------------------------------------- |
+| Field                        | Description                                                                |
+| ---------------------------- | -------------------------------------------------------------------------- |
 | `config{:yaml}`              | Provider-specific instance configuration (Docker compose-like or K8s spec) |
 | `expose{:yaml}`              | Array of endpoints to expose to participants                               |
 | `timeoutMilliseconds{:yaml}` | Instance lifetime before automatic cleanup                                 |
@@ -80,14 +80,14 @@ Key fields in `instancerConfig{:yaml}`:
 
 The `expose{:yaml}` array controls which ports and services are visible to participants:
 
-| Field           | Description                                    |
-| --------------- | ---------------------------------------------- |
-| `kind{:yaml}`          | Endpoint type (e.g., `tcp{:yaml}`, `http{:yaml}`)            |
-| `hostPrefix{:yaml}`    | Prefix for the endpoint URL                    |
-| `containerName{:yaml}` | Name of the container exposing the port        |
-| `containerPort{:yaml}` | Port number inside the container               |
-| `shouldDisplay{:yaml}` | Whether this endpoint is shown to participants |
-| `title{:yaml}`         | Display label for the endpoint                 |
+| Field                  | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `kind{:yaml}`          | Endpoint type (e.g., `tcp{:yaml}`, `http{:yaml}`) |
+| `hostPrefix{:yaml}`    | Prefix for the endpoint URL                       |
+| `containerName{:yaml}` | Name of the container exposing the port           |
+| `containerPort{:yaml}` | Port number inside the container                  |
+| `shouldDisplay{:yaml}` | Whether this endpoint is shown to participants    |
+| `title{:yaml}`         | Display label for the endpoint                    |
 
 Only endpoints with `shouldDisplay{:yaml}` set to `true{:ts}` are shown to participants. This allows internal service ports to remain hidden.
 

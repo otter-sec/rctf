@@ -34,8 +34,8 @@ mkdir rctf.d
 ```
 
 <FileTree>
-  <Dir name="rctf.d">
-    <File name="01-base.yaml" highlight comment="create this next" />
+  <Dir name='rctf.d'>
+    <File name='01-base.yaml' highlight comment='create this next' />
   </Dir>
 </FileTree>
 
@@ -115,8 +115,8 @@ The API server listens on the port specified by the `PORT{:sh}` environment vari
 
 The `instanceType{:yaml}` configuration option controls which components run in a given process:
 
-| Value           | Behavior                                            |
-| --------------- | --------------------------------------------------- |
+| Value                  | Behavior                                            |
+| ---------------------- | --------------------------------------------------- |
 | `all{:yaml}` (default) | Runs both the API server and the leaderboard worker |
 | `frontend{:yaml}`      | Runs the API server only                            |
 | `leaderboard{:yaml}`   | Runs the leaderboard computation worker only        |

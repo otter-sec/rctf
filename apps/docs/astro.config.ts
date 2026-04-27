@@ -1,26 +1,22 @@
-import { defineConfig } from 'astro/config'
-
+import { readFile } from 'node:fs/promises'
+import { extname, resolve } from 'node:path'
+import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
-import icon from 'astro-icon'
-
-import { rehypeHeadingIds } from '@astrojs/markdown-remark'
-import rehypeAutolinkHeadings from 'rehype-autolink-headings'
-import rehypeExpressiveCode from 'rehype-expressive-code'
-import rehypeExternalLinks from 'rehype-external-links'
-import rehypeKatex from 'rehype-katex'
-import rehypeShiki from '@shikijs/rehype'
-import remarkEmoji from 'remark-emoji'
-import remarkMath from 'remark-math'
-
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
-import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
-
+import rehypeShiki from '@shikijs/rehype'
 import tailwindcss from '@tailwindcss/vite'
-import { extname, resolve } from 'node:path'
-import { readFile } from 'node:fs/promises'
+import icon from 'astro-icon'
+import { defineConfig } from 'astro/config'
+import rehypeAutolinkHeadings from 'rehype-autolink-headings'
+import rehypeExpressiveCode from 'rehype-expressive-code'
+import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
+import rehypeExternalLinks from 'rehype-external-links'
+import rehypeKatex from 'rehype-katex'
+import remarkEmoji from 'remark-emoji'
+import remarkMath from 'remark-math'
 
 /**
  * Dev-only: serve `/pagefind/*` from `./dist/pagefind/*`.
@@ -33,7 +29,12 @@ import { readFile } from 'node:fs/promises'
 function rehypeWrapTables() {
   return (tree: any) => {
     const visit = (node: any, parent: any, index: number | null) => {
-      if (node.type === 'element' && node.tagName === 'table' && parent && index !== null) {
+      if (
+        node.type === 'element' &&
+        node.tagName === 'table' &&
+        parent &&
+        index !== null
+      ) {
         const wrapper = {
           type: 'element',
           tagName: 'div',
@@ -65,19 +66,22 @@ function pagefindDevServer() {
     name: 'pagefind-dev-server',
     apply: 'serve' as const,
     configureServer(server: any) {
-      server.middlewares.use('/pagefind', async (req: any, res: any, next: any) => {
-        const url = (req.url ?? '/').split('?')[0]
-        if (url === '' || url === '/') return next()
-        try {
-          const filePath = resolve(process.cwd(), 'dist', 'pagefind' + url)
-          const data = await readFile(filePath)
-          const ext = extname(url).slice(1)
-          if (mime[ext]) res.setHeader('Content-Type', mime[ext])
-          res.end(data)
-        } catch {
-          next()
+      server.middlewares.use(
+        '/pagefind',
+        async (req: any, res: any, next: any) => {
+          const url = (req.url ?? '/').split('?')[0]
+          if (url === '' || url === '/') return next()
+          try {
+            const filePath = resolve(process.cwd(), 'dist', 'pagefind' + url)
+            const data = await readFile(filePath)
+            const ext = extname(url).slice(1)
+            if (mime[ext]) res.setHeader('Content-Type', mime[ext])
+            res.end(data)
+          } catch {
+            next()
+          }
         }
-      })
+      )
     },
   }
 }
@@ -141,8 +145,9 @@ export default defineConfig({
             overridesByLang: {
               'ansi,bat,bash,batch,cmd,console,powershell,ps,ps1,psd1,psm1,sh,shell,shellscript,shellsession,text,zsh':
                 { showLineNumbers: false },
-              'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx':
-                { showLineNumbers: false },
+              'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx': {
+                showLineNumbers: false,
+              },
             },
           },
           styleOverrides: {

@@ -1,9 +1,4 @@
-import type {
-  DocsConfig,
-  IconMap,
-  Site,
-  SocialLink,
-} from '@/types'
+import type { DocsConfig, IconMap, Site, SocialLink } from '@/types'
 
 export const SITE: Site = {
   title: 'rCTF Docs',

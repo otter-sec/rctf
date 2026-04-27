@@ -7,30 +7,29 @@ tableOfContents: false
 import { Image } from 'astro:assets'
 import banner from '../../assets/banner.svg'
 
-<Image
-  src={banner}
-  alt='rCTF banner'
-/>
+<Image src={banner} alt='rCTF banner' />
 
 rCTF is an open-source capture-the-flag platform, serving thousands of teams with indestructible performance and a modern user experience. It is developed and maintained by the [OtterSec](https://osec.io) team.
 
 <CardGrid>
-  <Card title="Installation" icon="lucide:package" href="/installation">
-    Get rCTF running in minutes with Docker or set it up from source for full control.
+  <Card title='Installation' icon='lucide:package' href='/installation'>
+    Get rCTF running in minutes with Docker or set it up from source for full
+    control.
   </Card>
-  <Card title="Configuration" icon="lucide:settings-2" href="/configuration">
+  <Card title='Configuration' icon='lucide:settings-2' href='/configuration'>
     Full reference for every config option (database, scoring, auth, and more).
   </Card>
-  <Card title="Providers" icon="lucide:plug" href="/providers">
-    Plug in email, uploads, captcha, scoring algorithms, and challenge instancers.
+  <Card title='Providers' icon='lucide:plug' href='/providers'>
+    Plug in email, uploads, captcha, scoring algorithms, and challenge
+    instancers.
   </Card>
-  <Card title="Administration" icon="lucide:shield" href="/admin">
+  <Card title='Administration' icon='lucide:shield' href='/admin'>
     Manage challenges, teams, and submissions from the admin panel.
   </Card>
-  <Card title="API Reference" icon="lucide:code-2" href="/api">
+  <Card title='API Reference' icon='lucide:code-2' href='/api'>
     REST API documentation for integrating with rCTF programmatically.
   </Card>
-  <Card title="Theming" icon="lucide:palette" href="/theming">
+  <Card title='Theming' icon='lucide:palette' href='/theming'>
     Customize the look and feel with rCTF's layered color system.
   </Card>
 </CardGrid>

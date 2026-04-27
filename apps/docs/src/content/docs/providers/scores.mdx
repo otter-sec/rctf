@@ -20,11 +20,11 @@ Each challenge defines a point range via `points.min{:yaml}` and `points.max{:ya
 
 All scoring providers receive a context object with:
 
-| Field            | Description                                                 |
-| ---------------- | ----------------------------------------------------------- |
-| `minPoints{:yaml}`      | Minimum points for the challenge (floor)                    |
-| `maxPoints{:yaml}`      | Maximum points for the challenge (ceiling, when 0 solves)   |
-| `solves{:yaml}`         | Current number of solves                                    |
+| Field                   | Description                                                               |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `minPoints{:yaml}`      | Minimum points for the challenge (floor)                                  |
+| `maxPoints{:yaml}`      | Maximum points for the challenge (ceiling, when 0 solves)                 |
+| `solves{:yaml}`         | Current number of solves                                                  |
 | `maxSolves{:yaml}`      | Maximum solves across all challenges (used by `scores/legacy{:yaml}`)     |
 | `eventStartTime{:yaml}` | Competition start time (used by `scores/jammy{:yaml}`)                    |
 | `eventEndTime{:yaml}`   | Competition end time (used by `scores/jammy{:yaml}`)                      |
@@ -76,9 +76,9 @@ scoreProvider:
     maximumScoreTime: 0.8 # Optional, default 0.8
 ```
 
-| Option             | Default | Description                                                                                                      |
-| ------------------ | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| `maximumScoreTime{:yaml}` | `0.8{:ts}`   | Fraction of event duration used for full score calculation. Solves after this threshold receive minimum points.  |
+| Option                    | Default    | Description                                                                                                     |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| `maximumScoreTime{:yaml}` | `0.8{:ts}` | Fraction of event duration used for full score calculation. Solves after this threshold receive minimum points. |
 
 <Callout variant="note">
 

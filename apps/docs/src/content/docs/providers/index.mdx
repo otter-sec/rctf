@@ -20,18 +20,16 @@ The `name{:yaml}` identifies which implementation to load, and `options{:yaml}` 
 
 ## Available providers
 
-| Type                                | Config Field                       | Available Providers                                                                               | Default          |
-| ----------------------------------- | ---------------------------------- | ------------------------------------------------------------------------------------------------- | ---------------- |
-| [Captcha](/providers/captcha)       | `captcha.provider{:yaml}`                 | `captcha/recaptcha{:yaml}`, `captcha/hcaptcha{:yaml}`, `captcha/turnstile{:yaml}`                                      | None (disabled)  |
-| [Email](/providers/emails)          | `email.provider{:yaml}`                   | `emails/smtp{:yaml}`, `emails/ses{:yaml}`, `emails/postmark{:yaml}`, `emails/mailgun{:yaml}`                                  | None (disabled)  |
-| [Uploads](/providers/uploads)       | `uploadProvider{:yaml}`                   | `uploads/local{:yaml}`, `uploads/s3{:yaml}`, `uploads/gcs{:yaml}`                                                      | `uploads/local{:yaml}`  |
+| Type                                | Config Field                              | Available Providers                                                                                                                         | Default                 |
+| ----------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [Captcha](/providers/captcha)       | `captcha.provider{:yaml}`                 | `captcha/recaptcha{:yaml}`, `captcha/hcaptcha{:yaml}`, `captcha/turnstile{:yaml}`                                                           | None (disabled)         |
+| [Email](/providers/emails)          | `email.provider{:yaml}`                   | `emails/smtp{:yaml}`, `emails/ses{:yaml}`, `emails/postmark{:yaml}`, `emails/mailgun{:yaml}`                                                | None (disabled)         |
+| [Uploads](/providers/uploads)       | `uploadProvider{:yaml}`                   | `uploads/local{:yaml}`, `uploads/s3{:yaml}`, `uploads/gcs{:yaml}`                                                                           | `uploads/local{:yaml}`  |
 | [Scoring](/providers/scores)        | `scoreProvider{:yaml}`                    | `scores/classic{:yaml}`, `scores/sekai{:yaml}`, `scores/steep{:yaml}`, `scores/jammy{:yaml}`, `scores/genni{:yaml}`, `scores/legacy{:yaml}` | `scores/classic{:yaml}` |
-| [Moderation](/providers/moderation) | `avatarsModeration.provider{:yaml}`       | `moderation/openai{:yaml}`                                                                               | None (disabled)  |
-| Messages                            | `bloodBot.destinations[].provider{:yaml}` | `messages/discord{:yaml}`, `messages/telegram{:yaml}`                                                           | None (disabled)  |
-| [Analytics](/providers/analytics)   | `analytics.provider{:yaml}`               | `analytics/google{:yaml}`, `analytics/cloudflare{:yaml}`, `analytics/plausible{:yaml}`                                 | None (disabled)  |
-| Instancer                           | `instancerProvider{:yaml}`                | `instancer/docker-instancer{:yaml}`, `instancer/k8s-instancer{:yaml}`                                           | None (disabled)  |
-| Admin Bot                           | `adminBot.provider{:yaml}`                | `admin-bot/rctf-js{:yaml}`                                                                               | None (disabled)  |
+| [Moderation](/providers/moderation) | `avatarsModeration.provider{:yaml}`       | `moderation/openai{:yaml}`                                                                                                                  | None (disabled)         |
+| Messages                            | `bloodBot.destinations[].provider{:yaml}` | `messages/discord{:yaml}`, `messages/telegram{:yaml}`                                                                                       | None (disabled)         |
+| [Analytics](/providers/analytics)   | `analytics.provider{:yaml}`               | `analytics/google{:yaml}`, `analytics/cloudflare{:yaml}`, `analytics/plausible{:yaml}`                                                      | None (disabled)         |
+| Instancer                           | `instancerProvider{:yaml}`                | `instancer/docker-instancer{:yaml}`, `instancer/k8s-instancer{:yaml}`                                                                       | None (disabled)         |
+| Admin Bot                           | `adminBot.provider{:yaml}`                | `admin-bot/rctf-js{:yaml}`                                                                                                                  | None (disabled)         |
 
 Providers marked as "None (disabled)" are optional features. The platform functions without them, but the associated features will be unavailable.
-
-
