@@ -18,7 +18,7 @@ export default class JammyProvider implements ScoreProvider {
 
   private readonly maximumScoreTime: number
 
-  constructor(options: JammyOptions) {
+  constructor(options: JammyOptions = {}) {
     this.maximumScoreTime = options.maximumScoreTime ?? 0.8
   }
 

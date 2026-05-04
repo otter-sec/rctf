@@ -46,7 +46,7 @@ function rehypeWrapTables() {
 }
 
 export default defineConfig({
-  site: 'https://astro-erudocs.vercel.app',
+  site: 'https://rctf.osec.io',
   integrations: [mdx(), react(), sitemap(), icon(), pagefind()],
   vite: {
     plugins: [tailwindcss()],

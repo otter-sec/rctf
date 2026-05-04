@@ -1,6 +1,6 @@
+import { scoreProviders } from '@rctf/scoring'
+import type { ScoreContext } from '@rctf/scoring/base'
 import { describe, expect, test } from 'bun:test'
-import { scoreProviders } from '../../../../apps/api/src/providers/scores'
-import type { ScoreContext } from '../../../../apps/api/src/providers/scores/base'
 
 const baseCtx: ScoreContext = {
   minPoints: 100,

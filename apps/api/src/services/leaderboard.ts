@@ -2,6 +2,7 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
+import type { ScoreContext } from '@rctf/scoring/base'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   leaderboardOrderSql,
@@ -12,7 +13,6 @@ import {
   type Sample,
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
-import type { ScoreContext } from '../providers/scores/base'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 import { userNameSearchFilter } from './users'
 
