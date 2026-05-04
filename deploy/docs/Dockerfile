@@ -9,6 +9,7 @@ FROM build-base AS package-configs
 COPY package.json bun.lock ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
+COPY packages/scoring/package.json ./packages/scoring/
 COPY packages/types/package.json ./packages/types/
 COPY packages/util/package.json ./packages/util/
 COPY tests/server/package.json ./tests/server/
@@ -31,6 +32,7 @@ RUN bun install \
     --filter '@rctf/docs'
 
 COPY apps/docs/ ./apps/docs/
+COPY packages/scoring/ ./packages/scoring/
 
 ENV NODE_ENV=production
 WORKDIR /app/apps/docs

@@ -32,15 +32,16 @@ const minPoints = 100
 const maxPoints = 500
 const maxSolves = 50
 
-const providerColors = {
-  'scores/classic': '#C10007',
-  'scores/sekai': '#2563EB',
-  'scores/steep': '#D97706',
-  'scores/genni': '#7C3AED',
-  'scores/legacy': '#059669',
-  'scores/jammy': '#C10007',
-} satisfies Partial<Record<ScoreProviderName, string>>
-const fallbackColors = ['#2563EB', '#D97706', '#059669', '#7C3AED', '#0891B2']
+const chartColors = [
+  '#C10007',
+  '#2563EB',
+  '#D97706',
+  '#7C3AED',
+  '#059669',
+  '#0891B2',
+] as const
+const colorForProvider = (index: number) =>
+  chartColors[index % chartColors.length] ?? chartColors[0]
 
 const samples =
   type === 'solves'
@@ -54,7 +55,7 @@ const yMax = maxPoints
 const providerEntries = getScoreProviderEntries().map((entry, index) => ({
   ...entry,
   provider: entry.create({}),
-  color: providerColors[entry.name] ?? fallbackColors[index % fallbackColors.length]!,
+  color: colorForProvider(index),
 }))
 const isTimeBasedProvider = (provider: ScoreProvider) =>
   provider.requiredFields.includes('firstSolveTime')
@@ -112,15 +113,16 @@ const xTicks =
 const yTicks =
   type === 'solves' ? [0, 100, 200, 300, 400, 500] : [100, 200, 300, 400, 500]
 const focusedLabel = series.find((item) => item.name === focusedName)?.label
+const primaryLabel = focusedLabel ?? series[0]?.label
 const title =
   type === 'solves'
     ? `${focusedLabel ?? 'Solve-based'} score decay`
-    : 'scores/jammy first-solve scoring'
+    : `${primaryLabel ?? 'Time-based'} first-solve scoring`
 const description =
   type === 'solves'
     ? `${focusedLabel ?? 'Solve-based providers'} shown against the other solve-based scoring curves as challenge solves increase from 0 to 50.`
-    : 'Jammy increases challenge value until 80 percent of the event has elapsed.'
-const chartId = `score-chart-${type}-${focusedName?.replace('/', '-') ?? 'jammy'}`
+    : 'Time-based providers score a challenge from when its first solve occurs during the event.'
+const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'providers').replace('/', '-')}`
 ---
 
 <figure class="not-prose my-6 overflow-hidden rounded-lg border">
