@@ -1,0 +1,243 @@
+---
+interface Props {
+  type: 'solves' | 'time'
+}
+
+type Series = {
+  label: string
+  color: string
+  values: number[]
+}
+
+const { type } = Astro.props
+
+const width = 720
+const height = 360
+const plot = { left: 58, top: 28, right: 24, bottom: 56 }
+const plotWidth = width - plot.left - plot.right
+const plotHeight = height - plot.top - plot.bottom
+const minPoints = 100
+const maxPoints = 500
+const maxSolves = 50
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value))
+
+const classic = (solves: number) => {
+  const base = 1 / (1 + (Math.max(solves - 1, 0) / 11.92201) ** 1.206069)
+  return Math.round(
+    clamp(minPoints + (maxPoints - minPoints) * base, minPoints, maxPoints),
+  )
+}
+
+const sekai = (solves: number) => {
+  const gradient = 10
+  const decay = 60
+  const min = 1 + (gradient - 1) / decay
+  const x = 1 + ((gradient - 1) / decay) * solves
+  const ratio = Math.log(x / min) / Math.log(gradient / min)
+  return clamp(
+    Math.ceil(maxPoints - (maxPoints - minPoints) * ratio),
+    minPoints,
+    maxPoints,
+  )
+}
+
+const steep = (solves: number) => {
+  const base = 1 / (1 + Math.max(solves - 1, 0) / 6)
+  return Math.round(
+    clamp(minPoints + (maxPoints - minPoints) * base, minPoints, maxPoints),
+  )
+}
+
+const genni = (solves: number) => (solves > 2 ? 0 : maxPoints)
+
+const legacy = (solves: number) => {
+  const p0 = 0.7
+  const p1 = 0.96
+  const c0 = -Math.atanh(p0)
+  const c1 = Math.atanh(p1)
+  const a = (x: number) => (1 - Math.tanh(x)) / 2
+  const b = (x: number) =>
+    (a((c1 - c0) * x + c0) - a(c1)) / (a(c0) - a(c1))
+  const f = (x: number) =>
+    minPoints + (maxPoints - minPoints) * b(x / maxSolves)
+  return Math.round(Math.max(f(solves), f(maxSolves)))
+}
+
+const jammy = (percent: number) => {
+  const maximumScoreTime = 0.8
+  const eventLength = 100
+  const tickrate = (maximumScoreTime * eventLength) / maxPoints
+  return Math.min(minPoints + Math.floor(percent / tickrate), maxPoints)
+}
+
+const samples =
+  type === 'solves'
+    ? Array.from({ length: maxSolves + 1 }, (_, i) => i)
+    : Array.from({ length: 101 }, (_, i) => i)
+
+const xMax = samples.at(-1) ?? 1
+const yMin = type === 'solves' ? 0 : minPoints
+const yMax = maxPoints
+
+const series: Series[] =
+  type === 'solves'
+    ? [
+        { label: 'classic', color: '#C10007', values: samples.map(classic) },
+        { label: 'sekai', color: '#2563EB', values: samples.map(sekai) },
+        { label: 'steep', color: '#D97706', values: samples.map(steep) },
+        { label: 'legacy', color: '#059669', values: samples.map(legacy) },
+        { label: 'genni', color: '#7C3AED', values: samples.map(genni) },
+      ]
+    : [{ label: 'jammy', color: '#C10007', values: samples.map(jammy) }]
+
+const x = (value: number) => plot.left + (value / xMax) * plotWidth
+const y = (value: number) =>
+  plot.top + (1 - (value - yMin) / (yMax - yMin)) * plotHeight
+
+const polylines = series.map((item) => ({
+  ...item,
+  points: samples
+    .map(
+      (sample, i) =>
+        `${x(sample).toFixed(2)},${y(item.values[i] ?? yMin).toFixed(2)}`,
+    )
+    .join(' '),
+}))
+
+const xTicks =
+  type === 'solves' ? [0, 10, 20, 30, 40, 50] : [0, 20, 40, 60, 80, 100]
+const yTicks =
+  type === 'solves' ? [0, 100, 200, 300, 400, 500] : [100, 200, 300, 400, 500]
+const title =
+  type === 'solves' ? 'Solve-based score decay' : 'Jammy first-solve scoring'
+const description =
+  type === 'solves'
+    ? 'Comparison of score providers as challenge solves increase from 0 to 50.'
+    : 'Jammy increases challenge value until 80 percent of the event has elapsed.'
+---
+
+<figure class="not-prose my-6 overflow-hidden rounded-lg border">
+  <svg
+    viewBox={`0 0 ${width} ${height}`}
+    role="img"
+    aria-labelledby={`${type}-score-chart-title ${type}-score-chart-desc`}
+    class="bg-background block w-full"
+  >
+    <title id={`${type}-score-chart-title`}>{title}</title>
+    <desc id={`${type}-score-chart-desc`}>{description}</desc>
+
+    <rect x="0" y="0" width={width} height={height} class="fill-background" />
+
+    {
+      yTicks.map((tick) => (
+        <>
+          <line
+            x1={plot.left}
+            x2={width - plot.right}
+            y1={y(tick)}
+            y2={y(tick)}
+            class="stroke-border"
+            stroke-width="1"
+          />
+          <text
+            x={plot.left - 12}
+            y={y(tick) + 4}
+            text-anchor="end"
+            class="fill-muted-foreground text-[11px]"
+          >
+            {tick}
+          </text>
+        </>
+      ))
+    }
+
+    {
+      xTicks.map((tick) => (
+        <>
+          <line
+            x1={x(tick)}
+            x2={x(tick)}
+            y1={plot.top}
+            y2={height - plot.bottom}
+            class="stroke-border/50"
+            stroke-width="1"
+          />
+          <text
+            x={x(tick)}
+            y={height - plot.bottom + 22}
+            text-anchor="middle"
+            class="fill-muted-foreground text-[11px]"
+          >
+            {tick}
+          </text>
+        </>
+      ))
+    }
+
+    <line
+      x1={plot.left}
+      x2={plot.left}
+      y1={plot.top}
+      y2={height - plot.bottom}
+      class="stroke-foreground"
+      stroke-width="1.5"
+    />
+    <line
+      x1={plot.left}
+      x2={width - plot.right}
+      y1={height - plot.bottom}
+      y2={height - plot.bottom}
+      class="stroke-foreground"
+      stroke-width="1.5"
+    />
+
+    {
+      polylines.map((item) => (
+        <polyline
+          points={item.points}
+          fill="none"
+          stroke={item.color}
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+        />
+      ))
+    }
+
+    <text
+      x={plot.left + plotWidth / 2}
+      y={height - 14}
+      text-anchor="middle"
+      class="fill-muted-foreground text-[12px]"
+    >
+      {type === 'solves' ? 'Solves' : 'Event elapsed before first solve (%)'}
+    </text>
+    <text
+      x="18"
+      y={plot.top + plotHeight / 2}
+      text-anchor="middle"
+      transform={`rotate(-90 18 ${plot.top + plotHeight / 2})`}
+      class="fill-muted-foreground text-[12px]"
+    >
+      Points
+    </text>
+  </svg>
+  <figcaption
+    class="border-border/70 flex flex-wrap gap-x-4 gap-y-2 border-t px-4 py-3 text-xs"
+  >
+    {
+      series.map((item) => (
+        <span class="text-muted-foreground inline-flex items-center gap-2">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-full"
+            style={`background-color: ${item.color}`}
+          />
+          <span>{item.label}</span>
+        </span>
+      ))
+    }
+  </figcaption>
+</figure>

@@ -4,6 +4,7 @@ description: Choose and configure a dynamic scoring algorithm for your CTF.
 ---
 
 import Callout from '@/components/callout.astro'
+import ScoreDecayChart from '@/components/mdx/score-decay-chart.astro'
 
 Scoring providers determine how challenge point values change as teams solve them. rCTF includes six scoring algorithms.
 
@@ -29,6 +30,14 @@ All scoring providers receive a context object with:
 | `eventStartTime{:yaml}` | Competition start time (used by `scores/jammy{:yaml}`)                    |
 | `eventEndTime{:yaml}`   | Competition end time (used by `scores/jammy{:yaml}`)                      |
 | `firstSolveTime{:yaml}` | Time of the first solve for the challenge (used by `scores/jammy{:yaml}`) |
+
+## Score curves
+
+The charts below use a sample challenge with `minPoints: 100{:yaml}` and `maxPoints: 500{:yaml}`. Solve-based providers decay as the challenge gets solved more often; `scores/jammy{:yaml}` uses the first solve time instead.
+
+<ScoreDecayChart type="solves" />
+
+<ScoreDecayChart type="time" />
 
 ## Providers
 
@@ -67,7 +76,7 @@ scoreProvider:
 </Tab>
 <Tab>
 
-Time-based scoring that rewards earlier solves with more points. Unlike other providers, this one considers when a challenge was solved relative to the event duration rather than how many teams solved it.
+Time-based scoring that values challenges by when they were first solved. Unlike other providers, this one considers the first solve time relative to the event duration rather than how many teams solved the challenge.
 
 ```yaml
 scoreProvider:
@@ -78,7 +87,7 @@ scoreProvider:
 
 | Option                    | Default    | Description                                                                                                     |
 | ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
-| `maximumScoreTime{:yaml}` | `0.8{:ts}` | Fraction of event duration used for full score calculation. Solves after this threshold receive minimum points. |
+| `maximumScoreTime{:yaml}` | `0.8{:ts}` | Fraction of event duration used to ramp from minimum to maximum points. First solves after this threshold receive maximum points. |
 
 <Callout variant="note">
 
@@ -89,7 +98,7 @@ This provider requires `startTime{:yaml}` and `endTime{:yaml}` to be set in the 
 </Tab>
 <Tab>
 
-Binary scoring: returns `maxPoints{:yaml}` if the challenge has 0–2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
+Binary scoring: returns `maxPoints{:yaml}` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
 
 ```yaml
 scoreProvider:

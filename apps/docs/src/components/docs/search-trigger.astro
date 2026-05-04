@@ -28,15 +28,25 @@ const { mac, windows } = DOCS.search.hotkey
 </Button>
 
 <script>
+  type NavigatorWithUserAgentData = Navigator & {
+    userAgentData?: {
+      platform?: string
+    }
+  }
+
+  function isMacLike() {
+    const uaPlatform = (navigator as NavigatorWithUserAgentData).userAgentData
+      ?.platform
+    if (uaPlatform) return uaPlatform === 'macOS'
+
+    return /Mac|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  }
+
   function applyOsHotkey() {
-    const ua = navigator.userAgent
-    const isMac =
-      /Mac|iPhone|iPad|iPod/i.test(ua) ||
-      (navigator.platform ?? '').toLowerCase().includes('mac')
     document
       .querySelectorAll<HTMLElement>('[data-hotkey]')
       .forEach((el) => {
-        const label = isMac
+        const label = isMacLike()
           ? (el.dataset.hotkeyMac ?? '')
           : (el.dataset.hotkeyOther ?? '')
         if (label) el.textContent = label

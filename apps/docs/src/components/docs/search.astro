@@ -90,10 +90,29 @@ import { Icon } from 'astro-icon/components'
     }) as T
   }
 
-  function highlight(excerpt: string): string {
-    return excerpt
-      .replace(/<mark>/g, '<mark class="bg-foreground/10 text-foreground rounded px-0.5">')
-      .replace(/<\/mark>/g, '</mark>')
+  function appendHighlightedExcerpt(container: HTMLElement, excerpt: string) {
+    const markRe = /<\/?mark>/gi
+    let cursor = 0
+    let mark: HTMLElement | null = null
+
+    for (const match of excerpt.matchAll(markRe)) {
+      const matchIndex = match.index ?? 0
+      const text = excerpt.slice(cursor, matchIndex)
+      if (text) (mark ?? container).append(document.createTextNode(text))
+
+      if (match[0].toLowerCase() === '<mark>') {
+        mark = document.createElement('mark')
+        mark.className = 'bg-foreground/10 text-foreground rounded px-0.5'
+        container.append(mark)
+      } else {
+        mark = null
+      }
+
+      cursor = matchIndex + match[0].length
+    }
+
+    const text = excerpt.slice(cursor)
+    if (text) (mark ?? container).append(document.createTextNode(text))
   }
 
   function renderStatus(message: string) {
@@ -164,7 +183,7 @@ import { Icon } from 'astro-icon/components'
 
         const excerpt = document.createElement('span')
         excerpt.className = 'text-muted-foreground text-xs leading-relaxed'
-        excerpt.innerHTML = highlight(data.excerpt)
+        appendHighlightedExcerpt(excerpt, data.excerpt)
 
         a.appendChild(title)
         a.appendChild(excerpt)
@@ -228,7 +247,7 @@ import { Icon } from 'astro-icon/components'
 
     document.addEventListener('keydown', (event) => {
       const isHotkey =
-        (event.key === 'k' || event.key === 'K') &&
+        event.key.toLowerCase() === 'k' &&
         (event.metaKey || event.ctrlKey)
       if (isHotkey) {
         event.preventDefault()
