@@ -11,6 +11,7 @@ import TOCHeader from '@/components/toc-header.astro'
 import TOCSidebar from '@/components/toc-sidebar.astro'
 import Base from '@/layouts/base.astro'
 import type { Doc } from '@/lib/docs'
+import { renderDescription } from '@/lib/render-description'
 import { cn } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 import type { FlatDoc, SidebarNode } from '@/types'
@@ -45,13 +46,18 @@ const isSplash = doc.data.template === 'splash'
 const showToc = tocEnabled && !isSplash
 
 const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
+
+const renderedTitle = await renderDescription(doc.data.title)
+const renderedDescription = doc.data.description
+  ? await renderDescription(doc.data.description)
+  : null
 ---
 
 <Base>
   <PageHead
     slot="head"
-    title={doc.data.title}
-    description={doc.data.description}
+    title={renderedTitle.plain}
+    description={renderedDescription?.plain}
   />
   {editUrl && <meta slot="head" name="docs-edit-url" content={editUrl} />}
 
@@ -89,13 +95,15 @@ const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
                   <h1
                     id="post-title"
                     class="text-3xl leading-tight font-medium sm:text-4xl"
-                  >
-                    {doc.data.title}
-                  </h1>
-                  {doc.data.description && (
-                    <p class="text-muted-foreground text-lg text-pretty">
-                      {doc.data.description}
-                    </p>
+                    data-doc-title
+                    set:html={renderedTitle.html}
+                  />
+                  {renderedDescription && (
+                    <p
+                      class="text-muted-foreground text-lg text-pretty"
+                      data-doc-description
+                      set:html={renderedDescription.html}
+                    />
                   )}
                 </header>
               )
@@ -138,17 +146,7 @@ const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
 </Base>
 
 <script>
-  const ensureKatexStyles = () => {
-    if (!document.querySelector('.katex')) return
-    if (document.querySelector('link[href*="katex.min.css"]')) return
+  import { mountKatexStyles } from '@/lib/client/katex-styles'
 
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href =
-      'https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css'
-    document.head.appendChild(link)
-  }
-
-  document.addEventListener('astro:page-load', ensureKatexStyles)
-  document.addEventListener('astro:after-swap', ensureKatexStyles)
+  mountKatexStyles()
 </script>

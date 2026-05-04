@@ -1,6 +1,9 @@
 ---
 import '@/styles/global.css'
 import '@/styles/typography.css'
+import '@/styles/tab-panels.css'
+import '@/styles/toc.css'
+import '@/styles/doc-meta.css'
 
 import AnnouncementBar from '@/components/docs/announcement-bar.astro'
 import Search from '@/components/docs/search.astro'
@@ -20,5 +23,11 @@ import { DOCS, SITE } from '@/consts'
     <AnnouncementBar />
     <slot />
     {DOCS.search.enabled && <Search />}
+
+    <script>
+      import { mountInlineShellCopy } from '@/lib/client/inline-shell-copy'
+
+      mountInlineShellCopy()
+    </script>
   </body>
 </html>

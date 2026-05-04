@@ -18,10 +18,15 @@
     "@astrojs/react": "5.0.0",
     "@astrojs/rss": "4.0.17",
     "@astrojs/sitemap": "3.7.1",
+    "@expressive-code/core": "^0.40.2",
     "@expressive-code/plugin-collapsible-sections": "^0.40.2",
+    "@expressive-code/plugin-frames": "^0.40.2",
     "@expressive-code/plugin-line-numbers": "^0.40.2",
+    "@expressive-code/plugin-shiki": "^0.40.2",
+    "@expressive-code/plugin-text-markers": "^0.40.2",
     "@iconify-json/lucide": "^1.2.26",
     "@shikijs/rehype": "^3.4.0",
+    "@shikijs/themes": "^3.4.0",
     "@tailwindcss/vite": "^4.0.7",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
@@ -29,6 +34,7 @@
     "astro-icon": "^1.1.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "katex": "^0.16.22",
     "lucide-react": "^0.469.0",
     "radix-ui": "^1.3.4",
     "react": "19.0.0",
@@ -40,11 +46,13 @@
     "rehype-katex": "^7.0.1",
     "remark-emoji": "^5.0.1",
     "remark-math": "^6.0.0",
+    "shiki": "^3.4.0",
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.7",
     "typescript": "^5.8.3"
   },
   "devDependencies": {
+    "@types/hast": "^3.0.4",
     "astro-pagefind": "^1.8.6"
   }
 }
