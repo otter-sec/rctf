@@ -55,6 +55,8 @@
   --accent: #c10007;
   --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
+  --ctp-red: var(--destructive);
+  --ctp-green: oklch(0.55 0.14 145);
   --border: #ececec;
   --ring: oklch(0.708 0 0);
 }
@@ -69,6 +71,8 @@
   --accent: #ff6467;
   --accent-foreground: #0e0e0e;
   --destructive: oklch(0.704 0.191 22.216);
+  --ctp-red: var(--destructive);
+  --ctp-green: oklch(0.78 0.13 145);
   --border: #2a2a2a;
   --ring: oklch(0.556 0 0);
 }

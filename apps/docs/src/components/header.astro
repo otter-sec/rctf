@@ -4,6 +4,7 @@ import Link from '@/components/link.astro'
 import ThemeToggle from '@/components/theme-toggle.astro'
 import { Button } from '@/components/ui/button'
 import { DOCS, SITE } from '@/consts'
+import { BASE_URL } from '@/lib/docs'
 import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
 import wordmarkDark from '@/assets/wordmark-dark.svg'
@@ -27,7 +28,7 @@ import wordmarkLight from '@/assets/wordmark-light.svg'
       <Icon name="lucide:menu" class="size-4" />
     </Button>
     <Link
-      href="/"
+      href={BASE_URL}
       class="flex shrink-0 items-center no-underline"
       aria-label={SITE.title}
     >

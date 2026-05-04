@@ -5,6 +5,7 @@ import Sidebar from '@/components/docs/sidebar.astro'
 import Link from '@/components/link.astro'
 import ThemeToggle from '@/components/theme-toggle.astro'
 import { SITE, SOCIAL_LINKS } from '@/consts'
+import { BASE_URL } from '@/lib/docs'
 import type { SidebarNode } from '@/types'
 import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
@@ -26,10 +27,10 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
   transition:persist="docs-aside"
 >
   <div
-    class="sticky top-0 flex h-screen flex-col gap-4 pt-16 pr-4 pb-6 pl-6"
+    class="sticky top-[var(--docs-announcement-offset,0px)] flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-4 pb-6 pl-6"
   >
     <Link
-      href="/"
+      href={BASE_URL}
       class="flex items-center no-underline"
       aria-label={SITE.title}
     >
@@ -53,9 +54,9 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
 
     <div class="border-border/70 flex h-12 items-center justify-between border-t">
       <ThemeToggle transition:persist />
-      {
-        gitHubLink && (
-          <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1">
+        {
+          gitHubLink && (
             <Link
               href={gitHubLink.href}
               external
@@ -64,56 +65,16 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
             >
               <Icon name="lucide:github" class="size-4" />
             </Link>
-            <EditLink
-              id="docs-edit-link"
-              href={editUrl ?? '#'}
-              variant="icon"
-              hidden={!editUrl}
-            />
-          </div>
-        )
-      }
+          )
+        }
+        <EditLink id="docs-edit-link" href={editUrl ?? '#'} variant="icon" hidden={!editUrl} />
+      </div>
     </div>
   </div>
 </aside>
 
 <script>
-  function setupScrollFades() {
-    const nav = document.querySelector<HTMLElement>('[data-sidebar-nav]')
-    const viewport = nav?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]')
-    if (!nav || !viewport) return
+  import { mountDocsAside } from '@/lib/client/docs-aside'
 
-    function update() {
-      const atTop = viewport!.scrollTop <= 1
-      const atBottom = viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
-
-      nav!.style.maskImage =
-        atTop && atBottom ? 'none'
-        : atTop ? 'linear-gradient(to bottom, black calc(100% - 2rem), transparent)'
-        : atBottom ? 'linear-gradient(to bottom, transparent, black 2rem)'
-        : 'linear-gradient(to bottom, transparent, black 2rem, black calc(100% - 2rem), transparent)'
-    }
-
-    update()
-    viewport.addEventListener('scroll', update, { passive: true })
-    new ResizeObserver(update).observe(viewport)
-  }
-
-  setupScrollFades()
-  document.addEventListener('astro:after-swap', setupScrollFades)
-
-  function updateEditLink() {
-    const link = document.getElementById('docs-edit-link')
-    if (!link) return
-    const meta = document.querySelector<HTMLMetaElement>(
-      'meta[name="docs-edit-url"]',
-    )
-    const url = meta?.content ?? ''
-
-    link.setAttribute('href', url || '#')
-    link.toggleAttribute('hidden', !url)
-  }
-
-  updateEditLink()
-  document.addEventListener('astro:after-swap', updateEditLink)
+  mountDocsAside()
 </script>

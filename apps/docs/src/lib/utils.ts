@@ -43,8 +43,9 @@ export function getHeadingMargin(depth: number): string {
 }
 
 export function trimTrailingSlash(path: string): string {
-  if (path === '/') return path
-  return path.replace(/\/+$/, '')
+  const pathname = path.split(/[?#]/, 1)[0] || '/'
+  if (pathname === '/') return pathname
+  return pathname.replace(/\/+$/, '')
 }
 
 export function isCurrentPath(href: string, pathname: string): boolean {
@@ -56,6 +57,6 @@ export function titleCase(input: string): string {
     .replace(/[-_]+/g, ' ')
     .split(' ')
     .filter(Boolean)
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
 }

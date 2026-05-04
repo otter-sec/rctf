@@ -1,33 +1,52 @@
 ---
+import Link from '@/components/link.astro'
 import { DOCS } from '@/consts'
 import { Icon } from 'astro-icon/components'
-import Link from '@/components/link.astro'
 
 const announcement = DOCS.announcement
+const announcementId = announcement?.id ?? ''
 ---
+
+<script is:inline data-astro-rerun define:vars={{ announcementId }}>
+  if (announcementId) {
+    try {
+      const dismissed = localStorage.getItem(`announcement-dismissed:${announcementId}`) === '1'
+      document.documentElement.toggleAttribute('data-docs-announcement-dismissed', dismissed)
+      if (dismissed) {
+        document.documentElement.style.setProperty('--docs-announcement-offset', '0px')
+      }
+    } catch {}
+  }
+</script>
+
+<style is:inline>
+  html[data-docs-announcement-dismissed] [data-announcement-id] {
+    display: none !important;
+  }
+</style>
 
 {
   announcement && (
     <div
       id={`announcement-${announcement.id}`}
       data-announcement-id={announcement.id}
-      class="bg-foreground text-background relative flex items-center justify-center gap-3 px-4 py-2 text-center text-sm"
+      class="bg-foreground text-background grid min-h-8 grid-cols-[minmax(0,1fr)_1.5rem] items-center gap-2 px-3 py-1.5 text-center text-sm"
     >
       {announcement.href ? (
         <Link
           href={announcement.href}
-          class="text-background hover:text-background decoration-background/50 hover:decoration-background inline-flex items-center gap-1.5 font-medium"
+          class="text-background hover:text-background decoration-background/50 hover:decoration-background inline-flex min-w-0 items-center justify-center gap-1.5 font-medium leading-tight"
           external={announcement.href.startsWith('http')}
         >
-          <span>{announcement.message}</span>
-          <Icon name="lucide:arrow-right" class="size-3.5" />
+          <span class="min-w-0 text-balance">{announcement.message}</span>
+          <Icon name="lucide:arrow-right" class="hidden size-3.5 shrink-0 sm:block" />
         </Link>
       ) : (
         <span>{announcement.message}</span>
       )}
       <button
         type="button"
-        class="text-background/70 hover:text-background absolute right-2 inline-flex size-6 items-center justify-center"
+        class="text-background/70 hover:text-background inline-flex size-6 shrink-0 items-center justify-center"
         aria-label="Dismiss announcement"
         data-announcement-dismiss
       >
@@ -38,27 +57,7 @@ const announcement = DOCS.announcement
 }
 
 <script>
-  function setupAnnouncement() {
-    document
-      .querySelectorAll<HTMLElement>('[data-announcement-id]')
-      .forEach((el) => {
-        const id = el.dataset.announcementId
-        if (!id) return
-        const storageKey = `announcement-dismissed:${id}`
-        if (localStorage.getItem(storageKey) === '1') {
-          el.remove()
-          return
-        }
-        el.querySelector('[data-announcement-dismiss]')?.addEventListener(
-          'click',
-          () => {
-            localStorage.setItem(storageKey, '1')
-            el.remove()
-          },
-        )
-      })
-  }
+  import { mountAnnouncementBar } from '@/lib/client/announcement'
 
-  setupAnnouncement()
-  document.addEventListener('astro:after-swap', setupAnnouncement)
+  mountAnnouncementBar()
 </script>
