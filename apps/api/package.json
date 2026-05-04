@@ -17,6 +17,7 @@
     "@kubernetes/client-node": "^1.4.0",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
+    "@rctf/scoring": "workspace:*",
     "@rctf/types": "workspace:*",
     "@rctf/util": "workspace:*",
     "data-uri-to-buffer": "^6.0.2",

@@ -1,12 +1,22 @@
 ---
+import {
+  getScoreProviderEntries,
+  type ScoreContext,
+  type ScoreProvider,
+  type ScoreProviderName,
+} from '@rctf/scoring'
+
+type ScoreProviderSlug = ScoreProviderName extends `scores/${infer Slug}` ? Slug : never
+type ScoreProviderFocus = ScoreProviderName | ScoreProviderSlug
+
 interface Props {
   type?: 'solves' | 'time'
-  focus?: 'classic' | 'sekai' | 'steep' | 'genni' | 'legacy'
+  focus?: ScoreProviderFocus
 }
 
 type Series = {
-  label: string
-  name: NonNullable<Props['focus']> | 'jammy'
+  label: ScoreProviderName
+  name: ScoreProviderName
   color: string
   values: number[]
 }
@@ -22,57 +32,16 @@ const minPoints = 100
 const maxPoints = 500
 const maxSolves = 50
 
-const clamp = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, value))
-
-const classic = (solves: number) => {
-  const base = 1 / (1 + (Math.max(solves - 1, 0) / 11.92201) ** 1.206069)
-  return Math.round(
-    clamp(minPoints + (maxPoints - minPoints) * base, minPoints, maxPoints),
-  )
-}
-
-const sekai = (solves: number) => {
-  const gradient = 10
-  const decay = 60
-  const min = 1 + (gradient - 1) / decay
-  const x = 1 + ((gradient - 1) / decay) * solves
-  const ratio = Math.log(x / min) / Math.log(gradient / min)
-  return clamp(
-    Math.ceil(maxPoints - (maxPoints - minPoints) * ratio),
-    minPoints,
-    maxPoints,
-  )
-}
-
-const steep = (solves: number) => {
-  const base = 1 / (1 + Math.max(solves - 1, 0) / 6)
-  return Math.round(
-    clamp(minPoints + (maxPoints - minPoints) * base, minPoints, maxPoints),
-  )
-}
-
-const genni = (solves: number) => (solves > 2 ? 0 : maxPoints)
-
-const legacy = (solves: number) => {
-  const p0 = 0.7
-  const p1 = 0.96
-  const c0 = -Math.atanh(p0)
-  const c1 = Math.atanh(p1)
-  const a = (x: number) => (1 - Math.tanh(x)) / 2
-  const b = (x: number) =>
-    (a((c1 - c0) * x + c0) - a(c1)) / (a(c0) - a(c1))
-  const f = (x: number) =>
-    minPoints + (maxPoints - minPoints) * b(x / maxSolves)
-  return Math.round(Math.max(f(solves), f(maxSolves)))
-}
-
-const jammy = (percent: number) => {
-  const maximumScoreTime = 0.8
-  const eventLength = 100
-  const tickrate = (maximumScoreTime * eventLength) / maxPoints
-  return Math.min(minPoints + Math.floor(percent / tickrate), maxPoints)
-}
+const chartColors = [
+  '#C10007',
+  '#2563EB',
+  '#D97706',
+  '#7C3AED',
+  '#059669',
+  '#0891B2',
+] as const
+const colorForProvider = (index: number) =>
+  chartColors[index % chartColors.length] ?? chartColors[0]
 
 const samples =
   type === 'solves'
@@ -83,48 +52,44 @@ const xMax = samples.at(-1) ?? 1
 const yMin = type === 'solves' ? 0 : minPoints
 const yMax = maxPoints
 
-const series: Series[] =
-  type === 'solves'
-    ? [
-        {
-          label: 'scores/classic',
-          name: 'classic',
-          color: '#C10007',
-          values: samples.map(classic),
-        },
-        {
-          label: 'scores/sekai',
-          name: 'sekai',
-          color: '#2563EB',
-          values: samples.map(sekai),
-        },
-        {
-          label: 'scores/steep',
-          name: 'steep',
-          color: '#D97706',
-          values: samples.map(steep),
-        },
-        {
-          label: 'scores/legacy',
-          name: 'legacy',
-          color: '#059669',
-          values: samples.map(legacy),
-        },
-        {
-          label: 'scores/genni',
-          name: 'genni',
-          color: '#7C3AED',
-          values: samples.map(genni),
-        },
-      ]
-    : [
-        {
-          label: 'scores/jammy',
-          name: 'jammy',
-          color: '#C10007',
-          values: samples.map(jammy),
-        },
-      ]
+const providerEntries = getScoreProviderEntries().map((entry, index) => ({
+  ...entry,
+  provider: entry.create({}),
+  color: colorForProvider(index),
+}))
+const isTimeBasedProvider = (provider: ScoreProvider) =>
+  provider.requiredFields.includes('firstSolveTime')
+const chartProviderEntries = providerEntries.filter(({ provider }) =>
+  type === 'time' ? isTimeBasedProvider(provider) : !isTimeBasedProvider(provider),
+)
+
+const baseContext = {
+  minPoints,
+  maxPoints,
+  maxSolves,
+  eventStartTime: 0,
+  eventEndTime: 100,
+} satisfies Pick<
+  ScoreContext,
+  'minPoints' | 'maxPoints' | 'maxSolves' | 'eventStartTime' | 'eventEndTime'
+>
+const contextForSample = (sample: number): ScoreContext => ({
+  ...baseContext,
+  solves: type === 'solves' ? sample : 0,
+  firstSolveTime: type === 'time' ? sample : null,
+})
+const resolveFocusName = (value: ScoreProviderFocus | undefined): ScoreProviderName | null => {
+  if (!value) return null
+  const name = value.startsWith('scores/') ? value : `scores/${value}`
+  return providerEntries.some((entry) => entry.name === name) ? (name as ScoreProviderName) : null
+}
+const focusedName = resolveFocusName(focus)
+const series: Series[] = chartProviderEntries.map(({ name, color, provider }) => ({
+  label: name,
+  name,
+  color,
+  values: samples.map((sample) => provider.calculate(contextForSample(sample))),
+}))
 
 const x = (value: number) => plot.left + (value / xMax) * plotWidth
 const y = (value: number) =>
@@ -133,7 +98,7 @@ const y = (value: number) =>
 const polylines = series
   .map((item) => ({
     ...item,
-    focused: type === 'time' || item.name === focus,
+    focused: type === 'time' || item.name === focusedName,
     points: samples
       .map(
         (sample, i) =>
@@ -147,16 +112,17 @@ const xTicks =
   type === 'solves' ? [0, 10, 20, 30, 40, 50] : [0, 20, 40, 60, 80, 100]
 const yTicks =
   type === 'solves' ? [0, 100, 200, 300, 400, 500] : [100, 200, 300, 400, 500]
-const focusedLabel = series.find((item) => item.name === focus)?.label
+const focusedLabel = series.find((item) => item.name === focusedName)?.label
+const primaryLabel = focusedLabel ?? series[0]?.label
 const title =
   type === 'solves'
     ? `${focusedLabel ?? 'Solve-based'} score decay`
-    : 'scores/jammy first-solve scoring'
+    : `${primaryLabel ?? 'Time-based'} first-solve scoring`
 const description =
   type === 'solves'
     ? `${focusedLabel ?? 'Solve-based providers'} shown against the other solve-based scoring curves as challenge solves increase from 0 to 50.`
-    : 'Jammy increases challenge value until 80 percent of the event has elapsed.'
-const chartId = `score-chart-${type}-${focus ?? 'jammy'}`
+    : 'Time-based providers score a challenge from when its first solve occurs during the event.'
+const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'providers').replace('/', '-')}`
 ---
 
 <figure class="not-prose my-6 overflow-hidden rounded-lg border">
@@ -275,7 +241,7 @@ const chartId = `score-chart-${type}-${focus ?? 'jammy'}`
         <span
           class:list={[
             'inline-flex items-center gap-2',
-            type === 'time' || item.name === focus
+            type === 'time' || item.name === focusedName
               ? 'text-foreground font-medium'
               : 'text-muted-foreground opacity-60',
           ]}

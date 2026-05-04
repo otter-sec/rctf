@@ -12,6 +12,7 @@ import TOCSidebar from '@/components/toc-sidebar.astro'
 import Base from '@/layouts/base.astro'
 import type { Doc } from '@/lib/docs'
 import { cn } from '@/lib/utils'
+import katexStylesheetUrl from 'katex/dist/katex.min.css?url'
 import type { MarkdownHeading } from 'astro'
 import type { FlatDoc, SidebarNode } from '@/types'
 
@@ -135,20 +136,22 @@ const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
       </main>
     </div>
   </div>
+
+  <script is:inline define:vars={{ katexStylesheetUrl }}>
+    // See https://github.com/jktrn/astro-erudite/pull/50 and https://github.com/jktrn/astro-erudite/issues/49
+    // TL;DR: this is meant to prevent a duplicate <head>/<html> tag from generating
+    const ensureKatexStyles = () => {
+      if (!document.querySelector('.katex')) return
+      if (document.querySelector('[data-katex-stylesheet]')) return
+
+      const link = document.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = katexStylesheetUrl
+      link.dataset.katexStylesheet = ''
+      document.head.appendChild(link)
+    }
+
+    document.addEventListener('astro:page-load', ensureKatexStyles)
+    document.addEventListener('astro:after-swap', ensureKatexStyles)
+  </script>
 </Base>
-
-<script>
-  const ensureKatexStyles = () => {
-    if (!document.querySelector('.katex')) return
-    if (document.querySelector('link[href*="katex.min.css"]')) return
-
-    const link = document.createElement('link')
-    link.rel = 'stylesheet'
-    link.href =
-      'https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css'
-    document.head.appendChild(link)
-  }
-
-  document.addEventListener('astro:page-load', ensureKatexStyles)
-  document.addEventListener('astro:after-swap', ensureKatexStyles)
-</script>

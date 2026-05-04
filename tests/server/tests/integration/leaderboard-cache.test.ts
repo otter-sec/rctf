@@ -6,10 +6,10 @@ import {
   users,
   type ChallengeData,
 } from '@rctf/db'
+import type { ScoreContext } from '@rctf/scoring/base'
+import ClassicProvider from '@rctf/scoring/classic'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
-import type { ScoreContext } from '../../../../apps/api/src/providers/scores/base'
-import ClassicProvider from '../../../../apps/api/src/providers/scores/classic'
 import {
   calculateLeaderboard,
   createCachedLeaderboardCalculator,
