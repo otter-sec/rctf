@@ -3,8 +3,8 @@ import { pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
-import { pluginShellPrompt } from './ec-shell-prompt'
 import { pluginOutputSeparator } from './ec-output-separator'
+import { pluginShellPrompt } from './ec-shell-prompt'
 
 const isLatte = (theme: { name: string }) => theme.name === 'catppuccin-latte'
 
@@ -15,7 +15,11 @@ export const ecOptionalPlugins = () => [
   pluginOutputSeparator(),
 ]
 
-export const ecDefaultPlugins = () => [pluginShiki(), pluginFrames(), pluginTextMarkers()]
+export const ecDefaultPlugins = () => [
+  pluginShiki(),
+  pluginFrames(),
+  pluginTextMarkers(),
+]
 
 export const ecOptions = {
   plugins: ecOptionalPlugins(),
@@ -34,7 +38,9 @@ export const ecOptions = {
     overridesByLang: {
       'ansi,bat,bash,batch,cmd,console,powershell,ps,ps1,psd1,psm1,sh,shell,shellscript,shellsession,text,zsh':
         { showLineNumbers: false },
-      'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx': { showLineNumbers: false },
+      'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx': {
+        showLineNumbers: false,
+      },
     },
   },
   styleOverrides: {
@@ -63,10 +69,13 @@ export const ecOptions = {
       foreground: 'var(--muted-foreground)',
     },
     collapsibleSections: {
-      closedBackgroundColor: 'color-mix(in oklab, var(--foreground) 5%, transparent)',
-      closedBorderColor: 'color-mix(in oklab, var(--foreground) 18%, transparent)',
+      closedBackgroundColor:
+        'color-mix(in oklab, var(--foreground) 5%, transparent)',
+      closedBorderColor:
+        'color-mix(in oklab, var(--foreground) 18%, transparent)',
       closedTextColor: 'var(--muted-foreground)',
-      openBackgroundColorCollapsible: 'color-mix(in oklab, var(--foreground) 3%, transparent)',
+      openBackgroundColorCollapsible:
+        'color-mix(in oklab, var(--foreground) 3%, transparent)',
       openBorderColor: 'transparent',
     },
     textMarkers: {

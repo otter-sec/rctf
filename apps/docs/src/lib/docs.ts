@@ -5,7 +5,7 @@ export type Doc = CollectionEntry<'docs'>
 
 export async function getAllDocs(): Promise<Doc[]> {
   const docs = await getCollection('docs')
-  return docs.filter((doc) => !doc.data.draft)
+  return docs.filter(doc => !doc.data.draft)
 }
 
 // Astro injects `BASE_URL` from the `base:` field in astro.config.ts
@@ -13,7 +13,7 @@ export async function getAllDocs(): Promise<Doc[]> {
 // import this file outside an Astro build (tests, codemods).
 export const BASE_URL: string = (import.meta.env?.BASE_URL ?? '/').replace(
   /\/?$/,
-  '/',
+  '/'
 )
 
 /**
@@ -28,7 +28,8 @@ export function withBase(path: string): string {
 
 export function docHref(id: string): string {
   if (id === 'index') return BASE_URL
-  if (id.endsWith('/index')) return BASE_URL + id.slice(0, -'/index'.length) + '/'
+  if (id.endsWith('/index'))
+    return BASE_URL + id.slice(0, -'/index'.length) + '/'
   return BASE_URL + id + '/'
 }
 
@@ -53,7 +54,9 @@ export function getEditUrl(doc: Doc): string | null {
   const marker = 'src/content/docs/'
   const markerIndex = normalizedPath.indexOf(marker)
   const rel =
-    markerIndex === -1 ? normalizedPath : normalizedPath.slice(markerIndex + marker.length)
+    markerIndex === -1
+      ? normalizedPath
+      : normalizedPath.slice(markerIndex + marker.length)
   return DOCS.editUrlBase.replace(/\/+$/, '') + '/' + rel
 }
 

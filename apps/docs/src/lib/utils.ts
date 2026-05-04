@@ -57,6 +57,6 @@ export function titleCase(input: string): string {
     .replace(/[-_]+/g, ' ')
     .split(' ')
     .filter(Boolean)
-    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
 }

@@ -13,13 +13,12 @@ import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
-
 import { ecOptions } from './src/lib/ec-config'
 import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
 import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
 import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
-import { resolveSiteUrl } from './src/lib/site-url'
 import { latte, mocha } from './src/lib/shiki-themes'
+import { resolveSiteUrl } from './src/lib/site-url'
 
 export default defineConfig({
   site: resolveSiteUrl(),

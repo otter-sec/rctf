@@ -28,15 +28,22 @@ export function getNodeText(node: ElementContent): string {
   return node.children.map(getNodeText).join('')
 }
 
-export function findElementChild(node: Element, tagName: string): Element | null {
+export function findElementChild(
+  node: Element,
+  tagName: string
+): Element | null {
   return (
     node.children.find(
-      (child): child is Element => isElement(child) && child.tagName === tagName,
+      (child): child is Element => isElement(child) && child.tagName === tagName
     ) ?? null
   )
 }
 
-export function replaceChild(parent: HastParent, index: number, child: ElementContent): void {
+export function replaceChild(
+  parent: HastParent,
+  index: number,
+  child: ElementContent
+): void {
   const children = parent.children as ElementContent[]
   children[index] = child
 }
@@ -50,9 +57,17 @@ function childNodes(node: HastNode): ElementContent[] | null {
 
 export function visitHast(
   tree: Root,
-  visitor: (node: HastNode, parent: HastParent | null, index: number | null) => VisitAction,
+  visitor: (
+    node: HastNode,
+    parent: HastParent | null,
+    index: number | null
+  ) => VisitAction
 ): void {
-  const walk = (node: HastNode, parent: HastParent | null, index: number | null): void => {
+  const walk = (
+    node: HastNode,
+    parent: HastParent | null,
+    index: number | null
+  ): void => {
     if (visitor(node, parent, index) === 'skip') return
 
     const children = childNodes(node)

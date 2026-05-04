@@ -1,9 +1,8 @@
 import { isElementHidden, trimTrailingSlash, withDatasetFlag } from './dom'
-import { readJsonRecord, readNumber, removeStorage, writeJson, writeStorage } from './storage'
+import { readJsonRecord, writeJson } from './storage'
 
 const SIDEBAR_GROUP_STATE_KEY = 'rctf-docs-sidebar-groups'
 const SIDEBAR_SCROLL_STATE_KEY = 'rctf-docs-sidebar-scroll'
-const SIDEBAR_PENDING_SCROLL_KEY = 'rctf-docs-sidebar-pending-scroll'
 const SIDEBAR_VIEWPORT_SELECTOR =
   'nav[aria-label="Documentation"] [data-slot="scroll-area-viewport"]'
 
@@ -36,14 +35,18 @@ function sidebarGroupKey(group: HTMLElement): string | null {
 
 function matchingSidebarGroups(key: string): NodeListOf<HTMLDetailsElement> {
   return document.querySelectorAll<HTMLDetailsElement>(
-    `details[data-sidebar-group][data-group-path="${CSS.escape(key)}"]`,
+    `details[data-sidebar-group][data-group-path="${CSS.escape(key)}"]`
   )
 }
 
-function setMatchingSidebarGroups(key: string, open: boolean, source: HTMLDetailsElement): void {
+function setMatchingSidebarGroups(
+  key: string,
+  open: boolean,
+  source: HTMLDetailsElement
+): void {
   syncingSidebarGroups = true
 
-  matchingSidebarGroups(key).forEach((group) => {
+  matchingSidebarGroups(key).forEach(group => {
     if (group !== source) group.open = open
   })
 
@@ -54,8 +57,10 @@ function restoreSidebarGroups(): void {
   const state = readSidebarGroupState()
 
   document
-    .querySelectorAll<HTMLDetailsElement>('details[data-sidebar-group][data-group-path]')
-    .forEach((group) => {
+    .querySelectorAll<HTMLDetailsElement>(
+      'details[data-sidebar-group][data-group-path]'
+    )
+    .forEach(group => {
       const key = sidebarGroupKey(group)
       if (!key || state[key] === undefined) return
       group.open = state[key]
@@ -66,8 +71,10 @@ function setupPersistentSidebarGroups(): void {
   restoreSidebarGroups()
 
   document
-    .querySelectorAll<HTMLDetailsElement>('details[data-sidebar-group][data-group-path]')
-    .forEach((group) => {
+    .querySelectorAll<HTMLDetailsElement>(
+      'details[data-sidebar-group][data-group-path]'
+    )
+    .forEach(group => {
       if (sidebarGroupsWithPersistence.has(group)) return
       sidebarGroupsWithPersistence.add(group)
 
@@ -86,14 +93,13 @@ function setupPersistentSidebarGroups(): void {
 }
 
 function sidebarViewports(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(SIDEBAR_VIEWPORT_SELECTOR))
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(SIDEBAR_VIEWPORT_SELECTOR)
+  )
 }
 
 function sidebarScrollKey(viewport: HTMLElement): string {
-  const version =
-    viewport.closest<HTMLElement>('[data-version-sidebar]')?.dataset.versionSidebar ?? 'default'
-  const placement = viewport.closest('#mobile-sidebar') ? 'mobile' : 'desktop'
-  return `${placement}:${version}`
+  return viewport.closest('#mobile-sidebar') ? 'mobile' : 'desktop'
 }
 
 function saveSidebarViewportScroll(viewport: HTMLElement): void {
@@ -103,49 +109,41 @@ function saveSidebarViewportScroll(viewport: HTMLElement): void {
 }
 
 export function saveVisibleSidebarScrolls(): void {
-  sidebarViewports().forEach((viewport) => {
+  sidebarViewports().forEach(viewport => {
     if (!isElementHidden(viewport)) saveSidebarViewportScroll(viewport)
   })
 }
 
-export function savePendingSidebarScroll(): void {
-  const viewport = sidebarViewports().find((candidate) => !isElementHidden(candidate))
-  if (!viewport) return
-
-  writeStorage(sessionStorage, SIDEBAR_PENDING_SCROLL_KEY, String(viewport.scrollTop))
-}
-
 export function restoreSidebarScrolls(): void {
-  const pendingScrollTop = readNumber(sessionStorage, SIDEBAR_PENDING_SCROLL_KEY)
   const state = readSidebarScrollState()
-  let usedPendingScroll = false
 
-  sidebarViewports().forEach((viewport) => {
+  sidebarViewports().forEach(viewport => {
     if (isElementHidden(viewport)) return
 
-    const scrollTop = pendingScrollTop ?? state[sidebarScrollKey(viewport)]
+    const scrollTop = state[sidebarScrollKey(viewport)]
     if (typeof scrollTop !== 'number') return
 
     viewport.scrollTop = Math.max(
       0,
-      Math.min(scrollTop, viewport.scrollHeight - viewport.clientHeight),
+      Math.min(scrollTop, viewport.scrollHeight - viewport.clientHeight)
     )
-    if (pendingScrollTop !== null) usedPendingScroll = true
   })
-
-  if (usedPendingScroll) removeStorage(sessionStorage, SIDEBAR_PENDING_SCROLL_KEY)
 }
 
 function setupPersistentSidebarScrolls(): void {
   restoreSidebarScrolls()
 
-  sidebarViewports().forEach((viewport) => {
+  sidebarViewports().forEach(viewport => {
     if (sidebarViewportsWithPersistence.has(viewport)) return
     sidebarViewportsWithPersistence.add(viewport)
 
-    viewport.addEventListener('scroll', () => saveSidebarViewportScroll(viewport), {
-      passive: true,
-    })
+    viewport.addEventListener(
+      'scroll',
+      () => saveSidebarViewportScroll(viewport),
+      {
+        passive: true,
+      }
+    )
   })
 }
 
@@ -161,17 +159,19 @@ function expandActiveLinkParents(link: HTMLElement): void {
 function updateActiveSidebarLink(): void {
   const current = trimTrailingSlash(window.location.pathname)
 
-  document.querySelectorAll<HTMLAnchorElement>('[data-sidebar-link]').forEach((link) => {
-    const href = link.getAttribute('data-sidebar-link') ?? ''
-    const isActive = trimTrailingSlash(href) === current
+  document
+    .querySelectorAll<HTMLAnchorElement>('[data-sidebar-link]')
+    .forEach(link => {
+      const href = link.getAttribute('data-sidebar-link') ?? ''
+      const isActive = trimTrailingSlash(href) === current
 
-    if (isActive) {
-      link.setAttribute('aria-current', 'page')
-      expandActiveLinkParents(link)
-    } else {
-      link.removeAttribute('aria-current')
-    }
-  })
+      if (isActive) {
+        link.setAttribute('aria-current', 'page')
+        expandActiveLinkParents(link)
+      } else {
+        link.removeAttribute('aria-current')
+      }
+    })
 }
 
 function setupSidebar(): void {

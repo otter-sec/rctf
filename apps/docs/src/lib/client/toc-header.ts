@@ -44,8 +44,11 @@ function resetState(): void {
   const tocContainer = document.getElementById('mobile-toc-container')
 
   state.progressCircle = document.getElementById('mobile-toc-progress-circle')
-  state.currentSectionText = document.getElementById('mobile-toc-current-section')
-  state.detailsElement = tocContainer?.querySelector<HTMLDetailsElement>('details') ?? null
+  state.currentSectionText = document.getElementById(
+    'mobile-toc-current-section'
+  )
+  state.detailsElement =
+    tocContainer?.querySelector<HTMLDetailsElement>('details') ?? null
   state.listElement = document.getElementById('mobile-table-of-contents')
   state.scrollArea = findScrollAreaViewport(tocContainer)
   state.headings = []
@@ -54,8 +57,10 @@ function resetState(): void {
 
   if (!state.progressCircle) return
 
-  state.progressCircle.style.strokeDasharray = PROGRESS_CIRCLE_CIRCUMFERENCE.toString()
-  state.progressCircle.style.strokeDashoffset = PROGRESS_CIRCLE_CIRCUMFERENCE.toString()
+  state.progressCircle.style.strokeDasharray =
+    PROGRESS_CIRCLE_CIRCUMFERENCE.toString()
+  state.progressCircle.style.strokeDashoffset =
+    PROGRESS_CIRCLE_CIRCUMFERENCE.toString()
 }
 
 function buildRegions(): void {
@@ -85,8 +90,8 @@ function updateCurrentSectionText(headingIds: string[]): void {
   }
 
   const activeHtml = state.headings
-    .filter((heading) => headingIds.includes(heading.id))
-    .map((heading) => headingHtml(heading))
+    .filter(heading => headingIds.includes(heading.id))
+    .map(heading => headingHtml(heading))
     .filter(Boolean)
     .join(', ')
 
@@ -101,7 +106,7 @@ function scrollToActiveHeading(activeHeadingId: string): void {
   if (!state.listElement || !state.scrollArea) return
 
   const activeItem = state.listElement.querySelector<HTMLElement>(
-    dataAttributeSelector('data-heading-id', activeHeadingId),
+    dataAttributeSelector('data-heading-id', activeHeadingId)
   )
   if (activeItem) centerElementInScrollContainer(state.scrollArea, activeItem)
 }
@@ -109,10 +114,15 @@ function scrollToActiveHeading(activeHeadingId: string): void {
 function updateMobileTocLinks(headingIds: string[]): void {
   if (!state.listElement || !state.currentSectionText) return
 
-  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach((item) => {
-    const headingId = item.dataset.headingId
-    item.classList.toggle('text-foreground', Boolean(headingId && headingIds.includes(headingId)))
-  })
+  state.listElement
+    .querySelectorAll<HTMLElement>('.mobile-toc-item')
+    .forEach(item => {
+      const headingId = item.dataset.headingId
+      item.classList.toggle(
+        'text-foreground',
+        Boolean(headingId && headingIds.includes(headingId))
+      )
+    })
 
   if (headingIds.length > 0) scrollToActiveHeading(headingIds[0])
 
@@ -122,9 +132,12 @@ function updateMobileTocLinks(headingIds: string[]): void {
 function updateProgressCircle(): void {
   if (!state.progressCircle) return
 
-  const scrollableDistance = document.documentElement.scrollHeight - window.innerHeight
+  const scrollableDistance =
+    document.documentElement.scrollHeight - window.innerHeight
   const scrollProgress =
-    scrollableDistance > 0 ? Math.min(Math.max(window.scrollY / scrollableDistance, 0), 1) : 0
+    scrollableDistance > 0
+      ? Math.min(Math.max(window.scrollY / scrollableDistance, 0), 1)
+      : 0
 
   state.progressCircle.style.strokeDashoffset = (
     PROGRESS_CIRCLE_CIRCUMFERENCE *
@@ -135,14 +148,16 @@ function updateProgressCircle(): void {
 function syncHeadingLabels(): void {
   if (!state.listElement) return
 
-  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach((link) => {
-    const slug = link.dataset.headingId
-    if (!slug) return
+  state.listElement
+    .querySelectorAll<HTMLElement>('.mobile-toc-item')
+    .forEach(link => {
+      const slug = link.dataset.headingId
+      if (!slug) return
 
-    const heading = document.getElementById(slug)
-    const target = link.querySelector<HTMLElement>('[data-toc-text]')
-    if (heading && target) target.innerHTML = headingHtml(heading)
-  })
+      const heading = document.getElementById(slug)
+      const target = link.querySelector<HTMLElement>('[data-toc-text]')
+      if (heading && target) target.innerHTML = headingHtml(heading)
+    })
 }
 
 function handleScroll(): void {
@@ -169,24 +184,27 @@ function handleResize(): void {
 }
 
 function setupInteractions(signal: AbortSignal): void {
-  state.listElement?.querySelectorAll('.mobile-toc-item').forEach((item) => {
+  state.listElement?.querySelectorAll('.mobile-toc-item').forEach(item => {
     item.addEventListener(
       'click',
       () => {
         if (state.detailsElement) state.detailsElement.open = false
       },
-      { signal },
+      { signal }
     )
   })
 
-  state.scrollArea?.addEventListener('scroll', updateScrollMask, { passive: true, signal })
+  state.scrollArea?.addEventListener('scroll', updateScrollMask, {
+    passive: true,
+    signal,
+  })
 
   state.detailsElement?.addEventListener(
     'toggle',
     () => {
       if (state.detailsElement?.open) window.setTimeout(updateScrollMask, 100)
     },
-    { signal },
+    { signal }
   )
 }
 
@@ -213,7 +231,10 @@ function initMobileTocHeader(): void {
 
   if (state.headings.length === 0) {
     state.currentSectionText.textContent = INITIAL_OVERVIEW_TEXT
-    window.addEventListener('scroll', updateProgressCircle, { passive: true, signal })
+    window.addEventListener('scroll', updateProgressCircle, {
+      passive: true,
+      signal,
+    })
     updateProgressCircle()
     return
   }

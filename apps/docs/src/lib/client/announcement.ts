@@ -22,19 +22,26 @@ function dismiss(bar: HTMLElement): void {
 }
 
 export function updateAnnouncementOffset(): void {
-  const bar = document.querySelector<HTMLElement>(`${ANNOUNCEMENT_SELECTOR}:not([hidden])`)
+  const bar = document.querySelector<HTMLElement>(
+    `${ANNOUNCEMENT_SELECTOR}:not([hidden])`
+  )
   const offset = bar
-    ? Math.max(0, Math.min(bar.offsetHeight, bar.getBoundingClientRect().bottom))
+    ? Math.max(
+        0,
+        Math.min(bar.offsetHeight, bar.getBoundingClientRect().bottom)
+      )
     : 0
 
   document.documentElement.style.setProperty(OFFSET_VAR, `${offset}px`)
 }
 
 function applyDismissedState(): void {
-  const bars = Array.from(document.querySelectorAll<HTMLElement>(ANNOUNCEMENT_SELECTOR))
+  const bars = Array.from(
+    document.querySelectorAll<HTMLElement>(ANNOUNCEMENT_SELECTOR)
+  )
   let hasDismissedAnnouncement = false
 
-  bars.forEach((bar) => {
+  bars.forEach(bar => {
     if (!isDismissed(bar)) return
 
     hasDismissedAnnouncement = true

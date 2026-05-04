@@ -17,8 +17,10 @@ function isMacPlatform(): boolean {
 function applyOsHotkey(): void {
   const mac = isMacPlatform()
 
-  document.querySelectorAll<HTMLElement>('[data-hotkey]').forEach((el) => {
-    const label = mac ? (el.dataset.hotkeyMac ?? '') : (el.dataset.hotkeyOther ?? '')
+  document.querySelectorAll<HTMLElement>('[data-hotkey]').forEach(el => {
+    const label = mac
+      ? (el.dataset.hotkeyMac ?? '')
+      : (el.dataset.hotkeyOther ?? '')
     if (label) el.textContent = label
   })
 }

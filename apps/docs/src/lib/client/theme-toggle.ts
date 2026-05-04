@@ -26,17 +26,18 @@ function initThemeToggle(): void {
 
   document
     .querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')
-    .forEach((button) => button.addEventListener('click', toggleTheme, { signal }))
+    .forEach(button =>
+      button.addEventListener('click', toggleTheme, { signal })
+    )
 }
 
 function beforeSwap(event: Event): void {
   controller?.abort()
 
   const storedTheme = readStorage(localStorage, 'theme') || 'light'
-  ;(event as Event & { newDocument: Document }).newDocument.documentElement.setAttribute(
-    'data-theme',
-    storedTheme,
-  )
+  ;(
+    event as Event & { newDocument: Document }
+  ).newDocument.documentElement.setAttribute('data-theme', storedTheme)
 }
 
 export function mountThemeToggle(): void {

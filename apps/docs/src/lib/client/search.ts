@@ -40,6 +40,7 @@ async function loadPagefind(): Promise<Pagefind | null> {
       if (mod.init) await mod.init()
       return mod as Pagefind
     } catch {
+      pagefindPromise = null
       return null
     }
   })()
@@ -49,16 +50,27 @@ async function loadPagefind(): Promise<Pagefind | null> {
 
 function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
-  ms: number,
-): (...args: Args) => void {
+  ms: number
+): ((...args: Args) => void) & { cancel: () => void } {
   let timer: ReturnType<typeof setTimeout> | undefined
-  return (...args: Args) => {
+
+  const debounced = (...args: Args) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => fn(...args), ms)
   }
+
+  debounced.cancel = () => {
+    if (timer) clearTimeout(timer)
+    timer = undefined
+  }
+
+  return debounced
 }
 
-function appendHighlightedExcerpt(container: HTMLElement, excerpt: string): void {
+function appendHighlightedExcerpt(
+  container: HTMLElement,
+  excerpt: string
+): void {
   const markRe = /<\/?mark>/gi
   let cursor = 0
   let mark: HTMLElement | null = null
@@ -135,7 +147,9 @@ async function runSearch(query: string): Promise<void> {
   if (!pagefind) {
     results.removeAttribute('aria-busy')
     results.replaceChildren(
-      renderStatus('Search index not available. Run `bun run build` to generate it.'),
+      renderStatus(
+        'Search index not available. Run `bun run build` to generate it.'
+      )
     )
     return
   }
@@ -144,7 +158,9 @@ async function runSearch(query: string): Promise<void> {
     const { results: found } = await pagefind.search(trimmedQuery)
     if (requestId !== searchRequestId) return
 
-    const top = await Promise.all(found.slice(0, 8).map((result) => result.data()))
+    const top = await Promise.all(
+      found.slice(0, 8).map(result => result.data())
+    )
     if (requestId !== searchRequestId) return
 
     if (top.length === 0) {
@@ -168,10 +184,23 @@ async function runSearch(query: string): Promise<void> {
 
 const debouncedSearch = debounce(runSearch, 120)
 
+function cleanupSearch(): void {
+  searchController?.abort()
+  searchController = null
+  searchRequestId++
+  debouncedSearch.cancel()
+}
+
 function setupSearch(): void {
-  const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
-  const triggers = document.querySelectorAll<HTMLButtonElement>('[data-search-trigger]')
-  const input = document.getElementById('search-input') as HTMLInputElement | null
+  const dialog = document.getElementById(
+    'search-dialog'
+  ) as HTMLDialogElement | null
+  const triggers = document.querySelectorAll<HTMLButtonElement>(
+    '[data-search-trigger]'
+  )
+  const input = document.getElementById(
+    'search-input'
+  ) as HTMLInputElement | null
 
   if (!dialog || !input) return
 
@@ -188,24 +217,29 @@ function setupSearch(): void {
     if (dialog.open) dialog.close()
   }
 
-  triggers.forEach((trigger) => trigger.addEventListener('click', open, { signal }))
-  input.addEventListener('input', () => debouncedSearch(input.value), { signal })
-  dialog.addEventListener('submit', (event) => event.preventDefault(), { signal })
+  triggers.forEach(trigger =>
+    trigger.addEventListener('click', open, { signal })
+  )
+  input.addEventListener('input', () => debouncedSearch(input.value), {
+    signal,
+  })
+  dialog.addEventListener('submit', event => event.preventDefault(), { signal })
 
   dialog.addEventListener(
     'click',
-    (event) => {
+    event => {
       const target = event.target
       if (target instanceof Element && target.closest('a[href]')) close()
       if (event.target === dialog) close()
     },
-    { signal },
+    { signal }
   )
 
   document.addEventListener(
     'keydown',
-    (event) => {
-      const isHotkey = event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
+    event => {
+      const isHotkey =
+        event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
 
       if (isHotkey) {
         event.preventDefault()
@@ -219,15 +253,20 @@ function setupSearch(): void {
 
       if (!dialog.open) return
 
-      const searchResults = dialog.querySelectorAll<HTMLAnchorElement>('[data-search-result]')
+      const searchResults = dialog.querySelectorAll<HTMLAnchorElement>(
+        '[data-search-result]'
+      )
       if (searchResults.length === 0) return
 
-      const active = dialog.querySelector<HTMLAnchorElement>('[data-search-result]:focus')
+      const active = dialog.querySelector<HTMLAnchorElement>(
+        '[data-search-result]:focus'
+      )
       const index = active ? Array.from(searchResults).indexOf(active) : -1
 
       if (event.key === 'ArrowDown') {
         event.preventDefault()
-        const next = searchResults[Math.min(searchResults.length - 1, index + 1)]
+        const next =
+          searchResults[Math.min(searchResults.length - 1, index + 1)]
         next?.focus()
       }
 
@@ -237,7 +276,7 @@ function setupSearch(): void {
         else searchResults[index - 1].focus()
       }
     },
-    { signal },
+    { signal }
   )
 }
 
@@ -247,6 +286,6 @@ export function mountDocsSearch(): void {
   if (lifecycleReady) return
   lifecycleReady = true
 
-  document.addEventListener('astro:before-swap', () => searchController?.abort())
+  document.addEventListener('astro:before-swap', cleanupSearch)
   document.addEventListener('astro:after-swap', setupSearch)
 }

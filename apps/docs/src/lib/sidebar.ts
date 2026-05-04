@@ -161,7 +161,9 @@ function resolveGroup(
     group: {
       type: 'group',
       label,
-      collapsed: forceOpen ? false : (override.collapsed ?? own.collapsed ?? !hasActiveDescendant),
+      collapsed: forceOpen
+        ? false
+        : (override.collapsed ?? own.collapsed ?? !hasActiveDescendant),
       forceOpen,
       badge,
       hasActiveDescendant,

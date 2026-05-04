@@ -13,7 +13,8 @@ function setupScrollFades(): void {
 
   function update(): void {
     const atTop = viewport!.scrollTop <= 1
-    const atBottom = viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
+    const atBottom =
+      viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
 
     nav!.style.maskImage =
       atTop && atBottom
@@ -42,7 +43,9 @@ function updateEditLink(): void {
   const link = document.getElementById('docs-edit-link')
   if (!link) return
 
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="docs-edit-url"]')
+  const meta = document.querySelector<HTMLMetaElement>(
+    'meta[name="docs-edit-url"]'
+  )
   const url = meta?.content ?? ''
 
   link.setAttribute('href', url || '#')

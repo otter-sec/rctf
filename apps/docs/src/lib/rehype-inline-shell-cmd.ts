@@ -70,7 +70,12 @@ export function rehypeInlineShellCmd() {
       // Case A: shiki-wrapped inline code (`{:bash}`, `{:ansi}`, etc.)
       // Structure: <span class="shiki ..."><code>...$ cmd...</code></span>
       // Replace the .shiki wrapper entirely so it doesn't get its own pill styling.
-      if (node.tagName === 'span' && hasClass(node, 'shiki') && parent && index !== null) {
+      if (
+        node.tagName === 'span' &&
+        hasClass(node, 'shiki') &&
+        parent &&
+        index !== null
+      ) {
         const codeChild = findElementChild(node, 'code')
         if (codeChild) {
           const first = firstTextNode(codeChild)

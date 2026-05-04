@@ -1,5 +1,7 @@
-import { ExpressiveCodeTheme, ensureColorContrastOnBackground } from '@expressive-code/core'
-
+import {
+  ensureColorContrastOnBackground,
+  ExpressiveCodeTheme,
+} from '@expressive-code/core'
 import catppuccinLatteRaw from '@shikijs/themes/catppuccin-latte'
 import catppuccinMochaRaw from '@shikijs/themes/catppuccin-mocha'
 
@@ -35,12 +37,18 @@ function adjustAnsiPalette(theme: ExpressiveCodeTheme): void {
   for (const key of ANSI_COLOR_KEYS) {
     const color = theme.colors[key]
     if (!color) continue
-    theme.colors[key] = ensureColorContrastOnBackground(color, theme.bg, MIN_CONTRAST)
+    theme.colors[key] = ensureColorContrastOnBackground(
+      color,
+      theme.bg,
+      MIN_CONTRAST
+    )
   }
 }
 
 function adjusted(raw: unknown): ExpressiveCodeTheme {
-  const theme = new ExpressiveCodeTheme(raw as ConstructorParameters<typeof ExpressiveCodeTheme>[0])
+  const theme = new ExpressiveCodeTheme(
+    raw as ConstructorParameters<typeof ExpressiveCodeTheme>[0]
+  )
   theme.ensureMinSyntaxHighlightingColorContrast(MIN_CONTRAST)
   adjustAnsiPalette(theme)
   return theme

@@ -1,5 +1,11 @@
 import type { Element, ElementContent, Root } from 'hast'
-import { findElementChild, getNodeText, hasClass, isElement, visitHast } from './hast-utils'
+import {
+  findElementChild,
+  getNodeText,
+  hasClass,
+  isElement,
+  visitHast,
+} from './hast-utils'
 
 // Tabler icon paths (viewBox 0 0 24 24, stroke currentColor).
 const FILE_PATHS = [
@@ -69,7 +75,8 @@ function classify(text: string): 'file' | 'folder' | null {
   // a recognized file extension; or a known dotfile name. A single-slash
   // kebab token like `package/feature` (a feature spec) is NOT
   // a path even though it contains a slash.
-  if (text.startsWith('/') || text.startsWith('./') || text.startsWith('../')) return 'file'
+  if (text.startsWith('/') || text.startsWith('./') || text.startsWith('../'))
+    return 'file'
   if ((text.match(/\//g) || []).length >= 2) return 'file'
   if (EXT_RE.test(text)) return 'file'
   if (DOTFILE_RE.test(text)) return 'file'
@@ -90,7 +97,7 @@ function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
       'aria-hidden': 'true',
       className: ['inline-path-icon', `is-${kind}`],
     },
-    children: paths.map((d) => ({
+    children: paths.map(d => ({
       type: 'element',
       tagName: 'path',
       properties: { d },
@@ -101,7 +108,11 @@ function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
 
 function alreadyDecorated(node: Element): boolean {
   const first = node.children?.[0]
-  return first?.type === 'element' && first.tagName === 'svg' && hasClass(first, 'inline-path-icon')
+  return (
+    first?.type === 'element' &&
+    first.tagName === 'svg' &&
+    hasClass(first, 'inline-path-icon')
+  )
 }
 
 function decorate(codeNode: Element, kind: 'file' | 'folder'): void {
@@ -152,7 +163,7 @@ function dimPlaceholders(node: Element): void {
 
 export function rehypeInlinePathIcon() {
   return (tree: Root) => {
-    visitHast(tree, (node) => {
+    visitHast(tree, node => {
       if (!isElement(node)) return
 
       // Skip block code and our own command pills.
