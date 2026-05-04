@@ -33,6 +33,7 @@ RUN bun install \
 
 COPY apps/docs/ ./apps/docs/
 COPY packages/scoring/ ./packages/scoring/
+COPY tsconfig.json ./
 
 ENV NODE_ENV=production
 WORKDIR /app/apps/docs
