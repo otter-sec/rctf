@@ -31,15 +31,9 @@ All scoring providers receive a context object with:
 | `eventEndTime{:yaml}`   | Competition end time (used by `scores/jammy{:yaml}`)                      |
 | `firstSolveTime{:yaml}` | Time of the first solve for the challenge (used by `scores/jammy{:yaml}`) |
 
-## Score curves
-
-The charts below use a sample challenge with `minPoints: 100{:yaml}` and `maxPoints: 500{:yaml}`. Solve-based providers decay as the challenge gets solved more often; `scores/jammy{:yaml}` uses the first solve time instead.
-
-<ScoreDecayChart type="solves" />
-
-<ScoreDecayChart type="time" />
-
 ## Providers
+
+Charts use a sample challenge with `minPoints: 100{:yaml}` and `maxPoints: 500{:yaml}`. Solve-based providers show the full provider family with the current tab highlighted; `scores/jammy{:yaml}` uses its own time-based curve.
 
 <Tabs items={['scores/classic', 'scores/sekai', 'scores/steep', 'scores/jammy', 'scores/genni', 'scores/legacy']}>
 <Tab>
@@ -53,6 +47,8 @@ scoreProvider:
 
 Challenges start at `maxPoints{:yaml}` with zero solves and decay toward `minPoints{:yaml}` as the solve count increases. The decay curve is moderate, suitable for most CTFs.
 
+<ScoreDecayChart focus="classic" />
+
 </Tab>
 <Tab>
 
@@ -63,6 +59,8 @@ scoreProvider:
   name: scores/sekai
 ```
 
+<ScoreDecayChart focus="sekai" />
+
 </Tab>
 <Tab>
 
@@ -72,6 +70,8 @@ Similar to `scores/classic{:yaml}` but with a steeper decay curve. Points drop m
 scoreProvider:
   name: scores/steep
 ```
+
+<ScoreDecayChart focus="steep" />
 
 </Tab>
 <Tab>
@@ -95,6 +95,8 @@ This provider requires `startTime{:yaml}` and `endTime{:yaml}` to be set in the 
 
 </Callout>
 
+<ScoreDecayChart type="time" />
+
 </Tab>
 <Tab>
 
@@ -104,6 +106,8 @@ Binary scoring: returns `maxPoints{:yaml}` if the challenge has 0 to 2 solves, a
 scoreProvider:
   name: scores/genni
 ```
+
+<ScoreDecayChart focus="genni" />
 
 </Tab>
 <Tab>
@@ -120,6 +124,8 @@ scoreProvider:
 This provider requires `maxSolves{:yaml}` (the maximum solve count across all challenges) to properly normalize the curve. It may produce unexpected results if challenge solve counts vary widely.
 
 </Callout>
+
+<ScoreDecayChart focus="legacy" />
 
 </Tab>
 </Tabs>

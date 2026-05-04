@@ -1,15 +1,17 @@
 ---
 interface Props {
-  type: 'solves' | 'time'
+  type?: 'solves' | 'time'
+  focus?: 'classic' | 'sekai' | 'steep' | 'genni' | 'legacy'
 }
 
 type Series = {
   label: string
+  name: NonNullable<Props['focus']> | 'jammy'
   color: string
   values: number[]
 }
 
-const { type } = Astro.props
+const { type = 'solves', focus } = Astro.props
 
 const width = 720
 const height = 360
@@ -84,49 +86,88 @@ const yMax = maxPoints
 const series: Series[] =
   type === 'solves'
     ? [
-        { label: 'classic', color: '#C10007', values: samples.map(classic) },
-        { label: 'sekai', color: '#2563EB', values: samples.map(sekai) },
-        { label: 'steep', color: '#D97706', values: samples.map(steep) },
-        { label: 'legacy', color: '#059669', values: samples.map(legacy) },
-        { label: 'genni', color: '#7C3AED', values: samples.map(genni) },
+        {
+          label: 'scores/classic',
+          name: 'classic',
+          color: '#C10007',
+          values: samples.map(classic),
+        },
+        {
+          label: 'scores/sekai',
+          name: 'sekai',
+          color: '#2563EB',
+          values: samples.map(sekai),
+        },
+        {
+          label: 'scores/steep',
+          name: 'steep',
+          color: '#D97706',
+          values: samples.map(steep),
+        },
+        {
+          label: 'scores/legacy',
+          name: 'legacy',
+          color: '#059669',
+          values: samples.map(legacy),
+        },
+        {
+          label: 'scores/genni',
+          name: 'genni',
+          color: '#7C3AED',
+          values: samples.map(genni),
+        },
       ]
-    : [{ label: 'jammy', color: '#C10007', values: samples.map(jammy) }]
+    : [
+        {
+          label: 'scores/jammy',
+          name: 'jammy',
+          color: '#C10007',
+          values: samples.map(jammy),
+        },
+      ]
 
 const x = (value: number) => plot.left + (value / xMax) * plotWidth
 const y = (value: number) =>
   plot.top + (1 - (value - yMin) / (yMax - yMin)) * plotHeight
 
-const polylines = series.map((item) => ({
-  ...item,
-  points: samples
-    .map(
-      (sample, i) =>
-        `${x(sample).toFixed(2)},${y(item.values[i] ?? yMin).toFixed(2)}`,
-    )
-    .join(' '),
-}))
+const polylines = series
+  .map((item) => ({
+    ...item,
+    focused: type === 'time' || item.name === focus,
+    points: samples
+      .map(
+        (sample, i) =>
+          `${x(sample).toFixed(2)},${y(item.values[i] ?? yMin).toFixed(2)}`,
+      )
+      .join(' '),
+  }))
+  .sort((a, b) => Number(a.focused) - Number(b.focused))
 
 const xTicks =
   type === 'solves' ? [0, 10, 20, 30, 40, 50] : [0, 20, 40, 60, 80, 100]
 const yTicks =
   type === 'solves' ? [0, 100, 200, 300, 400, 500] : [100, 200, 300, 400, 500]
+const focusedLabel = series.find((item) => item.name === focus)?.label
 const title =
-  type === 'solves' ? 'Solve-based score decay' : 'Jammy first-solve scoring'
+  type === 'solves'
+    ? `${focusedLabel ?? 'Solve-based'} score decay`
+    : 'scores/jammy first-solve scoring'
 const description =
   type === 'solves'
-    ? 'Comparison of score providers as challenge solves increase from 0 to 50.'
+    ? `${focusedLabel ?? 'Solve-based providers'} shown against the other solve-based scoring curves as challenge solves increase from 0 to 50.`
     : 'Jammy increases challenge value until 80 percent of the event has elapsed.'
+const chartId = `score-chart-${type}-${focus ?? 'jammy'}`
 ---
 
 <figure class="not-prose my-6 overflow-hidden rounded-lg border">
   <svg
     viewBox={`0 0 ${width} ${height}`}
     role="img"
-    aria-labelledby={`${type}-score-chart-title ${type}-score-chart-desc`}
+    aria-labelledby={`${chartId}-title ${chartId}-desc`}
     class="bg-background block w-full"
   >
-    <title id={`${type}-score-chart-title`}>{title}</title>
-    <desc id={`${type}-score-chart-desc`}>{description}</desc>
+    <title id={`${chartId}-title`}>{title}</title>
+    <desc id={`${chartId}-desc`}>{description}</desc>
 
     <rect x="0" y="0" width={width} height={height} class="fill-background" />
 
@@ -199,9 +240,10 @@ const description =
           points={item.points}
           fill="none"
           stroke={item.color}
-          stroke-width="3"
+          stroke-width={item.focused ? '4' : '2'}
           stroke-linecap="round"
           stroke-linejoin="round"
+          opacity={item.focused ? '1' : '0.18'}
           vector-effect="non-scaling-stroke"
         />
       ))
@@ -230,7 +272,14 @@ const description =
   >
     {
       series.map((item) => (
-        <span class="text-muted-foreground inline-flex items-center gap-2">
+        <span
+          class:list={[
+            'inline-flex items-center gap-2',
+            type === 'time' || item.name === focus
+              ? 'text-foreground font-medium'
+              : 'text-muted-foreground opacity-60',
+          ]}
+        >
           <span
             class="inline-block h-2.5 w-2.5 rounded-full"
             style={`background-color: ${item.color}`}
