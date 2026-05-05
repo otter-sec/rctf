@@ -12,7 +12,12 @@ import {
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import {
+  invalidateUserCache,
+  setCachedUser,
+} from '../../../../apps/api/src/cache/auth-cache'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
+import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
   expectResponse,
@@ -184,6 +189,45 @@ describe('submit', () => {
       expect(createdSolves).toHaveLength(0)
     } finally {
       await bannedUser.cleanup()
+    }
+  })
+
+  test('banned users cannot submit with a stale auth cache entry', async () => {
+    const staleUser = await generateRealTestUser()
+    const db = getDb()
+    const redis = await createRedis()
+
+    await setCachedUser(redis, staleUser.user)
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, staleUser.user.id))
+
+    try {
+      const authToken = await createToken(TokenKind.Auth, staleUser.user.id)
+      const res = await request(
+        app,
+        `/api/v1/challs/${encodeURIComponent(challengeData.challenge.id)}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+        }
+      )
+
+      await expectResponse(res, BadPerms)
+
+      const createdSolves = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, staleUser.user.id))
+      expect(createdSolves).toHaveLength(0)
+    } finally {
+      await invalidateUserCache(redis, staleUser.user.id)
+      await staleUser.cleanup()
     }
   })
 })

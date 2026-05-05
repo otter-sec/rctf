@@ -5,7 +5,6 @@ import type {
   DatabaseClient,
   InstancerConfig,
   Solve,
-  User,
 } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
@@ -39,6 +38,20 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof BadUnknownUser,
   ]
 >
+
+const getSubmitterState = async (
+  db: DatabaseClient,
+  userId: string
+): Promise<{ banned: boolean } | undefined> => {
+  return await db
+    .select({
+      banned: users.banned,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+    .then(takeUnique)
+}
 
 type LeaderboardSolve = { challengeId: string; solveTime: number }
 type UserDisplayInfo = {
@@ -477,13 +490,19 @@ export const submitFlag = async (
   redis: TypedRedis,
   log: PinoLogger,
   params: {
-    user: Pick<User, 'id' | 'banned'>
+    userId: string
     challengeId: string
     flag: string
     submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
-  if (params.user.banned) {
+  // NOTE(es3n1n): Directly querying from the database to bypass any stale cache entries
+  const submitter = await getSubmitterState(db, params.userId)
+  if (!submitter) {
+    return res.badUnknownUser()
+  }
+
+  if (submitter.banned) {
     return res.badPerms()
   }
 
@@ -492,15 +511,11 @@ export const submitFlag = async (
     return res.badChallenge()
   }
 
-  const timeLeft = await rateLimitFlag(
-    redis,
-    params.user.id,
-    params.challengeId
-  )
+  const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
   if (timeLeft !== undefined) {
     log.info(
       {
-        user: params.user.id,
+        user: params.userId,
         chall: challenge.id,
         timeLeft,
       },
@@ -515,7 +530,7 @@ export const submitFlag = async (
 
   log.info(
     {
-      user: params.user.id,
+      user: params.userId,
       chall: challenge.id,
       flag: params.flag,
     },
@@ -526,7 +541,7 @@ export const submitFlag = async (
   try {
     bloodNumber = await createSolveAndGetBloodNumber(db, {
       challengeId: params.challengeId,
-      userId: params.user.id,
+      userId: params.userId,
       submissionIp: params.submissionIp,
     })
   } catch (error) {
@@ -541,13 +556,13 @@ export const submitFlag = async (
   }
 
   if (shouldNotifyBloodbot(bloodNumber)) {
-    getUser(db, params.user.id)
+    getUser(db, params.userId)
       .then(user => {
         return sendBloodMessage(user!, challenge.data, bloodNumber)
       })
       .catch(err => {
         log.error(
-          { err, challengeId: params.challengeId, userId: params.user.id },
+          { err, challengeId: params.challengeId, userId: params.userId },
           'bloodbot notification failed'
         )
       })
