@@ -1,8 +1,10 @@
 import {
+  DeleteAdminUserRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
+  GetAdminUserRouteV2,
   GetAdminUsersRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
@@ -10,8 +12,10 @@ import {
   GoodAdminChallengeV2,
   GoodAdminSettings,
   GoodAdminUsersV2,
+  GoodAdminUserV2,
   GoodInstancerSchema,
   UpdateAdminSettingsRouteV2,
+  UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
 } from '@rctf/types'
@@ -70,6 +74,18 @@ export const adminSettingsQueryOptions = queryOptions({
   },
 })
 
+export const adminUserQueryOptions = (id: string) =>
+  queryOptions({
+    queryKey: ['admin', 'users', id] as const,
+    queryFn: async () => {
+      const response = await apiRequest(GetAdminUserRouteV2, { id })
+      if (response.kind === GoodAdminUserV2.kind) {
+        return response.data
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+  })
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -120,6 +136,16 @@ export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
   })
 }
 
+export function useAdminUser(id: () => string | null) {
+  return createQuery(() => {
+    const userId = id()
+    return {
+      ...adminUserQueryOptions(userId ?? ''),
+      enabled: !!userId && browser,
+    }
+  })
+}
+
 export function useAdminBotStatus() {
   return createQuery(() => adminBotStatusQueryOptions)
 }
@@ -142,4 +168,12 @@ export function useUploadFilesMutation() {
 
 export function useUpdateSettingsMutation() {
   return createApiMutation(UpdateAdminSettingsRouteV2)
+}
+
+export function useUpdateAdminUserMutation() {
+  return createApiMutation(UpdateAdminUserRouteV2)
+}
+
+export function useDeleteAdminUserMutation() {
+  return createApiMutation(DeleteAdminUserRouteV2)
 }

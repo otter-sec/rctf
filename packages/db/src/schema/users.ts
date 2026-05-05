@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import {
+  boolean,
   check,
   foreignKey,
   index,
@@ -26,6 +27,7 @@ export const users = pgTable(
     avatarUrl: text('avatar_url'),
     countryCode: text('country_code'),
     statusText: text('status_text'),
+    banned: boolean().notNull().default(false),
     score: integer().notNull().default(0),
     globalRank: integer('global_rank'),
     divisionRank: integer('division_rank'),

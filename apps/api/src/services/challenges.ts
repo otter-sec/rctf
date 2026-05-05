@@ -12,6 +12,7 @@ import type {
   BadAlreadySolvedChallenge,
   BadChallenge,
   BadFlag,
+  BadPerms,
   BadRateLimit,
   BadUnknownUser,
   GoodFlag,
@@ -31,11 +32,26 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof BadChallenge,
     typeof BadRateLimit,
     typeof BadFlag,
+    typeof BadPerms,
     typeof GoodFlag,
     typeof BadAlreadySolvedChallenge,
     typeof BadUnknownUser,
   ]
 >
+
+const getSubmitterState = async (
+  db: DatabaseClient,
+  userId: string
+): Promise<{ banned: boolean } | undefined> => {
+  return await db
+    .select({
+      banned: users.banned,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+    .then(takeUnique)
+}
 
 type LeaderboardSolve = { challengeId: string; solveTime: number }
 type UserDisplayInfo = {
@@ -86,6 +102,7 @@ const createRankedSolves = (db: DatabaseClient) =>
       })
       .from(solves)
       .innerJoin(users, eq(users.id, solves.userid))
+      .where(eq(users.banned, false))
   )
 
 export const getPrivateChallenges = async (
@@ -179,7 +196,9 @@ export const createSolveAndGetBloodNumber = async (
         sql`
         SELECT COUNT(*)::int AS solve_count
         FROM solves
-        WHERE challengeid = ${params.challengeId}
+        INNER JOIN "users" ON "users".id = solves.userid
+        WHERE solves.challengeid = ${params.challengeId}
+          AND "users".banned = false
       `
       )
       .then(takeUnique)
@@ -306,7 +325,7 @@ export const getChallengeSolves = async (
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
-    .where(eq(solves.challengeid, challengeId))
+    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
     .orderBy(asc(solves.createdat))
     .limit(limit)
     .offset(offset)
@@ -434,7 +453,13 @@ export const getSolvesAndUserInfo = async (
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(and(inArray(solves.userid, userIds), challengeIsPublicSql))
+    .where(
+      and(
+        inArray(solves.userid, userIds),
+        challengeIsPublicSql,
+        eq(users.banned, false)
+      )
+    )
     .orderBy(asc(solves.createdat))
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(
@@ -471,6 +496,16 @@ export const submitFlag = async (
     submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
+  // NOTE(es3n1n): Directly querying from the database to bypass any stale cache entries
+  const submitter = await getSubmitterState(db, params.userId)
+  if (!submitter) {
+    return res.badUnknownUser()
+  }
+
+  if (submitter.banned) {
+    return res.badPerms()
+  }
+
   const challenge = await getChallenge(db, params.challengeId)
   if (!challenge || !challenge.data.flag) {
     return res.badChallenge()

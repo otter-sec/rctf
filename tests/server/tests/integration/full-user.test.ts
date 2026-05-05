@@ -1,3 +1,5 @@
+import { config } from '@rctf/config'
+import { createDatabase, users } from '@rctf/db'
 import {
   BadUnknownUser,
   GoodFlag,
@@ -5,6 +7,7 @@ import {
   GoodUserSelfData,
 } from '@rctf/types'
 import { beforeAll, describe, expect, test } from 'bun:test'
+import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import {
@@ -15,6 +18,7 @@ import {
 } from '../../util'
 
 let app: Hono<any>
+const getDb = () => createDatabase(config.database.sql).db
 
 beforeAll(async () => {
   app = await getApp()
@@ -47,6 +51,30 @@ describe('full-user service', () => {
       })
 
       await expectResponse(res, BadUnknownUser)
+    })
+
+    test('returns badUnknownUser for banned public users', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+
+      try {
+        const db = getDb()
+        await db
+          .update(users)
+          .set({ banned: true })
+          .where(eq(users.id, user.id))
+
+        const v1Res = await request(app, `/api/v1/users/${user.id}`, {
+          method: 'GET',
+        })
+        await expectResponse(v1Res, BadUnknownUser)
+
+        const v2Res = await request(app, `/api/v2/users/${user.id}`, {
+          method: 'GET',
+        })
+        await expectResponse(v2Res, BadUnknownUser)
+      } finally {
+        await cleanup()
+      }
     })
   })
 

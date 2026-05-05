@@ -2,7 +2,7 @@ import { users } from '@rctf/db'
 import { GetCtftimeLeaderboardRoute } from '@rctf/types'
 import {
   leaderboardOrderSql,
-  userIsRankedSql,
+  userIsPublicRankedSql,
 } from '../../../../cache/leaderboard'
 import integrationsGroup from '../group'
 
@@ -13,7 +13,7 @@ integrationsGroup.route(GetCtftimeLeaderboardRoute, async ({ ctx, res }) => {
       score: users.score,
     })
     .from(users)
-    .where(userIsRankedSql)
+    .where(userIsPublicRankedSql)
     .orderBy(leaderboardOrderSql)
 
   return res.goodCtftimeLeaderboard({

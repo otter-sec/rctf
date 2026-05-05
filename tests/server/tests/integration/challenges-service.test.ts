@@ -173,6 +173,53 @@ describe('challenges service', () => {
       expect(body.data.solves[0].userId).toBe(user.id)
     })
 
+    test('excludes banned team solves', async () => {
+      const { user: activeUser, cleanup: activeCleanup } =
+        await generateRealTestUser()
+      const { user: bannedUser, cleanup: bannedCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(activeCleanup, bannedCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      await db
+        .update(users)
+        .set({ banned: true })
+        .where(eq(users.id, bannedUser.id))
+      await db.insert(solves).values([
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: bannedUser.id,
+          createdat: new Date(Date.now() - 10000).toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: activeUser.id,
+          createdat: new Date().toISOString(),
+        },
+      ])
+
+      const authToken = await generateAuthToken(activeUser.id)
+      const res = await request(
+        app,
+        `/api/v1/challs/${challenge.id}/solves?limit=10&offset=0`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      )
+
+      const body = await expectResponse(res, GoodChallengeSolves)
+      expect(body.data.solves).toHaveLength(1)
+      expect(body.data.solves[0].userId).toBe(activeUser.id)
+    })
+
     test('returns badChallenge for non-existent challenge', async () => {
       const { user, cleanup } = await generateRealTestUser()
       createdUserCleanups.push(cleanup)
@@ -237,6 +284,55 @@ describe('challenges service', () => {
       expect(Array.isArray(body.data.solves)).toBe(true)
       expect(body.data.solves.length).toBe(2)
       expect(body.data.mySolvePosition).toBe(2)
+    })
+
+    test('excludes banned team solves from positions', async () => {
+      const { user: activeUser, cleanup: activeCleanup } =
+        await generateRealTestUser()
+      const { user: bannedUser, cleanup: bannedCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(activeCleanup, bannedCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      await db
+        .update(users)
+        .set({ banned: true })
+        .where(eq(users.id, bannedUser.id))
+      await db.insert(solves).values([
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: bannedUser.id,
+          createdat: new Date(Date.now() - 10000).toISOString(),
+        },
+        {
+          id: crypto.randomUUID(),
+          challengeid: challenge.id,
+          userid: activeUser.id,
+          createdat: new Date().toISOString(),
+        },
+      ])
+
+      const authToken = await generateAuthToken(activeUser.id)
+      const res = await request(
+        app,
+        `/api/v2/challs/${challenge.id}/solves?limit=10&offset=0`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      )
+
+      const body = await expectResponse(res, GoodChallengeSolvesV2)
+      expect(body.data.solves).toHaveLength(1)
+      expect(body.data.solves[0].userId).toBe(activeUser.id)
+      expect(body.data.solves[0].bloodIndex).toBe(0)
+      expect(body.data.mySolvePosition).toBe(1)
     })
 
     test('returns empty solves for challenge with no solves', async () => {

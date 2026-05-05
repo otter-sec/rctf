@@ -13,6 +13,7 @@ export const GoodAdminUsersV2 = response('goodAdminUsers', {
         email: z.nullable(z.string()),
         division: z.string(),
         perms: z.int(),
+        banned: z.boolean(),
         score: z.int(),
         solveCount: z.int(),
         avatarUrl: z.nullable(z.string()),

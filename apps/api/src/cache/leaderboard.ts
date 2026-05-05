@@ -23,6 +23,7 @@ export type InternalUserInfo = {
   id: string
   name: string
   division: string | null
+  banned: boolean
   score: number
   lastSolve: number | undefined
   lastTiebreakEligibleSolve: number | undefined
@@ -229,6 +230,7 @@ const buildGraphEntry = (
 })
 
 export const userIsRankedSql = sql`${users.globalRank} IS NOT NULL`
+export const userIsPublicRankedSql = sql`${userIsRankedSql} AND ${users.banned} = false`
 export const leaderboardOrderSql = sql`${users.globalRank} ASC`
 export const getGraph = async (
   db: DatabaseClient,
@@ -246,8 +248,8 @@ export const getGraph = async (
     .from(users)
     .where(
       division
-        ? sql`${userIsRankedSql} AND ${users.division} = ${division}`
-        : userIsRankedSql
+        ? sql`${userIsPublicRankedSql} AND ${users.division} = ${division}`
+        : userIsPublicRankedSql
     )
     .orderBy(leaderboardOrderSql)
     .limit(limit)

@@ -266,6 +266,46 @@ describe('getLeaderboardWithTotal globalPlace', () => {
     expect(entry).toHaveProperty('statusText')
   })
 
+  test('public readers exclude banned users with stale cached ranks', async () => {
+    const visibleUser = await insertUser('public-filter-visible')
+    const bannedUser = await insertUser('public-filter-banned')
+    const ch = await insertChallenge({ points: { min: 100, max: 500 } })
+
+    await insertSolve({
+      challengeId: ch.id,
+      userId: visibleUser.id,
+      createdAt: isoAt(T0),
+    })
+    await insertSolve({
+      challengeId: ch.id,
+      userId: bannedUser.id,
+      createdAt: isoAt(T1),
+    })
+
+    const { db, redis } = await computeAndCache()
+    const before = await db
+      .select({ globalRank: users.globalRank })
+      .from(users)
+      .where(eq(users.id, bannedUser.id))
+    expect(before[0]!.globalRank).not.toBeNull()
+
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, bannedUser.id))
+
+    const leaderboard = await getLeaderboardWithTotal(db, 10, 0)
+    expect(leaderboard.leaderboard.map(e => e.id)).toContain(visibleUser.id)
+    expect(leaderboard.leaderboard.map(e => e.id)).not.toContain(bannedUser.id)
+
+    const search = await searchLeaderboard(db, bannedUser.name, 10, 0)
+    expect(search.leaderboard.map(e => e.id)).not.toContain(bannedUser.id)
+
+    const graph = await getGraph(db, redis, 10, 0)
+    expect(graph.map(e => e.id)).toContain(visibleUser.id)
+    expect(graph.map(e => e.id)).not.toContain(bannedUser.id)
+  })
+
   test('division leaderboard shows correct global and division ranks', async () => {
     const divisions = Object.keys(config.divisions)
     const userA = await insertUser('alpha', { division: divisions[0] })

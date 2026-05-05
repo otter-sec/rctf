@@ -1,5 +1,5 @@
 import type { DatabaseClient, User } from '@rctf/db'
-import { solves, users } from '@rctf/db'
+import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadEmailNoExists,
@@ -332,12 +332,24 @@ export type AdminUserInfo = {
   email: string | null
   division: string
   perms: number
+  banned: boolean
   score: number
   solveCount: number
   avatarUrl: string | null
   countryCode: string | null
   statusText: string | null
   createdAt: string
+}
+
+export type AdminUserSolveInfo = {
+  challengeId: string
+  challengeName: string
+  challengeCategory: string
+  createdAt: string
+}
+
+export type AdminUserDetails = AdminUserInfo & {
+  solves: AdminUserSolveInfo[]
 }
 
 export const userNameSearchFilter = (search: string) =>
@@ -359,6 +371,7 @@ export const getAllUsersWithScores = async (
         email: users.email,
         division: users.division,
         perms: users.perms,
+        banned: users.banned,
         score: users.score,
         avatarUrl: users.avatarUrl,
         countryCode: users.countryCode,
@@ -389,4 +402,117 @@ export const getAllUsersWithScores = async (
       score: u.score,
     })),
   }
+}
+
+export const getAdminUserWithSolves = async (
+  db: DatabaseClient,
+  id: string
+): Promise<AdminUserDetails | undefined> => {
+  const user = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      email: users.email,
+      division: users.division,
+      perms: users.perms,
+      banned: users.banned,
+      score: users.score,
+      avatarUrl: users.avatarUrl,
+      countryCode: users.countryCode,
+      statusText: users.statusText,
+      createdAt: users.createdAt,
+      solveCount: count(solves.id),
+    })
+    .from(users)
+    .leftJoin(solves, eq(users.id, solves.userid))
+    .where(eq(users.id, id))
+    .groupBy(users.id)
+    .limit(1)
+    .then(takeUnique)
+
+  if (!user) {
+    return undefined
+  }
+
+  const userSolves = await db
+    .select({
+      challengeId: challenges.id,
+      challengeName: sql<string>`${challenges.data} ->> 'name'`,
+      challengeCategory: sql<string>`${challenges.data} ->> 'category'`,
+      createdAt: solves.createdat,
+    })
+    .from(solves)
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(eq(solves.userid, id))
+    .orderBy(asc(solves.createdat))
+
+  return {
+    ...user,
+    solves: userSolves.map(solve => ({
+      challengeId: solve.challengeId,
+      challengeName: solve.challengeName ?? '',
+      challengeCategory: solve.challengeCategory ?? '',
+      createdAt: solve.createdAt,
+    })),
+  }
+}
+
+export type AdminUserMutationResult =
+  | { success: true }
+  | { success: false; error: 'badUnknownUser' | 'badUserPrivileged' }
+
+export const updateAdminUser = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  id: string,
+  data: { banned?: boolean }
+): Promise<AdminUserMutationResult> => {
+  const targetUser = await getUser(db, id)
+  if (!targetUser) {
+    return { success: false, error: 'badUnknownUser' }
+  }
+
+  if (targetUser.perms > 0) {
+    return { success: false, error: 'badUserPrivileged' }
+  }
+
+  await db
+    .update(users)
+    .set({
+      banned: data.banned ?? targetUser.banned ?? false,
+      ...(data.banned
+        ? {
+            score: 0,
+            globalRank: null,
+            divisionRank: null,
+            lastSolveAt: null,
+            lastTiebreakSolveAt: null,
+          }
+        : {}),
+    })
+    .where(eq(users.id, id))
+
+  await invalidateUserCache(redis, id)
+  forceLeaderboardUpdate()
+  return { success: true }
+}
+
+export const deleteAdminUser = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  id: string
+): Promise<AdminUserMutationResult> => {
+  const targetUser = await getUser(db, id)
+  if (!targetUser) {
+    return { success: false, error: 'badUnknownUser' }
+  }
+
+  if (targetUser.perms > 0) {
+    return { success: false, error: 'badUserPrivileged' }
+  }
+
+  await db.delete(users).where(eq(users.id, id))
+  await invalidateUserCache(redis, id)
+  forceLeaderboardUpdate()
+  return { success: true }
 }

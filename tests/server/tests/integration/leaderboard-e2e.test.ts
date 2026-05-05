@@ -290,6 +290,52 @@ describe('first bloods via leaderboard challenges endpoint', () => {
     expect(challData.firstSolvers[2].id).toBe(solvers[2]!.id)
   })
 
+  test('excludes banned users from first solvers', async () => {
+    const db = getDb()
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const { user: bannedUser, cleanup: bannedCleanup } =
+      await generateRealTestUser()
+    const { user: activeUser, cleanup: activeCleanup } =
+      await generateRealTestUser()
+    cleanups.push(bannedCleanup, activeCleanup)
+
+    await db.insert(solves).values([
+      {
+        id: crypto.randomUUID(),
+        challengeid: ch.challenge.id,
+        userid: bannedUser.id,
+        createdat: new Date(config.startTime + 1000).toISOString(),
+      },
+      {
+        id: crypto.randomUUID(),
+        challengeid: ch.challenge.id,
+        userid: activeUser.id,
+        createdat: new Date(config.startTime + 2000).toISOString(),
+      },
+    ])
+
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, bannedUser.id))
+
+    await recomputeLeaderboard()
+
+    const res = await request(app, '/api/v2/leaderboard/challs', {
+      method: 'GET',
+    })
+    const body = await expectResponse(res, GoodLeaderboardChallengesV2)
+
+    const challData = body.data.challenges[ch.challenge.id]
+    expect(challData).toBeDefined()
+    expect(challData.solves).toBe(1)
+    expect(challData.firstSolvers.map((solver: any) => solver.id)).toEqual([
+      activeUser.id,
+    ])
+  })
+
   test('returns fewer than 3 solvers when challenge has fewer solves', async () => {
     const ch = await generateChallenge()
     cleanups.push(ch.cleanup)
@@ -508,5 +554,69 @@ describe('CTFtime leaderboard endpoint', () => {
 
     const teams = body.standings.map((s: any) => s.team)
     expect(teams).not.toContain(unranked.name)
+  })
+
+  test('excludes banned users from CTFtime standings even with stale cached ranks', async () => {
+    const ch = await generateChallenge()
+    cleanups.push(ch.cleanup)
+
+    const { user: bannedUser, cleanup: bannedCleanup } =
+      await generateRealTestUser()
+    const { user: activeUser, cleanup: activeCleanup } =
+      await generateRealTestUser()
+    cleanups.push(bannedCleanup, activeCleanup)
+
+    const db = getDb()
+    await db.insert(solves).values([
+      {
+        id: crypto.randomUUID(),
+        challengeid: ch.challenge.id,
+        userid: bannedUser.id,
+        createdat: new Date(config.startTime + 1000).toISOString(),
+      },
+      {
+        id: crypto.randomUUID(),
+        challengeid: ch.challenge.id,
+        userid: activeUser.id,
+        createdat: new Date(config.startTime + 2000).toISOString(),
+      },
+    ])
+
+    await recomputeLeaderboard()
+
+    const before = await db
+      .select({ globalRank: users.globalRank })
+      .from(users)
+      .where(eq(users.id, bannedUser.id))
+    expect(before[0]!.globalRank).not.toBeNull()
+
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, bannedUser.id))
+
+    const adminId = crypto.randomUUID()
+    await db.insert(users).values({
+      id: adminId,
+      name: `ctftime-admin3-${crypto.randomUUID()}`,
+      email: `${crypto.randomUUID()}@test.com`,
+      division: Object.keys(config.divisions)[0]!,
+      perms: Permissions.leaderboardRead,
+    })
+    cleanups.push(async () => {
+      await db.delete(users).where(eq(users.id, adminId))
+    })
+    const adminToken = await createToken(TokenKind.Auth, adminId)
+
+    const res = await request(app, '/api/v1/integrations/ctftime/leaderboard', {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${adminToken}` },
+    })
+    expect(res.status).toBe(200)
+    const body = await res.json()
+
+    const teams = body.standings.map((s: any) => s.team)
+    expect(teams).toContain(activeUser.name)
+    expect(teams).not.toContain(bannedUser.name)
   })
 })

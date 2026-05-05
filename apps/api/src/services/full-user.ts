@@ -91,7 +91,7 @@ export const getFullUserFromId = async (
   id: string
 ): Promise<FullUser | undefined> => {
   const user = await getUser(db, id)
-  if (!user) {
+  if (!user || user.banned) {
     return undefined
   }
   return await getFullUser(db, user)

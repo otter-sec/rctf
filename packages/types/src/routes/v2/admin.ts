@@ -22,7 +22,10 @@ import {
   GoodAdminChallengeV2,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
+  GoodAdminUserDeleteV2,
   GoodAdminUsersV2,
+  GoodAdminUserUpdateV2,
+  GoodAdminUserV2,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -59,6 +62,51 @@ export const GetAdminUsersRouteV2 = defineRoute({
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
+  permissions: Permissions.usersWrite,
+})
+
+const AdminUserParams = z.object({
+  id: z.string(),
+})
+
+export const GetAdminUserRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id',
+  method: 'GET',
+  goodResponses: [GoodAdminUserV2],
+  badResponses: [BadPerms, BadToken, BadUnknownUser],
+  authRequired: true,
+  params: AdminUserParams,
+  permissions: Permissions.usersWrite | Permissions.challsRead,
+})
+
+export const UpdateAdminUserRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id',
+  method: 'PUT',
+  body: z.object({
+    data: z.object({
+      banned: z.optional(z.boolean()),
+    }),
+  }),
+  goodResponses: [GoodAdminUserUpdateV2],
+  badResponses: [
+    BadBody,
+    BadPerms,
+    BadToken,
+    BadUnknownUser,
+    BadUserPrivileged,
+  ],
+  authRequired: true,
+  params: AdminUserParams,
+  permissions: Permissions.usersWrite,
+})
+
+export const DeleteAdminUserRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id',
+  method: 'DELETE',
+  goodResponses: [GoodAdminUserDeleteV2],
+  badResponses: [BadPerms, BadToken, BadUnknownUser, BadUserPrivileged],
+  authRequired: true,
+  params: AdminUserParams,
   permissions: Permissions.usersWrite,
 })
 

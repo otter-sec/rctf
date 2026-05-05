@@ -1,14 +1,23 @@
+import { config } from '@rctf/config'
+import { createDatabase, solves, users } from '@rctf/db'
 import {
   BadAlreadySolvedChallenge,
   BadChallenge,
   BadFlag,
   BadJson,
+  BadPerms,
   BadToken,
   GoodFlag,
 } from '@rctf/types'
-import { afterAll, beforeAll, describe, test } from 'bun:test'
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import {
+  invalidateUserCache,
+  setCachedUser,
+} from '../../../../apps/api/src/cache/auth-cache'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
+import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
   expectResponse,
@@ -19,6 +28,7 @@ import {
 let app: Hono<any>
 let challengeData: Awaited<ReturnType<typeof generateChallenge>>
 let userData: Awaited<ReturnType<typeof generateRealTestUser>>
+const getDb = () => createDatabase(config.database.sql).db
 
 beforeAll(async () => {
   app = await getApp()
@@ -130,5 +140,94 @@ describe('submit', () => {
     )
 
     await expectResponse(res, BadAlreadySolvedChallenge)
+  })
+
+  test('banned users cannot submit flags', async () => {
+    const bannedUser = await generateRealTestUser()
+    const db = getDb()
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, bannedUser.user.id))
+
+    try {
+      const authToken = await createToken(TokenKind.Auth, bannedUser.user.id)
+      const res = await request(
+        app,
+        `/api/v1/challs/${encodeURIComponent(challengeData.challenge.id)}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+        }
+      )
+
+      await expectResponse(res, BadPerms)
+
+      const badChallengeRes = await request(
+        app,
+        '/api/v1/challs/not-real/submit',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ flag: 'wrong_flag' }),
+        }
+      )
+
+      await expectResponse(badChallengeRes, BadPerms)
+
+      const createdSolves = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, bannedUser.user.id))
+      expect(createdSolves).toHaveLength(0)
+    } finally {
+      await bannedUser.cleanup()
+    }
+  })
+
+  test('banned users cannot submit with a stale auth cache entry', async () => {
+    const staleUser = await generateRealTestUser()
+    const db = getDb()
+    const redis = await createRedis()
+
+    await setCachedUser(redis, staleUser.user)
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, staleUser.user.id))
+
+    try {
+      const authToken = await createToken(TokenKind.Auth, staleUser.user.id)
+      const res = await request(
+        app,
+        `/api/v1/challs/${encodeURIComponent(challengeData.challenge.id)}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+        }
+      )
+
+      await expectResponse(res, BadPerms)
+
+      const createdSolves = await db
+        .select()
+        .from(solves)
+        .where(eq(solves.userid, staleUser.user.id))
+      expect(createdSolves).toHaveLength(0)
+    } finally {
+      await invalidateUserCache(redis, staleUser.user.id)
+      await staleUser.cleanup()
+    }
   })
 })
