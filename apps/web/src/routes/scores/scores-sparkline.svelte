@@ -1,28 +1,20 @@
 <script lang="ts">
-  import { MEDAL_COLORS, RANK_COLORS, SELF_COLOR } from '$lib/constants/scores'
-
   interface Props {
     data: { time: number; score: number }[]
-    rank: number
-    isCurrentUser: boolean
+    id: string
+    color: string
     onHover?: () => void
     onUnhover?: () => void
   }
 
-  let { data, rank, isCurrentUser, onHover, onUnhover }: Props = $props()
+  let { data, id, color, onHover, onUnhover }: Props = $props()
 
   const WIDTH = 96
   const HEIGHT = 40
   const PAD_X = 2
   const PAD_Y = 4
 
-  const gradientId = $derived(`sparkline-gradient-${rank}`)
-
-  const strokeColor = $derived.by(() => {
-    if (isCurrentUser) return SELF_COLOR
-    if (rank <= 3) return MEDAL_COLORS[rank - 1]!
-    return RANK_COLORS[(rank - 1) % RANK_COLORS.length]!
-  })
+  const gradientId = $derived(`sparkline-gradient-${id}`)
 
   // TODO(es3n1n): https://discord.com/channels/920755200552226868/1157112817053339790/1485318812189589725
   const pathD = $derived.by(() => {
@@ -98,8 +90,8 @@
     <svg viewBox="0 0 {WIDTH} {HEIGHT}" class="h-full w-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stop-color={strokeColor} stop-opacity="0" />
-          <stop offset="100%" stop-color={strokeColor} stop-opacity="1" />
+          <stop offset="0%" stop-color={color} stop-opacity="0" />
+          <stop offset="100%" stop-color={color} stop-opacity="1" />
         </linearGradient>
       </defs>
       <path

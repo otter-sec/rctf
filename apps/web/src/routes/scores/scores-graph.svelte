@@ -5,7 +5,6 @@
     CUTOFF_TIME,
     MEDAL_COLORS,
     PAGE_SIZE,
-    RANK_COLORS,
     SELF_COLOR,
     X_AXIS_DIVISIONS,
   } from '$lib/constants/scores'
@@ -15,6 +14,7 @@
     useLeaderboardWithGraph,
     useSelfUserGraph,
   } from '$lib/query'
+  import { getRankColorForPosition } from '$lib/utils'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
@@ -39,8 +39,11 @@
     solveHighlight?: { teamId: string; time: number } | null
     graphData?: GraphEntry[]
     teamRanks?: Map<string, number>
+    teamColors?: Map<string, string>
     contextTeamIds?: Set<string>
     showTop3Context?: boolean
+    showSelfContext?: boolean
+    forceContextTeams?: boolean
     greyOutContext?: boolean
   }
 
@@ -51,8 +54,11 @@
     solveHighlight = null,
     graphData,
     teamRanks,
+    teamColors,
     contextTeamIds,
     showTop3Context = true,
+    showSelfContext = true,
+    forceContextTeams = false,
     greyOutContext = false,
   }: Props = $props()
 
@@ -70,7 +76,9 @@
     return globalPlace >= startRank && globalPlace <= endRank
   })
 
-  const selfGraphQuery = useSelfUserGraph(() => (selfIsOnCurrentPage ? null : globalPlace))
+  const selfGraphQuery = useSelfUserGraph(() =>
+    showSelfContext && !selfIsOnCurrentPage ? globalPlace : null
+  )
 
   // NOTE(es3n1n): heavily relying on a fact that this will be cached
   const firstPageQuery = useLeaderboardWithGraph(() => ({ limit: PAGE_SIZE, offset: 0 }))
@@ -84,7 +92,9 @@
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
     const rawTop3 =
-      offset > 0 && showTop3Context ? (firstPageQuery.data?.graph ?? []).slice(0, 3) : []
+      (offset > 0 || forceContextTeams) && (showTop3Context || forceContextTeams)
+        ? (firstPageQuery.data?.graph ?? []).slice(0, 3)
+        : []
     const selfGraphData = selfGraphQuery.data
 
     const filterByTime = (entries: GraphEntry[]) =>
@@ -120,15 +130,10 @@
       let color: string
       if (isContext && greyOutContext) {
         color = 'var(--foreground-l5)'
-      } else if (isSelf) {
-        color = SELF_COLOR
-      } else if (rank !== undefined && rank <= 3) {
-        color = MEDAL_COLORS[rank - 1]!
-      } else if (rank !== undefined) {
-        color = RANK_COLORS[(rank - 1) % RANK_COLORS.length]!
+      } else if (teamColors?.has(team.id)) {
+        color = teamColors.get(team.id)!
       } else {
-        const hash = team.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-        color = RANK_COLORS[hash % RANK_COLORS.length]!
+        color = getRankColorForPosition(rank, isSelf, team.id)
       }
 
       teamMeta.set(team.id, {
@@ -139,9 +144,18 @@
       })
     })
 
-    let allTeams = [...uniqueContextTeams, ...mainTeams]
+    const filteredMainTeams = showSelfContext
+      ? mainTeams
+      : mainTeams.filter(t => t.id !== currentUser?.id)
 
-    if (selfGraphData && !mainIds.has(selfGraphData.id) && !selfIsOnCurrentPage) {
+    let allTeams = [...uniqueContextTeams, ...filteredMainTeams]
+
+    if (
+      showSelfContext &&
+      selfGraphData &&
+      !mainIds.has(selfGraphData.id) &&
+      !selfIsOnCurrentPage
+    ) {
       const filteredSelf = filterByTime([selfGraphData])
       if (filteredSelf.length > 0) {
         const selfEntry = filteredSelf[0]!

@@ -20,6 +20,7 @@
     solveCount: number
     isCurrentUser: boolean
     sparklineData?: { time: number; score: number }[]
+    color?: string
   }
 
   interface GraphEntry {
@@ -268,8 +269,8 @@
               <div class="h-10 w-24 overflow-hidden">
                 <ScoresSparkline
                   data={team.sparklineData}
-                  rank={team.rank}
-                  isCurrentUser={team.isCurrentUser}
+                  id={team.id}
+                  color={team.color ?? 'var(--foreground-l3)'}
                 />
               </div>
             {/if}

@@ -20,6 +20,7 @@
     isCurrentUser: boolean
     divisionPlace?: number | null
     divisionName?: string | null
+    color?: string
   }
 
   interface Props {
@@ -176,8 +177,8 @@
           >
             <ScoresSparkline
               data={data.sparklineData ?? []}
-              rank={data.rank ?? 0}
-              isCurrentUser={data.isCurrentUser}
+              id={data.id}
+              color={data.color ?? 'var(--foreground-l3)'}
               onHover={onSparklineHover}
               onUnhover={onSparklineUnhover}
             />

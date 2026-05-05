@@ -11,6 +11,7 @@ import {
 import {
   createInfiniteQuery,
   createQuery,
+  keepPreviousData,
   queryOptions,
 } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
@@ -146,6 +147,7 @@ export function useInfiniteLeaderboardWithGraph(
   params: () => {
     pageSize: number
     division?: string
+    search?: string
   }
 ) {
   return createInfiniteQuery(() => {
@@ -157,6 +159,7 @@ export function useInfiniteLeaderboardWithGraph(
           limit: p.pageSize,
           offset: pageParam,
           division: p.division,
+          search: p.search,
         })
         if (response.kind === GoodLeaderboardWithGraph.kind) {
           return { ...response.data, offset: pageParam }
@@ -168,6 +171,7 @@ export function useInfiniteLeaderboardWithGraph(
         const nextOffset = lastPage.offset + lastPage.leaderboard.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
+      placeholderData: keepPreviousData,
       refetchOnWindowFocus: true,
       refetchInterval: 30 * 1000,
     }
