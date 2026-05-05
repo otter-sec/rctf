@@ -1,3 +1,5 @@
+import { MEDAL_COLORS, RANK_COLORS, SELF_COLOR } from '$lib/constants/scores'
+
 export type RankVariant = 'first' | 'second' | 'third' | 'self' | 'nth'
 export type BloodIndex = 0 | 1 | 2
 
@@ -84,4 +86,22 @@ export function getRankStylesForPosition(
   isCurrentUser: boolean
 ): RankStyles {
   return getRankStyles(getRankVariant(rank, isCurrentUser))
+}
+
+export function getStableRankColor(id: string): string {
+  const hash = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return RANK_COLORS[hash % RANK_COLORS.length]!
+}
+
+export function getRankColorForPosition(
+  rank: number | null | undefined,
+  isCurrentUser: boolean,
+  fallbackId: string
+): string {
+  if (isCurrentUser) return SELF_COLOR
+  if (rank !== null && rank !== undefined && rank > 0) {
+    if (rank <= 3) return MEDAL_COLORS[rank - 1]!
+    return RANK_COLORS[(rank - 1) % RANK_COLORS.length]!
+  }
+  return getStableRankColor(fallbackId)
 }

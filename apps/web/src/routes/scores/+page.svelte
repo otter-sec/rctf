@@ -2,8 +2,15 @@
   import { goto } from '$app/navigation'
   import { page as pageState } from '$app/state'
   import { CtfNotStarted, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
-  import { CUTOFF_TIME, DELTA_WINDOW, SPARKLINE_WINDOW } from '$lib/constants/scores'
-  import { IconChartAreaLineFilled, IconPinFilled, IconPinnedFilled } from '$lib/icons'
+  import { CUTOFF_TIME, DELTA_WINDOW, SELF_COLOR, SPARKLINE_WINDOW } from '$lib/constants/scores'
+  import {
+    IconChartAreaLineFilled,
+    IconFlagFilled,
+    IconMoodHappy,
+    IconMoodHappyFilled,
+    IconPin,
+    IconPinnedFilled,
+  } from '$lib/icons'
   import {
     ApiError,
     useClientConfig,
@@ -12,7 +19,12 @@
     useLeaderboardChallenges,
     useSelfUserGraph,
   } from '$lib/query'
-  import { cn, useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
+  import {
+    cn,
+    getRankColorForPosition,
+    useInfiniteVirtualScroll,
+    type ScrollMetrics,
+  } from '$lib/utils'
   import {
     getCategoryConfig,
     getCategoryKeyOrAlias,
@@ -42,6 +54,7 @@
     viewMode: ViewMode
     sortMode: SortMode
     showTop3Context: boolean
+    showSelfContext: boolean
   }
 
   function loadPreferences(): Partial<ScoresPreferences> {
@@ -78,6 +91,7 @@
   })
 
   let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
+  let showSelfContext = $state(savedPrefs.showSelfContext ?? true)
 
   const clientConfigQuery = useClientConfig()
 
@@ -87,6 +101,28 @@
     const d = pageState.url.searchParams.get('division')
     if (d && divisions[d]) return d
     return undefined
+  })
+
+  let searchInput = $state(pageState.url.searchParams.get('search') ?? '')
+
+  const _initialSearch = pageState.url.searchParams.get('search')
+  let search = $state<string | undefined>(
+    _initialSearch && _initialSearch.length >= 2 ? _initialSearch : undefined
+  )
+
+  $effect(() => {
+    const raw = searchInput
+    const timer = setTimeout(() => {
+      search = raw.length >= 2 ? raw : undefined
+      const url = new URL(window.location.href)
+      if (raw.length >= 2) {
+        url.searchParams.set('search', raw)
+      } else {
+        url.searchParams.delete('search')
+      }
+      history.replaceState(history.state, '', url.toString())
+    }, 400)
+    return () => clearTimeout(timer)
   })
 
   function setDivision(d: string | undefined) {
@@ -119,6 +155,11 @@
   function setShowTop3Context(v: boolean) {
     savePreferences({ showTop3Context: v })
     showTop3Context = v
+  }
+
+  function setShowSelfContext(v: boolean) {
+    savePreferences({ showSelfContext: v })
+    showSelfContext = v
   }
 
   let themeRenderEpoch = $state(0)
@@ -159,6 +200,7 @@
   const leaderboardQuery = useInfiniteLeaderboardWithGraph(() => ({
     pageSize: LEADERBOARD_PAGE_SIZE,
     division,
+    search,
   }))
   const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
@@ -176,6 +218,18 @@
   const rawEntries = $derived(leaderboardQuery.data?.pages.flatMap(p => p.leaderboard) ?? [])
   type LeaderboardEntry = (typeof rawEntries)[number]
   const originalRankByTeam = $derived(new Map(rawEntries.map((e, i) => [e.id, i + 1])))
+
+  const teamColorMap = $derived.by(() => {
+    const map = new Map<string, string>()
+    for (const entry of rawEntries) {
+      map.set(
+        entry.id,
+        getRankColorForPosition(entry.globalPlace, currentUser?.id === entry.id, entry.id)
+      )
+    }
+    if (currentUser) map.set(currentUser.id, SELF_COLOR)
+    return map
+  })
 
   $effect(() => {
     if (
@@ -373,6 +427,7 @@
   })
 
   const showSelfRow = $derived.by(() => {
+    if (search) return false
     if (isLoading && currentUser) return true
     if (!currentUser?.globalPlace) return false
     if (viewportVisibility.userVisible) return false
@@ -411,6 +466,7 @@
   })
 
   const rankDeltaByTeam = $derived.by(() => {
+    if (search) return new Map<string, number>()
     const allPoints = allGraphData.flatMap(t => t.points.filter(p => p.time <= CUTOFF_TIME))
     if (allPoints.length === 0) return new Map<string, number>()
 
@@ -528,7 +584,9 @@
   })
 
   const teamRanks = $derived(
-    focusedChallengeId ? originalRankByTeam : new Map(entries.map((e, i) => [e.id, i + 1]))
+    !search && focusedChallengeId
+      ? originalRankByTeam
+      : new Map(entries.map((e, i) => [e.id, i + 1]))
   )
 
   const graphVisibility = $derived.by(() => {
@@ -545,7 +603,7 @@
         visibleTeamIds.add(entries[i]!.id)
       }
     } else {
-      if (showTop3Context) {
+      if (showTop3Context && !focusedChallengeId) {
         for (let i = 0; i < Math.min(3, entries.length); i++) {
           const teamId = entries[i]!.id
           visibleTeamIds.add(teamId)
@@ -555,8 +613,9 @@
         }
       }
 
-      const windowSize = showTop3Context ? 7 : 10
-      const windowStart = Math.max(showTop3Context ? 4 : 1, maxRank - windowSize + 1)
+      const pinActive = showTop3Context && !focusedChallengeId
+      const windowSize = pinActive ? 7 : 10
+      const windowStart = Math.max(pinActive ? 4 : 1, maxRank - windowSize + 1)
       const windowEnd = maxRank
 
       for (let rank = windowStart; rank <= windowEnd && rank <= entries.length; rank++) {
@@ -600,8 +659,11 @@
     solveHighlight,
     graphData: visibleGraphData,
     teamRanks,
+    teamColors: teamColorMap,
     contextTeamIds,
     showTop3Context,
+    showSelfContext,
+    forceContextTeams: (!!search || !!focusedChallengeId) && showTop3Context,
   })
 
   const teamRowProps = $derived({
@@ -717,6 +779,7 @@
       score: entry.score,
       solveCount: entry.solves.length,
       isCurrentUser: currentUser?.id === entry.id,
+      color: teamColorMap.get(entry.id),
       sparklineData: sparklineDataByTeam.get(entry.id),
     }))
   )
@@ -733,6 +796,7 @@
       score: currentUser.score,
       solveCount: currentUser.solves.length,
       isCurrentUser: true,
+      color: SELF_COLOR,
       sparklineData: sparklineDataByTeam.get(currentUser.id),
     }
   })
@@ -746,20 +810,12 @@
   )
 </script>
 
-{#if leaderboardQuery.isPending}
+{#if leaderboardQuery.isPending && !search}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
   </div>
 {:else if isNotStarted}
   <CtfNotStarted />
-{:else if !isLoading && entries.length === 0}
-  <div class="flex h-[calc(100dvh-72px)] items-center justify-center">
-    <EmptyState
-      icon={IconChartAreaLineFilled}
-      title="No scores yet"
-      subtitle="Check back soon for scores!"
-    />
-  </div>
 {:else}
   <ScoresToolbar
     {viewMode}
@@ -776,200 +832,208 @@
           color: getCategoryConfig(challengesData[focusedChallengeId].category).color,
         }
       : null}
+    search={searchInput}
+    isSearching={leaderboardQuery.isFetching && !!search}
     onViewModeChange={setViewMode}
     onSortModeChange={setSortMode}
     onDivisionChange={setDivision}
     onScreenshotClick={() => (screenshotModalOpen = true)}
     onChallengeFocusClear={() => setFocusedChallenge(null)}
+    onSearchChange={v => (searchInput = v)}
   />
 
-  <div class="flex justify-center px-4 md:px-9">
+  {#if !isLoading && entries.length === 0 && focusedChallengeId}
+    <!-- mobile: 72px (nav) + 96px (toolbar) + 192px (graph) + 8px (mb-2) = 368px -->
+    <!-- desktop: 72px (nav) + 52px (toolbar) + 192px (header) = 316px -->
     <div
-      class="relative w-full max-w-full md:w-fit"
-      style:--row-height="{ROW_HEIGHT - ROW_GAP}px"
-      style:--row-height-full="{ROW_HEIGHT}px"
-      style:--cell-width="{CELL_WIDTH}px"
-      style:--header-height="{HEADER_HEIGHT}px"
-      style:--name-row-height="128px"
-      style:--diagonal-overflow="96px"
-      style:--team-column-width={isDesktop
-        ? isXl
-          ? 'calc(45vw - 72px)'
-          : 'calc(60vw - 72px)'
-        : '100%'}
-      style:--content-column-width={isDesktop
-        ? isXl
-          ? 'calc(55vw + 72px)'
-          : 'calc(40vw + 72px)'
-        : '0px'}
-      style:--self-row-height="{ROW_HEIGHT}px"
-      style:--self-row-offset={showSelfRow && selfRowPosition === 'bottom'
-        ? `${ROW_HEIGHT}px`
-        : '0px'}
-      style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top'
-        ? `${ROW_HEIGHT}px`
-        : '0px'}
+      class="bg-background-l0 fixed inset-x-0 top-[368px] bottom-0 z-50 flex items-center justify-center md:top-[316px]"
     >
-      <ScoresFades
-        showTop={showTopFade}
-        showBottom={showBottomFade}
-        showLeft={isDesktop && showLeftFade}
-        showRight={isDesktop && showRightFade}
-        {showSelfRow}
-        {selfRowPosition}
-        isMinimal={!isDesktop}
+      <EmptyState
+        icon={IconFlagFilled}
+        title="No solves"
+        subtitle="No matching teams have solved this challenge"
       />
+    </div>
+  {/if}
 
+  {#if !isLoading && entries.length === 0 && !focusedChallengeId}
+    <div
+      class="flex h-[calc(100dvh-72px-96px)] items-center justify-center md:h-[calc(100dvh-72px-52px)]"
+    >
+      <EmptyState
+        icon={IconChartAreaLineFilled}
+        title={search ? 'No teams found' : 'No scores yet'}
+        subtitle={search ? `No results for "${search}"` : 'Check back soon for scores!'}
+      />
+    </div>
+  {:else}
+    <div class="flex justify-center px-4 md:px-9">
       <div
-        class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden"
+        class="relative w-full max-w-full md:w-fit"
+        style:--row-height="{ROW_HEIGHT - ROW_GAP}px"
+        style:--row-height-full="{ROW_HEIGHT}px"
+        style:--cell-width="{CELL_WIDTH}px"
+        style:--header-height="{HEADER_HEIGHT}px"
+        style:--name-row-height="128px"
+        style:--diagonal-overflow="96px"
+        style:--team-column-width={isDesktop
+          ? isXl
+            ? 'calc(45vw - 72px)'
+            : 'calc(60vw - 72px)'
+          : '100%'}
+        style:--content-column-width={isDesktop
+          ? isXl
+            ? 'calc(55vw + 72px)'
+            : 'calc(40vw + 72px)'
+          : '0px'}
+        style:--self-row-height="{ROW_HEIGHT}px"
+        style:--self-row-offset={showSelfRow && selfRowPosition === 'bottom'
+          ? `${ROW_HEIGHT}px`
+          : '0px'}
+        style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top'
+          ? `${ROW_HEIGHT}px`
+          : '0px'}
       >
-        <button
-          title="Pin top 3 to graph"
-          class={cn(
-            'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
-            showTop3Context
-              ? 'bg-background-l3 text-foreground-l1'
-              : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
-          )}
-          onclick={() => setShowTop3Context(!showTop3Context)}
+        <ScoresFades
+          showTop={showTopFade}
+          showBottom={showBottomFade}
+          showLeft={isDesktop && showLeftFade}
+          showRight={isDesktop && showRightFade}
+          {showSelfRow}
+          {selfRowPosition}
+          isMinimal={!isDesktop}
+        />
+
+        <div
+          class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden"
         >
-          {#if showTop3Context}
-            <IconPinnedFilled class="size-3.5" />
-          {:else}
-            <IconPinFilled class="size-3.5" />
-          {/if}
-        </button>
-        <ScoresGraph class="h-full w-full p-3" {...graphProps} />
-      </div>
-
-      <!-- 100dvh - 72px (header) - 52px (toolbar) - 16px (bottom gap) -->
-      <!-- 100dvh - 72px (header) - 52px (toolbar) - 8px (between graph and rows) - 192px (graph height) - 16px (bottom gap) -->
-      <ScrollArea
-        class={isDesktop
-          ? 'h-[calc(100dvh-72px-52px-16px)]'
-          : 'h-[calc(100dvh-72px-52px-8px-192px-16px)]'}
-        orientation={isDesktop ? 'both' : 'vertical'}
-        type={isDesktop ? 'always' : 'auto'}
-        fadeSize={0}
-        bind:viewportRef={scroll.state.viewportRef}
-        scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
-        scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
-      >
-        <div class="flex min-h-full flex-col">
           <div
-            class="bg-background-l0 sticky top-0 z-20 hidden h-(--header-height) md:flex"
-            bind:this={headerRowRef}
+            class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-hover/graph:opacity-100"
           >
-            <div
-              class="group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0"
+            <button
+              title="Pin top 3 to graph"
+              class={cn(
+                'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
+                showTop3Context && 'bg-background-l3/80'
+              )}
+              onclick={() => setShowTop3Context(!showTop3Context)}
             >
-              <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
-                <button
-                  title="Pin top 3 to graph"
-                  class={cn(
-                    'absolute top-2 left-2 z-10 flex size-7 items-center justify-center rounded-md opacity-0 transition-all group-hover/graph:opacity-100',
-                    showTop3Context
-                      ? 'bg-background-l3 text-foreground-l1'
-                      : 'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3'
-                  )}
-                  onclick={() => setShowTop3Context(!showTop3Context)}
-                >
-                  {#if showTop3Context}
-                    <IconPinnedFilled class="size-3.5" />
-                  {:else}
-                    <IconPinFilled class="size-3.5" />
-                  {/if}
-                </button>
-                <ScoresGraph class="h-full w-full p-3" {...graphProps} />
-              </div>
-            </div>
-            {#if !challengesQuery.isLoading}
-              <ScoresChallengeHeader
-                {viewMode}
-                {sortMode}
-                {categoryGroups}
-                {challenges}
-                {focusedChallengeId}
-                onChallengeFocus={id => {
-                  const wasFocused = focusedChallengeId === id
-                  setFocusedChallenge(wasFocused ? null : id)
-                  if (!wasFocused) {
-                    const viewport = scroll.state.viewportRef
-                    if (viewport) viewport.scrollTop = 0
-                  }
-                }}
-              />
-            {/if}
+              {#if showTop3Context}
+                <IconPinnedFilled class="size-3.5" />
+              {:else}
+                <IconPin class="size-3.5" />
+              {/if}
+            </button>
+            <button
+              title="Pin self to graph"
+              class={cn(
+                'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
+                showSelfContext ? 'bg-background-l3/80 text-foreground-l1' : 'text-foreground-l3'
+              )}
+              onclick={() => setShowSelfContext(!showSelfContext)}
+            >
+              {#if showSelfContext}
+                <IconMoodHappyFilled class="size-3.5" />
+              {:else}
+                <IconMoodHappy class="size-3.5" />
+              {/if}
+            </button>
           </div>
+          <ScoresGraph class="h-full w-full p-3" {...graphProps} />
+        </div>
 
-          <div
-            class="relative contain-[layout_style]"
-            style:height={isLoading ? `${10 * ROW_HEIGHT}px` : `${scroll.totalSize}px`}
-            style:width={isDesktop ? `calc(var(--team-column-width) + ${contentWidth}px)` : '100%'}
-          >
-            {#if isLoading}
-              {#each Array(10) as _, i}
-                <div
-                  class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
-                  style:transform="translate3d(0, {i * ROW_HEIGHT}px, 0)"
-                >
-                  <ScoresTeamRow
-                    data={null}
-                    solves={null}
-                    solveTimes={null}
-                    isLoading
-                    {...teamRowProps}
-                    getCategoryStats={group => getCategoryStatsForSolves(null, group)}
-                    getBloodIndex={() => -1}
-                    onSparklineHover={() => {}}
-                    onSparklineUnhover={() => {}}
-                  />
-                </div>
-              {/each}
-            {:else}
-              {#each scroll.virtualItems as row (row.index)}
-                {#if row.index < entries.length}
-                  {@const entry = entries[row.index]!}
-                  {@const solves = solvesByTeam.get(entry.id) ?? new Set()}
-                  {@const solveTimes = solveTimesByTeam.get(entry.id) ?? null}
-
+        <!-- 100dvh - 72px (header) - 52px (toolbar) - 16px (bottom gap) -->
+        <!-- 100dvh - 72px (header) - 96px (toolbar, mobile 2-row) - 8px (between graph and rows) - 192px (graph height) - 16px (bottom gap) -->
+        <ScrollArea
+          class={isDesktop
+            ? 'h-[calc(100dvh-72px-52px-16px)]'
+            : 'h-[calc(100dvh-72px-96px-8px-192px-16px)]'}
+          orientation={isDesktop ? 'both' : 'vertical'}
+          type={isDesktop ? 'always' : 'auto'}
+          fadeSize={0}
+          bind:viewportRef={scroll.state.viewportRef}
+          scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
+          scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
+        >
+          <div class="flex min-h-full flex-col">
+            <div
+              class="bg-background-l0 sticky top-0 z-20 hidden h-(--header-height) md:flex"
+              bind:this={headerRowRef}
+            >
+              <div
+                class="group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0"
+              >
+                <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
                   <div
-                    class="absolute top-0 left-0 flex w-full contain-[layout_style_paint] md:w-auto"
-                    style:height="{row.size}px"
-                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-hover/graph:opacity-100"
                   >
-                    <ScoresTeamRow
-                      data={{
-                        id: entry.id,
-                        rank: focusedChallengeId
-                          ? (originalRankByTeam.get(entry.id) ?? row.index + 1)
-                          : (entry.globalPlace ?? row.index + 1),
-                        globalRank: entry.globalPlace,
-                        name: entry.name,
-                        avatarUrl: entry.avatarUrl,
-                        countryCode: entry.countryCode,
-                        statusText: entry.statusText,
-                        score: entry.score,
-                        solveCount: entry.solves.length,
-                        delta: rankDeltaByTeam.get(entry.id),
-                        sparklineData: sparklineDataByTeam.get(entry.id),
-                        isCurrentUser: currentUser?.id === entry.id,
-                        divisionPlace: showDivision ? entry.divisionPlace : undefined,
-                        divisionName: showDivision ? divisions[entry.division] : undefined,
-                      }}
-                      {solves}
-                      {solveTimes}
-                      {...teamRowProps}
-                      getCategoryStats={group => getCategoryStatsForSolves(solves, group)}
-                      getBloodIndex={cid => getBloodIndex(cid, entry.id)}
-                      onSparklineHover={() => (hoveredTeamId = entry.id)}
-                      onSparklineUnhover={() => (hoveredTeamId = null)}
-                    />
+                    <button
+                      title="Pin top 3 to graph"
+                      class={cn(
+                        'hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
+                        showTop3Context
+                          ? 'bg-background-l3/80 text-foreground-l1'
+                          : 'text-foreground-l3'
+                      )}
+                      onclick={() => setShowTop3Context(!showTop3Context)}
+                    >
+                      {#if showTop3Context}
+                        <IconPinnedFilled class="size-3.5" />
+                      {:else}
+                        <IconPin class="size-3.5" />
+                      {/if}
+                    </button>
+                    <button
+                      title="Pin self to graph"
+                      class={cn(
+                        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
+                        showSelfContext
+                          ? 'bg-background-l3/80 text-foreground-l1'
+                          : 'text-foreground-l3'
+                      )}
+                      onclick={() => setShowSelfContext(!showSelfContext)}
+                    >
+                      {#if showSelfContext}
+                        <IconMoodHappyFilled class="size-3.5" />
+                      {:else}
+                        <IconMoodHappy class="size-3.5" />
+                      {/if}
+                    </button>
                   </div>
-                {:else}
+                  <ScoresGraph class="h-full w-full p-3" {...graphProps} />
+                </div>
+              </div>
+              {#if !challengesQuery.isLoading}
+                <ScoresChallengeHeader
+                  {viewMode}
+                  {sortMode}
+                  {categoryGroups}
+                  {challenges}
+                  {focusedChallengeId}
+                  onChallengeFocus={id => {
+                    const wasFocused = focusedChallengeId === id
+                    setFocusedChallenge(wasFocused ? null : id)
+                    if (!wasFocused) {
+                      const viewport = scroll.state.viewportRef
+                      if (viewport) viewport.scrollTop = 0
+                    }
+                  }}
+                />
+              {/if}
+            </div>
+
+            <div
+              class="relative contain-[layout_style]"
+              style:height={isLoading ? `${10 * ROW_HEIGHT}px` : `${scroll.totalSize}px`}
+              style:width={isDesktop
+                ? `calc(var(--team-column-width) + ${contentWidth}px)`
+                : '100%'}
+            >
+              {#if isLoading}
+                {#each Array(10) as _, i}
                   <div
                     class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
-                    style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    style:transform="translate3d(0, {i * ROW_HEIGHT}px, 0)"
                   >
                     <ScoresTeamRow
                       data={null}
@@ -983,60 +1047,122 @@
                       onSparklineUnhover={() => {}}
                     />
                   </div>
-                {/if}
-              {/each}
+                {/each}
+              {:else}
+                {#each scroll.virtualItems as row (row.index)}
+                  {#if row.index < entries.length}
+                    {@const entry = entries[row.index]!}
+                    {@const solves = solvesByTeam.get(entry.id) ?? new Set()}
+                    {@const solveTimes = solveTimesByTeam.get(entry.id) ?? null}
+
+                    <div
+                      class="absolute top-0 left-0 flex w-full contain-[layout_style_paint] md:w-auto"
+                      style:height="{row.size}px"
+                      style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    >
+                      <ScoresTeamRow
+                        data={{
+                          id: entry.id,
+                          rank:
+                            !search && focusedChallengeId
+                              ? (originalRankByTeam.get(entry.id) ?? row.index + 1)
+                              : (entry.globalPlace ?? row.index + 1),
+                          globalRank: entry.globalPlace,
+                          name: entry.name,
+                          avatarUrl: entry.avatarUrl,
+                          countryCode: entry.countryCode,
+                          statusText: entry.statusText,
+                          score: entry.score,
+                          solveCount: entry.solves.length,
+                          delta: rankDeltaByTeam.get(entry.id),
+                          sparklineData: sparklineDataByTeam.get(entry.id),
+                          isCurrentUser: currentUser?.id === entry.id,
+                          color: teamColorMap.get(entry.id),
+                          divisionPlace: showDivision ? entry.divisionPlace : undefined,
+                          divisionName: showDivision ? divisions[entry.division] : undefined,
+                        }}
+                        {solves}
+                        {solveTimes}
+                        {...teamRowProps}
+                        getCategoryStats={group => getCategoryStatsForSolves(solves, group)}
+                        getBloodIndex={cid => getBloodIndex(cid, entry.id)}
+                        onSparklineHover={() => (hoveredTeamId = entry.id)}
+                        onSparklineUnhover={() => (hoveredTeamId = null)}
+                      />
+                    </div>
+                  {:else}
+                    <div
+                      class="absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint] md:w-auto"
+                      style:transform="translate3d(0, {row.start - listScrollMargin}px, 0)"
+                    >
+                      <ScoresTeamRow
+                        data={null}
+                        solves={null}
+                        solveTimes={null}
+                        isLoading
+                        {...teamRowProps}
+                        getCategoryStats={group => getCategoryStatsForSolves(null, group)}
+                        getBloodIndex={() => -1}
+                        onSparklineHover={() => {}}
+                        onSparklineUnhover={() => {}}
+                      />
+                    </div>
+                  {/if}
+                {/each}
+              {/if}
+            </div>
+
+            {#if showSelfRow && currentUser}
+              {@const selfSolves = new Set(currentUser.solves.map(s => s.id))}
+              {@const selfSolveTimes = new Map(currentUser.solves.map(s => [s.id, s.createdAt]))}
+              {@const isTop = selfRowPosition === 'top'}
+              <div
+                class={cn(
+                  'bg-background-l0 sticky z-20 flex h-(--row-height-full) contain-[layout_style_paint]',
+                  isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1'
+                )}
+                style:top={isTop ? `${listScrollMargin}px` : undefined}
+                style:order={isTop ? '-1' : undefined}
+                style:margin-bottom={isTop ? `-${ROW_HEIGHT}px` : undefined}
+              >
+                <ScoresTeamRow
+                  data={{
+                    id: currentUser.id,
+                    rank: currentUser.globalPlace ?? null,
+                    globalRank: currentUser.globalPlace ?? undefined,
+                    name: currentUser.name,
+                    avatarUrl: currentUser.avatarUrl,
+                    countryCode: currentUser.countryCode,
+                    statusText: currentUser.statusText,
+                    score: currentUser.score,
+                    solveCount: currentUser.solves.length,
+                    delta: rankDeltaByTeam.get(currentUser.id),
+                    sparklineData: sparklineDataByTeam.get(currentUser.id),
+                    isCurrentUser: true,
+                    color: SELF_COLOR,
+                    divisionPlace: showDivision ? currentUser.divisionPlace : undefined,
+                    divisionName:
+                      showDivision && currentUser.division
+                        ? divisions[currentUser.division]
+                        : undefined,
+                  }}
+                  solves={isLoading ? null : selfSolves}
+                  solveTimes={isLoading ? null : selfSolveTimes}
+                  isSelf
+                  {isLoading}
+                  {...teamRowProps}
+                  getCategoryStats={group => getCategoryStatsForSolves(selfSolves, group)}
+                  getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
+                  onSparklineHover={() => (hoveredTeamId = currentUser.id)}
+                  onSparklineUnhover={() => (hoveredTeamId = null)}
+                />
+              </div>
             {/if}
           </div>
-
-          {#if showSelfRow && currentUser}
-            {@const selfSolves = new Set(currentUser.solves.map(s => s.id))}
-            {@const selfSolveTimes = new Map(currentUser.solves.map(s => [s.id, s.createdAt]))}
-            {@const isTop = selfRowPosition === 'top'}
-            <div
-              class={cn(
-                'bg-background-l0 sticky z-20 flex h-(--row-height-full) contain-[layout_style_paint]',
-                isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1'
-              )}
-              style:top={isTop ? `${listScrollMargin}px` : undefined}
-              style:order={isTop ? '-1' : undefined}
-              style:margin-bottom={isTop ? `-${ROW_HEIGHT}px` : undefined}
-            >
-              <ScoresTeamRow
-                data={{
-                  id: currentUser.id,
-                  rank: currentUser.globalPlace ?? null,
-                  globalRank: currentUser.globalPlace ?? undefined,
-                  name: currentUser.name,
-                  avatarUrl: currentUser.avatarUrl,
-                  countryCode: currentUser.countryCode,
-                  statusText: currentUser.statusText,
-                  score: currentUser.score,
-                  solveCount: currentUser.solves.length,
-                  delta: rankDeltaByTeam.get(currentUser.id),
-                  sparklineData: sparklineDataByTeam.get(currentUser.id),
-                  isCurrentUser: true,
-                  divisionPlace: showDivision ? currentUser.divisionPlace : undefined,
-                  divisionName:
-                    showDivision && currentUser.division
-                      ? divisions[currentUser.division]
-                      : undefined,
-                }}
-                solves={isLoading ? null : selfSolves}
-                solveTimes={isLoading ? null : selfSolveTimes}
-                isSelf
-                {isLoading}
-                {...teamRowProps}
-                getCategoryStats={group => getCategoryStatsForSolves(selfSolves, group)}
-                getBloodIndex={cid => getBloodIndex(cid, currentUser.id)}
-                onSparklineHover={() => (hoveredTeamId = currentUser.id)}
-                onSparklineUnhover={() => (hoveredTeamId = null)}
-              />
-            </div>
-          {/if}
-        </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
-  </div>
+  {/if}
 {/if}
 
 <Tooltip.Root bind:open={tooltipOpen}>
