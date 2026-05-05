@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { Select, Tooltip } from '$lib/components'
+  import { DropdownMenu, Tooltip } from '$lib/components'
   import {
+    IconCheck,
+    IconChevronDown,
     IconLayoutListFilled,
     IconPhotoFilled,
     IconSortAscendingNumbers,
@@ -15,8 +17,6 @@
   import { onMount } from 'svelte'
   import ScoresSearchBox from './scores-search-box.svelte'
   import type { SortMode, ViewMode } from './types'
-
-  const ALL_DIVISIONS_VALUE = '__rctf_all_divisions__'
 
   interface Props {
     viewMode: ViewMode
@@ -58,9 +58,14 @@
   const divisionOptions = $derived(
     Object.entries(divisions).map(([value, label]) => ({ value, label }))
   )
-  const selectedDivisionLabel = $derived(
-    division ? (divisions[division] ?? division) : 'All divisions'
-  )
+  type DivisionSelectionState =
+    | { type: 'all'; label: string }
+    | { type: 'division'; value: string; label: string }
+
+  const selectedDivision = $derived.by((): DivisionSelectionState => {
+    if (!division) return { type: 'all', label: 'All divisions' }
+    return { type: 'division', value: division, label: divisions[division] ?? division }
+  })
   let mobileSearchInput = $state<HTMLInputElement | null>(null)
   let desktopSearchInput = $state<HTMLInputElement | null>(null)
 
@@ -74,8 +79,12 @@
     { value: 'solves' as const, icon: IconSortAscendingNumbers, label: 'Difficulty' },
   ]
 
-  function handleDivisionValueChange(value: string) {
-    onDivisionChange(value === ALL_DIVISIONS_VALUE ? undefined : value)
+  function selectAllDivisions() {
+    onDivisionChange(undefined)
+  }
+
+  function selectDivision(value: string) {
+    onDivisionChange(value)
   }
 
   function getVisibleSearchInput() {
@@ -107,6 +116,50 @@
     return () => document.removeEventListener('keydown', handleKeydown)
   })
 </script>
+
+{#snippet divisionDropdown()}
+  <DropdownMenu.Root>
+    <DropdownMenu.Trigger
+      type="button"
+      class="bg-background-l2 text-foreground-l3 hover:bg-background-l3 data-[state=open]:bg-background-l3 focus-visible:ring-ring/50 flex h-9 w-auto items-center justify-between gap-1.5 rounded-md px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-[3px]"
+    >
+      <span class="truncate">{selectedDivision.label}</span>
+      <IconChevronDown class="size-4 shrink-0 opacity-50" />
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Content
+      align="end"
+      class="bg-background-l4 min-w-(--bits-dropdown-menu-anchor-width) border-none"
+    >
+      <DropdownMenu.Item
+        class="data-highlighted:bg-background-l5 justify-between"
+        onclick={selectAllDivisions}
+      >
+        <span>All divisions</span>
+        <IconCheck
+          class={cn(
+            'ml-auto size-4 shrink-0',
+            selectedDivision.type !== 'all' && 'text-transparent'
+          )}
+        />
+      </DropdownMenu.Item>
+      {#each divisionOptions as option (option.value)}
+        <DropdownMenu.Item
+          class="data-highlighted:bg-background-l5 justify-between"
+          onclick={() => selectDivision(option.value)}
+        >
+          <span class="truncate">{option.label}</span>
+          <IconCheck
+            class={cn(
+              'ml-auto size-4 shrink-0',
+              (selectedDivision.type !== 'division' || selectedDivision.value !== option.value) &&
+                'text-transparent'
+            )}
+          />
+        </DropdownMenu.Item>
+      {/each}
+    </DropdownMenu.Content>
+  </DropdownMenu.Root>
+{/snippet}
 
 <div class="flex flex-col gap-2 px-4 py-2 md:flex-row md:items-center md:justify-between md:px-9">
   <div class="flex items-center justify-between md:contents">
@@ -164,28 +217,7 @@
 
     <div class="flex items-center gap-1.5 md:hidden">
       {#if hasDivisions}
-        <Select.Root
-          type="single"
-          value={division ?? ALL_DIVISIONS_VALUE}
-          onValueChange={handleDivisionValueChange}
-        >
-          <Select.Trigger
-            size="sm"
-            class="bg-background-l2 text-foreground-l3 hover:bg-background-l3 h-9! w-auto gap-1.5 border-none"
-          >
-            {selectedDivisionLabel}
-          </Select.Trigger>
-          <Select.Content>
-            <Select.Item value={ALL_DIVISIONS_VALUE} label="All divisions"
-              >All divisions</Select.Item
-            >
-            {#each divisionOptions as option (option.value)}
-              <Select.Item value={option.value} label={option.label}>
-                {option.label}
-              </Select.Item>
-            {/each}
-          </Select.Content>
-        </Select.Root>
+        {@render divisionDropdown()}
       {/if}
 
       <button
@@ -241,26 +273,7 @@
     />
 
     {#if hasDivisions}
-      <Select.Root
-        type="single"
-        value={division ?? ALL_DIVISIONS_VALUE}
-        onValueChange={handleDivisionValueChange}
-      >
-        <Select.Trigger
-          size="sm"
-          class="bg-background-l2 text-foreground-l3 hover:bg-background-l3 h-9! w-auto gap-1.5 border-none"
-        >
-          {selectedDivisionLabel}
-        </Select.Trigger>
-        <Select.Content>
-          <Select.Item value={ALL_DIVISIONS_VALUE} label="All divisions">All divisions</Select.Item>
-          {#each divisionOptions as option (option.value)}
-            <Select.Item value={option.value} label={option.label}>
-              {option.label}
-            </Select.Item>
-          {/each}
-        </Select.Content>
-      </Select.Root>
+      {@render divisionDropdown()}
     {/if}
 
     <button
