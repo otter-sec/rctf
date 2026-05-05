@@ -237,15 +237,16 @@
   function handleRevokeSolve(solve: { challengeId: string; challengeName: string }) {
     if (!selectedTeam) return
 
-    const key = `${selectedTeam.id}:${solve.challengeId}`
+    const teamId = selectedTeam.id
+    const key = `${teamId}:${solve.challengeId}`
     revokingSolveKey = key
     deleteSolveMutation.mutate(
-      { challengeId: solve.challengeId, userId: selectedTeam.id },
+      { challengeId: solve.challengeId, userId: teamId },
       {
         onSuccess: response => {
           if (response.kind === GoodChallengeSolveDeleteV2.kind) {
             toast.success(`Solve revoked for ${solve.challengeName}`)
-            refreshTeamQueries(selectedTeam.id)
+            refreshTeamQueries(teamId)
           } else {
             showApiError(response)
           }
