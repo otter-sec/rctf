@@ -1,4 +1,5 @@
 import {
+  CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
@@ -6,6 +7,7 @@ import {
   GetAdminSettingsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUsersRouteV2,
+  GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
@@ -13,7 +15,9 @@ import {
   GoodAdminSettings,
   GoodAdminUsersV2,
   GoodAdminUserV2,
+  GoodAdminUserVerificationsV2,
   GoodInstancerSchema,
+  ResendAdminUserVerificationRouteV2,
   UpdateAdminSettingsRouteV2,
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
@@ -86,6 +90,17 @@ export const adminUserQueryOptions = (id: string) =>
     },
   })
 
+export const adminUserVerificationsQueryOptions = queryOptions({
+  queryKey: ['admin', 'user-verifications'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetAdminUserVerificationsRouteV2)
+    if (response.kind === GoodAdminUserVerificationsV2.kind) {
+      return response.data
+    }
+    throw new ApiError(response.kind, response.message)
+  },
+})
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -146,6 +161,13 @@ export function useAdminUser(id: () => string | null) {
   })
 }
 
+export function useAdminUserVerifications(enabled: () => boolean = () => true) {
+  return createQuery(() => ({
+    ...adminUserVerificationsQueryOptions,
+    enabled: enabled() && browser,
+  }))
+}
+
 export function useAdminBotStatus() {
   return createQuery(() => adminBotStatusQueryOptions)
 }
@@ -176,4 +198,12 @@ export function useUpdateAdminUserMutation() {
 
 export function useDeleteAdminUserMutation() {
   return createApiMutation(DeleteAdminUserRouteV2)
+}
+
+export function useCompleteAdminUserVerificationMutation() {
+  return createApiMutation(CompleteAdminUserVerificationRouteV2)
+}
+
+export function useResendAdminUserVerificationMutation() {
+  return createApiMutation(ResendAdminUserVerificationRouteV2)
 }

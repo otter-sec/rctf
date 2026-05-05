@@ -11,6 +11,19 @@ import type { TypedRedis } from './scripts'
 
 const USER_CACHE_TTL = 30_000
 const userCacheKey = (userId: string) => `user:${userId}`
+const loginVerificationKey = (id: VerifyTokenData['verifyId']) => `login:${id}`
+const pendingRegisterKey = (id: VerifyTokenData['verifyId']) =>
+  `login:register:${id}`
+const pendingRegisterIndexKey = 'login:registers'
+
+type PendingRegisterRecord = Omit<RegisterVerifyTokenData, 'verifyId'> & {
+  createdAt: number
+}
+
+export type PendingRegisterVerification = RegisterVerifyTokenData & {
+  createdAt: number
+  expiresAt: number
+}
 
 export const getCachedUser = async (
   redis: TypedRedis,
@@ -54,16 +67,34 @@ export const invalidateUserCache = async (
 
 export const storeLoginVerification = async (
   client: TypedRedis,
-  id: VerifyTokenData['verifyId']
+  id: VerifyTokenData['verifyId'],
+  data?:
+    | Omit<RegisterVerifyTokenData, 'verifyId'>
+    | Omit<UpdateVerifyTokenData, 'verifyId'>
 ): Promise<void> => {
-  await client.set(`login:${id}`, '0', 'PX', config.loginTimeout)
+  await client.set(loginVerificationKey(id), '0', 'PX', config.loginTimeout)
+
+  if (data?.kind === 'register') {
+    const record: PendingRegisterRecord = {
+      ...data,
+      createdAt: Date.now(),
+    }
+    await client.set(
+      pendingRegisterKey(id),
+      JSON.stringify(record),
+      'PX',
+      config.loginTimeout
+    )
+    await client.sadd(pendingRegisterIndexKey, id)
+  }
 }
 
 export const checkLoginVerification = async (
   client: TypedRedis,
   id: VerifyTokenData['verifyId']
 ): Promise<boolean> => {
-  const result = await client.del(`login:${id}`)
+  const result = await client.del(loginVerificationKey(id))
+  await deletePendingRegisterVerification(client, id)
   return result === 1
 }
 
@@ -74,9 +105,65 @@ export const createLoginVerification = async (
     | Omit<UpdateVerifyTokenData, 'verifyId'>
 ): Promise<string> => {
   const verifyId = crypto.randomUUID()
-  await storeLoginVerification(client, verifyId)
+  await storeLoginVerification(client, verifyId, data)
   return await createToken(TokenKind.Verify, {
     ...data,
     verifyId,
   })
+}
+
+export const deletePendingRegisterVerification = async (
+  client: TypedRedis,
+  id: VerifyTokenData['verifyId']
+): Promise<void> => {
+  await client.del(loginVerificationKey(id))
+  await client.del(pendingRegisterKey(id))
+  await client.srem(pendingRegisterIndexKey, id)
+}
+
+export const getPendingRegisterVerification = async (
+  client: TypedRedis,
+  id: VerifyTokenData['verifyId']
+): Promise<PendingRegisterVerification | undefined> => {
+  const [raw, ttl] = await Promise.all([
+    client.get(pendingRegisterKey(id)),
+    client.pttl(loginVerificationKey(id)),
+  ])
+
+  if (!raw || ttl <= 0) {
+    await deletePendingRegisterVerification(client, id)
+    return undefined
+  }
+
+  let parsed: PendingRegisterRecord
+  try {
+    parsed = JSON.parse(raw) as PendingRegisterRecord
+  } catch {
+    await deletePendingRegisterVerification(client, id)
+    return undefined
+  }
+
+  if (parsed.kind !== 'register') {
+    await deletePendingRegisterVerification(client, id)
+    return undefined
+  }
+
+  return {
+    ...parsed,
+    verifyId: id,
+    expiresAt: Date.now() + ttl,
+  }
+}
+
+export const getPendingRegisterVerifications = async (
+  client: TypedRedis
+): Promise<PendingRegisterVerification[]> => {
+  const ids = await client.smembers(pendingRegisterIndexKey)
+  const verifications = await Promise.all(
+    ids.map(id => getPendingRegisterVerification(client, id))
+  )
+
+  return verifications
+    .filter((entry): entry is PendingRegisterVerification => Boolean(entry))
+    .sort((a, b) => b.createdAt - a.createdAt)
 }

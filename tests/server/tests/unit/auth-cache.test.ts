@@ -3,7 +3,10 @@ import { describe, expect, mock, test } from 'bun:test'
 import {
   checkLoginVerification,
   createLoginVerification,
+  deletePendingRegisterVerification,
   getCachedUser,
+  getPendingRegisterVerification,
+  getPendingRegisterVerifications,
   invalidateUserCache,
   setCachedUser,
   storeLoginVerification,
@@ -13,20 +16,52 @@ import { parseToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
 
 const createMockRedis = () => {
   const store = new Map<string, string>()
+  const expiries = new Map<string, number>()
+  const sets = new Map<string, Set<string>>()
 
   return {
     store,
+    sets,
     get: mock(async (key: string) => store.get(key) ?? null),
-    set: mock(async (key: string, value: string) => {
-      store.set(key, value)
-      return 'OK'
-    }),
+    set: mock(
+      async (key: string, value: string, mode?: string, ttl?: number) => {
+        store.set(key, value)
+        if (mode === 'PX' && ttl !== undefined) {
+          expiries.set(key, Date.now() + ttl)
+        }
+        return 'OK'
+      }
+    ),
     del: mock(async (key: string) => {
       const existed = store.has(key)
       store.delete(key)
+      expiries.delete(key)
       return existed ? 1 : 0
     }),
-  } as unknown as TypedRedis & { store: Map<string, string> }
+    pttl: mock(async (key: string) => {
+      if (!store.has(key)) return -2
+      const expiresAt = expiries.get(key)
+      if (expiresAt === undefined) return -1
+      return Math.max(0, expiresAt - Date.now())
+    }),
+    sadd: mock(async (key: string, value: string) => {
+      const set = sets.get(key) ?? new Set<string>()
+      const sizeBefore = set.size
+      set.add(value)
+      sets.set(key, set)
+      return set.size - sizeBefore
+    }),
+    srem: mock(async (key: string, value: string) => {
+      const set = sets.get(key)
+      if (!set) return 0
+      const existed = set.delete(value)
+      return existed ? 1 : 0
+    }),
+    smembers: mock(async (key: string) => Array.from(sets.get(key) ?? [])),
+  } as unknown as TypedRedis & {
+    store: Map<string, string>
+    sets: Map<string, Set<string>>
+  }
 }
 
 describe('auth-cache', () => {
@@ -170,6 +205,69 @@ describe('auth-cache', () => {
         expect(parsed.division).toBe('open')
       }
       expect(parsed?.verifyId).toBeDefined()
+    })
+
+    test('stores pending register verification metadata', async () => {
+      const redis = createMockRedis()
+      const data = {
+        kind: 'register' as const,
+        email: 'pending@example.com',
+        name: 'Pending Team',
+        division: 'open',
+      }
+
+      const token = await createLoginVerification(redis, data)
+      const parsed = await parseToken(TokenKind.Verify, token)
+      expect(parsed?.verifyId).toBeDefined()
+
+      const pending = await getPendingRegisterVerification(
+        redis,
+        parsed!.verifyId
+      )
+      expect(pending?.email).toBe(data.email)
+      expect(pending?.name).toBe(data.name)
+      expect(pending?.division).toBe(data.division)
+
+      const allPending = await getPendingRegisterVerifications(redis)
+      expect(allPending.map(entry => entry.verifyId)).toContain(
+        parsed!.verifyId
+      )
+    })
+
+    test('deletes pending register metadata when verification is consumed', async () => {
+      const redis = createMockRedis()
+      const token = await createLoginVerification(redis, {
+        kind: 'register',
+        email: 'consume@example.com',
+        name: 'Consume Team',
+        division: 'open',
+      })
+      const parsed = await parseToken(TokenKind.Verify, token)
+      expect(parsed?.verifyId).toBeDefined()
+
+      const consumed = await checkLoginVerification(redis, parsed!.verifyId)
+      expect(consumed).toBe(true)
+      expect(
+        await getPendingRegisterVerification(redis, parsed!.verifyId)
+      ).toBeUndefined()
+    })
+
+    test('can delete pending register verification metadata directly', async () => {
+      const redis = createMockRedis()
+      const token = await createLoginVerification(redis, {
+        kind: 'register',
+        email: 'delete@example.com',
+        name: 'Delete Team',
+        division: 'open',
+      })
+      const parsed = await parseToken(TokenKind.Verify, token)
+      expect(parsed?.verifyId).toBeDefined()
+
+      await deletePendingRegisterVerification(redis, parsed!.verifyId)
+
+      expect(
+        await getPendingRegisterVerification(redis, parsed!.verifyId)
+      ).toBeUndefined()
     })
 
     test('creates verification for update flow', async () => {

@@ -2,6 +2,8 @@
   import {
     GoodAdminUserDeleteV2,
     GoodAdminUserUpdateV2,
+    GoodAdminUserVerificationCompleteV2,
+    GoodAdminUserVerificationResendV2,
     GoodChallengeSolveDeleteV2,
     GoodCreateUserTokenV2,
     Permissions,
@@ -20,9 +22,11 @@
     VirtualList,
   } from '$lib/components'
   import {
+    IconCheck,
     IconCopy,
     IconDots,
     IconMoodX,
+    IconSend,
     IconShieldFilled,
     IconTrashFilled,
     IconTrophyFilled,
@@ -32,12 +36,15 @@
   import {
     queryKeys,
     useAdminUser,
+    useAdminUserVerifications,
     useClientConfig,
+    useCompleteAdminUserVerificationMutation,
     useCreateUserTokenMutation,
     useCurrentUser,
     useDeleteAdminUserMutation,
     useDeleteChallengeSolveMutation,
     useInfiniteAdminUsers,
+    useResendAdminUserVerificationMutation,
     useUpdateAdminUserMutation,
   } from '$lib/query'
   import { formatLocalTime, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
@@ -60,6 +67,8 @@
 
   const usersQuery = useInfiniteAdminUsers(() => PAGE_SIZE)
   const allTeams = $derived(usersQuery.data?.pages.flatMap(page => page.users) ?? [])
+  const pendingVerificationsQuery = useAdminUserVerifications(() => hasWritePerms)
+  const pendingVerifications = $derived(pendingVerificationsQuery.data?.verifications ?? [])
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
@@ -77,11 +86,15 @@
   const updateUserMutation = useUpdateAdminUserMutation()
   const deleteUserMutation = useDeleteAdminUserMutation()
   const deleteSolveMutation = useDeleteChallengeSolveMutation()
+  const completeVerificationMutation = useCompleteAdminUserVerificationMutation()
+  const resendVerificationMutation = useResendAdminUserVerificationMutation()
 
   let copyingTeamId = $state<string | null>(null)
   let updatingTeamId = $state<string | null>(null)
   let deletingTeamId = $state<string | null>(null)
   let revokingSolveKey = $state<string | null>(null)
+  let completingVerificationId = $state<string | null>(null)
+  let resendingVerificationId = $state<string | null>(null)
   let selectedTeamId = $state<string | null>(null)
   let banDialogTeam = $state<{ id: string; name: string; banned: boolean } | null>(null)
   let deleteDialogTeam = $state<{ id: string; name: string } | null>(null)
@@ -95,6 +108,11 @@
     }
     queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
     queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+  }
+
+  function refreshVerificationQueries() {
+    queryClient.invalidateQueries({ queryKey: queryKeys.adminUserVerifications })
+    refreshTeamQueries()
   }
 
   async function handleCopyToken(team: { id: string; name: string }) {
@@ -259,6 +277,52 @@
       }
     )
   }
+
+  function handleCompleteVerification(verification: { id: string; name: string }) {
+    completingVerificationId = verification.id
+    completeVerificationMutation.mutate(
+      { id: verification.id },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
+            toast.success(`${verification.name} verified`)
+            refreshVerificationQueries()
+          } else {
+            showApiError(response)
+          }
+          completingVerificationId = null
+        },
+        onError: err => {
+          toast.error(err.message)
+          completingVerificationId = null
+        },
+      }
+    )
+  }
+
+  function handleResendVerification(verification: { id: string; name: string }) {
+    resendingVerificationId = verification.id
+    resendVerificationMutation.mutate(
+      { id: verification.id },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminUserVerificationResendV2.kind) {
+            toast.success(`Verification email resent to ${verification.name}`)
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.adminUserVerifications,
+            })
+          } else {
+            showApiError(response)
+          }
+          resendingVerificationId = null
+        },
+        onError: err => {
+          toast.error(err.message)
+          resendingVerificationId = null
+        },
+      }
+    )
+  }
 </script>
 
 <svelte:head>
@@ -283,7 +347,7 @@
         </Card.Content>
       </Card.Root>
     </div>
-  {:else if allTeams.length === 0}
+  {:else if allTeams.length === 0 && pendingVerifications.length === 0 && !pendingVerificationsQuery.isPending && !pendingVerificationsQuery.error}
     <EmptyState
       icon={IconUserFilled}
       title="No teams found"
@@ -298,158 +362,246 @@
       fadeColor="background-l0"
     >
       <div class="mx-auto max-w-4xl">
-        <VirtualList
-          virtualItems={scroll.virtualItems}
-          totalSize={scroll.totalSize}
-          items={allTeams}
-          hasNextPage={usersQuery.hasNextPage}
-          class="mx-4 mt-4 md:mx-9"
-        >
-          {#snippet children({ item: team })}
-            {@const isCopying = copyingTeamId === team.id}
-            {@const isUpdating = updatingTeamId === team.id}
-            {@const isDeleting = deletingTeamId === team.id}
-            {@const isAdmin = team.perms > 0}
-            <ChallengeDetailsSolvesRow
-              name={team.name}
-              userId={team.id}
-              avatarUrl={team.avatarUrl}
-              subtitle={team.email
-                ? `${team.email} - Registered ${formatLocalTime(new Date(team.createdAt).getTime())}`
-                : `No email - Registered ${formatLocalTime(new Date(team.createdAt).getTime())}`}
-              primaryValue={team.banned ? 'Banned' : `${team.score.toLocaleString()} pts`}
-              secondaryValue="{team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}"
-              class={team.banned ? 'opacity-75' : undefined}
-            >
-              {#snippet actions()}
-                {#if hasWritePerms}
-                  {#if isAdmin}
-                    <Tooltip.Root>
-                      <Tooltip.Trigger class="ml-2 self-stretch">
-                        <div class="bg-background-accent flex h-full items-center rounded-lg px-3">
-                          <IconShieldFilled class="text-foreground-accent size-5" />
+        {#if hasWritePerms && (pendingVerifications.length > 0 || pendingVerificationsQuery.isPending || pendingVerificationsQuery.error)}
+          <section class="mx-4 mt-4 md:mx-9">
+            <div class="border-background-l3 border-b pb-3">
+              <div class="flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                  <h2 class="text-foreground-l1 text-sm font-medium">
+                    Pending email verifications
+                  </h2>
+                  <p class="text-foreground-l3 text-sm">
+                    {pendingVerifications.length} pending team{pendingVerifications.length === 1
+                      ? ''
+                      : 's'}
+                  </p>
+                </div>
+                {#if pendingVerificationsQuery.isFetching}
+                  <Spinner class="text-foreground-l3 size-4" />
+                {/if}
+              </div>
+
+              {#if pendingVerificationsQuery.error}
+                <div class="text-foreground-destructive mt-3 text-sm">
+                  {pendingVerificationsQuery.error.message}
+                </div>
+              {:else if pendingVerifications.length > 0}
+                <div class="mt-3 flex flex-col gap-2">
+                  {#each pendingVerifications as verification (verification.id)}
+                    {@const isCompleting = completingVerificationId === verification.id}
+                    {@const isResending = resendingVerificationId === verification.id}
+                    <div
+                      class="bg-background-l1 flex flex-col gap-3 rounded-lg p-3 sm:flex-row sm:items-center"
+                    >
+                      <div class="min-w-0 flex-1">
+                        <div class="text-foreground-l1 truncate text-sm font-medium">
+                          {verification.name}
                         </div>
-                      </Tooltip.Trigger>
-                      <Tooltip.Content>Admin account</Tooltip.Content>
-                    </Tooltip.Root>
-                  {:else}
-                    <div class="ml-2 flex self-stretch sm:hidden">
-                      <DropdownMenu.Root>
-                        <DropdownMenu.Trigger class="h-full">
-                          <Button variant="secondary" class="h-full px-3">
-                            <IconDots class="size-5" />
-                          </Button>
-                        </DropdownMenu.Trigger>
-                        <DropdownMenu.Content align="end" class="bg-background-l4 w-48 border-none">
-                          {#if hasTeamDetailsPerms}
+                        <div class="text-foreground-l3 truncate text-sm">
+                          {verification.email} - {verification.division}
+                        </div>
+                        <div class="text-foreground-l3 text-xs">
+                          Expires {formatLocalTime(verification.expiresAt)}
+                        </div>
+                      </div>
+                      <div class="flex gap-2 self-stretch sm:self-auto">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          class="flex-1 sm:flex-none"
+                          onclick={() => handleResendVerification(verification)}
+                          disabled={isResending || isCompleting}
+                        >
+                          {#if isResending}
+                            <Spinner class="size-4" />
+                          {:else}
+                            <IconSend class="size-4" />
+                          {/if}
+                          Resend
+                        </Button>
+                        <Button
+                          size="sm"
+                          class="flex-1 sm:flex-none"
+                          onclick={() => handleCompleteVerification(verification)}
+                          disabled={isCompleting || isResending}
+                        >
+                          {#if isCompleting}
+                            <Spinner class="size-4" />
+                          {:else}
+                            <IconCheck class="size-4" />
+                          {/if}
+                          Verify
+                        </Button>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
+            </div>
+          </section>
+        {/if}
+
+        {#if allTeams.length > 0}
+          <VirtualList
+            virtualItems={scroll.virtualItems}
+            totalSize={scroll.totalSize}
+            items={allTeams}
+            hasNextPage={usersQuery.hasNextPage}
+            class="mx-4 mt-4 md:mx-9"
+          >
+            {#snippet children({ item: team })}
+              {@const isCopying = copyingTeamId === team.id}
+              {@const isUpdating = updatingTeamId === team.id}
+              {@const isDeleting = deletingTeamId === team.id}
+              {@const isAdmin = team.perms > 0}
+              <ChallengeDetailsSolvesRow
+                name={team.name}
+                userId={team.id}
+                avatarUrl={team.avatarUrl}
+                subtitle={team.email
+                  ? `${team.email} - Registered ${formatLocalTime(new Date(team.createdAt).getTime())}`
+                  : `No email - Registered ${formatLocalTime(new Date(team.createdAt).getTime())}`}
+                primaryValue={team.banned ? 'Banned' : `${team.score.toLocaleString()} pts`}
+                secondaryValue="{team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}"
+                class={team.banned ? 'opacity-75' : undefined}
+              >
+                {#snippet actions()}
+                  {#if hasWritePerms}
+                    {#if isAdmin}
+                      <Tooltip.Root>
+                        <Tooltip.Trigger class="ml-2 self-stretch">
+                          <div
+                            class="bg-background-accent flex h-full items-center rounded-lg px-3"
+                          >
+                            <IconShieldFilled class="text-foreground-accent size-5" />
+                          </div>
+                        </Tooltip.Trigger>
+                        <Tooltip.Content>Admin account</Tooltip.Content>
+                      </Tooltip.Root>
+                    {:else}
+                      <div class="ml-2 flex self-stretch sm:hidden">
+                        <DropdownMenu.Root>
+                          <DropdownMenu.Trigger class="h-full">
+                            <Button variant="secondary" class="h-full px-3">
+                              <IconDots class="size-5" />
+                            </Button>
+                          </DropdownMenu.Trigger>
+                          <DropdownMenu.Content
+                            align="end"
+                            class="bg-background-l4 w-48 border-none"
+                          >
+                            {#if hasTeamDetailsPerms}
+                              <DropdownMenu.Item
+                                class="data-highlighted:bg-background-l5"
+                                onclick={() => openManageTeam(team.id)}
+                              >
+                                Manage team
+                                <IconUserCog class="ml-auto size-5" />
+                              </DropdownMenu.Item>
+                            {/if}
                             <DropdownMenu.Item
                               class="data-highlighted:bg-background-l5"
-                              onclick={() => openManageTeam(team.id)}
+                              onclick={() => handleCopyToken(team)}
+                              disabled={isCopying}
                             >
-                              Manage team
-                              <IconUserCog class="ml-auto size-5" />
+                              Copy new token
+                              <IconCopy class="ml-auto size-5" />
                             </DropdownMenu.Item>
-                          {/if}
-                          <DropdownMenu.Item
-                            class="data-highlighted:bg-background-l5"
-                            onclick={() => handleCopyToken(team)}
-                            disabled={isCopying}
-                          >
-                            Copy new token
-                            <IconCopy class="ml-auto size-5" />
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            class="data-highlighted:bg-background-l5"
-                            onclick={() => handleBanAction(team)}
-                            disabled={isUpdating}
-                          >
-                            {team.banned ? 'Unban team' : 'Ban team'}
-                            <IconMoodX class="ml-auto size-5" />
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            class="text-foreground-destructive data-highlighted:bg-background-destructive data-highlighted:text-foreground-destructive"
-                            onclick={() => openDeleteDialog(team)}
-                            disabled={isDeleting}
-                          >
-                            Delete team
-                            <IconTrashFilled class="ml-auto size-5" />
-                          </DropdownMenu.Item>
-                        </DropdownMenu.Content>
-                      </DropdownMenu.Root>
-                    </div>
-                    <div class="ml-2 hidden gap-1 self-stretch sm:flex">
-                      {#if hasTeamDetailsPerms}
+                            <DropdownMenu.Item
+                              class="data-highlighted:bg-background-l5"
+                              onclick={() => handleBanAction(team)}
+                              disabled={isUpdating}
+                            >
+                              {team.banned ? 'Unban team' : 'Ban team'}
+                              <IconMoodX class="ml-auto size-5" />
+                            </DropdownMenu.Item>
+                            <DropdownMenu.Item
+                              class="text-foreground-destructive data-highlighted:bg-background-destructive data-highlighted:text-foreground-destructive"
+                              onclick={() => openDeleteDialog(team)}
+                              disabled={isDeleting}
+                            >
+                              Delete team
+                              <IconTrashFilled class="ml-auto size-5" />
+                            </DropdownMenu.Item>
+                          </DropdownMenu.Content>
+                        </DropdownMenu.Root>
+                      </div>
+                      <div class="ml-2 hidden gap-1 self-stretch sm:flex">
+                        {#if hasTeamDetailsPerms}
+                          <Tooltip.Root>
+                            <Tooltip.Trigger class="h-full">
+                              <Button
+                                variant="secondary"
+                                class="h-full px-3"
+                                onclick={() => openManageTeam(team.id)}
+                              >
+                                <IconUserCog class="size-5" />
+                              </Button>
+                            </Tooltip.Trigger>
+                            <Tooltip.Content>Manage team</Tooltip.Content>
+                          </Tooltip.Root>
+                        {/if}
                         <Tooltip.Root>
                           <Tooltip.Trigger class="h-full">
                             <Button
                               variant="secondary"
                               class="h-full px-3"
-                              onclick={() => openManageTeam(team.id)}
+                              onclick={() => handleCopyToken(team)}
+                              disabled={isCopying}
                             >
-                              <IconUserCog class="size-5" />
+                              {#if isCopying}
+                                <Spinner class="size-5" />
+                              {:else}
+                                <IconCopy class="size-5" />
+                              {/if}
                             </Button>
                           </Tooltip.Trigger>
-                          <Tooltip.Content>Manage team</Tooltip.Content>
+                          <Tooltip.Content>Copy new token</Tooltip.Content>
                         </Tooltip.Root>
-                      {/if}
-                      <Tooltip.Root>
-                        <Tooltip.Trigger class="h-full">
-                          <Button
-                            variant="secondary"
-                            class="h-full px-3"
-                            onclick={() => handleCopyToken(team)}
-                            disabled={isCopying}
+                        <Tooltip.Root>
+                          <Tooltip.Trigger class="h-full">
+                            <Button
+                              variant={team.banned ? 'secondary' : 'destructive'}
+                              class="h-full px-3"
+                              onclick={() => handleBanAction(team)}
+                              disabled={isUpdating}
+                            >
+                              {#if isUpdating}
+                                <Spinner class="size-5" />
+                              {:else}
+                                <IconMoodX class="size-5" />
+                              {/if}
+                            </Button>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content
+                            >{team.banned ? 'Unban team' : 'Ban team'}</Tooltip.Content
                           >
-                            {#if isCopying}
-                              <Spinner class="size-5" />
-                            {:else}
-                              <IconCopy class="size-5" />
-                            {/if}
-                          </Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>Copy new token</Tooltip.Content>
-                      </Tooltip.Root>
-                      <Tooltip.Root>
-                        <Tooltip.Trigger class="h-full">
-                          <Button
-                            variant={team.banned ? 'secondary' : 'destructive'}
-                            class="h-full px-3"
-                            onclick={() => handleBanAction(team)}
-                            disabled={isUpdating}
-                          >
-                            {#if isUpdating}
-                              <Spinner class="size-5" />
-                            {:else}
-                              <IconMoodX class="size-5" />
-                            {/if}
-                          </Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>{team.banned ? 'Unban team' : 'Ban team'}</Tooltip.Content>
-                      </Tooltip.Root>
-                      <Tooltip.Root>
-                        <Tooltip.Trigger class="h-full">
-                          <Button
-                            variant="destructive"
-                            class="h-full px-3"
-                            onclick={() => openDeleteDialog(team)}
-                            disabled={isDeleting}
-                          >
-                            {#if isDeleting}
-                              <Spinner class="size-5" />
-                            {:else}
-                              <IconTrashFilled class="size-5" />
-                            {/if}
-                          </Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>Delete team</Tooltip.Content>
-                      </Tooltip.Root>
-                    </div>
+                        </Tooltip.Root>
+                        <Tooltip.Root>
+                          <Tooltip.Trigger class="h-full">
+                            <Button
+                              variant="destructive"
+                              class="h-full px-3"
+                              onclick={() => openDeleteDialog(team)}
+                              disabled={isDeleting}
+                            >
+                              {#if isDeleting}
+                                <Spinner class="size-5" />
+                              {:else}
+                                <IconTrashFilled class="size-5" />
+                              {/if}
+                            </Button>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>Delete team</Tooltip.Content>
+                        </Tooltip.Root>
+                      </div>
+                    {/if}
                   {/if}
-                {/if}
-              {/snippet}
-            </ChallengeDetailsSolvesRow>
-          {/snippet}
-        </VirtualList>
+                {/snippet}
+              </ChallengeDetailsSolvesRow>
+            {/snippet}
+          </VirtualList>
+        {/if}
       </div>
     </ScrollArea>
   {/if}

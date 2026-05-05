@@ -63,14 +63,20 @@ type DeleteCtftimeIdResponseHelpers = ResponseHelpers<
   [typeof GoodCtftimeRemoved, typeof BadUnknownUser, typeof BadZeroAuth]
 >
 
-type CreateUserResult =
-  | { success: true; userId: string }
+export type CreateUserInternalResult =
+  | {
+      success: true
+      userId: string
+    }
   | {
       success: false
       error: 'badKnownCtftimeId' | 'badKnownEmail' | 'badKnownName'
     }
 
-type CreateUserError = Extract<CreateUserResult, { success: false }>['error']
+type CreateUserError = Extract<
+  CreateUserInternalResult,
+  { success: false }
+>['error']
 
 type CreateUserErrorResponseHelpers = ResponseHelpers<
   [typeof BadKnownCtftimeId, typeof BadKnownEmail, typeof BadKnownName]
@@ -93,10 +99,10 @@ const createUserErrorResponse = (
   return res.badKnownName()
 }
 
-const createUserInternal = async (
+export const createUserInternal = async (
   db: DatabaseClient,
   user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
-): Promise<CreateUserResult> => {
+): Promise<CreateUserInternalResult> => {
   let created
 
   try {
