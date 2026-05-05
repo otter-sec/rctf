@@ -113,6 +113,13 @@
           <DropdownMenu.Content align="start" class="bg-background-l4 w-48 border-none">
             <DropdownMenu.Item
               class="data-highlighted:bg-background-l5"
+              onclick={() => goto('/admin/stats')}
+            >
+              <IconChartAreaLineFilled class="size-5" />
+              Statistics
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              class="data-highlighted:bg-background-l5"
               onclick={() => goto('/admin/challenges')}
             >
               <IconFlag3Filled class="size-5" />

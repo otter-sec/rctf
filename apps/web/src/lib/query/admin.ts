@@ -4,6 +4,7 @@ import {
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
+  GetAdminStatsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUsersRouteV2,
   GetInstancerSchemaRouteV2,
@@ -11,6 +12,7 @@ import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodAdminSettings,
+  GoodAdminStatsV2,
   GoodAdminUsersV2,
   GoodAdminUserV2,
   GoodInstancerSchema,
@@ -68,6 +70,17 @@ export const adminSettingsQueryOptions = queryOptions({
   queryFn: async () => {
     const response = await apiRequest(GetAdminSettingsRouteV2)
     if (response.kind === GoodAdminSettings.kind) {
+      return response.data
+    }
+    throw new ApiError(response.kind, response.message)
+  },
+})
+
+export const adminStatsQueryOptions = queryOptions({
+  queryKey: ['admin', 'stats'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetAdminStatsRouteV2)
+    if (response.kind === GoodAdminStatsV2.kind) {
       return response.data
     }
     throw new ApiError(response.kind, response.message)
@@ -152,6 +165,10 @@ export function useAdminBotStatus() {
 
 export function useAdminSettings() {
   return createQuery(() => adminSettingsQueryOptions)
+}
+
+export function useAdminStats() {
+  return createQuery(() => adminStatsQueryOptions)
 }
 
 export function useInstancerSchema() {

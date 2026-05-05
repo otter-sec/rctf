@@ -22,6 +22,7 @@ import {
   GoodAdminChallengeV2,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
+  GoodAdminStatsV2,
   GoodAdminUserDeleteV2,
   GoodAdminUsersV2,
   GoodAdminUserUpdateV2,
@@ -44,6 +45,15 @@ export const GetAdminChallengesRouteV2 = defineRoute({
   path: '/v2/admin/challs',
   method: 'GET',
   goodResponses: [GoodAdminChallengesV2],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.challsRead,
+})
+
+export const GetAdminStatsRouteV2 = defineRoute({
+  path: '/v2/admin/stats',
+  method: 'GET',
+  goodResponses: [GoodAdminStatsV2],
   badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,

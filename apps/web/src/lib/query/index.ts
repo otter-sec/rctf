@@ -3,6 +3,7 @@ import {
   adminChallengeQueryOptions,
   adminChallengesQueryOptions,
   adminSettingsQueryOptions,
+  adminStatsQueryOptions,
   adminUserQueryOptions,
   instancerSchemaQueryOptions,
 } from './admin'
@@ -60,4 +61,5 @@ export const queryKeys = {
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
+  adminStats: adminStatsQueryOptions.queryKey,
 }

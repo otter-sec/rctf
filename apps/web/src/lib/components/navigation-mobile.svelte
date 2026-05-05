@@ -95,6 +95,13 @@
       show: !!user && !isArchived,
     },
     {
+      href: '/admin/stats',
+      activePath: '/admin/stats',
+      label: 'Statistics',
+      icon: IconChartAreaLineFilled,
+      show: isAdmin,
+    },
+    {
       href: '/admin/challenges',
       activePath: '/admin/challenges',
       label: 'Manage challenges',
