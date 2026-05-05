@@ -1,4 +1,4 @@
-import { docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
+import { BASE_URL, docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
 import { isCurrentPath, titleCase, trimTrailingSlash } from '@/lib/utils'
 import type {
   FlatDoc,
@@ -31,6 +31,14 @@ type TreeNode = {
   fullPath: string
   doc?: Doc
   children: TreeNode[]
+}
+
+type DocTreeNode = TreeNode & {
+  doc: Doc
+}
+
+function hasDoc(node: TreeNode): node is DocTreeNode {
+  return Boolean(node.doc)
 }
 
 function ensureNode(
@@ -75,11 +83,11 @@ function compareByOrder(a: OrderKey, b: OrderKey): number {
 }
 
 function resolveDocLink(
-  node: TreeNode,
+  node: DocTreeNode,
   parentMeta: MetaFile,
   pathname: string
 ): { link: SidebarLink; sortKey: OrderKey } | null {
-  const doc = node.doc!
+  const { doc } = node
   if (doc.data.sidebar?.hidden) return null
 
   const override: MetaItemOverride = parentMeta.items?.[node.name] ?? {}
@@ -153,7 +161,9 @@ function resolveGroup(
     group: {
       type: 'group',
       label,
-      collapsed: forceOpen ? false : (own.collapsed ?? !hasActiveDescendant),
+      collapsed: forceOpen
+        ? false
+        : (override.collapsed ?? own.collapsed ?? !hasActiveDescendant),
       forceOpen,
       badge,
       hasActiveDescendant,
@@ -178,7 +188,7 @@ function buildNodes(
       // Group (may also carry an index doc).
       const result = resolveGroup(child, parentMeta, pathname)
       if (result) resolved.push({ node: result.group, sortKey: result.sortKey })
-    } else if (child.doc) {
+    } else if (hasDoc(child)) {
       // Pure leaf doc.
       const result = resolveDocLink(child, parentMeta, pathname)
       if (result) resolved.push({ node: result.link, sortKey: result.sortKey })
@@ -216,7 +226,7 @@ function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
 }
 
 export async function getFlatDocOrder(): Promise<FlatDoc[]> {
-  const tree = await getSidebarTree('/')
+  const tree = await getSidebarTree(BASE_URL)
   return flattenTree(tree)
 }
 
@@ -227,7 +237,7 @@ export async function getPrevNext(
   const normalized = trimTrailingSlash(currentHref)
   const index = flat.findIndex(d => trimTrailingSlash(d.href) === normalized)
   if (index === -1) {
-    if (normalized === '/') {
+    if (normalized === trimTrailingSlash(BASE_URL)) {
       return { prev: null, next: flat[0] ?? null }
     }
     return { prev: null, next: null }

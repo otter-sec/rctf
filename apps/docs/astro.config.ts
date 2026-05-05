@@ -2,8 +2,6 @@ import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import rehypeShiki from '@shikijs/rehype'
 import tailwindcss from '@tailwindcss/vite'
 import icon from 'astro-icon'
@@ -11,42 +9,19 @@ import pagefind from 'astro-pagefind'
 import { defineConfig } from 'astro/config'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeExpressiveCode from 'rehype-expressive-code'
-import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
 import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
-
-function rehypeWrapTables() {
-  return (tree: any) => {
-    const visit = (node: any, parent: any, index: number | null) => {
-      if (
-        node.type === 'element' &&
-        node.tagName === 'table' &&
-        parent &&
-        index !== null
-      ) {
-        const wrapper = {
-          type: 'element',
-          tagName: 'div',
-          properties: { className: ['table-wrapper'] },
-          children: [node],
-        }
-        parent.children[index] = wrapper
-        return
-      }
-      if (node.children) {
-        for (let i = 0; i < node.children.length; i++) {
-          visit(node.children[i], node, i)
-        }
-      }
-    }
-    visit(tree, null, null)
-  }
-}
+import { ecOptions } from './src/lib/ec-config'
+import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
+import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
+import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
+import { latte, mocha } from './src/lib/shiki-themes'
+import { resolveSiteUrl } from './src/lib/site-url'
 
 export default defineConfig({
-  site: 'https://rctf.osec.io',
+  site: resolveSiteUrl(),
   integrations: [mdx(), react(), sitemap(), icon(), pagefind()],
   vite: {
     plugins: [tailwindcss()],
@@ -68,8 +43,19 @@ export default defineConfig({
           rel: ['nofollow', 'noreferrer', 'noopener'],
         },
       ],
-      rehypeHeadingIds,
       rehypeWrapTables,
+      rehypeKatex,
+      [rehypeExpressiveCode, { themes: [latte, mocha], ...ecOptions }],
+      [
+        rehypeShiki,
+        {
+          themes: { light: latte, dark: mocha },
+          inline: 'tailing-curly-colon',
+        },
+      ],
+      rehypeInlineShellCmd,
+      rehypeInlinePathIcon,
+      rehypeHeadingIds,
       [
         rehypeAutolinkHeadings,
         {
@@ -86,66 +72,6 @@ export default defineConfig({
           },
           test: (node: { tagName: string }) =>
             ['h2', 'h3', 'h4', 'h5', 'h6'].includes(node.tagName),
-        },
-      ],
-      rehypeKatex,
-      [
-        rehypeExpressiveCode,
-        {
-          themes: ['github-light', 'github-dark'],
-          plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
-          useDarkModeMediaQuery: false,
-          themeCssSelector: (theme: ExpressiveCodeTheme) =>
-            `[data-theme="${theme.name.split('-')[1]}"]`,
-          defaultProps: {
-            wrap: true,
-            showLineNumbers: true,
-            collapseStyle: 'collapsible-auto',
-            overridesByLang: {
-              'ansi,bat,bash,batch,cmd,console,powershell,ps,ps1,psd1,psm1,sh,shell,shellscript,shellsession,text,zsh':
-                { showLineNumbers: false },
-              'yaml,yml,toml,json,json5,jsonc,sql,graphql,markdown,mdx': {
-                showLineNumbers: false,
-              },
-            },
-          },
-          styleOverrides: {
-            codeFontSize: '0.75rem',
-            borderColor: 'var(--border)',
-            codeFontFamily: 'var(--font-mono)',
-            codeBackground:
-              'color-mix(in oklab, var(--muted) 25%, transparent)',
-            frames: {
-              editorActiveTabForeground: 'var(--muted-foreground)',
-              editorActiveTabBackground:
-                'color-mix(in oklab, var(--muted) 25%, transparent)',
-              editorActiveTabIndicatorBottomColor: 'transparent',
-              editorActiveTabIndicatorTopColor: 'transparent',
-              editorTabBorderRadius: '0',
-              editorTabBarBackground: 'transparent',
-              editorTabBarBorderBottomColor: 'transparent',
-              frameBoxShadowCssValue: 'none',
-              terminalBackground:
-                'color-mix(in oklab, var(--muted) 25%, transparent)',
-              terminalTitlebarBackground: 'transparent',
-              terminalTitlebarBorderBottomColor: 'transparent',
-              terminalTitlebarForeground: 'var(--muted-foreground)',
-            },
-            lineNumbers: {
-              foreground: 'var(--muted-foreground)',
-            },
-            uiFontFamily: 'var(--font-sans)',
-          },
-        },
-      ],
-      [
-        rehypeShiki,
-        {
-          themes: {
-            light: 'github-light',
-            dark: 'github-dark',
-          },
-          inline: 'tailing-curly-colon',
         },
       ],
     ],

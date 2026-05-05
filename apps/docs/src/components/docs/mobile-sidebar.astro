@@ -3,6 +3,7 @@ import Sidebar from '@/components/docs/sidebar.astro'
 import Link from '@/components/link.astro'
 import { Button } from '@/components/ui/button'
 import { SITE } from '@/consts'
+import { BASE_URL } from '@/lib/docs'
 import type { SidebarNode } from '@/types'
 import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
@@ -24,7 +25,7 @@ const { tree } = Astro.props
 >
   <header class="flex items-center justify-between pb-2">
     <Link
-      href="/"
+      href={BASE_URL}
       class="flex items-center no-underline"
       aria-label={SITE.title}
     >
@@ -56,44 +57,7 @@ const { tree } = Astro.props
 </dialog>
 
 <script>
-  function setupMobileSidebar() {
-    const dialog = document.getElementById(
-      'mobile-sidebar',
-    ) as HTMLDialogElement | null
-    const trigger = document.getElementById(
-      'mobile-sidebar-trigger',
-    ) as HTMLButtonElement | null
-    const closeBtn = document.getElementById(
-      'mobile-sidebar-close',
-    ) as HTMLButtonElement | null
+  import { mountMobileSidebar } from '@/lib/client/mobile-sidebar'
 
-    if (!dialog) return
-
-    const open = () => {
-      dialog.showModal()
-      trigger?.setAttribute('aria-expanded', 'true')
-    }
-    const close = () => {
-      if (dialog.open) dialog.close()
-      trigger?.setAttribute('aria-expanded', 'false')
-    }
-
-    trigger?.addEventListener('click', open)
-    closeBtn?.addEventListener('click', close)
-
-    dialog.addEventListener('click', (event) => {
-      if (event.target === dialog) close()
-    })
-
-    dialog.addEventListener('close', () => {
-      trigger?.setAttribute('aria-expanded', 'false')
-    })
-
-    dialog
-      .querySelectorAll<HTMLAnchorElement>('a[href]')
-      .forEach((link) => link.addEventListener('click', close))
-  }
-
-  setupMobileSidebar()
-  document.addEventListener('astro:after-swap', setupMobileSidebar)
+  mountMobileSidebar()
 </script>
