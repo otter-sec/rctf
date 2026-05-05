@@ -76,7 +76,7 @@ export const GetAdminUserRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken, BadUnknownUser],
   authRequired: true,
   params: AdminUserParams,
-  permissions: Permissions.usersWrite,
+  permissions: Permissions.usersWrite | Permissions.challsRead,
 })
 
 export const UpdateAdminUserRouteV2 = defineRoute({

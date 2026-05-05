@@ -8,6 +8,7 @@ import {
   BadEnded,
   BadFlag,
   BadNotStarted,
+  BadPerms,
   BadRateLimit,
   BadToken,
   BadUnknownUser,
@@ -35,6 +36,7 @@ export const SubmitFlagRoute = defineRoute({
   goodResponses: [GoodFlag],
   badResponses: [
     BadFlag,
+    BadPerms,
     BadNotStarted,
     BadEnded,
     BadChallenge,

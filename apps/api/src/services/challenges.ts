@@ -5,6 +5,7 @@ import type {
   DatabaseClient,
   InstancerConfig,
   Solve,
+  User,
 } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
@@ -12,6 +13,7 @@ import type {
   BadAlreadySolvedChallenge,
   BadChallenge,
   BadFlag,
+  BadPerms,
   BadRateLimit,
   BadUnknownUser,
   GoodFlag,
@@ -31,6 +33,7 @@ type SubmitResponseHelpers = ResponseHelpers<
     typeof BadChallenge,
     typeof BadRateLimit,
     typeof BadFlag,
+    typeof BadPerms,
     typeof GoodFlag,
     typeof BadAlreadySolvedChallenge,
     typeof BadUnknownUser,
@@ -465,22 +468,30 @@ export const submitFlag = async (
   redis: TypedRedis,
   log: PinoLogger,
   params: {
-    userId: string
+    user: Pick<User, 'id' | 'banned'>
     challengeId: string
     flag: string
     submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
+  if (params.user.banned) {
+    return res.badPerms()
+  }
+
   const challenge = await getChallenge(db, params.challengeId)
   if (!challenge || !challenge.data.flag) {
     return res.badChallenge()
   }
 
-  const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
+  const timeLeft = await rateLimitFlag(
+    redis,
+    params.user.id,
+    params.challengeId
+  )
   if (timeLeft !== undefined) {
     log.info(
       {
-        user: params.userId,
+        user: params.user.id,
         chall: challenge.id,
         timeLeft,
       },
@@ -495,7 +506,7 @@ export const submitFlag = async (
 
   log.info(
     {
-      user: params.userId,
+      user: params.user.id,
       chall: challenge.id,
       flag: params.flag,
     },
@@ -506,7 +517,7 @@ export const submitFlag = async (
   try {
     bloodNumber = await createSolveAndGetBloodNumber(db, {
       challengeId: params.challengeId,
-      userId: params.userId,
+      userId: params.user.id,
       submissionIp: params.submissionIp,
     })
   } catch (error) {
@@ -521,13 +532,13 @@ export const submitFlag = async (
   }
 
   if (shouldNotifyBloodbot(bloodNumber)) {
-    getUser(db, params.userId)
+    getUser(db, params.user.id)
       .then(user => {
         return sendBloodMessage(user!, challenge.data, bloodNumber)
       })
       .catch(err => {
         log.error(
-          { err, challengeId: params.challengeId, userId: params.userId },
+          { err, challengeId: params.challengeId, userId: params.user.id },
           'bloodbot notification failed'
         )
       })

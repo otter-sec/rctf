@@ -54,6 +54,9 @@
   const user = $derived(userQuery.data)
   const hasWritePerms = $derived(hasPermissions(user, Permissions.usersWrite))
   const hasSolveWritePerms = $derived(hasPermissions(user, Permissions.challsSolveWrite))
+  const hasTeamDetailsPerms = $derived(
+    hasWritePerms && hasPermissions(user, Permissions.challsRead)
+  )
 
   const usersQuery = useInfiniteAdminUsers(() => PAGE_SIZE)
   const allTeams = $derived(usersQuery.data?.pages.flatMap(page => page.users) ?? [])
@@ -337,13 +340,15 @@
                           </Button>
                         </DropdownMenu.Trigger>
                         <DropdownMenu.Content align="end" class="bg-background-l4 w-48 border-none">
-                          <DropdownMenu.Item
-                            class="data-highlighted:bg-background-l5"
-                            onclick={() => openManageTeam(team.id)}
-                          >
-                            Manage team
-                            <IconUserCog class="ml-auto size-5" />
-                          </DropdownMenu.Item>
+                          {#if hasTeamDetailsPerms}
+                            <DropdownMenu.Item
+                              class="data-highlighted:bg-background-l5"
+                              onclick={() => openManageTeam(team.id)}
+                            >
+                              Manage team
+                              <IconUserCog class="ml-auto size-5" />
+                            </DropdownMenu.Item>
+                          {/if}
                           <DropdownMenu.Item
                             class="data-highlighted:bg-background-l5"
                             onclick={() => handleCopyToken(team)}
@@ -372,18 +377,20 @@
                       </DropdownMenu.Root>
                     </div>
                     <div class="ml-2 hidden gap-1 self-stretch sm:flex">
-                      <Tooltip.Root>
-                        <Tooltip.Trigger class="h-full">
-                          <Button
-                            variant="secondary"
-                            class="h-full px-3"
-                            onclick={() => openManageTeam(team.id)}
-                          >
-                            <IconUserCog class="size-5" />
-                          </Button>
-                        </Tooltip.Trigger>
-                        <Tooltip.Content>Manage team</Tooltip.Content>
-                      </Tooltip.Root>
+                      {#if hasTeamDetailsPerms}
+                        <Tooltip.Root>
+                          <Tooltip.Trigger class="h-full">
+                            <Button
+                              variant="secondary"
+                              class="h-full px-3"
+                              onclick={() => openManageTeam(team.id)}
+                            >
+                              <IconUserCog class="size-5" />
+                            </Button>
+                          </Tooltip.Trigger>
+                          <Tooltip.Content>Manage team</Tooltip.Content>
+                        </Tooltip.Root>
+                      {/if}
                       <Tooltip.Root>
                         <Tooltip.Trigger class="h-full">
                           <Button

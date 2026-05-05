@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
+  BadPerms,
   GoodAdminUserDeleteV2,
   GoodAdminUserUpdateV2,
   GoodAdminUserV2,
@@ -43,7 +44,9 @@ beforeEach(async () => {
 
 describe('admin users', () => {
   test('returns email and solves in team details', async () => {
-    const admin = await generateRealTestUser(Permissions.usersWrite)
+    const admin = await generateRealTestUser(
+      Permissions.usersWrite | Permissions.challsRead
+    )
     const solver = await generateRealTestUser()
     const { challenge } = await generateChallenge()
     const db = getDb()
@@ -65,6 +68,19 @@ describe('admin users', () => {
     expect(body.data.email).toBe(solver.user.email)
     expect(body.data.solves).toHaveLength(1)
     expect(body.data.solves[0].challengeId).toBe(challenge.id)
+  })
+
+  test('team details require challenge read permission', async () => {
+    const admin = await generateRealTestUser(Permissions.usersWrite)
+    const solver = await generateRealTestUser()
+
+    const res = await request(app, `/api/v2/admin/users/${solver.user.id}`, {
+      headers: {
+        Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+      },
+    })
+
+    await expectResponse(res, BadPerms)
   })
 
   test('banning a team removes it from leaderboard without deleting solves', async () => {
