@@ -23,6 +23,7 @@ export type InternalUserInfo = {
   id: string
   name: string
   division: string | null
+  banned: boolean
   score: number
   lastSolve: number | undefined
   lastTiebreakEligibleSolve: number | undefined

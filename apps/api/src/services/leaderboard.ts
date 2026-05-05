@@ -56,6 +56,7 @@ type UserSnapshot = {
   id: string
   name: string
   division: string | null
+  banned: boolean
 }
 
 type PublicChallengeSnapshot = {
@@ -124,6 +125,7 @@ const getUsersSnapshot = async (
       id: users.id,
       name: users.name,
       division: users.division,
+      banned: users.banned,
     })
     .from(users)
     .orderBy(asc(users.createdAt))
@@ -192,8 +194,9 @@ const getSolvesAfterCursor = async (
 const patchUsers = (
   state: LeaderboardRuntimeState,
   dbUsers: UserSnapshot[]
-): boolean => {
+): { changed: boolean; needsRebuild: boolean } => {
   let changed = false
+  let needsRebuild = false
   const freshIds = new Set<string>()
 
   for (const user of dbUsers) {
@@ -205,6 +208,7 @@ const patchUsers = (
         id: user.id,
         name: user.name,
         division: user.division ?? null,
+        banned: user.banned,
         score: 0,
         lastSolve: undefined,
         lastTiebreakEligibleSolve: undefined,
@@ -221,6 +225,11 @@ const patchUsers = (
       info.division = user.division ?? null
       changed = true
     }
+    if (info.banned !== user.banned) {
+      info.banned = user.banned
+      changed = true
+      needsRebuild = true
+    }
   }
 
   for (const [id, info] of state.userInfos) {
@@ -229,11 +238,12 @@ const patchUsers = (
       // only counts as a visible change if they were on the leaderboard
       if (info.lastSolve !== undefined) {
         changed = true
+        needsRebuild = true
       }
     }
   }
 
-  return changed
+  return { changed, needsRebuild }
 }
 
 const buildChallengesFingerprint = (
@@ -260,6 +270,7 @@ const createRuntimeState = (
       id: user.id,
       name: user.name,
       division: user.division ?? null,
+      banned: user.banned,
       score: 0,
       lastSolve: undefined,
       lastTiebreakEligibleSolve: undefined,
@@ -343,7 +354,7 @@ const applySolve = (
 ): boolean => {
   const challengeInfo = state.challengeInfos.get(solve.challengeid)
   const userInfo = state.userInfos.get(solve.userid)
-  if (!challengeInfo || !userInfo) {
+  if (!challengeInfo || !userInfo || userInfo.banned) {
     return false
   }
 
@@ -507,7 +518,7 @@ const cloneCalculatedLeaderboard = (
   state: LeaderboardRuntimeState
 ): CalculatedLeaderboard => {
   const usersWithScores = Array.from(state.userInfos.values())
-    .filter(userInfo => userInfo.lastSolve !== undefined)
+    .filter(userInfo => !userInfo.banned && userInfo.lastSolve !== undefined)
     .sort(compareUsers)
     .map(userInfo => ({
       id: userInfo.id,
@@ -636,8 +647,11 @@ export const createCachedLeaderboardCalculator = () => {
       return await rebuild()
     }
 
-    // user changes don't affect scoring
-    const usersChanged = patchUsers(state, dbUsers)
+    const userPatch = patchUsers(state, dbUsers)
+    if (userPatch.needsRebuild) {
+      return await rebuild()
+    }
+
     const deltaSolves = await getSolvesAfterCursor(db, state.lastSolveCursor)
 
     if (deltaSolves.length === 0) {
@@ -649,7 +663,7 @@ export const createCachedLeaderboardCalculator = () => {
 
       return {
         calculated: cloneCalculatedLeaderboard(state),
-        changed: usersChanged,
+        changed: userPatch.changed,
         recomputedFromScratch: false,
       }
     }
@@ -673,7 +687,7 @@ export const createCachedLeaderboardCalculator = () => {
 
     return {
       calculated: cloneCalculatedLeaderboard(state),
-      changed: batchResult.changed || usersChanged,
+      changed: batchResult.changed || userPatch.changed,
       recomputedFromScratch: false,
     }
   }
