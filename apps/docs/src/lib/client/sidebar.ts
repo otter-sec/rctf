@@ -1,5 +1,4 @@
 import { isElementHidden, trimTrailingSlash, withDatasetFlag } from './dom'
-import { readJsonRecord, writeJson } from './storage'
 
 const SIDEBAR_GROUP_STATE_KEY = 'rctf-docs-sidebar-groups'
 const SIDEBAR_SCROLL_STATE_KEY = 'rctf-docs-sidebar-scroll'
@@ -13,19 +12,31 @@ const sidebarGroupsWithPersistence = new WeakSet<HTMLDetailsElement>()
 const sidebarViewportsWithPersistence = new WeakSet<HTMLElement>()
 
 function readSidebarGroupState(): Record<string, boolean> {
-  return readJsonRecord<boolean>(localStorage, SIDEBAR_GROUP_STATE_KEY)
+  try {
+    return JSON.parse(localStorage.getItem(SIDEBAR_GROUP_STATE_KEY) ?? '{}')
+  } catch {
+    return {}
+  }
 }
 
 function writeSidebarGroupState(state: Record<string, boolean>): void {
-  writeJson(localStorage, SIDEBAR_GROUP_STATE_KEY, state)
+  try {
+    localStorage.setItem(SIDEBAR_GROUP_STATE_KEY, JSON.stringify(state))
+  } catch {}
 }
 
 function readSidebarScrollState(): Record<string, number> {
-  return readJsonRecord<number>(localStorage, SIDEBAR_SCROLL_STATE_KEY)
+  try {
+    return JSON.parse(localStorage.getItem(SIDEBAR_SCROLL_STATE_KEY) ?? '{}')
+  } catch {
+    return {}
+  }
 }
 
 function writeSidebarScrollState(state: Record<string, number>): void {
-  writeJson(localStorage, SIDEBAR_SCROLL_STATE_KEY, state)
+  try {
+    localStorage.setItem(SIDEBAR_SCROLL_STATE_KEY, JSON.stringify(state))
+  } catch {}
 }
 
 function sidebarGroupKey(group: HTMLElement): string | null {
@@ -62,8 +73,9 @@ function restoreSidebarGroups(): void {
     )
     .forEach(group => {
       const key = sidebarGroupKey(group)
-      if (!key || state[key] === undefined) return
-      group.open = state[key]
+      const isOpen = key ? state[key] : undefined
+      if (typeof isOpen !== 'boolean') return
+      group.open = isOpen
     })
 }
 

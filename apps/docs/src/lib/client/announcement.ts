@@ -1,5 +1,3 @@
-import { readStorage, writeStorage } from './storage'
-
 const ANNOUNCEMENT_SELECTOR = '[data-announcement-id]'
 const DISMISSED_ATTRIBUTE = 'data-docs-announcement-dismissed'
 const OFFSET_VAR = '--docs-announcement-offset'
@@ -13,12 +11,22 @@ function storageKey(bar: HTMLElement): string | null {
 
 function isDismissed(bar: HTMLElement): boolean {
   const key = storageKey(bar)
-  return key ? readStorage(localStorage, key) === '1' : false
+  if (!key) return false
+
+  try {
+    return localStorage.getItem(key) === '1'
+  } catch {
+    return false
+  }
 }
 
 function dismiss(bar: HTMLElement): void {
   const key = storageKey(bar)
-  if (key) writeStorage(localStorage, key, '1')
+  if (!key) return
+
+  try {
+    localStorage.setItem(key, '1')
+  } catch {}
 }
 
 export function updateAnnouncementOffset(): void {
