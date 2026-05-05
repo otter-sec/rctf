@@ -11,8 +11,6 @@ integrationsGroup.route(GetClientConfigRoute, async ({ res, ctx }) => {
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,
     origin: config.origin,
-    startTime: config.startTime,
-    endTime: config.endTime,
     userMembers: config.userMembers,
     emailEnabled: Boolean(config.email),
     globalSiteTag: config.globalSiteTag ?? null,

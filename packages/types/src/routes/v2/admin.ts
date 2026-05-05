@@ -284,6 +284,8 @@ const AdminSettingsUpdateBody = z.object({
   data: z.object({
     ctfName: z.nullish(z.string()),
     homeContent: z.nullish(z.string()),
+    startTime: z.nullish(z.int()),
+    endTime: z.nullish(z.int()),
     sponsors: z.nullish(
       z.array(
         z.object({

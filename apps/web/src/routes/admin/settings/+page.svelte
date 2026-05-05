@@ -70,7 +70,27 @@
     input.value = ''
   }
 
+  function timestampToDatetimeLocal(ts: number | null | undefined): string {
+    if (ts === null || ts === undefined) return ''
+    const d = new Date(ts)
+    if (Number.isNaN(d.getTime())) return ''
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  function datetimeLocalToTimestamp(value: string): number | null {
+    if (!value) return null
+    const ts = new Date(value).getTime()
+    return Number.isNaN(ts) ? null : ts
+  }
+
+  function formatTimestamp(ts: number | null | undefined): string {
+    return timestampToDatetimeLocal(ts) || 'unset'
+  }
+
   let ctfName = $state('')
+  let startTime = $state<number | null>(null)
+  let endTime = $state<number | null>(null)
   let faviconUrl = $state('')
   let homeContent = $state('')
   let metaDescription = $state('')
@@ -88,6 +108,8 @@
       const d = settings.defaults
 
       ctfName = o.ctfName ?? d.ctfName ?? ''
+      startTime = o.startTime ?? d.startTime ?? null
+      endTime = o.endTime ?? d.endTime ?? null
       faviconUrl = o.faviconUrl ?? d.faviconUrl ?? ''
       homeContent = o.homeContent ?? d.homeContent ?? ''
       metaDescription = o.meta?.description ?? d.meta?.description ?? ''
@@ -105,6 +127,7 @@
 
       overrides = {
         ctfName: o.ctfName !== undefined,
+        timing: o.startTime !== undefined || o.endTime !== undefined,
         faviconUrl: o.faviconUrl !== undefined,
         homeContent: o.homeContent !== undefined,
         meta: o.meta !== undefined,
@@ -122,6 +145,10 @@
     switch (field) {
       case 'ctfName':
         ctfName = d.ctfName ?? ''
+        break
+      case 'timing':
+        startTime = d.startTime ?? null
+        endTime = d.endTime ?? null
         break
       case 'faviconUrl':
         faviconUrl = d.faviconUrl ?? ''
@@ -184,6 +211,22 @@
       patch.ctfName = null
     }
 
+    if (overrides.timing) {
+      if (startTime === null || endTime === null) {
+        toast.error('Start and end time are required.')
+        return
+      }
+      if (startTime >= endTime) {
+        toast.error('Start time must be before end time.')
+        return
+      }
+      patch.startTime = startTime
+      patch.endTime = endTime
+    } else {
+      if (settings?.overrides.startTime !== undefined) patch.startTime = null
+      if (settings?.overrides.endTime !== undefined) patch.endTime = null
+    }
+
     if (overrides.faviconUrl) {
       patch.faviconUrl = faviconUrl
     } else if (settings?.overrides.faviconUrl !== undefined) {
@@ -226,12 +269,19 @@
       return
     }
 
+    const timingChanged = 'startTime' in patch || 'endTime' in patch
+
     mutation.mutate({ data: patch } as any, {
       onSuccess: (response: { kind: string; message: string; data?: unknown }) => {
         if (response.kind === 'goodAdminSettingsUpdate') {
           toast.success('Settings saved.')
           queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
           queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
+          if (timingChanged) {
+            queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
+            queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+            queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+          }
         } else {
           showApiError(response as any)
         }
@@ -304,6 +354,47 @@
             />
             {#if overrides.faviconUrl}
               <Field.Hint>Config default: {settings.defaults.faviconUrl}</Field.Hint>
+            {/if}
+          </Field.Field>
+        </Section.Content>
+      </Section.Root>
+
+      <Section.Root class="bg-background-l1">
+        <Section.Header class="flex items-center justify-between">
+          <span>Timing</span>
+          {@render resetButton('timing')}
+        </Section.Header>
+        <Section.Content class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field.Field>
+            <Field.Label>CTF start</Field.Label>
+            <Input
+              type="datetime-local"
+              value={timestampToDatetimeLocal(startTime)}
+              onchange={e => {
+                startTime = datetimeLocalToTimestamp(e.currentTarget.value)
+                markOverridden('timing')
+              }}
+              placeholder={timestampToDatetimeLocal(settings.defaults.startTime)}
+            />
+            {#if overrides.timing}
+              <Field.Hint>
+                Config default: {formatTimestamp(settings.defaults.startTime)}
+              </Field.Hint>
+            {/if}
+          </Field.Field>
+          <Field.Field>
+            <Field.Label>CTF end</Field.Label>
+            <Input
+              type="datetime-local"
+              value={timestampToDatetimeLocal(endTime)}
+              onchange={e => {
+                endTime = datetimeLocalToTimestamp(e.currentTarget.value)
+                markOverridden('timing')
+              }}
+              placeholder={timestampToDatetimeLocal(settings.defaults.endTime)}
+            />
+            {#if overrides.timing}
+              <Field.Hint>Config default: {formatTimestamp(settings.defaults.endTime)}</Field.Hint>
             {/if}
           </Field.Field>
         </Section.Content>

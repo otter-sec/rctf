@@ -2,6 +2,8 @@ import { config } from '@rctf/config'
 import { createDatabase, settings } from '@rctf/db'
 import {
   BadBody,
+  BadEnded,
+  BadNotStarted,
   BadPerms,
   BadToken,
   GoodAdminSettings,
@@ -142,6 +144,8 @@ describe('admin settings', () => {
       const body = await expectResponse(res, GoodAdminSettings)
       expect(body.data.defaults.ctfName).toBe(config.ctfName)
       expect(body.data.defaults.homeContent).toBe(config.homeContent)
+      expect(body.data.defaults.startTime).toBe(config.startTime)
+      expect(body.data.defaults.endTime).toBe(config.endTime)
       expect(body.data.defaults.faviconUrl).toBe(config.faviconUrl)
       expect(body.data.defaults.meta).toEqual(config.meta)
       expect(body.data.defaults.sponsors).toEqual(config.sponsors)
@@ -211,6 +215,31 @@ describe('admin settings', () => {
       })
       const body = await expectResponse(res, GoodAdminSettingsUpdate)
       expect(body.data.overrides.homeContent).toBe('# Custom Home')
+    })
+
+    test('sets competition timing overrides', async () => {
+      const startTime = Date.now() + 60_000
+      const endTime = startTime + 3_600_000
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.startTime).toBe(startTime)
+      expect(body.data.overrides.endTime).toBe(endTime)
+    })
+
+    test('rejects competition timing where start is after end', async () => {
+      const startTime = Date.now() + 3_600_000
+      const endTime = startTime - 60_000
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+      const body = await expectResponse(res, BadBody)
+      expect(body.data.reason).toBe('startTime must be before endTime')
     })
 
     test('sets faviconUrl override', async () => {
@@ -287,6 +316,8 @@ describe('admin settings', () => {
       const allFields = {
         ctfName: 'All',
         homeContent: '# All',
+        startTime: config.startTime + 1000,
+        endTime: config.endTime - 1000,
         faviconUrl: 'all.ico',
         meta: { description: 'All desc', imageUrl: 'all.png' },
         sponsors: [
@@ -338,6 +369,28 @@ describe('admin settings', () => {
       expect(body.data.overrides.ctfName).toBeUndefined()
       expect(body.data.overrides.homeContent).toBeUndefined()
       expect(body.data.overrides.faviconUrl).toBeUndefined()
+    })
+
+    test('resets competition timing to defaults', async () => {
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({
+          data: {
+            startTime: config.startTime + 1000,
+            endTime: config.endTime - 1000,
+          },
+        }),
+      })
+
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime: null, endTime: null } }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.startTime).toBeUndefined()
+      expect(body.data.overrides.endTime).toBeUndefined()
     })
 
     test('reset does not affect other overridden fields', async () => {
@@ -546,6 +599,23 @@ describe('admin settings', () => {
       expect(body.data.homeContent).toBe('# Override Home')
     })
 
+    test('v2 client config uses DB overrides for competition timing', async () => {
+      const startTime = config.startTime + 12_345
+      const endTime = config.endTime - 54_321
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+
+      const res = await request(app, '/api/v2/integrations/client/config', {
+        method: 'GET',
+      })
+      const body = await expectResponse(res, GoodClientConfigV2)
+      expect(body.data.startTime).toBe(startTime)
+      expect(body.data.endTime).toBe(endTime)
+    })
+
     test('v2 client config uses DB overrides for sponsors', async () => {
       const sponsors = [
         { name: 'TestSponsor', icon: 'test.png', description: 'Test' },
@@ -667,6 +737,23 @@ describe('admin settings', () => {
       expect(body.data.ctfName).toBe('V1Override')
     })
 
+    test('v1 client config also uses DB timing overrides', async () => {
+      const startTime = config.startTime + 22_222
+      const endTime = config.endTime - 33_333
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+
+      const res = await request(app, '/api/v1/integrations/client/config', {
+        method: 'GET',
+      })
+      const body = await res.json()
+      expect(body.data.startTime).toBe(startTime)
+      expect(body.data.endTime).toBe(endTime)
+    })
+
     test('v1 client config reverts after reset', async () => {
       await request(app, '/api/v2/admin/settings', {
         method: 'PUT',
@@ -691,6 +778,40 @@ describe('admin settings', () => {
       })
       body = await res.json()
       expect(body.data.homeContent).toBe(config.homeContent)
+    })
+  })
+
+  describe('timeline overrides affect route gates', () => {
+    test('returns badNotStarted before overridden start time', async () => {
+      const startTime = Date.now() + 3_600_000
+      const endTime = startTime + 3_600_000
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+
+      const res = await request(app, '/api/v2/challs', {
+        method: 'GET',
+      })
+      await expectResponse(res, BadNotStarted)
+    })
+
+    test('returns badEnded after overridden end time', async () => {
+      const endTime = Date.now() - 1000
+      const startTime = endTime - 3_600_000
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+
+      const res = await request(app, '/api/v1/challs/fake/submit', {
+        method: 'POST',
+        headers: await jsonHeaders(unprivilegedUser.user.id),
+        body: JSON.stringify({ flag: 'flag{test}' }),
+      })
+      await expectResponse(res, BadEnded)
     })
   })
 })
