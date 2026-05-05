@@ -1,0 +1,134 @@
+---
+title: Captcha providers
+description: Configure captcha verification with reCAPTCHA, hCaptcha, or Cloudflare Turnstile.
+---
+
+import Callout from '@/components/callout.astro'
+
+Captcha providers protect sensitive endpoints from automated abuse. rCTF supports three captcha services.
+
+## Configuration
+
+Captcha configuration has two parts: the provider (which service to use) and the protected endpoints (which actions require verification).
+
+```yaml
+captcha:
+  provider:
+    name: captcha/turnstile
+    options:
+      siteKey: your-site-key
+      secretKey: your-secret-key
+  protectedEndpoints:
+    - register
+    - recover
+```
+
+## Protected endpoints
+
+The `protectedEndpoints{:yaml}` array controls which actions require captcha verification:
+
+| Action                   | Description                             |
+| ------------------------ | --------------------------------------- |
+| `register{:yaml}`        | New account registration                |
+| `recover{:yaml}`         | Account recovery via email              |
+| `setEmail{:yaml}`        | Changing account email                  |
+| `instancerStart{:yaml}`  | Starting a challenge instance           |
+| `instancerExtend{:yaml}` | Extending a challenge instance lifetime |
+| `avatarUpload{:yaml}`    | Uploading a team avatar                 |
+| `adminBotSubmit{:yaml}`  | Submitting a job to the admin bot       |
+
+Only the actions listed in `protectedEndpoints{:yaml}` will require captcha. Unlisted actions proceed without verification.
+
+## Providers
+
+<Tabs items={['captcha/recaptcha', 'captcha/hcaptcha', 'captcha/turnstile']}>
+<Tab>
+
+Google reCAPTCHA (v2 or v3).
+
+```yaml
+captcha:
+  provider:
+    name: captcha/recaptcha
+    options:
+      siteKey: your-site-key
+      secretKey: your-secret-key
+```
+
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
+| `siteKey{:yaml}`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
+| `secretKey{:yaml}` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
+
+</Tab>
+<Tab>
+
+[hCaptcha](https://www.hcaptcha.com/) verification.
+
+```yaml
+captcha:
+  provider:
+    name: captcha/hcaptcha
+    options:
+      siteKey: your-site-key
+      secretKey: your-secret-key
+```
+
+| Option             | Environment Variable            | Description         |
+| ------------------ | ------------------------------- | ------------------- |
+| `siteKey{:yaml}`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
+| `secretKey{:yaml}` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
+
+</Tab>
+<Tab>
+
+[Cloudflare Turnstile](https://developers.cloudflare.com/turnstile/) verification.
+
+```yaml
+captcha:
+  provider:
+    name: captcha/turnstile
+    options:
+      siteKey: your-site-key
+      secretKey: your-secret-key
+```
+
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
+| `siteKey{:yaml}`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
+| `secretKey{:yaml}` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
+
+</Tab>
+</Tabs>
+
+## Migrating from v1
+
+If you are using the legacy `recaptcha{:yaml}` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
+
+<Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
+<Tab>
+
+```yaml
+recaptcha:
+  siteKey: your-site-key
+  secretKey: your-secret-key
+  protectedActions:
+    - register
+```
+
+</Tab>
+<Tab>
+
+```yaml
+captcha:
+  provider:
+    name: captcha/recaptcha
+    options:
+      siteKey: your-site-key
+      secretKey: your-secret-key
+  protectedEndpoints:
+    - register
+```
+
+</Tab>
+</Tabs>

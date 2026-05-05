@@ -1,0 +1,35 @@
+---
+title: Providers
+description: Overview of rCTF's pluggable provider system for captcha, email, uploads, scoring, moderation, and more.
+---
+
+rCTF uses a pluggable provider system that allows you to choose between different implementations for key platform features. Each provider is configured with a `name{:yaml}` and an `options{:yaml}` object in your [configuration](/configuration).
+
+## Provider format
+
+All providers follow the same configuration pattern:
+
+```yaml
+providerField:
+  name: provider-type/provider-name
+  options:
+    key: value
+```
+
+The `name{:yaml}` identifies which implementation to load, and `options{:yaml}` is passed directly to the provider's constructor. Most providers also support environment variable fallbacks for their options.
+
+## Available providers
+
+| Type                                | Config Field                              | Available Providers                                                                                                                         | Default                 |
+| ----------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| [Captcha](/providers/captcha)       | `captcha.provider{:yaml}`                 | `captcha/recaptcha{:yaml}`, `captcha/hcaptcha{:yaml}`, `captcha/turnstile{:yaml}`                                                           | None (disabled)         |
+| [Email](/providers/emails)          | `email.provider{:yaml}`                   | `emails/smtp{:yaml}`, `emails/ses{:yaml}`, `emails/postmark{:yaml}`, `emails/mailgun{:yaml}`                                                | None (disabled)         |
+| [Uploads](/providers/uploads)       | `uploadProvider{:yaml}`                   | `uploads/local{:yaml}`, `uploads/s3{:yaml}`, `uploads/gcs{:yaml}`                                                                           | `uploads/local{:yaml}`  |
+| [Scoring](/providers/scores)        | `scoreProvider{:yaml}`                    | `scores/classic{:yaml}`, `scores/sekai{:yaml}`, `scores/steep{:yaml}`, `scores/jammy{:yaml}`, `scores/genni{:yaml}`, `scores/legacy{:yaml}` | `scores/classic{:yaml}` |
+| [Moderation](/providers/moderation) | `avatarsModeration.provider{:yaml}`       | `moderation/openai{:yaml}`                                                                                                                  | None (disabled)         |
+| Messages                            | `bloodBot.destinations[].provider{:yaml}` | `messages/discord{:yaml}`, `messages/telegram{:yaml}`                                                                                       | None (disabled)         |
+| [Analytics](/providers/analytics)   | `analytics.provider{:yaml}`               | `analytics/google{:yaml}`, `analytics/cloudflare{:yaml}`, `analytics/plausible{:yaml}`                                                      | None (disabled)         |
+| Instancer                           | `instancerProvider{:yaml}`                | `instancer/docker-instancer{:yaml}`, `instancer/k8s-instancer{:yaml}`                                                                       | None (disabled)         |
+| Admin Bot                           | `adminBot.provider{:yaml}`                | `admin-bot/rctf-js{:yaml}`                                                                                                                  | None (disabled)         |
+
+Providers marked as "None (disabled)" are optional features. The platform functions without them, but the associated features will be unavailable.

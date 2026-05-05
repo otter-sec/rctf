@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import type { ProviderConfig } from '@rctf/config'
+import { scoreProviders } from '@rctf/scoring'
 import { adminBotProviders } from './admin-bot'
 import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
@@ -7,7 +8,6 @@ import { emailProviders } from './emails'
 import { instancerProviders } from './instancer'
 import { messagesProviders } from './messages'
 import { moderationProviders } from './moderation'
-import { scoreProviders } from './scores'
 import { uploadProviders } from './uploads'
 
 const loadProvider = <Base>(

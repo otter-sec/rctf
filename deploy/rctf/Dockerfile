@@ -10,6 +10,7 @@ FROM build-base AS package-configs
 COPY package.json bun.lock ./
 COPY packages/config/package.json ./packages/config/
 COPY packages/db/package.json ./packages/db/
+COPY packages/scoring/package.json ./packages/scoring/
 COPY packages/types/package.json ./packages/types/
 COPY packages/util/package.json ./packages/util/
 COPY tests/server/package.json ./tests/server/
@@ -76,11 +77,13 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 
 COPY --from=build /app/packages/config/package.json ./packages/config/package.json
 COPY --from=build /app/packages/db/package.json ./packages/db/package.json
+COPY --from=build /app/packages/scoring/package.json ./packages/scoring/package.json
 COPY --from=build /app/packages/types/package.json ./packages/types/package.json
 COPY --from=build /app/packages/util/package.json ./packages/util/package.json
 COPY --from=build /app/packages/config/src ./packages/config/src
 COPY --from=build /app/packages/db/src ./packages/db/src
 COPY --from=build /app/packages/db/migrations ./packages/db/migrations
+COPY --from=build /app/packages/scoring/src ./packages/scoring/src
 COPY --from=build /app/packages/types/src ./packages/types/src
 COPY --from=build /app/packages/util/src ./packages/util/src
 COPY --from=build /app/apps/api/templates ./apps/api/templates

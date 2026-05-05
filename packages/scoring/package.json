@@ -1,0 +1,18 @@
+{
+  "name": "@rctf/scoring",
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./base": "./src/base.ts",
+    "./classic": "./src/classic.ts",
+    "./genni": "./src/genni.ts",
+    "./jammy": "./src/jammy.ts",
+    "./legacy": "./src/legacy.ts",
+    "./sekai": "./src/sekai.ts",
+    "./steep": "./src/steep.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

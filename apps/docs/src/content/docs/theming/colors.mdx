@@ -3,7 +3,7 @@ title: Color system
 description: Understanding and customizing the rCTF color system, including light/dark themes and semantic colors.
 ---
 
-import Swatch from '../../../components/Swatch'
+import Swatch from '@/components/mdx/swatch'
 
 All colors in rCTF are defined using [OKLCH](https://oklch.com). Colors are declared as CSS custom properties in `apps/web/src/app.css`, with `:root` containing light mode values and `[data-theme='dark']` providing dark mode overrides. The theme is toggled via the `data-theme` attribute on `<html>`, persisted to `localStorage`, and respects `prefers-color-scheme` on first load.
 

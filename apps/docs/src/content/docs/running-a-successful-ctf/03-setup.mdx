@@ -3,7 +3,7 @@ title: Setting up a CTF platform
 description: Complete guide to deploying rCTF, configuring Nginx with TLS, and creating admin accounts.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import Callout from '@/components/callout.astro'
 
 There are two primary CTF platforms that are publicly available:
 
@@ -22,231 +22,250 @@ For this guide, you'll need at least the following:
 
 Additionally, you'll want a TLS certificate either by using something like [Cloudflare](https://cloudflare.com) with proxied host or [certbot](https://certbot.eff.org/instructions) to manually provision it.
 
-:::note
-All the examples will use `example.com` which refers to the domain name hosting the CTF platform, and `123.123.123.123` which is the deployed VPS hosting the CTF platform. All these occurrences should be replaced with your own values respectively.
-:::
+<Callout variant="note">
 
+All the examples will use `example.com` which refers to the domain name hosting the CTF platform, and `123.123.123.123` which is the deployed VPS hosting the CTF platform. All these occurrences should be replaced with your own values respectively.
+
+</Callout>
 ## Installing rCTF
 
 <Steps>
+<Step title="SSH into your VPS">
 
-1. **SSH into your VPS**
+After you've deployed a VPS in your preferred provider, you'll need to SSH into it using:
 
-   After you've deployed a VPS in your preferred provider, you'll need to SSH into it using:
+```bash title="Terminal"
+ssh root@123.123.123.123
+```
 
-   ```bash title="Terminal"
-   ssh root@123.123.123.123
-   ```
+All the subsequent commands should be run inside the VPS as the root user.
 
-   All the subsequent commands should be run inside the VPS as the root user.
+</Step>
+<Step title="Run the installation script">
 
-2. **Run the installation script**
+We provide a simple installation script that sets up rCTF automatically:
 
-   We provide a simple installation script that sets up rCTF automatically:
+```bash title="Terminal"
+curl -L https://get.rctf.osec.io | sh
+```
 
-   ```bash title="Terminal"
-   curl -L https://get.rctf.osec.io | sh
-   ```
+When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
 
-   When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
+</Step>
+<Step title="Configure your instance">
 
-3. **Configure your instance**
+The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration). Consider configuring at least the following:
 
-   The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration). Consider configuring at least the following:
-   - CTF name, description, image, origin, home content, start and end time
-   - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
-   - `proxy.cloudflare` if behind Cloudflare
-   - GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/providers/uploads))
+- CTF name, description, image, origin, home content, start and end time
+- Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
+- `proxy.cloudflare{:yaml}` if behind Cloudflare
+- GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/providers/uploads))
 
-4. **Restart rCTF after configuration changes**
+</Step>
+<Step title="Restart rCTF after configuration changes">
 
-   After each configuration change, you need to restart rCTF by running the following command:
+After each configuration change, you need to restart rCTF by running the following command:
 
-   ```bash title="Terminal"
-   cd /opt/rctf && docker compose up -d --force-recreate --build
-   ```
+```bash title="Terminal"
+cd /opt/rctf && docker compose up -d --force-recreate --build
+```
 
+</Step>
 </Steps>
 
 ## Setting up the web server
 
 By default, the CTF platform is only directly accessible from the VPS itself. For this, we'll set up Nginx to act as a webserver handling TLS and proxying the traffic forward to rCTF. It is also helpful to have Cloudflare in front so that you can deal with DDoS attacks and implement easy rate-limiting.
 
-### Using Cloudflare
+<Tabs items={['Using Cloudflare', 'Using certbot']}>
+<Tab>
 
 <Steps>
+<Step title="Configure Cloudflare DNS">
 
-1. **Configure Cloudflare DNS**
+In Cloudflare, navigate to your domain > DNS > Records and create an `A` record pointing to `123.123.123.123` (your VPS IP). The orange cloud should be enabled. Then, navigate to the SSL/TLS > Overview tab, and make sure SSL/TLS encryption is set to `Full (strict)`.
 
-   In Cloudflare, navigate to your domain > DNS > Records and create an `A` record pointing to `123.123.123.123` (your VPS IP). The orange cloud should be enabled. Then, navigate to the SSL/TLS > Overview tab, and make sure SSL/TLS encryption is set to `Full (strict)`.
+</Step>
+<Step title="Create origin certificate">
 
-2. **Create origin certificate**
+In SSL/TLS > Origin Server tab, create a new certificate where all the settings are default except the hostname is set to the domain name where you'll run the CTF platform, e.g. `ctf.example.com`. Copy the origin certificate into the `/etc/ssl/cf_fullchain.pem` file, and the private key into the `/etc/ssl/cf_privkey.pem` file.
 
-   After that, in SSL/TLS > Origin Server tab, create a new certificate where all the settings are default except the hostname is set to the domain name where you'll run the CTF platform, e.g. `ctf.example.com`. Copy the origin certificate into the `/etc/ssl/cf_fullchain.pem` file, and the private key into the `/etc/ssl/cf_privkey.pem` file.
+</Step>
+<Step title="Configure UFW firewall">
 
-3. **Configure UFW firewall**
+We will setup a firewall using UFW to only allow Cloudflare IPs to access the web server:
 
-   We will setup a firewall using UFW to only allow Cloudflare IPs to access the web server:
+```bash title="Terminal"
+ufw allow 22
+# source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh
+for cfip in `curl -sw '\n' https://www.cloudflare.com/ips-v{4,6}`; do ufw allow proto tcp from $cfip comment 'Cloudflare IP'; done
+ufw enable # answer `y` when prompted regarding enabling firewall
+```
 
-   ```bash title="Terminal"
-   ufw allow 22
-   # source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh
-   for cfip in `curl -sw '\n' https://www.cloudflare.com/ips-v{4,6}`; do ufw allow proto tcp from $cfip comment 'Cloudflare IP'; done
-   ufw enable # answer `y` when prompted regarding enabling firewall
-   ```
+</Step>
+<Step title="Install and configure Nginx">
 
-4. **Install and configure Nginx**
+Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-   Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
+# Redirect HTTP -> HTTPS
+server {
+    listen 80;
+    server_name ctf.example.com; # TODO: update me to CTF platform domain name
+    return 301 https://$host$request_uri;
+}
 
-   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
-   # Redirect HTTP -> HTTPS
-   server {
-       listen 80;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name
-       return 301 https://$host$request_uri;
-   }
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''  close;
+}
 
-   map $http_upgrade $connection_upgrade {
-       default upgrade;
-       ''  close;
-   }
+server {
+    listen 443 ssl;
+    server_name ctf.example.com; # TODO: update me to CTF platform domain name
+    ssl_certificate /etc/ssl/cf_fullchain.pem;
+    ssl_certificate_key /etc/ssl/cf_privkey.pem;
 
-   server {
-       listen 443 ssl;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name
-       ssl_certificate /etc/ssl/cf_fullchain.pem;
-       ssl_certificate_key /etc/ssl/cf_privkey.pem;
+    # NOTE: It is *very* important to only whitelist Cloudflare IPs for the webserver (which we'll do in the following steps),
+    # as this otherwise lets you spoof the IP (not that this is particularly useful though).
+    set_real_ip_from 0.0.0.0/0;
+    real_ip_header CF-Connecting-IP;
 
-       # NOTE: It is *very* important to only whitelist Cloudflare IPs for the webserver (which we'll do in the following steps),
-       # as this otherwise lets you spoof the IP (not that this is particularly useful though).
-       set_real_ip_from 0.0.0.0/0;
-       real_ip_header CF-Connecting-IP;
+    location / {
+        # Uncomment the following if you want to only allow yourself to access the platform for now.
+        #allow [your IP];
+        #deny all;
 
-       location / {
-           # Uncomment the following if you want to only allow yourself to access the platform for now.
-           #allow [your IP];
-           #deny all;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_buffering off;
+    }
+}
+```
 
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection $connection_upgrade;
-           proxy_pass http://127.0.0.1:8080/;
-           proxy_buffering off;
-       }
-   }
-   ```
+</Step>
+<Step title="Enable the configuration">
 
-5. **Enable the configuration**
+Create a symlink so Nginx loads the configuration, then apply it:
 
-   Then, we create a symlink from `/etc/nginx/sites-available/rctf.conf` to `/etc/nginx/sites-enabled/rctf.conf` so that Nginx loads our configuration, and apply the change:
+```bash title="Terminal"
+ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+nginx -t && nginx -s reload
+```
 
-   ```bash title="Terminal"
-   ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-   nginx -t && nginx -s reload
-   ```
+Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
-   Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
-
+</Step>
 </Steps>
 
-### Using something else
+</Tab>
+<Tab>
 
 <Steps>
+<Step title="Configure DNS">
 
-1. **Configure DNS**
+In your DNS registrar, configure a new `A` DNS record pointing to `123.123.123.123` (your VPS IP). Then, follow the instructions on [certbot's website](https://certbot.eff.org/instructions?ws=nginx&os=pip) on how to provision a certificate.
 
-   In your DNS registrar, configure a new `A` DNS record pointing to `123.123.123.123` (your VPS IP). Then, follow the instructions
-   on [certbot's website](https://certbot.eff.org/instructions?ws=nginx&os=pip) on how to provision a certificate.
+</Step>
+<Step title="Install and configure Nginx">
 
-2. **Install and configure Nginx**
+Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
 
-   Now, we can install Nginx using `apt update && apt install -y nginx`. Then, we create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
+# Redirect HTTP -> HTTPS
+server {
+    listen 80;
+    server_name ctf.example.com; # TODO: update me to CTF platform domain name
+    return 301 https://$host$request_uri;
+}
 
-   ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
-   # Redirect HTTP -> HTTPS
-   server {
-       listen 80;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name
-       return 301 https://$host$request_uri;
-   }
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''  close;
+}
 
-   map $http_upgrade $connection_upgrade {
-       default upgrade;
-       ''  close;
-   }
+server {
+    listen 443 ssl;
+    server_name ctf.example.com; # TODO: update me to CTF platform domain name
+    ssl_certificate /etc/letsencrypt/live/ctf.example.com/fullchain.pem; # TODO: update path to CTF platform domain name
+    ssl_certificate_key /etc/letsencrypt/live/ctf.example.com/privkey.pem; # TODO: update path to CTF platform domain name
 
-   server {
-       listen 443 ssl;
-       server_name ctf.example.com; # TODO: update me to CTF platform domain name
-       ssl_certificate /etc/letsencrypt/live/ctf.example.com/fullchain.pem; # TODO: update path to CTF platform domain name
-       ssl_certificate_key /etc/letsencrypt/live/ctf.example.com/privkey.pem; # TODO: update path to CTF platform domain name
+    location / {
+        # Uncomment the following if you want to only allow yourself to access the platform for now.
+        #allow [your IP];
+        #deny all;
 
-       location / {
-           # Uncomment the following if you want to only allow yourself to access the platform for now.
-           #allow [your IP];
-           #deny all;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_buffering off;
+    }
+}
+```
 
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection $connection_upgrade;
-           proxy_pass http://127.0.0.1:8080/;
-           proxy_buffering off;
-       }
-   }
-   ```
+</Step>
+<Step title="Enable the configuration">
 
-3. **Enable the configuration**
+Create a symlink so Nginx loads the configuration, then apply it:
 
-   Then, we create a symlink from `/etc/nginx/sites-available/rctf.conf` to `/etc/nginx/sites-enabled/rctf.conf` so that Nginx loads our configuration, and apply the change:
+```bash title="Terminal"
+ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+nginx -t && nginx -s reload
+```
 
-   ```bash title="Terminal"
-   ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-   nginx -t && nginx -s reload
-   ```
+Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
-   Every time you update the configuration, you'll need to run `nginx -t && nginx -s reload` to validate and apply your configuration changes. After all these steps are done, you should be able to visit `https://ctf.example.com` and view rCTF!
-
+</Step>
 </Steps>
+
+</Tab>
+</Tabs>
 
 ## Creating an admin account
 
 <Steps>
+<Step title="Register a new account">
 
-1. **Register a new account**
+Register a new account in rCTF.
 
-   Register a new account in rCTF.
+</Step>
+<Step title="Update permissions via database">
 
-2. **Update permissions via database**
+In the VPS running rCTF, run the following commands to grant the account admin permissions:
 
-   Then, in the VPS running rCTF we're able to run the following commands to make our registered account an admin account:
+```bash title="Terminal"
+docker exec -it rctf-postgres-1 bash
+```
 
-   ```bash title="Terminal"
-   docker exec -it rctf-postgres-1 bash
-   ```
+```bash title="Inside the postgres container"
+psql -U rctf
+```
 
-   ```bash title="Inside the postgres container"
-   psql -U rctf
-   ```
+```sql title="Inside the postgres shell"
+UPDATE users SET perms = 3 WHERE email = 'my.email@example.com';
+```
 
-   ```sql title="Inside the postgres shell"
-   UPDATE users SET perms = 3 WHERE email = 'my.email@example.com';
-   ```
+</Step>
+<Step title="Verify admin access">
 
-3. **Verify admin access**
+Confirm that you have permissions to create challenges by navigating to `https://ctf.example.com/admin/challs`.
 
-   After becoming an admin, you can confirm that you have permissions to create challenges by navigating to `https://ctf.example.com/admin/challs`.
+<Callout variant="warning">
 
-   :::caution
-   If the page does not load or you don't see the challenge upload screen, something went wrong and you should double check the output of the previous commands when updating your permissions.
-   :::
+If the page does not load or you don't see the challenge upload screen, something went wrong and you should double check the output of the previous commands when updating your permissions.
 
+</Callout>
+
+</Step>
 </Steps>
