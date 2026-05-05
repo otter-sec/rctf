@@ -80,6 +80,7 @@
   let deletingTeamId = $state<string | null>(null)
   let revokingSolveKey = $state<string | null>(null)
   let selectedTeamId = $state<string | null>(null)
+  let banDialogTeam = $state<{ id: string; name: string; banned: boolean } | null>(null)
   let deleteDialogTeam = $state<{ id: string; name: string } | null>(null)
   const selectedTeamQuery = useAdminUser(() => selectedTeamId)
   const selectedTeam = $derived(selectedTeamQuery.data)
@@ -136,7 +137,30 @@
     selectedTeamId = null
   }
 
-  function handleToggleBan(team: { id: string; name: string; banned: boolean }) {
+  function openBanDialog(team: { id: string; name: string; banned: boolean }) {
+    if (selectedTeamId === team.id) {
+      closeManageTeam()
+    }
+    banDialogTeam = team
+  }
+
+  function closeBanDialog() {
+    banDialogTeam = null
+  }
+
+  function handleBanAction(team: { id: string; name: string; banned: boolean }) {
+    if (team.banned) {
+      handleToggleBan(team)
+      return
+    }
+
+    openBanDialog(team)
+  }
+
+  function handleToggleBan(
+    team: { id: string; name: string; banned: boolean },
+    onSuccess?: () => void
+  ) {
     updatingTeamId = team.id
     updateUserMutation.mutate(
       {
@@ -150,6 +174,7 @@
           if (response.kind === GoodAdminUserUpdateV2.kind) {
             toast.success(`${team.name} ${team.banned ? 'unbanned' : 'banned'}`)
             refreshTeamQueries(team.id)
+            onSuccess?.()
           } else {
             showApiError(response)
           }
@@ -161,6 +186,11 @@
         },
       }
     )
+  }
+
+  function handleConfirmBan() {
+    if (!banDialogTeam) return
+    handleToggleBan(banDialogTeam, closeBanDialog)
   }
 
   function openDeleteDialog(team: { id: string; name: string }) {
@@ -324,7 +354,7 @@
                           </DropdownMenu.Item>
                           <DropdownMenu.Item
                             class="data-highlighted:bg-background-l5"
-                            onclick={() => handleToggleBan(team)}
+                            onclick={() => handleBanAction(team)}
                             disabled={isUpdating}
                           >
                             {team.banned ? 'Unban team' : 'Ban team'}
@@ -376,7 +406,7 @@
                           <Button
                             variant={team.banned ? 'secondary' : 'destructive'}
                             class="h-full px-3"
-                            onclick={() => handleToggleBan(team)}
+                            onclick={() => handleBanAction(team)}
                             disabled={isUpdating}
                           >
                             {#if isUpdating}
@@ -509,7 +539,7 @@
         {#if hasWritePerms && selectedTeam.perms === 0}
           <Button
             variant={selectedTeam.banned ? 'secondary' : 'destructive'}
-            onclick={() => handleToggleBan(selectedTeam)}
+            onclick={() => handleBanAction(selectedTeam)}
             disabled={updatingTeamId === selectedTeam.id}
           >
             {#if updatingTeamId === selectedTeam.id}
@@ -530,6 +560,32 @@
         {/if}
       </Dialog.Footer>
     {/if}
+  </Dialog.Content>
+</Dialog.Root>
+
+<Dialog.Root open={banDialogTeam !== null} onOpenChange={open => !open && closeBanDialog()}>
+  <Dialog.Content class="max-w-md">
+    <Dialog.Header>
+      <Dialog.Title>Ban team</Dialog.Title>
+      <Dialog.Description>
+        Are you sure you want to ban <span class="text-foreground-l1 font-medium"
+          >{banDialogTeam?.name}</span
+        >? This removes the team from the leaderboard but keeps their account and solve history.
+      </Dialog.Description>
+    </Dialog.Header>
+    <Dialog.Footer>
+      <Button variant="secondary" onclick={closeBanDialog}>Cancel</Button>
+      <Button
+        variant="destructive"
+        onclick={handleConfirmBan}
+        disabled={banDialogTeam ? updatingTeamId === banDialogTeam.id : false}
+      >
+        {#if banDialogTeam && updatingTeamId === banDialogTeam.id}
+          <Spinner class="size-4" />
+        {/if}
+        Ban team
+      </Button>
+    </Dialog.Footer>
   </Dialog.Content>
 </Dialog.Root>
 
