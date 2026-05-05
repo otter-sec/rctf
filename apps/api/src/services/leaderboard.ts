@@ -6,7 +6,7 @@ import type { ScoreContext } from '@rctf/scoring/base'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   leaderboardOrderSql,
-  userIsRankedSql,
+  userIsPublicRankedSql,
   type CalculatedLeaderboard,
   type InternalChallengeInfo,
   type InternalUserInfo,
@@ -705,7 +705,7 @@ export const searchLeaderboard = async (
   // only include users on the leaderboard (have ranks assigned by the leaderboard worker)
   const whereClause = and(
     searchFilter,
-    userIsRankedSql,
+    userIsPublicRankedSql,
     division ? eq(users.division, division) : undefined
   )
 
@@ -775,7 +775,7 @@ export const getLeaderboardWithTotal = async (
   division?: string
 ) => {
   const whereClause = and(
-    userIsRankedSql,
+    userIsPublicRankedSql,
     division ? eq(users.division, division) : undefined
   )
 

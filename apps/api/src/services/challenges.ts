@@ -89,6 +89,7 @@ const createRankedSolves = (db: DatabaseClient) =>
       })
       .from(solves)
       .innerJoin(users, eq(users.id, solves.userid))
+      .where(eq(users.banned, false))
   )
 
 export const getPrivateChallenges = async (
@@ -182,7 +183,9 @@ export const createSolveAndGetBloodNumber = async (
         sql`
         SELECT COUNT(*)::int AS solve_count
         FROM solves
-        WHERE challengeid = ${params.challengeId}
+        INNER JOIN "users" ON "users".id = solves.userid
+        WHERE solves.challengeid = ${params.challengeId}
+          AND "users".banned = false
       `
       )
       .then(takeUnique)
@@ -309,7 +312,7 @@ export const getChallengeSolves = async (
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
-    .where(eq(solves.challengeid, challengeId))
+    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
     .orderBy(asc(solves.createdat))
     .limit(limit)
     .offset(offset)
@@ -437,7 +440,13 @@ export const getSolvesAndUserInfo = async (
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(and(inArray(solves.userid, userIds), challengeIsPublicSql))
+    .where(
+      and(
+        inArray(solves.userid, userIds),
+        challengeIsPublicSql,
+        eq(users.banned, false)
+      )
+    )
     .orderBy(asc(solves.createdat))
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(

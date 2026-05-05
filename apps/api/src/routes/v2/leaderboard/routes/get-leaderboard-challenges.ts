@@ -17,10 +17,12 @@ leaderboardGroup.route(
           COALESCE((
             SELECT ARRAY_AGG(first_blood.userid ORDER BY first_blood.createdat ASC, first_blood.id ASC)
             FROM (
-              SELECT userid, createdat, id
+              SELECT solves.userid, solves.createdat, solves.id
               FROM solves
+              INNER JOIN "users" ON "users".id = solves.userid
               WHERE solves.challengeid = challenges.id
-              ORDER BY createdat ASC, id ASC
+                AND "users".banned = false
+              ORDER BY solves.createdat ASC, solves.id ASC
               LIMIT 3
             ) AS first_blood
           ), ARRAY[]::text[])
