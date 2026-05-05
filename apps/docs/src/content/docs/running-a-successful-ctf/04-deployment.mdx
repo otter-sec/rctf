@@ -3,14 +3,15 @@ title: Deploying challenges
 description: Guide to deploying CTF challenges including shared remotes, instanced remotes, kCTF, Docker, and admin bots.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import Callout from '@/components/callout.astro'
 
 With the CTF platform operational and challenges ready to be created, the next step is deployment. There are two primary deployment types alongside static challenges: **shared remote** and **instanced remote**.
 
-:::tip
-Regardless of deployment method, it is considered good practice to include a local setup of the challenge for debugging purposes (e.g., using Docker). This also simplifies remote deployment, as most solutions are designed around running a provided Docker image.
-:::
+<Callout variant="tip">
 
+Regardless of deployment method, it is considered good practice to include a local setup of the challenge for debugging purposes (e.g., using Docker). This also simplifies remote deployment, as most solutions are designed around running a provided Docker image.
+
+</Callout>
 Additionally, rCTF supports hosting admin bots separately from the challenge to handle traffic spikes and provide a more accurate simulation of external visitors, rather than relying on internal IPs as would occur in a local deployment.
 
 ## Shared remote
@@ -23,9 +24,9 @@ Google has created [kCTF](https://google.github.io/kctf/introduction.html) for t
 
 kCTF maintains its own [documentation](https://google.github.io/kctf/), so this section focuses on considerations that may not be immediately apparent, particularly for first-time users:
 
-- When deploying kCTF, you have the option to control under which (sub)domain the challenges are available. The `kctf cluster create` command has the `--domain-name` option responsible for this, and you should expect to either use nameservers of Google if you want to host challenges under `*.example.com`, or use a subdomain with a `NS` records pointing to Google so that challenges are available under `*.subdomain.example.com`.
-- By default, the created nodes are spot (preemptible) instances. This means that every 24 hours, the nodes will be rotated, causing temporary downtime for the challenges. To avoid this behavior, trigger a cluster resize without the spot instance flag (e.g., `kctf cluster resize --min-nodes 1 --max-nodes 3 --num-nodes 1 --machine-type n2-standard-4`), which incurs slightly higher costs.
-- If a health check fails, the challenge will be automatically restarted, which may manifest as apparent connectivity issues. In such scenarios, verify the output of `kctf chal status` to expedite debugging.
+- When deploying kCTF, you have the option to control under which (sub)domain the challenges are available. The `kctf cluster create{:sh}` command has the `--domain-name` option responsible for this, and you should expect to either use nameservers of Google if you want to host challenges under `*.example.com`, or use a subdomain with a `NS` records pointing to Google so that challenges are available under `*.subdomain.example.com`.
+- By default, the created nodes are spot (preemptible) instances. This means that every 24 hours, the nodes will be rotated, causing temporary downtime for the challenges. To avoid this behavior, trigger a cluster resize without the spot instance flag (e.g., `kctf cluster resize --min-nodes 1 --max-nodes 3 --num-nodes 1 --machine-type n2-standard-4{:sh}`), which incurs slightly higher costs.
+- If a health check fails, the challenge will be automatically restarted, which may manifest as apparent connectivity issues. In such scenarios, verify the output of `kctf chal status{:sh}` to expedite debugging.
 - Monitor your GCP project's quotas, as the dashboard indicates which limits have been reached or are approaching capacity. Deploying a large number of challenges may cause deployment failures due to insufficient IP addresses or other quota constraints. Configuring kCTF in advance serves as a practical method to verify that quotas are sufficient and may improve your account's standing for automatic quota increase approvals.
 - Some challenges deployed to kCTF may require additional modifications due to security hardening features. Configuring kCTF in advance is highly recommended to identify and resolve such issues before the competition begins. The [Kubernetes Pods documentation](https://kubernetes.io/docs/concepts/workloads/pods/) provides additional context on configurable options for kCTF challenge instances (for example, additional volumes, as the file system is read-only by default).
 
@@ -35,18 +36,20 @@ If the complexity of kCTF is undesirable due to GCP and Kubernetes requirements,
 
 The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrapping challenges in nsjail can further reduce the attack surface and mitigate such risks.
 
-:::danger
-It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
-:::
+<Callout variant="danger">
 
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
+
+</Callout>
 ### VM
 
 An alternative approach is to provision a separate VM (or VPS) for each challenge instance. Although more costly than running all challenges on a single host, this configuration reduces the blast radius, preventing a single compromised challenge from affecting others through disk exhaustion, container breakouts, or similar attacks. The optimal configuration depends on the specific requirements of each challenge.
 
-:::danger
-It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
-:::
+<Callout variant="danger">
 
+It is extremely important to make sure competitors are not able to access any internal metadata services (e.g. `http://169.254.169.254` on AWS/GCP cloud providers which have access credentials to the cloud account).
+
+</Callout>
 ## Instanced remote
 
 In an instanced remote configuration, each competitor receives a dedicated instance. This is necessary for challenges where the vulnerability inherently provides file write or remote code execution capabilities, which could otherwise be exploited by competitors to disrupt challenge functionality, remove flags, or interfere with other participants.
@@ -60,53 +63,57 @@ One method for deploying instanced challenges on rCTF is the third-party integra
 The following guide outlines the prerequisites for deploying Klodd on GCP using GKE:
 
 <Steps>
+<Step title="Create GKE cluster">
 
-1. **Create GKE cluster**
+```bash title="Terminal"
+gcloud config set project [project-id]
+gcloud container clusters create --release-channel regular --zone europe-west1-b --enable-network-policy --enable-autoscaling \
+  --min-nodes 1 --max-nodes 4 --num-nodes 1 --no-enable-master-authorized-networks --enable-autorepair \
+  --machine-type e2-standard-8 klodd-cluster
+gcloud container clusters get-credentials klodd-cluster --zone europe-west1-b
 
-   ```bash title="Terminal"
-   gcloud config set project [project-id]
-   gcloud container clusters create --release-channel regular --zone europe-west1-b --enable-network-policy --enable-autoscaling \
-     --min-nodes 1 --max-nodes 4 --num-nodes 1 --no-enable-master-authorized-networks --enable-autorepair \
-     --machine-type e2-standard-8 klodd-cluster
-   gcloud container clusters get-credentials klodd-cluster --zone europe-west1-b
+gcloud compute addresses create klodd-ip --region europe-west1
+gcloud compute addresses list # note down the external IP of klodd-ip
+```
 
-   gcloud compute addresses create klodd-ip --region europe-west1
-   gcloud compute addresses list # note down the external IP of klodd-ip
-   ```
+</Step>
+<Step title="Set up Cloudflare Worker and certificate">
 
-2. **Set up Cloudflare Worker and certificate**
+Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf). Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
 
-   Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf). Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
+```bash title="Terminal"
+certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer.example.com,*.instancer.example.com
+```
 
-   ```bash title="Terminal"
-   certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer.example.com,*.instancer.example.com
-   ```
+</Step>
+<Step title="Deploy Klodd">
 
-3. **Deploy Klodd**
+Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
 
-   Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
+```bash title="Terminal" mark={3,6}
+kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
+kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
+kubectl apply -f 00-traefik.yaml # remember to update the load balancer IP
+kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml
+kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml
+kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and all the instancer.example.com URLs here
+```
 
-   ```bash title="Terminal" mark={3,6}
-   kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
-   kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
-   kubectl apply -f 00-traefik.yaml # remember to update the load balancer IP
-   kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml
-   kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml
-   kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and all the instancer.example.com URLs here
-   ```
+</Step>
+<Step title="Configure DNS">
 
-4. **Configure DNS**
+Create a wildcard `A` DNS record for `*.instancer.example.com` pointing to [klodd-ip], and an `A` DNS record for `instancer.example.com` pointing to [klodd-ip]. Once configured, refer to [Klodd's challenge deployment guide](https://klodd.tjcsec.club/install-guide/challenges/) for instructions on deploying individual challenges.
 
-   Create a wildcard `A` DNS record for `*.instancer.example.com` pointing to [klodd-ip], and an `A` DNS record for `instancer.example.com` pointing to [klodd-ip]. Once configured, refer to [Klodd's challenge deployment guide](https://klodd.tjcsec.club/install-guide/challenges/) for instructions on deploying individual challenges.
-
+</Step>
 </Steps>
 
 Challenges will be accessible at `https://instancer.example.com/challenge/[metadata.name]` once the configuration is complete.
 
-:::caution
-Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
-:::
+<Callout variant="warning">
 
+Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
+
+</Callout>
 ### tiny-instancer
 
 A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tiny-instancer), which can be deployed on a standalone machine. Detailed installation instructions are available in the project's README.
@@ -116,32 +123,34 @@ A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tin
 The admin bot can be configured using the examples available [here](https://github.com/otter-sec/rctf-admin-bot/tree/main/examples). Begin by creating a custom Docker image using the `image` folder as a base. Modify `config.js` to execute the Puppeteer actions required for the challenge. The image must then be built and uploaded to a Docker registry. The following example uses GCP's Artifact Registry:
 
 <Steps>
+<Step title="Create Artifact Registry and build image">
 
-1. **Create Artifact Registry and build image**
+```bash title="Terminal"
+gcloud config set project [project-id]
+gcloud artifacts repositories create misc-images \
+    --repository-format=docker \
+    --location=europe-west1
+gcloud auth configure-docker europe-west1-docker.pkg.dev # configure authentication
 
-   ```bash title="Terminal"
-   gcloud config set project [project-id]
-   gcloud artifacts repositories create misc-images \
-       --repository-format=docker \
-       --location=europe-west1
-   gcloud auth configure-docker europe-west1-docker.pkg.dev # configure authentication
+cd image
+docker build -t europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest .
+docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest
+```
 
-   cd image
-   docker build -t europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest .
-   docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest
-   ```
+</Step>
+<Step title="Deploy with Terraform">
 
-2. **Deploy with Terraform**
+The `gcp` folder provides [Terraform](https://developer.hashicorp.com/terraform) configuration for automated deployment. Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Update the `project` variable to contain the GCP project ID and the `image` variable to the image path from the previous step. Optionally, configure reCAPTCHA to prevent submission abuse. Deploy the admin bot with the following commands:
 
-   The `gcp` folder provides [Terraform](https://developer.hashicorp.com/terraform) configuration for automated deployment. Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Update the `project` variable to contain the GCP project ID and the `image` variable to the image path from the previous step. Optionally, configure reCAPTCHA to prevent submission abuse. Deploy the admin bot with the following commands:
+```bash title="Terminal"
+terraform init
+terraform apply # type `yes` when prompted
+```
 
-   ```bash title="Terminal"
-   terraform init
-   terraform apply # type `yes` when prompted
-   ```
+</Step>
+<Step title="Access your admin bot">
 
-3. **Access your admin bot**
+After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains) to the Cloud Run service via the GCP dashboard for a more professional URL.
 
-   After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains) to the Cloud Run service via the GCP dashboard for a more professional URL.
-
+</Step>
 </Steps>

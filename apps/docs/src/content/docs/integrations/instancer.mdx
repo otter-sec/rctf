@@ -1,0 +1,109 @@
+---
+title: Instancer
+description: Configure per-team challenge instances with Docker or Kubernetes.
+---
+
+The instancer integration provides per-team challenge instances — isolated environments that are created, managed, and cleaned up automatically. This is essential for challenges where teams need their own running service (e.g., pwn, web exploitation).
+
+## Configuration
+
+Set up the instancer provider in your configuration:
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://localhost:8000
+    authToken: your-secret-token
+```
+
+## Providers
+
+<Tabs items={['instancer/docker-instancer', 'instancer/k8s-instancer']}>
+<Tab>
+
+Uses [tiny-instancer](https://github.com/otter-sec/tiny-instancer) or a compatible Docker-based instancer API.
+
+```yaml
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://localhost:8000
+    authToken: your-auth-token
+```
+
+| Option             | Environment Variable             | Description          |
+| ------------------ | -------------------------------- | -------------------- |
+| `apiUrl{:yaml}`    | `TINY_INSTANCER_API_URL{:sh}`    | Instancer API URL    |
+| `authToken{:yaml}` | `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Authentication token |
+
+</Tab>
+<Tab>
+
+Uses Kubernetes for instance management, creating ChallengeInstance custom resources.
+
+```yaml
+instancerProvider:
+  name: instancer/k8s-instancer
+  options:
+    apiUrl: https://k8s-instancer.example.com
+    authToken: your-auth-token
+    caCertificate: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+```
+
+| Option                 | Environment Variable                | Description                   |
+| ---------------------- | ----------------------------------- | ----------------------------- |
+| `apiUrl{:yaml}`        | `K8S_INSTANCER_API_URL{:sh}`        | K8s instancer API URL         |
+| `authToken{:yaml}`     | `K8S_INSTANCER_AUTH_TOKEN{:sh}`     | Authentication token          |
+| `caCertificate{:yaml}` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | TLS CA certificate (optional) |
+
+</Tab>
+</Tabs>
+
+## Challenge configuration
+
+Each challenge that uses the instancer needs an `instancerConfig{:yaml}` in its challenge data. This is set through the admin challenge editor.
+
+Key fields in `instancerConfig{:yaml}`:
+
+| Field                        | Description                                                                |
+| ---------------------------- | -------------------------------------------------------------------------- |
+| `config{:yaml}`              | Provider-specific instance configuration (Docker compose-like or K8s spec) |
+| `expose{:yaml}`              | Array of endpoints to expose to participants                               |
+| `timeoutMilliseconds{:yaml}` | Instance lifetime before automatic cleanup                                 |
+| `extendable{:yaml}`          | Whether participants can extend the instance lifetime                      |
+
+### Endpoint exposure
+
+The `expose{:yaml}` array controls which ports and services are visible to participants:
+
+| Field                  | Description                                       |
+| ---------------------- | ------------------------------------------------- |
+| `kind{:yaml}`          | Endpoint type (e.g., `tcp{:yaml}`, `http{:yaml}`) |
+| `hostPrefix{:yaml}`    | Prefix for the endpoint URL                       |
+| `containerName{:yaml}` | Name of the container exposing the port           |
+| `containerPort{:yaml}` | Port number inside the container                  |
+| `shouldDisplay{:yaml}` | Whether this endpoint is shown to participants    |
+| `title{:yaml}`         | Display label for the endpoint                    |
+
+Only endpoints with `shouldDisplay{:yaml}` set to `true{:ts}` are shown to participants. This allows internal service ports to remain hidden.
+
+## Instance lifecycle
+
+Participants can manage their instances through the platform:
+
+| Action | Description                                           |
+| ------ | ----------------------------------------------------- |
+| Create | Start a new instance for the challenge                |
+| Status | Check instance status and connection endpoints        |
+| Extend | Extend instance lifetime (if the challenge allows it) |
+| Delete | Manually stop an instance                             |
+
+The create and extend actions can be protected with captcha (see [Captcha Providers](/providers/captcha)). Use `instancerStart{:yaml}` and `instancerExtend{:yaml}` in `protectedEndpoints{:yaml}`.
+
+## Instancer config schema
+
+Admins can retrieve the provider-specific configuration JSON schema through the admin panel. This is useful for understanding the expected format when configuring challenge instances.

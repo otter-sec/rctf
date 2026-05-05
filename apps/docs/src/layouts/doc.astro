@@ -1,0 +1,153 @@
+---
+import DocsAside from '@/components/docs/docs-aside.astro'
+import DocNavigation from '@/components/docs/doc-navigation.astro'
+import EditLink from '@/components/docs/edit-link.astro'
+import LastUpdated from '@/components/docs/last-updated.astro'
+import MobileSidebar from '@/components/docs/mobile-sidebar.astro'
+import Header from '@/components/header.astro'
+import PageHead from '@/components/page-head.astro'
+import Hero from '@/components/splash/hero.astro'
+import TOCHeader from '@/components/toc-header.astro'
+import TOCSidebar from '@/components/toc-sidebar.astro'
+import Base from '@/layouts/base.astro'
+import type { Doc } from '@/lib/docs'
+import { renderDescription } from '@/lib/render-description'
+import { cn } from '@/lib/utils'
+import type { MarkdownHeading } from 'astro'
+import type { FlatDoc, SidebarNode } from '@/types'
+
+interface Props {
+  doc: Doc
+  headings: MarkdownHeading[]
+  sidebar: SidebarNode[]
+  prev: FlatDoc | null
+  next: FlatDoc | null
+  editUrl: string | null
+  lastUpdated: Date | null
+  tocMinDepth: number
+  tocMaxDepth: number
+  tocEnabled: boolean
+}
+
+const {
+  doc,
+  headings,
+  sidebar,
+  prev,
+  next,
+  editUrl,
+  lastUpdated,
+  tocMinDepth,
+  tocMaxDepth,
+  tocEnabled,
+} = Astro.props
+
+const isSplash = doc.data.template === 'splash'
+const showToc = tocEnabled && !isSplash
+
+const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
+
+const renderedTitle = await renderDescription(doc.data.title)
+const renderedDescription = doc.data.description
+  ? await renderDescription(doc.data.description)
+  : null
+---
+
+<Base>
+  <PageHead
+    slot="head"
+    title={renderedTitle.plain}
+    description={renderedDescription?.plain}
+  />
+  {editUrl && <meta slot="head" name="docs-edit-url" content={editUrl} />}
+
+  <div class="grid flex-1 grid-cols-1 xl:grid-cols-[16rem_minmax(0,1fr)]">
+    <DocsAside tree={sidebar} editUrl={editUrl} />
+    <MobileSidebar tree={sidebar} />
+
+    <div class="flex flex-col overflow-x-clip xl:pt-16 xl:pb-6">
+      <header
+        class="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm xl:hidden"
+      >
+        <Header />
+      </header>
+
+      {showToc && <TOCHeader headings={headings} minDepth={tocMinDepth} maxDepth={tocMaxDepth} />}
+
+      <main
+        class={cn(
+          'mx-auto flex w-full grow flex-col gap-y-6 px-4',
+          offsetClass,
+        )}
+      >
+        <div
+          class="grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]"
+        >
+          <article
+            class="mx-auto w-full min-w-0 max-w-2xl xl:mx-0"
+            data-pagefind-body
+          >
+            {
+              isSplash ? (
+                doc.data.hero && <Hero hero={doc.data.hero} />
+              ) : (
+                <header class="mt-6 mb-8 flex flex-col gap-3 xl:-mt-3">
+                  <h1
+                    id="post-title"
+                    class="text-3xl leading-tight font-medium sm:text-4xl"
+                    data-doc-title
+                    set:html={renderedTitle.html}
+                  />
+                  {renderedDescription && (
+                    <p
+                      class="text-muted-foreground text-lg text-pretty"
+                      data-doc-description
+                      set:html={renderedDescription.html}
+                    />
+                  )}
+                </header>
+              )
+            }
+
+            <div class="prose max-w-none">
+              <slot />
+            </div>
+
+            {!isSplash && (
+              <footer
+                class="border-border/70 mt-16 flex flex-col gap-6 border-t pt-6 pb-4"
+                data-pagefind-ignore
+              >
+                <DocNavigation prev={prev} next={next} />
+                <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-3 text-sm">
+                  {lastUpdated && <LastUpdated date={lastUpdated} />}
+                  {editUrl && <EditLink href={editUrl} />}
+                </div>
+              </footer>
+            )}
+          </article>
+
+          {
+            showToc ? (
+              <TOCSidebar
+                headings={headings}
+                minDepth={tocMinDepth}
+                maxDepth={tocMaxDepth}
+                title={doc.data.title}
+              />
+            ) : (
+              <div class="hidden xl:block" aria-hidden="true" />
+            )
+          }
+        </div>
+      </main>
+    </div>
+  </div>
+
+</Base>
+
+<script>
+  import { mountKatexStyles } from '@/lib/client/katex-styles'
+
+  mountKatexStyles()
+</script>

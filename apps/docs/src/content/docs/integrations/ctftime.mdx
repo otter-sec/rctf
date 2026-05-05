@@ -1,0 +1,67 @@
+---
+title: CTFtime
+description: Configure CTFtime OAuth authentication and leaderboard export.
+---
+
+import Callout from '@/components/callout.astro'
+
+[CTFtime](https://ctftime.org) integration enables OAuth-based authentication and leaderboard export in CTFtime's standard format.
+
+## Setup
+
+<Steps>
+<Step title="Register an OAuth application">
+
+Go to your team page on CTFtime and register a new OAuth application. You will receive a **client ID** (numeric) and a **client secret**.
+
+Set the callback URL to: `https://your-ctf-domain.com/integrations/ctftime/callback`
+
+</Step>
+<Step title="Configure rCTF">
+
+```yaml title="rctf.d/ctftime.yaml"
+ctftime:
+  clientId: '12345'
+  clientSecret: your-client-secret
+```
+
+Or via environment variables:
+
+| Variable                          | Description                              |
+| --------------------------------- | ---------------------------------------- |
+| `RCTF_CTFTIME_CLIENT_ID{:sh}`     | CTFtime OAuth client ID (numeric string) |
+| `RCTF_CTFTIME_CLIENT_SECRET{:sh}` | CTFtime OAuth client secret              |
+
+</Step>
+</Steps>
+
+## Authentication flow
+
+1. The user clicks "Login with CTFtime" on the frontend
+2. The browser redirects to CTFtime's OAuth authorization page
+3. After approval, CTFtime redirects back with an authorization code
+4. The frontend sends the code to the rCTF API
+5. The API exchanges the code for a CTFtime access token and creates an rCTF authentication token
+
+### Registration with CTFtime
+
+When a user registers with CTFtime, they provide a team name and the CTFtime token. No email verification is required.
+
+### Login with CTFtime
+
+Returning users provide their CTFtime token to log in. The API matches their CTFtime ID to an existing account.
+
+## Division ACL behavior
+
+<Callout variant="note">
+
+When CTFtime authentication is configured, division ACLs are **bypassed entirely**. All divisions become available to CTFtime-authenticated users. This is because ACLs are email-based, and CTFtime authentication does not require an email address.
+
+</Callout>
+## Leaderboard export
+
+After the CTF ends, you can export the leaderboard in CTFtime's format for scoreboard submission.
+
+The platform provides a leaderboard export in CTFtime's JSON format, accessible to users with `leaderboardRead{:yaml}` permission.
+
+See [After the CTF](/running-a-successful-ctf/06-after-ctf) for the full scoreboard submission procedure.

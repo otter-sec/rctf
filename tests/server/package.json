@@ -9,6 +9,7 @@
     "@electric-sql/pglite": "*",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
+    "@rctf/scoring": "workspace:*",
     "@rctf/types": "workspace:*",
     "@types/ioredis-mock": "^8.2.6",
     "drizzle-orm": "*",

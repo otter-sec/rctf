@@ -3,8 +3,8 @@ title: Categories
 description: Challenge category configuration, colors, icons, and customization.
 ---
 
-import { Steps } from '@astrojs/starlight/components'
-import Swatch from '../../../components/Swatch'
+import Callout from '@/components/callout.astro'
+import Swatch from '@/components/mdx/swatch'
 
 Each challenge category in rCTF has a dedicated color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0`, which components reference via Tailwind classes such as `text-category-foreground-l0`.
 
@@ -28,10 +28,11 @@ Each of the default categories uses a color specified in [Category colors](/them
 
 We additionally enable category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) to allow flexible naming.
 
-:::note[How category styling works]
+<Callout variant="note" title="How category styling works">
+
 The `getCategoryStyle(color)` function generates inline CSS that binds a color's variables to generic category tokens:
 
-```ts
+```ts showLineNumbers=false
 getCategoryStyle('red')
 // Returns:
 // "--category-foreground-l0: var(--foreground-red-l0);
@@ -43,7 +44,7 @@ getCategoryStyle('red')
 
 Components apply this style to a container, then use generic classes:
 
-```svelte
+```svelte showLineNumbers=false
 <div style={getCategoryStyle(config.color)}>
   <span class="text-category-foreground-l0">{challenge.name}</span>
   <span class="bg-category-background-l0 text-category-foreground-l1">
@@ -53,69 +54,72 @@ Components apply this style to a container, then use generic classes:
 ```
 
 Each color has five variables defined in `app.css` for both light and dark modes: `background-l0`, `background-l1`, `background-l1-hover`, `foreground-l0`, and `foreground-l1`.
-:::
 
+</Callout>
 ## Adding a custom category
 
 <Steps>
+<Step title="Define the category">
 
-1. **Define the category**
+Add an entry to `categoryConfigs` with a name, icon component, Iconify name (for exports), and color key:
 
-   Add an entry to `categoryConfigs` with a name, icon component, Iconify name (for exports), and color key:
+```ts title="lib/utils/categories.ts" ins={5-9}
+import { IconCpuFilled } from '$lib/icons'
 
-   ```ts title="lib/utils/categories.ts" ins={5-9}
-   import { IconCpuFilled } from '$lib/icons'
+export const categoryConfigs: Record<string, CategoryConfig> = {
+  // ... existing
+  hardware: {
+    name: 'Hardware',
+    icon: IconCpuFilled,
+    iconName: 'tabler:cpu-filled',
+    color: 'teal', // Use an existing color, or add a new one
+  },
+}
+```
 
-   export const categoryConfigs: Record<string, CategoryConfig> = {
-     // ... existing
-     hardware: {
-       name: 'Hardware',
-       icon: IconCpuFilled,
-       iconName: 'tabler:cpu-filled',
-       color: 'teal', // Use an existing color, or add a new one
-     },
-   }
-   ```
+</Step>
+<Step title="Register the icon">
 
-2. **Register the icon**
+In `lib/icons/index.ts`, export the icon:
 
-   In `lib/icons/index.ts`, export the icon:
+```ts title="lib/icons/index.ts" ins={3}
+export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
+export { default as IconCameraFilled } from '@iconify-svelte/tabler/camera-filled'
+export { default as IconCpuFilled } from '@iconify-svelte/tabler/cpu-filled'
+export { default as IconPhotoFilled } from '@iconify-svelte/tabler/photo-filled'
+export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
+```
 
-   ```ts title="lib/icons/index.ts" ins={3}
-   export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
-   export { default as IconCameraFilled } from '@iconify-svelte/tabler/camera-filled'
-   export { default as IconCpuFilled } from '@iconify-svelte/tabler/cpu-filled'
-   export { default as IconPhotoFilled } from '@iconify-svelte/tabler/photo-filled'
-   export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
-   ```
+</Step>
+<Step title="Set the display order (optional)">
 
-3. **Set the display order (optional)**
+Add your category to `categoryOrder` to control its position in the challenge list:
 
-   Add your category to `categoryOrder` to control its position in the challenge list:
+```ts title="lib/utils/categories.ts" ins={4}
+export const categoryOrder = [
+  'sanity',
+  'pwn',
+  'reverse',
+  'crypto',
+  'forensics',
+  'blockchain',
+  'web',
+  'misc',
+  'ppc',
+  'koth',
+  'osint',
+  'hardware',
+]
+```
 
-   ```ts title="lib/utils/categories.ts" ins={4}
-   export const categoryOrder = [
-     'sanity',
-     'pwn',
-     'reverse',
-     'crypto',
-     'forensics',
-     'blockchain',
-     'web',
-     'misc',
-     'ppc',
-     'koth',
-     'osint',
-     'hardware',
-   ]
-   ```
+Categories not in this list appear alphabetically after listed ones.
 
-   Categories not in this list appear alphabetically after listed ones.
+</Step>
+<Step title="Add color variables (if using a new color)">
 
-4. **Add color variables (if using a new color)**
+If your category uses a color not already in the palette, add variables to `app.css` following the existing pattern. Define `--background-{color}-l0`, `--background-{color}-l1`, `--background-{color}-l1-hover`, `--foreground-{color}-l0`, and `--foreground-{color}-l1` for both `:root` and `[data-theme='dark']`. Don't forget to additionally map the colors in `@theme inline`.
 
-   If your category uses a color not already in the palette, add variables to `app.css` following the existing pattern. Define `--background-{color}-l0`, `--background-{color}-l1`, `--background-{color}-l1-hover`, `--foreground-{color}-l0`, and `--foreground-{color}-l1` for both `:root` and `[data-theme='dark']`. Don't forget to additionally map the colors in `@theme inline`.
-
+</Step>
 </Steps>
 
 ## Utility functions
