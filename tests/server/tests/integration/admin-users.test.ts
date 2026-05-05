@@ -153,6 +153,101 @@ describe('admin users', () => {
     expect(updatedUser?.globalRank).toBeNull()
   })
 
+  test('unbanning a team restores it to the leaderboard with prior score and rank', async () => {
+    const admin = await generateRealTestUser(
+      Permissions.usersWrite | Permissions.leaderboardRead
+    )
+    const solver = await generateRealTestUser()
+    const { challenge } = await generateChallenge()
+    const db = getDb()
+
+    await db.insert(solves).values({
+      id: crypto.randomUUID(),
+      challengeid: challenge.id,
+      userid: solver.user.id,
+      createdat: new Date(config.startTime + 1000).toISOString(),
+    })
+
+    await recomputeLeaderboard()
+
+    const [beforeBan] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, solver.user.id))
+    expect(beforeBan?.banned).toBe(false)
+    expect(beforeBan?.globalRank).not.toBeNull()
+    expect(beforeBan?.score).toBeGreaterThan(0)
+    const originalScore = beforeBan!.score
+    const originalGlobalRank = beforeBan!.globalRank
+    const originalDivisionRank = beforeBan!.divisionRank
+
+    const banRes = await request(app, `/api/v2/admin/users/${solver.user.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+      },
+      body: JSON.stringify({ data: { banned: true } }),
+    })
+    await expectResponse(banRes, GoodAdminUserUpdateV2)
+    await recomputeLeaderboard()
+
+    const [afterBan] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, solver.user.id))
+    expect(afterBan?.banned).toBe(true)
+    expect(afterBan?.globalRank).toBeNull()
+    expect(afterBan?.score).toBe(0)
+
+    const unbanRes = await request(
+      app,
+      `/api/v2/admin/users/${solver.user.id}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+        body: JSON.stringify({ data: { banned: false } }),
+      }
+    )
+    await expectResponse(unbanRes, GoodAdminUserUpdateV2)
+    await recomputeLeaderboard()
+
+    const [afterUnban] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, solver.user.id))
+    expect(afterUnban?.banned).toBe(false)
+    expect(afterUnban?.score).toBe(originalScore)
+    expect(afterUnban?.globalRank).toBe(originalGlobalRank)
+    expect(afterUnban?.divisionRank).toBe(originalDivisionRank)
+
+    const leaderboardRes = await request(
+      app,
+      '/api/v2/leaderboard/now?limit=100&offset=0',
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+    const leaderboardBody = await expectResponse(
+      leaderboardRes,
+      GoodLeaderboardV2
+    )
+    expect(leaderboardBody.data.leaderboard.map((u: any) => u.id)).toContain(
+      solver.user.id
+    )
+
+    const remainingSolves = await db
+      .select()
+      .from(solves)
+      .where(eq(solves.userid, solver.user.id))
+    expect(remainingSolves).toHaveLength(1)
+  })
+
   test('deleting a team removes the team and its solves', async () => {
     const admin = await generateRealTestUser(Permissions.usersWrite)
     const solver = await generateRealTestUser()
