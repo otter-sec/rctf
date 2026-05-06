@@ -1,11 +1,5 @@
 import { relations } from 'drizzle-orm'
-import {
-  challenges,
-  solves,
-  submissionLogs,
-  userMembers,
-  users,
-} from './schema'
+import { challenges, solves, submissions, userMembers, users } from './schema'
 
 export const solvesRelations = relations(solves, ({ one }) => ({
   user: one(users, {
@@ -16,7 +10,7 @@ export const solvesRelations = relations(solves, ({ one }) => ({
 
 export const usersRelations = relations(users, ({ many }) => ({
   solves: many(solves),
-  submissionLogs: many(submissionLogs),
+  submissions: many(submissions),
   userMembers: many(userMembers),
 }))
 
@@ -27,13 +21,13 @@ export const userMembersRelations = relations(userMembers, ({ one }) => ({
   }),
 }))
 
-export const submissionLogsRelations = relations(submissionLogs, ({ one }) => ({
+export const submissionsRelations = relations(submissions, ({ one }) => ({
   challenge: one(challenges, {
-    fields: [submissionLogs.challengeId],
+    fields: [submissions.challengeId],
     references: [challenges.id],
   }),
   user: one(users, {
-    fields: [submissionLogs.userId],
+    fields: [submissions.userId],
     references: [users.id],
   }),
 }))

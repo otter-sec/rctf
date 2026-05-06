@@ -6,7 +6,7 @@ import type {
   InstancerConfig,
   Solve,
 } from '@rctf/db'
-import { challenges, solves, submissionLogs, users } from '@rctf/db'
+import { challenges, solves, submissions, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
@@ -18,7 +18,7 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { SubmissionLogKind, SubmissionLogResult } from '@rctf/types'
+import { SubmissionKind, SubmissionResult } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
@@ -26,7 +26,7 @@ import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
-import { createSubmissionLog } from './submission-logs'
+import { createSubmission } from './submissions'
 import { getUser } from './users'
 
 type SubmitResponseHelpers = ResponseHelpers<
@@ -188,7 +188,7 @@ export const createSolveAndGetBloodNumber = async (
   }
 ): Promise<number> => {
   const solveId = crypto.randomUUID()
-  const submissionLogId = crypto.randomUUID()
+  const submissionId = crypto.randomUUID()
 
   return await db.transaction(async tx => {
     await tx.execute(
@@ -212,13 +212,13 @@ export const createSolveAndGetBloodNumber = async (
       VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
     `)
 
-    await tx.insert(submissionLogs).values({
-      id: submissionLogId,
-      kind: SubmissionLogKind.FLAG,
+    await tx.insert(submissions).values({
+      id: submissionId,
+      kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp ?? 'unknown',
-      result: SubmissionLogResult.CORRECT,
+      result: SubmissionResult.CORRECT,
       details: params.submittedFlag
         ? { submittedFlag: params.submittedFlag }
         : {},
@@ -531,12 +531,12 @@ export const submitFlag = async (
 
   const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
   if (timeLeft !== undefined) {
-    await createSubmissionLog(db, {
-      kind: SubmissionLogKind.FLAG,
+    await createSubmission(db, {
+      kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp,
-      result: SubmissionLogResult.RATE_LIMITED,
+      result: SubmissionResult.RATE_LIMITED,
       details: { submittedFlag: params.flag },
     })
     log.info(
@@ -551,12 +551,12 @@ export const submitFlag = async (
   }
 
   if (!verifyDefaultFlag(params.flag, challenge.data.flag)) {
-    await createSubmissionLog(db, {
-      kind: SubmissionLogKind.FLAG,
+    await createSubmission(db, {
+      kind: SubmissionKind.FLAG,
       challengeId: params.challengeId,
       userId: params.userId,
       ip: params.submissionIp,
-      result: SubmissionLogResult.INCORRECT,
+      result: SubmissionResult.INCORRECT,
       details: { submittedFlag: params.flag },
     })
     return res.badFlag()
@@ -582,12 +582,12 @@ export const submitFlag = async (
   } catch (error) {
     const constraintName = getErrorConstraint(error)
     if (constraintName === 'uq') {
-      await createSubmissionLog(db, {
-        kind: SubmissionLogKind.FLAG,
+      await createSubmission(db, {
+        kind: SubmissionKind.FLAG,
         challengeId: params.challengeId,
         userId: params.userId,
         ip: params.submissionIp,
-        result: SubmissionLogResult.ALREADY_SOLVED,
+        result: SubmissionResult.ALREADY_SOLVED,
         details: { submittedFlag: params.flag },
       })
       return res.badAlreadySolvedChallenge()

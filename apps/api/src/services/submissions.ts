@@ -1,12 +1,12 @@
-import type { DatabaseClient, SubmissionLogDetails } from '@rctf/db'
-import { challenges, submissionLogs, users } from '@rctf/db'
+import type { DatabaseClient, SubmissionDetails } from '@rctf/db'
+import { challenges, submissions, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import {
-  SubmissionLogSortBy,
-  SubmissionLogSortOrder,
-  SubmissionLogTeamStatus,
-  type SubmissionLogKind,
-  type SubmissionLogResult,
+  SubmissionSortBy,
+  SubmissionSortOrder,
+  SubmissionTeamStatus,
+  type SubmissionKind,
+  type SubmissionResult,
 } from '@rctf/types'
 import {
   and,
@@ -22,19 +22,19 @@ import {
   type SQL,
 } from 'drizzle-orm'
 
-export const createSubmissionLog = async (
+export const createSubmission = async (
   db: DatabaseClient,
   params: {
-    kind: SubmissionLogKind
+    kind: SubmissionKind
     challengeId: string
     userId: string
     ip: string | undefined
-    result: SubmissionLogResult
-    details?: SubmissionLogDetails
+    result: SubmissionResult
+    details?: SubmissionDetails
     relatedId?: string | null
   }
 ): Promise<void> => {
-  await db.insert(submissionLogs).values({
+  await db.insert(submissions).values({
     id: crypto.randomUUID(),
     kind: params.kind,
     challengeId: params.challengeId,
@@ -47,25 +47,25 @@ export const createSubmissionLog = async (
   })
 }
 
-export const getSubmissionLogs = async (
+export const getSubmissions = async (
   db: DatabaseClient,
   params: {
     limit: number
     offset: number
-    sortBy?: SubmissionLogSortBy
-    sortOrder?: SubmissionLogSortOrder
+    sortBy?: SubmissionSortBy
+    sortOrder?: SubmissionSortOrder
     challengeIds?: string[]
     excludeChallengeIds?: string[]
     challengeSearch?: string
     userIds?: string[]
     excludeUserIds?: string[]
     teamSearch?: string
-    kinds?: SubmissionLogKind[]
-    excludeKinds?: SubmissionLogKind[]
-    results?: SubmissionLogResult[]
-    excludeResults?: SubmissionLogResult[]
-    teamStatuses?: SubmissionLogTeamStatus[]
-    excludeTeamStatuses?: SubmissionLogTeamStatus[]
+    kinds?: SubmissionKind[]
+    excludeKinds?: SubmissionKind[]
+    results?: SubmissionResult[]
+    excludeResults?: SubmissionResult[]
+    teamStatuses?: SubmissionTeamStatus[]
+    excludeTeamStatuses?: SubmissionTeamStatus[]
     categories?: string[]
     excludeCategories?: string[]
     divisions?: string[]
@@ -78,11 +78,11 @@ export const getSubmissionLogs = async (
   const challengeCategory = sql<string>`${challenges.data} ->> 'category'`
 
   if (params.challengeIds?.length) {
-    filters.push(inArray(submissionLogs.challengeId, params.challengeIds))
+    filters.push(inArray(submissions.challengeId, params.challengeIds))
   }
   if (params.excludeChallengeIds?.length) {
     filters.push(
-      notInArray(submissionLogs.challengeId, params.excludeChallengeIds)
+      notInArray(submissions.challengeId, params.excludeChallengeIds)
     )
   }
 
@@ -101,10 +101,10 @@ export const getSubmissionLogs = async (
   }
 
   if (params.userIds?.length) {
-    filters.push(inArray(submissionLogs.userId, params.userIds))
+    filters.push(inArray(submissions.userId, params.userIds))
   }
   if (params.excludeUserIds?.length) {
-    filters.push(notInArray(submissionLogs.userId, params.excludeUserIds))
+    filters.push(notInArray(submissions.userId, params.excludeUserIds))
   }
 
   if (params.teamSearch?.trim()) {
@@ -127,99 +127,99 @@ export const getSubmissionLogs = async (
   }
 
   if (params.kinds?.length) {
-    filters.push(inArray(submissionLogs.kind, params.kinds))
+    filters.push(inArray(submissions.kind, params.kinds))
   }
   if (params.excludeKinds?.length) {
-    filters.push(notInArray(submissionLogs.kind, params.excludeKinds))
+    filters.push(notInArray(submissions.kind, params.excludeKinds))
   }
 
   if (params.results?.length) {
-    filters.push(inArray(submissionLogs.result, params.results))
+    filters.push(inArray(submissions.result, params.results))
   }
   if (params.excludeResults?.length) {
-    filters.push(notInArray(submissionLogs.result, params.excludeResults))
+    filters.push(notInArray(submissions.result, params.excludeResults))
   }
   if (params.createdAfter) {
-    filters.push(gte(submissionLogs.createdAt, params.createdAfter))
+    filters.push(gte(submissions.createdAt, params.createdAfter))
   }
   if (params.createdBefore) {
-    filters.push(lte(submissionLogs.createdAt, params.createdBefore))
+    filters.push(lte(submissions.createdAt, params.createdBefore))
   }
 
   const where = filters.length ? and(...filters) : undefined
-  const sortBy = params.sortBy ?? SubmissionLogSortBy.CREATED_AT
-  const sortOrder = params.sortOrder ?? SubmissionLogSortOrder.DESC
-  const direction = sortOrder === SubmissionLogSortOrder.ASC ? asc : desc
+  const sortBy = params.sortBy ?? SubmissionSortBy.CREATED_AT
+  const sortOrder = params.sortOrder ?? SubmissionSortOrder.DESC
+  const direction = sortOrder === SubmissionSortOrder.ASC ? asc : desc
 
   const sortColumn = (() => {
     switch (sortBy) {
-      case SubmissionLogSortBy.CHALLENGE:
+      case SubmissionSortBy.CHALLENGE:
         return sql<string>`lower(${challenges.data} ->> 'name')`
-      case SubmissionLogSortBy.TEAM:
+      case SubmissionSortBy.TEAM:
         return sql<string>`lower(${users.name}::text)`
-      case SubmissionLogSortBy.IP:
-        return submissionLogs.ip
-      case SubmissionLogSortBy.KIND:
-        return submissionLogs.kind
-      case SubmissionLogSortBy.RESULT:
-        return submissionLogs.result
-      case SubmissionLogSortBy.CREATED_AT:
-        return submissionLogs.createdAt
+      case SubmissionSortBy.IP:
+        return submissions.ip
+      case SubmissionSortBy.KIND:
+        return submissions.kind
+      case SubmissionSortBy.RESULT:
+        return submissions.result
+      case SubmissionSortBy.CREATED_AT:
+        return submissions.createdAt
     }
   })()
 
   const orderBy =
-    sortBy === SubmissionLogSortBy.CREATED_AT
-      ? [direction(submissionLogs.createdAt), direction(submissionLogs.id)]
+    sortBy === SubmissionSortBy.CREATED_AT
+      ? [direction(submissions.createdAt), direction(submissions.id)]
       : [
           direction(sortColumn),
-          desc(submissionLogs.createdAt),
-          desc(submissionLogs.id),
+          desc(submissions.createdAt),
+          desc(submissions.id),
         ]
 
   const [rows, count] = await Promise.all([
     db
       .select({
-        id: submissionLogs.id,
-        kind: submissionLogs.kind,
-        challengeId: submissionLogs.challengeId,
+        id: submissions.id,
+        kind: submissions.kind,
+        challengeId: submissions.challengeId,
         challengeName: sql<string>`${challenges.data} ->> 'name'`,
         challengeCategory: sql<string>`${challenges.data} ->> 'category'`,
-        userId: submissionLogs.userId,
+        userId: submissions.userId,
         userName: users.name,
         userDivision: users.division,
         userAvatarUrl: users.avatarUrl,
         userCountryCode: users.countryCode,
         userStatusText: users.statusText,
         userBanned: users.banned,
-        ip: submissionLogs.ip,
-        result: submissionLogs.result,
-        details: submissionLogs.details,
-        relatedId: submissionLogs.relatedId,
-        createdAt: submissionLogs.createdAt,
+        ip: submissions.ip,
+        result: submissions.result,
+        details: submissions.details,
+        relatedId: submissions.relatedId,
+        createdAt: submissions.createdAt,
       })
-      .from(submissionLogs)
-      .innerJoin(challenges, eq(challenges.id, submissionLogs.challengeId))
-      .innerJoin(users, eq(users.id, submissionLogs.userId))
+      .from(submissions)
+      .innerJoin(challenges, eq(challenges.id, submissions.challengeId))
+      .innerJoin(users, eq(users.id, submissions.userId))
       .where(where)
       .orderBy(...orderBy)
       .limit(params.limit)
       .offset(params.offset),
     db
       .select({ total: sqlCount() })
-      .from(submissionLogs)
-      .innerJoin(challenges, eq(challenges.id, submissionLogs.challengeId))
-      .innerJoin(users, eq(users.id, submissionLogs.userId))
+      .from(submissions)
+      .innerJoin(challenges, eq(challenges.id, submissions.challengeId))
+      .innerJoin(users, eq(users.id, submissions.userId))
       .where(where)
       .then(takeUnique),
   ])
 
   return {
-    logs: rows,
+    submissions: rows,
     total: count?.total ?? 0,
   }
 }
 
-function isBannedStatus(status: SubmissionLogTeamStatus) {
-  return status === SubmissionLogTeamStatus.BANNED
+function isBannedStatus(status: SubmissionTeamStatus) {
+  return status === SubmissionTeamStatus.BANNED
 }

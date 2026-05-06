@@ -1,11 +1,11 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { adminBotJobs, submissionLogs, type InstancerInstance } from '@rctf/db'
+import { adminBotJobs, submissions, type InstancerInstance } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import {
   AdminBotJobStatus,
-  SubmissionLogKind,
-  SubmissionLogResult,
+  SubmissionKind,
+  SubmissionResult,
 } from '@rctf/types'
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 
@@ -166,7 +166,7 @@ export const createJob = async (
   }
 ) => {
   const id = crypto.randomUUID()
-  const submissionLogId = crypto.randomUUID()
+  const submissionId = crypto.randomUUID()
   const now = new Date().toISOString()
 
   const job = {
@@ -186,13 +186,13 @@ export const createJob = async (
   try {
     await db.transaction(async tx => {
       await tx.insert(adminBotJobs).values(job)
-      await tx.insert(submissionLogs).values({
-        id: submissionLogId,
-        kind: SubmissionLogKind.ADMIN_BOT,
+      await tx.insert(submissions).values({
+        id: submissionId,
+        kind: SubmissionKind.ADMIN_BOT,
         challengeId: params.challengeId,
         userId: params.userId,
         ip: params.submissionIp ?? 'unknown',
-        result: SubmissionLogResult.QUEUED,
+        result: SubmissionResult.QUEUED,
         details: {
           inputs: params.inputs,
           configRevision: params.configRevision,

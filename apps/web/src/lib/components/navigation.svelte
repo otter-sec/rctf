@@ -161,10 +161,10 @@
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/submission-logs')}
+                onclick={() => goto('/admin/submissions')}
               >
                 <IconTableFilled class="size-5" />
-                Submission logs
+                Submissions
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 class="data-highlighted:bg-background-l5"

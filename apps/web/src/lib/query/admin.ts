@@ -6,7 +6,7 @@ import {
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
-  GetAdminSubmissionLogsRouteV2,
+  GetAdminSubmissionsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
@@ -14,7 +14,7 @@ import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodAdminSettings,
-  GoodAdminSubmissionLogs,
+  GoodAdminSubmissions,
   GoodAdminUsersV2,
   GoodAdminUserV2,
   GoodAdminUserVerificationsV2,
@@ -26,11 +26,11 @@ import {
   UploadFilesRouteV2,
   type RouteBody,
   type RouteQuery,
-  type SubmissionLogKind,
-  type SubmissionLogResult,
-  type SubmissionLogSortBy,
-  type SubmissionLogSortOrder,
-  type SubmissionLogTeamStatus,
+  type SubmissionKind,
+  type SubmissionResult,
+  type SubmissionSortBy,
+  type SubmissionSortOrder,
+  type SubmissionTeamStatus,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -96,11 +96,11 @@ export const adminSettingsQueryOptions = queryOptions({
   },
 })
 
-export const adminSubmissionLogsQueryOptions = (params: {
+export const adminSubmissionsQueryOptions = (params: {
   limit: number
   offset: number
-  sortBy?: SubmissionLogSortBy
-  sortOrder?: SubmissionLogSortOrder
+  sortBy?: SubmissionSortBy
+  sortOrder?: SubmissionSortOrder
   challengeId?: string
   challengeIds?: string
   excludeChallengeIds?: string
@@ -109,13 +109,13 @@ export const adminSubmissionLogsQueryOptions = (params: {
   userIds?: string
   excludeUserIds?: string
   teamSearch?: string
-  kind?: SubmissionLogKind
+  kind?: SubmissionKind
   kinds?: string
   excludeKinds?: string
-  result?: SubmissionLogResult
+  result?: SubmissionResult
   results?: string
   excludeResults?: string
-  teamStatus?: SubmissionLogTeamStatus
+  teamStatus?: SubmissionTeamStatus
   teamStatuses?: string
   excludeTeamStatuses?: string
   categories?: string
@@ -126,10 +126,10 @@ export const adminSubmissionLogsQueryOptions = (params: {
   createdBefore?: string
 }) =>
   queryOptions({
-    queryKey: ['admin', 'submission-logs', params] as const,
+    queryKey: ['admin', 'submissions', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetAdminSubmissionLogsRouteV2, params)
-      if (response.kind === GoodAdminSubmissionLogs.kind) {
+      const response = await apiRequest(GetAdminSubmissionsRouteV2, params)
+      if (response.kind === GoodAdminSubmissions.kind) {
         return response.data
       }
       throw new ApiError(response.kind, response.message)
@@ -242,10 +242,10 @@ export function useAdminSettings() {
   return createQuery(() => adminSettingsQueryOptions)
 }
 
-export function useInfiniteAdminSubmissionLogs(
+export function useInfiniteAdminSubmissions(
   params: () => {
-    sortBy?: SubmissionLogSortBy
-    sortOrder?: SubmissionLogSortOrder
+    sortBy?: SubmissionSortBy
+    sortOrder?: SubmissionSortOrder
     challengeId?: string
     challengeIds?: string
     excludeChallengeIds?: string
@@ -254,13 +254,13 @@ export function useInfiniteAdminSubmissionLogs(
     userIds?: string
     excludeUserIds?: string
     teamSearch?: string
-    kind?: SubmissionLogKind
+    kind?: SubmissionKind
     kinds?: string
     excludeKinds?: string
-    result?: SubmissionLogResult
+    result?: SubmissionResult
     results?: string
     excludeResults?: string
-    teamStatus?: SubmissionLogTeamStatus
+    teamStatus?: SubmissionTeamStatus
     teamStatuses?: string
     excludeTeamStatuses?: string
     categories?: string
@@ -276,21 +276,21 @@ export function useInfiniteAdminSubmissionLogs(
     const p = params()
     const ps = pageSize()
     return {
-      queryKey: ['admin', 'submission-logs', 'infinite', p, ps] as const,
+      queryKey: ['admin', 'submissions', 'infinite', p, ps] as const,
       queryFn: async ({ pageParam = 0 }) => {
-        const response = await apiRequest(GetAdminSubmissionLogsRouteV2, {
+        const response = await apiRequest(GetAdminSubmissionsRouteV2, {
           limit: ps,
           offset: pageParam,
           ...p,
         })
-        if (response.kind === GoodAdminSubmissionLogs.kind) {
+        if (response.kind === GoodAdminSubmissions.kind) {
           return { ...response.data, offset: pageParam }
         }
         throw new ApiError(response.kind, response.message)
       },
       initialPageParam: 0,
       getNextPageParam: lastPage => {
-        const nextOffset = lastPage.offset + lastPage.logs.length
+        const nextOffset = lastPage.offset + lastPage.submissions.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
       placeholderData: keepPreviousData,

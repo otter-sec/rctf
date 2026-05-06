@@ -1,10 +1,10 @@
 <script lang="ts">
   import {
-    SubmissionLogKind,
-    SubmissionLogResult,
-    SubmissionLogSortBy,
-    SubmissionLogSortOrder,
-    SubmissionLogTeamStatus,
+    SubmissionKind,
+    SubmissionResult,
+    SubmissionSortBy,
+    SubmissionSortOrder,
+    SubmissionTeamStatus,
   } from '@rctf/types'
   import {
     Avatar,
@@ -38,7 +38,7 @@
   import {
     useAdminChallenges,
     useClientConfig,
-    useInfiniteAdminSubmissionLogs,
+    useInfiniteAdminSubmissions,
     useInfiniteAdminUsers,
   } from '$lib/query'
   import {
@@ -53,22 +53,22 @@
   import {
     clearFilter,
     clearSearchFilter,
-    clearSubmissionLogFilters,
+    clearSubmissionFilters,
     clearTimeRangeFilter,
-    createSubmissionLogFilters,
+    createSubmissionFilters,
     filterOperatorLabel,
-    hasSubmissionLogFilters,
+    hasSubmissionFilters,
     hasTimeRangeFilter,
     includeOperatorLabel,
     resolveTimeRangeFilter,
     setFilterMode,
-    submissionLogFilterFingerprint,
-    submissionLogFilterParams,
+    submissionFilterFingerprint,
+    submissionFilterParams,
     toggleFilterOption,
     type FilterMode,
     type MultiFilter,
     type ValueFilterId,
-  } from './submission-log-filters'
+  } from './submissions-filters'
   import {
     canInspectIp,
     detailEntries,
@@ -85,16 +85,16 @@
     type DivisionFilterOption,
     type ResultTone,
     type SortBy,
-    type SubmissionLog,
+    type Submission,
     type TeamFilterOption,
-  } from './submission-log-utils'
+  } from './submissions-utils'
 
   type ValueFilterOption =
     | ChallengeFilterOption
     | TeamFilterOption
-    | SubmissionLogKind
-    | SubmissionLogResult
-    | SubmissionLogTeamStatus
+    | SubmissionKind
+    | SubmissionResult
+    | SubmissionTeamStatus
     | CategoryFilterOption
     | DivisionFilterOption
   type FilterOptionSegmentTone = 'category' | 'categoryMuted' | 'result'
@@ -227,7 +227,7 @@
       loadingLabel: 'Loading teams...',
       emptyLabel: 'No teams found',
     }),
-    defineValueFilterFamily<SubmissionLogKind>({
+    defineValueFilterFamily<SubmissionKind>({
       id: 'kind',
       label: 'Kind',
       pluralLabel: 'kinds',
@@ -242,7 +242,7 @@
       clear: () => clearFilter(filters.kind),
       emptyLabel: 'No kinds found',
     }),
-    defineValueFilterFamily<SubmissionLogResult>({
+    defineValueFilterFamily<SubmissionResult>({
       id: 'result',
       label: 'Result',
       pluralLabel: 'results',
@@ -257,7 +257,7 @@
       clear: () => clearFilter(filters.result),
       emptyLabel: 'No results found',
     }),
-    defineValueFilterFamily<SubmissionLogTeamStatus>({
+    defineValueFilterFamily<SubmissionTeamStatus>({
       id: 'teamStatus',
       label: 'Team status',
       pluralLabel: 'statuses',
@@ -318,11 +318,11 @@
   } satisfies TimeFilterFamily
   type VirtualRow = { index: number; size: number; start: number }
 
-  let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
-  let sortOrder = $state<SubmissionLogSortOrder>(SubmissionLogSortOrder.DESC)
-  let filters = $state(createSubmissionLogFilters())
+  let sortBy = $state<SortBy>(SubmissionSortBy.CREATED_AT)
+  let sortOrder = $state<SubmissionSortOrder>(SubmissionSortOrder.DESC)
+  let filters = $state(createSubmissionFilters())
   let rootFilterSearch = $state('')
-  let expandedLogId = $state<string | null>(null)
+  let expandedSubmissionId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
 
@@ -346,9 +346,9 @@
   )
   const clientConfig = $derived(clientConfigQuery.data)
   const trimmedChallengeSearch = $derived(filters.challenge.search.trim().toLowerCase())
-  const hasFilters = $derived(hasSubmissionLogFilters(filters))
+  const hasFilters = $derived(hasSubmissionFilters(filters))
   const queryFingerprint = $derived(
-    `${sortBy}:${sortOrder}:${submissionLogFilterFingerprint(filters)}`
+    `${sortBy}:${sortOrder}:${submissionFilterFingerprint(filters)}`
   )
   const allChallengeOptions = $derived(
     (challengesQuery.data ?? []).map(challenge => ({
@@ -430,28 +430,30 @@
   const timeRangeError = $derived(timeRangeValidation.error)
   const timeRangeSummary = $derived(formatTimeRange())
 
-  const logsQuery = useInfiniteAdminSubmissionLogs(
-    () => submissionLogFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
+  const submissionsQuery = useInfiniteAdminSubmissions(
+    () => submissionFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
     () => PAGE_SIZE
   )
-  const allLogs = $derived(
-    (logsQuery.data?.pages.flatMap(page => page.logs) ?? []) as SubmissionLog[]
+  const allSubmissions = $derived(
+    (submissionsQuery.data?.pages.flatMap(page => page.submissions) ?? []) as Submission[]
   )
-  const showQueryError = $derived(!!logsQuery.error && !logsQuery.data)
-  const expandedLogIndex = $derived(
-    expandedLogId ? allLogs.findIndex(log => log.id === expandedLogId) : -1
+  const showQueryError = $derived(!!submissionsQuery.error && !submissionsQuery.data)
+  const expandedSubmissionIndex = $derived(
+    expandedSubmissionId
+      ? allSubmissions.findIndex(submission => submission.id === expandedSubmissionId)
+      : -1
   )
-  const visibleRowCount = $derived(allLogs.length + (expandedLogIndex === -1 ? 0 : 1))
+  const visibleRowCount = $derived(allSubmissions.length + (expandedSubmissionIndex === -1 ? 0 : 1))
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 12,
-    onLoadMore: () => logsQuery.fetchNextPage(),
+    onLoadMore: () => submissionsQuery.fetchNextPage(),
   })
 
   $effect(() => {
-    scroll.state.count = visibleRowCount + (logsQuery.hasNextPage ? 1 : 0)
-    scroll.state.hasNextPage = logsQuery.hasNextPage ?? false
-    scroll.state.isFetching = logsQuery.isFetchingNextPage
+    scroll.state.count = visibleRowCount + (submissionsQuery.hasNextPage ? 1 : 0)
+    scroll.state.hasNextPage = submissionsQuery.hasNextPage ?? false
+    scroll.state.isFetching = submissionsQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
   })
 
@@ -472,14 +474,14 @@
   })
 
   $effect(() => {
-    if (expandedLogId && expandedLogIndex === -1) {
-      expandedLogId = null
+    if (expandedSubmissionId && expandedSubmissionIndex === -1) {
+      expandedSubmissionId = null
     }
   })
 
   $effect(() => {
     queryFingerprint
-    expandedLogId = null
+    expandedSubmissionId = null
     const viewport = scroll.state.viewportRef
     if (viewport) viewport.scrollTop = 0
   })
@@ -487,21 +489,19 @@
   function setSort(nextSortBy: SortBy) {
     if (sortBy === nextSortBy) {
       sortOrder =
-        sortOrder === SubmissionLogSortOrder.ASC
-          ? SubmissionLogSortOrder.DESC
-          : SubmissionLogSortOrder.ASC
+        sortOrder === SubmissionSortOrder.ASC ? SubmissionSortOrder.DESC : SubmissionSortOrder.ASC
       return
     }
 
     sortBy = nextSortBy
     sortOrder =
-      nextSortBy === SubmissionLogSortBy.CREATED_AT
-        ? SubmissionLogSortOrder.DESC
-        : SubmissionLogSortOrder.ASC
+      nextSortBy === SubmissionSortBy.CREATED_AT
+        ? SubmissionSortOrder.DESC
+        : SubmissionSortOrder.ASC
   }
 
   function clearFilters() {
-    clearSubmissionLogFilters(filters)
+    clearSubmissionFilters(filters)
   }
 
   function updateChallengeSearch(value: string) {
@@ -605,15 +605,15 @@
     }
   }
 
-  function kindOptionView(kind: SubmissionLogKind): FilterOptionView {
+  function kindOptionView(kind: SubmissionKind): FilterOptionView {
     return {
       textValue: kindLabel(kind),
-      icon: kind === SubmissionLogKind.ADMIN_BOT ? IconRobot : IconFlag3Filled,
+      icon: kind === SubmissionKind.ADMIN_BOT ? IconRobot : IconFlag3Filled,
       segments: [{ text: kindLabel(kind) }],
     }
   }
 
-  function resultOptionView(result: SubmissionLogResult): FilterOptionView {
+  function resultOptionView(result: SubmissionResult): FilterOptionView {
     const tone = resultTone(result)
 
     return {
@@ -623,10 +623,10 @@
     }
   }
 
-  function teamStatusOptionView(status: SubmissionLogTeamStatus): FilterOptionView {
+  function teamStatusOptionView(status: SubmissionTeamStatus): FilterOptionView {
     return {
       textValue: teamStatusLabel(status),
-      icon: status === SubmissionLogTeamStatus.BANNED ? IconGavel : IconShieldFilled,
+      icon: status === SubmissionTeamStatus.BANNED ? IconGavel : IconShieldFilled,
       segments: [{ text: teamStatusLabel(status) }],
     }
   }
@@ -666,15 +666,15 @@
     toggleFilterOption(filters.team, team, item => item.id)
   }
 
-  function toggleKind(kind: SubmissionLogKind) {
+  function toggleKind(kind: SubmissionKind) {
     toggleFilterOption(filters.kind, kind, item => item)
   }
 
-  function toggleResult(result: SubmissionLogResult) {
+  function toggleResult(result: SubmissionResult) {
     toggleFilterOption(filters.result, result, item => item)
   }
 
-  function toggleTeamStatus(status: SubmissionLogTeamStatus) {
+  function toggleTeamStatus(status: SubmissionTeamStatus) {
     toggleFilterOption(filters.teamStatus, status, item => item)
   }
 
@@ -722,28 +722,28 @@
     return formatCtfOffset(new Date(value).getTime(), clientConfig.startTime)
   }
 
-  function toggleLog(logId: string) {
-    expandedLogId = expandedLogId === logId ? null : logId
+  function toggleSubmission(submissionId: string) {
+    expandedSubmissionId = expandedSubmissionId === submissionId ? null : submissionId
   }
 
-  function handleRowKeydown(event: KeyboardEvent, logId: string) {
+  function handleRowKeydown(event: KeyboardEvent, submissionId: string) {
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
-    toggleLog(logId)
+    toggleSubmission(submissionId)
   }
 
   function isDetailRowIndex(index: number) {
-    return expandedLogIndex !== -1 && index === expandedLogIndex + 1
+    return expandedSubmissionIndex !== -1 && index === expandedSubmissionIndex + 1
   }
 
-  function logIndexForVirtualRow(index: number) {
-    return expandedLogIndex !== -1 && index > expandedLogIndex ? index - 1 : index
+  function submissionIndexForVirtualRow(index: number) {
+    return expandedSubmissionIndex !== -1 && index > expandedSubmissionIndex ? index - 1 : index
   }
 </script>
 
 {#snippet sortIndicator(column: SortBy)}
   {#if sortBy === column}
-    {#if sortOrder === SubmissionLogSortOrder.ASC}
+    {#if sortOrder === SubmissionSortOrder.ASC}
       <IconChevronUp class="size-4" />
     {:else}
       <IconChevronDown class="size-4" />
@@ -1204,7 +1204,7 @@
 {#snippet kindChipValue(family: ValueFilterFamily)}
   {@const selected = filters.kind.selected[0]}
   {#if filters.kind.selected.length === 1 && selected}
-    {#if selected === SubmissionLogKind.ADMIN_BOT}
+    {#if selected === SubmissionKind.ADMIN_BOT}
       <IconRobot class="size-3.5" />
     {:else}
       <IconFlag3Filled class="size-3.5" />
@@ -1227,7 +1227,7 @@
 {#snippet teamStatusChipValue(family: ValueFilterFamily)}
   {@const selected = filters.teamStatus.selected[0]}
   {#if filters.teamStatus.selected.length === 1 && selected}
-    {#if selected === SubmissionLogTeamStatus.BANNED}
+    {#if selected === SubmissionTeamStatus.BANNED}
       <IconGavel class="size-3.5" />
     {:else}
       <IconShieldFilled class="size-3.5" />
@@ -1400,22 +1400,22 @@
   >
     <div></div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.CREATED_AT, 'Time')}
+      {@render sortHeader(SubmissionSortBy.CREATED_AT, 'Time')}
     </div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.CHALLENGE, 'Challenge')}
+      {@render sortHeader(SubmissionSortBy.CHALLENGE, 'Challenge')}
     </div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.TEAM, 'Team')}
+      {@render sortHeader(SubmissionSortBy.TEAM, 'Team')}
     </div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.IP, 'IP')}
+      {@render sortHeader(SubmissionSortBy.IP, 'IP')}
     </div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.KIND, 'Kind')}
+      {@render sortHeader(SubmissionSortBy.KIND, 'Kind')}
     </div>
     <div class="font-normal">
-      {@render sortHeader(SubmissionLogSortBy.RESULT, 'Result')}
+      {@render sortHeader(SubmissionSortBy.RESULT, 'Result')}
     </div>
   </div>
 {/snippet}
@@ -1426,7 +1426,7 @@
     style:height={`${row.size}px`}
     style:transform={`translate3d(0, ${row.start - listScrollMargin}px, 0)`}
   >
-    {#if logsQuery.hasNextPage}
+    {#if submissionsQuery.hasNextPage}
       <Spinner class="text-foreground-l3 size-5" />
     {/if}
   </div>
@@ -1449,8 +1449,8 @@
   </Tooltip.Root>
 {/snippet}
 
-{#snippet detailRow(row: VirtualRow, log: SubmissionLog)}
-  {@const entries = detailEntries(log)}
+{#snippet detailRow(row: VirtualRow, submission: Submission)}
+  {@const entries = detailEntries(submission)}
   <div
     class="absolute top-0 left-0 w-full will-change-transform contain-[layout_style_paint]"
     style:height={`${row.size}px`}
@@ -1459,7 +1459,7 @@
     <div class="bg-background-l3 flex h-full min-w-0 items-center gap-2 overflow-hidden px-3 pl-12">
       <span class="text-foreground-l3 shrink-0 text-sm whitespace-nowrap">Submitted</span>
       <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto pb-0.5 whitespace-nowrap">
-        {#each entries as entry (`${log.id}:${entry.label}:${entry.value}`)}
+        {#each entries as entry (`${submission.id}:${entry.label}:${entry.value}`)}
           {@render detailPill(entry)}
         {/each}
       </div>
@@ -1467,7 +1467,7 @@
         type="button"
         aria-label="Close submitted details"
         class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors"
-        onclick={() => (expandedLogId = null)}
+        onclick={() => (expandedSubmissionId = null)}
       >
         <IconX class="size-4" />
       </button>
@@ -1475,8 +1475,8 @@
   </div>
 {/snippet}
 
-{#snippet timeCell(log: SubmissionLog)}
-  {@const timestamp = new Date(log.createdAt).getTime()}
+{#snippet timeCell(submission: Submission)}
+  {@const timestamp = new Date(submission.createdAt).getTime()}
   {@const ctfOffset = formatCtfOffset(timestamp, clientConfig?.startTime)}
   <Tooltip.Root>
     <Tooltip.Trigger class="block max-w-full min-w-0 overflow-hidden">
@@ -1491,76 +1491,84 @@
         {/if}
       </div>
     </Tooltip.Trigger>
-    <Tooltip.Content>UTC {new Date(log.createdAt).toISOString()}</Tooltip.Content>
+    <Tooltip.Content>UTC {new Date(submission.createdAt).toISOString()}</Tooltip.Content>
   </Tooltip.Root>
 {/snippet}
 
-{#snippet challengeCell(log: SubmissionLog)}
-  {@const category = getCategoryConfig(log.challengeCategory)}
+{#snippet challengeCell(submission: Submission)}
+  {@const category = getCategoryConfig(submission.challengeCategory)}
   <a
-    href="/challenges?challenge={log.challengeId}"
+    href="/challenges?challenge={submission.challengeId}"
     class="group flex max-w-full min-w-0 items-center overflow-hidden whitespace-nowrap"
     style={getCategoryStyle(category.color)}
     onclick={event => event.stopPropagation()}
   >
     <span class="min-w-0 truncate text-base leading-tight">
-      <span class="text-category-foreground-l1">{log.challengeCategory} /</span>
-      <span class="text-category-foreground-l0 group-hover:underline">{log.challengeName}</span>
+      <span class="text-category-foreground-l1">{submission.challengeCategory} /</span>
+      <span class="text-category-foreground-l0 group-hover:underline"
+        >{submission.challengeName}</span
+      >
     </span>
   </a>
 {/snippet}
 
-{#snippet teamCell(log: SubmissionLog)}
+{#snippet teamCell(submission: Submission)}
   <div
     class={cn(
       'flex min-w-0 items-center gap-2 overflow-hidden whitespace-nowrap',
-      log.userBanned && 'opacity-70'
+      submission.userBanned && 'opacity-70'
     )}
   >
     <Avatar.Root class="size-8 shrink-0 rounded-lg">
-      {#if log.userAvatarUrl}
-        <Avatar.Image src={log.userAvatarUrl} alt={log.userName} class="rounded-lg object-cover" />
+      {#if submission.userAvatarUrl}
+        <Avatar.Image
+          src={submission.userAvatarUrl}
+          alt={submission.userName}
+          class="rounded-lg object-cover"
+        />
       {/if}
-      <Avatar.Fallback class="rounded-lg text-xs">{getInitials(log.userName)}</Avatar.Fallback>
+      <Avatar.Fallback class="rounded-lg text-xs"
+        >{getInitials(submission.userName)}</Avatar.Fallback
+      >
     </Avatar.Root>
     <a
-      href="/profile/{log.userId}"
+      href="/profile/{submission.userId}"
       class="text-foreground-l1 min-w-0 truncate text-base leading-tight hover:underline"
       onclick={event => event.stopPropagation()}
     >
-      {log.userName}
+      {submission.userName}
     </a>
-    {#if log.userBanned}
+    {#if submission.userBanned}
       <span class="text-foreground-destructive shrink-0 text-sm">banned</span>
     {/if}
   </div>
 {/snippet}
 
-{#snippet ipCell(log: SubmissionLog)}
-  {#if canInspectIp(log.ip)}
+{#snippet ipCell(submission: Submission)}
+  {#if canInspectIp(submission.ip)}
     <a
-      href={ipInfoUrl(log.ip)}
+      href={ipInfoUrl(submission.ip)}
       target="_blank"
       rel="noreferrer"
       class="bg-background-l4 text-foreground-l2 hover:text-foreground-l1 max-w-full truncate rounded-md px-2 py-1 text-xs whitespace-nowrap hover:underline"
       onclick={event => event.stopPropagation()}
     >
-      <code>{log.ip}</code>
+      <code>{submission.ip}</code>
     </a>
   {:else}
     <code
       class="bg-background-l4 text-foreground-l3 max-w-full truncate rounded-md px-2 py-1 text-xs whitespace-nowrap"
     >
-      {log.ip}
+      {submission.ip}
     </code>
   {/if}
 {/snippet}
 
-{#snippet kindBadge(kind: SubmissionLogKind)}
+{#snippet kindBadge(kind: SubmissionKind)}
   <span
     class="bg-background-l4 text-foreground-l2 inline-flex max-w-full items-center gap-1 rounded-md px-2 py-1 text-xs whitespace-nowrap"
   >
-    {#if kind === SubmissionLogKind.ADMIN_BOT}
+    {#if kind === SubmissionKind.ADMIN_BOT}
       <IconRobot class="size-3.5 shrink-0" />
       <span class="truncate">Admin bot</span>
     {:else}
@@ -1570,8 +1578,8 @@
   </span>
 {/snippet}
 
-{#snippet logRow(row: VirtualRow, log: SubmissionLog, index: number)}
-  {@const isExpanded = expandedLogId === log.id}
+{#snippet submissionRow(row: VirtualRow, submission: Submission, index: number)}
+  {@const isExpanded = expandedSubmissionId === submission.id}
   <div
     class="absolute top-0 left-0 w-full will-change-transform contain-[layout_style_paint]"
     style:height={`${row.size}px`}
@@ -1590,8 +1598,8 @@
       role="button"
       tabindex="0"
       aria-expanded={isExpanded}
-      onclick={() => toggleLog(log.id)}
-      onkeydown={event => handleRowKeydown(event, log.id)}
+      onclick={() => toggleSubmission(submission.id)}
+      onkeydown={event => handleRowKeydown(event, submission.id)}
     >
       <div class="flex items-center justify-center">
         <button
@@ -1601,30 +1609,30 @@
           class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex size-7 items-center justify-center rounded-md transition-colors"
           onclick={event => {
             event.stopPropagation()
-            toggleLog(log.id)
+            toggleSubmission(submission.id)
           }}
         >
           <IconChevronRight class={cn('size-4 transition-transform', isExpanded && 'rotate-90')} />
         </button>
       </div>
       <div class="flex min-w-0 items-center overflow-hidden px-3 py-2">
-        {@render timeCell(log)}
+        {@render timeCell(submission)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
-        {@render challengeCell(log)}
+        {@render challengeCell(submission)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
-        {@render teamCell(log)}
+        {@render teamCell(submission)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
-        {@render ipCell(log)}
+        {@render ipCell(submission)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
-        {@render kindBadge(log.kind)}
+        {@render kindBadge(submission.kind)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
         <span class="text-sm">
-          {@render resultText(log.result)}
+          {@render resultText(submission.result)}
         </span>
       </div>
     </div>
@@ -1640,16 +1648,16 @@
       {#if row.index >= visibleRowCount}
         {@render loadingRow(row)}
       {:else if isDetailRowIndex(row.index)}
-        {@render detailRow(row, allLogs[expandedLogIndex]!)}
+        {@render detailRow(row, allSubmissions[expandedSubmissionIndex]!)}
       {:else}
-        {@const index = logIndexForVirtualRow(row.index)}
-        {@render logRow(row, allLogs[index]!, index)}
+        {@const index = submissionIndexForVirtualRow(row.index)}
+        {@render submissionRow(row, allSubmissions[index]!, index)}
       {/if}
     {/each}
   </div>
 {/snippet}
 
-{#snippet logTable()}
+{#snippet submissionsTable()}
   <ScrollArea
     bind:viewportRef={scroll.state.viewportRef}
     class="bg-background-l1 h-full overflow-hidden rounded-lg border-2"
@@ -1667,10 +1675,10 @@
           {@render filterToolbar()}
           {@render tableHeader()}
         </div>
-        {#if allLogs.length === 0}
+        {#if allSubmissions.length === 0}
           <EmptyState
             icon={IconTableFilled}
-            title={hasFilters ? 'No matching submissions' : 'No submission logs'}
+            title={hasFilters ? 'No matching submissions' : 'No submissions'}
             subtitle={hasFilters
               ? 'Adjust or clear the filters to broaden the audit trail.'
               : 'Submission IPs will appear here once teams submit flags or admin bot jobs'}
@@ -1686,12 +1694,12 @@
 
 <svelte:head>
   {#if clientConfig}
-    <title>Submission Logs | {clientConfig.ctfName}</title>
+    <title>Submissions | {clientConfig.ctfName}</title>
   {/if}
 </svelte:head>
 
 <div class="h-[calc(100dvh-72px)] w-full overflow-hidden px-4 pt-0 pb-4 md:px-9">
-  {#if logsQuery.isPending}
+  {#if submissionsQuery.isPending}
     <div class="flex h-full items-center justify-center">
       <Spinner class="size-6" />
     </div>
@@ -1702,11 +1710,11 @@
           <Card.Title>Error</Card.Title>
         </Card.Header>
         <Card.Content>
-          <p class="text-foreground-l3">{logsQuery.error?.message}</p>
+          <p class="text-foreground-l3">{submissionsQuery.error?.message}</p>
         </Card.Content>
       </Card.Root>
     </div>
   {:else}
-    {@render logTable()}
+    {@render submissionsTable()}
   {/if}
 </div>

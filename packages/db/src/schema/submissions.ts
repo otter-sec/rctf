@@ -1,4 +1,4 @@
-import { SubmissionLogKind, SubmissionLogResult } from '@rctf/types'
+import { SubmissionKind, SubmissionResult } from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import {
   foreignKey,
@@ -12,35 +12,35 @@ import {
 import { challenges } from './challenges'
 import { users } from './users'
 
-export type SubmissionLogDetails = Record<string, unknown>
+export type SubmissionDetails = Record<string, unknown>
 
-export const submissionLogKindEnum = pgEnum('submission_log_kind', [
-  SubmissionLogKind.FLAG,
-  SubmissionLogKind.ADMIN_BOT,
+export const submissionKindEnum = pgEnum('submission_log_kind', [
+  SubmissionKind.FLAG,
+  SubmissionKind.ADMIN_BOT,
 ])
 
-export const submissionLogResultEnum = pgEnum('submission_log_result', [
-  SubmissionLogResult.CORRECT,
-  SubmissionLogResult.INCORRECT,
-  SubmissionLogResult.RATE_LIMITED,
-  SubmissionLogResult.ALREADY_SOLVED,
-  SubmissionLogResult.QUEUED,
-  SubmissionLogResult.ACTIVE_JOB,
-  SubmissionLogResult.INVALID_INPUT,
-  SubmissionLogResult.BAD_INSTANCER_STATE,
+export const submissionResultEnum = pgEnum('submission_log_result', [
+  SubmissionResult.CORRECT,
+  SubmissionResult.INCORRECT,
+  SubmissionResult.RATE_LIMITED,
+  SubmissionResult.ALREADY_SOLVED,
+  SubmissionResult.QUEUED,
+  SubmissionResult.ACTIVE_JOB,
+  SubmissionResult.INVALID_INPUT,
+  SubmissionResult.BAD_INSTANCER_STATE,
 ])
 
-export const submissionLogs = pgTable(
+export const submissions = pgTable(
   'submission_logs',
   {
     id: text().primaryKey().notNull(),
-    kind: submissionLogKindEnum().notNull(),
+    kind: submissionKindEnum().notNull(),
     challengeId: text('challenge_id').notNull(),
     userId: text('user_id').notNull(),
     ip: text().notNull(),
-    result: submissionLogResultEnum().notNull(),
+    result: submissionResultEnum().notNull(),
     details: jsonb()
-      .$type<SubmissionLogDetails>()
+      .$type<SubmissionDetails>()
       .notNull()
       .default(sql`'{}'::jsonb`),
     relatedId: text('related_id'),

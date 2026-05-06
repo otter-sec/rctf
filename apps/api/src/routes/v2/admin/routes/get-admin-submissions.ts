@@ -1,11 +1,11 @@
 import { config } from '@rctf/config'
 import {
-  GetAdminSubmissionLogsRouteV2,
-  SubmissionLogKind,
-  SubmissionLogResult,
-  SubmissionLogTeamStatus,
+  GetAdminSubmissionsRouteV2,
+  SubmissionKind,
+  SubmissionResult,
+  SubmissionTeamStatus,
 } from '@rctf/types'
-import { getSubmissionLogs } from '../../../../services/submission-logs'
+import { getSubmissions } from '../../../../services/submissions'
 import adminGroup from '../group'
 
 const splitQueryList = (value: string | undefined): string[] =>
@@ -39,27 +39,24 @@ const parseDate = (value: string | undefined) => {
   return Number.isFinite(time) ? new Date(time).toISOString() : undefined
 }
 
-adminGroup.route(GetAdminSubmissionLogsRouteV2, async ({ res, ctx, query }) => {
-  const kinds = parseEnumList(query.kinds, Object.values(SubmissionLogKind))
+adminGroup.route(GetAdminSubmissionsRouteV2, async ({ res, ctx, query }) => {
+  const kinds = parseEnumList(query.kinds, Object.values(SubmissionKind))
   const excludeKinds = parseEnumList(
     query.excludeKinds,
-    Object.values(SubmissionLogKind)
+    Object.values(SubmissionKind)
   )
-  const results = parseEnumList(
-    query.results,
-    Object.values(SubmissionLogResult)
-  )
+  const results = parseEnumList(query.results, Object.values(SubmissionResult))
   const excludeResults = parseEnumList(
     query.excludeResults,
-    Object.values(SubmissionLogResult)
+    Object.values(SubmissionResult)
   )
   const teamStatuses = parseEnumList(
     query.teamStatuses,
-    Object.values(SubmissionLogTeamStatus)
+    Object.values(SubmissionTeamStatus)
   )
   const excludeTeamStatuses = parseEnumList(
     query.excludeTeamStatuses,
-    Object.values(SubmissionLogTeamStatus)
+    Object.values(SubmissionTeamStatus)
   )
   const categories = splitQueryList(query.categories)
   const excludeCategories = splitQueryList(query.excludeCategories)
@@ -74,22 +71,22 @@ adminGroup.route(GetAdminSubmissionLogsRouteV2, async ({ res, ctx, query }) => {
 
   if (query.kinds && !kinds) {
     return res.badBody({
-      reason: 'query:kinds: invalid submission log kind',
+      reason: 'query:kinds: invalid submission kind',
     })
   }
   if (query.excludeKinds && !excludeKinds) {
     return res.badBody({
-      reason: 'query:excludeKinds: invalid submission log kind',
+      reason: 'query:excludeKinds: invalid submission kind',
     })
   }
   if (query.results && !results) {
     return res.badBody({
-      reason: 'query:results: invalid submission log result',
+      reason: 'query:results: invalid submission result',
     })
   }
   if (query.excludeResults && !excludeResults) {
     return res.badBody({
-      reason: 'query:excludeResults: invalid submission log result',
+      reason: 'query:excludeResults: invalid submission result',
     })
   }
   if (query.teamStatuses && !teamStatuses) {
@@ -128,7 +125,7 @@ adminGroup.route(GetAdminSubmissionLogsRouteV2, async ({ res, ctx, query }) => {
     })
   }
 
-  const data = await getSubmissionLogs(ctx.var.db, {
+  const data = await getSubmissions(ctx.var.db, {
     limit: query.limit,
     offset: query.offset,
     sortBy: query.sortBy,
@@ -162,8 +159,8 @@ adminGroup.route(GetAdminSubmissionLogsRouteV2, async ({ res, ctx, query }) => {
     createdBefore,
   })
 
-  return res.goodAdminSubmissionLogs({
-    logs: data.logs,
+  return res.goodAdminSubmissions({
+    submissions: data.submissions,
     total: data.total,
   })
 })

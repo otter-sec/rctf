@@ -117,12 +117,12 @@ export const searchFilter = <T extends z.core.SomeType>(t: T) =>
     exclude: z.nullish(z.array(t)),
   })
 
-export enum SubmissionLogKind {
+export enum SubmissionKind {
   FLAG = 'flag',
   ADMIN_BOT = 'admin_bot',
 }
 
-export enum SubmissionLogSortBy {
+export enum SubmissionSortBy {
   CREATED_AT = 'createdAt',
   CHALLENGE = 'challenge',
   TEAM = 'team',
@@ -131,12 +131,12 @@ export enum SubmissionLogSortBy {
   RESULT = 'result',
 }
 
-export enum SubmissionLogSortOrder {
+export enum SubmissionSortOrder {
   ASC = 'asc',
   DESC = 'desc',
 }
 
-export enum SubmissionLogResult {
+export enum SubmissionResult {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',
   RATE_LIMITED = 'rate_limited',
@@ -147,7 +147,7 @@ export enum SubmissionLogResult {
   BAD_INSTANCER_STATE = 'bad_instancer_state',
 }
 
-export enum SubmissionLogTeamStatus {
+export enum SubmissionTeamStatus {
   BANNED = 'banned',
   NOT_BANNED = 'not_banned',
 }

@@ -110,9 +110,9 @@
       show: isAdmin,
     },
     {
-      href: '/admin/submission-logs',
-      activePath: '/admin/submission-logs',
-      label: 'Submission logs',
+      href: '/admin/submissions',
+      activePath: '/admin/submissions',
+      label: 'Submissions',
       icon: IconTableFilled,
       show: isAdmin,
     },

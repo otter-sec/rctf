@@ -1,15 +1,15 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
-import { SubmissionLogKind, SubmissionLogResult } from '../util'
+import { SubmissionKind, SubmissionResult } from '../util'
 
-export const GoodAdminSubmissionLogs = response('goodAdminSubmissionLogs', {
+export const GoodAdminSubmissions = response('goodAdminSubmissions', {
   status: 200,
-  message: 'The submission logs were retrieved successfully.',
+  message: 'The submissions were retrieved successfully.',
   data: z.object({
-    logs: z.array(
+    submissions: z.array(
       z.object({
         id: z.string(),
-        kind: z.enum(SubmissionLogKind),
+        kind: z.enum(SubmissionKind),
         challengeId: z.string(),
         challengeName: z.string(),
         challengeCategory: z.string(),
@@ -21,7 +21,7 @@ export const GoodAdminSubmissionLogs = response('goodAdminSubmissionLogs', {
         userStatusText: z.nullable(z.string()),
         userBanned: z.boolean(),
         ip: z.string(),
-        result: z.enum(SubmissionLogResult),
+        result: z.enum(SubmissionResult),
         details: z.record(z.string(), z.any()),
         relatedId: z.nullable(z.string()),
         createdAt: z.string(),

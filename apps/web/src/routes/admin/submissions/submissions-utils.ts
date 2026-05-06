@@ -1,32 +1,32 @@
 import {
-  SubmissionLogKind,
-  SubmissionLogResult,
-  SubmissionLogSortBy,
-  SubmissionLogSortOrder,
-  SubmissionLogTeamStatus,
+  SubmissionKind,
+  SubmissionResult,
+  SubmissionSortBy,
+  SubmissionSortOrder,
+  SubmissionTeamStatus,
 } from '@rctf/types'
 
 export const KIND_FILTERS = [
-  SubmissionLogKind.FLAG,
-  SubmissionLogKind.ADMIN_BOT,
+  SubmissionKind.FLAG,
+  SubmissionKind.ADMIN_BOT,
 ] as const
 export const RESULT_FILTERS = [
-  SubmissionLogResult.CORRECT,
-  SubmissionLogResult.QUEUED,
-  SubmissionLogResult.RATE_LIMITED,
-  SubmissionLogResult.ALREADY_SOLVED,
-  SubmissionLogResult.ACTIVE_JOB,
-  SubmissionLogResult.INCORRECT,
-  SubmissionLogResult.INVALID_INPUT,
-  SubmissionLogResult.BAD_INSTANCER_STATE,
+  SubmissionResult.CORRECT,
+  SubmissionResult.QUEUED,
+  SubmissionResult.RATE_LIMITED,
+  SubmissionResult.ALREADY_SOLVED,
+  SubmissionResult.ACTIVE_JOB,
+  SubmissionResult.INCORRECT,
+  SubmissionResult.INVALID_INPUT,
+  SubmissionResult.BAD_INSTANCER_STATE,
 ] as const
 export const TEAM_STATUS_FILTERS = [
-  SubmissionLogTeamStatus.BANNED,
-  SubmissionLogTeamStatus.NOT_BANNED,
+  SubmissionTeamStatus.BANNED,
+  SubmissionTeamStatus.NOT_BANNED,
 ] as const
 
-export type SortBy = SubmissionLogSortBy
-export type SortOrder = SubmissionLogSortOrder
+export type SortBy = SubmissionSortBy
+export type SortOrder = SubmissionSortOrder
 export type DetailEntry = { label: string; value: string }
 export type ResultTone = 'success' | 'warning' | 'danger'
 export type CategoryFilterOption = {
@@ -48,9 +48,9 @@ export type TeamFilterOption = {
   avatarUrl: string | null
 }
 
-export type SubmissionLog = {
+export type Submission = {
   id: string
-  kind: SubmissionLogKind
+  kind: SubmissionKind
   challengeId: string
   challengeName: string
   challengeCategory: string
@@ -62,7 +62,7 @@ export type SubmissionLog = {
   userStatusText: string | null
   userBanned: boolean
   ip: string
-  result: SubmissionLogResult
+  result: SubmissionResult
   details: Record<string, unknown>
   relatedId: string | null
   createdAt: string
@@ -70,21 +70,21 @@ export type SubmissionLog = {
 
 export function resultLabel(result: string) {
   switch (result) {
-    case SubmissionLogResult.CORRECT:
+    case SubmissionResult.CORRECT:
       return 'Correct'
-    case SubmissionLogResult.INCORRECT:
+    case SubmissionResult.INCORRECT:
       return 'Incorrect'
-    case SubmissionLogResult.RATE_LIMITED:
+    case SubmissionResult.RATE_LIMITED:
       return 'Rate limited'
-    case SubmissionLogResult.ALREADY_SOLVED:
+    case SubmissionResult.ALREADY_SOLVED:
       return 'Already solved'
-    case SubmissionLogResult.QUEUED:
+    case SubmissionResult.QUEUED:
       return 'Queued'
-    case SubmissionLogResult.ACTIVE_JOB:
+    case SubmissionResult.ACTIVE_JOB:
       return 'Active job'
-    case SubmissionLogResult.INVALID_INPUT:
+    case SubmissionResult.INVALID_INPUT:
       return 'Invalid input'
-    case SubmissionLogResult.BAD_INSTANCER_STATE:
+    case SubmissionResult.BAD_INSTANCER_STATE:
       return 'Bad instancer'
     default:
       return result
@@ -93,9 +93,9 @@ export function resultLabel(result: string) {
 
 export function kindLabel(kind: string) {
   switch (kind) {
-    case SubmissionLogKind.FLAG:
+    case SubmissionKind.FLAG:
       return 'Flag'
-    case SubmissionLogKind.ADMIN_BOT:
+    case SubmissionKind.ADMIN_BOT:
       return 'Admin bot'
     default:
       return kind
@@ -104,9 +104,9 @@ export function kindLabel(kind: string) {
 
 export function teamStatusLabel(status: string) {
   switch (status) {
-    case SubmissionLogTeamStatus.BANNED:
+    case SubmissionTeamStatus.BANNED:
       return 'Banned'
-    case SubmissionLogTeamStatus.NOT_BANNED:
+    case SubmissionTeamStatus.NOT_BANNED:
       return 'Not banned'
     default:
       return status
@@ -115,22 +115,22 @@ export function teamStatusLabel(status: string) {
 
 export function resultTone(result: string): ResultTone {
   switch (result) {
-    case SubmissionLogResult.CORRECT:
-    case SubmissionLogResult.QUEUED:
+    case SubmissionResult.CORRECT:
+    case SubmissionResult.QUEUED:
       return 'success'
-    case SubmissionLogResult.RATE_LIMITED:
-    case SubmissionLogResult.ALREADY_SOLVED:
-    case SubmissionLogResult.ACTIVE_JOB:
+    case SubmissionResult.RATE_LIMITED:
+    case SubmissionResult.ALREADY_SOLVED:
+    case SubmissionResult.ACTIVE_JOB:
       return 'warning'
     default:
       return 'danger'
   }
 }
 
-export function detailEntries(log: SubmissionLog): DetailEntry[] {
-  const details = isRecord(log.details) ? log.details : {}
+export function detailEntries(submission: Submission): DetailEntry[] {
+  const details = isRecord(submission.details) ? submission.details : {}
 
-  if (log.kind === SubmissionLogKind.FLAG) {
+  if (submission.kind === SubmissionKind.FLAG) {
     return [
       {
         label: 'flag',
@@ -143,8 +143,8 @@ export function detailEntries(log: SubmissionLog): DetailEntry[] {
   if (typeof details.configRevision === 'string') {
     entries.push({ label: 'revision', value: details.configRevision })
   }
-  if (log.relatedId) {
-    entries.push({ label: 'job', value: log.relatedId })
+  if (submission.relatedId) {
+    entries.push({ label: 'job', value: submission.relatedId })
   }
   if (isRecord(details.inputs)) {
     for (const [key, value] of Object.entries(details.inputs)) {

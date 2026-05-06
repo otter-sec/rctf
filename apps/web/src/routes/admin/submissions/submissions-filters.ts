@@ -1,16 +1,16 @@
 import {
-  type SubmissionLogKind,
-  type SubmissionLogResult,
-  type SubmissionLogSortBy,
-  type SubmissionLogSortOrder,
-  type SubmissionLogTeamStatus,
+  type SubmissionKind,
+  type SubmissionResult,
+  type SubmissionSortBy,
+  type SubmissionSortOrder,
+  type SubmissionTeamStatus,
 } from '@rctf/types'
 import type {
   CategoryFilterOption,
   ChallengeFilterOption,
   DivisionFilterOption,
   TeamFilterOption,
-} from './submission-log-utils'
+} from './submissions-utils'
 
 export type FilterMode = 'include' | 'exclude'
 
@@ -42,22 +42,22 @@ export type TimeRangeResolution = {
 export type ValueFilterMap = {
   challenge: SearchFilter<ChallengeFilterOption>
   team: SearchFilter<TeamFilterOption>
-  kind: MultiFilter<SubmissionLogKind>
-  result: MultiFilter<SubmissionLogResult>
-  teamStatus: MultiFilter<SubmissionLogTeamStatus>
+  kind: MultiFilter<SubmissionKind>
+  result: MultiFilter<SubmissionResult>
+  teamStatus: MultiFilter<SubmissionTeamStatus>
   category: MultiFilter<CategoryFilterOption>
   division: MultiFilter<DivisionFilterOption>
 }
 
 export type ValueFilterId = keyof ValueFilterMap
 
-export type SubmissionLogFilters = ValueFilterMap & {
+export type SubmissionFilters = ValueFilterMap & {
   time: TimeRangeFilter
 }
 
-export type SubmissionLogQueryParams = {
-  sortBy: SubmissionLogSortBy
-  sortOrder: SubmissionLogSortOrder
+export type SubmissionQueryParams = {
+  sortBy: SubmissionSortBy
+  sortOrder: SubmissionSortOrder
   challengeIds?: string
   excludeChallengeIds?: string
   userIds?: string
@@ -77,23 +77,20 @@ export type SubmissionLogQueryParams = {
 }
 
 type FilterParamKey = Exclude<
-  keyof SubmissionLogQueryParams,
+  keyof SubmissionQueryParams,
   'sortBy' | 'sortOrder'
 >
 
 type ValueFilterDefinition<Id extends ValueFilterId, T> = {
   id: Id
   create: () => ValueFilterMap[Id]
-  has: (filters: SubmissionLogFilters) => boolean
-  clear: (filters: SubmissionLogFilters) => void
-  fingerprint: (filters: SubmissionLogFilters) => string
-  addParams: (
-    params: SubmissionLogQueryParams,
-    filters: SubmissionLogFilters
-  ) => void
+  has: (filters: SubmissionFilters) => boolean
+  clear: (filters: SubmissionFilters) => void
+  fingerprint: (filters: SubmissionFilters) => string
+  addParams: (params: SubmissionQueryParams, filters: SubmissionFilters) => void
 }
 
-export const SUBMISSION_LOG_VALUE_FILTERS = [
+export const SUBMISSION_VALUE_FILTERS = [
   defineValueFilter(
     'challenge',
     'challengeIds',
@@ -112,22 +109,22 @@ export const SUBMISSION_LOG_VALUE_FILTERS = [
     'kind',
     'kinds',
     'excludeKinds',
-    (kind: SubmissionLogKind) => kind,
-    () => createFilter<SubmissionLogKind>()
+    (kind: SubmissionKind) => kind,
+    () => createFilter<SubmissionKind>()
   ),
   defineValueFilter(
     'result',
     'results',
     'excludeResults',
-    (result: SubmissionLogResult) => result,
-    () => createFilter<SubmissionLogResult>()
+    (result: SubmissionResult) => result,
+    () => createFilter<SubmissionResult>()
   ),
   defineValueFilter(
     'teamStatus',
     'teamStatuses',
     'excludeTeamStatuses',
-    (status: SubmissionLogTeamStatus) => status,
-    () => createFilter<SubmissionLogTeamStatus>()
+    (status: SubmissionTeamStatus) => status,
+    () => createFilter<SubmissionTeamStatus>()
   ),
   defineValueFilter(
     'category',
@@ -145,9 +142,9 @@ export const SUBMISSION_LOG_VALUE_FILTERS = [
   ),
 ] as const
 
-export function createSubmissionLogFilters(): SubmissionLogFilters {
+export function createSubmissionFilters(): SubmissionFilters {
   const filters = Object.fromEntries(
-    SUBMISSION_LOG_VALUE_FILTERS.map(definition => [
+    SUBMISSION_VALUE_FILTERS.map(definition => [
       definition.id,
       definition.create(),
     ])
@@ -159,41 +156,41 @@ export function createSubmissionLogFilters(): SubmissionLogFilters {
   }
 }
 
-export function hasSubmissionLogFilters(filters: SubmissionLogFilters) {
+export function hasSubmissionFilters(filters: SubmissionFilters) {
   return (
-    SUBMISSION_LOG_VALUE_FILTERS.some(definition => definition.has(filters)) ||
+    SUBMISSION_VALUE_FILTERS.some(definition => definition.has(filters)) ||
     hasTimeRangeFilter(filters.time)
   )
 }
 
-export function clearSubmissionLogFilters(filters: SubmissionLogFilters) {
-  for (const definition of SUBMISSION_LOG_VALUE_FILTERS) {
+export function clearSubmissionFilters(filters: SubmissionFilters) {
+  for (const definition of SUBMISSION_VALUE_FILTERS) {
     definition.clear(filters)
   }
   clearTimeRangeFilter(filters.time)
 }
 
-export function submissionLogFilterFingerprint(filters: SubmissionLogFilters) {
+export function submissionFilterFingerprint(filters: SubmissionFilters) {
   return [
-    ...SUBMISSION_LOG_VALUE_FILTERS.map(definition =>
+    ...SUBMISSION_VALUE_FILTERS.map(definition =>
       definition.fingerprint(filters)
     ),
     timeRangeFingerprint(filters.time),
   ].join(':')
 }
 
-export function submissionLogFilterParams(
-  filters: SubmissionLogFilters,
-  sortBy: SubmissionLogSortBy,
-  sortOrder: SubmissionLogSortOrder,
+export function submissionFilterParams(
+  filters: SubmissionFilters,
+  sortBy: SubmissionSortBy,
+  sortOrder: SubmissionSortOrder,
   ctfStartTime?: number | null
-): SubmissionLogQueryParams {
-  const params: SubmissionLogQueryParams = {
+): SubmissionQueryParams {
+  const params: SubmissionQueryParams = {
     sortBy,
     sortOrder,
   }
 
-  for (const definition of SUBMISSION_LOG_VALUE_FILTERS) {
+  for (const definition of SUBMISSION_VALUE_FILTERS) {
     definition.addParams(params, filters)
   }
   addTimeRangeParams(params, filters.time, ctfStartTime)
@@ -303,7 +300,7 @@ function defineValueFilter<Id extends ValueFilterId, T>(
   valueFor: (option: T) => string,
   create: () => ValueFilterMap[Id]
 ): ValueFilterDefinition<Id, T> {
-  const getFilter = (filters: SubmissionLogFilters) =>
+  const getFilter = (filters: SubmissionFilters) =>
     filters[id] as MultiFilter<T>
 
   return {
@@ -365,7 +362,7 @@ function timeRangeFingerprint(filter: TimeRangeFilter) {
 }
 
 function addFilterParams<T>(
-  params: SubmissionLogQueryParams,
+  params: SubmissionQueryParams,
   filter: MultiFilter<T>,
   includeKey: FilterParamKey,
   excludeKey: FilterParamKey,
@@ -379,7 +376,7 @@ function addFilterParams<T>(
 }
 
 function addTimeRangeParams(
-  params: SubmissionLogQueryParams,
+  params: SubmissionQueryParams,
   filter: TimeRangeFilter,
   ctfStartTime?: number | null
 ) {
