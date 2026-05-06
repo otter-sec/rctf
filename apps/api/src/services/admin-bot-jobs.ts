@@ -1,8 +1,12 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { adminBotJobs, type InstancerInstance } from '@rctf/db'
+import { adminBotJobs, submissionLogs, type InstancerInstance } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
-import { AdminBotJobStatus } from '@rctf/types'
+import {
+  AdminBotJobStatus,
+  SubmissionLogKind,
+  SubmissionLogResult,
+} from '@rctf/types'
 import { and, desc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 
 const MAX_LOGS_PER_USER_CHALLENGE =
@@ -158,9 +162,11 @@ export const createJob = async (
     inputs: Record<string, string>
     instancerInstances: InstancerInstance[]
     timeoutMs: number
+    submissionIp: string | undefined
   }
 ) => {
   const id = crypto.randomUUID()
+  const submissionLogId = crypto.randomUUID()
   const now = new Date().toISOString()
 
   const job = {
@@ -178,7 +184,24 @@ export const createJob = async (
   }
 
   try {
-    await db.insert(adminBotJobs).values(job)
+    await db.transaction(async tx => {
+      await tx.insert(adminBotJobs).values(job)
+      await tx.insert(submissionLogs).values({
+        id: submissionLogId,
+        kind: SubmissionLogKind.ADMIN_BOT,
+        challengeId: params.challengeId,
+        userId: params.userId,
+        ip: params.submissionIp ?? 'unknown',
+        result: SubmissionLogResult.QUEUED,
+        details: {
+          inputs: params.inputs,
+          configRevision: params.configRevision,
+          instancerInstances: params.instancerInstances,
+        },
+        relatedId: id,
+        createdAt: now,
+      })
+    })
   } catch (error) {
     const constraintName = getErrorConstraint(error)
     if (constraintName === 'admin_bot_jobs_active_job_unique') {

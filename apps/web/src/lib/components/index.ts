@@ -31,6 +31,7 @@ export { default as NavigationMobile } from './navigation-mobile.svelte'
 export { default as MarkdownAlert } from './markdown-alert.svelte'
 export { default as NavigationButton } from './navigation-button.svelte'
 export { default as SearchInput } from './search-input.svelte'
+export { default as TeamDisplay } from './team-display.svelte'
 export { default as ThemeToggle } from './theme-toggle.svelte'
 
 export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'

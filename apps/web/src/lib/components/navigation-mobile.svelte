@@ -16,6 +16,7 @@
     IconLogout,
     IconMenu2,
     IconSettingsFilled,
+    IconTableFilled,
     IconUserCog,
     IconX,
   } from '$lib/icons'
@@ -106,6 +107,13 @@
       activePath: '/admin/teams',
       label: 'Manage teams',
       icon: IconUserCog,
+      show: isAdmin,
+    },
+    {
+      href: '/admin/submission-logs',
+      activePath: '/admin/submission-logs',
+      label: 'Submission logs',
+      icon: IconTableFilled,
       show: isAdmin,
     },
     {

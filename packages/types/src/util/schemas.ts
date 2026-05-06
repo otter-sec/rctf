@@ -116,3 +116,19 @@ export const searchFilter = <T extends z.core.SomeType>(t: T) =>
     include: z.nullish(z.array(t)),
     exclude: z.nullish(z.array(t)),
   })
+
+export enum SubmissionLogKind {
+  FLAG = 'flag',
+  ADMIN_BOT = 'admin_bot',
+}
+
+export enum SubmissionLogResult {
+  CORRECT = 'correct',
+  INCORRECT = 'incorrect',
+  RATE_LIMITED = 'rate_limited',
+  ALREADY_SOLVED = 'already_solved',
+  QUEUED = 'queued',
+  ACTIVE_JOB = 'active_job',
+  INVALID_INPUT = 'invalid_input',
+  BAD_INSTANCER_STATE = 'bad_instancer_state',
+}

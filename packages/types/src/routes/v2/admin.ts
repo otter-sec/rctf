@@ -24,6 +24,7 @@ import {
   GoodAdminChallengeV2,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
+  GoodAdminSubmissionLogs,
   GoodAdminUserDeleteV2,
   GoodAdminUsersV2,
   GoodAdminUserUpdateV2,
@@ -47,6 +48,8 @@ import {
   PartialInstancerConfigSchema,
   searchFilter,
   SortOrder,
+  SubmissionLogKind,
+  SubmissionLogResult,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -90,6 +93,32 @@ export const FilterAdminUsersRouteV2 = defineRoute({
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
+})
+
+export const GetAdminSubmissionLogsRouteV2 = defineRoute({
+  path: '/v2/admin/submission-logs',
+  method: 'GET',
+  query: z.object({
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+    sortBy: z.optional(
+      z.enum(['createdAt', 'challenge', 'team', 'ip', 'kind', 'result'])
+    ),
+    sortOrder: z.optional(z.enum(['asc', 'desc'])),
+    challengeId: z.optional(z.string()),
+    challengeIds: z.optional(z.string().check(z.maxLength(2000))),
+    challengeSearch: z.optional(z.string().check(z.maxLength(100))),
+    userId: z.optional(z.string()),
+    userIds: z.optional(z.string().check(z.maxLength(2000))),
+    teamSearch: z.optional(z.string().check(z.maxLength(100))),
+    kind: z.optional(z.enum(SubmissionLogKind)),
+    result: z.optional(z.enum(SubmissionLogResult)),
+    results: z.optional(z.string().check(z.maxLength(2000))),
+  }),
+  goodResponses: [GoodAdminSubmissionLogs],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite | Permissions.challsRead,
 })
 
 const AdminUserParams = z.object({

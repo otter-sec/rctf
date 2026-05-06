@@ -1,8 +1,10 @@
+import { type SubmissionLogKind } from '@rctf/types'
 import {
   adminBotStatusQueryOptions,
   adminChallengeQueryOptions,
   adminChallengesQueryOptions,
   adminSettingsQueryOptions,
+  adminSubmissionLogsQueryOptions,
   adminUserQueryOptions,
   adminUserVerificationsQueryOptions,
   instancerSchemaQueryOptions,
@@ -62,4 +64,13 @@ export const queryKeys = {
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
+  adminSubmissionLogs: (params: {
+    limit: number
+    offset: number
+    sortBy?: 'createdAt' | 'challenge' | 'team' | 'ip' | 'kind' | 'result'
+    sortOrder?: 'asc' | 'desc'
+    challengeId?: string
+    userId?: string
+    kind?: SubmissionLogKind
+  }) => adminSubmissionLogsQueryOptions(params).queryKey,
 }
