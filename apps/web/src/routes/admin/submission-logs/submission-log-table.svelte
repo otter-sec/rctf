@@ -982,7 +982,7 @@
 {/snippet}
 
 {#snippet filterChips()}
-  <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pb-0.5 whitespace-nowrap">
+  <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
     {#if filters.challenge.selected.length > 0}
       {@render challengeChip()}
     {/if}
