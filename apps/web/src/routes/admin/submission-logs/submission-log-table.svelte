@@ -59,60 +59,28 @@
     type SubmissionLog,
     type TeamFilterOption,
   } from './submission-log-utils'
+  import {
+    clearFilter,
+    clearSearchFilter,
+    clearSubmissionLogFilters,
+    createSubmissionLogFilters,
+    filterOperatorLabel,
+    hasSubmissionLogFilters,
+    includeOperatorLabel,
+    setFilterMode,
+    submissionLogFilterFingerprint,
+    submissionLogFilterParams,
+    toggleFilterOption,
+    type FilterMode,
+  } from './submission-log-filters'
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
-  type FilterMode = 'include' | 'exclude'
-  type MultiFilter<T> = {
-    mode: FilterMode
-    selected: T[]
-  }
-  type SearchFilter<T> = MultiFilter<T> & {
-    search: string
-  }
-  type SubmissionLogFilters = {
-    challenge: SearchFilter<ChallengeFilterOption>
-    team: SearchFilter<TeamFilterOption>
-    kind: MultiFilter<SubmissionLogKind>
-    result: MultiFilter<SubmissionLogResult>
-  }
-  type LogsQueryParams = {
-    sortBy: SortBy
-    sortOrder: SubmissionLogSortOrder
-    challengeIds?: string
-    excludeChallengeIds?: string
-    userIds?: string
-    excludeUserIds?: string
-    kinds?: string
-    excludeKinds?: string
-    results?: string
-    excludeResults?: string
-  }
-  type FilterParamKey = Exclude<keyof LogsQueryParams, 'sortBy' | 'sortOrder'>
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
   let sortOrder = $state<SubmissionLogSortOrder>(SubmissionLogSortOrder.DESC)
-  let filters = $state<SubmissionLogFilters>({
-    challenge: {
-      mode: 'include',
-      selected: [],
-      search: '',
-    },
-    team: {
-      mode: 'include',
-      selected: [],
-      search: '',
-    },
-    kind: {
-      mode: 'include',
-      selected: [],
-    },
-    result: {
-      mode: 'include',
-      selected: [],
-    },
-  })
+  let filters = $state(createSubmissionLogFilters())
   let expandedLogId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
@@ -129,21 +97,9 @@
   )
   const clientConfig = $derived(clientConfigQuery.data)
   const trimmedChallengeSearch = $derived(filters.challenge.search.trim().toLowerCase())
-  const hasFilters = $derived(
-    filters.challenge.selected.length > 0 ||
-      filters.team.selected.length > 0 ||
-      filters.kind.selected.length > 0 ||
-      filters.result.selected.length > 0
-  )
+  const hasFilters = $derived(hasSubmissionLogFilters(filters))
   const queryFingerprint = $derived(
-    [
-      sortBy,
-      sortOrder,
-      filterFingerprint(filters.challenge, challenge => challenge.id),
-      filterFingerprint(filters.team, team => team.id),
-      filterFingerprint(filters.kind, kind => kind),
-      filterFingerprint(filters.result, result => result),
-    ].join(':')
+    `${sortBy}:${sortOrder}:${submissionLogFilterFingerprint(filters)}`
   )
   const challengeOptions = $derived(
     (challengesQuery.data ?? [])
@@ -181,37 +137,7 @@
   })
 
   const logsQuery = useInfiniteAdminSubmissionLogs(
-    () => {
-      const params: LogsQueryParams = {
-        sortBy,
-        sortOrder,
-      }
-
-      addFilterParams(
-        params,
-        filters.challenge,
-        'challengeIds',
-        'excludeChallengeIds',
-        challenge => challenge.id
-      )
-      addFilterParams(
-        params,
-        filters.team,
-        'userIds',
-        'excludeUserIds',
-        team => team.id
-      )
-      addFilterParams(params, filters.kind, 'kinds', 'excludeKinds', kind => kind)
-      addFilterParams(
-        params,
-        filters.result,
-        'results',
-        'excludeResults',
-        result => result
-      )
-
-      return params
-    },
+    () => submissionLogFilterParams(filters, sortBy, sortOrder),
     () => PAGE_SIZE
   )
   const allLogs = $derived(
@@ -280,10 +206,7 @@
   }
 
   function clearFilters() {
-    clearSearchFilter(filters.challenge)
-    clearSearchFilter(filters.team)
-    clearFilter(filters.kind)
-    clearFilter(filters.result)
+    clearSubmissionLogFilters(filters)
   }
 
   function updateChallengeSearch(value: string) {
@@ -324,64 +247,6 @@
 
   function clearResults() {
     clearFilter(filters.result)
-  }
-
-  function clearFilter<T>(filter: MultiFilter<T>) {
-    filter.mode = 'include'
-    filter.selected = []
-  }
-
-  function clearSearchFilter<T>(filter: SearchFilter<T>) {
-    clearFilter(filter)
-    filter.search = ''
-  }
-
-  function toggleFilterOption<T>(
-    filter: MultiFilter<T>,
-    option: T,
-    keyFor: (option: T) => string
-  ) {
-    filter.selected = toggleOption(filter.selected, option, keyFor)
-  }
-
-  function toggleOption<T>(
-    options: T[],
-    option: T,
-    keyFor: (option: T) => string
-  ): T[] {
-    const key = keyFor(option)
-    return options.some(current => keyFor(current) === key)
-      ? options.filter(current => keyFor(current) !== key)
-      : [...options, option]
-  }
-
-  function filterOperatorLabel(mode: FilterMode, count: number) {
-    if (mode === 'exclude') return 'is not'
-    return count > 1 ? 'is any of' : 'is'
-  }
-
-  function includeOperatorLabel(count: number) {
-    return count > 1 ? 'is any of' : 'is'
-  }
-
-  function filterFingerprint<T>(
-    filter: MultiFilter<T>,
-    valueFor: (option: T) => string
-  ) {
-    return `${filter.mode}:${filter.selected.map(valueFor).join(',')}`
-  }
-
-  function addFilterParams<T>(
-    params: LogsQueryParams,
-    filter: MultiFilter<T>,
-    includeKey: FilterParamKey,
-    excludeKey: FilterParamKey,
-    valueFor: (option: T) => string
-  ) {
-    if (filter.selected.length === 0) return
-
-    params[filter.mode === 'include' ? includeKey : excludeKey] =
-      filter.selected.map(valueFor).join(',')
   }
 
   function toggleLog(logId: string) {
@@ -457,19 +322,6 @@
   </span>
 {/snippet}
 
-{#snippet checkboxSquare(checked: boolean)}
-  <span
-    class={cn(
-      'border-foreground-l4/60 flex size-4 shrink-0 items-center justify-center rounded-[4px] border-2',
-      checked && 'bg-foreground-l0 text-background-l0 border-foreground-l0'
-    )}
-  >
-    {#if checked}
-      <IconCheck class="size-3" />
-    {/if}
-  </span>
-{/snippet}
-
 {#snippet operatorDropdown(
   mode: FilterMode,
   count: number,
@@ -530,38 +382,34 @@
 {#snippet challengeOption(challenge: ChallengeFilterOption)}
   {@const category = getCategoryConfig(challenge.category)}
   {@const selected = filters.challenge.selected.some(item => item.id === challenge.id)}
-  <button
-    type="button"
-    tabindex="-1"
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={`${challenge.category} ${challenge.name}`}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     style={getCategoryStyle(category.color)}
-    onmousedown={event => event.preventDefault()}
-    onclick={event => {
-      event.stopPropagation()
-      toggleChallenge(challenge)
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleChallenge(challenge)
     }}
   >
-    {@render checkboxSquare(selected)}
     <span class="min-w-0 truncate text-sm">
       <span class="text-category-foreground-l1">{challenge.category} /</span>
       <span class="text-category-foreground-l0">{challenge.name}</span>
     </span>
-  </button>
+  </DropdownMenu.CheckboxItem>
 {/snippet}
 
 {#snippet teamOption(team: TeamFilterOption)}
   {@const selected = filters.team.selected.some(item => item.id === team.id)}
-  <button
-    type="button"
-    tabindex="-1"
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={team.name}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onmousedown={event => event.preventDefault()}
-    onclick={event => {
-      event.stopPropagation()
-      toggleTeam(team)
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleTeam(team)
     }}
   >
-    {@render checkboxSquare(selected)}
     <Avatar.Root class="size-5 rounded-md">
       {#if team.avatarUrl}
         <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-md object-cover" />
@@ -571,7 +419,7 @@
       </Avatar.Fallback>
     </Avatar.Root>
     <span class="min-w-0 truncate text-sm">{team.name}</span>
-  </button>
+  </DropdownMenu.CheckboxItem>
 {/snippet}
 
 {#snippet challengeSelector()}
@@ -626,24 +474,22 @@
 
 {#snippet kindOption(kind: SubmissionLogKind)}
   {@const selected = filters.kind.selected.includes(kind)}
-  <button
-    type="button"
-    tabindex="-1"
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={kindLabel(kind)}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onmousedown={event => event.preventDefault()}
-    onclick={event => {
-      event.stopPropagation()
-      toggleKind(kind)
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleKind(kind)
     }}
   >
-    {@render checkboxSquare(selected)}
     {#if kind === SubmissionLogKind.ADMIN_BOT}
       <IconRobot class="size-4" />
     {:else}
       <IconFlag3Filled class="size-4" />
     {/if}
     {kindLabel(kind)}
-  </button>
+  </DropdownMenu.CheckboxItem>
 {/snippet}
 
 {#snippet kindSelector()}
@@ -656,19 +502,17 @@
 
 {#snippet resultOption(result: SubmissionLogResult)}
   {@const selected = filters.result.selected.includes(result)}
-  <button
-    type="button"
-    tabindex="-1"
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={resultLabel(result)}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onmousedown={event => event.preventDefault()}
-    onclick={event => {
-      event.stopPropagation()
-      toggleResult(result)
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleResult(result)
     }}
   >
-    {@render checkboxSquare(selected)}
     {@render resultText(result)}
-  </button>
+  </DropdownMenu.CheckboxItem>
 {/snippet}
 
 {#snippet resultSelector()}
@@ -796,7 +640,7 @@
     {@render operatorDropdown(
       filters.challenge.mode,
       filters.challenge.selected.length,
-      mode => (filters.challenge.mode = mode)
+      mode => setFilterMode(filters.challenge, mode)
     )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
@@ -845,7 +689,7 @@
     {@render operatorDropdown(
       filters.team.mode,
       filters.team.selected.length,
-      mode => (filters.team.mode = mode)
+      mode => setFilterMode(filters.team, mode)
     )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
@@ -900,7 +744,7 @@
     {@render operatorDropdown(
       filters.kind.mode,
       filters.kind.selected.length,
-      mode => (filters.kind.mode = mode)
+      mode => setFilterMode(filters.kind, mode)
     )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
@@ -948,7 +792,7 @@
     {@render operatorDropdown(
       filters.result.mode,
       filters.result.selected.length,
-      mode => (filters.result.mode = mode)
+      mode => setFilterMode(filters.result, mode)
     )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger

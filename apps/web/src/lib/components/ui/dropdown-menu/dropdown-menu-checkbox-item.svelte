@@ -28,11 +28,16 @@
   {...restProps}
 >
   {#snippet children({ checked, indeterminate })}
-    <span class="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
+    <span
+      class={cn(
+        'border-foreground-l4/60 pointer-events-none absolute start-2 flex size-4 items-center justify-center rounded-[4px] border-2',
+        checked && 'bg-foreground-l0 text-background-l0 border-foreground-l0'
+      )}
+    >
       {#if indeterminate}
-        <IconMinus class="size-4" />
-      {:else}
-        <IconCheck class={cn('size-4', !checked && 'text-transparent')} />
+        <IconMinus class="size-3" />
+      {:else if checked}
+        <IconCheck class="size-3" />
       {/if}
     </span>
     {@render childrenProp?.()}
