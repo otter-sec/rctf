@@ -861,7 +861,7 @@
 
 {#snippet tableHeader()}
   <div
-    class="bg-background-l3 text-foreground-l3 relative z-10 grid grid-cols-[2.75rem_11rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] border-b-2 text-base"
+    class="bg-background-l3 text-foreground-l3 relative z-10 grid grid-cols-[2.75rem_16rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] border-b-2 text-base"
   >
     <div></div>
     <div class="font-normal">
@@ -944,8 +944,8 @@
   {@const timestamp = new Date(log.createdAt).getTime()}
   {@const ctfOffset = formatCtfOffset(timestamp, clientConfig?.startTime)}
   <Tooltip.Root>
-    <Tooltip.Trigger>
-      <div class="flex max-w-full items-baseline gap-2 overflow-hidden whitespace-nowrap">
+    <Tooltip.Trigger class="block min-w-0 max-w-full overflow-hidden">
+      <div class="flex min-w-0 max-w-full items-baseline gap-2 overflow-hidden whitespace-nowrap">
         <span class="text-foreground-l1 shrink-0 tabular-nums">
           {formatLocalTime(timestamp)}
         </span>
@@ -1044,7 +1044,7 @@
   >
     <div
       class={cn(
-        'grid h-full cursor-pointer grid-cols-[2.75rem_11rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] overflow-hidden',
+        'grid h-full cursor-pointer grid-cols-[2.75rem_16rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] overflow-hidden',
         isExpanded
           ? 'bg-background-l3'
           : index % 2 === 0
@@ -1072,7 +1072,7 @@
           <IconChevronRight class={cn('size-4 transition-transform', isExpanded && 'rotate-90')} />
         </button>
       </div>
-      <div class="flex min-w-0 items-center px-3 py-2">
+      <div class="flex min-w-0 items-center overflow-hidden px-3 py-2">
         {@render timeCell(log)}
       </div>
       <div class="flex min-w-0 items-center px-3 py-2">
@@ -1126,7 +1126,7 @@
     scrollbarYClasses="z-40"
     scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
   >
-    <div class="min-h-full w-full min-w-[86rem] text-sm">
+    <div class="min-h-full w-full min-w-[91rem] text-sm">
       <div class="flex min-h-full flex-col">
         <div bind:this={tableHeaderRef} class="bg-background-l1 sticky top-0 z-50">
           {@render filterToolbar()}
