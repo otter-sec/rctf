@@ -1,8 +1,10 @@
+import { SubmissionLogKind, SubmissionLogResult } from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import {
   foreignKey,
   index,
   jsonb,
+  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -12,15 +14,31 @@ import { users } from './users'
 
 export type SubmissionLogDetails = Record<string, unknown>
 
+export const submissionLogKindEnum = pgEnum('submission_log_kind', [
+  SubmissionLogKind.FLAG,
+  SubmissionLogKind.ADMIN_BOT,
+])
+
+export const submissionLogResultEnum = pgEnum('submission_log_result', [
+  SubmissionLogResult.CORRECT,
+  SubmissionLogResult.INCORRECT,
+  SubmissionLogResult.RATE_LIMITED,
+  SubmissionLogResult.ALREADY_SOLVED,
+  SubmissionLogResult.QUEUED,
+  SubmissionLogResult.ACTIVE_JOB,
+  SubmissionLogResult.INVALID_INPUT,
+  SubmissionLogResult.BAD_INSTANCER_STATE,
+])
+
 export const submissionLogs = pgTable(
   'submission_logs',
   {
     id: text().primaryKey().notNull(),
-    kind: text().notNull(),
+    kind: submissionLogKindEnum().notNull(),
     challengeId: text('challenge_id').notNull(),
     userId: text('user_id').notNull(),
     ip: text().notNull(),
-    result: text().notNull(),
+    result: submissionLogResultEnum().notNull(),
     details: jsonb()
       .$type<SubmissionLogDetails>()
       .notNull()
@@ -54,8 +72,8 @@ export const submissionLogs = pgTable(
     ),
     index('submission_logs_kind_result_index').using(
       'btree',
-      table.kind.asc().nullsLast().op('text_ops'),
-      table.result.asc().nullsLast().op('text_ops')
+      table.kind.asc().nullsLast(),
+      table.result.asc().nullsLast()
     ),
     foreignKey({
       columns: [table.challengeId],

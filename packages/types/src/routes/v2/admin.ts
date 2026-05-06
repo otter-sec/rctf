@@ -50,6 +50,8 @@ import {
   SortOrder,
   SubmissionLogKind,
   SubmissionLogResult,
+  SubmissionLogSortBy,
+  SubmissionLogSortOrder,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -101,10 +103,8 @@ export const GetAdminSubmissionLogsRouteV2 = defineRoute({
   query: z.object({
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    sortBy: z.optional(
-      z.enum(['createdAt', 'challenge', 'team', 'ip', 'kind', 'result'])
-    ),
-    sortOrder: z.optional(z.enum(['asc', 'desc'])),
+    sortBy: z.optional(z.enum(SubmissionLogSortBy)),
+    sortOrder: z.optional(z.enum(SubmissionLogSortOrder)),
     challengeId: z.optional(z.string()),
     challengeIds: z.optional(z.string().check(z.maxLength(2000))),
     challengeSearch: z.optional(z.string().check(z.maxLength(100))),

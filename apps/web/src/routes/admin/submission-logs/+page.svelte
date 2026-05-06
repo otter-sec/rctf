@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { SubmissionLogKind, SubmissionLogResult } from '@rctf/types'
+  import {
+    SubmissionLogKind,
+    SubmissionLogResult,
+    SubmissionLogSortBy,
+    SubmissionLogSortOrder,
+  } from '@rctf/types'
   import {
     Avatar,
     Card,
@@ -40,61 +45,32 @@
     getInitials,
     useInfiniteVirtualScroll,
   } from '$lib/utils'
+  import {
+    canInspectIp,
+    detailEntries,
+    formatCtfOffset,
+    ipInfoUrl,
+    KIND_FILTERS,
+    kindLabel,
+    RESULT_FILTERS,
+    resultLabel,
+    resultTone,
+    type ChallengeFilterOption,
+    type SortBy,
+    type SubmissionLog,
+    type TeamFilterOption,
+  } from './submission-log-utils'
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
-  const TABLE_COLUMNS = 'grid-cols-[2.75rem_11rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem]'
-  const ALL_FILTER = '__all__'
-  const MENU_OPTION_CLASS =
-    'text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2'
-  const SEARCH_OPTION_CLASS =
-    'text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none'
-  const FILTER_SCROLLBAR_CLASS = 'hidden'
-  const KIND_FILTERS = [SubmissionLogKind.FLAG, SubmissionLogKind.ADMIN_BOT] as const
-  const RESULT_FILTERS = [
-    SubmissionLogResult.CORRECT,
-    SubmissionLogResult.INCORRECT,
-    SubmissionLogResult.RATE_LIMITED,
-    SubmissionLogResult.ALREADY_SOLVED,
-    SubmissionLogResult.QUEUED,
-    SubmissionLogResult.ACTIVE_JOB,
-    SubmissionLogResult.INVALID_INPUT,
-    SubmissionLogResult.BAD_INSTANCER_STATE,
-  ] as const
 
-  type SortBy = 'createdAt' | 'challenge' | 'team' | 'ip' | 'kind' | 'result'
-  type SortOrder = 'asc' | 'desc'
-  type KindFilter = typeof ALL_FILTER | SubmissionLogKind
-  type DetailEntry = { label: string; value: string }
-  type ChallengeFilterOption = { id: string; name: string; category: string }
-  type TeamFilterOption = { id: string; name: string; avatarUrl: string | null }
-  type SubmissionLog = {
-    id: string
-    kind: string
-    challengeId: string
-    challengeName: string
-    challengeCategory: string
-    userId: string
-    userName: string
-    userDivision: string
-    userAvatarUrl: string | null
-    userCountryCode: string | null
-    userStatusText: string | null
-    userBanned: boolean
-    ip: string
-    result: string
-    details: Record<string, unknown>
-    relatedId: string | null
-    createdAt: string
-  }
-
-  let sortBy = $state<SortBy>('createdAt')
-  let sortOrder = $state<SortOrder>('desc')
+  let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
+  let sortOrder = $state<SubmissionLogSortOrder>(SubmissionLogSortOrder.DESC)
   let challengeSearch = $state('')
   let teamSearch = $state('')
   let selectedChallenges = $state<ChallengeFilterOption[]>([])
   let selectedTeams = $state<TeamFilterOption[]>([])
-  let kindFilter = $state<KindFilter>(ALL_FILTER)
+  let kindFilter = $state<SubmissionLogKind | null>(null)
   let selectedResults = $state<SubmissionLogResult[]>([])
   let expandedLogId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
@@ -112,11 +88,10 @@
   )
   const clientConfig = $derived(clientConfigQuery.data)
   const trimmedChallengeSearch = $derived(challengeSearch.trim().toLowerCase())
-  const trimmedTeamSearch = $derived(teamSearch.trim())
   const hasFilters = $derived(
     selectedChallenges.length > 0 ||
       selectedTeams.length > 0 ||
-      kindFilter !== ALL_FILTER ||
+      kindFilter !== null ||
       selectedResults.length > 0
   )
   const queryFingerprint = $derived(
@@ -152,7 +127,7 @@
     () => {
       const params: {
         sortBy: SortBy
-        sortOrder: SortOrder
+        sortOrder: SubmissionLogSortOrder
         challengeIds?: string
         userIds?: string
         kind?: SubmissionLogKind
@@ -168,7 +143,7 @@
       if (selectedTeams.length > 0) {
         params.userIds = selectedTeams.map(team => team.id).join(',')
       }
-      if (kindFilter !== ALL_FILTER) params.kind = kindFilter
+      if (kindFilter) params.kind = kindFilter
       if (selectedResults.length > 0) params.results = selectedResults.join(',')
 
       return params
@@ -226,46 +201,18 @@
 
   function setSort(nextSortBy: SortBy) {
     if (sortBy === nextSortBy) {
-      sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'
+      sortOrder =
+        sortOrder === SubmissionLogSortOrder.ASC
+          ? SubmissionLogSortOrder.DESC
+          : SubmissionLogSortOrder.ASC
       return
     }
 
     sortBy = nextSortBy
-    sortOrder = nextSortBy === 'createdAt' ? 'desc' : 'asc'
-  }
-
-  function resultLabel(result: string) {
-    switch (result) {
-      case 'correct':
-        return 'Correct'
-      case 'incorrect':
-        return 'Incorrect'
-      case 'rate_limited':
-        return 'Rate limited'
-      case 'already_solved':
-        return 'Already solved'
-      case 'queued':
-        return 'Queued'
-      case 'active_job':
-        return 'Active job'
-      case 'invalid_input':
-        return 'Invalid input'
-      case 'bad_instancer_state':
-        return 'Bad instancer'
-      default:
-        return result
-    }
-  }
-
-  function kindLabel(kind: string) {
-    switch (kind) {
-      case SubmissionLogKind.FLAG:
-        return 'Flag'
-      case SubmissionLogKind.ADMIN_BOT:
-        return 'Admin bot'
-      default:
-        return kind
-    }
+    sortOrder =
+      nextSortBy === SubmissionLogSortBy.CREATED_AT
+        ? SubmissionLogSortOrder.DESC
+        : SubmissionLogSortOrder.ASC
   }
 
   function clearFilters() {
@@ -273,7 +220,7 @@
     teamSearch = ''
     selectedChallenges = []
     selectedTeams = []
-    kindFilter = ALL_FILTER
+    kindFilter = null
     selectedResults = []
   }
 
@@ -318,90 +265,6 @@
     selectedResults = selectedResults.filter(r => r !== result)
   }
 
-  function resultClass(result: string) {
-    switch (result) {
-      case 'correct':
-      case 'queued':
-        return 'text-foreground-success'
-      case 'rate_limited':
-      case 'already_solved':
-      case 'active_job':
-        return 'text-foreground-yellow-l1'
-      default:
-        return 'text-foreground-destructive'
-    }
-  }
-
-  function resultDotClass(result: string) {
-    switch (result) {
-      case 'correct':
-      case 'queued':
-        return 'bg-foreground-success'
-      case 'rate_limited':
-      case 'already_solved':
-      case 'active_job':
-        return 'bg-foreground-yellow-l1'
-      default:
-        return 'bg-foreground-destructive'
-    }
-  }
-
-  function isRecord(value: unknown): value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null && !Array.isArray(value)
-  }
-
-  function formatDetailValue(value: unknown): string {
-    if (value === null || value === undefined) return 'none'
-    if (Array.isArray(value)) return `${value.length} item${value.length === 1 ? '' : 's'}`
-    if (typeof value === 'object') return JSON.stringify(value)
-    return String(value)
-  }
-
-  function detailEntries(log: SubmissionLog): DetailEntry[] {
-    const details = isRecord(log.details) ? log.details : {}
-
-    if (log.kind === SubmissionLogKind.FLAG) {
-      return [
-        {
-          label: 'flag',
-          value: formatDetailValue(details.submittedFlag),
-        },
-      ]
-    }
-
-    const entries: DetailEntry[] = []
-    if (typeof details.configRevision === 'string') {
-      entries.push({ label: 'revision', value: details.configRevision })
-    }
-    if (log.relatedId) {
-      entries.push({ label: 'job', value: log.relatedId })
-    }
-    if (isRecord(details.inputs)) {
-      for (const [key, value] of Object.entries(details.inputs)) {
-        entries.push({ label: key, value: formatDetailValue(value) })
-      }
-    }
-    if (typeof details.error === 'string') {
-      entries.push({ label: 'error', value: details.error })
-    }
-    if (Array.isArray(details.instancerInstances)) {
-      entries.push({
-        label: 'instances',
-        value: formatDetailValue(details.instancerInstances),
-      })
-    }
-
-    return entries.length > 0 ? entries : [{ label: 'details', value: 'none' }]
-  }
-
-  function detailEntryClass(entry: DetailEntry) {
-    return cn(
-      'bg-background-l4 inline-flex min-w-0 shrink-0 items-center gap-1 rounded-md px-2 py-1 whitespace-nowrap',
-      entry.label === 'error' && 'max-w-[36rem]',
-      entry.label !== 'error' && 'max-w-[28rem]'
-    )
-  }
-
   function toggleLog(logId: string) {
     expandedLogId = expandedLogId === logId ? null : logId
   }
@@ -419,34 +282,11 @@
   function logIndexForVirtualRow(index: number) {
     return expandedLogIndex !== -1 && index > expandedLogIndex ? index - 1 : index
   }
-
-  function ipInfoUrl(ip: string) {
-    return `https://check-host.net/ip-info?host=${encodeURIComponent(ip)}&lang=en`
-  }
-
-  function formatCompactDuration(ms: number): string {
-    const totalMinutes = Math.max(0, Math.round(Math.abs(ms) / 60_000))
-    const days = Math.floor(totalMinutes / 1440)
-    const hours = Math.floor((totalMinutes % 1440) / 60)
-    const minutes = totalMinutes % 60
-
-    if (days > 0) return `${days}d ${hours}h`
-    if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
-    return `${minutes}m`
-  }
-
-  function formatCtfOffset(timestamp: number): string {
-    const startTime = clientConfig?.startTime ?? 0
-    if (!startTime) return ''
-
-    const diff = timestamp - startTime
-    return `T${diff < 0 ? '-' : '+'}${formatCompactDuration(diff)}`
-  }
 </script>
 
 {#snippet sortIndicator(column: SortBy)}
   {#if sortBy === column}
-    {#if sortOrder === 'asc'}
+    {#if sortOrder === SubmissionLogSortOrder.ASC}
       <IconChevronUp class="size-4" />
     {:else}
       <IconChevronDown class="size-4" />
@@ -465,6 +305,20 @@
     <span class="truncate">{label}</span>
     {@render sortIndicator(column)}
   </button>
+{/snippet}
+
+{#snippet resultDot(result: string)}
+  {@const tone = resultTone(result)}
+  <span
+    class={cn(
+      'size-1.5 shrink-0 rounded-full',
+      tone === 'success'
+        ? 'bg-foreground-success'
+        : tone === 'warning'
+          ? 'bg-foreground-yellow-l1'
+          : 'bg-foreground-destructive'
+    )}
+  ></span>
 {/snippet}
 
 <svelte:head>
@@ -517,7 +371,10 @@
                 >
                   <IconFilter class="size-4" />
                 </DropdownMenu.Trigger>
-                <DropdownMenu.Content align="start" class="bg-background-l4 z-[100] w-56 shadow-xl">
+                <DropdownMenu.Content
+                  align="start"
+                  class="bg-background-l4 border-foreground-l4/40 z-[100] w-56 border-2 shadow-xl"
+                >
                   <DropdownMenu.Label class="text-foreground-l3 flex items-center gap-2 text-sm">
                     <IconPlus class="size-4" />
                     Add filter
@@ -525,14 +382,20 @@
                   <DropdownMenu.Separator />
 
                   <DropdownMenu.Sub>
-                    <DropdownMenu.SubTrigger class={MENU_OPTION_CLASS}>
+                    <DropdownMenu.SubTrigger
+                      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+                    >
                       <IconPuzzleFilled class="size-4" />
                       Challenge
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.SubContent
-                      class="bg-background-l4 z-[110] flex h-80 w-72 flex-col overflow-hidden !p-0 shadow-xl"
+                      align="start"
+                      alignOffset={-6}
+                      sideOffset={10}
+                      class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
                     >
                       <div
+                        role="presentation"
                         class="text-foreground-l3 border-foreground-l4/40 flex h-11 shrink-0 items-center gap-2 border-b-2 px-3"
                         onclick={event => event.stopPropagation()}
                         onkeydown={event => event.stopPropagation()}
@@ -551,7 +414,7 @@
                         class="min-h-0 flex-1"
                         fadeSize={28}
                         fadeColor="background-l4"
-                        scrollbarYClasses={FILTER_SCROLLBAR_CLASS}
+                        scrollbarYClasses="hidden"
                       >
                         <div class="p-1">
                           {#if challengesQuery.isPending}
@@ -571,7 +434,7 @@
                               <button
                                 type="button"
                                 tabindex="-1"
-                                class={cn(SEARCH_OPTION_CLASS, 'min-w-0')}
+                                class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
                                 style={getCategoryStyle(category.color)}
                                 onmousedown={event => event.preventDefault()}
                                 onclick={() => selectChallenge(challenge)}
@@ -593,14 +456,20 @@
                   </DropdownMenu.Sub>
 
                   <DropdownMenu.Sub>
-                    <DropdownMenu.SubTrigger class={MENU_OPTION_CLASS}>
+                    <DropdownMenu.SubTrigger
+                      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+                    >
                       <IconUsersGroup class="size-4" />
                       Team
                     </DropdownMenu.SubTrigger>
                     <DropdownMenu.SubContent
-                      class="bg-background-l4 z-[110] flex h-80 w-72 flex-col overflow-hidden !p-0 shadow-xl"
+                      align="start"
+                      alignOffset={-6}
+                      sideOffset={10}
+                      class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
                     >
                       <div
+                        role="presentation"
                         class="text-foreground-l3 border-foreground-l4/40 flex h-11 shrink-0 items-center gap-2 border-b-2 px-3"
                         onclick={event => event.stopPropagation()}
                         onkeydown={event => event.stopPropagation()}
@@ -619,7 +488,7 @@
                         class="min-h-0 flex-1"
                         fadeSize={28}
                         fadeColor="background-l4"
-                        scrollbarYClasses={FILTER_SCROLLBAR_CLASS}
+                        scrollbarYClasses="hidden"
                       >
                         <div class="p-1">
                           {#if teamSuggestionsQuery.isFetching && teamOptions.length === 0}
@@ -636,7 +505,7 @@
                               <button
                                 type="button"
                                 tabindex="-1"
-                                class={cn(SEARCH_OPTION_CLASS, 'min-w-0')}
+                                class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
                                 onmousedown={event => event.preventDefault()}
                                 onclick={() => selectTeam(team)}
                               >
@@ -664,23 +533,30 @@
                   </DropdownMenu.Sub>
 
                   <DropdownMenu.Sub>
-                    <DropdownMenu.SubTrigger class={MENU_OPTION_CLASS}>
+                    <DropdownMenu.SubTrigger
+                      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+                    >
                       <IconFlag3Filled class="size-4" />
                       Kind
                     </DropdownMenu.SubTrigger>
-                    <DropdownMenu.SubContent class="bg-background-l4 z-[110] w-48 shadow-xl">
+                    <DropdownMenu.SubContent
+                      align="start"
+                      alignOffset={-6}
+                      sideOffset={10}
+                      class="bg-background-l4 border-foreground-l4/40 z-[110] w-48 border-2 shadow-xl"
+                    >
                       <DropdownMenu.Item
-                        class={MENU_OPTION_CLASS}
-                        onclick={() => (kindFilter = ALL_FILTER)}
+                        class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+                        onclick={() => (kindFilter = null)}
                       >
                         <IconCheck
-                          class={cn('size-4', kindFilter !== ALL_FILTER && 'text-transparent')}
+                          class={cn('size-4', kindFilter !== null && 'text-transparent')}
                         />
                         Any kind
                       </DropdownMenu.Item>
                       {#each KIND_FILTERS as kind}
                         <DropdownMenu.Item
-                          class={MENU_OPTION_CLASS}
+                          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
                           onclick={() => (kindFilter = kind)}
                         >
                           <IconCheck
@@ -698,21 +574,37 @@
                   </DropdownMenu.Sub>
 
                   <DropdownMenu.Sub>
-                    <DropdownMenu.SubTrigger class={MENU_OPTION_CLASS}>
+                    <DropdownMenu.SubTrigger
+                      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+                    >
                       <IconTableFilled class="size-4" />
                       Result
                     </DropdownMenu.SubTrigger>
-                    <DropdownMenu.SubContent class="bg-background-l4 z-[110] w-56 shadow-xl">
+                    <DropdownMenu.SubContent
+                      align="start"
+                      alignOffset={-6}
+                      sideOffset={10}
+                      class="bg-background-l4 border-foreground-l4/40 z-[110] w-56 border-2 shadow-xl"
+                    >
                       {#each RESULT_FILTERS as result}
                         {@const selected = selectedResults.includes(result)}
+                        {@const tone = resultTone(result)}
                         <DropdownMenu.Item
-                          class={MENU_OPTION_CLASS}
+                          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
                           onclick={() => toggleResult(result)}
                         >
                           <IconCheck class={cn('size-4', !selected && 'text-transparent')} />
-                          <span class={cn('size-1.5 shrink-0 rounded-full', resultDotClass(result))}
-                          ></span>
-                          <span class={cn('truncate', resultClass(result))}>
+                          {@render resultDot(result)}
+                          <span
+                            class={cn(
+                              'truncate',
+                              tone === 'success'
+                                ? 'text-foreground-success'
+                                : tone === 'warning'
+                                  ? 'text-foreground-yellow-l1'
+                                  : 'text-foreground-destructive'
+                            )}
+                          >
                             {resultLabel(result)}
                           </span>
                         </DropdownMenu.Item>
@@ -792,7 +684,7 @@
                   </span>
                 {/each}
 
-                {#if kindFilter !== ALL_FILTER}
+                {#if kindFilter}
                   <span
                     class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border text-sm"
                   >
@@ -814,7 +706,7 @@
                       type="button"
                       aria-label="Remove kind filter"
                       class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l"
-                      onclick={() => (kindFilter = ALL_FILTER)}
+                      onclick={() => (kindFilter = null)}
                     >
                       <IconX class="size-3.5" />
                     </button>
@@ -822,6 +714,7 @@
                 {/if}
 
                 {#each selectedResults as result (result)}
+                  {@const tone = resultTone(result)}
                   <span
                     class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border text-sm"
                   >
@@ -831,9 +724,17 @@
                     </span>
                     <span class="text-foreground-l4 flex h-full items-center border-r px-2">is</span
                     >
-                    <span class={cn('flex h-full items-center gap-1.5 px-2', resultClass(result))}>
-                      <span class={cn('size-1.5 shrink-0 rounded-full', resultDotClass(result))}
-                      ></span>
+                    <span
+                      class={cn(
+                        'flex h-full items-center gap-1.5 px-2',
+                        tone === 'success'
+                          ? 'text-foreground-success'
+                          : tone === 'warning'
+                            ? 'text-foreground-yellow-l1'
+                            : 'text-foreground-destructive'
+                      )}
+                    >
+                      {@render resultDot(result)}
                       {resultLabel(result)}
                     </span>
                     <button
@@ -861,18 +762,27 @@
             </div>
 
             <div
-              class={cn(
-                'bg-background-l3 text-foreground-l3 relative z-10 grid border-b-2 text-base',
-                TABLE_COLUMNS
-              )}
+              class="submission-log-grid bg-background-l3 text-foreground-l3 relative z-10 grid border-b-2 text-base"
             >
               <div></div>
-              <div class="font-normal">{@render sortHeader('createdAt', 'Time')}</div>
-              <div class="font-normal">{@render sortHeader('challenge', 'Challenge')}</div>
-              <div class="font-normal">{@render sortHeader('team', 'Team')}</div>
-              <div class="font-normal">{@render sortHeader('ip', 'IP')}</div>
-              <div class="font-normal">{@render sortHeader('kind', 'Kind')}</div>
-              <div class="font-normal">{@render sortHeader('result', 'Result')}</div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.CREATED_AT, 'Time')}
+              </div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.CHALLENGE, 'Challenge')}
+              </div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.TEAM, 'Team')}
+              </div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.IP, 'IP')}
+              </div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.KIND, 'Kind')}
+              </div>
+              <div class="font-normal">
+                {@render sortHeader(SubmissionLogSortBy.RESULT, 'Result')}
+              </div>
             </div>
           </div>
 
@@ -921,7 +831,12 @@
                         {#each entries as entry (`${log.id}:${entry.label}:${entry.value}`)}
                           <Tooltip.Root>
                             <Tooltip.Trigger>
-                              <span class={detailEntryClass(entry)}>
+                              <span
+                                class={cn(
+                                  'bg-background-l4 inline-flex min-w-0 shrink-0 items-center gap-1 rounded-md px-2 py-1 whitespace-nowrap',
+                                  entry.label === 'error' ? 'max-w-[36rem]' : 'max-w-[28rem]'
+                                )}
+                              >
                                 <span class="text-foreground-l3 shrink-0 text-xs">
                                   {entry.label}
                                 </span>
@@ -950,8 +865,9 @@
                   {@const index = logIndexForVirtualRow(row.index)}
                   {@const log = allLogs[index]!}
                   {@const timestamp = new Date(log.createdAt).getTime()}
-                  {@const ctfOffset = formatCtfOffset(timestamp)}
+                  {@const ctfOffset = formatCtfOffset(timestamp, clientConfig?.startTime)}
                   {@const category = getCategoryConfig(log.challengeCategory)}
+                  {@const resultToneValue = resultTone(log.result)}
                   {@const isExpanded = expandedLogId === log.id}
                   <div
                     class="absolute top-0 left-0 w-full will-change-transform contain-[layout_style_paint]"
@@ -960,8 +876,7 @@
                   >
                     <div
                       class={cn(
-                        'grid h-full cursor-pointer overflow-hidden',
-                        TABLE_COLUMNS,
+                        'submission-log-grid grid h-full cursor-pointer overflow-hidden',
                         isExpanded
                           ? 'bg-background-l3'
                           : index % 2 === 0
@@ -1045,15 +960,23 @@
                         />
                       </div>
                       <div class="flex min-w-0 items-center px-3 py-2">
-                        <a
-                          href={ipInfoUrl(log.ip)}
-                          target="_blank"
-                          rel="noreferrer"
-                          class="bg-background-l4 text-foreground-l2 hover:text-foreground-l1 max-w-full truncate rounded-md px-2 py-1 text-xs whitespace-nowrap hover:underline"
-                          onclick={event => event.stopPropagation()}
-                        >
-                          <code>{log.ip}</code>
-                        </a>
+                        {#if canInspectIp(log.ip)}
+                          <a
+                            href={ipInfoUrl(log.ip)}
+                            target="_blank"
+                            rel="noreferrer"
+                            class="bg-background-l4 text-foreground-l2 hover:text-foreground-l1 max-w-full truncate rounded-md px-2 py-1 text-xs whitespace-nowrap hover:underline"
+                            onclick={event => event.stopPropagation()}
+                          >
+                            <code>{log.ip}</code>
+                          </a>
+                        {:else}
+                          <code
+                            class="bg-background-l4 text-foreground-l3 max-w-full truncate rounded-md px-2 py-1 text-xs whitespace-nowrap"
+                          >
+                            {log.ip}
+                          </code>
+                        {/if}
                       </div>
                       <div class="flex min-w-0 items-center px-3 py-2">
                         <span
@@ -1072,12 +995,14 @@
                         <span
                           class={cn(
                             'inline-flex min-w-0 items-center gap-1.5 truncate text-sm whitespace-nowrap',
-                            resultClass(log.result)
+                            resultToneValue === 'success'
+                              ? 'text-foreground-success'
+                              : resultToneValue === 'warning'
+                                ? 'text-foreground-yellow-l1'
+                                : 'text-foreground-destructive'
                           )}
                         >
-                          <span
-                            class={cn('size-1.5 shrink-0 rounded-full', resultDotClass(log.result))}
-                          ></span>
+                          {@render resultDot(log.result)}
                           <span class="min-w-0 truncate">{resultLabel(log.result)}</span>
                         </span>
                       </div>
@@ -1092,3 +1017,9 @@
     </ScrollArea>
   {/if}
 </div>
+
+<style>
+  .submission-log-grid {
+    grid-template-columns: 2.75rem 11rem 20rem minmax(16rem, 1fr) 11rem 9rem 10rem;
+  }
+</style>

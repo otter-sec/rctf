@@ -1,4 +1,9 @@
-import { type SubmissionLogKind } from '@rctf/types'
+import {
+  type SubmissionLogKind,
+  type SubmissionLogResult,
+  type SubmissionLogSortBy,
+  type SubmissionLogSortOrder,
+} from '@rctf/types'
 import {
   adminBotStatusQueryOptions,
   adminChallengeQueryOptions,
@@ -67,10 +72,16 @@ export const queryKeys = {
   adminSubmissionLogs: (params: {
     limit: number
     offset: number
-    sortBy?: 'createdAt' | 'challenge' | 'team' | 'ip' | 'kind' | 'result'
-    sortOrder?: 'asc' | 'desc'
+    sortBy?: SubmissionLogSortBy
+    sortOrder?: SubmissionLogSortOrder
     challengeId?: string
+    challengeIds?: string
+    challengeSearch?: string
     userId?: string
+    userIds?: string
+    teamSearch?: string
     kind?: SubmissionLogKind
+    result?: SubmissionLogResult
+    results?: string
   }) => adminSubmissionLogsQueryOptions(params).queryKey,
 }

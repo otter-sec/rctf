@@ -102,7 +102,7 @@ integrationsGroup.route(
     }
 
     const timeLeft = await rateLimitAdminBot(ctx.var.redis, user.id, params.id)
-    if (timeLeft) {
+    if (timeLeft !== undefined) {
       await logSubmission(SubmissionLogResult.RATE_LIMITED)
       return res.badRateLimit({ timeLeft })
     }

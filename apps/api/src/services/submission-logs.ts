@@ -1,18 +1,22 @@
 import type { DatabaseClient, SubmissionLogDetails } from '@rctf/db'
 import { challenges, submissionLogs, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
-import type { SubmissionLogKind, SubmissionLogResult } from '@rctf/types'
-import { and, asc, desc, eq, inArray, sql, type SQL } from 'drizzle-orm'
-
-export type SubmissionLogSortBy =
-  | 'createdAt'
-  | 'challenge'
-  | 'team'
-  | 'ip'
-  | 'kind'
-  | 'result'
-
-export type SubmissionLogSortOrder = 'asc' | 'desc'
+import {
+  SubmissionLogSortBy,
+  SubmissionLogSortOrder,
+  type SubmissionLogKind,
+  type SubmissionLogResult,
+} from '@rctf/types'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  sql,
+  count as sqlCount,
+  type SQL,
+} from 'drizzle-orm'
 
 export const createSubmissionLog = async (
   db: DatabaseClient,
@@ -46,29 +50,19 @@ export const getSubmissionLogs = async (
     offset: number
     sortBy?: SubmissionLogSortBy
     sortOrder?: SubmissionLogSortOrder
-    challengeId?: string
-    challengeIds?: string
+    challengeIds?: string[]
     challengeSearch?: string
-    userId?: string
-    userIds?: string
+    userIds?: string[]
     teamSearch?: string
     kind?: SubmissionLogKind
-    result?: SubmissionLogResult
-    results?: string
+    results?: SubmissionLogResult[]
   }
 ) => {
   const filters: SQL[] = []
-  if (params.challengeId) {
-    filters.push(eq(submissionLogs.challengeId, params.challengeId))
+  if (params.challengeIds?.length) {
+    filters.push(inArray(submissionLogs.challengeId, params.challengeIds))
   }
-  const challengeIds =
-    params.challengeIds
-      ?.split(',')
-      .map(id => id.trim())
-      .filter(Boolean) ?? []
-  if (challengeIds.length > 0) {
-    filters.push(inArray(submissionLogs.challengeId, challengeIds))
-  }
+
   if (params.challengeSearch?.trim()) {
     const pattern = `%${params.challengeSearch.trim().toLowerCase()}%`
     filters.push(sql`(
@@ -76,57 +70,54 @@ export const getSubmissionLogs = async (
       or lower(${challenges.data} ->> 'category') like ${pattern}
     )`)
   }
-  if (params.userId) {
-    filters.push(eq(submissionLogs.userId, params.userId))
+
+  if (params.userIds?.length) {
+    filters.push(inArray(submissionLogs.userId, params.userIds))
   }
-  const userIds =
-    params.userIds
-      ?.split(',')
-      .map(id => id.trim())
-      .filter(Boolean) ?? []
-  if (userIds.length > 0) {
-    filters.push(inArray(submissionLogs.userId, userIds))
-  }
+
   if (params.teamSearch?.trim()) {
     const pattern = `%${params.teamSearch.trim().toLowerCase()}%`
     filters.push(sql`lower(${users.name}::text) like ${pattern}`)
   }
+
   if (params.kind) {
     filters.push(eq(submissionLogs.kind, params.kind))
   }
-  if (params.result) {
-    filters.push(eq(submissionLogs.result, params.result))
-  }
-  const results =
-    params.results
-      ?.split(',')
-      .map(result => result.trim())
-      .filter(Boolean) ?? []
-  if (results.length > 0) {
-    filters.push(inArray(submissionLogs.result, results))
+
+  if (params.results?.length) {
+    filters.push(inArray(submissionLogs.result, params.results))
   }
 
-  const where = filters.length ? and(...filters) : sql`true`
-  const sortOrder = params.sortOrder ?? 'desc'
-  const direction = sortOrder === 'asc' ? asc : desc
-  const fallbackDirection = sortOrder === 'asc' ? asc : desc
+  const where = filters.length ? and(...filters) : undefined
+  const sortBy = params.sortBy ?? SubmissionLogSortBy.CREATED_AT
+  const sortOrder = params.sortOrder ?? SubmissionLogSortOrder.DESC
+  const direction = sortOrder === SubmissionLogSortOrder.ASC ? asc : desc
 
   const sortColumn = (() => {
-    switch (params.sortBy ?? 'createdAt') {
-      case 'challenge':
+    switch (sortBy) {
+      case SubmissionLogSortBy.CHALLENGE:
         return sql<string>`lower(${challenges.data} ->> 'name')`
-      case 'team':
+      case SubmissionLogSortBy.TEAM:
         return sql<string>`lower(${users.name}::text)`
-      case 'ip':
+      case SubmissionLogSortBy.IP:
         return submissionLogs.ip
-      case 'kind':
+      case SubmissionLogSortBy.KIND:
         return submissionLogs.kind
-      case 'result':
+      case SubmissionLogSortBy.RESULT:
         return submissionLogs.result
-      case 'createdAt':
+      case SubmissionLogSortBy.CREATED_AT:
         return submissionLogs.createdAt
     }
   })()
+
+  const orderBy =
+    sortBy === SubmissionLogSortBy.CREATED_AT
+      ? [direction(submissionLogs.createdAt), direction(submissionLogs.id)]
+      : [
+          direction(sortColumn),
+          desc(submissionLogs.createdAt),
+          desc(submissionLogs.id),
+        ]
 
   const [rows, count] = await Promise.all([
     db
@@ -153,14 +144,11 @@ export const getSubmissionLogs = async (
       .innerJoin(challenges, eq(challenges.id, submissionLogs.challengeId))
       .innerJoin(users, eq(users.id, submissionLogs.userId))
       .where(where)
-      .orderBy(
-        direction(sortColumn),
-        fallbackDirection(submissionLogs.createdAt)
-      )
+      .orderBy(...orderBy)
       .limit(params.limit)
       .offset(params.offset),
     db
-      .select({ total: sql<number>`COUNT(*)::int` })
+      .select({ total: sqlCount() })
       .from(submissionLogs)
       .innerJoin(challenges, eq(challenges.id, submissionLogs.challengeId))
       .innerJoin(users, eq(users.id, submissionLogs.userId))

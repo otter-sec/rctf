@@ -28,6 +28,8 @@ import {
   type RouteQuery,
   type SubmissionLogKind,
   type SubmissionLogResult,
+  type SubmissionLogSortBy,
+  type SubmissionLogSortOrder,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -96,8 +98,8 @@ export const adminSettingsQueryOptions = queryOptions({
 export const adminSubmissionLogsQueryOptions = (params: {
   limit: number
   offset: number
-  sortBy?: 'createdAt' | 'challenge' | 'team' | 'ip' | 'kind' | 'result'
-  sortOrder?: 'asc' | 'desc'
+  sortBy?: SubmissionLogSortBy
+  sortOrder?: SubmissionLogSortOrder
   challengeId?: string
   challengeIds?: string
   challengeSearch?: string
@@ -227,8 +229,8 @@ export function useAdminSettings() {
 
 export function useInfiniteAdminSubmissionLogs(
   params: () => {
-    sortBy?: 'createdAt' | 'challenge' | 'team' | 'ip' | 'kind' | 'result'
-    sortOrder?: 'asc' | 'desc'
+    sortBy?: SubmissionLogSortBy
+    sortOrder?: SubmissionLogSortOrder
     challengeId?: string
     challengeIds?: string
     challengeSearch?: string

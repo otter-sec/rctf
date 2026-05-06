@@ -52,7 +52,11 @@
 
   <div class={cn('min-w-0', compact ? 'flex items-center gap-1.5' : 'flex flex-col')}>
     {#if href}
-      <a {href} class="text-foreground-l1 min-w-0 truncate text-base leading-tight hover:underline">
+      <a
+        {href}
+        class="text-foreground-l1 min-w-0 truncate text-base leading-tight hover:underline"
+        onclick={event => event.stopPropagation()}
+      >
         {name}
       </a>
     {:else}

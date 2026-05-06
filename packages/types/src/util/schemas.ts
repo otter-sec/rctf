@@ -122,6 +122,20 @@ export enum SubmissionLogKind {
   ADMIN_BOT = 'admin_bot',
 }
 
+export enum SubmissionLogSortBy {
+  CREATED_AT = 'createdAt',
+  CHALLENGE = 'challenge',
+  TEAM = 'team',
+  IP = 'ip',
+  KIND = 'kind',
+  RESULT = 'result',
+}
+
+export enum SubmissionLogSortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
 export enum SubmissionLogResult {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',

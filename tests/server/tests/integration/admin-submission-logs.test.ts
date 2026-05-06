@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { challenges, createDatabase, submissionLogs, users } from '@rctf/db'
 import {
+  BadBody,
   BadFlag,
   BadPerms,
   GoodAdminSubmissionLogs,
@@ -165,5 +166,26 @@ describe('admin submission logs', () => {
     )
 
     await expectResponse(res, BadPerms)
+  })
+
+  test('rejects invalid result filters', async () => {
+    const admin = await generateRealTestUser(
+      Permissions.usersWrite | Permissions.challsRead
+    )
+
+    const res = await request(
+      app,
+      '/api/v2/admin/submission-logs?limit=10&offset=0&results=correct,nope',
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+
+    const body = await expectResponse(res, BadBody)
+    expect(body.data.reason).toBe(
+      'query:results: invalid submission log result'
+    )
   })
 })
