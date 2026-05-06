@@ -25,7 +25,6 @@
     IconFlag3Filled,
     IconGavel,
     IconLayoutListFilled,
-    IconPlus,
     IconPuzzleFilled,
     IconRobot,
     IconSearch,
@@ -1127,18 +1126,21 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content
       align="start"
-      class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 border-2 !p-0 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-[100] flex max-h-[min(32rem,var(--bits-dropdown-menu-content-available-height))] w-80 flex-col overflow-hidden border-2 !p-0 shadow-xl"
     >
-      <DropdownMenu.Label class="text-foreground-l3 flex items-center gap-2 text-sm">
-        <IconPlus class="size-4" />
-        Add filter
-      </DropdownMenu.Label>
       {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
-      {#if isRootFilterSearchActive}
-        {@render rootFilterSearchResults()}
-      {:else}
-        {@render rootFilterList()}
-      {/if}
+      <ScrollArea
+        class="min-h-0 flex-1"
+        fadeSize={28}
+        fadeColor="background-l4"
+        scrollbarYClasses="hidden"
+      >
+        {#if isRootFilterSearchActive}
+          {@render rootFilterSearchResults()}
+        {:else}
+          {@render rootFilterList()}
+        {/if}
+      </ScrollArea>
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/snippet}
