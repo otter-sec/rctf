@@ -2,12 +2,32 @@ import { config } from '@rctf/config'
 import { settings, type DatabaseClient, type EditableSettings } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq } from 'drizzle-orm'
+import type { TypedRedis } from '../cache/scripts'
 
 const VALUE_ID = 'value-0'
+const SETTINGS_CACHE_KEY = `settings:${VALUE_ID}`
+const SETTINGS_CACHE_TTL = 30_000
 
 export interface CompetitionTiming {
   startTime: number
   endTime: number
+}
+
+export type UpdateSettingsResult =
+  | { ok: true; settings: EditableSettings; changedTiming: boolean }
+  | { ok: false; reason: string }
+
+const parseCachedSettings = (raw: string): EditableSettings | null => {
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as EditableSettings
+    }
+  } catch {
+    return null
+  }
+
+  return null
 }
 
 export async function getSettings(
@@ -19,6 +39,35 @@ export async function getSettings(
     .where(eq(settings.id, VALUE_ID))
     .then(takeUnique)
   return row?.data ?? {}
+}
+
+export async function getCachedSettings(
+  db: DatabaseClient,
+  redis: TypedRedis
+): Promise<EditableSettings> {
+  const cached = await redis.get(SETTINGS_CACHE_KEY)
+  if (cached) {
+    const parsed = parseCachedSettings(cached)
+    if (parsed) {
+      return parsed
+    }
+    await invalidateSettingsCache(redis)
+  }
+
+  const data = await getSettings(db)
+  await redis.set(
+    SETTINGS_CACHE_KEY,
+    JSON.stringify(data),
+    'PX',
+    SETTINGS_CACHE_TTL
+  )
+  return data
+}
+
+export async function invalidateSettingsCache(
+  redis: TypedRedis
+): Promise<void> {
+  await redis.del(SETTINGS_CACHE_KEY)
 }
 
 export function patchSettings(
@@ -37,12 +86,26 @@ export function patchSettings(
   return updated
 }
 
+export function settingsPatchChangesCompetitionTiming(
+  patch: Record<string, unknown>
+): boolean {
+  return Object.hasOwn(patch, 'startTime') || Object.hasOwn(patch, 'endTime')
+}
+
 export async function updateSettings(
   db: DatabaseClient,
-  patch: Record<string, unknown>
-): Promise<EditableSettings> {
+  patch: Record<string, unknown>,
+  redis?: TypedRedis
+): Promise<UpdateSettingsResult> {
   const current = await getSettings(db)
   const updated = patchSettings(current, patch)
+  const changedTiming = settingsPatchChangesCompetitionTiming(patch)
+  if (changedTiming) {
+    const timingError = getCompetitionTimingValidationError(updated)
+    if (timingError !== null) {
+      return { ok: false, reason: timingError }
+    }
+  }
 
   await db
     .insert(settings)
@@ -52,7 +115,11 @@ export async function updateSettings(
       set: { data: updated },
     })
 
-  return updated
+  if (redis) {
+    await invalidateSettingsCache(redis)
+  }
+
+  return { ok: true, settings: updated, changedTiming }
 }
 
 export function getConfigDefaults(): EditableSettings {
@@ -82,6 +149,13 @@ export async function getCompetitionTiming(
   db: DatabaseClient
 ): Promise<CompetitionTiming> {
   return resolveCompetitionTiming(await getSettings(db))
+}
+
+export async function getCachedCompetitionTiming(
+  db: DatabaseClient,
+  redis: TypedRedis
+): Promise<CompetitionTiming> {
+  return resolveCompetitionTiming(await getCachedSettings(db, redis))
 }
 
 export function getCompetitionTimingValidationError(

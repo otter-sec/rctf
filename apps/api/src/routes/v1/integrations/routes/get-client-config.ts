@@ -1,10 +1,13 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRoute } from '@rctf/types'
-import { getSettings, resolveSettings } from '../../../../services/settings'
+import {
+  getCachedSettings,
+  resolveSettings,
+} from '../../../../services/settings'
 import integrationsGroup from '../group'
 
 integrationsGroup.route(GetClientConfigRoute, async ({ res, ctx }) => {
-  const dbSettings = await getSettings(ctx.var.db)
+  const dbSettings = await getCachedSettings(ctx.var.db, ctx.var.redis)
   const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
     ...resolved,

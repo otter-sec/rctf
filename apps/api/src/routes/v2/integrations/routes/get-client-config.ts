@@ -1,7 +1,10 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
 import { captchaProvider } from '../../../../providers'
-import { getSettings, resolveSettings } from '../../../../services/settings'
+import {
+  getCachedSettings,
+  resolveSettings,
+} from '../../../../services/settings'
 import integrationsGroup from '../group'
 
 const getAnalyticsConfig = () => {
@@ -26,7 +29,7 @@ const getAnalyticsConfig = () => {
 }
 
 integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
-  const dbSettings = await getSettings(ctx.var.db)
+  const dbSettings = await getCachedSettings(ctx.var.db, ctx.var.redis)
   const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
     ...resolved,

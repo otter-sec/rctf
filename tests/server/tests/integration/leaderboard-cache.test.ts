@@ -2,9 +2,11 @@ import { config } from '@rctf/config'
 import {
   challenges,
   createDatabase,
+  settings,
   solves,
   users,
   type ChallengeData,
+  type EditableSettings,
 } from '@rctf/db'
 import type { ScoreContext } from '@rctf/scoring/base'
 import ClassicProvider from '@rctf/scoring/classic'
@@ -103,6 +105,19 @@ const insertSolve = async (params: {
   return { id }
 }
 
+const upsertSettings = async (data: EditableSettings) => {
+  const db = getDb()
+
+  await db.insert(settings).values({ id: 'value-0', data }).onConflictDoUpdate({
+    target: settings.id,
+    set: { data },
+  })
+
+  cleanups.push(async () => {
+    await db.delete(settings).where(eq(settings.id, 'value-0'))
+  })
+}
+
 const classic = new ClassicProvider({})
 const classicScore = (solvesCount: number, min: number, max: number) =>
   classic.calculate({
@@ -171,6 +186,29 @@ describe('cached leaderboard calculator', () => {
     await calc(db, 'scores/classic@1')
 
     const second = await calc(db, 'scores/classic@2')
+    expect(second.recomputedFromScratch).toBe(true)
+    expect(second.changed).toBe(true)
+  })
+
+  test('rebuilds from scratch when competition timing changes', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const challenge = await insertChallenge()
+    await insertSolve({
+      challengeId: challenge.id,
+      userId: user.id,
+      createdAt: isoAt(T1),
+    })
+
+    const calc = createCachedLeaderboardCalculator()
+    await calc(db)
+
+    await upsertSettings({
+      startTime: config.startTime + 60_000,
+      endTime: config.endTime,
+    })
+
+    const second = await calc(db)
     expect(second.recomputedFromScratch).toBe(true)
     expect(second.changed).toBe(true)
   })

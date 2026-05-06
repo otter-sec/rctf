@@ -21,6 +21,8 @@ import {
 } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { invalidateSettingsCache } from '../../../../apps/api/src/services/settings'
+import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
   expectResponse,
@@ -38,6 +40,7 @@ let unprivilegedUser: Awaited<ReturnType<typeof generateRealTestUser>>
 const cleanupSettings = async () => {
   const db = getDb()
   await db.delete(settings).where(eq(settings.id, 'value-0'))
+  await invalidateSettingsCache(await createRedis())
 }
 
 const authHeaders = async (userId: string) => ({
@@ -602,6 +605,14 @@ describe('admin settings', () => {
     test('v2 client config uses DB overrides for competition timing', async () => {
       const startTime = config.startTime + 12_345
       const endTime = config.endTime - 54_321
+
+      const before = await request(app, '/api/v2/integrations/client/config', {
+        method: 'GET',
+      })
+      const beforeBody = await expectResponse(before, GoodClientConfigV2)
+      expect(beforeBody.data.startTime).toBe(config.startTime)
+      expect(beforeBody.data.endTime).toBe(config.endTime)
+
       await request(app, '/api/v2/admin/settings', {
         method: 'PUT',
         headers: await jsonHeaders(settingsAdmin.user.id),
