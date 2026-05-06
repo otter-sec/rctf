@@ -61,6 +61,7 @@
     hasSubmissionLogFilters,
     hasTimeRangeFilter,
     includeOperatorLabel,
+    resolveTimeRangeFilter,
     setFilterMode,
     submissionLogFilterFingerprint,
     submissionLogFilterParams,
@@ -231,15 +232,20 @@
         avatarUrl: team.avatarUrl,
       }))
   })
-  const timeRangeSummary = $derived(formatTimeRange(filters.time.start, filters.time.end))
+  const timeRangeValidation = $derived(
+    resolveTimeRangeFilter(filters.time, clientConfig?.startTime)
+  )
+  const timeRangeError = $derived(timeRangeValidation.error)
+  const timeRangeSummary = $derived(formatTimeRange())
 
   const logsQuery = useInfiniteAdminSubmissionLogs(
-    () => submissionLogFilterParams(filters, sortBy, sortOrder),
+    () => submissionLogFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
     () => PAGE_SIZE
   )
   const allLogs = $derived(
     (logsQuery.data?.pages.flatMap(page => page.logs) ?? []) as SubmissionLog[]
   )
+  const showQueryError = $derived(!!logsQuery.error && !logsQuery.data)
   const expandedLogIndex = $derived(
     expandedLogId ? allLogs.findIndex(log => log.id === expandedLogId) : -1
   )
@@ -372,9 +378,21 @@
     toggleFilterOption(filters.division, division, item => item.value)
   }
 
-  function formatTimeRange(start: string, end: string) {
-    const startLabel = start ? formatDateTimeInput(start) : ''
-    const endLabel = end ? formatDateTimeInput(end) : ''
+  function setRelativeTimeRange(enabled: boolean) {
+    filters.time.mode = enabled ? 'relative' : 'absolute'
+  }
+
+  function formatTimeRange() {
+    if (timeRangeError) return 'Invalid time range'
+
+    const startLabel =
+      filters.time.mode === 'relative'
+        ? formatRelativeTimeInput(filters.time.relativeStart)
+        : formatDateTimeInput(filters.time.start)
+    const endLabel =
+      filters.time.mode === 'relative'
+        ? formatRelativeTimeInput(filters.time.relativeEnd)
+        : formatDateTimeInput(filters.time.end)
 
     if (startLabel && endLabel) return `${startLabel} to ${endLabel}`
     if (startLabel) return `After ${startLabel}`
@@ -383,8 +401,17 @@
   }
 
   function formatDateTimeInput(value: string) {
+    if (!value.trim()) return ''
     const time = new Date(value).getTime()
     return Number.isFinite(time) ? formatLocalTime(time) : 'Invalid time'
+  }
+
+  function formatRelativeTimeInput(value: string) {
+    const trimmed = value.trim().replace(/\s+/g, ' ')
+    if (!trimmed) return ''
+    if (/^t/i.test(trimmed)) return trimmed
+    if (/^[+-]/.test(trimmed)) return `T${trimmed}`
+    return `T+${trimmed}`
   }
 
   function toggleLog(logId: string) {
@@ -799,24 +826,86 @@
     onkeydown={event => event.stopPropagation()}
     onpointerdown={event => event.stopPropagation()}
   >
-    <label class="flex flex-col gap-1.5">
-      <span class="text-foreground-l3 text-xs">From</span>
+    <label class="text-foreground-l2 flex h-8 cursor-pointer items-center gap-2 text-sm">
       <input
-        type="datetime-local"
-        value={filters.time.start}
-        class="bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none"
-        oninput={event => (filters.time.start = event.currentTarget.value)}
+        type="checkbox"
+        checked={filters.time.mode === 'relative'}
+        class="sr-only"
+        onchange={event => setRelativeTimeRange(event.currentTarget.checked)}
       />
+      <span
+        class={cn(
+          'border-foreground-l4/60 flex size-4 items-center justify-center rounded-[4px] border-2',
+          filters.time.mode === 'relative' &&
+            'bg-foreground-l0 text-background-l0 border-foreground-l0'
+        )}
+      >
+        {#if filters.time.mode === 'relative'}
+          <IconCheck class="size-3" />
+        {/if}
+      </span>
+      CTF-relative
     </label>
-    <label class="flex flex-col gap-1.5">
-      <span class="text-foreground-l3 text-xs">To</span>
-      <input
-        type="datetime-local"
-        value={filters.time.end}
-        class="bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none"
-        oninput={event => (filters.time.end = event.currentTarget.value)}
-      />
-    </label>
+    {#if filters.time.mode === 'relative'}
+      <label class="flex flex-col gap-1.5">
+        <span class="text-foreground-l3 text-xs">From</span>
+        <input
+          type="text"
+          value={filters.time.relativeStart}
+          placeholder="2d 4h"
+          aria-invalid={!!timeRangeError}
+          class={cn(
+            'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm outline-none',
+            timeRangeError && 'border-foreground-destructive/70'
+          )}
+          oninput={event => (filters.time.relativeStart = event.currentTarget.value)}
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-foreground-l3 text-xs">To</span>
+        <input
+          type="text"
+          value={filters.time.relativeEnd}
+          placeholder="2d 6h"
+          aria-invalid={!!timeRangeError}
+          class={cn(
+            'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm outline-none',
+            timeRangeError && 'border-foreground-destructive/70'
+          )}
+          oninput={event => (filters.time.relativeEnd = event.currentTarget.value)}
+        />
+      </label>
+    {:else}
+      <label class="flex flex-col gap-1.5">
+        <span class="text-foreground-l3 text-xs">From</span>
+        <input
+          type="datetime-local"
+          value={filters.time.start}
+          aria-invalid={!!timeRangeError}
+          class={cn(
+            'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none',
+            timeRangeError && 'border-foreground-destructive/70'
+          )}
+          oninput={event => (filters.time.start = event.currentTarget.value)}
+        />
+      </label>
+      <label class="flex flex-col gap-1.5">
+        <span class="text-foreground-l3 text-xs">To</span>
+        <input
+          type="datetime-local"
+          value={filters.time.end}
+          aria-invalid={!!timeRangeError}
+          class={cn(
+            'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none',
+            timeRangeError && 'border-foreground-destructive/70'
+          )}
+          oninput={event => (filters.time.end = event.currentTarget.value)}
+        />
+      </label>
+    {/if}
+    {#if timeRangeError}
+      <p class="text-foreground-destructive text-xs">{timeRangeError}</p>
+    {/if}
     {#if hasTimeRangeFilter(filters.time)}
       <button
         type="button"
@@ -1038,7 +1127,10 @@
 
 {#snippet timeRangeChip()}
   <span
-    class="bg-background-l2 inline-flex h-8 max-w-[32rem] shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
+    class={cn(
+      'bg-background-l2 inline-flex h-8 max-w-[32rem] shrink-0 items-center overflow-hidden rounded-md border-2 text-sm',
+      timeRangeError && 'border-foreground-destructive/70'
+    )}
   >
     <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
       <IconClockFilled class="size-3.5" />
@@ -1097,6 +1189,9 @@
         <IconX class="size-3.5" />
         Clear
       </button>
+    {/if}
+    {#if timeRangeError}
+      <span class="text-foreground-destructive shrink-0 px-1 text-sm">{timeRangeError}</span>
     {/if}
   </div>
 {/snippet}
@@ -1402,14 +1497,14 @@
     <div class="flex h-full items-center justify-center">
       <Spinner class="size-6" />
     </div>
-  {:else if logsQuery.error}
+  {:else if showQueryError}
     <div class="flex h-full items-center justify-center">
       <Card.Root class="max-w-md">
         <Card.Header>
           <Card.Title>Error</Card.Title>
         </Card.Header>
         <Card.Content>
-          <p class="text-foreground-l3">{logsQuery.error.message}</p>
+          <p class="text-foreground-l3">{logsQuery.error?.message}</p>
         </Card.Content>
       </Card.Root>
     </div>
