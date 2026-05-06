@@ -62,6 +62,7 @@
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
+  type FilterMode = 'include' | 'exclude'
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
@@ -70,8 +71,12 @@
   let teamSearch = $state('')
   let selectedChallenges = $state<ChallengeFilterOption[]>([])
   let selectedTeams = $state<TeamFilterOption[]>([])
-  let kindFilter = $state<SubmissionLogKind | null>(null)
+  let selectedKinds = $state<SubmissionLogKind[]>([])
   let selectedResults = $state<SubmissionLogResult[]>([])
+  let challengeMode = $state<FilterMode>('include')
+  let teamMode = $state<FilterMode>('include')
+  let kindMode = $state<FilterMode>('include')
+  let resultMode = $state<FilterMode>('include')
   let expandedLogId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
@@ -91,15 +96,14 @@
   const hasFilters = $derived(
     selectedChallenges.length > 0 ||
       selectedTeams.length > 0 ||
-      kindFilter !== null ||
+      selectedKinds.length > 0 ||
       selectedResults.length > 0
   )
   const queryFingerprint = $derived(
-    `${sortBy}:${sortOrder}:${selectedChallenges.map(c => c.id).join(',')}:${selectedTeams.map(t => t.id).join(',')}:${kindFilter}:${selectedResults.join(',')}`
+    `${sortBy}:${sortOrder}:${challengeMode}:${selectedChallenges.map(c => c.id).join(',')}:${teamMode}:${selectedTeams.map(t => t.id).join(',')}:${kindMode}:${selectedKinds.join(',')}:${resultMode}:${selectedResults.join(',')}`
   )
   const challengeOptions = $derived(
     (challengesQuery.data ?? [])
-      .filter(challenge => !selectedChallenges.some(selected => selected.id === challenge.id))
       .filter(challenge => {
         if (!trimmedChallengeSearch) return true
         return (
@@ -113,15 +117,25 @@
         category: challenge.category,
       }))
   )
-  const teamOptions = $derived(
-    (teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? [])
-      .filter(team => !selectedTeams.some(selected => selected.id === team.id))
+  const teamOptions = $derived.by(() => {
+    const teams = [
+      ...selectedTeams,
+      ...(teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
+    ]
+    const seen = new Set<string>()
+
+    return teams
+      .filter(team => {
+        if (seen.has(team.id)) return false
+        seen.add(team.id)
+        return true
+      })
       .map(team => ({
         id: team.id,
         name: team.name,
         avatarUrl: team.avatarUrl,
       }))
-  )
+  })
 
   const logsQuery = useInfiniteAdminSubmissionLogs(
     () => {
@@ -129,22 +143,38 @@
         sortBy: SortBy
         sortOrder: SubmissionLogSortOrder
         challengeIds?: string
+        excludeChallengeIds?: string
         userIds?: string
-        kind?: SubmissionLogKind
+        excludeUserIds?: string
+        kinds?: string
+        excludeKinds?: string
         results?: string
+        excludeResults?: string
       } = {
         sortBy,
         sortOrder,
       }
 
       if (selectedChallenges.length > 0) {
-        params.challengeIds = selectedChallenges.map(challenge => challenge.id).join(',')
+        const ids = selectedChallenges.map(challenge => challenge.id).join(',')
+        if (challengeMode === 'include') params.challengeIds = ids
+        else params.excludeChallengeIds = ids
       }
       if (selectedTeams.length > 0) {
-        params.userIds = selectedTeams.map(team => team.id).join(',')
+        const ids = selectedTeams.map(team => team.id).join(',')
+        if (teamMode === 'include') params.userIds = ids
+        else params.excludeUserIds = ids
       }
-      if (kindFilter) params.kind = kindFilter
-      if (selectedResults.length > 0) params.results = selectedResults.join(',')
+      if (selectedKinds.length > 0) {
+        const kinds = selectedKinds.join(',')
+        if (kindMode === 'include') params.kinds = kinds
+        else params.excludeKinds = kinds
+      }
+      if (selectedResults.length > 0) {
+        const results = selectedResults.join(',')
+        if (resultMode === 'include') params.results = results
+        else params.excludeResults = results
+      }
 
       return params
     },
@@ -220,8 +250,12 @@
     teamSearch = ''
     selectedChallenges = []
     selectedTeams = []
-    kindFilter = null
+    selectedKinds = []
     selectedResults = []
+    challengeMode = 'include'
+    teamMode = 'include'
+    kindMode = 'include'
+    resultMode = 'include'
   }
 
   function updateChallengeSearch(value: string) {
@@ -232,45 +266,60 @@
     teamSearch = value
   }
 
-  function selectChallenge(challenge: ChallengeFilterOption) {
-    if (!selectedChallenges.some(selected => selected.id === challenge.id)) {
-      selectedChallenges = [...selectedChallenges, challenge]
-    }
-    challengeSearch = ''
+  function toggleChallenge(challenge: ChallengeFilterOption) {
+    selectedChallenges = toggleOption(selectedChallenges, challenge, item => item.id)
   }
 
-  function selectTeam(team: TeamFilterOption) {
-    if (!selectedTeams.some(selected => selected.id === team.id)) {
-      selectedTeams = [...selectedTeams, team]
-    }
-    teamSearch = ''
+  function toggleTeam(team: TeamFilterOption) {
+    selectedTeams = toggleOption(selectedTeams, team, item => item.id)
   }
 
-  function removeChallenge(id: string) {
-    selectedChallenges = selectedChallenges.filter(challenge => challenge.id !== id)
-  }
-
-  function removeTeam(id: string) {
-    selectedTeams = selectedTeams.filter(team => team.id !== id)
-  }
-
-  function selectResult(result: SubmissionLogResult) {
-    if (!selectedResults.includes(result)) {
-      selectedResults = [...selectedResults, result]
-    }
+  function toggleKind(kind: SubmissionLogKind) {
+    selectedKinds = toggleOption(selectedKinds, kind, item => item)
   }
 
   function toggleResult(result: SubmissionLogResult) {
-    if (selectedResults.includes(result)) {
-      removeResult(result)
-      return
-    }
-
-    selectResult(result)
+    selectedResults = toggleOption(selectedResults, result, item => item)
   }
 
-  function removeResult(result: SubmissionLogResult) {
-    selectedResults = selectedResults.filter(r => r !== result)
+  function clearChallenges() {
+    selectedChallenges = []
+    challengeMode = 'include'
+  }
+
+  function clearTeams() {
+    selectedTeams = []
+    teamMode = 'include'
+  }
+
+  function clearKinds() {
+    selectedKinds = []
+    kindMode = 'include'
+  }
+
+  function clearResults() {
+    selectedResults = []
+    resultMode = 'include'
+  }
+
+  function toggleOption<T>(
+    options: T[],
+    option: T,
+    keyFor: (option: T) => string
+  ): T[] {
+    const key = keyFor(option)
+    return options.some(current => keyFor(current) === key)
+      ? options.filter(current => keyFor(current) !== key)
+      : [...options, option]
+  }
+
+  function filterOperatorLabel(mode: FilterMode, count: number) {
+    if (mode === 'exclude') return 'is not'
+    return count > 1 ? 'is any of' : 'is'
+  }
+
+  function includeOperatorLabel(count: number) {
+    return count > 1 ? 'is any of' : 'is'
   }
 
   function toggleLog(logId: string) {
@@ -346,6 +395,53 @@
   </span>
 {/snippet}
 
+{#snippet checkboxSquare(checked: boolean)}
+  <span
+    class={cn(
+      'border-foreground-l4/60 flex size-4 shrink-0 items-center justify-center rounded-[4px] border-2',
+      checked && 'bg-foreground-l0 text-background-l0 border-foreground-l0'
+    )}
+  >
+    {#if checked}
+      <IconCheck class="size-3" />
+    {/if}
+  </span>
+{/snippet}
+
+{#snippet operatorDropdown(
+  mode: FilterMode,
+  count: number,
+  onSelect: (mode: FilterMode) => void
+)}
+  <DropdownMenu.Root>
+    <DropdownMenu.Trigger
+      class="text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l2 flex h-full items-center gap-1 border-r-2 px-2 transition-colors"
+    >
+      {filterOperatorLabel(mode, count)}
+      <IconChevronDown class="size-3" />
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Content
+      align="start"
+      class="bg-background-l4 border-foreground-l4/40 z-[120] w-36 border-2 shadow-xl"
+    >
+      <DropdownMenu.Item
+        class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2"
+        onclick={() => onSelect('include')}
+      >
+        <IconCheck class={cn('size-4', mode !== 'include' && 'text-transparent')} />
+        {includeOperatorLabel(count)}
+      </DropdownMenu.Item>
+      <DropdownMenu.Item
+        class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2"
+        onclick={() => onSelect('exclude')}
+      >
+        <IconCheck class={cn('size-4', mode !== 'exclude' && 'text-transparent')} />
+        is not
+      </DropdownMenu.Item>
+    </DropdownMenu.Content>
+  </DropdownMenu.Root>
+{/snippet}
+
 {#snippet filterSearchInput(
   value: string,
   placeholder: string,
@@ -371,14 +467,19 @@
 
 {#snippet challengeOption(challenge: ChallengeFilterOption)}
   {@const category = getCategoryConfig(challenge.category)}
+  {@const selected = selectedChallenges.some(item => item.id === challenge.id)}
   <button
     type="button"
     tabindex="-1"
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     style={getCategoryStyle(category.color)}
     onmousedown={event => event.preventDefault()}
-    onclick={() => selectChallenge(challenge)}
+    onclick={event => {
+      event.stopPropagation()
+      toggleChallenge(challenge)
+    }}
   >
+    {@render checkboxSquare(selected)}
     <span class="min-w-0 truncate text-sm">
       <span class="text-category-foreground-l1">{challenge.category} /</span>
       <span class="text-category-foreground-l0">{challenge.name}</span>
@@ -387,13 +488,18 @@
 {/snippet}
 
 {#snippet teamOption(team: TeamFilterOption)}
+  {@const selected = selectedTeams.some(item => item.id === team.id)}
   <button
     type="button"
     tabindex="-1"
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onmousedown={event => event.preventDefault()}
-    onclick={() => selectTeam(team)}
+    onclick={event => {
+      event.stopPropagation()
+      toggleTeam(team)
+    }}
   >
+    {@render checkboxSquare(selected)}
     <Avatar.Root class="size-5 rounded-md">
       {#if team.avatarUrl}
         <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-md object-cover" />
@@ -404,6 +510,111 @@
     </Avatar.Root>
     <span class="min-w-0 truncate text-sm">{team.name}</span>
   </button>
+{/snippet}
+
+{#snippet challengeSelector()}
+  {@render filterSearchInput(challengeSearch, 'Filter challenges...', updateChallengeSearch)}
+  <ScrollArea
+    class="min-h-0 flex-1"
+    fadeSize={28}
+    fadeColor="background-l4"
+    scrollbarYClasses="hidden"
+  >
+    <div class="p-1">
+      {#if challengesQuery.isPending}
+        <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
+          <Spinner class="size-3.5" />
+          Loading challenges...
+        </div>
+      {:else if challengeOptions.length === 0}
+        <div class="text-foreground-l3 px-2 py-1.5 text-sm">No challenges found</div>
+      {:else}
+        {#each challengeOptions as challenge (challenge.id)}
+          {@render challengeOption(challenge)}
+        {/each}
+      {/if}
+    </div>
+  </ScrollArea>
+{/snippet}
+
+{#snippet teamSelector()}
+  {@render filterSearchInput(teamSearch, 'Filter teams...', updateTeamSearch)}
+  <ScrollArea
+    class="min-h-0 flex-1"
+    fadeSize={28}
+    fadeColor="background-l4"
+    scrollbarYClasses="hidden"
+  >
+    <div class="p-1">
+      {#if teamSuggestionsQuery.isFetching && teamOptions.length === 0}
+        <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
+          <Spinner class="size-3.5" />
+          Loading teams...
+        </div>
+      {:else if teamOptions.length === 0}
+        <div class="text-foreground-l3 px-2 py-1.5 text-sm">No teams found</div>
+      {:else}
+        {#each teamOptions as team (team.id)}
+          {@render teamOption(team)}
+        {/each}
+      {/if}
+    </div>
+  </ScrollArea>
+{/snippet}
+
+{#snippet kindOption(kind: SubmissionLogKind)}
+  {@const selected = selectedKinds.includes(kind)}
+  <button
+    type="button"
+    tabindex="-1"
+    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    onmousedown={event => event.preventDefault()}
+    onclick={event => {
+      event.stopPropagation()
+      toggleKind(kind)
+    }}
+  >
+    {@render checkboxSquare(selected)}
+    {#if kind === SubmissionLogKind.ADMIN_BOT}
+      <IconRobot class="size-4" />
+    {:else}
+      <IconFlag3Filled class="size-4" />
+    {/if}
+    {kindLabel(kind)}
+  </button>
+{/snippet}
+
+{#snippet kindSelector()}
+  <div class="p-1">
+    {#each KIND_FILTERS as kind}
+      {@render kindOption(kind)}
+    {/each}
+  </div>
+{/snippet}
+
+{#snippet resultOption(result: SubmissionLogResult)}
+  {@const selected = selectedResults.includes(result)}
+  <button
+    type="button"
+    tabindex="-1"
+    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    onmousedown={event => event.preventDefault()}
+    onclick={event => {
+      event.stopPropagation()
+      toggleResult(result)
+    }}
+  >
+    {@render checkboxSquare(selected)}
+    {@render resultText(result)}
+  </button>
+{/snippet}
+
+{#snippet resultSelector()}
+  <div class="p-1">
+    {#each RESULT_FILTERS as result}
+      {@render resultOption(result)}
+    {/each}
+  </div>
 {/snippet}
 
 {#snippet challengeFilterMenu()}
@@ -420,28 +631,7 @@
       sideOffset={10}
       class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
     >
-      {@render filterSearchInput(challengeSearch, 'Filter challenges...', updateChallengeSearch)}
-      <ScrollArea
-        class="min-h-0 flex-1"
-        fadeSize={28}
-        fadeColor="background-l4"
-        scrollbarYClasses="hidden"
-      >
-        <div class="p-1">
-          {#if challengesQuery.isPending}
-            <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
-              <Spinner class="size-3.5" />
-              Loading challenges...
-            </div>
-          {:else if challengeOptions.length === 0}
-            <div class="text-foreground-l3 px-2 py-1.5 text-sm">No challenges found</div>
-          {:else}
-            {#each challengeOptions as challenge (challenge.id)}
-              {@render challengeOption(challenge)}
-            {/each}
-          {/if}
-        </div>
-      </ScrollArea>
+      {@render challengeSelector()}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
@@ -460,28 +650,7 @@
       sideOffset={10}
       class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
     >
-      {@render filterSearchInput(teamSearch, 'Filter teams...', updateTeamSearch)}
-      <ScrollArea
-        class="min-h-0 flex-1"
-        fadeSize={28}
-        fadeColor="background-l4"
-        scrollbarYClasses="hidden"
-      >
-        <div class="p-1">
-          {#if teamSuggestionsQuery.isFetching && teamOptions.length === 0}
-            <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
-              <Spinner class="size-3.5" />
-              Loading teams...
-            </div>
-          {:else if teamOptions.length === 0}
-            <div class="text-foreground-l3 px-2 py-1.5 text-sm">No teams found</div>
-          {:else}
-            {#each teamOptions as team (team.id)}
-              {@render teamOption(team)}
-            {/each}
-          {/if}
-        </div>
-      </ScrollArea>
+      {@render teamSelector()}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
@@ -500,27 +669,7 @@
       sideOffset={10}
       class="bg-background-l4 border-foreground-l4/40 z-[110] w-48 border-2 shadow-xl"
     >
-      <DropdownMenu.Item
-        class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
-        onclick={() => (kindFilter = null)}
-      >
-        <IconCheck class={cn('size-4', kindFilter !== null && 'text-transparent')} />
-        Any kind
-      </DropdownMenu.Item>
-      {#each KIND_FILTERS as kind}
-        <DropdownMenu.Item
-          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
-          onclick={() => (kindFilter = kind)}
-        >
-          <IconCheck class={cn('size-4', kindFilter !== kind && 'text-transparent')} />
-          {#if kind === SubmissionLogKind.ADMIN_BOT}
-            <IconRobot class="size-4" />
-          {:else}
-            <IconFlag3Filled class="size-4" />
-          {/if}
-          {kindLabel(kind)}
-        </DropdownMenu.Item>
-      {/each}
+      {@render kindSelector()}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
@@ -539,16 +688,7 @@
       sideOffset={10}
       class="bg-background-l4 border-foreground-l4/40 z-[110] w-56 border-2 shadow-xl"
     >
-      {#each RESULT_FILTERS as result}
-        {@const selected = selectedResults.includes(result)}
-        <DropdownMenu.Item
-          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
-          onclick={() => toggleResult(result)}
-        >
-          <IconCheck class={cn('size-4', !selected && 'text-transparent')} />
-          {@render resultText(result)}
-        </DropdownMenu.Item>
-      {/each}
+      {@render resultSelector()}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
@@ -558,8 +698,8 @@
     <DropdownMenu.Trigger
       aria-label="Add filter"
       class={cn(
-        'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border ring-2 ring-transparent transition-colors',
-        hasFilters && 'text-foreground-accent ring-foreground-accent/50'
+        'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
+        hasFilters && 'text-foreground-accent'
       )}
     >
       <IconFilter class="size-4" />
@@ -581,107 +721,178 @@
   </DropdownMenu.Root>
 {/snippet}
 
-{#snippet challengeChip(challenge: ChallengeFilterOption)}
-  {@const category = getCategoryConfig(challenge.category)}
+{#snippet challengeChip()}
+  {@const selected = selectedChallenges[0]}
+  {@const category = selected ? getCategoryConfig(selected.category) : null}
   <span
-    class="bg-background-l2 inline-flex h-8 max-w-96 shrink-0 items-center overflow-hidden rounded-md border text-sm"
+    class="bg-background-l2 inline-flex h-8 max-w-96 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r px-2">
+    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
       <IconPuzzleFilled class="size-3.5" />
       Challenge
     </span>
-    <span class="text-foreground-l4 flex h-full items-center border-r px-2">is</span>
-    <span class="flex min-w-0 items-center px-2" style={getCategoryStyle(category.color)}>
-      <span class="min-w-0 truncate">
-        <span class="text-category-foreground-l1">{challenge.category} /</span>
-        <span class="text-category-foreground-l0">{challenge.name}</span>
-      </span>
-    </span>
+    {@render operatorDropdown(challengeMode, selectedChallenges.length, mode => (challengeMode = mode))}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="hover:bg-background-l3 flex h-full min-w-0 items-center px-2 transition-colors"
+        style={category ? getCategoryStyle(category.color) : undefined}
+      >
+        {#if selectedChallenges.length === 1 && selected}
+          <span class="min-w-0 truncate">
+            <span class="text-category-foreground-l1">{selected.category} /</span>
+            <span class="text-category-foreground-l0">{selected.name}</span>
+          </span>
+        {:else}
+          <span class="text-foreground-l1 min-w-0 truncate">
+            {selectedChallenges.length} challenges
+          </span>
+        {/if}
+        <IconChevronDown class="text-foreground-l4 ml-1 size-3 shrink-0" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[120] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
+      >
+        {@render challengeSelector()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
     <button
       type="button"
-      aria-label="Remove challenge filter"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l"
-      onclick={() => removeChallenge(challenge.id)}
+      aria-label="Remove challenge filters"
+      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+      onclick={clearChallenges}
     >
       <IconX class="size-3.5" />
     </button>
   </span>
 {/snippet}
 
-{#snippet teamChip(team: TeamFilterOption)}
+{#snippet teamChip()}
+  {@const selected = selectedTeams[0]}
   <span
-    class="bg-background-l2 inline-flex h-8 max-w-80 shrink-0 items-center overflow-hidden rounded-md border text-sm"
+    class="bg-background-l2 inline-flex h-8 max-w-80 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r px-2">
+    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
       <IconUsersGroup class="size-3.5" />
       Team
     </span>
-    <span class="text-foreground-l4 flex h-full items-center border-r px-2">is</span>
-    <span class="text-foreground-l1 flex min-w-0 items-center gap-1.5 px-2">
-      <Avatar.Root class="size-4 rounded">
-        {#if team.avatarUrl}
-          <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded object-cover" />
+    {@render operatorDropdown(teamMode, selectedTeams.length, mode => (teamMode = mode))}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
+      >
+        {#if selectedTeams.length === 1 && selected}
+          <Avatar.Root class="size-4 rounded">
+            {#if selected.avatarUrl}
+              <Avatar.Image src={selected.avatarUrl} alt={selected.name} class="rounded object-cover" />
+            {/if}
+            <Avatar.Fallback class="rounded text-[8px]">
+              {getInitials(selected.name)}
+            </Avatar.Fallback>
+          </Avatar.Root>
+          <span class="min-w-0 truncate">{selected.name}</span>
+        {:else}
+          <span class="min-w-0 truncate">{selectedTeams.length} teams</span>
         {/if}
-        <Avatar.Fallback class="rounded text-[8px]">{getInitials(team.name)}</Avatar.Fallback>
-      </Avatar.Root>
-      <span class="min-w-0 truncate">{team.name}</span>
-    </span>
+        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[120] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
+      >
+        {@render teamSelector()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
     <button
       type="button"
-      aria-label="Remove team filter"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l"
-      onclick={() => removeTeam(team.id)}
+      aria-label="Remove team filters"
+      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+      onclick={clearTeams}
     >
       <IconX class="size-3.5" />
     </button>
   </span>
 {/snippet}
 
-{#snippet kindChip(kind: SubmissionLogKind)}
+{#snippet kindChip()}
+  {@const selected = selectedKinds[0]}
   <span
-    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border text-sm"
+    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r px-2">
+    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
       <IconFlag3Filled class="size-3.5" />
       Kind
     </span>
-    <span class="text-foreground-l4 flex h-full items-center border-r px-2">is</span>
-    <span class="text-foreground-l1 flex h-full items-center gap-1 px-2">
-      {#if kind === SubmissionLogKind.ADMIN_BOT}
-        <IconRobot class="size-3.5" />
-      {:else}
-        <IconFlag3Filled class="size-3.5" />
-      {/if}
-      {kindLabel(kind)}
-    </span>
+    {@render operatorDropdown(kindMode, selectedKinds.length, mode => (kindMode = mode))}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1 px-2 transition-colors"
+      >
+        {#if selectedKinds.length === 1 && selected}
+          {#if selected === SubmissionLogKind.ADMIN_BOT}
+            <IconRobot class="size-3.5" />
+          {:else}
+            <IconFlag3Filled class="size-3.5" />
+          {/if}
+          {kindLabel(selected)}
+        {:else}
+          <span class="min-w-0 truncate">{selectedKinds.length} kinds</span>
+        {/if}
+        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[120] w-48 border-2 shadow-xl"
+      >
+        {@render kindSelector()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
     <button
       type="button"
-      aria-label="Remove kind filter"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l"
-      onclick={() => (kindFilter = null)}
+      aria-label="Remove kind filters"
+      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+      onclick={clearKinds}
     >
       <IconX class="size-3.5" />
     </button>
   </span>
 {/snippet}
 
-{#snippet resultChip(result: SubmissionLogResult)}
+{#snippet resultChip()}
+  {@const selected = selectedResults[0]}
   <span
-    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border text-sm"
+    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r px-2">
+    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
       <IconTableFilled class="size-3.5" />
       Result
     </span>
-    <span class="text-foreground-l4 flex h-full items-center border-r px-2">is</span>
-    <span class="flex h-full items-center gap-1.5 px-2">
-      {@render resultText(result)}
-    </span>
+    {@render operatorDropdown(resultMode, selectedResults.length, mode => (resultMode = mode))}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
+      >
+        {#if selectedResults.length === 1 && selected}
+          {@render resultText(selected)}
+        {:else}
+          <span class="text-foreground-l1 min-w-0 truncate">
+            {selectedResults.length} results
+          </span>
+        {/if}
+        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[120] w-56 border-2 shadow-xl"
+      >
+        {@render resultSelector()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
     <button
       type="button"
-      aria-label="Remove result filter"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l"
-      onclick={() => removeResult(result)}
+      aria-label="Remove result filters"
+      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+      onclick={clearResults}
     >
       <IconX class="size-3.5" />
     </button>
@@ -690,18 +901,18 @@
 
 {#snippet filterChips()}
   <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pb-0.5 whitespace-nowrap">
-    {#each selectedChallenges as challenge (challenge.id)}
-      {@render challengeChip(challenge)}
-    {/each}
-    {#each selectedTeams as team (team.id)}
-      {@render teamChip(team)}
-    {/each}
-    {#if kindFilter}
-      {@render kindChip(kindFilter)}
+    {#if selectedChallenges.length > 0}
+      {@render challengeChip()}
     {/if}
-    {#each selectedResults as result (result)}
-      {@render resultChip(result)}
-    {/each}
+    {#if selectedTeams.length > 0}
+      {@render teamChip()}
+    {/if}
+    {#if selectedKinds.length > 0}
+      {@render kindChip()}
+    {/if}
+    {#if selectedResults.length > 0}
+      {@render resultChip()}
+    {/if}
   </div>
 {/snippet}
 

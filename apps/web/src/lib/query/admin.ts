@@ -102,13 +102,18 @@ export const adminSubmissionLogsQueryOptions = (params: {
   sortOrder?: SubmissionLogSortOrder
   challengeId?: string
   challengeIds?: string
+  excludeChallengeIds?: string
   challengeSearch?: string
   userId?: string
   userIds?: string
+  excludeUserIds?: string
   teamSearch?: string
   kind?: SubmissionLogKind
+  kinds?: string
+  excludeKinds?: string
   result?: SubmissionLogResult
   results?: string
+  excludeResults?: string
 }) =>
   queryOptions({
     queryKey: ['admin', 'submission-logs', params] as const,
@@ -233,13 +238,18 @@ export function useInfiniteAdminSubmissionLogs(
     sortOrder?: SubmissionLogSortOrder
     challengeId?: string
     challengeIds?: string
+    excludeChallengeIds?: string
     challengeSearch?: string
     userId?: string
     userIds?: string
+    excludeUserIds?: string
     teamSearch?: string
     kind?: SubmissionLogKind
+    kinds?: string
+    excludeKinds?: string
     result?: SubmissionLogResult
     results?: string
+    excludeResults?: string
   },
   pageSize: () => number = () => 100
 ) {

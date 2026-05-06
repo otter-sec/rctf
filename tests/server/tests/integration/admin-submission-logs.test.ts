@@ -150,6 +150,23 @@ describe('admin submission logs', () => {
         submittedFlag: 'wrong',
       },
     })
+
+    const excludedRes = await request(
+      app,
+      '/api/v2/admin/submission-logs?limit=100&offset=0&excludeResults=incorrect',
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+    const excludedBody = await expectResponse(
+      excludedRes,
+      GoodAdminSubmissionLogs
+    )
+    expect(excludedBody.data.logs.map((log: any) => log.result)).toEqual([
+      SubmissionLogResult.CORRECT,
+    ])
   })
 
   test('requires team and challenge admin permissions', async () => {
@@ -186,6 +203,27 @@ describe('admin submission logs', () => {
     const body = await expectResponse(res, BadBody)
     expect(body.data.reason).toBe(
       'query:results: invalid submission log result'
+    )
+  })
+
+  test('rejects invalid excluded result filters', async () => {
+    const admin = await generateRealTestUser(
+      Permissions.usersWrite | Permissions.challsRead
+    )
+
+    const res = await request(
+      app,
+      '/api/v2/admin/submission-logs?limit=10&offset=0&excludeResults=correct,nope',
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+
+    const body = await expectResponse(res, BadBody)
+    expect(body.data.reason).toBe(
+      'query:excludeResults: invalid submission log result'
     )
   })
 })

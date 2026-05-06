@@ -13,6 +13,7 @@ import {
   desc,
   eq,
   inArray,
+  notInArray,
   sql,
   count as sqlCount,
   type SQL,
@@ -51,16 +52,23 @@ export const getSubmissionLogs = async (
     sortBy?: SubmissionLogSortBy
     sortOrder?: SubmissionLogSortOrder
     challengeIds?: string[]
+    excludeChallengeIds?: string[]
     challengeSearch?: string
     userIds?: string[]
+    excludeUserIds?: string[]
     teamSearch?: string
-    kind?: SubmissionLogKind
+    kinds?: SubmissionLogKind[]
+    excludeKinds?: SubmissionLogKind[]
     results?: SubmissionLogResult[]
+    excludeResults?: SubmissionLogResult[]
   }
 ) => {
   const filters: SQL[] = []
   if (params.challengeIds?.length) {
     filters.push(inArray(submissionLogs.challengeId, params.challengeIds))
+  }
+  if (params.excludeChallengeIds?.length) {
+    filters.push(notInArray(submissionLogs.challengeId, params.excludeChallengeIds))
   }
 
   if (params.challengeSearch?.trim()) {
@@ -74,18 +82,27 @@ export const getSubmissionLogs = async (
   if (params.userIds?.length) {
     filters.push(inArray(submissionLogs.userId, params.userIds))
   }
+  if (params.excludeUserIds?.length) {
+    filters.push(notInArray(submissionLogs.userId, params.excludeUserIds))
+  }
 
   if (params.teamSearch?.trim()) {
     const pattern = `%${params.teamSearch.trim().toLowerCase()}%`
     filters.push(sql`lower(${users.name}::text) like ${pattern}`)
   }
 
-  if (params.kind) {
-    filters.push(eq(submissionLogs.kind, params.kind))
+  if (params.kinds?.length) {
+    filters.push(inArray(submissionLogs.kind, params.kinds))
+  }
+  if (params.excludeKinds?.length) {
+    filters.push(notInArray(submissionLogs.kind, params.excludeKinds))
   }
 
   if (params.results?.length) {
     filters.push(inArray(submissionLogs.result, params.results))
+  }
+  if (params.excludeResults?.length) {
+    filters.push(notInArray(submissionLogs.result, params.excludeResults))
   }
 
   const where = filters.length ? and(...filters) : undefined
