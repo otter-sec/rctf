@@ -96,10 +96,26 @@
     icon: IconComponent
     menuSize: 'search' | 'narrow' | 'medium'
     chipWidth?: 'challenge' | 'team'
+    searchTerms?: readonly string[]
   }
+  type TimeFilterFamily = {
+    id: 'time'
+    label: string
+    icon: IconComponent
+    searchTerms: readonly string[]
+  }
+  type RootFilterOptionMatch =
+    | { familyId: 'challenge'; key: string; option: ChallengeFilterOption }
+    | { familyId: 'team'; key: string; option: TeamFilterOption }
+    | { familyId: 'kind'; key: string; option: SubmissionLogKind }
+    | { familyId: 'result'; key: string; option: SubmissionLogResult }
+    | { familyId: 'teamStatus'; key: string; option: SubmissionLogTeamStatus }
+    | { familyId: 'category'; key: string; option: CategoryFilterOption }
+    | { familyId: 'division'; key: string; option: DivisionFilterOption }
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
+  const ROOT_SEARCH_MATCH_LIMIT = 8
   const VALUE_FILTER_FAMILIES = [
     {
       id: 'challenge',
@@ -153,15 +169,28 @@
       menuSize: 'medium',
     },
   ] satisfies ValueFilterFamily[]
+  const TIME_FILTER_FAMILY = {
+    id: 'time',
+    label: 'Time',
+    icon: IconClockFilled,
+    searchTerms: ['date', 'range', 'ctf', 'relative'],
+  } satisfies TimeFilterFamily
+  const VALUE_FILTER_FAMILY_BY_ID = Object.fromEntries(
+    VALUE_FILTER_FAMILIES.map(family => [family.id, family])
+  ) as Record<ValueFilterId, ValueFilterFamily>
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
   let sortOrder = $state<SubmissionLogSortOrder>(SubmissionLogSortOrder.DESC)
   let filters = $state(createSubmissionLogFilters())
+  let rootFilterSearch = $state('')
   let expandedLogId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
 
+  const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
+  const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
+  const isRootFilterSearchActive = $derived(normalizedRootFilterSearch.length > 0)
   const clientConfigQuery = useClientConfig()
   const challengesQuery = useAdminChallenges()
   const teamSuggestionsQuery = useInfiniteAdminUsers(
@@ -172,26 +201,29 @@
     },
     () => true
   )
+  const rootTeamSuggestionsQuery = useInfiniteAdminUsers(
+    () => 16,
+    () => trimmedRootFilterSearch || undefined,
+    () => isRootFilterSearchActive
+  )
   const clientConfig = $derived(clientConfigQuery.data)
   const trimmedChallengeSearch = $derived(filters.challenge.search.trim().toLowerCase())
   const hasFilters = $derived(hasSubmissionLogFilters(filters))
   const queryFingerprint = $derived(
     `${sortBy}:${sortOrder}:${submissionLogFilterFingerprint(filters)}`
   )
+  const allChallengeOptions = $derived(
+    (challengesQuery.data ?? []).map(challenge => ({
+      id: challenge.id,
+      name: challenge.name,
+      category: challenge.category,
+    }))
+  )
   const challengeOptions = $derived(
-    (challengesQuery.data ?? [])
-      .filter(challenge => {
-        if (!trimmedChallengeSearch) return true
-        return (
-          challenge.name.toLowerCase().includes(trimmedChallengeSearch) ||
-          challenge.category.toLowerCase().includes(trimmedChallengeSearch)
-        )
-      })
-      .map(challenge => ({
-        id: challenge.id,
-        name: challenge.name,
-        category: challenge.category,
-      }))
+    allChallengeOptions.filter(challenge => {
+      if (!trimmedChallengeSearch) return true
+      return searchMatches(trimmedChallengeSearch, challenge.name, challenge.category)
+    })
   )
   const categoryOptions = $derived.by(() => {
     const categories = Array.from(
@@ -213,25 +245,38 @@
       label,
     }))
   )
-  const teamOptions = $derived.by(() => {
-    const teams = [
+  const teamOptions = $derived.by(() =>
+    uniqueTeamOptions([
       ...filters.team.selected,
       ...(teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
-    ]
-    const seen = new Set<string>()
+    ])
+  )
+  const rootTeamOptions = $derived.by(() =>
+    uniqueTeamOptions([
+      ...filters.team.selected,
+      ...(rootTeamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
+    ])
+  )
+  const rootValueFilterFamilyMatches = $derived(
+    VALUE_FILTER_FAMILIES.filter(family =>
+      rootFilterFamilyMatchesSearch(family, normalizedRootFilterSearch)
+    )
+  )
+  const rootTimeFilterFamilyMatches = $derived(
+    rootFilterFamilyMatchesSearch(TIME_FILTER_FAMILY, normalizedRootFilterSearch)
+  )
+  const rootFilterOptionMatches = $derived.by(() => {
+    if (!isRootFilterSearchActive) return []
 
-    return teams
-      .filter(team => {
-        if (seen.has(team.id)) return false
-        seen.add(team.id)
-        return true
-      })
-      .map(team => ({
-        id: team.id,
-        name: team.name,
-        avatarUrl: team.avatarUrl,
-      }))
+    return VALUE_FILTER_FAMILIES.flatMap(family =>
+      rootSearchMatchesForFamily(family, normalizedRootFilterSearch)
+    )
   })
+  const hasRootFilterSearchMatches = $derived(
+    rootValueFilterFamilyMatches.length > 0 ||
+      rootTimeFilterFamilyMatches ||
+      rootFilterOptionMatches.length > 0
+  )
   const timeRangeValidation = $derived(
     resolveTimeRangeFilter(filters.time, clientConfig?.startTime)
   )
@@ -318,6 +363,124 @@
 
   function updateTeamSearch(value: string) {
     filters.team.search = value
+  }
+
+  function updateRootFilterSearch(value: string) {
+    rootFilterSearch = value
+  }
+
+  function normalizeSearchText(value: string) {
+    return value.trim().toLowerCase()
+  }
+
+  function searchMatches(query: string, ...values: string[]) {
+    if (!query) return false
+    return values.some(value => normalizeSearchText(value).includes(query))
+  }
+
+  function rootFilterFamilyMatchesSearch(
+    family: ValueFilterFamily | TimeFilterFamily,
+    query: string
+  ) {
+    const pluralLabel = 'pluralLabel' in family ? family.pluralLabel : ''
+    const extraTerms = query.length > 1 ? (family.searchTerms ?? []) : []
+    return searchMatches(query, family.label, pluralLabel, ...extraTerms)
+  }
+
+  function uniqueTeamOptions(
+    teams: { id: string; name: string; avatarUrl: string | null }[]
+  ): TeamFilterOption[] {
+    const seen = new Set<string>()
+
+    return teams
+      .filter(team => {
+        if (seen.has(team.id)) return false
+        seen.add(team.id)
+        return true
+      })
+      .map(team => ({
+        id: team.id,
+        name: team.name,
+        avatarUrl: team.avatarUrl,
+      }))
+  }
+
+  function takeRootSearchMatches<T>(options: readonly T[], matches: (option: T) => boolean) {
+    return options.filter(matches).slice(0, ROOT_SEARCH_MATCH_LIMIT)
+  }
+
+  function rootSearchMatchesForFamily(
+    family: ValueFilterFamily,
+    query: string
+  ): RootFilterOptionMatch[] {
+    switch (family.id) {
+      case 'challenge':
+        return takeRootSearchMatches(allChallengeOptions, challenge => {
+          const category = getCategoryConfig(challenge.category)
+          return searchMatches(query, challenge.name, challenge.category, category.name)
+        }).map(challenge => ({
+          familyId: 'challenge',
+          key: challenge.id,
+          option: challenge,
+        }))
+      case 'team':
+        return takeRootSearchMatches(rootTeamOptions, team => searchMatches(query, team.name)).map(
+          team => ({
+            familyId: 'team',
+            key: team.id,
+            option: team,
+          })
+        )
+      case 'kind':
+        return takeRootSearchMatches(KIND_FILTERS, kind =>
+          searchMatches(query, kindLabel(kind), kind)
+        ).map(kind => ({
+          familyId: 'kind',
+          key: kind,
+          option: kind,
+        }))
+      case 'result':
+        return takeRootSearchMatches(RESULT_FILTERS, result =>
+          searchMatches(query, resultLabel(result), result)
+        ).map(result => ({
+          familyId: 'result',
+          key: result,
+          option: result,
+        }))
+      case 'teamStatus':
+        return takeRootSearchMatches(TEAM_STATUS_FILTERS, status =>
+          searchMatches(query, teamStatusLabel(status), status)
+        ).map(status => ({
+          familyId: 'teamStatus',
+          key: status,
+          option: status,
+        }))
+      case 'category':
+        return takeRootSearchMatches(categoryOptions, category => {
+          const config = getCategoryConfig(category.value)
+          return searchMatches(query, category.label, category.value, config.name)
+        }).map(category => ({
+          familyId: 'category',
+          key: category.value,
+          option: category,
+        }))
+      case 'division':
+        return takeRootSearchMatches(divisionOptions, division =>
+          searchMatches(query, division.label, division.value)
+        ).map(division => ({
+          familyId: 'division',
+          key: division.value,
+          option: division,
+        }))
+    }
+  }
+
+  function rootFilterOptionKey(match: RootFilterOptionMatch) {
+    return `${match.familyId}:${match.key}`
+  }
+
+  function rootSearchMatchFamily(match: RootFilterOptionMatch) {
+    return VALUE_FILTER_FAMILY_BY_ID[match.familyId]
   }
 
   function valueFilter(family: ValueFilterFamily): MultiFilter<unknown> {
@@ -536,19 +699,32 @@
   </div>
 {/snippet}
 
-{#snippet challengeOption(challenge: ChallengeFilterOption)}
+{#snippet rootSearchPath(family: ValueFilterFamily)}
+  <span class="text-foreground-l3 flex shrink-0 items-center gap-1">
+    <family.icon class="size-3.5" />
+    <span>{family.label}</span>
+  </span>
+  <IconChevronRight class="text-foreground-l4 size-3 shrink-0" />
+{/snippet}
+
+{#snippet challengeOption(challenge: ChallengeFilterOption, family?: ValueFilterFamily)}
   {@const category = getCategoryConfig(challenge.category)}
   {@const selected = filters.challenge.selected.some(item => item.id === challenge.id)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={`${challenge.category} ${challenge.name}`}
+    textValue={family
+      ? `${family.label} ${challenge.category} ${challenge.name}`
+      : `${challenge.category} ${challenge.name}`}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     style={getCategoryStyle(category.color)}
     onCheckedChange={checked => {
       if (checked !== selected) toggleChallenge(challenge)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     <span class="min-w-0 truncate text-sm">
       <span class="text-category-foreground-l1">{challenge.category} /</span>
       <span class="text-category-foreground-l0">{challenge.name}</span>
@@ -556,17 +732,20 @@
   </DropdownMenu.CheckboxItem>
 {/snippet}
 
-{#snippet teamOption(team: TeamFilterOption)}
+{#snippet teamOption(team: TeamFilterOption, family?: ValueFilterFamily)}
   {@const selected = filters.team.selected.some(item => item.id === team.id)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={team.name}
+    textValue={family ? `${family.label} ${team.name}` : team.name}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleTeam(team)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     <Avatar.Root class="size-5 rounded-md">
       {#if team.avatarUrl}
         <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-md object-cover" />
@@ -633,17 +812,20 @@
   </ScrollArea>
 {/snippet}
 
-{#snippet kindOption(kind: SubmissionLogKind)}
+{#snippet kindOption(kind: SubmissionLogKind, family?: ValueFilterFamily)}
   {@const selected = filters.kind.selected.includes(kind)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={kindLabel(kind)}
+    textValue={family ? `${family.label} ${kindLabel(kind)}` : kindLabel(kind)}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleKind(kind)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     {#if kind === SubmissionLogKind.ADMIN_BOT}
       <IconRobot class="size-4" />
     {:else}
@@ -661,17 +843,20 @@
   </div>
 {/snippet}
 
-{#snippet resultOption(result: SubmissionLogResult)}
+{#snippet resultOption(result: SubmissionLogResult, family?: ValueFilterFamily)}
   {@const selected = filters.result.selected.includes(result)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={resultLabel(result)}
+    textValue={family ? `${family.label} ${resultLabel(result)}` : resultLabel(result)}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleResult(result)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     {@render resultText(result)}
   </DropdownMenu.CheckboxItem>
 {/snippet}
@@ -684,17 +869,20 @@
   </div>
 {/snippet}
 
-{#snippet teamStatusOption(status: SubmissionLogTeamStatus)}
+{#snippet teamStatusOption(status: SubmissionLogTeamStatus, family?: ValueFilterFamily)}
   {@const selected = filters.teamStatus.selected.includes(status)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={teamStatusLabel(status)}
+    textValue={family ? `${family.label} ${teamStatusLabel(status)}` : teamStatusLabel(status)}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleTeamStatus(status)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     {#if status === SubmissionLogTeamStatus.BANNED}
       <IconGavel class="size-4" />
     {:else}
@@ -712,19 +900,22 @@
   </div>
 {/snippet}
 
-{#snippet categoryOption(category: CategoryFilterOption)}
+{#snippet categoryOption(category: CategoryFilterOption, family?: ValueFilterFamily)}
   {@const selected = filters.category.selected.some(item => item.value === category.value)}
   {@const categoryConfig = getCategoryConfig(category.value)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={category.label}
+    textValue={family ? `${family.label} ${category.label}` : category.label}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     style={getCategoryStyle(categoryConfig.color)}
     onCheckedChange={checked => {
       if (checked !== selected) toggleCategory(category)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     <categoryConfig.icon class="text-category-foreground-l1 size-4 shrink-0" />
     <span class="text-category-foreground-l0 min-w-0 truncate text-sm">
       {category.label}
@@ -749,17 +940,20 @@
   </div>
 {/snippet}
 
-{#snippet divisionOption(division: DivisionFilterOption)}
+{#snippet divisionOption(division: DivisionFilterOption, family?: ValueFilterFamily)}
   {@const selected = filters.division.selected.some(item => item.value === division.value)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={division.label}
+    textValue={family ? `${family.label} ${division.label}` : division.label}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleDivision(division)
     }}
   >
+    {#if family}
+      {@render rootSearchPath(family)}
+    {/if}
     <span class="min-w-0 truncate text-sm">{division.label}</span>
   </DropdownMenu.CheckboxItem>
 {/snippet}
@@ -774,6 +968,25 @@
       {/each}
     {/if}
   </div>
+{/snippet}
+
+{#snippet rootSearchOption(match: RootFilterOptionMatch)}
+  {@const family = rootSearchMatchFamily(match)}
+  {#if match.familyId === 'challenge'}
+    {@render challengeOption(match.option, family)}
+  {:else if match.familyId === 'team'}
+    {@render teamOption(match.option, family)}
+  {:else if match.familyId === 'kind'}
+    {@render kindOption(match.option, family)}
+  {:else if match.familyId === 'result'}
+    {@render resultOption(match.option, family)}
+  {:else if match.familyId === 'teamStatus'}
+    {@render teamStatusOption(match.option, family)}
+  {:else if match.familyId === 'category'}
+    {@render categoryOption(match.option, family)}
+  {:else if match.familyId === 'division'}
+    {@render divisionOption(match.option, family)}
+  {/if}
 {/snippet}
 
 {#snippet valueFilterSelector(family: ValueFilterFamily)}
@@ -937,6 +1150,38 @@
   </DropdownMenu.Sub>
 {/snippet}
 
+{#snippet rootFilterList()}
+  <div class="p-1">
+    {#each VALUE_FILTER_FAMILIES as family (family.id)}
+      {@render valueFilterMenu(family)}
+    {/each}
+    {@render timeRangeFilterMenu()}
+  </div>
+{/snippet}
+
+{#snippet rootFilterSearchResults()}
+  <div class="p-1">
+    {#each rootValueFilterFamilyMatches as family (family.id)}
+      {@render valueFilterMenu(family)}
+    {/each}
+    {#if rootTimeFilterFamilyMatches}
+      {@render timeRangeFilterMenu()}
+    {/if}
+    {#each rootFilterOptionMatches as match (rootFilterOptionKey(match))}
+      {@render rootSearchOption(match)}
+    {/each}
+    {#if rootTeamSuggestionsQuery.isFetching}
+      <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
+        <Spinner class="size-3.5" />
+        Searching teams...
+      </div>
+    {/if}
+    {#if !hasRootFilterSearchMatches && !rootTeamSuggestionsQuery.isFetching}
+      <div class="text-foreground-l3 px-2 py-1.5 text-sm">No filters found</div>
+    {/if}
+  </div>
+{/snippet}
+
 {#snippet filterMenu()}
   <DropdownMenu.Root>
     <DropdownMenu.Trigger
@@ -950,17 +1195,18 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content
       align="start"
-      class="bg-background-l4 border-foreground-l4/40 z-[100] w-56 border-2 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 border-2 !p-0 shadow-xl"
     >
       <DropdownMenu.Label class="text-foreground-l3 flex items-center gap-2 text-sm">
         <IconPlus class="size-4" />
         Add filter
       </DropdownMenu.Label>
-      <DropdownMenu.Separator />
-      {#each VALUE_FILTER_FAMILIES as family (family.id)}
-        {@render valueFilterMenu(family)}
-      {/each}
-      {@render timeRangeFilterMenu()}
+      {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
+      {#if isRootFilterSearchActive}
+        {@render rootFilterSearchResults()}
+      {:else}
+        {@render rootFilterList()}
+      {/if}
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/snippet}

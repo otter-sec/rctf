@@ -452,13 +452,15 @@ export type AdminUserDetails = AdminUserInfo & {
 const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, '\\$&')
 
 export const userNameSearchFilter = (search: string) => {
-  const emailPattern = `%${escapeLikePattern(search.toLowerCase())}%`
+  const pattern = `%${escapeLikePattern(search.toLowerCase())}%`
   return sql`(
+    lower(${users.name}::text) LIKE ${pattern} ESCAPE ${'\\'}
+    OR
     ${users.name} % ${search}
     OR ${search} <% ${users.name}
     OR (
       ${users.email} IS NOT NULL
-      AND lower(${users.email}) LIKE ${emailPattern} ESCAPE ${'\\'}
+      AND lower(${users.email}) LIKE ${pattern} ESCAPE ${'\\'}
     )
   )`
 }
