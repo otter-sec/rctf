@@ -9,6 +9,7 @@ import {
   Permissions,
   SubmissionLogKind,
   SubmissionLogResult,
+  SubmissionLogTeamStatus,
 } from '@rctf/types'
 import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -43,6 +44,9 @@ describe('admin submission logs', () => {
     const beta = await generateRealTestUser()
     const alphaChallenge = await generateChallenge()
     const betaChallenge = await generateChallenge()
+    const divisions = Object.keys(config.divisions)
+    const alphaDivision = divisions[0]!
+    const betaDivision = divisions[1] ?? alphaDivision
     const { id: _alphaChallengeId, ...alphaChallengeData } =
       alphaChallenge.challenge
     const { id: _betaChallengeId, ...betaChallengeData } =
@@ -50,11 +54,11 @@ describe('admin submission logs', () => {
 
     await db
       .update(users)
-      .set({ name: 'Alpha Team' })
+      .set({ name: 'Alpha Team', division: alphaDivision })
       .where(eq(users.id, alpha.user.id))
     await db
       .update(users)
-      .set({ name: 'Beta Team' })
+      .set({ name: 'Beta Team', division: betaDivision })
       .where(eq(users.id, beta.user.id))
     await db
       .update(challenges)
@@ -62,6 +66,7 @@ describe('admin submission logs', () => {
         data: {
           ...alphaChallengeData,
           name: 'Alpha Challenge',
+          category: 'web',
         },
       })
       .where(eq(challenges.id, alphaChallenge.challenge.id))
@@ -71,6 +76,7 @@ describe('admin submission logs', () => {
         data: {
           ...betaChallengeData,
           name: 'Beta Challenge',
+          category: 'crypto',
         },
       })
       .where(eq(challenges.id, betaChallenge.challenge.id))
@@ -105,6 +111,19 @@ describe('admin submission logs', () => {
       }
     )
     await expectResponse(badRes, BadFlag)
+
+    await db
+      .update(users)
+      .set({ banned: true })
+      .where(eq(users.id, beta.user.id))
+    await db
+      .update(submissionLogs)
+      .set({ createdAt: '2026-05-05T10:00:00.000Z' })
+      .where(eq(submissionLogs.userId, alpha.user.id))
+    await db
+      .update(submissionLogs)
+      .set({ createdAt: '2026-05-05T11:00:00.000Z' })
+      .where(eq(submissionLogs.userId, beta.user.id))
 
     const storedLogs = await db.select().from(submissionLogs)
     expect(storedLogs).toHaveLength(2)
@@ -167,6 +186,42 @@ describe('admin submission logs', () => {
     expect(excludedBody.data.logs.map((log: any) => log.result)).toEqual([
       SubmissionLogResult.CORRECT,
     ])
+
+    const statusRes = await request(
+      app,
+      `/api/v2/admin/submission-logs?limit=100&offset=0&teamStatuses=${SubmissionLogTeamStatus.BANNED}`,
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+    const statusBody = await expectResponse(statusRes, GoodAdminSubmissionLogs)
+    expect(statusBody.data.logs.map((log: any) => log.userName)).toEqual([
+      'Beta Team',
+    ])
+
+    const scopedParams = new URLSearchParams({
+      limit: '100',
+      offset: '0',
+      categories: 'web',
+      divisions: alphaDivision,
+      createdAfter: '2026-05-05T09:30:00.000Z',
+      createdBefore: '2026-05-05T10:30:00.000Z',
+    })
+    const scopedRes = await request(
+      app,
+      `/api/v2/admin/submission-logs?${scopedParams}`,
+      {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+    const scopedBody = await expectResponse(scopedRes, GoodAdminSubmissionLogs)
+    expect(scopedBody.data.logs.map((log: any) => log.userName)).toEqual([
+      'Alpha Team',
+    ])
   })
 
   test('requires team and challenge admin permissions', async () => {
@@ -225,5 +280,35 @@ describe('admin submission logs', () => {
     expect(body.data.reason).toBe(
       'query:excludeResults: invalid submission log result'
     )
+  })
+
+  test('rejects invalid team status, division, and time filters', async () => {
+    const admin = await generateRealTestUser(
+      Permissions.usersWrite | Permissions.challsRead
+    )
+    const token = await generateAuthToken(admin.user.id)
+
+    for (const [query, reason] of [
+      ['teamStatuses=banned,nope', 'query:teamStatuses: invalid team status'],
+      ['divisions=nope', 'query:divisions: invalid division'],
+      ['createdAfter=nope', 'query:createdAfter: invalid date'],
+      [
+        'createdAfter=2026-05-05T11%3A00%3A00.000Z&createdBefore=2026-05-05T10%3A00%3A00.000Z',
+        'query:createdAfter: must be before createdBefore',
+      ],
+    ] as const) {
+      const res = await request(
+        app,
+        `/api/v2/admin/submission-logs?limit=10&offset=0&${query}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+
+      const body = await expectResponse(res, BadBody)
+      expect(body.data.reason).toBe(reason)
+    }
   })
 })

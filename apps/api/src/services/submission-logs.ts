@@ -4,6 +4,7 @@ import { takeUnique } from '@rctf/db/util'
 import {
   SubmissionLogSortBy,
   SubmissionLogSortOrder,
+  SubmissionLogTeamStatus,
   type SubmissionLogKind,
   type SubmissionLogResult,
 } from '@rctf/types'
@@ -12,7 +13,9 @@ import {
   asc,
   desc,
   eq,
+  gte,
   inArray,
+  lte,
   notInArray,
   sql,
   count as sqlCount,
@@ -61,22 +64,40 @@ export const getSubmissionLogs = async (
     excludeKinds?: SubmissionLogKind[]
     results?: SubmissionLogResult[]
     excludeResults?: SubmissionLogResult[]
+    teamStatuses?: SubmissionLogTeamStatus[]
+    excludeTeamStatuses?: SubmissionLogTeamStatus[]
+    categories?: string[]
+    excludeCategories?: string[]
+    divisions?: string[]
+    excludeDivisions?: string[]
+    createdAfter?: string
+    createdBefore?: string
   }
 ) => {
   const filters: SQL[] = []
+  const challengeCategory = sql<string>`${challenges.data} ->> 'category'`
+
   if (params.challengeIds?.length) {
     filters.push(inArray(submissionLogs.challengeId, params.challengeIds))
   }
   if (params.excludeChallengeIds?.length) {
-    filters.push(notInArray(submissionLogs.challengeId, params.excludeChallengeIds))
+    filters.push(
+      notInArray(submissionLogs.challengeId, params.excludeChallengeIds)
+    )
   }
 
   if (params.challengeSearch?.trim()) {
     const pattern = `%${params.challengeSearch.trim().toLowerCase()}%`
     filters.push(sql`(
       lower(${challenges.data} ->> 'name') like ${pattern}
-      or lower(${challenges.data} ->> 'category') like ${pattern}
+      or lower(${challengeCategory}) like ${pattern}
     )`)
+  }
+  if (params.categories?.length) {
+    filters.push(inArray(challengeCategory, params.categories))
+  }
+  if (params.excludeCategories?.length) {
+    filters.push(notInArray(challengeCategory, params.excludeCategories))
   }
 
   if (params.userIds?.length) {
@@ -89,6 +110,20 @@ export const getSubmissionLogs = async (
   if (params.teamSearch?.trim()) {
     const pattern = `%${params.teamSearch.trim().toLowerCase()}%`
     filters.push(sql`lower(${users.name}::text) like ${pattern}`)
+  }
+  if (params.teamStatuses?.length) {
+    filters.push(inArray(users.banned, params.teamStatuses.map(isBannedStatus)))
+  }
+  if (params.excludeTeamStatuses?.length) {
+    filters.push(
+      notInArray(users.banned, params.excludeTeamStatuses.map(isBannedStatus))
+    )
+  }
+  if (params.divisions?.length) {
+    filters.push(inArray(users.division, params.divisions))
+  }
+  if (params.excludeDivisions?.length) {
+    filters.push(notInArray(users.division, params.excludeDivisions))
   }
 
   if (params.kinds?.length) {
@@ -103,6 +138,12 @@ export const getSubmissionLogs = async (
   }
   if (params.excludeResults?.length) {
     filters.push(notInArray(submissionLogs.result, params.excludeResults))
+  }
+  if (params.createdAfter) {
+    filters.push(gte(submissionLogs.createdAt, params.createdAfter))
+  }
+  if (params.createdBefore) {
+    filters.push(lte(submissionLogs.createdAt, params.createdBefore))
   }
 
   const where = filters.length ? and(...filters) : undefined
@@ -177,4 +218,8 @@ export const getSubmissionLogs = async (
     logs: rows,
     total: count?.total ?? 0,
   }
+}
+
+function isBannedStatus(status: SubmissionLogTeamStatus) {
+  return status === SubmissionLogTeamStatus.BANNED
 }

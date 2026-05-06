@@ -3,6 +3,7 @@ import {
   SubmissionLogResult,
   SubmissionLogSortBy,
   SubmissionLogSortOrder,
+  SubmissionLogTeamStatus,
 } from '@rctf/types'
 
 export const KIND_FILTERS = [
@@ -19,15 +20,27 @@ export const RESULT_FILTERS = [
   SubmissionLogResult.INVALID_INPUT,
   SubmissionLogResult.BAD_INSTANCER_STATE,
 ] as const
+export const TEAM_STATUS_FILTERS = [
+  SubmissionLogTeamStatus.BANNED,
+  SubmissionLogTeamStatus.NOT_BANNED,
+] as const
 
 export type SortBy = SubmissionLogSortBy
 export type SortOrder = SubmissionLogSortOrder
 export type DetailEntry = { label: string; value: string }
 export type ResultTone = 'success' | 'warning' | 'danger'
+export type CategoryFilterOption = {
+  value: string
+  label: string
+}
 export type ChallengeFilterOption = {
   id: string
   name: string
   category: string
+}
+export type DivisionFilterOption = {
+  value: string
+  label: string
 }
 export type TeamFilterOption = {
   id: string
@@ -86,6 +99,17 @@ export function kindLabel(kind: string) {
       return 'Admin bot'
     default:
       return kind
+  }
+}
+
+export function teamStatusLabel(status: string) {
+  switch (status) {
+    case SubmissionLogTeamStatus.BANNED:
+      return 'Banned'
+    case SubmissionLogTeamStatus.NOT_BANNED:
+      return 'Not banned'
+    default:
+      return status
   }
 }
 

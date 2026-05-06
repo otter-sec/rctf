@@ -4,6 +4,7 @@
     SubmissionLogResult,
     SubmissionLogSortBy,
     SubmissionLogSortOrder,
+    SubmissionLogTeamStatus,
   } from '@rctf/types'
   import {
     Avatar,
@@ -19,16 +20,21 @@
     IconChevronDown,
     IconChevronRight,
     IconChevronUp,
+    IconClockFilled,
     IconFilter,
     IconFlag3Filled,
+    IconGavel,
+    IconLayoutListFilled,
     IconPlus,
     IconPuzzleFilled,
     IconRobot,
     IconSearch,
     IconSelector,
+    IconShieldFilled,
     IconTableFilled,
     IconUsersGroup,
     IconX,
+    type IconComponent,
   } from '$lib/icons'
   import {
     useAdminChallenges,
@@ -46,6 +52,24 @@
     useInfiniteVirtualScroll,
   } from '$lib/utils'
   import {
+    clearFilter,
+    clearSearchFilter,
+    clearSubmissionLogFilters,
+    clearTimeRangeFilter,
+    createSubmissionLogFilters,
+    filterOperatorLabel,
+    hasSubmissionLogFilters,
+    hasTimeRangeFilter,
+    includeOperatorLabel,
+    setFilterMode,
+    submissionLogFilterFingerprint,
+    submissionLogFilterParams,
+    toggleFilterOption,
+    type FilterMode,
+    type MultiFilter,
+    type ValueFilterId,
+  } from './submission-log-filters'
+  import {
     canInspectIp,
     detailEntries,
     ipInfoUrl,
@@ -54,28 +78,80 @@
     RESULT_FILTERS,
     resultLabel,
     resultTone,
+    TEAM_STATUS_FILTERS,
+    teamStatusLabel,
+    type CategoryFilterOption,
     type ChallengeFilterOption,
+    type DivisionFilterOption,
     type SortBy,
     type SubmissionLog,
     type TeamFilterOption,
   } from './submission-log-utils'
-  import {
-    clearFilter,
-    clearSearchFilter,
-    clearSubmissionLogFilters,
-    createSubmissionLogFilters,
-    filterOperatorLabel,
-    hasSubmissionLogFilters,
-    includeOperatorLabel,
-    setFilterMode,
-    submissionLogFilterFingerprint,
-    submissionLogFilterParams,
-    toggleFilterOption,
-    type FilterMode,
-  } from './submission-log-filters'
+
+  type ValueFilterFamily = {
+    id: ValueFilterId
+    label: string
+    pluralLabel: string
+    icon: IconComponent
+    menuSize: 'search' | 'narrow' | 'medium'
+    chipWidth?: 'challenge' | 'team'
+  }
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
+  const VALUE_FILTER_FAMILIES = [
+    {
+      id: 'challenge',
+      label: 'Challenge',
+      pluralLabel: 'challenges',
+      icon: IconPuzzleFilled,
+      menuSize: 'search',
+      chipWidth: 'challenge',
+    },
+    {
+      id: 'team',
+      label: 'Team',
+      pluralLabel: 'teams',
+      icon: IconUsersGroup,
+      menuSize: 'search',
+      chipWidth: 'team',
+    },
+    {
+      id: 'kind',
+      label: 'Kind',
+      pluralLabel: 'kinds',
+      icon: IconFlag3Filled,
+      menuSize: 'narrow',
+    },
+    {
+      id: 'result',
+      label: 'Result',
+      pluralLabel: 'results',
+      icon: IconTableFilled,
+      menuSize: 'medium',
+    },
+    {
+      id: 'teamStatus',
+      label: 'Team status',
+      pluralLabel: 'statuses',
+      icon: IconGavel,
+      menuSize: 'medium',
+    },
+    {
+      id: 'category',
+      label: 'Category',
+      pluralLabel: 'categories',
+      icon: IconLayoutListFilled,
+      menuSize: 'medium',
+    },
+    {
+      id: 'division',
+      label: 'Division',
+      pluralLabel: 'divisions',
+      icon: IconShieldFilled,
+      menuSize: 'medium',
+    },
+  ] satisfies ValueFilterFamily[]
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
@@ -116,6 +192,26 @@
         category: challenge.category,
       }))
   )
+  const categoryOptions = $derived.by(() => {
+    const categories = Array.from(
+      new Set(
+        (challengesQuery.data ?? []).map(challenge => challenge.category.trim()).filter(Boolean)
+      )
+    )
+
+    return categories
+      .sort((a, b) => a.localeCompare(b))
+      .map(category => ({
+        value: category,
+        label: category,
+      }))
+  })
+  const divisionOptions = $derived(
+    Object.entries(clientConfig?.divisions ?? {}).map(([value, label]) => ({
+      value,
+      label,
+    }))
+  )
   const teamOptions = $derived.by(() => {
     const teams = [
       ...filters.team.selected,
@@ -135,6 +231,7 @@
         avatarUrl: team.avatarUrl,
       }))
   })
+  const timeRangeSummary = $derived(formatTimeRange(filters.time.start, filters.time.end))
 
   const logsQuery = useInfiniteAdminSubmissionLogs(
     () => submissionLogFilterParams(filters, sortBy, sortOrder),
@@ -217,6 +314,36 @@
     filters.team.search = value
   }
 
+  function valueFilter(family: ValueFilterFamily): MultiFilter<unknown> {
+    return filters[family.id] as MultiFilter<unknown>
+  }
+
+  function clearValueFilter(family: ValueFilterFamily) {
+    switch (family.id) {
+      case 'challenge':
+        clearSearchFilter(filters.challenge)
+        return
+      case 'team':
+        clearSearchFilter(filters.team)
+        return
+      case 'kind':
+        clearFilter(filters.kind)
+        return
+      case 'result':
+        clearFilter(filters.result)
+        return
+      case 'teamStatus':
+        clearFilter(filters.teamStatus)
+        return
+      case 'category':
+        clearFilter(filters.category)
+        return
+      case 'division':
+        clearFilter(filters.division)
+        return
+    }
+  }
+
   function toggleChallenge(challenge: ChallengeFilterOption) {
     toggleFilterOption(filters.challenge, challenge, item => item.id)
   }
@@ -233,20 +360,31 @@
     toggleFilterOption(filters.result, result, item => item)
   }
 
-  function clearChallenges() {
-    clearSearchFilter(filters.challenge)
+  function toggleTeamStatus(status: SubmissionLogTeamStatus) {
+    toggleFilterOption(filters.teamStatus, status, item => item)
   }
 
-  function clearTeams() {
-    clearSearchFilter(filters.team)
+  function toggleCategory(category: CategoryFilterOption) {
+    toggleFilterOption(filters.category, category, item => item.value)
   }
 
-  function clearKinds() {
-    clearFilter(filters.kind)
+  function toggleDivision(division: DivisionFilterOption) {
+    toggleFilterOption(filters.division, division, item => item.value)
   }
 
-  function clearResults() {
-    clearFilter(filters.result)
+  function formatTimeRange(start: string, end: string) {
+    const startLabel = start ? formatDateTimeInput(start) : ''
+    const endLabel = end ? formatDateTimeInput(end) : ''
+
+    if (startLabel && endLabel) return `${startLabel} to ${endLabel}`
+    if (startLabel) return `After ${startLabel}`
+    if (endLabel) return `Before ${endLabel}`
+    return ''
+  }
+
+  function formatDateTimeInput(value: string) {
+    const time = new Date(value).getTime()
+    return Number.isFinite(time) ? formatLocalTime(time) : 'Invalid time'
   }
 
   function toggleLog(logId: string) {
@@ -322,11 +460,7 @@
   </span>
 {/snippet}
 
-{#snippet operatorDropdown(
-  mode: FilterMode,
-  count: number,
-  onSelect: (mode: FilterMode) => void
-)}
+{#snippet operatorDropdown(mode: FilterMode, count: number, onSelect: (mode: FilterMode) => void)}
   <DropdownMenu.Root>
     <DropdownMenu.Trigger
       class="text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l2 flex h-full items-center gap-1 border-r-2 px-2 transition-colors"
@@ -356,11 +490,7 @@
   </DropdownMenu.Root>
 {/snippet}
 
-{#snippet filterSearchInput(
-  value: string,
-  placeholder: string,
-  onInput: (value: string) => void
-)}
+{#snippet filterSearchInput(value: string, placeholder: string, onInput: (value: string) => void)}
   <div
     role="presentation"
     class="text-foreground-l3 border-foreground-l4/40 flex h-11 shrink-0 items-center gap-2 border-b-2 px-3"
@@ -423,7 +553,11 @@
 {/snippet}
 
 {#snippet challengeSelector()}
-  {@render filterSearchInput(filters.challenge.search, 'Filter challenges...', updateChallengeSearch)}
+  {@render filterSearchInput(
+    filters.challenge.search,
+    'Filter challenges...',
+    updateChallengeSearch
+  )}
   <ScrollArea
     class="min-h-0 flex-1"
     fadeSize={28}
@@ -523,78 +657,193 @@
   </div>
 {/snippet}
 
-{#snippet challengeFilterMenu()}
+{#snippet teamStatusOption(status: SubmissionLogTeamStatus)}
+  {@const selected = filters.teamStatus.selected.includes(status)}
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={teamStatusLabel(status)}
+    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleTeamStatus(status)
+    }}
+  >
+    {#if status === SubmissionLogTeamStatus.BANNED}
+      <IconGavel class="size-4" />
+    {:else}
+      <IconShieldFilled class="size-4" />
+    {/if}
+    {teamStatusLabel(status)}
+  </DropdownMenu.CheckboxItem>
+{/snippet}
+
+{#snippet teamStatusSelector()}
+  <div class="p-1">
+    {#each TEAM_STATUS_FILTERS as status}
+      {@render teamStatusOption(status)}
+    {/each}
+  </div>
+{/snippet}
+
+{#snippet categoryOption(category: CategoryFilterOption)}
+  {@const selected = filters.category.selected.some(item => item.value === category.value)}
+  {@const categoryConfig = getCategoryConfig(category.value)}
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={category.label}
+    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    style={getCategoryStyle(categoryConfig.color)}
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleCategory(category)
+    }}
+  >
+    <span class="text-category-foreground-l0 min-w-0 truncate text-sm">
+      {category.label}
+    </span>
+  </DropdownMenu.CheckboxItem>
+{/snippet}
+
+{#snippet categorySelector()}
+  <div class="p-1">
+    {#if challengesQuery.isPending}
+      <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
+        <Spinner class="size-3.5" />
+        Loading categories...
+      </div>
+    {:else if categoryOptions.length === 0}
+      <div class="text-foreground-l3 px-2 py-1.5 text-sm">No categories found</div>
+    {:else}
+      {#each categoryOptions as category (category.value)}
+        {@render categoryOption(category)}
+      {/each}
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet divisionOption(division: DivisionFilterOption)}
+  {@const selected = filters.division.selected.some(item => item.value === division.value)}
+  <DropdownMenu.CheckboxItem
+    checked={selected}
+    closeOnSelect={false}
+    textValue={division.label}
+    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    onCheckedChange={checked => {
+      if (checked !== selected) toggleDivision(division)
+    }}
+  >
+    <IconShieldFilled class="size-4" />
+    <span class="min-w-0 truncate text-sm">{division.label}</span>
+  </DropdownMenu.CheckboxItem>
+{/snippet}
+
+{#snippet divisionSelector()}
+  <div class="p-1">
+    {#if divisionOptions.length === 0}
+      <div class="text-foreground-l3 px-2 py-1.5 text-sm">No divisions found</div>
+    {:else}
+      {#each divisionOptions as division (division.value)}
+        {@render divisionOption(division)}
+      {/each}
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet valueFilterSelector(family: ValueFilterFamily)}
+  {#if family.id === 'challenge'}
+    {@render challengeSelector()}
+  {:else if family.id === 'team'}
+    {@render teamSelector()}
+  {:else if family.id === 'kind'}
+    {@render kindSelector()}
+  {:else if family.id === 'result'}
+    {@render resultSelector()}
+  {:else if family.id === 'teamStatus'}
+    {@render teamStatusSelector()}
+  {:else if family.id === 'category'}
+    {@render categorySelector()}
+  {:else if family.id === 'division'}
+    {@render divisionSelector()}
+  {/if}
+{/snippet}
+
+{#snippet valueFilterMenu(family: ValueFilterFamily)}
   <DropdownMenu.Sub>
     <DropdownMenu.SubTrigger
       class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
     >
-      <IconPuzzleFilled class="size-4" />
-      Challenge
+      <family.icon class="size-4" />
+      {family.label}
     </DropdownMenu.SubTrigger>
     <DropdownMenu.SubContent
       align="start"
       alignOffset={-6}
       sideOffset={10}
-      class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
+      class={cn(
+        'bg-background-l4 border-foreground-l4/40 z-[110] border-2 shadow-xl',
+        family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden !p-0',
+        family.menuSize === 'narrow' && 'w-48',
+        family.menuSize === 'medium' && 'w-56'
+      )}
     >
-      {@render challengeSelector()}
+      {@render valueFilterSelector(family)}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
 
-{#snippet teamFilterMenu()}
-  <DropdownMenu.Sub>
-    <DropdownMenu.SubTrigger
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
-    >
-      <IconUsersGroup class="size-4" />
-      Team
-    </DropdownMenu.SubTrigger>
-    <DropdownMenu.SubContent
-      align="start"
-      alignOffset={-6}
-      sideOffset={10}
-      class="bg-background-l4 border-foreground-l4/40 z-[110] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
-    >
-      {@render teamSelector()}
-    </DropdownMenu.SubContent>
-  </DropdownMenu.Sub>
+{#snippet timeRangeSelector()}
+  <div
+    role="presentation"
+    class="flex flex-col gap-3 p-3"
+    onclick={event => event.stopPropagation()}
+    onkeydown={event => event.stopPropagation()}
+    onpointerdown={event => event.stopPropagation()}
+  >
+    <label class="flex flex-col gap-1.5">
+      <span class="text-foreground-l3 text-xs">From</span>
+      <input
+        type="datetime-local"
+        value={filters.time.start}
+        class="bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none"
+        oninput={event => (filters.time.start = event.currentTarget.value)}
+      />
+    </label>
+    <label class="flex flex-col gap-1.5">
+      <span class="text-foreground-l3 text-xs">To</span>
+      <input
+        type="datetime-local"
+        value={filters.time.end}
+        class="bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none"
+        oninput={event => (filters.time.end = event.currentTarget.value)}
+      />
+    </label>
+    {#if hasTimeRangeFilter(filters.time)}
+      <button
+        type="button"
+        class="text-foreground-l3 hover:bg-background-l5 hover:text-foreground-l1 flex h-8 items-center justify-center rounded-md text-sm transition-colors"
+        onclick={() => clearTimeRangeFilter(filters.time)}
+      >
+        Clear time range
+      </button>
+    {/if}
+  </div>
 {/snippet}
 
-{#snippet kindFilterMenu()}
+{#snippet timeRangeFilterMenu()}
   <DropdownMenu.Sub>
     <DropdownMenu.SubTrigger
       class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
     >
-      <IconFlag3Filled class="size-4" />
-      Kind
+      <IconClockFilled class="size-4" />
+      Time
     </DropdownMenu.SubTrigger>
     <DropdownMenu.SubContent
       align="start"
       alignOffset={-6}
       sideOffset={10}
-      class="bg-background-l4 border-foreground-l4/40 z-[110] w-48 border-2 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-[110] w-72 border-2 !p-0 shadow-xl"
     >
-      {@render kindSelector()}
-    </DropdownMenu.SubContent>
-  </DropdownMenu.Sub>
-{/snippet}
-
-{#snippet resultFilterMenu()}
-  <DropdownMenu.Sub>
-    <DropdownMenu.SubTrigger
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
-    >
-      <IconTableFilled class="size-4" />
-      Result
-    </DropdownMenu.SubTrigger>
-    <DropdownMenu.SubContent
-      align="start"
-      alignOffset={-6}
-      sideOffset={10}
-      class="bg-background-l4 border-foreground-l4/40 z-[110] w-56 border-2 shadow-xl"
-    >
-      {@render resultSelector()}
+      {@render timeRangeSelector()}
     </DropdownMenu.SubContent>
   </DropdownMenu.Sub>
 {/snippet}
@@ -619,206 +868,201 @@
         Add filter
       </DropdownMenu.Label>
       <DropdownMenu.Separator />
-      {@render challengeFilterMenu()}
-      {@render teamFilterMenu()}
-      {@render kindFilterMenu()}
-      {@render resultFilterMenu()}
+      {#each VALUE_FILTER_FAMILIES as family (family.id)}
+        {@render valueFilterMenu(family)}
+      {/each}
+      {@render timeRangeFilterMenu()}
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/snippet}
 
-{#snippet challengeChip()}
+{#snippet valueFilterCount(family: ValueFilterFamily)}
+  {@const filter = valueFilter(family)}
+  <span class="text-foreground-l1 min-w-0 truncate">
+    {filter.selected.length}
+    {family.pluralLabel}
+  </span>
+{/snippet}
+
+{#snippet challengeChipValue(family: ValueFilterFamily)}
   {@const selected = filters.challenge.selected[0]}
   {@const category = selected ? getCategoryConfig(selected.category) : null}
-  <span
-    class="bg-background-l2 inline-flex h-8 max-w-96 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
-  >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
-      <IconPuzzleFilled class="size-3.5" />
-      Challenge
+  {#if filters.challenge.selected.length === 1 && selected}
+    <span class="min-w-0 truncate" style={category ? getCategoryStyle(category.color) : undefined}>
+      <span class="text-category-foreground-l1">{selected.category} /</span>
+      <span class="text-category-foreground-l0">{selected.name}</span>
     </span>
-    {@render operatorDropdown(
-      filters.challenge.mode,
-      filters.challenge.selected.length,
-      mode => setFilterMode(filters.challenge, mode)
-    )}
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        class="hover:bg-background-l3 flex h-full min-w-0 items-center px-2 transition-colors"
-        style={category ? getCategoryStyle(category.color) : undefined}
-      >
-        {#if filters.challenge.selected.length === 1 && selected}
-          <span class="min-w-0 truncate">
-            <span class="text-category-foreground-l1">{selected.category} /</span>
-            <span class="text-category-foreground-l0">{selected.name}</span>
-          </span>
-        {:else}
-          <span class="text-foreground-l1 min-w-0 truncate">
-            {filters.challenge.selected.length} challenges
-          </span>
-        {/if}
-        <IconChevronDown class="text-foreground-l4 ml-1 size-3 shrink-0" />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        align="start"
-        class="bg-background-l4 border-foreground-l4/40 z-[120] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
-      >
-        {@render challengeSelector()}
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove challenge filters"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={clearChallenges}
-    >
-      <IconX class="size-3.5" />
-    </button>
-  </span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
 {/snippet}
 
-{#snippet teamChip()}
+{#snippet teamChipValue(family: ValueFilterFamily)}
   {@const selected = filters.team.selected[0]}
-  <span
-    class="bg-background-l2 inline-flex h-8 max-w-80 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
-  >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
-      <IconUsersGroup class="size-3.5" />
-      Team
-    </span>
-    {@render operatorDropdown(
-      filters.team.mode,
-      filters.team.selected.length,
-      mode => setFilterMode(filters.team, mode)
-    )}
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
-      >
-        {#if filters.team.selected.length === 1 && selected}
-          <Avatar.Root class="size-4 rounded">
-            {#if selected.avatarUrl}
-              <Avatar.Image
-                src={selected.avatarUrl}
-                alt={selected.name}
-                class="rounded object-cover"
-              />
-            {/if}
-            <Avatar.Fallback class="rounded text-[8px]">
-              {getInitials(selected.name)}
-            </Avatar.Fallback>
-          </Avatar.Root>
-          <span class="min-w-0 truncate">{selected.name}</span>
-        {:else}
-          <span class="min-w-0 truncate">{filters.team.selected.length} teams</span>
-        {/if}
-        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        align="start"
-        class="bg-background-l4 border-foreground-l4/40 z-[120] flex h-80 w-72 flex-col overflow-hidden border-2 !p-0 shadow-xl"
-      >
-        {@render teamSelector()}
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove team filters"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={clearTeams}
-    >
-      <IconX class="size-3.5" />
-    </button>
-  </span>
+  {#if filters.team.selected.length === 1 && selected}
+    <Avatar.Root class="size-4 rounded">
+      {#if selected.avatarUrl}
+        <Avatar.Image src={selected.avatarUrl} alt={selected.name} class="rounded object-cover" />
+      {/if}
+      <Avatar.Fallback class="rounded text-[8px]">
+        {getInitials(selected.name)}
+      </Avatar.Fallback>
+    </Avatar.Root>
+    <span class="min-w-0 truncate">{selected.name}</span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
 {/snippet}
 
-{#snippet kindChip()}
+{#snippet kindChipValue(family: ValueFilterFamily)}
   {@const selected = filters.kind.selected[0]}
-  <span
-    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
-  >
-    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
+  {#if filters.kind.selected.length === 1 && selected}
+    {#if selected === SubmissionLogKind.ADMIN_BOT}
+      <IconRobot class="size-3.5" />
+    {:else}
       <IconFlag3Filled class="size-3.5" />
-      Kind
-    </span>
-    {@render operatorDropdown(
-      filters.kind.mode,
-      filters.kind.selected.length,
-      mode => setFilterMode(filters.kind, mode)
-    )}
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger
-        class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1 px-2 transition-colors"
-      >
-        {#if filters.kind.selected.length === 1 && selected}
-          {#if selected === SubmissionLogKind.ADMIN_BOT}
-            <IconRobot class="size-3.5" />
-          {:else}
-            <IconFlag3Filled class="size-3.5" />
-          {/if}
-          {kindLabel(selected)}
-        {:else}
-          <span class="min-w-0 truncate">{filters.kind.selected.length} kinds</span>
-        {/if}
-        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content
-        align="start"
-        class="bg-background-l4 border-foreground-l4/40 z-[120] w-48 border-2 shadow-xl"
-      >
-        {@render kindSelector()}
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove kind filters"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={clearKinds}
-    >
-      <IconX class="size-3.5" />
-    </button>
-  </span>
+    {/if}
+    <span class="text-foreground-l1 min-w-0 truncate">{kindLabel(selected)}</span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
 {/snippet}
 
-{#snippet resultChip()}
+{#snippet resultChipValue(family: ValueFilterFamily)}
   {@const selected = filters.result.selected[0]}
+  {#if filters.result.selected.length === 1 && selected}
+    {@render resultText(selected)}
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
+{/snippet}
+
+{#snippet teamStatusChipValue(family: ValueFilterFamily)}
+  {@const selected = filters.teamStatus.selected[0]}
+  {#if filters.teamStatus.selected.length === 1 && selected}
+    {#if selected === SubmissionLogTeamStatus.BANNED}
+      <IconGavel class="size-3.5" />
+    {:else}
+      <IconShieldFilled class="size-3.5" />
+    {/if}
+    <span class="text-foreground-l1 min-w-0 truncate">{teamStatusLabel(selected)}</span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
+{/snippet}
+
+{#snippet categoryChipValue(family: ValueFilterFamily)}
+  {@const selected = filters.category.selected[0]}
+  {@const category = selected ? getCategoryConfig(selected.value) : null}
+  {#if filters.category.selected.length === 1 && selected}
+    <span class="min-w-0 truncate" style={category ? getCategoryStyle(category.color) : undefined}>
+      <span class="text-category-foreground-l0">{selected.label}</span>
+    </span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
+{/snippet}
+
+{#snippet divisionChipValue(family: ValueFilterFamily)}
+  {@const selected = filters.division.selected[0]}
+  {#if filters.division.selected.length === 1 && selected}
+    <span class="text-foreground-l1 min-w-0 truncate">{selected.label}</span>
+  {:else}
+    {@render valueFilterCount(family)}
+  {/if}
+{/snippet}
+
+{#snippet valueFilterChipValue(family: ValueFilterFamily)}
+  {#if family.id === 'challenge'}
+    {@render challengeChipValue(family)}
+  {:else if family.id === 'team'}
+    {@render teamChipValue(family)}
+  {:else if family.id === 'kind'}
+    {@render kindChipValue(family)}
+  {:else if family.id === 'result'}
+    {@render resultChipValue(family)}
+  {:else if family.id === 'teamStatus'}
+    {@render teamStatusChipValue(family)}
+  {:else if family.id === 'category'}
+    {@render categoryChipValue(family)}
+  {:else if family.id === 'division'}
+    {@render divisionChipValue(family)}
+  {/if}
+{/snippet}
+
+{#snippet valueFilterChip(family: ValueFilterFamily)}
+  {@const filter = valueFilter(family)}
   <span
-    class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
+    class={cn(
+      'bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm',
+      family.chipWidth === 'challenge' && 'max-w-96',
+      family.chipWidth === 'team' && 'max-w-80'
+    )}
   >
     <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
-      <IconTableFilled class="size-3.5" />
-      Result
+      <family.icon class="size-3.5" />
+      {family.label}
     </span>
-    {@render operatorDropdown(
-      filters.result.mode,
-      filters.result.selected.length,
-      mode => setFilterMode(filters.result, mode)
+    {@render operatorDropdown(filter.mode, filter.selected.length, mode =>
+      setFilterMode(filter, mode)
     )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
       >
-        {#if filters.result.selected.length === 1 && selected}
-          {@render resultText(selected)}
-        {:else}
-          <span class="text-foreground-l1 min-w-0 truncate">
-            {filters.result.selected.length} results
-          </span>
-        {/if}
+        {@render valueFilterChipValue(family)}
         <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         align="start"
-        class="bg-background-l4 border-foreground-l4/40 z-[120] w-56 border-2 shadow-xl"
+        class={cn(
+          'bg-background-l4 border-foreground-l4/40 z-[120] border-2 shadow-xl',
+          family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden !p-0',
+          family.menuSize === 'narrow' && 'w-48',
+          family.menuSize === 'medium' && 'w-56'
+        )}
       >
-        {@render resultSelector()}
+        {@render valueFilterSelector(family)}
       </DropdownMenu.Content>
     </DropdownMenu.Root>
     <button
       type="button"
-      aria-label="Remove result filters"
+      aria-label="Remove {family.label.toLowerCase()} filters"
       class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={clearResults}
+      onclick={() => clearValueFilter(family)}
+    >
+      <IconX class="size-3.5" />
+    </button>
+  </span>
+{/snippet}
+
+{#snippet timeRangeChip()}
+  <span
+    class="bg-background-l2 inline-flex h-8 max-w-[32rem] shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
+  >
+    <span class="text-foreground-l3 flex h-full items-center gap-1 border-r-2 px-2">
+      <IconClockFilled class="size-3.5" />
+      Time
+    </span>
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
+      >
+        <span class="min-w-0 truncate">{timeRangeSummary}</span>
+        <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[120] w-72 border-2 !p-0 shadow-xl"
+      >
+        {@render timeRangeSelector()}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+    <button
+      type="button"
+      aria-label="Remove time filter"
+      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+      onclick={() => clearTimeRangeFilter(filters.time)}
     >
       <IconX class="size-3.5" />
     </button>
@@ -827,23 +1071,21 @@
 
 {#snippet filterChips()}
   <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
-    {#if filters.challenge.selected.length > 0}
-      {@render challengeChip()}
-    {/if}
-    {#if filters.team.selected.length > 0}
-      {@render teamChip()}
-    {/if}
-    {#if filters.kind.selected.length > 0}
-      {@render kindChip()}
-    {/if}
-    {#if filters.result.selected.length > 0}
-      {@render resultChip()}
+    {#each VALUE_FILTER_FAMILIES as family (family.id)}
+      {#if valueFilter(family).selected.length > 0}
+        {@render valueFilterChip(family)}
+      {/if}
+    {/each}
+    {#if hasTimeRangeFilter(filters.time)}
+      {@render timeRangeChip()}
     {/if}
   </div>
 {/snippet}
 
 {#snippet filterToolbar()}
-  <div class="relative z-20 flex min-w-0 items-center gap-1.5 overflow-visible border-b-2 px-3 py-2">
+  <div
+    class="relative z-20 flex min-w-0 items-center gap-1.5 overflow-visible border-b-2 px-3 py-2"
+  >
     {@render filterMenu()}
     {@render filterChips()}
     {#if hasFilters}
@@ -944,8 +1186,8 @@
   {@const timestamp = new Date(log.createdAt).getTime()}
   {@const ctfOffset = formatCtfOffset(timestamp, clientConfig?.startTime)}
   <Tooltip.Root>
-    <Tooltip.Trigger class="block min-w-0 max-w-full overflow-hidden">
-      <div class="flex min-w-0 max-w-full items-baseline gap-2 overflow-hidden whitespace-nowrap">
+    <Tooltip.Trigger class="block max-w-full min-w-0 overflow-hidden">
+      <div class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap">
         <span class="text-foreground-l1 shrink-0 tabular-nums">
           {formatLocalTime(timestamp)}
         </span>

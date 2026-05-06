@@ -30,6 +30,7 @@ import {
   type SubmissionLogResult,
   type SubmissionLogSortBy,
   type SubmissionLogSortOrder,
+  type SubmissionLogTeamStatus,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -114,6 +115,15 @@ export const adminSubmissionLogsQueryOptions = (params: {
   result?: SubmissionLogResult
   results?: string
   excludeResults?: string
+  teamStatus?: SubmissionLogTeamStatus
+  teamStatuses?: string
+  excludeTeamStatuses?: string
+  categories?: string
+  excludeCategories?: string
+  divisions?: string
+  excludeDivisions?: string
+  createdAfter?: string
+  createdBefore?: string
 }) =>
   queryOptions({
     queryKey: ['admin', 'submission-logs', params] as const,
@@ -250,6 +260,15 @@ export function useInfiniteAdminSubmissionLogs(
     result?: SubmissionLogResult
     results?: string
     excludeResults?: string
+    teamStatus?: SubmissionLogTeamStatus
+    teamStatuses?: string
+    excludeTeamStatuses?: string
+    categories?: string
+    excludeCategories?: string
+    divisions?: string
+    excludeDivisions?: string
+    createdAfter?: string
+    createdBefore?: string
   },
   pageSize: () => number = () => 100
 ) {

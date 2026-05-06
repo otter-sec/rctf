@@ -146,3 +146,8 @@ export enum SubmissionLogResult {
   INVALID_INPUT = 'invalid_input',
   BAD_INSTANCER_STATE = 'bad_instancer_state',
 }
+
+export enum SubmissionLogTeamStatus {
+  BANNED = 'banned',
+  NOT_BANNED = 'not_banned',
+}

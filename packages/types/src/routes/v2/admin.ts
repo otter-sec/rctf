@@ -52,6 +52,7 @@ import {
   SubmissionLogResult,
   SubmissionLogSortBy,
   SubmissionLogSortOrder,
+  SubmissionLogTeamStatus,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -119,6 +120,15 @@ export const GetAdminSubmissionLogsRouteV2 = defineRoute({
     result: z.optional(z.enum(SubmissionLogResult)),
     results: z.optional(z.string().check(z.maxLength(2000))),
     excludeResults: z.optional(z.string().check(z.maxLength(2000))),
+    teamStatus: z.optional(z.enum(SubmissionLogTeamStatus)),
+    teamStatuses: z.optional(z.string().check(z.maxLength(2000))),
+    excludeTeamStatuses: z.optional(z.string().check(z.maxLength(2000))),
+    categories: z.optional(z.string().check(z.maxLength(2000))),
+    excludeCategories: z.optional(z.string().check(z.maxLength(2000))),
+    divisions: z.optional(z.string().check(z.maxLength(2000))),
+    excludeDivisions: z.optional(z.string().check(z.maxLength(2000))),
+    createdAfter: z.optional(z.string().check(z.maxLength(64))),
+    createdBefore: z.optional(z.string().check(z.maxLength(64))),
   }),
   goodResponses: [GoodAdminSubmissionLogs],
   badResponses: [BadBody, BadPerms, BadToken],
