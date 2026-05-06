@@ -8,6 +8,9 @@ const generatedConfigPath = path.join(
   'rctf.d',
   'zz-dev-seed.generated.yml'
 )
+const staleGeneratedConfigPaths = [
+  path.join(rootDir, 'rctf.d', '99-dev-seed.generated.yml'),
+]
 const seedOutputPath = path.join(dataDir, 'dev-seed.json')
 
 const HOUR = 60 * 60 * 1000
@@ -44,9 +47,9 @@ leaderboard:
 
 await mkdir(path.dirname(generatedConfigPath), { recursive: true })
 await mkdir(dataDir, { recursive: true })
-await rm(path.join(rootDir, 'rctf.d', '99-dev-seed.generated.yml'), {
-  force: true,
-})
+await Promise.all(
+  staleGeneratedConfigPaths.map(file => rm(file, { force: true }))
+)
 await writeFile(generatedConfigPath, generatedConfig)
 
 const [
@@ -751,47 +754,34 @@ const { client, db } = createDatabase(config.database.sql)
 const redis = await createRedis()
 
 try {
-  const submissionLogsTableExists = await client<
-    {
-      exists: boolean
-    }[]
-  >`SELECT to_regclass('public.submission_logs') IS NOT NULL AS "exists"`.then(
-    rows => rows[0]?.exists ?? false
-  )
-  const submissionLogsDetailsColumnExists = submissionLogsTableExists
-    ? await client<
-        {
-          exists: boolean
-        }[]
-      >`
+  const relationExists = async (relationName: string) =>
+    await client<
+      {
+        exists: boolean
+      }[]
+    >`SELECT to_regclass(${`public.${relationName}`}) IS NOT NULL AS "exists"`.then(
+      rows => rows[0]?.exists ?? false
+    )
+
+  const columnExists = async (tableName: string, columnName: string) =>
+    await client<
+      {
+        exists: boolean
+      }[]
+    >`
         SELECT EXISTS (
           SELECT 1
           FROM information_schema.columns
           WHERE table_schema = 'public'
-            AND table_name = 'submission_logs'
-            AND column_name = 'details'
+            AND table_name = ${tableName}
+            AND column_name = ${columnName}
         ) AS "exists"
       `.then(rows => rows[0]?.exists ?? false)
-    : false
 
-  await redis.flushdb()
-  if (submissionLogsTableExists) {
-    await client`DELETE FROM submission_logs`
-  }
+  const insertSubmissionLogs = async (includeDetails: boolean) => {
+    const payload = JSON.stringify(submissionLogRows)
 
-  await db.delete(adminBotJobs)
-  await db.delete(solves)
-  await db.delete(userMembers)
-  await db.delete(challenges)
-  await db.delete(users)
-  await db.delete(settings)
-
-  await db.insert(users).values(seedUsers)
-  await db.insert(userMembers).values(memberRows)
-  await db.insert(challenges).values(challengeRows)
-  await db.insert(solves).values(solveRows)
-  if (submissionLogsTableExists && submissionLogRows.length > 0) {
-    if (submissionLogsDetailsColumnExists) {
+    if (includeDetails) {
       await client`
         INSERT INTO submission_logs (
           id,
@@ -814,7 +804,7 @@ try {
           details,
           related_id,
           created_at
-        FROM jsonb_to_recordset(${JSON.stringify(submissionLogRows)}::jsonb)
+        FROM jsonb_to_recordset(${payload}::jsonb)
           AS seeded_log(
             id text,
             kind text,
@@ -827,8 +817,10 @@ try {
             created_at timestamptz
           )
       `
-    } else {
-      await client`
+      return
+    }
+
+    await client`
       INSERT INTO submission_logs (
         id,
         kind,
@@ -848,7 +840,7 @@ try {
         result,
         related_id,
         created_at
-      FROM jsonb_to_recordset(${JSON.stringify(submissionLogRows)}::jsonb)
+      FROM jsonb_to_recordset(${payload}::jsonb)
         AS seeded_log(
           id text,
           kind text,
@@ -860,7 +852,31 @@ try {
           created_at timestamptz
         )
     `
-    }
+  }
+
+  const submissionLogsTableExists = await relationExists('submission_logs')
+  const submissionLogsDetailsColumnExists =
+    submissionLogsTableExists &&
+    (await columnExists('submission_logs', 'details'))
+
+  await redis.flushdb()
+  if (submissionLogsTableExists) {
+    await client`DELETE FROM submission_logs`
+  }
+
+  await db.delete(adminBotJobs)
+  await db.delete(solves)
+  await db.delete(userMembers)
+  await db.delete(challenges)
+  await db.delete(users)
+  await db.delete(settings)
+
+  await db.insert(users).values(seedUsers)
+  await db.insert(userMembers).values(memberRows)
+  await db.insert(challenges).values(challengeRows)
+  await db.insert(solves).values(solveRows)
+  if (submissionLogsTableExists && submissionLogRows.length > 0) {
+    await insertSubmissionLogs(submissionLogsDetailsColumnExists)
   }
 
   await db.insert(settings).values({
