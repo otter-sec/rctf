@@ -43,12 +43,14 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    database:
      sql:
        host: 127.0.0.1
+       port: 55432
        # host: postgres
        user: rctf
        password: DO_NOT_USE_ME
        database: rctf
      redis:
        host: 127.0.0.1
+       port: 56379
        # host: redis
        password: DO_NOT_USE_ME
      migrate: before
@@ -129,6 +131,32 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    ```sh
    bun dev
    ```
+
+### Seeded Frontend Development
+
+For frontend work, you can start a local environment with Postgres, Redis,
+migrations, deterministic mock teams, mock challenges, solve history, cached
+leaderboard data, and login links:
+
+```sh
+bun run dev:mock
+```
+
+The seed is reset each time and writes credentials to `.data/dev-seed.json`.
+Use the `admin.loginUrl` value from that file to log in as a full-permission
+admin. The mock scripts refuse to run destructive setup or migrations unless
+the configured Postgres/Redis targets match `compose.dev.yml`. To reseed an
+already-running environment, run:
+
+```sh
+bun run dev:seed
+```
+
+To stop the Docker services when you are done:
+
+```sh
+bun run dev:services:down
+```
 
 ## New features compared to v1
 
