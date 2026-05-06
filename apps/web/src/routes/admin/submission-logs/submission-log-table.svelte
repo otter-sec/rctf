@@ -98,21 +98,23 @@
     | SubmissionLogTeamStatus
     | CategoryFilterOption
     | DivisionFilterOption
+  type FilterOptionSegmentTone = 'category' | 'categoryMuted' | 'result'
+  type FilterOptionIconTone = 'category'
   type FilterOptionSegment = {
     text: string
-    class?: string
+    tone?: FilterOptionSegmentTone
   }
   type FilterOptionView = {
     textValue: string
     segments: FilterOptionSegment[]
     style?: string
     icon?: IconComponent
-    iconClass?: string
+    iconTone?: FilterOptionIconTone
     avatar?: {
       name: string
       avatarUrl: string | null
     }
-    tone?: ResultTone
+    resultTone?: ResultTone
   }
   type ValueFilterFamilySearch = {
     value: () => string
@@ -173,16 +175,6 @@
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
   const ROOT_SEARCH_MATCH_LIMIT = 8
-  const RESULT_TONE_DOT_CLASS = {
-    success: 'bg-foreground-success',
-    warning: 'bg-foreground-yellow-l1',
-    danger: 'bg-foreground-destructive',
-  } satisfies Record<ResultTone, string>
-  const RESULT_TONE_TEXT_CLASS = {
-    success: 'text-foreground-success',
-    warning: 'text-foreground-yellow-l1',
-    danger: 'text-foreground-destructive',
-  } satisfies Record<ResultTone, string>
   const VALUE_FILTER_FAMILIES = [
     defineValueFilterFamily<ChallengeFilterOption>({
       id: 'challenge',
@@ -588,8 +580,8 @@
       textValue: `${challenge.category} ${challenge.name}`,
       style: getCategoryStyle(category.color),
       segments: [
-        { text: `${challenge.category} / `, class: 'text-category-foreground-l1' },
-        { text: challenge.name, class: 'text-category-foreground-l0' },
+        { text: `${challenge.category} / `, tone: 'categoryMuted' },
+        { text: challenge.name, tone: 'category' },
       ],
     }
   }
@@ -618,8 +610,8 @@
 
     return {
       textValue: resultLabel(result),
-      tone,
-      segments: [{ text: resultLabel(result), class: resultToneTextClass(tone) }],
+      resultTone: tone,
+      segments: [{ text: resultLabel(result), tone: 'result' }],
     }
   }
 
@@ -638,8 +630,8 @@
       textValue: category.label,
       style: getCategoryStyle(config.color),
       icon: config.icon,
-      iconClass: 'text-category-foreground-l1',
-      segments: [{ text: category.label, class: 'text-category-foreground-l0' }],
+      iconTone: 'category',
+      segments: [{ text: category.label, tone: 'category' }],
     }
   }
 
@@ -648,14 +640,6 @@
       textValue: division.label,
       segments: [{ text: division.label }],
     }
-  }
-
-  function resultToneTextClass(tone: ResultTone) {
-    return RESULT_TONE_TEXT_CLASS[tone]
-  }
-
-  function resultToneDotClass(tone: ResultTone) {
-    return RESULT_TONE_DOT_CLASS[tone]
   }
 
   function valueFilter(family: ValueFilterFamily): MultiFilter<unknown> {
@@ -774,16 +758,21 @@
 
 {#snippet resultDot(result: string)}
   {@const tone = resultTone(result)}
-  <span class={cn('size-1.5 shrink-0 rounded-full', resultToneDotClass(tone))}></span>
+  <span
+    class="size-1.5 shrink-0 rounded-full"
+    class:bg-foreground-success={tone === 'success'}
+    class:bg-foreground-yellow-l1={tone === 'warning'}
+    class:bg-foreground-destructive={tone === 'danger'}
+  ></span>
 {/snippet}
 
 {#snippet resultText(result: string)}
   {@const tone = resultTone(result)}
   <span
-    class={cn(
-      'inline-flex min-w-0 items-center gap-1.5 truncate whitespace-nowrap',
-      resultToneTextClass(tone)
-    )}
+    class="inline-flex min-w-0 items-center gap-1.5 truncate whitespace-nowrap"
+    class:text-foreground-success={tone === 'success'}
+    class:text-foreground-yellow-l1={tone === 'warning'}
+    class:text-foreground-destructive={tone === 'danger'}
   >
     {@render resultDot(result)}
     <span class="min-w-0 truncate">{resultLabel(result)}</span>
@@ -882,14 +871,31 @@
       </Avatar.Root>
     {/if}
     {#if view.icon}
-      <view.icon class={cn('size-4 shrink-0', view.iconClass)} />
+      <view.icon
+        class={cn('size-4 shrink-0', view.iconTone === 'category' && 'text-category-foreground-l1')}
+      />
     {/if}
-    {#if view.tone}
-      <span class={cn('size-1.5 shrink-0 rounded-full', resultToneDotClass(view.tone))}></span>
+    {#if view.resultTone}
+      <span
+        class="size-1.5 shrink-0 rounded-full"
+        class:bg-foreground-success={view.resultTone === 'success'}
+        class:bg-foreground-yellow-l1={view.resultTone === 'warning'}
+        class:bg-foreground-destructive={view.resultTone === 'danger'}
+      ></span>
     {/if}
     <span class="min-w-0 truncate text-sm">
       {#each view.segments as segment}
-        <span class={segment.class}>{segment.text}</span>
+        <span
+          class:text-category-foreground-l1={segment.tone === 'categoryMuted'}
+          class:text-category-foreground-l0={segment.tone === 'category'}
+          class:text-foreground-success={segment.tone === 'result' && view.resultTone === 'success'}
+          class:text-foreground-yellow-l1={segment.tone === 'result' &&
+            view.resultTone === 'warning'}
+          class:text-foreground-destructive={segment.tone === 'result' &&
+            view.resultTone === 'danger'}
+        >
+          {segment.text}
+        </span>
       {/each}
     </span>
   </DropdownMenu.CheckboxItem>
