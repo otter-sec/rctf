@@ -725,6 +725,7 @@
       if (checked !== selected) toggleCategory(category)
     }}
   >
+    <categoryConfig.icon class="text-category-foreground-l1 size-4 shrink-0" />
     <span class="text-category-foreground-l0 min-w-0 truncate text-sm">
       {category.label}
     </span>
