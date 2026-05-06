@@ -63,20 +63,56 @@
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
   type FilterMode = 'include' | 'exclude'
+  type MultiFilter<T> = {
+    mode: FilterMode
+    selected: T[]
+  }
+  type SearchFilter<T> = MultiFilter<T> & {
+    search: string
+  }
+  type SubmissionLogFilters = {
+    challenge: SearchFilter<ChallengeFilterOption>
+    team: SearchFilter<TeamFilterOption>
+    kind: MultiFilter<SubmissionLogKind>
+    result: MultiFilter<SubmissionLogResult>
+  }
+  type LogsQueryParams = {
+    sortBy: SortBy
+    sortOrder: SubmissionLogSortOrder
+    challengeIds?: string
+    excludeChallengeIds?: string
+    userIds?: string
+    excludeUserIds?: string
+    kinds?: string
+    excludeKinds?: string
+    results?: string
+    excludeResults?: string
+  }
+  type FilterParamKey = Exclude<keyof LogsQueryParams, 'sortBy' | 'sortOrder'>
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
   let sortOrder = $state<SubmissionLogSortOrder>(SubmissionLogSortOrder.DESC)
-  let challengeSearch = $state('')
-  let teamSearch = $state('')
-  let selectedChallenges = $state<ChallengeFilterOption[]>([])
-  let selectedTeams = $state<TeamFilterOption[]>([])
-  let selectedKinds = $state<SubmissionLogKind[]>([])
-  let selectedResults = $state<SubmissionLogResult[]>([])
-  let challengeMode = $state<FilterMode>('include')
-  let teamMode = $state<FilterMode>('include')
-  let kindMode = $state<FilterMode>('include')
-  let resultMode = $state<FilterMode>('include')
+  let filters = $state<SubmissionLogFilters>({
+    challenge: {
+      mode: 'include',
+      selected: [],
+      search: '',
+    },
+    team: {
+      mode: 'include',
+      selected: [],
+      search: '',
+    },
+    kind: {
+      mode: 'include',
+      selected: [],
+    },
+    result: {
+      mode: 'include',
+      selected: [],
+    },
+  })
   let expandedLogId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
@@ -86,21 +122,28 @@
   const teamSuggestionsQuery = useInfiniteAdminUsers(
     () => 16,
     () => {
-      const search = teamSearch.trim()
+      const search = filters.team.search.trim()
       return search.length >= 2 ? search : undefined
     },
     () => true
   )
   const clientConfig = $derived(clientConfigQuery.data)
-  const trimmedChallengeSearch = $derived(challengeSearch.trim().toLowerCase())
+  const trimmedChallengeSearch = $derived(filters.challenge.search.trim().toLowerCase())
   const hasFilters = $derived(
-    selectedChallenges.length > 0 ||
-      selectedTeams.length > 0 ||
-      selectedKinds.length > 0 ||
-      selectedResults.length > 0
+    filters.challenge.selected.length > 0 ||
+      filters.team.selected.length > 0 ||
+      filters.kind.selected.length > 0 ||
+      filters.result.selected.length > 0
   )
   const queryFingerprint = $derived(
-    `${sortBy}:${sortOrder}:${challengeMode}:${selectedChallenges.map(c => c.id).join(',')}:${teamMode}:${selectedTeams.map(t => t.id).join(',')}:${kindMode}:${selectedKinds.join(',')}:${resultMode}:${selectedResults.join(',')}`
+    [
+      sortBy,
+      sortOrder,
+      filterFingerprint(filters.challenge, challenge => challenge.id),
+      filterFingerprint(filters.team, team => team.id),
+      filterFingerprint(filters.kind, kind => kind),
+      filterFingerprint(filters.result, result => result),
+    ].join(':')
   )
   const challengeOptions = $derived(
     (challengesQuery.data ?? [])
@@ -119,7 +162,7 @@
   )
   const teamOptions = $derived.by(() => {
     const teams = [
-      ...selectedTeams,
+      ...filters.team.selected,
       ...(teamSuggestionsQuery.data?.pages.flatMap(page => page.users) ?? []),
     ]
     const seen = new Set<string>()
@@ -139,42 +182,33 @@
 
   const logsQuery = useInfiniteAdminSubmissionLogs(
     () => {
-      const params: {
-        sortBy: SortBy
-        sortOrder: SubmissionLogSortOrder
-        challengeIds?: string
-        excludeChallengeIds?: string
-        userIds?: string
-        excludeUserIds?: string
-        kinds?: string
-        excludeKinds?: string
-        results?: string
-        excludeResults?: string
-      } = {
+      const params: LogsQueryParams = {
         sortBy,
         sortOrder,
       }
 
-      if (selectedChallenges.length > 0) {
-        const ids = selectedChallenges.map(challenge => challenge.id).join(',')
-        if (challengeMode === 'include') params.challengeIds = ids
-        else params.excludeChallengeIds = ids
-      }
-      if (selectedTeams.length > 0) {
-        const ids = selectedTeams.map(team => team.id).join(',')
-        if (teamMode === 'include') params.userIds = ids
-        else params.excludeUserIds = ids
-      }
-      if (selectedKinds.length > 0) {
-        const kinds = selectedKinds.join(',')
-        if (kindMode === 'include') params.kinds = kinds
-        else params.excludeKinds = kinds
-      }
-      if (selectedResults.length > 0) {
-        const results = selectedResults.join(',')
-        if (resultMode === 'include') params.results = results
-        else params.excludeResults = results
-      }
+      addFilterParams(
+        params,
+        filters.challenge,
+        'challengeIds',
+        'excludeChallengeIds',
+        challenge => challenge.id
+      )
+      addFilterParams(
+        params,
+        filters.team,
+        'userIds',
+        'excludeUserIds',
+        team => team.id
+      )
+      addFilterParams(params, filters.kind, 'kinds', 'excludeKinds', kind => kind)
+      addFilterParams(
+        params,
+        filters.result,
+        'results',
+        'excludeResults',
+        result => result
+      )
 
       return params
     },
@@ -246,60 +280,68 @@
   }
 
   function clearFilters() {
-    challengeSearch = ''
-    teamSearch = ''
-    selectedChallenges = []
-    selectedTeams = []
-    selectedKinds = []
-    selectedResults = []
-    challengeMode = 'include'
-    teamMode = 'include'
-    kindMode = 'include'
-    resultMode = 'include'
+    clearSearchFilter(filters.challenge)
+    clearSearchFilter(filters.team)
+    clearFilter(filters.kind)
+    clearFilter(filters.result)
   }
 
   function updateChallengeSearch(value: string) {
-    challengeSearch = value
+    filters.challenge.search = value
   }
 
   function updateTeamSearch(value: string) {
-    teamSearch = value
+    filters.team.search = value
   }
 
   function toggleChallenge(challenge: ChallengeFilterOption) {
-    selectedChallenges = toggleOption(selectedChallenges, challenge, item => item.id)
+    toggleFilterOption(filters.challenge, challenge, item => item.id)
   }
 
   function toggleTeam(team: TeamFilterOption) {
-    selectedTeams = toggleOption(selectedTeams, team, item => item.id)
+    toggleFilterOption(filters.team, team, item => item.id)
   }
 
   function toggleKind(kind: SubmissionLogKind) {
-    selectedKinds = toggleOption(selectedKinds, kind, item => item)
+    toggleFilterOption(filters.kind, kind, item => item)
   }
 
   function toggleResult(result: SubmissionLogResult) {
-    selectedResults = toggleOption(selectedResults, result, item => item)
+    toggleFilterOption(filters.result, result, item => item)
   }
 
   function clearChallenges() {
-    selectedChallenges = []
-    challengeMode = 'include'
+    clearSearchFilter(filters.challenge)
   }
 
   function clearTeams() {
-    selectedTeams = []
-    teamMode = 'include'
+    clearSearchFilter(filters.team)
   }
 
   function clearKinds() {
-    selectedKinds = []
-    kindMode = 'include'
+    clearFilter(filters.kind)
   }
 
   function clearResults() {
-    selectedResults = []
-    resultMode = 'include'
+    clearFilter(filters.result)
+  }
+
+  function clearFilter<T>(filter: MultiFilter<T>) {
+    filter.mode = 'include'
+    filter.selected = []
+  }
+
+  function clearSearchFilter<T>(filter: SearchFilter<T>) {
+    clearFilter(filter)
+    filter.search = ''
+  }
+
+  function toggleFilterOption<T>(
+    filter: MultiFilter<T>,
+    option: T,
+    keyFor: (option: T) => string
+  ) {
+    filter.selected = toggleOption(filter.selected, option, keyFor)
   }
 
   function toggleOption<T>(
@@ -320,6 +362,26 @@
 
   function includeOperatorLabel(count: number) {
     return count > 1 ? 'is any of' : 'is'
+  }
+
+  function filterFingerprint<T>(
+    filter: MultiFilter<T>,
+    valueFor: (option: T) => string
+  ) {
+    return `${filter.mode}:${filter.selected.map(valueFor).join(',')}`
+  }
+
+  function addFilterParams<T>(
+    params: LogsQueryParams,
+    filter: MultiFilter<T>,
+    includeKey: FilterParamKey,
+    excludeKey: FilterParamKey,
+    valueFor: (option: T) => string
+  ) {
+    if (filter.selected.length === 0) return
+
+    params[filter.mode === 'include' ? includeKey : excludeKey] =
+      filter.selected.map(valueFor).join(',')
   }
 
   function toggleLog(logId: string) {
@@ -467,7 +529,7 @@
 
 {#snippet challengeOption(challenge: ChallengeFilterOption)}
   {@const category = getCategoryConfig(challenge.category)}
-  {@const selected = selectedChallenges.some(item => item.id === challenge.id)}
+  {@const selected = filters.challenge.selected.some(item => item.id === challenge.id)}
   <button
     type="button"
     tabindex="-1"
@@ -488,7 +550,7 @@
 {/snippet}
 
 {#snippet teamOption(team: TeamFilterOption)}
-  {@const selected = selectedTeams.some(item => item.id === team.id)}
+  {@const selected = filters.team.selected.some(item => item.id === team.id)}
   <button
     type="button"
     tabindex="-1"
@@ -513,7 +575,7 @@
 {/snippet}
 
 {#snippet challengeSelector()}
-  {@render filterSearchInput(challengeSearch, 'Filter challenges...', updateChallengeSearch)}
+  {@render filterSearchInput(filters.challenge.search, 'Filter challenges...', updateChallengeSearch)}
   <ScrollArea
     class="min-h-0 flex-1"
     fadeSize={28}
@@ -538,7 +600,7 @@
 {/snippet}
 
 {#snippet teamSelector()}
-  {@render filterSearchInput(teamSearch, 'Filter teams...', updateTeamSearch)}
+  {@render filterSearchInput(filters.team.search, 'Filter teams...', updateTeamSearch)}
   <ScrollArea
     class="min-h-0 flex-1"
     fadeSize={28}
@@ -563,7 +625,7 @@
 {/snippet}
 
 {#snippet kindOption(kind: SubmissionLogKind)}
-  {@const selected = selectedKinds.includes(kind)}
+  {@const selected = filters.kind.selected.includes(kind)}
   <button
     type="button"
     tabindex="-1"
@@ -593,7 +655,7 @@
 {/snippet}
 
 {#snippet resultOption(result: SubmissionLogResult)}
-  {@const selected = selectedResults.includes(result)}
+  {@const selected = filters.result.selected.includes(result)}
   <button
     type="button"
     tabindex="-1"
@@ -722,7 +784,7 @@
 {/snippet}
 
 {#snippet challengeChip()}
-  {@const selected = selectedChallenges[0]}
+  {@const selected = filters.challenge.selected[0]}
   {@const category = selected ? getCategoryConfig(selected.category) : null}
   <span
     class="bg-background-l2 inline-flex h-8 max-w-96 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
@@ -731,20 +793,24 @@
       <IconPuzzleFilled class="size-3.5" />
       Challenge
     </span>
-    {@render operatorDropdown(challengeMode, selectedChallenges.length, mode => (challengeMode = mode))}
+    {@render operatorDropdown(
+      filters.challenge.mode,
+      filters.challenge.selected.length,
+      mode => (filters.challenge.mode = mode)
+    )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="hover:bg-background-l3 flex h-full min-w-0 items-center px-2 transition-colors"
         style={category ? getCategoryStyle(category.color) : undefined}
       >
-        {#if selectedChallenges.length === 1 && selected}
+        {#if filters.challenge.selected.length === 1 && selected}
           <span class="min-w-0 truncate">
             <span class="text-category-foreground-l1">{selected.category} /</span>
             <span class="text-category-foreground-l0">{selected.name}</span>
           </span>
         {:else}
           <span class="text-foreground-l1 min-w-0 truncate">
-            {selectedChallenges.length} challenges
+            {filters.challenge.selected.length} challenges
           </span>
         {/if}
         <IconChevronDown class="text-foreground-l4 ml-1 size-3 shrink-0" />
@@ -768,7 +834,7 @@
 {/snippet}
 
 {#snippet teamChip()}
-  {@const selected = selectedTeams[0]}
+  {@const selected = filters.team.selected[0]}
   <span
     class="bg-background-l2 inline-flex h-8 max-w-80 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
@@ -776,15 +842,23 @@
       <IconUsersGroup class="size-3.5" />
       Team
     </span>
-    {@render operatorDropdown(teamMode, selectedTeams.length, mode => (teamMode = mode))}
+    {@render operatorDropdown(
+      filters.team.mode,
+      filters.team.selected.length,
+      mode => (filters.team.mode = mode)
+    )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
       >
-        {#if selectedTeams.length === 1 && selected}
+        {#if filters.team.selected.length === 1 && selected}
           <Avatar.Root class="size-4 rounded">
             {#if selected.avatarUrl}
-              <Avatar.Image src={selected.avatarUrl} alt={selected.name} class="rounded object-cover" />
+              <Avatar.Image
+                src={selected.avatarUrl}
+                alt={selected.name}
+                class="rounded object-cover"
+              />
             {/if}
             <Avatar.Fallback class="rounded text-[8px]">
               {getInitials(selected.name)}
@@ -792,7 +866,7 @@
           </Avatar.Root>
           <span class="min-w-0 truncate">{selected.name}</span>
         {:else}
-          <span class="min-w-0 truncate">{selectedTeams.length} teams</span>
+          <span class="min-w-0 truncate">{filters.team.selected.length} teams</span>
         {/if}
         <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
       </DropdownMenu.Trigger>
@@ -815,7 +889,7 @@
 {/snippet}
 
 {#snippet kindChip()}
-  {@const selected = selectedKinds[0]}
+  {@const selected = filters.kind.selected[0]}
   <span
     class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
@@ -823,12 +897,16 @@
       <IconFlag3Filled class="size-3.5" />
       Kind
     </span>
-    {@render operatorDropdown(kindMode, selectedKinds.length, mode => (kindMode = mode))}
+    {@render operatorDropdown(
+      filters.kind.mode,
+      filters.kind.selected.length,
+      mode => (filters.kind.mode = mode)
+    )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="text-foreground-l1 hover:bg-background-l3 flex h-full min-w-0 items-center gap-1 px-2 transition-colors"
       >
-        {#if selectedKinds.length === 1 && selected}
+        {#if filters.kind.selected.length === 1 && selected}
           {#if selected === SubmissionLogKind.ADMIN_BOT}
             <IconRobot class="size-3.5" />
           {:else}
@@ -836,7 +914,7 @@
           {/if}
           {kindLabel(selected)}
         {:else}
-          <span class="min-w-0 truncate">{selectedKinds.length} kinds</span>
+          <span class="min-w-0 truncate">{filters.kind.selected.length} kinds</span>
         {/if}
         <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
       </DropdownMenu.Trigger>
@@ -859,7 +937,7 @@
 {/snippet}
 
 {#snippet resultChip()}
-  {@const selected = selectedResults[0]}
+  {@const selected = filters.result.selected[0]}
   <span
     class="bg-background-l2 inline-flex h-8 shrink-0 items-center overflow-hidden rounded-md border-2 text-sm"
   >
@@ -867,16 +945,20 @@
       <IconTableFilled class="size-3.5" />
       Result
     </span>
-    {@render operatorDropdown(resultMode, selectedResults.length, mode => (resultMode = mode))}
+    {@render operatorDropdown(
+      filters.result.mode,
+      filters.result.selected.length,
+      mode => (filters.result.mode = mode)
+    )}
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         class="hover:bg-background-l3 flex h-full min-w-0 items-center gap-1.5 px-2 transition-colors"
       >
-        {#if selectedResults.length === 1 && selected}
+        {#if filters.result.selected.length === 1 && selected}
           {@render resultText(selected)}
         {:else}
           <span class="text-foreground-l1 min-w-0 truncate">
-            {selectedResults.length} results
+            {filters.result.selected.length} results
           </span>
         {/if}
         <IconChevronDown class="text-foreground-l4 size-3 shrink-0" />
@@ -901,16 +983,16 @@
 
 {#snippet filterChips()}
   <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto pb-0.5 whitespace-nowrap">
-    {#if selectedChallenges.length > 0}
+    {#if filters.challenge.selected.length > 0}
       {@render challengeChip()}
     {/if}
-    {#if selectedTeams.length > 0}
+    {#if filters.team.selected.length > 0}
       {@render teamChip()}
     {/if}
-    {#if selectedKinds.length > 0}
+    {#if filters.kind.selected.length > 0}
       {@render kindChip()}
     {/if}
-    {#if selectedResults.length > 0}
+    {#if filters.result.selected.length > 0}
       {@render resultChip()}
     {/if}
   </div>
