@@ -1139,18 +1139,25 @@
     >
       {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
       {#key rootFilterScrollKey}
-        <ScrollArea
-          class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-          fadeSize={28}
-          fadeColor="background-l4"
-          scrollbarYClasses="hidden"
-        >
-          {#if isRootFilterSearchActive}
+        {#if isRootFilterSearchActive}
+          <ScrollArea
+            class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
             {@render rootFilterSearchResults()}
-          {:else}
+          </ScrollArea>
+        {:else}
+          <ScrollArea
+            class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
             {@render rootFilterList()}
-          {/if}
-        </ScrollArea>
+          </ScrollArea>
+        {/if}
       {/key}
     </DropdownMenu.Content>
   </DropdownMenu.Root>
