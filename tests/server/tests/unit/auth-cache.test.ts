@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import {
   checkLoginVerification,
   createLoginVerification,
+  createLoginVerificationWithId,
   deletePendingRegisterVerification,
   getCachedUser,
   getPendingRegisterVerification,
@@ -232,6 +233,20 @@ describe('auth-cache', () => {
       expect(allPending.map(entry => entry.verifyId)).toContain(
         parsed!.verifyId
       )
+    })
+
+    test('can return the verification id with the token', async () => {
+      const redis = createMockRedis()
+      const verification = await createLoginVerificationWithId(redis, {
+        kind: 'register',
+        email: 'with-id@example.com',
+        name: 'With Id Team',
+        division: 'open',
+      })
+
+      const parsed = await parseToken(TokenKind.Verify, verification.token)
+      expect(parsed?.verifyId).toBe(verification.id)
+      expect(redis.store.get(`login:${verification.id}`)).toBe('0')
     })
 
     test('deletes pending register metadata when verification is consumed', async () => {

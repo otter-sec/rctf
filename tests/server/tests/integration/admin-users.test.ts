@@ -1,6 +1,7 @@
 import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
+  BadEndpoint,
   BadPerms,
   BadUnknownVerification,
   GoodAdminUserDeleteV2,
@@ -362,6 +363,79 @@ describe('admin users', () => {
       GoodAdminUserVerificationsV2
     )
     expect(afterBody.data.verifications).toHaveLength(0)
+  })
+
+  test('completing an unknown team email verification fails', async () => {
+    const admin = await generateRealTestUser(Permissions.usersWrite)
+
+    const res = await request(
+      app,
+      `/api/v2/admin/user-verifications/${crypto.randomUUID()}/complete`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      }
+    )
+
+    await expectResponse(res, BadUnknownVerification)
+  })
+
+  test('resending a pending team email verification requires email provider', async () => {
+    const oldEmail = config.email
+    config.email = undefined
+
+    try {
+      const admin = await generateRealTestUser(Permissions.usersWrite)
+      const redis = await createRedis()
+      const pending = {
+        kind: 'register' as const,
+        name: crypto.randomUUID(),
+        email: `${crypto.randomUUID()}@pending.test`,
+        division: Object.keys(config.divisions)[0]!,
+      }
+
+      await createLoginVerification(redis, pending)
+      const beforeRes = await request(app, '/api/v2/admin/user-verifications', {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      })
+      const beforeBody = await expectResponse(
+        beforeRes,
+        GoodAdminUserVerificationsV2
+      )
+      const verificationId = beforeBody.data.verifications[0].id
+
+      const res = await request(
+        app,
+        `/api/v2/admin/user-verifications/${verificationId}/resend`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+          },
+        }
+      )
+
+      await expectResponse(res, BadEndpoint)
+
+      const afterRes = await request(app, '/api/v2/admin/user-verifications', {
+        headers: {
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+      })
+      const afterBody = await expectResponse(
+        afterRes,
+        GoodAdminUserVerificationsV2
+      )
+      expect(afterBody.data.verifications.map(v => v.id)).toContain(
+        verificationId
+      )
+    } finally {
+      config.email = oldEmail
+    }
   })
 
   test('resending an unknown team email verification fails', async () => {

@@ -1,13 +1,12 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import {
-  createLoginVerification,
+  createLoginVerificationWithId,
   deletePendingRegisterVerification,
   getPendingRegisterVerification,
   getPendingRegisterVerifications,
 } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
-import { parseToken, TokenKind } from '../lib/tokens'
 import { sendVerificationEmail } from './emails'
 import { createUserInternal } from './users'
 
@@ -70,26 +69,21 @@ export const resendPendingTeamVerification = async (
     return { success: false, error: 'badEndpoint' }
   }
 
-  const token = await createLoginVerification(redis, {
+  const verification = await createLoginVerificationWithId(redis, {
     kind: 'register',
     name: pending.name,
     email: pending.email,
     division: pending.division,
   })
 
-  const parsed = await parseToken(TokenKind.Verify, token)
-  if (!parsed) {
-    throw new Error('Resent verification token could not be parsed')
-  }
-
   try {
-    await sendVerificationEmail(pending.email, 'register', token)
+    await sendVerificationEmail(pending.email, 'register', verification.token)
   } catch (error) {
-    await deletePendingRegisterVerification(redis, parsed.verifyId)
+    await deletePendingRegisterVerification(redis, verification.id)
     throw error
   }
 
   await deletePendingRegisterVerification(redis, verificationId)
 
-  return { success: true, verificationId: parsed.verifyId }
+  return { success: true, verificationId: verification.id }
 }
