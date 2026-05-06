@@ -37,6 +37,16 @@ export function formatRelativeToFirstBlood(
   return `+${formatTime(timestamp - firstBloodTime)}`
 }
 
+export function formatCtfOffset(
+  timestamp: number,
+  startTime: number | null | undefined
+): string {
+  if (startTime === null || startTime === undefined) return ''
+
+  const diff = timestamp - startTime
+  return `T${diff < 0 ? '-' : '+'}${formatTime(Math.abs(diff))}`
+}
+
 export function formatLocalTime(timestamp: number): string {
   return format(timestamp, 'MMM d, h:mm a')
 }

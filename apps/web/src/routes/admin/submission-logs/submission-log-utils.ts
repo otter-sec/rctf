@@ -148,27 +148,6 @@ export function ipInfoUrl(ip: string) {
   return `https://check-host.net/ip-info?host=${encodeURIComponent(ip)}&lang=en`
 }
 
-export function formatCompactDuration(ms: number): string {
-  const totalMinutes = Math.max(0, Math.round(Math.abs(ms) / 60_000))
-  const days = Math.floor(totalMinutes / 1440)
-  const hours = Math.floor((totalMinutes % 1440) / 60)
-  const minutes = totalMinutes % 60
-
-  if (days > 0) return `${days}d ${hours}h`
-  if (hours > 0) return minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`
-  return `${minutes}m`
-}
-
-export function formatCtfOffset(
-  timestamp: number,
-  startTime: number | null | undefined
-): string {
-  if (!startTime) return ''
-
-  const diff = timestamp - startTime
-  return `T${diff < 0 ? '-' : '+'}${formatCompactDuration(diff)}`
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
