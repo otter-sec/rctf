@@ -387,11 +387,11 @@
 
     const startLabel =
       filters.time.mode === 'relative'
-        ? formatRelativeTimeInput(filters.time.relativeStart)
+        ? formatRelativeTimeRangeEndpoint(timeRangeValidation.createdAfter)
         : formatDateTimeInput(filters.time.start)
     const endLabel =
       filters.time.mode === 'relative'
-        ? formatRelativeTimeInput(filters.time.relativeEnd)
+        ? formatRelativeTimeRangeEndpoint(timeRangeValidation.createdBefore)
         : formatDateTimeInput(filters.time.end)
 
     if (startLabel && endLabel) return `${startLabel} to ${endLabel}`
@@ -406,12 +406,12 @@
     return Number.isFinite(time) ? formatLocalTime(time) : 'Invalid time'
   }
 
-  function formatRelativeTimeInput(value: string) {
-    const trimmed = value.trim().replace(/\s+/g, ' ')
-    if (!trimmed) return ''
-    if (/^t/i.test(trimmed)) return trimmed
-    if (/^[+-]/.test(trimmed)) return `T${trimmed}`
-    return `T+${trimmed}`
+  function formatRelativeTimeRangeEndpoint(value: string | undefined) {
+    if (!value || clientConfig?.startTime === null || clientConfig?.startTime === undefined) {
+      return ''
+    }
+
+    return formatCtfOffset(new Date(value).getTime(), clientConfig.startTime)
   }
 
   function toggleLog(logId: string) {
