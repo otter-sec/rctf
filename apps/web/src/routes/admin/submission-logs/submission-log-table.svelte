@@ -415,6 +415,15 @@
       rootTimeFilterFamilyMatches ||
       rootFilterOptionMatches.length > 0
   )
+  const rootFilterScrollKey = $derived(
+    [
+      normalizedRootFilterSearch,
+      rootValueFilterFamilyMatches.length,
+      rootTimeFilterFamilyMatches,
+      rootFilterOptionMatches.length,
+      rootTeamSuggestionsQuery.isFetching,
+    ].join(':')
+  )
   const timeRangeValidation = $derived(
     resolveTimeRangeFilter(filters.time, clientConfig?.startTime)
   )
@@ -1126,21 +1135,23 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content
       align="start"
-      class="bg-background-l4 border-foreground-l4/40 z-[100] flex max-h-[min(32rem,var(--bits-dropdown-menu-content-available-height))] w-80 flex-col overflow-hidden border-2 !p-0 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 overflow-hidden border-2 !p-0 shadow-xl"
     >
       {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
-      <ScrollArea
-        class="min-h-0 flex-1"
-        fadeSize={28}
-        fadeColor="background-l4"
-        scrollbarYClasses="hidden"
-      >
-        {#if isRootFilterSearchActive}
-          {@render rootFilterSearchResults()}
-        {:else}
-          {@render rootFilterList()}
-        {/if}
-      </ScrollArea>
+      {#key rootFilterScrollKey}
+        <ScrollArea
+          class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+          fadeSize={28}
+          fadeColor="background-l4"
+          scrollbarYClasses="hidden"
+        >
+          {#if isRootFilterSearchActive}
+            {@render rootFilterSearchResults()}
+          {:else}
+            {@render rootFilterList()}
+          {/if}
+        </ScrollArea>
+      {/key}
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/snippet}
