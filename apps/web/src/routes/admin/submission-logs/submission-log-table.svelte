@@ -84,11 +84,41 @@
     type CategoryFilterOption,
     type ChallengeFilterOption,
     type DivisionFilterOption,
+    type ResultTone,
     type SortBy,
     type SubmissionLog,
     type TeamFilterOption,
   } from './submission-log-utils'
 
+  type ValueFilterOption =
+    | ChallengeFilterOption
+    | TeamFilterOption
+    | SubmissionLogKind
+    | SubmissionLogResult
+    | SubmissionLogTeamStatus
+    | CategoryFilterOption
+    | DivisionFilterOption
+  type FilterOptionSegment = {
+    text: string
+    class?: string
+  }
+  type FilterOptionView = {
+    textValue: string
+    segments: FilterOptionSegment[]
+    style?: string
+    icon?: IconComponent
+    iconClass?: string
+    avatar?: {
+      name: string
+      avatarUrl: string | null
+    }
+    tone?: ResultTone
+  }
+  type ValueFilterFamilySearch = {
+    value: () => string
+    placeholder: string
+    onInput: (value: string) => void
+  }
   type ValueFilterFamily = {
     id: ValueFilterId
     label: string
@@ -97,6 +127,18 @@
     menuSize: 'search' | 'narrow' | 'medium'
     chipWidth?: 'challenge' | 'team'
     searchTerms?: readonly string[]
+    clear: () => void
+    search?: ValueFilterFamilySearch
+    options: () => readonly ValueFilterOption[]
+    rootSearchOptions?: () => readonly ValueFilterOption[]
+    optionKey: (option: ValueFilterOption) => string
+    optionSearchValues: (option: ValueFilterOption) => readonly string[]
+    optionSelected: (option: ValueFilterOption) => boolean
+    toggleOption: (option: ValueFilterOption) => void
+    optionView: (option: ValueFilterOption) => FilterOptionView
+    loading?: () => boolean
+    loadingLabel?: string
+    emptyLabel: string
   }
   type TimeFilterFamily = {
     id: 'time'
@@ -104,70 +146,178 @@
     icon: IconComponent
     searchTerms: readonly string[]
   }
-  type RootFilterOptionMatch =
-    | { familyId: 'challenge'; key: string; option: ChallengeFilterOption }
-    | { familyId: 'team'; key: string; option: TeamFilterOption }
-    | { familyId: 'kind'; key: string; option: SubmissionLogKind }
-    | { familyId: 'result'; key: string; option: SubmissionLogResult }
-    | { familyId: 'teamStatus'; key: string; option: SubmissionLogTeamStatus }
-    | { familyId: 'category'; key: string; option: CategoryFilterOption }
-    | { familyId: 'division'; key: string; option: DivisionFilterOption }
+  type TypedValueFilterFamily<T extends ValueFilterOption> = Omit<
+    ValueFilterFamily,
+    | 'options'
+    | 'rootSearchOptions'
+    | 'optionKey'
+    | 'optionSearchValues'
+    | 'optionSelected'
+    | 'toggleOption'
+    | 'optionView'
+  > & {
+    options: () => readonly T[]
+    rootSearchOptions?: () => readonly T[]
+    optionKey: (option: T) => string
+    optionSearchValues: (option: T) => readonly string[]
+    optionSelected: (option: T) => boolean
+    toggleOption: (option: T) => void
+    optionView: (option: T) => FilterOptionView
+  }
+  type RootFilterOptionMatch = {
+    family: ValueFilterFamily
+    key: string
+    option: ValueFilterOption
+  }
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
   const ROOT_SEARCH_MATCH_LIMIT = 8
+  const RESULT_TONE_DOT_CLASS = {
+    success: 'bg-foreground-success',
+    warning: 'bg-foreground-yellow-l1',
+    danger: 'bg-foreground-destructive',
+  } satisfies Record<ResultTone, string>
+  const RESULT_TONE_TEXT_CLASS = {
+    success: 'text-foreground-success',
+    warning: 'text-foreground-yellow-l1',
+    danger: 'text-foreground-destructive',
+  } satisfies Record<ResultTone, string>
   const VALUE_FILTER_FAMILIES = [
-    {
+    defineValueFilterFamily<ChallengeFilterOption>({
       id: 'challenge',
       label: 'Challenge',
       pluralLabel: 'challenges',
       icon: IconPuzzleFilled,
       menuSize: 'search',
       chipWidth: 'challenge',
-    },
-    {
+      search: {
+        value: () => filters.challenge.search,
+        placeholder: 'Filter challenges...',
+        onInput: updateChallengeSearch,
+      },
+      options: () => challengeOptions,
+      rootSearchOptions: () => allChallengeOptions,
+      optionKey: challenge => challenge.id,
+      optionSearchValues: challenge => {
+        const category = getCategoryConfig(challenge.category)
+        return [challenge.name, challenge.category, category.name]
+      },
+      optionSelected: challenge =>
+        filters.challenge.selected.some(item => item.id === challenge.id),
+      toggleOption: toggleChallenge,
+      optionView: challengeOptionView,
+      clear: () => clearSearchFilter(filters.challenge),
+      loading: () => challengesQuery.isPending,
+      loadingLabel: 'Loading challenges...',
+      emptyLabel: 'No challenges found',
+    }),
+    defineValueFilterFamily<TeamFilterOption>({
       id: 'team',
       label: 'Team',
       pluralLabel: 'teams',
       icon: IconUsersGroup,
       menuSize: 'search',
       chipWidth: 'team',
-    },
-    {
+      search: {
+        value: () => filters.team.search,
+        placeholder: 'Filter teams...',
+        onInput: updateTeamSearch,
+      },
+      options: () => teamOptions,
+      rootSearchOptions: () => rootTeamOptions,
+      optionKey: team => team.id,
+      optionSearchValues: team => [team.name],
+      optionSelected: team => filters.team.selected.some(item => item.id === team.id),
+      toggleOption: toggleTeam,
+      optionView: teamOptionView,
+      clear: () => clearSearchFilter(filters.team),
+      loading: () => teamSuggestionsQuery.isFetching && teamOptions.length === 0,
+      loadingLabel: 'Loading teams...',
+      emptyLabel: 'No teams found',
+    }),
+    defineValueFilterFamily<SubmissionLogKind>({
       id: 'kind',
       label: 'Kind',
       pluralLabel: 'kinds',
       icon: IconFlag3Filled,
       menuSize: 'narrow',
-    },
-    {
+      options: () => KIND_FILTERS,
+      optionKey: kind => kind,
+      optionSearchValues: kind => [kindLabel(kind), kind],
+      optionSelected: kind => filters.kind.selected.includes(kind),
+      toggleOption: toggleKind,
+      optionView: kindOptionView,
+      clear: () => clearFilter(filters.kind),
+      emptyLabel: 'No kinds found',
+    }),
+    defineValueFilterFamily<SubmissionLogResult>({
       id: 'result',
       label: 'Result',
       pluralLabel: 'results',
       icon: IconTableFilled,
       menuSize: 'medium',
-    },
-    {
+      options: () => RESULT_FILTERS,
+      optionKey: result => result,
+      optionSearchValues: result => [resultLabel(result), result],
+      optionSelected: result => filters.result.selected.includes(result),
+      toggleOption: toggleResult,
+      optionView: resultOptionView,
+      clear: () => clearFilter(filters.result),
+      emptyLabel: 'No results found',
+    }),
+    defineValueFilterFamily<SubmissionLogTeamStatus>({
       id: 'teamStatus',
       label: 'Team status',
       pluralLabel: 'statuses',
       icon: IconGavel,
       menuSize: 'medium',
-    },
-    {
+      options: () => TEAM_STATUS_FILTERS,
+      optionKey: status => status,
+      optionSearchValues: status => [teamStatusLabel(status), status],
+      optionSelected: status => filters.teamStatus.selected.includes(status),
+      toggleOption: toggleTeamStatus,
+      optionView: teamStatusOptionView,
+      clear: () => clearFilter(filters.teamStatus),
+      emptyLabel: 'No statuses found',
+    }),
+    defineValueFilterFamily<CategoryFilterOption>({
       id: 'category',
       label: 'Category',
       pluralLabel: 'categories',
       icon: IconLayoutListFilled,
       menuSize: 'medium',
-    },
-    {
+      options: () => categoryOptions,
+      optionKey: category => category.value,
+      optionSearchValues: category => {
+        const config = getCategoryConfig(category.value)
+        return [category.label, category.value, config.name]
+      },
+      optionSelected: category =>
+        filters.category.selected.some(item => item.value === category.value),
+      toggleOption: toggleCategory,
+      optionView: categoryOptionView,
+      clear: () => clearFilter(filters.category),
+      loading: () => challengesQuery.isPending,
+      loadingLabel: 'Loading categories...',
+      emptyLabel: 'No categories found',
+    }),
+    defineValueFilterFamily<DivisionFilterOption>({
       id: 'division',
       label: 'Division',
       pluralLabel: 'divisions',
       icon: IconShieldFilled,
       menuSize: 'medium',
-    },
+      options: () => divisionOptions,
+      optionKey: division => division.value,
+      optionSearchValues: division => [division.label, division.value],
+      optionSelected: division =>
+        filters.division.selected.some(item => item.value === division.value),
+      toggleOption: toggleDivision,
+      optionView: divisionOptionView,
+      clear: () => clearFilter(filters.division),
+      emptyLabel: 'No divisions found',
+    }),
   ] satisfies ValueFilterFamily[]
   const TIME_FILTER_FAMILY = {
     id: 'time',
@@ -175,9 +325,6 @@
     icon: IconClockFilled,
     searchTerms: ['date', 'range', 'ctf', 'relative'],
   } satisfies TimeFilterFamily
-  const VALUE_FILTER_FAMILY_BY_ID = Object.fromEntries(
-    VALUE_FILTER_FAMILIES.map(family => [family.id, family])
-  ) as Record<ValueFilterId, ValueFilterFamily>
   type VirtualRow = { index: number; size: number; start: number }
 
   let sortBy = $state<SortBy>(SubmissionLogSortBy.CREATED_AT)
@@ -369,6 +516,12 @@
     rootFilterSearch = value
   }
 
+  function defineValueFilterFamily<T extends ValueFilterOption>(
+    family: TypedValueFilterFamily<T>
+  ): ValueFilterFamily {
+    return family as unknown as ValueFilterFamily
+  }
+
   function normalizeSearchText(value: string) {
     return value.trim().toLowerCase()
   }
@@ -413,74 +566,96 @@
     family: ValueFilterFamily,
     query: string
   ): RootFilterOptionMatch[] {
-    switch (family.id) {
-      case 'challenge':
-        return takeRootSearchMatches(allChallengeOptions, challenge => {
-          const category = getCategoryConfig(challenge.category)
-          return searchMatches(query, challenge.name, challenge.category, category.name)
-        }).map(challenge => ({
-          familyId: 'challenge',
-          key: challenge.id,
-          option: challenge,
-        }))
-      case 'team':
-        return takeRootSearchMatches(rootTeamOptions, team => searchMatches(query, team.name)).map(
-          team => ({
-            familyId: 'team',
-            key: team.id,
-            option: team,
-          })
-        )
-      case 'kind':
-        return takeRootSearchMatches(KIND_FILTERS, kind =>
-          searchMatches(query, kindLabel(kind), kind)
-        ).map(kind => ({
-          familyId: 'kind',
-          key: kind,
-          option: kind,
-        }))
-      case 'result':
-        return takeRootSearchMatches(RESULT_FILTERS, result =>
-          searchMatches(query, resultLabel(result), result)
-        ).map(result => ({
-          familyId: 'result',
-          key: result,
-          option: result,
-        }))
-      case 'teamStatus':
-        return takeRootSearchMatches(TEAM_STATUS_FILTERS, status =>
-          searchMatches(query, teamStatusLabel(status), status)
-        ).map(status => ({
-          familyId: 'teamStatus',
-          key: status,
-          option: status,
-        }))
-      case 'category':
-        return takeRootSearchMatches(categoryOptions, category => {
-          const config = getCategoryConfig(category.value)
-          return searchMatches(query, category.label, category.value, config.name)
-        }).map(category => ({
-          familyId: 'category',
-          key: category.value,
-          option: category,
-        }))
-      case 'division':
-        return takeRootSearchMatches(divisionOptions, division =>
-          searchMatches(query, division.label, division.value)
-        ).map(division => ({
-          familyId: 'division',
-          key: division.value,
-          option: division,
-        }))
-    }
+    const options = family.rootSearchOptions?.() ?? family.options()
+
+    return takeRootSearchMatches(options, option =>
+      searchMatches(query, ...family.optionSearchValues(option))
+    ).map(option => ({
+      family,
+      key: family.optionKey(option),
+      option,
+    }))
   }
 
   function rootFilterOptionKey(match: RootFilterOptionMatch) {
-    return `${match.familyId}:${match.key}`
+    return `${match.family.id}:${match.key}`
   }
 
-  function rootSearchMatchFamily(match: RootFilterOptionMatch) {
-    return VALUE_FILTER_FAMILY_BY_ID[match.familyId]
+  function challengeOptionView(challenge: ChallengeFilterOption): FilterOptionView {
+    const category = getCategoryConfig(challenge.category)
+
+    return {
+      textValue: `${challenge.category} ${challenge.name}`,
+      style: getCategoryStyle(category.color),
+      segments: [
+        { text: `${challenge.category} / `, class: 'text-category-foreground-l1' },
+        { text: challenge.name, class: 'text-category-foreground-l0' },
+      ],
+    }
+  }
+
+  function teamOptionView(team: TeamFilterOption): FilterOptionView {
+    return {
+      textValue: team.name,
+      avatar: {
+        name: team.name,
+        avatarUrl: team.avatarUrl,
+      },
+      segments: [{ text: team.name }],
+    }
+  }
+
+  function kindOptionView(kind: SubmissionLogKind): FilterOptionView {
+    return {
+      textValue: kindLabel(kind),
+      icon: kind === SubmissionLogKind.ADMIN_BOT ? IconRobot : IconFlag3Filled,
+      segments: [{ text: kindLabel(kind) }],
+    }
+  }
+
+  function resultOptionView(result: SubmissionLogResult): FilterOptionView {
+    const tone = resultTone(result)
+
+    return {
+      textValue: resultLabel(result),
+      tone,
+      segments: [{ text: resultLabel(result), class: resultToneTextClass(tone) }],
+    }
+  }
+
+  function teamStatusOptionView(status: SubmissionLogTeamStatus): FilterOptionView {
+    return {
+      textValue: teamStatusLabel(status),
+      icon: status === SubmissionLogTeamStatus.BANNED ? IconGavel : IconShieldFilled,
+      segments: [{ text: teamStatusLabel(status) }],
+    }
+  }
+
+  function categoryOptionView(category: CategoryFilterOption): FilterOptionView {
+    const config = getCategoryConfig(category.value)
+
+    return {
+      textValue: category.label,
+      style: getCategoryStyle(config.color),
+      icon: config.icon,
+      iconClass: 'text-category-foreground-l1',
+      segments: [{ text: category.label, class: 'text-category-foreground-l0' }],
+    }
+  }
+
+  function divisionOptionView(division: DivisionFilterOption): FilterOptionView {
+    return {
+      textValue: division.label,
+      segments: [{ text: division.label }],
+    }
+  }
+
+  function resultToneTextClass(tone: ResultTone) {
+    return RESULT_TONE_TEXT_CLASS[tone]
+  }
+
+  function resultToneDotClass(tone: ResultTone) {
+    return RESULT_TONE_DOT_CLASS[tone]
   }
 
   function valueFilter(family: ValueFilterFamily): MultiFilter<unknown> {
@@ -488,29 +663,7 @@
   }
 
   function clearValueFilter(family: ValueFilterFamily) {
-    switch (family.id) {
-      case 'challenge':
-        clearSearchFilter(filters.challenge)
-        return
-      case 'team':
-        clearSearchFilter(filters.team)
-        return
-      case 'kind':
-        clearFilter(filters.kind)
-        return
-      case 'result':
-        clearFilter(filters.result)
-        return
-      case 'teamStatus':
-        clearFilter(filters.teamStatus)
-        return
-      case 'category':
-        clearFilter(filters.category)
-        return
-      case 'division':
-        clearFilter(filters.division)
-        return
-    }
+    family.clear()
   }
 
   function toggleChallenge(challenge: ChallengeFilterOption) {
@@ -621,16 +774,7 @@
 
 {#snippet resultDot(result: string)}
   {@const tone = resultTone(result)}
-  <span
-    class={cn(
-      'size-1.5 shrink-0 rounded-full',
-      tone === 'success'
-        ? 'bg-foreground-success'
-        : tone === 'warning'
-          ? 'bg-foreground-yellow-l1'
-          : 'bg-foreground-destructive'
-    )}
-  ></span>
+  <span class={cn('size-1.5 shrink-0 rounded-full', resultToneDotClass(tone))}></span>
 {/snippet}
 
 {#snippet resultText(result: string)}
@@ -638,11 +782,7 @@
   <span
     class={cn(
       'inline-flex min-w-0 items-center gap-1.5 truncate whitespace-nowrap',
-      tone === 'success'
-        ? 'text-foreground-success'
-        : tone === 'warning'
-          ? 'text-foreground-yellow-l1'
-          : 'text-foreground-destructive'
+      resultToneTextClass(tone)
     )}
   >
     {@render resultDot(result)}
@@ -707,303 +847,89 @@
   <IconChevronRight class="text-foreground-l4 size-3 shrink-0" />
 {/snippet}
 
-{#snippet challengeOption(challenge: ChallengeFilterOption, family?: ValueFilterFamily)}
-  {@const category = getCategoryConfig(challenge.category)}
-  {@const selected = filters.challenge.selected.some(item => item.id === challenge.id)}
+{#snippet valueFilterOption(
+  family: ValueFilterFamily,
+  option: ValueFilterOption,
+  showPath: boolean = false
+)}
+  {@const view = family.optionView(option)}
+  {@const selected = family.optionSelected(option)}
   <DropdownMenu.CheckboxItem
     checked={selected}
     closeOnSelect={false}
-    textValue={family
-      ? `${family.label} ${challenge.category} ${challenge.name}`
-      : `${challenge.category} ${challenge.name}`}
+    textValue={showPath ? `${family.label} ${view.textValue}` : view.textValue}
     class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    style={getCategoryStyle(category.color)}
+    style={view.style}
     onCheckedChange={checked => {
-      if (checked !== selected) toggleChallenge(challenge)
+      if (checked !== selected) family.toggleOption(option)
     }}
   >
-    {#if family}
+    {#if showPath}
       {@render rootSearchPath(family)}
+    {/if}
+    {#if view.avatar}
+      <Avatar.Root class="size-5 rounded-md">
+        {#if view.avatar.avatarUrl}
+          <Avatar.Image
+            src={view.avatar.avatarUrl}
+            alt={view.avatar.name}
+            class="rounded-md object-cover"
+          />
+        {/if}
+        <Avatar.Fallback class="rounded-md text-[9px]">
+          {getInitials(view.avatar.name)}
+        </Avatar.Fallback>
+      </Avatar.Root>
+    {/if}
+    {#if view.icon}
+      <view.icon class={cn('size-4 shrink-0', view.iconClass)} />
+    {/if}
+    {#if view.tone}
+      <span class={cn('size-1.5 shrink-0 rounded-full', resultToneDotClass(view.tone))}></span>
     {/if}
     <span class="min-w-0 truncate text-sm">
-      <span class="text-category-foreground-l1">{challenge.category} /</span>
-      <span class="text-category-foreground-l0">{challenge.name}</span>
+      {#each view.segments as segment}
+        <span class={segment.class}>{segment.text}</span>
+      {/each}
     </span>
   </DropdownMenu.CheckboxItem>
 {/snippet}
 
-{#snippet teamOption(team: TeamFilterOption, family?: ValueFilterFamily)}
-  {@const selected = filters.team.selected.some(item => item.id === team.id)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${team.name}` : team.name}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleTeam(team)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    <Avatar.Root class="size-5 rounded-md">
-      {#if team.avatarUrl}
-        <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-md object-cover" />
-      {/if}
-      <Avatar.Fallback class="rounded-md text-[9px]">
-        {getInitials(team.name)}
-      </Avatar.Fallback>
-    </Avatar.Root>
-    <span class="min-w-0 truncate text-sm">{team.name}</span>
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet challengeSelector()}
-  {@render filterSearchInput(
-    filters.challenge.search,
-    'Filter challenges...',
-    updateChallengeSearch
-  )}
-  <ScrollArea
-    class="min-h-0 flex-1"
-    fadeSize={28}
-    fadeColor="background-l4"
-    scrollbarYClasses="hidden"
-  >
-    <div class="p-1">
-      {#if challengesQuery.isPending}
-        <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
-          <Spinner class="size-3.5" />
-          Loading challenges...
-        </div>
-      {:else if challengeOptions.length === 0}
-        <div class="text-foreground-l3 px-2 py-1.5 text-sm">No challenges found</div>
-      {:else}
-        {#each challengeOptions as challenge (challenge.id)}
-          {@render challengeOption(challenge)}
-        {/each}
-      {/if}
-    </div>
-  </ScrollArea>
-{/snippet}
-
-{#snippet teamSelector()}
-  {@render filterSearchInput(filters.team.search, 'Filter teams...', updateTeamSearch)}
-  <ScrollArea
-    class="min-h-0 flex-1"
-    fadeSize={28}
-    fadeColor="background-l4"
-    scrollbarYClasses="hidden"
-  >
-    <div class="p-1">
-      {#if teamSuggestionsQuery.isFetching && teamOptions.length === 0}
-        <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
-          <Spinner class="size-3.5" />
-          Loading teams...
-        </div>
-      {:else if teamOptions.length === 0}
-        <div class="text-foreground-l3 px-2 py-1.5 text-sm">No teams found</div>
-      {:else}
-        {#each teamOptions as team (team.id)}
-          {@render teamOption(team)}
-        {/each}
-      {/if}
-    </div>
-  </ScrollArea>
-{/snippet}
-
-{#snippet kindOption(kind: SubmissionLogKind, family?: ValueFilterFamily)}
-  {@const selected = filters.kind.selected.includes(kind)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${kindLabel(kind)}` : kindLabel(kind)}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleKind(kind)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    {#if kind === SubmissionLogKind.ADMIN_BOT}
-      <IconRobot class="size-4" />
-    {:else}
-      <IconFlag3Filled class="size-4" />
-    {/if}
-    {kindLabel(kind)}
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet kindSelector()}
+{#snippet valueFilterOptionList(family: ValueFilterFamily)}
+  {@const options = family.options()}
   <div class="p-1">
-    {#each KIND_FILTERS as kind}
-      {@render kindOption(kind)}
-    {/each}
-  </div>
-{/snippet}
-
-{#snippet resultOption(result: SubmissionLogResult, family?: ValueFilterFamily)}
-  {@const selected = filters.result.selected.includes(result)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${resultLabel(result)}` : resultLabel(result)}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleResult(result)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    {@render resultText(result)}
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet resultSelector()}
-  <div class="p-1">
-    {#each RESULT_FILTERS as result}
-      {@render resultOption(result)}
-    {/each}
-  </div>
-{/snippet}
-
-{#snippet teamStatusOption(status: SubmissionLogTeamStatus, family?: ValueFilterFamily)}
-  {@const selected = filters.teamStatus.selected.includes(status)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${teamStatusLabel(status)}` : teamStatusLabel(status)}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleTeamStatus(status)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    {#if status === SubmissionLogTeamStatus.BANNED}
-      <IconGavel class="size-4" />
-    {:else}
-      <IconShieldFilled class="size-4" />
-    {/if}
-    {teamStatusLabel(status)}
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet teamStatusSelector()}
-  <div class="p-1">
-    {#each TEAM_STATUS_FILTERS as status}
-      {@render teamStatusOption(status)}
-    {/each}
-  </div>
-{/snippet}
-
-{#snippet categoryOption(category: CategoryFilterOption, family?: ValueFilterFamily)}
-  {@const selected = filters.category.selected.some(item => item.value === category.value)}
-  {@const categoryConfig = getCategoryConfig(category.value)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${category.label}` : category.label}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    style={getCategoryStyle(categoryConfig.color)}
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleCategory(category)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    <categoryConfig.icon class="text-category-foreground-l1 size-4 shrink-0" />
-    <span class="text-category-foreground-l0 min-w-0 truncate text-sm">
-      {category.label}
-    </span>
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet categorySelector()}
-  <div class="p-1">
-    {#if challengesQuery.isPending}
+    {#if family.loading?.()}
       <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
         <Spinner class="size-3.5" />
-        Loading categories...
+        {family.loadingLabel}
       </div>
-    {:else if categoryOptions.length === 0}
-      <div class="text-foreground-l3 px-2 py-1.5 text-sm">No categories found</div>
+    {:else if options.length === 0}
+      <div class="text-foreground-l3 px-2 py-1.5 text-sm">{family.emptyLabel}</div>
     {:else}
-      {#each categoryOptions as category (category.value)}
-        {@render categoryOption(category)}
+      {#each options as option (family.optionKey(option))}
+        {@render valueFilterOption(family, option)}
       {/each}
     {/if}
   </div>
-{/snippet}
-
-{#snippet divisionOption(division: DivisionFilterOption, family?: ValueFilterFamily)}
-  {@const selected = filters.division.selected.some(item => item.value === division.value)}
-  <DropdownMenu.CheckboxItem
-    checked={selected}
-    closeOnSelect={false}
-    textValue={family ? `${family.label} ${division.label}` : division.label}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
-    onCheckedChange={checked => {
-      if (checked !== selected) toggleDivision(division)
-    }}
-  >
-    {#if family}
-      {@render rootSearchPath(family)}
-    {/if}
-    <span class="min-w-0 truncate text-sm">{division.label}</span>
-  </DropdownMenu.CheckboxItem>
-{/snippet}
-
-{#snippet divisionSelector()}
-  <div class="p-1">
-    {#if divisionOptions.length === 0}
-      <div class="text-foreground-l3 px-2 py-1.5 text-sm">No divisions found</div>
-    {:else}
-      {#each divisionOptions as division (division.value)}
-        {@render divisionOption(division)}
-      {/each}
-    {/if}
-  </div>
-{/snippet}
-
-{#snippet rootSearchOption(match: RootFilterOptionMatch)}
-  {@const family = rootSearchMatchFamily(match)}
-  {#if match.familyId === 'challenge'}
-    {@render challengeOption(match.option, family)}
-  {:else if match.familyId === 'team'}
-    {@render teamOption(match.option, family)}
-  {:else if match.familyId === 'kind'}
-    {@render kindOption(match.option, family)}
-  {:else if match.familyId === 'result'}
-    {@render resultOption(match.option, family)}
-  {:else if match.familyId === 'teamStatus'}
-    {@render teamStatusOption(match.option, family)}
-  {:else if match.familyId === 'category'}
-    {@render categoryOption(match.option, family)}
-  {:else if match.familyId === 'division'}
-    {@render divisionOption(match.option, family)}
-  {/if}
 {/snippet}
 
 {#snippet valueFilterSelector(family: ValueFilterFamily)}
-  {#if family.id === 'challenge'}
-    {@render challengeSelector()}
-  {:else if family.id === 'team'}
-    {@render teamSelector()}
-  {:else if family.id === 'kind'}
-    {@render kindSelector()}
-  {:else if family.id === 'result'}
-    {@render resultSelector()}
-  {:else if family.id === 'teamStatus'}
-    {@render teamStatusSelector()}
-  {:else if family.id === 'category'}
-    {@render categorySelector()}
-  {:else if family.id === 'division'}
-    {@render divisionSelector()}
+  {#if family.search}
+    {@render filterSearchInput(
+      family.search.value(),
+      family.search.placeholder,
+      family.search.onInput
+    )}
+    <ScrollArea
+      class="min-h-0 flex-1"
+      fadeSize={28}
+      fadeColor="background-l4"
+      scrollbarYClasses="hidden"
+    >
+      {@render valueFilterOptionList(family)}
+    </ScrollArea>
+  {:else}
+    {@render valueFilterOptionList(family)}
   {/if}
 {/snippet}
 
@@ -1168,7 +1094,7 @@
       {@render timeRangeFilterMenu()}
     {/if}
     {#each rootFilterOptionMatches as match (rootFilterOptionKey(match))}
-      {@render rootSearchOption(match)}
+      {@render valueFilterOption(match.family, match.option, true)}
     {/each}
     {#if rootTeamSuggestionsQuery.isFetching}
       <div class="text-foreground-l3 flex items-center gap-2 px-2 py-1.5 text-sm">
