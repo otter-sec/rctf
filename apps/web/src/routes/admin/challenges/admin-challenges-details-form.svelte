@@ -22,7 +22,7 @@
   } from '$lib/icons'
   import type { AdminBotConfig } from '$lib/machines'
   import { useClientConfig } from '$lib/query'
-  import { cn } from '$lib/utils'
+  import { cn, formatDatetimeLocalValue, parseDatetimeLocalValue } from '$lib/utils'
   import type { Snippet } from 'svelte'
   import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
@@ -107,19 +107,6 @@
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
-
-  function timestampToDatetimeLocal(ts: number | null): string {
-    if (!ts) return ''
-    const d = new Date(ts)
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  }
-
-  function datetimeLocalToTimestamp(value: string): number | null {
-    if (!value) return null
-    const ts = new Date(value).getTime()
-    return isNaN(ts) ? null : ts
-  }
 
   let tab = $state('details')
   let nameInputRef = $state<HTMLInputElement | null>(null)
@@ -451,8 +438,8 @@
             </Field.Label>
             <Input
               type="datetime-local"
-              value={timestampToDatetimeLocal(releaseTime)}
-              onchange={e => onReleaseTimeChange(datetimeLocalToTimestamp(e.currentTarget.value))}
+              value={formatDatetimeLocalValue(releaseTime)}
+              onchange={e => onReleaseTimeChange(parseDatetimeLocalValue(e.currentTarget.value))}
               disabled={isDisabled}
             />
           </Field.Field>

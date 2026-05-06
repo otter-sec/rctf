@@ -24,7 +24,7 @@
     useUpdateSettingsMutation,
     useUploadFilesMutation,
   } from '$lib/query'
-  import { cn } from '$lib/utils'
+  import { cn, formatDatetimeLocalValue, parseDatetimeLocalValue } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
@@ -68,24 +68,6 @@
     }
     handleLogoUpload(file, target)
     input.value = ''
-  }
-
-  function timestampToDatetimeLocal(ts: number | null | undefined): string {
-    if (ts === null || ts === undefined) return ''
-    const d = new Date(ts)
-    if (Number.isNaN(d.getTime())) return ''
-    const pad = (n: number) => n.toString().padStart(2, '0')
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-  }
-
-  function datetimeLocalToTimestamp(value: string): number | null {
-    if (!value) return null
-    const ts = new Date(value).getTime()
-    return Number.isNaN(ts) ? null : ts
-  }
-
-  function formatTimestamp(ts: number | null | undefined): string {
-    return timestampToDatetimeLocal(ts) || 'unset'
   }
 
   let ctfName = $state('')
@@ -369,16 +351,16 @@
             <Field.Label>CTF start</Field.Label>
             <Input
               type="datetime-local"
-              value={timestampToDatetimeLocal(startTime)}
+              value={formatDatetimeLocalValue(startTime)}
               onchange={e => {
-                startTime = datetimeLocalToTimestamp(e.currentTarget.value)
+                startTime = parseDatetimeLocalValue(e.currentTarget.value)
                 markOverridden('timing')
               }}
-              placeholder={timestampToDatetimeLocal(settings.defaults.startTime)}
+              placeholder={formatDatetimeLocalValue(settings.defaults.startTime)}
             />
             {#if overrides.timing}
               <Field.Hint>
-                Config default: {formatTimestamp(settings.defaults.startTime)}
+                Config default: {formatDatetimeLocalValue(settings.defaults.startTime) || 'unset'}
               </Field.Hint>
             {/if}
           </Field.Field>
@@ -386,15 +368,17 @@
             <Field.Label>CTF end</Field.Label>
             <Input
               type="datetime-local"
-              value={timestampToDatetimeLocal(endTime)}
+              value={formatDatetimeLocalValue(endTime)}
               onchange={e => {
-                endTime = datetimeLocalToTimestamp(e.currentTarget.value)
+                endTime = parseDatetimeLocalValue(e.currentTarget.value)
                 markOverridden('timing')
               }}
-              placeholder={timestampToDatetimeLocal(settings.defaults.endTime)}
+              placeholder={formatDatetimeLocalValue(settings.defaults.endTime)}
             />
             {#if overrides.timing}
-              <Field.Hint>Config default: {formatTimestamp(settings.defaults.endTime)}</Field.Hint>
+              <Field.Hint>
+                Config default: {formatDatetimeLocalValue(settings.defaults.endTime) || 'unset'}
+              </Field.Hint>
             {/if}
           </Field.Field>
         </Section.Content>
