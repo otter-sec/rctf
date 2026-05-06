@@ -40,7 +40,12 @@
     useInfiniteAdminUsers,
     useUpdateAdminUserMutation,
   } from '$lib/query'
-  import { formatLocalTime, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
+  import {
+    copyToClipboard,
+    formatLocalTime,
+    hasPermissions,
+    useInfiniteVirtualScroll,
+  } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
 
@@ -104,10 +109,9 @@
       {
         onSuccess: async response => {
           if (response.kind === GoodCreateUserTokenV2.kind) {
-            try {
-              await navigator.clipboard.writeText(response.data.token)
+            if (await copyToClipboard(response.data.token)) {
               toast.success(`Token copied for ${team.name}`)
-            } catch {
+            } else {
               toast.error('Failed to copy token')
             }
           } else {
@@ -124,10 +128,9 @@
   }
 
   async function copyToken(token: string) {
-    try {
-      await navigator.clipboard.writeText(token)
+    if (await copyToClipboard(token)) {
       toast.success('Token copied to clipboard')
-    } catch {
+    } else {
       toast.error('Failed to copy token')
     }
   }

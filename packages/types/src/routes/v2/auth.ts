@@ -6,6 +6,7 @@ import {
   BadCompetitionNotAllowed,
   BadCtftimeToken,
   BadEmail,
+  BadEmailChangeDivision,
   BadEndpoint,
   BadKnownCtftimeId,
   BadKnownEmail,
@@ -14,7 +15,10 @@ import {
   BadRegistrationsDisabled,
   BadTokenVerification,
   BadUnknownEmail,
-  GoodRegister,
+  BadUnknownUser,
+  GoodEmailSet,
+  GoodRegisterV2,
+  GoodVerify,
   GoodVerifyInfo,
   GoodVerifySent,
 } from '../../responses'
@@ -42,7 +46,7 @@ export const RegisterRouteV2 = defineRoute({
         }
       })
     ),
-  goodResponses: [GoodVerifySent, GoodRegister],
+  goodResponses: [GoodVerifySent, GoodRegisterV2],
   badResponses: [
     BadCompetitionNotAllowed,
     BadCtftimeToken,
@@ -54,6 +58,24 @@ export const RegisterRouteV2 = defineRoute({
     BadRegistrationsDisabled,
     BadCaptcha,
     BadEndpoint,
+  ],
+  authRequired: false,
+})
+
+export const VerifyRouteV2 = defineRoute({
+  path: '/v2/auth/verify',
+  method: 'POST',
+  body: z.object({
+    verifyToken: z.string(),
+  }),
+  goodResponses: [GoodVerify, GoodEmailSet, GoodRegisterV2],
+  badResponses: [
+    BadTokenVerification,
+    BadEmailChangeDivision,
+    BadKnownCtftimeId,
+    BadKnownEmail,
+    BadKnownName,
+    BadUnknownUser,
   ],
   authRequired: false,
 })

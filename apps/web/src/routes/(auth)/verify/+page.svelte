@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GoodEmailSet, GoodRegister, GoodVerify } from '@rctf/types'
+  import { GoodEmailSet, GoodRegisterV2, GoodVerify } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
@@ -7,6 +7,7 @@
   import { Button, Card, Spinner } from '$lib/components'
   import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
   import { toast } from 'svelte-sonner'
+  import TeamTokenCard from '../team-token-card.svelte'
 
   const queryClient = useQueryClient()
   const verifyMutation = useVerifyMutation()
@@ -21,6 +22,8 @@
   let error = $state<string | null>(null)
   let emailSet = $state(false)
   let verified = $state(false)
+  let registeredTeamToken = $state<string | null>(null)
+  let registeredLoginUrl = $state<string | null>(null)
 
   const title = $derived.by(() => {
     if (!verifyInfo) return 'Verify email'
@@ -58,7 +61,13 @@
       { verifyToken },
       {
         onSuccess: response => {
-          if (response.kind === GoodVerify.kind || response.kind === GoodRegister.kind) {
+          if (response.kind === GoodRegisterV2.kind) {
+            setToken(response.data.authToken)
+            registeredTeamToken = response.data.teamToken
+            registeredLoginUrl = `${window.location.origin}/login?token=${encodeURIComponent(response.data.teamToken)}`
+            toast.success('Verified successfully!')
+            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+          } else if (response.kind === GoodVerify.kind) {
             setToken(response.data.authToken)
             verified = true
             toast.success('Verified successfully!')
@@ -86,7 +95,9 @@
   {/if}
 </svelte:head>
 
-{#if emailSet}
+{#if registeredTeamToken && registeredLoginUrl}
+  <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
+{:else if emailSet}
   <Card.Root>
     <Card.Header>
       <Card.Title class="text-xl">Email verified</Card.Title>

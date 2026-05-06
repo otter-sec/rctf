@@ -9,6 +9,7 @@ import type {
   BadKnownName,
   BadRegistrationsDisabled,
   GoodRegister,
+  GoodRegisterV2,
   GoodVerifySent,
   ResponseHelpers,
 } from '@rctf/types'
@@ -17,7 +18,12 @@ import type { TypedRedis } from '../cache/scripts'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
 import { sendVerificationEmail } from './emails'
-import { createUser, getUserByEmail, getUserByNameOrEmail } from './users'
+import {
+  createUser,
+  createUserV2,
+  getUserByEmail,
+  getUserByNameOrEmail,
+} from './users'
 
 type RegisterResponseHelpers = ResponseHelpers<
   [
@@ -33,22 +39,41 @@ type RegisterResponseHelpers = ResponseHelpers<
   ]
 >
 
+type RegisterV2ResponseHelpers = ResponseHelpers<
+  [
+    typeof BadRegistrationsDisabled,
+    typeof BadEndpoint,
+    typeof BadCompetitionNotAllowed,
+    typeof BadKnownName,
+    typeof BadKnownEmail,
+    typeof BadKnownCtftimeId,
+    typeof GoodVerifySent,
+    typeof BadCtftimeToken,
+    typeof GoodRegisterV2,
+  ]
+>
+
 type RecoverResponseHelpers = ResponseHelpers<
   [typeof BadEndpoint, typeof GoodVerifySent]
 >
 
-export const registerUser = async (
-  res: RegisterResponseHelpers,
+type RegisterUserBody = {
+  email?: string
+  name: string
+  ctftimeToken?: string
+}
+
+const registerUserInternal = async (
+  res: RegisterResponseHelpers | RegisterV2ResponseHelpers,
   db: DatabaseClient,
   redis: TypedRedis,
-  body: {
-    email?: string
-    name: string
-    ctftimeToken?: string
-  }
-): Promise<
-  ReturnType<RegisterResponseHelpers[keyof RegisterResponseHelpers]>
-> => {
+  body: RegisterUserBody,
+  create: (
+    res: any,
+    db: DatabaseClient,
+    user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
+  ) => Promise<any>
+): Promise<any> => {
   if (!config.registrationsEnabled) {
     return res.badRegistrationsDisabled()
   }
@@ -114,7 +139,29 @@ export const registerUser = async (
   }
 
   // Registration without any verification, or if ctftime token was successfully resolved:
-  return await createUser(res, db, userToCreate)
+  return await create(res, db, userToCreate)
+}
+
+export const registerUser = async (
+  res: RegisterResponseHelpers,
+  db: DatabaseClient,
+  redis: TypedRedis,
+  body: RegisterUserBody
+): Promise<
+  ReturnType<RegisterResponseHelpers[keyof RegisterResponseHelpers]>
+> => {
+  return await registerUserInternal(res, db, redis, body, createUser)
+}
+
+export const registerUserV2 = async (
+  res: RegisterV2ResponseHelpers,
+  db: DatabaseClient,
+  redis: TypedRedis,
+  body: RegisterUserBody
+): Promise<
+  ReturnType<RegisterV2ResponseHelpers[keyof RegisterV2ResponseHelpers]>
+> => {
+  return await registerUserInternal(res, db, redis, body, createUserV2)
 }
 
 export const recoverUser = async (

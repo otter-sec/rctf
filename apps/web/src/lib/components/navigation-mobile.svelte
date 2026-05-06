@@ -20,6 +20,7 @@
     IconX,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
+  import { copyToClipboard } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
@@ -44,11 +45,14 @@
     open = false
   }
 
-  function copyLoginUrl() {
+  async function copyLoginUrl() {
     if (user?.teamToken) {
       const url = `${window.location.origin}/login?token=${encodeURIComponent(user.teamToken)}`
-      navigator.clipboard.writeText(url)
-      toast.success('Login URL copied to clipboard!')
+      if (await copyToClipboard(url)) {
+        toast.success('Login URL copied to clipboard!')
+      } else {
+        toast.error('Failed to copy login URL')
+      }
     }
   }
 

@@ -40,5 +40,6 @@ describe('profile', () => {
 
     const body = await expectResponse(res, GoodUserSelfData)
     expect(body.data.name).toBe(testUser.name)
+    expect(typeof body.data.teamToken).toBe('string')
   })
 })

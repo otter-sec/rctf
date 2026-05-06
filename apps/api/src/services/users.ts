@@ -16,6 +16,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   GoodRegister,
+  GoodRegisterV2,
 } from '@rctf/types'
 import { asc, count, eq, or, sql } from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
@@ -29,6 +30,15 @@ type CreateUserResponseHelpers = ResponseHelpers<
     typeof BadKnownEmail,
     typeof BadKnownName,
     typeof GoodRegister,
+  ]
+>
+
+type CreateUserV2ResponseHelpers = ResponseHelpers<
+  [
+    typeof BadKnownCtftimeId,
+    typeof BadKnownEmail,
+    typeof BadKnownName,
+    typeof GoodRegisterV2,
   ]
 >
 
@@ -53,13 +63,17 @@ type DeleteCtftimeIdResponseHelpers = ResponseHelpers<
   [typeof GoodCtftimeRemoved, typeof BadUnknownUser, typeof BadZeroAuth]
 >
 
-export const createUser = async (
-  res: CreateUserResponseHelpers,
+type CreateUserResult =
+  | { success: true; userId: string }
+  | {
+      success: false
+      error: 'badKnownCtftimeId' | 'badKnownEmail' | 'badKnownName'
+    }
+
+const createUserInternal = async (
   db: DatabaseClient,
   user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
-): Promise<
-  ReturnType<CreateUserResponseHelpers[keyof CreateUserResponseHelpers]>
-> => {
+): Promise<CreateUserResult> => {
   let created
 
   try {
@@ -78,19 +92,57 @@ export const createUser = async (
   } catch (error) {
     const contraintName = getErrorConstraint(error)
     if (contraintName === 'users_ctftime_id_key') {
-      return res.badKnownCtftimeId()
+      return { success: false, error: 'badKnownCtftimeId' }
     }
     if (contraintName === 'users_email_key') {
-      return res.badKnownEmail()
+      return { success: false, error: 'badKnownEmail' }
     }
     if (contraintName === 'users_name_key') {
-      return res.badKnownName()
+      return { success: false, error: 'badKnownName' }
     }
     throw error
   }
 
-  const authToken = await createToken(TokenKind.Auth, created.id)
+  return { success: true, userId: created.id }
+}
+
+export const createUser = async (
+  res: CreateUserResponseHelpers,
+  db: DatabaseClient,
+  user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
+): Promise<
+  ReturnType<CreateUserResponseHelpers[keyof CreateUserResponseHelpers]>
+> => {
+  const result = await createUserInternal(db, user)
+  if (!result.success) {
+    if (result.error === 'badKnownCtftimeId') return res.badKnownCtftimeId()
+    if (result.error === 'badKnownEmail') return res.badKnownEmail()
+    return res.badKnownName()
+  }
+
+  const authToken = await createToken(TokenKind.Auth, result.userId)
   return res.goodRegister({ authToken })
+}
+
+export const createUserV2 = async (
+  res: CreateUserV2ResponseHelpers,
+  db: DatabaseClient,
+  user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
+): Promise<
+  ReturnType<CreateUserV2ResponseHelpers[keyof CreateUserV2ResponseHelpers]>
+> => {
+  const result = await createUserInternal(db, user)
+  if (!result.success) {
+    if (result.error === 'badKnownCtftimeId') return res.badKnownCtftimeId()
+    if (result.error === 'badKnownEmail') return res.badKnownEmail()
+    return res.badKnownName()
+  }
+
+  const [authToken, teamToken] = await Promise.all([
+    createToken(TokenKind.Auth, result.userId),
+    createToken(TokenKind.Team, result.userId),
+  ])
+  return res.goodRegister({ authToken, teamToken })
 }
 
 export type UpdateUserResult =

@@ -5,6 +5,7 @@ import {
   BadKnownName,
   BadRegistrationsDisabled,
   GoodRegister,
+  GoodRegisterV2,
   GoodToken,
   GoodUserUpdate,
   GoodVerifySent,
@@ -73,6 +74,7 @@ describe('auth', () => {
 
     const body = await expectResponse(res, GoodRegister)
     expect(typeof body.data.authToken).toBe('string')
+    expect('teamToken' in body.data).toBe(false)
 
     // Test the token works
     res = await request(app, '/api/v1/auth/test', {
@@ -83,6 +85,34 @@ describe('auth', () => {
     })
 
     await expectResponse(res, GoodToken)
+  })
+
+  test('v2 register returns team token', async () => {
+    config.email = undefined
+    const v2User = generateTestUser()
+
+    try {
+      let res = await request(app, '/api/v2/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v2User),
+      })
+
+      const body = await expectResponse(res, GoodRegisterV2)
+      expect(typeof body.data.authToken).toBe('string')
+      expect(typeof body.data.teamToken).toBe('string')
+
+      res = await request(app, '/api/v1/auth/test', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${body.data.authToken}`,
+        },
+      })
+
+      await expectResponse(res, GoodToken)
+    } finally {
+      await deleteUserByEmail(v2User.email)
+    }
   })
 
   test('duplicate email fails with badKnownEmail', async () => {
