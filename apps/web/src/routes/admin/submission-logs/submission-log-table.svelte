@@ -759,7 +759,6 @@
       if (checked !== selected) toggleDivision(division)
     }}
   >
-    <IconShieldFilled class="size-4" />
     <span class="min-w-0 truncate text-sm">{division.label}</span>
   </DropdownMenu.CheckboxItem>
 {/snippet}

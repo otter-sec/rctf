@@ -12,11 +12,11 @@ export const KIND_FILTERS = [
 ] as const
 export const RESULT_FILTERS = [
   SubmissionLogResult.CORRECT,
-  SubmissionLogResult.INCORRECT,
+  SubmissionLogResult.QUEUED,
   SubmissionLogResult.RATE_LIMITED,
   SubmissionLogResult.ALREADY_SOLVED,
-  SubmissionLogResult.QUEUED,
   SubmissionLogResult.ACTIVE_JOB,
+  SubmissionLogResult.INCORRECT,
   SubmissionLogResult.INVALID_INPUT,
   SubmissionLogResult.BAD_INSTANCER_STATE,
 ] as const
