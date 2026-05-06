@@ -826,7 +826,7 @@
     onkeydown={event => event.stopPropagation()}
     onpointerdown={event => event.stopPropagation()}
   >
-    <label class="text-foreground-l2 flex h-8 cursor-pointer items-center gap-2 text-sm">
+    <label class="text-foreground-l2 flex cursor-pointer items-center gap-2 text-sm">
       <input
         type="checkbox"
         checked={filters.time.mode === 'relative'}
