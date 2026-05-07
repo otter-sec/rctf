@@ -1,7 +1,7 @@
 <script lang="ts">
   import {
     GoodLogin,
-    GoodRegister,
+    GoodRegisterV2,
     GoodVerifySent,
     ProtectedAction,
     RegisterRouteV2,
@@ -16,6 +16,7 @@
   import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
   import ButtonCtftime from '../button-ctftime.svelte'
+  import TeamTokenCard from '../team-token-card.svelte'
 
   const queryClient = useQueryClient()
   const loginMutation = useLoginMutation()
@@ -27,11 +28,13 @@
   let verifySent = $state(false)
   let ctftimeToken = $state<string | null>(null)
   let ctftimeName = $state<string | null>(null)
+  let registeredTeamToken = $state<string | null>(null)
+  let registeredLoginUrl = $state<string | null>(null)
 
   const form = useApiForm(RegisterRouteV2, {
     onSuccess: res => {
-      if (res.kind === GoodRegister.kind) {
-        handleRegisterSuccess(res.data.authToken)
+      if (res.kind === GoodRegisterV2.kind) {
+        handleRegisterSuccess(res.data.authToken, res.data.teamToken)
       } else if (res.kind === GoodVerifySent.kind) {
         verifySent = true
       }
@@ -53,11 +56,16 @@
     }
   })
 
-  function handleRegisterSuccess(authToken: string) {
+  function buildLoginUrl(teamToken: string) {
+    return `${window.location.origin}/login?token=${encodeURIComponent(teamToken)}`
+  }
+
+  function handleRegisterSuccess(authToken: string, teamToken: string) {
     setToken(authToken)
+    registeredTeamToken = teamToken
+    registeredLoginUrl = buildLoginUrl(teamToken)
     toast.success('Account created successfully!')
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-    goto('/')
   }
 
   function handleSubmit(e: SubmitEvent) {
@@ -115,7 +123,9 @@
 {#if clientConfig && isArchived}
   <ArchivedNotice message="Registration is not available." />
 {:else if clientConfig}
-  {#if verifySent}
+  {#if registeredTeamToken && registeredLoginUrl}
+    <TeamTokenCard teamToken={registeredTeamToken} loginUrl={registeredLoginUrl} />
+  {:else if verifySent}
     <Card.Root>
       <Card.Header>
         <Card.Title class="text-xl">Verification email sent</Card.Title>
