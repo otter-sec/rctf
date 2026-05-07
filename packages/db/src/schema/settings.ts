@@ -10,6 +10,8 @@ export interface EditableSponsor {
 export interface EditableSettings {
   ctfName?: string
   homeContent?: string
+  startTime?: number
+  endTime?: number
   sponsors?: EditableSponsor[]
   meta?: {
     description?: string

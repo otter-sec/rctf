@@ -1,7 +1,6 @@
 import { config } from '@rctf/config'
 import { createDatabase, settings } from '@rctf/db'
 import {
-  BadBody,
   BadPerms,
   BadToken,
   GoodAdminSettings,
@@ -142,6 +141,8 @@ describe('admin settings', () => {
       const body = await expectResponse(res, GoodAdminSettings)
       expect(body.data.defaults.ctfName).toBe(config.ctfName)
       expect(body.data.defaults.homeContent).toBe(config.homeContent)
+      expect(body.data.defaults.startTime).toBe(config.startTime)
+      expect(body.data.defaults.endTime).toBe(config.endTime)
       expect(body.data.defaults.faviconUrl).toBe(config.faviconUrl)
       expect(body.data.defaults.meta).toEqual(config.meta)
       expect(body.data.defaults.sponsors).toEqual(config.sponsors)
@@ -211,6 +212,19 @@ describe('admin settings', () => {
       })
       const body = await expectResponse(res, GoodAdminSettingsUpdate)
       expect(body.data.overrides.homeContent).toBe('# Custom Home')
+    })
+
+    test('sets competition timing overrides', async () => {
+      const startTime = Date.now() + 60_000
+      const endTime = startTime + 3_600_000
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.startTime).toBe(startTime)
+      expect(body.data.overrides.endTime).toBe(endTime)
     })
 
     test('sets faviconUrl override', async () => {
@@ -287,6 +301,8 @@ describe('admin settings', () => {
       const allFields = {
         ctfName: 'All',
         homeContent: '# All',
+        startTime: config.startTime + 1000,
+        endTime: config.endTime - 1000,
         faviconUrl: 'all.ico',
         meta: { description: 'All desc', imageUrl: 'all.png' },
         sponsors: [
@@ -338,6 +354,28 @@ describe('admin settings', () => {
       expect(body.data.overrides.ctfName).toBeUndefined()
       expect(body.data.overrides.homeContent).toBeUndefined()
       expect(body.data.overrides.faviconUrl).toBeUndefined()
+    })
+
+    test('resets competition timing to defaults', async () => {
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({
+          data: {
+            startTime: config.startTime + 1000,
+            endTime: config.endTime - 1000,
+          },
+        }),
+      })
+
+      const res = await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime: null, endTime: null } }),
+      })
+      const body = await expectResponse(res, GoodAdminSettingsUpdate)
+      expect(body.data.overrides.startTime).toBeUndefined()
+      expect(body.data.overrides.endTime).toBeUndefined()
     })
 
     test('reset does not affect other overridden fields', async () => {
@@ -544,6 +582,31 @@ describe('admin settings', () => {
       })
       const body = await expectResponse(res, GoodClientConfigV2)
       expect(body.data.homeContent).toBe('# Override Home')
+    })
+
+    test('v2 client config uses DB overrides for competition timing', async () => {
+      const startTime = config.startTime + 12_345
+      const endTime = config.endTime - 54_321
+
+      const before = await request(app, '/api/v2/integrations/client/config', {
+        method: 'GET',
+      })
+      const beforeBody = await expectResponse(before, GoodClientConfigV2)
+      expect(beforeBody.data.startTime).toBe(config.startTime)
+      expect(beforeBody.data.endTime).toBe(config.endTime)
+
+      await request(app, '/api/v2/admin/settings', {
+        method: 'PUT',
+        headers: await jsonHeaders(settingsAdmin.user.id),
+        body: JSON.stringify({ data: { startTime, endTime } }),
+      })
+
+      const res = await request(app, '/api/v2/integrations/client/config', {
+        method: 'GET',
+      })
+      const body = await expectResponse(res, GoodClientConfigV2)
+      expect(body.data.startTime).toBe(startTime)
+      expect(body.data.endTime).toBe(endTime)
     })
 
     test('v2 client config uses DB overrides for sponsors', async () => {

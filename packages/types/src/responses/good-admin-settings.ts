@@ -4,6 +4,8 @@ import { response } from '../internal'
 export const AdminSettingsSchema = z.object({
   ctfName: z.optional(z.string()),
   homeContent: z.optional(z.string()),
+  startTime: z.optional(z.int()),
+  endTime: z.optional(z.int()),
   sponsors: z.optional(
     z.array(
       z.object({

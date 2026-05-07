@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { GoodFilesUploadV2 } from '@rctf/types'
+  import {
+    GoodAdminSettingsUpdate,
+    GoodFilesUploadV2,
+    UpdateAdminSettingsRouteV2,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError } from '$lib/api'
+  import { showApiError, type InlineArgs } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
@@ -26,6 +30,8 @@
   } from '$lib/query'
   import { cn } from '$lib/utils'
   import { toast } from 'svelte-sonner'
+
+  type SettingsPatch = InlineArgs<typeof UpdateAdminSettingsRouteV2>['data']
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()
@@ -70,7 +76,32 @@
     input.value = ''
   }
 
+  function formatDatetimeLocalValue(timestamp: number | null | undefined): string {
+    if (timestamp === null || timestamp === undefined) {
+      return ''
+    }
+
+    const date = new Date(timestamp)
+    if (Number.isNaN(date.getTime())) {
+      return ''
+    }
+
+    const pad = (value: number) => value.toString().padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  }
+
+  function parseDatetimeLocalValue(value: string): number | null {
+    if (!value) {
+      return null
+    }
+
+    const timestamp = new Date(value).getTime()
+    return Number.isNaN(timestamp) ? null : timestamp
+  }
+
   let ctfName = $state('')
+  let startTime = $state<number | null>(null)
+  let endTime = $state<number | null>(null)
   let faviconUrl = $state('')
   let homeContent = $state('')
   let metaDescription = $state('')
@@ -88,6 +119,8 @@
       const d = settings.defaults
 
       ctfName = o.ctfName ?? d.ctfName ?? ''
+      startTime = o.startTime ?? d.startTime ?? null
+      endTime = o.endTime ?? d.endTime ?? null
       faviconUrl = o.faviconUrl ?? d.faviconUrl ?? ''
       homeContent = o.homeContent ?? d.homeContent ?? ''
       metaDescription = o.meta?.description ?? d.meta?.description ?? ''
@@ -105,6 +138,7 @@
 
       overrides = {
         ctfName: o.ctfName !== undefined,
+        timing: o.startTime !== undefined || o.endTime !== undefined,
         faviconUrl: o.faviconUrl !== undefined,
         homeContent: o.homeContent !== undefined,
         meta: o.meta !== undefined,
@@ -122,6 +156,10 @@
     switch (field) {
       case 'ctfName':
         ctfName = d.ctfName ?? ''
+        break
+      case 'timing':
+        startTime = d.startTime ?? null
+        endTime = d.endTime ?? null
         break
       case 'faviconUrl':
         faviconUrl = d.faviconUrl ?? ''
@@ -176,12 +214,28 @@
   const isSaving = $derived(mutation.isPending)
 
   async function handleSave() {
-    const patch: Record<string, unknown> = {}
+    const patch: SettingsPatch = {}
 
     if (overrides.ctfName) {
       patch.ctfName = ctfName
     } else if (settings?.overrides.ctfName !== undefined) {
       patch.ctfName = null
+    }
+
+    if (overrides.timing) {
+      if (startTime === null || endTime === null) {
+        toast.error('Start and end time are required.')
+        return
+      }
+      if (startTime >= endTime) {
+        toast.error('Start time must be before end time.')
+        return
+      }
+      patch.startTime = startTime
+      patch.endTime = endTime
+    } else {
+      if (settings?.overrides.startTime !== undefined) patch.startTime = null
+      if (settings?.overrides.endTime !== undefined) patch.endTime = null
     }
 
     if (overrides.faviconUrl) {
@@ -226,20 +280,23 @@
       return
     }
 
-    mutation.mutate({ data: patch } as any, {
-      onSuccess: (response: { kind: string; message: string; data?: unknown }) => {
-        if (response.kind === 'goodAdminSettingsUpdate') {
-          toast.success('Settings saved.')
-          queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
-          queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
-        } else {
-          showApiError(response as any)
-        }
-      },
-      onError: () => {
-        toast.error('Failed to save settings.')
-      },
-    })
+    mutation.mutate(
+      { data: patch },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminSettingsUpdate.kind) {
+            toast.success('Settings saved.')
+            queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
+            queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
+          } else {
+            showApiError(response)
+          }
+        },
+        onError: () => {
+          toast.error('Failed to save settings.')
+        },
+      }
+    )
   }
 </script>
 
@@ -304,6 +361,49 @@
             />
             {#if overrides.faviconUrl}
               <Field.Hint>Config default: {settings.defaults.faviconUrl}</Field.Hint>
+            {/if}
+          </Field.Field>
+        </Section.Content>
+      </Section.Root>
+
+      <Section.Root class="bg-background-l1">
+        <Section.Header class="flex items-center justify-between">
+          <span>Timing</span>
+          {@render resetButton('timing')}
+        </Section.Header>
+        <Section.Content class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Field.Field>
+            <Field.Label>CTF start (local time)</Field.Label>
+            <Input
+              type="datetime-local"
+              value={formatDatetimeLocalValue(startTime)}
+              onchange={e => {
+                startTime = parseDatetimeLocalValue(e.currentTarget.value)
+                markOverridden('timing')
+              }}
+              placeholder={formatDatetimeLocalValue(settings.defaults.startTime)}
+            />
+            {#if overrides.timing}
+              <Field.Hint>
+                Config default: {formatDatetimeLocalValue(settings.defaults.startTime) || 'unset'}
+              </Field.Hint>
+            {/if}
+          </Field.Field>
+          <Field.Field>
+            <Field.Label>CTF end (local time)</Field.Label>
+            <Input
+              type="datetime-local"
+              value={formatDatetimeLocalValue(endTime)}
+              onchange={e => {
+                endTime = parseDatetimeLocalValue(e.currentTarget.value)
+                markOverridden('timing')
+              }}
+              placeholder={formatDatetimeLocalValue(settings.defaults.endTime)}
+            />
+            {#if overrides.timing}
+              <Field.Hint>
+                Config default: {formatDatetimeLocalValue(settings.defaults.endTime) || 'unset'}
+              </Field.Hint>
             {/if}
           </Field.Field>
         </Section.Content>
