@@ -1,6 +1,10 @@
 import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
+  AdminTeamSortBy,
+  AdminTeamSortOrder,
+  AdminTeamStatus,
+  BadBody,
   GoodAdminUsersV2,
   GoodLeaderboardV2,
   GoodLeaderboardWithGraph,
@@ -46,6 +50,8 @@ let challengeId: string
 let challengeFlag: string
 let challengeCleanup: () => Promise<void>
 let adminToken: string
+let adminName: string
+let alphaTeamEmail: string
 
 const createNamedUser = async (
   name: string,
@@ -85,6 +91,15 @@ const submitFlag = async (userId: string) => {
   )
 }
 
+const adminUsersUrl = (query: Record<string, string | number>): string => {
+  const params = new URLSearchParams({ limit: '100', offset: '0' })
+  for (const [key, value] of Object.entries(query)) {
+    params.set(key, String(value))
+  }
+
+  return `/api/v2/admin/users?${params.toString()}`
+}
+
 beforeAll(async () => {
   app = await getApp()
 
@@ -99,6 +114,9 @@ beforeAll(async () => {
   await createNamedUser('DeltaForce')
   const alphaTeem = await createNamedUser('AlphaTeem')
   await createNamedUser('Zeta')
+  await createNamedUser('CollegeCrew', 'college')
+  const bannedTeam = await createNamedUser('BannedTeam')
+  alphaTeamEmail = alphaTeam.email
 
   const ch2 = await generateChallenge()
 
@@ -123,18 +141,24 @@ beforeAll(async () => {
   await recomputeLeaderboard()
 
   const db = getDb()
+  await db
+    .update(users)
+    .set({ banned: true })
+    .where(eq(users.id, bannedTeam.id))
+
   const adminId = crypto.randomUUID()
   const adminEmail = `admin-${crypto.randomUUID()}@test.com`
+  adminName = `Admin-${crypto.randomUUID()}`
   await db.insert(users).values({
     id: adminId,
-    name: `Admin-${crypto.randomUUID()}`,
+    name: adminName,
     email: adminEmail,
     division: Object.keys(config.divisions)[0]!,
     perms: Permissions.usersWrite,
   })
   testUsers.push({
     id: adminId,
-    name: 'admin',
+    name: adminName,
     email: adminEmail,
     division: Object.keys(config.divisions)[0]!,
   })
@@ -401,6 +425,21 @@ describe('admin users search', () => {
     expect(names).toContain('AlphaTeam')
   })
 
+  test('search matches email', async () => {
+    const res = await request(
+      app,
+      adminUsersUrl({ search: alphaTeamEmail.toUpperCase() }),
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+    expect(names).toEqual(['AlphaTeam'])
+    expect(body.data.total).toBe(1)
+  })
+
   test('search with no results returns empty list', async () => {
     const res = await request(
       app,
@@ -438,6 +477,176 @@ describe('admin users search', () => {
 
     expect(bodySearch.data.total).toBeLessThan(bodyAll.data.total)
     expect(bodySearch.data.total).toBe(bodySearch.data.users.length)
+  })
+
+  test('sorts by score descending', async () => {
+    const res = await request(
+      app,
+      adminUsersUrl({
+        sortBy: AdminTeamSortBy.SCORE,
+        sortOrder: AdminTeamSortOrder.DESC,
+      }),
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+    const alphaTeamIdx = names.indexOf('AlphaTeam')
+    const betaTeamIdx = names.indexOf('BetaTeam')
+
+    expect(alphaTeamIdx).toBeGreaterThanOrEqual(0)
+    expect(betaTeamIdx).toBeGreaterThanOrEqual(0)
+    expect(alphaTeamIdx).toBeLessThan(betaTeamIdx)
+  })
+
+  test('sorts by team name when search is present', async () => {
+    const ascRes = await request(
+      app,
+      adminUsersUrl({
+        search: 'Alpha',
+        sortBy: AdminTeamSortBy.TEAM,
+        sortOrder: AdminTeamSortOrder.ASC,
+      }),
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const ascBody = await expectResponse(ascRes, GoodAdminUsersV2)
+    expect(ascBody.data.users.map((u: any) => u.name)).toEqual([
+      'AlphaTeam',
+      'AlphaTeem',
+    ])
+
+    const descRes = await request(
+      app,
+      adminUsersUrl({
+        search: 'Alpha',
+        sortBy: AdminTeamSortBy.TEAM,
+        sortOrder: AdminTeamSortOrder.DESC,
+      }),
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const descBody = await expectResponse(descRes, GoodAdminUsersV2)
+    expect(descBody.data.users.map((u: any) => u.name)).toEqual([
+      'AlphaTeem',
+      'AlphaTeam',
+    ])
+  })
+
+  test('filters by division', async () => {
+    const res = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&divisions=college',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+
+    expect(names).toContain('CollegeCrew')
+    expect(body.data.users.every((u: any) => u.division === 'college')).toBe(
+      true
+    )
+  })
+
+  test('excludes divisions', async () => {
+    const res = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&search=College&excludeDivisions=college',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    expect(body.data.users).toHaveLength(0)
+    expect(body.data.total).toBe(0)
+  })
+
+  test('filters by status', async () => {
+    const bannedRes = await request(
+      app,
+      `/api/v2/admin/users?limit=100&offset=0&search=BannedTeam&statuses=${AdminTeamStatus.BANNED}`,
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const bannedBody = await expectResponse(bannedRes, GoodAdminUsersV2)
+    expect(bannedBody.data.users.map((u: any) => u.name)).toEqual([
+      'BannedTeam',
+    ])
+    expect(bannedBody.data.users.every((u: any) => u.banned)).toBe(true)
+
+    const adminRes = await request(
+      app,
+      `/api/v2/admin/users?limit=100&offset=0&search=Admin&statuses=${AdminTeamStatus.ADMIN}`,
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const adminBody = await expectResponse(adminRes, GoodAdminUsersV2)
+    const names = adminBody.data.users.map((u: any) => u.name)
+    expect(names).toContain(adminName)
+    expect(adminBody.data.users.every((u: any) => u.perms > 0)).toBe(true)
+  })
+
+  test('excludes statuses', async () => {
+    const res = await request(
+      app,
+      adminUsersUrl({
+        search: 'BannedTeam',
+        excludeStatuses: AdminTeamStatus.BANNED,
+      }),
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    expect(body.data.users).toHaveLength(0)
+    expect(body.data.total).toBe(0)
+  })
+
+  test('rejects invalid filters', async () => {
+    const invalidDivisionRes = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&divisions=nope',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    await expectResponse(invalidDivisionRes, BadBody)
+
+    const invalidStatusRes = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&statuses=nope',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    await expectResponse(invalidStatusRes, BadBody)
+
+    const invalidSortRes = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&sortBy=nope',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    await expectResponse(invalidSortRes, BadBody)
   })
 
   test('pagination with search works', async () => {

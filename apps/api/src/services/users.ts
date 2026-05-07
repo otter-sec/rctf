@@ -2,6 +2,9 @@ import type { DatabaseClient, User } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
+  AdminTeamSortBy,
+  AdminTeamSortOrder,
+  AdminTeamStatus,
   BadEmailNoExists,
   BadUnknownUser,
   BadZeroAuth,
@@ -12,12 +15,26 @@ import type {
   ResponseHelpers,
 } from '@rctf/types'
 import {
+  AdminTeamSortBy as AdminTeamSortByValue,
+  AdminTeamSortOrder as AdminTeamSortOrderValue,
+  AdminTeamStatus as AdminTeamStatusValue,
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
   GoodRegister,
 } from '@rctf/types'
-import { asc, count, eq, or, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  notInArray,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
@@ -384,15 +401,106 @@ export type AdminUserDetails = AdminUserInfo & {
 export const userNameSearchFilter = (search: string) =>
   sql`(${users.name} % ${search} OR ${search} <% ${users.name})`
 
+export type AdminUsersQuery = {
+  limit: number
+  offset: number
+  search?: string
+  sortBy?: AdminTeamSortBy
+  sortOrder?: AdminTeamSortOrder
+  statuses?: AdminTeamStatus[]
+  excludeStatuses?: AdminTeamStatus[]
+  divisions?: string[]
+  excludeDivisions?: string[]
+}
+
+const adminTeamStatusExpression = sql<AdminTeamStatus>`
+  CASE
+    WHEN ${users.perms} > 0 THEN ${AdminTeamStatusValue.ADMIN}
+    WHEN ${users.banned} THEN ${AdminTeamStatusValue.BANNED}
+    ELSE ${AdminTeamStatusValue.ACTIVE}
+  END
+`
+
+const adminUserSearchFilter = (search: string) => {
+  const emailSearch = `%${search.toLowerCase()}%`
+  return sql`(${userNameSearchFilter(search)} OR lower(${users.email}) like ${emailSearch})`
+}
+
+const adminUserFilters = ({
+  search,
+  statuses,
+  excludeStatuses,
+  divisions,
+  excludeDivisions,
+}: AdminUsersQuery): SQL | undefined => {
+  const filters: (SQL | undefined)[] = [
+    search ? adminUserSearchFilter(search) : undefined,
+  ]
+
+  if (statuses && statuses.length > 0) {
+    filters.push(inArray(adminTeamStatusExpression, statuses))
+  }
+
+  if (excludeStatuses && excludeStatuses.length > 0) {
+    filters.push(notInArray(adminTeamStatusExpression, excludeStatuses))
+  }
+
+  if (divisions && divisions.length > 0) {
+    filters.push(inArray(users.division, divisions))
+  }
+
+  if (excludeDivisions && excludeDivisions.length > 0) {
+    filters.push(notInArray(users.division, excludeDivisions))
+  }
+
+  return and(...filters)
+}
+
+const adminUserSortOrder = ({
+  search,
+  sortBy,
+  sortOrder,
+}: AdminUsersQuery): SQL[] => {
+  if (search && !sortBy) {
+    return [
+      sql`similarity(${users.name}, ${search}) DESC`,
+      asc(users.createdAt),
+    ]
+  }
+
+  const direction = sortOrder === AdminTeamSortOrderValue.DESC ? desc : asc
+  const solveCount = count(solves.id)
+
+  switch (sortBy ?? AdminTeamSortByValue.CREATED_AT) {
+    case AdminTeamSortByValue.TEAM:
+      return [direction(users.name), asc(users.createdAt), asc(users.id)]
+    case AdminTeamSortByValue.EMAIL:
+      return [direction(users.email), asc(users.createdAt), asc(users.id)]
+    case AdminTeamSortByValue.DIVISION:
+      return [direction(users.division), asc(users.createdAt), asc(users.id)]
+    case AdminTeamSortByValue.SCORE:
+      return [direction(users.score), asc(users.createdAt), asc(users.id)]
+    case AdminTeamSortByValue.SOLVES:
+      return [direction(solveCount), asc(users.createdAt), asc(users.id)]
+    case AdminTeamSortByValue.STATUS:
+      return [
+        direction(adminTeamStatusExpression),
+        asc(users.createdAt),
+        asc(users.id),
+      ]
+    case AdminTeamSortByValue.CREATED_AT:
+      return [direction(users.createdAt), direction(users.id)]
+  }
+}
+
 export const getAllUsersWithScores = async (
   db: DatabaseClient,
-  limit: number,
-  offset: number,
-  search?: string
+  params: AdminUsersQuery
 ): Promise<{ total: number; users: AdminUserInfo[] }> => {
-  const searchFilter = search ? userNameSearchFilter(search) : undefined
+  const filters = adminUserFilters(params)
+  const solveCount = count(solves.id)
   const [countResult, dbUsers] = await Promise.all([
-    db.select({ count: count() }).from(users).where(searchFilter),
+    db.select({ count: count() }).from(users).where(filters),
     db
       .select({
         id: users.id,
@@ -406,22 +514,15 @@ export const getAllUsersWithScores = async (
         countryCode: users.countryCode,
         statusText: users.statusText,
         createdAt: users.createdAt,
-        solveCount: count(solves.id),
+        solveCount,
       })
       .from(users)
       .leftJoin(solves, eq(users.id, solves.userid))
-      .where(searchFilter)
+      .where(filters)
       .groupBy(users.id)
-      .orderBy(
-        ...(search
-          ? [
-              sql`similarity(${users.name}, ${search}) DESC`,
-              asc(users.createdAt),
-            ]
-          : [asc(users.createdAt)])
-      )
-      .limit(limit)
-      .offset(offset),
+      .orderBy(...adminUserSortOrder(params))
+      .limit(params.limit)
+      .offset(params.offset),
   ])
 
   return {
