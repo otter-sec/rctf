@@ -9,6 +9,7 @@
   import {
     Avatar,
     Card,
+    Drawer,
     DropdownMenu,
     EmptyState,
     ScrollArea,
@@ -170,6 +171,7 @@
     key: string
     option: ValueFilterOption
   }
+  type MobileFilterId = ValueFilterId | 'time'
 
   const PAGE_SIZE = 100
   const ROW_HEIGHT = 48
@@ -325,6 +327,9 @@
   let expandedSubmissionId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
+  let innerWidth = $state(0)
+  let filterDrawerOpen = $state(false)
+  let mobileActiveFilterId = $state<MobileFilterId | null>(null)
 
   const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
   const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
@@ -429,6 +434,15 @@
   )
   const timeRangeError = $derived(timeRangeValidation.error)
   const timeRangeSummary = $derived(formatTimeRange())
+  const isMobileFilterMenu = $derived(innerWidth > 0 && innerWidth < 768)
+  const mobileActiveValueFilterFamily = $derived(
+    VALUE_FILTER_FAMILIES.find(family => family.id === mobileActiveFilterId) ?? null
+  )
+  const mobileDrawerTitle = $derived(
+    mobileActiveFilterId === 'time'
+      ? 'Time'
+      : (mobileActiveValueFilterFamily?.label ?? 'Filters')
+  )
 
   const submissionsQuery = useInfiniteAdminSubmissions(
     () => submissionFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
@@ -514,6 +528,26 @@
 
   function updateRootFilterSearch(value: string) {
     rootFilterSearch = value
+  }
+
+  function openMobileFilterDrawer() {
+    mobileActiveFilterId = null
+    filterDrawerOpen = true
+  }
+
+  function closeMobileFilterDrawer() {
+    filterDrawerOpen = false
+    mobileActiveFilterId = null
+  }
+
+  function mobileFilterSummary(family: ValueFilterFamily) {
+    const filter = valueFilter(family)
+    if (filter.selected.length === 0) return ''
+    if (filter.selected.length === 1) {
+      const selected = filter.selected[0]
+      if (selected) return family.optionView(selected as ValueFilterOption).textValue
+    }
+    return `${filter.selected.length} ${family.pluralLabel}`
   }
 
   function defineValueFilterFamily<T extends ValueFilterOption>(
@@ -1090,6 +1124,241 @@
   </DropdownMenu.Sub>
 {/snippet}
 
+{#snippet mobileSearchInput(value: string, placeholder: string, onInput: (value: string) => void)}
+  <div
+    class="bg-background-l2 text-foreground-l3 flex h-10 items-center gap-2 rounded-md border-2 px-3"
+  >
+    <IconSearch class="size-3.5 shrink-0" />
+    <input
+      type="text"
+      {placeholder}
+      {value}
+      oninput={event => onInput(event.currentTarget.value)}
+      class="placeholder:text-foreground-l4 text-foreground-l1 min-w-0 flex-1 bg-transparent text-sm outline-none"
+    />
+  </div>
+{/snippet}
+
+{#snippet mobileCheckbox(checked: boolean)}
+  <span
+    class={cn(
+      'border-foreground-l4/70 flex size-5 shrink-0 items-center justify-center rounded border-2',
+      checked && 'bg-foreground-l1 text-background-l0 border-foreground-l1'
+    )}
+  >
+    {#if checked}
+      <IconCheck class="size-3.5" />
+    {/if}
+  </span>
+{/snippet}
+
+{#snippet mobileFilterModeControls(family: ValueFilterFamily)}
+  {@const filter = valueFilter(family)}
+  <div class="flex shrink-0 items-center gap-1.5 border-b-2 px-4 py-2">
+    <button
+      type="button"
+      class={cn(
+        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 items-center rounded-md px-2 text-sm transition-colors',
+        filter.mode === 'include' && 'bg-background-l3 text-foreground-l1'
+      )}
+      onclick={() => setFilterMode(filter, 'include')}
+    >
+      {includeOperatorLabel(filter.selected.length)}
+    </button>
+    <button
+      type="button"
+      class={cn(
+        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 items-center rounded-md px-2 text-sm transition-colors',
+        filter.mode === 'exclude' && 'bg-background-l3 text-foreground-l1'
+      )}
+      onclick={() => setFilterMode(filter, 'exclude')}
+    >
+      is not
+    </button>
+    {#if filter.selected.length > 0}
+      <button
+        type="button"
+        class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 ml-auto flex h-8 items-center rounded-md px-2 text-sm transition-colors"
+        onclick={() => clearValueFilter(family)}
+      >
+        Clear
+      </button>
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet mobileValueFilterOption(family: ValueFilterFamily, option: ValueFilterOption)}
+  {@const view = family.optionView(option)}
+  {@const selected = family.optionSelected(option)}
+  <button
+    type="button"
+    aria-pressed={selected}
+    class="text-foreground-l2 hover:bg-background-l3 flex h-11 w-full min-w-0 items-center gap-3 rounded-md px-2 text-left transition-colors"
+    style={view.style}
+    onclick={() => family.toggleOption(option)}
+  >
+    {@render mobileCheckbox(selected)}
+    {#if view.avatar}
+      <Avatar.Root class="size-5 rounded-md">
+        {#if view.avatar.avatarUrl}
+          <Avatar.Image
+            src={view.avatar.avatarUrl}
+            alt={view.avatar.name}
+            class="rounded-md object-cover"
+          />
+        {/if}
+        <Avatar.Fallback class="rounded-md text-[9px]">
+          {getInitials(view.avatar.name)}
+        </Avatar.Fallback>
+      </Avatar.Root>
+    {/if}
+    {#if view.icon}
+      <view.icon
+        class={cn('size-4 shrink-0', view.iconTone === 'category' && 'text-category-foreground-l1')}
+      />
+    {/if}
+    {#if view.resultTone}
+      <span
+        class="size-1.5 shrink-0 rounded-full"
+        class:bg-foreground-success={view.resultTone === 'success'}
+        class:bg-foreground-yellow-l1={view.resultTone === 'warning'}
+        class:bg-foreground-destructive={view.resultTone === 'danger'}
+      ></span>
+    {/if}
+    <span class="min-w-0 flex-1 truncate text-sm">
+      {#each view.segments as segment}
+        <span
+          class:text-category-foreground-l1={segment.tone === 'categoryMuted'}
+          class:text-category-foreground-l0={segment.tone === 'category'}
+          class:text-foreground-success={segment.tone === 'result' && view.resultTone === 'success'}
+          class:text-foreground-yellow-l1={segment.tone === 'result' &&
+            view.resultTone === 'warning'}
+          class:text-foreground-destructive={segment.tone === 'result' &&
+            view.resultTone === 'danger'}
+        >
+          {segment.text}
+        </span>
+      {/each}
+    </span>
+  </button>
+{/snippet}
+
+{#snippet mobileValueFilterOptionList(family: ValueFilterFamily)}
+  {@const options = family.options()}
+  <div class="flex flex-col gap-1 p-2">
+    {#if family.loading?.()}
+      <div class="text-foreground-l3 flex items-center gap-2 px-2 py-8 text-sm">
+        <Spinner class="size-3.5" />
+        {family.loadingLabel}
+      </div>
+    {:else if options.length === 0}
+      <div class="text-foreground-l3 px-2 py-8 text-center text-sm">{family.emptyLabel}</div>
+    {:else}
+      {#each options as option (family.optionKey(option))}
+        {@render mobileValueFilterOption(family, option)}
+      {/each}
+    {/if}
+  </div>
+{/snippet}
+
+{#snippet mobileRootFilterRow(family: ValueFilterFamily)}
+  {@const summary = mobileFilterSummary(family)}
+  <button
+    type="button"
+    class="text-foreground-l2 hover:bg-background-l3 flex h-11 w-full items-center gap-3 rounded-md px-2 text-left transition-colors"
+    onclick={() => (mobileActiveFilterId = family.id)}
+  >
+    <family.icon class="text-foreground-l3 size-4 shrink-0" />
+    <span class="min-w-0 flex-1 truncate">{family.label}</span>
+    {#if summary}
+      <span class="text-foreground-l4 shrink-0 text-xs">{summary}</span>
+    {/if}
+    <IconChevronRight class="text-foreground-l4 size-4 shrink-0" />
+  </button>
+{/snippet}
+
+{#snippet mobileTimeFilterRow()}
+  <button
+    type="button"
+    class="text-foreground-l2 hover:bg-background-l3 flex h-11 w-full items-center gap-3 rounded-md px-2 text-left transition-colors"
+    onclick={() => (mobileActiveFilterId = 'time')}
+  >
+    <IconClockFilled class="text-foreground-l3 size-4 shrink-0" />
+    <span class="min-w-0 flex-1 truncate">Time</span>
+    {#if hasTimeRangeFilter(filters.time)}
+      <span class="text-foreground-l4 max-w-40 truncate text-xs">{timeRangeSummary}</span>
+    {/if}
+    <IconChevronRight class="text-foreground-l4 size-4 shrink-0" />
+  </button>
+{/snippet}
+
+{#snippet mobileFilterDrawerContent()}
+  {#if mobileActiveValueFilterFamily}
+    {#if mobileActiveValueFilterFamily.search}
+      <div class="border-b-2 px-4 py-3">
+        {@render mobileSearchInput(
+          mobileActiveValueFilterFamily.search.value(),
+          mobileActiveValueFilterFamily.search.placeholder,
+          mobileActiveValueFilterFamily.search.onInput
+        )}
+      </div>
+    {/if}
+    {@render mobileFilterModeControls(mobileActiveValueFilterFamily)}
+    <ScrollArea class="min-h-0 flex-1" fadeSize={32} fadeColor="background-l1">
+      {@render mobileValueFilterOptionList(mobileActiveValueFilterFamily)}
+    </ScrollArea>
+  {:else if mobileActiveFilterId === 'time'}
+    <ScrollArea class="min-h-0 flex-1" fadeSize={32} fadeColor="background-l1">
+      {@render timeRangeSelector()}
+    </ScrollArea>
+  {:else}
+    <ScrollArea class="min-h-0 flex-1" fadeSize={32} fadeColor="background-l1">
+      <div class="flex flex-col gap-1 p-2">
+        {#each VALUE_FILTER_FAMILIES as family (family.id)}
+          {@render mobileRootFilterRow(family)}
+        {/each}
+        {@render mobileTimeFilterRow()}
+      </div>
+    </ScrollArea>
+  {/if}
+{/snippet}
+
+{#snippet mobileFilterDrawer()}
+  <Drawer.Root bind:open={filterDrawerOpen}>
+    <Drawer.Content class="h-[min(38rem,85dvh)] overflow-hidden">
+      <Drawer.Header class="shrink-0 border-b-2 px-4 pt-4 pb-3">
+        <div class="flex items-center gap-2">
+          {#if mobileActiveFilterId}
+            <button
+              type="button"
+              aria-label="Back to filters"
+              class="text-foreground-l3 hover:bg-background-l3 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+              onclick={() => (mobileActiveFilterId = null)}
+            >
+              <IconChevronRight class="size-4 rotate-180" />
+            </button>
+          {/if}
+          <Drawer.Title class="min-w-0 flex-1 truncate text-base">
+            {mobileDrawerTitle}
+          </Drawer.Title>
+          <button
+            type="button"
+            aria-label="Close filters"
+            class="text-foreground-l3 hover:bg-background-l3 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md transition-colors"
+            onclick={closeMobileFilterDrawer}
+          >
+            <IconX class="size-4" />
+          </button>
+        </div>
+        <Drawer.Description class="sr-only">
+          Choose submission filters without opening nested menus.
+        </Drawer.Description>
+      </Drawer.Header>
+      {@render mobileFilterDrawerContent()}
+    </Drawer.Content>
+  </Drawer.Root>
+{/snippet}
+
 {#snippet rootFilterList()}
   <div class="p-1">
     {#each VALUE_FILTER_FAMILIES as family (family.id)}
@@ -1123,44 +1392,59 @@
 {/snippet}
 
 {#snippet filterMenu()}
-  <DropdownMenu.Root>
-    <DropdownMenu.Trigger
+  {#if isMobileFilterMenu}
+    <button
+      type="button"
       aria-label="Add filter"
       class={cn(
         'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
         hasFilters && 'text-foreground-accent'
       )}
+      onclick={openMobileFilterDrawer}
     >
       <IconFilter class="size-4" />
-    </DropdownMenu.Trigger>
-    <DropdownMenu.Content
-      align="start"
-      class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 overflow-hidden border-2 !p-0 shadow-xl"
-    >
-      {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
-      {#key rootFilterScrollKey}
-        {#if isRootFilterSearchActive}
-          <ScrollArea
-            class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-            fadeSize={28}
-            fadeColor="background-l4"
-            scrollbarYClasses="hidden"
-          >
-            {@render rootFilterSearchResults()}
-          </ScrollArea>
-        {:else}
-          <ScrollArea
-            class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-            fadeSize={28}
-            fadeColor="background-l4"
-            scrollbarYClasses="hidden"
-          >
-            {@render rootFilterList()}
-          </ScrollArea>
-        {/if}
-      {/key}
-    </DropdownMenu.Content>
-  </DropdownMenu.Root>
+    </button>
+    {@render mobileFilterDrawer()}
+  {:else}
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger
+        aria-label="Add filter"
+        class={cn(
+          'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
+          hasFilters && 'text-foreground-accent'
+        )}
+      >
+        <IconFilter class="size-4" />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Content
+        align="start"
+        class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 overflow-hidden border-2 !p-0 shadow-xl"
+      >
+        {@render filterSearchInput(rootFilterSearch, 'Search filters...', updateRootFilterSearch)}
+        {#key rootFilterScrollKey}
+          {#if isRootFilterSearchActive}
+            <ScrollArea
+              class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+              fadeSize={28}
+              fadeColor="background-l4"
+              scrollbarYClasses="hidden"
+            >
+              {@render rootFilterSearchResults()}
+            </ScrollArea>
+          {:else}
+            <ScrollArea
+              class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+              fadeSize={28}
+              fadeColor="background-l4"
+              scrollbarYClasses="hidden"
+            >
+              {@render rootFilterList()}
+            </ScrollArea>
+          {/if}
+        {/key}
+      </DropdownMenu.Content>
+    </DropdownMenu.Root>
+  {/if}
 {/snippet}
 
 {#snippet valueFilterCount(family: ValueFilterFamily)}
@@ -1360,7 +1644,9 @@
 {/snippet}
 
 {#snippet filterChips()}
-  <div class="flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+  <div
+    class="hidden min-w-0 flex-1 flex-wrap items-center gap-1.5 overflow-visible whitespace-nowrap md:flex"
+  >
     {#each VALUE_FILTER_FAMILIES as family (family.id)}
       {#if valueFilter(family).selected.length > 0}
         {@render valueFilterChip(family)}
@@ -1697,6 +1983,8 @@
     <title>Submissions | {clientConfig.ctfName}</title>
   {/if}
 </svelte:head>
+
+<svelte:window bind:innerWidth />
 
 <div class="h-[calc(100dvh-72px)] w-full overflow-hidden px-4 pt-0 pb-4 md:px-9">
   {#if submissionsQuery.isPending}
