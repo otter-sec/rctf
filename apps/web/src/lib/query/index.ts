@@ -4,6 +4,7 @@ import {
   adminChallengesQueryOptions,
   adminSettingsQueryOptions,
   adminUserQueryOptions,
+  adminUserVerificationsQueryKey,
   instancerSchemaQueryOptions,
 } from './admin'
 import {
@@ -38,6 +39,7 @@ export const queryKeys = {
   adminChallenges: adminChallengesQueryOptions.queryKey,
   adminChallenge: (id: string) => adminChallengeQueryOptions(id).queryKey,
   adminUser: (id: string) => adminUserQueryOptions(id).queryKey,
+  adminUserVerifications: adminUserVerificationsQueryKey,
   fullLeaderboard: ['leaderboard'] as const,
   leaderboard: (params: { limit: number; offset: number; division: string }) =>
     leaderboardQueryOptions(params).queryKey,

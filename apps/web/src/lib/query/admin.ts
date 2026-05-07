@@ -1,4 +1,5 @@
 import {
+  CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
@@ -6,6 +7,7 @@ import {
   GetAdminSettingsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUsersRouteV2,
+  GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
@@ -13,11 +15,15 @@ import {
   GoodAdminSettings,
   GoodAdminUsersV2,
   GoodAdminUserV2,
+  GoodAdminUserVerificationsV2,
   GoodInstancerSchema,
+  ResendAdminUserVerificationRouteV2,
   UpdateAdminSettingsRouteV2,
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
+  type AdminTeamSortBy,
+  type AdminTeamSortOrder,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -27,6 +33,8 @@ import {
 import { browser } from '$app/environment'
 import { apiRequest } from '$lib/api'
 import { ApiError, createApiMutation } from './core'
+
+const ADMIN_PAGE_SIZE = 100
 
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
@@ -86,6 +94,11 @@ export const adminUserQueryOptions = (id: string) =>
     },
   })
 
+export const adminUserVerificationsQueryKey = [
+  'admin',
+  'user-verifications',
+] as const
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -112,15 +125,29 @@ export function useAdminChallenge(
   }))
 }
 
-export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
+export function useInfiniteAdminUsers(
+  pageSize: () => number = () => 100,
+  params: () => {
+    search?: string
+    sortBy?: AdminTeamSortBy
+    sortOrder?: AdminTeamSortOrder
+    statuses?: string
+    excludeStatuses?: string
+    divisions?: string
+    excludeDivisions?: string
+  } = () => ({}),
+  enabled: () => boolean = () => true
+) {
   return createInfiniteQuery(() => {
     const ps = pageSize()
+    const query = params()
     return {
-      queryKey: ['admin', 'users', 'infinite', ps] as const,
+      queryKey: ['admin', 'users', 'infinite', ps, query] as const,
       queryFn: async ({ pageParam = 0 }) => {
         const response = await apiRequest(GetAdminUsersRouteV2, {
           limit: ps,
           offset: pageParam,
+          ...query,
         })
         if (response.kind === GoodAdminUsersV2.kind) {
           return { ...response.data, offset: pageParam }
@@ -132,6 +159,7 @@ export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
         const nextOffset = lastPage.offset + lastPage.users.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
+      enabled: enabled() && browser,
     }
   })
 }
@@ -142,6 +170,34 @@ export function useAdminUser(id: () => string | null) {
     return {
       ...adminUserQueryOptions(userId ?? ''),
       enabled: !!userId && browser,
+    }
+  })
+}
+
+export function useInfiniteAdminUserVerifications(
+  pageSize: () => number = () => ADMIN_PAGE_SIZE,
+  enabled: () => boolean = () => true
+) {
+  return createInfiniteQuery(() => {
+    const ps = pageSize()
+    return {
+      queryKey: [...adminUserVerificationsQueryKey, 'infinite', ps] as const,
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiRequest(GetAdminUserVerificationsRouteV2, {
+          limit: ps,
+          offset: pageParam,
+        })
+        if (response.kind === GoodAdminUserVerificationsV2.kind) {
+          return { ...response.data, offset: pageParam }
+        }
+        throw new ApiError(response.kind, response.message)
+      },
+      initialPageParam: 0,
+      getNextPageParam: lastPage => {
+        const nextOffset = lastPage.offset + lastPage.verifications.length
+        return nextOffset < lastPage.total ? nextOffset : undefined
+      },
+      enabled: enabled() && browser,
     }
   })
 }
@@ -176,4 +232,12 @@ export function useUpdateAdminUserMutation() {
 
 export function useDeleteAdminUserMutation() {
   return createApiMutation(DeleteAdminUserRouteV2)
+}
+
+export function useCompleteAdminUserVerificationMutation() {
+  return createApiMutation(CompleteAdminUserVerificationRouteV2)
+}
+
+export function useResendAdminUserVerificationMutation() {
+  return createApiMutation(ResendAdminUserVerificationRouteV2)
 }
