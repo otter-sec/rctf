@@ -42,7 +42,6 @@
   let expandedSubmissionId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
-  let innerWidth = $state(0)
 
   const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
   const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
@@ -167,7 +166,6 @@
   )
   const timeRangeError = $derived(timeRangeValidation.error)
   const timeRangeSummary = $derived(formatTimeRange())
-  const isMobileFilterMenu = $derived(innerWidth > 0 && innerWidth < 768)
 
   const submissionsQuery = useInfiniteAdminSubmissions(
     () => submissionFilterParams(filters, sortBy, sortOrder, clientConfig?.startTime),
@@ -355,7 +353,6 @@
             hasRootSearchMatches={hasRootFilterSearchMatches}
             isSearchingTeams={rootTeamSuggestionsQuery.isFetching}
             {hasFilters}
-            isMobile={isMobileFilterMenu}
             {timeRangeSummary}
             {timeRangeError}
           />
@@ -383,8 +380,6 @@
     <title>Submissions | {clientConfig.ctfName}</title>
   {/if}
 </svelte:head>
-
-<svelte:window bind:innerWidth />
 
 <div class="h-[calc(100dvh-72px)] w-full overflow-hidden px-4 pt-0 pb-4 md:px-9">
   {#if submissionsQuery.isPending}

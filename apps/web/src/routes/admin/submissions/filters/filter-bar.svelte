@@ -19,7 +19,6 @@
     hasRootSearchMatches: boolean
     isSearchingTeams: boolean
     hasFilters: boolean
-    isMobile: boolean
     timeRangeSummary: string
     timeRangeError?: string
   }
@@ -37,14 +36,13 @@
     hasRootSearchMatches,
     isSearchingTeams,
     hasFilters,
-    isMobile,
     timeRangeSummary,
     timeRangeError,
   }: Props = $props()
 </script>
 
 <div class="relative z-20 flex min-w-0 items-center gap-1.5 overflow-visible border-b-2 px-3 py-2">
-  {#if isMobile}
+  <div class="md:hidden">
     <SubmissionsMobileFilterDrawer
       bind:filters
       {valueFamilies}
@@ -52,7 +50,8 @@
       {timeRangeSummary}
       {timeRangeError}
     />
-  {:else}
+  </div>
+  <div class="hidden md:block">
     <SubmissionsDesktopFilterMenu
       bind:filters
       bind:rootFilterSearch
@@ -68,7 +67,7 @@
       {hasFilters}
       {timeRangeError}
     />
-  {/if}
+  </div>
 
   <SubmissionsDesktopFilterChips bind:filters {valueFamilies} {timeRangeSummary} {timeRangeError} />
 
