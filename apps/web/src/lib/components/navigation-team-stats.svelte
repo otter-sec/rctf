@@ -2,7 +2,7 @@
   import { CUTOFF_TIME, SPARKLINE_WINDOW } from '$lib/constants/scores'
   import { useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
   import { cn, getTimeOrdinal } from '$lib/utils'
-  import { Layer, Chart as LayerChart, Spline } from 'layerchart'
+  import { ChartCore, Spline, Svg } from 'layerchart/svg'
 
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)
@@ -79,14 +79,14 @@
     <div class="flex h-full flex-1 items-center">
       {#if graphData.length > 1}
         <div class="h-10 w-full">
-          <LayerChart
+          <ChartCore
             data={graphData}
             x="time"
             y="score"
             yDomain={null}
             padding={{ top: 4, bottom: 4, left: 2, right: 2 }}
           >
-            <Layer type="svg">
+            <Svg>
               <defs>
                 <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
                   <stop offset="0%" stop-color={styles.stroke} stop-opacity="0" />
@@ -98,8 +98,8 @@
                 stroke="url(#{gradientId})"
                 style="stroke-linecap: round; stroke-linejoin: round;"
               />
-            </Layer>
-          </LayerChart>
+            </Svg>
+          </ChartCore>
         </div>
       {:else}
         <div class="flex h-10 w-full items-center justify-center">

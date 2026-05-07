@@ -634,7 +634,6 @@
     return { visibleTeamIds, contextTeamIds }
   })
 
-  // TODO(es3n1n): https://discord.com/channels/920755200552226868/1157112817053339790/1485318812189589725
   let stableGraphVisibility = $state({
     visibleTeamIds: new Set<string>(),
     contextTeamIds: new Set<string>(),
