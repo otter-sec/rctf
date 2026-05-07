@@ -152,7 +152,7 @@ describe('admin submissions', () => {
     )
 
     const body = await expectResponse(res, GoodAdminSubmissions)
-    expect(body.data.total).toBe(2)
+    expect(body.data.hasMore).toBe(false)
     expect(
       body.data.submissions.map((submission: any) => submission.userName)
     ).toEqual(['Alpha Team', 'Beta Team'])

@@ -52,13 +52,13 @@
     () => 16,
     () => {
       const search = filters.team.search.trim()
-      return search.length >= 2 ? search : undefined
+      return search.length >= 2 ? { search } : {}
     },
     () => true
   )
   const rootTeamSuggestionsQuery = useInfiniteAdminUsers(
     () => 16,
-    () => trimmedRootFilterSearch || undefined,
+    () => (trimmedRootFilterSearch ? { search: trimmedRootFilterSearch } : {}),
     () => isRootFilterSearchActive
   )
   const clientConfig = $derived(clientConfigQuery.data)

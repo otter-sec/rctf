@@ -531,14 +531,6 @@ export const submitFlag = async (
 
   const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
   if (timeLeft !== undefined) {
-    await createSubmission(db, {
-      kind: SubmissionKind.FLAG,
-      challengeId: params.challengeId,
-      userId: params.userId,
-      ip: params.submissionIp,
-      result: SubmissionResult.RATE_LIMITED,
-      details: { submittedFlag: params.flag },
-    })
     log.info(
       {
         user: params.userId,

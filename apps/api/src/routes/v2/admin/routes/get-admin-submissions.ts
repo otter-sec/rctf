@@ -161,6 +161,6 @@ adminGroup.route(GetAdminSubmissionsRouteV2, async ({ res, ctx, query }) => {
 
   return res.goodAdminSubmissions({
     submissions: data.submissions,
-    total: data.total,
+    hasMore: data.hasMore,
   })
 })

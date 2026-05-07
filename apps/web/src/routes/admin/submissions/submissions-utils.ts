@@ -13,7 +13,6 @@ export const KIND_FILTERS = [
 export const RESULT_FILTERS = [
   SubmissionResult.CORRECT,
   SubmissionResult.QUEUED,
-  SubmissionResult.RATE_LIMITED,
   SubmissionResult.ALREADY_SOLVED,
   SubmissionResult.ACTIVE_JOB,
   SubmissionResult.INCORRECT,
@@ -74,8 +73,6 @@ export function resultLabel(result: string) {
       return 'Correct'
     case SubmissionResult.INCORRECT:
       return 'Incorrect'
-    case SubmissionResult.RATE_LIMITED:
-      return 'Rate limited'
     case SubmissionResult.ALREADY_SOLVED:
       return 'Already solved'
     case SubmissionResult.QUEUED:
@@ -118,7 +115,6 @@ export function resultTone(result: string): ResultTone {
     case SubmissionResult.CORRECT:
     case SubmissionResult.QUEUED:
       return 'success'
-    case SubmissionResult.RATE_LIMITED:
     case SubmissionResult.ALREADY_SOLVED:
     case SubmissionResult.ACTIVE_JOB:
       return 'warning'

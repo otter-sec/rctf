@@ -1,6 +1,5 @@
 import type { DatabaseClient, SubmissionDetails } from '@rctf/db'
 import { challenges, submissions, users } from '@rctf/db'
-import { takeUnique } from '@rctf/db/util'
 import {
   SubmissionSortBy,
   SubmissionSortOrder,
@@ -18,7 +17,6 @@ import {
   lte,
   notInArray,
   sql,
-  count as sqlCount,
   type SQL,
 } from 'drizzle-orm'
 
@@ -177,46 +175,39 @@ export const getSubmissions = async (
           desc(submissions.id),
         ]
 
-  const [rows, count] = await Promise.all([
-    db
-      .select({
-        id: submissions.id,
-        kind: submissions.kind,
-        challengeId: submissions.challengeId,
-        challengeName: sql<string>`${challenges.data} ->> 'name'`,
-        challengeCategory: sql<string>`${challenges.data} ->> 'category'`,
-        userId: submissions.userId,
-        userName: users.name,
-        userDivision: users.division,
-        userAvatarUrl: users.avatarUrl,
-        userCountryCode: users.countryCode,
-        userStatusText: users.statusText,
-        userBanned: users.banned,
-        ip: submissions.ip,
-        result: submissions.result,
-        details: submissions.details,
-        relatedId: submissions.relatedId,
-        createdAt: submissions.createdAt,
-      })
-      .from(submissions)
-      .innerJoin(challenges, eq(challenges.id, submissions.challengeId))
-      .innerJoin(users, eq(users.id, submissions.userId))
-      .where(where)
-      .orderBy(...orderBy)
-      .limit(params.limit)
-      .offset(params.offset),
-    db
-      .select({ total: sqlCount() })
-      .from(submissions)
-      .innerJoin(challenges, eq(challenges.id, submissions.challengeId))
-      .innerJoin(users, eq(users.id, submissions.userId))
-      .where(where)
-      .then(takeUnique),
-  ])
+  const rows = await db
+    .select({
+      id: submissions.id,
+      kind: submissions.kind,
+      challengeId: submissions.challengeId,
+      challengeName: sql<string>`coalesce(${challenges.data} ->> 'name', ${submissions.challengeId})`,
+      challengeCategory: sql<string>`coalesce(${challenges.data} ->> 'category', 'deleted')`,
+      userId: submissions.userId,
+      userName: sql<string>`coalesce(${users.name}::text, ${submissions.userId})`,
+      userDivision: sql<string>`coalesce(${users.division}, 'unknown')`,
+      userAvatarUrl: users.avatarUrl,
+      userCountryCode: users.countryCode,
+      userStatusText: users.statusText,
+      userBanned: sql<boolean>`coalesce(${users.banned}, false)`,
+      ip: submissions.ip,
+      result: submissions.result,
+      details: submissions.details,
+      relatedId: submissions.relatedId,
+      createdAt: submissions.createdAt,
+    })
+    .from(submissions)
+    .leftJoin(challenges, eq(challenges.id, submissions.challengeId))
+    .leftJoin(users, eq(users.id, submissions.userId))
+    .where(where)
+    .orderBy(...orderBy)
+    .limit(params.limit + 1)
+    .offset(params.offset)
+
+  const hasMore = rows.length > params.limit
 
   return {
-    submissions: rows,
-    total: count?.total ?? 0,
+    submissions: rows.slice(0, params.limit),
+    hasMore,
   }
 }
 

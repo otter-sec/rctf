@@ -139,7 +139,6 @@ export enum SubmissionSortOrder {
 export enum SubmissionResult {
   CORRECT = 'correct',
   INCORRECT = 'incorrect',
-  RATE_LIMITED = 'rate_limited',
   ALREADY_SOLVED = 'already_solved',
   QUEUED = 'queued',
   ACTIVE_JOB = 'active_job',

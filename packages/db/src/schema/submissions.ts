@@ -1,7 +1,6 @@
 import { SubmissionKind, SubmissionResult } from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import {
-  foreignKey,
   index,
   jsonb,
   pgEnum,
@@ -9,8 +8,6 @@ import {
   text,
   timestamp,
 } from 'drizzle-orm/pg-core'
-import { challenges } from './challenges'
-import { users } from './users'
 
 export type SubmissionDetails = Record<string, unknown>
 
@@ -22,7 +19,6 @@ export const submissionKindEnum = pgEnum('submission_log_kind', [
 export const submissionResultEnum = pgEnum('submission_log_result', [
   SubmissionResult.CORRECT,
   SubmissionResult.INCORRECT,
-  SubmissionResult.RATE_LIMITED,
   SubmissionResult.ALREADY_SOLVED,
   SubmissionResult.QUEUED,
   SubmissionResult.ACTIVE_JOB,
@@ -75,19 +71,5 @@ export const submissions = pgTable(
       table.kind.asc().nullsLast(),
       table.result.asc().nullsLast()
     ),
-    foreignKey({
-      columns: [table.challengeId],
-      foreignColumns: [challenges.id],
-      name: 'submission_logs_challenge_id_fkey',
-    })
-      .onUpdate('cascade')
-      .onDelete('cascade'),
-    foreignKey({
-      columns: [table.userId],
-      foreignColumns: [users.id],
-      name: 'submission_logs_user_id_fkey',
-    })
-      .onUpdate('cascade')
-      .onDelete('cascade'),
   ]
 )

@@ -291,7 +291,7 @@ export function useInfiniteAdminSubmissions(
       initialPageParam: 0,
       getNextPageParam: lastPage => {
         const nextOffset = lastPage.offset + lastPage.submissions.length
-        return nextOffset < lastPage.total ? nextOffset : undefined
+        return lastPage.hasMore ? nextOffset : undefined
       },
       placeholderData: keepPreviousData,
     }

@@ -32,8 +32,16 @@ integrationsGroup.route(
       })
     }
 
+    const submittedInputs: Record<string, string> = {}
+    for (const name of Object.keys(adminBotConfig.inputs)) {
+      const value = body.inputs[name]
+      if (value !== undefined) {
+        submittedInputs[name] = value
+      }
+    }
+
     const adminBotDetails = (extra: Record<string, unknown> = {}) => ({
-      inputs: body.inputs,
+      inputs: submittedInputs,
       configRevision: adminBotConfig.revision,
       ...extra,
     })
@@ -50,6 +58,11 @@ integrationsGroup.route(
         result,
         details: details ?? adminBotDetails(),
       })
+
+    const timeLeft = await rateLimitAdminBot(ctx.var.redis, user.id, params.id)
+    if (timeLeft !== undefined) {
+      return res.badRateLimit({ timeLeft })
+    }
 
     for (const [name, rule] of Object.entries(adminBotConfig.inputs)) {
       const value = body.inputs[name]
@@ -99,12 +112,6 @@ integrationsGroup.route(
       return res.badAdminBotConfig({
         error: 'You already have an active admin bot job for this challenge',
       })
-    }
-
-    const timeLeft = await rateLimitAdminBot(ctx.var.redis, user.id, params.id)
-    if (timeLeft !== undefined) {
-      await logSubmission(SubmissionResult.RATE_LIMITED)
-      return res.badRateLimit({ timeLeft })
     }
 
     let instancerInstances: InstancerInstance[] = []

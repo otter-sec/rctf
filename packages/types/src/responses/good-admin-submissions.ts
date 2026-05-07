@@ -27,6 +27,6 @@ export const GoodAdminSubmissions = response('goodAdminSubmissions', {
         createdAt: z.string(),
       })
     ),
-    total: z.int(),
+    hasMore: z.boolean(),
   }),
 })
