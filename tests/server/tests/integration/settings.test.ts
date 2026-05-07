@@ -1,7 +1,6 @@
 import { config } from '@rctf/config'
 import { createDatabase, settings } from '@rctf/db'
 import {
-  BadBody,
   BadPerms,
   BadToken,
   GoodAdminSettings,
@@ -226,18 +225,6 @@ describe('admin settings', () => {
       const body = await expectResponse(res, GoodAdminSettingsUpdate)
       expect(body.data.overrides.startTime).toBe(startTime)
       expect(body.data.overrides.endTime).toBe(endTime)
-    })
-
-    test('rejects competition timing where start is after end', async () => {
-      const startTime = Date.now() + 3_600_000
-      const endTime = startTime - 60_000
-      const res = await request(app, '/api/v2/admin/settings', {
-        method: 'PUT',
-        headers: await jsonHeaders(settingsAdmin.user.id),
-        body: JSON.stringify({ data: { startTime, endTime } }),
-      })
-      const body = await expectResponse(res, BadBody)
-      expect(body.data.reason).toBe('startTime must be before endTime')
     })
 
     test('sets faviconUrl override', async () => {

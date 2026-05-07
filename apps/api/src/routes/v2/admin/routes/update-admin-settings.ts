@@ -6,11 +6,7 @@ import {
 import adminGroup from '../group'
 
 adminGroup.route(UpdateAdminSettingsRouteV2, async ({ res, ctx, body }) => {
-  const result = await updateSettings(ctx.var.db, body.data)
-  if (!result.ok) {
-    return res.badBody({ reason: result.reason })
-  }
-
+  const overrides = await updateSettings(ctx.var.db, body.data)
   const defaults = getConfigDefaults()
-  return res.goodAdminSettingsUpdate({ overrides: result.settings, defaults })
+  return res.goodAdminSettingsUpdate({ overrides, defaults })
 })

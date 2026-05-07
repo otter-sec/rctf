@@ -5,9 +5,6 @@ import { eq } from 'drizzle-orm'
 
 const VALUE_ID = 'value-0'
 
-export type UpdateSettingsResult =
-  | { ok: true; settings: EditableSettings }
-  | { ok: false; reason: string }
 export type SettingsPatch = {
   [K in keyof EditableSettings]?: EditableSettings[K] | null
 }
@@ -39,33 +36,12 @@ export function patchSettings(
   return updated
 }
 
-export function settingsPatchChangesCompetitionTiming(
-  patch: SettingsPatch
-): boolean {
-  return Object.hasOwn(patch, 'startTime') || Object.hasOwn(patch, 'endTime')
-}
-
-export function getCompetitionTimingValidationError(
-  overrides: EditableSettings
-): string | null {
-  const startTime = overrides.startTime ?? config.startTime
-  const endTime = overrides.endTime ?? config.endTime
-  return startTime < endTime ? null : 'startTime must be before endTime'
-}
-
 export async function updateSettings(
   db: DatabaseClient,
   patch: SettingsPatch
-): Promise<UpdateSettingsResult> {
+): Promise<EditableSettings> {
   const current = await getSettings(db)
   const updated = patchSettings(current, patch)
-
-  if (settingsPatchChangesCompetitionTiming(patch)) {
-    const timingError = getCompetitionTimingValidationError(updated)
-    if (timingError !== null) {
-      return { ok: false, reason: timingError }
-    }
-  }
 
   await db
     .insert(settings)
@@ -75,7 +51,7 @@ export async function updateSettings(
       set: { data: updated },
     })
 
-  return { ok: true, settings: updated }
+  return updated
 }
 
 export function getConfigDefaults(): EditableSettings {
