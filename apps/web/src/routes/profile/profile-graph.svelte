@@ -1,11 +1,11 @@
 <script lang="ts">
   import type { LeaderboardGraphEntry } from '@rctf/types'
-  import * as Chart from '$lib/components/ui/chart'
-  import { type ChartConfig } from '$lib/components/ui/chart'
+  import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
+  import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import { useClientConfig } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
-  import { Axis, Highlight, Layer, Chart as LayerChart, Spline, Text, Tooltip } from 'layerchart'
+  import { Axis, ChartCore, Highlight, Spline, Svg, Text, Tooltip } from 'layerchart/svg'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()
@@ -61,18 +61,18 @@
   })
 </script>
 
-<Chart.Container config={chartConfig} class={className}>
-  <LayerChart
+<ChartContainer config={chartConfig} class={className}>
+  <ChartCore
     data={flatPoints}
     x="time"
     y="score"
     yDomain={[0, null]}
     yNice
     padding={{ bottom: 24, left: 4 }}
-    tooltip={{ mode: 'quadtree' }}
+    tooltipContext={{ mode: 'quadtree' }}
   >
     {#snippet children()}
-      <Layer type="svg">
+      <Svg>
         <Axis
           placement="bottom"
           rule
@@ -96,7 +96,7 @@
         />
 
         <Highlight points lines />
-      </Layer>
+      </Svg>
 
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data })}
@@ -118,5 +118,5 @@
         {/snippet}
       </Tooltip.Root>
     {/snippet}
-  </LayerChart>
-</Chart.Container>
+  </ChartCore>
+</ChartContainer>
