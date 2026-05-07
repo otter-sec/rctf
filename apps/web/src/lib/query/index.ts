@@ -4,6 +4,7 @@ import {
   adminChallengesQueryOptions,
   adminSettingsQueryOptions,
   adminUserQueryOptions,
+  adminUserVerificationsQueryKey,
   instancerSchemaQueryOptions,
 } from './admin'
 import {
@@ -60,4 +61,5 @@ export const queryKeys = {
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
+  adminUserVerifications: adminUserVerificationsQueryKey,
 }

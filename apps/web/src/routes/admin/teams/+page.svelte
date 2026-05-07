@@ -2,6 +2,8 @@
   import {
     GoodAdminUserDeleteV2,
     GoodAdminUserUpdateV2,
+    GoodAdminUserVerificationCompleteV2,
+    GoodAdminUserVerificationResendV2,
     GoodChallengeSolveDeleteV2,
     GoodCreateUserTokenV2,
     Permissions,
@@ -33,16 +35,20 @@
     queryKeys,
     useAdminUser,
     useClientConfig,
+    useCompleteAdminUserVerificationMutation,
     useCreateUserTokenMutation,
     useCurrentUser,
     useDeleteAdminUserMutation,
     useDeleteChallengeSolveMutation,
     useInfiniteAdminUsers,
+    useInfiniteAdminUserVerifications,
+    useResendAdminUserVerificationMutation,
     useUpdateAdminUserMutation,
   } from '$lib/query'
   import { formatLocalTime, hasPermissions, useInfiniteVirtualScroll } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
+  import PendingVerifications from './pending-verifications.svelte'
 
   const ROW_HEIGHT = 68
   const PAGE_SIZE = 100
@@ -60,6 +66,16 @@
 
   const usersQuery = useInfiniteAdminUsers(() => PAGE_SIZE)
   const allTeams = $derived(usersQuery.data?.pages.flatMap(page => page.users) ?? [])
+  const pendingVerificationsQuery = useInfiniteAdminUserVerifications(
+    () => PAGE_SIZE,
+    () => hasWritePerms
+  )
+  const pendingVerifications = $derived(
+    pendingVerificationsQuery.data?.pages.flatMap(page => page.verifications) ?? []
+  )
+  const pendingVerificationTotal = $derived(
+    pendingVerificationsQuery.data?.pages[0]?.total ?? pendingVerifications.length
+  )
 
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
@@ -77,11 +93,15 @@
   const updateUserMutation = useUpdateAdminUserMutation()
   const deleteUserMutation = useDeleteAdminUserMutation()
   const deleteSolveMutation = useDeleteChallengeSolveMutation()
+  const completeVerificationMutation = useCompleteAdminUserVerificationMutation()
+  const resendVerificationMutation = useResendAdminUserVerificationMutation()
 
   let copyingTeamId = $state<string | null>(null)
   let updatingTeamId = $state<string | null>(null)
   let deletingTeamId = $state<string | null>(null)
   let revokingSolveKey = $state<string | null>(null)
+  let completingVerificationId = $state<string | null>(null)
+  let resendingVerificationId = $state<string | null>(null)
   let selectedTeamId = $state<string | null>(null)
   let banDialogTeam = $state<{ id: string; name: string; banned: boolean } | null>(null)
   let deleteDialogTeam = $state<{ id: string; name: string } | null>(null)
@@ -95,6 +115,13 @@
     }
     queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
     queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+  }
+
+  function refreshVerificationQueries() {
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.adminUserVerifications,
+    })
+    refreshTeamQueries()
   }
 
   async function handleCopyToken(team: { id: string; name: string }) {
@@ -234,6 +261,50 @@
     )
   }
 
+  function handleCompleteVerification(verification: { id: string; name: string }) {
+    completingVerificationId = verification.id
+    completeVerificationMutation.mutate(
+      { id: verification.id },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminUserVerificationCompleteV2.kind) {
+            toast.success(`${verification.name} completed`)
+            refreshVerificationQueries()
+          } else {
+            showApiError(response)
+          }
+          completingVerificationId = null
+        },
+        onError: err => {
+          toast.error(err.message)
+          completingVerificationId = null
+        },
+      }
+    )
+  }
+
+  function handleResendVerification(verification: { id: string; name: string }) {
+    resendingVerificationId = verification.id
+    resendVerificationMutation.mutate(
+      { id: verification.id },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminUserVerificationResendV2.kind) {
+            toast.success(`Verification resent for ${verification.name}`)
+            refreshVerificationQueries()
+          } else {
+            showApiError(response)
+          }
+          resendingVerificationId = null
+        },
+        onError: err => {
+          toast.error(err.message)
+          resendingVerificationId = null
+        },
+      }
+    )
+  }
+
   function handleRevokeSolve(solve: { challengeId: string; challengeName: string }) {
     if (!selectedTeam) return
 
@@ -268,7 +339,7 @@
 </svelte:head>
 
 <div class="flex h-[calc(100dvh-72px)] flex-col">
-  {#if usersQuery.isPending}
+  {#if usersQuery.isPending || (hasWritePerms && pendingVerificationsQuery.isPending)}
     <div class="flex flex-1 items-center justify-center">
       <Spinner class="size-6" />
     </div>
@@ -283,7 +354,7 @@
         </Card.Content>
       </Card.Root>
     </div>
-  {:else if allTeams.length === 0}
+  {:else if allTeams.length === 0 && pendingVerifications.length === 0 && !pendingVerificationsQuery.error}
     <EmptyState
       icon={IconUserFilled}
       title="No teams found"
@@ -298,6 +369,24 @@
       fadeColor="background-l0"
     >
       <div class="mx-auto max-w-4xl">
+        {#if hasWritePerms}
+          <PendingVerifications
+            verifications={pendingVerifications}
+            total={pendingVerificationTotal}
+            divisions={clientConfig?.divisions}
+            isPending={pendingVerificationsQuery.isPending}
+            error={pendingVerificationsQuery.error}
+            hasNextPage={pendingVerificationsQuery.hasNextPage ?? false}
+            isFetchingNextPage={pendingVerificationsQuery.isFetchingNextPage}
+            completingId={completingVerificationId}
+            resendingId={resendingVerificationId}
+            onComplete={handleCompleteVerification}
+            onResend={handleResendVerification}
+            onLoadMore={() => pendingVerificationsQuery.fetchNextPage()}
+            class="mx-4 mt-4 md:mx-9"
+          />
+        {/if}
+
         <VirtualList
           virtualItems={scroll.virtualItems}
           totalSize={scroll.totalSize}
