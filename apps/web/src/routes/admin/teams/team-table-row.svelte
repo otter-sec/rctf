@@ -10,6 +10,7 @@
     IconUserCog,
   } from '$lib/icons'
   import { cn, formatLocalTime, formatRelativeHoursMinutes, getInitials } from '$lib/utils'
+  import TeamStatusDot from './team-status-dot.svelte'
   import {
     rowTime,
     statusTone,
@@ -75,17 +76,6 @@
   }
 </script>
 
-{#snippet statusDot(status: TeamDisplayStatus)}
-  {@const tone = statusTone(status)}
-  <span
-    class="size-1.5 shrink-0 rounded-full"
-    class:bg-foreground-success={tone === 'success'}
-    class:bg-foreground-yellow-l1={tone === 'warning'}
-    class:bg-foreground-destructive={tone === 'danger'}
-    class:bg-foreground-accent={tone === 'accent'}
-  ></span>
-{/snippet}
-
 {#snippet statusText(status: TeamDisplayStatus)}
   {@const tone = statusTone(status)}
   <span
@@ -95,7 +85,7 @@
     class:text-foreground-destructive={tone === 'danger'}
     class:text-foreground-accent={tone === 'accent'}
   >
-    {@render statusDot(status)}
+    <TeamStatusDot {status} />
     <span class="min-w-0 truncate">{teamStatusLabel(status)}</span>
   </span>
 {/snippet}
