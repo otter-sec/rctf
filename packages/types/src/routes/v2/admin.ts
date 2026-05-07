@@ -40,6 +40,8 @@ import {
   GoodUploadsQueryV2,
 } from '../../responses'
 import {
+  AdminTeamSortBy,
+  AdminTeamSortOrder,
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   MultipleFileFieldSchema,
@@ -62,8 +64,14 @@ export const GetAdminUsersRouteV2 = defineRoute({
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
     search: z.optional(
-      z.string().check(z.minLength(2)).check(z.maxLength(100))
+      z.string().check(z.minLength(1)).check(z.maxLength(100))
     ),
+    sortBy: z.optional(z.enum(AdminTeamSortBy)),
+    sortOrder: z.optional(z.enum(AdminTeamSortOrder)),
+    statuses: z.optional(z.string().check(z.maxLength(2000))),
+    excludeStatuses: z.optional(z.string().check(z.maxLength(2000))),
+    divisions: z.optional(z.string().check(z.maxLength(2000))),
+    excludeDivisions: z.optional(z.string().check(z.maxLength(2000))),
   }),
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],

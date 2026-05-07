@@ -22,6 +22,8 @@ import {
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
+  type AdminTeamSortBy,
+  type AdminTeamSortOrder,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -127,15 +129,29 @@ export function useAdminChallenge(
   }))
 }
 
-export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
+export function useInfiniteAdminUsers(
+  pageSize: () => number = () => 100,
+  params: () => {
+    search?: string
+    sortBy?: AdminTeamSortBy
+    sortOrder?: AdminTeamSortOrder
+    statuses?: string
+    excludeStatuses?: string
+    divisions?: string
+    excludeDivisions?: string
+  } = () => ({}),
+  enabled: () => boolean = () => true
+) {
   return createInfiniteQuery(() => {
     const ps = pageSize()
+    const query = params()
     return {
-      queryKey: ['admin', 'users', 'infinite', ps] as const,
+      queryKey: ['admin', 'users', 'infinite', ps, query] as const,
       queryFn: async ({ pageParam = 0 }) => {
         const response = await apiRequest(GetAdminUsersRouteV2, {
           limit: ps,
           offset: pageParam,
+          ...query,
         })
         if (response.kind === GoodAdminUsersV2.kind) {
           return { ...response.data, offset: pageParam }
@@ -147,6 +163,7 @@ export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
         const nextOffset = lastPage.offset + lastPage.users.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
+      enabled: enabled() && browser,
     }
   })
 }

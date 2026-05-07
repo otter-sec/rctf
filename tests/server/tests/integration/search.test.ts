@@ -1,11 +1,3 @@
-import { config } from '@rctf/config'
-import { createDatabase, solves, users } from '@rctf/db'
-import {
-  GoodAdminUsersV2,
-  GoodLeaderboardV2,
-  GoodLeaderboardWithGraph,
-  Permissions,
-} from '@rctf/types'
 import {
   afterAll,
   beforeAll,
@@ -14,6 +6,18 @@ import {
   expect,
   test,
 } from 'bun:test'
+import { config } from '@rctf/config'
+import { createDatabase, solves, users } from '@rctf/db'
+import {
+  AdminTeamSortBy,
+  AdminTeamSortOrder,
+  AdminTeamStatus,
+  BadBody,
+  GoodAdminUsersV2,
+  GoodLeaderboardV2,
+  GoodLeaderboardWithGraph,
+  Permissions,
+} from '@rctf/types'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { cacheLeaderboardAndGraph } from '../../../../apps/api/src/cache/leaderboard'
@@ -99,6 +103,8 @@ beforeAll(async () => {
   await createNamedUser('DeltaForce')
   const alphaTeem = await createNamedUser('AlphaTeem')
   await createNamedUser('Zeta')
+  await createNamedUser('CollegeCrew', 'college')
+  const bannedTeam = await createNamedUser('BannedTeam')
 
   const ch2 = await generateChallenge()
 
@@ -123,6 +129,11 @@ beforeAll(async () => {
   await recomputeLeaderboard()
 
   const db = getDb()
+  await db
+    .update(users)
+    .set({ banned: true })
+    .where(eq(users.id, bannedTeam.id))
+
   const adminId = crypto.randomUUID()
   const adminEmail = `admin-${crypto.randomUUID()}@test.com`
   await db.insert(users).values({
@@ -464,6 +475,70 @@ describe('admin users search', () => {
     expect(body1.data.users).toHaveLength(1)
     expect(body2.data.users).toHaveLength(1)
     expect(body1.data.users[0].id).not.toBe(body2.data.users[0].id)
+  })
+
+  test('sorts teams by score', async () => {
+    const res = await request(
+      app,
+      `/api/v2/admin/users?limit=100&offset=0&sortBy=${AdminTeamSortBy.SCORE}&sortOrder=${AdminTeamSortOrder.DESC}`,
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+
+    expect(names.indexOf('AlphaTeam')).toBeLessThan(names.indexOf('AlphaTeem'))
+    expect(names.indexOf('AlphaTeam')).toBeLessThan(names.indexOf('BetaTeam'))
+  })
+
+  test('filters teams by division', async () => {
+    const res = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&divisions=college',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+
+    expect(names).toContain('CollegeCrew')
+    expect(body.data.users.every((u: any) => u.division === 'college')).toBe(
+      true
+    )
+  })
+
+  test('filters teams by status', async () => {
+    const res = await request(
+      app,
+      `/api/v2/admin/users?limit=100&offset=0&statuses=${AdminTeamStatus.BANNED}`,
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+
+    expect(body.data.users.map((u: any) => u.name)).toContain('BannedTeam')
+    expect(body.data.users.every((u: any) => u.banned && u.perms === 0)).toBe(
+      true
+    )
+  })
+
+  test('rejects invalid team filters', async () => {
+    const res = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&divisions=missing',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+
+    await expectResponse(res, BadBody)
   })
 
   test('unauthenticated search returns 401', async () => {

@@ -89,3 +89,24 @@ export enum AdminBotJobStatus {
   COMPLETED = 'completed',
   FAILED = 'failed',
 }
+
+export enum AdminTeamSortBy {
+  CREATED_AT = 'createdAt',
+  TEAM = 'team',
+  EMAIL = 'email',
+  DIVISION = 'division',
+  SCORE = 'score',
+  SOLVES = 'solves',
+  STATUS = 'status',
+}
+
+export enum AdminTeamSortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
+export enum AdminTeamStatus {
+  ACTIVE = 'active',
+  BANNED = 'banned',
+  ADMIN = 'admin',
+}
