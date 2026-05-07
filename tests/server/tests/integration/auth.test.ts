@@ -4,12 +4,12 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadRegistrationsDisabled,
-  BadTokenVerification,
   GoodLogin,
   GoodRegister,
   GoodRegisterV2,
   GoodToken,
   GoodUserUpdate,
+  GoodVerify,
   GoodVerifySent,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
@@ -128,7 +128,7 @@ describe('auth', () => {
     }
   })
 
-  test('v2 register verify returns team token', async () => {
+  test('v2 verify returns team token for register tokens', async () => {
     const redis = await createRedis()
     const v2User = generateTestUser()
     const verifyToken = await createLoginVerification(redis, {
@@ -139,7 +139,7 @@ describe('auth', () => {
     })
 
     try {
-      let res = await request(app, '/api/v2/auth/register/verify', {
+      let res = await request(app, '/api/v2/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verifyToken }),
@@ -162,16 +162,30 @@ describe('auth', () => {
     }
   })
 
-  test('v2 register verify rejects team tokens', async () => {
-    const teamToken = await createToken(TokenKind.Team, crypto.randomUUID())
+  test('v2 verify accepts team tokens', async () => {
+    config.email = undefined
+    const v2User = generateTestUser()
 
-    const res = await request(app, '/api/v2/auth/register/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ verifyToken: teamToken }),
-    })
+    try {
+      let res = await request(app, '/api/v2/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v2User),
+      })
 
-    await expectResponse(res, BadTokenVerification)
+      const registerBody = await expectResponse(res, GoodRegisterV2)
+
+      res = await request(app, '/api/v2/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verifyToken: registerBody.data.teamToken }),
+      })
+
+      const verifyBody = await expectResponse(res, GoodVerify)
+      expect(typeof verifyBody.data.authToken).toBe('string')
+    } finally {
+      await deleteUserByEmail(v2User.email)
+    }
   })
 
   test('duplicate email fails with badKnownEmail', async () => {

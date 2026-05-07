@@ -70,6 +70,29 @@ type CreateUserResult =
       error: 'badKnownCtftimeId' | 'badKnownEmail' | 'badKnownName'
     }
 
+type CreateUserError = Extract<CreateUserResult, { success: false }>['error']
+
+type CreateUserErrorResponseHelpers = ResponseHelpers<
+  [typeof BadKnownCtftimeId, typeof BadKnownEmail, typeof BadKnownName]
+>
+
+type CreateUserErrorResponse = ReturnType<
+  CreateUserErrorResponseHelpers[keyof CreateUserErrorResponseHelpers]
+>
+
+const createUserErrorResponse = (
+  res: CreateUserErrorResponseHelpers,
+  error: CreateUserError
+): CreateUserErrorResponse => {
+  if (error === 'badKnownCtftimeId') {
+    return res.badKnownCtftimeId()
+  }
+  if (error === 'badKnownEmail') {
+    return res.badKnownEmail()
+  }
+  return res.badKnownName()
+}
+
 const createUserInternal = async (
   db: DatabaseClient,
   user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
@@ -115,13 +138,7 @@ export const createUser = async (
 > => {
   const result = await createUserInternal(db, user)
   if (!result.success) {
-    if (result.error === 'badKnownCtftimeId') {
-      return res.badKnownCtftimeId()
-    }
-    if (result.error === 'badKnownEmail') {
-      return res.badKnownEmail()
-    }
-    return res.badKnownName()
+    return createUserErrorResponse(res, result.error)
   }
 
   const authToken = await createToken(TokenKind.Auth, result.userId)
@@ -137,13 +154,7 @@ export const createUserV2 = async (
 > => {
   const result = await createUserInternal(db, user)
   if (!result.success) {
-    if (result.error === 'badKnownCtftimeId') {
-      return res.badKnownCtftimeId()
-    }
-    if (result.error === 'badKnownEmail') {
-      return res.badKnownEmail()
-    }
-    return res.badKnownName()
+    return createUserErrorResponse(res, result.error)
   }
 
   const [authToken, teamToken] = await Promise.all([

@@ -6,8 +6,7 @@ import {
   LoginRoute,
   RecoverRouteV2,
   RegisterRouteV2,
-  RegisterVerifyRouteV2,
-  VerifyRoute,
+  VerifyRouteV2,
 } from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
@@ -41,11 +40,7 @@ export function useRegisterMutation() {
 }
 
 export function useVerifyMutation() {
-  return createApiMutation(VerifyRoute)
-}
-
-export function useRegisterVerifyMutation() {
-  return createApiMutation(RegisterVerifyRouteV2)
+  return createApiMutation(VerifyRouteV2)
 }
 
 export function useRecoverMutation() {

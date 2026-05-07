@@ -8,16 +8,12 @@ import type {
   BadKnownEmail,
   BadKnownName,
   BadRegistrationsDisabled,
-  BadTokenVerification,
   GoodRegister,
   GoodRegisterV2,
   GoodVerifySent,
   ResponseHelpers,
 } from '@rctf/types'
-import {
-  checkLoginVerification,
-  createLoginVerification,
-} from '../cache/auth-cache'
+import { createLoginVerification } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
@@ -57,16 +53,6 @@ type RegisterV2ResponseHelpers = ResponseHelpers<
   ]
 >
 
-type RegisterVerifyV2ResponseHelpers = ResponseHelpers<
-  [
-    typeof BadTokenVerification,
-    typeof BadKnownCtftimeId,
-    typeof BadKnownEmail,
-    typeof BadKnownName,
-    typeof GoodRegisterV2,
-  ]
->
-
 type RecoverResponseHelpers = ResponseHelpers<
   [typeof BadEndpoint, typeof GoodVerifySent]
 >
@@ -83,9 +69,6 @@ type RegisterResult = ReturnType<
 >
 type RegisterV2Result = ReturnType<
   RegisterV2ResponseHelpers[keyof RegisterV2ResponseHelpers]
->
-type RegisterVerifyV2Result = ReturnType<
-  RegisterVerifyV2ResponseHelpers[keyof RegisterVerifyV2ResponseHelpers]
 >
 
 export const registerUser = async (
@@ -256,28 +239,4 @@ export const recoverUser = async (
 
   await sendVerificationEmail(email, 'recover', teamToken)
   return res.goodVerifySent()
-}
-
-export const verifyRegisterUserV2 = async (
-  res: RegisterVerifyV2ResponseHelpers,
-  db: DatabaseClient,
-  redis: TypedRedis,
-  verifyToken: string
-): Promise<RegisterVerifyV2Result> => {
-  const data = await parseToken(TokenKind.Verify, verifyToken)
-  if (!data || data.kind !== 'register') {
-    return res.badTokenVerification()
-  }
-
-  const tokenUnused = await checkLoginVerification(redis, data.verifyId)
-  if (!tokenUnused) {
-    return res.badTokenVerification()
-  }
-
-  return await createUserV2(res, db, {
-    division: data.division,
-    email: data.email,
-    name: data.name,
-    ctftimeId: null,
-  })
 }
