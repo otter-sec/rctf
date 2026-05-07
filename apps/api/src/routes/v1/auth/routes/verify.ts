@@ -1,5 +1,6 @@
 import { VerifyRoute } from '@rctf/types'
 import { checkLoginVerification } from '../../../../cache/auth-cache'
+import { deletePendingRegisterVerificationMetadata } from '../../../../cache/pending-register-verifications'
 import {
   createToken,
   parseTokenWithMultipleKinds,
@@ -39,6 +40,10 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
   }
 
   if (data.kind === 'register') {
+    await deletePendingRegisterVerificationMetadata(
+      ctx.var.redis,
+      data.verifyId
+    )
     return await createUser(res, ctx.var.db, {
       division: data.division,
       email: data.email,

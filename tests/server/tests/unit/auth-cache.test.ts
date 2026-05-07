@@ -3,6 +3,7 @@ import { describe, expect, mock, test } from 'bun:test'
 import {
   checkLoginVerification,
   createLoginVerification,
+  createLoginVerificationWithId,
   getCachedUser,
   invalidateUserCache,
   setCachedUser,
@@ -170,6 +171,20 @@ describe('auth-cache', () => {
         expect(parsed.division).toBe('open')
       }
       expect(parsed?.verifyId).toBeDefined()
+    })
+
+    test('can return the verification id with the token', async () => {
+      const redis = createMockRedis()
+      const verification = await createLoginVerificationWithId(redis, {
+        kind: 'register',
+        email: 'with-id@example.com',
+        name: 'With Id Team',
+        division: 'open',
+      })
+
+      const parsed = await parseToken(TokenKind.Verify, verification.token)
+      expect(parsed?.verifyId).toBe(verification.id)
+      expect(redis.store.get(`login:${verification.id}`)).toBe('0')
     })
 
     test('creates verification for update flow', async () => {

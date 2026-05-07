@@ -11,6 +11,16 @@ import type { TypedRedis } from './scripts'
 
 const USER_CACHE_TTL = 30_000
 const userCacheKey = (userId: string) => `user:${userId}`
+const loginVerificationKey = (id: VerifyTokenData['verifyId']) => `login:${id}`
+
+type LoginVerificationData =
+  | Omit<RegisterVerifyTokenData, 'verifyId'>
+  | Omit<UpdateVerifyTokenData, 'verifyId'>
+
+export type LoginVerification = {
+  id: VerifyTokenData['verifyId']
+  token: string
+}
 
 export const getCachedUser = async (
   redis: TypedRedis,
@@ -56,27 +66,52 @@ export const storeLoginVerification = async (
   client: TypedRedis,
   id: VerifyTokenData['verifyId']
 ): Promise<void> => {
-  await client.set(`login:${id}`, '0', 'PX', config.loginTimeout)
+  await client.set(loginVerificationKey(id), '0', 'PX', config.loginTimeout)
 }
 
 export const checkLoginVerification = async (
   client: TypedRedis,
   id: VerifyTokenData['verifyId']
 ): Promise<boolean> => {
-  const result = await client.del(`login:${id}`)
+  const result = await client.del(loginVerificationKey(id))
   return result === 1
+}
+
+export const deleteLoginVerification = async (
+  client: TypedRedis,
+  id: VerifyTokenData['verifyId']
+): Promise<void> => {
+  await client.del(loginVerificationKey(id))
+}
+
+export const getLoginVerificationTtl = async (
+  client: TypedRedis,
+  id: VerifyTokenData['verifyId']
+): Promise<number> => {
+  return await client.pttl(loginVerificationKey(id))
+}
+
+export const createLoginVerificationWithId = async (
+  client: TypedRedis,
+  data: LoginVerificationData
+): Promise<LoginVerification> => {
+  const verifyId = crypto.randomUUID()
+  await storeLoginVerification(client, verifyId)
+  const token = await createToken(TokenKind.Verify, {
+    ...data,
+    verifyId,
+  })
+
+  return {
+    id: verifyId,
+    token,
+  }
 }
 
 export const createLoginVerification = async (
   client: TypedRedis,
-  data:
-    | Omit<RegisterVerifyTokenData, 'verifyId'>
-    | Omit<UpdateVerifyTokenData, 'verifyId'>
+  data: LoginVerificationData
 ): Promise<string> => {
-  const verifyId = crypto.randomUUID()
-  await storeLoginVerification(client, verifyId)
-  return await createToken(TokenKind.Verify, {
-    ...data,
-    verifyId,
-  })
+  const verification = await createLoginVerificationWithId(client, data)
+  return verification.token
 }
