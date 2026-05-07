@@ -8,10 +8,13 @@ import {
   BadChallenge,
   BadEndpoint,
   BadInstancerConfig,
+  BadKnownEmail,
+  BadKnownName,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
   BadUnknownUser,
+  BadUnknownVerification,
   BadUserPrivileged,
   GoodAdminBotChallengeSource,
   GoodAdminBotJobPull,
@@ -26,6 +29,9 @@ import {
   GoodAdminUsersV2,
   GoodAdminUserUpdateV2,
   GoodAdminUserV2,
+  GoodAdminUserVerificationCompleteV2,
+  GoodAdminUserVerificationResendV2,
+  GoodAdminUserVerificationsV2,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -107,6 +113,49 @@ export const DeleteAdminUserRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken, BadUnknownUser, BadUserPrivileged],
   authRequired: true,
   params: AdminUserParams,
+  permissions: Permissions.usersWrite,
+})
+
+const AdminUserVerificationParams = z.object({
+  id: z.string(),
+})
+
+export const GetAdminUserVerificationsRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications',
+  method: 'GET',
+  query: z.object({
+    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+  }),
+  goodResponses: [GoodAdminUserVerificationsV2],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite,
+})
+
+export const CompleteAdminUserVerificationRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications/:id/complete',
+  method: 'POST',
+  goodResponses: [GoodAdminUserVerificationCompleteV2],
+  badResponses: [
+    BadKnownEmail,
+    BadKnownName,
+    BadPerms,
+    BadToken,
+    BadUnknownVerification,
+  ],
+  authRequired: true,
+  params: AdminUserVerificationParams,
+  permissions: Permissions.usersWrite,
+})
+
+export const ResendAdminUserVerificationRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications/:id/resend',
+  method: 'POST',
+  goodResponses: [GoodAdminUserVerificationResendV2],
+  badResponses: [BadEndpoint, BadPerms, BadToken, BadUnknownVerification],
+  authRequired: true,
+  params: AdminUserVerificationParams,
   permissions: Permissions.usersWrite,
 })
 

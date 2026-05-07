@@ -12,7 +12,10 @@ import type {
   GoodVerifySent,
   ResponseHelpers,
 } from '@rctf/types'
-import { createLoginVerification } from '../cache/auth-cache'
+import {
+  createLoginVerificationWithId,
+  deletePendingRegisterVerification,
+} from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
@@ -81,14 +84,20 @@ export const registerUser = async (
       return res.badKnownEmail()
     }
 
-    const verificationToken = await createLoginVerification(redis, {
+    const verification = await createLoginVerificationWithId(redis, {
       kind: 'register',
       email: body.email,
       name: body.name,
       division: division,
     })
 
-    await sendVerificationEmail(body.email, 'register', verificationToken)
+    try {
+      await sendVerificationEmail(body.email, 'register', verification.token)
+    } catch (error) {
+      await deletePendingRegisterVerification(redis, verification.id)
+      throw error
+    }
+
     return res.goodVerifySent()
   }
 
