@@ -1,8 +1,8 @@
 <script lang="ts">
   import { ScrollArea, Spinner } from '$lib/components'
-  import SubmissionsFilterOption from './submissions-filter-option.svelte'
-  import SubmissionsFilterSearchInput from './submissions-filter-search-input.svelte'
-  import type { ValueFilterFamily } from './submissions-filter-ui'
+  import SubmissionsFilterOption from './filter-option.svelte'
+  import SubmissionsFilterSearchInput from './filter-search-input.svelte'
+  import type { ValueFilterFamily } from './ui'
 
   interface Props {
     family: ValueFilterFamily

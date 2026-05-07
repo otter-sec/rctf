@@ -2,7 +2,7 @@
   import { DropdownMenu } from '$lib/components'
   import { IconCheck, IconChevronDown } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import { filterOperatorLabel, includeOperatorLabel, type FilterMode } from './submissions-filters'
+  import { filterOperatorLabel, includeOperatorLabel, type FilterMode } from './core'
 
   interface Props {
     mode: FilterMode

@@ -1,14 +1,10 @@
 <script lang="ts">
   import { IconX } from '$lib/icons'
-  import SubmissionsDesktopFilterChips from './submissions-desktop-filter-chips.svelte'
-  import SubmissionsDesktopFilterMenu from './submissions-desktop-filter-menu.svelte'
-  import type {
-    RootFilterOptionMatch,
-    TimeFilterFamily,
-    ValueFilterFamily,
-  } from './submissions-filter-ui'
-  import { clearSubmissionFilters, type SubmissionFilters } from './submissions-filters'
-  import SubmissionsMobileFilterDrawer from './submissions-mobile-filter-drawer.svelte'
+  import { clearSubmissionFilters, type SubmissionFilters } from '../submissions-filters'
+  import SubmissionsDesktopFilterChips from './desktop-filter-chips.svelte'
+  import SubmissionsDesktopFilterMenu from './desktop-filter-menu.svelte'
+  import SubmissionsMobileFilterDrawer from './mobile-filter-drawer.svelte'
+  import type { RootFilterOptionMatch, TimeFilterFamily, ValueFilterFamily } from './ui'
 
   interface Props {
     filters: SubmissionFilters

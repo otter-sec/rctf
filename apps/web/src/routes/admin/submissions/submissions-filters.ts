@@ -1,3 +1,3 @@
-export * from './submissions-filter-core'
-export * from './submissions-filter-query'
-export * from './submissions-time-filter'
+export * from './filters/core'
+export * from './filters/query'
+export * from './filters/time'

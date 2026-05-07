@@ -1,6 +1,6 @@
 <script lang="ts">
-  import SubmissionResultDot from './submission-result-dot.svelte'
-  import { resultLabel, resultTone } from './submissions-utils'
+  import { resultLabel, resultTone } from '../submissions-utils'
+  import SubmissionResultDot from './result-dot.svelte'
 
   interface Props {
     result: string

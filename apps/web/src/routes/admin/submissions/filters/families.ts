@@ -15,17 +15,6 @@ import {
 } from '$lib/icons'
 import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
 import {
-  defineValueFilterFamily,
-  type FilterOptionView,
-  type ValueFilterFamily,
-} from './submissions-filter-ui'
-import {
-  clearFilter,
-  clearSearchFilter,
-  toggleFilterOption,
-  type SubmissionFilters,
-} from './submissions-filters'
-import {
   KIND_FILTERS,
   kindLabel,
   RESULT_FILTERS,
@@ -37,7 +26,14 @@ import {
   type ChallengeFilterOption,
   type DivisionFilterOption,
   type TeamFilterOption,
-} from './submissions-utils'
+} from '../submissions-utils'
+import { clearFilter, clearSearchFilter, toggleFilterOption } from './core'
+import { type SubmissionFilters } from './query'
+import {
+  defineValueFilterFamily,
+  type FilterOptionView,
+  type ValueFilterFamily,
+} from './ui'
 
 type SubmissionFilterFamilyContext = {
   filters: SubmissionFilters

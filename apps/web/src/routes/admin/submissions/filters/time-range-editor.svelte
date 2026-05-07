@@ -5,7 +5,7 @@
     clearTimeRangeFilter,
     hasTimeRangeFilter,
     type SubmissionFilters,
-  } from './submissions-filters'
+  } from '../submissions-filters'
 
   interface Props {
     filters: SubmissionFilters

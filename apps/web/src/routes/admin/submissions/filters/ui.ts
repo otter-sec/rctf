@@ -4,14 +4,15 @@ import {
   type SubmissionTeamStatus,
 } from '@rctf/types'
 import type { IconComponent } from '$lib/icons'
-import type { MultiFilter, ValueFilterId } from './submissions-filters'
 import type {
   CategoryFilterOption,
   ChallengeFilterOption,
   DivisionFilterOption,
   ResultTone,
   TeamFilterOption,
-} from './submissions-utils'
+} from '../submissions-utils'
+import type { MultiFilter } from './core'
+import type { ValueFilterId } from './query'
 
 export type ValueFilterOption =
   | ChallengeFilterOption

@@ -11,25 +11,25 @@
     IconX,
   } from '$lib/icons'
   import { cn, getCategoryConfig, getCategoryStyle, getInitials } from '$lib/utils'
-  import SubmissionResultText from './submission-result-text.svelte'
-  import SubmissionsFilterModeMenu from './submissions-filter-mode-menu.svelte'
-  import SubmissionsFilterOptionList from './submissions-filter-option-list.svelte'
-  import type { ValueFilterFamily } from './submissions-filter-ui'
   import {
     clearTimeRangeFilter,
     hasTimeRangeFilter,
     setFilterMode,
     type MultiFilter,
     type SubmissionFilters,
-  } from './submissions-filters'
-  import SubmissionsTimeRangeEditor from './submissions-time-range-editor.svelte'
+  } from '../submissions-filters'
   import {
     kindLabel,
     teamStatusLabel,
     type CategoryFilterOption,
     type ChallengeFilterOption,
     type TeamFilterOption,
-  } from './submissions-utils'
+  } from '../submissions-utils'
+  import SubmissionResultText from '../table/result-text.svelte'
+  import SubmissionsFilterModeMenu from './filter-mode-menu.svelte'
+  import SubmissionsFilterOptionList from './filter-option-list.svelte'
+  import SubmissionsTimeRangeEditor from './time-range-editor.svelte'
+  import type { ValueFilterFamily } from './ui'
 
   interface Props {
     filters: SubmissionFilters

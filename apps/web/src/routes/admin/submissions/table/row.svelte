@@ -10,9 +10,9 @@
     getCategoryStyle,
     getInitials,
   } from '$lib/utils'
-  import SubmissionResultText from './submission-result-text.svelte'
-  import type { VirtualRow } from './submissions-filter-ui'
-  import { canInspectIp, ipInfoUrl, kindLabel, type Submission } from './submissions-utils'
+  import type { VirtualRow } from '../filters/ui'
+  import { canInspectIp, ipInfoUrl, kindLabel, type Submission } from '../submissions-utils'
+  import SubmissionResultText from './result-text.svelte'
 
   interface Props {
     row: VirtualRow

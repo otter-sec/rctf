@@ -9,10 +9,8 @@
     useInfiniteAdminUsers,
   } from '$lib/query'
   import { formatCtfOffset, formatLocalTime, useInfiniteVirtualScroll } from '$lib/utils'
-  import SubmissionDetailRow from './submission-detail-row.svelte'
-  import SubmissionTableRow from './submission-table-row.svelte'
-  import SubmissionsFilterBar from './submissions-filter-bar.svelte'
-  import { createSubmissionValueFilterFamilies } from './submissions-filter-families'
+  import { createSubmissionValueFilterFamilies } from './filters/families'
+  import SubmissionsFilterBar from './filters/filter-bar.svelte'
   import {
     normalizeSearchText,
     PAGE_SIZE,
@@ -24,7 +22,7 @@
     type RootFilterOptionMatch,
     type TimeFilterFamily,
     type VirtualRow,
-  } from './submissions-filter-ui'
+  } from './filters/ui'
   import {
     createSubmissionFilters,
     hasSubmissionFilters,
@@ -32,8 +30,10 @@
     submissionFilterFingerprint,
     submissionFilterParams,
   } from './submissions-filters'
-  import SubmissionsTableHeader from './submissions-table-header.svelte'
   import { type SortBy, type Submission } from './submissions-utils'
+  import SubmissionDetailRow from './table/detail-row.svelte'
+  import SubmissionsTableHeader from './table/header.svelte'
+  import SubmissionTableRow from './table/row.svelte'
 
   let sortBy = $state<SortBy>(SubmissionSortBy.CREATED_AT)
   let sortOrder = $state<SubmissionSortOrder>(SubmissionSortOrder.DESC)

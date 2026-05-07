@@ -2,13 +2,6 @@
   import { Drawer, ScrollArea } from '$lib/components'
   import { IconChevronRight, IconClockFilled, IconFilter, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import SubmissionsFilterOptionList from './submissions-filter-option-list.svelte'
-  import SubmissionsFilterSearchInput from './submissions-filter-search-input.svelte'
-  import {
-    valueFilterSummary,
-    type MobileFilterId,
-    type ValueFilterFamily,
-  } from './submissions-filter-ui'
   import {
     clearTimeRangeFilter,
     filterOperatorLabel,
@@ -17,8 +10,11 @@
     setFilterMode,
     type MultiFilter,
     type SubmissionFilters,
-  } from './submissions-filters'
-  import SubmissionsTimeRangeEditor from './submissions-time-range-editor.svelte'
+  } from '../submissions-filters'
+  import SubmissionsFilterOptionList from './filter-option-list.svelte'
+  import SubmissionsFilterSearchInput from './filter-search-input.svelte'
+  import SubmissionsTimeRangeEditor from './time-range-editor.svelte'
+  import { valueFilterSummary, type MobileFilterId, type ValueFilterFamily } from './ui'
 
   interface Props {
     filters: SubmissionFilters

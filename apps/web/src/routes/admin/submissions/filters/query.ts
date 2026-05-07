@@ -5,6 +5,12 @@ import {
   type SubmissionSortOrder,
   type SubmissionTeamStatus,
 } from '@rctf/types'
+import type {
+  CategoryFilterOption,
+  ChallengeFilterOption,
+  DivisionFilterOption,
+  TeamFilterOption,
+} from '../submissions-utils'
 import {
   clearFilter,
   createFilter,
@@ -12,7 +18,7 @@ import {
   filterFingerprint,
   type MultiFilter,
   type SearchFilter,
-} from './submissions-filter-core'
+} from './core'
 import {
   clearTimeRangeFilter,
   createTimeRangeFilter,
@@ -20,13 +26,7 @@ import {
   resolveTimeRangeFilter,
   timeRangeFingerprint,
   type TimeRangeFilter,
-} from './submissions-time-filter'
-import type {
-  CategoryFilterOption,
-  ChallengeFilterOption,
-  DivisionFilterOption,
-  TeamFilterOption,
-} from './submissions-utils'
+} from './time'
 
 export type ValueFilterMap = {
   challenge: SearchFilter<ChallengeFilterOption>

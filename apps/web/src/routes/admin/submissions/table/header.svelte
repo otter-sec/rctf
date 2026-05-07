@@ -1,7 +1,7 @@
 <script lang="ts">
   import { SubmissionSortBy, SubmissionSortOrder } from '@rctf/types'
   import { IconChevronDown, IconChevronUp, IconSelector } from '$lib/icons'
-  import type { SortBy, SortOrder } from './submissions-utils'
+  import type { SortBy, SortOrder } from '../submissions-utils'
 
   interface Props {
     sortBy: SortBy

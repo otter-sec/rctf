@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { resultTone } from './submissions-utils'
+  import { resultTone } from '../submissions-utils'
 
   interface Props {
     result: string

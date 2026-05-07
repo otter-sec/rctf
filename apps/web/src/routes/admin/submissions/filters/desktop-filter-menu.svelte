@@ -2,17 +2,17 @@
   import { DropdownMenu, ScrollArea, Spinner } from '$lib/components'
   import { IconClockFilled, IconFilter } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import SubmissionsFilterOptionList from './submissions-filter-option-list.svelte'
-  import SubmissionsFilterOption from './submissions-filter-option.svelte'
-  import SubmissionsFilterSearchInput from './submissions-filter-search-input.svelte'
+  import SubmissionsFilterOptionList from './filter-option-list.svelte'
+  import SubmissionsFilterOption from './filter-option.svelte'
+  import SubmissionsFilterSearchInput from './filter-search-input.svelte'
+  import type { SubmissionFilters } from './query'
+  import SubmissionsTimeRangeEditor from './time-range-editor.svelte'
   import {
     rootFilterOptionKey,
     type RootFilterOptionMatch,
     type TimeFilterFamily,
     type ValueFilterFamily,
-  } from './submissions-filter-ui'
-  import type { SubmissionFilters } from './submissions-filters'
-  import SubmissionsTimeRangeEditor from './submissions-time-range-editor.svelte'
+  } from './ui'
 
   interface Props {
     filters: SubmissionFilters

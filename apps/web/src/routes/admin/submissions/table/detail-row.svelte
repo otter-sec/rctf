@@ -2,8 +2,8 @@
   import { Tooltip } from '$lib/components'
   import { IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
-  import type { VirtualRow } from './submissions-filter-ui'
-  import { detailEntries, type DetailEntry, type Submission } from './submissions-utils'
+  import type { VirtualRow } from '../filters/ui'
+  import { detailEntries, type DetailEntry, type Submission } from '../submissions-utils'
 
   interface Props {
     row: VirtualRow

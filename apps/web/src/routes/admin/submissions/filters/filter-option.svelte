@@ -2,7 +2,7 @@
   import { Avatar, DropdownMenu } from '$lib/components'
   import { IconCheck, IconChevronRight } from '$lib/icons'
   import { cn, getInitials } from '$lib/utils'
-  import type { ValueFilterFamily, ValueFilterOption } from './submissions-filter-ui'
+  import type { ValueFilterFamily, ValueFilterOption } from './ui'
 
   interface Props {
     family: ValueFilterFamily
