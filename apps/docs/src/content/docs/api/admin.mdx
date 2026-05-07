@@ -46,6 +46,8 @@ Editable settings:
 | Setting           | Description                                 |
 | ----------------- | ------------------------------------------- |
 | CTF name          | Display name of the competition             |
+| CTF start time    | Competition start time                      |
+| CTF end time      | Competition end time                        |
 | Home content      | Home page markdown content                  |
 | Sponsors          | Sponsor list (name, icon, description, URL) |
 | Meta description  | HTML meta description                       |
@@ -54,6 +56,8 @@ Editable settings:
 | Logo (light/dark) | Platform logos for light and dark mode      |
 
 Setting a value to `null{:ts}` reverts it to the config file default.
+
+CTF start and end time overrides must keep the start before the end. Runtime timing overrides are returned through the v2 client config.
 
 ## Admin bot service
 

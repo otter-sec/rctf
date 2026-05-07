@@ -1,14 +1,13 @@
 import { config } from '@rctf/config'
-import {
-  settings,
-  type DatabaseClient,
-  type EditableSettings,
-  type EditableSponsor,
-} from '@rctf/db'
+import { settings, type DatabaseClient, type EditableSettings } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq } from 'drizzle-orm'
 
 const VALUE_ID = 'value-0'
+
+export type SettingsPatch = {
+  [K in keyof EditableSettings]?: EditableSettings[K] | null
+}
 
 export async function getSettings(
   db: DatabaseClient
@@ -21,12 +20,10 @@ export async function getSettings(
   return row?.data ?? {}
 }
 
-export async function updateSettings(
-  db: DatabaseClient,
-  patch: Record<string, unknown>
-): Promise<EditableSettings> {
-  const current = await getSettings(db)
-
+export function patchSettings(
+  current: EditableSettings,
+  patch: SettingsPatch
+): EditableSettings {
   const updated: EditableSettings = { ...current }
   for (const [key, value] of Object.entries(patch)) {
     if (value === null) {
@@ -35,6 +32,16 @@ export async function updateSettings(
       ;(updated as Record<string, unknown>)[key] = value
     }
   }
+
+  return updated
+}
+
+export async function updateSettings(
+  db: DatabaseClient,
+  patch: SettingsPatch
+): Promise<EditableSettings> {
+  const current = await getSettings(db)
+  const updated = patchSettings(current, patch)
 
   await db
     .insert(settings)
@@ -51,6 +58,8 @@ export function getConfigDefaults(): EditableSettings {
   return {
     ctfName: config.ctfName,
     homeContent: config.homeContent,
+    startTime: config.startTime,
+    endTime: config.endTime,
     sponsors: config.sponsors,
     meta: config.meta,
     faviconUrl: config.faviconUrl,
@@ -63,6 +72,8 @@ export function resolveSettings(overrides: EditableSettings) {
   return {
     ctfName: overrides.ctfName ?? config.ctfName,
     homeContent: overrides.homeContent ?? config.homeContent,
+    startTime: overrides.startTime ?? config.startTime,
+    endTime: overrides.endTime ?? config.endTime,
     sponsors: overrides.sponsors ?? config.sponsors,
     meta: {
       description: overrides.meta?.description ?? config.meta.description,

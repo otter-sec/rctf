@@ -4,14 +4,19 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadRegistrationsDisabled,
+  GoodLogin,
   GoodRegister,
+  GoodRegisterV2,
   GoodToken,
   GoodUserUpdate,
+  GoodVerify,
   GoodVerifySent,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
+import { createLoginVerification } from '../../../../apps/api/src/cache/auth-cache'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
+import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
   deleteUserByEmail,
@@ -73,6 +78,7 @@ describe('auth', () => {
 
     const body = await expectResponse(res, GoodRegister)
     expect(typeof body.data.authToken).toBe('string')
+    expect('teamToken' in body.data).toBe(false)
 
     // Test the token works
     res = await request(app, '/api/v1/auth/test', {
@@ -83,6 +89,103 @@ describe('auth', () => {
     })
 
     await expectResponse(res, GoodToken)
+  })
+
+  test('v2 register returns team token', async () => {
+    config.email = undefined
+    const v2User = generateTestUser()
+
+    try {
+      let res = await request(app, '/api/v2/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v2User),
+      })
+
+      const body = await expectResponse(res, GoodRegisterV2)
+      expect(typeof body.data.authToken).toBe('string')
+      expect(typeof body.data.teamToken).toBe('string')
+
+      res = await request(app, '/api/v1/auth/test', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${body.data.authToken}`,
+        },
+      })
+
+      await expectResponse(res, GoodToken)
+
+      res = await request(app, '/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamToken: body.data.teamToken }),
+      })
+
+      const loginBody = await expectResponse(res, GoodLogin)
+      expect(typeof loginBody.data.authToken).toBe('string')
+    } finally {
+      await deleteUserByEmail(v2User.email)
+    }
+  })
+
+  test('v2 verify returns team token for register tokens', async () => {
+    const redis = await createRedis()
+    const v2User = generateTestUser()
+    const verifyToken = await createLoginVerification(redis, {
+      kind: 'register',
+      email: v2User.email,
+      name: v2User.name,
+      division: v2User.division,
+    })
+
+    try {
+      let res = await request(app, '/api/v2/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verifyToken }),
+      })
+
+      const body = await expectResponse(res, GoodRegisterV2)
+      expect(typeof body.data.authToken).toBe('string')
+      expect(typeof body.data.teamToken).toBe('string')
+
+      res = await request(app, '/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamToken: body.data.teamToken }),
+      })
+
+      const loginBody = await expectResponse(res, GoodLogin)
+      expect(typeof loginBody.data.authToken).toBe('string')
+    } finally {
+      await deleteUserByEmail(v2User.email)
+    }
+  })
+
+  test('v2 verify accepts team tokens', async () => {
+    config.email = undefined
+    const v2User = generateTestUser()
+
+    try {
+      let res = await request(app, '/api/v2/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(v2User),
+      })
+
+      const registerBody = await expectResponse(res, GoodRegisterV2)
+
+      res = await request(app, '/api/v2/auth/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ verifyToken: registerBody.data.teamToken }),
+      })
+
+      const verifyBody = await expectResponse(res, GoodVerify)
+      expect(typeof verifyBody.data.authToken).toBe('string')
+    } finally {
+      await deleteUserByEmail(v2User.email)
+    }
   })
 
   test('duplicate email fails with badKnownEmail', async () => {
