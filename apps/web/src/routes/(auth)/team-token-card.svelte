@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Button, Card } from '$lib/components'
   import { IconCopy, IconLogin } from '$lib/icons'
-  import { copyToClipboard } from '$lib/utils'
   import { toast } from 'svelte-sonner'
 
   interface Props {
@@ -12,17 +11,19 @@
   let { teamToken, loginUrl }: Props = $props()
 
   async function copyToken() {
-    if (await copyToClipboard(teamToken)) {
+    try {
+      await navigator.clipboard.writeText(teamToken)
       toast.success('Team token copied to clipboard')
-    } else {
+    } catch {
       toast.error('Failed to copy team token')
     }
   }
 
   async function copyLoginUrl() {
-    if (await copyToClipboard(loginUrl)) {
+    try {
+      await navigator.clipboard.writeText(loginUrl)
       toast.success('Login URL copied to clipboard')
-    } else {
+    } catch {
       toast.error('Failed to copy login URL')
     }
   }

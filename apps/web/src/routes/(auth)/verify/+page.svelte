@@ -5,12 +5,19 @@
   import { page } from '$app/state'
   import { setToken } from '$lib/api'
   import { Button, Card, Spinner } from '$lib/components'
-  import { queryKeys, useClientConfig, useVerifyInfo, useVerifyMutation } from '$lib/query'
+  import {
+    queryKeys,
+    useClientConfig,
+    useRegisterVerifyMutation,
+    useVerifyInfo,
+    useVerifyMutation,
+  } from '$lib/query'
   import { toast } from 'svelte-sonner'
   import TeamTokenCard from '../team-token-card.svelte'
 
   const queryClient = useQueryClient()
   const verifyMutation = useVerifyMutation()
+  const registerVerifyMutation = useRegisterVerifyMutation()
   const clientConfigQuery = useClientConfig()
 
   const verifyToken = $derived(page.url.searchParams.get('token'))
@@ -24,6 +31,9 @@
   let verified = $state(false)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
+  const isVerifying = $derived(
+    verifyInfoQuery.isFetching || verifyMutation.isPending || registerVerifyMutation.isPending
+  )
 
   const title = $derived.by(() => {
     if (!verifyInfo) return 'Verify email'
@@ -57,17 +67,34 @@
 
     error = null
 
+    if (verifyInfo?.kind === 'register') {
+      registerVerifyMutation.mutate(
+        { verifyToken },
+        {
+          onSuccess: response => {
+            if (response.kind === GoodRegisterV2.kind) {
+              setToken(response.data.authToken)
+              registeredTeamToken = response.data.teamToken
+              registeredLoginUrl = `${window.location.origin}/login?token=${encodeURIComponent(response.data.teamToken)}`
+              toast.success('Verified successfully!')
+              queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
+            } else {
+              error = response.message
+            }
+          },
+          onError: err => {
+            error = err.message
+          },
+        }
+      )
+      return
+    }
+
     verifyMutation.mutate(
       { verifyToken },
       {
         onSuccess: response => {
-          if (response.kind === GoodRegisterV2.kind) {
-            setToken(response.data.authToken)
-            registeredTeamToken = response.data.teamToken
-            registeredLoginUrl = `${window.location.origin}/login?token=${encodeURIComponent(response.data.teamToken)}`
-            toast.success('Verified successfully!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-          } else if (response.kind === GoodVerify.kind) {
+          if (response.kind === GoodVerify.kind) {
             setToken(response.data.authToken)
             verified = true
             toast.success('Verified successfully!')
@@ -131,8 +158,8 @@
         </div>
       {/if}
 
-      <Button onclick={handleVerify} disabled={verifyMutation.isPending} class="w-full">
-        {#if verifyMutation.isPending}
+      <Button onclick={handleVerify} disabled={isVerifying} class="w-full">
+        {#if isVerifying}
           <Spinner class="size-4" />
         {/if}
         {#if verifyInfo?.kind === 'register'}

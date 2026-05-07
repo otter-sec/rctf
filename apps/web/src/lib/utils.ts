@@ -14,7 +14,6 @@ export * from './utils/categories'
 export * from './utils/filesize'
 export * from './utils/captcha'
 export * from './utils/permissions'
-export * from './utils/clipboard'
 export * from './utils/virtualizer.svelte'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

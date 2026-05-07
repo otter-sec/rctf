@@ -1,6 +1,6 @@
 <script lang="ts">
   import { IconCheck, IconCopy } from '$lib/icons'
-  import { cn, copyToClipboard } from '$lib/utils'
+  import { cn } from '$lib/utils'
   import type { AlertType } from '$lib/utils/markdown'
 
   interface AlertConfig {
@@ -62,12 +62,11 @@
   const isUrl = $derived(/^https?:\/\//.test(trimmed))
   const CopyIcon = $derived(copied ? IconCheck : IconCopy)
 
-  async function copy() {
-    if (await copyToClipboard(trimmed)) {
-      copied = true
-      clearTimeout(timeout)
-      timeout = setTimeout(() => (copied = false), 1500)
-    }
+  function copy() {
+    navigator.clipboard.writeText(trimmed)
+    copied = true
+    clearTimeout(timeout)
+    timeout = setTimeout(() => (copied = false), 1500)
   }
 </script>
 

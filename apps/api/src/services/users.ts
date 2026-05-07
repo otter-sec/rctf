@@ -115,8 +115,12 @@ export const createUser = async (
 > => {
   const result = await createUserInternal(db, user)
   if (!result.success) {
-    if (result.error === 'badKnownCtftimeId') return res.badKnownCtftimeId()
-    if (result.error === 'badKnownEmail') return res.badKnownEmail()
+    if (result.error === 'badKnownCtftimeId') {
+      return res.badKnownCtftimeId()
+    }
+    if (result.error === 'badKnownEmail') {
+      return res.badKnownEmail()
+    }
     return res.badKnownName()
   }
 
@@ -133,8 +137,12 @@ export const createUserV2 = async (
 > => {
   const result = await createUserInternal(db, user)
   if (!result.success) {
-    if (result.error === 'badKnownCtftimeId') return res.badKnownCtftimeId()
-    if (result.error === 'badKnownEmail') return res.badKnownEmail()
+    if (result.error === 'badKnownCtftimeId') {
+      return res.badKnownCtftimeId()
+    }
+    if (result.error === 'badKnownEmail') {
+      return res.badKnownEmail()
+    }
     return res.badKnownName()
   }
 
@@ -142,7 +150,7 @@ export const createUserV2 = async (
     createToken(TokenKind.Auth, result.userId),
     createToken(TokenKind.Team, result.userId),
   ])
-  return res.goodRegister({ authToken, teamToken })
+  return res.goodRegisterV2({ authToken, teamToken })
 }
 
 export type UpdateUserResult =

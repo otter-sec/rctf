@@ -13,7 +13,7 @@
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader, IconLogin } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
-  import { copyToClipboard, formatCountdown } from '$lib/utils'
+  import { formatCountdown } from '$lib/utils'
   import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
 
@@ -45,9 +45,10 @@
   }
 
   async function copy(text: string) {
-    if (await copyToClipboard(text)) {
+    try {
+      await navigator.clipboard.writeText(text)
       toast.success('Copied to clipboard')
-    } else {
+    } catch {
       toast.error('Failed to copy')
     }
   }

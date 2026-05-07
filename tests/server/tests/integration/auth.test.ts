@@ -4,6 +4,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadRegistrationsDisabled,
+  BadTokenVerification,
   GoodLogin,
   GoodRegister,
   GoodRegisterV2,
@@ -127,7 +128,7 @@ describe('auth', () => {
     }
   })
 
-  test('v2 verify registration returns team token', async () => {
+  test('v2 register verify returns team token', async () => {
     const redis = await createRedis()
     const v2User = generateTestUser()
     const verifyToken = await createLoginVerification(redis, {
@@ -138,7 +139,7 @@ describe('auth', () => {
     })
 
     try {
-      let res = await request(app, '/api/v2/auth/verify', {
+      let res = await request(app, '/api/v2/auth/register/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verifyToken }),
@@ -159,6 +160,18 @@ describe('auth', () => {
     } finally {
       await deleteUserByEmail(v2User.email)
     }
+  })
+
+  test('v2 register verify rejects team tokens', async () => {
+    const teamToken = await createToken(TokenKind.Team, crypto.randomUUID())
+
+    const res = await request(app, '/api/v2/auth/register/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ verifyToken: teamToken }),
+    })
+
+    await expectResponse(res, BadTokenVerification)
   })
 
   test('duplicate email fails with badKnownEmail', async () => {
