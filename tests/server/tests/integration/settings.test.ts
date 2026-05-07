@@ -2,8 +2,6 @@ import { config } from '@rctf/config'
 import { createDatabase, settings } from '@rctf/db'
 import {
   BadBody,
-  BadEnded,
-  BadNotStarted,
   BadPerms,
   BadToken,
   GoodAdminSettings,
@@ -21,8 +19,6 @@ import {
 } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
-import { invalidateSettingsCache } from '../../../../apps/api/src/services/settings'
-import { createRedis } from '../../../../apps/api/src/util/redis'
 import { getApp, request } from '../../app'
 import {
   expectResponse,
@@ -40,7 +36,6 @@ let unprivilegedUser: Awaited<ReturnType<typeof generateRealTestUser>>
 const cleanupSettings = async () => {
   const db = getDb()
   await db.delete(settings).where(eq(settings.id, 'value-0'))
-  await invalidateSettingsCache(await createRedis())
 }
 
 const authHeaders = async (userId: string) => ({
@@ -748,23 +743,6 @@ describe('admin settings', () => {
       expect(body.data.ctfName).toBe('V1Override')
     })
 
-    test('v1 client config also uses DB timing overrides', async () => {
-      const startTime = config.startTime + 22_222
-      const endTime = config.endTime - 33_333
-      await request(app, '/api/v2/admin/settings', {
-        method: 'PUT',
-        headers: await jsonHeaders(settingsAdmin.user.id),
-        body: JSON.stringify({ data: { startTime, endTime } }),
-      })
-
-      const res = await request(app, '/api/v1/integrations/client/config', {
-        method: 'GET',
-      })
-      const body = await res.json()
-      expect(body.data.startTime).toBe(startTime)
-      expect(body.data.endTime).toBe(endTime)
-    })
-
     test('v1 client config reverts after reset', async () => {
       await request(app, '/api/v2/admin/settings', {
         method: 'PUT',
@@ -789,40 +767,6 @@ describe('admin settings', () => {
       })
       body = await res.json()
       expect(body.data.homeContent).toBe(config.homeContent)
-    })
-  })
-
-  describe('timeline overrides affect route gates', () => {
-    test('returns badNotStarted before overridden start time', async () => {
-      const startTime = Date.now() + 3_600_000
-      const endTime = startTime + 3_600_000
-      await request(app, '/api/v2/admin/settings', {
-        method: 'PUT',
-        headers: await jsonHeaders(settingsAdmin.user.id),
-        body: JSON.stringify({ data: { startTime, endTime } }),
-      })
-
-      const res = await request(app, '/api/v2/challs', {
-        method: 'GET',
-      })
-      await expectResponse(res, BadNotStarted)
-    })
-
-    test('returns badEnded after overridden end time', async () => {
-      const endTime = Date.now() - 1000
-      const startTime = endTime - 3_600_000
-      await request(app, '/api/v2/admin/settings', {
-        method: 'PUT',
-        headers: await jsonHeaders(settingsAdmin.user.id),
-        body: JSON.stringify({ data: { startTime, endTime } }),
-      })
-
-      const res = await request(app, '/api/v1/challs/fake/submit', {
-        method: 'POST',
-        headers: await jsonHeaders(unprivilegedUser.user.id),
-        body: JSON.stringify({ flag: 'flag{test}' }),
-      })
-      await expectResponse(res, BadEnded)
     })
   })
 })

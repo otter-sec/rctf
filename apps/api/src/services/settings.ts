@@ -2,32 +2,14 @@ import { config } from '@rctf/config'
 import { settings, type DatabaseClient, type EditableSettings } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq } from 'drizzle-orm'
-import type { TypedRedis } from '../cache/scripts'
 
 const VALUE_ID = 'value-0'
-const SETTINGS_CACHE_KEY = `settings:${VALUE_ID}`
-const SETTINGS_CACHE_TTL = 30_000
-
-export interface CompetitionTiming {
-  startTime: number
-  endTime: number
-}
 
 export type UpdateSettingsResult =
-  | { ok: true; settings: EditableSettings; changedTiming: boolean }
+  | { ok: true; settings: EditableSettings }
   | { ok: false; reason: string }
-
-const parseCachedSettings = (raw: string): EditableSettings | null => {
-  try {
-    const parsed = JSON.parse(raw)
-    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-      return parsed as EditableSettings
-    }
-  } catch {
-    return null
-  }
-
-  return null
+export type SettingsPatch = {
+  [K in keyof EditableSettings]?: EditableSettings[K] | null
 }
 
 export async function getSettings(
@@ -41,38 +23,9 @@ export async function getSettings(
   return row?.data ?? {}
 }
 
-export async function getCachedSettings(
-  db: DatabaseClient,
-  redis: TypedRedis
-): Promise<EditableSettings> {
-  const cached = await redis.get(SETTINGS_CACHE_KEY)
-  if (cached) {
-    const parsed = parseCachedSettings(cached)
-    if (parsed) {
-      return parsed
-    }
-    await invalidateSettingsCache(redis)
-  }
-
-  const data = await getSettings(db)
-  await redis.set(
-    SETTINGS_CACHE_KEY,
-    JSON.stringify(data),
-    'PX',
-    SETTINGS_CACHE_TTL
-  )
-  return data
-}
-
-export async function invalidateSettingsCache(
-  redis: TypedRedis
-): Promise<void> {
-  await redis.del(SETTINGS_CACHE_KEY)
-}
-
 export function patchSettings(
   current: EditableSettings,
-  patch: Record<string, unknown>
+  patch: SettingsPatch
 ): EditableSettings {
   const updated: EditableSettings = { ...current }
   for (const [key, value] of Object.entries(patch)) {
@@ -87,20 +40,27 @@ export function patchSettings(
 }
 
 export function settingsPatchChangesCompetitionTiming(
-  patch: Record<string, unknown>
+  patch: SettingsPatch
 ): boolean {
   return Object.hasOwn(patch, 'startTime') || Object.hasOwn(patch, 'endTime')
 }
 
+export function getCompetitionTimingValidationError(
+  overrides: EditableSettings
+): string | null {
+  const startTime = overrides.startTime ?? config.startTime
+  const endTime = overrides.endTime ?? config.endTime
+  return startTime < endTime ? null : 'startTime must be before endTime'
+}
+
 export async function updateSettings(
   db: DatabaseClient,
-  patch: Record<string, unknown>,
-  redis?: TypedRedis
+  patch: SettingsPatch
 ): Promise<UpdateSettingsResult> {
   const current = await getSettings(db)
   const updated = patchSettings(current, patch)
-  const changedTiming = settingsPatchChangesCompetitionTiming(patch)
-  if (changedTiming) {
+
+  if (settingsPatchChangesCompetitionTiming(patch)) {
     const timingError = getCompetitionTimingValidationError(updated)
     if (timingError !== null) {
       return { ok: false, reason: timingError }
@@ -115,11 +75,7 @@ export async function updateSettings(
       set: { data: updated },
     })
 
-  if (redis) {
-    await invalidateSettingsCache(redis)
-  }
-
-  return { ok: true, settings: updated, changedTiming }
+  return { ok: true, settings: updated }
 }
 
 export function getConfigDefaults(): EditableSettings {
@@ -136,42 +92,12 @@ export function getConfigDefaults(): EditableSettings {
   }
 }
 
-export function resolveCompetitionTiming(
-  overrides: EditableSettings
-): CompetitionTiming {
-  return {
-    startTime: overrides.startTime ?? config.startTime,
-    endTime: overrides.endTime ?? config.endTime,
-  }
-}
-
-export async function getCompetitionTiming(
-  db: DatabaseClient
-): Promise<CompetitionTiming> {
-  return resolveCompetitionTiming(await getSettings(db))
-}
-
-export async function getCachedCompetitionTiming(
-  db: DatabaseClient,
-  redis: TypedRedis
-): Promise<CompetitionTiming> {
-  return resolveCompetitionTiming(await getCachedSettings(db, redis))
-}
-
-export function getCompetitionTimingValidationError(
-  overrides: EditableSettings
-): string | null {
-  const { startTime, endTime } = resolveCompetitionTiming(overrides)
-  return startTime < endTime ? null : 'startTime must be before endTime'
-}
-
 export function resolveSettings(overrides: EditableSettings) {
-  const timing = resolveCompetitionTiming(overrides)
-
   return {
     ctfName: overrides.ctfName ?? config.ctfName,
     homeContent: overrides.homeContent ?? config.homeContent,
-    ...timing,
+    startTime: overrides.startTime ?? config.startTime,
+    endTime: overrides.endTime ?? config.endTime,
     sponsors: overrides.sponsors ?? config.sponsors,
     meta: {
       description: overrides.meta?.description ?? config.meta.description,

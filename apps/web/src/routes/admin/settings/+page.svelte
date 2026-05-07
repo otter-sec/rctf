@@ -1,7 +1,11 @@
 <script lang="ts">
-  import { GoodFilesUploadV2 } from '@rctf/types'
+  import {
+    GoodAdminSettingsUpdate,
+    GoodFilesUploadV2,
+    UpdateAdminSettingsRouteV2,
+  } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { showApiError } from '$lib/api'
+  import { showApiError, type InlineArgs } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
   import {
@@ -24,8 +28,10 @@
     useUpdateSettingsMutation,
     useUploadFilesMutation,
   } from '$lib/query'
-  import { cn, formatDatetimeLocalValue, parseDatetimeLocalValue } from '$lib/utils'
+  import { cn } from '$lib/utils'
   import { toast } from 'svelte-sonner'
+
+  type SettingsPatch = InlineArgs<typeof UpdateAdminSettingsRouteV2>['data']
 
   const queryClient = useQueryClient()
   const clientConfigQuery = useClientConfig()
@@ -68,6 +74,29 @@
     }
     handleLogoUpload(file, target)
     input.value = ''
+  }
+
+  function formatDatetimeLocalValue(timestamp: number | null | undefined): string {
+    if (timestamp === null || timestamp === undefined) {
+      return ''
+    }
+
+    const date = new Date(timestamp)
+    if (Number.isNaN(date.getTime())) {
+      return ''
+    }
+
+    const pad = (value: number) => value.toString().padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  }
+
+  function parseDatetimeLocalValue(value: string): number | null {
+    if (!value) {
+      return null
+    }
+
+    const timestamp = new Date(value).getTime()
+    return Number.isNaN(timestamp) ? null : timestamp
   }
 
   let ctfName = $state('')
@@ -185,7 +214,7 @@
   const isSaving = $derived(mutation.isPending)
 
   async function handleSave() {
-    const patch: Record<string, unknown> = {}
+    const patch: SettingsPatch = {}
 
     if (overrides.ctfName) {
       patch.ctfName = ctfName
@@ -251,27 +280,23 @@
       return
     }
 
-    const timingChanged = 'startTime' in patch || 'endTime' in patch
-
-    mutation.mutate({ data: patch } as any, {
-      onSuccess: (response: { kind: string; message: string; data?: unknown }) => {
-        if (response.kind === 'goodAdminSettingsUpdate') {
-          toast.success('Settings saved.')
-          queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
-          queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
-          if (timingChanged) {
-            queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
-            queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-            queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+    mutation.mutate(
+      { data: patch },
+      {
+        onSuccess: response => {
+          if (response.kind === GoodAdminSettingsUpdate.kind) {
+            toast.success('Settings saved.')
+            queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })
+            queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings })
+          } else {
+            showApiError(response)
           }
-        } else {
-          showApiError(response as any)
-        }
-      },
-      onError: () => {
-        toast.error('Failed to save settings.')
-      },
-    })
+        },
+        onError: () => {
+          toast.error('Failed to save settings.')
+        },
+      }
+    )
   }
 </script>
 
@@ -348,7 +373,7 @@
         </Section.Header>
         <Section.Content class="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Field.Field>
-            <Field.Label>CTF start</Field.Label>
+            <Field.Label>CTF start (local time)</Field.Label>
             <Input
               type="datetime-local"
               value={formatDatetimeLocalValue(startTime)}
@@ -365,7 +390,7 @@
             {/if}
           </Field.Field>
           <Field.Field>
-            <Field.Label>CTF end</Field.Label>
+            <Field.Label>CTF end (local time)</Field.Label>
             <Input
               type="datetime-local"
               value={formatDatetimeLocalValue(endTime)}

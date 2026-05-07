@@ -1,19 +1,18 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRoute } from '@rctf/types'
-import {
-  getCachedSettings,
-  resolveSettings,
-} from '../../../../services/settings'
+import { getSettings, resolveSettings } from '../../../../services/settings'
 import integrationsGroup from '../group'
 
 integrationsGroup.route(GetClientConfigRoute, async ({ res, ctx }) => {
-  const dbSettings = await getCachedSettings(ctx.var.db, ctx.var.redis)
+  const dbSettings = await getSettings(ctx.var.db)
   const resolved = resolveSettings(dbSettings)
   return res.goodClientConfig({
     ...resolved,
     divisions: config.divisions,
     defaultDivision: config.defaultDivision ?? null,
     origin: config.origin,
+    startTime: config.startTime,
+    endTime: config.endTime,
     userMembers: config.userMembers,
     emailEnabled: Boolean(config.email),
     globalSiteTag: config.globalSiteTag ?? null,

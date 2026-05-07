@@ -14,23 +14,21 @@ import {
 } from '../cache/leaderboard'
 import { scoreProvider } from '../providers'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
-import { getCompetitionTiming, type CompetitionTiming } from './settings'
 import { userNameSearchFilter } from './users'
 
 const numberOfBloods = 3
 
 const buildScoreContext = (
   ch: InternalChallengeInfo,
-  maxSolves: number,
-  timing: CompetitionTiming
+  maxSolves: number
 ): ScoreContext => {
   return {
     minPoints: ch.minPoints,
     maxPoints: ch.maxPoints,
     solves: ch.solves,
     maxSolves: maxSolves,
-    eventStartTime: timing.startTime,
-    eventEndTime: timing.endTime,
+    eventStartTime: config.startTime,
+    eventEndTime: config.endTime,
     firstSolveTime: ch.firstSolveTime,
   }
 }
@@ -42,8 +40,6 @@ type SolveCursor = {
 
 type LeaderboardRuntimeState = {
   providerIdentity: string
-  timingIdentity: string
-  timing: CompetitionTiming
   challengesFingerprint: string
   userInfos: Map<string, InternalUserInfo>
   challengeInfos: Map<string, InternalChallengeInfo>
@@ -265,12 +261,8 @@ const buildChallengesFingerprint = (
     ])
   )
 
-const buildTimingIdentity = (timing: CompetitionTiming): string =>
-  `${timing.startTime}:${timing.endTime}`
-
 const createRuntimeState = (
-  seed: LeaderboardRebuildSeed,
-  timing: CompetitionTiming
+  seed: LeaderboardRebuildSeed
 ): LeaderboardRuntimeState => {
   const userInfos = new Map<string, InternalUserInfo>()
   for (const user of seed.dbUsers) {
@@ -305,8 +297,6 @@ const createRuntimeState = (
 
   const runtimeState: LeaderboardRuntimeState = {
     providerIdentity: seed.providerIdentity,
-    timingIdentity: buildTimingIdentity(timing),
-    timing,
     challengesFingerprint: seed.challengesFingerprint,
     userInfos,
     challengeInfos,
@@ -335,7 +325,7 @@ const recomputeScores = (state: LeaderboardRuntimeState): void => {
 
   for (const [, challengeInfo] of state.challengeInfos) {
     challengeInfo.score = scoreProvider.calculate(
-      buildScoreContext(challengeInfo, maxSolves, state.timing)
+      buildScoreContext(challengeInfo, maxSolves)
     )
   }
 
@@ -468,7 +458,7 @@ const processSolveBatch = (
   }
 
   const end = Math.min(
-    Math.floor(state.timing.endTime / graphSampleTime) * graphSampleTime,
+    Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
     now
   )
 
@@ -477,10 +467,7 @@ const processSolveBatch = (
   }
 
   if (state.firstEverSolveTime !== null) {
-    const effectiveStart = Math.max(
-      state.timing.startTime,
-      state.firstEverSolveTime
-    )
+    const effectiveStart = Math.max(config.startTime, state.firstEverSolveTime)
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
     const lastProcessedSolveTime =
       state.lastSolveCursor !== null
@@ -507,8 +494,8 @@ const processSolveBatch = (
     }
   }
 
-  if (solveIndex < solveRows.length || end !== state.timing.endTime) {
-    runSample(Math.min(now, state.timing.endTime), true)
+  if (solveIndex < solveRows.length || end !== config.endTime) {
+    runSample(Math.min(now, config.endTime), true)
   }
 
   const lastConsumedSolve =
@@ -569,10 +556,9 @@ const cloneCalculatedLeaderboard = (
 const rebuildRuntimeState = async (
   db: DatabaseClient,
   seed: LeaderboardRebuildSeed,
-  now: number,
-  timing: CompetitionTiming
+  now: number
 ): Promise<LeaderboardRuntimeState> => {
-  const state = createRuntimeState(seed, timing)
+  const state = createRuntimeState(seed)
   const allSolves = await getAllSolvesOrdered(db)
 
   const batchResult = processSolveBatch(state, allSolves, now)
@@ -590,8 +576,7 @@ export const calculateLeaderboard = async (
 ): Promise<CalculatedLeaderboard> => {
   const now = Date.now()
   const providerIdentity = getCurrentScoreProviderIdentity()
-  const [timing, dbUsers, dbChallenges] = await Promise.all([
-    getCompetitionTiming(db),
+  const [dbUsers, dbChallenges] = await Promise.all([
     getUsersSnapshot(db),
     getPublicChallengesSnapshot(db),
   ])
@@ -603,8 +588,7 @@ export const calculateLeaderboard = async (
       dbUsers,
       dbChallenges,
     },
-    now,
-    timing
+    now
   )
   return cloneCalculatedLeaderboard(runtimeState)
 }
@@ -618,12 +602,10 @@ export const createCachedLeaderboardCalculator = () => {
     const now = Date.now()
     const providerIdentity =
       providerIdentityOverride ?? getCurrentScoreProviderIdentity()
-    const [timing, dbUsers, dbChallenges] = await Promise.all([
-      getCompetitionTiming(db),
+    const [dbUsers, dbChallenges] = await Promise.all([
       getUsersSnapshot(db),
       getPublicChallengesSnapshot(db),
     ])
-    const timingIdentity = buildTimingIdentity(timing)
 
     const challengesFingerprint = buildChallengesFingerprint(dbChallenges)
 
@@ -640,8 +622,7 @@ export const createCachedLeaderboardCalculator = () => {
           dbUsers: freshUsers,
           dbChallenges: freshChallenges,
         },
-        now,
-        timing
+        now
       )
 
       return {
@@ -658,11 +639,6 @@ export const createCachedLeaderboardCalculator = () => {
 
     // provider changed
     if (state.providerIdentity !== providerIdentity) {
-      return await rebuild()
-    }
-
-    // competition timing changed
-    if (state.timingIdentity !== timingIdentity) {
       return await rebuild()
     }
 

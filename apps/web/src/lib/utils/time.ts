@@ -41,30 +41,6 @@ export function formatLocalTime(timestamp: number): string {
   return format(timestamp, 'MMM d, h:mm a')
 }
 
-export function formatDatetimeLocalValue(
-  timestamp: number | null | undefined
-): string {
-  if (timestamp === null || timestamp === undefined) {
-    return ''
-  }
-
-  const date = new Date(timestamp)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-
-  return format(date, "yyyy-MM-dd'T'HH:mm")
-}
-
-export function parseDatetimeLocalValue(value: string): number | null {
-  if (!value) {
-    return null
-  }
-
-  const timestamp = new Date(value).getTime()
-  return Number.isNaN(timestamp) ? null : timestamp
-}
-
 export function formatRelativeHours(
   timestamp: number,
   startTime: number

@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import type { User } from '@rctf/db'
 import type {
   AnyRouteDefinition,
@@ -29,7 +30,6 @@ import type { Handler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod/mini'
 import { getCachedUser, setCachedUser } from '../cache/auth-cache'
-import { getCachedCompetitionTiming } from '../services/settings'
 import { getUser } from '../services/users'
 import { validateCaptcha } from '../util/captcha'
 import type { ApiContext, AppEnv } from './app-env'
@@ -168,6 +168,15 @@ const getAuthenticatedUser = async (
 const hasPermissions = (user: User, perms: Permissions): boolean =>
   (user.perms & perms) === perms
 
+const isCompetitionStarted = (
+  user: User | undefined,
+  bypassPerms: Permissions | undefined
+) =>
+  (bypassPerms && user && hasPermissions(user, bypassPerms)) ||
+  Date.now() >= config.startTime
+
+const isCompetitionActive = () => Date.now() < config.endTime
+
 type ParseSuccess<T> = { ok: true; value: T }
 type ParseError = { ok: false; response: Response }
 type ParseResult<T> = ParseSuccess<T> | ParseError
@@ -250,30 +259,15 @@ export const declareRouter = <
       user = await getAuthenticatedUser(context)
     }
 
-    const bypassesStartedGate = Boolean(
-      definition.onlyWhenStartedPermissionsBypass &&
-      user &&
-      hasPermissions(user, definition.onlyWhenStartedPermissionsBypass)
-    )
-    const checksCompetitionTiming =
-      (definition.onlyWhenStarted && !bypassesStartedGate) ||
-      definition.onlyWhenNotFinished
-    if (checksCompetitionTiming) {
-      const timing = await getCachedCompetitionTiming(
-        context.var.db,
-        context.var.redis
-      )
-      const now = Date.now()
+    if (
+      definition.onlyWhenStarted &&
+      !isCompetitionStarted(user, definition.onlyWhenStartedPermissionsBypass)
+    ) {
+      return context.json(...respond.notStarted())
+    }
 
-      if (definition.onlyWhenStarted && !bypassesStartedGate) {
-        if (now < timing.startTime) {
-          return context.json(...respond.notStarted())
-        }
-      }
-
-      if (definition.onlyWhenNotFinished && now >= timing.endTime) {
-        return context.json(...respond.alreadyFinished())
-      }
+    if (definition.onlyWhenNotFinished && !isCompetitionActive()) {
+      return context.json(...respond.alreadyFinished())
     }
 
     const handleCustomIssue = (
