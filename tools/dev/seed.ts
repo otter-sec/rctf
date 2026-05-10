@@ -1,5 +1,9 @@
 import { mkdir, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import type {
+  AdminBotConfig,
+  InstancerConfig,
+} from '../../packages/db/src/index'
 
 const rootDir = path.resolve(import.meta.dir, '../..')
 const dataDir = path.join(rootDir, '.data')
@@ -43,6 +47,17 @@ leaderboard:
   graphMaxTeams: 12
   graphWithListLimit: 100
   graphSampleTime: 3600000
+instancerProvider:
+  name: 'instancer/docker-instancer'
+  options:
+    authToken: dev-instancer-token
+    apiUrl: http://127.0.0.1:1337
+adminBot:
+  provider:
+    name: 'admin-bot/rctf-js'
+    options:
+      secretKey: dev-admin-bot-secret
+      endpoint: http://127.0.0.1:21337
 `
 
 await mkdir(path.dirname(generatedConfigPath), { recursive: true })
@@ -84,6 +99,17 @@ const {
   users,
 } = dbModule
 
+type SeedExposeKind = InstancerConfig['expose'][number]['kind']
+type SeedInstancerConfig = InstancerConfig
+type SeedAdminBotConfig = AdminBotConfig
+
+const seedExposeKind = {
+  tcp: 'tcp' as SeedExposeKind,
+  tcpSsl: 'tcp-ssl' as SeedExposeKind,
+  http: 'http' as SeedExposeKind,
+  https: 'https' as SeedExposeKind,
+}
+
 type ChallengeSeed = {
   id: string
   name: string
@@ -96,6 +122,8 @@ type ChallengeSeed = {
   hidden?: boolean
   releaseOffsetHours?: number
   files?: { name: string; url: string; size?: number }[]
+  instancerConfig?: SeedInstancerConfig
+  adminBotConfig?: SeedAdminBotConfig
 }
 
 type SeedUser = {
@@ -160,6 +188,82 @@ const slug = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
+
+const adminBotVisitCode = `import { Challenge, type ChallengeContext } from '../src/types'
+
+export const challenge = new Challenge({
+  timeoutMilliseconds: 30_000,
+  inputs: {
+    url: { pattern: '^https?://.{1,200}$' },
+  },
+  handler: async (ctx: ChallengeContext): Promise<void> => {
+    const page = await ctx.browserContext.newPage()
+    const url = ctx.input.url!
+    ctx.output.info('adminbot', 'visiting submitted URL', { url })
+    await page.goto(url)
+    await page.close()
+  },
+  requireInstancerInstancesRunning: false,
+})
+`
+
+const instancedAdminBotCode = adminBotVisitCode.replace(
+  'requireInstancerInstancesRunning: false',
+  'requireInstancerInstancesRunning: true'
+)
+
+function createInstancerConfig(
+  id: string,
+  kind: SeedExposeKind = seedExposeKind.http,
+  extendable = true
+): SeedInstancerConfig {
+  const containerPort =
+    kind === seedExposeKind.http || kind === seedExposeKind.https ? 80 : 31337
+  return {
+    challengeIntegrationId: id,
+    config: {
+      services: {
+        app: {
+          image: 'traefik/whoami:latest',
+          environment: {
+            RCTF_CHALLENGE_ID: id,
+          },
+        },
+      },
+    },
+    expose: [
+      {
+        kind,
+        hostPrefix: slug(id),
+        containerName: 'app',
+        containerPort,
+        title:
+          kind === seedExposeKind.http || kind === seedExposeKind.https
+            ? 'Web service'
+            : 'Challenge service',
+      },
+    ],
+    timeoutMilliseconds: 30 * 60 * 1000,
+    extendable,
+  }
+}
+
+function createAdminBotConfig(
+  id: string,
+  requireInstancerInstancesRunning = false
+): SeedAdminBotConfig {
+  return {
+    code: requireInstancerInstancesRunning
+      ? instancedAdminBotCode
+      : adminBotVisitCode,
+    inputs: {
+      url: { pattern: '^https?://.{1,200}$' },
+    },
+    revision: `dev-seed-${slug(id)}-adminbot-v1`,
+    timeoutMilliseconds: 30_000,
+    requireInstancerInstancesRunning,
+  }
+}
 
 const toIso = (timestamp: number) => new Date(timestamp).toISOString()
 
@@ -242,6 +346,7 @@ const challengeSeeds: ChallengeSeed[] = [
     max: 500,
     difficulty: 0.22,
     sortWeight: 10,
+    adminBotConfig: createAdminBotConfig('dev-web-cookie-monster'),
   },
   {
     id: 'dev-web-cache-me-outside',
@@ -252,6 +357,7 @@ const challengeSeeds: ChallengeSeed[] = [
     max: 500,
     difficulty: 0.38,
     sortWeight: 20,
+    instancerConfig: createInstancerConfig('dev-web-cache-me-outside'),
   },
   {
     id: 'dev-web-template-tangle',
@@ -262,6 +368,8 @@ const challengeSeeds: ChallengeSeed[] = [
     max: 500,
     difficulty: 0.62,
     sortWeight: 30,
+    instancerConfig: createInstancerConfig('dev-web-template-tangle'),
+    adminBotConfig: createAdminBotConfig('dev-web-template-tangle', true),
   },
   {
     id: 'dev-pwn-stack-sundae',
@@ -273,6 +381,10 @@ const challengeSeeds: ChallengeSeed[] = [
     difficulty: 0.32,
     sortWeight: 40,
     files: [{ name: 'stack-sundae.tar.gz', url: '/uploads/dev/stack.tar.gz' }],
+    instancerConfig: createInstancerConfig(
+      'dev-pwn-stack-sundae',
+      seedExposeKind.tcp
+    ),
   },
   {
     id: 'dev-pwn-heap-house',
@@ -283,6 +395,11 @@ const challengeSeeds: ChallengeSeed[] = [
     max: 500,
     difficulty: 0.72,
     sortWeight: 50,
+    instancerConfig: createInstancerConfig(
+      'dev-pwn-heap-house',
+      seedExposeKind.tcp,
+      false
+    ),
   },
   {
     id: 'dev-pwn-syscall-surfing',
@@ -383,6 +500,7 @@ const challengeSeeds: ChallengeSeed[] = [
     max: 500,
     difficulty: 0.18,
     sortWeight: 150,
+    adminBotConfig: createAdminBotConfig('dev-misc-regex-rodeo'),
   },
   {
     id: 'dev-misc-sanity-check',
@@ -436,6 +554,8 @@ const challengeSeeds: ChallengeSeed[] = [
     difficulty: 0.99,
     sortWeight: 200,
     hidden: true,
+    instancerConfig: createInstancerConfig('dev-hidden-admin-only'),
+    adminBotConfig: createAdminBotConfig('dev-hidden-admin-only'),
   },
 ]
 
@@ -546,6 +666,8 @@ const challengeRows = challengeSeeds.map(seed => ({
       seed.releaseOffsetHours === undefined
         ? null
         : config.startTime + seed.releaseOffsetHours * HOUR,
+    ...(seed.instancerConfig ? { instancerConfig: seed.instancerConfig } : {}),
+    ...(seed.adminBotConfig ? { adminBotConfig: seed.adminBotConfig } : {}),
   },
 }))
 const challengeFlagById = new Map(
