@@ -2,6 +2,7 @@
   import { Permissions } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { goto } from '$app/navigation'
+  import { arrowNavigation } from '$lib/actions/arrow-navigation'
   import { clearToken } from '$lib/api'
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
   import defaultWordmarkLight from '$lib/assets/wordmark-light.svg'
@@ -27,6 +28,7 @@
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
   import { countryCodeToFlagFilename, getInitials } from '$lib/utils'
+  import { mergeProps } from 'bits-ui'
   import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
@@ -62,10 +64,14 @@
 </script>
 
 <header
+  use:arrowNavigation
   class="bg-background-l0 sticky top-0 z-50 flex items-center justify-between px-4 py-3 md:px-9"
 >
   <div class="flex items-center gap-4">
-    <a href="/" class="flex shrink-0 items-center">
+    <a
+      href="/"
+      class="focus-visible:ring-ring/50 ring-offset-background-l0 flex shrink-0 items-center rounded-md ring-offset-6 outline-none focus-visible:ring-[3px]"
+    >
       <img src={wordmarkLight} alt="Logo" class="block h-8 dark:hidden" />
       <img src={wordmarkDark} alt="Logo" class="hidden h-8 dark:block" />
     </a>
@@ -73,67 +79,96 @@
     <nav class="hidden items-center gap-2 md:flex">
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavigationButton href="/" activePath="/">
-            {#snippet icon({ class: className })}
-              <IconHomeFilled class={className} />
-            {/snippet}
-          </NavigationButton>
+          {#snippet child({ props })}
+            <NavigationButton {...props} href="/" activePath="/" aria-label="Home">
+              {#snippet icon({ class: className })}
+                <IconHomeFilled class={className} />
+              {/snippet}
+            </NavigationButton>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Home</Tooltip.Content>
       </Tooltip.Root>
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavigationButton href="/challenges" activePath="/challenges">
-            {#snippet icon({ class: className })}
-              <IconFlag3Filled class={className} />
-            {/snippet}
-          </NavigationButton>
+          {#snippet child({ props })}
+            <NavigationButton
+              {...props}
+              href="/challenges"
+              activePath="/challenges"
+              aria-label="Challenges"
+            >
+              {#snippet icon({ class: className })}
+                <IconFlag3Filled class={className} />
+              {/snippet}
+            </NavigationButton>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Challenges</Tooltip.Content>
       </Tooltip.Root>
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavigationButton href="/scores" activePath="/scores">
-            {#snippet icon({ class: className })}
-              <IconChartAreaLineFilled class={className} />
-            {/snippet}
-          </NavigationButton>
+          {#snippet child({ props })}
+            <NavigationButton
+              {...props}
+              href="/scores"
+              activePath="/scores"
+              aria-label="Scoreboard"
+            >
+              {#snippet icon({ class: className })}
+                <IconChartAreaLineFilled class={className} />
+              {/snippet}
+            </NavigationButton>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Scoreboard</Tooltip.Content>
       </Tooltip.Root>
       {#if isAdmin}
-        <DropdownMenu.Root>
-          <DropdownMenu.Trigger>
-            <NavigationButton activePath="/admin">
-              {#snippet icon({ class: className })}
-                <IconGavel class={className} />
+        <Tooltip.Root>
+          <DropdownMenu.Root>
+            <Tooltip.Trigger>
+              {#snippet child({ props: tooltipProps })}
+                <DropdownMenu.Trigger>
+                  {#snippet child({ props: dropdownProps })}
+                    {@const triggerProps = mergeProps(dropdownProps, tooltipProps)}
+                    <NavigationButton {...triggerProps} activePath="/admin" aria-label="Admin menu">
+                      {#snippet icon({ class: className })}
+                        <IconGavel class={className} />
+                      {/snippet}
+                    </NavigationButton>
+                  {/snippet}
+                </DropdownMenu.Trigger>
               {/snippet}
-            </NavigationButton>
-          </DropdownMenu.Trigger>
-          <DropdownMenu.Content align="start" class="bg-background-l4 w-48 border-none">
-            <DropdownMenu.Item
-              class="data-highlighted:bg-background-l5"
-              onclick={() => goto('/admin/challenges')}
+            </Tooltip.Trigger>
+            <DropdownMenu.Content
+              align="start"
+              class="bg-background-l4 border-background-l5 w-48 border-2"
             >
-              <IconFlag3Filled class="size-5" />
-              Manage challenges
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
-              class="data-highlighted:bg-background-l5"
-              onclick={() => goto('/admin/teams')}
-            >
-              <IconUserCog class="size-5" />
-              Manage teams
-            </DropdownMenu.Item>
-            <DropdownMenu.Item
-              class="data-highlighted:bg-background-l5"
-              onclick={() => goto('/admin/settings')}
-            >
-              <IconSettingsFilled class="size-5" />
-              Settings
-            </DropdownMenu.Item>
-          </DropdownMenu.Content>
-        </DropdownMenu.Root>
+              <DropdownMenu.Item
+                class="data-highlighted:bg-background-l5"
+                onclick={() => goto('/admin/challenges')}
+              >
+                <IconFlag3Filled class="size-5" />
+                Manage challenges
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                class="data-highlighted:bg-background-l5"
+                onclick={() => goto('/admin/teams')}
+              >
+                <IconUserCog class="size-5" />
+                Manage teams
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                class="data-highlighted:bg-background-l5"
+                onclick={() => goto('/admin/settings')}
+              >
+                <IconSettingsFilled class="size-5" />
+                Settings
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
+          <Tooltip.Content sideOffset={8}>Admin</Tooltip.Content>
+        </Tooltip.Root>
       {/if}
     </nav>
   </div>
@@ -146,7 +181,7 @@
       {/await}
       <DropdownMenu.Root>
         <DropdownMenu.Trigger
-          class="hover:bg-background-l2 flex cursor-pointer items-center gap-3 rounded-lg pl-2"
+          class="hover:bg-background-l2 focus-visible:ring-ring/50 flex cursor-pointer items-center gap-3 rounded-lg pl-2 outline-none focus-visible:ring-[3px]"
         >
           <div class="flex flex-col items-end">
             <span class="text-foreground-l0 max-w-64 truncate text-lg leading-tight">
@@ -185,7 +220,7 @@
           {/key}
         </DropdownMenu.Trigger>
 
-        <DropdownMenu.Content align="end" class="bg-background-l4 w-56 border-none">
+        <DropdownMenu.Content align="end" class="bg-background-l4 w-56">
           <DropdownMenu.Item class="data-highlighted:bg-background-l5" onclick={copyLoginUrl}>
             Copy login URL
             <IconCopy class="ml-auto size-5" />
@@ -206,11 +241,13 @@
     {:else if !isArchived}
       <Tooltip.Root>
         <Tooltip.Trigger>
-          <NavigationButton href="/login">
-            {#snippet icon({ class: className })}
-              <IconLogin class={className} />
-            {/snippet}
-          </NavigationButton>
+          {#snippet child({ props })}
+            <NavigationButton {...props} href="/login" aria-label="Login">
+              {#snippet icon({ class: className })}
+                <IconLogin class={className} />
+              {/snippet}
+            </NavigationButton>
+          {/snippet}
         </Tooltip.Trigger>
         <Tooltip.Content sideOffset={8}>Login</Tooltip.Content>
       </Tooltip.Root>

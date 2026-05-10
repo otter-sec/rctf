@@ -22,7 +22,12 @@
   }: Props = $props()
 </script>
 
-<div class={cn('bg-background-l2 flex h-9 items-center gap-1.5 rounded-md px-2.5', className)}>
+<div
+  class={cn(
+    'bg-background-l2 focus-within:ring-ring/50 flex h-9 items-center gap-1.5 rounded-md px-2.5 focus-within:ring-[3px]',
+    className
+  )}
+>
   {#if isSearching}
     <Spinner class="text-foreground-l3 size-4 shrink-0" />
   {:else}

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, ScrollArea, Spinner } from '$lib/components'
+  import { Button, Card, Spinner } from '$lib/components'
   import {
     useClientConfig,
     useLeaderboardChallenges,
@@ -51,20 +51,21 @@
         <ProfileHeader {user} {clientConfig} />
       </div>
 
-      <ScrollArea
-        class="min-h-0 flex-1"
-        fadeSize={86}
-        fadeColor="background-l1"
-        scrollbarYClasses="z-30"
-      >
+      <div class="flex min-h-0 flex-1 flex-col">
         {#if graphData && graphData.points.length > 0}
-          <div class="px-4 pt-2">
+          <div class="shrink-0 px-4 pt-2">
             <ProfileGraph class="h-40 w-full" {graphData} rank={user.globalPlace ?? 0} />
           </div>
         {/if}
 
-        <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
-      </ScrollArea>
+        <ProfileSolves
+          {challenges}
+          solves={user.solves}
+          showUnsolved={challenges.length > 0}
+          scrollable
+          class="min-h-0 flex-1"
+        />
+      </div>
     </div>
   </div>
 {:else if isPending}

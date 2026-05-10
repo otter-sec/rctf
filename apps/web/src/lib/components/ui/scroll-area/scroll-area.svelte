@@ -15,6 +15,8 @@
     fadeSize = 24,
     fadeColor = 'background-l0',
     fadeOffsets = {},
+    viewportClass = '',
+    viewportTabIndex,
     children,
     ...restProps
   }: WithoutChild<ScrollAreaPrimitive.RootProps> & {
@@ -24,6 +26,7 @@
     scrollbarXStyles?: string | undefined
     scrollbarYStyles?: string | undefined
     viewportRef?: HTMLElement | null
+    viewportTabIndex?: number | undefined
     fadeSize?: number
     fadeColor?: string
     fadeOffsets?: {
@@ -32,6 +35,7 @@
       left?: number | string
       right?: number | string
     }
+    viewportClass?: string | undefined
   } = $props()
 
   let internalViewportRef = $state<HTMLElement | null>(null)
@@ -106,10 +110,12 @@
   <ScrollAreaPrimitive.Viewport
     bind:ref={internalViewportRef}
     data-slot="scroll-area-viewport"
+    tabindex={viewportTabIndex}
     class={cn(
-      'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] focus-visible:ring-4 focus-visible:outline-1',
+      'focus-visible:ring-ring/50 size-full rounded-[inherit] outline-none focus-visible:ring-[3px] focus-visible:ring-inset',
       hasHorizontal && 'overscroll-x-none',
-      hasVertical && 'overscroll-y-none'
+      hasVertical && 'overscroll-y-none',
+      viewportClass
     )}
   >
     {@render children?.()}

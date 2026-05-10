@@ -125,6 +125,7 @@
     fadeColor="background-l1"
     scrollbarYClasses="z-30"
     scrollbarXClasses="z-30"
+    viewportTabIndex={-1}
   >
     {#if filteredChallenges.length === 0}
       <EmptyState

@@ -4,6 +4,7 @@
     Accordion,
     CollapseToggleButton,
     EmptyState,
+    ScrollArea,
     SearchInput,
     Tooltip,
   } from '$lib/components'
@@ -39,9 +40,17 @@
     challenges: ChallengeInfo[]
     solves: Solve[]
     showUnsolved?: boolean
+    scrollable?: boolean
+    class?: string
   }
 
-  let { challenges, solves, showUnsolved = true }: Props = $props()
+  let {
+    challenges,
+    solves,
+    showUnsolved = true,
+    scrollable = false,
+    class: className = '',
+  }: Props = $props()
 
   const solvedIds = $derived(new Set(solves.map(s => s.id)))
   const solveMap = $derived(new Map(solves.map(s => [s.id, s])))
@@ -201,85 +210,116 @@
   )
 </script>
 
-<div class="bg-background-l1 flex flex-col gap-2 py-2 lg:sticky lg:top-0 lg:z-30">
-  <div class="flex justify-between px-9">
-    <div class="flex gap-1 whitespace-nowrap">
-      <span class="text-foreground-l3 text-base tabular-nums">
-        {stats.pointsEarned.toLocaleString()}
-      </span>
-      {#if stats.pointsTotal !== null}
-        <span class="text-foreground-l5 text-base">
-          / {stats.pointsTotal.toLocaleString()} pts
+<div
+  class={cn(
+    '@container/list flex flex-col',
+    scrollable && 'h-full min-h-0 overflow-hidden',
+    className
+  )}
+>
+  <div class="bg-background-l1 flex shrink-0 flex-col gap-2 py-2">
+    <div class="flex justify-between px-9">
+      <div class="flex gap-1 whitespace-nowrap">
+        <span class="text-foreground-l3 text-base tabular-nums">
+          {stats.pointsEarned.toLocaleString()}
         </span>
-      {:else}
-        <span class="text-foreground-l5 text-base">pts</span>
-      {/if}
-    </div>
-    <div class="flex items-baseline gap-1 whitespace-nowrap">
-      <span class="text-foreground-l3 text-base tabular-nums">
-        {stats.solved}
-      </span>
-      {#if stats.total !== null}
-        <span class="text-foreground-l5 text-base">
-          / {stats.total}
+        {#if stats.pointsTotal !== null}
+          <span class="text-foreground-l5 text-base">
+            / {stats.pointsTotal.toLocaleString()} pts
+          </span>
+        {:else}
+          <span class="text-foreground-l5 text-base">pts</span>
+        {/if}
+      </div>
+      <div class="flex items-baseline gap-1 whitespace-nowrap">
+        <span class="text-foreground-l3 text-base tabular-nums">
+          {stats.solved}
         </span>
-      {/if}
+        {#if stats.total !== null}
+          <span class="text-foreground-l5 text-base">
+            / {stats.total}
+          </span>
+        {/if}
+      </div>
     </div>
-  </div>
 
-  <div class="px-5">
-    <div class="flex gap-1 overflow-hidden rounded-full">
-      <SearchInput value={searchQuery} onInput={q => (searchQuery = q)} class="py-2" />
-      {#if sortMode === 'category'}
-        <CollapseToggleButton
-          totalCount={categoryNames.length}
-          openCount={openCategories.length}
-          onToggle={toggleCollapse}
-          class="grow-0"
+    <div class="px-5">
+      <div class="flex flex-wrap gap-1">
+        <SearchInput
+          value={searchQuery}
+          onInput={q => (searchQuery = q)}
+          class="min-w-0 flex-1 rounded-[20px] py-2 @sm/list:rounded-l-[20px] @sm/list:rounded-r-sm"
         />
-      {/if}
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={() => (hideSolved = !hideSolved)}
-          aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
-          class={cn(
-            'rounded-sm px-4 py-2',
-            hideSolved
-              ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
-              : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
-          )}
-        >
-          {#if hideSolved}
-            <IconEyeClosed class="size-5" />
-          {:else}
-            <IconEyeFilled class="size-5" />
-          {/if}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>
-          {hideSolved ? 'Show solved' : 'Hide solved'}
-        </Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root disableCloseOnTriggerClick>
-        <Tooltip.Trigger
-          onclick={cycleSortMode}
-          aria-label={sortLabel}
-          class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 rounded-l-sm px-4 py-2"
-        >
+        <div class="flex w-full gap-1 @sm/list:w-auto">
           {#if sortMode === 'category'}
-            <IconFlagFilled class="size-5" />
-          {:else if sortMode === 'time'}
-            <IconClockFilled class="size-5" />
-          {:else}
-            <IconCoinFilled class="size-5" />
+            <CollapseToggleButton
+              totalCount={categoryNames.length}
+              openCount={openCategories.length}
+              onToggle={toggleCollapse}
+              class="rounded-l-[20px] rounded-r-sm @sm/list:rounded-sm"
+            />
           {/if}
-        </Tooltip.Trigger>
-        <Tooltip.Content sideOffset={8}>{sortLabel}</Tooltip.Content>
-      </Tooltip.Root>
+          <Tooltip.Root disableCloseOnTriggerClick>
+            <Tooltip.Trigger
+              type="button"
+              onclick={() => (hideSolved = !hideSolved)}
+              aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
+              class={cn(
+                'focus-visible:ring-ring/50 flex h-10 flex-1 items-center justify-center px-4 py-2 outline-none focus-visible:ring-[3px] @sm/list:flex-initial',
+                sortMode === 'category'
+                  ? 'rounded-sm'
+                  : 'rounded-l-[20px] rounded-r-sm @sm/list:rounded-sm',
+                hideSolved
+                  ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
+                  : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
+              )}
+            >
+              {#if hideSolved}
+                <IconEyeClosed class="size-5 shrink-0" />
+              {:else}
+                <IconEyeFilled class="size-5 shrink-0" />
+              {/if}
+            </Tooltip.Trigger>
+            <Tooltip.Content sideOffset={8}>
+              {hideSolved ? 'Show solved' : 'Hide solved'}
+            </Tooltip.Content>
+          </Tooltip.Root>
+          <Tooltip.Root disableCloseOnTriggerClick>
+            <Tooltip.Trigger
+              type="button"
+              onclick={cycleSortMode}
+              aria-label={sortLabel}
+              class="bg-background-l4 text-foreground-l1 hover:bg-background-l5 focus-visible:ring-ring/50 flex h-10 flex-1 items-center justify-center rounded-l-sm rounded-r-[20px] px-4 py-2 outline-none focus-visible:ring-[3px] @sm/list:flex-initial"
+            >
+              {#if sortMode === 'category'}
+                <IconFlagFilled class="size-5 shrink-0" />
+              {:else if sortMode === 'time'}
+                <IconClockFilled class="size-5 shrink-0" />
+              {:else}
+                <IconCoinFilled class="size-5 shrink-0" />
+              {/if}
+            </Tooltip.Trigger>
+            <Tooltip.Content sideOffset={8}>{sortLabel}</Tooltip.Content>
+          </Tooltip.Root>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-{@render challengeList()}
+  {#if scrollable}
+    <ScrollArea
+      class="min-h-0 flex-1"
+      fadeSize={86}
+      fadeColor="background-l1"
+      scrollbarYClasses="z-30"
+      viewportTabIndex={-1}
+    >
+      {@render challengeList()}
+    </ScrollArea>
+  {:else}
+    {@render challengeList()}
+  {/if}
+</div>
 
 {#snippet challengeList()}
   {#if displayChallenges.length === 0}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { arrowNavigation } from '$lib/actions/arrow-navigation'
   import { DropdownMenu, Tooltip } from '$lib/components'
   import {
     IconCheck,
@@ -128,7 +129,7 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content
       align="end"
-      class="bg-background-l4 min-w-(--bits-dropdown-menu-anchor-width) border-none"
+      class="bg-background-l4 min-w-(--bits-dropdown-menu-anchor-width) border-2 border-background-l5"
     >
       <DropdownMenu.Item
         class="data-highlighted:bg-background-l5 justify-between"
@@ -165,23 +166,34 @@
   <div class="flex items-center justify-between md:contents">
     <span class="text-foreground-l0 text-lg md:hidden">Scoreboard</span>
 
-    <div class="hidden items-center gap-4 md:flex">
+    <div
+      use:arrowNavigation
+      role="toolbar"
+      aria-label="Scoreboard display controls"
+      class="hidden items-center gap-4 md:flex"
+    >
       <div class="flex items-center gap-2">
         <span class="text-foreground-l3 text-sm">View</span>
         <div class="flex items-center gap-0.5">
           {#each viewOptions as option}
             <Tooltip.Root>
               <Tooltip.Trigger>
-                <button
-                  class={cn(
-                    'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-9 items-center justify-center rounded-md px-3',
-                    viewMode === option.value &&
-                      'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                  )}
-                  onclick={() => onViewModeChange(option.value)}
-                >
-                  <option.icon class="size-4" />
-                </button>
+                {#snippet child({ props })}
+                  <button
+                    {...props}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={viewMode === option.value}
+                    class={cn(
+                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
+                      viewMode === option.value &&
+                        'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
+                    )}
+                    onclick={() => onViewModeChange(option.value)}
+                  >
+                    <option.icon class="size-4" />
+                  </button>
+                {/snippet}
               </Tooltip.Trigger>
               <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
             </Tooltip.Root>
@@ -196,16 +208,22 @@
             {#each sortOptions as option}
               <Tooltip.Root>
                 <Tooltip.Trigger>
-                  <button
-                    class={cn(
-                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-9 items-center justify-center rounded-md px-3',
-                      sortMode === option.value &&
-                        'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                    )}
-                    onclick={() => onSortModeChange(option.value)}
-                  >
-                    <option.icon class="size-4" />
-                  </button>
+                  {#snippet child({ props })}
+                    <button
+                      {...props}
+                      type="button"
+                      aria-label={option.label}
+                      aria-pressed={sortMode === option.value}
+                      class={cn(
+                        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
+                        sortMode === option.value &&
+                          'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
+                      )}
+                      onclick={() => onSortModeChange(option.value)}
+                    >
+                      <option.icon class="size-4" />
+                    </button>
+                  {/snippet}
                 </Tooltip.Trigger>
                 <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
               </Tooltip.Root>
@@ -277,7 +295,7 @@
     {/if}
 
     <button
-      class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 flex h-9 items-center justify-center gap-2 rounded-md px-3"
+      class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center gap-2 rounded-md px-3 outline-none focus-visible:ring-[3px]"
       onclick={onScreenshotClick}
     >
       <IconPhotoFilled class="size-4" />

@@ -703,9 +703,9 @@
       ? 'pt-[calc(var(--header-height)+var(--row-height-full)+4px)]'
       : 'pt-[calc(var(--row-height-full)+4px)]'
 
-    if (isSelfTop) return `${selfRowPt} pb-2`
+    if (isSelfTop) return `${selfRowPt} pb-1`
     if (showSelfRow) return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
-    return `${isDesktop ? 'pt-(--header-height)' : ''} pb-2`
+    return `${isDesktop ? 'pt-(--header-height)' : ''} pb-1`
   })
 
   const fadeDeps = $derived({
@@ -892,6 +892,13 @@
         style:--self-row-top-offset={showSelfRow && selfRowPosition === 'top'
           ? `${ROW_HEIGHT}px`
           : '0px'}
+        style:--score-scroll-padding-top={showSelfRow && selfRowPosition === 'top'
+          ? isDesktop
+            ? 'calc(var(--header-height) + var(--row-height-full) + 4px)'
+            : 'calc(var(--row-height-full) + 4px)'
+          : isDesktop
+            ? 'var(--header-height)'
+            : '0px'}
       >
         <ScoresFades
           showTop={showTopFade}
@@ -907,36 +914,56 @@
           class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden"
         >
           <div
-            class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-hover/graph:opacity-100"
+            class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-focus-within/graph:opacity-100 group-hover/graph:opacity-100"
           >
-            <button
-              title="Pin top 3 to graph"
-              class={cn(
-                'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
-                showTop3Context && 'bg-background-l3/80'
-              )}
-              onclick={() => setShowTop3Context(!showTop3Context)}
-            >
-              {#if showTop3Context}
-                <IconPinnedFilled class="size-3.5" />
-              {:else}
-                <IconPin class="size-3.5" />
-              {/if}
-            </button>
-            <button
-              title="Pin self to graph"
-              class={cn(
-                'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
-                showSelfContext ? 'bg-background-l3/80 text-foreground-l1' : 'text-foreground-l3'
-              )}
-              onclick={() => setShowSelfContext(!showSelfContext)}
-            >
-              {#if showSelfContext}
-                <IconMoodHappyFilled class="size-3.5" />
-              {:else}
-                <IconMoodHappy class="size-3.5" />
-              {/if}
-            </button>
+            <Tooltip.Root disableCloseOnTriggerClick>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <button
+                    {...props}
+                    type="button"
+                    aria-label="Pin top 3 to graph"
+                    class={cn(
+                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
+                      showTop3Context && 'bg-background-l3/80'
+                    )}
+                    onclick={() => setShowTop3Context(!showTop3Context)}
+                  >
+                    {#if showTop3Context}
+                      <IconPinnedFilled class="size-3.5" />
+                    {:else}
+                      <IconPin class="size-3.5" />
+                    {/if}
+                  </button>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Content side="bottom" sideOffset={6}>Pin top 3 to graph</Tooltip.Content>
+            </Tooltip.Root>
+            <Tooltip.Root disableCloseOnTriggerClick>
+              <Tooltip.Trigger>
+                {#snippet child({ props })}
+                  <button
+                    {...props}
+                    type="button"
+                    aria-label="Pin self to graph"
+                    class={cn(
+                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
+                      showSelfContext
+                        ? 'bg-background-l3/80 text-foreground-l1'
+                        : 'text-foreground-l3'
+                    )}
+                    onclick={() => setShowSelfContext(!showSelfContext)}
+                  >
+                    {#if showSelfContext}
+                      <IconMoodHappyFilled class="size-3.5" />
+                    {:else}
+                      <IconMoodHappy class="size-3.5" />
+                    {/if}
+                  </button>
+                {/snippet}
+              </Tooltip.Trigger>
+              <Tooltip.Content side="bottom" sideOffset={6}>Pin self to graph</Tooltip.Content>
+            </Tooltip.Root>
           </div>
           <ScoresGraph class="h-full w-full p-3" {...graphProps} />
         </div>
@@ -951,7 +978,12 @@
           type={isDesktop ? 'always' : 'auto'}
           fadeSize={0}
           bind:viewportRef={scroll.state.viewportRef}
-          scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
+          viewportTabIndex={-1}
+          viewportClass={cn(
+            'scroll-pt-(--score-scroll-padding-top)',
+            isDesktop && 'scroll-pl-(--team-column-width)'
+          )}
+          scrollbarXClasses="hidden"
           scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
         >
           <div class="flex min-h-full flex-col">
@@ -964,40 +996,62 @@
               >
                 <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
                   <div
-                    class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-hover/graph:opacity-100"
+                    class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-focus-within/graph:opacity-100 group-hover/graph:opacity-100"
                   >
-                    <button
-                      title="Pin top 3 to graph"
-                      class={cn(
-                        'hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
-                        showTop3Context
-                          ? 'bg-background-l3/80 text-foreground-l1'
-                          : 'text-foreground-l3'
-                      )}
-                      onclick={() => setShowTop3Context(!showTop3Context)}
-                    >
-                      {#if showTop3Context}
-                        <IconPinnedFilled class="size-3.5" />
-                      {:else}
-                        <IconPin class="size-3.5" />
-                      {/if}
-                    </button>
-                    <button
-                      title="Pin self to graph"
-                      class={cn(
-                        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex size-7 items-center justify-center rounded-md',
-                        showSelfContext
-                          ? 'bg-background-l3/80 text-foreground-l1'
-                          : 'text-foreground-l3'
-                      )}
-                      onclick={() => setShowSelfContext(!showSelfContext)}
-                    >
-                      {#if showSelfContext}
-                        <IconMoodHappyFilled class="size-3.5" />
-                      {:else}
-                        <IconMoodHappy class="size-3.5" />
-                      {/if}
-                    </button>
+                    <Tooltip.Root disableCloseOnTriggerClick>
+                      <Tooltip.Trigger>
+                        {#snippet child({ props })}
+                          <button
+                            {...props}
+                            type="button"
+                            aria-label="Pin top 3 to graph"
+                            class={cn(
+                              'hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
+                              showTop3Context
+                                ? 'bg-background-l3/80 text-foreground-l1'
+                                : 'text-foreground-l3'
+                            )}
+                            onclick={() => setShowTop3Context(!showTop3Context)}
+                          >
+                            {#if showTop3Context}
+                              <IconPinnedFilled class="size-3.5" />
+                            {:else}
+                              <IconPin class="size-3.5" />
+                            {/if}
+                          </button>
+                        {/snippet}
+                      </Tooltip.Trigger>
+                      <Tooltip.Content side="bottom" sideOffset={6}
+                        >Pin top 3 to graph</Tooltip.Content
+                      >
+                    </Tooltip.Root>
+                    <Tooltip.Root disableCloseOnTriggerClick>
+                      <Tooltip.Trigger>
+                        {#snippet child({ props })}
+                          <button
+                            {...props}
+                            type="button"
+                            aria-label="Pin self to graph"
+                            class={cn(
+                              'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
+                              showSelfContext
+                                ? 'bg-background-l3/80 text-foreground-l1'
+                                : 'text-foreground-l3'
+                            )}
+                            onclick={() => setShowSelfContext(!showSelfContext)}
+                          >
+                            {#if showSelfContext}
+                              <IconMoodHappyFilled class="size-3.5" />
+                            {:else}
+                              <IconMoodHappy class="size-3.5" />
+                            {/if}
+                          </button>
+                        {/snippet}
+                      </Tooltip.Trigger>
+                      <Tooltip.Content side="bottom" sideOffset={6}
+                        >Pin self to graph</Tooltip.Content
+                      >
+                    </Tooltip.Root>
                   </div>
                   <ScoresGraph class="h-full w-full p-3" {...graphProps} />
                 </div>

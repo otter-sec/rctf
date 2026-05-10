@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import { tabbableTabs, untabbableTabPanels } from '$lib/actions/tabbable-tabs'
   import { EmptyState, Tabs } from '$lib/components'
   import { IconFileInfoFilled, IconFlagFilled, IconTrophyFilled } from '$lib/icons'
   import ChallengeDetailsHeader from './challenge-details-header.svelte'
@@ -27,7 +28,7 @@
       <ChallengeDetailsHeader {challenge} {isSolved} />
 
       <Tabs.Root bind:value={tab} class="flex min-h-0 flex-1 flex-col">
-        <div class="px-5">
+        <div use:tabbableTabs class="px-5">
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
             <Tabs.Trigger
               value="details"
@@ -48,7 +49,7 @@
           </Tabs.List>
         </div>
 
-        <div class="bg-background-l2 min-h-0 flex-1">
+        <div use:untabbableTabPanels class="bg-background-l2 min-h-0 flex-1">
           <Tabs.Content value="details" class="h-full">
             <ChallengeDetailsOverview {challenge} />
           </Tabs.Content>
