@@ -13,7 +13,7 @@
   let { challenge }: Props = $props()
 </script>
 
-<ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2">
+<ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2" viewportTabIndex={-1}>
   <div class="flex flex-col gap-4">
     <div class="overflow-hidden rounded-lg border-2">
       <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Description</div>
@@ -27,14 +27,14 @@
         <div class="flex flex-col overflow-hidden rounded-lg border-2">
           <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Files</div>
           <div class="relative flex flex-1 flex-col">
-            <ScrollArea class="max-h-48">
+            <ScrollArea class="max-h-48" viewportTabIndex={-1}>
               <div class="flex flex-col gap-1 p-2">
                 {#each challenge.files as file}
                   <a
                     href={file.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="bg-background-l4 hover:bg-background-l5 flex items-center gap-3 rounded-md px-3 py-2"
+                    class="bg-background-l4 hover:bg-background-l5 focus-visible:ring-ring/50 flex items-center gap-3 rounded-md px-3 py-2 outline-none focus-visible:ring-[3px]"
                   >
                     <IconFileFilled class="text-foreground-l3 size-5 shrink-0" />
                     <div class="flex min-w-0 flex-col">
@@ -50,7 +50,7 @@
             {#if challenge.files.length > 1}
               <div class="p-2">
                 <button
-                  class="bg-background-accent text-foreground-accent flex w-full items-center justify-center gap-1 rounded-md px-4 py-2 text-base font-normal hover:opacity-90"
+                  class="bg-background-accent text-foreground-accent focus-visible:ring-ring/50 flex w-full items-center justify-center gap-1 rounded-md px-4 py-2 text-base font-normal outline-none hover:opacity-90 focus-visible:ring-[3px]"
                 >
                   <IconDownload class="size-5" />
                   Download all
