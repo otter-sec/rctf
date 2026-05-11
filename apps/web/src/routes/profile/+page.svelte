@@ -77,20 +77,21 @@
         <ProfileHeader {user} {clientConfig} />
       </div>
 
-      <ScrollArea
-        class="min-h-0 flex-1"
-        fadeSize={86}
-        fadeColor="background-l1"
-        scrollbarYClasses="z-30"
-      >
+      <div class="flex min-h-0 flex-1 flex-col">
         {#if graphData && graphData.points.length > 0}
-          <div class="px-4 pt-2">
+          <div class="shrink-0 px-4 pt-2">
             <ProfileGraph class="h-40 w-full" {graphData} rank={user.globalPlace ?? 0} />
           </div>
         {/if}
 
-        <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
-      </ScrollArea>
+        <ProfileSolves
+          {challenges}
+          solves={user.solves}
+          showUnsolved={challenges.length > 0}
+          scrollable
+          class="min-h-0 flex-1"
+        />
+      </div>
     </div>
 
     <div
@@ -101,6 +102,7 @@
         fadeSize={32}
         fadeColor="background-l1"
         scrollbarYClasses="z-30 mt-4"
+        viewportTabIndex={-1}
       >
         <div class="flex flex-col gap-4 px-4 pt-4 pb-4">
           <ProfileSettingsAvatar {user} {clientConfig} />

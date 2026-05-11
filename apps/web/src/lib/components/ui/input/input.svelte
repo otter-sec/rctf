@@ -26,7 +26,7 @@
     data-slot={dataSlot}
     class={cn(
       'selection:bg-background-accent selection:text-foreground-accent placeholder:text-foreground-l3 flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 pt-1.5 text-sm font-medium outline-none disabled:cursor-not-allowed disabled:opacity-50',
-      'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+      'focus:border-ring focus:ring-ring/50 focus:ring-[3px]',
       'aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive',
       className
     )}
@@ -41,7 +41,7 @@
     data-slot={dataSlot}
     class={cn(
       'bg-background-l4 selection:bg-background-accent selection:text-foreground-accent placeholder:text-foreground-l3 flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base outline-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm',
-      'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+      'focus:border-ring focus:ring-ring/50 focus:ring-[3px]',
       'aria-invalid:ring-foreground-destructive/20 aria-invalid:border-foreground-destructive',
       className
     )}

@@ -7,7 +7,6 @@
   }
 
   interface CategoryPalette {
-    background: string
     foreground: string
   }
 
@@ -128,7 +127,6 @@
 
     for (const color of new Set(categoryColors)) {
       category.set(color, {
-        background: readCssColor(`--background-${color}-l0`, '#d4d4d8'),
         foreground: readCssColor(`--foreground-${color}-l1`, '#52525b'),
       })
     }
@@ -233,13 +231,8 @@
       const x = i * (CELL_WIDTH + CELL_GAP)
       const stats = getCategoryStats(group)
       const colors = palette.category.get(group.config.color) ?? {
-        background: '#d4d4d8',
         foreground: '#52525b',
       }
-
-      parts.push(
-        `<rect x="${x}" y="0" width="${CELL_WIDTH}" height="${CELL_HEIGHT}" fill="${colors.background}"/>`
-      )
 
       if (i % 2 === 0) {
         parts.push(

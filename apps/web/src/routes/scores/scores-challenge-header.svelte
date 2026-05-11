@@ -42,18 +42,24 @@
     }
     return [challenges.map(challenge => ({ type: 'challenge' as const, challenge }))]
   })
+
+  const headerNameItems = $derived(headerItems.flat())
 </script>
 
-{#snippet challengeNameLabel(item: ChallengeInfo | CategoryGroup, isCategory: boolean)}
+{#snippet challengeNameLabel(
+  item: ChallengeInfo | CategoryGroup,
+  isCategory: boolean,
+  stackIndex: number
+)}
   {@const isFocused = !isCategory && focusedChallengeId === (item as ChallengeInfo).id}
   {@const isDimmed = !isCategory && focusedChallengeId !== null && !isFocused}
   <div
     class={cn('relative w-12 translate-x-1 overflow-visible', isDimmed && 'opacity-25')}
-    style={getCategoryStyle(item.config.color)}
+    style="{getCategoryStyle(item.config.color)} z-index: {stackIndex};"
   >
     {#if !isCategory}
       <button
-        class="group/focus text-category-foreground-l1 absolute bottom-0 left-1/2 flex max-w-[150px] origin-bottom-left -rotate-45 cursor-pointer items-center gap-1 text-lg transition-transform hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline"
+        class="group/focus text-category-foreground-l1 focus-visible:ring-ring/50 ring-offset-background-l0 absolute bottom-0 left-1/2 flex max-w-[150px] origin-bottom-left -rotate-45 cursor-pointer items-center gap-1 rounded-sm text-lg leading-none ring-offset-3 transition-transform outline-none hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline focus-visible:ring-[3px]"
         title={(item as ChallengeInfo).name}
         onclick={() => onChallengeFocus((item as ChallengeInfo).id)}
       >
@@ -81,7 +87,10 @@
     <span class="text-category-foreground-l1 truncate capitalize">{group.config.name}</span>
   {:else}
     <Tooltip.Root>
-      <Tooltip.Trigger class="text-category-foreground-l1 flex items-center justify-center">
+      <Tooltip.Trigger
+        tabindex={-1}
+        class="text-category-foreground-l1 flex items-center justify-center"
+      >
         <Icon class="my-0.5 size-5" />
       </Tooltip.Trigger>
       <Tooltip.Content side="bottom" sideOffset={4}>
@@ -94,7 +103,7 @@
 {#snippet pointsBadge(points: number, tooltipContent?: { title: string; subtitle: string })}
   {#if tooltipContent}
     <Tooltip.Root>
-      <Tooltip.Trigger class="flex w-12 items-center justify-center">
+      <Tooltip.Trigger tabindex={-1} class="flex w-12 items-center justify-center">
         <span
           class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
         >
@@ -117,16 +126,14 @@
 
 <div class="mr-(--diagonal-overflow) flex flex-col">
   <div
-    class="flex h-(--name-row-height) translate-x-1 flex-row-reverse items-end justify-end gap-1 overflow-visible [&>div]:h-(--name-row-height)"
+    class="flex h-(--name-row-height) translate-x-1 items-end justify-start gap-1 overflow-visible [&>div]:h-(--name-row-height)"
   >
-    {#each [...headerItems].reverse() as itemGroup}
-      {#each [...itemGroup].reverse() as item}
-        {#if item.type === 'category'}
-          {@render challengeNameLabel(item.group, true)}
-        {:else}
-          {@render challengeNameLabel(item.challenge, false)}
-        {/if}
-      {/each}
+    {#each headerNameItems as item, index}
+      {#if item.type === 'category'}
+        {@render challengeNameLabel(item.group, true, headerNameItems.length - index)}
+      {:else}
+        {@render challengeNameLabel(item.challenge, false, headerNameItems.length - index)}
+      {/if}
     {/each}
   </div>
 
@@ -140,7 +147,7 @@
             style={getCategoryStyle(group.config.color)}
           >
             <Tooltip.Root>
-              <Tooltip.Trigger class="flex w-12 items-center justify-center py-1.5">
+              <Tooltip.Trigger tabindex={-1} class="flex w-12 items-center justify-center py-1.5">
                 <span
                   class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
                 >

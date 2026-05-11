@@ -50,11 +50,21 @@
 
         <div class="bg-background-l2 min-h-0 flex-1">
           <Tabs.Content value="details" class="h-full">
-            <ChallengeDetailsOverview {challenge} />
+            {#snippet child({ props })}
+              {@const { role: _role, tabindex: _tabindex, ...panelProps } = props}
+              <div {...panelProps} role="tabpanel" tabindex={-1}>
+                <ChallengeDetailsOverview {challenge} />
+              </div>
+            {/snippet}
           </Tabs.Content>
           {#if challenge.hasFlag}
             <Tabs.Content value="solves" class="h-full">
-              <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
+              {#snippet child({ props })}
+                {@const { role: _role, tabindex: _tabindex, ...panelProps } = props}
+                <div {...panelProps} role="tabpanel" tabindex={-1}>
+                  <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
+                </div>
+              {/snippet}
             </Tabs.Content>
           {/if}
         </div>

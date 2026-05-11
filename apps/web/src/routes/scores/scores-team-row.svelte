@@ -82,10 +82,15 @@
 
 <div
   class={cn(
-    'bg-background-l0 sticky left-0 h-(--row-height) w-(--team-column-width) shrink-0',
+    'score-row-team-cell bg-background-l0 sticky left-0 h-(--row-height) w-(--team-column-width) shrink-0',
     isSelf ? 'z-30' : 'z-10'
   )}
 >
+  <div
+    aria-hidden="true"
+    class="score-row-team-focus-ring pointer-events-none absolute inset-0 z-30 rounded-lg border-[3px] border-solid border-transparent opacity-0 md:rounded-r-none md:border-r-0"
+  ></div>
+
   <div
     class={cn(
       'before:bg-background-l2 relative flex h-full w-full items-center gap-2 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg md:rounded-r-none md:before:rounded-r-none',
@@ -138,7 +143,10 @@
         <div class="flex items-center gap-1.5">
           <a
             href="/profile/{data.id}"
-            class={cn('truncate text-lg hover:underline sm:text-xl', styles?.fgL0)}
+            class={cn(
+              'score-row-profile-link truncate text-lg outline-none hover:underline sm:text-xl',
+              styles?.fgL0
+            )}
           >
             {data.name}
           </a>
@@ -192,13 +200,18 @@
 {#if isDesktop}
   <div
     class={cn(
-      'bg-background-l2 hidden h-(--row-height) shrink-0 rounded-r-lg contain-[layout_style_paint] md:flex',
+      'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0 rounded-r-lg contain-[layout_style_paint] md:flex',
       !isSelf && isScrolling && 'pointer-events-none',
       isLoading && 'w-(--content-column-width) px-2',
       data?.isCurrentUser && 'bg-background-self-l0'
     )}
     style:width={isLoading ? undefined : `${contentWidth}px`}
   >
+    <div
+      aria-hidden="true"
+      class="score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg border-[3px] border-l-0 border-solid border-transparent opacity-0"
+    ></div>
+
     {#if !isLoading && data}
       <ScoresSolveCells
         teamId={data.id}
@@ -220,3 +233,13 @@
     {/if}
   </div>
 {/if}
+
+<style>
+  .score-row-team-cell:has(.score-row-profile-link:focus-visible) > .score-row-team-focus-ring,
+  .score-row-team-cell:has(.score-row-profile-link:focus-visible)
+    + .score-row-content-cell
+    > .score-row-content-focus-ring {
+    border-color: color-mix(in oklab, var(--ring) 50%, transparent);
+    opacity: 1;
+  }
+</style>

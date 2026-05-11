@@ -2,7 +2,7 @@
   import { BadAlreadySolvedChallenge, GoodFlag, SubmitFlagRoute } from '@rctf/types'
   import type { Challenge } from '@rctf/types'
   import { isAuthenticated, showApiError } from '$lib/api'
-  import { Button, Spinner } from '$lib/components'
+  import { Button, Input, Spinner } from '$lib/components'
   import { useApiForm } from '$lib/forms'
   import { IconCheck, IconClockFilled, IconLogin, IconSend } from '$lib/icons'
   import { useClientConfig } from '$lib/query'
@@ -88,13 +88,13 @@
           <span class="truncate text-xl">Challenge solved!</span>
         </div>
       {:else}
-        <input
+        <Input
           type="text"
           placeholder={clientConfig?.flagFormatPlaceholder ?? 'flag{...}'}
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
-          class="bg-background-l4 text-foreground-l3 placeholder:text-foreground-l3 h-full min-w-0 flex-1 rounded-lg px-3 py-3.5 font-mono text-xl outline-none"
+          class="text-foreground-l3 h-full min-w-0 flex-1 rounded-lg border-transparent py-3.5 font-mono text-xl"
           bind:value={form.data.flag}
           disabled={form.submitting}
           aria-invalid={!!form.errors._form || undefined}
@@ -103,7 +103,7 @@
       <button
         type="submit"
         disabled={form.submitting || isSolved}
-        class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 flex h-full items-center justify-center rounded-lg px-4 py-3 disabled:cursor-not-allowed disabled:opacity-50"
+        class="bg-background-l4 text-foreground-l4 hover:enabled:bg-background-l5 focus-visible:ring-ring/50 flex h-full items-center justify-center rounded-lg px-4 py-3 outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {#if form.submitting}
           <Spinner class="size-6" />

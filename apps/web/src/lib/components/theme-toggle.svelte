@@ -48,17 +48,20 @@
 
 <Tooltip.Root disableCloseOnTriggerClick>
   <Tooltip.Trigger>
-    <button
-      onclick={toggle}
-      aria-label="Toggle theme"
-      class="bg-background-l2 hover:bg-background-l4 flex items-center justify-center rounded-lg px-4 py-3"
-    >
-      {#if theme === 'dark'}
-        <IconSunHighFilled class="text-foreground-l2 size-6" />
-      {:else}
-        <IconMoonFilled class="text-foreground-l2 size-6" />
-      {/if}
-    </button>
+    {#snippet child({ props })}
+      <button
+        {...props}
+        onclick={toggle}
+        aria-label="Toggle theme"
+        class="bg-background-l2 hover:bg-background-l4 focus-visible:ring-ring/50 flex items-center justify-center rounded-lg px-4 py-3 outline-none focus-visible:ring-[3px]"
+      >
+        {#if theme === 'dark'}
+          <IconSunHighFilled class="text-foreground-l2 size-6" />
+        {:else}
+          <IconMoonFilled class="text-foreground-l2 size-6" />
+        {/if}
+      </button>
+    {/snippet}
   </Tooltip.Trigger>
   <Tooltip.Content sideOffset={8}>
     {theme === 'dark' ? 'Light mode' : 'Dark mode'}

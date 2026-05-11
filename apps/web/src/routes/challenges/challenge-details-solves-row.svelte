@@ -58,7 +58,7 @@
 
 <div
   class={cn(
-    'relative isolate flex h-16 items-center gap-2 rounded-lg px-4 py-2',
+    'solve-row relative isolate flex h-16 items-center gap-2 rounded-lg px-4 py-2',
     'before:absolute before:inset-0 before:-z-10 before:rounded-lg',
     isCurrentUser ? 'before:bg-background-self-l1' : 'before:bg-background-l3',
     showGradient &&
@@ -69,6 +69,11 @@
     className
   )}
 >
+  <div
+    aria-hidden="true"
+    class="solve-row-focus-ring pointer-events-none absolute inset-0 z-20 rounded-lg border-[3px] border-solid border-transparent opacity-0"
+  ></div>
+
   {#if rankLabel !== undefined}
     <span
       class={cn(
@@ -93,7 +98,10 @@
     {#if userId}
       <a
         href="/profile/{userId}"
-        class={cn('truncate text-lg hover:underline sm:text-xl', styles.fgL0)}
+        class={cn(
+          'solve-row-profile-link truncate text-lg outline-none hover:underline sm:text-xl',
+          styles.fgL0
+        )}
       >
         {name}
       </a>
@@ -109,7 +117,7 @@
       {:else}
         {#if flagFilename && countryCode && countryName}
           <Tooltip.Root>
-            <Tooltip.Trigger>
+            <Tooltip.Trigger tabindex={-1}>
               <img
                 src="/flags/{flagFilename}"
                 alt="{countryCode} flag"
@@ -162,3 +170,10 @@
     {@render actions()}
   {/if}
 </div>
+
+<style>
+  .solve-row:has(.solve-row-profile-link:focus-visible) > .solve-row-focus-ring {
+    border-color: color-mix(in oklab, var(--ring) 50%, transparent);
+    opacity: 1;
+  }
+</style>

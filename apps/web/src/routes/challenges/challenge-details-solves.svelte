@@ -91,6 +91,7 @@
     class="min-h-0 flex-1"
     fadeSize={64}
     fadeColor="background-l2"
+    viewportTabIndex={-1}
   >
     {#if solvesQuery.isPending}
       <div class="flex items-center justify-center py-8">

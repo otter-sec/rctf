@@ -14,7 +14,7 @@
 
 <div
   class={cn(
-    'bg-background-l4 flex h-10 flex-1 items-center justify-between rounded-r-sm px-4',
+    'bg-background-l4 focus-within:ring-ring/50 flex h-10 flex-1 items-center justify-between rounded-r-sm px-4 focus-within:ring-[3px]',
     className
   )}
 >

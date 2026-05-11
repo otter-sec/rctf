@@ -94,27 +94,29 @@
     </div>
 
     <div class="px-5">
-      <div class="flex flex-wrap gap-1 @sm/list:overflow-hidden @sm/list:rounded-full">
+      <div class="flex flex-wrap gap-1">
         <SearchInput
           value={query}
           onInput={q => (query = q)}
-          class="min-w-0 flex-1 rounded-full py-2 @sm/list:rounded-l-none @sm/list:rounded-r-sm"
+          class="min-w-0 flex-1 rounded-[20px] py-2 @sm/list:rounded-l-[20px] @sm/list:rounded-r-sm"
         />
-        <div
-          class="flex w-full gap-1 overflow-hidden rounded-full @sm/list:w-auto @sm/list:overflow-auto @sm/list:rounded-none"
-        >
+        <div class="flex w-full gap-1 @sm/list:w-auto">
           <CollapseToggleButton
             totalCount={categories.length}
             openCount={open.length}
             onToggle={toggleCollapse}
+            class={canWrite
+              ? 'rounded-l-[20px] rounded-r-sm @sm/list:rounded-sm'
+              : 'rounded-[20px] @sm/list:rounded-l-sm @sm/list:rounded-r-[20px]'}
           />
           {#if canWrite}
             <Tooltip.Root disableCloseOnTriggerClick>
               <Tooltip.Trigger
+                type="button"
                 onclick={onCreateNew}
                 aria-label="New challenge"
                 class={cn(
-                  'flex flex-1 items-center justify-center rounded-sm px-4 py-2 @sm/list:flex-initial',
+                  'focus-visible:ring-ring/50 flex h-10 flex-1 items-center justify-center rounded-l-sm rounded-r-[20px] px-4 py-2 outline-none focus-visible:ring-[3px] @sm/list:flex-initial',
                   isCreatingNew
                     ? 'bg-background-accent text-foreground-accent hover:bg-background-accent-hover'
                     : 'bg-background-l4 text-foreground-l1 hover:bg-background-l5'
@@ -136,6 +138,7 @@
     fadeColor="background-l1"
     scrollbarYClasses="z-30"
     scrollbarXClasses="z-30"
+    viewportTabIndex={-1}
   >
     {#if !filtered.length}
       <EmptyState
