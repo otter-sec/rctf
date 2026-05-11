@@ -2,13 +2,13 @@ import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
   AdminTeamSortBy,
-  AdminTeamSortOrder,
   AdminTeamStatus,
   BadBody,
   GoodAdminUsersV2,
   GoodLeaderboardV2,
   GoodLeaderboardWithGraph,
   Permissions,
+  SortOrder,
 } from '@rctf/types'
 import {
   afterAll,
@@ -358,25 +358,29 @@ describe('leaderboard search', () => {
 })
 
 describe('admin users search', () => {
-  test('no search param returns all users', async () => {
-    const res = await request(app, '/api/v2/admin/users?limit=100&offset=0', {
-      method: 'GET',
-      headers: { Authorization: `Bearer ${adminToken}` },
+  const requestAdminUsers = (
+    query: string,
+    body: unknown = {},
+    token: string | null = adminToken
+  ) =>
+    request(app, `/api/v2/admin/users${query}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
     })
+
+  test('no search param returns all users', async () => {
+    const res = await requestAdminUsers('?limit=100&offset=0')
     const body = await expectResponse(res, GoodAdminUsersV2)
     expect(body.data.users.length).toBeGreaterThan(0)
     expect(body.data.total).toBeGreaterThan(0)
   })
 
   test('search matches substring via word similarity', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=Alpha',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0&search=Alpha')
     const body = await expectResponse(res, GoodAdminUsersV2)
     const names = body.data.users.map((u: any) => u.name)
     expect(names).toContain('AlphaTeam')
@@ -384,14 +388,7 @@ describe('admin users search', () => {
   })
 
   test('search matches fuzzy/typo via trigram similarity', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=AlphaTeam',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0&search=AlphaTeam')
     const body = await expectResponse(res, GoodAdminUsersV2)
     const names = body.data.users.map((u: any) => u.name)
     expect(names).toContain('AlphaTeam')
@@ -399,27 +396,15 @@ describe('admin users search', () => {
   })
 
   test('search is case insensitive', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=alphateam',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0&search=alphateam')
     const body = await expectResponse(res, GoodAdminUsersV2)
     const names = body.data.users.map((u: any) => u.name)
     expect(names).toContain('AlphaTeam')
   })
 
   test('search with no results returns empty list', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=NonExistentXYZ',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
+    const res = await requestAdminUsers(
+      '?limit=100&offset=0&search=NonExistentXYZ'
     )
     const body = await expectResponse(res, GoodAdminUsersV2)
     expect(body.data.users).toHaveLength(0)
@@ -427,23 +412,11 @@ describe('admin users search', () => {
   })
 
   test('total reflects filtered count', async () => {
-    const resAll = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const resAll = await requestAdminUsers('?limit=100&offset=0')
     const bodyAll = await expectResponse(resAll, GoodAdminUsersV2)
 
-    const resSearch = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=Alpha',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
+    const resSearch = await requestAdminUsers(
+      '?limit=100&offset=0&search=Alpha'
     )
     const bodySearch = await expectResponse(resSearch, GoodAdminUsersV2)
 
@@ -452,24 +425,10 @@ describe('admin users search', () => {
   })
 
   test('pagination with search works', async () => {
-    const res1 = await request(
-      app,
-      '/api/v2/admin/users?limit=1&offset=0&search=Alpha',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res1 = await requestAdminUsers('?limit=1&offset=0&search=Alpha')
     const body1 = await expectResponse(res1, GoodAdminUsersV2)
 
-    const res2 = await request(
-      app,
-      '/api/v2/admin/users?limit=1&offset=1&search=Alpha',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res2 = await requestAdminUsers('?limit=1&offset=1&search=Alpha')
     const body2 = await expectResponse(res2, GoodAdminUsersV2)
 
     expect(body1.data.users).toHaveLength(1)
@@ -478,13 +437,8 @@ describe('admin users search', () => {
   })
 
   test('sorts teams by score', async () => {
-    const res = await request(
-      app,
-      `/api/v2/admin/users?limit=100&offset=0&sortBy=${AdminTeamSortBy.SCORE}&sortOrder=${AdminTeamSortOrder.DESC}`,
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
+    const res = await requestAdminUsers(
+      `?limit=100&offset=0&sortBy=${AdminTeamSortBy.SCORE}&sortOrder=${SortOrder.DESC}`
     )
     const body = await expectResponse(res, GoodAdminUsersV2)
     const names = body.data.users.map((u: any) => u.name)
@@ -494,14 +448,9 @@ describe('admin users search', () => {
   })
 
   test('filters teams by division', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&divisions=college',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0', {
+      division: { include: ['college'] },
+    })
     const body = await expectResponse(res, GoodAdminUsersV2)
     const names = body.data.users.map((u: any) => u.name)
 
@@ -512,14 +461,9 @@ describe('admin users search', () => {
   })
 
   test('filters teams by status', async () => {
-    const res = await request(
-      app,
-      `/api/v2/admin/users?limit=100&offset=0&statuses=${AdminTeamStatus.BANNED}`,
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0', {
+      status: { include: [AdminTeamStatus.BANNED] },
+    })
     const body = await expectResponse(res, GoodAdminUsersV2)
 
     expect(body.data.users.map((u: any) => u.name)).toContain('BannedTeam')
@@ -529,23 +473,18 @@ describe('admin users search', () => {
   })
 
   test('rejects invalid team filters', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&divisions=missing',
-      {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${adminToken}` },
-      }
-    )
+    const res = await requestAdminUsers('?limit=100&offset=0', {
+      status: { include: ['missing'] },
+    })
 
     await expectResponse(res, BadBody)
   })
 
   test('unauthenticated search returns 401', async () => {
-    const res = await request(
-      app,
-      '/api/v2/admin/users?limit=100&offset=0&search=Alpha',
-      { method: 'GET' }
+    const res = await requestAdminUsers(
+      '?limit=100&offset=0&search=Alpha',
+      {},
+      null
     )
     expect(res.status).toBe(401)
   })

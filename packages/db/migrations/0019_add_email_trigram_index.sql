@@ -1,0 +1,1 @@
+CREATE INDEX "users_email_trgm_idx" ON "users" USING gin (lower("email") gin_trgm_ops) WHERE "users"."email" IS NOT NULL;

@@ -52,6 +52,9 @@ export const users = pgTable(
     index('users_email_index')
       .using('btree', table.email.asc().nullsLast().op('text_ops'))
       .where(sql`${table.email} IS NOT NULL`),
+    index('users_email_trgm_idx')
+      .using('gin', sql`lower(${table.email}) gin_trgm_ops`)
+      .where(sql`${table.email} IS NOT NULL`),
     unique('users_name_key').on(table.name),
     unique('users_email_key').on(table.email),
     unique('users_ctftime_id_key').on(table.ctftimeId),
