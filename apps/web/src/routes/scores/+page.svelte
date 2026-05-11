@@ -983,7 +983,7 @@
             'scroll-pt-(--score-scroll-padding-top)',
             isDesktop && 'scroll-pl-(--team-column-width)'
           )}
-          scrollbarXClasses="hidden"
+          scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
           scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
         >
           <div class="flex min-h-full flex-col">

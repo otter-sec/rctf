@@ -15,6 +15,9 @@
   const { name, points, instancerConfig, adminBotConfig, hidden } = $derived(challenge)
   const categoryShort = $derived(getCategoryKeyOrAlias(category))
   const hasStatusIcon = $derived(hidden || !!instancerConfig || !!adminBotConfig)
+  const pointLabel = $derived(
+    points.min === points.max ? `${points.max}` : `${points.min}-${points.max}`
+  )
 </script>
 
 <li class="border-category-foreground-l1/10 border-b-2 last:border-b-0 @md/list:border-b-0">
@@ -46,7 +49,7 @@
         </div>
       {/if}
       <span class="text-base whitespace-nowrap tabular-nums">
-        <span class="text-category-foreground-l0">{points.max}</span>
+        <span class="text-category-foreground-l0">{pointLabel}</span>
         <span class="text-category-foreground-l1">pts</span>
       </span>
     </div>

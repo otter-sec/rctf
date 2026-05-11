@@ -13,7 +13,7 @@
   let { challenge }: Props = $props()
 </script>
 
-<ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2" viewportTabIndex={-1}>
+<ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2" viewportTabIndex={0}>
   <div class="flex flex-col gap-4">
     <div class="overflow-hidden rounded-lg border-2">
       <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Description</div>
