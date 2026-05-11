@@ -49,7 +49,7 @@
 
 <div class={cn('flex flex-col', className)}>
   <ProfileAnalyticsSection title="Score over time">
-    {#if graphData && graphData.points.length > 0}
+    {#if graphData && (graphData.points.length > 0 || sortedSolves.length > 0)}
       <ProfileGraph
         class="h-44 w-full"
         {graphData}
