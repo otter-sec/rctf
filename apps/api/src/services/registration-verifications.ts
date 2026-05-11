@@ -2,7 +2,7 @@ import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
 import { pendingUserVerifications } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
-import { and, desc, eq, gt, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, sql, type SQL } from 'drizzle-orm'
 
 export type PendingRegistrationVerification =
   typeof pendingUserVerifications.$inferSelect
@@ -13,86 +13,66 @@ type PendingRegistrationInput = {
   division: string
 }
 
-const activeVerificationFilter = () =>
-  gt(pendingUserVerifications.expiresAt, sql`now()`)
+const table = pendingUserVerifications
+const notExpired = gt(table.expiresAt, sql`now()`)
 
-const expiresAt = () => new Date(Date.now() + config.loginTimeout).toISOString()
+const newToken = () =>
+  Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('base64url')
 
-const createRegistrationToken = () => {
-  const bytes = crypto.getRandomValues(new Uint8Array(32))
-  return Buffer.from(bytes).toString('base64url')
-}
+const findActive = (db: DatabaseClient, where: SQL) =>
+  db
+    .select()
+    .from(table)
+    .where(and(where, notExpired))
+    .limit(1)
+    .then(takeUnique)
 
 export const createPendingRegistrationVerification = async (
   db: DatabaseClient,
   input: PendingRegistrationInput
 ): Promise<PendingRegistrationVerification> => {
-  const now = new Date().toISOString()
-  const verification = {
+  const row = {
     id: crypto.randomUUID(),
-    token: createRegistrationToken(),
+    token: newToken(),
     ...input,
-    createdAt: now,
-    expiresAt: expiresAt(),
+    createdAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + config.loginTimeout).toISOString(),
   }
 
-  return await db
-    .insert(pendingUserVerifications)
-    .values(verification)
-    .onConflictDoUpdate({
-      target: pendingUserVerifications.email,
-      set: verification,
-    })
+  const result = await db
+    .insert(table)
+    .values(row)
+    .onConflictDoUpdate({ target: table.email, set: row })
     .returning()
     .then(takeUnique)
-    .then(row => row!)
+
+  return result!
 }
 
-export const getPendingRegistrationVerification = async (
+export const getPendingRegistrationVerification = (
   db: DatabaseClient,
   id: string
-): Promise<PendingRegistrationVerification | undefined> => {
-  return await db
-    .select()
-    .from(pendingUserVerifications)
-    .where(and(eq(pendingUserVerifications.id, id), activeVerificationFilter()))
-    .limit(1)
-    .then(takeUnique)
-}
+) => findActive(db, eq(table.id, id))
 
-export const getPendingRegistrationVerificationByToken = async (
+export const getPendingRegistrationVerificationByToken = (
   db: DatabaseClient,
   token: string
-): Promise<PendingRegistrationVerification | undefined> => {
-  return await db
-    .select()
-    .from(pendingUserVerifications)
-    .where(
-      and(eq(pendingUserVerifications.token, token), activeVerificationFilter())
-    )
-    .limit(1)
-    .then(takeUnique)
-}
+) => findActive(db, eq(table.token, token))
 
 export const getPendingRegistrationVerifications = async (
   db: DatabaseClient
 ): Promise<PendingRegistrationVerification[]> => {
-  await db
-    .delete(pendingUserVerifications)
-    .where(sql`${pendingUserVerifications.expiresAt} <= now()`)
-
-  return await db
+  await db.delete(table).where(sql`${table.expiresAt} <= now()`)
+  return db
     .select()
-    .from(pendingUserVerifications)
-    .where(activeVerificationFilter())
-    .orderBy(desc(pendingUserVerifications.createdAt))
+    .from(table)
+    .where(notExpired)
+    .orderBy(desc(table.createdAt))
 }
 
 export const deletePendingRegistrationVerification = async (
   db: DatabaseClient,
   id: string
 ): Promise<void> => {
-  await db
-    .delete(pendingUserVerifications)
-    .where(eq(pendingUserVerifications.id, id))
+  await db.delete(table).where(eq(table.id, id))
 }
