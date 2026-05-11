@@ -53,7 +53,6 @@
       <ProfileGraph
         class="h-44 w-full"
         {graphData}
-        rank={user.globalPlace ?? 0}
         solves={sortedSolves}
       />
     {:else}

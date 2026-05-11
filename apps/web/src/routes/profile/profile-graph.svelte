@@ -4,7 +4,7 @@
   import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import { useClientConfig } from '$lib/query'
-  import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
+  import { getCategoryConfig, getCategoryStyle, type CategoryConfig } from '$lib/utils'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import { axisTicks, tickTextAnchor } from './profile-chart-utils'
@@ -27,6 +27,7 @@
     color: string
     challengeName?: string
     categoryLabel?: string
+    categoryIcon?: CategoryConfig['icon']
     points?: number | null
     style?: string
   }
@@ -39,11 +40,14 @@
   type Scale = (value: number) => number
 
   const domainPadding = 30 * 60 * 1000
+  const scoreLineColor = 'var(--foreground-l2)'
 
   function categoryDisplay(category: string) {
     const config = getCategoryConfig(category)
     return {
       label: config.name,
+      icon: config.icon,
+      color: `var(--foreground-${config.color}-l1)`,
       style: getCategoryStyle(config.color),
     }
   }
@@ -72,21 +76,13 @@
   interface Props {
     class?: string
     graphData: LeaderboardGraphEntry
-    rank: number
     solves?: SolveInput[]
   }
 
-  let { class: className = '', graphData, rank, solves = [] }: Props = $props()
+  let { class: className = '', graphData, solves = [] }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
-
-  const color = $derived.by(() => {
-    if (rank === 1) return 'var(--foreground-gold-l0)'
-    if (rank === 2) return 'var(--foreground-silver-l0)'
-    if (rank === 3) return 'var(--foreground-bronze-l0)'
-    return 'var(--foreground-l0)'
-  })
 
   const sampledPoints = $derived<ScorePoint[]>(
     graphData.points
@@ -99,7 +95,7 @@
         teamName: graphData.name,
         time: p.time,
         score: p.score,
-        color,
+        color: scoreLineColor,
       }))
   )
 
@@ -119,10 +115,11 @@
           teamName: graphData.name,
           challengeName: solve.name,
           categoryLabel: category.label,
+          categoryIcon: category.icon,
           time: solve.createdAt,
           score,
           points: solve.points,
-          color,
+          color: category.color,
           style: category.style,
         }
       })
@@ -153,7 +150,7 @@
   })
 
   const chartConfig = $derived<ChartConfig>({
-    [graphData.id]: { label: graphData.name, color },
+    [graphData.id]: { label: graphData.name, color: scoreLineColor },
   })
 </script>
 
@@ -187,7 +184,7 @@
         <path
           d={buildStepPath(scoreLinePoints, context.xScale, context.yScale)}
           fill="none"
-          stroke={color}
+          stroke={scoreLineColor}
           stroke-width={2}
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -214,32 +211,53 @@
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data })}
           <div
-            class="border-border/50 bg-background-l1 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+            class="border-border/50 bg-background-l1 z-50 min-w-56 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
           >
             <div class="text-foreground-l3 mb-1.5">
               <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
               <div class="text-[10px]">{formatLocalTime(data.time)}</div>
             </div>
-            <div class="flex items-center gap-2" style={data.style}>
-              <div
-                class="size-2.5 rounded-sm"
-                style="background-color: {data.kind === 'solve'
-                  ? 'var(--category-background-l0)'
-                  : data.color}; border: 1px solid {data.kind === 'solve'
-                  ? 'var(--category-foreground-l1)'
-                  : data.color};"
-              ></div>
-              <span class="font-medium wrap-anywhere">
-                {data.kind === 'solve' ? data.challengeName : data.teamName}
-              </span>
-              <span class="text-foreground-l3 ml-auto tabular-nums">
-                {data.score.toLocaleString()} pts
-              </span>
-            </div>
             {#if data.kind === 'solve'}
-              <div class="text-foreground-l3 mt-1 flex justify-between gap-4">
-                <span>{data.categoryLabel}</span>
-                <span class="tabular-nums">{data.points?.toLocaleString() ?? 'n/a'} pts</span>
+              {@const CategoryIcon = data.categoryIcon}
+              <div class="flex items-start gap-2" style={data.style}>
+                <div
+                  class="bg-category-background-l0 text-category-foreground-l1 flex size-6 shrink-0 items-center justify-center rounded-sm"
+                >
+                  <CategoryIcon class="size-4" />
+                </div>
+                <div class="min-w-0 flex-1">
+                  <div class="text-foreground-l0 font-medium wrap-anywhere">
+                    {data.challengeName}
+                  </div>
+                  <div class="text-category-foreground-l1 text-[11px]">
+                    {data.categoryLabel}
+                  </div>
+                </div>
+              </div>
+              <div class="border-border/50 mt-2 grid grid-cols-2 gap-3 border-t pt-2">
+                <div>
+                  <div class="text-foreground-l4 text-[10px]">Challenge points</div>
+                  <div class="text-foreground-l1 tabular-nums">
+                    {data.points?.toLocaleString() ?? 'n/a'} pts
+                  </div>
+                </div>
+                <div>
+                  <div class="text-foreground-l4 text-[10px]">Total score</div>
+                  <div class="text-foreground-l1 tabular-nums">
+                    {data.score.toLocaleString()} pts
+                  </div>
+                </div>
+              </div>
+            {:else}
+              <div class="flex items-center gap-2">
+                <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
+                <span class="max-w-48 truncate wrap-anywhere">{data.teamName}</span>
+              </div>
+              <div class="border-border/50 mt-2 border-t pt-2">
+                <div class="text-foreground-l4 text-[10px]">Total score</div>
+                <div class="text-foreground-l1 tabular-nums">
+                  {data.score.toLocaleString()} pts
+                </div>
               </div>
             {/if}
           </div>
