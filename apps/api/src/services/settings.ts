@@ -15,6 +15,12 @@ export type SettingsPatch = {
 export type ResolvedSettings = ReturnType<typeof resolveSettings>
 export type CompetitionTiming = Pick<ResolvedSettings, 'startTime' | 'endTime'>
 
+type CachedResolvedSettings = {
+  version: 1
+  defaultsSignature: string
+  resolved: ResolvedSettings
+}
+
 export async function getSettings(
   db: DatabaseClient
 ): Promise<EditableSettings> {
@@ -96,6 +102,9 @@ export function resolveSettings(overrides: EditableSettings) {
   }
 }
 
+const getConfigDefaultsSignature = (): string =>
+  JSON.stringify(getConfigDefaults())
+
 const getCachedResolvedSettings = async (
   redis: TypedRedis
 ): Promise<ResolvedSettings | undefined> => {
@@ -105,7 +114,17 @@ const getCachedResolvedSettings = async (
   }
 
   try {
-    return JSON.parse(cached) as ResolvedSettings
+    const entry = JSON.parse(cached) as Partial<CachedResolvedSettings>
+    if (
+      entry.version !== 1 ||
+      entry.defaultsSignature !== getConfigDefaultsSignature() ||
+      !entry.resolved
+    ) {
+      await redis.del(RESOLVED_SETTINGS_CACHE_KEY)
+      return undefined
+    }
+
+    return entry.resolved
   } catch {
     await redis.del(RESOLVED_SETTINGS_CACHE_KEY)
     return undefined
@@ -116,9 +135,15 @@ const setCachedResolvedSettings = async (
   redis: TypedRedis,
   resolved: ResolvedSettings
 ): Promise<void> => {
+  const entry: CachedResolvedSettings = {
+    version: 1,
+    defaultsSignature: getConfigDefaultsSignature(),
+    resolved,
+  }
+
   await redis.set(
     RESOLVED_SETTINGS_CACHE_KEY,
-    JSON.stringify(resolved),
+    JSON.stringify(entry),
     'PX',
     RESOLVED_SETTINGS_CACHE_TTL
   )
