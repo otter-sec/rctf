@@ -132,31 +132,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    bun dev
    ```
 
-### Seeded Frontend Development
-
-For frontend work, you can start a local environment with Postgres, Redis,
-migrations, deterministic mock teams, mock challenges, solve history, cached
-leaderboard data, and login links:
-
-```sh
-bun run dev:mock
-```
-
-The seed is reset each time and writes credentials to `.data/dev-seed.json`.
-Use the `admin.loginUrl` value from that file to log in as a full-permission
-admin. The mock scripts refuse to run destructive setup or migrations unless
-the configured Postgres/Redis targets match `compose.dev.yml`. To reseed an
-already-running environment, run:
-
-```sh
-bun run dev:seed
-```
-
-To stop the Docker services when you are done:
-
-```sh
-bun run dev:services:down
-```
+For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/challenges/solves, and start the dev server. (login URLs are printed to stdout). Use `bun dev:seed` to reseed without restarting.
 
 ## New features compared to v1
 
