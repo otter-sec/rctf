@@ -43,6 +43,7 @@
   let showBottomFade = $state(false)
   let showLeftFade = $state(false)
   let showRightFade = $state(false)
+  let fadeRaf = 0
 
   const hasVertical = $derived(orientation === 'vertical' || orientation === 'both')
   const hasHorizontal = $derived(orientation === 'horizontal' || orientation === 'both')
@@ -70,14 +71,26 @@
     const threshold = 10
 
     if (hasVertical) {
-      showTopFade = scrollTop > threshold
-      showBottomFade = scrollTop + clientHeight < scrollHeight - threshold
+      const nextTopFade = scrollTop > threshold
+      const nextBottomFade = scrollTop + clientHeight < scrollHeight - threshold
+      if (showTopFade !== nextTopFade) showTopFade = nextTopFade
+      if (showBottomFade !== nextBottomFade) showBottomFade = nextBottomFade
     }
 
     if (hasHorizontal) {
-      showLeftFade = scrollLeft > threshold
-      showRightFade = scrollLeft + clientWidth < scrollWidth - threshold
+      const nextLeftFade = scrollLeft > threshold
+      const nextRightFade = scrollLeft + clientWidth < scrollWidth - threshold
+      if (showLeftFade !== nextLeftFade) showLeftFade = nextLeftFade
+      if (showRightFade !== nextRightFade) showRightFade = nextRightFade
     }
+  }
+
+  function scheduleUpdateFades() {
+    if (fadeRaf) return
+    fadeRaf = requestAnimationFrame(() => {
+      fadeRaf = 0
+      updateFades()
+    })
   }
 
   $effect(() => {
@@ -86,13 +99,17 @@
 
     updateFades()
 
-    viewport.addEventListener('scroll', updateFades, { passive: true })
+    viewport.addEventListener('scroll', scheduleUpdateFades, { passive: true })
     const resizeObserver = new ResizeObserver(updateFades)
     resizeObserver.observe(viewport)
 
     return () => {
-      viewport.removeEventListener('scroll', updateFades)
+      viewport.removeEventListener('scroll', scheduleUpdateFades)
       resizeObserver.disconnect()
+      if (fadeRaf) {
+        cancelAnimationFrame(fadeRaf)
+        fadeRaf = 0
+      }
     }
   })
 

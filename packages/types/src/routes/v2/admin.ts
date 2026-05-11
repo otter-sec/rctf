@@ -2,16 +2,18 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
-  AdminSettingsSchema,
   BadAdminBotConfig,
   BadBody,
   BadChallenge,
   BadEndpoint,
   BadInstancerConfig,
+  BadKnownEmail,
+  BadKnownName,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
   BadUnknownUser,
+  BadUnknownVerification,
   BadUserPrivileged,
   GoodAdminBotChallengeSource,
   GoodAdminBotJobPull,
@@ -26,6 +28,9 @@ import {
   GoodAdminUsersV2,
   GoodAdminUserUpdateV2,
   GoodAdminUserV2,
+  GoodAdminUserVerificationCompleteV2,
+  GoodAdminUserVerificationResendV2,
+  GoodAdminUserVerificationsV2,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -34,10 +39,14 @@ import {
   GoodUploadsQueryV2,
 } from '../../responses'
 import {
+  AdminTeamSortBy,
+  AdminTeamStatus,
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
+  searchFilter,
+  SortOrder,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -49,16 +58,34 @@ export const GetAdminChallengesRouteV2 = defineRoute({
   permissions: Permissions.challsRead,
 })
 
+const AdminUsersQuery = z.object({
+  limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+  offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+  search: z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
+  sortBy: z.optional(z.enum(AdminTeamSortBy)),
+  sortOrder: z.optional(z.enum(SortOrder)),
+})
+
+const AdminUsersFilterBody = z.object({
+  status: z.nullish(searchFilter(z.enum(AdminTeamStatus))),
+  division: z.nullish(searchFilter(z.string())),
+})
+
 export const GetAdminUsersRouteV2 = defineRoute({
   path: '/v2/admin/users',
   method: 'GET',
-  query: z.object({
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    search: z.optional(
-      z.string().check(z.minLength(2)).check(z.maxLength(100))
-    ),
-  }),
+  query: AdminUsersQuery,
+  goodResponses: [GoodAdminUsersV2],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite,
+})
+
+export const FilterAdminUsersRouteV2 = defineRoute({
+  path: '/v2/admin/users',
+  method: 'POST',
+  query: AdminUsersQuery,
+  body: AdminUsersFilterBody,
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
@@ -107,6 +134,45 @@ export const DeleteAdminUserRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken, BadUnknownUser, BadUserPrivileged],
   authRequired: true,
   params: AdminUserParams,
+  permissions: Permissions.usersWrite,
+})
+
+const AdminUserVerificationParams = z.object({
+  id: z.string(),
+})
+
+export const GetAdminUserVerificationsRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications',
+  method: 'GET',
+  goodResponses: [GoodAdminUserVerificationsV2],
+  badResponses: [BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite,
+})
+
+export const CompleteAdminUserVerificationRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications/:id/complete',
+  method: 'POST',
+  goodResponses: [GoodAdminUserVerificationCompleteV2],
+  badResponses: [
+    BadKnownEmail,
+    BadKnownName,
+    BadPerms,
+    BadToken,
+    BadUnknownVerification,
+  ],
+  authRequired: true,
+  params: AdminUserVerificationParams,
+  permissions: Permissions.usersWrite,
+})
+
+export const ResendAdminUserVerificationRouteV2 = defineRoute({
+  path: '/v2/admin/user-verifications/:id/resend',
+  method: 'POST',
+  goodResponses: [GoodAdminUserVerificationResendV2],
+  badResponses: [BadEndpoint, BadPerms, BadToken, BadUnknownVerification],
+  authRequired: true,
+  params: AdminUserVerificationParams,
   permissions: Permissions.usersWrite,
 })
 

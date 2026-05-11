@@ -2,9 +2,11 @@ import { config } from '@rctf/config'
 import {
   challenges,
   createDatabase,
+  settings,
   solves,
   users,
   type ChallengeData,
+  type EditableSettings,
 } from '@rctf/db'
 import type { ScoreContext } from '@rctf/scoring/base'
 import ClassicProvider from '@rctf/scoring/classic'
@@ -103,6 +105,18 @@ const insertSolve = async (params: {
   return { id }
 }
 
+const setSettingsOverride = async (data: EditableSettings) => {
+  const db = getDb()
+  await db.insert(settings).values({ id: 'value-0', data }).onConflictDoUpdate({
+    target: settings.id,
+    set: { data },
+  })
+
+  cleanups.push(async () => {
+    await db.delete(settings).where(eq(settings.id, 'value-0'))
+  })
+}
+
 const classic = new ClassicProvider({})
 const classicScore = (solvesCount: number, min: number, max: number) =>
   classic.calculate({
@@ -139,6 +153,26 @@ describe('cached leaderboard calculator', () => {
     expect(second.recomputedFromScratch).toBe(false)
     expect(second.changed).toBe(false)
     expect(second.calculated.users).toHaveLength(1)
+  })
+
+  test('rebuilds when runtime timing overrides change', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const challenge = await insertChallenge()
+    await insertSolve({ challengeId: challenge.id, userId: user.id })
+
+    const calc = createCachedLeaderboardCalculator()
+    const first = await calc(db)
+    expect(first.recomputedFromScratch).toBe(true)
+
+    await setSettingsOverride({
+      startTime: config.startTime + 60_000,
+      endTime: config.endTime + 60_000,
+    })
+
+    const second = await calc(db)
+    expect(second.recomputedFromScratch).toBe(true)
+    expect(second.changed).toBe(true)
   })
 
   test('applies new solves incrementally without full rebuild', async () => {

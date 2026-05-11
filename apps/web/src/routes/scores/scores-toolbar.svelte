@@ -129,7 +129,7 @@
     </DropdownMenu.Trigger>
     <DropdownMenu.Content
       align="end"
-      class="bg-background-l4 min-w-(--bits-dropdown-menu-anchor-width) border-2 border-background-l5"
+      class="bg-background-l4 border-background-l5 min-w-(--bits-dropdown-menu-anchor-width) border-2"
     >
       <DropdownMenu.Item
         class="data-highlighted:bg-background-l5 justify-between"

@@ -20,14 +20,7 @@ export type TeamTokenData = string
 
 interface BaseVerifyTokenData {
   verifyId: string
-  kind: 'update' | 'register'
-}
-
-export interface RegisterVerifyTokenData extends BaseVerifyTokenData {
-  kind: 'register'
-  email: NonNullable<string>
-  name: string
-  division: string
+  kind: 'update'
 }
 
 export interface UpdateVerifyTokenData extends BaseVerifyTokenData {
@@ -36,7 +29,7 @@ export interface UpdateVerifyTokenData extends BaseVerifyTokenData {
   email: NonNullable<string>
 }
 
-export type VerifyTokenData = RegisterVerifyTokenData | UpdateVerifyTokenData
+export type VerifyTokenData = UpdateVerifyTokenData
 
 export interface CtftimeAuthTokenData {
   name: string

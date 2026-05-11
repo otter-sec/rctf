@@ -1,5 +1,6 @@
 export * from './admin-bot-jobs'
 export * from './challenges'
+export * from './pending-user-verifications'
 export * from './settings'
 export * from './solves'
 export * from './users'

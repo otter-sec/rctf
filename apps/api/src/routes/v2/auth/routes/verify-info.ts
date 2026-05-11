@@ -1,5 +1,7 @@
 import { GetVerifyInfoRouteV2 } from '@rctf/types'
+import { hasLoginVerification } from '../../../../cache/auth-cache'
 import { parseTokenWithMultipleKinds, TokenKind } from '../../../../lib/tokens'
+import { getPendingRegistrationVerificationByToken } from '../../../../services/registration-verifications'
 import { getUser, getUserByEmail } from '../../../../services/users'
 import authGroup from '../group'
 
@@ -9,20 +11,32 @@ authGroup.route(GetVerifyInfoRouteV2, async ({ ctx, query, res }) => {
     query.token
   )
   if (!result) {
-    return res.badTokenVerification()
+    const pending = await getPendingRegistrationVerificationByToken(
+      ctx.var.db,
+      query.token
+    )
+    if (!pending) {
+      return res.badTokenVerification()
+    }
+
+    return res.goodVerifyInfo({
+      kind: 'register',
+      email: pending.email,
+      name: pending.name,
+    })
   }
 
   const [kind, data] = result
 
-  if (kind === TokenKind.Verify && data.kind === 'register') {
-    return res.goodVerifyInfo({
-      kind: 'register',
-      email: data.email,
-      name: data.name,
-    })
+  // Generated verification tokens still need their one-time Redis marker.
+  if (
+    kind === TokenKind.Verify &&
+    !(await hasLoginVerification(ctx.var.redis, data.verifyId))
+  ) {
+    return res.badTokenVerification()
   }
 
-  if (kind === TokenKind.Verify && data.kind === 'update') {
+  if (kind === TokenKind.Verify) {
     const user = await getUserByEmail(ctx.var.db, data.email)
     return res.goodVerifyInfo({
       kind: 'update',

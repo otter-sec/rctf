@@ -8,7 +8,7 @@ import { createRedis } from '../util/redis'
 const logger = pino().child({ module: 'leaderboard-worker' })
 const { db } = createDatabase(config.database.sql)
 const redis = await createRedis()
-let calculateCachedLeaderboard = createCachedLeaderboardCalculator()
+let calculateCachedLeaderboard = createCachedLeaderboardCalculator(redis)
 
 let running = false
 let lastUpdatedAt = 0
@@ -43,7 +43,7 @@ const tick = async () => {
 
     if (consecutiveFailures >= 3) {
       logger.warn('resetting leaderboard cache')
-      calculateCachedLeaderboard = createCachedLeaderboardCalculator()
+      calculateCachedLeaderboard = createCachedLeaderboardCalculator(redis)
       consecutiveFailures = 0
     }
   } finally {
