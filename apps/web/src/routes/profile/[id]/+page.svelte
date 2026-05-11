@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, ScrollArea, Spinner } from '$lib/components'
+  import { Button, Card, ScrollArea, Spinner, Tabs } from '$lib/components'
   import {
     useClientConfig,
     useLeaderboardChallenges,
@@ -46,10 +46,49 @@
 
 {#if user && clientConfig}
   <div
-    class="mx-auto grid h-[calc(100dvh-72px)] w-full max-w-[1600px] grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(520px,620px)]"
+    class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
+  >
+    <div class="bg-background-l1 z-10 shrink-0 pt-2">
+      <ProfileHeader {user} {clientConfig} />
+    </div>
+
+    <Tabs.Root value="challenges" class="min-h-0 flex-1">
+      <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
+        <Tabs.List class="grid h-10 w-full grid-cols-2">
+          <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
+          <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
+        </Tabs.List>
+      </div>
+
+      <Tabs.Content value="challenges" class="min-h-0">
+        <ProfileSolves
+          {challenges}
+          solves={user.solves}
+          showUnsolved={challenges.length > 0}
+          scrollable
+          class="min-h-0 flex-1"
+        />
+      </Tabs.Content>
+
+      <Tabs.Content value="analytics" class="min-h-0">
+        <ScrollArea
+          class="h-full"
+          fadeSize={32}
+          fadeColor="background-l1"
+          scrollbarYClasses="z-30 mt-4"
+          viewportTabIndex={-1}
+        >
+          <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
+        </ScrollArea>
+      </Tabs.Content>
+    </Tabs.Root>
+  </div>
+
+  <div
+    class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
   >
     <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
-      <div class="bg-background-l1 z-10 shrink-0 py-2">
+      <div class="bg-background-l1 z-10 shrink-0 pt-2">
         <ProfileHeader {user} {clientConfig} />
       </div>
 

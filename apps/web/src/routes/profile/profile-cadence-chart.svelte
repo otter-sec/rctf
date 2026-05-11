@@ -27,18 +27,23 @@
     y="count"
     yDomain={[0, max]}
     yNice
-    padding={{ left: 28, right: 8, top: 8, bottom: 28 }}
+    padding={{ left: 38, right: 8, top: 8, bottom: 28 }}
     tooltipContext={{ mode: 'band' }}
   >
     {#snippet children()}
       <Svg>
-        <Axis placement="left" grid ticks={scale => integerTicks(scale, 3)} />
+        <Axis
+          placement="left"
+          grid
+          ticks={scale => integerTicks(scale, 3)}
+          tickLabelProps={{ 'font-size': 10, dx: -10 }}
+        />
         <Axis placement="bottom" tickLabelProps={{ 'font-size': 10 }} />
         <Bars
           fill="var(--background-l3)"
-          stroke="var(--foreground-l4)"
-          strokeOpacity={0.5}
-          strokeWidth={2}
+          stroke="var(--foreground-l5)"
+          strokeOpacity={1}
+          strokeWidth={1.5}
           insets={{ left: 2, right: 2 }}
           tooltip
           radius={4}
@@ -48,7 +53,7 @@
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data: item })}
           <div
-            class="border-border/50 bg-background-l1 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+            class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
           >
             <div class="tabular-nums">{item.count.toLocaleString()} solves</div>
             <div class="text-foreground-l3 mt-1">

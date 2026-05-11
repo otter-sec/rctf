@@ -40,7 +40,7 @@
           ticks={scale => integerTicks(scale)}
           format={(value: number) => compactNumber(value)}
         />
-        <Axis placement="left" tickLabelProps={{ 'font-size': 10 }} />
+        <Axis placement="left" tickLabelProps={{ 'font-size': 10, dx: -10 }} />
         <Bars
           {data}
           x="max"
@@ -52,9 +52,8 @@
         />
         <Bars
           fill="var(--background-l3)"
-          stroke="var(--foreground-l4)"
-          strokeOpacity={0.5}
-          strokeWidth={2}
+          stroke="var(--foreground-l5)"
+          strokeWidth={1.5}
           insets={{ top: 2, bottom: 2 }}
           tooltip
           radius={4}
@@ -64,7 +63,7 @@
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data: item })}
           <div
-            class="border-border/50 bg-background-l1 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+            class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
           >
             <div>{item.label}</div>
             <div class="text-foreground-l3 mt-1 tabular-nums">

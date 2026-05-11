@@ -33,7 +33,7 @@
   const sortedSolves = $derived(sortProfileSolves(user.solves))
   const categoryStats = $derived(buildCategoryStats({ challenges, solves: sortedSolves }))
   const categoryCompletionData = $derived(buildCategoryCompletionData(categoryStats))
-  const categoryPointsData = $derived(buildCategoryPointsData(categoryStats))
+  const categoryPointsData = $derived(buildCategoryPointsData(categoryStats, sortedSolves))
   const difficultyData = $derived(buildDifficultyData({ challenges, solves: sortedSolves }))
   const activityDomain = $derived(buildActivityDomain({ clientConfig, solves: sortedSolves }))
   const cadenceData = $derived(

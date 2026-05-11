@@ -5,6 +5,7 @@ import {
   getCategoryKeyOrAlias,
   getCategoryOrder,
   getCategoryStyle,
+  type CategoryConfig,
 } from '$lib/utils'
 import { formatRelativeHours } from '$lib/utils/time'
 
@@ -22,6 +23,7 @@ export type CategoryStat = {
   key: string
   label: string
   fullLabel: string
+  icon: CategoryConfig['icon']
   color: string
   style: string
   category: string
@@ -34,12 +36,22 @@ export type CategoryStat = {
 export type ProfileBarDatum = {
   key: string
   label: string
+  icon?: CategoryConfig['icon']
   value: number
   max: number
   color: string
   style?: string
   tooltipLabel?: string
   detail?: string
+  segments?: ProfileBarSegment[]
+}
+
+export type ProfileBarSegment = {
+  key: string
+  label: string
+  value: number
+  start: number
+  end: number
 }
 
 export type CadenceDatum = {
@@ -56,10 +68,13 @@ export type TimelineDatum = {
   categoryLabel: string
   categoryTooltipLabel: string
   categoryKey: string
+  categoryIcon: CategoryConfig['icon']
   color: string
   style: string
   time: number
   points: number | null
+  scoreBefore: number
+  score: number
 }
 
 export type ActivityDomain = {
@@ -78,6 +93,7 @@ type CategoryBarMetrics = {
   value: number
   max: number
   detail: string
+  segments?: ProfileBarSegment[]
 }
 
 const msPerMinute = 60 * 1000
@@ -167,12 +183,16 @@ export function buildCategoryCompletionData(
 }
 
 export function buildCategoryPointsData(
-  stats: CategoryStat[]
+  stats: CategoryStat[],
+  solves: ProfileSolve[] = []
 ): ProfileBarDatum[] {
+  const segmentsByCategory = buildPointSegments(solves)
+
   return buildCategoryBarData(stats, stat => ({
     value: stat.pointsEarned,
     max: stat.pointsTotal,
     detail: `${stat.pointsEarned.toLocaleString()}/${stat.pointsTotal.toLocaleString()} pts`,
+    segments: segmentsByCategory.get(stat.key),
   }))
 }
 
@@ -276,18 +296,25 @@ export function buildCadenceData({
 }
 
 export function buildTimelineData(solves: ProfileSolve[]): TimelineDatum[] {
+  let score = 0
+
   return solves.map(solve => {
     const category = getCategoryDisplay(solve.category)
+    score += solve.points ?? 0
+
     return {
       key: solve.id,
       name: solve.name,
       categoryLabel: category.label,
       categoryTooltipLabel: category.fullLabel,
       categoryKey: category.key,
+      categoryIcon: category.icon,
       color: category.color,
       style: category.style,
       time: solve.createdAt,
       points: solve.points,
+      scoreBefore: score - (solve.points ?? 0),
+      score,
     }
   })
 }
@@ -331,14 +358,57 @@ function buildCategoryBarData(
     return {
       key: stat.key,
       label: stat.label,
+      icon: stat.icon,
       value: metrics.value,
       max: Math.max(metrics.max, 1),
       color: stat.color,
       style: stat.style,
       tooltipLabel: stat.fullLabel,
       detail: metrics.detail,
+      segments: metrics.segments,
     }
   })
+}
+
+function buildPointSegments(
+  solves: ProfileSolve[]
+): Map<string, ProfileBarSegment[]> {
+  const segments = new Map<
+    string,
+    Omit<ProfileBarSegment, 'start' | 'end'>[]
+  >()
+
+  for (const solve of solves) {
+    const value = solve.points ?? 0
+    if (value <= 0) continue
+
+    const categoryKey = getCategoryKeyOrAlias(solve.category)
+    const categorySegments = segments.get(categoryKey) ?? []
+
+    categorySegments.push({
+      key: solve.id,
+      label: solve.name,
+      value,
+    })
+    segments.set(categoryKey, categorySegments)
+  }
+
+  const sortedSegments = new Map<string, ProfileBarSegment[]>()
+  for (const [categoryKey, categorySegments] of segments) {
+    let total = 0
+    sortedSegments.set(
+      categoryKey,
+      categorySegments
+        .toSorted((a, b) => a.value - b.value || a.label.localeCompare(b.label))
+        .map(segment => {
+          const start = total
+          total += segment.value
+          return { ...segment, start, end: total }
+        })
+    )
+  }
+
+  return sortedSegments
 }
 
 function getOrCreateCategoryStat(
@@ -369,6 +439,7 @@ function getCategoryDisplay(category: string) {
     key,
     label: key,
     fullLabel: config.name,
+    icon: config.icon,
     color: `var(--foreground-${config.color}-l1)`,
     style: getCategoryStyle(config.color),
   }

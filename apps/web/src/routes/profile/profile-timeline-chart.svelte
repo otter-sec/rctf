@@ -71,17 +71,30 @@
         </Svg>
         <Tooltip.Root anchor="top-right" motion="none" variant="none">
           {#snippet children({ data: item })}
+            {@const CategoryIcon = item.categoryIcon}
             <div
-              class="border-border/50 bg-background-l1 z-50 min-w-44 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+              class="border-background-l5 bg-background-l3 z-50 min-w-56 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
             >
               <div class="text-foreground-l3 mb-1.5">
                 <div>{formatRelativeHoursMinutes(item.time, clientConfig.startTime)}</div>
                 <div class="text-[10px]">{formatLocalTime(item.time)}</div>
               </div>
-              <div class="wrap-anywhere">{item.name}</div>
-              <div class="text-foreground-l3 mt-1 flex justify-between gap-4">
-                <span>{item.categoryTooltipLabel}</span>
-                <span class="tabular-nums">{item.points?.toLocaleString() ?? 'n/a'} pts</span>
+              <div class="flex items-center gap-2" style={item.style}>
+                <CategoryIcon class="text-category-foreground-l1 size-3.5 shrink-0" />
+                <div class="flex min-w-0 items-baseline gap-1 text-xs font-medium">
+                  <span class="text-category-foreground-l1 shrink-0">
+                    {item.categoryKey} /
+                  </span>
+                  <span class="text-category-foreground-l0 truncate">{item.name}</span>
+                </div>
+              </div>
+              <div class="mt-2 border-t-2 pt-2 tabular-nums">
+                <span class="text-foreground-l1">{item.scoreBefore.toLocaleString()} pts</span>
+                <span class="text-foreground-success ml-1 font-medium">
+                  {item.points === null ? '+n/a' : `+${item.points.toLocaleString()}`} pts
+                </span>
+                <span class="text-foreground-l4 mx-1">=</span>
+                <span class="text-foreground-l1">{item.score.toLocaleString()} pts</span>
               </div>
             </div>
           {/snippet}
