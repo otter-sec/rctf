@@ -10,7 +10,7 @@ import {
 } from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest } from '$lib/api'
-import { createApiMutation } from './core'
+import { ApiError, createApiMutation } from './core'
 
 export const verifyInfoQueryOptions = (token: string | null) =>
   queryOptions({
@@ -21,7 +21,7 @@ export const verifyInfoQueryOptions = (token: string | null) =>
       if (response.kind === GoodVerifyInfo.kind) {
         return response.data
       }
-      return null
+      throw new ApiError(response.kind, response.message)
     },
     enabled: !!token,
     staleTime: Infinity,

@@ -3,24 +3,18 @@ import type { User } from '@rctf/db'
 import {
   createToken,
   TokenKind,
-  type RegisterVerifyTokenData,
   type UpdateVerifyTokenData,
   type VerifyTokenData,
 } from '../lib/tokens'
 import type { TypedRedis } from './scripts'
 
 const USER_CACHE_TTL = 30_000
+const LOGIN_KEY_PREFIX = 'login:'
 const userCacheKey = (userId: string) => `user:${userId}`
-const loginVerificationKey = (id: VerifyTokenData['verifyId']) => `login:${id}`
+const loginVerificationKey = (id: VerifyTokenData['verifyId']) =>
+  `${LOGIN_KEY_PREFIX}${id}`
 
-type LoginVerificationData =
-  | Omit<RegisterVerifyTokenData, 'verifyId'>
-  | Omit<UpdateVerifyTokenData, 'verifyId'>
-
-export type LoginVerification = {
-  id: VerifyTokenData['verifyId']
-  token: string
-}
+type LoginVerificationData = Omit<UpdateVerifyTokenData, 'verifyId'>
 
 export const getCachedUser = async (
   redis: TypedRedis,
@@ -77,41 +71,21 @@ export const checkLoginVerification = async (
   return result === 1
 }
 
-export const deleteLoginVerification = async (
+export const hasLoginVerification = async (
   client: TypedRedis,
   id: VerifyTokenData['verifyId']
-): Promise<void> => {
-  await client.del(loginVerificationKey(id))
-}
-
-export const getLoginVerificationTtl = async (
-  client: TypedRedis,
-  id: VerifyTokenData['verifyId']
-): Promise<number> => {
-  return await client.pttl(loginVerificationKey(id))
-}
-
-export const createLoginVerificationWithId = async (
-  client: TypedRedis,
-  data: LoginVerificationData
-): Promise<LoginVerification> => {
-  const verifyId = crypto.randomUUID()
-  await storeLoginVerification(client, verifyId)
-  const token = await createToken(TokenKind.Verify, {
-    ...data,
-    verifyId,
-  })
-
-  return {
-    id: verifyId,
-    token,
-  }
+): Promise<boolean> => {
+  return (await client.pttl(loginVerificationKey(id))) > 0
 }
 
 export const createLoginVerification = async (
   client: TypedRedis,
   data: LoginVerificationData
 ): Promise<string> => {
-  const verification = await createLoginVerificationWithId(client, data)
-  return verification.token
+  const verifyId = crypto.randomUUID()
+  await storeLoginVerification(client, verifyId)
+  return await createToken(TokenKind.Verify, {
+    ...data,
+    verifyId,
+  })
 }

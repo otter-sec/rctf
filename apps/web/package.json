@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "bunx --bun vite dev",
+    "dev": "bunx --bun --no-orphans vite dev",
     "build": "bunx --bun vite build",
     "preview": "bunx --bun vite preview",
     "prepare": "bunx --bun svelte-kit sync || echo ''",

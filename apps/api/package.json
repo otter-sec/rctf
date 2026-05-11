@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "cd ../../; bun --watch apps/api/src/index.ts",
+    "dev": "cd ../../; bun --watch --no-orphans apps/api/src/index.ts",
     "start": "bun src/index.ts",
     "build": "bun build src/index.ts --outdir dist --target bun --minify --sourcemap=linked && bun build src/workers/leaderboard.ts --outdir dist --target bun --minify --sourcemap=linked && cp -r src/cache/scripts dist/",
     "typecheck": "tsc --noEmit"

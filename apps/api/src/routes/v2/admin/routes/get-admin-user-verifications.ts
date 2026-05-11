@@ -5,7 +5,7 @@ import adminGroup from '../group'
 adminGroup.route(
   GetAdminUserVerificationsRouteV2,
   async ({ res, ctx, query }) => {
-    const result = await getPendingTeamVerifications(ctx.var.redis, {
+    const result = await getPendingTeamVerifications(ctx.var.db, {
       limit: query.limit,
       offset: query.offset,
     })

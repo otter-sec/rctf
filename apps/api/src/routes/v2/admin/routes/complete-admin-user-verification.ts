@@ -5,11 +5,7 @@ import adminGroup from '../group'
 adminGroup.route(
   CompleteAdminUserVerificationRouteV2,
   async ({ res, ctx, params }) => {
-    const result = await completePendingTeamVerification(
-      ctx.var.db,
-      ctx.var.redis,
-      params.id
-    )
+    const result = await completePendingTeamVerification(ctx.var.db, params.id)
 
     if (!result.success) {
       if (result.error === 'badKnownEmail') {

@@ -127,6 +127,13 @@
       "when": 1777941824100,
       "tag": "0017_add_banned_column",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1778511611034,
+      "tag": "0018_add_pending_user_verifications",
+      "breakpoints": true
     }
   ]
 }

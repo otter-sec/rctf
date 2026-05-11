@@ -17,6 +17,9 @@
   const verifyInfo = $derived(verifyInfoQuery.data)
 
   const clientConfig = $derived(clientConfigQuery.data)
+  const verifyInfoError = $derived(
+    !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
+  )
 
   let error = $state<string | null>(null)
   let emailSet = $state(false)
@@ -111,16 +114,20 @@
       <Card.Description>{description}</Card.Description>
     </Card.Header>
     <Card.Content>
-      {#if error}
+      {#if verifyInfoError || error}
         <div
           class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
           role="alert"
         >
-          {error}
+          {verifyInfoError ?? error}
         </div>
       {/if}
 
-      <Button onclick={handleVerify} disabled={verifyMutation.isPending} class="w-full">
+      <Button
+        onclick={handleVerify}
+        disabled={verifyMutation.isPending || verifyInfoQuery.isPending || !!verifyInfoError}
+        class="w-full"
+      >
         {#if verifyMutation.isPending}
           <Spinner class="size-4" />
         {/if}

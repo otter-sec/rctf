@@ -5,7 +5,7 @@ import adminGroup from '../group'
 adminGroup.route(
   ResendAdminUserVerificationRouteV2,
   async ({ res, ctx, params }) => {
-    const result = await resendPendingTeamVerification(ctx.var.redis, params.id)
+    const result = await resendPendingTeamVerification(ctx.var.db, params.id)
 
     if (!result.success) {
       if (result.error === 'badEndpoint') {

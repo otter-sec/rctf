@@ -1,9 +1,17 @@
 import { config } from '@rctf/config'
 import { createDatabase, users } from '@rctf/db'
-import { BadEmailChangeDivision, GoodEmailSet } from '@rctf/types'
-import { afterAll, beforeAll, describe, test } from 'bun:test'
+import {
+  BadEmailChangeDivision,
+  BadTokenVerification,
+  GoodEmailSet,
+  GoodVerifyInfo,
+  GoodVerifySent,
+} from '@rctf/types'
+import { afterAll, beforeAll, describe, expect, mock, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { emailProvider } from '../../../../apps/api/src/providers'
+import type { Mail } from '../../../../apps/api/src/providers/emails/base'
 import { compiledACLs } from '../../../../apps/api/src/util/acl'
 import { getApp, request } from '../../app'
 import { expectResponse, generateAuthToken } from '../../util'
@@ -75,6 +83,24 @@ const enableACLs = () => {
       divisions: ['hs'],
     }
   )
+}
+
+const extractTokenFromMail = (mail: Mail) => {
+  const verifyUrl = mail.text
+    .split('\n')
+    .map(line => line.trim())
+    .find(line => line.startsWith(`${config.origin}/verify?token=`))
+
+  if (!verifyUrl) {
+    throw new Error('Verification email did not include a verify URL.')
+  }
+
+  const token = new URL(verifyUrl).searchParams.get('token')
+  if (!token) {
+    throw new Error('Verification URL did not include a token.')
+  }
+
+  return token
 }
 
 beforeAll(async () => {
@@ -228,6 +254,80 @@ describe('email change division check', () => {
       })
 
       await expectResponse(res, BadEmailChangeDivision)
+    })
+  })
+
+  describe('v2 set-email verification flow', () => {
+    test('sends a token that can be inspected and consumed once', async () => {
+      enableACLs()
+      if (!emailProvider) {
+        throw new Error('Expected an email provider in server tests.')
+      }
+
+      const oldSend = emailProvider.send
+      let sentMail: Mail | undefined
+      emailProvider.send = mock(async mail => {
+        sentMail = mail
+      })
+
+      try {
+        const user = await createTestUserInDivision('college', 'college.test')
+        const authToken = await generateAuthToken(user.id)
+        const newEmail = `${crypto.randomUUID()}@college.test`
+
+        const setEmailRes = await request(app, '/api/v2/users/me/auth/email', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ email: newEmail }),
+        })
+        await expectResponse(setEmailRes, GoodVerifySent)
+        expect(sentMail?.to).toBe(newEmail)
+
+        const verifyToken = extractTokenFromMail(sentMail!)
+        const infoRes = await request(
+          app,
+          `/api/v2/auth/verify-info?token=${encodeURIComponent(verifyToken)}`,
+          {}
+        )
+        const infoBody = await expectResponse(infoRes, GoodVerifyInfo)
+        expect(infoBody.data).toMatchObject({
+          kind: 'update',
+          email: newEmail,
+        })
+
+        const verifyRes = await request(app, '/api/v1/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verifyToken }),
+        })
+        await expectResponse(verifyRes, GoodEmailSet)
+
+        const db = getDb()
+        const [updated] = await db
+          .select()
+          .from(users)
+          .where(eq(users.id, user.id))
+        expect(updated?.email).toBe(newEmail)
+
+        const reusedInfoRes = await request(
+          app,
+          `/api/v2/auth/verify-info?token=${encodeURIComponent(verifyToken)}`,
+          {}
+        )
+        await expectResponse(reusedInfoRes, BadTokenVerification)
+
+        const reusedVerifyRes = await request(app, '/api/v1/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ verifyToken }),
+        })
+        await expectResponse(reusedVerifyRes, BadTokenVerification)
+      } finally {
+        emailProvider.send = oldSend
+      }
     })
   })
 })
