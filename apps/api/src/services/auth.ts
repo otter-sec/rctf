@@ -13,14 +13,11 @@ import type {
   GoodVerifySent,
   ResponseHelpers,
 } from '@rctf/types'
-import {
-  createLoginVerificationWithId,
-  deletePendingRegisterVerification,
-} from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
 import { sendVerificationEmail } from './emails'
+import { createPendingRegistrationVerification } from './registration-verifications'
 import {
   createUser,
   createUserV2,
@@ -112,20 +109,13 @@ export const registerUser = async (
       return res.badKnownEmail()
     }
 
-    const verification = await createLoginVerificationWithId(redis, {
-      kind: 'register',
+    const verification = await createPendingRegistrationVerification(db, {
       email: body.email,
       name: body.name,
       division: division,
     })
 
-    try {
-      await sendVerificationEmail(body.email, 'register', verification.token)
-    } catch (error) {
-      await deletePendingRegisterVerification(redis, verification.id)
-      throw error
-    }
-
+    await sendVerificationEmail(body.email, 'register', verification.token)
     return res.goodVerifySent()
   }
 
@@ -191,14 +181,13 @@ export const registerUserV2 = async (
       return res.badKnownEmail()
     }
 
-    const verificationToken = await createLoginVerification(redis, {
-      kind: 'register',
+    const verification = await createPendingRegistrationVerification(db, {
       email: body.email,
       name: body.name,
       division: division,
     })
 
-    await sendVerificationEmail(body.email, 'register', verificationToken)
+    await sendVerificationEmail(body.email, 'register', verification.token)
     return res.goodVerifySent()
   }
 

@@ -2,6 +2,7 @@ import { config } from '@rctf/config'
 import {
   challenges,
   createDatabase,
+  pendingUserVerifications,
   solves,
   users,
   type ChallengeData,
@@ -17,6 +18,7 @@ const getDb = () => createDatabase(config.database.sql).db
 
 export const clearDatabase = async () => {
   const db = getDb()
+  await db.delete(pendingUserVerifications)
   await db.delete(solves)
   await db.delete(challenges)
   await db.delete(users)

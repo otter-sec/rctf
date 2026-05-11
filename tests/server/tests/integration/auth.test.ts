@@ -1,4 +1,5 @@
 import { config } from '@rctf/config'
+import { createDatabase } from '@rctf/db'
 import {
   BadEmail,
   BadKnownEmail,
@@ -14,9 +15,8 @@ import {
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import type { Hono } from 'hono'
-import { createLoginVerification } from '../../../../apps/api/src/cache/auth-cache'
 import { createToken, TokenKind } from '../../../../apps/api/src/lib/tokens'
-import { createRedis } from '../../../../apps/api/src/util/redis'
+import { createPendingRegistrationVerification } from '../../../../apps/api/src/services/registration-verifications'
 import { getApp, request } from '../../app'
 import {
   deleteUserByEmail,
@@ -28,6 +28,7 @@ import {
 let app: Hono<any>
 const testUser = generateTestUser()
 let oldEmail: typeof config.email
+const getDb = () => createDatabase(config.database.sql).db
 
 beforeAll(async () => {
   app = await getApp()
@@ -128,11 +129,9 @@ describe('auth', () => {
     }
   })
 
-  test('v2 verify returns team token for register tokens', async () => {
-    const redis = await createRedis()
+  test('v2 verify returns team token for stored register tokens', async () => {
     const v2User = generateTestUser()
-    const verifyToken = await createLoginVerification(redis, {
-      kind: 'register',
+    const verification = await createPendingRegistrationVerification(getDb(), {
       email: v2User.email,
       name: v2User.name,
       division: v2User.division,
@@ -142,7 +141,7 @@ describe('auth', () => {
       let res = await request(app, '/api/v2/auth/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ verifyToken }),
+        body: JSON.stringify({ verifyToken: verification.token }),
       })
 
       const body = await expectResponse(res, GoodRegisterV2)

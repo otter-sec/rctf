@@ -1,13 +1,11 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import {
-  createLoginVerificationWithId,
-  deletePendingRegisterVerification,
-  getPendingRegisterVerification,
-  getPendingRegisterVerifications,
-} from '../cache/auth-cache'
-import type { TypedRedis } from '../cache/scripts'
 import { sendVerificationEmail } from './emails'
+import {
+  deletePendingRegistrationVerification,
+  getPendingRegistrationVerification,
+  getPendingRegistrationVerifications,
+} from './registration-verifications'
 import { createUserInternal } from './users'
 
 export type CompletePendingVerificationResult =
@@ -21,16 +19,15 @@ export type ResendPendingVerificationResult =
   | { success: true; verificationId: string }
   | { success: false; error: 'badEndpoint' | 'badUnknownVerification' }
 
-export const getPendingTeamVerifications = async (redis: TypedRedis) => {
-  return await getPendingRegisterVerifications(redis)
+export const getPendingTeamVerifications = async (db: DatabaseClient) => {
+  return await getPendingRegistrationVerifications(db)
 }
 
 export const completePendingTeamVerification = async (
   db: DatabaseClient,
-  redis: TypedRedis,
   verificationId: string
 ): Promise<CompletePendingVerificationResult> => {
-  const pending = await getPendingRegisterVerification(redis, verificationId)
+  const pending = await getPendingRegistrationVerification(db, verificationId)
   if (!pending) {
     return { success: false, error: 'badUnknownVerification' }
   }
@@ -52,15 +49,18 @@ export const completePendingTeamVerification = async (
     throw new Error(`Unexpected user creation error: ${result.error}`)
   }
 
-  await deletePendingRegisterVerification(redis, verificationId)
+  await deletePendingRegistrationVerification(db, verificationId)
   return { success: true, userId: result.userId }
 }
 
+type VerificationEmailSender = typeof sendVerificationEmail
+
 export const resendPendingTeamVerification = async (
-  redis: TypedRedis,
-  verificationId: string
+  db: DatabaseClient,
+  verificationId: string,
+  sendEmail: VerificationEmailSender = sendVerificationEmail
 ): Promise<ResendPendingVerificationResult> => {
-  const pending = await getPendingRegisterVerification(redis, verificationId)
+  const pending = await getPendingRegistrationVerification(db, verificationId)
   if (!pending) {
     return { success: false, error: 'badUnknownVerification' }
   }
@@ -69,21 +69,6 @@ export const resendPendingTeamVerification = async (
     return { success: false, error: 'badEndpoint' }
   }
 
-  const verification = await createLoginVerificationWithId(redis, {
-    kind: 'register',
-    name: pending.name,
-    email: pending.email,
-    division: pending.division,
-  })
-
-  try {
-    await sendVerificationEmail(pending.email, 'register', verification.token)
-  } catch (error) {
-    await deletePendingRegisterVerification(redis, verification.id)
-    throw error
-  }
-
-  await deletePendingRegisterVerification(redis, verificationId)
-
-  return { success: true, verificationId: verification.id }
+  await sendEmail(pending.email, 'register', pending.token)
+  return { success: true, verificationId: pending.id }
 }

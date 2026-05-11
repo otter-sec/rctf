@@ -1,11 +1,3 @@
-import {
-  afterAll,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  test,
-} from 'bun:test'
 import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
@@ -18,6 +10,14 @@ import {
   GoodLeaderboardWithGraph,
   Permissions,
 } from '@rctf/types'
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
 import { cacheLeaderboardAndGraph } from '../../../../apps/api/src/cache/leaderboard'

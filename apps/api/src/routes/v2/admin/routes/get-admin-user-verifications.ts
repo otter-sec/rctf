@@ -3,16 +3,16 @@ import { getPendingTeamVerifications } from '../../../../services/admin-verifica
 import adminGroup from '../group'
 
 adminGroup.route(GetAdminUserVerificationsRouteV2, async ({ res, ctx }) => {
-  const verifications = await getPendingTeamVerifications(ctx.var.redis)
+  const verifications = await getPendingTeamVerifications(ctx.var.db)
 
   return res.goodAdminUserVerifications({
     verifications: verifications.map(verification => ({
-      id: verification.verifyId,
+      id: verification.id,
       name: verification.name,
       email: verification.email,
       division: verification.division,
-      createdAt: verification.createdAt,
-      expiresAt: verification.expiresAt,
+      createdAt: new Date(verification.createdAt).getTime(),
+      expiresAt: new Date(verification.expiresAt).getTime(),
     })),
   })
 })

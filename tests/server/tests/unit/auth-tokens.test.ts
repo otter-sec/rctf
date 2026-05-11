@@ -34,11 +34,10 @@ describe('token', () => {
     try {
       const createdAt = Date.now()
       const token = await createToken(TokenKind.Verify, {
-        kind: 'register',
+        kind: 'update',
         verifyId: 'id',
-        name: 'name',
+        userId: 'user-id',
         email: 'email',
-        division: 'division',
       })
 
       // Mock Date.now to return time after expiry
