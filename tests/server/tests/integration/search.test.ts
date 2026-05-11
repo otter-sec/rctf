@@ -372,11 +372,31 @@ describe('admin users search', () => {
       body: JSON.stringify(body),
     })
 
+  const requestAdminUsersGet = (
+    query: string,
+    token: string | null = adminToken
+  ) =>
+    request(app, `/api/v2/admin/users${query}`, {
+      method: 'GET',
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    })
+
   test('no search param returns all users', async () => {
     const res = await requestAdminUsers('?limit=100&offset=0')
     const body = await expectResponse(res, GoodAdminUsersV2)
     expect(body.data.users.length).toBeGreaterThan(0)
     expect(body.data.total).toBeGreaterThan(0)
+  })
+
+  test('documented GET endpoint returns query-only user lists', async () => {
+    const res = await requestAdminUsersGet('?limit=100&offset=0&search=Alpha')
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+
+    expect(names).toContain('AlphaTeam')
+    expect(names).toContain('AlphaTeem')
   })
 
   test('search matches substring via word similarity', async () => {

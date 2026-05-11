@@ -1,8 +1,8 @@
 import {
   AdminTeamSortBy,
   AdminTeamStatus,
+  FilterAdminUsersRouteV2,
   GetAdminUserRouteV2,
-  GetAdminUsersRouteV2,
   GetAdminUserVerificationsRouteV2,
   SortOrder,
   type RouteBody,
@@ -10,8 +10,8 @@ import {
   type RouteResponseData,
 } from '@rctf/types'
 
-type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2>
-type AdminUsersBody = RouteBody<typeof GetAdminUsersRouteV2>
+type AdminUsersQuery = RouteQuery<typeof FilterAdminUsersRouteV2>
+type AdminUsersBody = RouteBody<typeof FilterAdminUsersRouteV2>
 type AdminUsersFilterValue<TKey extends keyof AdminUsersBody> =
   NonNullable<AdminUsersBody[TKey]> extends {
     include?: (infer TValue)[] | null
@@ -23,7 +23,7 @@ export type PendingVerification = RouteResponseData<
   typeof GetAdminUserVerificationsRouteV2
 >['verifications'][number]
 export type AdminTeam = RouteResponseData<
-  typeof GetAdminUsersRouteV2
+  typeof FilterAdminUsersRouteV2
 >['users'][number]
 export type AdminTeamDetails = RouteResponseData<typeof GetAdminUserRouteV2>
 export type AdminTeamSolve = AdminTeamDetails['solves'][number]

@@ -138,7 +138,9 @@
   {@const ctfOffset = formatCtfOffset(timestamp)}
   <div
     class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap"
-    title="{row.kind === 'registered' ? 'Registered' : 'Expires'} UTC {new Date(timestamp).toISOString()}"
+    title="{row.kind === 'registered' ? 'Registered' : 'Expires'} UTC {new Date(
+      timestamp
+    ).toISOString()}"
   >
     <span class="text-foreground-l1 shrink-0 tabular-nums">
       {row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}

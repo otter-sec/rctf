@@ -1,12 +1,12 @@
 import {
   CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
+  FilterAdminUsersRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
   GetAdminUserRouteV2,
-  GetAdminUsersRouteV2,
   GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
@@ -35,8 +35,8 @@ import { browser } from '$app/environment'
 import { apiRequest } from '$lib/api'
 import { ApiError, createApiMutation } from './core'
 
-type AdminUsersRouteQuery = RouteQuery<typeof GetAdminUsersRouteV2>
-type AdminUsersRouteBody = RouteBody<typeof GetAdminUsersRouteV2>
+type AdminUsersRouteQuery = RouteQuery<typeof FilterAdminUsersRouteV2>
+type AdminUsersRouteBody = RouteBody<typeof FilterAdminUsersRouteV2>
 export type AdminUsersQueryParams = Pick<
   AdminUsersRouteQuery,
   'search' | 'sortBy' | 'sortOrder'
@@ -149,7 +149,7 @@ export function useInfiniteAdminUsers(
     return {
       queryKey: ['admin', 'users', 'infinite', ps, query] as const,
       queryFn: async ({ pageParam = 0 }) => {
-        const response = await apiRequest(GetAdminUsersRouteV2, {
+        const response = await apiRequest(FilterAdminUsersRouteV2, {
           limit: ps,
           offset: pageParam,
           ...query,

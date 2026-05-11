@@ -58,22 +58,34 @@ export const GetAdminChallengesRouteV2 = defineRoute({
   permissions: Permissions.challsRead,
 })
 
+const AdminUsersQuery = z.object({
+  limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+  offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+  search: z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
+  sortBy: z.optional(z.enum(AdminTeamSortBy)),
+  sortOrder: z.optional(z.enum(SortOrder)),
+})
+
+const AdminUsersFilterBody = z.object({
+  status: z.nullish(searchFilter(z.enum(AdminTeamStatus))),
+  division: z.nullish(searchFilter(z.string())),
+})
+
 export const GetAdminUsersRouteV2 = defineRoute({
   path: '/v2/admin/users',
+  method: 'GET',
+  query: AdminUsersQuery,
+  goodResponses: [GoodAdminUsersV2],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite,
+})
+
+export const FilterAdminUsersRouteV2 = defineRoute({
+  path: '/v2/admin/users',
   method: 'POST',
-  query: z.object({
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    search: z.optional(
-      z.string().check(z.minLength(1)).check(z.maxLength(100))
-    ),
-    sortBy: z.optional(z.enum(AdminTeamSortBy)),
-    sortOrder: z.optional(z.enum(SortOrder)),
-  }),
-  body: z.object({
-    status: z.nullish(searchFilter(z.enum(AdminTeamStatus))),
-    division: z.nullish(searchFilter(z.string())),
-  }),
+  query: AdminUsersQuery,
+  body: AdminUsersFilterBody,
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,

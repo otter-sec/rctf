@@ -19,6 +19,7 @@ import {
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
+  FilterAdminUsersRouteV2,
   GetAdminUsersRouteV2,
   GoodRegister,
   GoodRegisterV2,
@@ -471,7 +472,7 @@ export const adminTeamStatusExpression = sql<AdminTeamStatus>`
 `
 
 type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2> &
-  RouteBody<typeof GetAdminUsersRouteV2>
+  Partial<RouteBody<typeof FilterAdminUsersRouteV2>>
 
 const setFilter = <T>(
   column: SQL<unknown>,
