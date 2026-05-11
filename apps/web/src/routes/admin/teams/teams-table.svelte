@@ -1,6 +1,6 @@
 <script lang="ts">
   import { AdminTeamSortBy, SortOrder } from '@rctf/types'
-  import { EmptyState, ScrollArea, VirtualList } from '$lib/components'
+  import { EmptyState, ScrollArea, Tooltip, VirtualList } from '$lib/components'
   import { IconChevronDown, IconChevronUp, IconSelector, IconUsersGroup } from '$lib/icons'
   import { useInfiniteVirtualScroll } from '$lib/utils'
   import TeamTableRow from './team-table-row.svelte'
@@ -80,6 +80,8 @@
   let listScrollMargin = $state(0)
   let tableViewportWidth = $state(0)
   let innerWidth = $state(0)
+
+  const actionTooltipTether = Tooltip.createTether<string>()
 
   const hasFilters = $derived(hasTeamFilters(filters))
   const hasNextRegisteredPage = $derived(shouldFetchRegisteredRows && hasNextPage)
@@ -255,6 +257,7 @@
               {onDeleteTeam}
               {onCompleteVerification}
               {onResendVerification}
+              {actionTooltipTether}
             />
           {/snippet}
         </VirtualList>
@@ -262,3 +265,11 @@
     </div>
   </div>
 </ScrollArea>
+
+<Tooltip.Root tether={actionTooltipTether}>
+  {#snippet children({ payload })}
+    {#if payload}
+      <Tooltip.Content side="top" sideOffset={8}>{payload}</Tooltip.Content>
+    {/if}
+  {/snippet}
+</Tooltip.Root>

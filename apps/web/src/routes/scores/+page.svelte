@@ -3,14 +3,7 @@
   import { page as pageState } from '$app/state'
   import { CtfNotStarted, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { CUTOFF_TIME, DELTA_WINDOW, SELF_COLOR, SPARKLINE_WINDOW } from '$lib/constants/scores'
-  import {
-    IconChartAreaLineFilled,
-    IconFlagFilled,
-    IconMoodHappy,
-    IconMoodHappyFilled,
-    IconPin,
-    IconPinnedFilled,
-  } from '$lib/icons'
+  import { IconChartAreaLineFilled, IconFlagFilled } from '$lib/icons'
   import {
     ApiError,
     useClientConfig,
@@ -30,11 +23,12 @@
     getCategoryKeyOrAlias,
     getScoreboardCategoryOrder,
   } from '$lib/utils/categories'
-  import { formatLocalTime } from '$lib/utils/time'
   import { onMount } from 'svelte'
+  import ScoresCellTooltipContent from './scores-cell-tooltip-content.svelte'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraph from './scores-graph.svelte'
+  import ScoresGraphControls from './scores-graph-controls.svelte'
   import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
@@ -47,8 +41,6 @@
   const CELL_WIDTH = 48
   const HEADER_HEIGHT = 192
   const DIAGONAL_OVERFLOW = 96
-  const TOOLTIP_DELAY = 300
-  const BLOOD_LABELS = ['First blood!', 'Second blood!', 'Third blood!']
 
   interface ScoresPreferences {
     viewMode: ViewMode
@@ -506,19 +498,20 @@
   let hoveredTeamId = $state<string | null>(null)
   let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
 
-  let tooltipData = $state<TooltipData | null>(null)
-  let tooltipOpen = $state(false)
-  let tooltipAnchorRect = $state({ x: 0, y: 0 })
-  let hoverTimeout: ReturnType<typeof setTimeout> | null = null
+  let cellTooltipData = $state<TooltipData | null>(null)
+  let cellTooltipOpen = $state(false)
+  let cellTooltipAnchorRect = $state({ x: 0, y: 0 })
 
-  const tooltipAnchor = {
+  const cellTooltipTether = Tooltip.createTether<TooltipData>()
+
+  const cellTooltipAnchor = {
     getBoundingClientRect: () => ({
-      x: tooltipAnchorRect.x,
-      y: tooltipAnchorRect.y,
-      top: tooltipAnchorRect.y,
-      left: tooltipAnchorRect.x,
-      bottom: tooltipAnchorRect.y,
-      right: tooltipAnchorRect.x,
+      x: cellTooltipAnchorRect.x,
+      y: cellTooltipAnchorRect.y,
+      top: cellTooltipAnchorRect.y,
+      left: cellTooltipAnchorRect.x,
+      bottom: cellTooltipAnchorRect.y,
+      right: cellTooltipAnchorRect.x,
       width: 0,
       height: 0,
       toJSON: () => ({}),
@@ -526,37 +519,45 @@
   }
 
   function handleCellHover(data: TooltipData | null, x: number, y: number) {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      hoverTimeout = null
+    cellTooltipData = data
+
+    if (!data) {
+      return
     }
 
-    if (data) {
-      tooltipOpen = false
+    cellTooltipAnchorRect = { x, y }
+  }
 
-      hoverTimeout = setTimeout(() => {
-        if (data.type === 'challenge' && !data.solved) {
-          hoveredTeamId = null
-          solveHighlight = null
-        } else {
-          hoveredTeamId = data.teamId
-          if (data.type === 'challenge' && data.solveTime) {
-            solveHighlight = { teamId: data.teamId, time: data.solveTime }
-          } else {
-            solveHighlight = null
-          }
-        }
+  function clearCellTooltip() {
+    cellTooltipData = null
+    cellTooltipTether.close()
+  }
 
-        tooltipData = data
-        tooltipAnchorRect = { x, y }
-        tooltipOpen = true
-      }, TOOLTIP_DELAY)
-    } else {
+  $effect(() => {
+    if (!cellTooltipOpen || !cellTooltipData) {
       hoveredTeamId = null
       solveHighlight = null
-      tooltipOpen = false
+      return
     }
-  }
+
+    if (cellTooltipData.type === 'challenge' && !cellTooltipData.solved) {
+      hoveredTeamId = null
+      solveHighlight = null
+      return
+    }
+
+    hoveredTeamId = cellTooltipData.teamId
+    solveHighlight =
+      cellTooltipData.type === 'challenge' && cellTooltipData.solveTime
+        ? { teamId: cellTooltipData.teamId, time: cellTooltipData.solveTime }
+        : null
+  })
+
+  $effect(() => {
+    if (scroll.isScrolling) {
+      clearCellTooltip()
+    }
+  })
 
   let headerRowRef = $state<HTMLElement | null>(null)
 
@@ -676,6 +677,7 @@
     renderEpoch,
     isScrolling: scroll.isScrolling,
     isDesktop,
+    cellTooltipTether,
     onCellHover: handleCellHover,
   })
 
@@ -809,6 +811,7 @@
   )
 </script>
 
+<Tooltip.Provider delayDuration={300} skipDelayDuration={600} disableHoverableContent>
 {#if leaderboardQuery.isPending && !search}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
@@ -913,58 +916,12 @@
         <div
           class="group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg md:hidden"
         >
-          <div
-            class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-focus-within/graph:opacity-100 group-hover/graph:opacity-100"
-          >
-            <Tooltip.Root disableCloseOnTriggerClick>
-              <Tooltip.Trigger>
-                {#snippet child({ props })}
-                  <button
-                    {...props}
-                    type="button"
-                    aria-label="Pin top 3 to graph"
-                    class={cn(
-                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
-                      showTop3Context && 'bg-background-l3/80'
-                    )}
-                    onclick={() => setShowTop3Context(!showTop3Context)}
-                  >
-                    {#if showTop3Context}
-                      <IconPinnedFilled class="size-3.5" />
-                    {:else}
-                      <IconPin class="size-3.5" />
-                    {/if}
-                  </button>
-                {/snippet}
-              </Tooltip.Trigger>
-              <Tooltip.Content side="bottom" sideOffset={6}>Pin top 3 to graph</Tooltip.Content>
-            </Tooltip.Root>
-            <Tooltip.Root disableCloseOnTriggerClick>
-              <Tooltip.Trigger>
-                {#snippet child({ props })}
-                  <button
-                    {...props}
-                    type="button"
-                    aria-label="Pin self to graph"
-                    class={cn(
-                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
-                      showSelfContext
-                        ? 'bg-background-l3/80 text-foreground-l1'
-                        : 'text-foreground-l3'
-                    )}
-                    onclick={() => setShowSelfContext(!showSelfContext)}
-                  >
-                    {#if showSelfContext}
-                      <IconMoodHappyFilled class="size-3.5" />
-                    {:else}
-                      <IconMoodHappy class="size-3.5" />
-                    {/if}
-                  </button>
-                {/snippet}
-              </Tooltip.Trigger>
-              <Tooltip.Content side="bottom" sideOffset={6}>Pin self to graph</Tooltip.Content>
-            </Tooltip.Root>
-          </div>
+          <ScoresGraphControls
+            {showTop3Context}
+            {showSelfContext}
+            onShowTop3ContextChange={setShowTop3Context}
+            onShowSelfContextChange={setShowSelfContext}
+          />
           <ScoresGraph class="h-full w-full p-3" {...graphProps} />
         </div>
 
@@ -995,64 +952,12 @@
                 class="group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0"
               >
                 <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
-                  <div
-                    class="absolute top-2 left-2 z-10 flex gap-1 opacity-0 transition-all group-focus-within/graph:opacity-100 group-hover/graph:opacity-100"
-                  >
-                    <Tooltip.Root disableCloseOnTriggerClick>
-                      <Tooltip.Trigger>
-                        {#snippet child({ props })}
-                          <button
-                            {...props}
-                            type="button"
-                            aria-label="Pin top 3 to graph"
-                            class={cn(
-                              'hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
-                              showTop3Context
-                                ? 'bg-background-l3/80 text-foreground-l1'
-                                : 'text-foreground-l3'
-                            )}
-                            onclick={() => setShowTop3Context(!showTop3Context)}
-                          >
-                            {#if showTop3Context}
-                              <IconPinnedFilled class="size-3.5" />
-                            {:else}
-                              <IconPin class="size-3.5" />
-                            {/if}
-                          </button>
-                        {/snippet}
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="bottom" sideOffset={6}
-                        >Pin top 3 to graph</Tooltip.Content
-                      >
-                    </Tooltip.Root>
-                    <Tooltip.Root disableCloseOnTriggerClick>
-                      <Tooltip.Trigger>
-                        {#snippet child({ props })}
-                          <button
-                            {...props}
-                            type="button"
-                            aria-label="Pin self to graph"
-                            class={cn(
-                              'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex size-7 items-center justify-center rounded-md outline-none focus-visible:ring-[3px]',
-                              showSelfContext
-                                ? 'bg-background-l3/80 text-foreground-l1'
-                                : 'text-foreground-l3'
-                            )}
-                            onclick={() => setShowSelfContext(!showSelfContext)}
-                          >
-                            {#if showSelfContext}
-                              <IconMoodHappyFilled class="size-3.5" />
-                            {:else}
-                              <IconMoodHappy class="size-3.5" />
-                            {/if}
-                          </button>
-                        {/snippet}
-                      </Tooltip.Trigger>
-                      <Tooltip.Content side="bottom" sideOffset={6}
-                        >Pin self to graph</Tooltip.Content
-                      >
-                    </Tooltip.Root>
-                  </div>
+                  <ScoresGraphControls
+                    {showTop3Context}
+                    {showSelfContext}
+                    onShowTop3ContextChange={setShowTop3Context}
+                    onShowSelfContextChange={setShowSelfContext}
+                  />
                   <ScoresGraph class="h-full w-full p-3" {...graphProps} />
                 </div>
               </div>
@@ -1218,22 +1123,14 @@
   {/if}
 {/if}
 
-<Tooltip.Root bind:open={tooltipOpen}>
-  <Tooltip.Trigger class="pointer-events-none fixed size-0" aria-hidden="true" />
-  <Tooltip.Content side="top" sideOffset={8} customAnchor={tooltipAnchor}>
-    {#if tooltipData?.type === 'category'}
-      <p class="capitalize">{tooltipData.categoryName}</p>
-      <p class="text-foreground-l3">{tooltipData.solved} / {tooltipData.total} solved</p>
-    {:else if tooltipData?.type === 'challenge'}
-      {@const statusText =
-        BLOOD_LABELS[tooltipData.bloodIndex] ?? (tooltipData.solved ? 'Solved!' : 'Unsolved')}
-      <p>{tooltipData.challengeName}</p>
-      <p class="text-foreground-l3">{tooltipData.points} pts · {statusText}</p>
-      {#if tooltipData.solveTime}
-        <p class="text-foreground-l3">{formatLocalTime(tooltipData.solveTime)}</p>
-      {/if}
+<Tooltip.Root tether={cellTooltipTether} bind:open={cellTooltipOpen}>
+  {#snippet children()}
+    {#if cellTooltipData}
+      <Tooltip.Content side="top" sideOffset={8} customAnchor={cellTooltipAnchor}>
+        <ScoresCellTooltipContent data={cellTooltipData} />
+      </Tooltip.Content>
     {/if}
-  </Tooltip.Content>
+  {/snippet}
 </Tooltip.Root>
 
 <ScoresScreenshotModal
@@ -1248,3 +1145,4 @@
   startTime={clientConfigQuery.data?.startTime ?? null}
   endTime={clientConfigQuery.data?.endTime ?? null}
 />
+</Tooltip.Provider>
