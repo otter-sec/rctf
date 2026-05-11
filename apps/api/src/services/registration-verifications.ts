@@ -35,6 +35,7 @@ export const createPendingRegistrationVerification = async (
     id: crypto.randomUUID(),
     token: newToken(),
     ...input,
+    email: input.email.toLowerCase(),
     createdAt: new Date().toISOString(),
     expiresAt: new Date(Date.now() + config.loginTimeout).toISOString(),
   }
@@ -58,6 +59,16 @@ export const getPendingRegistrationVerificationByToken = (
   db: DatabaseClient,
   token: string
 ) => findActive(db, eq(table.token, token))
+
+export const claimPendingRegistrationVerificationByToken = (
+  db: DatabaseClient,
+  token: string
+): Promise<PendingRegistrationVerification | undefined> =>
+  db
+    .delete(table)
+    .where(and(eq(table.token, token), notExpired))
+    .returning()
+    .then(takeUnique)
 
 export const getPendingRegistrationVerifications = async (
   db: DatabaseClient

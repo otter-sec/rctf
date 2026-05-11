@@ -5,10 +5,7 @@ import {
   parseTokenWithMultipleKinds,
   TokenKind,
 } from '../../../../lib/tokens'
-import {
-  deletePendingRegistrationVerification,
-  getPendingRegistrationVerificationByToken,
-} from '../../../../services/registration-verifications'
+import { claimPendingRegistrationVerificationByToken } from '../../../../services/registration-verifications'
 import {
   createUserInternal,
   getUser,
@@ -23,7 +20,7 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
     body.verifyToken
   )
   if (!result) {
-    const pending = await getPendingRegistrationVerificationByToken(
+    const pending = await claimPendingRegistrationVerificationByToken(
       ctx.var.db,
       body.verifyToken
     )
@@ -48,7 +45,6 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
       throw new Error(`Unexpected user creation error: ${created.error}`)
     }
 
-    await deletePendingRegistrationVerification(ctx.var.db, pending.id)
     const authToken = await createToken(TokenKind.Auth, created.userId)
     return res.goodRegister({ authToken })
   }

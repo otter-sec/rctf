@@ -5,10 +5,7 @@ import {
   parseTokenWithMultipleKinds,
   TokenKind,
 } from '../../../../lib/tokens'
-import {
-  deletePendingRegistrationVerification,
-  getPendingRegistrationVerificationByToken,
-} from '../../../../services/registration-verifications'
+import { claimPendingRegistrationVerificationByToken } from '../../../../services/registration-verifications'
 import {
   createUserInternal,
   getUser,
@@ -23,7 +20,7 @@ authGroup.route(VerifyRouteV2, async ({ ctx, body, res }) => {
     body.verifyToken
   )
   if (!result) {
-    const pending = await getPendingRegistrationVerificationByToken(
+    const pending = await claimPendingRegistrationVerificationByToken(
       ctx.var.db,
       body.verifyToken
     )
@@ -48,7 +45,6 @@ authGroup.route(VerifyRouteV2, async ({ ctx, body, res }) => {
       return res.badKnownName()
     }
 
-    await deletePendingRegistrationVerification(ctx.var.db, pending.id)
     const [authToken, teamToken] = await Promise.all([
       createToken(TokenKind.Auth, created.userId),
       createToken(TokenKind.Team, created.userId),
