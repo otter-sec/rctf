@@ -1,12 +1,12 @@
 import {
   CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
+  FilterAdminSubmissionsRouteV2,
   FilterAdminUsersRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
-  GetAdminSubmissionsRouteV2,
   GetAdminUserRouteV2,
   GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
@@ -26,11 +26,6 @@ import {
   UploadFilesRouteV2,
   type RouteBody,
   type RouteQuery,
-  type SubmissionKind,
-  type SubmissionResult,
-  type SubmissionSortBy,
-  type SubmissionSortOrder,
-  type SubmissionTeamStatus,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -49,6 +44,16 @@ export type AdminUsersQueryParams = Pick<
   'search' | 'sortBy' | 'sortOrder'
 > &
   AdminUsersRouteBody
+
+type AdminSubmissionsRouteQuery = RouteQuery<
+  typeof FilterAdminSubmissionsRouteV2
+>
+type AdminSubmissionsRouteBody = RouteBody<typeof FilterAdminSubmissionsRouteV2>
+export type AdminSubmissionsQueryParams = Pick<
+  AdminSubmissionsRouteQuery,
+  'sortBy' | 'sortOrder' | 'challengeSearch' | 'teamSearch'
+> &
+  AdminSubmissionsRouteBody
 
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
@@ -96,39 +101,13 @@ export const adminSettingsQueryOptions = queryOptions({
   },
 })
 
-export const adminSubmissionsQueryOptions = (params: {
-  limit: number
-  offset: number
-  sortBy?: SubmissionSortBy
-  sortOrder?: SubmissionSortOrder
-  challengeId?: string
-  challengeIds?: string
-  excludeChallengeIds?: string
-  challengeSearch?: string
-  userId?: string
-  userIds?: string
-  excludeUserIds?: string
-  teamSearch?: string
-  kind?: SubmissionKind
-  kinds?: string
-  excludeKinds?: string
-  result?: SubmissionResult
-  results?: string
-  excludeResults?: string
-  teamStatus?: SubmissionTeamStatus
-  teamStatuses?: string
-  excludeTeamStatuses?: string
-  categories?: string
-  excludeCategories?: string
-  divisions?: string
-  excludeDivisions?: string
-  createdAfter?: string
-  createdBefore?: string
-}) =>
+export const adminSubmissionsQueryOptions = (
+  params: { limit: number; offset: number } & AdminSubmissionsQueryParams
+) =>
   queryOptions({
     queryKey: ['admin', 'submissions', params] as const,
     queryFn: async () => {
-      const response = await apiRequest(GetAdminSubmissionsRouteV2, params)
+      const response = await apiRequest(FilterAdminSubmissionsRouteV2, params)
       if (response.kind === GoodAdminSubmissions.kind) {
         return response.data
       }
@@ -243,33 +222,7 @@ export function useAdminSettings() {
 }
 
 export function useInfiniteAdminSubmissions(
-  params: () => {
-    sortBy?: SubmissionSortBy
-    sortOrder?: SubmissionSortOrder
-    challengeId?: string
-    challengeIds?: string
-    excludeChallengeIds?: string
-    challengeSearch?: string
-    userId?: string
-    userIds?: string
-    excludeUserIds?: string
-    teamSearch?: string
-    kind?: SubmissionKind
-    kinds?: string
-    excludeKinds?: string
-    result?: SubmissionResult
-    results?: string
-    excludeResults?: string
-    teamStatus?: SubmissionTeamStatus
-    teamStatuses?: string
-    excludeTeamStatuses?: string
-    categories?: string
-    excludeCategories?: string
-    divisions?: string
-    excludeDivisions?: string
-    createdAfter?: string
-    createdBefore?: string
-  },
+  params: () => AdminSubmissionsQueryParams,
   pageSize: () => number = () => 100
 ) {
   return createInfiniteQuery(() => {
@@ -278,7 +231,7 @@ export function useInfiniteAdminSubmissions(
     return {
       queryKey: ['admin', 'submissions', 'infinite', p, ps] as const,
       queryFn: async ({ pageParam = 0 }) => {
-        const response = await apiRequest(GetAdminSubmissionsRouteV2, {
+        const response = await apiRequest(FilterAdminSubmissionsRouteV2, {
           limit: ps,
           offset: pageParam,
           ...p,
@@ -291,7 +244,7 @@ export function useInfiniteAdminSubmissions(
       initialPageParam: 0,
       getNextPageParam: lastPage => {
         const nextOffset = lastPage.offset + lastPage.submissions.length
-        return lastPage.hasMore ? nextOffset : undefined
+        return nextOffset < lastPage.total ? nextOffset : undefined
       },
       placeholderData: keepPreviousData,
     }

@@ -166,12 +166,8 @@
           "name": "admin_bot_jobs_user_id_fkey",
           "tableFrom": "admin_bot_jobs",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         },
@@ -179,12 +175,8 @@
           "name": "admin_bot_jobs_challenge_id_fkey",
           "tableFrom": "admin_bot_jobs",
           "tableTo": "challenges",
-          "columnsFrom": [
-            "challenge_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["challenge_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -353,16 +345,12 @@
         "pending_user_verifications_token_key": {
           "name": "pending_user_verifications_token_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         },
         "pending_user_verifications_email_key": {
           "name": "pending_user_verifications_email_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -701,12 +689,8 @@
           "name": "uuid_fkey",
           "tableFrom": "solves",
           "tableTo": "users",
-          "columnsFrom": [
-            "userid"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userid"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -716,10 +700,7 @@
         "uq": {
           "name": "uq",
           "nullsNotDistinct": false,
-          "columns": [
-            "challengeid",
-            "userid"
-          ]
+          "columns": ["challengeid", "userid"]
         }
       },
       "policies": {},
@@ -772,12 +753,8 @@
           "name": "uuid_fkey",
           "tableFrom": "user_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "userid"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userid"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "cascade"
         }
@@ -787,10 +764,7 @@
         "user_members_userid_email_key": {
           "name": "user_members_userid_email_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "userid",
-            "email"
-          ]
+          "columns": ["userid", "email"]
         }
       },
       "policies": {},
@@ -1021,23 +995,17 @@
         "users_name_key": {
           "name": "users_name_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         },
         "users_email_key": {
           "name": "users_email_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         },
         "users_ctftime_id_key": {
           "name": "users_ctftime_id_key",
           "nullsNotDistinct": false,
-          "columns": [
-            "ctftime_id"
-          ]
+          "columns": ["ctftime_id"]
         }
       },
       "policies": {},
@@ -1054,20 +1022,12 @@
     "public.admin_bot_job_status": {
       "name": "admin_bot_job_status",
       "schema": "public",
-      "values": [
-        "queued",
-        "running",
-        "completed",
-        "failed"
-      ]
+      "values": ["queued", "running", "completed", "failed"]
     },
     "public.submission_log_kind": {
       "name": "submission_log_kind",
       "schema": "public",
-      "values": [
-        "flag",
-        "admin_bot"
-      ]
+      "values": ["flag", "admin_bot"]
     },
     "public.submission_log_result": {
       "name": "submission_log_result",

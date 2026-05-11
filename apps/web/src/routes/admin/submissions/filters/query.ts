@@ -1,10 +1,12 @@
 import {
+  type RouteBody,
   type SubmissionKind,
   type SubmissionResult,
   type SubmissionSortBy,
   type SubmissionSortOrder,
   type SubmissionTeamStatus,
 } from '@rctf/types'
+import type { FilterAdminSubmissionsRouteV2 } from '@rctf/types'
 import type {
   CategoryFilterOption,
   ChallengeFilterOption,
@@ -44,31 +46,13 @@ export type SubmissionFilters = ValueFilterMap & {
   time: TimeRangeFilter
 }
 
+type FilterBody = RouteBody<typeof FilterAdminSubmissionsRouteV2>
+type FilterBodyKey = keyof Omit<FilterBody, 'createdAfter' | 'createdBefore'>
+
 export type SubmissionQueryParams = {
   sortBy: SubmissionSortBy
   sortOrder: SubmissionSortOrder
-  challengeIds?: string
-  excludeChallengeIds?: string
-  userIds?: string
-  excludeUserIds?: string
-  kinds?: string
-  excludeKinds?: string
-  results?: string
-  excludeResults?: string
-  teamStatuses?: string
-  excludeTeamStatuses?: string
-  categories?: string
-  excludeCategories?: string
-  divisions?: string
-  excludeDivisions?: string
-  createdAfter?: string
-  createdBefore?: string
-}
-
-type FilterParamKey = Exclude<
-  keyof SubmissionQueryParams,
-  'sortBy' | 'sortOrder'
->
+} & FilterBody
 
 type ValueFilterDefinition<Id extends ValueFilterId, T> = {
   id: Id
@@ -82,50 +66,43 @@ type ValueFilterDefinition<Id extends ValueFilterId, T> = {
 export const SUBMISSION_VALUE_FILTERS = [
   defineValueFilter(
     'challenge',
-    'challengeIds',
-    'excludeChallengeIds',
+    'challenge',
     (challenge: ChallengeFilterOption) => challenge.id,
     () => createSearchFilter<ChallengeFilterOption>()
   ),
   defineValueFilter(
     'team',
-    'userIds',
-    'excludeUserIds',
+    'team',
     (team: TeamFilterOption) => team.id,
     () => createSearchFilter<TeamFilterOption>()
   ),
   defineValueFilter(
     'kind',
-    'kinds',
-    'excludeKinds',
+    'kind',
     (kind: SubmissionKind) => kind,
     () => createFilter<SubmissionKind>()
   ),
   defineValueFilter(
     'result',
-    'results',
-    'excludeResults',
+    'result',
     (result: SubmissionResult) => result,
     () => createFilter<SubmissionResult>()
   ),
   defineValueFilter(
     'teamStatus',
-    'teamStatuses',
-    'excludeTeamStatuses',
+    'teamStatus',
     (status: SubmissionTeamStatus) => status,
     () => createFilter<SubmissionTeamStatus>()
   ),
   defineValueFilter(
     'category',
-    'categories',
-    'excludeCategories',
+    'category',
     (category: CategoryFilterOption) => category.value,
     () => createFilter<CategoryFilterOption>()
   ),
   defineValueFilter(
     'division',
-    'divisions',
-    'excludeDivisions',
+    'division',
     (division: DivisionFilterOption) => division.value,
     () => createFilter<DivisionFilterOption>()
   ),
@@ -189,8 +166,7 @@ export function submissionFilterParams(
 
 function defineValueFilter<Id extends ValueFilterId, T>(
   id: Id,
-  includeKey: FilterParamKey,
-  excludeKey: FilterParamKey,
+  bodyKey: FilterBodyKey,
   valueFor: (option: T) => string,
   create: () => ValueFilterMap[Id]
 ): ValueFilterDefinition<Id, T> {
@@ -204,28 +180,22 @@ function defineValueFilter<Id extends ValueFilterId, T>(
     clear: filters => clearFilter(getFilter(filters)),
     fingerprint: filters => filterFingerprint(getFilter(filters), valueFor),
     addParams: (params, filters) =>
-      addFilterParams(
-        params,
-        getFilter(filters),
-        includeKey,
-        excludeKey,
-        valueFor
-      ),
+      addFilterParams(params, getFilter(filters), bodyKey, valueFor),
   }
 }
 
 function addFilterParams<T>(
   params: SubmissionQueryParams,
   filter: MultiFilter<T>,
-  includeKey: FilterParamKey,
-  excludeKey: FilterParamKey,
+  bodyKey: FilterBodyKey,
   valueFor: (option: T) => string
 ) {
   if (filter.selected.length === 0) return
 
-  params[filter.mode === 'include' ? includeKey : excludeKey] = filter.selected
-    .map(valueFor)
-    .join(',')
+  const values = filter.selected.map(valueFor)
+  const entry =
+    filter.mode === 'include' ? { include: values } : { exclude: values }
+  ;(params as Record<string, unknown>)[bodyKey] = entry
 }
 
 function addTimeRangeParams(

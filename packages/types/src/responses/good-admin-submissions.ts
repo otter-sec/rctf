@@ -6,6 +6,7 @@ export const GoodAdminSubmissions = response('goodAdminSubmissions', {
   status: 200,
   message: 'The submissions were retrieved successfully.',
   data: z.object({
+    total: z.int(),
     submissions: z.array(
       z.object({
         id: z.string(),
@@ -27,6 +28,5 @@ export const GoodAdminSubmissions = response('goodAdminSubmissions', {
         createdAt: z.string(),
       })
     ),
-    hasMore: z.boolean(),
   }),
 })
