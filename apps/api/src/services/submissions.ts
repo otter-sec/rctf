@@ -133,39 +133,35 @@ export const getSubmissions = async (
   const filters = buildSubmissionsFilters(params)
   const orderBy = buildSubmissionsOrderBy(params)
 
-  const joined = db.$with('joined').as(
-    db
-      .select({
-        id: submissions.id,
-        kind: submissions.kind,
-        challengeId: submissions.challengeId,
-        challengeName: sql<string>`coalesce(${challenges.data} ->> 'name', ${submissions.challengeId})`,
-        challengeCategory: sql<string>`coalesce(${challenges.data} ->> 'category', 'deleted')`,
-        userId: submissions.userId,
-        userName: sql<string>`coalesce(${users.name}::text, ${submissions.userId})`,
-        userDivision: sql<string>`coalesce(${users.division}, 'unknown')`,
-        userAvatarUrl: users.avatarUrl,
-        userCountryCode: users.countryCode,
-        userStatusText: users.statusText,
-        userBanned: teamBannedExpr,
-        ip: submissions.ip,
-        result: submissions.result,
-        details: submissions.details,
-        relatedId: submissions.relatedId,
-        createdAt: submissions.createdAt,
-      })
-      .from(submissions)
-      .leftJoin(challenges, eq(challenges.id, submissions.challengeId))
-      .leftJoin(users, eq(users.id, submissions.userId))
-      .where(filters)
-  )
+  const baseQuery = db
+    .select({
+      id: submissions.id,
+      kind: submissions.kind,
+      challengeId: submissions.challengeId,
+      challengeName: sql<string>`coalesce(${challenges.data} ->> 'name', ${submissions.challengeId})`,
+      challengeCategory: sql<string>`coalesce(${challenges.data} ->> 'category', 'deleted')`,
+      userId: submissions.userId,
+      userName: sql<string>`coalesce(${users.name}::text, ${submissions.userId})`,
+      userDivision: sql<string>`coalesce(${users.division}, 'unknown')`,
+      userAvatarUrl: users.avatarUrl,
+      userCountryCode: users.countryCode,
+      userStatusText: users.statusText,
+      userBanned: teamBannedExpr,
+      ip: submissions.ip,
+      result: submissions.result,
+      details: submissions.details,
+      relatedId: submissions.relatedId,
+      createdAt: submissions.createdAt,
+    })
+    .from(submissions)
+    .leftJoin(challenges, eq(challenges.id, submissions.challengeId))
+    .leftJoin(users, eq(users.id, submissions.userId))
+    .where(filters)
+    .$dynamic()
 
   const [countResult, rows] = await Promise.all([
-    db.with(joined).select({ count: count() }).from(joined),
-    db
-      .with(joined)
-      .select()
-      .from(joined)
+    db.select({ count: count() }).from(baseQuery.as('s')),
+    baseQuery
       .orderBy(...orderBy)
       .limit(params.limit)
       .offset(params.offset),

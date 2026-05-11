@@ -189,6 +189,7 @@
 
   $effect(() => {
     scroll.state.count = visibleRowCount + (submissionsQuery.hasNextPage ? 1 : 0)
+    scroll.state.loadMoreCount = visibleRowCount
     scroll.state.hasNextPage = submissionsQuery.hasNextPage ?? false
     scroll.state.isFetching = submissionsQuery.isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
@@ -297,6 +298,7 @@
 {#snippet virtualRows()}
   <div
     class="relative contain-[layout_style] backface-hidden"
+    class:pointer-events-none={scroll.isScrolling}
     style:height={`${scroll.totalSize}px`}
   >
     {#each scroll.virtualItems as row (row.index)}
@@ -331,9 +333,7 @@
     class="bg-background-l1 h-full overflow-hidden rounded-lg border-2"
     orientation="both"
     type="always"
-    fadeSize={48}
-    fadeColor="background-l1"
-    fadeOffsets={{ top: listScrollMargin }}
+    fadeSize={0}
     scrollbarYClasses="z-40"
     scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
   >

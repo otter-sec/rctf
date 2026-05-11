@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SubmissionKind } from '@rctf/types'
-  import { Avatar, Tooltip } from '$lib/components'
+  import { Avatar } from '$lib/components'
   import { IconChevronRight, IconFlag3Filled, IconRobot } from '$lib/icons'
   import {
     cn,
@@ -46,21 +46,19 @@
 {#snippet timeCell()}
   {@const timestamp = new Date(submission.createdAt).getTime()}
   {@const ctfOffset = formatCtfOffset(timestamp, ctfStartTime)}
-  <Tooltip.Root>
-    <Tooltip.Trigger class="block max-w-full min-w-0 overflow-hidden">
-      <div class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap">
-        <span class="text-foreground-l1 shrink-0 tabular-nums">
-          {formatLocalTime(timestamp)}
-        </span>
-        {#if ctfOffset}
-          <span class="text-foreground-l3 min-w-0 truncate text-xs tabular-nums">
-            {ctfOffset}
-          </span>
-        {/if}
-      </div>
-    </Tooltip.Trigger>
-    <Tooltip.Content>UTC {new Date(submission.createdAt).toISOString()}</Tooltip.Content>
-  </Tooltip.Root>
+  <div
+    class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap"
+    title={`UTC ${new Date(submission.createdAt).toISOString()}`}
+  >
+    <span class="text-foreground-l1 shrink-0 tabular-nums">
+      {formatLocalTime(timestamp)}
+    </span>
+    {#if ctfOffset}
+      <span class="text-foreground-l3 min-w-0 truncate text-xs tabular-nums">
+        {ctfOffset}
+      </span>
+    {/if}
+  </div>
 {/snippet}
 
 {#snippet challengeCell()}
