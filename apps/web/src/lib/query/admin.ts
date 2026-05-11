@@ -28,6 +28,7 @@ import {
 import {
   createInfiniteQuery,
   createQuery,
+  keepPreviousData,
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
@@ -163,6 +164,7 @@ export function useInfiniteAdminUsers(
         const nextOffset = lastPage.offset + lastPage.users.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
+      placeholderData: keepPreviousData,
       enabled: enabled() && browser,
     }
   })

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Avatar, Button, Spinner, Tooltip } from '$lib/components'
+  import { Avatar, Button, Spinner } from '$lib/components'
   import {
     IconCheck,
     IconCopy,
@@ -120,18 +120,14 @@
 {#snippet emailCell(row: TeamRow)}
   {@const email = teamRowEmail(row)}
   {#if email}
-    <Tooltip.Root>
-      <Tooltip.Trigger>
-        <button
-          type="button"
-          class="text-foreground-l2 hover:text-foreground-l1 max-w-full truncate text-left hover:underline"
-          onclick={() => onCopyEmail(email)}
-        >
-          {email}
-        </button>
-      </Tooltip.Trigger>
-      <Tooltip.Content>Copy email</Tooltip.Content>
-    </Tooltip.Root>
+    <button
+      type="button"
+      class="text-foreground-l2 hover:text-foreground-l1 max-w-full truncate text-left hover:underline"
+      title="Copy email"
+      onclick={() => onCopyEmail(email)}
+    >
+      {email}
+    </button>
   {:else}
     <span class="text-foreground-l3 truncate">No email</span>
   {/if}
@@ -140,23 +136,19 @@
 {#snippet timeCell(row: TeamRow)}
   {@const timestamp = rowTime(row)}
   {@const ctfOffset = formatCtfOffset(timestamp)}
-  <Tooltip.Root>
-    <Tooltip.Trigger class="block max-w-full min-w-0 overflow-hidden">
-      <div class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap">
-        <span class="text-foreground-l1 shrink-0 tabular-nums">
-          {row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}
-        </span>
-        {#if ctfOffset}
-          <span class="text-foreground-l3 min-w-0 truncate text-xs tabular-nums">
-            {ctfOffset}
-          </span>
-        {/if}
-      </div>
-    </Tooltip.Trigger>
-    <Tooltip.Content>
-      {row.kind === 'registered' ? 'Registered' : 'Expires'} UTC {new Date(timestamp).toISOString()}
-    </Tooltip.Content>
-  </Tooltip.Root>
+  <div
+    class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap"
+    title="{row.kind === 'registered' ? 'Registered' : 'Expires'} UTC {new Date(timestamp).toISOString()}"
+  >
+    <span class="text-foreground-l1 shrink-0 tabular-nums">
+      {row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}
+    </span>
+    {#if ctfOffset}
+      <span class="text-foreground-l3 min-w-0 truncate text-xs tabular-nums">
+        {ctfOffset}
+      </span>
+    {/if}
+  </div>
 {/snippet}
 
 {#snippet registeredActions(team: AdminTeam)}
@@ -167,90 +159,70 @@
   <div class="flex items-center gap-1">
     {#if hasWritePerms}
       {#if isAdmin}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <div
-              class="bg-background-accent text-foreground-accent flex size-8 items-center justify-center rounded-md"
-            >
-              <IconShieldFilled class="size-4" />
-            </div>
-          </Tooltip.Trigger>
-          <Tooltip.Content>Admin account</Tooltip.Content>
-        </Tooltip.Root>
+        <div
+          class="bg-background-accent text-foreground-accent flex size-8 items-center justify-center rounded-md"
+          title="Admin account"
+        >
+          <IconShieldFilled class="size-4" />
+        </div>
       {:else}
         {#if hasTeamDetailsPerms}
-          <Tooltip.Root>
-            <Tooltip.Trigger>
-              <Button
-                variant="secondary"
-                size="icon"
-                class="size-8"
-                onclick={() => onManageTeam(team.id)}
-                aria-label="Manage team"
-              >
-                <IconUserCog class="size-4" />
-              </Button>
-            </Tooltip.Trigger>
-            <Tooltip.Content>Manage team</Tooltip.Content>
-          </Tooltip.Root>
+          <Button
+            variant="secondary"
+            size="icon"
+            class="size-8"
+            title="Manage team"
+            onclick={() => onManageTeam(team.id)}
+            aria-label="Manage team"
+          >
+            <IconUserCog class="size-4" />
+          </Button>
         {/if}
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <Button
-              variant="secondary"
-              size="icon"
-              class="size-8"
-              onclick={() => onCopyToken(team)}
-              disabled={isCopying}
-              aria-label="Copy new token"
-            >
-              {#if isCopying}
-                <Spinner class="size-4" />
-              {:else}
-                <IconCopy class="size-4" />
-              {/if}
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content>Copy new token</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <Button
-              variant={team.banned ? 'secondary' : 'destructive'}
-              size="icon"
-              class="size-8"
-              onclick={() => onBanAction(team)}
-              disabled={isUpdating}
-              aria-label={team.banned ? 'Unban team' : 'Ban team'}
-            >
-              {#if isUpdating}
-                <Spinner class="size-4" />
-              {:else}
-                <IconMoodX class="size-4" />
-              {/if}
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content>{team.banned ? 'Unban team' : 'Ban team'}</Tooltip.Content>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger>
-            <Button
-              variant="destructive"
-              size="icon"
-              class="size-8"
-              onclick={() => onDeleteTeam(team)}
-              disabled={isDeleting}
-              aria-label="Delete team"
-            >
-              {#if isDeleting}
-                <Spinner class="size-4" />
-              {:else}
-                <IconTrashFilled class="size-4" />
-              {/if}
-            </Button>
-          </Tooltip.Trigger>
-          <Tooltip.Content>Delete team</Tooltip.Content>
-        </Tooltip.Root>
+        <Button
+          variant="secondary"
+          size="icon"
+          class="size-8"
+          title="Copy new token"
+          onclick={() => onCopyToken(team)}
+          disabled={isCopying}
+          aria-label="Copy new token"
+        >
+          {#if isCopying}
+            <Spinner class="size-4" />
+          {:else}
+            <IconCopy class="size-4" />
+          {/if}
+        </Button>
+        <Button
+          variant={team.banned ? 'secondary' : 'destructive'}
+          size="icon"
+          class="size-8"
+          title={team.banned ? 'Unban team' : 'Ban team'}
+          onclick={() => onBanAction(team)}
+          disabled={isUpdating}
+          aria-label={team.banned ? 'Unban team' : 'Ban team'}
+        >
+          {#if isUpdating}
+            <Spinner class="size-4" />
+          {:else}
+            <IconMoodX class="size-4" />
+          {/if}
+        </Button>
+        <Button
+          variant="destructive"
+          size="icon"
+          class="size-8"
+          title="Delete team"
+          onclick={() => onDeleteTeam(team)}
+          disabled={isDeleting}
+          aria-label="Delete team"
+        >
+          {#if isDeleting}
+            <Spinner class="size-4" />
+          {:else}
+            <IconTrashFilled class="size-4" />
+          {/if}
+        </Button>
       {/if}
     {/if}
   </div>
@@ -261,43 +233,35 @@
   {@const isResending = resendingVerificationId === verification.id}
   <div class="flex items-center gap-1">
     {#if hasWritePerms}
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          <Button
-            variant="secondary"
-            size="icon"
-            class="size-8"
-            onclick={() => onResendVerification(verification)}
-            disabled={isResending || isCompleting}
-            aria-label="Resend verification"
-          >
-            {#if isResending}
-              <Spinner class="size-4" />
-            {:else}
-              <IconSend class="size-4" />
-            {/if}
-          </Button>
-        </Tooltip.Trigger>
-        <Tooltip.Content>Resend verification</Tooltip.Content>
-      </Tooltip.Root>
-      <Tooltip.Root>
-        <Tooltip.Trigger>
-          <Button
-            size="icon"
-            class="size-8"
-            onclick={() => onCompleteVerification(verification)}
-            disabled={isCompleting || isResending}
-            aria-label="Verify team"
-          >
-            {#if isCompleting}
-              <Spinner class="size-4" />
-            {:else}
-              <IconCheck class="size-4" />
-            {/if}
-          </Button>
-        </Tooltip.Trigger>
-        <Tooltip.Content>Verify team</Tooltip.Content>
-      </Tooltip.Root>
+      <Button
+        variant="secondary"
+        size="icon"
+        class="size-8"
+        title="Resend verification"
+        onclick={() => onResendVerification(verification)}
+        disabled={isResending || isCompleting}
+        aria-label="Resend verification"
+      >
+        {#if isResending}
+          <Spinner class="size-4" />
+        {:else}
+          <IconSend class="size-4" />
+        {/if}
+      </Button>
+      <Button
+        size="icon"
+        class="size-8"
+        title="Verify team"
+        onclick={() => onCompleteVerification(verification)}
+        disabled={isCompleting || isResending}
+        aria-label="Verify team"
+      >
+        {#if isCompleting}
+          <Spinner class="size-4" />
+        {:else}
+          <IconCheck class="size-4" />
+        {/if}
+      </Button>
     {/if}
   </div>
 {/snippet}

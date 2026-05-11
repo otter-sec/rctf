@@ -22,7 +22,6 @@
 
   interface Props {
     rows: TeamRow[]
-    resetKey: string
     filters: TeamFilters
     sortBy: SortBy
     sortOrder: SortOrder
@@ -51,7 +50,6 @@
 
   let {
     rows,
-    resetKey,
     filters = $bindable<TeamFilters>(),
     sortBy = $bindable<SortBy>(),
     sortOrder = $bindable<SortOrder>(),
@@ -96,6 +94,7 @@
 
   $effect(() => {
     scroll.state.count = rows.length + (hasNextRegisteredPage ? 1 : 0)
+    scroll.state.loadMoreCount = rows.length
     scroll.state.hasNextPage = hasNextRegisteredPage
     scroll.state.isFetching = isFetchingNextPage
     scroll.state.scrollMargin = listScrollMargin
@@ -131,12 +130,6 @@
     tableViewportWidth = Math.round(viewport.getBoundingClientRect().width)
 
     return () => resizeObserver.disconnect()
-  })
-
-  $effect(() => {
-    resetKey
-    const viewport = scroll.state.viewportRef
-    if (viewport) viewport.scrollTop = 0
   })
 
   function setSort(nextSortBy: SortBy) {
@@ -209,9 +202,7 @@
   class="bg-background-l1 h-full overflow-hidden rounded-lg border-2"
   orientation="both"
   type="always"
-  fadeSize={48}
-  fadeColor="background-l1"
-  fadeOffsets={{ top: listScrollMargin }}
+  fadeSize={0}
   scrollbarYClasses="z-40"
   scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
 >
@@ -243,6 +234,7 @@
           items={rows}
           hasNextPage={hasNextRegisteredPage}
           scrollMargin={listScrollMargin}
+          itemClass={scroll.isScrolling ? 'pointer-events-none' : ''}
         >
           {#snippet children({ item, index })}
             <TeamTableRow

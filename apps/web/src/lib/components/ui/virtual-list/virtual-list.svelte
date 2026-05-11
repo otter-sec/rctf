@@ -50,7 +50,7 @@
     {:else if items[row.index] !== undefined}
       <div
         class={cn(
-          'absolute top-0 left-0 w-full will-change-transform contain-[layout_style_paint]',
+          'absolute top-0 left-0 w-full contain-[layout_style_paint]',
           itemClass
         )}
         style="height: {row.size}px; transform: translate3d(0, {row.start - scrollMargin}px, 0);"

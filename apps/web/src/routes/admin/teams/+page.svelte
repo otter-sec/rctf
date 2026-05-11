@@ -37,7 +37,6 @@
     pendingVerificationMatchesFilters,
     registeredRowsMayMatch,
     sortTeamRows,
-    teamFilterFingerprint,
     teamFilterParams,
     type AdminTeam,
     type AdminTeamDetails,
@@ -51,6 +50,7 @@
   let sortBy = $state<SortBy>(AdminTeamSortBy.CREATED_AT)
   let sortOrder = $state<SortOrder>(SortOrder.DESC)
   let filters = $state(createTeamFilters())
+  let debouncedSearch = $state('')
 
   const clientConfigQuery = useClientConfig()
   const queryClient = useQueryClient()
@@ -62,8 +62,11 @@
   const hasTeamDetailsPerms = $derived(
     hasWritePerms && hasPermissions(user, Permissions.challsRead)
   )
-  const queryFingerprint = $derived(`${sortBy}:${sortOrder}:${teamFilterFingerprint(filters)}`)
   const shouldFetchRegisteredRows = $derived(registeredRowsMayMatch(filters.status))
+  const queryFilters = $derived({
+    ...filters,
+    search: debouncedSearch,
+  })
   const divisionOptions = $derived(
     Object.entries(clientConfig?.divisions ?? {}).map(([value, label]) => ({
       value,
@@ -71,9 +74,18 @@
     }))
   )
 
+  $effect(() => {
+    const search = filters.search
+    const timeout = setTimeout(() => {
+      debouncedSearch = search
+    }, 400)
+
+    return () => clearTimeout(timeout)
+  })
+
   const usersQuery = useInfiniteAdminUsers(
     () => PAGE_SIZE,
-    () => teamFilterParams(filters, sortBy, sortOrder),
+    () => teamFilterParams(queryFilters, sortBy, sortOrder),
     () => shouldFetchRegisteredRows
   )
   const allTeams = $derived(
@@ -89,7 +101,7 @@
     hasWritePerms
       ? pendingVerifications
           .filter(verification =>
-            pendingVerificationMatchesFilters(verification, filters, clientConfig?.divisions)
+            pendingVerificationMatchesFilters(verification, queryFilters, clientConfig?.divisions)
           )
           .map(verification => ({ kind: 'pending', verification }) satisfies PendingTeamRow)
       : []
@@ -106,7 +118,7 @@
   )
   const showQueryError = $derived(!!usersQuery.error && !usersQuery.data)
   const showInitialLoading = $derived(
-    (usersQuery.isPending && shouldFetchRegisteredRows) ||
+    (usersQuery.isPending && shouldFetchRegisteredRows && !usersQuery.data) ||
       (pendingVerificationsQuery.isPending && hasWritePerms && !usersQuery.data)
   )
 
@@ -396,7 +408,6 @@
     {:else}
       <TeamsTable
         rows={tableRows}
-        resetKey={queryFingerprint}
         bind:filters
         bind:sortBy
         bind:sortOrder

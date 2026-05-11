@@ -60,18 +60,22 @@
 
   {@render searchInput()}
 
-  {#if hasFilters}
-    <button
-      type="button"
-      class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-sm transition-colors"
-      onclick={() => clearTeamFilters(filters)}
-    >
-      <IconX class="size-3.5" />
-      Clear
-    </button>
-  {/if}
+  <button
+    type="button"
+    class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 w-[4.5rem] shrink-0 items-center justify-center gap-1 rounded-md px-2 text-sm transition-colors"
+    class:invisible={!hasFilters}
+    disabled={!hasFilters}
+    aria-hidden={!hasFilters}
+    tabindex={hasFilters ? undefined : -1}
+    onclick={() => clearTeamFilters(filters)}
+  >
+    <IconX class="size-3.5" />
+    Clear
+  </button>
 
-  {#if isFetching}
-    <Spinner class="text-foreground-l3 size-4 shrink-0" />
-  {/if}
+  <div class="size-4 shrink-0">
+    {#if isFetching}
+      <Spinner class="text-foreground-l3 size-4" />
+    {/if}
+  </div>
 </div>
