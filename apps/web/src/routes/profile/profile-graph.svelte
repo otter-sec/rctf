@@ -4,7 +4,12 @@
   import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import { useClientConfig } from '$lib/query'
-  import { getCategoryConfig, getCategoryStyle, type CategoryConfig } from '$lib/utils'
+  import {
+    getCategoryConfig,
+    getCategoryKeyOrAlias,
+    getCategoryStyle,
+    type CategoryConfig,
+  } from '$lib/utils'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import { axisTicks, tickTextAnchor } from './profile-chart-utils'
@@ -26,7 +31,7 @@
     score: number
     color: string
     challengeName?: string
-    categoryLabel?: string
+    categoryKey?: string
     categoryIcon?: CategoryConfig['icon']
     points?: number | null
     style?: string
@@ -45,7 +50,7 @@
   function categoryDisplay(category: string) {
     const config = getCategoryConfig(category)
     return {
-      label: config.name,
+      key: getCategoryKeyOrAlias(category),
       icon: config.icon,
       color: `var(--foreground-${config.color}-l1)`,
       style: getCategoryStyle(config.color),
@@ -114,7 +119,7 @@
           teamId: graphData.id,
           teamName: graphData.name,
           challengeName: solve.name,
-          categoryLabel: category.label,
+          categoryKey: category.key,
           categoryIcon: category.icon,
           time: solve.createdAt,
           score,
@@ -219,19 +224,15 @@
             </div>
             {#if data.kind === 'solve'}
               {@const CategoryIcon = data.categoryIcon}
-              <div class="flex items-start gap-2" style={data.style}>
-                <div
-                  class="bg-category-background-l0 text-category-foreground-l1 flex size-6 shrink-0 items-center justify-center rounded-sm"
-                >
-                  <CategoryIcon class="size-4" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="text-foreground-l0 font-medium wrap-anywhere">
+              <div class="flex items-center gap-2" style={data.style}>
+                <CategoryIcon class="text-category-foreground-l1 size-4 shrink-0" />
+                <div class="flex min-w-0 items-baseline gap-1 text-sm font-medium">
+                  <span class="text-category-foreground-l1 shrink-0">
+                    {data.categoryKey} /
+                  </span>
+                  <span class="text-category-foreground-l0 truncate">
                     {data.challengeName}
-                  </div>
-                  <div class="text-category-foreground-l1 text-[11px]">
-                    {data.categoryLabel}
-                  </div>
+                  </span>
                 </div>
               </div>
               <div class="border-border/50 mt-2 grid grid-cols-2 gap-3 border-t pt-2">
