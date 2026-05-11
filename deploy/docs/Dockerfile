@@ -19,6 +19,7 @@ COPY apps/admin-bot/package.json ./apps/admin-bot/
 COPY apps/api/package.json ./apps/api/
 COPY apps/docs/package.json ./apps/docs/
 COPY apps/export/package.json ./apps/export/
+COPY apps/seed/package.json ./apps/seed/
 COPY apps/web/package.json ./apps/web/
 
 FROM build-base AS build
