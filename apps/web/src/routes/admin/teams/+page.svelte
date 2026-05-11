@@ -1,7 +1,6 @@
 <script lang="ts">
   import {
     AdminTeamSortBy,
-    AdminTeamSortOrder,
     GoodAdminUserDeleteV2,
     GoodAdminUserUpdateV2,
     GoodAdminUserVerificationCompleteV2,
@@ -9,6 +8,7 @@
     GoodChallengeSolveDeleteV2,
     GoodCreateUserTokenV2,
     Permissions,
+    SortOrder,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
@@ -45,12 +45,11 @@
     type PendingVerification,
     type RegisteredTeamRow,
     type SortBy,
-    type SortOrder,
   } from './teams-model'
   import TeamsTable from './teams-table.svelte'
 
   let sortBy = $state<SortBy>(AdminTeamSortBy.CREATED_AT)
-  let sortOrder = $state<SortOrder>(AdminTeamSortOrder.DESC)
+  let sortOrder = $state<SortOrder>(SortOrder.DESC)
   let filters = $state(createTeamFilters())
 
   const clientConfigQuery = useClientConfig()

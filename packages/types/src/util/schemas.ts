@@ -100,7 +100,7 @@ export enum AdminTeamSortBy {
   STATUS = 'status',
 }
 
-export enum AdminTeamSortOrder {
+export enum SortOrder {
   ASC = 'asc',
   DESC = 'desc',
 }
@@ -110,3 +110,9 @@ export enum AdminTeamStatus {
   BANNED = 'banned',
   ADMIN = 'admin',
 }
+
+export const searchFilter = <T extends z.core.SomeType>(t: T) =>
+  z.object({
+    include: z.nullish(z.array(t)),
+    exclude: z.nullish(z.array(t)),
+  })

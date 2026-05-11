@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { AdminTeamSortBy, AdminTeamSortOrder } from '@rctf/types'
+  import { AdminTeamSortBy, SortOrder } from '@rctf/types'
   import { EmptyState, ScrollArea, VirtualList } from '$lib/components'
   import { IconChevronDown, IconChevronUp, IconSelector, IconUsersGroup } from '$lib/icons'
   import { useInfiniteVirtualScroll } from '$lib/utils'
@@ -9,11 +9,8 @@
     defaultSortOrder,
     hasTeamFilters,
     ROW_HEIGHT,
-    type AdminTeam,
     type DivisionFilterOption,
-    type PendingVerification,
     type SortBy,
-    type SortOrder,
     type TeamFilters,
     type TeamRow,
   } from './teams-model'
@@ -144,8 +141,7 @@
 
   function setSort(nextSortBy: SortBy) {
     if (sortBy === nextSortBy) {
-      sortOrder =
-        sortOrder === AdminTeamSortOrder.ASC ? AdminTeamSortOrder.DESC : AdminTeamSortOrder.ASC
+      sortOrder = sortOrder === SortOrder.ASC ? SortOrder.DESC : SortOrder.ASC
       return
     }
 
@@ -156,7 +152,7 @@
 
 {#snippet sortIndicator(column: SortBy)}
   {#if sortBy === column}
-    {#if sortOrder === AdminTeamSortOrder.ASC}
+    {#if sortOrder === SortOrder.ASC}
       <IconChevronUp class="size-4" />
     {:else}
       <IconChevronDown class="size-4" />

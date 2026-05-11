@@ -1,55 +1,44 @@
 import {
   AdminTeamSortBy,
-  AdminTeamSortOrder,
   AdminTeamStatus,
+  GetAdminUserRouteV2,
+  GetAdminUsersRouteV2,
+  GetAdminUserVerificationsRouteV2,
+  SortOrder,
+  type RouteBody,
+  type RouteQuery,
+  type RouteResponseData,
 } from '@rctf/types'
 
-export type PendingVerification = {
-  id: string
-  name: string
-  email: string
-  division: string
-  createdAt: number
-  expiresAt: number
-}
+type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2>
+type AdminUsersBody = RouteBody<typeof GetAdminUsersRouteV2>
+type AdminUsersFilterValue<TKey extends keyof AdminUsersBody> =
+  NonNullable<AdminUsersBody[TKey]> extends {
+    include?: (infer TValue)[] | null
+  }
+    ? TValue
+    : never
 
-export type AdminTeam = {
-  id: string
-  name: string
-  email: string | null
-  division: string
-  perms: number
-  banned: boolean
-  score: number
-  solveCount: number
-  avatarUrl: string | null
-  countryCode: string | null
-  statusText: string | null
-  createdAt: string
-}
-
-export type AdminTeamSolve = {
-  challengeId: string
-  challengeName: string
-  challengeCategory: string
-  createdAt: string
-}
-
-export type AdminTeamDetails = AdminTeam & {
-  solves: AdminTeamSolve[]
-}
-
-export type SortBy = AdminTeamSortBy
-export type SortOrder = AdminTeamSortOrder
+export type PendingVerification = RouteResponseData<
+  typeof GetAdminUserVerificationsRouteV2
+>['verifications'][number]
+export type AdminTeam = RouteResponseData<
+  typeof GetAdminUsersRouteV2
+>['users'][number]
+export type AdminTeamDetails = RouteResponseData<typeof GetAdminUserRouteV2>
+export type AdminTeamSolve = AdminTeamDetails['solves'][number]
+export type SortBy = NonNullable<AdminUsersQuery['sortBy']>
 export type FilterMode = 'include' | 'exclude'
-export type TeamStatusFilter = AdminTeamStatus | typeof UNVERIFIED_TEAM_STATUS
+export type TeamStatusFilter =
+  | AdminUsersFilterValue<'status'>
+  | typeof UNVERIFIED_TEAM_STATUS
 export type TeamDisplayStatus = TeamStatusFilter
 export type MultiFilter<T> = {
   mode: FilterMode
   selected: T[]
 }
 export type DivisionFilterOption = {
-  value: string
+  value: AdminUsersFilterValue<'division'>
   label: string
 }
 export type TeamFilters = {
@@ -57,15 +46,11 @@ export type TeamFilters = {
   status: MultiFilter<TeamStatusFilter>
   division: MultiFilter<DivisionFilterOption>
 }
-export type TeamQueryParams = {
-  search?: string
-  sortBy: AdminTeamSortBy
-  sortOrder: AdminTeamSortOrder
-  statuses?: string
-  excludeStatuses?: string
-  divisions?: string
-  excludeDivisions?: string
-}
+export type TeamQueryParams = Pick<
+  AdminUsersQuery,
+  'search' | 'sortBy' | 'sortOrder'
+> &
+  AdminUsersBody
 export type RegisteredTeamRow = { kind: 'registered'; team: AdminTeam }
 export type PendingTeamRow = {
   kind: 'pending'
@@ -154,7 +139,7 @@ export function teamFilterFingerprint(filters: TeamFilters) {
 
 function isRegisteredStatus(
   status: TeamStatusFilter
-): status is AdminTeamStatus {
+): status is AdminUsersFilterValue<'status'> {
   return status !== UNVERIFIED_TEAM_STATUS
 }
 
@@ -178,47 +163,43 @@ export function registeredRowsMayMatch(
   )
 }
 
-function addQueryFilter<T>(
-  params: TeamQueryParams,
-  filter: MultiFilter<T>,
-  includeKey: 'statuses' | 'divisions',
-  excludeKey: 'excludeStatuses' | 'excludeDivisions',
-  keyFor: (option: T) => string
-) {
-  if (filter.selected.length === 0) return
+type RouteSearchFilter<TValue extends string> =
+  | { include: TValue[]; exclude?: never }
+  | { include?: never; exclude: TValue[] }
 
-  const value = filter.selected.map(keyFor).join(',')
+function routeSearchFilter<TOption, TValue extends string>(
+  filter: MultiFilter<TOption>,
+  keyFor: (option: TOption) => TValue
+): RouteSearchFilter<TValue> | undefined {
+  if (filter.selected.length === 0) return undefined
+
+  const value = filter.selected.map(keyFor)
   if (filter.mode === 'exclude') {
-    params[excludeKey] = value
-  } else {
-    params[includeKey] = value
+    return { exclude: value }
   }
+  return { include: value }
 }
 
 export function teamFilterParams(
   filters: TeamFilters,
-  sortBy: AdminTeamSortBy,
-  sortOrder: AdminTeamSortOrder
+  sortBy: SortBy,
+  sortOrder: SortOrder
 ): TeamQueryParams {
   const params: TeamQueryParams = { sortBy, sortOrder }
   const search = filters.search.trim()
   const registeredStatuses = selectedRegisteredStatuses(filters.status)
-
-  if (search) params.search = search
-  addQueryFilter(
-    params,
+  const status = routeSearchFilter(
     { mode: filters.status.mode, selected: registeredStatuses },
-    'statuses',
-    'excludeStatuses',
     status => status
   )
-  addQueryFilter(
-    params,
+  const division = routeSearchFilter(
     filters.division,
-    'divisions',
-    'excludeDivisions',
     division => division.value
   )
+
+  if (search) params.search = search
+  if (status) params.status = status
+  if (division) params.division = division
 
   return params
 }
@@ -227,10 +208,9 @@ export function defaultSortOrder(sortBy: SortBy): SortOrder {
   switch (sortBy) {
     case AdminTeamSortBy.SCORE:
     case AdminTeamSortBy.SOLVES:
-    case AdminTeamSortBy.CREATED_AT:
-      return AdminTeamSortOrder.DESC
+      return SortOrder.DESC
     default:
-      return AdminTeamSortOrder.ASC
+      return SortOrder.ASC
   }
 }
 
@@ -338,7 +318,7 @@ export function sortTeamRows(
   sortBy: SortBy,
   sortOrder: SortOrder
 ) {
-  const direction = sortOrder === AdminTeamSortOrder.ASC ? 1 : -1
+  const direction = sortOrder === SortOrder.ASC ? 1 : -1
 
   return [...rows].sort((a, b) => {
     const result = compareTeamRows(a, b, sortBy)

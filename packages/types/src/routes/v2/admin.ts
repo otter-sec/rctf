@@ -2,7 +2,6 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
-  AdminSettingsSchema,
   BadAdminBotConfig,
   BadBody,
   BadChallenge,
@@ -41,11 +40,13 @@ import {
 } from '../../responses'
 import {
   AdminTeamSortBy,
-  AdminTeamSortOrder,
+  AdminTeamStatus,
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
+  searchFilter,
+  SortOrder,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -59,7 +60,7 @@ export const GetAdminChallengesRouteV2 = defineRoute({
 
 export const GetAdminUsersRouteV2 = defineRoute({
   path: '/v2/admin/users',
-  method: 'GET',
+  method: 'POST',
   query: z.object({
     limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
     offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
@@ -67,11 +68,11 @@ export const GetAdminUsersRouteV2 = defineRoute({
       z.string().check(z.minLength(1)).check(z.maxLength(100))
     ),
     sortBy: z.optional(z.enum(AdminTeamSortBy)),
-    sortOrder: z.optional(z.enum(AdminTeamSortOrder)),
-    statuses: z.optional(z.string().check(z.maxLength(2000))),
-    excludeStatuses: z.optional(z.string().check(z.maxLength(2000))),
-    divisions: z.optional(z.string().check(z.maxLength(2000))),
-    excludeDivisions: z.optional(z.string().check(z.maxLength(2000))),
+    sortOrder: z.optional(z.enum(SortOrder)),
+  }),
+  body: z.object({
+    status: z.nullish(searchFilter(z.enum(AdminTeamStatus))),
+    division: z.nullish(searchFilter(z.string())),
   }),
   goodResponses: [GoodAdminUsersV2],
   badResponses: [BadBody, BadPerms, BadToken],

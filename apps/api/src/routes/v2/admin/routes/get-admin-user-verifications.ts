@@ -7,10 +7,7 @@ adminGroup.route(GetAdminUserVerificationsRouteV2, async ({ res, ctx }) => {
 
   return res.goodAdminUserVerifications({
     verifications: verifications.map(verification => ({
-      id: verification.id,
-      name: verification.name,
-      email: verification.email,
-      division: verification.division,
+      ...verification,
       createdAt: new Date(verification.createdAt).getTime(),
       expiresAt: new Date(verification.expiresAt).getTime(),
     })),

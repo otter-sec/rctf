@@ -22,8 +22,8 @@ import {
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
-  type AdminTeamSortBy,
-  type AdminTeamSortOrder,
+  type RouteBody,
+  type RouteQuery,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -33,6 +33,14 @@ import {
 import { browser } from '$app/environment'
 import { apiRequest } from '$lib/api'
 import { ApiError, createApiMutation } from './core'
+
+type AdminUsersRouteQuery = RouteQuery<typeof GetAdminUsersRouteV2>
+type AdminUsersRouteBody = RouteBody<typeof GetAdminUsersRouteV2>
+export type AdminUsersQueryParams = Pick<
+  AdminUsersRouteQuery,
+  'search' | 'sortBy' | 'sortOrder'
+> &
+  AdminUsersRouteBody
 
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
@@ -131,15 +139,7 @@ export function useAdminChallenge(
 
 export function useInfiniteAdminUsers(
   pageSize: () => number = () => 100,
-  params: () => {
-    search?: string
-    sortBy?: AdminTeamSortBy
-    sortOrder?: AdminTeamSortOrder
-    statuses?: string
-    excludeStatuses?: string
-    divisions?: string
-    excludeDivisions?: string
-  } = () => ({}),
+  params: () => AdminUsersQueryParams = () => ({}),
   enabled: () => boolean = () => true
 ) {
   return createInfiniteQuery(() => {
