@@ -26,8 +26,16 @@ export const SEED_CHALLENGE_CATEGORIES = [
   'misc',
 ] as const
 
+type SeedTiming = {
+  startTime: number
+  endTime: number
+  solveEarliest: number
+  solveSpan: number
+}
+
 const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
+const solveEndOffset = 5 * 60_000
 
 const slug = (value: string) =>
   value
@@ -135,22 +143,35 @@ function buildChallenges(): Challenge[] {
   })
 }
 
-function solveTimeBounds(config: ServerConfig) {
+function buildSeedTiming(config: ServerConfig): SeedTiming {
   const now = Date.now()
-  const latest = Math.min(now - 5 * 60_000, config.endTime - 5 * 60_000)
-  const earliest =
-    config.startTime > 0 && config.startTime < latest
-      ? Math.max(config.startTime, latest - DAY)
-      : latest - DAY
+  const solveLatest = Math.min(
+    now - solveEndOffset,
+    config.endTime - solveEndOffset
+  )
+
+  if (config.startTime > 0 && config.startTime < solveLatest) {
+    const solveEarliest = Math.max(config.startTime, solveLatest - DAY)
+    return {
+      startTime: config.startTime,
+      endTime: config.endTime,
+      solveEarliest,
+      solveSpan: Math.max(HOUR, solveLatest - solveEarliest),
+    }
+  }
+
+  const startTime = solveLatest - DAY
 
   return {
-    earliest,
-    span: Math.max(HOUR, latest - earliest),
+    startTime,
+    endTime: solveLatest + DAY,
+    solveEarliest: startTime,
+    solveSpan: DAY,
   }
 }
 
 function buildSolves(
-  config: ServerConfig,
+  timing: SeedTiming,
   teams: User[],
   challenges: Challenge[]
 ): Solve[] {
@@ -158,7 +179,6 @@ function buildSolves(
     return []
   }
 
-  const { earliest, span } = solveTimeBounds(config)
   const solves: Solve[] = []
 
   for (const [teamIndex, team] of teams.entries()) {
@@ -177,7 +197,7 @@ function buildSolves(
       const earlyBias = 1 + teamStrength * 1.5
       const progress = Math.pow(Math.random(), earlyBias)
       const createdAt = new Date(
-        earliest + Math.floor(span * progress)
+        timing.solveEarliest + Math.floor(timing.solveSpan * progress)
       ).toISOString()
 
       solves.push({
@@ -193,12 +213,14 @@ function buildSolves(
   return solves.sort((a, b) => a.createdat.localeCompare(b.createdat))
 }
 
-function buildSettings(config: ServerConfig): Settings {
+function buildSettings(config: ServerConfig, timing: SeedTiming): Settings {
   return {
     id: 'value-0',
     data: {
       ctfName: config.ctfName,
       homeContent: config.homeContent,
+      startTime: timing.startTime,
+      endTime: timing.endTime,
       sponsors: config.sponsors,
       meta: config.meta,
       faviconUrl: config.faviconUrl,
@@ -209,6 +231,7 @@ function buildSettings(config: ServerConfig): Settings {
 }
 
 export function buildSeedData(config: ServerConfig): SeedData {
+  const timing = buildSeedTiming(config)
   const admin = buildAdmin()
   const teams = buildTeams(config, SEED_TEAM_COUNT)
   const challenges = buildChallenges()
@@ -219,7 +242,7 @@ export function buildSeedData(config: ServerConfig): SeedData {
     users: [admin, ...teams],
     members: buildMembers(config, teams),
     challenges,
-    solves: buildSolves(config, teams, challenges),
-    settings: buildSettings(config),
+    solves: buildSolves(timing, teams, challenges),
+    settings: buildSettings(config, timing),
   }
 }
