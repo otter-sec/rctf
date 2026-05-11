@@ -1,11 +1,13 @@
 import {
+  CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
+  FilterAdminUsersRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
   GetAdminChallengesRouteV2,
   GetAdminSettingsRouteV2,
   GetAdminUserRouteV2,
-  GetAdminUsersRouteV2,
+  GetAdminUserVerificationsRouteV2,
   GetInstancerSchemaRouteV2,
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
@@ -13,20 +15,33 @@ import {
   GoodAdminSettings,
   GoodAdminUsersV2,
   GoodAdminUserV2,
+  GoodAdminUserVerificationsV2,
   GoodInstancerSchema,
+  ResendAdminUserVerificationRouteV2,
   UpdateAdminSettingsRouteV2,
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
+  type RouteBody,
+  type RouteQuery,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
   createQuery,
+  keepPreviousData,
   queryOptions,
 } from '@tanstack/svelte-query'
 import { browser } from '$app/environment'
 import { apiRequest } from '$lib/api'
 import { ApiError, createApiMutation } from './core'
+
+type AdminUsersRouteQuery = RouteQuery<typeof FilterAdminUsersRouteV2>
+type AdminUsersRouteBody = RouteBody<typeof FilterAdminUsersRouteV2>
+export type AdminUsersQueryParams = Pick<
+  AdminUsersRouteQuery,
+  'search' | 'sortBy' | 'sortOrder'
+> &
+  AdminUsersRouteBody
 
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
@@ -86,6 +101,17 @@ export const adminUserQueryOptions = (id: string) =>
     },
   })
 
+export const adminUserVerificationsQueryOptions = queryOptions({
+  queryKey: ['admin', 'user-verifications'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(GetAdminUserVerificationsRouteV2)
+    if (response.kind === GoodAdminUserVerificationsV2.kind) {
+      return response.data
+    }
+    throw new ApiError(response.kind, response.message)
+  },
+})
+
 export const instancerSchemaQueryOptions = queryOptions({
   queryKey: ['admin', 'instancer', 'schema'] as const,
   queryFn: async () => {
@@ -112,15 +138,21 @@ export function useAdminChallenge(
   }))
 }
 
-export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
+export function useInfiniteAdminUsers(
+  pageSize: () => number = () => 100,
+  params: () => AdminUsersQueryParams = () => ({}),
+  enabled: () => boolean = () => true
+) {
   return createInfiniteQuery(() => {
     const ps = pageSize()
+    const query = params()
     return {
-      queryKey: ['admin', 'users', 'infinite', ps] as const,
+      queryKey: ['admin', 'users', 'infinite', ps, query] as const,
       queryFn: async ({ pageParam = 0 }) => {
-        const response = await apiRequest(GetAdminUsersRouteV2, {
+        const response = await apiRequest(FilterAdminUsersRouteV2, {
           limit: ps,
           offset: pageParam,
+          ...query,
         })
         if (response.kind === GoodAdminUsersV2.kind) {
           return { ...response.data, offset: pageParam }
@@ -132,6 +164,8 @@ export function useInfiniteAdminUsers(pageSize: () => number = () => 100) {
         const nextOffset = lastPage.offset + lastPage.users.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
+      placeholderData: keepPreviousData,
+      enabled: enabled() && browser,
     }
   })
 }
@@ -144,6 +178,13 @@ export function useAdminUser(id: () => string | null) {
       enabled: !!userId && browser,
     }
   })
+}
+
+export function useAdminUserVerifications(enabled: () => boolean = () => true) {
+  return createQuery(() => ({
+    ...adminUserVerificationsQueryOptions,
+    enabled: enabled() && browser,
+  }))
 }
 
 export function useAdminBotStatus() {
@@ -176,4 +217,12 @@ export function useUpdateAdminUserMutation() {
 
 export function useDeleteAdminUserMutation() {
   return createApiMutation(DeleteAdminUserRouteV2)
+}
+
+export function useCompleteAdminUserVerificationMutation() {
+  return createApiMutation(CompleteAdminUserVerificationRouteV2)
+}
+
+export function useResendAdminUserVerificationMutation() {
+  return createApiMutation(ResendAdminUserVerificationRouteV2)
 }

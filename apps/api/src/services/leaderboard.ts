@@ -12,26 +12,32 @@ import {
   type InternalUserInfo,
   type Sample,
 } from '../cache/leaderboard'
+import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
+import { getCompetitionTiming, type CompetitionTiming } from './settings'
 import { userNameSearchFilter } from './users'
 
 const numberOfBloods = 3
 
 const buildScoreContext = (
   ch: InternalChallengeInfo,
-  maxSolves: number
+  maxSolves: number,
+  timing: CompetitionTiming
 ): ScoreContext => {
   return {
     minPoints: ch.minPoints,
     maxPoints: ch.maxPoints,
     solves: ch.solves,
     maxSolves: maxSolves,
-    eventStartTime: config.startTime,
-    eventEndTime: config.endTime,
+    eventStartTime: timing.startTime,
+    eventEndTime: timing.endTime,
     firstSolveTime: ch.firstSolveTime,
   }
 }
+
+const timingFingerprint = (timing: CompetitionTiming): string =>
+  `${timing.startTime}:${timing.endTime}`
 
 type SolveCursor = {
   createdat: string
@@ -40,6 +46,7 @@ type SolveCursor = {
 
 type LeaderboardRuntimeState = {
   providerIdentity: string
+  timingFingerprint: string
   challengesFingerprint: string
   userInfos: Map<string, InternalUserInfo>
   challengeInfos: Map<string, InternalChallengeInfo>
@@ -84,6 +91,7 @@ type SolveRow = {
 
 type LeaderboardRebuildSeed = {
   providerIdentity: string
+  timingFingerprint: string
   challengesFingerprint: string
   dbUsers: UserSnapshot[]
   dbChallenges: PublicChallengeSnapshot[]
@@ -262,7 +270,8 @@ const buildChallengesFingerprint = (
   )
 
 const createRuntimeState = (
-  seed: LeaderboardRebuildSeed
+  seed: LeaderboardRebuildSeed,
+  timing: CompetitionTiming
 ): LeaderboardRuntimeState => {
   const userInfos = new Map<string, InternalUserInfo>()
   for (const user of seed.dbUsers) {
@@ -297,6 +306,7 @@ const createRuntimeState = (
 
   const runtimeState: LeaderboardRuntimeState = {
     providerIdentity: seed.providerIdentity,
+    timingFingerprint: seed.timingFingerprint,
     challengesFingerprint: seed.challengesFingerprint,
     userInfos,
     challengeInfos,
@@ -309,11 +319,14 @@ const createRuntimeState = (
     firstEverSolveTime: null,
   }
 
-  recomputeScores(runtimeState)
+  recomputeScores(runtimeState, timing)
   return runtimeState
 }
 
-const recomputeScores = (state: LeaderboardRuntimeState): void => {
+const recomputeScores = (
+  state: LeaderboardRuntimeState,
+  timing: CompetitionTiming
+): void => {
   const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
     ? Math.max(
         0,
@@ -325,7 +338,7 @@ const recomputeScores = (state: LeaderboardRuntimeState): void => {
 
   for (const [, challengeInfo] of state.challengeInfos) {
     challengeInfo.score = scoreProvider.calculate(
-      buildScoreContext(challengeInfo, maxSolves)
+      buildScoreContext(challengeInfo, maxSolves, timing)
     )
   }
 
@@ -384,7 +397,8 @@ const applySolve = (
 const processSolveBatch = (
   state: LeaderboardRuntimeState,
   solveRows: SolveRow[],
-  now: number
+  now: number,
+  timing: CompetitionTiming
 ): {
   changed: boolean
   hadUnappliedSolves: boolean
@@ -428,7 +442,7 @@ const processSolveBatch = (
       return
     }
 
-    recomputeScores(state)
+    recomputeScores(state, timing)
     hadLeaderboardChanges = true
   }
 
@@ -458,7 +472,7 @@ const processSolveBatch = (
   }
 
   const end = Math.min(
-    Math.floor(config.endTime / graphSampleTime) * graphSampleTime,
+    Math.floor(timing.endTime / graphSampleTime) * graphSampleTime,
     now
   )
 
@@ -467,7 +481,7 @@ const processSolveBatch = (
   }
 
   if (state.firstEverSolveTime !== null) {
-    const effectiveStart = Math.max(config.startTime, state.firstEverSolveTime)
+    const effectiveStart = Math.max(timing.startTime, state.firstEverSolveTime)
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
     const lastProcessedSolveTime =
       state.lastSolveCursor !== null
@@ -494,8 +508,8 @@ const processSolveBatch = (
     }
   }
 
-  if (solveIndex < solveRows.length || end !== config.endTime) {
-    runSample(Math.min(now, config.endTime), true)
+  if (solveIndex < solveRows.length || end !== timing.endTime) {
+    runSample(Math.min(now, timing.endTime), true)
   }
 
   const lastConsumedSolve =
@@ -556,12 +570,13 @@ const cloneCalculatedLeaderboard = (
 const rebuildRuntimeState = async (
   db: DatabaseClient,
   seed: LeaderboardRebuildSeed,
-  now: number
+  now: number,
+  timing: CompetitionTiming
 ): Promise<LeaderboardRuntimeState> => {
-  const state = createRuntimeState(seed)
+  const state = createRuntimeState(seed, timing)
   const allSolves = await getAllSolvesOrdered(db)
 
-  const batchResult = processSolveBatch(state, allSolves, now)
+  const batchResult = processSolveBatch(state, allSolves, now, timing)
   state.processedSolveCount = batchResult.consumedSolveCount
   state.lastSolveCursor = batchResult.lastConsumedSolveCursor
 
@@ -572,28 +587,32 @@ export const getCurrentScoreProviderIdentity = (): string =>
   `${config.scoreProvider.name}@${scoreProvider.revision}`
 
 export const calculateLeaderboard = async (
-  db: DatabaseClient
+  db: DatabaseClient,
+  redis?: TypedRedis
 ): Promise<CalculatedLeaderboard> => {
   const now = Date.now()
   const providerIdentity = getCurrentScoreProviderIdentity()
-  const [dbUsers, dbChallenges] = await Promise.all([
+  const [dbUsers, dbChallenges, timing] = await Promise.all([
     getUsersSnapshot(db),
     getPublicChallengesSnapshot(db),
+    getCompetitionTiming(db, redis),
   ])
   const runtimeState = await rebuildRuntimeState(
     db,
     {
       providerIdentity,
+      timingFingerprint: timingFingerprint(timing),
       challengesFingerprint: buildChallengesFingerprint(dbChallenges),
       dbUsers,
       dbChallenges,
     },
-    now
+    now,
+    timing
   )
   return cloneCalculatedLeaderboard(runtimeState)
 }
 
-export const createCachedLeaderboardCalculator = () => {
+export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
   let state: LeaderboardRuntimeState | null = null
   return async (
     db: DatabaseClient,
@@ -602,27 +621,32 @@ export const createCachedLeaderboardCalculator = () => {
     const now = Date.now()
     const providerIdentity =
       providerIdentityOverride ?? getCurrentScoreProviderIdentity()
-    const [dbUsers, dbChallenges] = await Promise.all([
+    const [dbUsers, dbChallenges, timing] = await Promise.all([
       getUsersSnapshot(db),
       getPublicChallengesSnapshot(db),
+      getCompetitionTiming(db, redis),
     ])
 
     const challengesFingerprint = buildChallengesFingerprint(dbChallenges)
+    const currentTimingFingerprint = timingFingerprint(timing)
 
     const rebuild = async (): Promise<CachedLeaderboardComputation> => {
-      const [freshUsers, freshChallenges] = await Promise.all([
+      const [freshUsers, freshChallenges, freshTiming] = await Promise.all([
         getUsersSnapshot(db),
         getPublicChallengesSnapshot(db),
+        getCompetitionTiming(db, redis),
       ])
       state = await rebuildRuntimeState(
         db,
         {
           providerIdentity,
+          timingFingerprint: timingFingerprint(freshTiming),
           challengesFingerprint: buildChallengesFingerprint(freshChallenges),
           dbUsers: freshUsers,
           dbChallenges: freshChallenges,
         },
-        now
+        now,
+        freshTiming
       )
 
       return {
@@ -639,6 +663,11 @@ export const createCachedLeaderboardCalculator = () => {
 
     // provider changed
     if (state.providerIdentity !== providerIdentity) {
+      return await rebuild()
+    }
+
+    // event timing changed
+    if (state.timingFingerprint !== currentTimingFingerprint) {
       return await rebuild()
     }
 
@@ -675,7 +704,7 @@ export const createCachedLeaderboardCalculator = () => {
       return await rebuild()
     }
 
-    const batchResult = processSolveBatch(state, deltaSolves, now)
+    const batchResult = processSolveBatch(state, deltaSolves, now, timing)
     if (batchResult.hadUnappliedSolves) {
       return await rebuild()
     }

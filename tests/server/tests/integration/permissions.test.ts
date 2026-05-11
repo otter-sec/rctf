@@ -124,13 +124,18 @@ describe('permissions', () => {
 
   describe('route requiring usersWrite', () => {
     const path = '/api/v2/admin/users?limit=10&offset=0'
+    const body = {}
 
     test('allows user with usersWrite', async () => {
       const usersWriteUser = await generateRealTestUser(Permissions.usersWrite)
       try {
         const res = await request(app, path, {
-          method: 'GET',
-          headers: await authHeaders(usersWriteUser.user.id),
+          method: 'POST',
+          headers: {
+            ...(await authHeaders(usersWriteUser.user.id)),
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
         })
         expect(res.status).not.toBe(BadPerms.status)
       } finally {
@@ -140,8 +145,12 @@ describe('permissions', () => {
 
     test('rejects user with only challsRead | challsWrite', async () => {
       const res = await request(app, path, {
-        method: 'GET',
-        headers: await authHeaders(readWriteUser.user.id),
+        method: 'POST',
+        headers: {
+          ...(await authHeaders(readWriteUser.user.id)),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
       })
       await expectResponse(res, BadPerms)
     })

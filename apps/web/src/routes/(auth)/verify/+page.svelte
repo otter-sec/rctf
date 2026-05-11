@@ -18,13 +18,17 @@
   const verifyInfo = $derived(verifyInfoQuery.data)
 
   const clientConfig = $derived(clientConfigQuery.data)
+  const verifyInfoError = $derived(
+    !verifyToken ? 'No verification token provided.' : (verifyInfoQuery.error?.message ?? null)
+  )
 
   let error = $state<string | null>(null)
   let emailSet = $state(false)
   let verified = $state(false)
   let registeredTeamToken = $state<string | null>(null)
   let registeredLoginUrl = $state<string | null>(null)
-  const isVerifying = $derived(verifyInfoQuery.isFetching || verifyMutation.isPending)
+  const isVerifying = $derived(verifyMutation.isPending)
+  const isVerifyDisabled = $derived(isVerifying || verifyInfoQuery.isPending || !!verifyInfoError)
 
   const title = $derived.by(() => {
     if (!verifyInfo) return 'Verify email'
@@ -123,16 +127,16 @@
       <Card.Description>{description}</Card.Description>
     </Card.Header>
     <Card.Content>
-      {#if error}
+      {#if verifyInfoError || error}
         <div
           class="bg-background-destructive text-foreground-destructive mb-4 rounded-md p-3 text-sm"
           role="alert"
         >
-          {error}
+          {verifyInfoError ?? error}
         </div>
       {/if}
 
-      <Button onclick={handleVerify} disabled={isVerifying} class="w-full">
+      <Button onclick={handleVerify} disabled={isVerifyDisabled} class="w-full">
         {#if isVerifying}
           <Spinner class="size-4" />
         {/if}

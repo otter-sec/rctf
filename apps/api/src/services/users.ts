@@ -10,15 +10,34 @@ import type {
   GoodEmailRemoved,
   GoodEmailSet,
   ResponseHelpers,
+  RouteBody,
+  RouteQuery,
 } from '@rctf/types'
 import {
+  AdminTeamSortBy,
+  AdminTeamStatus,
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
+  FilterAdminUsersRouteV2,
+  GetAdminUsersRouteV2,
   GoodRegister,
   GoodRegisterV2,
+  SortOrder,
 } from '@rctf/types'
-import { asc, count, eq, or, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  notInArray,
+  or,
+  sql,
+  type SQL,
+} from 'drizzle-orm'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { createToken, TokenKind } from '../lib/tokens'
@@ -63,14 +82,20 @@ type DeleteCtftimeIdResponseHelpers = ResponseHelpers<
   [typeof GoodCtftimeRemoved, typeof BadUnknownUser, typeof BadZeroAuth]
 >
 
-type CreateUserResult =
-  | { success: true; userId: string }
+export type CreateUserInternalResult =
+  | {
+      success: true
+      userId: string
+    }
   | {
       success: false
       error: 'badKnownCtftimeId' | 'badKnownEmail' | 'badKnownName'
     }
 
-type CreateUserError = Extract<CreateUserResult, { success: false }>['error']
+type CreateUserError = Extract<
+  CreateUserInternalResult,
+  { success: false }
+>['error']
 
 type CreateUserErrorResponseHelpers = ResponseHelpers<
   [typeof BadKnownCtftimeId, typeof BadKnownEmail, typeof BadKnownName]
@@ -93,10 +118,10 @@ const createUserErrorResponse = (
   return res.badKnownName()
 }
 
-const createUserInternal = async (
+export const createUserInternal = async (
   db: DatabaseClient,
   user: Pick<User, 'division' | 'email' | 'name' | 'ctftimeId'>
-): Promise<CreateUserResult> => {
+): Promise<CreateUserInternalResult> => {
   let created
 
   try {
@@ -423,18 +448,82 @@ export type AdminUserDetails = AdminUserInfo & {
   solves: AdminUserSolveInfo[]
 }
 
-export const userNameSearchFilter = (search: string) =>
-  sql`(${users.name} % ${search} OR ${search} <% ${users.name})`
+// TODO(es3n1n): move this escape to utils at some point
+const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, '\\$&')
+
+export const userNameSearchFilter = (search: string) => {
+  const emailPattern = `%${escapeLikePattern(search.toLowerCase())}%`
+  return sql`(
+    ${users.name} % ${search}
+    OR ${search} <% ${users.name}
+    OR (
+      ${users.email} IS NOT NULL
+      AND lower(${users.email}) LIKE ${emailPattern} ESCAPE ${'\\'}
+    )
+  )`
+}
+
+export const adminTeamStatusExpression = sql<AdminTeamStatus>`
+  CASE
+    WHEN ${users.perms} > 0 THEN ${AdminTeamStatus.ADMIN}
+    WHEN ${users.banned} THEN ${AdminTeamStatus.BANNED}
+    ELSE ${AdminTeamStatus.ACTIVE}
+  END
+`
+
+type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2> &
+  Partial<RouteBody<typeof FilterAdminUsersRouteV2>>
+
+const setFilter = <T>(
+  column: SQL<unknown>,
+  filter?: { include?: T[] | null; exclude?: T[] | null } | null
+): (SQL | undefined)[] => [
+  filter?.include?.length ? inArray(column, filter.include) : undefined,
+  filter?.exclude?.length ? notInArray(column, filter.exclude) : undefined,
+]
+
+const buildUsersFilters = (params: AdminUsersQuery): SQL | undefined => {
+  const search = params.search?.trim()
+  return and(
+    search ? userNameSearchFilter(search) : undefined,
+    ...setFilter(adminTeamStatusExpression, params.status),
+    ...setFilter(sql`${users.division}`, params.division)
+  )
+}
+
+const buildUsersOrderBy = (params: AdminUsersQuery): SQL[] => {
+  const sortBy = params.sortBy ?? AdminTeamSortBy.CREATED_AT
+  const dir = params.sortOrder === SortOrder.DESC ? desc : asc
+  const search = params.search?.trim()
+
+  const sortExpr: Partial<Record<AdminTeamSortBy, SQL | PgColumn>> = {
+    [AdminTeamSortBy.TEAM]: sql`lower(${users.name}::text)`,
+    [AdminTeamSortBy.EMAIL]: sql`lower(coalesce(${users.email}, ''))`,
+    [AdminTeamSortBy.DIVISION]: users.division,
+    [AdminTeamSortBy.SCORE]: users.score,
+    [AdminTeamSortBy.SOLVES]: count(solves.id),
+    [AdminTeamSortBy.STATUS]: adminTeamStatusExpression,
+    // createdAt is tiebreaker by default
+  }
+
+  const tieDir = sortBy === AdminTeamSortBy.CREATED_AT ? dir : asc
+  return [
+    ...(search ? [sql`similarity(${users.name}, ${search}) DESC`] : []),
+    ...(sortExpr[sortBy] ? [dir(sortExpr[sortBy]!)] : []),
+    tieDir(users.createdAt),
+    tieDir(users.id),
+  ]
+}
 
 export const getAllUsersWithScores = async (
   db: DatabaseClient,
-  limit: number,
-  offset: number,
-  search?: string
+  params: AdminUsersQuery
 ): Promise<{ total: number; users: AdminUserInfo[] }> => {
-  const searchFilter = search ? userNameSearchFilter(search) : undefined
-  const [countResult, dbUsers] = await Promise.all([
-    db.select({ count: count() }).from(users).where(searchFilter),
+  const filters = buildUsersFilters(params)
+  const orderBy = buildUsersOrderBy(params)
+
+  const [countResult, users_] = await Promise.all([
+    db.select({ count: count() }).from(users).where(filters),
     db
       .select({
         id: users.id,
@@ -452,27 +541,14 @@ export const getAllUsersWithScores = async (
       })
       .from(users)
       .leftJoin(solves, eq(users.id, solves.userid))
-      .where(searchFilter)
+      .where(filters)
       .groupBy(users.id)
-      .orderBy(
-        ...(search
-          ? [
-              sql`similarity(${users.name}, ${search}) DESC`,
-              asc(users.createdAt),
-            ]
-          : [asc(users.createdAt)])
-      )
-      .limit(limit)
-      .offset(offset),
+      .orderBy(...orderBy)
+      .limit(params.limit)
+      .offset(params.offset),
   ])
 
-  return {
-    total: countResult[0]?.count ?? 0,
-    users: dbUsers.map(u => ({
-      ...u,
-      score: u.score,
-    })),
-  }
+  return { total: countResult[0]?.count ?? 0, users: users_ }
 }
 
 export const getAdminUserWithSolves = async (

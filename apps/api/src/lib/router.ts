@@ -30,6 +30,10 @@ import type { Handler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { z } from 'zod/mini'
 import { getCachedUser, setCachedUser } from '../cache/auth-cache'
+import {
+  getCompetitionTiming,
+  type CompetitionTiming,
+} from '../services/settings'
 import { getUser } from '../services/users'
 import { validateCaptcha } from '../util/captcha'
 import type { ApiContext, AppEnv } from './app-env'
@@ -168,14 +172,16 @@ const getAuthenticatedUser = async (
 const hasPermissions = (user: User, perms: Permissions): boolean =>
   (user.perms & perms) === perms
 
-const isCompetitionStarted = (
+const canBypassCompetitionStart = (
   user: User | undefined,
   bypassPerms: Permissions | undefined
-) =>
-  (bypassPerms && user && hasPermissions(user, bypassPerms)) ||
-  Date.now() >= config.startTime
+) => Boolean(bypassPerms && user && hasPermissions(user, bypassPerms))
 
-const isCompetitionActive = () => Date.now() < config.endTime
+const isCompetitionStarted = (timing: CompetitionTiming) =>
+  Date.now() >= timing.startTime
+
+const isCompetitionActive = (timing: CompetitionTiming) =>
+  Date.now() < timing.endTime
 
 type ParseSuccess<T> = { ok: true; value: T }
 type ParseError = { ok: false; response: Response }
@@ -236,6 +242,11 @@ export const declareRouter = <
 
   const createHandler = (): Handler<AppEnv> => async context => {
     let user: User | undefined
+    let timing: CompetitionTiming | undefined
+    const loadTiming = async () => {
+      timing ??= await getCompetitionTiming(context.var.db, context.var.redis)
+      return timing
+    }
 
     const requiresAuth =
       definition.authRequired || (definition.permissions ?? 0) !== 0
@@ -261,12 +272,19 @@ export const declareRouter = <
 
     if (
       definition.onlyWhenStarted &&
-      !isCompetitionStarted(user, definition.onlyWhenStartedPermissionsBypass)
+      !canBypassCompetitionStart(
+        user,
+        definition.onlyWhenStartedPermissionsBypass
+      ) &&
+      !isCompetitionStarted(await loadTiming())
     ) {
       return context.json(...respond.notStarted())
     }
 
-    if (definition.onlyWhenNotFinished && !isCompetitionActive()) {
+    if (
+      definition.onlyWhenNotFinished &&
+      !isCompetitionActive(await loadTiming())
+    ) {
       return context.json(...respond.alreadyFinished())
     }
 

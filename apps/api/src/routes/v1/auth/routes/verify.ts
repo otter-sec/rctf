@@ -5,8 +5,9 @@ import {
   parseTokenWithMultipleKinds,
   TokenKind,
 } from '../../../../lib/tokens'
+import { claimPendingRegistrationVerificationByToken } from '../../../../services/registration-verifications'
 import {
-  createUser,
+  createUserInternal,
   getUser,
   updateUserEmail,
 } from '../../../../services/users'
@@ -19,7 +20,33 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
     body.verifyToken
   )
   if (!result) {
-    return res.badTokenVerification()
+    const pending = await claimPendingRegistrationVerificationByToken(
+      ctx.var.db,
+      body.verifyToken
+    )
+    if (!pending) {
+      return res.badTokenVerification()
+    }
+
+    const created = await createUserInternal(ctx.var.db, {
+      division: pending.division,
+      email: pending.email,
+      name: pending.name,
+      ctftimeId: null,
+    })
+
+    if (!created.success) {
+      if (created.error === 'badKnownEmail') {
+        return res.badKnownEmail()
+      }
+      if (created.error === 'badKnownName') {
+        return res.badKnownName()
+      }
+      throw new Error(`Unexpected user creation error: ${created.error}`)
+    }
+
+    const authToken = await createToken(TokenKind.Auth, created.userId)
+    return res.goodRegister({ authToken })
   }
 
   const [kind, data] = result
@@ -36,15 +63,6 @@ authGroup.route(VerifyRoute, async ({ ctx, body, res }) => {
   const tokenUnused = await checkLoginVerification(ctx.var.redis, data.verifyId)
   if (!tokenUnused) {
     return res.badTokenVerification()
-  }
-
-  if (data.kind === 'register') {
-    return await createUser(res, ctx.var.db, {
-      division: data.division,
-      email: data.email,
-      name: data.name,
-      ctftimeId: null,
-    })
   }
 
   if (data.kind === 'update') {

@@ -65,7 +65,7 @@ The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files 
 | `GET /v2/leaderboard/challs`                                | Challenge metadata with first 3 solvers per challenge |
 | `GET /v2/leaderboard/with-graph`                            | Combined leaderboard and graph in one request         |
 | `PATCH /v2/users/me/avatar`                                 | Upload and moderate avatar images                     |
-| `GET /v2/admin/users`                                       | List all users with search and pagination             |
+| `GET/POST /v2/admin/users`                                  | List all users with search, filters, and pagination   |
 | `GET/PUT /v2/admin/settings`                                | Runtime settings management                           |
 | `POST /v2/admin/users/:id/token`                            | Generate login token for a team                       |
 | `DELETE /v2/admin/challs/:id/solves/:userId`                | Delete a specific solve                               |

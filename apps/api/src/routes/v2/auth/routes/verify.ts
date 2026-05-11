@@ -5,8 +5,9 @@ import {
   parseTokenWithMultipleKinds,
   TokenKind,
 } from '../../../../lib/tokens'
+import { claimPendingRegistrationVerificationByToken } from '../../../../services/registration-verifications'
 import {
-  createUserV2,
+  createUserInternal,
   getUser,
   updateUserEmail,
 } from '../../../../services/users'
@@ -19,7 +20,36 @@ authGroup.route(VerifyRouteV2, async ({ ctx, body, res }) => {
     body.verifyToken
   )
   if (!result) {
-    return res.badTokenVerification()
+    const pending = await claimPendingRegistrationVerificationByToken(
+      ctx.var.db,
+      body.verifyToken
+    )
+    if (!pending) {
+      return res.badTokenVerification()
+    }
+
+    const created = await createUserInternal(ctx.var.db, {
+      division: pending.division,
+      email: pending.email,
+      name: pending.name,
+      ctftimeId: null,
+    })
+
+    if (!created.success) {
+      if (created.error === 'badKnownCtftimeId') {
+        return res.badKnownCtftimeId()
+      }
+      if (created.error === 'badKnownEmail') {
+        return res.badKnownEmail()
+      }
+      return res.badKnownName()
+    }
+
+    const [authToken, teamToken] = await Promise.all([
+      createToken(TokenKind.Auth, created.userId),
+      createToken(TokenKind.Team, created.userId),
+    ])
+    return res.goodRegisterV2({ authToken, teamToken })
   }
 
   const [kind, data] = result
@@ -38,29 +68,16 @@ authGroup.route(VerifyRouteV2, async ({ ctx, body, res }) => {
     return res.badTokenVerification()
   }
 
-  if (data.kind === 'register') {
-    return await createUserV2(res, ctx.var.db, {
-      division: data.division,
-      email: data.email,
-      name: data.name,
-      ctftimeId: null,
-    })
+  const user = await getUser(ctx.var.db, data.userId)
+  if (!user) {
+    return res.badUnknownUser()
   }
 
-  if (data.kind === 'update') {
-    const user = await getUser(ctx.var.db, data.userId)
-    if (!user) {
-      return res.badUnknownUser()
-    }
-
-    if (!divisionAllowed(data.email, user.division)) {
-      return res.badEmailChangeDivision()
-    }
-
-    return await updateUserEmail(res, ctx.var.db, ctx.var.redis, data.userId, {
-      email: data.email,
-    })
+  if (!divisionAllowed(data.email, user.division)) {
+    return res.badEmailChangeDivision()
   }
 
-  throw new Error(`Unsupported kind: ${data}`)
+  return await updateUserEmail(res, ctx.var.db, ctx.var.redis, data.userId, {
+    email: data.email,
+  })
 })
