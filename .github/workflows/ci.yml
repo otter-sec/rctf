@@ -1,0 +1,166 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      shared: ${{ steps.filter.outputs.shared }}
+      admin-bot: ${{ steps.filter.outputs.admin-bot }}
+      docker-instancer: ${{ steps.filter.outputs.docker-instancer }}
+      docs: ${{ steps.filter.outputs.docs }}
+      k8s-controller: ${{ steps.filter.outputs.k8s-controller }}
+      rctf: ${{ steps.filter.outputs.rctf }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            shared:
+              - '.github/workflows/ci.yml'
+              - '.github/workflows/_docker-build.yml'
+              - '.github/workflows/test.yml'
+              - '.github/actions/setup-bun-deps/action.yml'
+            admin-bot:
+              - 'apps/admin-bot/**'
+              - 'packages/**'
+              - 'deploy/admin-bot/**'
+            docker-instancer:
+              - 'apps/docker-instancer/**'
+              - 'deploy/docker-instancer/Dockerfile'
+            docs:
+              - 'apps/docs/**'
+              - 'packages/**'
+              - 'deploy/docs/**'
+            k8s-controller:
+              - 'apps/k8s-controller/**'
+              - 'deploy/k8s-controller/Dockerfile'
+            rctf:
+              - 'package.json'
+              - 'apps/api/**'
+              - 'apps/web/**'
+              - 'packages/**'
+              - 'deploy/rctf/**'
+
+  tests:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
+  build-admin-bot:
+    needs: [changes, tests]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.admin-bot == 'true'))
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image-name: ${{ github.repository }}/admin-bot
+      dockerfile: deploy/admin-bot/Dockerfile
+      # bun supports only amd64 and arm64
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
+        ]
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+
+  build-docker-instancer:
+    needs: [changes, tests]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.docker-instancer == 'true'))
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image-name: ${{ github.repository }}/docker-instancer
+      dockerfile: deploy/docker-instancer/Dockerfile
+      # uv supports only amd64 and arm64
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
+        ]
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+
+  build-docs:
+    needs: [changes, tests]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.docs == 'true'))
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image-name: ${{ github.repository }}/docs
+      dockerfile: deploy/docs/Dockerfile
+      # runtime image is alpine so all platforms can be used
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"},
+          {"platform": "linux/386", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm/v6", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm/v7", "runner": "ubuntu-24.04"},
+          {"platform": "linux/ppc64le", "runner": "ubuntu-24.04"}
+        ]
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+
+  build-k8s-controller:
+    needs: [changes, tests]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.k8s-controller == 'true'))
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image-name: ${{ github.repository }}/k8s-controller
+      dockerfile: deploy/k8s-controller/Dockerfile
+      # technically all platforms can be used, but its very slow so only amd64 and arm64 are enabled
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
+        ]
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
+
+  build-rctf:
+    needs: [changes, tests]
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.rctf == 'true'))
+    uses: ./.github/workflows/_docker-build.yml
+    with:
+      image-name: ${{ github.repository }}
+      dockerfile: deploy/rctf/Dockerfile
+      # bun supports only amd64 and arm64
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
+        ]
+    permissions:
+      contents: read
+      packages: write
+    secrets: inherit
