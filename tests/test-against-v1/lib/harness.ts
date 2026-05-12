@@ -483,7 +483,7 @@ export async function snapshotLeaderboard(): Promise<Record<string, string>> {
 
 export async function refreshLeaderboard(
   snapshot?: Record<string, string>,
-  timeout = 5000
+  timeout = 15_000
 ): Promise<boolean> {
   if (!snapshot) {
     await new Promise(resolve => setTimeout(resolve, 1500))
@@ -502,6 +502,28 @@ export async function refreshLeaderboard(
 
   // A recomputation can legitimately produce the same visible top-N response.
   return false
+}
+
+export async function awaitAllLeaderboard(
+  predicate: (entries: { name: string; score: number }[]) => boolean,
+  timeout = 15_000
+): Promise<AllResponses> {
+  const start = Date.now()
+  let res: AllResponses = await all(
+    '/api/v1/leaderboard/now?limit=100&offset=0'
+  )
+  while (Date.now() - start < timeout) {
+    const allSatisfied = Object.values(res).every(r => {
+      const body = r.body as {
+        data?: { leaderboard?: { name: string; score: number }[] }
+      }
+      return predicate(body.data?.leaderboard ?? [])
+    })
+    if (allSatisfied) return res
+    await new Promise(resolve => setTimeout(resolve, 250))
+    res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+  }
+  return res
 }
 
 export function testId(prefix: string): string {

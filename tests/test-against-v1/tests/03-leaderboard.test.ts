@@ -6,6 +6,7 @@ import {
   assertAllSuccess,
   assertSame,
   assertSameKind,
+  awaitAllLeaderboard,
   cleanupChallenge,
   cleanupUser,
   createChallenge,
@@ -157,7 +158,13 @@ describe('Leaderboard - With Test Data', () => {
   }, 30_000)
 
   test('leaderboard includes solvers with scores', async () => {
-    const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+    // Wait for both instances to reflect the solves before comparing —
+    // refreshLeaderboard's snapshot-diff in beforeAll can return early.
+    const res = await awaitAllLeaderboard(entries =>
+      solvers.every(s =>
+        entries.some(e => e.name === s.name && e.score > 0)
+      )
+    )
 
     assertAllSuccess(res)
     assertSame(res, ['id'])
