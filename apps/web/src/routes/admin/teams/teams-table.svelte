@@ -1,8 +1,12 @@
 <script lang="ts">
   import { AdminTeamSortBy, SortOrder } from '@rctf/types'
-  import { EmptyState, ScrollArea, VirtualList } from '$lib/components'
+  import { EmptyState, ScrollArea, Tooltip, VirtualList } from '$lib/components'
   import { IconChevronDown, IconChevronUp, IconSelector, IconUsersGroup } from '$lib/icons'
-  import { useInfiniteVirtualScroll } from '$lib/utils'
+  import {
+    createDataAttrTooltipHandlers,
+    createHoverTooltip,
+    useInfiniteVirtualScroll,
+  } from '$lib/utils'
   import TeamTableRow from './team-table-row.svelte'
   import TeamsFilterBar from './teams-filter-bar.svelte'
   import {
@@ -81,6 +85,10 @@
   let tableViewportWidth = $state(0)
   let innerWidth = $state(0)
 
+  const actionTooltipTether = Tooltip.createTether<string>()
+  const infoTooltip = createHoverTooltip<string>()
+  const infoTooltipHandlers = createDataAttrTooltipHandlers(infoTooltip.hover)
+
   const hasFilters = $derived(hasTeamFilters(filters))
   const hasNextRegisteredPage = $derived(shouldFetchRegisteredRows && hasNextPage)
   const pinnedToolbarWidth = $derived(tableViewportWidth ? `${tableViewportWidth}px` : '100%')
@@ -130,6 +138,10 @@
     tableViewportWidth = Math.round(viewport.getBoundingClientRect().width)
 
     return () => resizeObserver.disconnect()
+  })
+
+  $effect(() => {
+    if (scroll.isScrolling) infoTooltip.close()
   })
 
   function setSort(nextSortBy: SortBy) {
@@ -206,7 +218,7 @@
   scrollbarYClasses="z-40"
   scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
 >
-  <div class="min-h-full w-full min-w-[94rem] text-sm">
+  <div class="min-h-full w-full min-w-[94rem] text-sm" {...infoTooltipHandlers}>
     <div class="flex min-h-full flex-col">
       <div bind:this={tableHeaderRef} class="bg-background-l1 sticky top-0 z-50">
         <TeamsFilterBar
@@ -255,6 +267,7 @@
               {onDeleteTeam}
               {onCompleteVerification}
               {onResendVerification}
+              {actionTooltipTether}
             />
           {/snippet}
         </VirtualList>
@@ -262,3 +275,15 @@
     </div>
   </div>
 </ScrollArea>
+
+<Tooltip.Root tether={actionTooltipTether}>
+  {#snippet children({ payload })}
+    {#if payload}
+      <Tooltip.Content side="top" sideOffset={8}>{payload}</Tooltip.Content>
+    {/if}
+  {/snippet}
+</Tooltip.Root>
+
+<Tooltip.Hover controller={infoTooltip}>
+  {#snippet children(label)}{label}{/snippet}
+</Tooltip.Hover>

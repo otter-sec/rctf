@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DropdownMenu, ScrollArea, Spinner } from '$lib/components'
+  import { DropdownMenu, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { IconClockFilled, IconFilter } from '$lib/icons'
   import { cn } from '$lib/utils'
   import SubmissionsFilterOptionList from './filter-option-list.svelte'
@@ -50,7 +50,7 @@
 {#snippet valueFilterMenu(family: ValueFilterFamily)}
   <DropdownMenu.Sub>
     <DropdownMenu.SubTrigger
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+      class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2! data-[state=open]:bg-background-l5! data-[state=open]:text-foreground-l2!"
     >
       <family.icon class="size-4" />
       {family.label}
@@ -60,8 +60,8 @@
       alignOffset={-6}
       sideOffset={10}
       class={cn(
-        'bg-background-l4 border-foreground-l4/40 z-[110] border-2 shadow-xl',
-        family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden !p-0',
+        'bg-background-l4 border-foreground-l4/40 z-110 border-2 shadow-xl',
+        family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden p-0!',
         family.menuSize === 'narrow' && 'w-48',
         family.menuSize === 'medium' && 'w-56'
       )}
@@ -74,7 +74,7 @@
 {#snippet timeRangeFilterMenu()}
   <DropdownMenu.Sub>
     <DropdownMenu.SubTrigger
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+      class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2! data-[state=open]:bg-background-l5! data-[state=open]:text-foreground-l2!"
     >
       <IconClockFilled class="size-4" />
       {timeFamily.label}
@@ -83,7 +83,7 @@
       align="start"
       alignOffset={-6}
       sideOffset={10}
-      class="bg-background-l4 border-foreground-l4/40 z-[110] w-72 border-2 !p-0 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-110 w-72 border-2 p-0! shadow-xl"
     >
       <SubmissionsTimeRangeEditor bind:filters {timeRangeError} />
     </DropdownMenu.SubContent>
@@ -100,7 +100,7 @@
 {/snippet}
 
 {#snippet rootFilterSearchResults()}
-  <div class="p-1">
+  <div>
     {#each rootValueFamilyMatches as family (family.id)}
       {@render valueFilterMenu(family)}
     {/each}
@@ -122,45 +122,53 @@
   </div>
 {/snippet}
 
-<DropdownMenu.Root>
-  <DropdownMenu.Trigger
-    aria-label="Add filter"
-    class={cn(
-      'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
-      hasFilters && 'text-foreground-accent'
-    )}
-  >
-    <IconFilter class="size-4" />
-  </DropdownMenu.Trigger>
-  <DropdownMenu.Content
-    align="start"
-    class="bg-background-l4 border-foreground-l4/40 z-[100] w-80 overflow-hidden border-2 !p-0 shadow-xl"
-  >
-    <SubmissionsFilterSearchInput
-      value={rootFilterSearch}
-      placeholder="Search filters..."
-      onInput={value => (rootFilterSearch = value)}
-    />
-    {#key rootFilterScrollKey}
-      {#if isRootSearchActive}
-        <ScrollArea
-          class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-          fadeSize={28}
-          fadeColor="background-l4"
-          scrollbarYClasses="hidden"
+<Tooltip.Root disableCloseOnTriggerClick>
+  <DropdownMenu.Root>
+    <Tooltip.Trigger>
+      {#snippet child({ props })}
+        <DropdownMenu.Trigger
+          {...props}
+          aria-label="Add filter"
+          class={cn(
+            'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
+            hasFilters && 'text-foreground-accent'
+          )}
         >
-          {@render rootFilterSearchResults()}
-        </ScrollArea>
-      {:else}
-        <ScrollArea
-          class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-          fadeSize={28}
-          fadeColor="background-l4"
-          scrollbarYClasses="hidden"
-        >
-          {@render rootFilterList()}
-        </ScrollArea>
-      {/if}
-    {/key}
-  </DropdownMenu.Content>
-</DropdownMenu.Root>
+          <IconFilter class="size-4" />
+        </DropdownMenu.Trigger>
+      {/snippet}
+    </Tooltip.Trigger>
+    <DropdownMenu.Content
+      align="start"
+      class="bg-background-l4 border-foreground-l4/40 z-100 w-80 overflow-hidden border-2 p-0! shadow-xl"
+    >
+      <SubmissionsFilterSearchInput
+        value={rootFilterSearch}
+        placeholder="Search filters..."
+        onInput={value => (rootFilterSearch = value)}
+      />
+      {#key rootFilterScrollKey}
+        {#if isRootSearchActive}
+          <ScrollArea
+            class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
+            {@render rootFilterSearchResults()}
+          </ScrollArea>
+        {:else}
+          <ScrollArea
+            class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
+            {@render rootFilterList()}
+          </ScrollArea>
+        {/if}
+      {/key}
+    </DropdownMenu.Content>
+  </DropdownMenu.Root>
+  <Tooltip.Content side="top" sideOffset={8}>Add filter</Tooltip.Content>
+</Tooltip.Root>

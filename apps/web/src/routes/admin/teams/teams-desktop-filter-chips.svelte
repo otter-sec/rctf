@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { DropdownMenu } from '$lib/components'
+  import { DropdownMenu, Tooltip } from '$lib/components'
   import { IconCheck, IconChevronDown, IconShieldFilled, IconUsersGroup, IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import { mergeProps } from 'bits-ui'
   import TeamStatusDot from './team-status-dot.svelte'
   import TeamsFilterOptions from './teams-filter-options.svelte'
   import {
@@ -22,6 +23,7 @@
   }
 
   let { filters = $bindable<TeamFilters>(), divisionOptions }: Props = $props()
+  const tooltipTether = Tooltip.createTether<string>()
 </script>
 
 {#snippet operatorDropdown(mode: FilterMode, count: number, onSelect: (mode: FilterMode) => void)}
@@ -112,17 +114,24 @@
         <TeamsFilterOptions {kind} bind:filters {divisionOptions} />
       </DropdownMenu.Content>
     </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove {label.toLowerCase()} filters"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={() => {
-        if (kind === 'status') clearFilter(filters.status)
-        else clearFilter(filters.division)
-      }}
-    >
-      <IconX class="size-3.5" />
-    </button>
+    <Tooltip.Trigger tether={tooltipTether} payload={`Remove ${label.toLowerCase()} filters`}>
+      {#snippet child({ props })}
+        {@const buttonProps = mergeProps(props, {
+          onclick: () => {
+            if (kind === 'status') clearFilter(filters.status)
+            else clearFilter(filters.division)
+          },
+          'aria-label': `Remove ${label.toLowerCase()} filters`,
+        })}
+        <button
+          {...buttonProps}
+          type="button"
+          class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+        >
+          <IconX class="size-3.5" />
+        </button>
+      {/snippet}
+    </Tooltip.Trigger>
   </span>
 {/snippet}
 
@@ -136,3 +145,11 @@
     {@render valueFilterChip('Division', filters.division, 'division')}
   {/if}
 </div>
+
+<Tooltip.Root tether={tooltipTether}>
+  {#snippet children({ payload })}
+    {#if payload}
+      <Tooltip.Content side="top" sideOffset={8}>{payload}</Tooltip.Content>
+    {/if}
+  {/snippet}
+</Tooltip.Root>

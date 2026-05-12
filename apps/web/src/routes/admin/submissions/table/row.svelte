@@ -46,9 +46,11 @@
 {#snippet timeCell()}
   {@const timestamp = new Date(submission.createdAt).getTime()}
   {@const ctfOffset = formatCtfOffset(timestamp, ctfStartTime)}
+  {@const label = `UTC ${new Date(submission.createdAt).toISOString()}`}
   <div
+    role="note"
+    data-tooltip-label={label}
     class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap"
-    title={`UTC ${new Date(submission.createdAt).toISOString()}`}
   >
     <span class="text-foreground-l1 shrink-0 tabular-nums">
       {formatLocalTime(timestamp)}
@@ -168,8 +170,9 @@
     <div class="flex items-center justify-center">
       <button
         type="button"
-        aria-label="Show submitted details"
+        aria-label={isExpanded ? 'Hide submitted details' : 'Show submitted details'}
         aria-expanded={isExpanded}
+        data-tooltip-label={isExpanded ? 'Hide submitted details' : 'Show submitted details'}
         class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex size-7 items-center justify-center rounded-md transition-colors"
         onclick={event => {
           event.stopPropagation()

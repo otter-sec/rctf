@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SubmissionSortBy, SubmissionSortOrder } from '@rctf/types'
-  import { Card, EmptyState, ScrollArea, Spinner } from '$lib/components'
+  import { Card, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { IconClockFilled, IconTableFilled } from '$lib/icons'
   import {
     useAdminChallenges,
@@ -8,7 +8,13 @@
     useInfiniteAdminSubmissions,
     useInfiniteAdminUsers,
   } from '$lib/query'
-  import { formatCtfOffset, formatLocalTime, useInfiniteVirtualScroll } from '$lib/utils'
+  import {
+    createDataAttrTooltipHandlers,
+    createHoverTooltip,
+    formatCtfOffset,
+    formatLocalTime,
+    useInfiniteVirtualScroll,
+  } from '$lib/utils'
   import { createSubmissionValueFilterFamilies } from './filters/families'
   import SubmissionsFilterBar from './filters/filter-bar.svelte'
   import {
@@ -42,6 +48,8 @@
   let expandedSubmissionId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
+  const rowTooltip = createHoverTooltip<string>()
+  const rowTooltipHandlers = createDataAttrTooltipHandlers(rowTooltip.hover)
 
   const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
   const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
@@ -183,7 +191,7 @@
   const visibleRowCount = $derived(allSubmissions.length + (expandedSubmissionIndex === -1 ? 0 : 1))
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
-    overscan: 12,
+    overscan: 6,
     onLoadMore: () => submissionsQuery.fetchNextPage(),
   })
 
@@ -222,6 +230,10 @@
     expandedSubmissionId = null
     const viewport = scroll.state.viewportRef
     if (viewport) viewport.scrollTop = 0
+  })
+
+  $effect(() => {
+    if (scroll.isScrolling) rowTooltip.close()
   })
 
   function formatTimeRange() {
@@ -297,11 +309,14 @@
 
 {#snippet virtualRows()}
   <div
+    role="presentation"
     class="relative contain-[layout_style] backface-hidden"
     class:pointer-events-none={scroll.isScrolling}
     style:height={`${scroll.totalSize}px`}
+    {...rowTooltipHandlers}
   >
-    {#each scroll.virtualItems as row (row.index)}
+    <!-- Keep this unkeyed so virtual rows are recycled during large scroll jumps. -->
+    {#each scroll.virtualItems as row}
       {#if row.index >= visibleRowCount}
         {@render loadingRow(row)}
       {:else if isDetailRowIndex(row.index)}
@@ -401,3 +416,7 @@
     {@render submissionsTable()}
   {/if}
 </div>
+
+<Tooltip.Hover controller={rowTooltip}>
+  {#snippet children(label)}{label}{/snippet}
+</Tooltip.Hover>

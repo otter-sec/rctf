@@ -17,11 +17,12 @@
 
 {#snippet detailPill(entry: DetailEntry)}
   <span
+    role="note"
+    data-tooltip-label={`${entry.label}: ${entry.value}`}
     class={cn(
       'bg-background-l4 inline-flex min-w-0 shrink-0 items-center gap-1 rounded-md px-2 py-1 whitespace-nowrap',
       entry.label === 'error' ? 'max-w-[36rem]' : 'max-w-[28rem]'
     )}
-    title={`${entry.label}: ${entry.value}`}
   >
     <span class="text-foreground-l3 shrink-0 text-xs">{entry.label}</span>
     <code class="text-foreground-l1 min-w-0 truncate text-xs">{entry.value}</code>
@@ -43,6 +44,7 @@
     <button
       type="button"
       aria-label="Close submitted details"
+      data-tooltip-label="Close submitted details"
       class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l4 flex size-7 shrink-0 items-center justify-center rounded-md transition-colors"
       onclick={onClose}
     >

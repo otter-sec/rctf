@@ -310,6 +310,9 @@
     isCurrentUser = false,
   }: Props = $props()
 
+  let activeTooltipData = $state<TooltipData | null>(null)
+  let activeTooltipKey = $state<string | null>(null)
+
   if (typeof document !== 'undefined') {
     registerStripConsumer()
     onDestroy(() => unregisterStripConsumer())
@@ -404,6 +407,28 @@
     return next
   })
 
+  function setCellHover(key: string, data: TooltipData, x: number, y: number) {
+    if (activeTooltipKey === key) return
+    activeTooltipKey = key
+    activeTooltipData = data
+    onCellHover(data, x, y)
+  }
+
+  function clearCellHover() {
+    if (!activeTooltipKey && !activeTooltipData) return
+    activeTooltipKey = null
+    activeTooltipData = null
+    onCellHover(null, 0, 0)
+  }
+
+  onDestroy(() => clearCellHover())
+
+  $effect(() => {
+    if (isScrolling && activeTooltipData) {
+      clearCellHover()
+    }
+  })
+
   function handleChallengeMouseMove(e: MouseEvent) {
     if (isScrolling) return
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
@@ -412,7 +437,7 @@
     const cellIndex = Math.floor(mouseX / (CELL_WIDTH + CELL_GAP))
     const challenge = challengeList[cellIndex]
     if (!challenge) {
-      onCellHover(null, 0, 0)
+      clearCellHover()
       return
     }
 
@@ -422,19 +447,23 @@
     const dy = mouseY - circleCenterY
 
     if (dx * dx + dy * dy > ICON_RADIUS * ICON_RADIUS) {
-      onCellHover(null, 0, 0)
+      clearCellHover()
       return
     }
 
-    onCellHover(
+    const solved = getSolves(challenge.id)
+    const bloodIndex = getBloodIndex(challenge.id)
+    const solveTime = getSolveTime(challenge.id)
+    setCellHover(
+      `challenge:${teamId}:${challenge.id}:${solved ? 1 : 0}:${bloodIndex}:${solveTime ?? ''}`,
       {
         type: 'challenge',
         teamId,
         challengeName: challenge.name,
         points: challenge.points,
-        solved: getSolves(challenge.id),
-        bloodIndex: getBloodIndex(challenge.id),
-        solveTime: getSolveTime(challenge.id),
+        solved,
+        bloodIndex,
+        solveTime,
       },
       rect.left + circleCenterX,
       rect.top + circleCenterY - ICON_RADIUS
@@ -450,7 +479,7 @@
     const cellIndex = Math.floor(mouseX / (CELL_WIDTH + CELL_GAP))
     const group = categoryGroups[cellIndex]
     if (!group) {
-      onCellHover(null, 0, 0)
+      clearCellHover()
       return
     }
 
@@ -460,12 +489,13 @@
     const dy = mouseY - circleCenterY
 
     if (dx * dx + dy * dy > CAT_ICON_RADIUS * CAT_ICON_RADIUS) {
-      onCellHover(null, 0, 0)
+      clearCellHover()
       return
     }
 
     const stats = getCategoryStats(group)
-    onCellHover(
+    setCellHover(
+      `category:${teamId}:${group.category}:${stats.solved}:${stats.total}`,
       {
         type: 'category',
         teamId,
@@ -480,7 +510,7 @@
 
   function handleMouseLeave() {
     if (isScrolling) return
-    onCellHover(null, 0, 0)
+    clearCellHover()
   }
 </script>
 

@@ -15,6 +15,7 @@
   } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
+  import { mergeProps } from 'bits-ui'
   import { onMount } from 'svelte'
   import ScoresSearchBox from './scores-search-box.svelte'
   import type { SortMode, ViewMode } from './types'
@@ -79,6 +80,8 @@
     { value: 'categories' as const, icon: IconSortDescendingShapesFilled, label: 'Category' },
     { value: 'solves' as const, icon: IconSortAscendingNumbers, label: 'Difficulty' },
   ]
+
+  const controlTooltipTether = Tooltip.createTether<string>()
 
   function selectAllDivisions() {
     onDivisionChange(undefined)
@@ -176,27 +179,26 @@
         <span class="text-foreground-l3 text-sm">View</span>
         <div class="flex items-center gap-0.5">
           {#each viewOptions as option}
-            <Tooltip.Root>
-              <Tooltip.Trigger>
-                {#snippet child({ props })}
-                  <button
-                    {...props}
-                    type="button"
-                    aria-label={option.label}
-                    aria-pressed={viewMode === option.value}
-                    class={cn(
-                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
-                      viewMode === option.value &&
-                        'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                    )}
-                    onclick={() => onViewModeChange(option.value)}
-                  >
-                    <option.icon class="size-4" />
-                  </button>
-                {/snippet}
-              </Tooltip.Trigger>
-              <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
-            </Tooltip.Root>
+            <Tooltip.Trigger tether={controlTooltipTether} payload={option.label}>
+              {#snippet child({ props })}
+                {@const buttonProps = mergeProps(props, {
+                  onclick: () => onViewModeChange(option.value),
+                  'aria-label': option.label,
+                  'aria-pressed': viewMode === option.value,
+                })}
+                <button
+                  {...buttonProps}
+                  type="button"
+                  class={cn(
+                    'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
+                    viewMode === option.value &&
+                      'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
+                  )}
+                >
+                  <option.icon class="size-4" />
+                </button>
+              {/snippet}
+            </Tooltip.Trigger>
           {/each}
         </div>
       </div>
@@ -206,27 +208,26 @@
           <span class="text-foreground-l3 text-sm">Sort</span>
           <div class="flex items-center gap-0.5">
             {#each sortOptions as option}
-              <Tooltip.Root>
-                <Tooltip.Trigger>
-                  {#snippet child({ props })}
-                    <button
-                      {...props}
-                      type="button"
-                      aria-label={option.label}
-                      aria-pressed={sortMode === option.value}
-                      class={cn(
-                        'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
-                        sortMode === option.value &&
-                          'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                      )}
-                      onclick={() => onSortModeChange(option.value)}
-                    >
-                      <option.icon class="size-4" />
-                    </button>
-                  {/snippet}
-                </Tooltip.Trigger>
-                <Tooltip.Content side="bottom">{option.label}</Tooltip.Content>
-              </Tooltip.Root>
+              <Tooltip.Trigger tether={controlTooltipTether} payload={option.label}>
+                {#snippet child({ props })}
+                  {@const buttonProps = mergeProps(props, {
+                    onclick: () => onSortModeChange(option.value),
+                    'aria-label': option.label,
+                    'aria-pressed': sortMode === option.value,
+                  })}
+                  <button
+                    {...buttonProps}
+                    type="button"
+                    class={cn(
+                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
+                      sortMode === option.value &&
+                        'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
+                    )}
+                  >
+                    <option.icon class="size-4" />
+                  </button>
+                {/snippet}
+              </Tooltip.Trigger>
             {/each}
           </div>
         </div>
@@ -303,3 +304,11 @@
     </button>
   </div>
 </div>
+
+<Tooltip.Root tether={controlTooltipTether}>
+  {#snippet children({ payload })}
+    {#if payload}
+      <Tooltip.Content side="bottom">{payload}</Tooltip.Content>
+    {/if}
+  {/snippet}
+</Tooltip.Root>

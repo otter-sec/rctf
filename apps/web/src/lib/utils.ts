@@ -15,6 +15,7 @@ export * from './utils/filesize'
 export * from './utils/captcha'
 export * from './utils/permissions'
 export * from './utils/virtualizer.svelte'
+export * from './utils/hover-tooltip.svelte'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T
