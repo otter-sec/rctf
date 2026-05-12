@@ -29,6 +29,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 build/
 .cursor/
+.codex/
 .claude/
 CLAUDE.md
 uploads/
@@ -65,3 +66,4 @@ examples/**/env.d.ts
 *.code-workspace
 packages/astro/e2e/fixtures/cloudflare/.wrangler/deploy/config.json
 export-output/
+AGENTS.md
