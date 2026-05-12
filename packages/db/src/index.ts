@@ -21,6 +21,7 @@ export type Settings = InferInsertModel<typeof schema.settings>
 export type PendingUserVerification = InferInsertModel<
   typeof schema.pendingUserVerifications
 >
+export type Submission = InferInsertModel<typeof schema.submissions>
 
 export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient

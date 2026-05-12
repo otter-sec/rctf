@@ -5,7 +5,7 @@ description: Viewing and managing challenge submissions in rCTF.
 
 import Callout from '@/components/callout.astro'
 
-Submissions (solves) are recorded when a team successfully submits the correct flag for a challenge. Admins can view and manage solves through the admin panel.
+Submissions (solves) are recorded when a team successfully submits the correct flag for a challenge. Admins can view and manage solves through the admin panel, and can review submission IP history for both flag submissions and admin bot submissions.
 
 ## Viewing solves
 
@@ -22,7 +22,7 @@ Deleting a solve triggers an automatic leaderboard recalculation. The team's sco
 </Callout>
 ## Submission tracking
 
-Each solve record includes the IP address of the submitter. This can be used for investigating suspicious activity such as flag sharing between teams.
+Each solve record includes the IP address of the submitter. The admin panel also includes a submissions table that records IPs for flag attempts and admin bot submissions, with sorting by time, challenge, team, IP, submission type, and result. This can be used for investigating suspicious activity such as flag sharing between teams.
 
 ## First bloods
 

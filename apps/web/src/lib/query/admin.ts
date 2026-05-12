@@ -1,6 +1,7 @@
 import {
   CompleteAdminUserVerificationRouteV2,
   DeleteAdminUserRouteV2,
+  FilterAdminSubmissionsRouteV2,
   FilterAdminUsersRouteV2,
   GetAdminBotStatusRouteV2,
   GetAdminChallengeRouteV2,
@@ -13,6 +14,7 @@ import {
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
   GoodAdminSettings,
+  GoodAdminSubmissions,
   GoodAdminUsersV2,
   GoodAdminUserV2,
   GoodAdminUserVerificationsV2,
@@ -42,6 +44,16 @@ export type AdminUsersQueryParams = Pick<
   'search' | 'sortBy' | 'sortOrder'
 > &
   AdminUsersRouteBody
+
+type AdminSubmissionsRouteQuery = RouteQuery<
+  typeof FilterAdminSubmissionsRouteV2
+>
+type AdminSubmissionsRouteBody = RouteBody<typeof FilterAdminSubmissionsRouteV2>
+export type AdminSubmissionsQueryParams = Pick<
+  AdminSubmissionsRouteQuery,
+  'sortBy' | 'sortOrder' | 'challengeSearch' | 'teamSearch'
+> &
+  AdminSubmissionsRouteBody
 
 export const adminChallengesQueryOptions = queryOptions({
   queryKey: ['admin', 'challenges'] as const,
@@ -88,6 +100,20 @@ export const adminSettingsQueryOptions = queryOptions({
     throw new ApiError(response.kind, response.message)
   },
 })
+
+export const adminSubmissionsQueryOptions = (
+  params: { limit: number; offset: number } & AdminSubmissionsQueryParams
+) =>
+  queryOptions({
+    queryKey: ['admin', 'submissions', params] as const,
+    queryFn: async () => {
+      const response = await apiRequest(FilterAdminSubmissionsRouteV2, params)
+      if (response.kind === GoodAdminSubmissions.kind) {
+        return response.data
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+  })
 
 export const adminUserQueryOptions = (id: string) =>
   queryOptions({
@@ -160,12 +186,12 @@ export function useInfiniteAdminUsers(
         throw new ApiError(response.kind, response.message)
       },
       initialPageParam: 0,
+      enabled: enabled() && browser,
       getNextPageParam: lastPage => {
         const nextOffset = lastPage.offset + lastPage.users.length
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
       placeholderData: keepPreviousData,
-      enabled: enabled() && browser,
     }
   })
 }
@@ -193,6 +219,36 @@ export function useAdminBotStatus() {
 
 export function useAdminSettings() {
   return createQuery(() => adminSettingsQueryOptions)
+}
+
+export function useInfiniteAdminSubmissions(
+  params: () => AdminSubmissionsQueryParams,
+  pageSize: () => number = () => 100
+) {
+  return createInfiniteQuery(() => {
+    const p = params()
+    const ps = pageSize()
+    return {
+      queryKey: ['admin', 'submissions', 'infinite', p, ps] as const,
+      queryFn: async ({ pageParam = 0 }) => {
+        const response = await apiRequest(FilterAdminSubmissionsRouteV2, {
+          limit: ps,
+          offset: pageParam,
+          ...p,
+        })
+        if (response.kind === GoodAdminSubmissions.kind) {
+          return { ...response.data, offset: pageParam }
+        }
+        throw new ApiError(response.kind, response.message)
+      },
+      initialPageParam: 0,
+      getNextPageParam: lastPage => {
+        const nextOffset = lastPage.offset + lastPage.submissions.length
+        return nextOffset < lastPage.total ? nextOffset : undefined
+      },
+      placeholderData: keepPreviousData,
+    }
+  })
 }
 
 export function useInstancerSchema() {

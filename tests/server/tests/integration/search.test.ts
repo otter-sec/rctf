@@ -422,6 +422,20 @@ describe('admin users search', () => {
     expect(names).toContain('AlphaTeam')
   })
 
+  test('search accepts one-character substring queries', async () => {
+    const res = await request(
+      app,
+      '/api/v2/admin/users?limit=100&offset=0&search=a',
+      {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${adminToken}` },
+      }
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+    expect(names).toContain('AlphaTeam')
+  })
+
   test('search with no results returns empty list', async () => {
     const res = await requestAdminUsers(
       '?limit=100&offset=0&search=NonExistentXYZ'

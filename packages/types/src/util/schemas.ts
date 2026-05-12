@@ -116,3 +116,37 @@ export const searchFilter = <T extends z.core.SomeType>(t: T) =>
     include: z.nullish(z.array(t)),
     exclude: z.nullish(z.array(t)),
   })
+
+export enum SubmissionKind {
+  FLAG = 'flag',
+  ADMIN_BOT = 'admin_bot',
+}
+
+export enum SubmissionSortBy {
+  CREATED_AT = 'createdAt',
+  CHALLENGE = 'challenge',
+  TEAM = 'team',
+  IP = 'ip',
+  KIND = 'kind',
+  RESULT = 'result',
+}
+
+export enum SubmissionSortOrder {
+  ASC = 'asc',
+  DESC = 'desc',
+}
+
+export enum SubmissionResult {
+  CORRECT = 'correct',
+  INCORRECT = 'incorrect',
+  ALREADY_SOLVED = 'already_solved',
+  QUEUED = 'queued',
+  ACTIVE_JOB = 'active_job',
+  INVALID_INPUT = 'invalid_input',
+  BAD_INSTANCER_STATE = 'bad_instancer_state',
+}
+
+export enum SubmissionTeamStatus {
+  BANNED = 'banned',
+  NOT_BANNED = 'not_banned',
+}

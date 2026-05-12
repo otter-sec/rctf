@@ -6,7 +6,7 @@ import type {
   InstancerConfig,
   Solve,
 } from '@rctf/db'
-import { challenges, solves, users } from '@rctf/db'
+import { challenges, solves, submissions, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
@@ -18,6 +18,7 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
+import { SubmissionKind, SubmissionResult } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
@@ -25,6 +26,7 @@ import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
+import { createSubmission } from './submissions'
 import { getUser } from './users'
 
 type SubmitResponseHelpers = ResponseHelpers<
@@ -182,9 +184,11 @@ export const createSolveAndGetBloodNumber = async (
     challengeId: string
     userId: string
     submissionIp?: string | null
+    submittedFlag?: string
   }
 ): Promise<number> => {
   const solveId = crypto.randomUUID()
+  const submissionId = crypto.randomUUID()
 
   return await db.transaction(async tx => {
     await tx.execute(
@@ -207,6 +211,20 @@ export const createSolveAndGetBloodNumber = async (
       INSERT INTO solves (id, challengeid, userid, createdat, submissionip)
       VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
     `)
+
+    await tx.insert(submissions).values({
+      id: submissionId,
+      kind: SubmissionKind.FLAG,
+      challengeId: params.challengeId,
+      userId: params.userId,
+      ip: params.submissionIp ?? 'unknown',
+      result: SubmissionResult.CORRECT,
+      details: params.submittedFlag
+        ? { submittedFlag: params.submittedFlag }
+        : {},
+      relatedId: solveId,
+      createdAt: new Date().toISOString(),
+    })
 
     return result!.solve_count + 1
   })
@@ -525,6 +543,19 @@ export const submitFlag = async (
   }
 
   if (!verifyDefaultFlag(params.flag, challenge.data.flag)) {
+    await createSubmission(db, {
+      kind: SubmissionKind.FLAG,
+      challengeId: params.challengeId,
+      userId: params.userId,
+      ip: params.submissionIp,
+      result: SubmissionResult.INCORRECT,
+      details: { submittedFlag: params.flag },
+    }).catch(err =>
+      log.error(
+        { err, challengeId: params.challengeId, userId: params.userId },
+        'failed to record incorrect flag submission'
+      )
+    )
     return res.badFlag()
   }
 
@@ -543,10 +574,24 @@ export const submitFlag = async (
       challengeId: params.challengeId,
       userId: params.userId,
       submissionIp: params.submissionIp,
+      submittedFlag: params.flag,
     })
   } catch (error) {
     const constraintName = getErrorConstraint(error)
     if (constraintName === 'uq') {
+      await createSubmission(db, {
+        kind: SubmissionKind.FLAG,
+        challengeId: params.challengeId,
+        userId: params.userId,
+        ip: params.submissionIp,
+        result: SubmissionResult.ALREADY_SOLVED,
+        details: { submittedFlag: params.flag },
+      }).catch(err =>
+        log.error(
+          { err, challengeId: params.challengeId, userId: params.userId },
+          'failed to record already-solved flag submission'
+        )
+      )
       return res.badAlreadySolvedChallenge()
     }
     if (constraintName === 'uuid_fkey') {
