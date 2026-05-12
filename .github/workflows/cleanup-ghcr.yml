@@ -58,7 +58,6 @@ jobs:
           delete-tags: '*'
           exclude-tags: ${{ needs.collect.outputs.valid }}
           validate: true
-          dry-run: true
 
       - name: Delete untagged orphans older than 2 weeks
         uses: dataaxiom/ghcr-cleanup-action@v1
@@ -67,4 +66,3 @@ jobs:
           delete-untagged: true
           older-than: 2 weeks
           validate: true
-          dry-run: true
