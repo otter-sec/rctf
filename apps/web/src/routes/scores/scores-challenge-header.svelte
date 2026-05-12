@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { mergeProps } from 'bits-ui'
   import { Tooltip } from '$lib/components'
   import { IconX } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
+  import { mergeProps } from 'bits-ui'
   import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
 
   interface Props {

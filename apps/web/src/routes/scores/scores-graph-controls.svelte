@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { mergeProps } from 'bits-ui'
   import { Tooltip } from '$lib/components'
   import { IconMoodHappy, IconMoodHappyFilled, IconPin, IconPinnedFilled } from '$lib/icons'
   import { cn } from '$lib/utils'
+  import { mergeProps } from 'bits-ui'
 
   interface Props {
     showTop3Context: boolean

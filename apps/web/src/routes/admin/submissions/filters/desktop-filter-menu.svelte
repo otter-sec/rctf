@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { DropdownMenu, ScrollArea, Spinner } from '$lib/components'
+  import { DropdownMenu, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { IconClockFilled, IconFilter } from '$lib/icons'
   import { cn } from '$lib/utils'
   import SubmissionsFilterOptionList from './filter-option-list.svelte'
@@ -122,45 +122,53 @@
   </div>
 {/snippet}
 
-<DropdownMenu.Root>
-  <DropdownMenu.Trigger
-    aria-label="Add filter"
-    class={cn(
-      'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
-      hasFilters && 'text-foreground-accent'
-    )}
-  >
-    <IconFilter class="size-4" />
-  </DropdownMenu.Trigger>
-  <DropdownMenu.Content
-    align="start"
-    class="bg-background-l4 border-foreground-l4/40 z-100 w-80 overflow-hidden border-2 p-0! shadow-xl"
-  >
-    <SubmissionsFilterSearchInput
-      value={rootFilterSearch}
-      placeholder="Search filters..."
-      onInput={value => (rootFilterSearch = value)}
-    />
-    {#key rootFilterScrollKey}
-      {#if isRootSearchActive}
-        <ScrollArea
-          class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-          fadeSize={28}
-          fadeColor="background-l4"
-          scrollbarYClasses="hidden"
+<Tooltip.Root disableCloseOnTriggerClick>
+  <DropdownMenu.Root>
+    <Tooltip.Trigger>
+      {#snippet child({ props })}
+        <DropdownMenu.Trigger
+          {...props}
+          aria-label="Add filter"
+          class={cn(
+            'bg-background-l4 text-foreground-l2 hover:bg-background-l5 hover:text-foreground-l1 flex size-8 shrink-0 items-center justify-center rounded-md border transition-colors',
+            hasFilters && 'text-foreground-accent'
+          )}
         >
-          {@render rootFilterSearchResults()}
-        </ScrollArea>
-      {:else}
-        <ScrollArea
-          class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
-          fadeSize={28}
-          fadeColor="background-l4"
-          scrollbarYClasses="hidden"
-        >
-          {@render rootFilterList()}
-        </ScrollArea>
-      {/if}
-    {/key}
-  </DropdownMenu.Content>
-</DropdownMenu.Root>
+          <IconFilter class="size-4" />
+        </DropdownMenu.Trigger>
+      {/snippet}
+    </Tooltip.Trigger>
+    <DropdownMenu.Content
+      align="start"
+      class="bg-background-l4 border-foreground-l4/40 z-100 w-80 overflow-hidden border-2 p-0! shadow-xl"
+    >
+      <SubmissionsFilterSearchInput
+        value={rootFilterSearch}
+        placeholder="Search filters..."
+        onInput={value => (rootFilterSearch = value)}
+      />
+      {#key rootFilterScrollKey}
+        {#if isRootSearchActive}
+          <ScrollArea
+            class="h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
+            {@render rootFilterSearchResults()}
+          </ScrollArea>
+        {:else}
+          <ScrollArea
+            class="max-h-[min(29rem,calc(var(--bits-dropdown-menu-content-available-height)-2.75rem))]"
+            fadeSize={28}
+            fadeColor="background-l4"
+            scrollbarYClasses="hidden"
+          >
+            {@render rootFilterList()}
+          </ScrollArea>
+        {/if}
+      {/key}
+    </DropdownMenu.Content>
+  </DropdownMenu.Root>
+  <Tooltip.Content side="top" sideOffset={8}>Add filter</Tooltip.Content>
+</Tooltip.Root>

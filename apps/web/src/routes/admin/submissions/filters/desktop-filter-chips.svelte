@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SubmissionKind, SubmissionTeamStatus } from '@rctf/types'
-  import { Avatar, DropdownMenu } from '$lib/components'
+  import { Avatar, DropdownMenu, Tooltip } from '$lib/components'
   import {
     IconChevronDown,
     IconClockFilled,
@@ -11,6 +11,7 @@
     IconX,
   } from '$lib/icons'
   import { cn, getCategoryConfig, getCategoryStyle, getInitials } from '$lib/utils'
+  import { mergeProps } from 'bits-ui'
   import {
     clearTimeRangeFilter,
     hasTimeRangeFilter,
@@ -48,6 +49,8 @@
   function valueFilter(family: ValueFilterFamily): MultiFilter<unknown> {
     return filters[family.id] as MultiFilter<unknown>
   }
+
+  const tooltipTether = Tooltip.createTether<string>()
 </script>
 
 {#snippet valueFilterCount(family: ValueFilterFamily)}
@@ -201,14 +204,24 @@
         <SubmissionsFilterOptionList {family} searchable={!!family.search} />
       </DropdownMenu.Content>
     </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove {family.label.toLowerCase()} filters"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={() => family.clear()}
+    <Tooltip.Trigger
+      tether={tooltipTether}
+      payload={`Remove ${family.label.toLowerCase()} filters`}
     >
-      <IconX class="size-3.5" />
-    </button>
+      {#snippet child({ props })}
+        {@const buttonProps = mergeProps(props, {
+          onclick: () => family.clear(),
+          'aria-label': `Remove ${family.label.toLowerCase()} filters`,
+        })}
+        <button
+          {...buttonProps}
+          type="button"
+          class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+        >
+          <IconX class="size-3.5" />
+        </button>
+      {/snippet}
+    </Tooltip.Trigger>
   </span>
 {/snippet}
 
@@ -237,14 +250,21 @@
         <SubmissionsTimeRangeEditor bind:filters {timeRangeError} />
       </DropdownMenu.Content>
     </DropdownMenu.Root>
-    <button
-      type="button"
-      aria-label="Remove time filter"
-      class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
-      onclick={() => clearTimeRangeFilter(filters.time)}
-    >
-      <IconX class="size-3.5" />
-    </button>
+    <Tooltip.Trigger tether={tooltipTether} payload="Remove time filter">
+      {#snippet child({ props })}
+        {@const buttonProps = mergeProps(props, {
+          onclick: () => clearTimeRangeFilter(filters.time),
+          'aria-label': 'Remove time filter',
+        })}
+        <button
+          {...buttonProps}
+          type="button"
+          class="text-foreground-l3 hover:text-foreground-l1 flex h-full w-7 shrink-0 items-center justify-center border-l-2"
+        >
+          <IconX class="size-3.5" />
+        </button>
+      {/snippet}
+    </Tooltip.Trigger>
   </span>
 {/snippet}
 
@@ -260,3 +280,11 @@
     {@render timeRangeChip()}
   {/if}
 </div>
+
+<Tooltip.Root tether={tooltipTether}>
+  {#snippet children({ payload })}
+    {#if payload}
+      <Tooltip.Content side="top" sideOffset={8}>{payload}</Tooltip.Content>
+    {/if}
+  {/snippet}
+</Tooltip.Root>

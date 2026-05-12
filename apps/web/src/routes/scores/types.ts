@@ -1,4 +1,3 @@
-import type { Tooltip as TooltipPrimitive } from 'bits-ui'
 import type { getCategoryConfig } from '$lib/utils/categories'
 
 export interface ChallengeTooltipData {
@@ -20,7 +19,6 @@ export interface CategoryTooltipData {
 }
 
 export type TooltipData = ChallengeTooltipData | CategoryTooltipData
-export type ScoreCellTooltipTether = TooltipPrimitive.Tether<TooltipData>
 
 export type ViewMode = 'challenges' | 'categories'
 export type SortMode = 'categories' | 'solves'

@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { Button, Spinner, Tooltip, type ButtonVariant } from '$lib/components'
   import { mergeProps } from 'bits-ui'
   import type { Tooltip as TooltipPrimitive } from 'bits-ui'
   import type { Snippet } from 'svelte'
-  import { Button, Spinner, Tooltip, type ButtonVariant } from '$lib/components'
 
   interface Props {
     tether: TooltipPrimitive.Tether<string>

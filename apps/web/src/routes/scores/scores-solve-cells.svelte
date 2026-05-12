@@ -1,12 +1,5 @@
 <script lang="ts" module>
-  import type {
-    CategoryGroup,
-    ChallengeInfo,
-    ScoreCellTooltipTether,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './types'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
     svg: string
@@ -278,7 +271,6 @@
 </script>
 
 <script lang="ts">
-  import { Tooltip } from '$lib/components'
   import { cn } from '$lib/utils'
   import { onDestroy } from 'svelte'
 
@@ -295,7 +287,6 @@
     getSolveTime: (challengeId: string) => number | undefined
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
     getBloodIndex: (challengeId: string) => number
-    cellTooltipTether: ScoreCellTooltipTether
     onCellHover: (data: TooltipData | null, x: number, y: number) => void
     isScrolling?: boolean
     isCurrentUser?: boolean
@@ -314,13 +305,13 @@
     getSolveTime,
     getCategoryStats,
     getBloodIndex,
-    cellTooltipTether,
     onCellHover,
     isScrolling = false,
     isCurrentUser = false,
   }: Props = $props()
 
   let activeTooltipData = $state<TooltipData | null>(null)
+  let activeTooltipKey = $state<string | null>(null)
 
   if (typeof document !== 'undefined') {
     registerStripConsumer()
@@ -416,15 +407,21 @@
     return next
   })
 
-  function setCellHover(data: TooltipData, x: number, y: number) {
+  function setCellHover(key: string, data: TooltipData, x: number, y: number) {
+    if (activeTooltipKey === key) return
+    activeTooltipKey = key
     activeTooltipData = data
     onCellHover(data, x, y)
   }
 
   function clearCellHover() {
+    if (!activeTooltipKey && !activeTooltipData) return
+    activeTooltipKey = null
     activeTooltipData = null
     onCellHover(null, 0, 0)
   }
+
+  onDestroy(() => clearCellHover())
 
   $effect(() => {
     if (isScrolling && activeTooltipData) {
@@ -454,15 +451,19 @@
       return
     }
 
+    const solved = getSolves(challenge.id)
+    const bloodIndex = getBloodIndex(challenge.id)
+    const solveTime = getSolveTime(challenge.id)
     setCellHover(
+      `challenge:${teamId}:${challenge.id}:${solved ? 1 : 0}:${bloodIndex}:${solveTime ?? ''}`,
       {
         type: 'challenge',
         teamId,
         challengeName: challenge.name,
         points: challenge.points,
-        solved: getSolves(challenge.id),
-        bloodIndex: getBloodIndex(challenge.id),
-        solveTime: getSolveTime(challenge.id),
+        solved,
+        bloodIndex,
+        solveTime,
       },
       rect.left + circleCenterX,
       rect.top + circleCenterY - ICON_RADIUS
@@ -494,6 +495,7 @@
 
     const stats = getCategoryStats(group)
     setCellHover(
+      `category:${teamId}:${group.category}:${stats.solved}:${stats.total}`,
       {
         type: 'category',
         teamId,
@@ -512,55 +514,38 @@
   }
 </script>
 
-<Tooltip.Trigger
-  tether={cellTooltipTether}
-  payload={activeTooltipData ?? undefined}
-  tabindex={-1}
+<div
+  class={cn(
+    'bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 contain-[layout_style_paint]',
+    isScrolling && 'pointer-events-none',
+    isCurrentUser && 'bg-background-self-l0'
+  )}
 >
-  {#snippet child({ props })}
-    <div
-      {...props}
-      class={cn(
-        'bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 contain-[layout_style_paint]',
-        isScrolling && 'pointer-events-none',
-        isCurrentUser && 'bg-background-self-l0'
-      )}
-    >
-      {#snippet stripImage()}
-        {#if strip}
-          <!-- inline svg renders synchronously with the row, avoiding the async
-               image loading pipeline that causes challenge circles to lag behind -->
-          <div
-            class="block h-16 shrink-0 select-none"
-            style:width={strip.width + 'px'}
-            aria-hidden="true"
-          >
-            {@html strip.svg}
-          </div>
-        {:else}
-          <div class="h-16 shrink-0" style:width={imageWidth + 'px'}></div>
-        {/if}
-      {/snippet}
-
-      {#if viewMode === 'categories'}
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class="shrink-0"
-          onmousemove={handleCategoryMouseMove}
-          onmouseleave={handleMouseLeave}
-        >
-          {@render stripImage()}
-        </div>
-      {:else}
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class="shrink-0"
-          onmousemove={handleChallengeMouseMove}
-          onmouseleave={handleMouseLeave}
-        >
-          {@render stripImage()}
-        </div>
-      {/if}
-    </div>
+  {#snippet stripImage()}
+    {#if strip}
+      <!-- inline svg renders synchronously with the row, avoiding the async
+           image loading pipeline that causes challenge circles to lag behind -->
+      <div
+        class="block h-16 shrink-0 select-none"
+        style:width={strip.width + 'px'}
+        aria-hidden="true"
+      >
+        {@html strip.svg}
+      </div>
+    {:else}
+      <div class="h-16 shrink-0" style:width={imageWidth + 'px'}></div>
+    {/if}
   {/snippet}
-</Tooltip.Trigger>
+
+  {#if viewMode === 'categories'}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="shrink-0" onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
+      {@render stripImage()}
+    </div>
+  {:else}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="shrink-0" onmousemove={handleChallengeMouseMove} onmouseleave={handleMouseLeave}>
+      {@render stripImage()}
+    </div>
+  {/if}
+</div>

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import type { Tooltip as TooltipPrimitive } from 'bits-ui'
   import { Avatar, Tooltip } from '$lib/components'
   import {
     IconCheck,
@@ -11,6 +10,7 @@
     IconUserCog,
   } from '$lib/icons'
   import { cn, formatLocalTime, formatRelativeHoursMinutes, getInitials } from '$lib/utils'
+  import type { Tooltip as TooltipPrimitive } from 'bits-ui'
   import TeamActionTooltipButton from './team-action-tooltip-button.svelte'
   import TeamStatusDot from './team-status-dot.svelte'
   import {
@@ -128,8 +128,8 @@
   {#if email}
     <button
       type="button"
+      data-tooltip-label="Copy email"
       class="text-foreground-l2 hover:text-foreground-l1 max-w-full truncate text-left hover:underline"
-      title="Copy email"
       onclick={() => onCopyEmail(email)}
     >
       {email}
@@ -142,11 +142,13 @@
 {#snippet timeCell(row: TeamRow)}
   {@const timestamp = rowTime(row)}
   {@const ctfOffset = formatCtfOffset(timestamp)}
+  {@const label = `${row.kind === 'registered' ? 'Registered' : 'Expires'} UTC ${new Date(
+    timestamp
+  ).toISOString()}`}
   <div
+    role="note"
+    data-tooltip-label={label}
     class="flex max-w-full min-w-0 items-baseline gap-2 overflow-hidden whitespace-nowrap"
-    title="{row.kind === 'registered' ? 'Registered' : 'Expires'} UTC {new Date(
-      timestamp
-    ).toISOString()}"
   >
     <span class="text-foreground-l1 shrink-0 tabular-nums">
       {row.kind === 'pending' ? 'Expires ' : ''}{formatLocalTime(timestamp)}
@@ -168,10 +170,11 @@
   <div class="flex items-center gap-1">
     {#if hasWritePerms}
       {#if isAdmin}
-        <Tooltip.Trigger tether={actionTooltipTether} payload="Admin account">
+        <Tooltip.Trigger tether={actionTooltipTether} payload="Admin account" tabindex={-1}>
           {#snippet child({ props })}
             <button
               {...props}
+              type="button"
               class="bg-background-accent text-foreground-accent flex size-8 items-center justify-center rounded-md"
               aria-label="Admin account"
             >

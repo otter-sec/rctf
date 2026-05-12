@@ -3,14 +3,7 @@
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
-  import type {
-    CategoryGroup,
-    ChallengeInfo,
-    ScoreCellTooltipTether,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './types'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface TeamData {
     id: string
@@ -48,7 +41,6 @@
     focusedChallengeId: string | null
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
     getBloodIndex: (challengeId: string) => number
-    cellTooltipTether: ScoreCellTooltipTether
     onCellHover: (data: TooltipData | null, x: number, y: number) => void
     onSparklineHover: () => void
     onSparklineUnhover: () => void
@@ -72,7 +64,6 @@
     focusedChallengeId,
     getCategoryStats,
     getBloodIndex,
-    cellTooltipTether,
     onCellHover,
     onSparklineHover,
     onSparklineUnhover,
@@ -235,7 +226,6 @@
         getSolveTime={cid => solveTimes?.get(cid)}
         {getCategoryStats}
         {getBloodIndex}
-        {cellTooltipTether}
         {onCellHover}
         {isScrolling}
         isCurrentUser={data.isCurrentUser}

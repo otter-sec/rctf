@@ -1,6 +1,5 @@
 <script lang="ts">
   import { arrowNavigation } from '$lib/actions/arrow-navigation'
-  import { mergeProps } from 'bits-ui'
   import { DropdownMenu, Tooltip } from '$lib/components'
   import {
     IconCheck,
@@ -16,6 +15,7 @@
   } from '$lib/icons'
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
+  import { mergeProps } from 'bits-ui'
   import { onMount } from 'svelte'
   import ScoresSearchBox from './scores-search-box.svelte'
   import type { SortMode, ViewMode } from './types'
