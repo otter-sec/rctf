@@ -1,6 +1,5 @@
 <script lang="ts">
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
-  import type { ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, Bars, ChartCore, Svg, Tooltip } from 'layerchart/svg'
   import type { CadenceDatum } from './profile-analytics-data'
@@ -15,12 +14,9 @@
   let { data, ctfStart }: Props = $props()
 
   const max = $derived(maxChartValue(data, item => item.count))
-  const chartConfig = {
-    solves: { label: 'solves', color: 'var(--foreground-l4)' },
-  } satisfies ChartConfig
 </script>
 
-<ChartContainer config={chartConfig} class="h-44 w-full">
+<ChartContainer class="h-44 w-full">
   <ChartCore
     {data}
     x="label"

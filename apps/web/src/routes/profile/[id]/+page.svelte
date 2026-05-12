@@ -44,6 +44,32 @@
   {/if}
 </svelte:head>
 
+{#snippet solvesPanel()}
+  {#if user}
+    <ProfileSolves
+      {challenges}
+      solves={user.solves}
+      showUnsolved={challenges.length > 0}
+      scrollable
+      class="min-h-0 flex-1"
+    />
+  {/if}
+{/snippet}
+
+{#snippet analyticsPanel()}
+  {#if user && clientConfig}
+    <ScrollArea
+      class="h-full"
+      fadeSize={32}
+      fadeColor="background-l1"
+      scrollbarYClasses="z-30 mt-4"
+      viewportTabIndex={-1}
+    >
+      <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
+    </ScrollArea>
+  {/if}
+{/snippet}
+
 {#if user && clientConfig}
   <div
     class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
@@ -61,25 +87,11 @@
       </div>
 
       <Tabs.Content value="challenges" class="min-h-0">
-        <ProfileSolves
-          {challenges}
-          solves={user.solves}
-          showUnsolved={challenges.length > 0}
-          scrollable
-          class="min-h-0 flex-1"
-        />
+        {@render solvesPanel()}
       </Tabs.Content>
 
       <Tabs.Content value="analytics" class="min-h-0">
-        <ScrollArea
-          class="h-full"
-          fadeSize={32}
-          fadeColor="background-l1"
-          scrollbarYClasses="z-30 mt-4"
-          viewportTabIndex={-1}
-        >
-          <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
-        </ScrollArea>
+        {@render analyticsPanel()}
       </Tabs.Content>
     </Tabs.Root>
   </div>
@@ -92,25 +104,11 @@
         <ProfileHeader {user} {clientConfig} />
       </div>
 
-      <ProfileSolves
-        {challenges}
-        solves={user.solves}
-        showUnsolved={challenges.length > 0}
-        scrollable
-        class="min-h-0 flex-1"
-      />
+      {@render solvesPanel()}
     </div>
 
     <div class="bg-background-l1 min-h-0 overflow-hidden rounded-t-3xl">
-      <ScrollArea
-        class="h-full"
-        fadeSize={32}
-        fadeColor="background-l1"
-        scrollbarYClasses="z-30 mt-4"
-        viewportTabIndex={-1}
-      >
-        <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
-      </ScrollArea>
+      {@render analyticsPanel()}
     </div>
   </div>
 {:else if isPending}

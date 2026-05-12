@@ -2,12 +2,12 @@
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
   import { IconCheck } from '$lib/icons'
   import { Axis, Bar, Bars, ChartCore, Svg, Tooltip } from 'layerchart/svg'
-  import type { CategoryStat, ProfileBarDatum, ProfileBarSegment } from './profile-analytics-data'
-  import { buildChartConfig, maxChartValue } from './profile-analytics-data'
+  import type { CategoryBarDatum, CategoryBarSegment, CategoryStat } from './profile-analytics-data'
+  import { maxChartValue } from './profile-analytics-data'
   import { compactNumber, integerTicks } from './profile-chart-utils'
 
   interface Props {
-    data: ProfileBarDatum[]
+    data: CategoryBarDatum[]
     stats: CategoryStat[]
     emptyMessage: string
   }
@@ -17,55 +17,43 @@
   const componentId = $props.id()
   const chartInstanceId = componentId.replace(/[^a-zA-Z0-9_-]/g, '-')
 
-  const height = $derived(Math.max(180, stats.length * 28 + 42))
+  const rowHeightPx = 28
+  const minChartHeightPx = 180
+  const axisOverheadPx = 42
+
+  const height = $derived(Math.max(minChartHeightPx, stats.length * rowHeightPx + axisOverheadPx))
   const max = $derived(maxChartValue(data, item => item.max))
-  const chartConfig = $derived(buildChartConfig(data))
   const labels = $derived(stats.map(stat => stat.label))
-  const colorDomain = $derived(stats.map(stat => stat.key))
-  const colorRange = $derived(stats.map(stat => stat.color))
 
-  function segmentClipId(key: string, index: number): string {
+  function defId(role: string, key: string, index: number): string {
     const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, '-')
-    return `profile-category-segments-${chartInstanceId}-${index}-${safeKey}`
+    return `profile-category-${role}-${chartInstanceId}-${index}-${safeKey}`
   }
 
-  function fullClearClipId(key: string, index: number): string {
-    const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, '-')
-    return `profile-category-clear-clip-${chartInstanceId}-${index}-${safeKey}`
-  }
-
-  function fullClearGradientId(key: string, index: number): string {
-    const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, '-')
-    return `profile-category-clear-gradient-${chartInstanceId}-${index}-${safeKey}`
-  }
-
-  function segmentKey(item: ProfileBarDatum, segment: ProfileBarSegment): string {
+  function segmentKey(item: CategoryBarDatum, segment: CategoryBarSegment): string {
     return `${item.key}:${segment.key}`
   }
 
-  function isFullClear(item: ProfileBarDatum): boolean {
+  function isFullClear(item: CategoryBarDatum): boolean {
     return item.value >= item.max
   }
 
   function segmentTooltipData(
-    item: ProfileBarDatum,
-    segment: ProfileBarSegment
-  ): ProfileBarDatum & { segment: ProfileBarSegment } {
+    item: CategoryBarDatum,
+    segment: CategoryBarSegment
+  ): CategoryBarDatum & { segment: CategoryBarSegment } {
     return { ...item, segment }
   }
 </script>
 
 {#if data.length > 0}
-  <ChartContainer config={chartConfig} class="w-full" style="height: {height}px">
+  <ChartContainer class="w-full" style="height: {height}px">
     <ChartCore
       {data}
       x="value"
       y="label"
-      c="key"
       xDomain={[0, max]}
       yDomain={labels}
-      cDomain={colorDomain}
-      cRange={colorRange}
       valueAxis="x"
       padding={{ left: 76, right: 8, top: 4, bottom: 24 }}
       tooltipContext={{ mode: 'manual' }}
@@ -93,7 +81,7 @@
             {@const y = context.yScale(item.label) + 2}
             {@const barHeight = Math.max((context.yScale.bandwidth?.() ?? 0) - 4, 0)}
             {#if item.segments && item.segments.length > 0}
-              {@const clipId = segmentClipId(item.key, index)}
+              {@const clipId = defId('segments', item.key, index)}
               <defs>
                 <clipPath id={clipId}>
                   <rect
@@ -180,8 +168,8 @@
             {#if isFullClear(item)}
               {@const x1 = context.xScale(item.value)}
               {@const barWidth = Math.max(0, x1 - x0)}
-              {@const clearClipId = fullClearClipId(item.key, index)}
-              {@const clearGradientId = fullClearGradientId(item.key, index)}
+              {@const clearClipId = defId('clear-clip', item.key, index)}
+              {@const clearGradientId = defId('clear-gradient', item.key, index)}
               {@const clearGradientWidth = Math.min(140, barWidth)}
               <defs>
                 <linearGradient id={clearGradientId} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -230,9 +218,7 @@
             >
               {#if item.segment}
                 <div class="flex items-center gap-2" style={item.style}>
-                  {#if Icon}
-                    <Icon class="text-category-foreground-l1 size-4 shrink-0" />
-                  {/if}
+                  <Icon class="text-category-foreground-l1 size-4 shrink-0" />
                   <div class="flex min-w-0 items-baseline gap-1 font-medium">
                     <span class="text-category-foreground-l1 shrink-0">{item.label} /</span>
                     <span class="text-category-foreground-l0 truncate">
@@ -243,17 +229,11 @@
                 <div class="text-foreground-l3 mt-1 tabular-nums">
                   {item.segment.value.toLocaleString()} pts
                 </div>
-              {:else if Icon}
+              {:else}
                 <div class="flex items-center gap-2" style={item.style}>
                   <Icon class="text-category-foreground-l1 size-4 shrink-0" />
-                  <span class="text-category-foreground-l1 font-medium">
-                    {item.tooltipLabel ?? item.label}
-                  </span>
+                  <span class="text-category-foreground-l1 font-medium">{item.tooltipLabel}</span>
                 </div>
-              {:else}
-                <div>{item.tooltipLabel ?? item.label}</div>
-              {/if}
-              {#if !item.segment}
                 <div class="text-foreground-l3 mt-1 tabular-nums">{item.detail}</div>
               {/if}
             </div>

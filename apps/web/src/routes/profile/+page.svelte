@@ -61,7 +61,7 @@
     <div class="bg-background-l1 mx-auto flex w-full max-w-3xl flex-col rounded-3xl">
       {#if graphData && graphData.points.length > 0}
         <div class="px-4 pt-6">
-          <ProfileGraph class="h-40 w-full" {graphData} />
+          <ProfileGraph class="h-40 w-full" {graphData} {clientConfig} />
         </div>
       {/if}
 
@@ -80,7 +80,7 @@
       <div class="flex min-h-0 flex-1 flex-col">
         {#if graphData && graphData.points.length > 0}
           <div class="shrink-0 px-4 pt-2">
-            <ProfileGraph class="h-40 w-full" {graphData} />
+            <ProfileGraph class="h-40 w-full" {graphData} {clientConfig} />
           </div>
         {/if}
 

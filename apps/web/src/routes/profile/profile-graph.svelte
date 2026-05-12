@@ -1,40 +1,41 @@
 <script lang="ts">
-  import type { LeaderboardGraphEntry } from '@rctf/types'
+  import type { ClientConfig, LeaderboardGraphEntry } from '@rctf/types'
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
-  import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
-  import { useClientConfig } from '$lib/query'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import {
     getProfileCategoryDisplay,
     type ProfileCategoryDisplay,
+    type ProfileSolve,
   } from './profile-analytics-data'
   import { axisTicks, compactNumber, integerTicks, tickTextAnchor } from './profile-chart-utils'
+  import ProfileSolveTooltip from './profile-solve-tooltip.svelte'
 
-  type SolveInput = {
-    id: string
-    name: string
-    category: string
-    createdAt: number
-    points: number | null
-  }
-
-  type ScorePoint = {
+  type SampleScorePoint = {
+    kind: 'sample'
     key: string
-    kind: 'sample' | 'solve'
-    teamId: string
     teamName: string
     time: number
     score: number
     color: string
-    challengeName?: string
-    categoryKey?: string
-    categoryIcon?: ProfileCategoryDisplay['icon']
-    points?: number | null
-    scoreBefore?: number
-    style?: string
   }
+
+  type SolveScorePoint = {
+    kind: 'solve'
+    key: string
+    time: number
+    score: number
+    scoreBefore: number
+    points: number | null
+    challengeName: string
+    categoryKey: string
+    categoryIcon: ProfileCategoryDisplay['icon']
+    color: string
+    style: string
+  }
+
+  type ScorePoint = SampleScorePoint | SolveScorePoint
 
   type ScoreLinePoint = {
     time: number
@@ -47,22 +48,22 @@
   const scoreLineColor = 'var(--foreground-l2)'
 
   function buildStepPath(points: ScoreLinePoint[], xScale: Scale, yScale: Scale) {
-    const first = points[0]
+    const [first, ...rest] = points
     if (!first) return ''
 
     let path = `M ${xScale(first.time)} ${yScale(first.score)}`
-    for (const point of points.slice(1)) {
+    for (const point of rest) {
       path += ` H ${xScale(point.time)} V ${yScale(point.score)}`
     }
     return path
   }
 
   function buildLinePath(points: ScoreLinePoint[], xScale: Scale, yScale: Scale) {
-    const first = points[0]
+    const [first, ...rest] = points
     if (!first) return ''
 
     let path = `M ${xScale(first.time)} ${yScale(first.score)}`
-    for (const point of points.slice(1)) {
+    for (const point of rest) {
       path += ` L ${xScale(point.time)} ${yScale(point.score)}`
     }
     return path
@@ -90,22 +91,19 @@
   interface Props {
     class?: string
     graphData: LeaderboardGraphEntry
-    solves?: SolveInput[]
+    clientConfig: ClientConfig
+    solves?: ProfileSolve[]
   }
 
-  let { class: className = '', graphData, solves = [] }: Props = $props()
+  let { class: className = '', graphData, clientConfig, solves = [] }: Props = $props()
 
-  const clientConfigQuery = useClientConfig()
-  const clientConfig = $derived(clientConfigQuery.data)
-
-  const sampledPoints = $derived<ScorePoint[]>(
+  const sampledPoints = $derived<SampleScorePoint[]>(
     graphData.points
       .filter(p => p.time <= CUTOFF_TIME)
       .toSorted((a, b) => a.time - b.time)
       .map(p => ({
-        key: `sample-${p.time}`,
         kind: 'sample',
-        teamId: graphData.id,
+        key: `sample-${p.time}`,
         teamName: graphData.name,
         time: p.time,
         score: p.score,
@@ -113,7 +111,7 @@
       }))
   )
 
-  const solvePoints = $derived.by<ScorePoint[]>(() => {
+  const solvePoints = $derived.by<SolveScorePoint[]>(() => {
     let score = 0
     return solves
       .filter(solve => solve.createdAt <= CUTOFF_TIME)
@@ -124,10 +122,8 @@
         const category = getProfileCategoryDisplay(solve.category)
 
         return {
-          key: `solve-${solve.id}`,
           kind: 'solve',
-          teamId: graphData.id,
-          teamName: graphData.name,
+          key: `solve-${solve.id}`,
           challengeName: solve.name,
           categoryKey: category.key,
           categoryIcon: category.icon,
@@ -141,16 +137,14 @@
       })
   })
 
-  const chartPoints = $derived(solvePoints.length > 0 ? solvePoints : sampledPoints)
+  const chartPoints = $derived<ScorePoint[]>(solvePoints.length > 0 ? solvePoints : sampledPoints)
   const sampledLinePoints = $derived<ScoreLinePoint[]>(
     sampledPoints.map(point => ({ time: point.time, score: point.score }))
   )
   const scoreLinePoints = $derived.by<ScoreLinePoint[]>(() => {
-    if (solvePoints.length === 0) {
-      return sampledLinePoints
-    }
+    const [firstSolve] = solvePoints
+    if (!firstSolve) return sampledLinePoints
 
-    const firstSolve = solvePoints[0]!
     return [
       { time: firstSolve.time, score: 0 },
       ...solvePoints.map(point => ({ time: point.time, score: point.score })),
@@ -159,11 +153,10 @@
   const domainPoints = $derived(
     solvePoints.length > 0 ? [...scoreLinePoints, ...sampledLinePoints] : scoreLinePoints
   )
-  const startTime = $derived(clientConfig?.startTime ?? 0)
   const xDomain = $derived(
     chartTimeDomain(
       domainPoints.toSorted((a, b) => a.time - b.time),
-      startTime
+      clientConfig.startTime
     )
   )
   const yMax = $derived(chartScoreMax(domainPoints))
@@ -177,13 +170,10 @@
     return maxTime - minTime < minRangeForHoursOnly
   })
 
-  const chartConfig = $derived<ChartConfig>({
-    [graphData.id]: { label: graphData.name, color: scoreLineColor },
-  })
   const colorDomain = $derived(Array.from(new Set(chartPoints.map(point => point.color))))
 </script>
 
-<ChartContainer config={chartConfig} class={className}>
+<ChartContainer class={className}>
   <ChartCore
     data={chartPoints}
     x="time"
@@ -212,8 +202,8 @@
           ticks={scale => (chartPoints.length > 0 ? axisTicks(scale, X_AXIS_DIVISIONS) : [])}
           format={(d: number) =>
             useMinutesFormat
-              ? formatRelativeHoursMinutes(d, startTime)
-              : formatRelativeHours(d, startTime)}
+              ? formatRelativeHoursMinutes(d, clientConfig.startTime)
+              : formatRelativeHours(d, clientConfig.startTime)}
         >
           {#snippet tickLabel({ props, index })}
             <Text {...props} textAnchor={tickTextAnchor(index, X_AXIS_DIVISIONS)} dy={4} />
@@ -261,36 +251,27 @@
       </Svg>
 
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
-        {#snippet children({ data })}
-          <div
-            class="border-background-l5 bg-background-l3 z-50 min-w-56 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
-          >
-            <div class="text-foreground-l3 mb-1.5">
-              <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
-              <div class="text-[10px]">{formatLocalTime(data.time)}</div>
-            </div>
-            {#if data.kind === 'solve'}
-              {@const CategoryIcon = data.categoryIcon}
-              <div class="flex items-center gap-2" style={data.style}>
-                <CategoryIcon class="text-category-foreground-l1 size-3.5 shrink-0" />
-                <div class="flex min-w-0 items-baseline gap-1 text-xs font-medium">
-                  <span class="text-category-foreground-l1 shrink-0">
-                    {data.categoryKey} /
-                  </span>
-                  <span class="text-category-foreground-l0 truncate">
-                    {data.challengeName}
-                  </span>
-                </div>
+        {#snippet children({ data }: { data: ScorePoint })}
+          {#if data.kind === 'solve'}
+            <ProfileSolveTooltip
+              time={data.time}
+              ctfStart={clientConfig.startTime}
+              style={data.style}
+              categoryIcon={data.categoryIcon}
+              categoryKey={data.categoryKey}
+              challengeName={data.challengeName}
+              scoreBefore={data.scoreBefore}
+              points={data.points}
+              score={data.score}
+            />
+          {:else}
+            <div
+              class="border-background-l5 bg-background-l3 z-50 min-w-56 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+            >
+              <div class="text-foreground-l3 mb-1.5">
+                <div>{formatRelativeHoursMinutes(data.time, clientConfig.startTime)}</div>
+                <div class="text-[10px]">{formatLocalTime(data.time)}</div>
               </div>
-              <div class="mt-2 border-t-2 pt-2 tabular-nums">
-                <span class="text-foreground-l1">{data.scoreBefore?.toLocaleString()} pts</span>
-                <span class="text-foreground-success ml-1 font-medium">
-                  {data.points === null ? '+n/a' : `+${data.points.toLocaleString()}`} pts
-                </span>
-                <span class="text-foreground-l4 mx-1">=</span>
-                <span class="text-foreground-l1">{data.score.toLocaleString()} pts</span>
-              </div>
-            {:else}
               <div class="flex items-center gap-2">
                 <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
                 <span class="max-w-48 truncate wrap-anywhere">{data.teamName}</span>
@@ -301,8 +282,8 @@
                   {data.score.toLocaleString()} pts
                 </div>
               </div>
-            {/if}
-          </div>
+            </div>
+          {/if}
         {/snippet}
       </Tooltip.Root>
     {/snippet}

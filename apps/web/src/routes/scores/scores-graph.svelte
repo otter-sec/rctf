@@ -1,6 +1,5 @@
 <script lang="ts">
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
-  import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import {
     CUTOFF_TIME,
     MEDAL_COLORS,
@@ -224,18 +223,9 @@
 
     return closestPoint
   })
-
-  const chartConfig = $derived<ChartConfig>(
-    Object.fromEntries(
-      processedData.allTeams.map(team => {
-        const meta = teamMeta.get(team.id)!
-        return [team.id, { label: team.name, color: meta.color }]
-      })
-    )
-  )
 </script>
 
-<ChartContainer config={chartConfig} class={className}>
+<ChartContainer class={className}>
   <ChartCore
     data={flatPoints}
     x="time"

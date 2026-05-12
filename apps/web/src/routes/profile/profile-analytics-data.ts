@@ -1,5 +1,4 @@
 import type { ClientConfig, PublicUserProfile } from '@rctf/types'
-import type { ChartConfig } from '$lib/components/ui/chart/chart-utils'
 import {
   getCategoryConfig,
   getCategoryKeyOrAlias,
@@ -11,7 +10,7 @@ import { formatRelativeHours } from '$lib/utils/time'
 
 export type ProfileSolve = PublicUserProfile['solves'][number]
 
-export interface ChallengeInfo {
+export type ChallengeInfo = {
   id: string
   name: string
   category: string
@@ -33,25 +32,32 @@ export type CategoryStat = {
   pointsEarned: number
 }
 
-export type ProfileBarDatum = {
-  key: string
-  label: string
-  icon?: CategoryConfig['icon']
-  value: number
-  max: number
-  color: string
-  style?: string
-  tooltipLabel?: string
-  detail?: string
-  segments?: ProfileBarSegment[]
-}
-
-export type ProfileBarSegment = {
+export type CategoryBarSegment = {
   key: string
   label: string
   value: number
   start: number
   end: number
+}
+
+export type CategoryBarDatum = {
+  key: string
+  label: string
+  icon: CategoryConfig['icon']
+  value: number
+  max: number
+  style: string
+  tooltipLabel: string
+  detail: string
+  segments?: CategoryBarSegment[]
+}
+
+export type DifficultyDatum = {
+  key: string
+  label: string
+  value: number
+  max: number
+  detail: string
 }
 
 export type CadenceDatum = {
@@ -91,23 +97,18 @@ export type ActivityDomain = {
   bucketSize: number
 }
 
-type ChartConfigDatum = {
-  key: string
-  label: string
-  color: string
-}
-
 type CategoryBarMetrics = {
   value: number
   max: number
   detail: string
-  segments?: ProfileBarSegment[]
+  segments?: CategoryBarSegment[]
 }
 
 const msPerMinute = 60 * 1000
 const msPerHour = 60 * msPerMinute
 const msPerDay = 24 * msPerHour
-const neutralChartColor = 'var(--foreground-l4)'
+
+const targetCadenceBuckets = 8
 
 type DifficultyBin = {
   key: string
@@ -169,6 +170,8 @@ export function buildCategoryStats({
 
   for (const solve of solves) {
     const stat = getOrCreateCategoryStat(stats, solve.category)
+    // When a solve points at a challenge missing from the current snapshot
+    // (deleted/hidden), count it toward the total too so the bar isn't >100%.
     if (challenges.length === 0 || !challengeIds.has(solve.id)) {
       stat.total += 1
       stat.pointsTotal += solve.points ?? 0
@@ -198,7 +201,7 @@ export function getProfileCategoryDisplay(
 
 export function buildCategoryCompletionData(
   stats: CategoryStat[]
-): ProfileBarDatum[] {
+): CategoryBarDatum[] {
   return buildCategoryBarData(stats, stat => ({
     value: stat.solved,
     max: stat.total,
@@ -209,7 +212,7 @@ export function buildCategoryCompletionData(
 export function buildCategoryPointsData(
   stats: CategoryStat[],
   solves: ProfileSolve[] = []
-): ProfileBarDatum[] {
+): CategoryBarDatum[] {
   const segmentsByCategory = buildPointSegments(solves)
 
   return buildCategoryBarData(stats, stat => ({
@@ -226,7 +229,7 @@ export function buildDifficultyData({
 }: {
   challenges: ChallengeInfo[]
   solves: ProfileSolve[]
-}): ProfileBarDatum[] {
+}): DifficultyDatum[] {
   return difficultyBins.map(bin => {
     const solvesInBin = solves.filter(solve =>
       bin.accepts(normalizeSolvedChallengeSolveCount(solve.solves))
@@ -243,7 +246,6 @@ export function buildDifficultyData({
       label: bin.label,
       value: solvesInBin.length,
       max: Math.max(total, solvesInBin.length),
-      color: neutralChartColor,
       detail: `${points.toLocaleString()} pts`,
     }
   })
@@ -348,19 +350,16 @@ export function buildTimelineCategories(
   data: TimelineDatum[],
   stats: CategoryStat[]
 ): string[] {
+  const statByLabel = new Map(stats.map(stat => [stat.label, stat]))
   return Array.from(new Set(data.map(item => item.categoryLabel))).sort(
-    (a, b) => {
-      const statA = stats.find(stat => stat.label === a)
-      const statB = stats.find(stat => stat.label === b)
-      return compareCategoryNames(a, b, statA?.category, statB?.category)
-    }
+    (a, b) =>
+      compareCategoryNames(
+        a,
+        b,
+        statByLabel.get(a)?.category,
+        statByLabel.get(b)?.category
+      )
   )
-}
-
-export function buildChartConfig(data: ChartConfigDatum[]): ChartConfig {
-  return Object.fromEntries(
-    data.map(item => [item.key, { label: item.label, color: item.color }])
-  ) satisfies ChartConfig
 }
 
 export function maxChartValue<T>(
@@ -377,7 +376,7 @@ export function maxChartValue<T>(
 function buildCategoryBarData(
   stats: CategoryStat[],
   getMetrics: (stat: CategoryStat) => CategoryBarMetrics
-): ProfileBarDatum[] {
+): CategoryBarDatum[] {
   return stats.map(stat => {
     const metrics = getMetrics(stat)
     return {
@@ -386,7 +385,6 @@ function buildCategoryBarData(
       icon: stat.icon,
       value: metrics.value,
       max: Math.max(metrics.max, 1),
-      color: stat.color,
       style: stat.style,
       tooltipLabel: stat.fullLabel,
       detail: metrics.detail,
@@ -397,30 +395,28 @@ function buildCategoryBarData(
 
 function buildPointSegments(
   solves: ProfileSolve[]
-): Map<string, ProfileBarSegment[]> {
-  const segments = new Map<string, Omit<ProfileBarSegment, 'start' | 'end'>[]>()
+): Map<string, CategoryBarSegment[]> {
+  const grouped = new Map<
+    string,
+    { key: string; label: string; value: number }[]
+  >()
 
   for (const solve of solves) {
     const value = solve.points ?? 0
     if (value <= 0) continue
 
     const categoryKey = getCategoryKeyOrAlias(solve.category)
-    const categorySegments = segments.get(categoryKey) ?? []
-
-    categorySegments.push({
-      key: solve.id,
-      label: solve.name,
-      value,
-    })
-    segments.set(categoryKey, categorySegments)
+    const list = grouped.get(categoryKey) ?? []
+    list.push({ key: solve.id, label: solve.name, value })
+    grouped.set(categoryKey, list)
   }
 
-  const sortedSegments = new Map<string, ProfileBarSegment[]>()
-  for (const [categoryKey, categorySegments] of segments) {
+  const result = new Map<string, CategoryBarSegment[]>()
+  for (const [categoryKey, list] of grouped) {
     let total = 0
-    sortedSegments.set(
+    result.set(
       categoryKey,
-      categorySegments
+      list
         .toSorted((a, b) => a.value - b.value || a.label.localeCompare(b.label))
         .map(segment => {
           const start = total
@@ -430,7 +426,7 @@ function buildPointSegments(
     )
   }
 
-  return sortedSegments
+  return result
 }
 
 function getOrCreateCategoryStat(
@@ -481,7 +477,7 @@ function normalizeSolvedChallengeSolveCount(solveCount: number | null): number {
 }
 
 function chooseCadenceBucketSize(duration: number): number {
-  const targetBucketSize = duration / 8
+  const targetBucketSize = duration / targetCadenceBuckets
   return (
     cadenceBucketSizes.find(size => size >= targetBucketSize) ?? 2 * msPerDay
   )

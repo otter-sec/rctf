@@ -4,13 +4,12 @@
   interface Props {
     title: string
     children: Snippet
-    last?: boolean
   }
 
-  let { title, children, last = false }: Props = $props()
+  let { title, children }: Props = $props()
 </script>
 
-<section class={last ? 'px-4 py-4' : 'border-border/50 border-b px-4 py-4'}>
+<section class="border-border/50 border-b px-4 py-4 last:border-b-0">
   <div class="mb-3">
     <h2 class="text-foreground-l1 text-sm">{title}</h2>
   </div>

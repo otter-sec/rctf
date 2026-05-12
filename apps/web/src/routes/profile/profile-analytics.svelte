@@ -50,7 +50,7 @@
 <div class={cn('flex flex-col', className)}>
   <ProfileAnalyticsSection title="Score over time">
     {#if graphData && (graphData.points.length > 0 || sortedSolves.length > 0)}
-      <ProfileGraph class="h-44 w-full" {graphData} solves={sortedSolves} />
+      <ProfileGraph class="h-44 w-full" {graphData} {clientConfig} solves={sortedSolves} />
     {:else}
       <p class="text-foreground-l5 py-8 text-center text-sm">No score graph data.</p>
     {/if}
@@ -76,7 +76,6 @@
     <ProfileTimelineChart
       data={timelineData}
       categories={timelineCategories}
-      stats={categoryStats}
       {activityDomain}
       {clientConfig}
     />
@@ -86,7 +85,7 @@
     <ProfileCadenceChart data={cadenceData} ctfStart={clientConfig.startTime} />
   </ProfileAnalyticsSection>
 
-  <ProfileAnalyticsSection title="Difficulty profile" last>
+  <ProfileAnalyticsSection title="Difficulty profile">
     <ProfileDifficultyChart data={difficultyData} />
   </ProfileAnalyticsSection>
 </div>

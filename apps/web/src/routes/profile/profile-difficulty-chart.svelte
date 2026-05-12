@@ -1,33 +1,27 @@
 <script lang="ts">
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
   import { Axis, Bars, ChartCore, Svg, Tooltip } from 'layerchart/svg'
-  import type { ProfileBarDatum } from './profile-analytics-data'
-  import { buildChartConfig, maxChartValue } from './profile-analytics-data'
+  import type { DifficultyDatum } from './profile-analytics-data'
+  import { maxChartValue } from './profile-analytics-data'
   import { compactNumber, integerTicks } from './profile-chart-utils'
 
   interface Props {
-    data: ProfileBarDatum[]
+    data: DifficultyDatum[]
   }
 
   let { data }: Props = $props()
 
   const max = $derived(maxChartValue(data, item => item.max))
-  const chartConfig = $derived(buildChartConfig(data))
   const labels = $derived(data.map(item => item.label))
-  const colorDomain = $derived(data.map(item => item.key))
-  const colorRange = $derived(data.map(item => item.color))
 </script>
 
-<ChartContainer config={chartConfig} class="h-44 w-full">
+<ChartContainer class="h-44 w-full">
   <ChartCore
     {data}
     x="value"
     y="label"
-    c="key"
     xDomain={[0, max]}
     yDomain={labels}
-    cDomain={colorDomain}
-    cRange={colorRange}
     valueAxis="x"
     padding={{ left: 54, right: 8, top: 4, bottom: 24 }}
     tooltipContext={{ mode: 'band' }}
