@@ -1123,15 +1123,17 @@
   {/if}
 {/if}
 
-<Tooltip.Root tether={cellTooltipTether} bind:open={cellTooltipOpen}>
-  {#snippet children()}
-    {#if cellTooltipData}
-      <Tooltip.Content side="top" sideOffset={8} customAnchor={cellTooltipAnchor}>
-        <ScoresCellTooltipContent data={cellTooltipData} />
-      </Tooltip.Content>
-    {/if}
-  {/snippet}
-</Tooltip.Root>
+<Tooltip.Provider delayDuration={300} skipDelayDuration={0} disableHoverableContent>
+  <Tooltip.Root tether={cellTooltipTether} bind:open={cellTooltipOpen}>
+    {#snippet children()}
+      {#if cellTooltipData}
+        <Tooltip.Content side="top" sideOffset={8} customAnchor={cellTooltipAnchor}>
+          <ScoresCellTooltipContent data={cellTooltipData} />
+        </Tooltip.Content>
+      {/if}
+    {/snippet}
+  </Tooltip.Root>
+</Tooltip.Provider>
 
 <ScoresScreenshotModal
   bind:open={screenshotModalOpen}

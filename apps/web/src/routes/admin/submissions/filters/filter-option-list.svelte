@@ -1,5 +1,6 @@
 <script lang="ts">
   import { ScrollArea, Spinner } from '$lib/components'
+  import { cn } from '$lib/utils'
   import SubmissionsFilterOption from './filter-option.svelte'
   import SubmissionsFilterSearchInput from './filter-search-input.svelte'
   import type { ValueFilterFamily } from './ui'
@@ -15,7 +16,7 @@
 </script>
 
 {#snippet optionList()}
-  <div class={mobile ? 'flex flex-col gap-1 p-2' : 'p-1'}>
+  <div class={cn(mobile && 'flex flex-col gap-1 p-2', !mobile && searchable && 'p-1')}>
     {#if family.loading?.()}
       <div
         class={mobile

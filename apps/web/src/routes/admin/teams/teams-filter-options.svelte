@@ -33,7 +33,7 @@
     checked={selected}
     closeOnSelect={false}
     textValue={teamStatusLabel(status)}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    class="text-foreground-l2 hover:bg-background-l5! hover:text-foreground-l2! flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleStatus(status)
     }}
@@ -49,7 +49,7 @@
     checked={selected}
     closeOnSelect={false}
     textValue={division.label}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    class="text-foreground-l2 hover:bg-background-l5! hover:text-foreground-l2! flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     onCheckedChange={checked => {
       if (checked !== selected) toggleDivision(division)
     }}
@@ -58,7 +58,7 @@
   </DropdownMenu.CheckboxItem>
 {/snippet}
 
-<div class="p-1">
+<div>
   {#if kind === 'status'}
     {#each TEAM_STATUS_FILTERS as status}
       {@render statusOption(status)}
