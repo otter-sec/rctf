@@ -11,7 +11,7 @@ services:
     image: postgres:18.0
     restart: always
     ports:
-      - '127.0.0.1:5432:5432'
+      - '127.0.0.1:55432:5432'
     environment:
       - POSTGRES_PASSWORD=DO_NOT_USE_ME
       - POSTGRES_USER=rctf

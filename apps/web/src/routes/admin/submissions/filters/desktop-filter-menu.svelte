@@ -122,7 +122,7 @@
   </div>
 {/snippet}
 
-<Tooltip.Root disableCloseOnTriggerClick>
+<Tooltip.Root>
   <DropdownMenu.Root>
     <Tooltip.Trigger>
       {#snippet child({ props })}

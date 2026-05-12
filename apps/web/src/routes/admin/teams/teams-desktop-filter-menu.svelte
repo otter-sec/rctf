@@ -14,7 +14,7 @@
   const hasFilters = $derived(hasTeamFilters(filters))
 </script>
 
-<Tooltip.Root disableCloseOnTriggerClick>
+<Tooltip.Root>
   <DropdownMenu.Root>
     <Tooltip.Trigger>
       {#snippet child({ props })}
