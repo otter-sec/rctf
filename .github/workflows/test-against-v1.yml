@@ -6,13 +6,16 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 concurrency:
   group: test-against-v1-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   test-against-v1:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     steps:

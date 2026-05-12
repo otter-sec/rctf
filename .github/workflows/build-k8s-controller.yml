@@ -4,23 +4,37 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - ".github/workflows/k8s-controller.yaml"
-      - ".github/workflows/admin-bot.yaml"
+      - ".github/workflows/_docker-build.yml"
+      - ".github/workflows/build-k8s-controller.yml"
+      - ".github/workflows/test.yml"
+      - ".github/actions/setup-bun-deps/action.yml"
       - "apps/k8s-controller/**"
       - "deploy/k8s-controller/Dockerfile"
+
+permissions:
+  contents: read
 
 concurrency:
   group: k8s-controller-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  tests:
+    uses: ./.github/workflows/test.yml
+    secrets: inherit
+
   build-and-push:
-    uses: ./.github/workflows/docker-build.yaml
+    needs: tests
+    uses: ./.github/workflows/_docker-build.yml
     with:
       image-name: ${{ github.repository }}/k8s-controller
       dockerfile: deploy/k8s-controller/Dockerfile
       # technically all platforms can be used, but its very slow so only amd64 and arm64 are enabled
-      platforms: linux/amd64,linux/arm64
+      platforms-matrix: |
+        [
+          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
+          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
+        ]
     permissions:
       contents: read
       packages: write

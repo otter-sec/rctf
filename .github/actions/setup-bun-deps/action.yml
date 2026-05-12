@@ -1,0 +1,34 @@
+name: Setup Bun and install deps
+description: Setup Bun and install deps
+
+inputs:
+  install-args:
+    description: Extra args
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    # needed for astro
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: 1.3.10
+
+    - name: Cache bun install
+      uses: actions/cache@v4
+      with:
+        path: ~/.bun/install/cache
+        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        restore-keys: |
+          bun-${{ runner.os }}-
+
+    - name: Install dependencies
+      shell: bash
+      run: bun install --frozen-lockfile ${{ inputs.install-args }}

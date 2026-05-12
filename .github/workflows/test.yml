@@ -1,0 +1,55 @@
+name: Tests
+
+on:
+  workflow_dispatch:
+  workflow_call:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  prettier:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-deps
+      - run: bun run prettier -- --check
+
+  typecheck:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-deps
+      - run: bun run typecheck
+
+  test-server:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-deps
+        with:
+          install-args: --filter '@rctf/api' --filter 'server-tests'
+      - run: bun run test:server
+
+  test-admin-bot:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-deps
+        with:
+          install-args: --filter '@rctf/admin-bot' --filter 'admin-bot-tests'
+      - run: bun run test:admin-bot
+
+  test-admin-bot-e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-bun-deps
+        with:
+          install-args: --filter '@rctf/admin-bot' --filter 'admin-bot-e2e-tests'
+      - run: bun run test:admin-bot:e2e
