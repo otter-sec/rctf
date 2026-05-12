@@ -66,7 +66,6 @@ export type TimelineDatum = {
   key: string
   name: string
   categoryLabel: string
-  categoryTooltipLabel: string
   categoryKey: string
   categoryIcon: CategoryConfig['icon']
   color: string
@@ -75,6 +74,15 @@ export type TimelineDatum = {
   points: number | null
   scoreBefore: number
   score: number
+}
+
+export type ProfileCategoryDisplay = {
+  key: string
+  label: string
+  fullLabel: string
+  icon: CategoryConfig['icon']
+  color: string
+  style: string
 }
 
 export type ActivityDomain = {
@@ -170,6 +178,22 @@ export function buildCategoryStats({
   }
 
   return Array.from(stats.values()).sort(compareCategoryStats)
+}
+
+export function getProfileCategoryDisplay(
+  category: string
+): ProfileCategoryDisplay {
+  const config = getCategoryConfig(category)
+  const key = getCategoryKeyOrAlias(category)
+
+  return {
+    key,
+    label: key,
+    fullLabel: config.name,
+    icon: config.icon,
+    color: `var(--foreground-${config.color}-l1)`,
+    style: getCategoryStyle(config.color),
+  }
 }
 
 export function buildCategoryCompletionData(
@@ -301,14 +325,13 @@ export function buildTimelineData(solves: ProfileSolve[]): TimelineDatum[] {
   let score = 0
 
   return solves.map(solve => {
-    const category = getCategoryDisplay(solve.category)
+    const category = getProfileCategoryDisplay(solve.category)
     score += solve.points ?? 0
 
     return {
       key: solve.id,
       name: solve.name,
       categoryLabel: category.label,
-      categoryTooltipLabel: category.fullLabel,
       categoryKey: category.key,
       categoryIcon: category.icon,
       color: category.color,
@@ -414,7 +437,7 @@ function getOrCreateCategoryStat(
   stats: Map<string, CategoryStat>,
   category: string
 ): CategoryStat {
-  const categoryDisplay = getCategoryDisplay(category)
+  const categoryDisplay = getProfileCategoryDisplay(category)
   const existing = stats.get(categoryDisplay.key)
   if (existing) return existing
 
@@ -428,20 +451,6 @@ function getOrCreateCategoryStat(
   }
   stats.set(categoryDisplay.key, stat)
   return stat
-}
-
-function getCategoryDisplay(category: string) {
-  const config = getCategoryConfig(category)
-  const key = getCategoryKeyOrAlias(category)
-
-  return {
-    key,
-    label: key,
-    fullLabel: config.name,
-    icon: config.icon,
-    color: `var(--foreground-${config.color}-l1)`,
-    style: getCategoryStyle(config.color),
-  }
 }
 
 function compareCategoryStats(a: CategoryStat, b: CategoryStat): number {

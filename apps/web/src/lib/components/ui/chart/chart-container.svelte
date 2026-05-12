@@ -3,11 +3,8 @@
   import type { HTMLAttributes } from 'svelte/elements'
   import { setChartContext, type ChartConfig } from './chart-utils'
 
-  const uid = $props.id()
-
   let {
     ref = $bindable(null),
-    id = uid,
     class: className,
     children,
     config,

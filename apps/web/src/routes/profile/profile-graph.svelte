@@ -4,14 +4,12 @@
   import { type ChartConfig } from '$lib/components/ui/chart/chart-utils'
   import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import { useClientConfig } from '$lib/query'
-  import {
-    getCategoryConfig,
-    getCategoryKeyOrAlias,
-    getCategoryStyle,
-    type CategoryConfig,
-  } from '$lib/utils'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
+  import {
+    getProfileCategoryDisplay,
+    type ProfileCategoryDisplay,
+  } from './profile-analytics-data'
   import { axisTicks, compactNumber, integerTicks, tickTextAnchor } from './profile-chart-utils'
 
   type SolveInput = {
@@ -32,7 +30,7 @@
     color: string
     challengeName?: string
     categoryKey?: string
-    categoryIcon?: CategoryConfig['icon']
+    categoryIcon?: ProfileCategoryDisplay['icon']
     points?: number | null
     scoreBefore?: number
     style?: string
@@ -47,16 +45,6 @@
 
   const domainPadding = 30 * 60 * 1000
   const scoreLineColor = 'var(--foreground-l2)'
-
-  function categoryDisplay(category: string) {
-    const config = getCategoryConfig(category)
-    return {
-      key: getCategoryKeyOrAlias(category),
-      icon: config.icon,
-      color: `var(--foreground-${config.color}-l1)`,
-      style: getCategoryStyle(config.color),
-    }
-  }
 
   function buildStepPath(points: ScoreLinePoint[], xScale: Scale, yScale: Scale) {
     const first = points[0]
@@ -133,7 +121,7 @@
       .map(solve => {
         const scoreBefore = score
         score += solve.points ?? 0
-        const category = categoryDisplay(solve.category)
+        const category = getProfileCategoryDisplay(solve.category)
 
         return {
           key: `solve-${solve.id}`,
