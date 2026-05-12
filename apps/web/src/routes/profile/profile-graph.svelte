@@ -173,7 +173,10 @@
   )
   const startTime = $derived(clientConfig?.startTime ?? 0)
   const xDomain = $derived(
-    chartTimeDomain(domainPoints.toSorted((a, b) => a.time - b.time), startTime)
+    chartTimeDomain(
+      domainPoints.toSorted((a, b) => a.time - b.time),
+      startTime
+    )
   )
   const yMax = $derived(chartScoreMax(domainPoints))
 
@@ -291,15 +294,15 @@
                   </span>
                 </div>
               </div>
-                <div class="mt-2 border-t-2 pt-2 tabular-nums">
-                  <span class="text-foreground-l1">{data.scoreBefore?.toLocaleString()} pts</span>
-                  <span class="text-foreground-success ml-1 font-medium">
-                    {data.points === null ? '+n/a' : `+${data.points.toLocaleString()}`} pts
-                  </span>
-                  <span class="text-foreground-l4 mx-1">=</span>
-                  <span class="text-foreground-l1">{data.score.toLocaleString()} pts</span>
-                </div>
-              {:else}
+              <div class="mt-2 border-t-2 pt-2 tabular-nums">
+                <span class="text-foreground-l1">{data.scoreBefore?.toLocaleString()} pts</span>
+                <span class="text-foreground-success ml-1 font-medium">
+                  {data.points === null ? '+n/a' : `+${data.points.toLocaleString()}`} pts
+                </span>
+                <span class="text-foreground-l4 mx-1">=</span>
+                <span class="text-foreground-l1">{data.score.toLocaleString()} pts</span>
+              </div>
+            {:else}
               <div class="flex items-center gap-2">
                 <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
                 <span class="max-w-48 truncate wrap-anywhere">{data.teamName}</span>

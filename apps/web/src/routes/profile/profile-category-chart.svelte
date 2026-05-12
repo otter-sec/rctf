@@ -214,7 +214,7 @@
                 />
               </g>
               <g
-                class="pointer-events-none text-foreground-success"
+                class="text-foreground-success pointer-events-none"
                 transform={`translate(${x0 + 7}, ${y + barHeight / 2 - 6})`}
               >
                 <IconCheck class="size-3.5" />

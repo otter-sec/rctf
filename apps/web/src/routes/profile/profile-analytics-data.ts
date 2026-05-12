@@ -108,7 +108,7 @@ type DifficultyBin = {
 }
 
 const difficultyBins: DifficultyBin[] = [
-  { key: 'solo', label: '1 solve', accepts: solveCount => solveCount <= 1 },
+  { key: 'solo', label: '1 solve', accepts: solveCount => solveCount === 1 },
   {
     key: 'rare',
     label: '2-5',
@@ -204,7 +204,9 @@ export function buildDifficultyData({
   solves: ProfileSolve[]
 }): ProfileBarDatum[] {
   return difficultyBins.map(bin => {
-    const solvesInBin = solves.filter(solve => bin.accepts(solve.solves ?? 0))
+    const solvesInBin = solves.filter(solve =>
+      bin.accepts(normalizeSolvedChallengeSolveCount(solve.solves))
+    )
     const challengesInBin = challenges.filter(challenge =>
       bin.accepts(challenge.solves)
     )
@@ -373,10 +375,7 @@ function buildCategoryBarData(
 function buildPointSegments(
   solves: ProfileSolve[]
 ): Map<string, ProfileBarSegment[]> {
-  const segments = new Map<
-    string,
-    Omit<ProfileBarSegment, 'start' | 'end'>[]
-  >()
+  const segments = new Map<string, Omit<ProfileBarSegment, 'start' | 'end'>[]>()
 
   for (const solve of solves) {
     const value = solve.points ?? 0
@@ -466,6 +465,10 @@ function compareCategoryNames(
 
 function sumSolvePoints(solves: ProfileSolve[]): number {
   return solves.reduce((sum, solve) => sum + (solve.points ?? 0), 0)
+}
+
+function normalizeSolvedChallengeSolveCount(solveCount: number | null): number {
+  return Math.max(solveCount ?? 1, 1)
 }
 
 function chooseCadenceBucketSize(duration: number): number {
