@@ -15,7 +15,7 @@
 
   const mergedProps = $derived({
     class: cn(
-      'text-foreground-l0 ring-ring hover:bg-background-l3 hover:text-foreground-l0 outline-hidden absolute end-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+      'text-foreground-l0 ring-ring hover:bg-background-l3 hover:text-foreground-l0 outline-hidden absolute inset-e-3 top-3.5 flex aspect-square w-5 items-center justify-center rounded-md p-0 transition-transform focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
       // Increases the hit area of the button on mobile.
       'after:absolute after:-inset-2 md:after:hidden',
       'group-data-[collapsible=icon]:hidden',

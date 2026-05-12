@@ -80,7 +80,7 @@
           <button
             {...buttonProps}
             type="button"
-            class="group/focus text-category-foreground-l1 focus-visible:ring-ring/50 ring-offset-background-l0 absolute bottom-0 left-1/2 flex max-w-[150px] origin-bottom-left -rotate-45 cursor-pointer items-center gap-1 rounded-sm text-lg leading-none ring-offset-3 transition-transform outline-none hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline focus-visible:ring-[3px]"
+            class="group/focus text-category-foreground-l1 focus-visible:ring-ring/50 ring-offset-background-l0 absolute bottom-0 left-1/2 flex max-w-37.5 origin-bottom-left -rotate-45 cursor-pointer items-center gap-1 rounded-sm text-lg leading-none ring-offset-3 transition-transform outline-none hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline focus-visible:ring-[3px]"
           >
             <span class="truncate">{challenge.name}</span>
             {#if isFocused}
@@ -101,7 +101,7 @@
         {#snippet child({ props })}
           <span
             {...props}
-            class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-[150px] origin-bottom-left -rotate-45 truncate text-lg capitalize"
+            class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-37.5 origin-bottom-left -rotate-45 truncate text-lg capitalize"
           >
             {group.config.name}
           </span>

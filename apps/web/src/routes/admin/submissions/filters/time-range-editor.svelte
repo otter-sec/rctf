@@ -35,7 +35,7 @@
     />
     <span
       class={cn(
-        'border-foreground-l4/60 flex size-4 items-center justify-center rounded-[4px] border-2',
+        'border-foreground-l4/60 flex size-4 items-center justify-center rounded-lg border-2',
         filters.time.mode === 'relative' &&
           'bg-foreground-l0 text-background-l0 border-foreground-l0'
       )}
@@ -83,7 +83,7 @@
         value={filters.time.start}
         aria-invalid={!!timeRangeError}
         class={cn(
-          'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none',
+          'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm scheme-dark outline-none',
           timeRangeError && 'border-foreground-destructive/70'
         )}
         oninput={event => (filters.time.start = event.currentTarget.value)}
@@ -96,7 +96,7 @@
         value={filters.time.end}
         aria-invalid={!!timeRangeError}
         class={cn(
-          'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm [color-scheme:dark] outline-none',
+          'bg-background-l2 text-foreground-l1 border-foreground-l4/40 h-9 rounded-md border px-2 text-sm scheme-dark outline-none',
           timeRangeError && 'border-foreground-destructive/70'
         )}
         oninput={event => (filters.time.end = event.currentTarget.value)}

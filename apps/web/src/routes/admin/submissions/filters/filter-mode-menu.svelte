@@ -22,17 +22,17 @@
   </DropdownMenu.Trigger>
   <DropdownMenu.Content
     align="start"
-    class="bg-background-l4 border-foreground-l4/40 z-[120] w-36 border-2 shadow-xl"
+    class="bg-background-l4 border-foreground-l4/40 z-120 w-36 border-2 shadow-xl"
   >
     <DropdownMenu.Item
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2"
+      class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2!"
       onclick={() => onSelect('include')}
     >
       <IconCheck class={cn('size-4', mode !== 'include' && 'text-transparent')} />
       {includeOperatorLabel(count)}
     </DropdownMenu.Item>
     <DropdownMenu.Item
-      class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2"
+      class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2!"
       onclick={() => onSelect('exclude')}
     >
       <IconCheck class={cn('size-4', mode !== 'exclude' && 'text-transparent')} />

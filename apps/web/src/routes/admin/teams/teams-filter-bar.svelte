@@ -62,7 +62,7 @@
 
   <button
     type="button"
-    class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 w-[4.5rem] shrink-0 items-center justify-center gap-1 rounded-md px-2 text-sm transition-colors"
+    class="text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 flex h-8 w-18 shrink-0 items-center justify-center gap-1 rounded-md px-2 text-sm transition-colors"
     class:invisible={!hasFilters}
     disabled={!hasFilters}
     aria-hidden={!hasFilters}

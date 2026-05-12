@@ -21,7 +21,7 @@
   {...restProps}
 >
   {#snippet children({ checked })}
-    <span class="pointer-events-none absolute start-2 flex size-3.5 items-center justify-center">
+    <span class="pointer-events-none absolute inset-s-2 flex size-3.5 items-center justify-center">
       {#if checked}
         <IconCircle class="size-2 fill-current" />
       {/if}

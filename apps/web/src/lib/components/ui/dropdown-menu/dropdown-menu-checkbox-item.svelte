@@ -30,7 +30,7 @@
   {#snippet children({ checked, indeterminate })}
     <span
       class={cn(
-        'border-foreground-l4/60 pointer-events-none absolute start-2 flex size-4 items-center justify-center rounded-[4px] border-2',
+        'border-foreground-l4/60 pointer-events-none absolute inset-s-2 flex size-4 items-center justify-center rounded-lg border-2',
         checked && 'bg-foreground-l0 text-background-l0 border-foreground-l0'
       )}
     >

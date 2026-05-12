@@ -32,11 +32,11 @@
     </Tooltip.Trigger>
     <DropdownMenu.Content
       align="start"
-      class="bg-background-l4 border-foreground-l4/40 z-[100] w-56 overflow-hidden border-2 !p-1 shadow-xl"
+      class="bg-background-l4 border-foreground-l4/40 z-100 w-56 overflow-hidden border-2 p-1! shadow-xl"
     >
       <DropdownMenu.Sub>
         <DropdownMenu.SubTrigger
-          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+          class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2! data-[state=open]:bg-background-l5! data-[state=open]:text-foreground-l2!"
         >
           <IconShieldFilled class="size-4" />
           Status
@@ -45,14 +45,14 @@
           align="start"
           alignOffset={-6}
           sideOffset={10}
-          class="bg-background-l4 border-foreground-l4/40 z-[110] w-48 border-2 shadow-xl"
+          class="bg-background-l4 border-foreground-l4/40 z-110 w-48 border-2 shadow-xl"
         >
           <TeamsFilterOptions kind="status" bind:filters {divisionOptions} />
         </DropdownMenu.SubContent>
       </DropdownMenu.Sub>
       <DropdownMenu.Sub>
         <DropdownMenu.SubTrigger
-          class="text-foreground-l2 data-highlighted:!bg-background-l5 data-highlighted:!text-foreground-l2 data-[state=open]:!bg-background-l5 data-[state=open]:!text-foreground-l2"
+          class="text-foreground-l2 data-highlighted:bg-background-l5! data-highlighted:text-foreground-l2! data-[state=open]:bg-background-l5! data-[state=open]:text-foreground-l2!"
         >
           <IconUsersGroup class="size-4" />
           Division
@@ -61,7 +61,7 @@
           align="start"
           alignOffset={-6}
           sideOffset={10}
-          class="bg-background-l4 border-foreground-l4/40 z-[110] w-56 border-2 shadow-xl"
+          class="bg-background-l4 border-foreground-l4/40 z-110 w-56 border-2 shadow-xl"
         >
           <TeamsFilterOptions kind="division" bind:filters {divisionOptions} />
         </DropdownMenu.SubContent>

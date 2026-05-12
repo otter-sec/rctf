@@ -18,12 +18,12 @@
   function toggle() {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
 
-    document.documentElement.classList.add('[&_*]:transition-none!')
+    document.documentElement.classList.add('**:transition-none!')
     document.documentElement.setAttribute('data-theme', newTheme)
     document.documentElement.offsetHeight
 
     requestAnimationFrame(() => {
-      document.documentElement.classList.remove('[&_*]:transition-none!')
+      document.documentElement.classList.remove('**:transition-none!')
     })
 
     localStorage.setItem('theme', newTheme)

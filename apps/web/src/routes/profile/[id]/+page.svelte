@@ -97,7 +97,7 @@
   </div>
 
   <div
-    class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
+    class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-400 grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
   >
     <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
       <div class="bg-background-l1 z-10 shrink-0 pt-2">

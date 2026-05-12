@@ -24,7 +24,7 @@
   {...restProps}
 >
   {#snippet children({ selected, highlighted })}
-    <span class="absolute end-2 flex size-3.5 items-center justify-center">
+    <span class="absolute inset-e-2 flex size-3.5 items-center justify-center">
       {#if selected}
         <IconCheck class="size-4" />
       {/if}

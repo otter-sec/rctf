@@ -251,7 +251,7 @@
         {#if advancedMode}
           <div class="flex flex-col gap-2">
             <Textarea
-              class="min-h-[300px] font-mono text-sm"
+              class="min-h-75 font-mono text-sm"
               value={yamlText}
               oninput={e => handleYamlChange(e.currentTarget.value)}
               disabled={isDisabled}

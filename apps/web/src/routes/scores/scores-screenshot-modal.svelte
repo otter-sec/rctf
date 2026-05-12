@@ -181,7 +181,7 @@
 <Dialog.Root bind:open onOpenChange={v => onOpenChange(v)}>
   <Dialog.Content
     showCloseButton={false}
-    class="bg-background-l2 flex h-[90svh] w-[90svw] flex-col gap-0 rounded-lg border-2 p-0 md:h-[85vh] md:max-h-[900px] md:w-[95vw] md:max-w-[95vw]!"
+    class="bg-background-l2 flex h-[90svh] w-[90svw] flex-col gap-0 rounded-lg border-2 p-0 md:h-[85vh] md:max-h-225 md:w-[95vw] md:max-w-[95vw]!"
   >
     <div class="flex shrink-0 flex-row items-center justify-between border-b-2 px-4 py-3 md:px-5">
       <Dialog.Title>Export screenshot</Dialog.Title>

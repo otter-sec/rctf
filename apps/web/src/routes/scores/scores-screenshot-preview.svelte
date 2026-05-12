@@ -173,7 +173,7 @@
   <div class="flex flex-col gap-1">
     {#if options.showMatrix && categoryGroups.length > 0}
       <div class="-mb-1 flex">
-        <div class="w-[600px] shrink-0"></div>
+        <div class="w-150 shrink-0"></div>
         <div class="flex gap-1 pr-4">
           {#each categoryGroups as group}
             <div
@@ -209,7 +209,7 @@
       <div class="flex">
         <div
           class={cn(
-            'before:bg-background-l2 relative isolate flex h-16 w-[600px] shrink-0 items-center gap-4 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg',
+            'before:bg-background-l2 relative isolate flex h-16 w-150 shrink-0 items-center gap-4 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg',
             styles.gradient && [
               'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-64 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent',
               styles.gradient,
@@ -293,7 +293,7 @@
                 )}"
               >
                 {#if stats.solved === stats.total}
-                  <svg class="size-[26px]" viewBox="0 0 24 24">
+                  <svg class="size-6.5" viewBox="0 0 24 24">
                     <path
                       fill="var(--category-foreground-l1)"
                       d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32"
@@ -303,7 +303,7 @@
                   {@const radius = 8}
                   {@const circumference = 2 * Math.PI * radius}
                   {@const offset = circumference * (1 - stats.percent / 100)}
-                  <svg class="size-[26px] -rotate-90" viewBox="0 0 24 24">
+                  <svg class="size-6.5 -rotate-90" viewBox="0 0 24 24">
                     <circle
                       cx="12"
                       cy="12"
@@ -326,7 +326,7 @@
                     />
                   </svg>
                 {:else}
-                  <svg class="size-[26px]" viewBox="0 0 24 24" style="opacity: 0.25">
+                  <svg class="size-6.5" viewBox="0 0 24 24" style="opacity: 0.25">
                     <path
                       fill="none"
                       stroke="var(--foreground-l5)"

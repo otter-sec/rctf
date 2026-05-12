@@ -195,8 +195,8 @@
       <DropdownMenu.Content
         align="start"
         class={cn(
-          'bg-background-l4 border-foreground-l4/40 z-[120] border-2 shadow-xl',
-          family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden !p-0',
+          'bg-background-l4 border-foreground-l4/40 z-120 border-2 shadow-xl',
+          family.menuSize === 'search' && 'flex h-80 w-72 flex-col overflow-hidden p-0!',
           family.menuSize === 'narrow' && 'w-48',
           family.menuSize === 'medium' && 'w-56'
         )}
@@ -228,7 +228,7 @@
 {#snippet timeRangeChip()}
   <span
     class={cn(
-      'bg-background-l2 inline-flex h-8 max-w-[32rem] shrink-0 items-center overflow-hidden rounded-md border-2 text-sm',
+      'bg-background-l2 inline-flex h-8 max-w-lg shrink-0 items-center overflow-hidden rounded-md border-2 text-sm',
       timeRangeError && 'border-foreground-destructive/70'
     )}
   >
@@ -245,7 +245,7 @@
       </DropdownMenu.Trigger>
       <DropdownMenu.Content
         align="start"
-        class="bg-background-l4 border-foreground-l4/40 z-[120] w-72 border-2 !p-0 shadow-xl"
+        class="bg-background-l4 border-foreground-l4/40 z-120 w-72 border-2 p-0! shadow-xl"
       >
         <SubmissionsTimeRangeEditor bind:filters {timeRangeError} />
       </DropdownMenu.Content>

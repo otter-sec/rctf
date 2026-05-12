@@ -67,7 +67,7 @@
       </Section.Header>
       <Section.Content>
         <Textarea
-          class="min-h-[400px] font-mono text-sm"
+          class="min-h-100 font-mono text-sm"
           value={config.code}
           oninput={e => update({ code: e.currentTarget.value })}
           disabled={isDisabled}

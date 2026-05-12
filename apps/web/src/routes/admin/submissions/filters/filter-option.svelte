@@ -96,7 +96,7 @@
     checked={selected}
     closeOnSelect={false}
     textValue={showPath ? `${family.label} ${view.textValue}` : view.textValue}
-    class="text-foreground-l2 hover:!bg-background-l5 hover:!text-foreground-l2 flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
+    class="text-foreground-l2 hover:bg-background-l5! hover:text-foreground-l2! flex w-full min-w-0 cursor-default items-center gap-2 rounded-sm px-2 py-1.5 text-left text-sm outline-none select-none"
     style={view.style}
     onCheckedChange={checked => {
       if (checked !== selected) family.toggleOption(option)

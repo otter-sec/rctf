@@ -21,7 +21,7 @@
     data-tooltip-label={`${entry.label}: ${entry.value}`}
     class={cn(
       'bg-background-l4 inline-flex min-w-0 shrink-0 items-center gap-1 rounded-md px-2 py-1 whitespace-nowrap',
-      entry.label === 'error' ? 'max-w-[36rem]' : 'max-w-[28rem]'
+      entry.label === 'error' ? 'max-w-xl' : 'max-w-md'
     )}
   >
     <span class="text-foreground-l3 shrink-0 text-xs">{entry.label}</span>

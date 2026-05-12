@@ -807,7 +807,7 @@
       <!-- mobile: 72px (nav) + 96px (toolbar) + 192px (graph) + 8px (mb-2) = 368px -->
       <!-- desktop: 72px (nav) + 52px (toolbar) + 192px (header) = 316px -->
       <div
-        class="bg-background-l0 fixed inset-x-0 top-[368px] bottom-0 z-50 flex items-center justify-center md:top-[316px]"
+        class="bg-background-l0 fixed inset-x-0 top-92 bottom-0 z-50 flex items-center justify-center md:top-79"
       >
         <EmptyState
           icon={IconFlagFilled}
@@ -899,7 +899,7 @@
               'scroll-pt-(--score-scroll-padding-top)',
               isDesktop && 'scroll-pl-(--team-column-width)'
             )}
-            scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-[10px] z-40' : 'hidden'}
+            scrollbarXClasses={isDesktop ? 'pl-(--team-column-width) -mr-2.5 z-40' : 'hidden'}
             scrollbarYClasses={`z-40 ${scrollbarYPadding}`}
           >
             <div class="flex min-h-full flex-col">

@@ -75,10 +75,10 @@
       </button>
     {/snippet}
   </Popover.Trigger>
-  <Popover.Content class="w-[280px] p-0" align="start">
+  <Popover.Content class="w-70 p-0" align="start">
     <Command.Root>
       <Command.Input placeholder="Search country..." />
-      <Command.List class="max-h-[300px]">
+      <Command.List class="max-h-75">
         <Command.Empty>No country found.</Command.Empty>
         <Command.Group>
           <Command.Item value="none" onSelect={() => handleSelect(null)}>

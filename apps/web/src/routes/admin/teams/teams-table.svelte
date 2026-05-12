@@ -218,7 +218,7 @@
   scrollbarYClasses="z-40"
   scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
 >
-  <div class="min-h-full w-full min-w-[94rem] text-sm" {...infoTooltipHandlers}>
+  <div class="min-h-full w-full min-w-376 text-sm" {...infoTooltipHandlers}>
     <div class="flex min-h-full flex-col">
       <div bind:this={tableHeaderRef} class="bg-background-l1 sticky top-0 z-50">
         <TeamsFilterBar
