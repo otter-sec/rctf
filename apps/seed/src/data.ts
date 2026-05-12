@@ -1,6 +1,13 @@
 import type { ServerConfig } from '@rctf/config'
-import type { Challenge, Settings, Solve, User, UserMember } from '@rctf/db'
-import { Permissions } from '@rctf/types'
+import type {
+  Challenge,
+  Settings,
+  Solve,
+  Submission,
+  User,
+  UserMember,
+} from '@rctf/db'
+import { Permissions, SubmissionKind, SubmissionResult } from '@rctf/types'
 
 export type SeedData = {
   admin: User
@@ -9,6 +16,7 @@ export type SeedData = {
   members: UserMember[]
   challenges: Challenge[]
   solves: Solve[]
+  submissions: Submission[]
   settings: Settings
 }
 
@@ -29,6 +37,33 @@ export const SEED_CHALLENGE_CATEGORIES = [
 const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
 
+const FAILED_FLAGS = [
+  SubmissionResult.INCORRECT,
+  SubmissionResult.ALREADY_SOLVED,
+  SubmissionResult.INVALID_INPUT,
+] as const
+const BOT_RESULTS = [
+  SubmissionResult.CORRECT,
+  SubmissionResult.QUEUED,
+  SubmissionResult.ACTIVE_JOB,
+  SubmissionResult.BAD_INSTANCER_STATE,
+  SubmissionResult.INVALID_INPUT,
+] as const
+const WRONG_FLAGS = [
+  'rctf{nope}',
+  'rctf{not_quite}',
+  'flag{wrong}',
+  'rctf{hello}',
+  '',
+] as const
+
+const randomInt = (max: number) => Math.floor(Math.random() * max)
+const randomIp = () =>
+  `10.${1 + randomInt(200)}.${1 + randomInt(200)}.${1 + randomInt(254)}`
+
+const randomItem = <T>(items: readonly T[]): T =>
+  items[Math.floor(Math.random() * items.length)]!
+
 const slug = (value: string) =>
   value
     .toLowerCase()
@@ -37,9 +72,6 @@ const slug = (value: string) =>
 
 const titleCase = (value: string) =>
   value.replace(/\b[a-z]/g, letter => letter.toUpperCase())
-
-const randomItem = <T>(items: readonly T[]): T =>
-  items[Math.floor(Math.random() * items.length)]!
 
 const allPermissions = Object.values(Permissions)
   .filter((value): value is number => typeof value === 'number')
@@ -193,6 +225,80 @@ function buildSolves(
   return solves.sort((a, b) => a.createdat.localeCompare(b.createdat))
 }
 
+function buildSubmissions(
+  config: ServerConfig,
+  teams: User[],
+  challenges: Challenge[],
+  solves: Solve[]
+): Submission[] {
+  if (teams.length === 0 || challenges.length === 0) return []
+
+  const { earliest, span } = solveTimeBounds(config)
+  const randomTime = () => new Date(earliest + randomInt(span)).toISOString()
+  const challengesById = new Map(challenges.map(c => [c.id, c]))
+
+  let counter = 0
+  const make = (
+    extras: Partial<Submission> &
+      Pick<Submission, 'kind' | 'challengeId' | 'userId' | 'result' | 'details'>
+  ): Submission => ({
+    id: `seed-sub-${String(++counter).padStart(6, '0')}`,
+    ip: randomIp(),
+    relatedId: null,
+    createdAt: randomTime(),
+    ...extras,
+  })
+
+  const submissions = solves.flatMap((solve): Submission[] => {
+    const ch = challengesById.get(solve.challengeid)
+    return ch
+      ? [
+          make({
+            kind: SubmissionKind.FLAG,
+            challengeId: solve.challengeid,
+            userId: solve.userid,
+            result: SubmissionResult.CORRECT,
+            details: { submittedFlag: ch.data.flag },
+            ip: solve.submissionip ?? 'unknown',
+            createdAt: solve.createdat,
+          }),
+        ]
+      : []
+  })
+
+  for (const [idx, team] of teams.entries()) {
+    for (let n = 4 + (idx % 5); n-- > 0; ) {
+      submissions.push(
+        make({
+          kind: SubmissionKind.FLAG,
+          challengeId: randomItem(challenges).id,
+          userId: team.id,
+          result: randomItem(FAILED_FLAGS),
+          details: { submittedFlag: randomItem(WRONG_FLAGS) },
+        })
+      )
+    }
+    for (let n = 2 + (idx % 3); n-- > 0; ) {
+      const ch = randomItem(challenges)
+      submissions.push(
+        make({
+          kind: SubmissionKind.ADMIN_BOT,
+          challengeId: ch.id,
+          userId: team.id,
+          result: randomItem(BOT_RESULTS),
+          details: {
+            configRevision: `rev-${1 + (idx % 4)}`,
+            inputs: { target: `https://${ch.id}.local/` },
+          },
+          relatedId: `seed-bot-${team.id}-${counter}`,
+        })
+      )
+    }
+  }
+
+  return submissions.sort((a, b) => a.createdAt!.localeCompare(b.createdAt!))
+}
+
 function buildSettings(config: ServerConfig): Settings {
   return {
     id: 'value-0',
@@ -212,6 +318,7 @@ export function buildSeedData(config: ServerConfig): SeedData {
   const admin = buildAdmin()
   const teams = buildTeams(config, SEED_TEAM_COUNT)
   const challenges = buildChallenges()
+  const solves = buildSolves(config, teams, challenges)
 
   return {
     admin,
@@ -219,7 +326,8 @@ export function buildSeedData(config: ServerConfig): SeedData {
     users: [admin, ...teams],
     members: buildMembers(config, teams),
     challenges,
-    solves: buildSolves(config, teams, challenges),
+    solves,
+    submissions: buildSubmissions(config, teams, challenges, solves),
     settings: buildSettings(config),
   }
 }

@@ -25,21 +25,11 @@ import {
   GoodRegisterV2,
   SortOrder,
 } from '@rctf/types'
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  inArray,
-  notInArray,
-  or,
-  sql,
-  type SQL,
-} from 'drizzle-orm'
+import { and, asc, count, desc, eq, or, sql, type SQL } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
+import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate } from '../workers'
 
@@ -452,13 +442,15 @@ export type AdminUserDetails = AdminUserInfo & {
 const escapeLikePattern = (value: string) => value.replace(/[\\%_]/g, '\\$&')
 
 export const userNameSearchFilter = (search: string) => {
-  const emailPattern = `%${escapeLikePattern(search.toLowerCase())}%`
+  const pattern = `%${escapeLikePattern(search.toLowerCase())}%`
   return sql`(
+    lower(${users.name}::text) LIKE ${pattern} ESCAPE ${'\\'}
+    OR
     ${users.name} % ${search}
     OR ${search} <% ${users.name}
     OR (
       ${users.email} IS NOT NULL
-      AND lower(${users.email}) LIKE ${emailPattern} ESCAPE ${'\\'}
+      AND lower(${users.email}) LIKE ${pattern} ESCAPE ${'\\'}
     )
   )`
 }
@@ -473,14 +465,6 @@ export const adminTeamStatusExpression = sql<AdminTeamStatus>`
 
 type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2> &
   Partial<RouteBody<typeof FilterAdminUsersRouteV2>>
-
-const setFilter = <T>(
-  column: SQL<unknown>,
-  filter?: { include?: T[] | null; exclude?: T[] | null } | null
-): (SQL | undefined)[] => [
-  filter?.include?.length ? inArray(column, filter.include) : undefined,
-  filter?.exclude?.length ? notInArray(column, filter.exclude) : undefined,
-]
 
 const buildUsersFilters = (params: AdminUsersQuery): SQL | undefined => {
   const search = params.search?.trim()

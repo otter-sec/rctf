@@ -4,6 +4,7 @@ import {
   createDatabase,
   pendingUserVerifications,
   solves,
+  submissions,
   users,
   type ChallengeData,
   type User,
@@ -19,6 +20,7 @@ const getDb = () => createDatabase(config.database.sql).db
 export const clearDatabase = async () => {
   const db = getDb()
   await db.delete(pendingUserVerifications)
+  await db.delete(submissions)
   await db.delete(solves)
   await db.delete(challenges)
   await db.delete(users)
@@ -61,6 +63,7 @@ export const generateRealTestUser = async (perms = 0) => {
   return {
     user: user!,
     cleanup: async () => {
+      await db.delete(submissions).where(eq(submissions.userId, id))
       await db.delete(solves).where(eq(solves.userid, id))
       await db.delete(users).where(eq(users.id, id))
     },
@@ -91,6 +94,7 @@ export const generateChallenge = async () => {
   return {
     challenge: { id, ...data, flag },
     cleanup: async () => {
+      await db.delete(submissions).where(eq(submissions.challengeId, id))
       await db.delete(solves).where(eq(solves.challengeid, id))
       await db.delete(challenges).where(eq(challenges.id, id))
     },
@@ -124,6 +128,7 @@ export const generateChallengeWithReleaseTime = async (
   return {
     challenge: { id, ...data, flag },
     cleanup: async () => {
+      await db.delete(submissions).where(eq(submissions.challengeId, id))
       await db.delete(solves).where(eq(solves.challengeid, id))
       await db.delete(challenges).where(eq(challenges.id, id))
     },
@@ -146,6 +151,7 @@ export const deleteUserByEmail = async (email: string): Promise<void> => {
   const db = getDb()
   const user = await getUserByEmail(email)
   if (user) {
+    await db.delete(submissions).where(eq(submissions.userId, user.id))
     await db.delete(solves).where(eq(solves.userid, user.id))
     await db.delete(users).where(eq(users.id, user.id))
   }
