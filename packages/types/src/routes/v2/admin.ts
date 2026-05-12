@@ -24,6 +24,7 @@ import {
   GoodAdminChallengeV2,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
+  GoodAdminSubmissions,
   GoodAdminUserDeleteV2,
   GoodAdminUsersV2,
   GoodAdminUserUpdateV2,
@@ -47,6 +48,11 @@ import {
   PartialInstancerConfigSchema,
   searchFilter,
   SortOrder,
+  SubmissionKind,
+  SubmissionResult,
+  SubmissionSortBy,
+  SubmissionSortOrder,
+  SubmissionTeamStatus,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -90,6 +96,80 @@ export const FilterAdminUsersRouteV2 = defineRoute({
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
+})
+
+const SubmissionDateString = z.pipe(
+  z
+    .string()
+    .check(z.maxLength(64))
+    .check(
+      z.refine((value: string) => Number.isFinite(Date.parse(value)), {
+        message: 'must be a valid date',
+      })
+    ),
+  z.transform((value: string) => new Date(Date.parse(value)).toISOString())
+)
+
+const AdminSubmissionsQuery = z.object({
+  limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
+  offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+  sortBy: z.optional(z.enum(SubmissionSortBy)),
+  sortOrder: z.optional(z.enum(SubmissionSortOrder)),
+  challengeSearch: z.optional(
+    z.string().check(z.minLength(1)).check(z.maxLength(100))
+  ),
+  teamSearch: z.optional(
+    z.string().check(z.minLength(1)).check(z.maxLength(100))
+  ),
+})
+
+const AdminSubmissionsFilterBody = z
+  .object({
+    challenge: z.nullish(searchFilter(z.string())),
+    team: z.nullish(searchFilter(z.string())),
+    kind: z.nullish(searchFilter(z.enum(SubmissionKind))),
+    result: z.nullish(searchFilter(z.enum(SubmissionResult))),
+    teamStatus: z.nullish(searchFilter(z.enum(SubmissionTeamStatus))),
+    category: z.nullish(searchFilter(z.string())),
+    division: z.nullish(searchFilter(z.string())),
+    createdAfter: z.optional(SubmissionDateString),
+    createdBefore: z.optional(SubmissionDateString),
+  })
+  .check(
+    z.superRefine((data, ctx) => {
+      if (
+        data.createdAfter &&
+        data.createdBefore &&
+        Date.parse(data.createdAfter) > Date.parse(data.createdBefore)
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'must be before createdBefore',
+          path: ['createdAfter'],
+        })
+      }
+    })
+  )
+
+export const GetAdminSubmissionsRouteV2 = defineRoute({
+  path: '/v2/admin/submissions',
+  method: 'GET',
+  query: AdminSubmissionsQuery,
+  goodResponses: [GoodAdminSubmissions],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite | Permissions.challsRead,
+})
+
+export const FilterAdminSubmissionsRouteV2 = defineRoute({
+  path: '/v2/admin/submissions',
+  method: 'POST',
+  query: AdminSubmissionsQuery,
+  body: AdminSubmissionsFilterBody,
+  goodResponses: [GoodAdminSubmissions],
+  badResponses: [BadBody, BadPerms, BadToken],
+  authRequired: true,
+  permissions: Permissions.usersWrite | Permissions.challsRead,
 })
 
 const AdminUserParams = z.object({

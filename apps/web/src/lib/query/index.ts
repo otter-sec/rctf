@@ -3,9 +3,11 @@ import {
   adminChallengeQueryOptions,
   adminChallengesQueryOptions,
   adminSettingsQueryOptions,
+  adminSubmissionsQueryOptions,
   adminUserQueryOptions,
   adminUserVerificationsQueryOptions,
   instancerSchemaQueryOptions,
+  type AdminSubmissionsQueryParams,
 } from './admin'
 import {
   challengeSolvesQueryOptions,
@@ -62,4 +64,7 @@ export const queryKeys = {
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
+  adminSubmissions: (
+    params: { limit: number; offset: number } & AdminSubmissionsQueryParams
+  ) => adminSubmissionsQueryOptions(params).queryKey,
 }

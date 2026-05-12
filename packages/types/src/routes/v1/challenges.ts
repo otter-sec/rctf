@@ -31,7 +31,7 @@ export const SubmitFlagRoute = defineRoute({
   path: '/v1/challs/:id/submit',
   method: 'POST',
   body: z.object({
-    flag: z.string(),
+    flag: z.string().check(z.maxLength(1024)),
   }),
   goodResponses: [GoodFlag],
   badResponses: [

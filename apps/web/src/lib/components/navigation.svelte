@@ -24,6 +24,7 @@
     IconLogin,
     IconLogout,
     IconSettingsFilled,
+    IconTableFilled,
     IconUserCog,
   } from '$lib/icons'
   import { useClientConfig, useCurrentUser } from '$lib/query'
@@ -157,6 +158,13 @@
               >
                 <IconUserCog class="size-5" />
                 Manage teams
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                class="data-highlighted:bg-background-l5"
+                onclick={() => goto('/admin/submissions')}
+              >
+                <IconTableFilled class="size-5" />
+                Submissions
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 class="data-highlighted:bg-background-l5"
