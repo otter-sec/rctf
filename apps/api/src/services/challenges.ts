@@ -550,7 +550,12 @@ export const submitFlag = async (
       ip: params.submissionIp,
       result: SubmissionResult.INCORRECT,
       details: { submittedFlag: params.flag },
-    })
+    }).catch(err =>
+      log.error(
+        { err, challengeId: params.challengeId, userId: params.userId },
+        'failed to record incorrect flag submission'
+      )
+    )
     return res.badFlag()
   }
 
@@ -581,7 +586,12 @@ export const submitFlag = async (
         ip: params.submissionIp,
         result: SubmissionResult.ALREADY_SOLVED,
         details: { submittedFlag: params.flag },
-      })
+      }).catch(err =>
+        log.error(
+          { err, challengeId: params.challengeId, userId: params.userId },
+          'failed to record already-solved flag submission'
+        )
+      )
       return res.badAlreadySolvedChallenge()
     }
     if (constraintName === 'uuid_fkey') {

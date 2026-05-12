@@ -57,7 +57,12 @@ integrationsGroup.route(
         ip: ctx.var.ip,
         result,
         details: details ?? adminBotDetails(),
-      })
+      }).catch(err =>
+        ctx.var.logger.error(
+          { err, challengeId: params.id, userId: user.id, result },
+          'failed to record admin bot submission audit log'
+        )
+      )
 
     const timeLeft = await rateLimitAdminBot(ctx.var.redis, user.id, params.id)
     if (timeLeft !== undefined) {

@@ -98,14 +98,17 @@ export const FilterAdminUsersRouteV2 = defineRoute({
   permissions: Permissions.usersWrite,
 })
 
-const SubmissionDateString = z
-  .string()
-  .check(z.maxLength(64))
-  .check(
-    z.refine((value: string) => Number.isFinite(Date.parse(value)), {
-      message: 'must be a valid date',
-    })
-  )
+const SubmissionDateString = z.pipe(
+  z
+    .string()
+    .check(z.maxLength(64))
+    .check(
+      z.refine((value: string) => Number.isFinite(Date.parse(value)), {
+        message: 'must be a valid date',
+      })
+    ),
+  z.transform((value: string) => new Date(Date.parse(value)).toISOString())
+)
 
 const AdminSubmissionsQuery = z.object({
   limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
