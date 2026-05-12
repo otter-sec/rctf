@@ -20,7 +20,7 @@
   )
 </script>
 
-<div class="flex flex-col gap-4 px-9 py-2 sm:flex-row sm:items-start sm:justify-between">
+<div class="flex flex-col gap-2 px-9 py-2 sm:flex-row sm:items-start sm:justify-between">
   <div class="flex min-w-0 gap-4">
     {#key user.avatarUrl}
       <Avatar.Root class="size-16 shrink-0 rounded-lg sm:size-20">

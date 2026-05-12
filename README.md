@@ -132,7 +132,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    bun dev
    ```
 
-For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/challenges/solves, and start the dev server. (login URLs are printed to stdout). Use `bun dev:seed` to reseed without restarting.
+For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/challenges/solves, and start the dev server (login URLs are printed to stdout). Use `bun dev:seed` to reseed without restarting.
 
 ## New features compared to v1
 

@@ -1,13 +1,13 @@
 <script lang="ts">
   import { page } from '$app/state'
-  import { Button, Card, Spinner } from '$lib/components'
+  import { Button, Card, ScrollArea, Spinner, Tabs } from '$lib/components'
   import {
     useClientConfig,
     useLeaderboardChallenges,
     useUserGraph,
     useUserProfile,
   } from '$lib/query'
-  import ProfileGraph from '../profile-graph.svelte'
+  import ProfileAnalytics from '../profile-analytics.svelte'
   import ProfileHeader from '../profile-header.svelte'
   import ProfileSolves from '../profile-solves.svelte'
 
@@ -44,28 +44,71 @@
   {/if}
 </svelte:head>
 
+{#snippet solvesPanel()}
+  {#if user}
+    <ProfileSolves
+      {challenges}
+      solves={user.solves}
+      showUnsolved={challenges.length > 0}
+      scrollable
+      class="min-h-0 flex-1"
+    />
+  {/if}
+{/snippet}
+
+{#snippet analyticsPanel()}
+  {#if user && clientConfig}
+    <ScrollArea
+      class="h-full"
+      fadeSize={32}
+      fadeColor="background-l1"
+      scrollbarYClasses="z-30 mt-4"
+      viewportTabIndex={-1}
+    >
+      <ProfileAnalytics {user} {clientConfig} {challenges} {graphData} />
+    </ScrollArea>
+  {/if}
+{/snippet}
+
 {#if user && clientConfig}
-  <div class="mx-auto h-[calc(100dvh-72px)] w-full max-w-3xl">
-    <div class="bg-background-l1 flex h-full flex-col overflow-hidden rounded-t-3xl">
-      <div class="bg-background-l1 z-10 shrink-0 py-2">
+  <div
+    class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
+  >
+    <div class="bg-background-l1 z-10 shrink-0 pt-2">
+      <ProfileHeader {user} {clientConfig} />
+    </div>
+
+    <Tabs.Root value="challenges" class="min-h-0 flex-1">
+      <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
+        <Tabs.List class="grid h-10 w-full grid-cols-2">
+          <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
+          <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
+        </Tabs.List>
+      </div>
+
+      <Tabs.Content value="challenges" class="min-h-0">
+        {@render solvesPanel()}
+      </Tabs.Content>
+
+      <Tabs.Content value="analytics" class="min-h-0">
+        {@render analyticsPanel()}
+      </Tabs.Content>
+    </Tabs.Root>
+  </div>
+
+  <div
+    class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-[1600px] grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
+  >
+    <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
+      <div class="bg-background-l1 z-10 shrink-0 pt-2">
         <ProfileHeader {user} {clientConfig} />
       </div>
 
-      <div class="flex min-h-0 flex-1 flex-col">
-        {#if graphData && graphData.points.length > 0}
-          <div class="shrink-0 px-4 pt-2">
-            <ProfileGraph class="h-40 w-full" {graphData} rank={user.globalPlace ?? 0} />
-          </div>
-        {/if}
+      {@render solvesPanel()}
+    </div>
 
-        <ProfileSolves
-          {challenges}
-          solves={user.solves}
-          showUnsolved={challenges.length > 0}
-          scrollable
-          class="min-h-0 flex-1"
-        />
-      </div>
+    <div class="bg-background-l1 min-h-0 overflow-hidden rounded-t-3xl">
+      {@render analyticsPanel()}
     </div>
   </div>
 {:else if isPending}

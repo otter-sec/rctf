@@ -34,8 +34,16 @@ export const SEED_CHALLENGE_CATEGORIES = [
   'misc',
 ] as const
 
+type SeedTiming = {
+  startTime: number
+  endTime: number
+  solveEarliest: number
+  solveSpan: number
+}
+
 const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
+const solveEndOffset = 5 * 60_000
 
 const FAILED_FLAGS = [
   SubmissionResult.INCORRECT,
@@ -167,22 +175,35 @@ function buildChallenges(): Challenge[] {
   })
 }
 
-function solveTimeBounds(config: ServerConfig) {
+function buildSeedTiming(config: ServerConfig): SeedTiming {
   const now = Date.now()
-  const latest = Math.min(now - 5 * 60_000, config.endTime - 5 * 60_000)
-  const earliest =
-    config.startTime > 0 && config.startTime < latest
-      ? Math.max(config.startTime, latest - DAY)
-      : latest - DAY
+  const solveLatest = Math.min(
+    now - solveEndOffset,
+    config.endTime - solveEndOffset
+  )
+
+  if (config.startTime > 0 && config.startTime < solveLatest) {
+    const solveEarliest = Math.max(config.startTime, solveLatest - DAY)
+    return {
+      startTime: config.startTime,
+      endTime: config.endTime,
+      solveEarliest,
+      solveSpan: Math.max(HOUR, solveLatest - solveEarliest),
+    }
+  }
+
+  const startTime = solveLatest - DAY
 
   return {
-    earliest,
-    span: Math.max(HOUR, latest - earliest),
+    startTime,
+    endTime: solveLatest + DAY,
+    solveEarliest: startTime,
+    solveSpan: DAY,
   }
 }
 
 function buildSolves(
-  config: ServerConfig,
+  timing: SeedTiming,
   teams: User[],
   challenges: Challenge[]
 ): Solve[] {
@@ -190,7 +211,6 @@ function buildSolves(
     return []
   }
 
-  const { earliest, span } = solveTimeBounds(config)
   const solves: Solve[] = []
 
   for (const [teamIndex, team] of teams.entries()) {
@@ -209,7 +229,7 @@ function buildSolves(
       const earlyBias = 1 + teamStrength * 1.5
       const progress = Math.pow(Math.random(), earlyBias)
       const createdAt = new Date(
-        earliest + Math.floor(span * progress)
+        timing.solveEarliest + Math.floor(timing.solveSpan * progress)
       ).toISOString()
 
       solves.push({
@@ -226,15 +246,15 @@ function buildSolves(
 }
 
 function buildSubmissions(
-  config: ServerConfig,
+  timing: SeedTiming,
   teams: User[],
   challenges: Challenge[],
   solves: Solve[]
 ): Submission[] {
   if (teams.length === 0 || challenges.length === 0) return []
 
-  const { earliest, span } = solveTimeBounds(config)
-  const randomTime = () => new Date(earliest + randomInt(span)).toISOString()
+  const randomTime = () =>
+    new Date(timing.solveEarliest + randomInt(timing.solveSpan)).toISOString()
   const challengesById = new Map(challenges.map(c => [c.id, c]))
 
   let counter = 0
@@ -299,12 +319,14 @@ function buildSubmissions(
   return submissions.sort((a, b) => a.createdAt!.localeCompare(b.createdAt!))
 }
 
-function buildSettings(config: ServerConfig): Settings {
+function buildSettings(config: ServerConfig, timing: SeedTiming): Settings {
   return {
     id: 'value-0',
     data: {
       ctfName: config.ctfName,
       homeContent: config.homeContent,
+      startTime: timing.startTime,
+      endTime: timing.endTime,
       sponsors: config.sponsors,
       meta: config.meta,
       faviconUrl: config.faviconUrl,
@@ -315,10 +337,11 @@ function buildSettings(config: ServerConfig): Settings {
 }
 
 export function buildSeedData(config: ServerConfig): SeedData {
+  const timing = buildSeedTiming(config)
   const admin = buildAdmin()
   const teams = buildTeams(config, SEED_TEAM_COUNT)
   const challenges = buildChallenges()
-  const solves = buildSolves(config, teams, challenges)
+  const solves = buildSolves(timing, teams, challenges)
 
   return {
     admin,
@@ -327,7 +350,7 @@ export function buildSeedData(config: ServerConfig): SeedData {
     members: buildMembers(config, teams),
     challenges,
     solves,
-    submissions: buildSubmissions(config, teams, challenges, solves),
-    settings: buildSettings(config),
+    submissions: buildSubmissions(timing, teams, challenges, solves),
+    settings: buildSettings(config, timing),
   }
 }
