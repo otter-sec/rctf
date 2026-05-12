@@ -39,11 +39,12 @@ jobs:
       - name: Compute artifact ids
         id: prep
         shell: bash
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          IMAGE: ${{ inputs.image-name }}
         run: |
-          platform="${{ matrix.platform }}"
-          image="${{ inputs.image-name }}"
-          echo "platform-pair=${platform//\//-}" >> "$GITHUB_OUTPUT"
-          echo "image-safe=${image//\//-}" >> "$GITHUB_OUTPUT"
+          echo "platform-pair=${PLATFORM//\//-}" >> "$GITHUB_OUTPUT"
+          echo "image-safe=${IMAGE//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -82,10 +83,11 @@ jobs:
 
       - name: Export digest
         shell: bash
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
         run: |
           mkdir -p /tmp/digests
-          digest="${{ steps.build.outputs.digest }}"
-          touch "/tmp/digests/${digest#sha256:}"
+          touch "/tmp/digests/${DIGEST#sha256:}"
 
       - name: Upload digest
         uses: actions/upload-artifact@v4
@@ -103,9 +105,10 @@ jobs:
       - name: Compute artifact prefix
         id: prep
         shell: bash
+        env:
+          IMAGE: ${{ inputs.image-name }}
         run: |
-          image="${{ inputs.image-name }}"
-          echo "image-safe=${image//\//-}" >> "$GITHUB_OUTPUT"
+          echo "image-safe=${IMAGE//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Download digests
         uses: actions/download-artifact@v4
@@ -137,11 +140,16 @@ jobs:
       - name: Create manifest list and push
         shell: bash
         working-directory: /tmp/digests
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ inputs.image-name }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ inputs.image-name }}@sha256:%s ' *)
+            $(printf "${IMAGE_REF}@sha256:%s " *)
 
       - name: Inspect image
         shell: bash
+        env:
+          IMAGE_REF: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ inputs.image-name }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect "${IMAGE_REF}:${VERSION}"

@@ -31,4 +31,7 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: bun install --frozen-lockfile ${{ inputs.install-args }}
+      env:
+        INSTALL_ARGS: ${{ inputs.install-args }}
+      # intentional unquoted expansion: word-split flags into separate args
+      run: bun install --frozen-lockfile $INSTALL_ARGS

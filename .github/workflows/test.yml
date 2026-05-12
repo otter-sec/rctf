@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun-deps
         with:
-          install-args: --filter '@rctf/api' --filter 'server-tests'
+          install-args: --filter @rctf/api --filter server-tests
       - run: bun run test:server
 
   test-admin-bot:
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun-deps
         with:
-          install-args: --filter '@rctf/admin-bot' --filter 'admin-bot-tests'
+          install-args: --filter @rctf/admin-bot --filter admin-bot-tests
       - run: bun run test:admin-bot
 
   test-admin-bot-e2e:
@@ -50,5 +50,5 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-bun-deps
         with:
-          install-args: --filter '@rctf/admin-bot' --filter 'admin-bot-e2e-tests'
+          install-args: --filter @rctf/admin-bot --filter admin-bot-e2e-tests
       - run: bun run test:admin-bot:e2e

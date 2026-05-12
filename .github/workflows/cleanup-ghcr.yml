@@ -1,0 +1,70 @@
+name: ghcr Cleanup
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 0'
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ghcr-cleanup
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-24.04
+    outputs:
+      valid: ${{ steps.collect.outputs.valid }}
+    steps:
+      - name: Collect current branches and git tags
+        id: collect
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sanitize() { sed 's|[^A-Za-z0-9_.+-]|-|g'; }
+
+          valid=$(
+            {
+              echo latest
+              gh api "repos/${REPO}/branches" --paginate -q '.[].name' | sanitize
+              gh api "repos/${REPO}/tags" --paginate -q '.[].name' | sanitize
+            } | sort -u | paste -sd, -
+          )
+          echo "valid=$valid" >> "$GITHUB_OUTPUT"
+
+  cleanup:
+    needs: collect
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - rctf-new
+          - rctf-new/admin-bot
+          - rctf-new/docker-instancer
+          - rctf-new/docs
+          - rctf-new/k8s-controller
+    steps:
+      - name: Delete tags with no matching branch or git tag
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: ${{ matrix.package }}
+          delete-tags: '*'
+          exclude-tags: ${{ needs.collect.outputs.valid }}
+          validate: true
+          dry-run: true
+
+      - name: Delete untagged orphans older than 2 weeks
+        uses: dataaxiom/ghcr-cleanup-action@v1
+        with:
+          package: ${{ matrix.package }}
+          delete-untagged: true
+          older-than: 2 weeks
+          validate: true
+          dry-run: true
