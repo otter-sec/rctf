@@ -23,6 +23,7 @@
   const height = $derived(
     Math.max(minChartHeightPx, categories.length * rowHeightPx + axisOverheadPx)
   )
+  const colorDomain = $derived(Array.from(new Set(data.map(point => point.color))))
 </script>
 
 {#if data.length > 0}
@@ -31,8 +32,11 @@
       {data}
       x="time"
       y="categoryLabel"
+      c="color"
       xDomain={[activityDomain.start, activityDomain.end]}
       yDomain={categories}
+      cDomain={colorDomain}
+      cRange={colorDomain}
       padding={{ left: 76, right: 8, top: 8, bottom: 28 }}
       tooltipContext={{ mode: 'quadtree' }}
     >
