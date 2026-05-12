@@ -1,12 +1,5 @@
 <script lang="ts" module>
-  import { CELL_GAP, CELL_HEIGHT, CELL_WIDTH } from './scores-leaderboard-layout-constants'
-  import type {
-    CategoryGroup,
-    ChallengeInfo,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './scores-shared-types'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
     svg: string
@@ -43,6 +36,9 @@
     palette: RenderPalette
   }
 
+  const CELL_WIDTH = 48
+  const CELL_HEIGHT = 64
+  const CELL_GAP = 4
   const ICON_RADIUS = 10
   const CAT_ICON_RADIUS = 14
   // 20 * (x / 24) = 22 => x = 22 * 24 / 20 = 26.4

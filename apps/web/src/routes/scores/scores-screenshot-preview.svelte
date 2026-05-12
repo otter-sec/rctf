@@ -5,9 +5,9 @@
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
-  import ScoresGraph from './scores-leaderboard-graph.svelte'
-  import ScoresSparkline from './scores-leaderboard-team-row-sparkline.svelte'
-  import type { CategoryGroup } from './scores-shared-types'
+  import ScoresGraph from './scores-graph.svelte'
+  import ScoresSparkline from './scores-sparkline.svelte'
+  import type { CategoryGroup } from './types'
 
   interface TeamEntry {
     id: string
