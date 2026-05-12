@@ -36,12 +36,14 @@ jobs:
         include: ${{ fromJSON(inputs.platforms-matrix) }}
 
     steps:
-      - name: Compute platform pair
+      - name: Compute artifact ids
         id: prep
         shell: bash
         run: |
           platform="${{ matrix.platform }}"
+          image="${{ inputs.image-name }}"
           echo "platform-pair=${platform//\//-}" >> "$GITHUB_OUTPUT"
+          echo "image-safe=${image//\//-}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,7 +90,7 @@ jobs:
       - name: Upload digest
         uses: actions/upload-artifact@v4
         with:
-          name: digests-${{ steps.prep.outputs.platform-pair }}
+          name: digests-${{ steps.prep.outputs.image-safe }}-${{ steps.prep.outputs.platform-pair }}
           path: /tmp/digests/*
           if-no-files-found: error
           retention-days: 1
@@ -98,11 +100,18 @@ jobs:
     needs: build
 
     steps:
+      - name: Compute artifact prefix
+        id: prep
+        shell: bash
+        run: |
+          image="${{ inputs.image-name }}"
+          echo "image-safe=${image//\//-}" >> "$GITHUB_OUTPUT"
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: digests-${{ steps.prep.outputs.image-safe }}-*
           merge-multiple: true
 
       - name: Set up Docker Buildx
