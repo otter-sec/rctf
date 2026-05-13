@@ -1,6 +1,7 @@
 import { useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
 import { onMount } from 'svelte'
 import { getEmptyGraphVisibility, getGraphVisibility } from './scores-data-helpers'
+import { CELL_WIDTH, DIAGONAL_OVERFLOW, ROW_GAP, ROW_HEIGHT } from './scores-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
@@ -9,10 +10,8 @@ import type {
   ViewportVisibility,
 } from './types'
 
-const ROW_GAP = 4
-const ROW_HEIGHT = 64 + ROW_GAP
-const CELL_WIDTH = 48
-const DIAGONAL_OVERFLOW = 96
+type ScoresScroll = ReturnType<typeof useInfiniteVirtualScroll>
+type SelfRowPosition = 'top' | 'bottom'
 
 interface ScoresViewportStateConfig {
   entries: () => ScoreEntry[]
@@ -32,18 +31,221 @@ interface ScoresViewportStateConfig {
   onScroll?: () => void
 }
 
+interface ScoresViewportFacadeConfig {
+  scroll: ScoresScroll
+  media: ReturnType<typeof createScoresMediaState>
+  header: ReturnType<typeof createScoresHeaderMeasurementState>
+  fades: ReturnType<typeof createScoresFadeState>
+  userEntryIndex: () => number
+  viewportVisibility: () => ViewportVisibility
+  showSelfRow: () => boolean
+  selfRowPosition: () => SelfRowPosition
+  contentWidth: () => number
+  visibleGraphData: () => ScoreGraphEntry[]
+  contextTeamIds: () => Set<string>
+  scrollbarYPadding: () => string
+}
+
+interface ScoresViewportGraphConfig {
+  config: ScoresViewportStateConfig
+  scroll: ScoresScroll
+  viewportVisibility: () => ViewportVisibility
+}
+
 export function createScoresViewportState(config: ScoresViewportStateConfig) {
+  const media = createScoresMediaState()
+  const header = createScoresHeaderMeasurementState()
+  const fades = createScoresFadeState()
+  let scrollMetrics = $state<ScrollMetrics | null>(null)
+
+  function handleScrollMetrics(metrics: ScrollMetrics) {
+    config.onScroll?.()
+    scrollMetrics = metrics
+    fades.updateFromScroll(metrics)
+  }
+
+  const scroll = useInfiniteVirtualScroll({
+    rowHeight: ROW_HEIGHT,
+    overscan: 10,
+    isScrollingResetDelay: 100,
+    onLoadMore: config.fetchNextPage,
+    onScroll: handleScrollMetrics,
+  })
+
+  const userEntryIndex = $derived.by(() => {
+    const currentUser = config.currentUser()
+    return currentUser ? config.entries().findIndex(entry => entry.id === currentUser.id) : -1
+  })
+
+  const viewportVisibility = $derived(getViewportVisibility(
+    scrollMetrics,
+    scroll.virtualItems,
+    config.entries(),
+    header.listScrollMargin,
+    userEntryIndex
+  ))
+
+  const showSelfRow = $derived.by(() => {
+    if (config.search()) return false
+    if (config.isLoading() && config.currentUser()) return true
+    if (!config.currentUser()?.globalPlace) return false
+    if (viewportVisibility.userVisible) return false
+    return true
+  })
+
+  const selfRowPosition = $derived.by((): SelfRowPosition => {
+    const currentUser = config.currentUser()
+    if (!currentUser?.globalPlace) return 'bottom'
+    if (userEntryIndex === -1) return 'bottom'
+    if (viewportVisibility.userClippedTop) return 'top'
+    const userItem = scroll.virtualItems.find(item => item.index === userEntryIndex)
+    if (!userItem) {
+      return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
+    }
+    return 'bottom'
+  })
+
+  const contentWidth = $derived(config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW)
+  const graph = createScoresViewportGraphState({
+    config,
+    scroll,
+    viewportVisibility: () => viewportVisibility,
+  })
+  const scrollbarYPadding = $derived(
+    getScrollbarYPadding(showSelfRow, selfRowPosition, media.isDesktop)
+  )
+  const fadeRefreshKey = $derived({
+    contentWidth,
+    listScrollMargin: header.listScrollMargin,
+    showSelfRow,
+    selfRowPosition,
+    isDesktop: media.isDesktop,
+    isLoading: config.isLoading(),
+    focusedChallengeId: config.focusedChallengeId(),
+    entryCount: config.entries().length,
+  })
+
+  createLayoutFadeRefresher(scroll, fades, () => fadeRefreshKey)
+  syncVirtualScrollState(scroll, config, () => header.listScrollMargin)
+
+  return createScoresViewportFacade({
+    scroll,
+    media,
+    header,
+    fades,
+    userEntryIndex: () => userEntryIndex,
+    viewportVisibility: () => viewportVisibility,
+    showSelfRow: () => showSelfRow,
+    selfRowPosition: () => selfRowPosition,
+    contentWidth: () => contentWidth,
+    visibleGraphData: () => graph.visibleGraphData,
+    contextTeamIds: () => graph.contextTeamIds,
+    scrollbarYPadding: () => scrollbarYPadding,
+  })
+}
+
+function createScoresViewportFacade(config: ScoresViewportFacadeConfig) {
+  return {
+    scroll: config.scroll,
+    get themeRenderEpoch() {
+      return config.media.themeRenderEpoch
+    },
+    get isDesktop() {
+      return config.media.isDesktop
+    },
+    get isXl() {
+      return config.media.isXl
+    },
+    get listScrollMargin() {
+      return config.header.listScrollMargin
+    },
+    get showTopFade() {
+      return config.fades.showTop
+    },
+    get showBottomFade() {
+      return config.fades.showBottom
+    },
+    get showLeftFade() {
+      return config.fades.showLeft
+    },
+    get showRightFade() {
+      return config.fades.showRight
+    },
+    get headerRowRef() {
+      return config.header.headerRowRef
+    },
+    set headerRowRef(value: HTMLElement | null) {
+      config.header.headerRowRef = value
+    },
+    get userEntryIndex() {
+      return config.userEntryIndex()
+    },
+    get viewportVisibility() {
+      return config.viewportVisibility()
+    },
+    get showSelfRow() {
+      return config.showSelfRow()
+    },
+    get selfRowPosition() {
+      return config.selfRowPosition()
+    },
+    get contentWidth() {
+      return config.contentWidth()
+    },
+    get visibleGraphData() {
+      return config.visibleGraphData()
+    },
+    get contextTeamIds() {
+      return config.contextTeamIds()
+    },
+    get scrollbarYPadding() {
+      return config.scrollbarYPadding()
+    },
+  }
+}
+
+function createScoresViewportGraphState({
+  config,
+  scroll,
+  viewportVisibility,
+}: ScoresViewportGraphConfig) {
+  const graphVisibility = $derived.by(() => {
+    const visibility = viewportVisibility()
+    return getGraphVisibility({
+      entries: config.entries(),
+      isLoading: config.isLoading(),
+      minRank: visibility.minRank,
+      maxRank: visibility.maxRank,
+      focusedChallengeId: config.focusedChallengeId(),
+      showTop3Context: config.showTop3Context(),
+      showSelfContext: config.showSelfContext(),
+      currentUserId: config.currentUser()?.id ?? null,
+      teamRanks: config.teamRanks(),
+    })
+  })
+  const graphVisibilityState = createStableGraphVisibility(
+    () => graphVisibility,
+    () => scroll.isScrolling
+  )
+  const visibleGraphData = $derived(
+    config.allGraphData().filter(team => graphVisibilityState.value.visibleTeamIds.has(team.id))
+  )
+  const contextTeamIds = $derived(graphVisibilityState.value.contextTeamIds)
+
+  return {
+    get visibleGraphData() {
+      return visibleGraphData
+    },
+    get contextTeamIds() {
+      return contextTeamIds
+    },
+  }
+}
+
+function createScoresMediaState() {
   let themeRenderEpoch = $state(0)
   let isDesktop = $state(true)
   let isXl = $state(true)
-  let listScrollMargin = $state(0)
-  let showTopFade = $state(false)
-  let showBottomFade = $state(false)
-  let showLeftFade = $state(false)
-  let showRightFade = $state(false)
-  let scrollMetrics = $state<ScrollMetrics | null>(null)
-  let headerRowRef = $state<HTMLElement | null>(null)
-  let fadeRaf = 0
 
   onMount(() => {
     const mqlDesktop = window.matchMedia('(min-width: 768px)')
@@ -76,128 +278,136 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     }
   })
 
-  function updateFades(metrics: ScrollMetrics) {
-    config.onScroll?.()
-    scrollMetrics = metrics
-    const threshold = 10
-    const nextTop = metrics.scrollTop > threshold
-    const nextBottom = metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold
-    const nextLeft = metrics.scrollLeft > threshold
-    const nextRight = metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold
-
-    if (showTopFade !== nextTop) showTopFade = nextTop
-    if (showBottomFade !== nextBottom) showBottomFade = nextBottom
-    if (showLeftFade !== nextLeft) showLeftFade = nextLeft
-    if (showRightFade !== nextRight) showRightFade = nextRight
+  return {
+    get themeRenderEpoch() {
+      return themeRenderEpoch
+    },
+    get isDesktop() {
+      return isDesktop
+    },
+    get isXl() {
+      return isXl
+    },
   }
+}
 
-  const scroll = useInfiniteVirtualScroll({
-    rowHeight: ROW_HEIGHT,
-    overscan: 10,
-    isScrollingResetDelay: 100,
-    onLoadMore: config.fetchNextPage,
-    onScroll: updateFades,
-  })
+function createScoresHeaderMeasurementState() {
+  let headerRowRef = $state<HTMLElement | null>(null)
+  let listScrollMargin = $state(0)
+  let resizeObserver: ResizeObserver | null = null
 
-  const userEntryIndex = $derived.by(() => {
-    const currentUser = config.currentUser()
-    return currentUser ? config.entries().findIndex(entry => entry.id === currentUser.id) : -1
-  })
-
-  const viewportVisibility = $derived(getViewportVisibility(
-    scrollMetrics,
-    scroll.virtualItems,
-    config.entries(),
-    listScrollMargin,
-    userEntryIndex
-  ))
-
-  const showSelfRow = $derived.by(() => {
-    if (config.search()) return false
-    if (config.isLoading() && config.currentUser()) return true
-    if (!config.currentUser()?.globalPlace) return false
-    if (viewportVisibility.userVisible) return false
-    return true
-  })
-
-  const selfRowPosition = $derived.by((): 'top' | 'bottom' => {
-    const currentUser = config.currentUser()
-    if (!currentUser?.globalPlace) return 'bottom'
-    if (userEntryIndex === -1) return 'bottom'
-    if (viewportVisibility.userClippedTop) return 'top'
-    const userItem = scroll.virtualItems.find(item => item.index === userEntryIndex)
-    if (!userItem) {
-      return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
-    }
-    return 'bottom'
-  })
-
-  const contentWidth = $derived(config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW)
-  const graphVisibility = $derived(getGraphVisibility({
-    entries: config.entries(),
-    isLoading: config.isLoading(),
-    minRank: viewportVisibility.minRank,
-    maxRank: viewportVisibility.maxRank,
-    focusedChallengeId: config.focusedChallengeId(),
-    showTop3Context: config.showTop3Context(),
-    showSelfContext: config.showSelfContext(),
-    currentUserId: config.currentUser()?.id ?? null,
-    teamRanks: config.teamRanks(),
-  }))
-  let stableGraphVisibility = $state<GraphVisibility>(getEmptyGraphVisibility())
-
-  $effect(() => {
-    if (!scroll.isScrolling) stableGraphVisibility = graphVisibility
-  })
-
-  const visibleGraphData = $derived(
-    config.allGraphData().filter(team => stableGraphVisibility.visibleTeamIds.has(team.id))
-  )
-  const contextTeamIds = $derived(stableGraphVisibility.contextTeamIds)
-  const scrollbarYPadding = $derived(getScrollbarYPadding(showSelfRow, selfRowPosition, isDesktop))
-  const fadeDeps = $derived({
-    contentWidth,
-    listScrollMargin,
-    showSelfRow,
-    selfRowPosition,
-    isDesktop,
-    isLoading: config.isLoading(),
-    focusedChallengeId: config.focusedChallengeId(),
-    entryCount: config.entries().length,
-  })
-
-  $effect(() => {
-    const header = headerRowRef
+  function setHeaderRowRef(header: HTMLElement | null) {
+    resizeObserver?.disconnect()
+    resizeObserver = null
+    headerRowRef = header
     if (!header) {
       listScrollMargin = 0
       return
     }
 
-    const ro = new ResizeObserver(entries => {
+    resizeObserver = new ResizeObserver(entries => {
       const height = entries[0]?.contentRect.height ?? 0
       listScrollMargin = Math.round(height)
     })
-    ro.observe(header)
+    resizeObserver.observe(header)
     listScrollMargin = Math.round(header.getBoundingClientRect().height)
+  }
 
-    return () => ro.disconnect()
-  })
+  return {
+    get headerRowRef() {
+      return headerRowRef
+    },
+    set headerRowRef(value: HTMLElement | null) {
+      setHeaderRowRef(value)
+    },
+    get listScrollMargin() {
+      return listScrollMargin
+    },
+  }
+}
+
+function createScoresFadeState() {
+  let showTop = $state(false)
+  let showBottom = $state(false)
+  let showLeft = $state(false)
+  let showRight = $state(false)
+
+  function update(metrics: ScrollMetrics) {
+    const next = getFadeVisibility(metrics)
+    if (showTop !== next.top) showTop = next.top
+    if (showBottom !== next.bottom) showBottom = next.bottom
+    if (showLeft !== next.left) showLeft = next.left
+    if (showRight !== next.right) showRight = next.right
+  }
+
+  return {
+    get showTop() {
+      return showTop
+    },
+    get showBottom() {
+      return showBottom
+    },
+    get showLeft() {
+      return showLeft
+    },
+    get showRight() {
+      return showRight
+    },
+    updateFromScroll: update,
+    updateFromLayout: update,
+  }
+}
+
+function createStableGraphVisibility(
+  getVisibility: () => GraphVisibility,
+  getIsScrolling: () => boolean
+) {
+  let value = $state<GraphVisibility>(getEmptyGraphVisibility())
 
   $effect(() => {
+    // Keep graph teams stable during wheel/trackpad motion so the chart does not flicker.
+    if (!getIsScrolling()) value = getVisibility()
+  })
+
+  return {
+    get value() {
+      return value
+    },
+  }
+}
+
+function createLayoutFadeRefresher(
+  scroll: ScoresScroll,
+  fades: ReturnType<typeof createScoresFadeState>,
+  getRefreshKey: () => unknown
+) {
+  let fadeRaf = 0
+
+  function scheduleRefresh(_key: unknown) {
+    if (fadeRaf) return
+    fadeRaf = requestAnimationFrame(() => {
+      fadeRaf = 0
+      const viewport = scroll.state.viewportRef
+      if (!viewport?.isConnected) return
+      fades.updateFromLayout(readScrollMetrics(viewport))
+    })
+  }
+
+  $effect(() => {
+    // ResizeObserver/rAF reads are DOM synchronization; scroll handlers own tooltip closing.
     const viewport = scroll.state.viewportRef
     if (!viewport) return
 
-    fadeDeps
-    updateFadesFromViewport()
+    scheduleRefresh(getRefreshKey())
 
-    const ro = new ResizeObserver(() => updateFadesFromViewport())
+    const ro = new ResizeObserver(() => scheduleRefresh(getRefreshKey()))
     ro.observe(viewport, { box: 'border-box' })
     const content = viewport.firstElementChild
     if (content) ro.observe(content, { box: 'border-box' })
 
     let secondRaf = 0
     const firstRaf = requestAnimationFrame(() => {
-      secondRaf = requestAnimationFrame(() => updateFadesFromViewport())
+      secondRaf = requestAnimationFrame(() => scheduleRefresh(getRefreshKey()))
     })
 
     return () => {
@@ -210,8 +420,15 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
       }
     }
   })
+}
 
+function syncVirtualScrollState(
+  scroll: ScoresScroll,
+  config: ScoresViewportStateConfig,
+  getListScrollMargin: () => number
+) {
   $effect.pre(() => {
+    // The virtualizer stores mutable runtime state outside Svelte's derived graph.
     const visibleCount = config.isLoading() ? 0 : config.entries().length
     const totalCount = getTotalCount(
       config.isLoading(),
@@ -228,82 +445,28 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
       config.hasNextPage()
     )
     scroll.state.isFetching = config.isLoading() || config.isFetchingNextPage()
-    scroll.state.scrollMargin = listScrollMargin
+    scroll.state.scrollMargin = getListScrollMargin()
   })
+}
 
-  function updateFadesFromViewport() {
-    if (fadeRaf) return
-    fadeRaf = requestAnimationFrame(() => {
-      fadeRaf = 0
-      const viewport = scroll.state.viewportRef
-      if (!viewport?.isConnected) return
-      updateFades({
-        scrollTop: viewport.scrollTop,
-        scrollLeft: viewport.scrollLeft,
-        scrollHeight: viewport.scrollHeight,
-        scrollWidth: viewport.scrollWidth,
-        clientHeight: viewport.clientHeight,
-        clientWidth: viewport.clientWidth,
-      })
-    })
-  }
-
+function readScrollMetrics(viewport: HTMLElement): ScrollMetrics {
   return {
-    scroll,
-    get themeRenderEpoch() {
-      return themeRenderEpoch
-    },
-    get isDesktop() {
-      return isDesktop
-    },
-    get isXl() {
-      return isXl
-    },
-    get listScrollMargin() {
-      return listScrollMargin
-    },
-    get showTopFade() {
-      return showTopFade
-    },
-    get showBottomFade() {
-      return showBottomFade
-    },
-    get showLeftFade() {
-      return showLeftFade
-    },
-    get showRightFade() {
-      return showRightFade
-    },
-    get headerRowRef() {
-      return headerRowRef
-    },
-    set headerRowRef(value: HTMLElement | null) {
-      headerRowRef = value
-    },
-    get userEntryIndex() {
-      return userEntryIndex
-    },
-    get viewportVisibility() {
-      return viewportVisibility
-    },
-    get showSelfRow() {
-      return showSelfRow
-    },
-    get selfRowPosition() {
-      return selfRowPosition
-    },
-    get contentWidth() {
-      return contentWidth
-    },
-    get visibleGraphData() {
-      return visibleGraphData
-    },
-    get contextTeamIds() {
-      return contextTeamIds
-    },
-    get scrollbarYPadding() {
-      return scrollbarYPadding
-    },
+    scrollTop: viewport.scrollTop,
+    scrollLeft: viewport.scrollLeft,
+    scrollHeight: viewport.scrollHeight,
+    scrollWidth: viewport.scrollWidth,
+    clientHeight: viewport.clientHeight,
+    clientWidth: viewport.clientWidth,
+  }
+}
+
+function getFadeVisibility(metrics: ScrollMetrics) {
+  const threshold = 10
+  return {
+    top: metrics.scrollTop > threshold,
+    bottom: metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold,
+    left: metrics.scrollLeft > threshold,
+    right: metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold,
   }
 }
 
@@ -389,7 +552,7 @@ function getUserVisibility(
 
 function getScrollbarYPadding(
   showSelfRow: boolean,
-  selfRowPosition: 'top' | 'bottom',
+  selfRowPosition: SelfRowPosition,
   isDesktop: boolean
 ): string {
   const selfRowPb = 'pb-[calc(var(--row-height-full)+4px)]'

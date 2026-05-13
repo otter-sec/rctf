@@ -2,6 +2,15 @@ import { goto } from '$app/navigation'
 import { page as pageState } from '$app/state'
 import { onDestroy } from 'svelte'
 import { loadScoresPreferences, saveScoresPreferences } from './scores-preferences'
+import {
+  getActiveSearch,
+  SCORES_GOTO_OPTIONS,
+  withFocusedChallenge,
+  withScoresDivision,
+  withScoresSearch,
+  withScoresSortMode,
+  withScoresViewMode,
+} from './scores-route-helpers'
 import type { SortMode, ViewMode } from './types'
 
 const SEARCH_DEBOUNCE_MS = 400
@@ -40,48 +49,54 @@ export function createScoresRouteState() {
 
   const focusedChallengeId = $derived(pageState.url.searchParams.get('challenge') ?? null)
 
-  function updateSearchUrl(raw: string) {
-    search = raw.length >= 2 ? raw : undefined
-    const url = new URL(window.location.href)
-    if (raw.length >= 2) {
-      url.searchParams.set('search', raw)
-    } else {
-      url.searchParams.delete('search')
-    }
-    history.replaceState(history.state, '', url.toString())
+  function clearSearchTimer() {
+    if (!searchTimer) return
+    window.clearTimeout(searchTimer)
+    searchTimer = undefined
+  }
+
+  function getCurrentUrl() {
+    if (typeof window !== 'undefined') return new URL(window.location.href)
+    return new URL(pageState.url)
+  }
+
+  function getCurrentUrlWithSearch() {
+    search = getActiveSearch(searchInput)
+    return withScoresSearch(getCurrentUrl(), searchInput)
+  }
+
+  function navigateTo(url: URL) {
+    void goto(url, SCORES_GOTO_OPTIONS)
+  }
+
+  function commitSearch() {
+    clearSearchTimer()
+    navigateTo(getCurrentUrlWithSearch())
   }
 
   function setSearchInput(value: string) {
     searchInput = value
-    if (searchTimer) window.clearTimeout(searchTimer)
-    searchTimer = window.setTimeout(() => updateSearchUrl(value), SEARCH_DEBOUNCE_MS)
+    clearSearchTimer()
+    searchTimer = window.setTimeout(commitSearch, SEARCH_DEBOUNCE_MS)
   }
 
   function setDivision(value: string | undefined) {
-    const url = new URL(pageState.url)
-    if (value) url.searchParams.set('division', value)
-    else url.searchParams.delete('division')
-    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+    clearSearchTimer()
+    navigateTo(withScoresDivision(getCurrentUrlWithSearch(), value))
   }
 
   function setViewMode(value: ViewMode) {
     hasInteracted = true
     saveScoresPreferences({ viewMode: value })
-    const url = new URL(pageState.url)
-    if (value === 'challenges') url.searchParams.delete('view')
-    else url.searchParams.set('view', value)
-    url.searchParams.delete('challenge')
-    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+    clearSearchTimer()
+    navigateTo(withScoresViewMode(getCurrentUrlWithSearch(), value))
   }
 
   function setSortMode(value: SortMode) {
     hasInteracted = true
     saveScoresPreferences({ sortMode: value })
-    const url = new URL(pageState.url)
-    if (value === 'categories') url.searchParams.delete('sort')
-    else url.searchParams.set('sort', value)
-    url.searchParams.delete('challenge')
-    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+    clearSearchTimer()
+    navigateTo(withScoresSortMode(getCurrentUrlWithSearch(), value))
   }
 
   function setShowTop3Context(value: boolean) {
@@ -95,10 +110,8 @@ export function createScoresRouteState() {
   }
 
   function setFocusedChallenge(id: string | null) {
-    const url = new URL(pageState.url)
-    if (id) url.searchParams.set('challenge', id)
-    else url.searchParams.delete('challenge')
-    goto(url, { replaceState: true, keepFocus: true, noScroll: true })
+    clearSearchTimer()
+    navigateTo(withFocusedChallenge(getCurrentUrlWithSearch(), id))
   }
 
   return {
