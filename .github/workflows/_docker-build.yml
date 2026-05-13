@@ -66,6 +66,8 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up QEMU
         if: matrix.runner == 'ubuntu-24.04' && matrix.platform != 'linux/amd64'

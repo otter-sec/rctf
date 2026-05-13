@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
       - run: bun run prettier -- --check
 
@@ -23,6 +25,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
       - run: bun run typecheck
 
@@ -30,6 +34,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
         with:
           install-args: --filter @rctf/api --filter server-tests
@@ -39,6 +45,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
         with:
           install-args: --filter @rctf/admin-bot --filter admin-bot-tests
@@ -48,6 +56,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
         with:
           install-args: --filter @rctf/admin-bot --filter admin-bot-e2e-tests

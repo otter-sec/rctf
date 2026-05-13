@@ -4,6 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
 
 permissions:
@@ -28,6 +29,8 @@ jobs:
       rctf: ${{ steps.filter.outputs.rctf }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -60,9 +63,9 @@ jobs:
 
   tests:
     uses: ./.github/workflows/_test.yml
-    secrets: inherit
 
   build:
+    name: ${{ matrix.key }}
     needs: [changes, tests]
     strategy:
       fail-fast: false
@@ -77,9 +80,8 @@ jobs:
     with:
       image-name: ${{ github.repository }}${{ matrix.suffix }}
       dockerfile: ${{ matrix.dockerfile }}
-      push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
-      enabled: ${{ github.event_name == 'workflow_dispatch' || ((github.event_name == 'push' || github.event_name == 'pull_request') && (needs.changes.outputs.shared == 'true' || needs.changes.outputs[matrix.key] == 'true')) }}
+      push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+      enabled: ${{ github.event_name == 'workflow_dispatch' || github.ref_type == 'tag' || ((github.event_name == 'push' || github.event_name == 'pull_request') && (needs.changes.outputs.shared == 'true' || needs.changes.outputs[matrix.key] == 'true')) }}
     permissions:
       contents: read
       packages: write
-    secrets: inherit

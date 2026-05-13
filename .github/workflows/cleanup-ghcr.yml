@@ -19,7 +19,7 @@ jobs:
     outputs:
       valid: ${{ steps.collect.outputs.valid }}
     steps:
-      - name: Collect current branches and git tags
+      - name: Collect current branches, git tags, and open PRs
         id: collect
         shell: bash
         env:
@@ -34,6 +34,7 @@ jobs:
               echo latest
               gh api "repos/${REPO}/branches" --paginate -q '.[].name' | sanitize
               gh api "repos/${REPO}/tags" --paginate -q '.[].name' | sanitize
+              gh api "repos/${REPO}/pulls?state=open" --paginate -q '.[].number' | sed 's|^|pr-|'
             } | sort -u | paste -sd, -
           )
           echo "valid=$valid" >> "$GITHUB_OUTPUT"
