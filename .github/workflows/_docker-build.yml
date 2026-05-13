@@ -39,6 +39,8 @@ on:
 permissions:
   contents: read
   packages: write
+  id-token: write
+  attestations: write
 
 env:
   REGISTRY: ghcr.io
@@ -102,6 +104,8 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY }}/${{ inputs.image-name }},push-by-digest=true,name-canonical=true,push=true
           cache-from: type=gha,scope=${{ inputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
           cache-to: type=gha,mode=max,scope=${{ inputs.image-name }}-${{ steps.prep.outputs.platform-pair }}
+          provenance: mode=max
+          sbom: true
 
       - name: Build (no push)
         if: ${{ !inputs.push }}
@@ -176,13 +180,26 @@ jobs:
             type=ref,event=pr
 
       - name: Create manifest list and push
+        id: push
         shell: bash
         working-directory: /tmp/digests
         env:
           IMAGE_REF: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
             $(printf "${IMAGE_REF}@sha256:%s " *)
+          digest=$(docker buildx imagetools inspect "${IMAGE_REF}:${VERSION}" --format '{{.Manifest.Digest}}')
+          echo "digest=$digest" >> "$GITHUB_OUTPUT"
+
+      # TODO(es3n1n): re-enable once the repo is public
+      - name: Attest build provenance
+        if: false
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ inputs.image-name }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: true
 
       - name: Inspect image
         shell: bash
