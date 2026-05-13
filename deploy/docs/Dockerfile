@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM oven/bun:1.3.10-alpine AS build-base
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.14-alpine AS build-base
 WORKDIR /app
 
 RUN apk add --no-cache git

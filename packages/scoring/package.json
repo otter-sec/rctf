@@ -12,7 +12,10 @@
     "./sekai": "./src/sekai.ts",
     "./steep": "./src/steep.ts"
   },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
   "peerDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "5.9.3"
   }
 }

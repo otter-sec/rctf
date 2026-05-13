@@ -6,19 +6,19 @@
     "test": "bun test"
   },
   "dependencies": {
-    "@electric-sql/pglite": "*",
+    "@electric-sql/pglite": "0.3.16",
     "@rctf/config": "workspace:*",
     "@rctf/db": "workspace:*",
     "@rctf/scoring": "workspace:*",
     "@rctf/types": "workspace:*",
-    "@types/ioredis-mock": "^8.2.6",
-    "drizzle-orm": "*",
-    "ioredis-mock": "*"
+    "@types/ioredis-mock": "8.2.7",
+    "drizzle-orm": "0.45.1",
+    "ioredis-mock": "8.13.1"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "1.3.14"
   },
   "peerDependencies": {
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }
