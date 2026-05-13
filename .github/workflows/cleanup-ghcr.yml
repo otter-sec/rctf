@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   packages: write
+  pull-requests: read
 
 concurrency:
   group: ghcr-cleanup
