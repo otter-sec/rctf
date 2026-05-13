@@ -23,14 +23,9 @@
     onChallengeFocus,
   }: Props = $props()
 
-  const HeaderItemKind = {
-    Category: 'category',
-    Challenge: 'challenge',
-  } as const
-
   type HeaderItem =
-    | { type: typeof HeaderItemKind.Category; group: CategoryGroup }
-    | { type: typeof HeaderItemKind.Challenge; challenge: ChallengeInfo; isFirst?: boolean }
+    | { type: 'category'; group: CategoryGroup }
+    | { type: 'challenge'; challenge: ChallengeInfo; isFirst?: boolean }
 
   type HeaderTooltipPayload = {
     title: string
@@ -42,18 +37,18 @@
 
   const headerItems = $derived.by((): HeaderItem[][] => {
     if (viewMode === 'categories') {
-      return [categoryGroups.map(group => ({ type: HeaderItemKind.Category, group }))]
+      return [categoryGroups.map(group => ({ type: 'category', group }))]
     }
     if (sortMode === 'categories') {
       return categoryGroups.map(group =>
         group.challenges.map((challenge, i) => ({
-          type: HeaderItemKind.Challenge,
+          type: 'challenge',
           challenge,
           isFirst: i === 0,
         }))
       )
     }
-    return [challenges.map(challenge => ({ type: HeaderItemKind.Challenge, challenge }))]
+    return [challenges.map(challenge => ({ type: 'challenge', challenge }))]
   })
 
   const headerNameItems = $derived(headerItems.flat())
@@ -140,8 +135,8 @@
 
 <challenge-header>
   <header-names>
-    {#each headerNameItems as item, index (item.type === HeaderItemKind.Category ? `category:${item.group.category}` : `challenge:${item.challenge.id}`)}
-      {#if item.type === HeaderItemKind.Category}
+    {#each headerNameItems as item, index (item.type === 'category' ? `category:${item.group.category}` : `challenge:${item.challenge.id}`)}
+      {#if item.type === 'category'}
         {@render challengeNameLabel(item.group, true, headerNameItems.length - index)}
       {:else}
         {@render challengeNameLabel(item.challenge, false, headerNameItems.length - index)}
