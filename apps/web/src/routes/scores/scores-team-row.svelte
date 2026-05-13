@@ -1,9 +1,9 @@
 <script lang="ts">
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
-  import type { ScoresTeamRowData } from './scores-team-row-data'
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
+  import type { ScoresTeamRowData } from './scores-team-row-data'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface Props {
@@ -131,8 +131,7 @@
             class={[
               'bg-background-l4 text-foreground-l3 flex size-full items-center justify-center',
               'rounded-lg text-sm',
-            ]}
-            >{initials}</span
+            ]}>{initials}</span
           >
         {/if}
       </div>

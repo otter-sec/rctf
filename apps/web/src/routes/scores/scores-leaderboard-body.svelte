@@ -1,17 +1,17 @@
 <script lang="ts">
-  import ScoresTeamRow from './scores-team-row.svelte'
+  import type {
+    createScoresDataModel,
+    createScoresGraphDataModel,
+  } from './scores-data-model.svelte'
   import { LOADING_ROW_COUNT, ROW_HEIGHT } from './scores-layout-constants'
+  import type { createScoresRouteState } from './scores-route-state.svelte'
   import {
     getSelfSolves,
     getSelfSolveTimes,
     getSelfTeamRowData,
     getTeamRowData,
   } from './scores-team-row-data'
-  import type {
-    createScoresDataModel,
-    createScoresGraphDataModel,
-  } from './scores-data-model.svelte'
-  import type { createScoresRouteState } from './scores-route-state.svelte'
+  import ScoresTeamRow from './scores-team-row.svelte'
   import type { createScoresViewportState } from './scores-viewport-state.svelte'
   import type {
     CategoryGroup,
@@ -104,7 +104,7 @@
       absolute top-0 left-0 flex h-(--row-height-full) w-full contain-[layout_style_paint]
       md:w-auto
     "
-    style:transform={transform}
+    style:transform
   >
     <ScoresTeamRow
       data={null}
@@ -160,9 +160,7 @@
           />
         </div>
       {:else}
-        {@render loadingRow(
-          `translate3d(0, ${row.start - viewportState.listScrollMargin}px, 0)`
-        )}
+        {@render loadingRow(`translate3d(0, ${row.start - viewportState.listScrollMargin}px, 0)`)}
       {/if}
     {/each}
   {/if}
