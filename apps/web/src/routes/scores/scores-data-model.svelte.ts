@@ -107,15 +107,17 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     )
   )
 
-  $effect(() => {
+  function fetchFocusedChallengePages() {
     if (
       config.focusedChallengeId() &&
       leaderboardQuery.hasNextPage &&
       !leaderboardQuery.isFetchingNextPage
     ) {
-      leaderboardQuery.fetchNextPage()
+      void leaderboardQuery.fetchNextPage()
     }
-  })
+  }
+
+  $effect(fetchFocusedChallengePages)
 
   function getChallenges(sortMode: SortMode) {
     return sortMode === 'solves' ? challengesBySolves : challengesByCategory
@@ -212,6 +214,13 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
   const screenshotSelfTeam = $derived(
     getScreenshotSelfTeam(config.currentUser(), sparklineDataByTeam)
   )
+  const screenshotGraphData = $derived(
+    config.allGraphData().map(team => ({
+      id: team.id,
+      name: team.name,
+      points: team.points,
+    }))
+  )
 
   return {
     selfGraphQuery,
@@ -226,6 +235,9 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
     },
     get screenshotSelfTeam() {
       return screenshotSelfTeam
+    },
+    get screenshotGraphData() {
+      return screenshotGraphData
     },
   }
 }

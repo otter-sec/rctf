@@ -1,6 +1,5 @@
 <script lang="ts">
   import { ScrollArea } from '$lib/components'
-  import { cn } from '$lib/utils'
   import type { Snippet } from 'svelte'
   import type { Attachment } from 'svelte/attachments'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
@@ -49,7 +48,7 @@
 
   const scroll = $derived(viewportState.scroll)
   const selfRowAnchor = $derived(
-    viewportState.showSelfRow ? viewportState.selfRowPosition : undefined
+    viewportState.showSelfRow ? viewportState.selfRowPosition : 'none'
   )
 
   const headerRowAttachment: Attachment<HTMLElement> = node => {
@@ -77,64 +76,46 @@
     onShowTop3ContextChange={routeState.setShowTop3Context}
     onShowSelfContextChange={routeState.setShowSelfContext}
   />
-  <ScoresGraph class="h-full w-full p-3" {...graphProps} />
+  <ScoresGraph {...graphProps} />
 {/snippet}
 
-<div class="flex justify-center px-4 md:px-9">
-  <div
-    class="scores-leaderboard-frame relative w-full max-w-full md:w-fit"
-    data-self-row={selfRowAnchor}
+<score-frame>
+  <score-shell
+    self-row={selfRowAnchor}
+    style:--score-content-width={viewportState.contentWidth + 'px'}
   >
     <ScoresFades
       showTop={viewportState.showTopFade}
       showBottom={viewportState.showBottomFade}
-      showLeft={viewportState.isDesktop && viewportState.showLeftFade}
-      showRight={viewportState.isDesktop && viewportState.showRightFade}
+      showLeft={viewportState.showLeftFade}
+      showRight={viewportState.showRightFade}
       showSelfRow={viewportState.showSelfRow}
       selfRowPosition={viewportState.selfRowPosition}
-      isMinimal={!viewportState.isDesktop}
     />
 
-    <div
-      class="
-        group/graph bg-background-l1 relative mb-2 h-(--header-height) rounded-lg
-        md:hidden
-      "
-    >
+    <mobile-graph>
       {@render graphPanel()}
-    </div>
+    </mobile-graph>
 
-    <div class="scores-leaderboard-scroll">
+    <score-scroll>
       <ScrollArea
-        class="h-full"
+        class="score-scroll-area"
         orientation={viewportState.isDesktop ? 'both' : 'vertical'}
         type={viewportState.isDesktop ? 'always' : 'auto'}
         fadeSize={0}
         bind:viewportRef={scroll.state.viewportRef}
         viewportTabIndex={-1}
-        viewportClass={cn(
-          'scroll-pt-(--score-scroll-padding-top)',
-          viewportState.isDesktop && 'scroll-pl-(--team-column-width)'
-        )}
-        scrollbarXClasses={viewportState.isDesktop
-          ? 'pl-(--team-column-width) -mr-2.5 z-40'
-          : 'hidden'}
-        scrollbarYClasses={`z-40 ${viewportState.scrollbarYPadding}`}
+        viewportClass="score-scroll-viewport"
+        scrollbarXClasses="score-scrollbar x"
+        scrollbarYClasses="score-scrollbar y"
       >
-        <div class="flex min-h-full flex-col">
-          <div
-            class="bg-background-l0 sticky top-0 z-20 hidden h-(--header-height) md:flex"
-            {@attach headerRowAttachment}
-          >
-            <div
-              class="
-                group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0
-              "
-            >
-              <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
+        <scroll-content>
+          <header-row {@attach headerRowAttachment}>
+            <header-graph-cell>
+              <header-graph-panel>
                 {@render graphPanel()}
-              </div>
-            </div>
+              </header-graph-panel>
+            </header-graph-cell>
             {#if !scoreData.challengesQuery.isLoading}
               <ScoresChallengeHeader
                 viewMode={routeState.viewMode}
@@ -145,78 +126,185 @@
                 onChallengeFocus={handleChallengeFocus}
               />
             {/if}
-          </div>
+          </header-row>
 
           {@render children()}
-        </div>
+        </scroll-content>
       </ScrollArea>
-    </div>
-  </div>
-</div>
+    </score-scroll>
+  </score-shell>
+</score-frame>
 
 <style>
-  .scores-leaderboard-frame {
-    --app-header-height: 72px;
-    --toolbar-height: 96px;
-    --mobile-graph-gap: 8px;
-    --page-bottom-gap: 16px;
-    --row-gap: 4px;
-    --row-height-full: 68px;
-    --row-height: calc(var(--row-height-full) - var(--row-gap));
-    --cell-width: 48px;
-    --header-height: 192px;
-    --name-row-height: 128px;
-    --diagonal-overflow: 96px;
-    --team-column-width: 100%;
-    --content-column-width: 0px;
-    --self-row-height: var(--row-height-full);
-    --self-row-offset: 0px;
-    --self-row-top-offset: 0px;
+  score-frame {
+    display: flex;
+    justify-content: center;
+    padding-inline: calc(var(--spacing) * 4);
+  }
+
+  score-shell {
+    --score-app-header-height: calc(var(--spacing) * 18);
+    --score-toolbar-height: calc(var(--spacing) * 24);
+    --score-mobile-graph-gap: calc(var(--spacing) * 2);
+    --score-page-bottom-gap: calc(var(--spacing) * 4);
+    --score-row-gap: 4px;
+    --score-row-height-full: 68px;
+    --score-row-height: calc(var(--score-row-height-full) - var(--score-row-gap));
+    --score-cell-width: 48px;
+    --score-header-height: 192px;
+    --score-name-row-height: 128px;
+    --score-diagonal-overflow: 96px;
+    --score-team-column-width: 100%;
+    --score-content-column-width: 0px;
     --score-scroll-padding-top: 0px;
-  }
+    --score-scrollbar-y-padding-top: 0px;
+    --score-scrollbar-y-padding-bottom: var(--score-row-gap);
+    --score-self-row-height: var(--score-row-height-full);
+    --score-self-row-offset: 0px;
+    --score-self-row-top-offset: 0px;
+    display: block;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
 
-  .scores-leaderboard-frame[data-self-row='bottom'] {
-    --self-row-offset: var(--row-height-full);
-  }
-
-  .scores-leaderboard-frame[data-self-row='top'] {
-    --self-row-top-offset: var(--row-height-full);
-    --score-scroll-padding-top: calc(var(--row-height-full) + var(--row-gap));
-  }
-
-  .scores-leaderboard-scroll {
-    height: calc(
-      100dvh - var(--app-header-height) - var(--toolbar-height) - var(--mobile-graph-gap) -
-        var(--header-height) - var(--page-bottom-gap)
-    );
-  }
-
-  @media (min-width: 768px) {
-    .scores-leaderboard-frame {
-      --toolbar-height: 52px;
-      --mobile-graph-gap: 0px;
-      --team-column-width: calc(60vw - 72px);
-      --content-column-width: calc(40vw + 72px);
-      --score-scroll-padding-top: var(--header-height);
+    &[self-row='top'] {
+      --score-self-row-top-offset: var(--score-row-height-full);
+      --score-scroll-padding-top: calc(var(--score-row-height-full) + var(--score-row-gap));
+      --score-scrollbar-y-padding-top: calc(var(--score-row-height-full) + var(--score-row-gap));
     }
 
-    .scores-leaderboard-frame[data-self-row='top'] {
-      --score-scroll-padding-top: calc(
-        var(--header-height) + var(--row-height-full) + var(--row-gap)
-      );
+    &[self-row='bottom'] {
+      --score-self-row-offset: var(--score-row-height-full);
+      --score-scrollbar-y-padding-bottom: calc(var(--score-row-height-full) + var(--score-row-gap));
     }
 
-    .scores-leaderboard-scroll {
+    mobile-graph {
+      --score-graph-padding: calc(var(--spacing) * 3);
+      position: relative;
+      display: block;
+      height: var(--score-header-height);
+      margin-block-end: var(--score-mobile-graph-gap);
+      background: var(--background-l1);
+      border-radius: var(--radius-lg);
+    }
+
+    score-scroll {
+      display: contents;
+    }
+
+    score-scroll :global(.score-scroll-area) {
       height: calc(
-        100dvh - var(--app-header-height) - var(--toolbar-height) - var(--page-bottom-gap)
+        100dvh - var(--score-app-header-height) - var(--score-toolbar-height) -
+          var(--score-mobile-graph-gap) - var(--score-header-height) -
+          var(--score-page-bottom-gap)
       );
+    }
+
+    score-scroll :global(.score-scroll-viewport) {
+      scroll-padding-block-start: var(--score-scroll-padding-top);
+    }
+
+    score-scroll :global(.score-scrollbar.x) {
+      display: none;
+    }
+
+    score-scroll :global(.score-scrollbar.y) {
+      z-index: 40;
+      padding-block-start: var(--score-scrollbar-y-padding-top);
+      padding-block-end: var(--score-scrollbar-y-padding-bottom);
+    }
+
+    scroll-content {
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header-row {
+      display: none;
+    }
+
+    header-graph-cell {
+      position: sticky;
+      inset-inline-start: 0;
+      z-index: 30;
+      flex-shrink: 0;
+      width: var(--score-team-column-width);
+      background: var(--background-l0);
+    }
+
+    header-graph-panel {
+      --score-graph-padding: calc(var(--spacing) * 3);
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: var(--background-l1);
+      border-start-start-radius: var(--radius-3xl);
+      border-start-end-radius: var(--radius-3xl);
+      border-end-start-radius: var(--radius-xl);
     }
   }
 
-  @media (min-width: 1280px) {
-    .scores-leaderboard-frame {
-      --team-column-width: calc(45vw - 72px);
-      --content-column-width: calc(55vw + 72px);
+  @media (width >= 48rem) {
+    score-frame {
+      padding-inline: calc(var(--spacing) * 9);
+    }
+
+    score-shell {
+      --score-toolbar-height: calc(var(--spacing) * 13);
+      --score-mobile-graph-gap: 0px;
+      --score-team-column-width: calc(60vw - calc(var(--spacing) * 18));
+      --score-content-column-width: calc(40vw + calc(var(--spacing) * 18));
+      --score-scroll-padding-top: var(--score-header-height);
+      --score-scrollbar-y-padding-top: var(--score-header-height);
+      width: fit-content;
+
+      &[self-row='top'] {
+        --score-scroll-padding-top: calc(
+          var(--score-header-height) + var(--score-row-height-full) + var(--score-row-gap)
+        );
+        --score-scrollbar-y-padding-top: calc(
+          var(--score-header-height) + var(--score-row-height-full) + var(--score-row-gap)
+        );
+      }
+
+      mobile-graph {
+        display: none;
+      }
+
+      score-scroll :global(.score-scroll-area) {
+        height: calc(
+          100dvh - var(--score-app-header-height) - var(--score-toolbar-height) -
+            var(--score-page-bottom-gap)
+        );
+      }
+
+      score-scroll :global(.score-scroll-viewport) {
+        scroll-padding-inline-start: var(--score-team-column-width);
+      }
+
+      score-scroll :global(.score-scrollbar.x) {
+        z-index: 40;
+        display: flex;
+        padding-inline-start: var(--score-team-column-width);
+        margin-inline-end: calc(var(--spacing) * -2.5);
+      }
+
+      header-row {
+        position: sticky;
+        inset-block-start: 0;
+        z-index: 20;
+        display: flex;
+        height: var(--score-header-height);
+        background: var(--background-l0);
+      }
+    }
+  }
+
+  @media (width >= 80rem) {
+    score-shell {
+      --score-team-column-width: calc(45vw - calc(var(--spacing) * 18));
+      --score-content-column-width: calc(55vw + calc(var(--spacing) * 18));
     }
   }
 </style>

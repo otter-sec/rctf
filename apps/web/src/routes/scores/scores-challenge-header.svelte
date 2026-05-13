@@ -1,7 +1,6 @@
 <script lang="ts">
   import { Tooltip } from '$lib/components'
   import { IconX } from '$lib/icons'
-  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { mergeProps } from 'bits-ui'
   import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
@@ -24,9 +23,14 @@
     onChallengeFocus,
   }: Props = $props()
 
+  const HeaderItemKind = {
+    Category: 'category',
+    Challenge: 'challenge',
+  } as const
+
   type HeaderItem =
-    | { type: 'category'; group: CategoryGroup }
-    | { type: 'challenge'; challenge: ChallengeInfo; isFirst?: boolean }
+    | { type: typeof HeaderItemKind.Category; group: CategoryGroup }
+    | { type: typeof HeaderItemKind.Challenge; challenge: ChallengeInfo; isFirst?: boolean }
 
   type HeaderTooltipPayload = {
     title: string
@@ -38,18 +42,18 @@
 
   const headerItems = $derived.by((): HeaderItem[][] => {
     if (viewMode === 'categories') {
-      return [categoryGroups.map(group => ({ type: 'category' as const, group }))]
+      return [categoryGroups.map(group => ({ type: HeaderItemKind.Category, group }))]
     }
     if (sortMode === 'categories') {
       return categoryGroups.map(group =>
         group.challenges.map((challenge, i) => ({
-          type: 'challenge' as const,
+          type: HeaderItemKind.Challenge,
           challenge,
           isFirst: i === 0,
         }))
       )
     }
-    return [challenges.map(challenge => ({ type: 'challenge' as const, challenge }))]
+    return [challenges.map(challenge => ({ type: HeaderItemKind.Challenge, challenge }))]
   })
 
   const headerNameItems = $derived(headerItems.flat())
@@ -66,8 +70,8 @@
 )}
   {@const isFocused = !isCategory && focusedChallengeId === (item as ChallengeInfo).id}
   {@const isDimmed = !isCategory && focusedChallengeId !== null && !isFocused}
-  <div
-    class={cn('relative w-12 translate-x-1 overflow-visible', isDimmed && 'opacity-25')}
+  <header-name-slot
+    dimmed={isDimmed || undefined}
     style="{getCategoryStyle(item.config.color)} z-index: {stackIndex};"
   >
     {#if !isCategory}
@@ -77,16 +81,10 @@
           {@const buttonProps = mergeProps(props, {
             onclick: () => onChallengeFocus(challenge.id),
           })}
-          <button
-            {...buttonProps}
-            type="button"
-            class="group/focus text-category-foreground-l1 focus-visible:ring-ring/50 ring-offset-background-l0 absolute bottom-0 left-1/2 flex max-w-37.5 origin-bottom-left -rotate-45 cursor-pointer items-center gap-1 rounded-sm text-lg leading-none ring-offset-3 transition-transform outline-none hover:translate-x-[1.5px] hover:translate-y-[-1.5px] hover:underline focus-visible:ring-[3px]"
-          >
-            <span class="truncate">{challenge.name}</span>
+          <button {...buttonProps} type="button" data-focused={isFocused ? '' : undefined}>
+            <span>{challenge.name}</span>
             {#if isFocused}
-              <IconX
-                class="size-4 shrink-0 opacity-50 transition-opacity group-hover/focus:opacity-100"
-              />
+              <IconX class="focus-icon" />
             {/if}
           </button>
         {/snippet}
@@ -99,31 +97,28 @@
         tabindex={-1}
       >
         {#snippet child({ props })}
-          <span
-            {...props}
-            class="text-category-foreground-l1 absolute bottom-0 left-1/2 max-w-37.5 origin-bottom-left -rotate-45 truncate text-lg capitalize"
-          >
+          <span {...props} data-category-name>
             {group.config.name}
           </span>
         {/snippet}
       </Tooltip.Trigger>
     {/if}
-  </div>
+  </header-name-slot>
 {/snippet}
 
 {#snippet categoryIcon(group: CategoryGroup, showLabel: boolean = false)}
   {@const Icon = group.config.icon}
   {#if showLabel && group.challenges.length > 1}
-    <Icon class="text-category-foreground-l1 size-5 shrink-0" />
-    <span class="text-category-foreground-l1 truncate capitalize">{group.config.name}</span>
+    <Icon class="category-icon" />
+    <span>{group.config.name}</span>
   {:else}
     <Tooltip.Trigger
       tether={tooltipTether}
       payload={{ title: group.config.name, capitalizeTitle: true }}
       tabindex={-1}
-      class="text-category-foreground-l1 flex items-center justify-center"
+      class="category-icon-trigger"
     >
-      <Icon class="my-0.5 size-5" />
+      <Icon class="category-icon" />
     </Tooltip.Trigger>
   {/if}
 {/snippet}
@@ -134,128 +129,313 @@
       tether={tooltipTether}
       payload={tooltipContent}
       tabindex={-1}
-      class="flex w-12 items-center justify-center"
+      class="points-trigger"
     >
-      <span
-        class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
-      >
-        {points}
-      </span>
+      <span data-points-badge>{points}</span>
     </Tooltip.Trigger>
   {:else}
-    <span
-      class="bg-category-background-l1 text-category-foreground-l1 flex size-5 items-center justify-center rounded text-sm leading-none opacity-75"
-    >
-      {points}
-    </span>
+    <span data-points-badge>{points}</span>
   {/if}
 {/snippet}
 
-<div class="mr-(--diagonal-overflow) flex flex-col">
-  <div
-    class="flex h-(--name-row-height) translate-x-1 items-end justify-start gap-1 overflow-visible [&>div]:h-(--name-row-height)"
-  >
-    {#each headerNameItems as item, index}
-      {#if item.type === 'category'}
+<challenge-header>
+  <header-names>
+    {#each headerNameItems as item, index (item.type === HeaderItemKind.Category ? `category:${item.group.category}` : `challenge:${item.challenge.id}`)}
+      {#if item.type === HeaderItemKind.Category}
         {@render challengeNameLabel(item.group, true, headerNameItems.length - index)}
       {:else}
         {@render challengeNameLabel(item.challenge, false, headerNameItems.length - index)}
       {/if}
     {/each}
-  </div>
+  </header-names>
 
-  <div class="ml-1 flex items-stretch" class:gap-1={viewMode === 'challenges'}>
+  <header-bars challenge-gap={viewMode === 'challenges' || undefined}>
     {#if viewMode === 'categories'}
-      <div class="flex gap-1">
-        {#each categoryGroups as group}
+      <category-row>
+        {#each categoryGroups as group (group.category)}
           {@const totalPoints = group.challenges.reduce((s, c) => s + c.points, 0)}
-          <div
-            class="bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg"
-            style={getCategoryStyle(group.config.color)}
-          >
-            <div class="py-1.5">
+          <category-block style={getCategoryStyle(group.config.color)}>
+            <category-points>
               {@render pointsBadge(totalPoints, {
                 title: group.config.name,
                 subtitle: `${group.challenges.length} challenge${group.challenges.length !== 1 ? 's' : ''} \u00b7 ${totalPoints} pts`,
                 capitalizeTitle: true,
               })}
-            </div>
-            <div class="flex items-center justify-center px-2 pb-2">
+            </category-points>
+            <category-footer>
               {@render categoryIcon(group)}
-            </div>
-          </div>
+            </category-footer>
+          </category-block>
         {/each}
-      </div>
+      </category-row>
     {:else if sortMode === 'categories'}
-      {#each categoryGroups as group}
+      {#each categoryGroups as group (group.category)}
         {@const groupHasFocused =
           focusedChallengeId !== null && group.challenges.some(c => c.id === focusedChallengeId)}
         {@const groupIsDimmed = focusedChallengeId !== null && !groupHasFocused}
-        <div
-          class={cn(
-            'bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg',
-            groupIsDimmed && 'opacity-25'
-          )}
+        <category-block
+          dimmed={groupIsDimmed || undefined}
           style={getCategoryStyle(group.config.color)}
         >
-          <div class="flex gap-1 py-1.5">
-            {#each group.challenges as challenge}
+          <category-points challenge>
+            {#each group.challenges as challenge (challenge.id)}
               {@const isDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id}
-              <div class={cn(isDimmed && !groupIsDimmed && 'opacity-25')}>
+              <challenge-point dimmed={(isDimmed && !groupIsDimmed) || undefined}>
                 {@render pointsBadge(challenge.points, {
                   title: challenge.name,
                   subtitle: challengeSubtitle(challenge),
                 })}
-              </div>
+              </challenge-point>
             {/each}
-          </div>
-          <div
-            class="flex items-center justify-center gap-1 overflow-hidden px-2 pb-2"
-            style:max-width="{group.challenges.length * 48}px"
-          >
+          </category-points>
+          <category-footer labeled style:--score-category-span={group.challenges.length}>
             {@render categoryIcon(group, true)}
-          </div>
-        </div>
+          </category-footer>
+        </category-block>
       {/each}
     {:else}
-      {#each challenges as challenge}
+      {#each challenges as challenge (challenge.id)}
         {@const isFocused = focusedChallengeId === challenge.id}
         {@const isDimmed = focusedChallengeId !== null && !isFocused}
-        <div
-          class={cn(
-            'bg-category-background-l0 before:bg-background-l0 relative flex flex-col rounded-t-lg before:absolute before:inset-0 before:-z-10 before:rounded-t-lg',
-            isDimmed && 'opacity-25'
-          )}
+        <category-block
+          dimmed={isDimmed || undefined}
           style={getCategoryStyle(challenge.config.color)}
         >
-          <div class="flex py-1.5">
+          <category-points>
             {@render pointsBadge(challenge.points, {
               title: challenge.name,
               subtitle: challengeSubtitle(challenge),
             })}
-          </div>
-          <div class="flex items-center justify-center px-2 pb-2">
+          </category-points>
+          <category-footer>
             {@render categoryIcon({
               config: challenge.config,
               category: challenge.category,
               challenges: [],
             })}
-          </div>
-        </div>
+          </category-footer>
+        </category-block>
       {/each}
     {/if}
-  </div>
-</div>
+  </header-bars>
+</challenge-header>
 
 <Tooltip.Root tether={tooltipTether}>
   {#snippet children({ payload })}
     {#if payload}
       <Tooltip.Content side="bottom" sideOffset={4}>
-        <p class:capitalize={payload.capitalizeTitle}>{payload.title}</p>
+        <p data-category-title={payload.capitalizeTitle ? '' : undefined}>{payload.title}</p>
         {#if payload.subtitle}
-          <p class="text-foreground-l3">{payload.subtitle}</p>
+          <p data-muted>{payload.subtitle}</p>
         {/if}
       </Tooltip.Content>
     {/if}
   {/snippet}
 </Tooltip.Root>
+
+<style>
+  challenge-header {
+    display: flex;
+    flex-direction: column;
+    margin-inline-end: var(--score-diagonal-overflow);
+
+    header-names {
+      height: var(--score-name-row-height);
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-start;
+      gap: calc(var(--spacing) * 1);
+      overflow: visible;
+      translate: var(--spacing) 0;
+
+      > header-name-slot {
+        height: var(--score-name-row-height);
+      }
+    }
+
+    header-name-slot {
+      display: block;
+      position: relative;
+      width: 3rem;
+      overflow: visible;
+
+      &[dimmed] {
+        opacity: 0.25;
+      }
+
+      button,
+      span[data-category-name] {
+        position: absolute;
+        inset-block-end: 0;
+        inset-inline-start: 50%;
+        max-width: calc(var(--spacing) * 37.5);
+        transform-origin: bottom left;
+        rotate: -45deg;
+        color: var(--category-foreground-l1);
+        font-size: var(--text-lg);
+        line-height: 1;
+      }
+
+      button {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--spacing) * 1);
+        border: 0;
+        border-radius: var(--radius-xs);
+        background: transparent;
+        cursor: pointer;
+        outline: none;
+        transition: translate 150ms ease;
+
+        &:hover {
+          translate: 1.5px -1.5px;
+          text-decoration: underline;
+
+          :global(.focus-icon) {
+            opacity: 1;
+          }
+        }
+
+        &:focus-visible {
+          outline: 3px solid color-mix(in oklab, var(--ring) 50%, transparent);
+          outline-offset: 3px;
+        }
+      }
+
+      button span,
+      span[data-category-name] {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    header-bars {
+      display: flex;
+      align-items: stretch;
+      margin-inline-start: calc(var(--spacing) * 1);
+
+      &[challenge-gap] {
+        gap: calc(var(--spacing) * 1);
+      }
+    }
+
+    category-row,
+    category-points,
+    category-footer {
+      display: flex;
+    }
+
+    category-row,
+    category-points[challenge] {
+      gap: calc(var(--spacing) * 1);
+    }
+
+    category-block {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border-start-start-radius: var(--radius-lg);
+      border-start-end-radius: var(--radius-lg);
+      background: var(--category-background-l0);
+
+      &[dimmed] {
+        opacity: 0.25;
+      }
+
+      &::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        background: var(--background-l0);
+      }
+    }
+
+    category-points {
+      padding-block: calc(var(--spacing) * 1.5);
+    }
+
+    challenge-point[dimmed] {
+      opacity: 0.25;
+    }
+
+    category-footer {
+      align-items: center;
+      justify-content: center;
+      padding-block: 0 calc(var(--spacing) * 2);
+      padding-inline: calc(var(--spacing) * 2);
+
+      &[labeled] {
+        max-inline-size: calc(var(--score-category-span, 1) * var(--score-cell-width));
+        gap: calc(var(--spacing) * 1);
+        overflow: hidden;
+      }
+
+      span {
+        overflow: hidden;
+        color: var(--category-foreground-l1);
+        text-overflow: ellipsis;
+        text-transform: capitalize;
+        white-space: nowrap;
+      }
+    }
+
+    :global(.category-icon-trigger) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--category-foreground-l1);
+    }
+
+    :global(.category-icon) {
+      width: 1.25rem;
+      height: 1.25rem;
+      flex-shrink: 0;
+      color: var(--category-foreground-l1);
+    }
+
+    :global(.category-icon-trigger .category-icon) {
+      margin-block: calc(var(--spacing) * 0.5);
+    }
+
+    :global(.points-trigger) {
+      display: flex;
+      width: 3rem;
+      align-items: center;
+      justify-content: center;
+    }
+
+    span[data-points-badge] {
+      width: calc(var(--spacing) * 5);
+      height: calc(var(--spacing) * 5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-sm);
+      background: var(--category-background-l1);
+      color: var(--category-foreground-l1);
+      font-size: var(--text-sm);
+      line-height: 1;
+      opacity: 0.75;
+    }
+
+    :global(.focus-icon) {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      opacity: 0.5;
+      transition: opacity 150ms ease;
+    }
+  }
+
+  span[data-category-name],
+  p[data-category-title] {
+    text-transform: capitalize;
+  }
+
+  p[data-muted] {
+    color: var(--foreground-l3);
+  }
+</style>

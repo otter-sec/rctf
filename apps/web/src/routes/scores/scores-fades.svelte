@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { cn } from '$lib/utils'
-
   interface Props {
     showTop: boolean
     showBottom: boolean
@@ -8,7 +6,6 @@
     showRight: boolean
     showSelfRow: boolean
     selfRowPosition?: 'top' | 'bottom'
-    isMinimal: boolean
   }
 
   let {
@@ -18,36 +15,36 @@
     showRight,
     showSelfRow,
     selfRowPosition = 'bottom',
-    isMinimal,
   }: Props = $props()
 
   const selfTop = $derived(showSelfRow && selfRowPosition === 'top')
 
-  type FadeConfig = { class: string; show: boolean }
+  type FadeConfig = { kind: string; show: boolean }
 
   const fades = $derived.by((): FadeConfig[] => {
-    if (isMinimal) {
-      return [
-        { class: 'fade-top-minimal', show: showTop },
-        { class: 'fade-bottom-minimal', show: showBottom },
-      ]
-    }
-
     const base: FadeConfig[] = [
-      { class: 'fade-left-header', show: showLeft },
-      { class: 'fade-right-header', show: showRight },
-      { class: 'fade-top-team', show: showTop },
-      { class: 'fade-bottom-team', show: showBottom },
-      { class: 'fade-top-content', show: showTop },
-      { class: 'fade-bottom-content', show: showBottom },
-      { class: 'fade-left-content', show: showLeft },
-      { class: 'fade-right-content', show: showRight },
+      { kind: 'left-header', show: showLeft },
+      { kind: 'right-header', show: showRight },
+      { kind: 'top-team', show: showTop },
+      { kind: 'bottom-team', show: showBottom },
+      { kind: 'top-content', show: showTop },
+      { kind: 'bottom-content', show: showBottom },
+      { kind: 'left-content', show: showLeft },
+      { kind: 'right-content', show: showRight },
+      { kind: 'top-minimal', show: showTop },
+      { kind: 'bottom-minimal', show: showBottom },
     ]
 
     if (showSelfRow) {
       base.push(
-        { class: selfTop ? 'fade-left-self-top' : 'fade-left-self', show: showLeft },
-        { class: selfTop ? 'fade-right-self-top' : 'fade-right-self', show: showRight }
+        {
+          kind: selfTop ? 'left-self-top' : 'left-self',
+          show: showLeft,
+        },
+        {
+          kind: selfTop ? 'right-self-top' : 'right-self',
+          show: showRight,
+        }
       )
     }
 
@@ -55,130 +52,173 @@
   })
 </script>
 
-{#each fades as fade}
-  <div
-    class={cn('fade', fade.class, fade.show ? 'opacity-100' : 'opacity-0')}
-    aria-hidden="true"
-  ></div>
+{#each fades as fade (fade.kind)}
+  <scroll-fade kind={fade.kind} show={fade.show || undefined} aria-hidden="true"></scroll-fade>
 {/each}
 
 <style>
-  .fade {
-    --fade-size: 3rem;
+  scroll-fade {
+    --fade-size: calc(var(--spacing) * 12);
+    display: block;
     pointer-events: none;
     position: absolute;
     z-index: 40;
+    opacity: 0;
     transition: opacity 150ms;
+
+    &[show] {
+      opacity: 1;
+    }
+
+    &[kind='left-header'],
+    &[kind='right-header'],
+    &[kind='top-team'],
+    &[kind='bottom-team'],
+    &[kind='top-content'],
+    &[kind='bottom-content'],
+    &[kind='left-content'],
+    &[kind='right-content'],
+    &[kind='left-self'],
+    &[kind='right-self'],
+    &[kind='left-self-top'],
+    &[kind='right-self-top'] {
+      display: none;
+    }
+
+    &[kind='top-minimal'],
+    &[kind='bottom-minimal'] {
+      display: block;
+    }
+
+    @media (width >= 48rem) {
+      &[kind='left-header'],
+      &[kind='right-header'],
+      &[kind='top-team'],
+      &[kind='bottom-team'],
+      &[kind='top-content'],
+      &[kind='bottom-content'],
+      &[kind='left-content'],
+      &[kind='right-content'],
+      &[kind='left-self'],
+      &[kind='right-self'],
+      &[kind='left-self-top'],
+      &[kind='right-self-top'] {
+        display: block;
+      }
+
+      &[kind='top-minimal'],
+      &[kind='bottom-minimal'] {
+        display: none;
+      }
+    }
   }
 
-  .fade-left-header {
-    top: 0;
-    left: var(--team-column-width);
-    height: var(--header-height);
+  scroll-fade[kind='left-header'] {
+    inset-block-start: 0;
+    inset-inline-start: var(--score-team-column-width);
+    height: var(--score-header-height);
     width: var(--fade-size);
     background: linear-gradient(to right, var(--background-l0), transparent);
   }
 
-  .fade-right-header {
-    top: 0;
-    right: 0;
-    height: var(--header-height);
+  scroll-fade[kind='right-header'] {
+    inset-block-start: 0;
+    inset-inline-end: 0;
+    height: var(--score-header-height);
     width: var(--fade-size);
     background: linear-gradient(to left, var(--background-l0), transparent);
   }
 
-  .fade-top-team {
-    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
-    left: 0;
-    width: var(--team-column-width);
+  scroll-fade[kind='top-team'] {
+    inset-block-start: calc(var(--score-header-height) + var(--score-self-row-top-offset, 0px));
+    inset-inline-start: 0;
+    width: var(--score-team-column-width);
     height: var(--fade-size);
     background: linear-gradient(to bottom, var(--background-l0), transparent);
   }
 
-  .fade-bottom-team {
-    bottom: var(--self-row-offset, 0px);
-    left: 0;
-    width: var(--team-column-width);
+  scroll-fade[kind='bottom-team'] {
+    inset-block-end: var(--score-self-row-offset, 0px);
+    inset-inline-start: 0;
+    width: var(--score-team-column-width);
     height: var(--fade-size);
     background: linear-gradient(to top, var(--background-l0), transparent);
   }
 
-  .fade-top-content {
-    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
-    left: var(--team-column-width);
-    right: 0;
+  scroll-fade[kind='top-content'] {
+    inset-block-start: calc(var(--score-header-height) + var(--score-self-row-top-offset, 0px));
+    inset-inline-start: var(--score-team-column-width);
+    inset-inline-end: 0;
     height: var(--fade-size);
     background: linear-gradient(to bottom, var(--background-l0), transparent);
   }
 
-  .fade-bottom-content {
-    bottom: var(--self-row-offset, 0px);
-    left: var(--team-column-width);
-    right: 0;
+  scroll-fade[kind='bottom-content'] {
+    inset-block-end: var(--score-self-row-offset, 0px);
+    inset-inline-start: var(--score-team-column-width);
+    inset-inline-end: 0;
     height: var(--fade-size);
     background: linear-gradient(to top, var(--background-l0), transparent);
   }
 
-  .fade-left-content {
-    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
-    bottom: var(--self-row-offset, 0px);
-    left: var(--team-column-width);
+  scroll-fade[kind='left-content'] {
+    inset-block-start: calc(var(--score-header-height) + var(--score-self-row-top-offset, 0px));
+    inset-block-end: var(--score-self-row-offset, 0px);
+    inset-inline-start: var(--score-team-column-width);
     width: var(--fade-size);
     background: linear-gradient(to right, var(--background-l0), transparent);
   }
 
-  .fade-right-content {
-    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
-    bottom: var(--self-row-offset, 0px);
-    right: 0;
+  scroll-fade[kind='right-content'] {
+    inset-block-start: calc(var(--score-header-height) + var(--score-self-row-top-offset, 0px));
+    inset-block-end: var(--score-self-row-offset, 0px);
+    inset-inline-end: 0;
     width: var(--fade-size);
     background: linear-gradient(to left, var(--background-l0), transparent);
   }
 
-  .fade-left-self {
-    bottom: 0;
-    left: var(--team-column-width);
-    height: var(--self-row-height);
+  scroll-fade[kind='left-self'] {
+    inset-block-end: 0;
+    inset-inline-start: var(--score-team-column-width);
+    height: var(--score-self-row-height);
     width: var(--fade-size);
     background: linear-gradient(to right, var(--background-l0), transparent);
   }
 
-  .fade-right-self {
-    bottom: 0;
-    right: 0;
-    height: var(--self-row-height);
+  scroll-fade[kind='right-self'] {
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    height: var(--score-self-row-height);
     width: var(--fade-size);
     background: linear-gradient(to left, var(--background-l0), transparent);
   }
 
-  .fade-left-self-top {
-    top: var(--header-height);
-    left: var(--team-column-width);
-    height: var(--self-row-height);
+  scroll-fade[kind='left-self-top'] {
+    inset-block-start: var(--score-header-height);
+    inset-inline-start: var(--score-team-column-width);
+    height: var(--score-self-row-height);
     width: var(--fade-size);
     background: linear-gradient(to right, var(--background-l0), transparent);
   }
 
-  .fade-right-self-top {
-    top: var(--header-height);
-    right: 0;
-    height: var(--self-row-height);
+  scroll-fade[kind='right-self-top'] {
+    inset-block-start: var(--score-header-height);
+    inset-inline-end: 0;
+    height: var(--score-self-row-height);
     width: var(--fade-size);
     background: linear-gradient(to left, var(--background-l0), transparent);
   }
 
-  .fade-top-minimal {
-    top: calc(var(--header-height) + var(--self-row-top-offset, 0px));
-    left: 0;
-    right: 0;
+  scroll-fade[kind='top-minimal'] {
+    inset-block-start: calc(var(--score-header-height) + var(--score-self-row-top-offset, 0px));
+    inset-inline: 0;
     height: var(--fade-size);
     background: linear-gradient(to bottom, var(--background-l0), transparent);
   }
 
-  .fade-bottom-minimal {
-    bottom: var(--self-row-offset, 0px);
-    left: 0;
-    right: 0;
+  scroll-fade[kind='bottom-minimal'] {
+    inset-block-end: var(--score-self-row-offset, 0px);
+    inset-inline: 0;
     height: var(--fade-size);
     background: linear-gradient(to top, var(--background-l0), transparent);
   }

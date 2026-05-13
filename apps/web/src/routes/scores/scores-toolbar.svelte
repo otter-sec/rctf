@@ -13,7 +13,6 @@
     IconX,
     type IconComponent,
   } from '$lib/icons'
-  import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { mergeProps } from 'bits-ui'
   import { onMount } from 'svelte'
@@ -123,62 +122,40 @@
 
 {#snippet divisionDropdown()}
   <DropdownMenu.Root>
-    <DropdownMenu.Trigger
-      type="button"
-      class="bg-background-l2 text-foreground-l3 hover:bg-background-l3 data-[state=open]:bg-background-l3 focus-visible:ring-ring/50 flex h-9 w-auto items-center justify-between gap-1.5 rounded-md px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-[3px]"
-    >
-      <span class="truncate">{selectedDivision.label}</span>
-      <IconChevronDown class="size-4 shrink-0 opacity-50" />
+    <DropdownMenu.Trigger type="button" class="division-trigger">
+      <span>{selectedDivision.label}</span>
+      <IconChevronDown class="icon chevron" />
     </DropdownMenu.Trigger>
-    <DropdownMenu.Content
-      align="end"
-      class="bg-background-l4 border-background-l5 min-w-(--bits-dropdown-menu-anchor-width) border-2"
-    >
-      <DropdownMenu.Item
-        class="data-highlighted:bg-background-l5 justify-between"
-        onclick={selectAllDivisions}
-      >
+    <DropdownMenu.Content align="end" class="division-menu">
+      <DropdownMenu.Item class="division-item" onclick={selectAllDivisions}>
         <span>All divisions</span>
-        <IconCheck
-          class={cn(
-            'ml-auto size-4 shrink-0',
-            selectedDivision.type !== 'all' && 'text-transparent'
-          )}
-        />
+        <check-mark selected={selectedDivision.type === 'all' || undefined}>
+          <IconCheck />
+        </check-mark>
       </DropdownMenu.Item>
       {#each divisionOptions as option (option.value)}
-        <DropdownMenu.Item
-          class="data-highlighted:bg-background-l5 justify-between"
-          onclick={() => selectDivision(option.value)}
-        >
-          <span class="truncate">{option.label}</span>
-          <IconCheck
-            class={cn(
-              'ml-auto size-4 shrink-0',
-              (selectedDivision.type !== 'division' || selectedDivision.value !== option.value) &&
-                'text-transparent'
-            )}
-          />
+        {@const isSelected =
+          selectedDivision.type === 'division' && selectedDivision.value === option.value}
+        <DropdownMenu.Item class="division-item" onclick={() => selectDivision(option.value)}>
+          <span>{option.label}</span>
+          <check-mark selected={isSelected || undefined}>
+            <IconCheck />
+          </check-mark>
         </DropdownMenu.Item>
       {/each}
     </DropdownMenu.Content>
   </DropdownMenu.Root>
 {/snippet}
 
-<div class="flex flex-col gap-2 px-4 py-2 md:flex-row md:items-center md:justify-between md:px-9">
-  <div class="flex items-center justify-between md:contents">
-    <span class="text-foreground-l0 text-lg md:hidden">Scoreboard</span>
+<score-toolbar>
+  <score-mobile-row>
+    <score-title>Scoreboard</score-title>
 
-    <div
-      use:arrowNavigation
-      role="toolbar"
-      aria-label="Scoreboard display controls"
-      class="hidden items-center gap-4 md:flex"
-    >
-      <div class="flex items-center gap-2">
-        <span class="text-foreground-l3 text-sm">View</span>
-        <div class="flex items-center gap-0.5">
-          {#each viewOptions as option}
+    <score-controls use:arrowNavigation role="toolbar" aria-label="Scoreboard display controls">
+      <score-control-group>
+        <span>View</span>
+        <score-button-row>
+          {#each viewOptions as option (option.value)}
             <Tooltip.Trigger tether={controlTooltipTether} payload={option.label}>
               {#snippet child({ props })}
                 {@const buttonProps = mergeProps(props, {
@@ -189,25 +166,21 @@
                 <button
                   {...buttonProps}
                   type="button"
-                  class={cn(
-                    'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
-                    viewMode === option.value &&
-                      'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                  )}
+                  data-active={viewMode === option.value ? '' : undefined}
                 >
-                  <option.icon class="size-4" />
+                  <option.icon class="icon" />
                 </button>
               {/snippet}
             </Tooltip.Trigger>
           {/each}
-        </div>
-      </div>
+        </score-button-row>
+      </score-control-group>
 
       {#if viewMode === 'challenges'}
-        <div class="flex items-center gap-2">
-          <span class="text-foreground-l3 text-sm">Sort</span>
-          <div class="flex items-center gap-0.5">
-            {#each sortOptions as option}
+        <score-control-group>
+          <span>Sort</span>
+          <score-button-row>
+            {#each sortOptions as option (option.value)}
               <Tooltip.Trigger tether={controlTooltipTether} payload={option.label}>
                 {#snippet child({ props })}
                   {@const buttonProps = mergeProps(props, {
@@ -218,74 +191,58 @@
                   <button
                     {...buttonProps}
                     type="button"
-                    class={cn(
-                      'text-foreground-l3 hover:text-foreground-l1 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center rounded-md px-3 outline-none focus-visible:ring-[3px]',
-                      sortMode === option.value &&
-                        'bg-background-l3 text-foreground-l1 hover:bg-background-l4'
-                    )}
+                    data-active={sortMode === option.value ? '' : undefined}
                   >
-                    <option.icon class="size-4" />
+                    <option.icon class="icon" />
                   </button>
                 {/snippet}
               </Tooltip.Trigger>
             {/each}
-          </div>
-        </div>
+          </score-button-row>
+        </score-control-group>
       {/if}
-    </div>
+    </score-controls>
 
-    <div class="flex items-center gap-1.5 md:hidden">
+    <score-actions mobile>
       {#if hasDivisions}
         {@render divisionDropdown()}
       {/if}
 
-      <button
-        class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 flex h-9 w-9 items-center justify-center rounded-md"
-        onclick={onScreenshotClick}
-      >
-        <IconPhotoFilled class="size-4" />
+      <button data-square type="button" onclick={onScreenshotClick}>
+        <IconPhotoFilled class="icon" />
       </button>
-    </div>
-  </div>
+    </score-actions>
+  </score-mobile-row>
 
-  <ScoresSearchBox
-    bind:inputRef={mobileSearchInput}
-    class="md:hidden"
-    inputClass="min-w-0 flex-1"
-    {search}
-    {isSearching}
-    {onSearchChange}
-  />
+  <score-mobile-search>
+    <ScoresSearchBox bind:inputRef={mobileSearchInput} {search} {isSearching} {onSearchChange} />
+  </score-mobile-search>
 
-  <div class="hidden items-center gap-2 md:flex">
+  <score-actions desktop>
     {#if focusedChallenge}
-      <div class="bg-background-l2 flex h-9 items-center gap-1.5 rounded-md px-3">
-        <span class="text-foreground-l3 text-sm">Filtering by</span>
+      <score-filter>
+        <span>Filtering by</span>
         <a
           href="/challenges?challenge={focusedChallenge.id}"
-          class="text-category-foreground-l1 flex items-center gap-1 truncate text-sm underline decoration-current/50 underline-offset-2 transition-all hover:decoration-current"
           style={getCategoryStyle(focusedChallenge.color)}
         >
-          <focusedChallenge.icon class="size-4 shrink-0" />
+          <focusedChallenge.icon class="icon" />
           <span>{focusedChallenge.name}</span>
         </a>
-        <button
-          class="text-foreground-l3 hover:text-foreground-l1 -mr-1.5 flex size-5 shrink-0 items-center justify-center rounded transition-colors"
-          onclick={onChallengeFocusClear}
-        >
-          <IconX class="size-3.5" />
+        <button data-clear type="button" onclick={onChallengeFocusClear}>
+          <IconX class="icon small" />
         </button>
-      </div>
+      </score-filter>
     {/if}
 
-    <span class="text-foreground-l3 hidden items-center gap-1.5 px-2 text-sm tabular-nums xl:flex">
-      <IconUsersGroup class="size-4" />
+    <score-count>
+      <IconUsersGroup class="icon" />
       {loadedCount.toLocaleString()} / {total.toLocaleString()}
-    </span>
+    </score-count>
 
     <ScoresSearchBox
       bind:inputRef={desktopSearchInput}
-      inputClass="w-28 xl:w-44"
+      compact
       {search}
       {isSearching}
       {onSearchChange}
@@ -295,15 +252,12 @@
       {@render divisionDropdown()}
     {/if}
 
-    <button
-      class="text-foreground-l1 bg-background-l2 hover:bg-background-l3 focus-visible:ring-ring/50 flex h-9 items-center justify-center gap-2 rounded-md px-3 outline-none focus-visible:ring-[3px]"
-      onclick={onScreenshotClick}
-    >
-      <IconPhotoFilled class="size-4" />
-      <span class="text-foreground-l3 hidden truncate text-sm xl:inline">Screenshot</span>
+    <button data-screenshot type="button" onclick={onScreenshotClick}>
+      <IconPhotoFilled class="icon" />
+      <span>Screenshot</span>
     </button>
-  </div>
-</div>
+  </score-actions>
+</score-toolbar>
 
 <Tooltip.Root tether={controlTooltipTether}>
   {#snippet children({ payload })}
@@ -312,3 +266,305 @@
     {/if}
   {/snippet}
 </Tooltip.Root>
+
+<style>
+  score-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 2);
+    padding-block: calc(var(--spacing) * 2);
+    padding-inline: calc(var(--spacing) * 4);
+
+    score-mobile-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    score-title {
+      color: var(--foreground-l0);
+      font-size: var(--text-lg);
+    }
+
+    score-controls,
+    score-actions[desktop],
+    score-count {
+      display: none;
+    }
+
+    score-actions,
+    score-control-group,
+    score-button-row,
+    score-filter,
+    score-filter a,
+    score-count,
+    button[data-screenshot] {
+      align-items: center;
+    }
+
+    score-actions,
+    score-button-row {
+      display: flex;
+    }
+
+    score-actions[mobile] {
+      gap: calc(var(--spacing) * 1.5);
+    }
+
+    score-actions[desktop] {
+      gap: calc(var(--spacing) * 2);
+    }
+
+    score-control-group {
+      display: flex;
+      gap: calc(var(--spacing) * 2);
+    }
+
+    score-button-row {
+      gap: calc(var(--spacing) * 0.5);
+    }
+
+    score-control-group > span,
+    score-count,
+    score-filter > span,
+    button[data-screenshot] span {
+      color: var(--foreground-l3);
+      font-size: var(--text-sm);
+    }
+
+    button {
+      border: 0;
+      outline: none;
+    }
+
+    score-controls button,
+    button[data-square],
+    button[data-screenshot] {
+      height: calc(var(--spacing) * 9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius-md);
+      background: var(--background-l2);
+      color: var(--foreground-l1);
+    }
+
+    score-controls button,
+    button[data-screenshot],
+    :global(.division-trigger) {
+      padding-inline: calc(var(--spacing) * 3);
+    }
+
+    button[data-square] {
+      width: calc(var(--spacing) * 9);
+    }
+
+    score-controls button {
+      color: var(--foreground-l3);
+      background: transparent;
+
+      &:hover,
+      &[data-active] {
+        color: var(--foreground-l1);
+        background: var(--background-l3);
+      }
+    }
+
+    button[data-square]:hover,
+    button[data-screenshot]:hover {
+      background: var(--background-l3);
+    }
+
+    button:focus-visible,
+    :global(.division-trigger:focus-visible) {
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 50%, transparent);
+    }
+
+    :global(.division-trigger) {
+      height: calc(var(--spacing) * 9);
+      display: flex;
+      align-items: center;
+      width: auto;
+      justify-content: space-between;
+      gap: calc(var(--spacing) * 1.5);
+      border: 0;
+      border-radius: var(--radius-md);
+      outline: none;
+      background: var(--background-l2);
+      color: var(--foreground-l3);
+      font-size: var(--text-sm);
+      white-space: nowrap;
+
+      &:hover,
+      &[data-state='open'] {
+        background: var(--background-l3);
+      }
+
+      span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    :global(.icon) {
+      width: calc(var(--spacing) * 4);
+      height: calc(var(--spacing) * 4);
+      flex-shrink: 0;
+    }
+
+    :global(.icon.chevron) {
+      opacity: 0.5;
+    }
+
+    score-mobile-search {
+      display: block;
+    }
+
+    score-filter {
+      height: calc(var(--spacing) * 9);
+      display: flex;
+      gap: calc(var(--spacing) * 1.5);
+      padding-inline: calc(var(--spacing) * 3);
+      border-radius: var(--radius-md);
+      background: var(--background-l2);
+
+      a {
+        min-width: 0;
+        display: flex;
+        gap: calc(var(--spacing) * 1);
+        color: var(--category-foreground-l1);
+        font-size: var(--text-sm);
+        text-decoration: underline;
+        text-decoration-color: color-mix(in oklab, currentColor 50%, transparent);
+        text-underline-offset: 2px;
+        transition: text-decoration-color 150ms ease;
+
+        &:hover {
+          text-decoration-color: currentColor;
+        }
+
+        span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+
+      button[data-clear] {
+        width: calc(var(--spacing) * 5);
+        height: calc(var(--spacing) * 5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-inline-end: calc(var(--spacing) * -1.5);
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--foreground-l3);
+        transition: color 150ms ease;
+
+        &:hover,
+        &:focus-visible {
+          color: var(--foreground-l1);
+        }
+      }
+
+      :global(.icon.small) {
+        width: calc(var(--spacing) * 3.5);
+        height: calc(var(--spacing) * 3.5);
+      }
+    }
+
+    score-count {
+      gap: calc(var(--spacing) * 1.5);
+      padding-inline: calc(var(--spacing) * 2);
+      font-variant-numeric: tabular-nums;
+    }
+
+    button[data-screenshot] {
+      gap: calc(var(--spacing) * 2);
+
+      span {
+        display: none;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    @media (width >= 48rem) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: calc(var(--spacing) * 9);
+
+      score-mobile-row {
+        display: contents;
+      }
+
+      score-title,
+      score-actions[mobile],
+      score-mobile-search {
+        display: none;
+      }
+
+      score-controls,
+      score-actions[desktop] {
+        display: flex;
+      }
+
+      score-controls {
+        align-items: center;
+        gap: calc(var(--spacing) * 4);
+      }
+    }
+
+    @media (width >= 80rem) {
+      score-count {
+        display: flex;
+      }
+
+      button[data-screenshot] span {
+        display: inline;
+      }
+    }
+  }
+
+  :global(.division-menu) {
+    min-width: var(--bits-dropdown-menu-anchor-width);
+    border: 2px solid var(--background-l5);
+    background: var(--background-l4);
+  }
+
+  :global(.division-item) {
+    justify-content: space-between;
+
+    &[data-highlighted] {
+      background: var(--background-l5);
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  check-mark {
+    display: block;
+    width: calc(var(--spacing) * 4);
+    height: calc(var(--spacing) * 4);
+    flex-shrink: 0;
+    margin-inline-start: auto;
+
+    &:not([selected]) {
+      color: transparent;
+    }
+
+    :global(svg) {
+      width: 100%;
+      height: 100%;
+    }
+  }
+</style>

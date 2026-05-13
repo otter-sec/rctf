@@ -11,7 +11,7 @@
   import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
   import { createScoresViewportState } from './scores-viewport-state.svelte'
-  import type { TooltipData } from './types'
+  import { isChallengeTooltipData, type TooltipData } from './types'
 
   const routeState = createScoresRouteState()
   const scoreData = createScoresDataModel({
@@ -54,7 +54,7 @@
 
   const tooltipGraphState = $derived.by(() => {
     const data = cellTooltip.open ? cellTooltip.payload : null
-    if (!data || (data.type === 'challenge' && !data.solved)) {
+    if (!data || (isChallengeTooltipData(data) && !data.solved)) {
       return {
         hoveredTeamId: null,
         solveHighlight: null,
@@ -64,7 +64,7 @@
     return {
       hoveredTeamId: data.teamId,
       solveHighlight:
-        data.type === 'challenge' && data.solveTime
+        isChallengeTooltipData(data) && data.solveTime
           ? { teamId: data.teamId, time: data.solveTime }
           : null,
     }
@@ -105,9 +105,9 @@
 
 <Tooltip.Provider delayDuration={300} skipDelayDuration={600} disableHoverableContent>
   {#if scoreData.leaderboardQuery.isPending && !routeState.search}
-    <div class="flex flex-1 items-center justify-center">
-      <Spinner class="size-4" />
-    </div>
+    <score-loading>
+      <Spinner class="score-loading-spinner" />
+    </score-loading>
   {:else if scoreData.isNotStarted}
     <CtfNotStarted />
   {:else}
@@ -130,27 +130,17 @@
     />
 
     {#if !scoreData.isLoading && scoreData.entries.length === 0 && routeState.focusedChallengeId}
-      <div
-        class="
-          bg-background-l0 fixed inset-x-0 top-92 bottom-0 z-50 flex items-center justify-center
-          md:top-79
-        "
-      >
+      <score-empty-state focused>
         <EmptyState
           icon={IconFlagFilled}
           title="No solves"
           subtitle="No matching teams have solved this challenge"
         />
-      </div>
+      </score-empty-state>
     {/if}
 
     {#if !scoreData.isLoading && scoreData.entries.length === 0 && !routeState.focusedChallengeId}
-      <div
-        class="
-          flex h-[calc(100dvh-72px-96px)] items-center justify-center
-          md:h-[calc(100dvh-72px-52px)]
-        "
-      >
+      <score-empty-state>
         <EmptyState
           icon={IconChartAreaLineFilled}
           title={routeState.search ? 'No teams found' : 'No scores yet'}
@@ -158,7 +148,7 @@
             ? `No results for "${routeState.search}"`
             : 'Check back soon for scores!'}
         />
-      </div>
+      </score-empty-state>
     {:else}
       <ScoresLeaderboardFrame
         {scoreData}
@@ -194,7 +184,7 @@
     onOpenChange={open => (screenshotModalOpen = open)}
     teams={graphState.screenshotTeams}
     selfTeam={graphState.screenshotSelfTeam}
-    graphData={scoreData.allGraphData}
+    graphData={graphState.screenshotGraphData}
     categoryGroups={scoreData.categoryGroups}
     solvesByTeam={scoreData.solvesByTeam}
     ctfName={scoreData.clientConfigQuery.data?.ctfName ?? ''}
@@ -202,3 +192,42 @@
     endTime={scoreData.clientConfigQuery.data?.endTime ?? null}
   />
 </Tooltip.Provider>
+
+<style>
+  score-loading {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    :global(.score-loading-spinner) {
+      width: 1rem;
+      height: 1rem;
+    }
+  }
+
+  score-empty-state {
+    height: calc(100dvh - calc(var(--spacing) * 18) - calc(var(--spacing) * 24));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &[focused] {
+      position: fixed;
+      inset-inline: 0;
+      inset-block-start: calc(var(--spacing) * 92);
+      inset-block-end: 0;
+      z-index: 50;
+      height: auto;
+      background: var(--background-l0);
+    }
+
+    @media (width >= 48rem) {
+      height: calc(100dvh - calc(var(--spacing) * 18) - calc(var(--spacing) * 13));
+
+      &[focused] {
+        inset-block-start: calc(var(--spacing) * 79);
+      }
+    }
+  }
+</style>

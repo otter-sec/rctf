@@ -176,111 +176,107 @@
       exportSettings.format = value as 'png' | 'jpeg' | 'webp'
     }
   }
+
+  function previewAttachment(element: HTMLElement) {
+    previewRef = element
+    return () => {
+      if (previewRef === element) previewRef = null
+    }
+  }
 </script>
 
 <Dialog.Root bind:open onOpenChange={v => onOpenChange(v)}>
-  <Dialog.Content
-    showCloseButton={false}
-    class="bg-background-l2 flex h-[90svh] w-[90svw] flex-col gap-0 rounded-lg border-2 p-0 md:h-[85vh] md:max-h-225 md:w-[95vw] md:max-w-[95vw]!"
-  >
-    <div class="flex shrink-0 flex-row items-center justify-between border-b-2 px-4 py-3 md:px-5">
+  <Dialog.Content showCloseButton={false} class="screenshot-dialog">
+    <modal-head>
       <Dialog.Title>Export screenshot</Dialog.Title>
-      <Dialog.Close
-        class="text-foreground-l3 hover:text-foreground-l0 rounded-sm transition-colors"
-      >
-        <IconX class="size-5" />
-        <span class="sr-only">Close</span>
+      <Dialog.Close class="close">
+        <IconX class="icon" />
+        <span class="visually-hidden">Close</span>
       </Dialog.Close>
-    </div>
+    </modal-head>
 
-    <div class="flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
-      <div
-        class="flex max-h-[50vh] w-full shrink-0 flex-col border-b-2 md:max-h-none md:w-86 md:border-r-2 md:border-b-0"
-      >
-        <ScrollArea class="min-h-0 flex-1" fadeColor="background-l2">
-          <div class="flex flex-col gap-3 px-4 py-3 md:px-5">
+    <modal-body>
+      <modal-sidebar>
+        <ScrollArea class="controls-scroll" fadeColor="background-l2">
+          <modal-controls>
             <Section.Root>
               <Section.Header>Content</Section.Header>
-              <Section.Content class="flex flex-col gap-3">
-                <div class="flex flex-col gap-1.5">
-                  <Label for="team-count" class="text-foreground-l2 text-xs">Teams in list</Label>
+              <Section.Content class="modal-section">
+                <modal-field>
+                  <Label for="team-count" class="modal-label">Teams in list</Label>
                   <Select.Root
                     type="single"
                     value={options.teamCount.toString()}
                     onValueChange={handleTeamCountChange}
                   >
-                    <Select.Trigger id="team-count" class="w-full">
+                    <Select.Trigger id="team-count" class="modal-select">
                       {options.teamCount} teams
                     </Select.Trigger>
                     <Select.Content>
-                      {#each teamCountOptions as count}
+                      {#each teamCountOptions as count (count)}
                         <Select.Item value={count.toString()}>{count} teams</Select.Item>
                       {/each}
                     </Select.Content>
                   </Select.Root>
-                </div>
+                </modal-field>
 
-                <div class="flex flex-col gap-1.5">
-                  <Label for="graph-team-count" class="text-foreground-l2 text-xs"
-                    >Teams in graph</Label
-                  >
+                <modal-field>
+                  <Label for="graph-team-count" class="modal-label">Teams in graph</Label>
                   <Select.Root
                     type="single"
                     value={options.graphTeamCount.toString()}
                     onValueChange={handleGraphTeamCountChange}
                   >
-                    <Select.Trigger id="graph-team-count" class="w-full">
+                    <Select.Trigger id="graph-team-count" class="modal-select">
                       {options.graphTeamCount} teams
                     </Select.Trigger>
                     <Select.Content>
-                      {#each teamCountOptions as count}
+                      {#each teamCountOptions as count (count)}
                         <Select.Item value={count.toString()}>{count} teams</Select.Item>
                       {/each}
                     </Select.Content>
                   </Select.Root>
-                </div>
+                </modal-field>
 
-                <div class="flex flex-col gap-1.5">
-                  <Label for="subtitle" class="text-foreground-l2 text-xs">Subtitle</Label>
+                <modal-field>
+                  <Label for="subtitle" class="modal-label">Subtitle</Label>
                   <Input
                     id="subtitle"
                     bind:value={options.subtitle}
                     placeholder="Optional subtitle"
-                    class="h-9"
+                    class="modal-input"
                   />
-                </div>
+                </modal-field>
               </Section.Content>
             </Section.Root>
 
             <Section.Root>
               <Section.Header>Display</Section.Header>
-              <Section.Content class="flex flex-col gap-2">
-                <label class="flex cursor-pointer items-center gap-2">
+              <Section.Content class="modal-section" data-compact>
+                <label>
                   <Checkbox bind:checked={options.showHeader} />
-                  <span class="text-foreground-l2 text-sm">Show header</span>
+                  <span>Show header</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showGraph} />
-                  <span class="text-foreground-l2 text-sm">Show graph</span>
+                  <span>Show graph</span>
                 </label>
 
                 {#if options.showGraph && selfTeam}
                   {@const selfDisabled = !options.showSelf}
                   {#if selfDisabled}
                     <Tooltip.Root>
-                      <Tooltip.Trigger
-                        class="flex cursor-not-allowed items-center gap-2 pl-4 opacity-50"
-                      >
+                      <Tooltip.Trigger class="toggle" data-inset data-disabled>
                         <Checkbox checked={false} disabled />
-                        <span class="text-foreground-l2 text-sm">Emphasize self only</span>
+                        <span>Emphasize self only</span>
                       </Tooltip.Trigger>
                       <Tooltip.Content>Requires "Show your team"</Tooltip.Content>
                     </Tooltip.Root>
                   {:else}
-                    <label class="flex cursor-pointer items-center gap-2 pl-4">
+                    <label data-inset>
                       <Checkbox bind:checked={options.emphasizeSelfOnly} />
-                      <span class="text-foreground-l2 text-sm">Emphasize self only</span>
+                      <span>Emphasize self only</span>
                     </label>
                   {/if}
                 {/if}
@@ -290,11 +286,9 @@
                   {@const isDisabled = options.emphasizeSelfOnly || !canEmphasize}
                   {#if isDisabled}
                     <Tooltip.Root>
-                      <Tooltip.Trigger
-                        class="flex cursor-not-allowed items-center gap-2 pl-4 opacity-50"
-                      >
+                      <Tooltip.Trigger class="toggle" data-inset data-disabled>
                         <Checkbox checked={options.emphasizeListedTeams} disabled />
-                        <span class="text-foreground-l2 text-sm">Emphasize listed teams</span>
+                        <span>Emphasize listed teams</span>
                       </Tooltip.Trigger>
                       <Tooltip.Content>
                         {#if options.emphasizeSelfOnly}
@@ -305,47 +299,47 @@
                       </Tooltip.Content>
                     </Tooltip.Root>
                   {:else}
-                    <label class="flex cursor-pointer items-center gap-2 pl-4">
+                    <label data-inset>
                       <Checkbox bind:checked={options.emphasizeListedTeams} />
-                      <span class="text-foreground-l2 text-sm">Emphasize listed teams</span>
+                      <span>Emphasize listed teams</span>
                     </label>
                   {/if}
                 {/if}
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showAvatars} />
-                  <span class="text-foreground-l2 text-sm">Show avatars</span>
+                  <span>Show avatars</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showFlags} />
-                  <span class="text-foreground-l2 text-sm">Show flags</span>
+                  <span>Show flags</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showStatuses} />
-                  <span class="text-foreground-l2 text-sm">Show statuses</span>
+                  <span>Show statuses</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showSolveCount} />
-                  <span class="text-foreground-l2 text-sm">Show solve count</span>
+                  <span>Show solve count</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showSparklines} />
-                  <span class="text-foreground-l2 text-sm">Show sparklines</span>
+                  <span>Show sparklines</span>
                 </label>
 
-                <label class="flex cursor-pointer items-center gap-2">
+                <label>
                   <Checkbox bind:checked={options.showMatrix} />
-                  <span class="text-foreground-l2 text-sm">Show category matrix</span>
+                  <span>Show category matrix</span>
                 </label>
 
                 {#if selfTeam}
-                  <label class="flex cursor-pointer items-center gap-2">
+                  <label>
                     <Checkbox bind:checked={options.showSelf} />
-                    <span class="text-foreground-l2 text-sm">Show your team</span>
+                    <span>Show your team</span>
                   </label>
                 {/if}
               </Section.Content>
@@ -353,66 +347,63 @@
 
             <Section.Root>
               <Section.Header>Export</Section.Header>
-              <Section.Content class="flex flex-col gap-3">
-                <div class="flex flex-col gap-1.5">
-                  <Label for="scale" class="text-foreground-l2 text-xs">Resolution</Label>
+              <Section.Content class="modal-section">
+                <modal-field>
+                  <Label for="scale" class="modal-label">Resolution</Label>
                   <Select.Root
                     type="single"
                     value={exportSettings.scale.toString()}
                     onValueChange={handleScaleChange}
                   >
-                    <Select.Trigger id="scale" class="w-full">
+                    <Select.Trigger id="scale" class="modal-select">
                       {scaleOptions.find(s => s.value === exportSettings.scale)?.label}
                     </Select.Trigger>
                     <Select.Content>
-                      {#each scaleOptions as scale}
+                      {#each scaleOptions as scale (scale.value)}
                         <Select.Item value={scale.value.toString()}>{scale.label}</Select.Item>
                       {/each}
                     </Select.Content>
                   </Select.Root>
-                </div>
+                </modal-field>
 
-                <div class="flex flex-col gap-1.5">
-                  <Label for="format" class="text-foreground-l2 text-xs">Format</Label>
+                <modal-field>
+                  <Label for="format" class="modal-label">Format</Label>
                   <Select.Root
                     type="single"
                     value={exportSettings.format}
                     onValueChange={handleFormatChange}
                   >
-                    <Select.Trigger id="format" class="w-full">
+                    <Select.Trigger id="format" class="modal-select">
                       {formatOptions.find(f => f.value === exportSettings.format)?.label}
                     </Select.Trigger>
                     <Select.Content>
-                      {#each formatOptions as format}
+                      {#each formatOptions as format (format.value)}
                         <Select.Item value={format.value}>{format.label}</Select.Item>
                       {/each}
                     </Select.Content>
                   </Select.Root>
-                </div>
+                </modal-field>
               </Section.Content>
             </Section.Root>
-          </div>
+          </modal-controls>
         </ScrollArea>
-        <div class="border-t-2 px-4 py-3 md:px-5">
-          <Button class="w-full" onclick={handleExport} disabled={isExporting}>
+        <export-bar>
+          <Button class="export-button" onclick={handleExport} disabled={isExporting}>
             {#if isExporting}
-              <Spinner class="size-4" />
+              <Spinner class="icon" />
               Exporting...
             {:else}
-              <IconDownload class="size-4" />
+              <IconDownload class="icon" />
               Export {exportSettings.format.toUpperCase()}
             {/if}
           </Button>
-        </div>
-      </div>
+        </export-bar>
+      </modal-sidebar>
 
-      <div class="flex min-w-0 flex-1 flex-col overflow-hidden rounded-b-lg md:rounded-bl-none">
-        <div class="min-h-0 flex-1">
-          <ScrollArea class="h-full" orientation="both" fadeColor="background-l2">
-            <div
-              class="checkerboard-bg flex items-center justify-center p-4 md:p-8"
-              bind:this={previewRef}
-            >
+      <preview-pane>
+        <preview-scroll-wrap>
+          <ScrollArea class="preview-scroll" orientation="both" fadeColor="background-l2">
+            <checker-board {@attach previewAttachment}>
               <ScoresScreenshotPreview
                 {teams}
                 {selfTeam}
@@ -423,21 +414,195 @@
                 {ctfName}
                 {startTime}
                 {endTime}
-                class="shadow-lg"
+                shadow
               />
-            </div>
+            </checker-board>
           </ScrollArea>
-        </div>
-      </div>
-    </div>
+        </preview-scroll-wrap>
+      </preview-pane>
+    </modal-body>
   </Dialog.Content>
 </Dialog.Root>
 
 <style>
-  .checkerboard-bg {
-    --checker-size: 12px;
+  :global(.screenshot-dialog) {
+    width: 90svw;
+    height: 90svh;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding-block: 0;
+    padding-inline: 0;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--background-l2);
+  }
+
+  modal-head {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: space-between;
+    padding-block: calc(var(--spacing) * 3);
+    padding-inline: calc(var(--spacing) * 4);
+    border-block-end: 2px solid var(--border);
+  }
+
+  :global(.close) {
+    border-radius: var(--radius-xs);
+    color: var(--foreground-l3);
+    transition: color 150ms ease;
+
+    &:hover {
+      color: var(--foreground-l0);
+    }
+  }
+
+  :global(.close .icon),
+  :global(.export-button .icon) {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  :global(.export-button .icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  modal-body {
+    min-height: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  modal-sidebar {
+    width: 100%;
+    max-height: 50vh;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    border-block-end: 2px solid var(--border);
+  }
+
+  :global(.controls-scroll) {
+    min-height: 0;
+    flex: 1;
+  }
+
+  modal-controls {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 3);
+    padding-block: calc(var(--spacing) * 3);
+    padding-inline: calc(var(--spacing) * 4);
+
+    label,
+    :global(.toggle) {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing) * 2);
+      color: var(--foreground-l2);
+      font-size: var(--text-sm);
+    }
+
+    label {
+      cursor: pointer;
+
+      &[data-inset] {
+        padding-inline-start: calc(var(--spacing) * 4);
+      }
+    }
+  }
+
+  :global(.modal-section) {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 3);
+
+    &[data-compact] {
+      gap: calc(var(--spacing) * 2);
+    }
+  }
+
+  modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 1.5);
+  }
+
+  :global(.modal-label) {
+    color: var(--foreground-l2);
+    font-size: var(--text-xs);
+  }
+
+  :global(.modal-select) {
+    width: 100%;
+  }
+
+  :global(.modal-input) {
+    height: calc(var(--spacing) * 9);
+  }
+
+  :global(.toggle[data-inset]) {
+    padding-inline-start: calc(var(--spacing) * 4);
+  }
+
+  :global(.toggle[data-disabled]) {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  export-bar {
+    display: block;
+    padding-block: calc(var(--spacing) * 3);
+    padding-inline: calc(var(--spacing) * 4);
+    border-block-start: 2px solid var(--border);
+  }
+
+  :global(.export-button) {
+    width: 100%;
+  }
+
+  preview-pane {
+    min-width: 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-end-start-radius: var(--radius-lg);
+    border-end-end-radius: var(--radius-lg);
+  }
+
+  preview-scroll-wrap {
+    display: block;
+    min-height: 0;
+    flex: 1;
+  }
+
+  :global(.preview-scroll) {
+    height: 100%;
+  }
+
+  checker-board {
+    --checker-size: calc(var(--spacing) * 3);
     --checker-color-1: var(--background-l2);
     --checker-color-2: var(--background-l3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-block: calc(var(--spacing) * 4);
+    padding-inline: calc(var(--spacing) * 4);
     background-image:
       linear-gradient(45deg, var(--checker-color-1) 25%, transparent 25%),
       linear-gradient(-45deg, var(--checker-color-1) 25%, transparent 25%),
@@ -450,5 +615,43 @@
       var(--checker-size) calc(var(--checker-size) * -1),
       calc(var(--checker-size) * -1) 0;
     background-color: var(--checker-color-2);
+  }
+
+  @media (width >= 48rem) {
+    :global(.screenshot-dialog) {
+      width: 95vw;
+      max-width: 95vw;
+      height: 85vh;
+      max-height: 56.25rem;
+    }
+
+    modal-head {
+      padding-inline: calc(var(--spacing) * 5);
+    }
+
+    modal-body {
+      flex-direction: row;
+    }
+
+    modal-sidebar {
+      width: 21.5rem;
+      max-height: none;
+      border-inline-end: 2px solid var(--border);
+      border-block-end: 0;
+    }
+
+    modal-controls,
+    export-bar {
+      padding-inline: calc(var(--spacing) * 5);
+    }
+
+    preview-pane {
+      border-end-start-radius: 0;
+    }
+
+    checker-board {
+      padding-block: calc(var(--spacing) * 8);
+      padding-inline: calc(var(--spacing) * 8);
+    }
   }
 </style>

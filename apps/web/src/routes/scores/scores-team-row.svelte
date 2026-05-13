@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
+  import { countryCodeToFlagFilename, getInitials, getRankVariant } from '$lib/utils'
   import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
@@ -15,8 +15,6 @@
     isSelf?: boolean
     isLoading?: boolean
     isScrolling?: boolean
-    isDesktop?: boolean
-    contentWidth: number
     viewMode: ViewMode
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
@@ -38,8 +36,6 @@
     isSelf = false,
     isLoading = false,
     isScrolling = false,
-    isDesktop = true,
-    contentWidth,
     viewMode,
     sortMode,
     categoryGroups,
@@ -52,8 +48,8 @@
     onSparklineUnhover,
   }: Props = $props()
 
-  const styles = $derived(
-    data ? getRankStylesForPosition(data.globalRank ?? data.rank ?? 0, data.isCurrentUser) : null
+  const rankVariant = $derived(
+    data ? getRankVariant(data.globalRank ?? data.rank ?? 0, data.isCurrentUser) : 'nth'
   )
   const flagFilename = $derived(
     data?.countryCode ? countryCodeToFlagFilename(data.countryCode) : null
@@ -63,187 +59,470 @@
   let imgFailed = $state(false)
 </script>
 
-<div
-  class={cn(
-    'score-row-team-cell bg-background-l0 sticky left-0 h-(--row-height)',
-    'w-(--team-column-width) shrink-0',
-    isSelf ? 'z-30' : 'z-10'
-  )}
+<score-team-cell
+  self={isSelf || undefined}
+  rank={rankVariant}
+  current={data?.isCurrentUser || undefined}
 >
-  <div
-    aria-hidden="true"
-    class={[
-      'score-row-team-focus-ring pointer-events-none absolute inset-0 z-30 rounded-lg',
-      'border-[3px] border-solid border-transparent opacity-0',
-      'md:rounded-r-none md:border-r-0',
-    ]}
-  ></div>
+  <focus-ring aria-hidden="true"></focus-ring>
 
-  <div
-    class={cn(
-      'before:bg-background-l2 relative flex h-full w-full items-center gap-2 rounded-lg px-4',
-      'before:absolute before:inset-0 before:-z-10 before:rounded-lg',
-      'md:rounded-r-none md:before:rounded-r-none',
-      styles?.gradient && [
-        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96',
-        'after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent',
-        'md:after:rounded-r-none',
-        styles.gradient,
-      ],
-      data?.isCurrentUser && 'before:bg-background-self-l0'
-    )}
-  >
+  <team-surface ranked={(data !== null && rankVariant !== 'nth') || undefined}>
     {#if data}
-      <div class="flex shrink-0 items-center">
-        <div class="hidden w-6 xl:block">
+      <rank-cluster>
+        <delta-slot>
           <ScoresDeltaIndicator delta={data.delta} />
-        </div>
-        <div class="flex w-8 flex-col items-center leading-none sm:w-10 lg:w-16">
-          <span class={cn('text-base tabular-nums sm:text-xl', styles?.fgL0)}
-            >#{data.rank ?? '?'}</span
-          >
+        </delta-slot>
+        <team-rank>
+          <span>#{data.rank ?? '?'}</span>
           {#if data.divisionPlace}
-            <span
-              class="text-foreground-l3 text-xs leading-none tabular-nums"
-              title={data.divisionName ?? undefined}>#{data.divisionPlace}</span
-            >
+            <small title={data.divisionName ?? undefined}>
+              #{data.divisionPlace}
+            </small>
           {/if}
-        </div>
-      </div>
+        </team-rank>
+      </rank-cluster>
 
-      <div
-        class={[
-          'relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg',
-          'sm:size-12',
-        ]}
-        data-slot="avatar"
-      >
+      <team-avatar>
         {#if data.avatarUrl && !imgFailed}
           <img
             src={data.avatarUrl}
             alt={data.name}
-            class="aspect-square size-full rounded-lg object-cover"
+            data-avatar-image
             onerror={() => (imgFailed = true)}
           />
         {:else}
-          <!-- we need something more lightweight than bits-ui's avatar -->
-          <span
-            class={[
-              'bg-background-l4 text-foreground-l3 flex size-full items-center justify-center',
-              'rounded-lg text-sm',
-            ]}>{initials}</span
-          >
+          <span>{initials}</span>
         {/if}
-      </div>
+      </team-avatar>
 
-      <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <div class="flex items-center gap-1.5">
-          <a
-            href="/profile/{data.id}"
-            class={cn(
-              'score-row-profile-link truncate text-lg outline-none hover:underline sm:text-xl',
-              styles?.fgL0
-            )}
-          >
-            {data.name}
-          </a>
-        </div>
-        <div class="flex min-w-0 items-center gap-1">
+      <team-text>
+        <team-name>
+          <a href="/profile/{data.id}">{data.name}</a>
+        </team-name>
+        <team-meta>
           {#if flagFilename && data.countryCode}
             <img
               src="/flags/{flagFilename}"
               alt="{data.countryCode} flag"
               title={data.countryCode}
-              class="size-5 min-w-5 shrink-0"
+              data-flag
             />
           {/if}
           {#if flagFilename && data.countryCode && data.statusText}
-            <span class={cn('shrink-0 text-xl leading-none', styles?.fgL1)}>·</span>
+            <span>&middot;</span>
           {/if}
           {#if data.statusText}
-            <span class={cn('truncate text-sm sm:text-base', styles?.fgL1)}>{data.statusText}</span>
+            <status-text>{data.statusText}</status-text>
           {/if}
-        </div>
-      </div>
+        </team-meta>
+      </team-text>
 
-      <div class="flex shrink-0 items-center gap-2 sm:gap-4">
-        <div class="flex flex-col items-end">
-          <span class="text-foreground-l1 text-lg whitespace-nowrap tabular-nums sm:text-xl">
-            {data.score.toLocaleString()} <span class="text-foreground-l3">pts</span>
-          </span>
-          <span class="text-foreground-l3 text-sm whitespace-nowrap sm:text-base">
+      <score-total>
+        <score-points>
+          <strong>
+            {data.score.toLocaleString()} <span>pts</span>
+          </strong>
+          <small>
             {data.solveCount} solve{data.solveCount !== 1 ? 's' : ''}
-          </span>
-        </div>
+          </small>
+        </score-points>
 
-        {#if isDesktop}
-          <div
-            class={[
-              'pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block',
-              'xl:pointer-events-auto xl:relative xl:opacity-100',
-            ]}
-          >
-            <ScoresSparkline
-              data={data.sparklineData ?? []}
-              id={data.id}
-              color={data.color ?? 'var(--foreground-l3)'}
-              onHover={onSparklineHover}
-              onUnhover={onSparklineUnhover}
-            />
-          </div>
-        {/if}
-      </div>
+        <spark-line>
+          <ScoresSparkline
+            data={data.sparklineData ?? []}
+            id={data.id}
+            color={data.color ?? 'var(--foreground-l3)'}
+            onHover={onSparklineHover}
+            onUnhover={onSparklineUnhover}
+          />
+        </spark-line>
+      </score-total>
     {/if}
-  </div>
-</div>
+  </team-surface>
+</score-team-cell>
 
-{#if isDesktop}
-  <div
-    class={cn(
-      'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0',
-      'rounded-r-lg contain-[layout_style_paint] md:flex',
-      !isSelf && isScrolling && 'pointer-events-none',
-      isLoading && 'w-(--content-column-width) px-2',
-      data?.isCurrentUser && 'bg-background-self-l0'
-    )}
-    style:width={isLoading ? undefined : `${contentWidth}px`}
-  >
-    <div
-      aria-hidden="true"
-      class={[
-        'score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg',
-        'border-[3px] border-l-0 border-solid border-transparent opacity-0',
-      ]}
-    ></div>
+<score-content-cell
+  scrolling={(!isSelf && isScrolling) || undefined}
+  loading={isLoading || undefined}
+  current={data?.isCurrentUser || undefined}
+>
+  <focus-ring aria-hidden="true"></focus-ring>
 
-    {#if !isLoading && data}
-      <ScoresSolveCells
-        teamId={data.id}
-        {viewMode}
-        {sortMode}
-        {categoryGroups}
-        {challenges}
-        {focusedChallengeId}
-        {themeEpoch}
-        {renderEpoch}
-        getSolves={cid => solves?.has(cid) ?? false}
-        getSolveTime={cid => solveTimes?.get(cid)}
-        {getCategoryStats}
-        {getBloodIndex}
-        {onCellHover}
-        {isScrolling}
-        isCurrentUser={data.isCurrentUser}
-      />
-    {/if}
-  </div>
-{/if}
+  {#if !isLoading && data}
+    <ScoresSolveCells
+      teamId={data.id}
+      {viewMode}
+      {sortMode}
+      {categoryGroups}
+      {challenges}
+      {focusedChallengeId}
+      {themeEpoch}
+      {renderEpoch}
+      getSolves={cid => solves?.has(cid) ?? false}
+      getSolveTime={cid => solveTimes?.get(cid)}
+      {getCategoryStats}
+      {getBloodIndex}
+      {onCellHover}
+      {isScrolling}
+      isCurrentUser={data.isCurrentUser}
+    />
+  {/if}
+</score-content-cell>
 
 <style>
-  .score-row-team-cell:has(.score-row-profile-link:focus-visible) > .score-row-team-focus-ring,
-  .score-row-team-cell:has(.score-row-profile-link:focus-visible)
-    + .score-row-content-cell
-    > .score-row-content-focus-ring {
-    border-color: color-mix(in oklab, var(--ring) 50%, transparent);
-    opacity: 1;
+  score-team-cell {
+    --rank-fg-l0: var(--foreground-nth-l0);
+    --rank-fg-l1: var(--foreground-nth-l1);
+    --rank-glow: transparent;
+    display: block;
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 10;
+    flex-shrink: 0;
+    width: var(--score-team-column-width);
+    height: var(--score-row-height);
+    background: var(--background-l0);
+
+    &[self] {
+      z-index: 30;
+    }
+
+    &[rank='first'] {
+      --rank-fg-l0: var(--foreground-gold-l0);
+      --rank-fg-l1: var(--foreground-gold-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-gold-l0) 15%, transparent);
+    }
+
+    &[rank='second'] {
+      --rank-fg-l0: var(--foreground-silver-l0);
+      --rank-fg-l1: var(--foreground-silver-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-silver-l0) 15%, transparent);
+    }
+
+    &[rank='third'] {
+      --rank-fg-l0: var(--foreground-bronze-l0);
+      --rank-fg-l1: var(--foreground-bronze-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-bronze-l0) 15%, transparent);
+    }
+
+    &[rank='self'] {
+      --rank-fg-l0: var(--foreground-self-l0);
+      --rank-fg-l1: var(--foreground-self-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-self-l0) 15%, transparent);
+    }
+
+    &[current] team-surface::before {
+      background: var(--background-self-l0);
+    }
+
+    &:has(a:focus-visible) > focus-ring {
+      border-color: color-mix(in oklab, var(--ring) 50%, transparent);
+      opacity: 1;
+    }
+
+    &:has(a:focus-visible) + score-content-cell > focus-ring {
+      border-color: color-mix(in oklab, var(--ring) 50%, transparent);
+      opacity: 1;
+    }
+
+    team-surface {
+      position: relative;
+      height: 100%;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-sizing: border-box;
+      padding-inline: calc(var(--spacing) * 4);
+      border-radius: var(--radius-lg);
+      color: var(--rank-fg-l1);
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+      }
+
+      &::before {
+        background: var(--background-l2);
+      }
+
+      &[ranked]::after {
+        width: min(24rem, 100%);
+        background: linear-gradient(to right, var(--rank-glow), transparent);
+      }
+    }
+
+    rank-cluster,
+    team-meta,
+    score-total {
+      display: flex;
+      align-items: center;
+    }
+
+    rank-cluster,
+    score-total {
+      flex-shrink: 0;
+    }
+
+    delta-slot {
+      display: none;
+      width: calc(var(--spacing) * 6);
+    }
+
+    team-rank {
+      width: calc(var(--spacing) * 8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1;
+
+      span {
+        color: var(--rank-fg-l0);
+        font-size: var(--text-base);
+        font-variant-numeric: tabular-nums;
+      }
+
+      small {
+        color: var(--foreground-l3);
+        font-size: var(--text-xs);
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+
+    team-avatar {
+      position: relative;
+      width: calc(var(--spacing) * 10);
+      height: calc(var(--spacing) * 10);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+
+      img[data-avatar-image] {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        border-radius: inherit;
+      }
+
+      span {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: inherit;
+        background: var(--background-l4);
+        color: var(--foreground-l3);
+        font-size: var(--text-sm);
+      }
+    }
+
+    team-text {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    team-name {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing) * 1.5);
+
+      a {
+        overflow: hidden;
+        color: var(--rank-fg-l0);
+        font-size: var(--text-lg);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        outline: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    team-meta {
+      min-width: 0;
+      gap: calc(var(--spacing) * 1);
+
+      img[data-flag] {
+        width: calc(var(--spacing) * 5);
+        min-width: calc(var(--spacing) * 5);
+        height: calc(var(--spacing) * 5);
+        flex-shrink: 0;
+      }
+
+      > span {
+        flex-shrink: 0;
+        color: var(--rank-fg-l1);
+        font-size: var(--text-xl);
+        line-height: 1;
+      }
+
+      status-text {
+        display: block;
+        overflow: hidden;
+        color: var(--rank-fg-l1);
+        font-size: var(--text-sm);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    score-total {
+      gap: calc(var(--spacing) * 2);
+    }
+
+    score-points {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      strong {
+        color: var(--foreground-l1);
+        font-size: var(--text-lg);
+        font-weight: 400;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+      }
+
+      span,
+      small {
+        color: var(--foreground-l3);
+      }
+
+      small {
+        font-size: var(--text-sm);
+        white-space: nowrap;
+      }
+    }
+
+    spark-line {
+      display: block;
+      pointer-events: none;
+      position: absolute;
+      width: calc(var(--spacing) * 24);
+      height: calc(var(--spacing) * 10);
+      opacity: 0;
+    }
+
+    @media (width >= 40rem) {
+      team-rank {
+        width: calc(var(--spacing) * 10);
+      }
+
+      team-rank span,
+      team-name a,
+      score-points strong {
+        font-size: var(--text-xl);
+      }
+
+      team-avatar {
+        width: calc(var(--spacing) * 12);
+        height: calc(var(--spacing) * 12);
+      }
+
+      status-text,
+      score-points small {
+        font-size: var(--text-base);
+      }
+
+      score-total {
+        gap: calc(var(--spacing) * 4);
+      }
+    }
+
+    @media (width >= 48rem) {
+      > focus-ring {
+        border-inline-end: 0;
+        border-start-start-radius: var(--radius-lg);
+        border-end-start-radius: var(--radius-lg);
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+
+      team-surface,
+      team-surface::before,
+      team-surface::after {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+    }
+
+    @media (width >= 64rem) {
+      team-rank {
+        width: calc(var(--spacing) * 16);
+      }
+    }
+
+    @media (width >= 80rem) {
+      delta-slot {
+        display: block;
+      }
+
+      spark-line {
+        pointer-events: auto;
+        position: relative;
+        opacity: 1;
+      }
+    }
+  }
+
+  score-content-cell {
+    position: relative;
+    display: none;
+    flex-shrink: 0;
+    height: var(--score-row-height);
+    width: var(--score-content-width);
+    background: var(--background-l2);
+    border-start-end-radius: var(--radius-lg);
+    border-end-end-radius: var(--radius-lg);
+    contain: layout style paint;
+
+    &[current] {
+      background: var(--background-self-l0);
+    }
+
+    &[scrolling] {
+      pointer-events: none;
+    }
+
+    &[loading] {
+      width: var(--score-content-column-width);
+      box-sizing: border-box;
+      padding-inline: calc(var(--spacing) * 2);
+    }
+
+    > focus-ring {
+      border-inline-start: 0;
+      border-start-end-radius: var(--radius-lg);
+      border-end-end-radius: var(--radius-lg);
+    }
+
+    @media (width >= 48rem) {
+      display: flex;
+    }
+  }
+
+  focus-ring {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    opacity: 0;
+    border: 3px solid transparent;
+    border-radius: var(--radius-lg);
   }
 </style>

@@ -1,9 +1,14 @@
 <script lang="ts" module>
-  import { CELL_GAP, CELL_HEIGHT, CELL_WIDTH } from './scores-layout-constants'
+  import {
+    SCORE_CELL_HEIGHT_PX,
+    SCORE_CELL_WIDTH_PX,
+    SCORE_ROW_GAP_PX,
+  } from './scores-layout'
+  import { SvelteMap } from 'svelte/reactivity'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
-    svg: string
+    url: string
     width: number
   }
 
@@ -37,6 +42,9 @@
     palette: RenderPalette
   }
 
+  const CELL_WIDTH = SCORE_CELL_WIDTH_PX
+  const CELL_HEIGHT = SCORE_CELL_HEIGHT_PX
+  const CELL_GAP = SCORE_ROW_GAP_PX
   const ICON_RADIUS = 10
   const CAT_ICON_RADIUS = 14
   // 20 * (x / 24) = 22 => x = 22 * 24 / 20 = 26.4
@@ -44,7 +52,6 @@
   const CATEGORY_ICON_SIZE = 28
   const MAX_RENDER_CACHE_ENTRIES = 512
 
-  // We inline these SVGs for performance to avoid component instantiation overhead
   const CHECK_PATH =
     'M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32'
   const DASHED_CIRCLE_PATH =
@@ -55,9 +62,8 @@
     'M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-2l-.15.005A2 2 0 0 0 9 9a1 1 0 0 0 1.974.23l.02-.113L11 9h2v2h-2l-.133.007c-1.111.12-1.154 1.73-.128 1.965l.128.021L11 13h2v2h-2l-.007-.117A1 1 0 0 0 9 15a2 2 0 0 0 1.85 1.995L11 17h2l.15-.005a2 2 0 0 0 1.844-1.838L15 15v-2l-.005-.15a2 2 0 0 0-.17-.667l-.075-.152l-.019-.032l.02-.03a2 2 0 0 0 .242-.795L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z',
   ] as const
 
-  // consumer ref-counting ensures cleanup when the last instance unmounts
-  const stripCache = new Map<string, RenderedStrip>()
-  const resolvedColorCache = new Map<string, string>()
+  const stripCache = new SvelteMap<string, RenderedStrip>()
+  const resolvedColorCache = new SvelteMap<string, string>()
   let lastPaletteScope = ''
   let cachedPalette: RenderPalette | null = null
   let activeStripConsumers = 0
@@ -121,7 +127,7 @@
   function getOrBuildPalette(categoryColors: string[]): RenderPalette {
     if (cachedPalette) return cachedPalette
 
-    const category = new Map<string, CategoryPalette>()
+    const category = new SvelteMap<string, CategoryPalette>()
 
     for (const color of new Set(categoryColors)) {
       category.set(color, {
@@ -141,8 +147,9 @@
     return cachedPalette
   }
 
-  function wrapSvg(width: number, content: string): string {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${content}</svg>`
+  function getSvgUrl(width: number, content: string): string {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${content}</svg>`
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   }
 
   function buildChallengeStripSvg({
@@ -153,7 +160,7 @@
     getSolves,
     getBloodIndex,
     palette,
-  }: ChallengeStripOptions) {
+  }: ChallengeStripOptions): RenderedStrip {
     const list = sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
     const width = list.length * (CELL_WIDTH + CELL_GAP)
     const parts: string[] = []
@@ -213,14 +220,14 @@
       )
     }
 
-    return { width, svg: wrapSvg(width, parts.join('')) }
+    return { width, url: getSvgUrl(width, parts.join('')) }
   }
 
   function buildCategoryStripSvg({
     categoryGroups,
     getCategoryStats,
     palette,
-  }: CategoryStripOptions) {
+  }: CategoryStripOptions): RenderedStrip {
     const width = categoryGroups.length * (CELL_WIDTH + CELL_GAP)
     const parts: string[] = []
 
@@ -264,12 +271,11 @@
       )
     }
 
-    return { width, svg: wrapSvg(width, parts.join('')) }
+    return { width, url: getSvgUrl(width, parts.join('')) }
   }
 </script>
 
 <script lang="ts">
-  import { cn } from '$lib/utils'
   import { onDestroy } from 'svelte'
 
   interface Props {
@@ -307,9 +313,6 @@
     isScrolling = false,
     isCurrentUser = false,
   }: Props = $props()
-
-  let activeTooltipData = $state<TooltipData | null>(null)
-  let activeTooltipKey = $state<string | null>(null)
 
   if (typeof document !== 'undefined') {
     registerStripConsumer()
@@ -350,7 +353,6 @@
   })
 
   const stripDataKey = $derived.by(() => {
-    // explicitly mark as dependency
     void renderEpoch
 
     if (viewMode === 'categories') {
@@ -400,32 +402,19 @@
             palette,
           })
 
-    const next: RenderedStrip = { svg: rendered.svg, width: rendered.width }
-    cacheStrip(key, next)
-    return next
+    cacheStrip(key, rendered)
+    return rendered
   })
 
-  function setCellHover(key: string, data: TooltipData, x: number, y: number) {
-    if (activeTooltipKey === key) return
-    activeTooltipKey = key
-    activeTooltipData = data
+  function setCellHover(data: TooltipData, x: number, y: number) {
     onCellHover(data, x, y)
   }
 
   function clearCellHover() {
-    if (!activeTooltipKey && !activeTooltipData) return
-    activeTooltipKey = null
-    activeTooltipData = null
     onCellHover(null, 0, 0)
   }
 
   onDestroy(() => clearCellHover())
-
-  $effect(() => {
-    if (isScrolling && activeTooltipData) {
-      clearCellHover()
-    }
-  })
 
   function handleChallengeMouseMove(e: MouseEvent) {
     if (isScrolling) return
@@ -453,7 +442,6 @@
     const bloodIndex = getBloodIndex(challenge.id)
     const solveTime = getSolveTime(challenge.id)
     setCellHover(
-      `challenge:${teamId}:${challenge.id}:${solved ? 1 : 0}:${bloodIndex}:${solveTime ?? ''}`,
       {
         type: 'challenge',
         teamId,
@@ -493,7 +481,6 @@
 
     const stats = getCategoryStats(group)
     setCellHover(
-      `category:${teamId}:${group.category}:${stats.solved}:${stats.total}`,
       {
         type: 'category',
         teamId,
@@ -512,38 +499,64 @@
   }
 </script>
 
-<div
-  class={cn(
-    'bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 contain-[layout_style_paint]',
-    isScrolling && 'pointer-events-none',
-    isCurrentUser && 'bg-background-self-l0'
-  )}
->
+<solve-cells scrolling={isScrolling || undefined} current={isCurrentUser || undefined}>
   {#snippet stripImage()}
     {#if strip}
-      <!-- inline svg renders synchronously with the row, avoiding the async
-           image loading pipeline that causes challenge circles to lag behind -->
-      <div
-        class="block h-16 shrink-0 select-none"
-        style:width={strip.width + 'px'}
-        aria-hidden="true"
-      >
-        {@html strip.svg}
-      </div>
+      <solve-strip style:width={strip.width + 'px'} aria-hidden="true">
+        <img src={strip.url} alt="" draggable="false" />
+      </solve-strip>
     {:else}
-      <div class="h-16 shrink-0" style:width={imageWidth + 'px'}></div>
+      <solve-strip loading style:width={imageWidth + 'px'} aria-hidden="true"></solve-strip>
     {/if}
   {/snippet}
 
   {#if viewMode === 'categories'}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="shrink-0" onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
+    <solve-hit-area onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
       {@render stripImage()}
-    </div>
+    </solve-hit-area>
   {:else}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="shrink-0" onmousemove={handleChallengeMouseMove} onmouseleave={handleMouseLeave}>
+    <solve-hit-area onmousemove={handleChallengeMouseMove} onmouseleave={handleMouseLeave}>
       {@render stripImage()}
-    </div>
+    </solve-hit-area>
   {/if}
-</div>
+</solve-cells>
+
+<style>
+  solve-cells {
+    display: flex;
+    gap: calc(var(--spacing) * 1);
+    padding-inline-start: calc(var(--spacing) * 1);
+    padding-inline-end: var(--score-diagonal-overflow);
+    border-start-end-radius: var(--radius-md);
+    border-end-end-radius: var(--radius-md);
+    background: var(--background-l2);
+    contain: layout style paint;
+
+    &[scrolling] {
+      pointer-events: none;
+    }
+
+    &[current] {
+      background: var(--background-self-l0);
+    }
+
+    solve-strip {
+      display: block;
+      height: var(--score-row-height);
+      flex-shrink: 0;
+      user-select: none;
+
+      img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    }
+
+    solve-hit-area {
+      flex-shrink: 0;
+    }
+  }
+</style>

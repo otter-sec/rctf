@@ -1,8 +1,7 @@
 <script lang="ts">
   import defaultWordmarkDark from '$lib/assets/wordmark-dark.svg'
-  import { Avatar } from '$lib/components'
   import { useClientConfig } from '$lib/query'
-  import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
+  import { countryCodeToFlagFilename, getInitials, getRankVariant } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
   import ScoresGraph from './scores-graph.svelte'
@@ -56,7 +55,7 @@
     ctfName: string
     startTime: number | null
     endTime: number | null
-    class?: string
+    shadow?: boolean
   }
 
   let {
@@ -69,7 +68,7 @@
     ctfName,
     startTime,
     endTime,
-    class: className = '',
+    shadow = false,
   }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
@@ -86,13 +85,12 @@
     return { startStr, endStr, durationStr }
   })
 
+  const listedTopTeamIds = $derived(new Set(teams.slice(0, options.teamCount).map(t => t.id)))
+
   const displayTeams = $derived.by(() => {
     const limited = teams.slice(0, options.teamCount)
-    if (options.showSelf && selfTeam) {
-      const selfInList = limited.some(t => t.id === selfTeam.id)
-      if (!selfInList) {
-        return [...limited, selfTeam]
-      }
+    if (options.showSelf && selfTeam && !listedTopTeamIds.has(selfTeam.id)) {
+      return [...limited, selfTeam]
     }
     return limited
   })
@@ -135,165 +133,133 @@
   const CELL_SIZE = 40
 </script>
 
-<div
-  class={cn('bg-background-l0 flex w-fit flex-col gap-4 overflow-hidden p-6', className)}
-  data-screenshot-container
->
+<screenshot-preview shadow={shadow || undefined} data-screenshot-container>
   {#if options.showHeader}
-    <div class="flex items-start justify-between">
-      <img src={wordmarkDark} alt="Logo" class="h-10" />
-      <div class="flex flex-col items-end gap-1.5">
-        <span class="text-foreground-l0 text-2xl leading-none">{ctfName}</span>
+    <preview-header>
+      <img src={wordmarkDark} alt="Logo" data-wordmark />
+      <title-block>
+        <span>{ctfName}</span>
         {#if options.subtitle}
-          <span class="text-foreground-l2 text-base leading-none">{options.subtitle}</span>
+          <small>{options.subtitle}</small>
         {/if}
         {#if ctfDateInfo}
-          <span class="text-foreground-l3 text-base leading-none">
-            {ctfDateInfo.startStr} → {ctfDateInfo.endStr}
-            <span class="text-foreground-l4">({ctfDateInfo.durationStr})</span>
-          </span>
+          <time datetime={new Date(startTime ?? 0).toISOString()}>
+            {ctfDateInfo.startStr} -> {ctfDateInfo.endStr}
+            <span>({ctfDateInfo.durationStr})</span>
+          </time>
         {/if}
-      </div>
-    </div>
+      </title-block>
+    </preview-header>
   {/if}
 
   {#if options.showGraph}
-    <div class="bg-background-l1 h-72 w-full overflow-hidden rounded-lg">
+    <graph-panel>
       <ScoresGraph
-        class="h-full w-full p-4"
         graphData={visibleGraphData}
         {teamRanks}
         {contextTeamIds}
         showTop3Context={false}
         greyOutContext={shouldGreyOutContext}
       />
-    </div>
+    </graph-panel>
   {/if}
 
-  <div class="flex flex-col gap-1">
+  <team-list>
     {#if options.showMatrix && categoryGroups.length > 0}
-      <div class="-mb-1 flex">
-        <div class="w-150 shrink-0"></div>
-        <div class="flex gap-1 pr-4">
-          {#each categoryGroups as group}
-            <div
-              class="bg-category-background-l0 flex items-center justify-center rounded-t-lg"
+      <matrix-header>
+        <team-spacer></team-spacer>
+        <matrix-header-cells>
+          {#each categoryGroups as group (group.category)}
+            <matrix-header-cell
               style="{getCategoryStyle(
                 group.config.color
               )}; width: {CELL_SIZE}px; height: {CELL_SIZE}px;"
             >
-              <group.config.icon class="text-category-foreground-l1 size-5" />
-            </div>
+              <group.config.icon class="category-icon" />
+            </matrix-header-cell>
           {/each}
-        </div>
-      </div>
+        </matrix-header-cells>
+      </matrix-header>
     {/if}
 
     {#each displayTeams as team (team.id)}
-      {@const styles = getRankStylesForPosition(team.rank, team.isCurrentUser)}
+      {@const rankVariant = getRankVariant(team.rank, team.isCurrentUser)}
       {@const flagFilename = team.countryCode ? countryCodeToFlagFilename(team.countryCode) : null}
       {@const isSelfSeparator =
-        options.showSelf &&
-        selfTeam &&
-        team.id === selfTeam.id &&
-        !teams.slice(0, options.teamCount).some(t => t.id === selfTeam.id)}
+        options.showSelf && selfTeam && team.id === selfTeam.id && !listedTopTeamIds.has(team.id)}
 
       {#if isSelfSeparator}
-        <div class="border-foreground-l5/30 my-2 flex items-center gap-3">
-          <div class="flex-1 border-t"></div>
-          <span class="text-foreground-l3 text-sm">My team</span>
-          <div class="flex-1 border-t"></div>
-        </div>
+        <self-separator>
+          <div></div>
+          <span>My team</span>
+          <div></div>
+        </self-separator>
       {/if}
 
-      <div class="flex">
-        <div
-          class={cn(
-            'before:bg-background-l2 relative isolate flex h-16 w-150 shrink-0 items-center gap-4 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg',
-            styles.gradient && [
-              'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-64 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent',
-              styles.gradient,
-              options.showMatrix && 'after:rounded-r-none',
-            ],
-            team.isCurrentUser && 'before:bg-background-self-l0',
-            options.showMatrix && 'rounded-r-none before:rounded-r-none'
-          )}
-        >
-          <div class="flex w-14 shrink-0 justify-center">
-            <span class={cn('text-xl tabular-nums', styles.fgL0)}>#{team.rank}</span>
-          </div>
+      <preview-row rank={rankVariant} current={team.isCurrentUser || undefined}>
+        <team-card with-matrix={options.showMatrix || undefined}>
+          <team-rank>
+            <span>#{team.rank}</span>
+          </team-rank>
 
           {#if options.showAvatars}
-            <Avatar.Root class="size-12 shrink-0 rounded-lg">
+            <team-avatar>
               {#if team.avatarUrl}
-                <Avatar.Image src={team.avatarUrl} alt={team.name} class="rounded-lg" />
+                <img src={team.avatarUrl} alt={team.name} />
+              {:else}
+                <span>{getInitials(team.name)}</span>
               {/if}
-              <Avatar.Fallback class="rounded-lg text-sm">{getInitials(team.name)}</Avatar.Fallback>
-            </Avatar.Root>
+            </team-avatar>
           {/if}
 
-          <div class="flex min-w-0 flex-1 flex-col">
-            <div class="flex items-center gap-2">
-              <span class={cn('truncate text-xl', styles.fgL0)}>{team.name}</span>
-            </div>
+          <team-text>
+            <team-name>{team.name}</team-name>
             {#if options.showFlags && flagFilename}
-              <div class="flex items-center gap-1.5">
-                <img
-                  src="/flags/{flagFilename}"
-                  alt="{team.countryCode} flag"
-                  class="h-5 w-auto shrink-0"
-                />
+              <team-meta>
+                <img src="/flags/{flagFilename}" alt="{team.countryCode} flag" />
                 {#if options.showStatuses && team.statusText}
-                  <span class={cn('text-base leading-none', styles.fgL1)}>·</span>
-                  <span class={cn('truncate text-base', styles.fgL1)}>{team.statusText}</span>
+                  <span>&middot;</span>
+                  <span>{team.statusText}</span>
                 {/if}
-              </div>
+              </team-meta>
             {:else if options.showStatuses && team.statusText}
-              <span class={cn('truncate text-base', styles.fgL1)}>{team.statusText}</span>
+              <team-meta>{team.statusText}</team-meta>
             {/if}
-          </div>
+          </team-text>
 
-          <div class="flex shrink-0 items-center gap-4">
-            <div class="flex flex-col items-end">
-              <span class="text-foreground-l1 text-xl tabular-nums">
-                {team.score.toLocaleString()} <span class="text-foreground-l3 text-lg">pts</span>
+          <score-block>
+            <score-value>
+              <span>
+                {team.score.toLocaleString()} <span>pts</span>
               </span>
               {#if options.showSolveCount}
-                <span class="text-foreground-l3 text-base">
-                  {team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}
-                </span>
+                <span>{team.solveCount} solve{team.solveCount !== 1 ? 's' : ''}</span>
               {/if}
-            </div>
+            </score-value>
 
             {#if options.showSparklines && team.sparklineData}
-              <div class="h-10 w-24 overflow-hidden">
+              <sparkline-slot>
                 <ScoresSparkline
                   data={team.sparklineData}
                   id={team.id}
                   color={team.color ?? 'var(--foreground-l3)'}
                 />
-              </div>
+              </sparkline-slot>
             {/if}
-          </div>
-        </div>
+          </score-block>
+        </team-card>
 
         {#if options.showMatrix && categoryGroups.length > 0}
-          <div
-            class={cn(
-              'before:bg-background-l2 relative isolate flex h-16 items-center gap-1 rounded-r-lg pr-4 before:absolute before:inset-0 before:-z-10 before:rounded-r-lg',
-              team.isCurrentUser && 'before:bg-background-self-l0'
-            )}
-          >
-            {#each categoryGroups as group}
+          <matrix-row current={team.isCurrentUser || undefined}>
+            {#each categoryGroups as group (group.category)}
               {@const stats = getCategoryStats(team.id, group)}
-              <div
-                class="flex items-center justify-center"
+              <matrix-cell
                 style="width: {CELL_SIZE}px; height: {CELL_SIZE}px; {getCategoryStyle(
                   group.config.color
                 )}"
               >
                 {#if stats.solved === stats.total}
-                  <svg class="size-6.5" viewBox="0 0 24 24">
+                  <svg viewBox="0 0 24 24">
                     <path
                       fill="var(--category-foreground-l1)"
                       d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32"
@@ -303,7 +269,7 @@
                   {@const radius = 8}
                   {@const circumference = 2 * Math.PI * radius}
                   {@const offset = circumference * (1 - stats.percent / 100)}
-                  <svg class="size-6.5 -rotate-90" viewBox="0 0 24 24">
+                  <svg data-partial viewBox="0 0 24 24">
                     <circle
                       cx="12"
                       cy="12"
@@ -326,7 +292,7 @@
                     />
                   </svg>
                 {:else}
-                  <svg class="size-6.5" viewBox="0 0 24 24" style="opacity: 0.25">
+                  <svg data-unsolved viewBox="0 0 24 24">
                     <path
                       fill="none"
                       stroke="var(--foreground-l5)"
@@ -337,13 +303,355 @@
                     />
                   </svg>
                 {/if}
-              </div>
+              </matrix-cell>
             {/each}
-          </div>
+          </matrix-row>
         {/if}
-      </div>
+      </preview-row>
     {/each}
-  </div>
+  </team-list>
 
-  <div class="text-foreground-l5/50 -mb-2 text-center text-sm">Powered by rCTF</div>
-</div>
+  <powered-by>Powered by rCTF</powered-by>
+</screenshot-preview>
+
+<style>
+  screenshot-preview {
+    width: fit-content;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--spacing) * 4);
+    overflow: hidden;
+    padding-block: calc(var(--spacing) * 6);
+    padding-inline: calc(var(--spacing) * 6);
+    background: var(--background-l0);
+
+    &[shadow] {
+      box-shadow: 0 1rem 2rem rgb(0 0 0 / 20%);
+    }
+
+    preview-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+
+      img[data-wordmark] {
+        height: 2.5rem;
+      }
+
+      title-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: calc(var(--spacing) * 1.5);
+
+        > span:first-child {
+          color: var(--foreground-l0);
+          font-size: var(--text-2xl);
+          line-height: 1;
+        }
+
+        small,
+        time {
+          line-height: 1;
+        }
+
+        small {
+          color: var(--foreground-l2);
+          font-size: var(--text-base);
+        }
+
+        time {
+          color: var(--foreground-l3);
+
+          span {
+            color: var(--foreground-l4);
+          }
+        }
+      }
+    }
+
+    graph-panel {
+      --score-graph-padding: calc(var(--spacing) * 4);
+      display: block;
+      width: 100%;
+      height: 18rem;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: var(--background-l1);
+    }
+
+    team-list {
+      display: flex;
+      flex-direction: column;
+      gap: calc(var(--spacing) * 1);
+    }
+
+    matrix-header,
+    preview-row,
+    matrix-header-cells,
+    team-card,
+    matrix-row,
+    matrix-header-cell,
+    matrix-cell,
+    team-meta,
+    score-block,
+    self-separator {
+      display: flex;
+    }
+
+    matrix-header {
+      margin-block-end: calc(var(--spacing) * -1);
+    }
+
+    team-spacer,
+    team-card {
+      width: 37.5rem;
+      flex-shrink: 0;
+    }
+
+    matrix-header-cells {
+      gap: calc(var(--spacing) * 1);
+      padding-inline-end: calc(var(--spacing) * 4);
+    }
+
+    matrix-header-cell {
+      align-items: center;
+      justify-content: center;
+      border-start-start-radius: var(--radius-lg);
+      border-start-end-radius: var(--radius-lg);
+      background: var(--category-background-l0);
+    }
+
+    :global(.category-icon) {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: var(--category-foreground-l1);
+    }
+
+    self-separator {
+      align-items: center;
+      gap: calc(var(--spacing) * 3);
+      margin-block: calc(var(--spacing) * 2);
+      color: var(--foreground-l3);
+      font-size: var(--text-sm);
+
+      div {
+        flex: 1;
+        border-block-start: 1px solid color-mix(in oklab, var(--foreground-l5) 30%, transparent);
+      }
+    }
+
+    preview-row {
+      --rank-fg-l0: var(--foreground-nth-l0);
+      --rank-fg-l1: var(--foreground-nth-l1);
+      --rank-glow: transparent;
+
+      &[rank='first'] {
+        --rank-fg-l0: var(--foreground-gold-l0);
+        --rank-fg-l1: var(--foreground-gold-l1);
+        --rank-glow: color-mix(in oklab, var(--foreground-gold-l0) 15%, transparent);
+      }
+
+      &[rank='second'] {
+        --rank-fg-l0: var(--foreground-silver-l0);
+        --rank-fg-l1: var(--foreground-silver-l1);
+        --rank-glow: color-mix(in oklab, var(--foreground-silver-l0) 15%, transparent);
+      }
+
+      &[rank='third'] {
+        --rank-fg-l0: var(--foreground-bronze-l0);
+        --rank-fg-l1: var(--foreground-bronze-l1);
+        --rank-glow: color-mix(in oklab, var(--foreground-bronze-l0) 15%, transparent);
+      }
+
+      &[rank='self'] {
+        --rank-fg-l0: var(--foreground-self-l0);
+        --rank-fg-l1: var(--foreground-self-l1);
+        --rank-glow: color-mix(in oklab, var(--foreground-self-l0) 15%, transparent);
+      }
+
+      &[current] team-card,
+      &[current] matrix-row {
+        background: var(--background-self-l0);
+      }
+    }
+
+    team-card,
+    matrix-row {
+      position: relative;
+      isolation: isolate;
+      height: 4rem;
+      align-items: center;
+      background: var(--background-l2);
+    }
+
+    team-card {
+      gap: calc(var(--spacing) * 4);
+      box-sizing: border-box;
+      padding-inline: calc(var(--spacing) * 4);
+      border-radius: var(--radius-lg);
+
+      &[with-matrix] {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset-block: 0;
+        inset-inline-start: 0;
+        z-index: -1;
+        width: min(16rem, 100%);
+        border-radius: inherit;
+        background: linear-gradient(to right, var(--rank-glow), transparent);
+      }
+    }
+
+    team-rank {
+      width: calc(var(--spacing) * 14);
+      display: flex;
+      flex-shrink: 0;
+      justify-content: center;
+    }
+
+    team-rank span,
+    team-name {
+      color: var(--rank-fg-l0);
+    }
+
+    team-rank span,
+    score-value > span:first-child {
+      font-size: var(--text-xl);
+      font-variant-numeric: tabular-nums;
+    }
+
+    team-avatar {
+      width: calc(var(--spacing) * 12);
+      height: calc(var(--spacing) * 12);
+      flex-shrink: 0;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: var(--background-l4);
+
+      img,
+      span {
+        width: 100%;
+        height: 100%;
+      }
+
+      img {
+        object-fit: cover;
+      }
+
+      span {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--foreground-l3);
+        font-size: var(--text-sm);
+      }
+    }
+
+    team-text {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    team-name {
+      display: block;
+      overflow: hidden;
+      font-size: var(--text-xl);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    team-meta {
+      min-width: 0;
+      align-items: center;
+      gap: calc(var(--spacing) * 1.5);
+      overflow: hidden;
+      color: var(--rank-fg-l1);
+
+      img {
+        width: auto;
+        height: calc(var(--spacing) * 5);
+        flex-shrink: 0;
+      }
+
+      span:last-child {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+
+    score-block {
+      align-items: center;
+      flex-shrink: 0;
+      gap: calc(var(--spacing) * 4);
+    }
+
+    score-value {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      > span:first-child {
+        color: var(--foreground-l1);
+
+        span {
+          color: var(--foreground-l3);
+          font-size: var(--text-lg);
+        }
+      }
+
+      > span:last-child {
+        color: var(--foreground-l3);
+      }
+    }
+
+    sparkline-slot {
+      display: block;
+      width: calc(var(--spacing) * 24);
+      height: calc(var(--spacing) * 10);
+      overflow: hidden;
+    }
+
+    matrix-row {
+      align-items: center;
+      gap: calc(var(--spacing) * 1);
+      padding-inline-end: calc(var(--spacing) * 4);
+      border-start-end-radius: var(--radius-lg);
+      border-end-end-radius: var(--radius-lg);
+    }
+
+    matrix-cell {
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 1.625rem;
+        height: 1.625rem;
+
+        &[data-partial] {
+          rotate: -90deg;
+        }
+
+        &[data-unsolved] {
+          opacity: 0.25;
+        }
+      }
+    }
+
+    powered-by {
+      display: block;
+      margin-block-end: calc(var(--spacing) * -2);
+      color: color-mix(in oklab, var(--foreground-l5) 50%, transparent);
+      text-align: center;
+      font-size: var(--text-sm);
+    }
+  }
+</style>

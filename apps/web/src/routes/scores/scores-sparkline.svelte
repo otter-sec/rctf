@@ -86,8 +86,8 @@
 
 {#if data.length > 1}
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="group/sparkline h-10 w-24" onmouseenter={onHover} onmouseleave={onUnhover}>
-    <svg viewBox="0 0 {WIDTH} {HEIGHT}" class="h-full w-full" preserveAspectRatio="none">
+  <score-sparkline onmouseenter={onHover} onmouseleave={onUnhover}>
+    <svg viewBox="0 0 {WIDTH} {HEIGHT}" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stop-color={color} stop-opacity="0" />
@@ -101,15 +101,50 @@
         stroke-width="2"
         stroke-linecap="round"
         stroke-linejoin="round"
-        class="transition-[stroke-width] group-hover/sparkline:stroke-4"
         vector-effect="non-scaling-stroke"
       />
     </svg>
-  </div>
+  </score-sparkline>
 {:else}
-  <div class="flex h-10 w-24 items-center justify-center">
-    <div
-      class="to-foreground-l5/20 h-0.5 w-full rounded-full bg-linear-to-r from-transparent"
-    ></div>
-  </div>
+  <score-sparkline empty>
+    <div></div>
+  </score-sparkline>
 {/if}
+
+<style>
+  score-sparkline {
+    display: block;
+    width: 6rem;
+    height: 2.5rem;
+
+    svg {
+      width: 100%;
+      height: 100%;
+
+      path {
+        transition: stroke-width 150ms ease;
+      }
+    }
+
+    &:hover path {
+      stroke-width: 4;
+    }
+
+    &[empty] {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      div {
+        width: 100%;
+        height: 0.125rem;
+        border-radius: 999px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          color-mix(in oklab, var(--foreground-l5) 20%, transparent)
+        );
+      }
+    }
+  }
+</style>

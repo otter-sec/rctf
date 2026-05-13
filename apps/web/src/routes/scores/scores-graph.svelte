@@ -17,6 +17,8 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, ChartCore, Highlight, Spline, Svg, Text, Tooltip } from 'layerchart/svg'
+  import { SvelteMap } from 'svelte/reactivity'
+  import { SCORE_GRAPH_AXIS_PADDING_PX } from './scores-layout'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()
@@ -32,7 +34,6 @@
   }
 
   interface Props {
-    class?: string
     hoveredTeamId?: string | null
     offset?: number
     solveHighlight?: { teamId: string; time: number } | null
@@ -47,7 +48,6 @@
   }
 
   let {
-    class: className = '',
     hoveredTeamId = null,
     offset = 0,
     solveHighlight = null,
@@ -110,7 +110,7 @@
     const mainIds = new Set(mainTeams.map(t => t.id))
     const uniqueContextTeams = contextTeams.filter(t => !mainIds.has(t.id))
 
-    const teamMeta = new Map<string, TeamMeta>()
+    const teamMeta = new SvelteMap<string, TeamMeta>()
 
     uniqueContextTeams.forEach((team, i) => {
       teamMeta.set(team.id, {
@@ -225,14 +225,14 @@
   })
 </script>
 
-<ChartContainer class={className}>
+<ChartContainer data-score-graph>
   <ChartCore
     data={flatPoints}
     x="time"
     y="score"
     yDomain={[0, null]}
     yNice
-    padding={{ bottom: 12 }}
+    padding={{ bottom: SCORE_GRAPH_AXIS_PADDING_PX }}
     tooltipContext={{ mode: 'quadtree' }}
   >
     {#snippet children({ context })}
@@ -257,9 +257,8 @@
           {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
           <Spline
             data={points}
-            class={meta.isSelf ? 'stroke-3' : 'stroke-2'}
             stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
-            style="opacity: {isDimmed
+            style="stroke-width: {meta.isSelf ? 3 : 2}; opacity: {isDimmed
               ? 0.15
               : meta.isContext
                 ? 0.3
@@ -280,7 +279,7 @@
             stroke={solveHighlightPoint.color}
             stroke-width={1}
             stroke-dasharray="4 4"
-            class="pointer-events-none"
+            data-highlight
             style="opacity: 0.5; transition: all 150ms ease;"
           />
           <line
@@ -291,7 +290,7 @@
             stroke={solveHighlightPoint.color}
             stroke-width={1}
             stroke-dasharray="4 4"
-            class="pointer-events-none"
+            data-highlight
             style="opacity: 0.5; transition: all 150ms ease;"
           />
           <circle
@@ -301,7 +300,7 @@
             fill={solveHighlightPoint.color}
             stroke="var(--background-l1)"
             stroke-width={3}
-            class="pointer-events-none"
+            data-highlight
             style="transition: all 150ms ease;"
           />
         {/if}
@@ -311,23 +310,85 @@
 
       <Tooltip.Root anchor="top-right" motion="none" variant="none">
         {#snippet children({ data })}
-          <div
-            class="bg-background-l4 border-background-l5 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
-          >
-            <div class="text-foreground-l3 mb-1.5">
+          <graph-tooltip>
+            <tooltip-time>
               <div>{formatRelativeHoursMinutes(data.time, startTime)}</div>
-              <div class="text-[10px]">{formatLocalTime(data.time)}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
-              <span class="max-w-48 truncate wrap-anywhere">{data.teamName}</span>
-              <span class="text-foreground-l3 ml-auto tabular-nums">
+              <small>{formatLocalTime(data.time)}</small>
+            </tooltip-time>
+            <tooltip-team>
+              <color-swatch style="background-color: {data.color}"></color-swatch>
+              <span>{data.teamName}</span>
+              <strong>
                 {data.score.toLocaleString()} pts
-              </span>
-            </div>
-          </div>
+              </strong>
+            </tooltip-team>
+          </graph-tooltip>
         {/snippet}
       </Tooltip.Root>
     {/snippet}
   </ChartCore>
 </ChartContainer>
+
+<style>
+  :global([data-score-graph]) {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding-block: var(--score-graph-padding, 0);
+    padding-inline: var(--score-graph-padding, 0);
+  }
+
+  [data-highlight] {
+    pointer-events: none;
+  }
+
+  graph-tooltip {
+    z-index: 50;
+    display: block;
+    padding-block: calc(var(--spacing) * 2);
+    padding-inline: calc(var(--spacing) * 3);
+    border: 2px solid var(--background-l5);
+    border-radius: var(--radius-lg);
+    background: var(--background-l4);
+    box-shadow: 0 1.25rem 1.5rem -0.75rem rgb(0 0 0 / 40%);
+    font-size: var(--text-xs);
+
+    tooltip-time {
+      display: block;
+      margin-block-end: calc(var(--spacing) * 1.5);
+      color: var(--foreground-l3);
+
+      small {
+        display: block;
+        font-size: calc(var(--spacing) * 2.5);
+      }
+    }
+
+    tooltip-team {
+      display: flex;
+      align-items: center;
+      gap: calc(var(--spacing) * 2);
+
+      color-swatch {
+        width: calc(var(--spacing) * 2.5);
+        height: calc(var(--spacing) * 2.5);
+        border-radius: var(--radius-xs);
+      }
+
+      span {
+        max-width: 12rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        overflow-wrap: anywhere;
+        white-space: nowrap;
+      }
+
+      strong {
+        margin-inline-start: auto;
+        color: var(--foreground-l3);
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+      }
+    }
+  }
+</style>
