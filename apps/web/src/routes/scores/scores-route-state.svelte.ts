@@ -1,9 +1,13 @@
 import { goto } from '$app/navigation'
 import { page as pageState } from '$app/state'
 import { onDestroy } from 'svelte'
-import { loadScoresPreferences, saveScoresPreferences } from './scores-preferences'
+import {
+  loadScoresPreferences,
+  saveScoresPreferences,
+} from './scores-preferences'
 import {
   getActiveSearch,
+  MIN_SEARCH_LENGTH,
   SCORES_GOTO_OPTIONS,
   withFocusedChallenge,
   withScoresDivision,
@@ -21,7 +25,9 @@ export function createScoresRouteState() {
   let hasInteracted = $state(false)
   let searchInput = $state(initialSearch ?? '')
   let search = $state<string | undefined>(
-    initialSearch && initialSearch.length >= 2 ? initialSearch : undefined
+    initialSearch && initialSearch.length >= MIN_SEARCH_LENGTH
+      ? initialSearch
+      : undefined
   )
   let searchTimer: number | undefined
   let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
@@ -45,9 +51,13 @@ export function createScoresRouteState() {
     return 'categories'
   })
 
-  const division = $derived(pageState.url.searchParams.get('division') ?? undefined)
+  const division = $derived(
+    pageState.url.searchParams.get('division') ?? undefined
+  )
 
-  const focusedChallengeId = $derived(pageState.url.searchParams.get('challenge') ?? null)
+  const focusedChallengeId = $derived(
+    pageState.url.searchParams.get('challenge') ?? null
+  )
 
   function clearSearchTimer() {
     if (!searchTimer) return

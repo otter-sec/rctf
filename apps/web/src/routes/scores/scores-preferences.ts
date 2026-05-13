@@ -9,14 +9,18 @@ export interface ScoresPreferences {
   showSelfContext: boolean
 }
 
-export function parseScoresPreferences(value: unknown): Partial<ScoresPreferences> {
+export function parseScoresPreferences(
+  value: unknown
+): Partial<ScoresPreferences> {
   if (!isRecord(value)) return {}
 
   const prefs: Partial<ScoresPreferences> = {}
   if (isViewMode(value.viewMode)) prefs.viewMode = value.viewMode
   if (isSortMode(value.sortMode)) prefs.sortMode = value.sortMode
-  if (typeof value.showTop3Context === 'boolean') prefs.showTop3Context = value.showTop3Context
-  if (typeof value.showSelfContext === 'boolean') prefs.showSelfContext = value.showSelfContext
+  if (typeof value.showTop3Context === 'boolean')
+    prefs.showTop3Context = value.showTop3Context
+  if (typeof value.showSelfContext === 'boolean')
+    prefs.showSelfContext = value.showSelfContext
   return prefs
 }
 

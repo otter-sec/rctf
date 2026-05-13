@@ -3,19 +3,19 @@
   import { IconChartAreaLineFilled, IconFlagFilled } from '$lib/icons'
   import { cn, createHoverTooltip } from '$lib/utils'
   import { getCategoryConfig } from '$lib/utils/categories'
+  import type { Attachment } from 'svelte/attachments'
   import ScoresCellTooltipContent from './scores-cell-tooltip-content.svelte'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
+  import { createScoresDataModel, createScoresGraphDataModel } from './scores-data-model.svelte'
   import ScoresFades from './scores-fades.svelte'
   import ScoresGraphControls from './scores-graph-controls.svelte'
   import ScoresGraph from './scores-graph.svelte'
-  import ScoresLeaderboardBody from './scores-leaderboard-body.svelte'
   import { CELL_WIDTH, HEADER_HEIGHT, ROW_GAP, ROW_HEIGHT } from './scores-layout-constants'
+  import ScoresLeaderboardBody from './scores-leaderboard-body.svelte'
+  import { createScoresRouteState } from './scores-route-state.svelte'
   import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
-  import { createScoresDataModel, createScoresGraphDataModel } from './scores-data-model.svelte'
-  import { createScoresRouteState } from './scores-route-state.svelte'
   import { createScoresViewportState } from './scores-viewport-state.svelte'
-  import type { Attachment } from 'svelte/attachments'
   import type { TooltipData } from './types'
 
   const routeState = createScoresRouteState()
@@ -323,7 +323,7 @@
     onOpenChange={open => (screenshotModalOpen = open)}
     teams={graphState.screenshotTeams}
     selfTeam={graphState.screenshotSelfTeam}
-    graphData={graphState.screenshotGraphData}
+    graphData={scoreData.allGraphData}
     categoryGroups={scoreData.categoryGroups}
     solvesByTeam={scoreData.solvesByTeam}
     ctfName={scoreData.clientConfigQuery.data?.ctfName ?? ''}

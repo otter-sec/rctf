@@ -1,4 +1,9 @@
-import { CUTOFF_TIME, DELTA_WINDOW, SELF_COLOR, SPARKLINE_WINDOW } from '$lib/constants/scores'
+import {
+  CUTOFF_TIME,
+  DELTA_WINDOW,
+  SELF_COLOR,
+  SPARKLINE_WINDOW,
+} from '$lib/constants/scores'
 import { getRankColorForPosition } from '$lib/utils'
 import {
   getCategoryConfig,
@@ -50,11 +55,17 @@ export function getChallengesByCategory(
     .sort(compareChallengesByCategory)
 }
 
-export function getChallengesBySolves(challenges: ChallengeInfo[]): ChallengeInfo[] {
-  return [...challenges].sort((a, b) => a.solves - b.solves || a.name.localeCompare(b.name))
+export function getChallengesBySolves(
+  challenges: ChallengeInfo[]
+): ChallengeInfo[] {
+  return [...challenges].sort(
+    (a, b) => a.solves - b.solves || a.name.localeCompare(b.name)
+  )
 }
 
-export function getCategoryGroups(challenges: ChallengeInfo[]): CategoryGroup[] {
+export function getCategoryGroups(
+  challenges: ChallengeInfo[]
+): CategoryGroup[] {
   const groups: CategoryGroup[] = []
   for (const challenge of challenges) {
     const last = groups.at(-1)
@@ -77,30 +88,42 @@ export function getFocusedEntries(
 ): ScoreEntry[] {
   if (!focusedChallengeId) return entries
 
-  return entries
-    .filter(entry => entry.solves.some(solve => solve.id === focusedChallengeId))
-    .sort((a, b) => {
-      const aTime = a.solves.find(solve => solve.id === focusedChallengeId)?.solveTime ?? Infinity
-      const bTime = b.solves.find(solve => solve.id === focusedChallengeId)?.solveTime ?? Infinity
-      return aTime - bTime
-    })
+  const matched: { entry: ScoreEntry; solveTime: number }[] = []
+  for (const entry of entries) {
+    const solve = entry.solves.find(s => s.id === focusedChallengeId)
+    if (solve) matched.push({ entry, solveTime: solve.solveTime })
+  }
+  matched.sort((a, b) => a.solveTime - b.solveTime)
+  return matched.map(m => m.entry)
 }
 
-export function getSolvesByTeam(entries: ScoreEntry[]): Map<string, Set<string>> {
-  return new Map(entries.map(entry => [entry.id, new Set(entry.solves.map(solve => solve.id))]))
+export interface SolvesAndTimesByTeam {
+  solvesByTeam: Map<string, Set<string>>
+  solveTimesByTeam: Map<string, Map<string, number>>
 }
 
-export function getOriginalRankByTeam(entries: ScoreEntry[]): Map<string, number> {
+export function getSolvesAndTimesByTeam(
+  entries: ScoreEntry[]
+): SolvesAndTimesByTeam {
+  const solvesByTeam = new Map<string, Set<string>>()
+  const solveTimesByTeam = new Map<string, Map<string, number>>()
+  for (const entry of entries) {
+    const ids = new Set<string>()
+    const times = new Map<string, number>()
+    for (const solve of entry.solves) {
+      ids.add(solve.id)
+      times.set(solve.id, solve.solveTime)
+    }
+    solvesByTeam.set(entry.id, ids)
+    solveTimesByTeam.set(entry.id, times)
+  }
+  return { solvesByTeam, solveTimesByTeam }
+}
+
+export function getOriginalRankByTeam(
+  entries: ScoreEntry[]
+): Map<string, number> {
   return new Map(entries.map((entry, index) => [entry.id, index + 1]))
-}
-
-export function getSolveTimesByTeam(entries: ScoreEntry[]): Map<string, Map<string, number>> {
-  return new Map(
-    entries.map(entry => [
-      entry.id,
-      new Map(entry.solves.map(solve => [solve.id, solve.solveTime])),
-    ])
-  )
 }
 
 export function getBloodIndex(
@@ -113,8 +136,13 @@ export function getBloodIndex(
   return challenge.firstSolvers.findIndex(solver => solver.id === teamId)
 }
 
-export function getCategoryStatsForSolves(solves: Set<string> | null, group: CategoryGroup) {
-  const solved = solves ? group.challenges.filter(challenge => solves.has(challenge.id)).length : 0
+export function getCategoryStatsForSolves(
+  solves: Set<string> | null,
+  group: CategoryGroup
+) {
+  const solved = solves
+    ? group.challenges.filter(challenge => solves.has(challenge.id)).length
+    : 0
   const total = group.challenges.length
   return {
     solved,
@@ -131,7 +159,11 @@ export function getTeamColorMap(
   for (const entry of entries) {
     map.set(
       entry.id,
-      getRankColorForPosition(entry.globalPlace, currentUser?.id === entry.id, entry.id)
+      getRankColorForPosition(
+        entry.globalPlace,
+        currentUser?.id === entry.id,
+        entry.id
+      )
     )
   }
   if (currentUser) map.set(currentUser.id, SELF_COLOR)
@@ -152,7 +184,9 @@ export function mergeWithSelfGraph<T extends { id: string }>(
   data: T[],
   selfData: T | null | undefined
 ): T[] {
-  return selfData && !data.some(team => team.id === selfData.id) ? [...data, selfData] : data
+  return selfData && !data.some(team => team.id === selfData.id)
+    ? [...data, selfData]
+    : data
 }
 
 export function getSparklineDataByTeam(
@@ -162,12 +196,15 @@ export function getSparklineDataByTeam(
   const allTeams = mergeWithSelfGraph(allGraphData, selfGraphData)
   let maxTime = 0
   for (const team of allTeams) {
-    for (const point of filterPoints(team.points)) {
-      if (point.time > maxTime) maxTime = point.time
+    for (const point of team.points) {
+      if (point.time <= CUTOFF_TIME && point.time > maxTime)
+        maxTime = point.time
     }
   }
   const windowStart = maxTime - SPARKLINE_WINDOW
-  return new Map(allTeams.map(team => [team.id, filterPoints(team.points, windowStart)]))
+  return new Map(
+    allTeams.map(team => [team.id, filterPoints(team.points, windowStart)])
+  )
 }
 
 export function getRankDeltaByTeam(
@@ -176,12 +213,16 @@ export function getRankDeltaByTeam(
   selfGraphData: ScoreGraphEntry | null | undefined
 ): Map<string, number> {
   if (search) return new Map()
-  const allPoints = allGraphData.flatMap(team =>
-    team.points.filter(point => point.time <= CUTOFF_TIME)
-  )
-  if (allPoints.length === 0) return new Map()
 
-  const currentTime = Math.min(getMaxPointTime(allPoints), CUTOFF_TIME)
+  let currentTime = -Infinity
+  for (const team of allGraphData) {
+    for (const point of team.points) {
+      if (point.time <= CUTOFF_TIME && point.time > currentTime)
+        currentTime = point.time
+    }
+  }
+  if (currentTime === -Infinity) return new Map()
+
   const pastTime = currentTime - DELTA_WINDOW
   const allTeams = mergeWithSelfGraph(allGraphData, selfGraphData)
   const teamsWithScores = allTeams.map(team => ({
@@ -192,17 +233,18 @@ export function getRankDeltaByTeam(
   const currentRankMap = getRanks(teamsWithScores, 'currentScore')
   const pastRankMap = getRanks(teamsWithScores, 'pastScore')
 
-  return new Map(
-    teamsWithScores
-      .map(team => [
-        team.id,
-        (pastRankMap.get(team.id) ?? 0) - (currentRankMap.get(team.id) ?? 0),
-      ] as const)
-      .filter(([, delta]) => delta !== 0)
-  )
+  const deltas = new Map<string, number>()
+  for (const team of teamsWithScores) {
+    const delta =
+      (pastRankMap.get(team.id) ?? 0) - (currentRankMap.get(team.id) ?? 0)
+    if (delta !== 0) deltas.set(team.id, delta)
+  }
+  return deltas
 }
 
-export function getGraphVisibility(config: GraphVisibilityConfig): GraphVisibility {
+export function getGraphVisibility(
+  config: GraphVisibilityConfig
+): GraphVisibility {
   if (config.isLoading || config.entries.length === 0) {
     return getEmptyGraphVisibility()
   }
@@ -214,7 +256,8 @@ export function getGraphVisibility(config: GraphVisibilityConfig): GraphVisibili
   if (config.currentUserId && config.showSelfContext) {
     const selfRank = config.teamRanks.get(config.currentUserId)
     const selfInTop3 = selfRank !== undefined && selfRank <= 3
-    if (!selfInTop3 || config.showTop3Context) visibleTeamIds.add(config.currentUserId)
+    if (!selfInTop3 || config.showTop3Context)
+      visibleTeamIds.add(config.currentUserId)
   }
 
   return { visibleTeamIds, contextTeamIds }
@@ -224,58 +267,76 @@ export function getEmptyGraphVisibility(): GraphVisibility {
   return { visibleTeamIds: new Set(), contextTeamIds: new Set() }
 }
 
+interface ScreenshotTeamSource {
+  id: string
+  name: string
+  avatarUrl: string | null
+  countryCode: string | null
+  statusText: string | null
+  score: number
+  solveCount: number
+}
+
+function buildScreenshotEntry(
+  source: ScreenshotTeamSource,
+  rank: number,
+  isCurrentUser: boolean,
+  color: string | undefined,
+  sparklineData: ScoreGraphPoint[] | undefined
+): ScreenshotTeamEntry {
+  return {
+    id: source.id,
+    rank,
+    name: source.name,
+    avatarUrl: source.avatarUrl,
+    countryCode: source.countryCode,
+    statusText: source.statusText,
+    score: source.score,
+    solveCount: source.solveCount,
+    isCurrentUser,
+    color,
+    sparklineData,
+  }
+}
+
 export function getScreenshotTeams(
   entries: ScoreEntry[],
   currentUser: CurrentUserScoreData | null | undefined,
   teamColorMap: Map<string, string>,
   sparklineDataByTeam: Map<string, ScoreGraphPoint[]>
 ): ScreenshotTeamEntry[] {
-  return entries.map((entry, index) => ({
-    id: entry.id,
-    rank: index + 1,
-    name: entry.name,
-    avatarUrl: entry.avatarUrl,
-    countryCode: entry.countryCode,
-    statusText: entry.statusText,
-    score: entry.score,
-    solveCount: entry.solves.length,
-    isCurrentUser: currentUser?.id === entry.id,
-    color: teamColorMap.get(entry.id),
-    sparklineData: sparklineDataByTeam.get(entry.id),
-  }))
+  return entries.map((entry, index) =>
+    buildScreenshotEntry(
+      { ...entry, solveCount: entry.solves.length },
+      index + 1,
+      currentUser?.id === entry.id,
+      teamColorMap.get(entry.id),
+      sparklineDataByTeam.get(entry.id)
+    )
+  )
 }
 
 export function getScreenshotSelfTeam(
   currentUser: CurrentUserScoreData | null | undefined,
   sparklineDataByTeam: Map<string, ScoreGraphPoint[]>
 ): ScreenshotTeamEntry | null {
-  if (!currentUser) return null
-  return {
-    id: currentUser.id,
-    rank: currentUser.globalPlace ?? 0,
-    name: currentUser.name,
-    avatarUrl: currentUser.avatarUrl,
-    countryCode: currentUser.countryCode,
-    statusText: currentUser.statusText,
-    score: currentUser.score,
-    solveCount: currentUser.solves.length,
-    isCurrentUser: true,
-    color: SELF_COLOR,
-    sparklineData: sparklineDataByTeam.get(currentUser.id),
-  }
+  if (!currentUser?.globalPlace) return null
+  return buildScreenshotEntry(
+    { ...currentUser, solveCount: currentUser.solves.length },
+    currentUser.globalPlace,
+    true,
+    SELF_COLOR,
+    sparklineDataByTeam.get(currentUser.id)
+  )
 }
 
-export function getScreenshotGraphData(allGraphData: ScoreGraphEntry[]): ScoreGraphEntry[] {
-  return allGraphData.map(team => ({
-    id: team.id,
-    name: team.name,
-    points: team.points,
-  }))
-}
-
-function compareChallengesByCategory(a: ChallengeInfo, b: ChallengeInfo): number {
+function compareChallengesByCategory(
+  a: ChallengeInfo,
+  b: ChallengeInfo
+): number {
   if (a.order !== b.order) {
-    if (a.order === -1 && b.order === -1) return a.category.localeCompare(b.category)
+    if (a.order === -1 && b.order === -1)
+      return a.category.localeCompare(b.category)
     if (a.order === -1) return 1
     if (b.order === -1) return -1
     return a.order - b.order
@@ -284,22 +345,25 @@ function compareChallengesByCategory(a: ChallengeInfo, b: ChallengeInfo): number
   return b.points - a.points || a.name.localeCompare(b.name)
 }
 
-function filterPoints(points: ScoreGraphPoint[], minTime = 0): ScoreGraphPoint[] {
-  return points.filter(point => point.time >= minTime && point.time <= CUTOFF_TIME)
-}
-
-function getMaxPointTime(points: ScoreGraphPoint[]): number {
-  let maxTime = -Infinity
-  for (const point of points) {
-    if (point.time > maxTime) maxTime = point.time
-  }
-  return maxTime
+function filterPoints(
+  points: ScoreGraphPoint[],
+  minTime = 0
+): ScoreGraphPoint[] {
+  return points.filter(
+    point => point.time >= minTime && point.time <= CUTOFF_TIME
+  )
 }
 
 function getLatestScore(points: ScoreGraphPoint[], targetTime: number): number {
-  const valid = points.filter(point => point.time <= targetTime)
-  if (!valid.length) return 0
-  return valid.reduce((latest, point) => (point.time > latest.time ? point : latest)).score
+  let latestTime = -Infinity
+  let latestScore = 0
+  for (const point of points) {
+    if (point.time <= targetTime && point.time > latestTime) {
+      latestTime = point.time
+      latestScore = point.score
+    }
+  }
+  return latestScore
 }
 
 function getRanks<T extends { currentScore: number; pastScore: number }>(
@@ -307,7 +371,9 @@ function getRanks<T extends { currentScore: number; pastScore: number }>(
   key: 'currentScore' | 'pastScore'
 ): Map<string, number> {
   return new Map(
-    [...teams].sort((a, b) => b[key] - a[key]).map((team, index) => [team.id, index + 1])
+    [...teams]
+      .sort((a, b) => b[key] - a[key])
+      .map((team, index) => [team.id, index + 1])
   )
 }
 
@@ -317,7 +383,12 @@ function addViewportTeams(
   contextTeamIds: Set<string>
 ) {
   if (config.maxRank <= 10) {
-    addRankRange(config.entries, 1, Math.min(10, config.entries.length), visibleTeamIds)
+    addRankRange(
+      config.entries,
+      1,
+      Math.min(10, config.entries.length),
+      visibleTeamIds
+    )
     return
   }
 
@@ -331,7 +402,10 @@ function addViewportTeams(
 
   const pinActive = config.showTop3Context && !config.focusedChallengeId
   const windowSize = pinActive ? 7 : 10
-  const windowStart = Math.max(pinActive ? 4 : 1, config.maxRank - windowSize + 1)
+  const windowStart = Math.max(
+    pinActive ? 4 : 1,
+    config.maxRank - windowSize + 1
+  )
   addRankRange(config.entries, windowStart, config.maxRank, visibleTeamIds)
 }
 
@@ -341,7 +415,11 @@ function addRankRange(
   endRank: number,
   target: Set<string>
 ) {
-  for (let rank = startRank; rank <= endRank && rank <= entries.length; rank++) {
+  for (
+    let rank = startRank;
+    rank <= endRank && rank <= entries.length;
+    rank++
+  ) {
     target.add(entries[rank - 1]!.id)
   }
 }

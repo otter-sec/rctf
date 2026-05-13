@@ -1,7 +1,15 @@
 import { useInfiniteVirtualScroll, type ScrollMetrics } from '$lib/utils'
 import { onMount } from 'svelte'
-import { getEmptyGraphVisibility, getGraphVisibility } from './scores-data-helpers'
-import { CELL_WIDTH, DIAGONAL_OVERFLOW, ROW_GAP, ROW_HEIGHT } from './scores-layout-constants'
+import {
+  getEmptyGraphVisibility,
+  getGraphVisibility,
+} from './scores-data-helpers'
+import {
+  CELL_WIDTH,
+  DIAGONAL_OVERFLOW,
+  ROW_GAP,
+  ROW_HEIGHT,
+} from './scores-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
@@ -29,21 +37,6 @@ interface ScoresViewportStateConfig {
   isFetchingNextPage: () => boolean
   fetchNextPage: () => void
   onScroll?: () => void
-}
-
-interface ScoresViewportFacadeConfig {
-  scroll: ScoresScroll
-  media: ReturnType<typeof createScoresMediaState>
-  header: ReturnType<typeof createScoresHeaderMeasurementState>
-  fades: ReturnType<typeof createScoresFadeState>
-  userEntryIndex: () => number
-  viewportVisibility: () => ViewportVisibility
-  showSelfRow: () => boolean
-  selfRowPosition: () => SelfRowPosition
-  contentWidth: () => number
-  visibleGraphData: () => ScoreGraphEntry[]
-  contextTeamIds: () => Set<string>
-  scrollbarYPadding: () => string
 }
 
 interface ScoresViewportGraphConfig {
@@ -74,16 +67,20 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
 
   const userEntryIndex = $derived.by(() => {
     const currentUser = config.currentUser()
-    return currentUser ? config.entries().findIndex(entry => entry.id === currentUser.id) : -1
+    return currentUser
+      ? config.entries().findIndex(entry => entry.id === currentUser.id)
+      : -1
   })
 
-  const viewportVisibility = $derived(getViewportVisibility(
-    scrollMetrics,
-    scroll.virtualItems,
-    config.entries(),
-    header.listScrollMargin,
-    userEntryIndex
-  ))
+  const viewportVisibility = $derived(
+    getViewportVisibility(
+      scrollMetrics,
+      scroll.virtualItems,
+      config.entries(),
+      header.listScrollMargin,
+      userEntryIndex
+    )
+  )
 
   const showSelfRow = $derived.by(() => {
     if (config.search()) return false
@@ -98,14 +95,18 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     if (!currentUser?.globalPlace) return 'bottom'
     if (userEntryIndex === -1) return 'bottom'
     if (viewportVisibility.userClippedTop) return 'top'
-    const userItem = scroll.virtualItems.find(item => item.index === userEntryIndex)
+    const userItem = scroll.virtualItems.find(
+      item => item.index === userEntryIndex
+    )
     if (!userItem) {
       return viewportVisibility.minRank > userEntryIndex + 1 ? 'top' : 'bottom'
     }
     return 'bottom'
   })
 
-  const contentWidth = $derived(config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW)
+  const contentWidth = $derived(
+    config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
+  )
   const graph = createScoresViewportGraphState({
     config,
     scroll,
@@ -128,78 +129,61 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
   createLayoutFadeRefresher(scroll, fades, () => fadeRefreshKey)
   syncVirtualScrollState(scroll, config, () => header.listScrollMargin)
 
-  return createScoresViewportFacade({
-    scroll,
-    media,
-    header,
-    fades,
-    userEntryIndex: () => userEntryIndex,
-    viewportVisibility: () => viewportVisibility,
-    showSelfRow: () => showSelfRow,
-    selfRowPosition: () => selfRowPosition,
-    contentWidth: () => contentWidth,
-    visibleGraphData: () => graph.visibleGraphData,
-    contextTeamIds: () => graph.contextTeamIds,
-    scrollbarYPadding: () => scrollbarYPadding,
-  })
-}
-
-function createScoresViewportFacade(config: ScoresViewportFacadeConfig) {
   return {
-    scroll: config.scroll,
+    scroll,
     get themeRenderEpoch() {
-      return config.media.themeRenderEpoch
+      return media.themeRenderEpoch
     },
     get isDesktop() {
-      return config.media.isDesktop
+      return media.isDesktop
     },
     get isXl() {
-      return config.media.isXl
+      return media.isXl
     },
     get listScrollMargin() {
-      return config.header.listScrollMargin
+      return header.listScrollMargin
     },
     get showTopFade() {
-      return config.fades.showTop
+      return fades.showTop
     },
     get showBottomFade() {
-      return config.fades.showBottom
+      return fades.showBottom
     },
     get showLeftFade() {
-      return config.fades.showLeft
+      return fades.showLeft
     },
     get showRightFade() {
-      return config.fades.showRight
+      return fades.showRight
     },
     get headerRowRef() {
-      return config.header.headerRowRef
+      return header.headerRowRef
     },
     set headerRowRef(value: HTMLElement | null) {
-      config.header.headerRowRef = value
+      header.headerRowRef = value
     },
     get userEntryIndex() {
-      return config.userEntryIndex()
+      return userEntryIndex
     },
     get viewportVisibility() {
-      return config.viewportVisibility()
+      return viewportVisibility
     },
     get showSelfRow() {
-      return config.showSelfRow()
+      return showSelfRow
     },
     get selfRowPosition() {
-      return config.selfRowPosition()
+      return selfRowPosition
     },
     get contentWidth() {
-      return config.contentWidth()
+      return contentWidth
     },
     get visibleGraphData() {
-      return config.visibleGraphData()
+      return graph.visibleGraphData
     },
     get contextTeamIds() {
-      return config.contextTeamIds()
+      return graph.contextTeamIds
     },
     get scrollbarYPadding() {
-      return config.scrollbarYPadding()
+      return scrollbarYPadding
     },
   }
 }
@@ -228,7 +212,9 @@ function createScoresViewportGraphState({
     () => scroll.isScrolling
   )
   const visibleGraphData = $derived(
-    config.allGraphData().filter(team => graphVisibilityState.value.visibleTeamIds.has(team.id))
+    config
+      .allGraphData()
+      .filter(team => graphVisibilityState.value.visibleTeamIds.has(team.id))
   )
   const contextTeamIds = $derived(graphVisibilityState.value.contextTeamIds)
 
@@ -263,13 +249,19 @@ function createScoresMediaState() {
 
     const themeObserver = new MutationObserver(mutations => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        if (
+          mutation.type === 'attributes' &&
+          mutation.attributeName === 'data-theme'
+        ) {
           themeRenderEpoch = Date.now()
           break
         }
       }
     })
-    themeObserver.observe(root, { attributes: true, attributeFilter: ['data-theme'] })
+    themeObserver.observe(root, {
+      attributes: true,
+      attributeFilter: ['data-theme'],
+    })
 
     return () => {
       mqlDesktop.removeEventListener('change', updateDesktop)
@@ -464,9 +456,13 @@ function getFadeVisibility(metrics: ScrollMetrics) {
   const threshold = 10
   return {
     top: metrics.scrollTop > threshold,
-    bottom: metrics.scrollTop + metrics.clientHeight < metrics.scrollHeight - threshold,
+    bottom:
+      metrics.scrollTop + metrics.clientHeight <
+      metrics.scrollHeight - threshold,
     left: metrics.scrollLeft > threshold,
-    right: metrics.scrollLeft + metrics.clientWidth < metrics.scrollWidth - threshold,
+    right:
+      metrics.scrollLeft + metrics.clientWidth <
+      metrics.scrollWidth - threshold,
   }
 }
 
@@ -477,7 +473,12 @@ function getViewportVisibility(
   listScrollMargin: number,
   userEntryIndex: number
 ): ViewportVisibility {
-  const visibleRanks = getVisibleRanks(metrics, virtualItems, entries.length, listScrollMargin)
+  const visibleRanks = getVisibleRanks(
+    metrics,
+    virtualItems,
+    entries.length,
+    listScrollMargin
+  )
   const userVisibility = getUserVisibility(
     metrics,
     virtualItems,
@@ -561,7 +562,8 @@ function getScrollbarYPadding(
     : 'pt-[calc(var(--row-height-full)+4px)]'
 
   if (showSelfRow && selfRowPosition === 'top') return `${selfRowPt} pb-1`
-  if (showSelfRow) return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
+  if (showSelfRow)
+    return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
   return `${isDesktop ? 'pt-(--header-height)' : ''} pb-1`
 }
 

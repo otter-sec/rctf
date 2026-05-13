@@ -1,5 +1,5 @@
-import { ApiError } from '$lib/query/core'
 import { useClientConfig } from '$lib/query/config'
+import { ApiError } from '$lib/query/core'
 import {
   useInfiniteLeaderboardWithGraph,
   useLeaderboardChallenges,
@@ -15,11 +15,9 @@ import {
   getFocusedEntries,
   getOriginalRankByTeam,
   getRankDeltaByTeam,
-  getScreenshotGraphData,
   getScreenshotSelfTeam,
   getScreenshotTeams,
-  getSolvesByTeam,
-  getSolveTimesByTeam,
+  getSolvesAndTimesByTeam,
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
@@ -28,8 +26,8 @@ import type {
   CurrentUserScoreData,
   ScoreEntry,
   ScoreGraphEntry,
+  SortMode,
 } from './types'
-import type { SortMode } from './types'
 
 const LEADERBOARD_PAGE_SIZE = 100
 
@@ -64,17 +62,27 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
 
-  const rawEntries = $derived(leaderboardQuery.data?.pages.flatMap(page => page.leaderboard) ?? [])
+  const rawEntries = $derived(
+    leaderboardQuery.data?.pages.flatMap(page => page.leaderboard) ?? []
+  )
   const originalRankByTeam = $derived(getOriginalRankByTeam(rawEntries))
   const currentUser = $derived(userQuery.data)
   const challengesData = $derived(challengesQuery.data ?? {})
-  const entries = $derived(getFocusedEntries(rawEntries, config.focusedChallengeId()))
-  const allGraphData = $derived(leaderboardQuery.data?.pages.flatMap(page => page.graph) ?? [])
+  const entries = $derived(
+    getFocusedEntries(rawEntries, config.focusedChallengeId())
+  )
+  const allGraphData = $derived(
+    leaderboardQuery.data?.pages.flatMap(page => page.graph) ?? []
+  )
   const total = $derived(leaderboardQuery.data?.pages[0]?.total ?? 0)
   const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
-  const isLoading = $derived(leaderboardQuery.isLoading || challengesQuery.isLoading)
+  const isLoading = $derived(
+    leaderboardQuery.isLoading || challengesQuery.isLoading
+  )
   const showDivision = $derived(
-    clientConfigQuery.data ? Object.keys(clientConfigQuery.data.divisions).length > 1 : false
+    clientConfigQuery.data
+      ? Object.keys(clientConfigQuery.data.divisions).length > 1
+      : false
   )
   const dataEpoch = $derived(
     Math.max(
@@ -84,13 +92,19 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     )
   )
   const challengesByCategory = $derived(getChallengesByCategory(challengesData))
-  const challengesBySolves = $derived(getChallengesBySolves(challengesByCategory))
+  const challengesBySolves = $derived(
+    getChallengesBySolves(challengesByCategory)
+  )
   const categoryGroups = $derived(getCategoryGroups(challengesByCategory))
   const teamColorMap = $derived(getTeamColorMap(rawEntries, currentUser))
-  const solvesByTeam = $derived(getSolvesByTeam(entries))
-  const solveTimesByTeam = $derived(getSolveTimesByTeam(entries))
+  const solvesAndTimes = $derived(getSolvesAndTimesByTeam(entries))
   const teamRanks = $derived(
-    getTeamRanks(entries, originalRankByTeam, config.search(), config.focusedChallengeId())
+    getTeamRanks(
+      entries,
+      originalRankByTeam,
+      config.search(),
+      config.focusedChallengeId()
+    )
   )
 
   $effect(() => {
@@ -117,9 +131,6 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     },
     get division() {
       return division
-    },
-    get rawEntries() {
-      return rawEntries
     },
     get originalRankByTeam() {
       return originalRankByTeam
@@ -151,9 +162,6 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     get dataEpoch() {
       return dataEpoch
     },
-    get challengesByCategory() {
-      return challengesByCategory
-    },
     get categoryGroups() {
       return categoryGroups
     },
@@ -161,10 +169,10 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
       return teamColorMap
     },
     get solvesByTeam() {
-      return solvesByTeam
+      return solvesAndTimes.solvesByTeam
     },
     get solveTimesByTeam() {
-      return solveTimesByTeam
+      return solvesAndTimes.solveTimesByTeam
     },
     get teamRanks() {
       return teamRanks
@@ -187,7 +195,11 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
     getSparklineDataByTeam(config.allGraphData(), selfGraphQuery.data)
   )
   const rankDeltaByTeam = $derived(
-    getRankDeltaByTeam(config.search(), config.allGraphData(), selfGraphQuery.data)
+    getRankDeltaByTeam(
+      config.search(),
+      config.allGraphData(),
+      selfGraphQuery.data
+    )
   )
   const screenshotTeams = $derived(
     getScreenshotTeams(
@@ -200,7 +212,6 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
   const screenshotSelfTeam = $derived(
     getScreenshotSelfTeam(config.currentUser(), sparklineDataByTeam)
   )
-  const screenshotGraphData = $derived(getScreenshotGraphData(config.allGraphData()))
 
   return {
     selfGraphQuery,
@@ -215,9 +226,6 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
     },
     get screenshotSelfTeam() {
       return screenshotSelfTeam
-    },
-    get screenshotGraphData() {
-      return screenshotGraphData
     },
   }
 }
