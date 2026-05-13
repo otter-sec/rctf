@@ -3,7 +3,7 @@
     SCORE_CELL_HEIGHT_PX,
     SCORE_CELL_WIDTH_PX,
     SCORE_ROW_GAP_PX,
-  } from './scores-layout'
+  } from './scores-layout-constants'
   import { SvelteMap } from 'svelte/reactivity'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 

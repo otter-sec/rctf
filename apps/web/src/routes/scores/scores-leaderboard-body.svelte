@@ -3,7 +3,10 @@
     createScoresDataModel,
     createScoresGraphDataModel,
   } from './scores-data-model.svelte'
-  import { SCORE_LOADING_ROW_COUNT, SCORE_ROW_HEIGHT_FULL_PX } from './scores-layout'
+  import {
+    SCORE_LOADING_ROW_COUNT,
+    SCORE_ROW_HEIGHT_FULL_PX,
+  } from './scores-layout-constants'
   import type { createScoresRouteState } from './scores-route-state.svelte'
   import {
     getSelfSolves,

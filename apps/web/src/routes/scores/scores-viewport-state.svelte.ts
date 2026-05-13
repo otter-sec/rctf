@@ -12,7 +12,7 @@ import {
   SCORE_SCROLL_RESET_DELAY_MS,
   SCORE_SCROLL_THRESHOLD_PX,
   SCORE_VIRTUAL_OVERSCAN,
-} from './scores-layout'
+} from './scores-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
