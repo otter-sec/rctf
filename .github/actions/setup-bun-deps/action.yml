@@ -6,6 +6,10 @@ inputs:
     description: Extra args
     required: false
     default: ''
+  working-directory:
+    description: Directory to run install in
+    required: false
+    default: '.'
 
 runs:
   using: composite
@@ -25,12 +29,13 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.bun/install/cache
-        key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+        key: bun-${{ runner.os }}-${{ hashFiles(format('{0}/bun.lock', inputs.working-directory)) }}
         restore-keys: |
           bun-${{ runner.os }}-
 
     - name: Install dependencies
       shell: bash
+      working-directory: ${{ inputs.working-directory }}
       env:
         INSTALL_ARGS: ${{ inputs.install-args }}
       # intentional unquoted expansion: word-split flags into separate args

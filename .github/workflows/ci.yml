@@ -3,6 +3,7 @@ name: CI
 on:
   workflow_dispatch:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -34,7 +35,7 @@ jobs:
             shared:
               - '.github/workflows/ci.yml'
               - '.github/workflows/_docker-build.yml'
-              - '.github/workflows/test.yml'
+              - '.github/workflows/_test.yml'
               - '.github/actions/setup-bun-deps/action.yml'
             admin-bot:
               - 'apps/admin-bot/**'
@@ -58,104 +59,26 @@ jobs:
               - 'deploy/rctf/**'
 
   tests:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/_test.yml
     secrets: inherit
 
-  build-admin-bot:
+  build:
     needs: [changes, tests]
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.admin-bot == 'true'))
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { key: admin-bot,        suffix: /admin-bot,        dockerfile: deploy/admin-bot/Dockerfile }
+          - { key: docker-instancer, suffix: /docker-instancer, dockerfile: deploy/docker-instancer/Dockerfile }
+          - { key: docs,             suffix: /docs,             dockerfile: deploy/docs/Dockerfile }
+          - { key: k8s-controller,   suffix: /k8s-controller,   dockerfile: deploy/k8s-controller/Dockerfile }
+          - { key: rctf,             suffix: '',                dockerfile: deploy/rctf/Dockerfile }
     uses: ./.github/workflows/_docker-build.yml
     with:
-      image-name: ${{ github.repository }}/admin-bot
-      dockerfile: deploy/admin-bot/Dockerfile
-      # bun supports only amd64 and arm64
-      platforms-matrix: |
-        [
-          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
-          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
-        ]
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-
-  build-docker-instancer:
-    needs: [changes, tests]
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.docker-instancer == 'true'))
-    uses: ./.github/workflows/_docker-build.yml
-    with:
-      image-name: ${{ github.repository }}/docker-instancer
-      dockerfile: deploy/docker-instancer/Dockerfile
-      # uv supports only amd64 and arm64
-      platforms-matrix: |
-        [
-          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
-          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
-        ]
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-
-  build-docs:
-    needs: [changes, tests]
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.docs == 'true'))
-    uses: ./.github/workflows/_docker-build.yml
-    with:
-      image-name: ${{ github.repository }}/docs
-      dockerfile: deploy/docs/Dockerfile
-      # runtime image is alpine so all platforms can be used
-      platforms-matrix: |
-        [
-          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
-          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
-        ]
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-
-  build-k8s-controller:
-    needs: [changes, tests]
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.k8s-controller == 'true'))
-    uses: ./.github/workflows/_docker-build.yml
-    with:
-      image-name: ${{ github.repository }}/k8s-controller
-      dockerfile: deploy/k8s-controller/Dockerfile
-      # technically all platforms can be used, but its very slow so only amd64 and arm64 are enabled
-      platforms-matrix: |
-        [
-          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
-          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
-        ]
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-
-  build-rctf:
-    needs: [changes, tests]
-    if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' && (needs.changes.outputs.shared == 'true' || needs.changes.outputs.rctf == 'true'))
-    uses: ./.github/workflows/_docker-build.yml
-    with:
-      image-name: ${{ github.repository }}
-      dockerfile: deploy/rctf/Dockerfile
-      # bun supports only amd64 and arm64
-      platforms-matrix: |
-        [
-          {"platform": "linux/amd64", "runner": "ubuntu-24.04"},
-          {"platform": "linux/arm64", "runner": "ubuntu-24.04-arm"}
-        ]
+      image-name: ${{ github.repository }}${{ matrix.suffix }}
+      dockerfile: ${{ matrix.dockerfile }}
+      push: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
+      enabled: ${{ github.event_name == 'workflow_dispatch' || ((github.event_name == 'push' || github.event_name == 'pull_request') && (needs.changes.outputs.shared == 'true' || needs.changes.outputs[matrix.key] == 'true')) }}
     permissions:
       contents: read
       packages: write

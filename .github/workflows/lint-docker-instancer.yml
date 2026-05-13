@@ -3,6 +3,7 @@ name: Lint docker-instancer
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - "apps/docker-instancer/**"
   pull_request:

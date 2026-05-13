@@ -21,19 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-bun-deps
         with:
-          node-version: 22
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install test dependencies
-        working-directory: tests/test-against-v1
-        run: bun install --frozen-lockfile
+          working-directory: tests/test-against-v1
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
