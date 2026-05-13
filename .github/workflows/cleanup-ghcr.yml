@@ -53,7 +53,7 @@ jobs:
           - rctf-new/k8s-controller
     steps:
       - name: Delete tags with no matching branch or git tag
-        uses: dataaxiom/ghcr-cleanup-action@v1
+        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4 # v1.0.16
         with:
           package: ${{ matrix.package }}
           delete-tags: '*'
@@ -61,7 +61,7 @@ jobs:
           validate: true
 
       - name: Delete untagged orphans older than 2 weeks
-        uses: dataaxiom/ghcr-cleanup-action@v1
+        uses: dataaxiom/ghcr-cleanup-action@cd0cdb900b5dbf3a6f2cc869f0dbb0b8211f50c4 # v1.0.16
         with:
           package: ${{ matrix.package }}
           delete-untagged: true
