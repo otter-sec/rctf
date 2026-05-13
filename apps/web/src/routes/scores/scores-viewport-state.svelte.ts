@@ -137,9 +137,6 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     get isDesktop() {
       return media.isDesktop
     },
-    get isXl() {
-      return media.isXl
-    },
     get listScrollMargin() {
       return header.listScrollMargin
     },
@@ -231,21 +228,16 @@ function createScoresViewportGraphState({
 function createScoresMediaState() {
   let themeRenderEpoch = $state(0)
   let isDesktop = $state(true)
-  let isXl = $state(true)
 
   onMount(() => {
     const mqlDesktop = window.matchMedia('(min-width: 768px)')
-    const mqlXl = window.matchMedia('(min-width: 1280px)')
     const root = document.documentElement
 
     const updateDesktop = () => (isDesktop = mqlDesktop.matches)
-    const updateXl = () => (isXl = mqlXl.matches)
 
     updateDesktop()
-    updateXl()
 
     mqlDesktop.addEventListener('change', updateDesktop)
-    mqlXl.addEventListener('change', updateXl)
 
     const themeObserver = new MutationObserver(mutations => {
       for (const mutation of mutations) {
@@ -265,7 +257,6 @@ function createScoresMediaState() {
 
     return () => {
       mqlDesktop.removeEventListener('change', updateDesktop)
-      mqlXl.removeEventListener('change', updateXl)
       themeObserver.disconnect()
     }
   })
@@ -276,9 +267,6 @@ function createScoresMediaState() {
     },
     get isDesktop() {
       return isDesktop
-    },
-    get isXl() {
-      return isXl
     },
   }
 }
@@ -556,10 +544,10 @@ function getScrollbarYPadding(
   selfRowPosition: SelfRowPosition,
   isDesktop: boolean
 ): string {
-  const selfRowPb = 'pb-[calc(var(--row-height-full)+4px)]'
+  const selfRowPb = 'pb-[calc(var(--row-height-full)+var(--row-gap))]'
   const selfRowPt = isDesktop
-    ? 'pt-[calc(var(--header-height)+var(--row-height-full)+4px)]'
-    : 'pt-[calc(var(--row-height-full)+4px)]'
+    ? 'pt-[calc(var(--header-height)+var(--row-height-full)+var(--row-gap))]'
+    : 'pt-[calc(var(--row-height-full)+var(--row-gap))]'
 
   if (showSelfRow && selfRowPosition === 'top') return `${selfRowPt} pb-1`
   if (showSelfRow)
