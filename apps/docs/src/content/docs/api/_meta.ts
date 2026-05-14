@@ -5,9 +5,12 @@ export default {
   collapsed: true,
   items: {
     index: { label: 'Overview', order: 0 },
-    challenges: { label: 'Challenges', order: 1 },
-    leaderboard: { label: 'Leaderboard', order: 2 },
-    users: { label: 'Users', order: 3 },
-    admin: { label: 'Admin', order: 4 },
+    auth: { label: 'Authentication', order: 1 },
+    challenges: { label: 'Challenges', order: 2 },
+    leaderboard: { label: 'Leaderboard', order: 3 },
+    users: { label: 'Users', order: 4 },
+    admin: { label: 'Admin', order: 5 },
+    integrations: { label: 'Integrations', order: 6 },
+    responses: { label: 'Responses', order: 7 },
   },
 } satisfies MetaFile

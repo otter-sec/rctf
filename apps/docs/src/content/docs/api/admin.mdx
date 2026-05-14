@@ -1,64 +1,301 @@
 ---
-title: Administration
-description: How rCTF administration works - permissions, challenge management, user management, and runtime settings.
+title: Admin
+description: API reference for admin challenge, upload, user, verification, submission, settings, and admin bot service routes.
 ---
 
-import Callout from '@/components/callout.astro'
+Admin routes require a user auth token with the listed permission bits, except for admin bot service routes, which require the shared admin bot bearer token.
 
-For an overview of the permission system and how to create admin accounts, see the [Admin Panel](/admin) documentation.
+## Permissions
 
-## Challenge management
+| Permission | Required by |
+| --- | --- |
+| `challsRead{:ts}` | Reading admin challenge data, reading upload state, reading instancer schema, reading admin bot status, and reading admin user detail with solve history. |
+| `challsWrite{:ts}` | Updating challenges and uploading files. |
+| `challsSolveWrite{:ts}` | Deleting solves. |
+| `usersWrite{:ts}` | Listing teams, filtering teams, mutating teams, generating team tokens, managing pending verifications, and reading submission audit logs. |
+| `settingsWrite{:ts}` | Reading and updating runtime settings. |
 
-Admins with `challsWrite` permission can create, update, and delete challenges.
+Routes with combined permissions require all listed bits.
 
-Key behaviors:
+## Challenge routes
 
-- **Leaderboard recalculation** - Creating, updating, or deleting a challenge triggers an automatic leaderboard recalculation
-- **Instancer validation** - When a challenge includes instancer configuration, it is validated against the instancer provider's config schema
-- **Admin bot validation** - When a challenge includes admin bot configuration, it is validated by the admin bot provider to ensure the code is loadable
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/challs` | `challsRead` | None |
+| `GET{:http}` | `/api/v2/admin/challs/:id` | `challsRead` | Path params |
+| `PUT{:http}` | `/api/v2/admin/challs/:id` | `challsWrite` | JSON body |
+| `DELETE{:http}` | `/api/v2/admin/challs/:challengeId/solves/:userId` | `challsSolveWrite` | Path params |
 
-## User management
+`GET` challenge routes return `AdminChallengeV2`:
 
-Admins with `usersWrite` permission can:
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` | Challenge ID. |
+| `name` | `string` | Display name. |
+| `description` | `string` | Markdown description. |
+| `category` | `string` | Category name. |
+| `author` | `string` | Author. |
+| `files` | `ChallengeFileV2[]` | Files with `name`, `url`, and nullable `size`. |
+| `points` | `{ min: number, max: number }` | Dynamic scoring bounds. |
+| `flag` | `string` | Correct flag. |
+| `tiebreakEligible` | `boolean` | Whether solves count toward the tiebreak timestamp. |
+| `sortWeight` | `number \| null \| undefined` | Optional category ordering weight. |
+| `instancerConfig` | `InstancerConfig \| null \| undefined` | Per-team instance config. |
+| `adminBotConfig` | `AdminBotConfig \| null \| undefined` | Admin bot config generated from challenge source. |
+| `hidden` | `boolean` | Hidden challenges are invisible to non-admin users. |
+| `releaseTime` | `number \| null \| undefined` | Unix millisecond release timestamp. |
 
-- **List and search teams** - Browse all registered teams with pagination and fuzzy name search
-- **Generate team tokens** - Create a login token for any non-privileged team (teams with `perms = 0`). This is useful for helping teams that have lost access to their account.
+`PUT /api/v2/admin/challs/:id` accepts partial challenge data:
 
-<Callout variant="warning">
+```json
+{
+  "data": {
+    "name": "web demo",
+    "category": "web",
+    "author": "organizers",
+    "description": "Solve it.",
+    "flag": "flag{example}",
+    "points": { "min": 100, "max": 500 },
+    "tiebreakEligible": true,
+    "files": [{ "name": "dist.zip", "url": "/uploads/dist.zip", "size": 12345 }],
+    "sortWeight": 10,
+    "instancerConfig": null,
+    "adminBotConfig": null,
+    "hidden": false,
+    "releaseTime": null
+  }
+}
+```
 
-Token generation is restricted to non-privileged users. You cannot generate tokens for admin accounts, preventing privilege escalation.
+Omitted fields keep their current value. `instancerConfig` and `adminBotConfig` are `null` to clear the integration config. Instancer config is validated against the active provider schema. Admin bot source is validated by the active admin bot provider and stored with a generated revision.
 
-</Callout>
-## Solve management
+V1 has compatible challenge admin routes under `/api/v1/admin/challs`, but v1 challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`. V1 also exposes `DELETE /api/v1/admin/challs/:id` with `challsWrite`.
 
-Admins with `challsSolveWrite` permission can delete individual solves. This is useful for handling cheating or accidental solves. Deleting a solve triggers an automatic leaderboard recalculation.
+## Upload routes
 
-## File uploads
+| Method | Path | Version | Permission | Request |
+| --- | --- | --- | --- | --- |
+| `POST{:http}` | `/api/v2/admin/upload` | V2 | `challsWrite` | Form data |
+| `POST{:http}` | `/api/v2/admin/upload/query` | V2 | `challsRead` | JSON body |
+| `POST{:http}` | `/api/v1/admin/upload` | V1 | `challsWrite` | JSON body |
+| `POST{:http}` | `/api/v1/admin/upload/query` | V1 | `challsRead` | JSON body |
 
-Admins with `challsWrite` permission can upload challenge file attachments. See [Admin > Uploading](/admin/uploading) for details on how file uploads and deduplication work.
+V2 uploads use one or more `files` form fields. The response returns:
 
-## Runtime settings
+| Field | Type |
+| --- | --- |
+| `name` | `string` |
+| `url` | `string` |
+| `size` | `number \| null` |
 
-Admins with `settingsWrite` permission can modify certain platform settings at runtime without restarting the server. These runtime settings override values from the config files.
+Upload query routes accept:
 
-Editable settings:
+```json
+{
+  "uploads": [
+    {
+      "sha256": "<hex-digest>",
+      "name": "dist.zip"
+    }
+  ]
+}
+```
 
-| Setting           | Description                                 |
-| ----------------- | ------------------------------------------- |
-| CTF name          | Display name of the competition             |
-| CTF start time    | Competition start time                      |
-| CTF end time      | Competition end time                        |
-| Home content      | Home page markdown content                  |
-| Sponsors          | Sponsor list (name, icon, description, URL) |
-| Meta description  | HTML meta description                       |
-| Meta image URL    | HTML meta image                             |
-| Favicon URL       | Browser favicon                             |
-| Logo (light/dark) | Platform logos for light and dark mode      |
+V2 upload query responses include nullable `url` and nullable `size`. V1 upload query responses include nullable `url` only.
 
-Setting a value to `null{:ts}` reverts it to the config file default.
+## Team routes
 
-CTF start and end time overrides must keep the start before the end. Runtime timing overrides are returned through the v2 client config.
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/users` | `usersWrite` | Query string |
+| `POST{:http}` | `/api/v2/admin/users` | `usersWrite` | Query string and JSON body |
+| `GET{:http}` | `/api/v2/admin/users/:id` | `usersWrite` and `challsRead` | Path params |
+| `PUT{:http}` | `/api/v2/admin/users/:id` | `usersWrite` | JSON body |
+| `DELETE{:http}` | `/api/v2/admin/users/:id` | `usersWrite` | Path params |
+| `POST{:http}` | `/api/v2/admin/users/:id/token` | `usersWrite` | Path params |
 
-## Admin bot service
+### Team list query
 
-The admin bot runs as a separate service that communicates with the rCTF API using a shared secret key (service authentication) rather than user tokens. It polls for queued jobs, executes them in a browser context, and reports results back. See [Integrations](/integrations) for more on the admin bot.
+`GET` and `POST` team list routes share these query parameters:
+
+| Query | Required | Values |
+| --- | --- | --- |
+| `limit` | Yes | Integer from `1` through `100`. |
+| `offset` | Yes | Integer greater than or equal to `0`. |
+| `search` | No | String from 1 through 100 characters. |
+| `sortBy` | No | `createdAt`, `team`, `email`, `division`, `score`, `solves`, or `status`. |
+| `sortOrder` | No | `asc` or `desc`. |
+
+`POST /api/v2/admin/users` adds filters in the request body:
+
+```json
+{
+  "status": {
+    "include": ["active"],
+    "exclude": ["banned"]
+  },
+  "division": {
+    "include": ["open"]
+  }
+}
+```
+
+Filter objects accept nullable `include` and `exclude` arrays. `status` values are `active`, `banned`, and `admin`.
+
+`goodAdminUsers` returns `total` and a paginated `users` array. Each user includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
+
+### Team detail and mutation
+
+`GET /api/v2/admin/users/:id` returns user details plus solve history:
+
+| Field | Type |
+| --- | --- |
+| `id` | `string` |
+| `name` | `string` |
+| `email` | `string \| null` |
+| `division` | `string` |
+| `perms` | `number` |
+| `banned` | `boolean` |
+| `score` | `number` |
+| `solveCount` | `number` |
+| `avatarUrl` | `string \| null` |
+| `countryCode` | `string \| null` |
+| `statusText` | `string \| null` |
+| `createdAt` | `string` |
+| `solves[]` | `{ challengeId: string, challengeName: string, challengeCategory: string, createdAt: string }[]` |
+
+`PUT /api/v2/admin/users/:id` accepts:
+
+```json
+{
+  "data": {
+    "banned": true
+  }
+}
+```
+
+Banning a team removes it from leaderboard output after recalculation without deleting solves. Unbanning restores score and rank after recalculation. Admins cannot update, delete, or generate tokens for privileged users.
+
+`POST /api/v2/admin/users/:id/token` returns `{ token: string }`, where the token is a long-lived team token.
+
+## Pending verification routes
+
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/user-verifications` | `usersWrite` | None |
+| `POST{:http}` | `/api/v2/admin/user-verifications/:id/complete` | `usersWrite` | Path params |
+| `POST{:http}` | `/api/v2/admin/user-verifications/:id/resend` | `usersWrite` | Path params |
+
+Pending verification rows contain `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`. Completing a verification creates the user and returns `{ userId: string }`. Resending returns `{ id: string }`.
+
+## Submission audit routes
+
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/submissions` | `usersWrite` and `challsRead` | Query string |
+| `POST{:http}` | `/api/v2/admin/submissions` | `usersWrite` and `challsRead` | Query string and JSON body |
+
+The query parameters are:
+
+| Query | Required | Values |
+| --- | --- | --- |
+| `limit` | Yes | Integer from `1` through `100`. |
+| `offset` | Yes | Integer greater than or equal to `0`. |
+| `sortBy` | No | `createdAt`, `challenge`, `team`, `ip`, `kind`, or `result`. |
+| `sortOrder` | No | `asc` or `desc`. |
+| `challengeSearch` | No | Challenge-name search from 1 through 100 characters. |
+| `teamSearch` | No | Team-name search from 1 through 100 characters. |
+
+The `POST` route adds filters:
+
+```json
+{
+  "challenge": { "include": ["challenge-id"] },
+  "team": { "include": ["team-id"] },
+  "kind": { "include": ["flag", "admin_bot"] },
+  "result": { "exclude": ["incorrect"] },
+  "teamStatus": { "include": ["not_banned"] },
+  "category": { "include": ["web"] },
+  "division": { "include": ["open"] },
+  "createdAfter": "2026-05-05T09:30:00.000Z",
+  "createdBefore": "2026-05-05T10:30:00.000Z"
+}
+```
+
+`kind` values are `flag` and `admin_bot`. `result` values are `correct`, `incorrect`, `already_solved`, `queued`, `active_job`, `invalid_input`, and `bad_instancer_state`. `teamStatus` values are `banned` and `not_banned`.
+
+`goodAdminSubmissions` returns `total` and a paginated `submissions` array. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
+
+## Settings routes
+
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/settings` | `settingsWrite` | None |
+| `PUT{:http}` | `/api/v2/admin/settings` | `settingsWrite` | JSON body |
+
+Settings responses return `{ overrides, defaults }`. `overrides` are runtime database values. `defaults` are values from config files and environment variables.
+
+`PUT /api/v2/admin/settings` accepts nullable values to set or clear overrides:
+
+```json
+{
+  "data": {
+    "ctfName": "Example CTF",
+    "homeContent": "# Welcome",
+    "startTime": 1770000000000,
+    "endTime": 1770100000000,
+    "sponsors": [
+      {
+        "name": "Example",
+        "icon": "https://example.com/icon.png",
+        "description": "Sponsor",
+        "url": "https://example.com"
+      }
+    ],
+    "meta": {
+      "description": "Example CTF",
+      "imageUrl": "https://example.com/card.png"
+    },
+    "faviconUrl": null,
+    "logoLightUrl": null,
+    "logoDarkUrl": null
+  }
+}
+```
+
+Updating `startTime` or `endTime` forces leaderboard recalculation.
+
+## Instancer and admin bot admin routes
+
+| Method | Path | Permission | Request |
+| --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/instancer/schema` | `challsRead` | None |
+| `GET{:http}` | `/api/v2/admin/admin-bot/status` | `challsRead` | None |
+
+`goodInstancerSchema` returns `{ schema, defaults }` for the active instancer provider. It returns `badEndpoint` when no provider is configured.
+
+`goodAdminBotStatus` returns `{ enabled: boolean, configLanguage: string }`.
+
+## Admin bot service routes
+
+The admin bot worker uses service-authenticated routes. These routes are not user-admin endpoints. They require `Authorization: Bearer <admin-bot-secret>`.
+
+| Method | Path | Request |
+| --- | --- | --- |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/pull` | None |
+| `GET{:http}` | `/api/v2/admin/admin-bot/challenges/:id/source` | None |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/complete` | JSON body |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/fail` | JSON body |
+| `GET{:http}` | `/api/v2/admin/admin-bot/queue-depth` | None |
+
+`jobs/pull` returns `{ job: null }` when no job is queued. A job contains `id`, `challengeId`, `configRevision`, `userId`, `submittedAt`, `flag`, submitted `inputs`, and `instancerInstances`.
+
+`complete` and `fail` accept optional logs:
+
+```json
+{
+  "logs": "newline-delimited log data"
+}
+```
+
+`logs` may be omitted and may contain at most `1048576` characters.

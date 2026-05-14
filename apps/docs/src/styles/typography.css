@@ -201,7 +201,17 @@
     }
 
     :where(.table-wrapper table):not(:where(.not-prose, .not-prose *)) {
-      @apply my-0;
+      @apply my-0 min-w-full;
+      width: max-content;
+    }
+
+    :where(.table-wrapper code):not(:where(.not-prose, .not-prose *)),
+    :where(.table-wrapper .shiki):not(
+        :where(pre *, .not-prose, .not-prose *)
+      ) {
+      overflow-wrap: normal;
+      white-space: nowrap;
+      word-break: normal;
     }
 
     :where(thead):not(:where(.not-prose, .not-prose *)) {

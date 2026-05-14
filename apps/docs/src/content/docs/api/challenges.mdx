@@ -1,33 +1,149 @@
 ---
 title: Challenges
-description: How challenges, flag submission, scoring, and solves work in rCTF.
+description: API reference for challenge listing, solve listing, and flag submission routes.
 ---
 
-## Dynamic scoring
+Challenge routes expose public challenge metadata, solve history, and the legacy flag submission endpoint. Admin challenge mutation routes are documented in [Admin](/api/admin).
 
-Each challenge defines a point range with `[31mpoints.min[0m{:ansi}` and `[31mpoints.max[0m{:ansi}`. The current score starts at `[31mmaxPoints[0m{:ansi}` when no one has solved the challenge and decreases toward `[31mminPoints[0m{:ansi}` as more teams solve it. The exact curve depends on the configured [scoring provider](/providers/scores).
+## Routes
 
-When a challenge is created or updated, the leaderboard is automatically recalculated to reflect any point changes.
+| Method | Path | Version | Auth | Gate | Request |
+| --- | --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/challs` | V2 | Public, optional admin bypass | Started | None |
+| `GET{:http}` | `/api/v2/challs/:id/solves` | V2 | Optional | Started | Query string |
+| `GET{:http}` | `/api/v1/challs` | V1 | Public, optional admin bypass | Started | None |
+| `GET{:http}` | `/api/v1/challs/:id/solves` | V1 | Public, optional admin bypass | Started | Query string |
+| `POST{:http}` | `/api/v1/challs/:id/submit` | V1 | Required | Started and not ended | JSON body |
 
-## First bloods
+Started-gated challenge routes may be read before the CTF starts when the request includes an auth token with `challsRead`.
 
-The first three teams to solve a challenge are tracked as "bloods":
+## `GET /api/v2/challs`
 
-- **First blood** (index 0)
-- **Second blood** (index 1)
-- **Third blood** (index 2)
+Returns the visible challenge list. Hidden challenges are omitted for non-admin users. Challenges with a future `releaseTime` are omitted until their release timestamp.
 
-Blood status is determined by solve timestamp. If a [blood bot](/integrations/bloodbot) is configured, announcements are sent automatically when these milestones are reached.
+`goodChallenges` returns an array of challenge objects:
 
-## Challenge visibility
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` | Challenge ID. |
+| `name` | `string` | Display name. |
+| `description` | `string` | Markdown challenge description. |
+| `category` | `string` | Category name. |
+| `author` | `string` | Author display name. |
+| `files` | `ChallengeFileV2[]` | Downloadable files. |
+| `points` | `number` | Current score after dynamic scoring. |
+| `solves` | `number` | Current solve count. |
+| `sortWeight` | `number \| null` | Optional ordering weight. |
+| `instancerLifetime` | `number \| null` | Instance timeout in milliseconds when the challenge has instancer config and an instancer provider is enabled. |
+| `instancerExtendable` | `boolean` | `false` only when challenge config explicitly disables extension. |
+| `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined` | Participant input schema for admin bot challenges. |
+| `hasFlag` | `boolean` | Indicates whether the challenge has a flag configured. |
 
-Challenges support two visibility controls:
+`ChallengeFileV2` has these fields:
 
-- **Hidden** - When `[31mhidden[0m{:ansi}` is set to `true{:ts}`, the challenge is completely invisible to non-admin users
-- **Release time** - When `[31mreleaseTime[0m{:ansi}` is set to a Unix millisecond timestamp, the challenge becomes visible only after that time. Set to `null{:ts}` to make it visible immediately when the CTF starts.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string` | Display filename. |
+| `url` | `string` | Download URL. |
+| `size` | `number \| null` | File size in bytes. Old data may have `null`. |
 
-These controls allow organizers to prepare challenges in advance and release them on a schedule.
+`RegexRule` has `pattern` and optional `flags`.
 
-## File attachments
+## `GET /api/v1/challs`
 
-Challenges can have downloadable file attachments. Files are uploaded through the admin panel and stored via the configured [upload provider](/providers/uploads). Each file has a name, URL, and size. Files are deduplicated by SHA256 hash - uploading the same content twice returns the existing URL.
+The v1 challenge list returns the same core fields without v2 integration metadata:
+
+| Field | Type |
+| --- | --- |
+| `id` | `string` |
+| `name` | `string` |
+| `description` | `string` |
+| `category` | `string` |
+| `author` | `string` |
+| `files` | `{ name: string, url: string }[]` |
+| `points` | `number` |
+| `solves` | `number` |
+| `sortWeight` | `number \| null \| undefined` |
+
+## `GET /api/v2/challs/:id/solves`
+
+Returns paginated solve history for one challenge:
+
+| Query | Required | Notes |
+| --- | --- | --- |
+| `limit` | Yes | Integer greater than or equal to `1`. The config enforces the maximum. |
+| `offset` | Yes | Integer greater than or equal to `0`. The config enforces the maximum. |
+
+`goodChallengeSolves` returns:
+
+```json
+{
+  "solves": [
+    {
+      "id": "solve-id",
+      "createdAt": 1710000000000,
+      "userId": "team-id",
+      "userName": "maple bacon",
+      "userAvatarUrl": null,
+      "userCountryCode": "US",
+      "userStatusText": null,
+      "globalPlace": 3,
+      "division": "open",
+      "divisionPlace": 1,
+      "bloodIndex": 0
+    }
+  ],
+  "mySolvePosition": 12
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `solves[]` | `ChallengeSolveV2[]` | Solve rows ordered by solve time. |
+| `mySolvePosition` | `number \| null` | The authenticated user's solve position for this challenge when optional auth is present. |
+| `bloodIndex` | `number \| null` | `0`, `1`, or `2` for the first three solves. Otherwise `null`. |
+
+## `GET /api/v1/challs/:id/solves`
+
+V1 solve history uses the same query parameters and returns less user profile data:
+
+```json
+{
+  "solves": [
+    {
+      "id": "solve-id",
+      "createdAt": 1710000000000,
+      "userId": "team-id",
+      "userName": "maple bacon"
+    }
+  ]
+}
+```
+
+## `POST /api/v1/challs/:id/submit`
+
+Submits a flag for the authenticated team:
+
+```json
+{
+  "flag": "flag{example}"
+}
+```
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `flag` | Yes | String with maximum length `1024`. |
+
+Correct flags return `goodFlag` and record a solve. Incorrect flags return `badFlag`. Duplicate solves return `badAlreadySolvedChallenge`.
+
+Submissions are rate-limited per user and challenge. A rate-limited request returns `badRateLimit` with `data.timeLeft` in milliseconds.
+
+The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through `/api/v2/admin/submissions`.
+
+## Scoring behavior
+
+Challenge point values are computed by the configured [scoring provider](/providers/scores). The public challenge list returns the current point value, not the configured `points.min` or `points.max` range. Challenge updates and solve mutations trigger leaderboard recalculation.
+
+## Visibility behavior
+
+Non-admin users only see challenges that are not hidden and whose release time has passed. Admin users with `challsRead` can bypass the CTF start gate through the same public routes, but hidden and scheduled release handling is still applied by the challenge service according to the route implementation.

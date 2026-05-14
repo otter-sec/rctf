@@ -1,90 +1,162 @@
 ---
 title: API reference
-description: Overview of the rCTF API concepts - authentication, errors, rate limiting, and more.
+description: Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions.
 ---
 
-import Callout from '@/components/callout.astro'
+The rCTF API is a JSON REST API mounted under `/api`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `/api`.
 
-The rCTF API is a JSON REST API served under the `/api` prefix. This section describes the core concepts that apply across the platform.
+## Versions
 
-## Versioning
+Both API versions are available at the same time:
 
-The API has two versions available simultaneously:
+| Version | Prefix | Status | Use |
+| --- | --- | --- | --- |
+| V1 | `/api/v1` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `/api/v2` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-- **V1** - Original API, fully supported
-- **V2** - Extended API with additional features and richer responses
+V2 keeps many response `kind` strings identical to v1 for compatible concepts. The response data may still be wider in v2.
 
-V2 is recommended for new integrations. See [Upgrading from v1](/installation/upgrading) for differences between the versions.
+## Typed route contract
+
+The `@rctf/types` package exports every public route definition, response definition, enum, and helper type:
+
+```ts showLineNumbers=false
+import {
+  GetChallengesRouteV2,
+  type RouteBodyInput,
+  type RouteQueryInput,
+  type RouteSuccessResponse,
+} from '@rctf/types'
+
+type Query = RouteQueryInput<typeof GetChallengesRouteV2>
+type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
+```
+
+`RouteBodyInput<T>{:ts}` describes the client-side input shape before zod coercions and transforms. `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` do the same for query strings and path params.
 
 ## Authentication
 
-Authenticated actions require a Bearer token in the `Authorization` header:
+User-authenticated routes require an auth token in the `Authorization` header:
 
-```
-Authorization: Bearer <token>
+```text
+Authorization: Bearer <auth-token>
 ```
 
-Tokens are obtained through registration or login. They are encrypted with AES-GCM and use the `[31mtokenKey[0m{:ansi}` from your [configuration](/configuration).
+Service-authenticated admin bot routes also use the `Authorization` header, but the token is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
+
+| Auth mode | Behavior |
+| --- | --- |
+| Public | No token is required. Some public routes still accept optional auth so admins can bypass start-time gates. |
+| Optional | The route works without a token, but an auth token may affect the response. |
+| Required | A missing or invalid token returns `badToken`. |
+| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `badPerms`. |
+| Service | The shared service bearer token must match the configured provider secret. |
 
 ### Token types
 
-| Token       | Lifetime                           | Purpose                              |
-| ----------- | ---------------------------------- | ------------------------------------ |
-| Auth        | Infinite                           | User authentication (login sessions) |
-| Team        | Infinite                           | Team access token (sent on recovery) |
-| Verify      | `[31mloginTimeout[0m{:ansi}` (default 1h) | Email verification and recovery      |
-| CtftimeAuth | `[31mloginTimeout[0m{:ansi}` (default 1h) | CTFtime OAuth flow                   |
+| Token | Lifetime | Used by |
+| --- | --- | --- |
+| Auth | No expiry | `Authorization: Bearer <auth-token>` on user routes. |
+| Team | No expiry | Account recovery and v1 login. V2 registration returns it directly when registration completes without email verification. |
+| Verify | `loginTimeout` | Email update verification. |
+| CTFtime auth | `loginTimeout` | CTFtime registration and login handoff. |
 
-<Callout variant="note">
+Tokens are encrypted with AES-GCM using `tokenKey`. Changing `tokenKey` invalidates existing tokens.
 
-Auth and team tokens never expire. Only verification and CTFtime tokens expire according to the `[31mloginTimeout[0m{:ansi}` configuration value.
+## Response envelope
 
-</Callout>
-## Response format
-
-All responses follow a consistent format:
+Most API routes return a JSON envelope:
 
 ```json
 {
   "kind": "goodChallenges",
-  "message": "The challenges were retrieved",
-  "data": { ... }
+  "message": "The retrieval of challenges was successful.",
+  "data": []
 }
 ```
 
-- `kind` - Unique identifier for the response type
-- `message` - Human-readable description
-- `data` - Response payload (may be `null{:ts}` for errors)
+Routes whose response definition has no data schema omit the `data` field:
 
-## Error responses
+```json
+{
+  "kind": "goodFlag",
+  "message": "The flag is correct."
+}
+```
 
-Common error responses returned across the platform:
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `GET /api/v1/integrations/ctftime/leaderboard` returns `{ "standings": [...] }` instead of an rCTF envelope.
 
-| Kind            | Status | Description                                                |
-| --------------- | ------ | ---------------------------------------------------------- |
-| `badToken`      | 401    | Missing, invalid, or expired authentication token          |
-| `badPerms`      | 403    | Insufficient permissions for the requested action          |
-| `badBody`       | 400    | Request body failed validation (includes `reason` in data) |
-| `badNotStarted` | 400    | Competition has not started yet                            |
-| `badEnded`      | 400    | Competition has ended                                      |
-| `badCaptcha`    | 400    | Captcha verification failed                                |
-| `badEndpoint`   | 404    | Route not found                                            |
-| `errorInternal` | 500    | Unexpected server error                                    |
+## Request validation
 
-## Rate limiting
+JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `badBody` with a machine-readable `reason` string:
 
-Several actions are rate-limited using a token bucket algorithm:
+```json
+{
+  "kind": "badBody",
+  "message": "The request body does not meet requirements.",
+  "data": {
+    "reason": "query:limit: Too small: expected number to be >=1"
+  }
+}
+```
 
-| Action             | Rate             | Scope                  |
-| ------------------ | ---------------- | ---------------------- |
-| Flag submission    | 5 per 25 seconds | Per user per challenge |
-| Profile update     | 3 per 3 minutes  | Per user               |
-| Avatar upload      | 2 per 2 minutes  | Per user               |
-| Admin bot submit   | 1 per 10 seconds | Per user per challenge |
-| Leaderboard search | 3 per 3 seconds  | Per IP address         |
+The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `badJson`. Malformed form data returns `badBody` with `body:formData:malformed`.
 
-When rate-limited, the response includes the number of milliseconds until the next attempt is allowed.
+## Permissions
+
+Admin routes use bitmask permissions from `Permissions{:ts}`:
+
+| Permission | Bit | Routes |
+| --- | --- | --- |
+| `challsRead{:ts}` | `1` | Admin challenge reads, instancer schema, admin bot status, challenge start-time bypass. |
+| `challsWrite{:ts}` | `2` | Challenge updates, challenge deletion in v1, file upload. |
+| `leaderboardRead{:ts}` | `4` | CTFtime leaderboard and leaderboard start-time bypass. |
+| `challsSolveWrite{:ts}` | `8` | Solve deletion. |
+| `usersWrite{:ts}` | `16` | Admin user lists, user mutation, pending verification management, submission audit logs. |
+| `settingsWrite{:ts}` | `32` | Runtime settings reads and updates. |
+
+When a route lists multiple permission bits, the user must have all of them.
+
+## Timing gates
+
+Routes marked as start-gated return `badNotStarted` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
+
+`POST /api/v1/challs/:id/submit` is also end-gated. It returns `badEnded` after `endTime`.
 
 ## Captcha
 
-Actions can optionally require captcha verification. Which actions require captcha is controlled by the `[31mcaptcha.protectedEndpoints[0m{:ansi}` [configuration](/configuration#captcha). See [Captcha Providers](/providers/captcha) for setup details.
+Captcha-protected routes validate a challenge response only when the configured captcha provider marks that action as protected. V1 request bodies use `recaptchaCode`. V2 request bodies use `captchaCode`.
+
+| Action | Routes |
+| --- | --- |
+| `register{:ts}` | `POST /api/v1/auth/register`, `POST /api/v2/auth/register`. |
+| `recover{:ts}` | `POST /api/v1/auth/recover`, `POST /api/v2/auth/recover`. |
+| `setEmail{:ts}` | `PUT /api/v1/users/me/auth/email`, `PUT /api/v2/users/me/auth/email`. |
+| `avatarUpload{:ts}` | `PATCH /api/v2/users/me/avatar`. |
+| `instancerStart{:ts}` | `PUT /api/v2/integrations/challs/:id/instance`. |
+| `instancerExtend{:ts}` | `PATCH /api/v2/integrations/challs/:id/instance`. |
+| `adminBotSubmit{:ts}` | `POST /api/v2/integrations/challs/:id/admin-bot`. |
+
+## Rate limits
+
+Rate-limited routes return `badRateLimit` with `data.timeLeft`, measured in milliseconds:
+
+| Action | Scope | Bucket |
+| --- | --- | --- |
+| Flag submission | User and challenge | Burst `5`, refill window `25000` ms. |
+| Profile name update | User | Burst `3`, refill window `180000` ms. |
+| Avatar upload | User | Burst `2`, refill window `120000` ms. |
+| Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms. |
+| Leaderboard search | IP address | Burst `3`, refill window `3000` ms. |
+
+## Route sections
+
+| Section | Scope |
+| --- | --- |
+| [Authentication](/api/auth) | Registration, login, verification, recovery, token behavior, and v1 compatibility. |
+| [Challenges](/api/challenges) | Public challenge listing, solves, v1 flag submission, and challenge response fields. |
+| [Leaderboard](/api/leaderboard) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
+| [Users](/api/users) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
+| [Admin](/api/admin) | Challenge management, users, verification queue, submissions, uploads, settings, and admin bot service routes. |
+| [Integrations](/api/integrations) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
+| [Responses](/api/responses) | Shared response kinds, error payloads, and common object models. |

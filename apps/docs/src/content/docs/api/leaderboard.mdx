@@ -1,52 +1,145 @@
 ---
 title: Leaderboard
-description: How the leaderboard, scoring, tiebreaking, and score graphs work in rCTF.
+description: API reference for leaderboard standings, graph data, challenge metadata, search, and pagination.
 ---
 
-import Callout from '@/components/callout.astro'
+Leaderboard routes read cached standings produced by the leaderboard worker. The worker calculates current challenge scores, team scores, global ranks, division ranks, first bloods, and score graph samples.
 
-## Scoring computation
+## Routes
 
-The leaderboard is computed by a background worker that runs at a configurable interval (default 30 seconds, controlled by `[31mleaderboard.updateInterval[0m{:ansi}`). The worker:
+| Method | Path | Version | Auth | Query |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/leaderboard/now` | V2 | Public, optional admin bypass | Required |
+| `GET{:http}` | `/api/v2/leaderboard/with-graph` | V2 | Public, optional admin bypass | Required |
+| `GET{:http}` | `/api/v2/leaderboard/graph` | V2 | Public, optional admin bypass | Required |
+| `GET{:http}` | `/api/v2/leaderboard/challs` | V2 | Public, optional admin bypass | None |
+| `GET{:http}` | `/api/v1/leaderboard/now` | V1 | Public, optional admin bypass | Required |
+| `GET{:http}` | `/api/v1/leaderboard/graph` | V1 | Public, optional admin bypass | Required |
 
-1. Collects all solves and computes each challenge's current point value using the [scoring provider](/providers/scores)
-2. Sums each team's points across all solved challenges
-3. Ranks teams within each division and globally
-4. Caches the results in the database and Redis
+Routes with leaderboard start bypass accept an auth token with `leaderboardRead`. `/api/v2/leaderboard/challs` uses `challsRead` for its start bypass.
 
-Certain operations - such as challenge updates, challenge deletions, and solve deletions - trigger an immediate recalculation outside the normal interval.
+## Query parameters
 
-<Callout variant="note">
+`/now`, `/with-graph`, and `/graph` use query-string pagination:
 
-If the worker encounters three consecutive failures, it resets its internal calculator state and starts fresh. This provides automatic recovery from transient errors.
+| Query | Routes | Required | Notes |
+| --- | --- | --- | --- |
+| `limit` | All leaderboard list and graph routes | Yes | Integer greater than or equal to `1`. Config enforces the maximum. |
+| `offset` | V2 `/now`, V2 `/with-graph`, V2 `/graph`, V1 `/now` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
+| `division` | All leaderboard list and graph routes | No | Filters standings to a configured division. |
+| `search` | V2 `/now`, V2 `/with-graph` | No | Fuzzy team-name search. Must be 2 to 100 characters. |
 
-</Callout>
-## Tiebreaking
+V1 `/api/v1/leaderboard/graph` accepts `limit` and optional `division`, but it does not accept `offset`.
 
-When teams have equal scores, the following rules determine their ranking:
+Search requests are rate-limited per IP address and return `badRateLimit` with `data.timeLeft` when the search bucket is exhausted.
 
-1. **Score** (descending) - Higher score ranks higher
-2. **Last solve time** - Among teams with equal scores, the team that reached that score first ranks higher (earlier last solve wins)
-3. **Last tiebreak-eligible solve time** - Further tiebreaking considers only solves from challenges marked as `[31mtiebreakEligible[0m{:ansi}`
+## `GET /api/v2/leaderboard/now`
 
-This means that solving a challenge earlier gives a competitive advantage when scores are tied.
+Returns the current standings:
 
-## Divisions
+```json
+{
+  "total": 37,
+  "leaderboard": [
+    {
+      "id": "team-id",
+      "name": "maple bacon",
+      "score": 1200,
+      "avatarUrl": null,
+      "countryCode": "US",
+      "statusText": null,
+      "solves": [{ "id": "challenge-id", "solveTime": 1710000000000 }],
+      "division": "open",
+      "divisionPlace": 1,
+      "globalPlace": 3
+    }
+  ]
+}
+```
 
-Teams are assigned to a division at registration. The leaderboard supports filtering by division, returning only teams in a specific division with division-specific rankings. Global rankings across all divisions are always available as well.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `total` | `number` | Total matching teams before pagination. |
+| `leaderboard[]` | `LeaderboardEntryV2[]` | Paginated teams. |
+| `globalPlace` | `number \| null` | Global rank. It can be `null` when the team is filtered out of global ranking, such as banned teams. |
+| `divisionPlace` | `number` | Rank inside the returned division context. |
+| `solves[]` | `{ id: string, solveTime: number }[]` | Challenge IDs and solve timestamps. |
 
-## First bloods
+## `GET /api/v2/leaderboard/with-graph`
 
-The leaderboard tracks the first three solvers for each challenge. These "bloods" are surfaced in challenge leaderboard data and can trigger notifications via the [blood bot](/integrations/bloodbot).
+Returns the same standing payload as `/now`, plus graph samples:
 
-## Search
+```json
+{
+  "total": 37,
+  "leaderboard": [],
+  "graph": [
+    {
+      "id": "team-id",
+      "name": "maple bacon",
+      "points": [
+        { "time": 1710000000000, "score": 500 }
+      ]
+    }
+  ]
+}
+```
 
-The leaderboard supports fuzzy team name search. Searches require at least 2 characters and are case-insensitive. Search requests have a separate rate limit (3 per 3 seconds per IP).
+This route is useful for clients that render the standings table and score graph together.
 
-## Score graph
+## `GET /api/v2/leaderboard/graph`
 
-The platform captures periodic snapshots of team scores over time to power the score graph visualization. Data points are sampled at intervals controlled by `[31mleaderboard.graphSampleTime[0m{:ansi}` (default 30 minutes). The graph shows the top N teams (controlled by `[31mleaderboard.graphMaxTeams[0m{:ansi}`, default `10{:ts}`).
+Returns only graph data:
 
-## Pagination
+| Field | Type | Notes |
+| --- | --- | --- |
+| `graph[]` | `LeaderboardGraphEntry[]` | Teams included in the graph sample. |
+| `graph[].points[]` | `{ time: number, score: number }[]` | Score samples over time. |
 
-Leaderboard queries support `[31mlimit[0m{:ansi}` and `[31moffset[0m{:ansi}` pagination. Maximum values are controlled by the `[31mleaderboard.maxLimit[0m{:ansi}` (default `100{:ts}`) and `[31mleaderboard.maxOffset[0m{:ansi}` configuration options.
+The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` controls how many teams are kept for graphing, and `leaderboard.graphSampleTime` controls sample cadence.
+
+## `GET /api/v2/leaderboard/challs`
+
+Returns challenge metadata used by leaderboard visualizations:
+
+```json
+{
+  "challenges": {
+    "challenge-id": {
+      "name": "web demo",
+      "category": "web",
+      "solves": 12,
+      "points": 443,
+      "sortWeight": null,
+      "firstSolvers": [{ "id": "team-id" }]
+    }
+  }
+}
+```
+
+`firstSolvers` contains up to the first three team IDs for each challenge.
+
+## V1 leaderboard data
+
+V1 standings are smaller:
+
+```json
+{
+  "total": 37,
+  "leaderboard": [
+    {
+      "id": "team-id",
+      "name": "maple bacon",
+      "score": 1200
+    }
+  ]
+}
+```
+
+V1 graph data uses the same `goodLeaderboardGraph` shape as v2.
+
+## Ranking rules
+
+The leaderboard worker sorts teams by score descending. Ties are broken by the time the team reached its score. The worker also tracks `last_tiebreak_solve_at` for challenges marked as `tiebreakEligible`, which provides an additional stable tiebreak input when scores and regular last solve times match.
+
+Banned teams are excluded from leaderboard output and have cached rank fields cleared until they are unbanned and the leaderboard is recalculated.

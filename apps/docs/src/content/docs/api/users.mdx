@@ -1,94 +1,177 @@
 ---
-title: Authentication and accounts
-description: How registration, login, recovery, team tokens, and user profiles work in rCTF.
+title: Users
+description: API reference for public profiles, self profiles, profile updates, avatars, email auth, CTFtime auth, and team members.
 ---
 
-import Callout from '@/components/callout.astro'
+User routes expose team profiles and account-level mutations. V2 adds avatar, country, and status fields. V1 keeps team members and CTFtime account mutation routes for compatibility.
 
-## Team model
+## V2 routes
 
-rCTF uses a team-based authentication model. Each team shares a single login token - there is no concept of individual user accounts within a team. All team members log in with the same token.
+| Method | Path | Auth | Gate | Request |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/users/:id` | Public, optional admin bypass | Started | Path params |
+| `GET{:http}` | `/api/v2/users/me` | Required | None | None |
+| `PATCH{:http}` | `/api/v2/users/me` | Required | None | JSON body |
+| `PATCH{:http}` | `/api/v2/users/me/avatar` | Required | None | Form data |
+| `PUT{:http}` | `/api/v2/users/me/auth/email` | Required | None | JSON body |
 
-## Registration
+`GET /api/v2/users/:id` can be read before the CTF starts by an admin token with `challsRead`.
 
-There are two ways to register:
+## Public profile
 
-### Email registration
+`GET /api/v2/users/:id` returns public team data:
 
-1. The user provides a team name and email address
-2. If email verification is enabled, a verification email is sent with a one-time token
-3. The user clicks the verification link or submits the token to complete registration
-4. An auth token is returned for logging in
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string` | Team display name. |
+| `ctftimeId` | `string \| null \| undefined` | Linked CTFtime ID when present. |
+| `division` | `string` | Team division. |
+| `score` | `number` | Cached current score. |
+| `globalPlace` | `number \| null` | Cached global rank. |
+| `divisionPlace` | `number \| null` | Cached division rank. |
+| `solves` | `UserSolveV2[]` | Solved challenges visible to the route. |
+| `avatarUrl` | `string \| null` | Team avatar URL. |
+| `countryCode` | `string \| null` | ISO 3166-like region code from `@rctf/util`. |
+| `statusText` | `string \| null` | Team status text. |
 
-If no email provider is configured and CTFtime auth is not set up, registration is not possible.
+`UserSolveV2` has these fields:
 
-### CTFtime registration
+| Field | Type |
+| --- | --- |
+| `category` | `string` |
+| `name` | `string` |
+| `points` | `number \| null` |
+| `solves` | `number \| null` |
+| `id` | `string` |
+| `createdAt` | `number` |
+| `bloodIndex` | `number \| null` |
 
-1. The user authenticates with CTFtime via OAuth
-2. They provide a team name and the CTFtime token
-3. Registration completes immediately - no email verification needed
+## Self profile
 
-<Callout variant="note">
+`GET /api/v2/users/me` returns the public profile fields plus account-private data:
 
-When CTFtime authentication is configured, [division ACLs](/configuration#division-acls) are bypassed entirely since ACLs are email-based.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string` | Team ID. |
+| `email` | `string \| null` | Email address when set. |
+| `teamToken` | `string` | Long-lived team token. Treat it as a credential. |
+| `allowedDivisions` | `string[]` | Divisions available to the team based on ACLs. |
+| `perms` | `number \| null` | Admin permission bitmask. |
 
-</Callout>
-## Login
+## `PATCH /api/v2/users/me`
 
-Teams log in by providing either their team token or a CTFtime OAuth token. Auth tokens are encrypted, never expire, and are tied to the team account.
+Updates profile fields:
 
-## Account recovery
+```json
+{
+  "name": "new team name",
+  "division": "open",
+  "countryCode": "US",
+  "statusText": "solving web"
+}
+```
 
-If a team loses their token, they can recover their account by requesting a recovery email. The platform sends a team token to the registered email address.
+| Field | Required | Notes |
+| --- | --- | --- |
+| `name` | No | 2 to 64 printable ASCII characters. Name updates are rate-limited. |
+| `division` | No | Must be allowed for the team's current email under division ACLs. |
+| `countryCode` | No | Region code or `null`. |
+| `statusText` | No | String up to 60 characters or `null`. |
 
-<Callout variant="note">
+`goodUserUpdate` returns:
 
-The recovery flow always returns a success response regardless of whether the email is registered. This prevents user enumeration.
+```json
+{
+  "user": {
+    "name": "new team name",
+    "email": "team@example.com",
+    "division": "open",
+    "avatarUrl": null,
+    "countryCode": "US",
+    "statusText": "solving web"
+  }
+}
+```
 
-</Callout>
-## Token lifecycle
+The route recalculates cached user data and triggers a leaderboard update. Name updates share the profile update rate limit.
 
-- **Auth tokens** never expire - once issued, they work indefinitely
-- **Team tokens** never expire - they are the primary recovery mechanism
-- **Verification tokens** expire after `[31mloginTimeout[0m{:ansi}` (default 1 hour) and are stored in Redis
-- **CTFtime tokens** expire after `[31mloginTimeout[0m{:ansi}`
+## `PATCH /api/v2/users/me/avatar`
 
-All tokens are encrypted with AES-GCM using the `[31mtokenKey[0m{:ansi}` from the configuration. If `[31mtokenKey[0m{:ansi}` changes, all existing tokens become invalid.
+Uploads or removes the team avatar. The route expects `multipart/form-data`:
 
-## User cache
+| Form field | Required | Notes |
+| --- | --- | --- |
+| `avatar` | No | Image file. When omitted and an avatar exists, the current avatar is deleted. |
+| `captchaCode` | No | Checked only when captcha protects `avatarUpload`. |
 
-User data is cached in Redis with a 30-second TTL to reduce database load. The cache is automatically invalidated when user data changes (email updates, CTFtime linking, etc.).
+The API checks `maxAvatarSize`, resizes the image to 256 by 256 pixels, converts it to WebP, optionally sends it to the moderation provider, uploads it through the active upload provider, and deletes the previous avatar when replacing it.
 
-## Profile fields
+`goodAvatarUpdated` returns `{ url: string \| null }`.
 
-Teams have the following profile data:
+## `PUT /api/v2/users/me/auth/email`
 
-| Field        | Description                                         |
-| ------------ | --------------------------------------------------- |
-| Name         | Team display name (2-64 printable ASCII characters) |
-| Email        | Optional, used for registration and recovery        |
-| Division     | Assigned at registration, changeable if ACLs allow  |
-| CTFtime ID   | Linked CTFtime account (optional)                   |
-| Avatar       | Team avatar image (v2, resized to 256x256 WebP)     |
-| Country code | ISO 3166-1 alpha-2 code (v2)                        |
-| Status text  | Short status message, max 60 characters (v2)        |
+Updates the account email:
 
-### Avatar pipeline
+```json
+{
+  "email": "team@example.com",
+  "captchaCode": "optional-captcha-code"
+}
+```
 
-When a team uploads an avatar:
+When email delivery is configured, the route sends a verification email and returns `goodVerifySent`. When email delivery is not configured, it updates the email immediately and returns `goodEmailSet`.
 
-1. The image is validated against `[31mmaxAvatarSize[0m{:ansi}` (default 1 MB)
-2. It is resized to 256x256 pixels and converted to WebP format
-3. If a [moderation provider](/providers/moderation) is configured, the image is checked for inappropriate content
-4. The image is uploaded via the configured [upload provider](/providers/uploads)
-5. The previous avatar, if any, is deleted
+The route rejects emails that would move the team outside the division ACL and rejects duplicate emails.
 
-Avatar uploads are rate-limited (2 per 2 minutes) and can be protected by captcha.
+## V1 routes
 
-## Team members
+| Method | Path | Auth | Gate | Request |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v1/users/:id` | Public, optional admin bypass | Started | Path params |
+| `GET{:http}` | `/api/v1/users/me` | Required | None | None |
+| `PATCH{:http}` | `/api/v1/users/me` | Required | None | JSON body |
+| `GET{:http}` | `/api/v1/users/me/members` | Required | None | None |
+| `POST{:http}` | `/api/v1/users/me/members` | Required | None | JSON body |
+| `DELETE{:http}` | `/api/v1/users/me/members/:id` | Required | None | Path params |
+| `PUT{:http}` | `/api/v1/users/me/auth/email` | Required | None | JSON body |
+| `DELETE{:http}` | `/api/v1/users/me/auth/email` | Required | None | None |
+| `PUT{:http}` | `/api/v1/users/me/auth/ctftime` | Required | None | JSON body |
+| `DELETE{:http}` | `/api/v1/users/me/auth/ctftime` | Required | None | None |
 
-When `[31muserMembers[0m{:ansi}` is enabled (default), teams can add members by email. This is informational - members share the same team token and it does not create separate accounts. The maximum number of members is controlled by `[31mmaxMembers[0m{:ansi}` (default `50{:ts}`).
+### V1 profile differences
 
-## Account requirements
+V1 public and self profile responses omit `avatarUrl`, `countryCode`, `statusText`, and `bloodIndex`. V1 update only accepts `name` and `division`.
 
-Every account must have at least one authentication method: an email address or a linked CTFtime ID. This is enforced by a database constraint. A team cannot remove their email if they have no CTFtime ID linked, and vice versa.
+### Team members
+
+Team members are informational email rows under the team account. They do not create separate login identities.
+
+`POST /api/v1/users/me/members` accepts:
+
+```json
+{
+  "email": "member@example.com"
+}
+```
+
+The route returns `badEndpoint` when `userMembers` is disabled. Duplicate member emails return `badKnownEmail`. Teams are limited by `maxMembers`.
+
+### CTFtime auth mutation
+
+`PUT /api/v1/users/me/auth/ctftime` accepts:
+
+```json
+{
+  "ctftimeToken": "<ctftime-token>"
+}
+```
+
+The route returns `badEndpoint` when CTFtime auth is not configured. Removing the last remaining auth method returns `badZeroAuth`, which preserves the invariant that every team has at least one of email or CTFtime auth.
+
+## Rate limits
+
+| Route | Scope | Bucket |
+| --- | --- | --- |
+| `PATCH /api/v1/users/me` | User | Name updates use burst `3`, refill window `180000` ms. |
+| `PATCH /api/v2/users/me` | User | Name updates use burst `3`, refill window `180000` ms. |
+| `PATCH /api/v2/users/me/avatar` | User | Avatar uploads use burst `2`, refill window `120000` ms. |
