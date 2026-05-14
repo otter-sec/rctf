@@ -21,13 +21,13 @@ import {
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
-} from './scores-data-helpers'
+} from './scores-leaderboard-data-transforms'
 import type {
   CurrentUserScoreData,
   ScoreEntry,
   ScoreGraphEntry,
   SortMode,
-} from './types'
+} from './scores-shared-types'
 
 const LEADERBOARD_PAGE_SIZE = 100
 

@@ -1,4 +1,4 @@
-import type { SortMode, ViewMode } from './types'
+import type { SortMode, ViewMode } from './scores-shared-types'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 

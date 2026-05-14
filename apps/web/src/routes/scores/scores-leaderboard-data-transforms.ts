@@ -19,7 +19,7 @@ import type {
   ScoreGraphEntry,
   ScoreGraphPoint,
   ScreenshotTeamEntry,
-} from './types'
+} from './scores-shared-types'
 
 interface ChallengeSource {
   name: string

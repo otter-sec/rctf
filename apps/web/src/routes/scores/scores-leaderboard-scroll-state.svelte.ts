@@ -3,20 +3,20 @@ import { onMount } from 'svelte'
 import {
   getEmptyGraphVisibility,
   getGraphVisibility,
-} from './scores-data-helpers'
+} from './scores-leaderboard-data-transforms'
 import {
   CELL_WIDTH,
   DIAGONAL_OVERFLOW,
   ROW_GAP,
   ROW_HEIGHT,
-} from './scores-layout-constants'
+} from './scores-leaderboard-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
   ScoreEntry,
   ScoreGraphEntry,
   ViewportVisibility,
-} from './types'
+} from './scores-shared-types'
 
 type ScoresScroll = ReturnType<typeof useInfiniteVirtualScroll>
 type SelfRowPosition = 'top' | 'bottom'
