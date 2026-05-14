@@ -1,6 +1,12 @@
-import type { SortMode, ViewMode } from './scores-shared-types'
+import type { SortMode, ViewMode } from './types'
 
-const MIN_SEARCH_LENGTH = 2
+export const MIN_SEARCH_LENGTH = 2
+
+export const SCORES_GOTO_OPTIONS = {
+  replaceState: true,
+  keepFocus: true,
+  noScroll: true,
+} as const
 
 export function getActiveSearch(value: string): string | undefined {
   return value.length >= MIN_SEARCH_LENGTH ? value : undefined

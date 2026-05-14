@@ -3,18 +3,15 @@
   import { IconChartAreaLineFilled, IconFlagFilled } from '$lib/icons'
   import { createHoverTooltip } from '$lib/utils'
   import { getCategoryConfig } from '$lib/utils/categories'
-  import ScoresCellTooltipContent from './scores-leaderboard-cell-tooltip-content.svelte'
-  import {
-    createScoresDataModel,
-    createScoresGraphDataModel,
-  } from './scores-leaderboard-data-model.svelte'
-  import { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
-  import ScoresLeaderboardBody from './scores-leaderboard-virtual-list.svelte'
-  import ScoresLeaderboardFrame from './scores-leaderboard.svelte'
-  import ScoresToolbar from './scores-page-toolbar.svelte'
-  import { createScoresRouteState } from './scores-page-url-state.svelte'
-  import ScoresScreenshotModal from './scores-screenshot-export-modal.svelte'
-  import type { TooltipData } from './scores-shared-types'
+  import ScoresCellTooltipContent from './scores-cell-tooltip-content.svelte'
+  import { createScoresDataModel, createScoresGraphDataModel } from './scores-data-model.svelte'
+  import ScoresLeaderboardBody from './scores-leaderboard-body.svelte'
+  import ScoresLeaderboardFrame from './scores-leaderboard-frame.svelte'
+  import { createScoresRouteState } from './scores-route-state.svelte'
+  import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
+  import ScoresToolbar from './scores-toolbar.svelte'
+  import { createScoresViewportState } from './scores-viewport-state.svelte'
+  import type { TooltipData } from './types'
 
   const routeState = createScoresRouteState()
   const scoreData = createScoresDataModel({
@@ -25,9 +22,6 @@
   const cellTooltip = createHoverTooltip<TooltipData>()
 
   const challenges = $derived(scoreData.getChallenges(routeState.sortMode))
-  const scoreCellCount = $derived(
-    routeState.viewMode === 'categories' ? scoreData.categoryGroups.length : challenges.length
-  )
   const viewportState = createScoresViewportState({
     entries: () => scoreData.entries,
     total: () => scoreData.total,
@@ -37,7 +31,8 @@
     currentUser: () => scoreData.currentUser,
     showTop3Context: () => routeState.showTop3Context,
     showSelfContext: () => routeState.showSelfContext,
-    cellCount: () => scoreCellCount,
+    cellCount: () =>
+      routeState.viewMode === 'categories' ? scoreData.categoryGroups.length : challenges.length,
     allGraphData: () => scoreData.allGraphData,
     teamRanks: () => scoreData.teamRanks,
     hasNextPage: () => scoreData.leaderboardQuery.hasNextPage,
@@ -166,7 +161,6 @@
       </div>
     {:else}
       <ScoresLeaderboardFrame
-        --score-cell-count={scoreCellCount}
         {scoreData}
         {routeState}
         {viewportState}

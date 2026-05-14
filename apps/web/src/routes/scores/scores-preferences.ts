@@ -1,15 +1,17 @@
-import type { SortMode, ViewMode } from './scores-shared-types'
+import type { SortMode, ViewMode } from './types'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 
-interface ScoresPreferences {
+export interface ScoresPreferences {
   viewMode: ViewMode
   sortMode: SortMode
   showTop3Context: boolean
   showSelfContext: boolean
 }
 
-function parseScoresPreferences(value: unknown): Partial<ScoresPreferences> {
+export function parseScoresPreferences(
+  value: unknown
+): Partial<ScoresPreferences> {
   if (!isRecord(value)) return {}
 
   const prefs: Partial<ScoresPreferences> = {}

@@ -8,6 +8,7 @@
     showRight: boolean
     showSelfRow: boolean
     selfRowPosition?: 'top' | 'bottom'
+    isMinimal: boolean
   }
 
   let {
@@ -17,6 +18,7 @@
     showRight,
     showSelfRow,
     selfRowPosition = 'bottom',
+    isMinimal,
   }: Props = $props()
 
   const selfTop = $derived(showSelfRow && selfRowPosition === 'top')
@@ -24,9 +26,14 @@
   type FadeConfig = { class: string; show: boolean }
 
   const fades = $derived.by((): FadeConfig[] => {
+    if (isMinimal) {
+      return [
+        { class: 'fade-top-minimal', show: showTop },
+        { class: 'fade-bottom-minimal', show: showBottom },
+      ]
+    }
+
     const base: FadeConfig[] = [
-      { class: 'fade-top-minimal', show: showTop },
-      { class: 'fade-bottom-minimal', show: showBottom },
       { class: 'fade-left-header', show: showLeft },
       { class: 'fade-right-header', show: showRight },
       { class: 'fade-top-team', show: showTop },
@@ -48,7 +55,7 @@
   })
 </script>
 
-{#each fades as fade (fade.class)}
+{#each fades as fade}
   <div
     class={cn('fade', fade.class, fade.show ? 'opacity-100' : 'opacity-0')}
     aria-hidden="true"
@@ -62,21 +69,6 @@
     position: absolute;
     z-index: 40;
     transition: opacity 150ms;
-  }
-
-  .fade-left-header,
-  .fade-right-header,
-  .fade-top-team,
-  .fade-bottom-team,
-  .fade-top-content,
-  .fade-bottom-content,
-  .fade-left-content,
-  .fade-right-content,
-  .fade-left-self,
-  .fade-right-self,
-  .fade-left-self-top,
-  .fade-right-self-top {
-    display: none;
   }
 
   .fade-left-header {
@@ -189,27 +181,5 @@
     right: 0;
     height: var(--fade-size);
     background: linear-gradient(to top, var(--background-l0), transparent);
-  }
-
-  @media (min-width: 768px) {
-    .fade-top-minimal,
-    .fade-bottom-minimal {
-      display: none;
-    }
-
-    .fade-left-header,
-    .fade-right-header,
-    .fade-top-team,
-    .fade-bottom-team,
-    .fade-top-content,
-    .fade-bottom-content,
-    .fade-left-content,
-    .fade-right-content,
-    .fade-left-self,
-    .fade-right-self,
-    .fade-left-self-top,
-    .fade-right-self-top {
-      display: block;
-    }
   }
 </style>

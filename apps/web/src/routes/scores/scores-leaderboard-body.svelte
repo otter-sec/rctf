@@ -2,24 +2,24 @@
   import type {
     createScoresDataModel,
     createScoresGraphDataModel,
-  } from './scores-leaderboard-data-model.svelte'
-  import { LOADING_ROW_COUNT, ROW_HEIGHT } from './scores-leaderboard-layout-constants'
-  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
+  } from './scores-data-model.svelte'
+  import { LOADING_ROW_COUNT, ROW_HEIGHT } from './scores-layout-constants'
+  import type { createScoresRouteState } from './scores-route-state.svelte'
   import {
     getSelfSolves,
     getSelfSolveTimes,
     getSelfTeamRowData,
     getTeamRowData,
-  } from './scores-leaderboard-team-row-data'
-  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
-  import type { createScoresRouteState } from './scores-page-url-state.svelte'
+  } from './scores-team-row-data'
+  import ScoresTeamRow from './scores-team-row.svelte'
+  import type { createScoresViewportState } from './scores-viewport-state.svelte'
   import type {
     CategoryGroup,
     ChallengeInfo,
     CurrentUserScoreData,
     ScoreEntry,
     TooltipData,
-  } from './scores-shared-types'
+  } from './types'
 
   type ScoreData = ReturnType<typeof createScoresDataModel>
   type GraphState = ReturnType<typeof createScoresGraphDataModel>
@@ -53,6 +53,7 @@
   const scroll = $derived(viewportState.scroll)
 
   const teamRowProps = $derived({
+    contentWidth: viewportState.contentWidth,
     viewMode: routeState.viewMode,
     sortMode: routeState.sortMode,
     categoryGroups: scoreData.categoryGroups,
@@ -61,6 +62,7 @@
     themeEpoch: viewportState.themeRenderEpoch,
     renderEpoch,
     isScrolling: scroll.isScrolling,
+    isDesktop: viewportState.isDesktop,
     onCellHover,
   })
 
@@ -119,10 +121,13 @@
 {/snippet}
 
 <div
-  class="scores-leaderboard-virtual-list relative contain-[layout_style]"
+  class="relative contain-[layout_style]"
   style:height={scoreData.isLoading
     ? `${LOADING_ROW_COUNT * ROW_HEIGHT}px`
     : `${scroll.totalSize}px`}
+  style:width={viewportState.isDesktop
+    ? `calc(var(--team-column-width) + ${viewportState.contentWidth}px)`
+    : '100%'}
 >
   {#if scoreData.isLoading}
     {#each loadingRows as index (index)}
@@ -169,7 +174,7 @@
 
   <div
     class={[
-      'bg-background-l0 sticky z-20 flex h-(--row-height-full) w-full',
+      'bg-background-l0 sticky z-20 flex h-(--row-height-full)',
       'contain-[layout_style_paint]',
       isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1',
     ]}
@@ -191,9 +196,3 @@
     />
   </div>
 {/if}
-
-<style>
-  .scores-leaderboard-virtual-list {
-    width: 100%;
-  }
-</style>

@@ -1,12 +1,6 @@
 <script lang="ts" module>
-  import { CELL_GAP, CELL_HEIGHT, CELL_WIDTH } from './scores-leaderboard-layout-constants'
-  import type {
-    CategoryGroup,
-    ChallengeInfo,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './scores-shared-types'
+  import { CELL_GAP, CELL_HEIGHT, CELL_WIDTH } from './scores-layout-constants'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
     svg: string

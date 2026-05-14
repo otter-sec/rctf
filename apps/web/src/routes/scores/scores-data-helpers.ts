@@ -18,7 +18,8 @@ import type {
   ScoreEntry,
   ScoreGraphEntry,
   ScoreGraphPoint,
-} from './scores-shared-types'
+  ScreenshotTeamEntry,
+} from './types'
 
 interface ChallengeSource {
   name: string
@@ -38,20 +39,6 @@ interface GraphVisibilityConfig {
   showSelfContext: boolean
   currentUserId: string | null
   teamRanks: Map<string, number>
-}
-
-interface ScreenshotTeamEntry {
-  id: string
-  rank: number
-  name: string
-  avatarUrl: string | null
-  countryCode: string | null
-  statusText: string | null
-  score: number
-  solveCount: number
-  isCurrentUser: boolean
-  color?: string
-  sparklineData?: ScoreGraphPoint[]
 }
 
 export function getChallengesByCategory(
@@ -110,7 +97,7 @@ export function getFocusedEntries(
   return matched.map(m => m.entry)
 }
 
-interface SolvesAndTimesByTeam {
+export interface SolvesAndTimesByTeam {
   solvesByTeam: Map<string, Set<string>>
   solveTimesByTeam: Map<string, Map<string, number>>
 }
@@ -193,7 +180,7 @@ export function getTeamRanks(
   return new Map(entries.map((entry, index) => [entry.id, index + 1]))
 }
 
-function mergeWithSelfGraph<T extends { id: string }>(
+export function mergeWithSelfGraph<T extends { id: string }>(
   data: T[],
   selfData: T | null | undefined
 ): T[] {

@@ -4,7 +4,7 @@
   import { cn } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { mergeProps } from 'bits-ui'
-  import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './scores-shared-types'
+  import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
 
   interface Props {
     viewMode: ViewMode

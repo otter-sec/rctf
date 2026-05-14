@@ -15,8 +15,8 @@
   import { toast } from 'svelte-sonner'
   import ScoresScreenshotPreview, {
     type ScreenshotOptions,
-  } from './scores-screenshot-export-preview.svelte'
-  import type { CategoryGroup } from './scores-shared-types'
+  } from './scores-screenshot-preview.svelte'
+  import type { CategoryGroup } from './types'
 
   interface TeamEntry {
     id: string
