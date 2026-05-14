@@ -1,5 +1,5 @@
 import { codeToHtml } from 'shiki'
-import { latte, mocha } from './shiki-themes'
+import { darkTheme, lightTheme } from './shiki-themes'
 
 const PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
 
@@ -35,7 +35,7 @@ export async function renderDescription(
     if (lang) {
       const rendered = await codeToHtml(code, {
         lang,
-        themes: { light: latte, dark: mocha },
+        themes: { light: lightTheme, dark: darkTheme },
         structure: 'inline',
       })
       parts.push(`<span class="shiki">${rendered}</span>`)

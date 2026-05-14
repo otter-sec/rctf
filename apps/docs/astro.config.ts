@@ -17,7 +17,7 @@ import { ecOptions } from './src/lib/ec-config'
 import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
 import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
 import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
-import { latte, mocha } from './src/lib/shiki-themes'
+import { darkTheme, lightTheme } from './src/lib/shiki-themes'
 import { resolveSiteUrl } from './src/lib/site-url'
 
 export default defineConfig({
@@ -45,11 +45,11 @@ export default defineConfig({
       ],
       rehypeWrapTables,
       rehypeKatex,
-      [rehypeExpressiveCode, { themes: [latte, mocha], ...ecOptions }],
+      [rehypeExpressiveCode, { themes: [lightTheme, darkTheme], ...ecOptions }],
       [
         rehypeShiki,
         {
-          themes: { light: latte, dark: mocha },
+          themes: { light: lightTheme, dark: darkTheme },
           inline: 'tailing-curly-colon',
         },
       ],

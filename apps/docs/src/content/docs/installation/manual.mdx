@@ -62,7 +62,7 @@ divisions:
 
 <Callout variant="tip" title="Generating a token key">
 
-The `tokenKey{:yaml}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
+The `[31mtokenKey[0m{:ansi}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
 
 ```bash title="Terminal"
 openssl rand -base64 32
@@ -79,7 +79,7 @@ You can also set configuration values through environment variables. See [Config
 bun run db:migrate
 ```
 
-Alternatively, set `database.migrate{:yaml}` to `before{:yaml}` in your config to run migrations automatically on startup.
+Alternatively, set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}` in your config to run migrations automatically on startup.
 
 </Step>
 <Step title="Start the development servers">
@@ -113,15 +113,15 @@ The API server listens on the port specified by the `PORT{:sh}` environment vari
 
 ## Scaling with instance types
 
-The `instanceType{:yaml}` configuration option controls which components run in a given process:
+The `[31minstanceType[0m{:ansi}` configuration option controls which components run in a given process:
 
 | Value                  | Behavior                                            |
 | ---------------------- | --------------------------------------------------- |
-| `all{:yaml}` (default) | Runs both the API server and the leaderboard worker |
-| `frontend{:yaml}`      | Runs the API server only                            |
-| `leaderboard{:yaml}`   | Runs the leaderboard computation worker only        |
+| `[32mall[0m{:ansi}` (default) | Runs both the API server and the leaderboard worker |
+| `[32mfrontend[0m{:ansi}`      | Runs the API server only                            |
+| `[32mleaderboard[0m{:ansi}`   | Runs the leaderboard computation worker only        |
 
-This allows horizontal scaling by running separate `frontend{:yaml}` and `leaderboard{:yaml}` instances:
+This allows horizontal scaling by running separate `[32mfrontend[0m{:ansi}` and `[32mleaderboard[0m{:ansi}` instances:
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard'

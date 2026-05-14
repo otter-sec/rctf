@@ -173,7 +173,7 @@
     :where(.inline-shell-cmd.copied .shell-prompt):not(
       :where(.not-prose, .not-prose *)
     ) {
-      @apply text-(--ctp-green);
+      @apply text-(--success);
     }
 
     :where(.inline-path-icon):not(:where(.not-prose, .not-prose *)) {

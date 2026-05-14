@@ -24,10 +24,10 @@ bloodBot:
 
 | Field                 | Type          | Default  | Description                             |
 | --------------------- | ------------- | -------- | --------------------------------------- |
-| `bloodsCount{:yaml}`  | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
-| `destinations{:yaml}` | `array{:ts}`  | -        | At least one destination required       |
+| `[31mbloodsCount[0m{:ansi}`  | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
+| `[31mdestinations[0m{:ansi}` | `array{:ts}`  | -        | At least one destination required       |
 
-Setting `bloodsCount{:yaml}` to `3{:ts}` announces first, second, and third blood. Setting it to `1{:ts}` only announces first blood.
+Setting `[31mbloodsCount[0m{:ansi}` to `3{:ts}` announces first, second, and third blood. Setting it to `1{:ts}` only announces first blood.
 
 ## Message providers
 
@@ -38,7 +38,7 @@ Sends announcements via a Discord webhook.
 
 | Option       | Description         |
 | ------------ | ------------------- |
-| `url{:yaml}` | Discord webhook URL |
+| `[31murl[0m{:ansi}` | Discord webhook URL |
 
 To create a webhook: Server Settings > Integrations > Webhooks > New Webhook. Copy the webhook URL.
 
@@ -49,16 +49,16 @@ Sends announcements via a Telegram bot.
 
 | Option            | Description                                                    |
 | ----------------- | -------------------------------------------------------------- |
-| `botToken{:yaml}` | Telegram bot token (from [@BotFather](https://t.me/BotFather)) |
-| `chatId{:yaml}`   | Target chat or group ID                                        |
-| `threadId{:yaml}` | Message thread ID for forum/topic channels (optional)          |
+| `[31mbotToken[0m{:ansi}` | Telegram bot token (from [@BotFather](https://t.me/BotFather)) |
+| `[31mchatId[0m{:ansi}`   | Target chat or group ID                                        |
+| `[31mthreadId[0m{:ansi}` | Message thread ID for forum/topic channels (optional)          |
 
 </Tab>
 </Tabs>
 
 ## Custom message templates
 
-Each destination can have a custom `messageTemplate{:yaml}`:
+Each destination can have a custom `[31mmessageTemplate[0m{:ansi}`:
 
 ```yaml
 bloodBot:

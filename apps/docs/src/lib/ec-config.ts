@@ -6,7 +6,11 @@ import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 import { pluginOutputSeparator } from './ec-output-separator'
 import { pluginShellPrompt } from './ec-shell-prompt'
 
-const isLatte = (theme: { name: string }) => theme.name === 'catppuccin-latte'
+const isLightTheme = (theme: { name: string }) =>
+  theme.name === 'material-theme-lighter'
+
+const codeBackground = (theme: { name: string }) =>
+  isLightTheme(theme) ? '#fafafa' : '#212121'
 
 export const ecOptionalPlugins = () => [
   pluginCollapsibleSections(),
@@ -30,7 +34,7 @@ export const ecOptions = {
   // tokens away from the inline pills.
   minSyntaxHighlightingColorContrast: 0,
   themeCssSelector: (theme: { name: string }) =>
-    `[data-theme="${isLatte(theme) ? 'light' : 'dark'}"]`,
+    `[data-theme="${isLightTheme(theme) ? 'light' : 'dark'}"]`,
   defaultProps: {
     wrap: true,
     showLineNumbers: true,
@@ -49,18 +53,18 @@ export const ecOptions = {
     borderWidth: '2px',
     codeFontFamily: 'var(--font-mono)',
     codeBackground: ({ theme }: { theme: { name: string } }) =>
-      isLatte(theme) ? 'oklch(96% 0.008 286)' : 'oklch(24% 0.03 284)',
+      codeBackground(theme),
     frames: {
       editorActiveTabForeground: 'var(--muted-foreground)',
       editorActiveTabBackground: ({ theme }: { theme: { name: string } }) =>
-        isLatte(theme) ? 'oklch(96% 0.008 286)' : 'oklch(24% 0.03 284)',
+        codeBackground(theme),
       editorActiveTabIndicatorBottomColor: 'transparent',
       editorActiveTabIndicatorTopColor: 'transparent',
       editorTabBarBackground: 'transparent',
       editorTabBarBorderBottomColor: 'transparent',
       frameBoxShadowCssValue: 'none',
       terminalBackground: ({ theme }: { theme: { name: string } }) =>
-        isLatte(theme) ? 'oklch(96% 0.008 286)' : 'oklch(24% 0.03 284)',
+        codeBackground(theme),
       terminalTitlebarBackground: 'transparent',
       terminalTitlebarBorderBottomColor: 'transparent',
       terminalTitlebarForeground: 'var(--muted-foreground)',
@@ -79,12 +83,16 @@ export const ecOptions = {
       openBorderColor: 'transparent',
     },
     textMarkers: {
-      delBackground: 'color-mix(in oklab, var(--ctp-red) 22%, transparent)',
-      delBorderColor: 'color-mix(in oklab, var(--ctp-red) 65%, transparent)',
-      delDiffIndicatorColor: 'var(--ctp-red)',
-      insBackground: 'color-mix(in oklab, var(--ctp-green) 22%, transparent)',
-      insBorderColor: 'color-mix(in oklab, var(--ctp-green) 65%, transparent)',
-      insDiffIndicatorColor: 'var(--ctp-green)',
+      delBackground:
+        'color-mix(in oklab, var(--diff-deleted) 22%, transparent)',
+      delBorderColor:
+        'color-mix(in oklab, var(--diff-deleted) 65%, transparent)',
+      delDiffIndicatorColor: 'var(--diff-deleted)',
+      insBackground:
+        'color-mix(in oklab, var(--diff-inserted) 22%, transparent)',
+      insBorderColor:
+        'color-mix(in oklab, var(--diff-inserted) 65%, transparent)',
+      insDiffIndicatorColor: 'var(--diff-inserted)',
       markBackground: 'color-mix(in oklab, var(--accent) 12%, transparent)',
       markBorderColor: 'color-mix(in oklab, var(--accent) 50%, transparent)',
     },

@@ -24,7 +24,7 @@ Authenticated actions require a Bearer token in the `Authorization` header:
 Authorization: Bearer <token>
 ```
 
-Tokens are obtained through registration or login. They are encrypted with AES-GCM and use the `tokenKey{:yaml}` from your [configuration](/configuration).
+Tokens are obtained through registration or login. They are encrypted with AES-GCM and use the `[31mtokenKey[0m{:ansi}` from your [configuration](/configuration).
 
 ### Token types
 
@@ -32,12 +32,12 @@ Tokens are obtained through registration or login. They are encrypted with AES-G
 | ----------- | ---------------------------------- | ------------------------------------ |
 | Auth        | Infinite                           | User authentication (login sessions) |
 | Team        | Infinite                           | Team access token (sent on recovery) |
-| Verify      | `loginTimeout{:yaml}` (default 1h) | Email verification and recovery      |
-| CtftimeAuth | `loginTimeout{:yaml}` (default 1h) | CTFtime OAuth flow                   |
+| Verify      | `[31mloginTimeout[0m{:ansi}` (default 1h) | Email verification and recovery      |
+| CtftimeAuth | `[31mloginTimeout[0m{:ansi}` (default 1h) | CTFtime OAuth flow                   |
 
 <Callout variant="note">
 
-Auth and team tokens never expire. Only verification and CTFtime tokens expire according to the `loginTimeout{:yaml}` configuration value.
+Auth and team tokens never expire. Only verification and CTFtime tokens expire according to the `[31mloginTimeout[0m{:ansi}` configuration value.
 
 </Callout>
 ## Response format
@@ -87,4 +87,4 @@ When rate-limited, the response includes the number of milliseconds until the ne
 
 ## Captcha
 
-Actions can optionally require captcha verification. Which actions require captcha is controlled by the `captcha.protectedEndpoints{:yaml}` [configuration](/configuration#captcha). See [Captcha Providers](/providers/captcha) for setup details.
+Actions can optionally require captcha verification. Which actions require captcha is controlled by the `[31mcaptcha.protectedEndpoints[0m{:ansi}` [configuration](/configuration#captcha). See [Captcha Providers](/providers/captcha) for setup details.

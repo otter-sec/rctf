@@ -1,7 +1,7 @@
 ---
 import { codeToHtml } from 'shiki'
 
-import { latte, mocha } from '@/lib/shiki-themes'
+import { darkTheme, lightTheme } from '@/lib/shiki-themes'
 
 interface Props {
   items: string[]
@@ -19,7 +19,7 @@ const renderedItems = await Promise.all(
     const lang = match[1]
     const html = await codeToHtml(code, {
       lang,
-      themes: { light: latte, dark: mocha },
+      themes: { light: lightTheme, dark: darkTheme },
       structure: 'inline',
     })
     return { html: true as const, value: html }

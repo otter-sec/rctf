@@ -2,8 +2,8 @@ import {
   ensureColorContrastOnBackground,
   ExpressiveCodeTheme,
 } from '@expressive-code/core'
-import catppuccinLatteRaw from '@shikijs/themes/catppuccin-latte'
-import catppuccinMochaRaw from '@shikijs/themes/catppuccin-mocha'
+import materialThemeDarkerRaw from '@shikijs/themes/material-theme-darker'
+import materialThemeLighterRaw from '@shikijs/themes/material-theme-lighter'
 
 // Same default Expressive Code uses internally. Pre-adjusting against this
 // once means EC's per-render adjustment is a no-op (already meets contrast),
@@ -54,5 +54,5 @@ function adjusted(raw: unknown): ExpressiveCodeTheme {
   return theme
 }
 
-export const latte = adjusted(catppuccinLatteRaw)
-export const mocha = adjusted(catppuccinMochaRaw)
+export const lightTheme = adjusted(materialThemeLighterRaw)
+export const darkTheme = adjusted(materialThemeDarkerRaw)
