@@ -1,0 +1,275 @@
+---
+title: Admin bot
+description: Configure browser-based admin bot jobs for web challenges.
+---
+
+The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It is meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
+
+<Callout variant="warning" title="Trusted challenge code">
+  Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is available through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
+</Callout>
+
+## Request lifecycle
+
+An admin bot job moves through the platform in this order:
+
+<Steps>
+<Step title="Configure the provider">
+
+The rCTF API is configured with an admin bot provider. The provider points at the browser worker and uses a shared bearer token for service authentication.
+
+</Step>
+<Step title="Save challenge code">
+
+The admin challenge editor sends the TypeScript source to the browser worker's `/v1/test` endpoint. The worker builds the source, validates the exported `Challenge{:ts}`, returns the public input schema, and lets the API store a config revision.
+
+</Step>
+<Step title="Submit a job">
+
+A participant submits values for the configured inputs. The API validates required inputs, regex rules, captcha, rate limit state, active job state, and optional instancer state before queuing the job.
+
+</Step>
+<Step title="Run the browser handler">
+
+The worker polls rCTF for queued jobs, fetches the matching challenge source revision, launches Chrome or Firefox, creates a fresh browser context, runs the handler, stores logs, and reports success or failure.
+
+</Step>
+</Steps>
+
+## Backend configuration
+
+The backend config enables the provider and tells rCTF where the admin bot worker is reachable from the API process:
+
+```yaml title="rctf.d/admin-bot.yaml"
+adminBot:
+  provider:
+    name: admin-bot/rctf-js
+    options:
+      endpoint: http://admin-bot:21337
+      secretKey: <shared-secret>
+  maxLogsPerUserChallenge: 5
+```
+
+`admin-bot/rctf-js{:yaml}` is the built-in provider for TypeScript challenge configs. It accepts provider options from config files or environment variables:
+
+| Field or variable | Purpose |
+| --- | --- |
+| `adminBot.provider.options.endpoint{:yaml}` | Base URL of the admin bot worker from the rCTF API container or process. |
+| `adminBot.provider.options.secretKey{:yaml}` | Bearer token shared between the rCTF API and the admin bot worker. |
+| `RCTF_ADMIN_BOT_ENDPOINT{:sh}` | Environment override for `endpoint{:yaml}`. |
+| `RCTF_ADMIN_BOT_SECRET_KEY{:sh}` | Environment override for `secretKey{:yaml}`. |
+| `adminBot.maxLogsPerUserChallenge{:yaml}` | Number of completed or failed job logs retained per user and challenge. The default is `5{:ts}`. |
+
+The same shared secret must be passed to the worker as `RCTF_SECRET_KEY{:sh}`. The API uses it when validating service routes, and the worker uses it when authenticating back to the API.
+
+Protect participant submissions with captcha by adding the `adminBotSubmit{:yaml}` action:
+
+```yaml title="rctf.d/captcha.yaml"
+captcha:
+  protectedEndpoints:
+    - adminBotSubmit
+```
+
+## Worker service
+
+The worker is a separate Bun service under `apps/admin-bot`. It exposes a protected test endpoint for config validation and polls rCTF for queued jobs.
+
+The bundled deployment files live under `deploy/admin-bot`:
+
+<FileTree>
+  <Dir name="deploy">
+    <Dir name="admin-bot">
+      <File name="compose.yml" comment="Service, volume, tmpfs, and network settings" />
+      <File name=".env.example" comment="Required worker environment variables" />
+      <File name="Dockerfile" comment="Bun runtime and browser dependencies" />
+    </Dir>
+  </Dir>
+</FileTree>
+
+The worker service uses these environment variables:
+
+| Variable | Purpose |
+| --- | --- |
+| `RCTF_BASE_URL{:sh}` | Base URL of the rCTF API from the worker container or process. |
+| `RCTF_SECRET_KEY{:sh}` | Shared bearer token. This must match the provider secret in rCTF config. |
+| `RCTF_EXTRA_HEADERS{:sh}` | JSON object of extra headers added to worker-to-API requests. |
+| `BROWSER_CACHE_DIR{:sh}` | Browser download cache directory. The Docker image defaults to `/data/browser-cache`. |
+| `POLL_INTERVAL_MS{:sh}` | Queue polling interval. The default is `5000{:ts}`. |
+| `PORT{:sh}` | Worker HTTP port. The default is `21337{:ts}`. |
+
+A minimal worker environment looks like this:
+
+```sh title="deploy/admin-bot/.env"
+RCTF_BASE_URL=http://rctf:80
+RCTF_SECRET_KEY=<shared-secret>
+POLL_INTERVAL_MS=5000
+PORT=21337
+```
+
+Run the bundled Compose service from the repository root:
+
+```ansi
+$ [34mdocker[0m compose [2m-f[0m deploy/admin-bot/compose.yml up [2m-d[0m
+```
+
+The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network` network.
+
+<Callout variant="warning" title="Network exposure">
+  Keep the worker reachable only from trusted infrastructure. The `/v1/test` endpoint is bearer-authenticated, but it still builds trusted challenge source. The worker should not be exposed as a public internet service.
+</Callout>
+
+## Challenge source
+
+Admin bot challenge code exports a `Challenge{:ts}` instance. The loader only allows imports that resolve to the admin bot type module, such as `../src/types`, `../types`, `./types`, `./src/types`, `src/types`, and `types`.
+
+This example restricts participant input to one challenge origin, stores the flag in browser local storage for that origin, visits the submitted URL, and records a challenge log line:
+
+```ts title="admin-bot.ts" showLineNumbers=false
+import { Challenge, type ChallengeContext } from '../src/types'
+
+export const challenge = new Challenge({
+  timeoutMilliseconds: 30_000,
+  inputs: {
+    url: { pattern: '^https://challenge\\.example\\.com/.*$' },
+  },
+  hooksConfig: {
+    showConsoleLogs: true,
+    showBrowserErrors: true,
+    showNavigation: true,
+    limitTabsNumber: 2,
+  },
+  handler: async (ctx: ChallengeContext): Promise<void> => {
+    const page = await ctx.browserContext.newPage()
+    await page.goto('https://challenge.example.com/')
+    await page.evaluate(flag => {
+      localStorage.setItem('flag', flag)
+    }, ctx.job.flag)
+
+    ctx.output.info('challenge', 'visiting submitted URL', {
+      url: ctx.input.url,
+    })
+    await page.goto(ctx.input.url!, { waitUntil: 'networkidle2' })
+    await page.close()
+  },
+})
+```
+
+The exported `Challenge{:ts}` is validated when the challenge is saved. Invalid regex patterns, missing exports, and unsupported imports are returned to the admin challenge editor as config errors.
+
+## Challenge config fields
+
+The `Challenge{:ts}` constructor accepts these fields:
+
+| Field | Required | Purpose |
+| --- | --- | --- |
+| `timeoutMilliseconds{:ts}` | Yes | Maximum time the handler may run. The worker fails the job on timeout. |
+| `inputs{:ts}` | Yes | Map of participant input names to regex rules. Input names may be up to `256{:ts}` characters, and submitted values may be up to `1024{:ts}` characters. |
+| `handler{:ts}` | Yes | Async function that receives a `ChallengeContext{:ts}` and drives the browser session. |
+| `hooksConfig{:ts}` | Yes | Browser event logging and tab limit configuration. |
+| `browser{:ts}` | No | Browser engine. The supported values are `chrome{:ts}` and `firefox{:ts}`. The default is `chrome{:ts}`. |
+| `browserVersion{:ts}` | No | Browser build passed to `@puppeteer/browsers`. The default is `stable{:ts}`. |
+| `browserArguments{:ts}` | No | Launch arguments. When set, this replaces the default Chrome arguments. |
+| `puppeteerLaunchOptionsExtra{:ts}` | No | Extra Puppeteer launch options merged into the worker's launch call. |
+| `extraPrefsFirefox{:ts}` | No | Firefox preference overrides. When set, this replaces the default Firefox preferences. |
+| `maxLogLines{:ts}` | No | Number of log lines buffered for this job. The default is `64{:ts}`. |
+| `maxLogValueChars{:ts}` | No | Maximum string length in each log field. The default is `2048{:ts}`. |
+| `restrictDomains{:ts}` | No | PAC-based host and URL allow or deny rules. |
+| `requireInstancerInstancesRunning{:ts}` | No | Requires a running instancer instance before queuing the job and passes displayed endpoints into `ctx.job.instancerInstances{:ts}`. |
+
+By default, Chrome starts with `[2m--no-sandbox[0m{:ansi}`, `[2m--disable-jit[0m{:ansi}`, `[2m--disable-wasm[0m{:ansi}`, and `[2m--disable-dev-shm-usage[0m{:ansi}`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
+
+## Challenge context
+
+The handler receives a `ChallengeContext{:ts}`:
+
+| Field | Purpose |
+| --- | --- |
+| `ctx.logger{:ts}` | Pino logger scoped to the running job. |
+| `ctx.browserContext{:ts}` | Fresh Puppeteer browser context for the job. |
+| `ctx.input{:ts}` | Participant input values after API-side regex validation. |
+| `ctx.output{:ts}` | Structured log writer shown to participants and admins. |
+| `ctx.job{:ts}` | Job metadata, including challenge ID, user ID, config revision, submitted time, flag, and optional instancer endpoints. |
+
+Use `ctx.output.info(){:ts}`, `ctx.output.warn(){:ts}`, `ctx.output.error(){:ts}`, and `ctx.output.fatal(){:ts}` for participant-visible logs:
+
+```ts showLineNumbers=false
+ctx.output.info('challenge', 'visited page', {
+  url: ctx.input.url,
+})
+```
+
+Stored logs are newline-delimited JSON. The API accepts up to `1048576{:ts}` characters of logs per completion or failure report, and older logs are pruned according to `adminBot.maxLogsPerUserChallenge{:yaml}`.
+
+## Browser hooks
+
+`hooksConfig{:ts}` controls automatic browser logging:
+
+| Field | Behavior |
+| --- | --- |
+| `showConsoleLogs{:ts}` | Captures page, service worker, and extension console messages when supported by the browser. |
+| `showBrowserErrors{:ts}` | Captures page errors and failed network requests. |
+| `showNavigation{:ts}` | Captures tab creation, main-frame navigation, service worker creation, and tab close events. |
+| `limitTabsNumber{:ts}` | Closes the browser when too many page targets are opened. Use `-1{:ts}` for no limit and `0{:ts}` to prevent page tabs. |
+
+Chrome supports extension page logging and service worker console logging. Firefox does not support those two hook surfaces in the current worker.
+
+## Domain restrictions
+
+`restrictDomains{:ts}` builds a browser PAC file from regex rules. Host rules run before URL rules, and allow rules run before deny rules within each scope.
+
+Use an allowlist plus a catch-all deny rule for challenges where the bot should only contact the challenge origin:
+
+```ts showLineNumbers=false
+restrictDomains: {
+  host: {
+    allowRegex: [{ pattern: '^challenge\\.example\\.com$' }],
+    disallowRegex: [{ pattern: '.*' }],
+  },
+}
+```
+
+PAC rules match browser host and URL strings. They do not resolve DNS, so a denylist-only rule can miss aliases that resolve to internal IP addresses.
+
+## Instancer integration
+
+`requireInstancerInstancesRunning{:ts}` connects admin bot jobs to challenge instances. The API checks that the user's instance is running and that its remaining lifetime is at least `timeoutMilliseconds{:ts}` before the job is queued.
+
+When the check passes, the handler receives displayed endpoints in `ctx.job.instancerInstances{:ts}`:
+
+```ts showLineNumbers=false
+for (const endpoint of ctx.job.instancerInstances) {
+  ctx.output.info('challenge', 'instance endpoint', endpoint)
+}
+```
+
+The check only happens before queueing. A participant can still stop the instance before the worker reaches the job, so handlers should tolerate failed connections and report a clear log message.
+
+## Participant behavior
+
+Released challenges expose `adminBotInputs{:ts}` in the public challenge list. The challenge page renders one field per configured input.
+
+The participant-side API uses these endpoints:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/config` | Returns source code and file extension for the released challenge config. |
+| `POST{:http}` | `/api/v2/integrations/challs/:id/admin-bot` | Validates inputs and queues a job. |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/status` | Returns the latest job, logs when present, and queue position while queued. |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/history` | Returns completed and failed jobs retained for the current user. |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs` | Returns stored logs for one retained job. |
+
+Each user may have one queued or running admin bot job per challenge. Submissions are rate-limited to one request per ten seconds per user and challenge.
+
+## Service API
+
+The worker uses the service-authenticated admin API:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/pull` | Claims the oldest queued job. |
+| `GET{:http}` | `/api/v2/admin/admin-bot/challenges/:id/source` | Fetches challenge source for the claimed revision. |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/complete` | Marks a running job as completed and stores logs. |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/fail` | Marks a running job as failed and stores logs. |
+| `GET{:http}` | `/api/v2/admin/admin-bot/queue-depth` | Returns the number of queued jobs. |
+
+Each worker process runs one job at a time. Multiple worker processes can poll the same API when more browser throughput is needed.

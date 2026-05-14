@@ -7,6 +7,7 @@ export default {
     index: { label: 'Overview', order: 0 },
     ctftime: { label: 'CTFtime', order: 1 },
     instancer: { label: 'Instancer', order: 2 },
-    bloodbot: { label: 'Blood bot', order: 3 },
+    'admin-bot': { label: 'Admin bot', order: 3 },
+    bloodbot: { label: 'Blood bot', order: 4 },
   },
 } satisfies MetaFile
