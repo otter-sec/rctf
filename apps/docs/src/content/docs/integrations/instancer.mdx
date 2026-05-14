@@ -3,107 +3,423 @@ title: Instancer
 description: Configure per-team challenge instances with Docker or Kubernetes.
 ---
 
-The instancer integration provides per-team challenge instances — isolated environments that are created, managed, and cleaned up automatically. This is essential for challenges where teams need their own running service (e.g., pwn, web exploitation).
+The instancer integration creates one isolated challenge service per team. rCTF owns the user-facing lifecycle, while an instancer provider owns the compute backend that creates, reads, extends, and deletes the running instance.
 
-## Configuration
+Instanced challenges are useful when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
 
-Set up the instancer provider in your configuration:
+<Callout variant="warning" title="Hostile workloads">
+  Treat challenge images as hostile. Set resource limits, keep containers or pods unprivileged, and avoid mounting host paths unless the challenge explicitly needs them.
+</Callout>
+
+## Architecture
+
+The instancer path has three layers:
+
+<Steps>
+<Step title="Select a provider">
+
+The rCTF API loads `[31minstancerProvider[0m{:ansi}` from `rctf.d/`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations.
+
+</Step>
+<Step title="Configure a challenge">
+
+Each instanced challenge stores `[31minstancerConfig[0m{:ansi}` in challenge data. The common fields define the stable challenge integration ID, timeout, exposed endpoints, and provider-specific config.
+
+</Step>
+<Step title="Run participant instances">
+
+Participants create, extend, inspect, and delete their instance from the challenge page. rCTF returns provider status and endpoints in the same order as the challenge's `[31mexpose[0m{:ansi}` array.
+
+</Step>
+</Steps>
+
+## Provider configuration
+
+The `[31minstancerProvider[0m{:ansi}` config selects one provider in `rctf.d/`:
+
+<Tabs items={['Docker', 'Kubernetes']}>
+<Tab>
+
+`[32minstancer/docker-instancer[0m{:ansi}` talks to the bundled Docker instancer or any compatible tiny-instancer API:
 
 ```yaml title="rctf.d/instancer.yaml"
 instancerProvider:
   name: instancer/docker-instancer
   options:
-    apiUrl: http://localhost:8000
-    authToken: your-secret-token
+    apiUrl: http://tiny-instancer:1337
+    authToken: <shared-secret>
 ```
 
-## Providers
-
-<Tabs items={['instancer/docker-instancer', 'instancer/k8s-instancer']}>
-<Tab>
-
-Uses [tiny-instancer](https://github.com/otter-sec/tiny-instancer) or a compatible Docker-based instancer API.
-
-```yaml
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://localhost:8000
-    authToken: your-auth-token
-```
-
-| Option             | Environment Variable             | Description          |
-| ------------------ | -------------------------------- | -------------------- |
-| `[31mapiUrl[0m{:ansi}`    | `TINY_INSTANCER_API_URL{:sh}`    | Instancer API URL    |
-| `[31mauthToken[0m{:ansi}` | `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Authentication token |
+| Field or variable | Purpose |
+| --- | --- |
+| `[31minstancerProvider.options.apiUrl[0m{:ansi}` | Base URL of the Docker instancer API from the rCTF API process. |
+| `[31minstancerProvider.options.authToken[0m{:ansi}` | Shared token sent as `[31mrctfAuthToken[0m{:ansi}` in lifecycle requests. |
+| `TINY_INSTANCER_API_URL{:sh}` | Environment override for `[31mapiUrl[0m{:ansi}`. |
+| `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `[31mauthToken[0m{:ansi}`. |
 
 </Tab>
 <Tab>
 
-Uses Kubernetes for instance management, creating ChallengeInstance custom resources.
+`[32minstancer/k8s-instancer[0m{:ansi}` creates cluster-scoped `ChallengeInstance` custom resources:
 
-```yaml
+```yaml title="rctf.d/instancer.yaml"
 instancerProvider:
   name: instancer/k8s-instancer
   options:
-    apiUrl: https://k8s-instancer.example.com
-    authToken: your-auth-token
+    apiUrl: https://k8s.example.com
+    authToken: <service-account-token>
     caCertificate: |
       -----BEGIN CERTIFICATE-----
       ...
       -----END CERTIFICATE-----
 ```
 
-| Option                 | Environment Variable                | Description                   |
-| ---------------------- | ----------------------------------- | ----------------------------- |
-| `[31mapiUrl[0m{:ansi}`        | `K8S_INSTANCER_API_URL{:sh}`        | K8s instancer API URL         |
-| `[31mauthToken[0m{:ansi}`     | `K8S_INSTANCER_AUTH_TOKEN{:sh}`     | Authentication token          |
-| `[31mcaCertificate[0m{:ansi}` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | TLS CA certificate (optional) |
+| Field or variable | Purpose |
+| --- | --- |
+| `[31minstancerProvider.options.apiUrl[0m{:ansi}` | Kubernetes API server URL. |
+| `[31minstancerProvider.options.authToken[0m{:ansi}` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
+| `[31minstancerProvider.options.caCertificate[0m{:ansi}` | Kubernetes API CA certificate. This is required by the provider. |
+| `K8S_INSTANCER_API_URL{:sh}` | Environment override for `[31mapiUrl[0m{:ansi}`. |
+| `K8S_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `[31mauthToken[0m{:ansi}`. |
+| `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `[31mcaCertificate[0m{:ansi}`. |
 
 </Tab>
 </Tabs>
 
 ## Challenge configuration
 
-Each challenge that uses the instancer needs an `[31minstancerConfig[0m{:ansi}` in its challenge data. This is set through the admin challenge editor.
+Each instanced challenge needs `[31minstancerConfig[0m{:ansi}`:
 
-Key fields in `[31minstancerConfig[0m{:ansi}`:
+```yaml title="challenge.yaml"
+instancerConfig:
+  challengeIntegrationId: web-demo
+  timeoutMilliseconds: 600000
+  extendable: true
+  config:
+    # Provider-specific config.
+  expose:
+    - kind: https
+      hostPrefix: web-demo
+      containerName: app
+      containerPort: 8080
+      shouldDisplay: true
+      title: Challenge
+```
 
-| Field                        | Description                                                                |
-| ---------------------------- | -------------------------------------------------------------------------- |
-| `[31mconfig[0m{:ansi}`              | Provider-specific instance configuration (Docker compose-like or K8s spec) |
-| `[31mexpose[0m{:ansi}`              | Array of endpoints to expose to participants                               |
-| `[31mtimeoutMilliseconds[0m{:ansi}` | Instance lifetime before automatic cleanup                                 |
-| `[31mextendable[0m{:ansi}`          | Whether participants can extend the instance lifetime                      |
+| Field | Purpose |
+| --- | --- |
+| `[31mchallengeIntegrationId[0m{:ansi}` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. It should stay stable after launch. |
+| `[31mtimeoutMilliseconds[0m{:ansi}` | Instance lifetime for create and extend operations. |
+| `[31mextendable[0m{:ansi}` | Enables participant-initiated extension when set to `true{:ts}`. |
+| `[31mconfig[0m{:ansi}` | Provider-specific service or pod configuration. |
+| `[31mexpose[0m{:ansi}` | Public endpoints rCTF should display or keep hidden for internal routing. |
 
-### Endpoint exposure
+The `[31mexpose[0m{:ansi}` entries map public endpoints to a service container or pod:
 
-The `[31mexpose[0m{:ansi}` array controls which ports and services are visible to participants:
+| Field | Purpose |
+| --- | --- |
+| `[31mkind[0m{:ansi}` | Endpoint kind. The values are `[32mhttp[0m{:ansi}`, `[32mhttps[0m{:ansi}`, `[32mtcp[0m{:ansi}`, and `[32mtcp-ssl[0m{:ansi}`. |
+| `[31mhostPrefix[0m{:ansi}` | Prefix used when generating the per-instance hostname. |
+| `[31mcontainerName[0m{:ansi}` | Docker service name or Kubernetes pod name receiving traffic. |
+| `[31mcontainerPort[0m{:ansi}` | Port inside the service container or Kubernetes service. |
+| `[31mshouldDisplay[0m{:ansi}` | Controls whether the endpoint is shown to participants. Hidden endpoints still exist. |
+| `[31mtitle[0m{:ansi}` | Optional display label. |
 
-| Field                  | Description                                       |
-| ---------------------- | ------------------------------------------------- |
-| `[31mkind[0m{:ansi}`          | Endpoint type (e.g., `[32mtcp[0m{:ansi}`, `[32mhttp[0m{:ansi}`) |
-| `[31mhostPrefix[0m{:ansi}`    | Prefix for the endpoint URL                       |
-| `[31mcontainerName[0m{:ansi}` | Name of the container exposing the port           |
-| `[31mcontainerPort[0m{:ansi}` | Port number inside the container                  |
-| `[31mshouldDisplay[0m{:ansi}` | Whether this endpoint is shown to participants    |
-| `[31mtitle[0m{:ansi}`         | Display label for the endpoint                    |
+## Endpoint kinds
 
-Only endpoints with `[31mshouldDisplay[0m{:ansi}` set to `true{:ts}` are shown to participants. This allows internal service ports to remain hidden.
+Endpoint support is provider-specific:
 
-## Instance lifecycle
+| Kind | Docker behavior | Kubernetes behavior |
+| --- | --- | --- |
+| `[32mhttp[0m{:ansi}` | Traefik HTTP router on the configured HTTP port. The default is `80{:ts}`. | Traefik `IngressRoute` on the `web` entrypoint. The public port is `80{:ts}`. |
+| `[32mhttps[0m{:ansi}` | Traefik HTTPS router on the configured HTTPS port. The default is `443{:ts}`. | Traefik `IngressRoute` on the `websecure` entrypoint plus an HTTP redirect route. The public port is `443{:ts}`. |
+| `[32mtcp[0m{:ansi}` | Rewritten to `[32mtcp-ssl[0m{:ansi}` because Traefik needs SNI routing. | Returned as `unsupported-by-instancer` with port `0{:ts}`. Kubernetes configs should use `[32mtcp-ssl[0m{:ansi}`. |
+| `[32mtcp-ssl[0m{:ansi}` | Traefik TCP router with TLS and HostSNI on the configured TCP port. The default is `1337{:ts}`. | Traefik `IngressRouteTCP` with TLS and HostSNI on port `1337{:ts}`. |
 
-Participants can manage their instances through the platform:
+## Docker instancer
 
-| Action | Description                                           |
-| ------ | ----------------------------------------------------- |
-| Create | Start a new instance for the challenge                |
-| Status | Check instance status and connection endpoints        |
-| Extend | Extend instance lifetime (if the challenge allows it) |
-| Delete | Manually stop an instance                             |
+The Docker instancer is a Python FastAPI service that manages Docker containers, Docker networks, Docker volumes, Redis instance locks, Redis expirations, and Traefik labels.
 
-The create and extend actions can be protected with captcha (see [Captcha Providers](/providers/captcha)). Use `[32minstancerStart[0m{:ansi}` and `[32minstancerExtend[0m{:ansi}` in `[31mprotectedEndpoints[0m{:ansi}`.
+The bundled deployment files live under `deploy/docker-instancer`:
 
-## Instancer config schema
+<FileTree>
+  <Dir name="deploy">
+    <Dir name="docker-instancer">
+      <File name="compose.yml" comment="Traefik, Redis, and tiny-instancer service" />
+      <File name=".env.example" comment="Required environment variables" />
+      <File name="Dockerfile" comment="Python 3.14 runtime image" />
+      <Dir name="conf" comment="Traefik static and dynamic config" />
+      <Dir name="certs" comment="TLS certificate mount point" />
+    </Dir>
+  </Dir>
+</FileTree>
 
-Admins can retrieve the provider-specific configuration JSON schema through the admin panel. This is useful for understanding the expected format when configuring challenge instances.
+The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The instancer API itself is bound to `127.0.0.1:12237` on the host and to `tiny-instancer:1337` inside the `rctf_network` Docker network.
+
+The environment file requires shared auth, Redis, and public instance host settings:
+
+```sh title="deploy/docker-instancer/.env"
+DEV_ENV=false
+BIND_PORT=1337
+WEB_WORKERS=1
+USE_PROXY_HEADERS=true
+
+AUTH_TOKEN=<shared-secret>
+INSTANCES_HOST=instancer.example.com
+
+REDIS_HOST=cache
+REDIS_PORT_NUMBER=6379
+REDIS_PASSWORD=<redis-password>
+
+TRAEFIK_PERMANENT_REDIRECT_MIDDLEWARE_NAME=permanent-https-redirect@file
+```
+
+The Docker instancer stack starts from the repository root:
+
+```ansi
+$ [34mdocker[0m compose [2m-f[0m deploy/docker-instancer/compose.yml up [2m-d[0m
+```
+
+The same token belongs in rCTF:
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://tiny-instancer:1337
+    authToken: <shared-secret>
+```
+
+When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL is:
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://127.0.0.1:12237
+    authToken: <shared-secret>
+```
+
+The Traefik TLS config expects these files:
+
+<FileTree>
+  <Dir name="deploy">
+    <Dir name="docker-instancer">
+      <Dir name="certs">
+        <File name="fullchain.pem" comment="Certificate chain" />
+        <File name="privkey.pem" comment="Private key" />
+      </Dir>
+    </Dir>
+  </Dir>
+</FileTree>
+
+### Docker challenge config
+
+The Docker provider accepts a Docker Compose-like object under `[31mconfig[0m{:ansi}`:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  challengeIntegrationId: web-demo
+  timeoutMilliseconds: 600000
+  extendable: true
+  config:
+    services:
+      app:
+        image: ghcr.io/example/web-demo:latest
+        environment:
+          FLAG: flag{example}
+        networks:
+          - internal
+        expose:
+          - '8080'
+        read_only: true
+        mem_limit: 128m
+        cpus: 0.5
+        pids_limit: 128
+    networks:
+      internal:
+        internal: true
+  expose:
+    - kind: https
+      hostPrefix: web-demo
+      containerName: app
+      containerPort: 8080
+      title: Challenge
+```
+
+The top-level Docker config supports `[31mservices[0m{:ansi}`, `[31mnetworks[0m{:ansi}`, and `[31mvolumes[0m{:ansi}`. At least one service is required after defaults are applied.
+
+Each service supports these field groups:
+
+| Fields | Purpose |
+| --- | --- |
+| `[31mimage[0m{:ansi}` | Docker image. This is required for each explicit service. |
+| `[31mhostname[0m{:ansi}`, `[31menvironment[0m{:ansi}`, `[31mcommand[0m{:ansi}`, `[31mentrypoint[0m{:ansi}`, `[31mworking_dir[0m{:ansi}`, `[31muser[0m{:ansi}` | Process and runtime metadata. |
+| `[31mnetworks[0m{:ansi}`, `[31mnetwork_mode[0m{:ansi}`, `[31mdns[0m{:ansi}`, `[31mdns_opt[0m{:ansi}`, `[31mdns_search[0m{:ansi}`, `[31mextra_hosts[0m{:ansi}`, `[31mexpose[0m{:ansi}` | Network configuration. |
+| `[31mvolumes[0m{:ansi}`, `[31mtmpfs[0m{:ansi}`, `[31mshm_size[0m{:ansi}`, `[31mread_only[0m{:ansi}` | Filesystem configuration. |
+| `[31mprivileged[0m{:ansi}`, `[31msecurity_opt[0m{:ansi}`, `[31mcap_add[0m{:ansi}`, `[31mcap_drop[0m{:ansi}` | Container privilege controls. |
+| `[31mmem_limit[0m{:ansi}`, `[31mcpus[0m{:ansi}`, `[31mpids_limit[0m{:ansi}`, `[31mulimits[0m{:ansi}`, `[31msysctls[0m{:ansi}` | Resource and kernel limits. |
+| `[31mhealthcheck[0m{:ansi}`, `[31mlabels[0m{:ansi}`, `[31mrestart[0m{:ansi}` | Health, metadata, and restart behavior. |
+
+Explicit services default to a read-only root filesystem, `[32mno-new-privileges[0m{:ansi}`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `64` PIDs, and `nofile` soft and hard limits of `1024`.
+
+Services may only reference networks declared under `[31mconfig.networks[0m{:ansi}`. Named volume mounts may only reference volumes declared under `[31mconfig.volumes[0m{:ansi}`. Absolute and relative bind-style mount sources are not checked against the volume map.
+
+## Kubernetes instancer
+
+The Kubernetes provider creates `ChallengeInstance` custom resources. The controller watches those resources and creates a namespace, network policies, deployments, services, and Traefik routes for each participant instance.
+
+The controller creates namespaces named from the challenge integration ID and team ID:
+
+```text
+inst-<challenge-integration-id>-<team-id>
+```
+
+Each namespace is deleted when the `ChallengeInstance` expires or is deleted. The controller uses a finalizer so the namespace is removed before the custom resource disappears.
+
+### Kubernetes deployment
+
+The Terraform example under `deploy/terraform/instancer/example` provisions the expected GKE, Traefik, controller, DNS, certificate, and rCTF service-account pieces.
+
+The Kubernetes module reads a generated controller installer from `apps/k8s-controller/dist/install.yaml`. Build and push the controller image, then generate the installer:
+
+```ansi
+$ [34mcd[0m apps/k8s-controller
+$ [34mmake[0m build-installer IMG=registry.example.com/rctf-instancer-controller:tag
+```
+
+The Terraform example applies from `deploy/terraform/instancer/example`:
+
+```ansi
+$ [34mterraform[0m init
+$ [34mterraform[0m apply
+```
+
+The Terraform outputs map directly to the rCTF provider config:
+
+| Terraform output | rCTF option |
+| --- | --- |
+| `rctf_instancer_api_url` | `[31mapiUrl[0m{:ansi}` |
+| `rctf_instancer_auth_token` | `[31mauthToken[0m{:ansi}` |
+| `rctf_instancer_ca_certificate` | `[31mcaCertificate[0m{:ansi}` |
+
+For local controller development, the controller README uses Kind:
+
+```ansi
+$ [34mkind[0m create cluster [2m--name[0m rctf [2m--config[0m kind-config.yaml
+$ [34mmake[0m install
+$ [34mmake[0m run ARGS="[2m-instancer-host[0m instancer.test"
+```
+
+### Kubernetes challenge config
+
+Kubernetes challenge config uses `[31mpods[0m{:ansi}` under the provider-specific `[31mconfig[0m{:ansi}` object:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  challengeIntegrationId: web-demo
+  timeoutMilliseconds: 600000
+  extendable: true
+  config:
+    pods:
+      - name: app
+        egress: false
+        ports:
+          - name: http
+            port: 80
+            targetPort: 8080
+        spec:
+          automountServiceAccountToken: false
+          containers:
+            - name: app
+              image: ghcr.io/example/web-demo:latest
+              env:
+                - name: FLAG
+                  value: flag{example}
+              ports:
+                - containerPort: 8080
+              resources:
+                requests:
+                  memory: 100Mi
+                  cpu: 75m
+                limits:
+                  memory: 250Mi
+                  cpu: 100m
+              securityContext:
+                runAsNonRoot: true
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+  expose:
+    - kind: https
+      hostPrefix: web-demo
+      containerName: app
+      containerPort: 80
+      title: Challenge
+```
+
+Each `[31mpods[][0m{:ansi}` item has these fields:
+
+| Field | Purpose |
+| --- | --- |
+| `[31mname[0m{:ansi}` | Name used for the Deployment and Service. `[31mexpose[].containerName[0m{:ansi}` must match this value. |
+| `[31mports[0m{:ansi}` | Kubernetes Service ports. These are not container ports. |
+| `[31mspec[0m{:ansi}` | Kubernetes PodSpec used as the Deployment template. |
+| `[31megress[0m{:ansi}` | Enables outbound public internet egress for this pod when set to `true{:ts}`. |
+
+The provider validates a focused subset of the Kubernetes PodSpec. Containers support image, command, args, working directory, ports, env, resources, restart policy, volume mounts, liveness and readiness probes, image pull policy, and security context. Pod specs support volumes, init containers, restart policy, termination grace period, service account token mounting, pod security context, hostname, DNS config, and resources.
+
+### Kubernetes networking
+
+The controller creates these network policies for every instance namespace:
+
+| Policy | Behavior |
+| --- | --- |
+| `isolate-namespace` | Allows pod traffic inside the instance namespace and DNS egress to `kube-system`. |
+| `ingress-traefik` | Allows Traefik in the `traefik` namespace to reach exposed pods. |
+| `egress` | Allows pods labeled for egress to reach public IPv4 addresses. Private, CGNAT, and link-local ranges are excluded. |
+
+The `[31megress[0m{:ansi}` flag is per pod. Challenges that should not reach the internet should keep it `false{:ts}`.
+
+## Lifecycle and API behavior
+
+Participant lifecycle routes are under `/api/v2/integrations/challs/:id/instance`:
+
+| Method | Action |
+| --- | --- |
+| `GET{:http}` | Returns current status, time left, and endpoints. |
+| `PUT{:http}` | Creates an instance. |
+| `PATCH{:http}` | Extends an instance when the challenge is extendable. |
+| `DELETE{:http}` | Stops an instance. |
+
+The returned status is one of `[32mstopped[0m{:ansi}`, `[32mstarting[0m{:ansi}`, `[32mrunning[0m{:ansi}`, `[32mstopping[0m{:ansi}`, or `[32merrored[0m{:ansi}`. Docker returns `[32mstopping[0m{:ansi}` only through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
+
+Captcha can protect create and extend actions:
+
+```yaml title="rctf.d/captcha.yaml"
+captcha:
+  protectedEndpoints:
+    - instancerStart
+    - instancerExtend
+```
+
+## Schema and troubleshooting
+
+Admins can retrieve the active provider's JSON schema from:
+
+```text
+/api/v2/admin/instancer/schema
+```
+
+The schema is useful for challenge import tools and generated challenge data validation.
+
+Common checks:
+
+- A `[32mbadEndpoint[0m{:ansi}` response means no instancer provider is configured.
+- A `[32mbadInstancerConfig[0m{:ansi}` response means the challenge config failed provider validation.
+- A Docker `[32mtcp[0m{:ansi}` expose becomes `[32mtcp-ssl[0m{:ansi}` because raw TCP cannot be SNI-routed by host.
+- A Kubernetes `[32mtcp[0m{:ansi}` expose is currently unsupported. The configured kind should be `[32mtcp-ssl[0m{:ansi}`.
+- Kubernetes requires `[31mcaCertificate[0m{:ansi}` even when the API server certificate is otherwise trusted by the host.
+- The admin bot `[31mrequireInstancerInstancesRunning[0m{:ansi}` check only confirms an instance is running before queueing the job. Challenge handlers should still tolerate a stopped or expired instance.
