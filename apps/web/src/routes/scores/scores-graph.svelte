@@ -89,10 +89,6 @@
   const startTime = $derived(clientConfig?.startTime ?? 0)
   const endTime = $derived(clientConfig?.endTime ?? Number.MAX_SAFE_INTEGER)
 
-  const xDomain = $derived<[number, number] | undefined>(
-    clientConfig ? [startTime, endTime] : undefined
-  )
-
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
     const rawTop3 =
@@ -190,6 +186,16 @@
   })
 
   const { flatPoints, teamMeta } = $derived(processedData)
+
+  const xDomain = $derived.by<[number, number] | undefined>(() => {
+    if (!clientConfig || flatPoints.length === 0) return undefined
+    let maxFilteredTime = -Infinity
+    for (const p of flatPoints) {
+      if (p.time > maxFilteredTime) maxFilteredTime = p.time
+    }
+    return [startTime, Math.min(endTime, maxFilteredTime)]
+  })
+
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
   const useMinutesFormat = $derived.by(() => {
