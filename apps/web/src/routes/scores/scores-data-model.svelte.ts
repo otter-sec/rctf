@@ -48,6 +48,8 @@ interface ScoresGraphDataConfig {
 
 export function createScoresDataModel(config: ScoresDataModelConfig) {
   const clientConfigQuery = useClientConfig()
+  const search = $derived(config.search())
+  const focusedChallengeId = $derived(config.focusedChallengeId())
   const divisions = $derived(clientConfigQuery.data?.divisions ?? {})
   const division = $derived.by((): string | undefined => {
     const value = config.division()
@@ -57,7 +59,7 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   const leaderboardQuery = useInfiniteLeaderboardWithGraph(() => ({
     pageSize: LEADERBOARD_PAGE_SIZE,
     division,
-    search: config.search(),
+    search,
   }))
   const challengesQuery = useLeaderboardChallenges()
   const userQuery = useCurrentUser()
@@ -68,9 +70,7 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   const originalRankByTeam = $derived(getOriginalRankByTeam(rawEntries))
   const currentUser = $derived(userQuery.data)
   const challengesData = $derived(challengesQuery.data ?? {})
-  const entries = $derived(
-    getFocusedEntries(rawEntries, config.focusedChallengeId())
-  )
+  const entries = $derived(getFocusedEntries(rawEntries, focusedChallengeId))
   const allGraphData = $derived(
     leaderboardQuery.data?.pages.flatMap(page => page.graph) ?? []
   )
@@ -102,14 +102,14 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     getTeamRanks(
       entries,
       originalRankByTeam,
-      config.search(),
-      config.focusedChallengeId()
+      search,
+      focusedChallengeId
     )
   )
 
   $effect(() => {
     if (
-      config.focusedChallengeId() &&
+      focusedChallengeId &&
       leaderboardQuery.hasNextPage &&
       !leaderboardQuery.isFetchingNextPage
     ) {
@@ -125,7 +125,6 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     clientConfigQuery,
     leaderboardQuery,
     challengesQuery,
-    userQuery,
     get divisions() {
       return divisions
     },
@@ -214,7 +213,6 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
   )
 
   return {
-    selfGraphQuery,
     get sparklineDataByTeam() {
       return sparklineDataByTeam
     },

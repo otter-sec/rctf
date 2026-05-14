@@ -7,8 +7,6 @@ import {
 } from './scores-preferences'
 import {
   getActiveSearch,
-  MIN_SEARCH_LENGTH,
-  SCORES_GOTO_OPTIONS,
   withFocusedChallenge,
   withScoresDivision,
   withScoresSearch,
@@ -18,17 +16,18 @@ import {
 import type { SortMode, ViewMode } from './types'
 
 const SEARCH_DEBOUNCE_MS = 400
+const SCORES_GOTO_OPTIONS = {
+  replaceState: true,
+  keepFocus: true,
+  noScroll: true,
+} as const
 
 export function createScoresRouteState() {
   const savedPrefs = loadScoresPreferences()
   const initialSearch = pageState.url.searchParams.get('search')
   let hasInteracted = $state(false)
   let searchInput = $state(initialSearch ?? '')
-  let search = $state<string | undefined>(
-    initialSearch && initialSearch.length >= MIN_SEARCH_LENGTH
-      ? initialSearch
-      : undefined
-  )
+  let search = $state<string | undefined>(getActiveSearch(initialSearch ?? ''))
   let searchTimer: number | undefined
   let showTop3Context = $state(savedPrefs.showTop3Context ?? true)
   let showSelfContext = $state(savedPrefs.showSelfContext ?? true)

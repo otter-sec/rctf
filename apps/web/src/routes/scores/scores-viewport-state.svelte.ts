@@ -4,12 +4,7 @@ import {
   getEmptyGraphVisibility,
   getGraphVisibility,
 } from './scores-data-helpers'
-import {
-  CELL_WIDTH,
-  DIAGONAL_OVERFLOW,
-  ROW_GAP,
-  ROW_HEIGHT,
-} from './scores-layout-constants'
+import { ROW_HEIGHT } from './scores-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
@@ -46,7 +41,7 @@ interface ScoresViewportGraphConfig {
 }
 
 export function createScoresViewportState(config: ScoresViewportStateConfig) {
-  const media = createScoresMediaState()
+  const theme = createScoresThemeState()
   const header = createScoresHeaderMeasurementState()
   const fades = createScoresFadeState()
   let scrollMetrics = $state<ScrollMetrics | null>(null)
@@ -104,26 +99,19 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     return 'bottom'
   })
 
-  const contentWidth = $derived(
-    config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
-  )
   const graph = createScoresViewportGraphState({
     config,
     scroll,
     viewportVisibility: () => viewportVisibility,
   })
-  const scrollbarYPadding = $derived(
-    getScrollbarYPadding(showSelfRow, selfRowPosition, media.isDesktop)
-  )
   const fadeRefreshKey = $derived({
-    contentWidth,
     listScrollMargin: header.listScrollMargin,
     showSelfRow,
     selfRowPosition,
-    isDesktop: media.isDesktop,
     isLoading: config.isLoading(),
     focusedChallengeId: config.focusedChallengeId(),
     entryCount: config.entries().length,
+    cellCount: config.cellCount(),
   })
 
   createLayoutFadeRefresher(scroll, fades, () => fadeRefreshKey)
@@ -132,10 +120,7 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
   return {
     scroll,
     get themeRenderEpoch() {
-      return media.themeRenderEpoch
-    },
-    get isDesktop() {
-      return media.isDesktop
+      return theme.themeRenderEpoch
     },
     get listScrollMargin() {
       return header.listScrollMargin
@@ -158,29 +143,17 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     set headerRowRef(value: HTMLElement | null) {
       header.headerRowRef = value
     },
-    get userEntryIndex() {
-      return userEntryIndex
-    },
-    get viewportVisibility() {
-      return viewportVisibility
-    },
     get showSelfRow() {
       return showSelfRow
     },
     get selfRowPosition() {
       return selfRowPosition
     },
-    get contentWidth() {
-      return contentWidth
-    },
     get visibleGraphData() {
       return graph.visibleGraphData
     },
     get contextTeamIds() {
       return graph.contextTeamIds
-    },
-    get scrollbarYPadding() {
-      return scrollbarYPadding
     },
   }
 }
@@ -225,19 +198,11 @@ function createScoresViewportGraphState({
   }
 }
 
-function createScoresMediaState() {
+function createScoresThemeState() {
   let themeRenderEpoch = $state(0)
-  let isDesktop = $state(true)
 
   onMount(() => {
-    const mqlDesktop = window.matchMedia('(min-width: 768px)')
     const root = document.documentElement
-
-    const updateDesktop = () => (isDesktop = mqlDesktop.matches)
-
-    updateDesktop()
-
-    mqlDesktop.addEventListener('change', updateDesktop)
 
     const themeObserver = new MutationObserver(mutations => {
       for (const mutation of mutations) {
@@ -256,7 +221,6 @@ function createScoresMediaState() {
     })
 
     return () => {
-      mqlDesktop.removeEventListener('change', updateDesktop)
       themeObserver.disconnect()
     }
   })
@@ -264,9 +228,6 @@ function createScoresMediaState() {
   return {
     get themeRenderEpoch() {
       return themeRenderEpoch
-    },
-    get isDesktop() {
-      return isDesktop
     },
   }
 }
@@ -537,22 +498,6 @@ function getUserVisibility(
     userVisible: itemTop >= viewportTop && itemBottom <= viewportBottom,
     userClippedTop: itemTop < viewportTop,
   }
-}
-
-function getScrollbarYPadding(
-  showSelfRow: boolean,
-  selfRowPosition: SelfRowPosition,
-  isDesktop: boolean
-): string {
-  const selfRowPb = 'pb-[calc(var(--row-height-full)+var(--row-gap))]'
-  const selfRowPt = isDesktop
-    ? 'pt-[calc(var(--header-height)+var(--row-height-full)+var(--row-gap))]'
-    : 'pt-[calc(var(--row-height-full)+var(--row-gap))]'
-
-  if (showSelfRow && selfRowPosition === 'top') return `${selfRowPt} pb-1`
-  if (showSelfRow)
-    return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
-  return `${isDesktop ? 'pt-(--header-height)' : ''} pb-1`
 }
 
 function getTotalCount(

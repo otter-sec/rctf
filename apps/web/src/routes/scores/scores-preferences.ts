@@ -2,16 +2,14 @@ import type { SortMode, ViewMode } from './types'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 
-export interface ScoresPreferences {
+interface ScoresPreferences {
   viewMode: ViewMode
   sortMode: SortMode
   showTop3Context: boolean
   showSelfContext: boolean
 }
 
-export function parseScoresPreferences(
-  value: unknown
-): Partial<ScoresPreferences> {
+function parseScoresPreferences(value: unknown): Partial<ScoresPreferences> {
   if (!isRecord(value)) return {}
 
   const prefs: Partial<ScoresPreferences> = {}

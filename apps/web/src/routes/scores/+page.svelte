@@ -22,6 +22,11 @@
   const cellTooltip = createHoverTooltip<TooltipData>()
 
   const challenges = $derived(scoreData.getChallenges(routeState.sortMode))
+  const scoreCellCount = $derived(
+    routeState.viewMode === 'categories'
+      ? scoreData.categoryGroups.length
+      : challenges.length
+  )
   const viewportState = createScoresViewportState({
     entries: () => scoreData.entries,
     total: () => scoreData.total,
@@ -31,8 +36,7 @@
     currentUser: () => scoreData.currentUser,
     showTop3Context: () => routeState.showTop3Context,
     showSelfContext: () => routeState.showSelfContext,
-    cellCount: () =>
-      routeState.viewMode === 'categories' ? scoreData.categoryGroups.length : challenges.length,
+    cellCount: () => scoreCellCount,
     allGraphData: () => scoreData.allGraphData,
     teamRanks: () => scoreData.teamRanks,
     hasNextPage: () => scoreData.leaderboardQuery.hasNextPage,
@@ -168,6 +172,7 @@
         {challenges}
       >
         <ScoresLeaderboardBody
+          --score-cell-count={scoreCellCount}
           {scoreData}
           {graphState}
           {routeState}

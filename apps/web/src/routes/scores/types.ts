@@ -1,6 +1,6 @@
 import type { getCategoryConfig } from '$lib/utils/categories'
 
-export interface ChallengeTooltipData {
+interface ChallengeTooltipData {
   type: 'challenge'
   teamId: string
   challengeName: string
@@ -10,7 +10,7 @@ export interface ChallengeTooltipData {
   solveTime?: number
 }
 
-export interface CategoryTooltipData {
+interface CategoryTooltipData {
   type: 'category'
   teamId: string
   categoryName: string
@@ -39,12 +39,12 @@ export interface CategoryGroup {
   challenges: ChallengeInfo[]
 }
 
-export interface ScoreSolve {
+interface ScoreSolve {
   id: string
   solveTime: number
 }
 
-export interface CurrentUserSolve {
+interface CurrentUserSolve {
   id: string
   createdAt: number
 }
@@ -84,20 +84,6 @@ export interface ScoreGraphEntry {
   id: string
   name: string
   points: ScoreGraphPoint[]
-}
-
-export interface ScreenshotTeamEntry {
-  id: string
-  rank: number
-  name: string
-  avatarUrl: string | null
-  countryCode: string | null
-  statusText: string | null
-  score: number
-  solveCount: number
-  isCurrentUser: boolean
-  color?: string
-  sparklineData?: ScoreGraphPoint[]
 }
 
 export interface GraphVisibility {

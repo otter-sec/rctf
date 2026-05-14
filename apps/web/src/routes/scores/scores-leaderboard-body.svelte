@@ -53,7 +53,6 @@
   const scroll = $derived(viewportState.scroll)
 
   const teamRowProps = $derived({
-    contentWidth: viewportState.contentWidth,
     viewMode: routeState.viewMode,
     sortMode: routeState.sortMode,
     categoryGroups: scoreData.categoryGroups,
@@ -62,7 +61,6 @@
     themeEpoch: viewportState.themeRenderEpoch,
     renderEpoch,
     isScrolling: scroll.isScrolling,
-    isDesktop: viewportState.isDesktop,
     onCellHover,
   })
 
@@ -121,13 +119,10 @@
 {/snippet}
 
 <div
-  class="relative contain-[layout_style]"
+  class="scores-leaderboard-body relative contain-[layout_style]"
   style:height={scoreData.isLoading
     ? `${LOADING_ROW_COUNT * ROW_HEIGHT}px`
     : `${scroll.totalSize}px`}
-  style:width={viewportState.isDesktop
-    ? `calc(var(--team-column-width) + ${viewportState.contentWidth}px)`
-    : '100%'}
 >
   {#if scoreData.isLoading}
     {#each loadingRows as index (index)}
@@ -196,3 +191,20 @@
     />
   </div>
 {/if}
+
+<style>
+  .scores-leaderboard-body {
+    --score-content-width: calc(
+      var(--score-cell-count, 0) * (var(--cell-width) + var(--row-gap)) +
+        var(--diagonal-overflow)
+    );
+
+    width: 100%;
+  }
+
+  @media (min-width: 768px) {
+    .scores-leaderboard-body {
+      width: calc(var(--team-column-width) + var(--score-content-width));
+    }
+  }
+</style>

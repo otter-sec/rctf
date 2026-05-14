@@ -15,8 +15,6 @@
     isSelf?: boolean
     isLoading?: boolean
     isScrolling?: boolean
-    isDesktop?: boolean
-    contentWidth: number
     viewMode: ViewMode
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
@@ -38,8 +36,6 @@
     isSelf = false,
     isLoading = false,
     isScrolling = false,
-    isDesktop = true,
-    contentWidth,
     viewMode,
     sortMode,
     categoryGroups,
@@ -176,67 +172,62 @@
           </span>
         </div>
 
-        {#if isDesktop}
-          <div
-            class={[
-              'pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block',
-              'xl:pointer-events-auto xl:relative xl:opacity-100',
-            ]}
-          >
-            <ScoresSparkline
-              data={data.sparklineData ?? []}
-              id={data.id}
-              color={data.color ?? 'var(--foreground-l3)'}
-              onHover={onSparklineHover}
-              onUnhover={onSparklineUnhover}
-            />
-          </div>
-        {/if}
+        <div
+          class={[
+            'pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block',
+            'xl:pointer-events-auto xl:relative xl:opacity-100',
+          ]}
+        >
+          <ScoresSparkline
+            data={data.sparklineData ?? []}
+            id={data.id}
+            color={data.color ?? 'var(--foreground-l3)'}
+            onHover={onSparklineHover}
+            onUnhover={onSparklineUnhover}
+          />
+        </div>
       </div>
     {/if}
   </div>
 </div>
 
-{#if isDesktop}
+<div
+  class={cn(
+    'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0',
+    'rounded-r-lg contain-[layout_style_paint] md:flex',
+    !isSelf && isScrolling && 'pointer-events-none',
+    isLoading ? 'w-(--content-column-width) px-2' : 'w-(--score-content-width)',
+    data?.isCurrentUser && 'bg-background-self-l0'
+  )}
+>
   <div
-    class={cn(
-      'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0',
-      'rounded-r-lg contain-[layout_style_paint] md:flex',
-      !isSelf && isScrolling && 'pointer-events-none',
-      isLoading && 'w-(--content-column-width) px-2',
-      data?.isCurrentUser && 'bg-background-self-l0'
-    )}
-    style:width={isLoading ? undefined : `${contentWidth}px`}
-  >
-    <div
-      aria-hidden="true"
-      class={[
-        'score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg',
-        'border-[3px] border-l-0 border-solid border-transparent opacity-0',
-      ]}
-    ></div>
+    aria-hidden="true"
+    class={[
+      'score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg',
+      'border-[3px] border-l-0 border-solid border-transparent opacity-0',
+    ]}
+  ></div>
 
-    {#if !isLoading && data}
-      <ScoresSolveCells
-        teamId={data.id}
-        {viewMode}
-        {sortMode}
-        {categoryGroups}
-        {challenges}
-        {focusedChallengeId}
-        {themeEpoch}
-        {renderEpoch}
-        getSolves={cid => solves?.has(cid) ?? false}
-        getSolveTime={cid => solveTimes?.get(cid)}
-        {getCategoryStats}
-        {getBloodIndex}
-        {onCellHover}
-        {isScrolling}
-        isCurrentUser={data.isCurrentUser}
-      />
-    {/if}
-  </div>
-{/if}
+  {#if !isLoading && data}
+    <ScoresSolveCells
+      teamId={data.id}
+      {viewMode}
+      {sortMode}
+      {categoryGroups}
+      {challenges}
+      {focusedChallengeId}
+      {themeEpoch}
+      {renderEpoch}
+      getSolves={cid => solves?.has(cid) ?? false}
+      getSolveTime={cid => solveTimes?.get(cid)}
+      {getCategoryStats}
+      {getBloodIndex}
+      {onCellHover}
+      {isScrolling}
+      isCurrentUser={data.isCurrentUser}
+    />
+  {/if}
+</div>
 
 <style>
   .score-row-team-cell:has(.score-row-profile-link:focus-visible) > .score-row-team-focus-ring,

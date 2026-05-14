@@ -1,6 +1,4 @@
 <script lang="ts">
-  import { ScrollArea } from '$lib/components'
-  import { cn } from '$lib/utils'
   import type { Snippet } from 'svelte'
   import type { Attachment } from 'svelte/attachments'
   import ScoresChallengeHeader from './scores-challenge-header.svelte'
@@ -59,6 +57,13 @@
     }
   }
 
+  const viewportAttachment: Attachment<HTMLElement> = node => {
+    scroll.state.viewportRef = node
+    return () => {
+      if (scroll.state.viewportRef === node) scroll.state.viewportRef = null
+    }
+  }
+
   function handleChallengeFocus(id: string) {
     const wasFocused = routeState.focusedChallengeId === id
     routeState.setFocusedChallenge(wasFocused ? null : id)
@@ -88,11 +93,10 @@
     <ScoresFades
       showTop={viewportState.showTopFade}
       showBottom={viewportState.showBottomFade}
-      showLeft={viewportState.isDesktop && viewportState.showLeftFade}
-      showRight={viewportState.isDesktop && viewportState.showRightFade}
+      showLeft={viewportState.showLeftFade}
+      showRight={viewportState.showRightFade}
       showSelfRow={viewportState.showSelfRow}
       selfRowPosition={viewportState.selfRowPosition}
-      isMinimal={!viewportState.isDesktop}
     />
 
     <div
@@ -105,21 +109,10 @@
     </div>
 
     <div class="scores-leaderboard-scroll">
-      <ScrollArea
-        class="h-full"
-        orientation={viewportState.isDesktop ? 'both' : 'vertical'}
-        type={viewportState.isDesktop ? 'always' : 'auto'}
-        fadeSize={0}
-        bind:viewportRef={scroll.state.viewportRef}
-        viewportTabIndex={-1}
-        viewportClass={cn(
-          'scroll-pt-(--score-scroll-padding-top)',
-          viewportState.isDesktop && 'scroll-pl-(--team-column-width)'
-        )}
-        scrollbarXClasses={viewportState.isDesktop
-          ? 'pl-(--team-column-width) -mr-2.5 z-40'
-          : 'hidden'}
-        scrollbarYClasses={`z-40 ${viewportState.scrollbarYPadding}`}
+      <div
+        class="scores-leaderboard-viewport scrollbar-none"
+        tabindex="-1"
+        {@attach viewportAttachment}
       >
         <div class="flex min-h-full flex-col">
           <div
@@ -149,7 +142,7 @@
 
           {@render children()}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   </div>
 </div>
@@ -191,6 +184,14 @@
     );
   }
 
+  .scores-leaderboard-viewport {
+    height: 100%;
+    overflow: auto;
+    outline: none;
+    overscroll-behavior: contain;
+    scroll-padding-top: var(--score-scroll-padding-top);
+  }
+
   @media (min-width: 768px) {
     .scores-leaderboard-frame {
       --toolbar-height: 52px;
@@ -204,6 +205,10 @@
       --score-scroll-padding-top: calc(
         var(--header-height) + var(--row-height-full) + var(--row-gap)
       );
+    }
+
+    .scores-leaderboard-viewport {
+      scroll-padding-left: var(--team-column-width);
     }
 
     .scores-leaderboard-scroll {
