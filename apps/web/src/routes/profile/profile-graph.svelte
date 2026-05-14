@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { ClientConfig, LeaderboardGraphEntry } from '@rctf/types'
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
-  import { CUTOFF_TIME, X_AXIS_DIVISIONS } from '$lib/constants/scores'
+  import { X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import {
@@ -71,7 +71,8 @@
 
   function chartTimeDomain(
     points: ScoreLinePoint[],
-    startTime: number
+    startTime: number,
+    endTime: number
   ): [number, number] | undefined {
     const first = points[0]
     const last = points.at(-1)
@@ -79,9 +80,9 @@
     const min = startTime > 0 ? startTime : first.time
 
     if (first.time === last.time) {
-      return [min, first.time + domainPadding]
+      return [min, Math.min(endTime, first.time + domainPadding)]
     }
-    return [min, last.time]
+    return [min, Math.min(endTime, last.time)]
   }
 
   function chartScoreMax(points: ScoreLinePoint[]): number {
@@ -99,7 +100,7 @@
 
   const sampledPoints = $derived<SampleScorePoint[]>(
     graphData.points
-      .filter(p => p.time <= CUTOFF_TIME)
+      .filter(p => p.time >= clientConfig.startTime && p.time <= clientConfig.endTime)
       .toSorted((a, b) => a.time - b.time)
       .map(p => ({
         kind: 'sample',
@@ -114,7 +115,10 @@
   const solvePoints = $derived.by<SolveScorePoint[]>(() => {
     let score = 0
     return solves
-      .filter(solve => solve.createdAt <= CUTOFF_TIME)
+      .filter(
+        solve =>
+          solve.createdAt >= clientConfig.startTime && solve.createdAt <= clientConfig.endTime
+      )
       .toSorted((a, b) => a.createdAt - b.createdAt)
       .map(solve => {
         const scoreBefore = score
@@ -156,7 +160,8 @@
   const xDomain = $derived(
     chartTimeDomain(
       domainPoints.toSorted((a, b) => a.time - b.time),
-      clientConfig.startTime
+      clientConfig.startTime,
+      clientConfig.endTime
     )
   )
   const yMax = $derived(chartScoreMax(domainPoints))

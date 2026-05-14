@@ -1,7 +1,6 @@
 <script lang="ts">
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
   import {
-    CUTOFF_TIME,
     MEDAL_COLORS,
     PAGE_SIZE,
     SELF_COLOR,
@@ -87,6 +86,13 @@
     isSelf: boolean
   }
 
+  const startTime = $derived(clientConfig?.startTime ?? 0)
+  const endTime = $derived(clientConfig?.endTime ?? Number.MAX_SAFE_INTEGER)
+
+  const xDomain = $derived<[number, number] | undefined>(
+    clientConfig ? [startTime, endTime] : undefined
+  )
+
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
     const rawTop3 =
@@ -99,7 +105,7 @@
       entries
         .map(e => ({
           ...e,
-          points: e.points.filter(p => p.time <= CUTOFF_TIME),
+          points: e.points.filter(p => p.time >= startTime && p.time <= endTime),
         }))
         .filter(e => e.points.length > 0)
 
@@ -184,7 +190,6 @@
   })
 
   const { flatPoints, teamMeta } = $derived(processedData)
-  const startTime = $derived(clientConfig?.startTime ?? 0)
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
   const useMinutesFormat = $derived.by(() => {
@@ -229,6 +234,7 @@
     data={flatPoints}
     x="time"
     y="score"
+    {xDomain}
     yDomain={[0, null]}
     yNice
     padding={{ bottom: SCORE_GRAPH_AXIS_PADDING_PX }}
