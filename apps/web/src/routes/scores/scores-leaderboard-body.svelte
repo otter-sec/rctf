@@ -169,7 +169,7 @@
 
   <div
     class={[
-      'bg-background-l0 sticky z-20 flex h-(--row-height-full)',
+      'bg-background-l0 sticky z-20 flex h-(--row-height-full) w-full',
       'contain-[layout_style_paint]',
       isTop ? 'pb-1' : 'bottom-0 mt-auto pt-1',
     ]}
@@ -194,17 +194,6 @@
 
 <style>
   .scores-leaderboard-body {
-    --score-content-width: calc(
-      var(--score-cell-count, 0) * (var(--cell-width) + var(--row-gap)) +
-        var(--diagonal-overflow)
-    );
-
     width: 100%;
-  }
-
-  @media (min-width: 768px) {
-    .scores-leaderboard-body {
-      width: calc(var(--team-column-width) + var(--score-content-width));
-    }
   }
 </style>

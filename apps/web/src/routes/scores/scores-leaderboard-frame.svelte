@@ -114,9 +114,12 @@
         tabindex="-1"
         {@attach viewportAttachment}
       >
-        <div class="flex min-h-full flex-col">
+        <div class="scores-leaderboard-stack flex min-h-full flex-col">
           <div
-            class="bg-background-l0 sticky top-0 z-20 hidden h-(--header-height) md:flex"
+            class="
+              scores-leaderboard-header bg-background-l0 sticky top-0 z-20 hidden
+              h-(--header-height) md:flex
+            "
             {@attach headerRowAttachment}
           >
             <div
@@ -162,6 +165,10 @@
     --diagonal-overflow: 96px;
     --team-column-width: 100%;
     --content-column-width: 0px;
+    --score-content-width: calc(
+      var(--score-cell-count, 0) * (var(--cell-width) + var(--row-gap)) +
+        var(--diagonal-overflow)
+    );
     --self-row-height: var(--row-height-full);
     --self-row-offset: 0px;
     --self-row-top-offset: 0px;
@@ -192,6 +199,11 @@
     scroll-padding-top: var(--score-scroll-padding-top);
   }
 
+  .scores-leaderboard-stack,
+  .scores-leaderboard-header {
+    width: 100%;
+  }
+
   @media (min-width: 768px) {
     .scores-leaderboard-frame {
       --toolbar-height: 52px;
@@ -209,6 +221,10 @@
 
     .scores-leaderboard-viewport {
       scroll-padding-left: var(--team-column-width);
+    }
+
+    .scores-leaderboard-stack {
+      width: calc(var(--team-column-width) + var(--score-content-width));
     }
 
     .scores-leaderboard-scroll {

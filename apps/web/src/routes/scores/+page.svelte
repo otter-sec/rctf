@@ -165,6 +165,7 @@
       </div>
     {:else}
       <ScoresLeaderboardFrame
+        --score-cell-count={scoreCellCount}
         {scoreData}
         {routeState}
         {viewportState}
@@ -172,7 +173,6 @@
         {challenges}
       >
         <ScoresLeaderboardBody
-          --score-cell-count={scoreCellCount}
           {scoreData}
           {graphState}
           {routeState}
