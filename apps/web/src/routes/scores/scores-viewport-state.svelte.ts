@@ -52,6 +52,11 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     fades.updateFromScroll(metrics)
   }
 
+  function handleLayoutMetrics(metrics: ScrollMetrics) {
+    scrollMetrics = metrics
+    fades.updateFromLayout(metrics)
+  }
+
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 10,
@@ -81,6 +86,7 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     if (config.search()) return false
     if (config.isLoading() && config.currentUser()) return true
     if (!config.currentUser()?.globalPlace) return false
+    if (userEntryIndex !== -1 && !scrollMetrics) return false
     if (viewportVisibility.userVisible) return false
     return true
   })
@@ -114,7 +120,7 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     cellCount: config.cellCount(),
   })
 
-  createLayoutFadeRefresher(scroll, fades, () => fadeRefreshKey)
+  createLayoutRefresh(scroll, () => fadeRefreshKey, handleLayoutMetrics)
   syncVirtualScrollState(scroll, config, () => header.listScrollMargin)
 
   return {
@@ -317,20 +323,20 @@ function createStableGraphVisibility(
   }
 }
 
-function createLayoutFadeRefresher(
+function createLayoutRefresh(
   scroll: ScoresScroll,
-  fades: ReturnType<typeof createScoresFadeState>,
-  getRefreshKey: () => unknown
+  getRefreshKey: () => unknown,
+  onMetrics: (metrics: ScrollMetrics) => void
 ) {
-  let fadeRaf = 0
+  let refreshRaf = 0
 
   function scheduleRefresh(_key: unknown) {
-    if (fadeRaf) return
-    fadeRaf = requestAnimationFrame(() => {
-      fadeRaf = 0
+    if (refreshRaf) return
+    refreshRaf = requestAnimationFrame(() => {
+      refreshRaf = 0
       const viewport = scroll.state.viewportRef
       if (!viewport?.isConnected) return
-      fades.updateFromLayout(readScrollMetrics(viewport))
+      onMetrics(readScrollMetrics(viewport))
     })
   }
 
@@ -355,9 +361,9 @@ function createLayoutFadeRefresher(
       ro.disconnect()
       cancelAnimationFrame(firstRaf)
       if (secondRaf) cancelAnimationFrame(secondRaf)
-      if (fadeRaf) {
-        cancelAnimationFrame(fadeRaf)
-        fadeRaf = 0
+      if (refreshRaf) {
+        cancelAnimationFrame(refreshRaf)
+        refreshRaf = 0
       }
     }
   })
