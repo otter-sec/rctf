@@ -2,24 +2,24 @@
   import type {
     createScoresDataModel,
     createScoresGraphDataModel,
-  } from './scores-data-model.svelte'
-  import { LOADING_ROW_COUNT, ROW_HEIGHT } from './scores-layout-constants'
-  import type { createScoresRouteState } from './scores-route-state.svelte'
+  } from './scores-leaderboard-data-model.svelte'
+  import { LOADING_ROW_COUNT, ROW_HEIGHT } from './scores-leaderboard-layout-constants'
+  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import {
     getSelfSolves,
     getSelfSolveTimes,
     getSelfTeamRowData,
     getTeamRowData,
-  } from './scores-team-row-data'
-  import ScoresTeamRow from './scores-team-row.svelte'
-  import type { createScoresViewportState } from './scores-viewport-state.svelte'
+  } from './scores-leaderboard-team-row-data'
+  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
+  import type { createScoresRouteState } from './scores-page-url-state.svelte'
   import type {
     CategoryGroup,
     ChallengeInfo,
     CurrentUserScoreData,
     ScoreEntry,
     TooltipData,
-  } from './types'
+  } from './scores-shared-types'
 
   type ScoreData = ReturnType<typeof createScoresDataModel>
   type GraphState = ReturnType<typeof createScoresGraphDataModel>
@@ -119,7 +119,7 @@
 {/snippet}
 
 <div
-  class="scores-leaderboard-body relative contain-[layout_style]"
+  class="scores-leaderboard-virtual-list relative contain-[layout_style]"
   style:height={scoreData.isLoading
     ? `${LOADING_ROW_COUNT * ROW_HEIGHT}px`
     : `${scroll.totalSize}px`}
@@ -193,7 +193,7 @@
 {/if}
 
 <style>
-  .scores-leaderboard-body {
+  .scores-leaderboard-virtual-list {
     width: 100%;
   }
 </style>

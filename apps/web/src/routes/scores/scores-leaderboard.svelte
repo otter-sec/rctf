@@ -1,14 +1,14 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
   import type { Attachment } from 'svelte/attachments'
-  import ScoresChallengeHeader from './scores-challenge-header.svelte'
-  import type { createScoresDataModel } from './scores-data-model.svelte'
-  import ScoresFades from './scores-fades.svelte'
-  import ScoresGraphControls from './scores-graph-controls.svelte'
-  import ScoresGraph from './scores-graph.svelte'
-  import type { createScoresRouteState } from './scores-route-state.svelte'
-  import type { createScoresViewportState } from './scores-viewport-state.svelte'
-  import type { ChallengeInfo, ScoreGraphEntry } from './types'
+  import ScoresChallengeHeader from './scores-leaderboard-challenge-header.svelte'
+  import type { createScoresDataModel } from './scores-leaderboard-data-model.svelte'
+  import ScoresGraphControls from './scores-leaderboard-graph-controls.svelte'
+  import ScoresGraph from './scores-leaderboard-graph.svelte'
+  import ScoresFades from './scores-leaderboard-scroll-fades.svelte'
+  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
+  import type { createScoresRouteState } from './scores-page-url-state.svelte'
+  import type { ChallengeInfo, ScoreGraphEntry } from './scores-shared-types'
 
   type ScoreData = ReturnType<typeof createScoresDataModel>
   type RouteState = ReturnType<typeof createScoresRouteState>
@@ -36,14 +36,7 @@
     children: Snippet
   }
 
-  let {
-    scoreData,
-    routeState,
-    viewportState,
-    graphProps,
-    challenges,
-    children,
-  }: Props = $props()
+  let { scoreData, routeState, viewportState, graphProps, challenges, children }: Props = $props()
 
   const scroll = $derived(viewportState.scroll)
   const selfRowAnchor = $derived(
@@ -86,10 +79,7 @@
 {/snippet}
 
 <div class="flex justify-center px-4 md:px-9">
-  <div
-    class="scores-leaderboard-frame relative w-full max-w-full md:w-fit"
-    data-self-row={selfRowAnchor}
-  >
+  <div class="scores-leaderboard relative w-full max-w-full md:w-fit" data-self-row={selfRowAnchor}>
     <ScoresFades
       showTop={viewportState.showTopFade}
       showBottom={viewportState.showBottomFade}
@@ -151,7 +141,7 @@
 </div>
 
 <style>
-  .scores-leaderboard-frame {
+  .scores-leaderboard {
     --app-header-height: 72px;
     --toolbar-height: 96px;
     --mobile-graph-gap: 8px;
@@ -166,8 +156,7 @@
     --team-column-width: 100%;
     --content-column-width: 0px;
     --score-content-width: calc(
-      var(--score-cell-count, 0) * (var(--cell-width) + var(--row-gap)) +
-        var(--diagonal-overflow)
+      var(--score-cell-count, 0) * (var(--cell-width) + var(--row-gap)) + var(--diagonal-overflow)
     );
     --self-row-height: var(--row-height-full);
     --self-row-offset: 0px;
@@ -175,11 +164,11 @@
     --score-scroll-padding-top: 0px;
   }
 
-  .scores-leaderboard-frame[data-self-row='bottom'] {
+  .scores-leaderboard[data-self-row='bottom'] {
     --self-row-offset: var(--row-height-full);
   }
 
-  .scores-leaderboard-frame[data-self-row='top'] {
+  .scores-leaderboard[data-self-row='top'] {
     --self-row-top-offset: var(--row-height-full);
     --score-scroll-padding-top: calc(var(--row-height-full) + var(--row-gap));
   }
@@ -205,7 +194,7 @@
   }
 
   @media (min-width: 768px) {
-    .scores-leaderboard-frame {
+    .scores-leaderboard {
       --toolbar-height: 52px;
       --mobile-graph-gap: 0px;
       --team-column-width: calc(60vw - 72px);
@@ -213,7 +202,7 @@
       --score-scroll-padding-top: var(--header-height);
     }
 
-    .scores-leaderboard-frame[data-self-row='top'] {
+    .scores-leaderboard[data-self-row='top'] {
       --score-scroll-padding-top: calc(
         var(--header-height) + var(--row-height-full) + var(--row-gap)
       );
@@ -235,7 +224,7 @@
   }
 
   @media (min-width: 1280px) {
-    .scores-leaderboard-frame {
+    .scores-leaderboard {
       --team-column-width: calc(45vw - 72px);
       --content-column-width: calc(55vw + 72px);
     }

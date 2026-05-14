@@ -18,7 +18,7 @@ import type {
   ScoreEntry,
   ScoreGraphEntry,
   ScoreGraphPoint,
-} from './types'
+} from './scores-shared-types'
 
 interface ChallengeSource {
   name: string

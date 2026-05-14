@@ -21,13 +21,13 @@ import {
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
-} from './scores-data-helpers'
+} from './scores-leaderboard-data-transforms'
 import type {
   CurrentUserScoreData,
   ScoreEntry,
   ScoreGraphEntry,
   SortMode,
-} from './types'
+} from './scores-shared-types'
 
 const LEADERBOARD_PAGE_SIZE = 100
 
@@ -99,12 +99,7 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   const teamColorMap = $derived(getTeamColorMap(rawEntries, currentUser))
   const solvesAndTimes = $derived(getSolvesAndTimesByTeam(entries))
   const teamRanks = $derived(
-    getTeamRanks(
-      entries,
-      originalRankByTeam,
-      search,
-      focusedChallengeId
-    )
+    getTeamRanks(entries, originalRankByTeam, search, focusedChallengeId)
   )
 
   $effect(() => {
