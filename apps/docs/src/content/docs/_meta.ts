@@ -17,5 +17,7 @@ export default {
       label: 'Running a successful CTF',
       order: 8,
     },
+    archiving: { label: 'Archiving', order: 9 },
+    glossary: { order: 10 },
   },
 } satisfies MetaFile

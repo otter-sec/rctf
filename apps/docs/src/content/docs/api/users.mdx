@@ -5,62 +5,151 @@ description: API reference for public profiles, self profiles, profile updates, 
 
 User routes expose team profiles and account-level mutations. V2 adds avatar, country, and status fields. V1 keeps team members and CTFtime account mutation routes for compatibility.
 
+## Routes
+
+| Method | Path | Version | Auth | Gate |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/users/:id` | V2 | Public, optional admin bypass | Started |
+| `GET{:http}` | `/api/v2/users/me` | V2 | Required | None |
+| `PATCH{:http}` | `/api/v2/users/me` | V2 | Required | None |
+| `PATCH{:http}` | `/api/v2/users/me/avatar` | V2 | Required | None |
+| `PUT{:http}` | `/api/v2/users/me/auth/email` | V2 | Required | None |
+| `GET{:http}` | `/api/v1/users/:id` | V1 | Public, optional admin bypass | Started |
+| `GET{:http}` | `/api/v1/users/me` | V1 | Required | None |
+| `PATCH{:http}` | `/api/v1/users/me` | V1 | Required | None |
+| `GET{:http}` | `/api/v1/users/me/members` | V1 | Required | None |
+| `POST{:http}` | `/api/v1/users/me/members` | V1 | Required | None |
+| `DELETE{:http}` | `/api/v1/users/me/members/:id` | V1 | Required | None |
+| `PUT{:http}` | `/api/v1/users/me/auth/email` | V1 | Required | None |
+| `DELETE{:http}` | `/api/v1/users/me/auth/email` | V1 | Required | None |
+| `PUT{:http}` | `/api/v1/users/me/auth/ctftime` | V1 | Required | None |
+| `DELETE{:http}` | `/api/v1/users/me/auth/ctftime` | V1 | Required | None |
+
+`GET /api/v2/users/:id` and `GET /api/v1/users/:id` can be read before the CTF starts by an admin token with `challsRead{:ts}`.
+
 ## V2 routes
 
-| Method | Path | Auth | Gate | Request |
-| --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/users/:id` | Public, optional admin bypass | Started | Path params |
-| `GET{:http}` | `/api/v2/users/me` | Required | None | None |
-| `PATCH{:http}` | `/api/v2/users/me` | Required | None | JSON body |
-| `PATCH{:http}` | `/api/v2/users/me/avatar` | Required | None | Form data |
-| `PUT{:http}` | `/api/v2/users/me/auth/email` | Required | None | JSON body |
+### `GET /api/v2/users/:id`
 
-`GET /api/v2/users/:id` can be read before the CTF starts by an admin token with `challsRead`.
+Returns the public profile of a team.
 
-## Public profile
-
-`GET /api/v2/users/:id` returns public team data:
-
-| Field | Type | Notes |
-| --- | --- | --- |
-| `name` | `string` | Team display name. |
-| `ctftimeId` | `string \| null \| undefined` | Linked CTFtime ID when present. |
-| `division` | `string` | Team division. |
-| `score` | `number` | Cached current score. |
-| `globalPlace` | `number \| null` | Cached global rank. |
-| `divisionPlace` | `number \| null` | Cached division rank. |
-| `solves` | `UserSolveV2[]` | Solved challenges visible to the route. |
-| `avatarUrl` | `string \| null` | Team avatar URL. |
-| `countryCode` | `string \| null` | ISO 3166-like region code from `@rctf/util`. |
-| `statusText` | `string \| null` | Team status text. |
-
-`UserSolveV2` has these fields:
-
-| Field | Type |
+| Property | Value |
 | --- | --- |
-| `category` | `string` |
-| `name` | `string` |
-| `points` | `number \| null` |
-| `solves` | `number \| null` |
-| `id` | `string` |
-| `createdAt` | `number` |
-| `bloodIndex` | `number \| null` |
+| Auth | Public, optional admin bypass |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` (start-time bypass only) |
+| Captcha action | — |
+| Rate limit | — |
 
-## Self profile
+**Path params**
 
-`GET /api/v2/users/me` returns the public profile fields plus account-private data:
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team ID. |
+
+**Response**
+
+`goodUserData` (200):
+
+```json
+{
+  "kind": "goodUserData",
+  "message": "The user's data was successfully retrieved.",
+  "data": {
+    "name": "maple bacon",
+    "ctftimeId": null,
+    "division": "open",
+    "score": 1337,
+    "globalPlace": 1,
+    "divisionPlace": 1,
+    "solves": [],
+    "avatarUrl": null,
+    "countryCode": "US",
+    "statusText": "solving web"
+  }
+}
+```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | `string` | Team ID. |
-| `email` | `string \| null` | Email address when set. |
-| `teamToken` | `string` | Long-lived team token. Treat it as a credential. |
-| `allowedDivisions` | `string[]` | Divisions available to the team based on ACLs. |
-| `perms` | `number \| null` | Admin permission bitmask. |
+| `name` | `string{:ts}` | Team display name. |
+| `ctftimeId` | `string \| null \| undefined{:ts}` | Linked CTFtime ID when present. |
+| `division` | `string{:ts}` | Team division. |
+| `score` | `number{:ts}` | Cached current score. |
+| `globalPlace` | `number \| null{:ts}` | Cached global rank. |
+| `divisionPlace` | `number \| null{:ts}` | Cached division rank. |
+| `solves` | `UserSolveV2[]{:ts}` | Solved challenges visible to the route. See [`UserSolveV2`](#usersolvev2). |
+| `avatarUrl` | `string \| null{:ts}` | Team avatar URL. |
+| `countryCode` | `string \| null{:ts}` | ISO 3166-like region code from `@rctf/util`. |
+| `statusText` | `string \| null{:ts}` | Team status text. |
 
-## `PATCH /api/v2/users/me`
+**Errors**: `badUnknownUser`, `badNotStarted`.
 
-Updates profile fields:
+### `GET /api/v2/users/me`
+
+Returns the authenticated team's own profile, including account-private fields.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodUserSelfData` (200) returns the public profile fields plus account-private data:
+
+```json
+{
+  "kind": "goodUserSelfData",
+  "message": "The user's own data was successfully retrieved.",
+  "data": {
+    "name": "maple bacon",
+    "ctftimeId": null,
+    "division": "open",
+    "score": 1337,
+    "globalPlace": 1,
+    "divisionPlace": 1,
+    "solves": [],
+    "avatarUrl": null,
+    "countryCode": "US",
+    "statusText": "solving web",
+    "id": "<team-id>",
+    "email": "team@example.com",
+    "teamToken": "<team-token>",
+    "allowedDivisions": ["open"],
+    "perms": null
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string{:ts}` | Team ID. |
+| `email` | `string \| null{:ts}` | Email address when set. |
+| `teamToken` | `string{:ts}` | Long-lived team token. Treat it as a credential. |
+| `allowedDivisions` | `string[]{:ts}` | Divisions available to the team based on ACLs. |
+| `perms` | `number \| null{:ts}` | Admin permission bitmask. |
+
+All other fields match the [public profile](#get-apiv2usersid).
+
+**Errors**: `badToken`.
+
+### `PATCH /api/v2/users/me`
+
+Updates profile fields. Recalculates cached user data and triggers a leaderboard update.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | Profile name update — burst `3`, refill window `180000` ms per user. |
+
+**Request body**
 
 ```json
 {
@@ -71,46 +160,99 @@ Updates profile fields:
 }
 ```
 
-| Field | Required | Notes |
-| --- | --- | --- |
-| `name` | No | 2 to 64 printable ASCII characters. Name updates are rate-limited. |
-| `division` | No | Must be allowed for the team's current email under division ACLs. |
-| `countryCode` | No | Region code or `null`. |
-| `statusText` | No | String up to 60 characters or `null`. |
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string{:ts}` | No | 2–64 printable ASCII characters. Name updates are rate-limited. |
+| `division` | `string{:ts}` | No | Must be allowed for the team's current email under division ACLs. |
+| `countryCode` | `string \| null{:ts}` | No | Region code or `null{:ts}`. |
+| `statusText` | `string \| null{:ts}` | No | String up to 60 characters or `null{:ts}`. |
 
-`goodUserUpdate` returns:
+**Response**
+
+`goodUserUpdate` (200):
 
 ```json
 {
-  "user": {
-    "name": "new team name",
-    "email": "team@example.com",
-    "division": "open",
-    "avatarUrl": null,
-    "countryCode": "US",
-    "statusText": "solving web"
+  "kind": "goodUserUpdate",
+  "message": "The user was successfully updated.",
+  "data": {
+    "user": {
+      "name": "new team name",
+      "email": "team@example.com",
+      "division": "open",
+      "avatarUrl": null,
+      "countryCode": "US",
+      "statusText": "solving web"
+    }
   }
 }
 ```
 
-The route recalculates cached user data and triggers a leaderboard update. Name updates share the profile update rate limit.
-
-## `PATCH /api/v2/users/me/avatar`
-
-Uploads or removes the team avatar. The route expects `multipart/form-data`:
-
-| Form field | Required | Notes |
+| Field | Type | Notes |
 | --- | --- | --- |
-| `avatar` | No | Image file. When omitted and an avatar exists, the current avatar is deleted. |
-| `captchaCode` | No | Checked only when captcha protects `avatarUpload`. |
+| `user.name` | `string{:ts}` | Updated team name. |
+| `user.email` | `string \| null{:ts}` | Current email. |
+| `user.division` | `string{:ts}` | Current division. |
+| `user.avatarUrl` | `string \| null{:ts}` | Current avatar URL. |
+| `user.countryCode` | `string \| null{:ts}` | Current country code. |
+| `user.statusText` | `string \| null{:ts}` | Current status text. |
 
-The API checks `maxAvatarSize`, resizes the image to 256 by 256 pixels, converts it to WebP, optionally sends it to the moderation provider, uploads it through the active upload provider, and deletes the previous avatar when replacing it.
+**Errors**: `badBody`, `badName`, `badKnownName`, `badDivisionNotAllowed`, `badRateLimit`.
 
-`goodAvatarUpdated` returns `{ url: string \| null }`.
+### `PATCH /api/v2/users/me/avatar`
 
-## `PUT /api/v2/users/me/auth/email`
+Uploads or removes the team avatar. The route expects `multipart/form-data`.
 
-Updates the account email:
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | `avatarUpload{:ts}` (when configured) |
+| Rate limit | Avatar upload — burst `2`, refill window `120000` ms per user. |
+
+**Request**
+
+| Form field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `avatar` | file | No | Image file. When omitted and an avatar exists, the current avatar is deleted. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `avatarUpload{:ts}`. |
+
+The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts it to WebP, optionally sends it to the moderation provider, uploads it through the active upload provider, and deletes the previous avatar when replacing it.
+
+**Response**
+
+`goodAvatarUpdated` (200):
+
+```json
+{
+  "kind": "goodAvatarUpdated",
+  "message": "The avatar was successfully updated.",
+  "data": {
+    "url": "https://uploads.example.com/avatars/<id>.webp"
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `url` | `string \| null{:ts}` | New avatar URL, or `null{:ts}` when the avatar was deleted. |
+
+**Errors**: `badBody`, `badAvatarFile`, `badAvatarFileSize`, `badModerationNotPassed`, `badFilesUpload`, `badCaptcha`, `badRateLimit`.
+
+### `PUT /api/v2/users/me/auth/email`
+
+Updates the account email. When email delivery is configured, the route sends a verification email and returns `goodVerifySent`. When email delivery is not configured, it updates the email immediately and returns `goodEmailSet`.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | `setEmail{:ts}` (when configured) |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -119,46 +261,77 @@ Updates the account email:
 }
 ```
 
-When email delivery is configured, the route sends a verification email and returns `goodVerifySent`. When email delivery is not configured, it updates the email immediately and returns `goodEmailSet`.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `email` | `string{:ts}` | Yes | New email address. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `setEmail{:ts}`. |
 
-The route rejects emails that would move the team outside the division ACL and rejects duplicate emails.
+The route rejects emails that would move the team outside the division ACL (`badEmailChangeDivision`) and rejects duplicate emails (`badKnownEmail`).
 
-## V1 routes
+**Response**
 
-| Method | Path | Auth | Gate | Request |
-| --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v1/users/:id` | Public, optional admin bypass | Started | Path params |
-| `GET{:http}` | `/api/v1/users/me` | Required | None | None |
-| `PATCH{:http}` | `/api/v1/users/me` | Required | None | JSON body |
-| `GET{:http}` | `/api/v1/users/me/members` | Required | None | None |
-| `POST{:http}` | `/api/v1/users/me/members` | Required | None | JSON body |
-| `DELETE{:http}` | `/api/v1/users/me/members/:id` | Required | None | Path params |
-| `PUT{:http}` | `/api/v1/users/me/auth/email` | Required | None | JSON body |
-| `DELETE{:http}` | `/api/v1/users/me/auth/email` | Required | None | None |
-| `PUT{:http}` | `/api/v1/users/me/auth/ctftime` | Required | None | JSON body |
-| `DELETE{:http}` | `/api/v1/users/me/auth/ctftime` | Required | None | None |
+Behavior branches on email provider configuration:
 
-### V1 profile differences
+| Condition | Success kind | Effect |
+| --- | --- | --- |
+| Email delivery configured | `goodVerifySent` | Sends a verification email; consume the token via [`POST /api/v2/auth/verify`](/api/auth#post-apiv2authverify). |
+| Email delivery not configured | `goodEmailSet` | Updates the email immediately. |
 
-V1 public and self profile responses omit `avatarUrl`, `countryCode`, `statusText`, and `bloodIndex`. V1 update only accepts `name` and `division`.
+Both kinds return no data.
 
-### Team members
+**Errors**: `badBody`, `badEmail`, `badKnownEmail`, `badEmailChangeDivision`, `badCaptcha`, `badZeroAuth`.
 
-Team members are informational email rows under the team account. They do not create separate login identities.
+## V1 compatibility
 
-`POST /api/v1/users/me/members` accepts:
+V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-```json
-{
-  "email": "member@example.com"
-}
-```
+### `GET /api/v1/users/:id`
 
-The route returns `badEndpoint` when `userMembers` is disabled. Duplicate member emails return `badKnownEmail`. Teams are limited by `maxMembers`.
+Differs from V2: response omits `avatarUrl`, `countryCode`, `statusText`, and `bloodIndex` (on each entry in `solves`).
 
-### CTFtime auth mutation
+### `GET /api/v1/users/me`
 
-`PUT /api/v1/users/me/auth/ctftime` accepts:
+Differs from V2: response omits `avatarUrl`, `countryCode`, and `statusText`.
+
+### `PATCH /api/v1/users/me`
+
+Differs from V2: only accepts `name` and `division`. Shares the profile name update rate limit (burst `3`, refill window `180000` ms per user) with [`PATCH /api/v2/users/me`](#patch-apiv2usersme).
+
+### `PUT /api/v1/users/me/auth/email`
+
+Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 — `goodVerifySent` when email delivery is configured, `goodEmailSet` otherwise. Same division-ACL and duplicate-email rejections apply.
+
+### `DELETE /api/v1/users/me/auth/email`
+
+V1-only. Removes the account email. Preserves the `badZeroAuth` invariant: a team must keep at least one of email or CTFtime auth.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodEmailRemoved` (no data).
+
+**Errors**: `badEmailNoExists`, `badZeroAuth`.
+
+### `PUT /api/v1/users/me/auth/ctftime`
+
+V1-only. Links the account to a CTFtime team via a CTFtime auth token.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -166,12 +339,128 @@ The route returns `badEndpoint` when `userMembers` is disabled. Duplicate member
 }
 ```
 
-The route returns `badEndpoint` when CTFtime auth is not configured. Removing the last remaining auth method returns `badZeroAuth`, which preserves the invariant that every team has at least one of email or CTFtime auth.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `badEndpoint` when CTFtime auth is not configured. |
+
+**Response**
+
+`goodCtftimeAuthSet` (no data).
+
+**Errors**: `badBody`, `badEndpoint`, `badCtftimeToken`, `badKnownCtftimeId`.
+
+### `DELETE /api/v1/users/me/auth/ctftime`
+
+V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `badZeroAuth`, which preserves the invariant that every team has at least one of email or CTFtime auth.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodCtftimeRemoved` (no data).
+
+**Errors**: `badCtftimeNoExists`, `badZeroAuth`.
+
+### `GET /api/v1/users/me/members`
+
+V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `badEndpoint` when `userMembers` is disabled.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodMemberData` (200) returns a team member array.
+
+**Errors**: `badEndpoint`.
+
+### `POST /api/v1/users/me/members`
+
+V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
+
+```json
+{
+  "email": "member@example.com"
+}
+```
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `email` | `string{:ts}` | Yes | Member email address. |
+
+**Response**
+
+`goodMemberCreate` (200) returns the created team member object.
+
+**Errors**: `badBody`, `badEmail`, `badKnownEmail`, `badTooManyMembers`, `badEndpoint`.
+
+### `DELETE /api/v1/users/me/members/:id`
+
+V1-only. Removes a team member email row.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team member row ID. |
+
+**Response**
+
+`goodMemberDelete` (no data).
+
+**Errors**: `badEndpoint`.
+
+## Shared object shapes
+
+### `UserSolveV2`
+
+| Field | Type |
+| --- | --- |
+| `category` | `string{:ts}` |
+| `name` | `string{:ts}` |
+| `points` | `number \| null{:ts}` |
+| `solves` | `number \| null{:ts}` |
+| `id` | `string{:ts}` |
+| `createdAt` | `number{:ts}` |
+| `bloodIndex` | `number \| null{:ts}` |
+
+The V1 solve shape omits `bloodIndex`.
 
 ## Rate limits
 
 | Route | Scope | Bucket |
 | --- | --- | --- |
-| `PATCH /api/v1/users/me` | User | Name updates use burst `3`, refill window `180000` ms. |
-| `PATCH /api/v2/users/me` | User | Name updates use burst `3`, refill window `180000` ms. |
-| `PATCH /api/v2/users/me/avatar` | User | Avatar uploads use burst `2`, refill window `120000` ms. |
+| `PATCH /api/v1/users/me` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `PATCH /api/v2/users/me` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `PATCH /api/v2/users/me/avatar` | User | Avatar upload — burst `2`, refill window `120000` ms. |
+
+The profile name update bucket is shared between V1 and V2 PATCH routes per user. See the global [rate limit summary](/api/#rate-limits) and the [response reference](/api/responses) for envelope and error shapes.

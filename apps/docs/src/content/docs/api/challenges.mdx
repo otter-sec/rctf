@@ -7,122 +7,186 @@ Challenge routes expose public challenge metadata, solve history, and the legacy
 
 ## Routes
 
-| Method | Path | Version | Auth | Gate | Request |
-| --- | --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/challs` | V2 | Public, optional admin bypass | Started | None |
-| `GET{:http}` | `/api/v2/challs/:id/solves` | V2 | Optional | Started | Query string |
-| `GET{:http}` | `/api/v1/challs` | V1 | Public, optional admin bypass | Started | None |
-| `GET{:http}` | `/api/v1/challs/:id/solves` | V1 | Public, optional admin bypass | Started | Query string |
-| `POST{:http}` | `/api/v1/challs/:id/submit` | V1 | Required | Started and not ended | JSON body |
+| Method | Path | Version | Auth | Gate |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/challs` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v2/challs/:id/solves` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v1/challs` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v1/challs/:id/solves` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `POST{:http}` | `/api/v1/challs/:id/submit` | V1 | Required | Started + not ended |
 
-Started-gated challenge routes may be read before the CTF starts when the request includes an auth token with `challsRead`.
+## V2 routes
 
-## `GET /api/v2/challs`
+### `GET /api/v2/challs`
 
-Returns the visible challenge list. Hidden challenges are omitted for non-admin users. Challenges with a future `releaseTime` are omitted until their release timestamp.
+Returns the visible challenge list with V2 integration metadata.
 
-`goodChallenges` returns an array of challenge objects:
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`challsRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodChallenges` (200) returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
+
+```json
+{
+  "kind": "goodChallenges",
+  "message": "The retrieval of challenges was successful.",
+  "data": []
+}
+```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `id` | `string` | Challenge ID. |
-| `name` | `string` | Display name. |
-| `description` | `string` | Markdown challenge description. |
-| `category` | `string` | Category name. |
-| `author` | `string` | Author display name. |
-| `files` | `ChallengeFileV2[]` | Downloadable files. |
-| `points` | `number` | Current score after dynamic scoring. |
-| `solves` | `number` | Current solve count. |
-| `sortWeight` | `number \| null` | Optional ordering weight. |
-| `instancerLifetime` | `number \| null` | Instance timeout in milliseconds when the challenge has instancer config and an instancer provider is enabled. |
-| `instancerExtendable` | `boolean` | `false` only when challenge config explicitly disables extension. |
-| `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined` | Participant input schema for admin bot challenges. |
-| `hasFlag` | `boolean` | Indicates whether the challenge has a flag configured. |
+| `id` | `string{:ts}` | Challenge ID. |
+| `name` | `string{:ts}` | Display name. |
+| `description` | `string{:ts}` | Markdown challenge description. |
+| `category` | `string{:ts}` | Category name. |
+| `author` | `string{:ts}` | Author display name. |
+| `files` | `ChallengeFileV2[]{:ts}` | Downloadable files. See [`ChallengeFileV2`](/api/responses#challengefilev2). |
+| `points` | `number{:ts}` | Current score after dynamic scoring. |
+| `solves` | `number{:ts}` | Current solve count. |
+| `sortWeight` | `number \| null{:ts}` | Optional ordering weight. |
+| `instancerLifetime` | `number \| null{:ts}` | Instance timeout in milliseconds when the challenge has instancer config and an instancer provider is enabled. |
+| `instancerExtendable` | `boolean{:ts}` | `false{:ts}` only when challenge config explicitly disables extension. |
+| `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined{:ts}` | Participant input schema for admin bot challenges. See [`RegexRule`](/api/responses#regexrule). |
+| `hasFlag` | `boolean{:ts}` | Indicates whether the challenge has a flag configured. |
 
-`ChallengeFileV2` has these fields:
+**Errors**: `badNotStarted`.
+
+### `GET /api/v2/challs/:id/solves`
+
+Returns paginated solve history for one challenge.
+
+| Property | Value |
+| --- | --- |
+| Auth | Optional + bypass (`challsRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Query**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `limit` | `number{:ts}` | Yes | Integer greater than or equal to `1`. The config enforces the maximum. |
+| `offset` | `number{:ts}` | Yes | Integer greater than or equal to `0`. The config enforces the maximum. |
+
+**Response**
+
+`goodChallengeSolves` (200):
+
+```json
+{
+  "kind": "goodChallengeSolves",
+  "message": "The challenge solves were retrieved.",
+  "data": {
+    "solves": [
+      {
+        "id": "solve-id",
+        "createdAt": 1710000000000,
+        "userId": "team-id",
+        "userName": "maple bacon",
+        "userAvatarUrl": null,
+        "userCountryCode": "US",
+        "userStatusText": null,
+        "globalPlace": 3,
+        "division": "open",
+        "divisionPlace": 1,
+        "bloodIndex": 0
+      }
+    ],
+    "mySolvePosition": 12
+  }
+}
+```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `name` | `string` | Display filename. |
-| `url` | `string` | Download URL. |
-| `size` | `number \| null` | File size in bytes. Old data may have `null`. |
+| `solves[]` | `ChallengeSolveV2[]{:ts}` | Solve rows ordered by solve time. |
+| `solves[].bloodIndex` | `number \| null{:ts}` | `0`, `1`, or `2` for the first three solves. Otherwise `null{:ts}`. |
+| `mySolvePosition` | `number \| null{:ts}` | The authenticated user's solve position for this challenge when optional auth is present. |
 
-`RegexRule` has `pattern` and optional `flags`.
+**Errors**: `badChallenge`, `badNotStarted`.
 
-## `GET /api/v1/challs`
+## V1 compatibility
 
-The v1 challenge list returns the same core fields without v2 integration metadata:
+V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
+
+### `GET /api/v1/challs`
+
+Differs from V2:
+
+- `goodChallenges` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
+
+The V1 challenge list returns the same core fields without V2 integration metadata:
 
 | Field | Type |
 | --- | --- |
-| `id` | `string` |
-| `name` | `string` |
-| `description` | `string` |
-| `category` | `string` |
-| `author` | `string` |
-| `files` | `{ name: string, url: string }[]` |
-| `points` | `number` |
-| `solves` | `number` |
-| `sortWeight` | `number \| null \| undefined` |
+| `id` | `string{:ts}` |
+| `name` | `string{:ts}` |
+| `description` | `string{:ts}` |
+| `category` | `string{:ts}` |
+| `author` | `string{:ts}` |
+| `files` | `{ name: string, url: string }[]{:ts}` |
+| `points` | `number{:ts}` |
+| `solves` | `number{:ts}` |
+| `sortWeight` | `number \| null \| undefined{:ts}` |
 
-## `GET /api/v2/challs/:id/solves`
+### `GET /api/v1/challs/:id/solves`
 
-Returns paginated solve history for one challenge:
+Differs from V2:
 
-| Query | Required | Notes |
-| --- | --- | --- |
-| `limit` | Yes | Integer greater than or equal to `1`. The config enforces the maximum. |
-| `offset` | Yes | Integer greater than or equal to `0`. The config enforces the maximum. |
-
-`goodChallengeSolves` returns:
+- `goodChallengeSolves` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
 
 ```json
 {
-  "solves": [
-    {
-      "id": "solve-id",
-      "createdAt": 1710000000000,
-      "userId": "team-id",
-      "userName": "maple bacon",
-      "userAvatarUrl": null,
-      "userCountryCode": "US",
-      "userStatusText": null,
-      "globalPlace": 3,
-      "division": "open",
-      "divisionPlace": 1,
-      "bloodIndex": 0
-    }
-  ],
-  "mySolvePosition": 12
+  "kind": "goodChallengeSolves",
+  "message": "The challenge solves were retrieved.",
+  "data": {
+    "solves": [
+      {
+        "id": "solve-id",
+        "createdAt": 1710000000000,
+        "userId": "team-id",
+        "userName": "maple bacon"
+      }
+    ]
+  }
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `solves[]` | `ChallengeSolveV2[]` | Solve rows ordered by solve time. |
-| `mySolvePosition` | `number \| null` | The authenticated user's solve position for this challenge when optional auth is present. |
-| `bloodIndex` | `number \| null` | `0`, `1`, or `2` for the first three solves. Otherwise `null`. |
+### `POST /api/v1/challs/:id/submit`
 
-## `GET /api/v1/challs/:id/solves`
+V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
-V1 solve history uses the same query parameters and returns less user profile data:
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started + not ended |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`/api#rate-limits`](/api#rate-limits). |
 
-```json
-{
-  "solves": [
-    {
-      "id": "solve-id",
-      "createdAt": 1710000000000,
-      "userId": "team-id",
-      "userName": "maple bacon"
-    }
-  ]
-}
-```
+**Path params**
 
-## `POST /api/v1/challs/:id/submit`
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
 
-Submits a flag for the authenticated team:
+**Request body**
 
 ```json
 {
@@ -130,15 +194,17 @@ Submits a flag for the authenticated team:
 }
 ```
 
-| Field | Required | Notes |
-| --- | --- | --- |
-| `flag` | Yes | String with maximum length `1024`. |
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `flag` | `string{:ts}` | Yes | Maximum length `1024`. |
 
-Correct flags return `goodFlag` and record a solve. Incorrect flags return `badFlag`. Duplicate solves return `badAlreadySolvedChallenge`.
+**Response**
 
-Submissions are rate-limited per user and challenge. A rate-limited request returns `badRateLimit` with `data.timeLeft` in milliseconds.
+`goodFlag` (200, no data) when the submitted flag is correct. The route records a solve for the team.
 
-The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through `/api/v2/admin/submissions`.
+The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`/api/v2/admin/submissions`](/api/admin).
+
+**Errors**: `badBody`, `badChallenge`, `badFlag`, `badAlreadySolvedChallenge`, `badNotStarted`, `badEnded`, `badRateLimit`.
 
 ## Scoring behavior
 
@@ -146,4 +212,4 @@ Challenge point values are computed by the configured [scoring provider](/provid
 
 ## Visibility behavior
 
-Non-admin users only see challenges that are not hidden and whose release time has passed. Admin users with `challsRead` can bypass the CTF start gate through the same public routes, but hidden and scheduled release handling is still applied by the challenge service according to the route implementation.
+Non-admin users only see challenges that are not hidden and whose release time has passed. Admin users with `challsRead{:ts}` can bypass the CTF start gate through the same public routes, but hidden and scheduled release handling is still applied by the challenge service according to the route implementation.

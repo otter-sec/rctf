@@ -1,0 +1,109 @@
+---
+title: Markdown
+description: Markdown extensions available in challenge descriptions, home page content, and sponsor descriptions.
+---
+
+import Callout from '@/components/callout.astro'
+
+rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. Rendering is handled by [`marked`](https://marked.js.org/) with two custom extensions (alerts and timer), followed by [DOMPurify](https://github.com/cure53/DOMPurify) sanitization. The renderer is defined in `apps/web/src/lib/utils/markdown.ts` and hydrated by `apps/web/src/lib/components/markdown.svelte`.
+
+## Alerts
+
+rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote containing `[!TYPE]`; subsequent blockquote lines are the alert body. The body is parsed as Markdown (except for `CONNECTION`, see below).
+
+```md title="Challenge description"
+> [!NOTE]
+> The flag format is `rctf{...}`.
+
+> [!WARNING]
+> Brute-forcing the endpoint will result in a rate limit.
+```
+
+Six alert types are recognized. Any other value (e.g. `> [!INFO]`) falls back to a plain blockquote.
+
+| Type           | Trigger                | Use for                                                  |
+| -------------- | ---------------------- | -------------------------------------------------------- |
+| `note`         | `> [!NOTE]{:md}`       | General information.                                     |
+| `tip`          | `> [!TIP]{:md}`        | Optional advice or shortcuts.                            |
+| `important`    | `> [!IMPORTANT]{:md}`  | Information players must read.                           |
+| `warning`      | `> [!WARNING]{:md}`    | Behaviour that can cause problems if ignored.            |
+| `caution`      | `> [!CAUTION]{:md}`    | Actions with potentially destructive consequences.       |
+| `connection`   | `> [!CONNECTION]{:md}` | Remote connection info for hosted challenges (see below). |
+
+The trigger keyword is case-insensitive. Indentation and additional blockquote lines follow standard Markdown blockquote rules.
+
+<Callout variant="warning" title="Visual reference only">
+
+The docs site renders alerts using its own component, which looks different from rCTF's runtime alert styling. The behaviour described here is what challenge authors will see in the rCTF frontend.
+
+</Callout>
+
+### Connection callout
+
+`> [!CONNECTION]` is a real, distinct alert type — not just a styled `NOTE`. It is designed for the **Remote** field of a challenge: a single line containing a connection string or URL.
+
+```md title="Challenge description"
+> [!CONNECTION]
+> `nc challs.example.com 1337`
+
+> [!CONNECTION]
+> https://web-chall.example.com
+```
+
+Unlike the other alerts, the connection body is **not** parsed as Markdown. Wrapping backticks are stripped, and the content is rendered as either:
+
+- A clickable link, if it starts with `http://` or `https://`.
+- A monospaced code block, otherwise.
+
+A copy button is rendered alongside the value so players can paste it directly into a terminal.
+
+## Timer
+
+The `<timer />` inline element renders a live countdown for the competition.
+
+```md title="Home content"
+The CTF begins in <timer />. Good luck!
+```
+
+The element takes **no attributes**. It always targets the global CTF schedule (`startTime` / `endTime` from the runtime client config). Behaviour:
+
+- Before the CTF starts, counts down to the start time and is labelled "CTF starts in".
+- After the start time, counts down to the end time and is labelled "CTF ends in".
+- After the end time, shows "The CTF is over."
+- If the event is archived, shows "The CTF is archived."
+
+The timer updates once per second on the client.
+
+<Callout variant="note" title="No per-element target">
+
+rCTF does not support `<timer to="...">` or `<timer until="...">`. The countdown target is always the global competition schedule. If you need per-challenge deadlines, communicate them in plain text or as part of the description body.
+
+</Callout>
+
+## Standard Markdown
+
+The renderer uses `marked` with its default options — no GFM plugin is registered. CommonMark features (headings, lists, emphasis, links, images, fenced code blocks, inline code, blockquotes) plus `marked`'s built-in tables and autolinks all pass through. There are no task lists, footnotes, or strikethrough.
+
+````md title="Challenge description"
+# Setup
+
+Download the [source archive](./source.tar.gz) and run:
+
+```bash
+docker compose up
+```
+
+The service listens on port `8080`.
+````
+
+For a reference on what CommonMark supports, see the [CommonMark spec](https://spec.commonmark.org/).
+
+## Sanitization
+
+After parsing, output passes through DOMPurify before insertion. Author-facing implications:
+
+- `<script>` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
+- Most HTML tags supported by DOMPurify's default profile are allowed (e.g. `<details>`, `<summary>`, `<sub>`, `<sup>`, `<kbd>`).
+- The only custom attributes preserved beyond defaults are `data-alert`, `data-type`, `data-content`, and `data-timer`, which the renderer uses as hydration markers for the alert and timer extensions. Authoring these attributes by hand has no effect — they are only emitted by the extensions.
+
+If you need richer interactivity than these extensions provide, it must be added in the frontend code, not via embedded HTML in a description.

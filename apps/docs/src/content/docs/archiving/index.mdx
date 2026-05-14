@@ -1,0 +1,144 @@
+---
+title: Static export
+description: Generate a read-only static snapshot of a finished rCTF instance for indefinite hosting on Cloudflare Pages or GitHub Pages.
+---
+
+import Callout from '@/components/callout.astro'
+import Tabs from '@/components/mdx/tabs.astro'
+import Tab from '@/components/mdx/tab.astro'
+
+The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `[31misArchived[0m{:ansi}` set to `true{:ts}`, and non-`GET` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
+
+## CLI
+
+The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build` exists, then invoke the root script:
+
+```bash title="Terminal"
+bun run --filter '@rctf/web' build
+bun run export \
+  --api-url https://ctf.example.com \
+  --backend cloudflare-pages \
+  --output ./export-output
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--api-url` | required | Base URL of the live rCTF instance to crawl. |
+| `--backend` | required | Target host. One of `[32mcloudflare-pages[0m{:ansi}` or `[32mgithub-pages[0m{:ansi}`. |
+| `--web-build` | `apps/web/build{:sh}` | Pre-built SvelteKit frontend that is copied into the output. |
+| `--output` | `./export-output{:sh}` | Destination directory. Wiped and recreated on every run. |
+| `--concurrency` | `5{:ts}` | Concurrent in-flight API requests during the discovery phase. |
+| `--skip-uploads` | off | Skips downloading challenge files and avatars. URL rewriting is skipped with it. |
+
+The output directory is deleted before each run. Point `--output` somewhere that does not contain other files.
+
+## What the exporter collects
+
+The discovery phase fetches:
+
+- `/api/v2/integrations/client/config` with `[31misArchived[0m{:ansi}` patched to `true{:ts}`.
+- `/api/v2/challs` and `/api/v2/leaderboard/challs`.
+- The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json`.
+- One `/api/v2/users/:id` response per unique user seen on the leaderboard.
+- Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json` per challenge.
+- A static `badToken{:ts}` stub for `/api/v2/users/me` so the frontend stays in a logged-out state.
+
+Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/[hash]/[filename]`, and the JSON files in `api-data/` are rewritten to point at the local copies so the archive is self-contained.
+
+## Output layout
+
+The resulting directory is ready to upload to a static host:
+
+<FileTree>
+  <Dir name="export-output">
+    <File name="index.html" comment="SvelteKit shell with the fetch interceptor injected" />
+    <File name="404.html" comment="Copy of index.html for SPA fallback" />
+    <File name="index.html.gz" />
+    <File name="index.html.br" />
+    <Dir name="_app" comment="SvelteKit build assets" />
+    <Dir name="api-data" comment="Static API responses">
+      <Dir name="v2">
+        <File name="challs.json" />
+        <Dir name="leaderboard">
+          <File name="dump.json" comment="Full leaderboard + graph for client-side filtering" />
+        </Dir>
+        <Dir name="users">
+          <File name="[id].json" />
+        </Dir>
+        <Dir name="challs">
+          <Dir name="[id]">
+            <File name="solves.json" />
+          </Dir>
+        </Dir>
+      </Dir>
+    </Dir>
+    <Dir name="uploads" comment="Mirrored /uploads/ and uploads/external/[hash]/" />
+    <File name="_redirects" comment="cloudflare-pages only" />
+    <File name="_headers" comment="cloudflare-pages only" />
+    <File name="wrangler.toml" comment="cloudflare-pages only" />
+    <File name=".nojekyll" comment="github-pages only" />
+  </Dir>
+</FileTree>
+
+The injector also strips the `Content-Security-Policy{:http}` meta tag from `index.html` so the inline interceptor script can execute on the static host.
+
+## Deployment
+
+The exporter prints the matching deploy command on success.
+
+<Tabs items={['Cloudflare Pages', 'GitHub Pages']}>
+<Tab>
+
+The `cloudflare-pages` backend writes:
+
+- `_redirects` with `/* /index.html 200` so SvelteKit's client-side routes resolve.
+- `_headers` setting `Cache-Control: public, max-age=31536000, immutable{:http}` on `/api-data/*`, `/uploads/*`, and `/_app/*`, plus `Access-Control-Allow-Origin: *{:http}` on `/api-data/*`.
+- `wrangler.toml` with a placeholder `name = "rctf-archive"` and `pages_build_output_dir = "."`. Edit the name before deploying.
+
+Deploy from the output directory:
+
+```ansi
+$ [34mnpx[0m wrangler pages deploy ./export-output
+```
+
+</Tab>
+<Tab>
+
+The `github-pages` backend writes an empty `.nojekyll` so files under `_app/` are served instead of being filtered by Jekyll.
+
+Publish with `gh-pages` from the repository root. The `--dotfiles` flag is required so `.nojekyll` is uploaded:
+
+```ansi
+$ [34mnpx[0m gh-pages [2m-d[0m ./export-output [2m--dotfiles[0m
+```
+
+Pages served from a project subpath (`username.github.io/repo`) need a custom domain or root deployment, since the injected interceptor and SvelteKit build both assume the site is served from `/`.
+
+</Tab>
+</Tabs>
+
+## Runtime behavior
+
+The injected script wraps `window.fetch{:ts}` and routes `/api/*` calls through static files:
+
+- Any non-`GET` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
+- `/api/v2/leaderboard/with-graph`, `/api/v2/leaderboard/now`, and `/api/v2/leaderboard/graph` are answered from `dump.json` with in-memory `[31mdivision[0m{:ansi}` filtering, `[31msearch[0m{:ansi}` substring matching, and `[31moffset[0m{:ansi}` / `[31mlimit[0m{:ansi}` slicing. The scoreboard stays searchable without a backend.
+- `/api/v2/challs/:id/solves` is sliced from each challenge's `solves.json`.
+- `/api/v2/integrations/analytics/script` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
+- Every other `/api/*` `GET` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `badEndpoint` `404`.
+
+The frontend reads `[31misArchived[0m{:ansi}` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
+
+## Limitations
+
+<Callout variant="warning" title="Read-only by design">
+  The archive contains every JSON response the exporter saw at crawl time. Anything that requires authentication, server state, or live computation is absent.
+</Callout>
+
+- No login, registration, password recovery, or token issuance. `/api/v2/users/me` always returns `badToken{:ts}`.
+- No admin pages. Admin endpoints require an authenticated session that the archive cannot produce.
+- No live updates. The leaderboard reflects the moment the exporter ran. Re-run the export to refresh.
+- No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.
+- Captcha, analytics, and any other integration that calls back to the API or a third party is disabled.
+
+Re-run the exporter against the live instance to refresh the snapshot. The output directory is rebuilt from scratch on every invocation.

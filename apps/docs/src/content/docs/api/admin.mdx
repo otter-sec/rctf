@@ -1,9 +1,9 @@
 ---
 title: Admin
-description: API reference for admin challenge, upload, user, verification, submission, settings, and admin bot service routes.
+description: Challenge management, uploads, teams, verifications, submissions, settings, and admin bot service routes.
 ---
 
-Admin routes require a user auth token with the listed permission bits, except for admin bot service routes, which require the shared admin bot bearer token.
+Admin routes require a user auth token with the listed permission bits, except for admin bot service routes, which use the shared admin bot bearer token. Routes are grouped by resource. Permissions, captcha actions, and rate limits referenced in property tables are defined on the [API overview](/api).
 
 ## Permissions
 
@@ -15,37 +15,107 @@ Admin routes require a user auth token with the listed permission bits, except f
 | `usersWrite{:ts}` | Listing teams, filtering teams, mutating teams, generating team tokens, managing pending verifications, and reading submission audit logs. |
 | `settingsWrite{:ts}` | Reading and updating runtime settings. |
 
-Routes with combined permissions require all listed bits.
+Routes that list multiple permission bits require all of them.
+
+## Routes
+
+| Method | Path | Version | Auth | Gate |
+| --- | --- | --- | --- | --- |
+| `GET{:http}` | `/api/v2/admin/challs` | V2 | Required (`challsRead{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/challs/:id` | V2 | Required (`challsRead{:ts}`) | None |
+| `PUT{:http}` | `/api/v2/admin/challs/:id` | V2 | Required (`challsWrite{:ts}`) | None |
+| `DELETE{:http}` | `/api/v2/admin/challs/:challengeId/solves/:userId` | V2 | Required (`challsSolveWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/upload` | V2 | Required (`challsWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/upload/query` | V2 | Required (`challsRead{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/users` | V2 | Required (`usersWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/users` | V2 | Required (`usersWrite{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `PUT{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`) | None |
+| `DELETE{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/users/:id/token` | V2 | Required (`usersWrite{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/user-verifications` | V2 | Required (`usersWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/user-verifications/:id/complete` | V2 | Required (`usersWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/user-verifications/:id/resend` | V2 | Required (`usersWrite{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/submissions` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/submissions` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/settings` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `PUT{:http}` | `/api/v2/admin/settings` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/instancer/schema` | V2 | Required (`challsRead{:ts}`) | None |
+| `GET{:http}` | `/api/v2/admin/admin-bot/status` | V2 | Required (`challsRead{:ts}`) | None |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/pull` | V2 | Service | None |
+| `GET{:http}` | `/api/v2/admin/admin-bot/challenges/:id/source` | V2 | Service | None |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/complete` | V2 | Service | None |
+| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/fail` | V2 | Service | None |
+| `GET{:http}` | `/api/v2/admin/admin-bot/queue-depth` | V2 | Service | None |
+| `GET{:http}` | `/api/v1/admin/challs` | V1 | Required (`challsRead{:ts}`) | None |
+| `PUT{:http}` | `/api/v1/admin/challs/:id` | V1 | Required (`challsWrite{:ts}`) | None |
+| `DELETE{:http}` | `/api/v1/admin/challs/:id` | V1 | Required (`challsWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v1/admin/upload` | V1 | Required (`challsWrite{:ts}`) | None |
+| `POST{:http}` | `/api/v1/admin/upload/query` | V1 | Required (`challsRead{:ts}`) | None |
 
 ## Challenge routes
 
-| Method | Path | Permission | Request |
+### `GET /api/v2/admin/challs`
+
+Lists every challenge with full admin fields, including hidden challenges and unreleased challenges.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminChallenges` (200): array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
+
+**Errors**: `badToken`, `badPerms`.
+
+### `GET /api/v2/admin/challs/:id`
+
+Returns one admin challenge.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/challs` | `challsRead` | None |
-| `GET{:http}` | `/api/v2/admin/challs/:id` | `challsRead` | Path params |
-| `PUT{:http}` | `/api/v2/admin/challs/:id` | `challsWrite` | JSON body |
-| `DELETE{:http}` | `/api/v2/admin/challs/:challengeId/solves/:userId` | `challsSolveWrite` | Path params |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
 
-`GET` challenge routes return `AdminChallengeV2`:
+**Response**
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | `string` | Challenge ID. |
-| `name` | `string` | Display name. |
-| `description` | `string` | Markdown description. |
-| `category` | `string` | Category name. |
-| `author` | `string` | Author. |
-| `files` | `ChallengeFileV2[]` | Files with `name`, `url`, and nullable `size`. |
-| `points` | `{ min: number, max: number }` | Dynamic scoring bounds. |
-| `flag` | `string` | Correct flag. |
-| `tiebreakEligible` | `boolean` | Whether solves count toward the tiebreak timestamp. |
-| `sortWeight` | `number \| null \| undefined` | Optional category ordering weight. |
-| `instancerConfig` | `InstancerConfig \| null \| undefined` | Per-team instance config. |
-| `adminBotConfig` | `AdminBotConfig \| null \| undefined` | Admin bot config generated from challenge source. |
-| `hidden` | `boolean` | Hidden challenges are invisible to non-admin users. |
-| `releaseTime` | `number \| null \| undefined` | Unix millisecond release timestamp. |
+`goodAdminChallenge` (200): `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
 
-`PUT /api/v2/admin/challs/:id` accepts partial challenge data:
+**Errors**: `badToken`, `badPerms`, `badChallenge`.
+
+### `PUT /api/v2/admin/challs/:id`
+
+Creates or updates a challenge. Omitted fields in `data` keep their current value. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears the integration config.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. Created if not present. |
+
+**Request body**
 
 ```json
 {
@@ -67,146 +137,418 @@ Routes with combined permissions require all listed bits.
 }
 ```
 
-Omitted fields keep their current value. `instancerConfig` and `adminBotConfig` are `null` to clear the integration config. Instancer config is validated against the active provider schema. Admin bot source is validated by the active admin bot provider and stored with a generated revision.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `data` | `Partial<AdminChallengeV2>{:ts}` | Yes | Partial challenge data. Omitted fields keep existing values. |
 
-V1 has compatible challenge admin routes under `/api/v1/admin/challs`, but v1 challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`. V1 also exposes `DELETE /api/v1/admin/challs/:id` with `challsWrite`.
+`instancerConfig{:ts}` is validated against the active instancer provider schema. `adminBotConfig{:ts}` source is validated by the active admin bot provider and stored with a generated revision. Updating a challenge triggers a leaderboard recalculation.
+
+**Response**
+
+`goodChallengeUpdate` (200): updated `AdminChallengeV2`.
+
+**Errors**: `badBody`, `badToken`, `badPerms`, `badInstancerConfig`, `badAdminBotConfig`.
+
+### `DELETE /api/v2/admin/challs/:challengeId/solves/:userId`
+
+Deletes one solve for a specific user and challenge. Triggers a leaderboard recalculation.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsSolveWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `challengeId` | `string{:ts}` | Yes | Challenge ID. |
+| `userId` | `string{:ts}` | Yes | Team ID whose solve is being removed. |
+
+**Response**
+
+`goodChallengeSolveDelete` (200, no data).
+
+**Errors**: `badToken`, `badPerms`, `badUnknownSolve`.
 
 ## Upload routes
 
-| Method | Path | Version | Permission | Request |
-| --- | --- | --- | --- | --- |
-| `POST{:http}` | `/api/v2/admin/upload` | V2 | `challsWrite` | Form data |
-| `POST{:http}` | `/api/v2/admin/upload/query` | V2 | `challsRead` | JSON body |
-| `POST{:http}` | `/api/v1/admin/upload` | V1 | `challsWrite` | JSON body |
-| `POST{:http}` | `/api/v1/admin/upload/query` | V1 | `challsRead` | JSON body |
+### `POST /api/v2/admin/upload`
 
-V2 uploads use one or more `files` form fields. The response returns:
+Uploads one or more files. Files are deduplicated by SHA-256 — uploading the same content twice returns the existing URL.
 
-| Field | Type |
+| Property | Value |
 | --- | --- |
-| `name` | `string` |
-| `url` | `string` |
-| `size` | `number \| null` |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
 
-Upload query routes accept:
+**Request**
+
+`multipart/form-data` with one or more `files` form fields.
+
+**Response**
+
+`goodFilesUpload` (200): array of upload objects.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `name` | `string{:ts}` | Display filename. |
+| `url` | `string{:ts}` | Public download URL. |
+| `size` | `number \| null{:ts}` | File size in bytes. |
+
+**Errors**: `badBody`, `badToken`, `badPerms`, `badFilesUpload`.
+
+### `POST /api/v2/admin/upload/query`
+
+Checks whether files already exist by SHA-256 without uploading them.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
   "uploads": [
-    {
-      "sha256": "<hex-digest>",
-      "name": "dist.zip"
-    }
+    { "sha256": "<hex-digest>", "name": "dist.zip" }
   ]
 }
 ```
 
-V2 upload query responses include nullable `url` and nullable `size`. V1 upload query responses include nullable `url` only.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `uploads[].sha256` | `string{:ts}` | Yes | Hex-encoded SHA-256 digest. |
+| `uploads[].name` | `string{:ts}` | Yes | Display filename. |
+
+**Response**
+
+`goodUploadsQuery` (200): array with one entry per query — each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
+
+**Errors**: `badBody`, `badToken`, `badPerms`.
 
 ## Team routes
 
-| Method | Path | Permission | Request |
-| --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/users` | `usersWrite` | Query string |
-| `POST{:http}` | `/api/v2/admin/users` | `usersWrite` | Query string and JSON body |
-| `GET{:http}` | `/api/v2/admin/users/:id` | `usersWrite` and `challsRead` | Path params |
-| `PUT{:http}` | `/api/v2/admin/users/:id` | `usersWrite` | JSON body |
-| `DELETE{:http}` | `/api/v2/admin/users/:id` | `usersWrite` | Path params |
-| `POST{:http}` | `/api/v2/admin/users/:id/token` | `usersWrite` | Path params |
+### `GET /api/v2/admin/users`
 
-### Team list query
+Lists teams. Query parameters control pagination, sorting, and search.
 
-`GET` and `POST` team list routes share these query parameters:
-
-| Query | Required | Values |
-| --- | --- | --- |
-| `limit` | Yes | Integer from `1` through `100`. |
-| `offset` | Yes | Integer greater than or equal to `0`. |
-| `search` | No | String from 1 through 100 characters. |
-| `sortBy` | No | `createdAt`, `team`, `email`, `division`, `score`, `solves`, or `status`. |
-| `sortOrder` | No | `asc` or `desc`. |
-
-`POST /api/v2/admin/users` adds filters in the request body:
-
-```json
-{
-  "status": {
-    "include": ["active"],
-    "exclude": ["banned"]
-  },
-  "division": {
-    "include": ["open"]
-  }
-}
-```
-
-Filter objects accept nullable `include` and `exclude` arrays. `status` values are `active`, `banned`, and `admin`.
-
-`goodAdminUsers` returns `total` and a paginated `users` array. Each user includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
-
-### Team detail and mutation
-
-`GET /api/v2/admin/users/:id` returns user details plus solve history:
-
-| Field | Type |
+| Property | Value |
 | --- | --- |
-| `id` | `string` |
-| `name` | `string` |
-| `email` | `string \| null` |
-| `division` | `string` |
-| `perms` | `number` |
-| `banned` | `boolean` |
-| `score` | `number` |
-| `solveCount` | `number` |
-| `avatarUrl` | `string \| null` |
-| `countryCode` | `string \| null` |
-| `statusText` | `string \| null` |
-| `createdAt` | `string` |
-| `solves[]` | `{ challengeId: string, challengeName: string, challengeCategory: string, createdAt: string }[]` |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
 
-`PUT /api/v2/admin/users/:id` accepts:
+**Query**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `limit` | `number{:ts}` | Yes | Integer from `1` through `100`. |
+| `offset` | `number{:ts}` | Yes | Integer ≥ `0`. |
+| `search` | `string{:ts}` | No | 1–100 characters. |
+| `sortBy` | `AdminTeamSortBy{:ts}` | No | `createdAt`, `team`, `email`, `division`, `score`, `solves`, or `status`. |
+| `sortOrder` | `SortOrder{:ts}` | No | `asc` or `desc`. |
+
+**Response**
+
+`goodAdminUsers` (200): `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
+
+**Errors**: `badBody`, `badToken`, `badPerms`.
+
+### `POST /api/v2/admin/users`
+
+Lists teams with rich filters. Same query parameters as `GET`, with filter object in the body.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+Identical to `GET /api/v2/admin/users`.
+
+**Request body**
 
 ```json
 {
-  "data": {
-    "banned": true
-  }
+  "status": { "include": ["active"], "exclude": ["banned"] },
+  "division": { "include": ["open"] }
 }
 ```
 
-Banning a team removes it from leaderboard output after recalculation without deleting solves. Unbanning restores score and rank after recalculation. Admins cannot update, delete, or generate tokens for privileged users.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `status` | `Filter<AdminTeamStatus>{:ts}` | No | `active`, `banned`, `admin`. |
+| `division` | `Filter<string>{:ts}` | No | Division keys. |
 
-`POST /api/v2/admin/users/:id/token` returns `{ token: string }`, where the token is a long-lived team token.
+Filter objects accept nullable `include` and `exclude` arrays.
+
+**Response**
+
+Same shape as `GET /api/v2/admin/users`.
+
+**Errors**: `badBody`, `badToken`, `badPerms`.
+
+### `GET /api/v2/admin/users/:id`
+
+Returns full team details, including solve history.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team ID. |
+
+**Response**
+
+`goodAdminUser` (200):
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string{:ts}` | Team ID. |
+| `name` | `string{:ts}` | Team name. |
+| `email` | `string \| null{:ts}` | Team email. |
+| `division` | `string{:ts}` | Division key. |
+| `perms` | `number{:ts}` | Permission bitmask. |
+| `banned` | `boolean{:ts}` | Whether the team is banned. |
+| `score` | `number{:ts}` | Cached current score. |
+| `solveCount` | `number{:ts}` | Cached solve count. |
+| `avatarUrl` | `string \| null{:ts}` | Avatar URL. |
+| `countryCode` | `string \| null{:ts}` | Country code. |
+| `statusText` | `string \| null{:ts}` | Status text. |
+| `createdAt` | `string{:ts}` | ISO timestamp. |
+| `solves[]` | `{ challengeId, challengeName, challengeCategory, createdAt }[]{:ts}` | Solve history. |
+
+**Errors**: `badToken`, `badPerms`, `badUnknownUser`.
+
+### `PUT /api/v2/admin/users/:id`
+
+Mutates team state. Admins cannot mutate users with admin permissions.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team ID. |
+
+**Request body**
+
+```json
+{
+  "data": { "banned": true }
+}
+```
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `data.banned` | `boolean{:ts}` | No | Banning removes the team from leaderboard output after recalculation without deleting solves. Unbanning restores rank after recalculation. |
+
+**Response**
+
+`goodAdminUserUpdate` (200, no data).
+
+**Errors**: `badBody`, `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
+
+### `DELETE /api/v2/admin/users/:id`
+
+Deletes a team. Cannot delete users with admin permissions.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team ID. |
+
+**Response**
+
+`goodAdminUserDelete` (200, no data).
+
+**Errors**: `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
+
+### `POST /api/v2/admin/users/:id/token`
+
+Generates a fresh long-lived team token. Useful for recovering teams that have lost access.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Team ID. |
+
+**Response**
+
+`goodCreateUserToken` (200): `{ token: string }`.
+
+**Errors**: `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
 
 ## Pending verification routes
 
-| Method | Path | Permission | Request |
-| --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/user-verifications` | `usersWrite` | None |
-| `POST{:http}` | `/api/v2/admin/user-verifications/:id/complete` | `usersWrite` | Path params |
-| `POST{:http}` | `/api/v2/admin/user-verifications/:id/resend` | `usersWrite` | Path params |
+Pending verification rows represent users who registered with an email but have not yet completed email verification.
 
-Pending verification rows contain `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`. Completing a verification creates the user and returns `{ userId: string }`. Resending returns `{ id: string }`.
+### `GET /api/v2/admin/user-verifications`
+
+Lists outstanding pending verifications.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminUserVerifications` (200): `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
+
+**Errors**: `badToken`, `badPerms`.
+
+### `POST /api/v2/admin/user-verifications/:id/complete`
+
+Manually completes a pending verification, creating the team without requiring the user to follow the verification email link.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Pending verification ID. |
+
+**Response**
+
+`goodAdminUserVerificationComplete` (200): `{ userId: string }`.
+
+**Errors**: `badToken`, `badPerms`, `badUnknownVerification`.
+
+### `POST /api/v2/admin/user-verifications/:id/resend`
+
+Resends the verification email for an outstanding row.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Pending verification ID. |
+
+**Response**
+
+`goodAdminUserVerificationResend` (200): `{ id: string }`.
+
+**Errors**: `badToken`, `badPerms`, `badUnknownVerification`.
 
 ## Submission audit routes
 
-| Method | Path | Permission | Request |
+The submissions table records every flag submission and admin bot job for compliance and abuse investigation. Each row is keyed by submission ID and includes the IP address.
+
+### `GET /api/v2/admin/submissions`
+
+Lists submission audit rows.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+| Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/submissions` | `usersWrite` and `challsRead` | Query string |
-| `POST{:http}` | `/api/v2/admin/submissions` | `usersWrite` and `challsRead` | Query string and JSON body |
+| `limit` | `number{:ts}` | Yes | Integer from `1` through `100`. |
+| `offset` | `number{:ts}` | Yes | Integer ≥ `0`. |
+| `sortBy` | `SubmissionSortBy{:ts}` | No | `createdAt`, `challenge`, `team`, `ip`, `kind`, or `result`. |
+| `sortOrder` | `SortOrder{:ts}` | No | `asc` or `desc`. |
+| `challengeSearch` | `string{:ts}` | No | 1–100 characters. |
+| `teamSearch` | `string{:ts}` | No | 1–100 characters. |
 
-The query parameters are:
+**Response**
 
-| Query | Required | Values |
-| --- | --- | --- |
-| `limit` | Yes | Integer from `1` through `100`. |
-| `offset` | Yes | Integer greater than or equal to `0`. |
-| `sortBy` | No | `createdAt`, `challenge`, `team`, `ip`, `kind`, or `result`. |
-| `sortOrder` | No | `asc` or `desc`. |
-| `challengeSearch` | No | Challenge-name search from 1 through 100 characters. |
-| `teamSearch` | No | Team-name search from 1 through 100 characters. |
+`goodAdminSubmissions` (200): `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
 
-The `POST` route adds filters:
+**Errors**: `badBody`, `badToken`, `badPerms`.
+
+### `POST /api/v2/admin/submissions`
+
+Lists submission audit rows with rich filters.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+Identical to `GET /api/v2/admin/submissions`.
+
+**Request body**
 
 ```json
 {
@@ -222,20 +564,59 @@ The `POST` route adds filters:
 }
 ```
 
-`kind` values are `flag` and `admin_bot`. `result` values are `correct`, `incorrect`, `already_solved`, `queued`, `active_job`, `invalid_input`, and `bad_instancer_state`. `teamStatus` values are `banned` and `not_banned`.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `challenge` | `Filter<string>{:ts}` | No | Challenge IDs. |
+| `team` | `Filter<string>{:ts}` | No | Team IDs. |
+| `kind` | `Filter<SubmissionKind>{:ts}` | No | `flag`, `admin_bot`. |
+| `result` | `Filter<SubmissionResult>{:ts}` | No | `correct`, `incorrect`, `already_solved`, `queued`, `active_job`, `invalid_input`, `bad_instancer_state`. |
+| `teamStatus` | `Filter<SubmissionTeamStatus>{:ts}` | No | `banned`, `not_banned`. |
+| `category` | `Filter<string>{:ts}` | No | Challenge categories. |
+| `division` | `Filter<string>{:ts}` | No | Division keys. |
+| `createdAfter` | `string{:ts}` | No | ISO timestamp lower bound. |
+| `createdBefore` | `string{:ts}` | No | ISO timestamp upper bound. |
 
-`goodAdminSubmissions` returns `total` and a paginated `submissions` array. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
+**Response**
+
+Same shape as `GET /api/v2/admin/submissions`.
+
+**Errors**: `badBody`, `badToken`, `badPerms`.
 
 ## Settings routes
 
-| Method | Path | Permission | Request |
-| --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/settings` | `settingsWrite` | None |
-| `PUT{:http}` | `/api/v2/admin/settings` | `settingsWrite` | JSON body |
+Runtime settings override values from `rctf.d/*.yaml` config files without restarting the server. Setting a field to `null{:ts}` clears the override.
 
-Settings responses return `{ overrides, defaults }`. `overrides` are runtime database values. `defaults` are values from config files and environment variables.
+### `GET /api/v2/admin/settings`
 
-`PUT /api/v2/admin/settings` accepts nullable values to set or clear overrides:
+Returns the current overrides and defaults side-by-side.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `settingsWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminSettings` (200): `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
+
+**Errors**: `badToken`, `badPerms`.
+
+### `PUT /api/v2/admin/settings`
+
+Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboard recalculation.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `settingsWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -245,17 +626,9 @@ Settings responses return `{ overrides, defaults }`. `overrides` are runtime dat
     "startTime": 1770000000000,
     "endTime": 1770100000000,
     "sponsors": [
-      {
-        "name": "Example",
-        "icon": "https://example.com/icon.png",
-        "description": "Sponsor",
-        "url": "https://example.com"
-      }
+      { "name": "Example", "icon": "https://example.com/icon.png", "description": "Sponsor", "url": "https://example.com" }
     ],
-    "meta": {
-      "description": "Example CTF",
-      "imageUrl": "https://example.com/card.png"
-    },
+    "meta": { "description": "Example CTF", "imageUrl": "https://example.com/card.png" },
     "faviconUrl": null,
     "logoLightUrl": null,
     "logoDarkUrl": null
@@ -263,34 +636,121 @@ Settings responses return `{ overrides, defaults }`. `overrides` are runtime dat
 }
 ```
 
-Updating `startTime` or `endTime` forces leaderboard recalculation.
-
-## Instancer and admin bot admin routes
-
-| Method | Path | Permission | Request |
+| Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/instancer/schema` | `challsRead` | None |
-| `GET{:http}` | `/api/v2/admin/admin-bot/status` | `challsRead` | None |
+| `data` | `Partial<AdminSettings>{:ts}` | Yes | Nullable values clear overrides. |
 
-`goodInstancerSchema` returns `{ schema, defaults }` for the active instancer provider. It returns `badEndpoint` when no provider is configured.
+**Response**
 
-`goodAdminBotStatus` returns `{ enabled: boolean, configLanguage: string }`.
+`goodAdminSettingsUpdate` (200): same shape as the `GET` response (returns the updated overrides and defaults).
+
+**Errors**: `badBody`, `badToken`, `badPerms`.
+
+## Schema routes
+
+### `GET /api/v2/admin/instancer/schema`
+
+Returns the active instancer provider's JSON schema. Used by the challenge editor to validate `instancerConfig{:ts}`.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodInstancerSchema` (200): `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
+
+**Errors**: `badToken`, `badPerms`, `badEndpoint` (no instancer provider configured).
+
+### `GET /api/v2/admin/admin-bot/status`
+
+Returns admin bot enablement and source language.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminBotStatus` (200): `{ enabled: boolean, configLanguage: string }`.
+
+**Errors**: `badToken`, `badPerms`.
 
 ## Admin bot service routes
 
-The admin bot worker uses service-authenticated routes. These routes are not user-admin endpoints. They require `Authorization: Bearer <admin-bot-secret>`.
+These routes are not user-admin endpoints. They use the shared admin bot bearer token (`adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`) and are intended for the admin bot worker only.
 
-| Method | Path | Request |
-| --- | --- | --- |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/pull` | None |
-| `GET{:http}` | `/api/v2/admin/admin-bot/challenges/:id/source` | None |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/complete` | JSON body |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/fail` | JSON body |
-| `GET{:http}` | `/api/v2/admin/admin-bot/queue-depth` | None |
+### `POST /api/v2/admin/admin-bot/jobs/pull`
 
-`jobs/pull` returns `{ job: null }` when no job is queued. A job contains `id`, `challengeId`, `configRevision`, `userId`, `submittedAt`, `flag`, submitted `inputs`, and `instancerInstances`.
+Claims the oldest queued job for processing.
 
-`complete` and `fail` accept optional logs:
+| Property | Value |
+| --- | --- |
+| Auth | Service |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminBotJobPull` (200): `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
+
+A pulled job contains `id`, `challengeId`, `configRevision`, `userId`, `submittedAt`, `flag`, submitted `inputs`, and `instancerInstances`.
+
+**Errors**: `badToken`.
+
+### `GET /api/v2/admin/admin-bot/challenges/:id/source`
+
+Fetches the challenge source code for a specific config revision.
+
+| Property | Value |
+| --- | --- |
+| Auth | Service |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodAdminBotChallengeSource` (200): `{ sourceCode: string, configRevision: string }`.
+
+**Errors**: `badToken`, `badChallenge`.
+
+### `POST /api/v2/admin/admin-bot/jobs/:id/complete`
+
+Marks a running job as completed and stores logs.
+
+| Property | Value |
+| --- | --- |
+| Auth | Service |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Job ID. |
+
+**Request body**
 
 ```json
 {
@@ -298,4 +758,137 @@ The admin bot worker uses service-authenticated routes. These routes are not use
 }
 ```
 
-`logs` may be omitted and may contain at most `1048576` characters.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `logs` | `string \| undefined{:ts}` | No | Newline-delimited JSON. Maximum `1048576` characters. |
+
+**Response**
+
+`goodAdminBotJobUpdate` (200): `{ ok: boolean }`.
+
+**Errors**: `badBody`, `badToken`.
+
+### `POST /api/v2/admin/admin-bot/jobs/:id/fail`
+
+Marks a running job as failed and stores logs.
+
+| Property | Value |
+| --- | --- |
+| Auth | Service |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Job ID. |
+
+**Request body**
+
+Same shape as `complete`.
+
+**Response**
+
+`goodAdminBotJobUpdate` (200): `{ ok: boolean }`.
+
+**Errors**: `badBody`, `badToken`.
+
+### `GET /api/v2/admin/admin-bot/queue-depth`
+
+Returns the number of queued jobs.
+
+| Property | Value |
+| --- | --- |
+| Auth | Service |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodAdminBotQueueDepth` (200): `{ depth: number }`.
+
+**Errors**: `badToken`.
+
+## V1 compatibility
+
+### Challenges
+
+#### `GET /api/v1/admin/challs`
+
+Same as [`GET /api/v2/admin/challs`](#get-apiv2adminchalls), but V1 admin challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`.
+
+#### `PUT /api/v1/admin/challs/:id`
+
+Same as [`PUT /api/v2/admin/challs/:id`](#put-apiv2adminchallsid), with the V1 challenge data shape (no `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, or file `size`).
+
+#### `DELETE /api/v1/admin/challs/:id`
+
+V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent — V2 deletes via challenge mutation in the admin panel.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | None |
+| Permissions | `challsWrite{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodChallengeDelete` (200, no data).
+
+**Errors**: `badToken`, `badPerms`, `badChallenge`.
+
+### Uploads
+
+#### `POST /api/v1/admin/upload`
+
+Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipart/form-data`.
+
+**Request body**
+
+```json
+{
+  "files": [
+    { "name": "dist.zip", "data": "data:application/zip;base64,..." }
+  ]
+}
+```
+
+V1 upload responses omit the `size` field.
+
+**Errors**: `badBody`, `badToken`, `badPerms`, `badDataUri`, `badFilesUpload`.
+
+#### `POST /api/v1/admin/upload/query`
+
+Same as [`POST /api/v2/admin/upload/query`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
+
+## `AdminChallengeV2`
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `id` | `string{:ts}` | Challenge ID. |
+| `name` | `string{:ts}` | Display name. |
+| `description` | `string{:ts}` | Markdown description. |
+| `category` | `string{:ts}` | Category name. |
+| `author` | `string{:ts}` | Author. |
+| `files` | `ChallengeFileV2[]{:ts}` | Files. See [`ChallengeFileV2`](/api/responses#challengefilev2). |
+| `points` | `{ min: number, max: number }{:ts}` | Dynamic scoring bounds. |
+| `flag` | `string{:ts}` | Correct flag. |
+| `tiebreakEligible` | `boolean{:ts}` | Whether solves count toward the tiebreak timestamp. |
+| `sortWeight` | `number \| null \| undefined{:ts}` | Optional category ordering weight. |
+| `instancerConfig` | `InstancerConfig \| null \| undefined{:ts}` | Per-team instance config. See [`InstancerConfig`](/api/responses#instancerconfig). |
+| `adminBotConfig` | `AdminBotConfig \| null \| undefined{:ts}` | Admin bot config. See [`AdminBotConfig`](/api/responses#adminbotconfig). |
+| `hidden` | `boolean{:ts}` | Hidden challenges are invisible to non-admin users. |
+| `releaseTime` | `number \| null \| undefined{:ts}` | Unix millisecond release timestamp. |

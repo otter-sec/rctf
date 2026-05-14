@@ -1,22 +1,39 @@
 ---
 title: Authentication
-description: API reference for registration, login, verification, recovery, CTFtime auth, and token validation.
+description: Registration, verification, login, recovery, CTFtime handoff, and token validation routes.
 ---
 
-Authentication is team-based. A team owns one account, one team token, and any number of auth tokens created from login, registration, recovery, or verification flows.
+Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `GET /api/v1/auth/test`, which validates an auth token.
+
+## Routes
+
+| Method | Path | Version | Auth | Gate |
+| --- | --- | --- | --- | --- |
+| `POST{:http}` | `/api/v2/auth/register` | V2 | Public | None |
+| `POST{:http}` | `/api/v2/auth/verify` | V2 | Public | None |
+| `POST{:http}` | `/api/v2/auth/recover` | V2 | Public | None |
+| `GET{:http}` | `/api/v2/auth/verify-info` | V2 | Public | None |
+| `POST{:http}` | `/api/v1/auth/register` | V1 | Public | None |
+| `POST{:http}` | `/api/v1/auth/login` | V1 | Public | None |
+| `POST{:http}` | `/api/v1/auth/verify` | V1 | Public | None |
+| `POST{:http}` | `/api/v1/auth/recover` | V1 | Public | None |
+| `GET{:http}` | `/api/v1/auth/test` | V1 | Required | None |
 
 ## V2 routes
 
-| Method | Path | Auth | Request |
-| --- | --- | --- | --- |
-| `POST{:http}` | `/api/v2/auth/register` | Public | JSON body |
-| `POST{:http}` | `/api/v2/auth/verify` | Public | JSON body |
-| `POST{:http}` | `/api/v2/auth/recover` | Public | JSON body |
-| `GET{:http}` | `/api/v2/auth/verify-info` | Public | Query string |
-
 ### `POST /api/v2/auth/register`
 
-Registers a team. The request must include a name and at least one authentication method:
+Registers a team. Returns auth tokens immediately when verification is not required, otherwise sends a verification email.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | `register{:ts}` (when configured) |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -27,16 +44,18 @@ Registers a team. The request must include a name and at least one authenticatio
 }
 ```
 
-| Field | Required | Notes |
-| --- | --- | --- |
-| `name` | Yes | Normalized team name. It must be 2 to 64 printable ASCII characters. |
-| `email` | Conditionally | Required when `ctftimeToken` is omitted. Normalized and validated as an email address. |
-| `ctftimeToken` | Conditionally | Required when `email` is omitted. The route returns `badEndpoint` when CTFtime is not configured. |
-| `captchaCode` | No | Checked only when captcha protects the `register` action. |
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string{:ts}` | Yes | 2–64 printable ASCII characters. |
+| `email` | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
+| `ctftimeToken` | `string{:ts}` | Conditional | Required when `email` is omitted. Returns `badEndpoint` when CTFtime is not configured. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `register{:ts}`. |
 
-The route chooses the default allowed division for the team. If email ACLs reject the email, it returns `badCompetitionNotAllowed`.
+The route assigns the team to the default allowed division based on email ACLs. CTFtime registrations bypass ACLs entirely.
 
-When email is configured and an email is supplied, registration creates a pending verification row, sends a verification email, and returns `goodVerifySent`. When registration completes immediately, v2 returns both tokens:
+**Response**
+
+When registration completes immediately (CTFtime auth, or no email provider is configured), returns `goodRegisterV2` (200):
 
 ```json
 {
@@ -49,9 +68,23 @@ When email is configured and an email is supplied, registration creates a pendin
 }
 ```
 
+When email verification is required, returns `goodVerifySent` (no data) and sends a verification email.
+
+**Errors**: `badBody`, `badEmail`, `badName`, `badKnownEmail`, `badKnownName`, `badKnownCtftimeId`, `badCompetitionNotAllowed`, `badDivisionNotAllowed`, `badRegistrationsDisabled`, `badCaptcha`, `badEndpoint`, `badCtftimeToken`.
+
 ### `POST /api/v2/auth/verify`
 
-Consumes a verification token, team token, or pending registration token:
+Consumes a verification token to complete a pending registration, log in with a team token, or finalize an email change.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -59,17 +92,37 @@ Consumes a verification token, team token, or pending registration token:
 }
 ```
 
-| Token kind | Success | Behavior |
-| --- | --- | --- |
-| Pending registration token | `goodRegisterV2` | Creates the team, returns `authToken` and `teamToken`, and claims the pending verification row. |
-| Team token | `goodVerify` | Returns a fresh `authToken` for the team. |
-| Verify token | `goodEmailSet` | Updates the team's email after checking that the new email can stay in the current division. |
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `verifyToken` | `string{:ts}` | Yes | Pending-registration, team, or verify token. |
 
-Invalid, expired, already-used, or missing tokens return `badTokenVerification`.
+**Response**
+
+Behavior branches on the token kind:
+
+| Token kind | Success kind | Effect |
+| --- | --- | --- |
+| Pending registration | `goodRegisterV2` | Creates the team and returns `authToken` + `teamToken`. Claims the verification row. |
+| Team | `goodVerify` | Returns a fresh `authToken`. |
+| Verify | `goodEmailSet` | Updates the team email after re-checking division ACLs. |
+
+`goodRegisterV2` data matches the [register response](#post-apiv2authregister). `goodVerify` returns `{ authToken: string }`. `goodEmailSet` returns no data.
+
+**Errors**: `badBody`, `badTokenVerification`, `badEmailChangeDivision`, `badKnownEmail`.
 
 ### `POST /api/v2/auth/recover`
 
-Sends an account recovery email:
+Sends an account-recovery email containing a team token. Always returns `goodVerifySent`, even when the email is unknown, to prevent account enumeration.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | `recover{:ts}` (when configured) |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -78,17 +131,38 @@ Sends an account recovery email:
 }
 ```
 
-The recovery email contains a team token. The route returns `goodVerifySent` even when the email is unknown, which prevents account enumeration. If no email provider is configured, the route returns `badEndpoint`.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `email` | `string{:ts}` | Yes | Recovery destination. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `recover{:ts}`. |
+
+**Response**
+
+`goodVerifySent` (no data).
+
+**Errors**: `badBody`, `badEmail`, `badEndpoint` (no email provider configured), `badCaptcha`.
 
 ### `GET /api/v2/auth/verify-info`
 
-Returns display information about a verification token without consuming it:
+Previews a verification token without consuming it. Useful for showing context on the verification page before the user submits.
 
-| Query | Required | Notes |
-| --- | --- | --- |
-| `token` | Yes | Pending registration token, team token, or email verification token. |
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
 
-`goodVerifyInfo` returns:
+**Query**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `token` | `string{:ts}` | Yes | Pending-registration, team, or verify token. |
+
+**Response**
+
+`goodVerifyInfo` (200):
 
 ```json
 {
@@ -102,21 +176,38 @@ Returns display information about a verification token without consuming it:
 }
 ```
 
-`data.kind` is `register`, `team`, or `update`. `email` is `null` for team-token recovery previews.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.kind` | `"register" \| "team" \| "update"{:ts}` | Token purpose. |
+| `data.email` | `string \| null{:ts}` | `null{:ts}` for team-token recovery previews. |
+| `data.name` | `string \| undefined{:ts}` | Present for pending-registration tokens. |
 
-## V1 routes
+**Errors**: `badBody`, `badTokenVerification`.
 
-| Method | Path | Auth | Request |
-| --- | --- | --- | --- |
-| `POST{:http}` | `/api/v1/auth/register` | Public | JSON body |
-| `POST{:http}` | `/api/v1/auth/login` | Public | JSON body |
-| `POST{:http}` | `/api/v1/auth/recover` | Public | JSON body |
-| `POST{:http}` | `/api/v1/auth/verify` | Public | JSON body |
-| `GET{:http}` | `/api/v1/auth/test` | Required | None |
+## V1 compatibility
+
+V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
+
+### `POST /api/v1/auth/register`
+
+Differs from V2:
+
+- Captcha field is `recaptchaCode` instead of `captchaCode`.
+- Immediate success returns `goodRegister` with `{ authToken: string }` only — no `teamToken`.
 
 ### `POST /api/v1/auth/login`
 
-V1 login accepts a team token or a CTFtime auth token:
+V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`POST /api/v2/auth/verify`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -125,30 +216,43 @@ V1 login accepts a team token or a CTFtime auth token:
 }
 ```
 
-At least one of `teamToken` or `ctftimeToken` must be present. A valid team token is parsed as `TokenKind.Team{:ts}` and exchanged for an auth token. A valid CTFtime token is parsed as `TokenKind.CtftimeAuth{:ts}` and matched against a linked team.
+At least one of `teamToken` or `ctftimeToken` must be present. A team token is parsed as `TokenKind.Team{:ts}`. A CTFtime token is parsed as `TokenKind.CtftimeAuth{:ts}` and matched against a team linked to that CTFtime ID.
 
-### V1 and v2 differences
+**Response**
 
-| Behavior | V1 | V2 |
-| --- | --- | --- |
-| Immediate registration success | `goodRegister` returns `authToken`. | `goodRegisterV2` returns `authToken` and `teamToken`. |
-| Pending registration verification success | `goodRegister` returns `authToken`. | `goodRegisterV2` returns `authToken` and `teamToken`. |
-| Captcha field | `recaptchaCode` | `captchaCode` |
-| Token preview | Not available | `GET /api/v2/auth/verify-info` |
-| Login route | `/api/v1/auth/login` | No v2 login route. Use v1 login or v2 verify with a team token. |
+`goodLogin` (200): `{ authToken: string }`.
 
-## Response data
+**Errors**: `badBody`, `badTokenVerification`, `badCtftimeToken`, `badCtftimeNoExists`, `badEndpoint` (CTFtime not configured).
 
-| Response kind | Data |
+### `POST /api/v1/auth/verify`
+
+Differs from V2: the pending-registration path returns `goodRegister` with `{ authToken: string }` only.
+
+### `POST /api/v1/auth/recover`
+
+Differs from V2: captcha field is `recaptchaCode` instead of `captchaCode`.
+
+### `GET /api/v1/auth/test`
+
+Validates the supplied auth token. Returns `goodToken` (no data) when the token is valid, `badToken` otherwise. Useful for client-side session checks.
+
+| Property | Value |
 | --- | --- |
-| `goodRegister` | `{ authToken: string }` |
-| `goodRegisterV2` | `{ authToken: string, teamToken: string }` |
-| `goodLogin` | `{ authToken: string }` |
-| `goodVerify` | `{ authToken: string }` |
-| `goodVerifyInfo` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }` |
-| `goodVerifySent` | No data. |
-| `goodEmailSet` | No data. |
+| Auth | Required |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
 
 ## Token lifecycle
 
-Auth tokens and team tokens do not expire. Verify tokens and CTFtime auth tokens expire according to `loginTimeout`. Verify tokens also require a one-time Redis marker, so a valid encrypted token can still return `badTokenVerification` after the marker has been consumed or expired.
+All tokens are AES-256-GCM encrypted with `tokenKey`. Rotating `tokenKey` invalidates every existing token.
+
+| Token kind | Lifetime | Used by |
+| --- | --- | --- |
+| `Auth` | No expiry | `Authorization: Bearer <auth-token>` on user routes. |
+| `Team` | No expiry | Recovery, V1 login, and V2 verify with a team token. |
+| `Verify` | `loginTimeout` | Email updates and pending registrations. One-time. |
+| `CtftimeAuth` | `loginTimeout` | CTFtime registration and V1 login handoff. |
+
+Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `badTokenVerification` after the marker has been consumed or expired.

@@ -5,57 +5,123 @@ description: API reference for client config, analytics, CTFtime, instancer life
 
 Integration routes expose frontend configuration, CTFtime handoff, challenge instance lifecycle, admin bot participant jobs, and the analytics script proxy.
 
-## Client config
+## Routes
 
-| Method | Path | Version | Auth | Request |
+| Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
 | `GET{:http}` | `/api/v2/integrations/client/config` | V2 | Public | None |
+| `GET{:http}` | `/api/v2/integrations/analytics/script` | V2 | Public | None |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/instance` | V2 | Required | Started |
+| `PUT{:http}` | `/api/v2/integrations/challs/:id/instance` | V2 | Required | Started |
+| `PATCH{:http}` | `/api/v2/integrations/challs/:id/instance` | V2 | Required | Started |
+| `DELETE{:http}` | `/api/v2/integrations/challs/:id/instance` | V2 | Required | Started |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/config` | V2 | Public | Started |
+| `POST{:http}` | `/api/v2/integrations/challs/:id/admin-bot` | V2 | Required | Started |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/status` | V2 | Required | Started |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/history` | V2 | Required | Started |
+| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs` | V2 | Required | Started |
 | `GET{:http}` | `/api/v1/integrations/client/config` | V1 | Public | None |
+| `POST{:http}` | `/api/v1/integrations/ctftime/callback` | V1 | Public | None |
+| `GET{:http}` | `/api/v1/integrations/ctftime/leaderboard` | V1 | Permissioned | None |
 
-V2 client config returns:
+## Client config
+
+### `GET /api/v2/integrations/client/config`
+
+Returns the public client configuration consumed by the frontend.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodClientConfig` (200):
+
+```json
+{
+  "kind": "goodClientConfig",
+  "message": "The client config was retrieved.",
+  "data": {}
+}
+```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `meta` | `{ description: string, imageUrl: string }` | Page metadata. |
-| `homeContent` | `string` | Markdown home content. |
-| `sponsors` | `Sponsor[]` | Sponsor rows. |
-| `flagFormatPlaceholder` | `string` | Placeholder shown in flag inputs. |
-| `analytics` | `ClientProvider \| null` | Public analytics provider data. |
-| `ctfName` | `string` | Display name. |
-| `divisions` | `Record<string, string>` | Division key to display name map. |
-| `defaultDivision` | `string \| null \| undefined` | Default division key when configured. |
-| `origin` | `string` | Public origin URL. |
-| `startTime` | `number` | Unix milliseconds. |
-| `endTime` | `number` | Unix milliseconds. |
-| `userMembers` | `boolean` | Whether team members are enabled. |
-| `faviconUrl` | `string \| null` | Runtime favicon URL. |
-| `logoLightUrl` | `string \| null` | Light logo URL. |
-| `logoDarkUrl` | `string \| null` | Dark logo URL. |
-| `emailEnabled` | `boolean` | Whether email delivery is configured. |
-| `registrationsEnabled` | `boolean \| null` | Runtime registration state. |
-| `ctftime` | `{ clientId: string } \| null` | Public CTFtime OAuth data. |
-| `instancerEnabled` | `boolean` | Whether an instancer provider is configured. |
-| `isArchived` | `boolean` | Whether the CTF has ended. |
-| `captcha` | `CaptchaClientConfig \| null` | Public captcha provider options and protected endpoint map. |
+| `meta` | `{ description: string, imageUrl: string }{:ts}` | Page metadata. |
+| `homeContent` | `string{:ts}` | Markdown home content. |
+| `sponsors` | `Sponsor[]{:ts}` | Sponsor rows. |
+| `flagFormatPlaceholder` | `string{:ts}` | Placeholder shown in flag inputs. |
+| `analytics` | `ClientProvider \| null{:ts}` | Public analytics provider data. |
+| `ctfName` | `string{:ts}` | Display name. |
+| `divisions` | `Record<string, string>{:ts}` | Division key to display name map. |
+| `defaultDivision` | `string \| null \| undefined{:ts}` | Default division key when configured. |
+| `origin` | `string{:ts}` | Public origin URL. |
+| `startTime` | `number{:ts}` | Unix milliseconds. |
+| `endTime` | `number{:ts}` | Unix milliseconds. |
+| `userMembers` | `boolean{:ts}` | Whether team members are enabled. |
+| `faviconUrl` | `string \| null{:ts}` | Runtime favicon URL. |
+| `logoLightUrl` | `string \| null{:ts}` | Light logo URL. |
+| `logoDarkUrl` | `string \| null{:ts}` | Dark logo URL. |
+| `emailEnabled` | `boolean{:ts}` | Whether email delivery is configured. |
+| `registrationsEnabled` | `boolean \| null{:ts}` | Runtime registration state. |
+| `ctftime` | `{ clientId: string } \| null{:ts}` | Public CTFtime OAuth data. |
+| `instancerEnabled` | `boolean{:ts}` | Whether an instancer provider is configured. |
+| `isArchived` | `boolean{:ts}` | Whether the CTF has ended. |
+| `captcha` | `CaptchaClientConfig \| null{:ts}` | Public captcha provider options and protected endpoint map. |
 
-V1 client config omits `flagFormatPlaceholder`, `analytics`, `instancerEnabled`, `isArchived`, `logoLightUrl`, `logoDarkUrl`, and the generic captcha object. V1 includes `globalSiteTag` and `recaptcha`.
+### `GET /api/v1/integrations/client/config`
+
+V1 client config. Differs from V2:
+
+- Omits `flagFormatPlaceholder`, `analytics`, `instancerEnabled`, `isArchived`, `logoLightUrl`, `logoDarkUrl`, and the generic `captcha` object.
+- Includes `globalSiteTag` and `recaptcha`.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
 
 ## Analytics script
 
-| Method | Path | Auth | Request |
-| --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/integrations/analytics/script` | Public | None |
+### `GET /api/v2/integrations/analytics/script`
 
-This route is not part of `@rctf/types`. It returns the active analytics provider's JavaScript body or a plain text error. The API caches the script in memory for one hour and returns `404` when no analytics provider is configured. Upstream fetch failures return `502`.
+Returns the active analytics provider's JavaScript body. This route is not part of `@rctf/types`.
 
-## CTFtime routes
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
 
-| Method | Path | Version | Auth | Request |
-| --- | --- | --- | --- | --- |
-| `POST{:http}` | `/api/v1/integrations/ctftime/callback` | V1 | Public | JSON body |
-| `GET{:http}` | `/api/v1/integrations/ctftime/leaderboard` | V1 | `leaderboardRead` | None |
+**Response**
 
-The callback route accepts:
+The route returns the provider's JavaScript body or a plain text error. It is not wrapped in the rCTF envelope. The API caches the script in memory for one hour. When no analytics provider is configured the route returns `404`. Upstream fetch failures return `502`.
+
+## CTFtime
+
+### `POST /api/v1/integrations/ctftime/callback`
+
+V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team name and ID returned by CTFtime.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | None |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Request body**
 
 ```json
 {
@@ -63,17 +129,49 @@ The callback route accepts:
 }
 ```
 
-`goodCtftimeToken` returns:
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `ctftimeCode` | `string{:ts}` | Yes | OAuth code returned by CTFtime. |
+
+**Response**
+
+`goodCtftimeToken` (200):
 
 ```json
 {
-  "ctftimeToken": "<ctftime-auth-token>",
-  "ctftimeName": "Team Name",
-  "ctftimeId": "12345"
+  "kind": "goodCtftimeToken",
+  "message": "The CTFtime token was retrieved.",
+  "data": {
+    "ctftimeToken": "<ctftime-auth-token>",
+    "ctftimeName": "Team Name",
+    "ctftimeId": "12345"
+  }
 }
 ```
 
-The CTFtime leaderboard route returns its data directly:
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.ctftimeToken` | `string{:ts}` | CTFtime auth token usable on V1 login and V2 register/verify flows. |
+| `data.ctftimeName` | `string{:ts}` | CTFtime team name. |
+| `data.ctftimeId` | `string{:ts}` | CTFtime team ID. |
+
+**Errors**: `badBody`, `badCtftimeCode`, `badEndpoint`.
+
+### `GET /api/v1/integrations/ctftime/leaderboard`
+
+V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route that returns its data directly without the rCTF envelope.
+
+| Property | Value |
+| --- | --- |
+| Auth | Permissioned |
+| Gate | None |
+| Permissions | `leaderboardRead{:ts}` |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+Raw body (200):
 
 ```json
 {
@@ -87,18 +185,77 @@ The CTFtime leaderboard route returns its data directly:
 }
 ```
 
-## Instancer routes
+| Field | Type | Notes |
+| --- | --- | --- |
+| `standings` | `{ pos: number, team: string, score: number }[]{:ts}` | Ordered standings rows. |
 
-| Method | Path | Auth | Gate | Request |
-| --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/integrations/challs/:id/instance` | Required | Started | None |
-| `PUT{:http}` | `/api/v2/integrations/challs/:id/instance` | Required | Started | JSON body |
-| `PATCH{:http}` | `/api/v2/integrations/challs/:id/instance` | Required | Started | JSON body |
-| `DELETE{:http}` | `/api/v2/integrations/challs/:id/instance` | Required | Started | None |
+## Instancer lifecycle
 
-Admins with `challsRead` can bypass the start-time gate.
+All four methods share the path `/api/v2/integrations/challs/:id/instance` and the same path params. The route returns `badEndpoint` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `badInstancerError` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
 
-Create and extend requests accept optional captcha:
+### `GET /api/v2/integrations/challs/:id/instance`
+
+Returns the current instance status for the authenticated user.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodInstanceStatus` (200):
+
+```json
+{
+  "kind": "goodInstanceStatus",
+  "message": "The instance status was retrieved.",
+  "data": {
+    "status": "running",
+    "timeLeftMilliseconds": 1800000,
+    "endpoints": []
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.status` | `"stopped" \| "running" \| "starting" \| "stopping" \| "errored"{:ts}` | Current lifecycle state. |
+| `data.timeLeftMilliseconds` | `number \| null{:ts}` | Remaining time for running instances. |
+| `data.endpoints` | `Endpoint[] \| null{:ts}` | Public endpoints in challenge expose order. |
+
+`Endpoint` has `kind`, `host`, `port`, and optional `title`. Endpoint kinds are `tcp`, `tcp-ssl`, `http`, and `https`.
+
+**Errors**: `badEndpoint`, `badInstancerError`.
+
+### `PUT /api/v2/integrations/challs/:id/instance`
+
+Creates (starts) an instance for the authenticated user.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | `instancerStart{:ts}` (when configured) |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Request body**
 
 ```json
 {
@@ -106,44 +263,137 @@ Create and extend requests accept optional captcha:
 }
 ```
 
-`goodInstanceStatus` returns:
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `instancerStart{:ts}`. |
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `status` | `"stopped" \| "running" \| "starting" \| "stopping" \| "errored"` | Current lifecycle state. |
-| `timeLeftMilliseconds` | `number \| null` | Remaining time for running instances. |
-| `endpoints` | `Endpoint[] \| null` | Public endpoints in challenge expose order. |
+**Response**
 
-`Endpoint` has `kind`, `host`, `port`, and optional `title`. Endpoint kinds are `tcp`, `tcp-ssl`, `http`, and `https`.
+`goodInstanceStatus`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-The route returns `badEndpoint` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `badInstancerError` with `data.message`.
+**Errors**: `badBody`, `badEndpoint`, `badCaptcha`, `badInstancerError`.
 
-## Admin bot participant routes
+### `PATCH /api/v2/integrations/challs/:id/instance`
 
-| Method | Path | Auth | Gate | Request |
-| --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/config` | Public | Started | None |
-| `POST{:http}` | `/api/v2/integrations/challs/:id/admin-bot` | Required | Started | JSON body |
-| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/status` | Required | Started | None |
-| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/history` | Required | Started | None |
-| `GET{:http}` | `/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs` | Required | Started | None |
+Extends the running instance for the authenticated user.
 
-Admins with `challsRead` can bypass the start-time gate.
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | `instancerExtend{:ts}` (when configured) |
+| Rate limit | — |
 
-### Config response
+**Path params**
 
-`GET /api/v2/integrations/challs/:id/admin-bot/config` returns the released challenge source and file extension:
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Request body**
 
 ```json
 {
-  "sourceCode": "export const challenge = ...",
-  "fileExtension": ".ts"
+  "captchaCode": "optional-captcha-code"
 }
 ```
 
-### Job submission
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `instancerExtend{:ts}`. |
 
-Participants submit values for the configured input names:
+**Response**
+
+`goodInstanceStatus`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+
+**Errors**: `badBody`, `badEndpoint`, `badCaptcha`, `badInstancerError`.
+
+### `DELETE /api/v2/integrations/challs/:id/instance`
+
+Stops the instance for the authenticated user.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodInstanceStatus`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+
+**Errors**: `badEndpoint`, `badInstancerError`.
+
+## Admin bot participant routes
+
+Participant admin bot routes live under `/api/v2/integrations/challs/:id/admin-bot/*`. Admins with `challsRead` can bypass the start-time gate.
+
+### `GET /api/v2/integrations/challs/:id/admin-bot/config`
+
+Returns the released admin bot challenge source and its file extension.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodAdminBotConfig` (200):
+
+```json
+{
+  "kind": "goodAdminBotConfig",
+  "message": "The admin bot config was retrieved.",
+  "data": {
+    "sourceCode": "export const challenge = ...",
+    "fileExtension": ".ts"
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.sourceCode` | `string{:ts}` | Released admin bot challenge source. |
+| `data.fileExtension` | `string{:ts}` | File extension corresponding to the source's language. |
+
+### `POST /api/v2/integrations/challs/:id/admin-bot`
+
+Submits a participant admin bot job. Participants supply values for the configured input names.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | `adminBotSubmit{:ts}` (when configured) |
+| Rate limit | Burst `1`, refill window `10000` ms per user and challenge. |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Request body**
 
 ```json
 {
@@ -154,46 +404,157 @@ Participants submit values for the configured input names:
 }
 ```
 
-Input names may be up to `256` characters. Input values may be up to `1024` characters. The API validates each value against the regex rule stored in challenge config.
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `inputs` | `Record<string, string>{:ts}` | Yes | Values for the configured input names. Input names may be up to `256` characters. Input values may be up to `1024` characters. Each value is validated against the regex rule stored in challenge config. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `adminBotSubmit{:ts}`. |
 
-`goodAdminBotJobSubmitted` returns `{ jobId: string }`.
+Only one queued or running job per user per challenge is allowed.
 
-The route returns `badInstancerState` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
+**Response**
 
-### Job status and history
-
-`goodAdminBotJobStatus` returns:
+`goodAdminBotJobSubmitted` (200):
 
 ```json
 {
-  "job": {
-    "id": "job-id",
-    "status": "queued",
-    "createdAt": "2026-05-05T10:00:00.000Z",
-    "queuePosition": 2,
+  "kind": "goodAdminBotJobSubmitted",
+  "message": "The admin bot job was submitted.",
+  "data": {
+    "jobId": "job-id"
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.jobId` | `string{:ts}` | Submitted job identifier. |
+
+The route returns `badInstancerState` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
+
+**Errors**: `badBody`, `badCaptcha`, `badRateLimit`, `badInstancerState`.
+
+### `GET /api/v2/integrations/challs/:id/admin-bot/status`
+
+Returns the current active job for the authenticated user on that challenge.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodAdminBotJobStatus` (200):
+
+```json
+{
+  "kind": "goodAdminBotJobStatus",
+  "message": "The admin bot job status was retrieved.",
+  "data": {
+    "job": {
+      "id": "job-id",
+      "status": "queued",
+      "createdAt": "2026-05-05T10:00:00.000Z",
+      "queuePosition": 2,
+      "logs": null
+    }
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.job` | `AdminBotJobStatusResponse \| null{:ts}` | `null{:ts}` when the user has no active job for that challenge. |
+| `data.job.status` | `"queued" \| "running" \| "completed" \| "failed"{:ts}` | Job lifecycle state. |
+
+### `GET /api/v2/integrations/challs/:id/admin-bot/history`
+
+Returns retained completed and failed jobs for the authenticated user on that challenge.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+
+**Response**
+
+`goodAdminBotJobHistory` (200):
+
+```json
+{
+  "kind": "goodAdminBotJobHistory",
+  "message": "The admin bot job history was retrieved.",
+  "data": {
+    "jobs": [
+      {
+        "id": "job-id",
+        "status": "completed",
+        "createdAt": "2026-05-05T10:00:00.000Z",
+        "hasLogs": true
+      }
+    ]
+  }
+}
+```
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.jobs` | `AdminBotJobHistoryItem[]{:ts}` | Retained completed and failed jobs. |
+
+### `GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs`
+
+Returns logs for a specific job.
+
+| Property | Value |
+| --- | --- |
+| Auth | Required |
+| Gate | Started |
+| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | — |
+| Rate limit | — |
+
+**Path params**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `id` | `string{:ts}` | Yes | Challenge ID. |
+| `jobId` | `string{:ts}` | Yes | Job ID. |
+
+**Response**
+
+`goodAdminBotJobLogs` (200):
+
+```json
+{
+  "kind": "goodAdminBotJobLogs",
+  "message": "The admin bot job logs were retrieved.",
+  "data": {
     "logs": null
   }
 }
 ```
 
-`job` is `null` when the user has no active job for that challenge. Status values are `queued`, `running`, `completed`, and `failed`.
-
-`goodAdminBotJobHistory` returns retained completed and failed jobs:
-
-```json
-{
-  "jobs": [
-    {
-      "id": "job-id",
-      "status": "completed",
-      "createdAt": "2026-05-05T10:00:00.000Z",
-      "hasLogs": true
-    }
-  ]
-}
-```
-
-`goodAdminBotJobLogs` returns `{ logs: string \| null }`.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.logs` | `string \| null{:ts}` | Logs body, or `null{:ts}` when no logs are retained. |
 
 ## Service routes
 

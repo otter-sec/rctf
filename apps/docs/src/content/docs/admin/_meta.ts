@@ -8,5 +8,6 @@ export default {
     teams: { label: 'Teams', order: 2 },
     submissions: { label: 'Submissions', order: 3 },
     uploading: { label: 'Uploading', order: 4 },
+    markdown: { label: 'Markdown', order: 5 },
   },
 } satisfies MetaFile

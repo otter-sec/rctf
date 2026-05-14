@@ -7,139 +7,296 @@ Leaderboard routes read cached standings produced by the leaderboard worker. The
 
 ## Routes
 
-| Method | Path | Version | Auth | Query |
+| Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/leaderboard/now` | V2 | Public, optional admin bypass | Required |
-| `GET{:http}` | `/api/v2/leaderboard/with-graph` | V2 | Public, optional admin bypass | Required |
-| `GET{:http}` | `/api/v2/leaderboard/graph` | V2 | Public, optional admin bypass | Required |
-| `GET{:http}` | `/api/v2/leaderboard/challs` | V2 | Public, optional admin bypass | None |
-| `GET{:http}` | `/api/v1/leaderboard/now` | V1 | Public, optional admin bypass | Required |
-| `GET{:http}` | `/api/v1/leaderboard/graph` | V1 | Public, optional admin bypass | Required |
+| `GET{:http}` | `/api/v2/leaderboard/now` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v2/leaderboard/with-graph` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v2/leaderboard/graph` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v2/leaderboard/challs` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v1/leaderboard/now` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `GET{:http}` | `/api/v1/leaderboard/graph` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
 
-Routes with leaderboard start bypass accept an auth token with `leaderboardRead`. `/api/v2/leaderboard/challs` uses `challsRead` for its start bypass.
+Routes accept an optional auth token. When the token carries the listed permission bit, it bypasses the start-time gate. `/api/v2/leaderboard/challs` uses `challsRead{:ts}` instead of `leaderboardRead{:ts}`.
 
 ## Query parameters
 
-`/now`, `/with-graph`, and `/graph` use query-string pagination:
+`/now`, `/with-graph`, and `/graph` use query-string pagination. The shared parameters:
 
 | Query | Routes | Required | Notes |
 | --- | --- | --- | --- |
-| `limit` | All leaderboard list and graph routes | Yes | Integer greater than or equal to `1`. Config enforces the maximum. |
+| `limit` | All list and graph routes | Yes | Integer greater than or equal to `1`. Config enforces the maximum. |
 | `offset` | V2 `/now`, V2 `/with-graph`, V2 `/graph`, V1 `/now` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
-| `division` | All leaderboard list and graph routes | No | Filters standings to a configured division. |
-| `search` | V2 `/now`, V2 `/with-graph` | No | Fuzzy team-name search. Must be 2 to 100 characters. |
+| `division` | All list and graph routes | No | Filters standings to a configured division. |
+| `search` | V2 `/now`, V2 `/with-graph` only | No | Fuzzy team-name search. Must be 2 to 100 characters. |
 
 V1 `/api/v1/leaderboard/graph` accepts `limit` and optional `division`, but it does not accept `offset`.
 
-Search requests are rate-limited per IP address and return `badRateLimit` with `data.timeLeft` when the search bucket is exhausted.
+Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms — captcha-free but rate-limited) and return `badRateLimit` with `data.timeLeft` when the bucket is exhausted.
 
-## `GET /api/v2/leaderboard/now`
+## V2 routes
 
-Returns the current standings:
+### `GET /api/v2/leaderboard/now`
+
+Returns the current standings page.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
+
+**Query**
+
+See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `division`, and optional `search`.
+
+**Response**
+
+`goodLeaderboard` (200):
 
 ```json
 {
-  "total": 37,
-  "leaderboard": [
-    {
-      "id": "team-id",
-      "name": "maple bacon",
-      "score": 1200,
-      "avatarUrl": null,
-      "countryCode": "US",
-      "statusText": null,
-      "solves": [{ "id": "challenge-id", "solveTime": 1710000000000 }],
-      "division": "open",
-      "divisionPlace": 1,
-      "globalPlace": 3
-    }
-  ]
+  "kind": "goodLeaderboard",
+  "message": "The leaderboard was successfully retrieved.",
+  "data": {
+    "total": 37,
+    "leaderboard": [
+      {
+        "id": "team-id",
+        "name": "maple bacon",
+        "score": 1200,
+        "avatarUrl": null,
+        "countryCode": "US",
+        "statusText": null,
+        "solves": [{ "id": "challenge-id", "solveTime": 1710000000000 }],
+        "division": "open",
+        "divisionPlace": 1,
+        "globalPlace": 3
+      }
+    ]
+  }
 }
 ```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `total` | `number` | Total matching teams before pagination. |
-| `leaderboard[]` | `LeaderboardEntryV2[]` | Paginated teams. |
-| `globalPlace` | `number \| null` | Global rank. It can be `null` when the team is filtered out of global ranking, such as banned teams. |
-| `divisionPlace` | `number` | Rank inside the returned division context. |
-| `solves[]` | `{ id: string, solveTime: number }[]` | Challenge IDs and solve timestamps. |
+| `total` | `number{:ts}` | Total matching teams before pagination. |
+| `leaderboard[]` | `LeaderboardEntryV2[]{:ts}` | Paginated teams. See [`LeaderboardEntryV2`](/api/responses). |
+| `globalPlace` | `number \| null{:ts}` | Global rank. `null{:ts}` when the team is filtered out of global ranking (for example, banned teams). |
+| `divisionPlace` | `number{:ts}` | Rank inside the returned division context. |
+| `solves[]` | `{ id: string, solveTime: number }[]{:ts}` | Challenge IDs and solve timestamps. |
 
-## `GET /api/v2/leaderboard/with-graph`
+**Errors**: `badBody`, `badNotStarted`, `badRateLimit`.
 
-Returns the same standing payload as `/now`, plus graph samples:
+### `GET /api/v2/leaderboard/with-graph`
+
+Returns the same standings payload as `/now`, plus graph samples. Useful for clients that render the standings table and the score graph together.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
+
+**Query**
+
+See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `division`, and optional `search`.
+
+**Response**
+
+`goodLeaderboardWithGraph` (200):
 
 ```json
 {
-  "total": 37,
-  "leaderboard": [],
-  "graph": [
-    {
-      "id": "team-id",
-      "name": "maple bacon",
-      "points": [
-        { "time": 1710000000000, "score": 500 }
-      ]
-    }
-  ]
+  "kind": "goodLeaderboardWithGraph",
+  "message": "The leaderboard was successfully retrieved.",
+  "data": {
+    "total": 37,
+    "leaderboard": [],
+    "graph": [
+      {
+        "id": "team-id",
+        "name": "maple bacon",
+        "points": [{ "time": 1710000000000, "score": 500 }]
+      }
+    ]
+  }
 }
 ```
 
-This route is useful for clients that render the standings table and score graph together.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `total` | `number{:ts}` | Total matching teams before pagination. |
+| `leaderboard[]` | `LeaderboardEntryV2[]{:ts}` | Paginated teams. See [`LeaderboardEntryV2`](/api/responses). |
+| `graph[]` | `LeaderboardGraphEntry[]{:ts}` | Teams included in the graph sample. See [`LeaderboardGraphEntry`](/api/responses). |
+| `graph[].points[]` | `{ time: number, score: number }[]{:ts}` | Score samples over time. |
 
-## `GET /api/v2/leaderboard/graph`
+**Errors**: `badBody`, `badNotStarted`, `badRateLimit`.
 
-Returns only graph data:
+### `GET /api/v2/leaderboard/graph`
+
+Returns only graph data.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and optional `division`. Does not accept `search`.
+
+**Response**
+
+`goodLeaderboardGraph` (200):
+
+```json
+{
+  "kind": "goodLeaderboardGraph",
+  "message": "The leaderboard graph was successfully retrieved.",
+  "data": {
+    "graph": [
+      {
+        "id": "team-id",
+        "name": "maple bacon",
+        "points": [{ "time": 1710000000000, "score": 500 }]
+      }
+    ]
+  }
+}
+```
 
 | Field | Type | Notes |
 | --- | --- | --- |
-| `graph[]` | `LeaderboardGraphEntry[]` | Teams included in the graph sample. |
-| `graph[].points[]` | `{ time: number, score: number }[]` | Score samples over time. |
+| `graph[]` | `LeaderboardGraphEntry[]{:ts}` | Teams included in the graph sample. See [`LeaderboardGraphEntry`](/api/responses). |
+| `graph[].points[]` | `{ time: number, score: number }[]{:ts}` | Score samples over time. |
 
 The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` controls how many teams are kept for graphing, and `leaderboard.graphSampleTime` controls sample cadence.
 
-## `GET /api/v2/leaderboard/challs`
+**Errors**: `badBody`, `badNotStarted`.
 
-Returns challenge metadata used by leaderboard visualizations:
+### `GET /api/v2/leaderboard/challs`
+
+Returns challenge metadata used by leaderboard visualizations.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`challsRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Response**
+
+`goodLeaderboardChallenges` (200):
 
 ```json
 {
-  "challenges": {
-    "challenge-id": {
-      "name": "web demo",
-      "category": "web",
-      "solves": 12,
-      "points": 443,
-      "sortWeight": null,
-      "firstSolvers": [{ "id": "team-id" }]
+  "kind": "goodLeaderboardChallenges",
+  "message": "The leaderboard challenges were successfully retrieved.",
+  "data": {
+    "challenges": {
+      "challenge-id": {
+        "name": "web demo",
+        "category": "web",
+        "solves": 12,
+        "points": 443,
+        "sortWeight": null,
+        "firstSolvers": [{ "id": "team-id" }]
+      }
     }
   }
 }
 ```
 
-`firstSolvers` contains up to the first three team IDs for each challenge.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.challenges` | `Record<string, LeaderboardChallenge>{:ts}` | Keyed by challenge ID. See [`LeaderboardChallenge`](/api/responses). |
+| `firstSolvers` | `{ id: string }[]{:ts}` | Up to the first three team IDs for each challenge. |
 
-## V1 leaderboard data
+**Errors**: `badNotStarted`.
 
-V1 standings are smaller:
+## V1 compatibility
+
+V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
+
+### `GET /api/v1/leaderboard/now`
+
+Returns the current standings page with the smaller V1 entry shape.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and optional `division`. Does not accept `search`.
+
+**Response**
+
+`goodLeaderboard` (200) with the V1 entry shape — `id`, `name`, and `score` only:
 
 ```json
 {
-  "total": 37,
-  "leaderboard": [
-    {
-      "id": "team-id",
-      "name": "maple bacon",
-      "score": 1200
-    }
-  ]
+  "kind": "goodLeaderboard",
+  "message": "The leaderboard was successfully retrieved.",
+  "data": {
+    "total": 37,
+    "leaderboard": [
+      {
+        "id": "team-id",
+        "name": "maple bacon",
+        "score": 1200
+      }
+    ]
+  }
 }
 ```
 
-V1 graph data uses the same `goodLeaderboardGraph` shape as v2.
+**Errors**: `badBody`, `badNotStarted`.
+
+### `GET /api/v1/leaderboard/graph`
+
+Returns graph data. The response uses the same `goodLeaderboardGraph` shape as V2.
+
+| Property | Value |
+| --- | --- |
+| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate | Started |
+| Permissions | — |
+| Captcha action | — |
+| Rate limit | — |
+
+**Query**
+
+Accepts `limit` and optional `division`. Differs from V2: does not accept `offset` or `search`.
+
+**Response**
+
+`goodLeaderboardGraph` (200). See [`LeaderboardGraphEntry`](/api/responses) for the entry shape.
+
+**Errors**: `badBody`, `badNotStarted`.
 
 ## Ranking rules
 
-The leaderboard worker sorts teams by score descending. Ties are broken by the time the team reached its score. The worker also tracks `last_tiebreak_solve_at` for challenges marked as `tiebreakEligible`, which provides an additional stable tiebreak input when scores and regular last solve times match.
+The leaderboard worker sorts teams by score descending. Ties are broken in this order:
 
-Banned teams are excluded from leaderboard output and have cached rank fields cleared until they are unbanned and the leaderboard is recalculated.
+1. Most recent solve of a challenge marked `tiebreakEligible` (`last_tiebreak_solve_at`) — earlier is better.
+2. Absolute last solve time — earlier is better.
+
+This chain provides a stable tiebreak input when both scores and regular last-solve times match.
+
+## Banned teams
+
+Banned teams are excluded from leaderboard output. Their cached rank fields are cleared until they are unbanned and the leaderboard is recalculated. When a banned team does appear in any response, `globalPlace` is `null{:ts}`.

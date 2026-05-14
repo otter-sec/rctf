@@ -67,3 +67,5 @@ examples/**/env.d.ts
 packages/astro/e2e/fixtures/cloudflare/.wrangler/deploy/config.json
 export-output/
 AGENTS.md
+wiki/
+scripts/

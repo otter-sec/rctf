@@ -267,6 +267,10 @@ Services may only reference networks declared under `[31mconfig.networks[0m{:a
 
 ## Kubernetes instancer
 
+<Callout variant="tip" title="Dedicated deployment guide">
+  See [Kubernetes instancer](/integrations/k8s-instancer) for the full Terraform deployment walkthrough, including GKE provisioning, ACME wildcard certificates, RBAC, network policies, and local Kind development.
+</Callout>
+
 The Kubernetes provider creates `ChallengeInstance` custom resources. The controller watches those resources and creates a namespace, network policies, deployments, services, and Traefik routes for each participant instance.
 
 The controller creates namespaces named from the challenge integration ID and team ID:

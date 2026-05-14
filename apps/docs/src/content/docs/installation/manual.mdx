@@ -97,6 +97,12 @@ bun run dev:api   # API only on :3000
 bun run dev:web   # Frontend only on :5173
 ```
 
+<Callout variant="tip" title="One-shot dev setup">
+
+For a fresh local environment, `[32mbun run dev:mock[0m{:ansi}` chains `[32mdb:migrate[0m{:ansi}`, `[32mdev:seed[0m{:ansi}`, and `[32mdev[0m{:ansi}` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `[32mrev[0m{:ansi}`/`[32mpwn[0m{:ansi}`/`[32mcrypto[0m{:ansi}`/`[32mweb[0m{:ansi}`/`[32mmisc[0m{:ansi}`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+
+</Callout>
+
 </Step>
 </Steps>
 

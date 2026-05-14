@@ -149,6 +149,18 @@ Rate-limited routes return `badRateLimit` with `data.timeLeft`, measured in mill
 | Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms. |
 | Leaderboard search | IP address | Burst `3`, refill window `3000` ms. |
 
+## Per-route documentation shape
+
+Every section page documents routes in the same shape:
+
+1. A top-of-file `## Routes` summary table with columns `Method | Path | Version | Auth | Gate`.
+2. Per-route `### \`METHOD /api/vX/path\`` blocks ordered by API family.
+3. A five-row property table inside each block — `Auth`, `Gate`, `Permissions`, `Captcha action`, `Rate limit`. A `—` value means the row does not apply.
+4. `**Path params**`, `**Query**`, and `**Request body**` sub-blocks, each with a typed field table when present.
+5. A `**Response**` sub-block naming the success kind, showing the envelope, and listing data fields.
+6. An `**Errors**` line enumerating the error kinds the route may return. Descriptions live in [Responses](/api/responses).
+7. A `## V1 compatibility` section at the bottom of files with paired V1 routes.
+
 ## Route sections
 
 | Section | Scope |

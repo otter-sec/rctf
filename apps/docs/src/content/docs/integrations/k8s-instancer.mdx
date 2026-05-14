@@ -1,0 +1,370 @@
+---
+title: Kubernetes instancer
+description: Deploy the rCTF Kubernetes instancer on GKE with the bundled Terraform modules and operator.
+---
+
+The Kubernetes instancer is the production-grade backend for per-team challenge instances. It runs an operator inside the cluster that reconciles a `ChallengeInstance` custom resource into a namespace, network policies, deployments, services, and Traefik routes. The rCTF API only talks to the Kubernetes API server through the `[32minstancer/k8s-instancer[0m{:ansi}` provider; the operator owns every other moving piece.
+
+This page covers deploying that stack from scratch on Google Kubernetes Engine using the bundled Terraform modules. For the challenge-side `[31minstancerConfig[0m{:ansi}` schema and the participant lifecycle, see [Instancer](/integrations/instancer).
+
+<Callout variant="warning" title="Hostile workloads">
+  Challenge images run untrusted code. The defaults assume strict isolation, but new variables, custom node pools, or wider RBAC can quickly invalidate that assumption. Review every change against the security model below.
+</Callout>
+
+## Architecture
+
+A working deployment has three cooperating components:
+
+| Component | Source | Responsibility |
+| --- | --- | --- |
+| `[32mK8sInstancerProvider[0m{:ansi}` | `apps/api/src/providers/instancer/k8s-instancer.ts` | Translates rCTF lifecycle calls into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
+| `k8s-controller` | `apps/k8s-controller/` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
+| Traefik | `deploy/terraform/instancer/modules/k8s/traefik.tf` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
+
+A participant request flows through these in order:
+
+<Steps>
+<Step title="rCTF creates the custom resource">
+
+The API receives `PUT /api/v2/integrations/challs/:id/instance`, validates the challenge config with the provider schema, and creates a cluster-scoped `ChallengeInstance` resource in the `rctf-instancer.osec.io/v1` API group. The CR carries the challenge ID, team ID, expiry, pod specs, and expose entries.
+
+</Step>
+<Step title="The controller reconciles">
+
+The operator watches `ChallengeInstance` events and runs its reconciliation loop. It adds the `[31mrctf.osec.io/finalizer[0m{:ansi}` finalizer, then ensures a namespace, network policies, deployments, services, and Traefik `[31mIngressRoute[0m{:ansi}` or `[31mIngressRouteTCP[0m{:ansi}` resources exist for each expose entry.
+
+</Step>
+<Step title="Traefik routes participant traffic">
+
+Each expose entry gets a hostname of the form `[31m<hostPrefix>-<uid>.<instancer-host>[0m{:ansi}`. Traefik matches the hostname against the generated `[31mIngressRoute[0m{:ansi}` and forwards traffic to the per-instance service.
+
+</Step>
+<Step title="The controller cleans up at expiry">
+
+When `[31mtime.Now()[0m{:ansi}` passes `[31mspec.expiresAt[0m{:ansi}`, the controller deletes the `ChallengeInstance`. The deletion timestamp triggers the finalizer, which deletes the namespace and removes the finalizer once the namespace is gone. Manual deletion through the rCTF API follows the same path.
+
+</Step>
+</Steps>
+
+Namespaces are deterministic and named `[31minst-<challenge-id>-<team-id>[0m{:ansi}` so the controller can find them across restarts. Every child resource inherits owner references from the `ChallengeInstance`, so cluster-level garbage collection is the safety net behind the explicit finalizer.
+
+## Prerequisites
+
+The Terraform example assumes GKE plus Cloudflare for DNS and ACME. GCP Cloud DNS is supported as a drop-in alternative.
+
+| Requirement | Notes |
+| --- | --- |
+| GCP project with billing enabled | Used for GKE, Artifact Registry, and optionally Cloud DNS. |
+| `gcloud` and `kubectl` | Needed for cluster auth and the controller installer. |
+| `terraform` 1.5+ | The example pins providers but not the Terraform CLI. |
+| `kind` (optional) | Only required for local controller development. |
+| Domain plus DNS provider | One of Cloudflare or GCP Cloud DNS. Used for the ACME DNS-01 challenge and the wildcard `A` record. |
+| Let's Encrypt account email | Registered through the `acme_registration` resource. |
+| Container registry | Hosts the built `k8s-controller` image. The Terraform example creates a separate Artifact Registry repository for challenge images. |
+
+The instancer's public hostname is `[31m<instancer_subdomain>.<instancer_zone>[0m{:ansi}` (or just `[31m<instancer_zone>[0m{:ansi}` when no subdomain is set). All per-instance hostnames live under a wildcard one level below.
+
+## Building the controller installer
+
+The Terraform `k8s` module reads a generated installer at `apps/k8s-controller/dist/install.yaml`. Build and push the controller image, then regenerate the installer with the same image reference:
+
+```ansi
+$ [34mcd[0m apps/k8s-controller
+$ [34mmake[0m docker-build docker-push IMG=registry.example.com/rctf-instancer-controller:v1
+$ [34mmake[0m build-installer IMG=registry.example.com/rctf-instancer-controller:v1
+```
+
+`[34mmake[0m build-installer{:ansi}` runs `manifests`, `generate`, and `kustomize` first, so the resulting `dist/install.yaml` contains the CRD, RBAC, deployment, and a placeholder `[31mINSTANCER_HOST[0m{:ansi}` token that the Terraform `k8s` module replaces with the configured hostname.
+
+<Callout variant="note" title="Multi-arch builds">
+  Use `[34mmake[0m docker-buildx IMG=...{:ansi}` to build a multi-architecture image. The default platforms are `linux/amd64`, `linux/arm64`, `linux/s390x`, and `linux/ppc64le`.
+</Callout>
+
+## Terraform variables
+
+The example `terraform.tfvars` lives in `deploy/terraform/instancer/example/`:
+
+<FileTree>
+  <Dir name="deploy">
+    <Dir name="terraform">
+      <Dir name="instancer">
+        <Dir name="example" highlight>
+          <File name="main.tf" comment="Providers, GKE module wiring" />
+          <File name="dns.tf" comment="Cloudflare or GCP Cloud DNS record" />
+          <File name="tls.tf" comment="ACME wildcard certificate and Traefik TLSStore" />
+          <File name="rctf-instancer.tf" comment="k8s module call and rCTF ServiceAccount" />
+          <File name="variables.tf" comment="Input variables" />
+          <File name="terraform.tfvars.example" comment="Example values" />
+        </Dir>
+        <Dir name="modules">
+          <Dir name="gke" comment="GKE cluster and Artifact Registry" />
+          <Dir name="k8s" comment="Traefik, error pages, controller installer" />
+        </Dir>
+      </Dir>
+    </Dir>
+  </Dir>
+</FileTree>
+
+Copy `terraform.tfvars.example` to `terraform.tfvars` and fill in:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `[31mcloudflare_api_token[0m{:ansi}` | Cloudflare only | API token with `Zone.DNS` edit on the configured zone. Used for ACME DNS-01 and the wildcard record. |
+| `[31mletsencrypt_email_address[0m{:ansi}` | Yes | Address registered with Let's Encrypt for the wildcard certificate. |
+| `[31minstancer_zone[0m{:ansi}` | Yes | Base apex domain, for example `[32mctf.example.com[0m{:ansi}`. |
+| `[31minstancer_subdomain[0m{:ansi}` | Yes | Optional subdomain in front of `[31minstancer_zone[0m{:ansi}`. Set to an empty string when serving instances from the apex. |
+| `[31mctf_name[0m{:ansi}` | Yes | Displayed on the 404 and 502 error pages rendered by the in-cluster Nginx deployment. |
+| `[31mgcp_dns_managed_zone_name[0m{:ansi}` | Cloud DNS only | Managed-zone name when using `google_dns_record_set` instead of Cloudflare. |
+| `[31mgcp_project_id[0m{:ansi}` | Yes | GCP project that hosts the GKE cluster and Artifact Registry. |
+| `[31mgcp_region[0m{:ansi}` | Yes | GKE control-plane region, for example `[32mus-central1[0m{:ansi}`. |
+| `[31mgcp_zone[0m{:ansi}` | Yes | Single zone for the node pool. Set to the same value as `[31mgcp_region[0m{:ansi}` for a multi-zone cluster. The Artifact Registry location is derived from this with a `^(.*)-[a-z]$` regex. |
+| `[31mgcp_instancer_cluster_name[0m{:ansi}` | Yes | GKE cluster name and Artifact Registry service account ID. |
+| `[31mgcp_instancer_machine_type[0m{:ansi}` | Yes | GCE machine type, for example `[32me2-medium[0m{:ansi}`. |
+| `[31mgcp_instancer_min_node_count[0m{:ansi}` | No | Autoscaling minimum. Defaults to `1{:ts}`. |
+| `[31mgcp_instancer_max_node_count[0m{:ansi}` | No | Autoscaling maximum. Defaults to `1{:ts}`. |
+
+A minimal Cloudflare-backed file looks like this:
+
+```hcl title="terraform.tfvars"
+cloudflare_api_token = "<cloudflare-api-token>"
+letsencrypt_email_address = "ops@example.com"
+instancer_zone = "ctf.example.com"
+instancer_subdomain = "instances"
+ctf_name = "Example CTF"
+
+gcp_project_id = "example-ctf"
+gcp_region = "us-central1"
+gcp_zone = "us-central1-a"
+gcp_instancer_cluster_name = "rctf-instancer"
+gcp_instancer_machine_type = "e2-standard-4"
+gcp_instancer_min_node_count = 1
+gcp_instancer_max_node_count = 8
+```
+
+<Callout variant="note" title="Preemptible nodes">
+  The GKE module accepts a `[31mpreemptible[0m{:ansi}` flag that defaults to `false{:ts}`. It is not exposed through the example variables; edit `deploy/terraform/instancer/example/main.tf` to pass `[32mpreemptible = true[0m{:ansi}` into the module if the workload tolerates VM evictions.
+</Callout>
+
+To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in `dns.tf` and `tls.tf`, uncomment the `google_dns_record_set` and `gcloud` ACME blocks, and set `[31mgcp_dns_managed_zone_name[0m{:ansi}`.
+
+## Deployment
+
+<Steps>
+<Step title="Build and push the controller image">
+
+```ansi
+$ [34mcd[0m apps/k8s-controller
+$ [34mmake[0m docker-build docker-push IMG=registry.example.com/rctf-instancer-controller:v1
+$ [34mmake[0m build-installer IMG=registry.example.com/rctf-instancer-controller:v1
+```
+
+The installer is written to `apps/k8s-controller/dist/install.yaml`. The Terraform `k8s` module reads it relative to `deploy/terraform/instancer/modules/k8s/rctf-instancer.tf`, so do not move either file.
+
+</Step>
+<Step title="Initialize Terraform">
+
+```ansi
+$ [34mcd[0m deploy/terraform/instancer/example
+$ [34mcp[0m terraform.tfvars.example terraform.tfvars
+$ [34m$EDITOR[0m terraform.tfvars
+$ [34mterraform[0m init
+```
+
+</Step>
+<Step title="Apply the stack">
+
+```ansi
+$ [34mterraform[0m apply
+```
+
+Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and the controller installer. The first apply typically takes 10 to 15 minutes; ACME validation alone can add a few minutes if DNS propagation is slow.
+
+</Step>
+<Step title="Fetch kubectl credentials">
+
+```ansi
+$ [34mgcloud[0m container clusters get-credentials rctf-instancer [2m--project[0m example-ctf [2m--location[0m us-central1
+$ [34mkubectl[0m get pods [2m-n[0m rctf-instancer-controller-system
+```
+
+The controller pod should be `Running`. Traefik comes up in the `traefik` namespace and the wildcard certificate is stored in the `instancer-wildcard-tls` Kubernetes `Secret`.
+
+</Step>
+<Step title="Wire the outputs into rCTF">
+
+Three Terraform outputs map directly to provider options:
+
+| Terraform output | rCTF option | Environment override |
+| --- | --- | --- |
+| `[31mrctf_instancer_api_url[0m{:ansi}` | `[31minstancerProvider.options.apiUrl[0m{:ansi}` | `K8S_INSTANCER_API_URL{:sh}` |
+| `[31mrctf_instancer_auth_token[0m{:ansi}` | `[31minstancerProvider.options.authToken[0m{:ansi}` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
+| `[31mrctf_instancer_ca_certificate[0m{:ansi}` | `[31minstancerProvider.options.caCertificate[0m{:ansi}` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
+
+Render them into rCTF's `rctf.d/`:
+
+```ansi
+$ [34mterraform[0m output [2m-raw[0m rctf_instancer_api_url
+$ [34mterraform[0m output [2m-raw[0m rctf_instancer_auth_token
+$ [34mterraform[0m output [2m-raw[0m rctf_instancer_ca_certificate
+```
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/k8s-instancer
+  options:
+    apiUrl: https://203.0.113.10
+    authToken: <rctf_instancer_auth_token>
+    caCertificate: |
+      -----BEGIN CERTIFICATE-----
+      ...
+      -----END CERTIFICATE-----
+```
+
+`[31mcaCertificate[0m{:ansi}` is required even when the API server certificate is otherwise trusted by the host.
+
+</Step>
+<Step title="Verify end-to-end">
+
+Create an instanced challenge that uses the `[32minstancer/k8s-instancer[0m{:ansi}` provider and start it as a participant. The controller should create the `inst-<challenge-id>-<team-id>` namespace, and Traefik should serve the `<hostPrefix>-<uid>.<instancer-host>` hostname over HTTPS.
+
+</Step>
+</Steps>
+
+## What Terraform provisions
+
+The example layers the GKE module, the k8s module, and the example-level resources in `rctf-instancer.tf`, `dns.tf`, and `tls.tf`:
+
+| Resource | Source | Purpose |
+| --- | --- | --- |
+| GKE cluster (`google_container_cluster`) | `modules/gke/gke.tf` | Stable release channel, workload identity, `COS_CONTAINERD` nodes, weekly Wednesday 07:00 to 19:00 UTC maintenance window. |
+| GKE primary node pool | `modules/gke/gke.tf` | Autoscaling between `min_node_count` and `max_node_count`, surge upgrades, optional preemptible nodes, workload metadata concealment. |
+| GCP service account | `modules/gke/gke.tf` | Identity for cluster nodes. Granted `[32mroles/artifactregistry.writer[0m{:ansi}` on the challenge registry. |
+| Artifact Registry repo (`google_artifact_registry_repository`) | `modules/gke/registry.tf` | Docker registry named `challenge-registry`. Keeps the five most recent versions, deletes images older than `[32m30d[0m{:ansi}`. |
+| Traefik (`helm_release.traefik`) | `modules/k8s/traefik.tf` | `LoadBalancer` service with `[32mexternalTrafficPolicy: Local[0m{:ansi}` to preserve client IPs, plus the dashboard entrypoint for `kubectl port-forward`. |
+| Nginx error pages | `modules/k8s/traefik.tf` | `kubernetes_deployment_v1.error-pages` plus a `ConfigMap` rendering 404 and 502 templates with `[31mctf_name[0m{:ansi}`. |
+| Traefik `Middleware` and catch-all `IngressRoute` | `modules/k8s/traefik.tf` | Middleware intercepts 502 errors and serves the Nginx page. The catch-all `[31mHostRegexp(`.*`)[0m{:ansi}` route returns the 404 page for unmatched hosts. |
+| Controller installer (`kubectl_manifest`) | `modules/k8s/rctf-instancer.tf` | Applies every manifest in `apps/k8s-controller/dist/install.yaml`, replacing `[31mINSTANCER_HOST[0m{:ansi}` with the resolved hostname. |
+| ACME wildcard certificate (`acme_certificate`) | `example/tls.tf` | DNS-01 challenge through Cloudflare or Cloud DNS. The chain and key land in the `instancer-wildcard-tls` `Secret` in the `traefik` namespace. |
+| Traefik `TLSStore` (`kubectl_manifest`) | `example/tls.tf` | Sets `instancer-wildcard-tls` as the default certificate for the cluster. |
+| Wildcard DNS record (`cloudflare_dns_record`) | `example/dns.tf` | `[31m*.<subdomain>[0m{:ansi}` `A` record pointing at the Traefik LoadBalancer IP. The GCP variant uses `google_dns_record_set`. |
+| `rctf` service account, `ClusterRole`, `ClusterRoleBinding`, and `Secret` | `example/rctf-instancer.tf` | Service account in `kube-system` with verbs `[32mcreate[0m{:ansi}`, `[32mget[0m{:ansi}`, `[32mdelete[0m{:ansi}`, and `[32mpatch[0m{:ansi}` on `challengeinstances.rctf-instancer.osec.io`. A long-lived `kubernetes.io/service-account-token` secret backs the `[31mrctf_instancer_auth_token[0m{:ansi}` output. |
+
+Traefik is configured with three ports:
+
+| Port | Entry point | Purpose |
+| --- | --- | --- |
+| `80{:ts}` | `web` | HTTP routes plus global 502 middleware. |
+| `443{:ts}` | `websecure` | HTTPS routes terminated with the ACME wildcard. |
+| `1337{:ts}` | `tcp` | Raw TCP with SNI routing for `[32mtcp-ssl[0m{:ansi}` expose kinds. |
+
+The wildcard certificate is provisioned manually instead of through cert-manager so that DNS provider credentials never need to live inside the cluster. The blast radius of a cluster compromise stays limited to whatever certificates Terraform has already issued.
+
+## Network policies
+
+The controller creates three `NetworkPolicy` resources in every instance namespace:
+
+| Policy | Pod selector | Behavior |
+| --- | --- | --- |
+| `isolate-namespace` | All pods | Ingress is restricted to other pods in the same managed namespace. Egress is restricted to pods in the same namespace plus UDP `53` to the `kube-system` namespace for DNS. |
+| `ingress-traefik` | `[31mrctf.osec.io/exposed=true[0m{:ansi}` | Allows ingress from Traefik pods in the `traefik` namespace. Applied only to pods that match an `[31mexpose[].containerName[0m{:ansi}` entry. |
+| `egress` | `[31mrctf.osec.io/egress=true[0m{:ansi}` | Allows egress to `0.0.0.0/0` except RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`). |
+
+The `[31mexposed[0m{:ansi}` label is applied automatically based on whether a pod is named by any `[31mexpose[][0m{:ansi}` entry. The `[31megress[0m{:ansi}` label is driven by the per-pod `[31megress: true{:yaml}` flag in `[31minstancerConfig[0m{:ansi}`. Challenges that should not reach the internet leave it `[32mfalse[0m{:ts}`.
+
+<Callout variant="note" title="Cluster network plugin">
+  Network policies only enforce isolation when the cluster's CNI supports them. GKE's default dataplane enforces them; on a bare-metal cluster make sure the chosen CNI honors `NetworkPolicy`.
+</Callout>
+
+## RBAC and the rCTF service account
+
+The example creates a single `ServiceAccount` named `rctf` in `kube-system` and a matching `ClusterRole` granting only what the API needs:
+
+```yaml title="kubernetes_cluster_role_v1.rctf"
+rule:
+  api_groups: ["rctf-instancer.osec.io"]
+  resources: ["challengeinstances"]
+  verbs: ["create", "get", "delete", "patch"]
+```
+
+The rCTF API never reads or writes any other resource type. The `kubernetes_secret_v1.rctf_token` resource issues a `kubernetes.io/service-account-token` so the token does not rotate; the value is surfaced through the `[31mrctf_instancer_auth_token[0m{:ansi}` Terraform output.
+
+The controller itself runs with its own RBAC from `apps/k8s-controller/config/`. It needs broad permissions on namespaces, deployments, services, network policies, and Traefik `IngressRoute`, `IngressRouteTCP`, and `Middleware` resources so it can reconcile per-instance objects. The CRD lives in `apps/k8s-controller/config/crd/bases/` and is generated by `[34mmake[0m manifests{:ansi}`.
+
+## Local development with Kind
+
+For controller iteration, the README in `apps/k8s-controller/` uses Kind. Routing inside the cluster requires `cloud-provider-kind` so that `LoadBalancer` services receive an external IP.
+
+<Steps>
+<Step title="Install Kind and the cloud provider shim">
+
+```bash title="Terminal"
+go install sigs.k8s.io/cloud-provider-kind@latest
+```
+
+Install Kind itself from [its quick-start guide](https://kind.sigs.k8s.io/docs/user/quick-start/).
+
+</Step>
+<Step title="Create the cluster">
+
+```ansi
+$ [34mcd[0m apps/k8s-controller
+$ [34mkind[0m create cluster [2m--name[0m rctf [2m--config[0m kind-config.yaml
+```
+
+The bundled `kind-config.yaml` provisions one control plane and one worker node.
+
+</Step>
+<Step title="Run cloud-provider-kind">
+
+Leave this running in a separate session for the duration of development:
+
+```bash title="Terminal"
+cloud-provider-kind
+```
+
+</Step>
+<Step title="Apply the surrounding stack">
+
+Point the Terraform example at the local Kind context. In `deploy/terraform/instancer/example/main.tf` switch from the GCP-backed `kubernetes`, `helm`, and `kubectl` providers to the commented-out `kind-rctf` blocks, then apply:
+
+```ansi
+$ [34mcd[0m deploy/terraform/instancer/example
+$ [34mterraform[0m apply
+```
+
+</Step>
+<Step title="Install the CRD and run the controller">
+
+```ansi
+$ [34mcd[0m apps/k8s-controller
+$ [34mmake[0m install
+$ [34mmake[0m run ARGS="[2m-instancer-host[0m instancer.test"
+```
+
+`[34mmake[0m install{:ansi}` applies the CRDs from `config/crd`. `[34mmake[0m run{:ansi}` runs the controller against the current `kubectl` context with `[2m-instancer-host[0m{:ansi}` setting the hostname suffix.
+
+</Step>
+<Step title="Test with a sample ChallengeInstance">
+
+```ansi
+$ [34mkubectl[0m apply [2m-f[0m config/sample/rctf-instancer_v1_challengeinstance.yaml
+```
+
+The controller logs the reconciliation flow and the sample's namespace, service, and `IngressRoute` should appear. Tear the cluster down with `[34mkind[0m delete cluster [2m--name[0m rctf{:ansi}` when finished.
+
+</Step>
+</Steps>
+
+## Troubleshooting
+
+| Symptom | Likely cause |
+| --- | --- |
+| `terraform apply` hangs on `acme_certificate` | DNS propagation for the DNS-01 record is slow. Verify the Cloudflare or Cloud DNS TXT record is visible from a public resolver. |
+| Controller pod `CrashLoopBackOff` after install | The image referenced in `dist/install.yaml` is missing or unauthorized. Rebuild with the correct `IMG=...` and reapply. |
+| Instances stuck in `[32mstarting[0m{:ansi}` | Inspect the `ChallengeInstance` status conditions with `[34mkubectl[0m get challengeinstance [2m-A[0m [2m-o[0m yaml{:ansi}`. The `[31mNamespaceDeployed[0m{:ansi}`, `[31mDeploymentsDeployed[0m{:ansi}`, and `[31mServicesDeployed[0m{:ansi}` conditions narrow the failing stage. |
+| 502 from the wildcard host | Traefik is reachable but the backing pod is not ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
+| 404 on the wildcard host | The catch-all `[31mIngressRoute[0m{:ansi}` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `[31mIngressRoute[0m{:ansi}` has a higher priority than `1{:ts}`. |
+| rCTF returns `[32mbadInstancerConfig[0m{:ansi}` | The challenge `[31mconfig[0m{:ansi}` failed the provider's Zod schema. Fetch the schema from `/api/v2/admin/instancer/schema` and validate the challenge manifest against it. |
+| Namespace stuck `Terminating` | A child resource still holds a finalizer. The controller waits one second per reconcile while the namespace drains; check Traefik CRDs in the namespace if the wait does not resolve. |
+
+The controller exposes Kubernetes events through standard `kubectl describe` output. Pair `[34mkubectl[0m describe challengeinstance <name>{:ansi}` with the controller logs (`[34mkubectl[0m logs [2m-n[0m rctf-instancer-controller-system [2m-l[0m control-plane=controller-manager{:ansi}`) to trace any reconciliation failure.
