@@ -3,6 +3,7 @@ import { pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
+import { pluginCodeTones } from './ec-code-tones'
 import { pluginOutputSeparator } from './ec-output-separator'
 import { pluginShellPrompt } from './ec-shell-prompt'
 import { codeBackground } from './shiki-themes'
@@ -13,6 +14,7 @@ export const ecOptionalPlugins = () => [
   pluginCollapsibleSections(),
   pluginLineNumbers(),
   pluginShellPrompt(),
+  pluginCodeTones(),
   pluginOutputSeparator(),
 ]
 

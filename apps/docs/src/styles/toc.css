@@ -3,7 +3,7 @@
 
 [data-toc-text] code,
 [data-toc-text] .shiki {
-  @apply code-pill bg-muted/50! font-mono wrap-break-word underline decoration-transparent underline-offset-[3px] transition-colors duration-200;
+  @apply code-pill bg-muted/50! text-foreground font-mono wrap-break-word underline decoration-transparent underline-offset-[3px] transition-colors duration-200;
 }
 
 [data-toc-text] .shiki code {

@@ -165,7 +165,7 @@ export const challenge = new Challenge({
       await page.goto(url)
     } catch (e) {
       // Without this, the error propagated is that something went wrong.
-      // Ideally, there would be automagic so you don't need to do this, 
+      // Ideally, there would be automagic so you don't need to do this,
       //   but page navigations throw a normal error, and searching in a string is... ugly.
       // @see https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/cdp/Frame.ts#L210-L212
       ctx.output.fatal('challenge', `failed to visit provided URL: ${e}`, {
@@ -359,7 +359,6 @@ The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns th
 
 <Callout variant='note' title='No production-ready manifests yet'>
   We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot
-  fleet - the queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to
-  the deployer for now. If you build one and want to upstream it, see the note at the top of this
-  page.
+  fleet - the queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to the
+  deployer for now. If you build one and want to upstream it, see the note at the top of this page.
 </Callout>

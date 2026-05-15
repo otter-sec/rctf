@@ -1,0 +1,60 @@
+import {
+  definePlugin,
+  ExpressiveCodeAnnotation,
+  type AnnotationRenderOptions,
+  type ExpressiveCodePlugin,
+} from '@expressive-code/core'
+import { h, type Element, type Parents } from '@expressive-code/core/hast'
+import { parseCodeToneRanges, toneClassNames } from './code-semantics'
+
+function stripElementSyntaxStyles(node: Element): Element {
+  const { style: _style, ...properties } = node.properties ?? {}
+  return {
+    ...node,
+    properties,
+    children: node.children.map(child =>
+      child.type === 'element' ? stripElementSyntaxStyles(child) : child
+    ),
+  }
+}
+
+function stripSyntaxStyles(node: Parents): Parents {
+  return node.type === 'element' ? stripElementSyntaxStyles(node) : node
+}
+
+class CodeToneAnnotation extends ExpressiveCodeAnnotation {
+  readonly name = 'code-tone'
+  private readonly tone: string
+
+  constructor(tone: string, start: number, end: number) {
+    super({
+      inlineRange: { columnStart: start, columnEnd: end },
+      renderPhase: 'latest',
+    })
+    this.tone = tone
+  }
+
+  render({ nodesToTransform }: AnnotationRenderOptions): Parents[] {
+    const className = toneClassNames(this.tone).join(' ')
+    return nodesToTransform.map(node => h('span', { class: className }, stripSyntaxStyles(node)))
+  }
+}
+
+export function pluginCodeTones(): ExpressiveCodePlugin {
+  return definePlugin({
+    name: 'Code Tones',
+    hooks: {
+      preprocessCode: ({ codeBlock }) => {
+        for (const line of codeBlock.getLines()) {
+          const parsed = parseCodeToneRanges(line.text)
+          if (!parsed) continue
+
+          line.editText(0, line.text.length, parsed.text)
+          for (const range of parsed.ranges) {
+            line.addAnnotation(new CodeToneAnnotation(range.tone, range.start, range.end))
+          }
+        }
+      },
+    },
+  })
+}

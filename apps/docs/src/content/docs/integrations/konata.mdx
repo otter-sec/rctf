@@ -104,7 +104,7 @@ The reference is then used wherever the schema accepts a `<red>secret</red>` or 
 ```yaml
 rctf:
   team_token:
-    secret: token   # resolves to secrets.token
+    secret: token # resolves to secrets.token
 ```
 
 ### `rctf`
@@ -219,14 +219,14 @@ A full `<red>AttachmentConfig</red>`:
 ```yaml
 attachments:
   files:
-    - "build.sh"
-    - "Dockerfile"
-    - "garden"
-    - "garden.c"
-    - "ld-linux-x86-64.so.2"
-    - "libc.so.6"
+    - 'build.sh'
+    - 'Dockerfile'
+    - 'garden'
+    - 'garden.c'
+    - 'ld-linux-x86-64.so.2'
+    - 'libc.so.6'
   exclude:
-    - "**/__pycache__"
+    - '**/__pycache__'
   additional:
     - path: flag.txt
       str: 'dice{dummy_flag}'
@@ -274,8 +274,8 @@ endpoints:
 deployment:
   images:
     - build_context: .
-      dockerfile: bot/Dockerfile     # optional, defaults to <build_context>/Dockerfile
-      name: "{{ challenges[0].name }}"
+      dockerfile: bot/Dockerfile # optional, defaults to <build_context>/Dockerfile
+      name: '{{ challenges[0].name }}'
       tag: latest
       registry_name: instancer-challenges
       platform: linux/amd64
@@ -326,10 +326,10 @@ deployment:
         - apiVersion: kctf.dev/v1
           kind: Challenge
           metadata:
-            name: "{{ challenges[0].name }}"
+            name: '{{ challenges[0].name }}'
           spec:
             deployed: true
-            image: "{{ images[challenges[0].name] }}"
+            image: '{{ images[challenges[0].name] }}'
             network:
               public: true
               ports:
@@ -358,18 +358,18 @@ challenges:
       stare long enough at the void and the void stares back
     attachments:
       files:
-        - "Dockerfile"
-        - "chall/src/"
+        - 'Dockerfile'
+        - 'chall/src/'
     flags:
       rctf:
         file: flag.txt
     instancer_config:
-      challenge_integration_id: "{{ challenge.name }}"
+      challenge_integration_id: '{{ challenge.name }}'
       timeout_milliseconds: 1800000
       extendable: true
       expose:
         - kind: https
-          host_prefix: "{{ challenge.name }}"
+          host_prefix: '{{ challenge.name }}'
           container_name: app
           container_port: 8080
       config:
@@ -382,7 +382,7 @@ challenges:
             spec:
               containers:
                 - name: app
-                  image: "{{ images[challenge.name] }}"
+                  image: '{{ images[challenge.name] }}'
                   resources:
                     requests:
                       cpu: '500m'
@@ -398,7 +398,7 @@ challenges:
 deployment:
   images:
     - build_context: .
-      name: "{{ challenges[0].name }}"
+      name: '{{ challenges[0].name }}'
       tag: latest
       registry_name: instancer-challenges
       platform: linux/amd64
@@ -430,11 +430,11 @@ Helper for producing an attachment archive from a folder or file. Useful when yo
 $ kona compress ./challenge/dist --format zip --output handout.zip
 ```
 
-| Flag | Behavior |
-| --- | --- |
-| `path` (positional) | Source file or directory. |
-| `-f`, `--format` | `<green>tar_gz</green>` (default) or `<green>zip</green>`. |
-| `-o`, `--output` | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
+| Flag                | Behavior                                                                |
+| ------------------- | ----------------------------------------------------------------------- |
+| `path` (positional) | Source file or directory.                                               |
+| `-f`, `--format`    | `<green>tar_gz</green>` (default) or `<green>zip</green>`.              |
+| `-o`, `--output`    | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
 
 ## CI integration
 

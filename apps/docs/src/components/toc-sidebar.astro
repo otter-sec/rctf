@@ -1,6 +1,7 @@
 ---
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { renderDescription } from '@/lib/render-description'
+import { renderTocHeading } from '@/lib/toc-heading'
 import { cn, getHeadingMargin } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 
@@ -57,7 +58,7 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
                 data-heading-link={heading.slug}
                 class='hover:text-foreground block underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit'
               >
-                <span data-toc-text>{heading.text}</span>
+                <span data-toc-text set:html={renderTocHeading(heading.text)} />
               </a>
             </li>
           ))}

@@ -1,6 +1,7 @@
 ---
 import Icon from '@/components/icon.astro'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { renderTocHeading } from '@/lib/toc-heading'
 import { cn, getHeadingMargin } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 
@@ -77,7 +78,7 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
                     class='mobile-toc-item underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit'
                     data-heading-id={heading.slug}
                   >
-                    <span data-toc-text>{heading.text}</span>
+                    <span data-toc-text set:html={renderTocHeading(heading.text)} />
                   </a>
                 </li>
               ))}
