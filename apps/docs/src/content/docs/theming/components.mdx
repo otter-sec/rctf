@@ -32,8 +32,8 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
 Use the shadcn-svelte CLI to scaffold the component into your project:
 
-```bash title="Terminal"
-bunx shadcn-svelte@latest add button
+```ansi
+$ [31mbunx[0m [32mshadcn-svelte@latest[0m add button
 ```
 
 This creates the component files in `apps/web/src/lib/components/ui/button/`.
@@ -89,17 +89,14 @@ export const buttonVariants = tv({
 
 Convert all heavy font weights to `font-medium` for visual consistency:
 
-| Original         | Replace with  |
-| ---------------- | ------------- |
-| `font-bold`      | `font-medium` |
-| `font-semibold`  | `font-medium` |
-| `font-black`     | `font-medium` |
-| `font-extrabold` | `font-medium` |
+| Original                 | Replace with  |
+| ------------------------ | ------------- |
+| Any weight above medium  | `font-medium` |
 
 </Step>
 <Step title="Convert color tokens">
 
-Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors). The mapping depends on context, so use these as guidelines rather than strict rules:
+Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors/). The mapping depends on context, so use these as guidelines rather than strict rules:
 
 | rCTF token                         | Example                     | Light                                      | Dark                                                        | Context                                        |
 | ---------------------------------- | --------------------------- | ------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------- |

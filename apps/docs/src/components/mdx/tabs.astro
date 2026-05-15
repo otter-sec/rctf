@@ -1,7 +1,7 @@
 ---
 import { codeToHtml } from 'shiki'
 
-import { darkTheme, lightTheme } from '@/lib/shiki-themes'
+import { lightTheme, darkTheme } from '@/lib/shiki-themes'
 
 interface Props {
   items: string[]
@@ -25,11 +25,6 @@ const renderedItems = await Promise.all(
     return { html: true as const, value: html }
   }),
 )
-
-const selectedIndex = Math.max(
-  0,
-  Math.min(defaultIndex, Math.max(0, renderedItems.length - 1)),
-)
 ---
 
 <div class="my-6 rounded-lg border-2" data-tabs>
@@ -43,17 +38,17 @@ const selectedIndex = Math.max(
           type="button"
           role="tab"
           data-tab-index={i}
-          aria-selected={i === selectedIndex}
-          tabindex={i === selectedIndex ? 0 : -1}
+          aria-selected={i === defaultIndex}
+          tabindex={i === defaultIndex ? 0 : -1}
           class="data-[selected=true]:bg-muted data-[selected=true]:text-foreground text-muted-foreground hover:text-foreground shrink-0 whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium transition-colors"
-          data-selected={i === selectedIndex}
+          data-selected={i === defaultIndex}
         >
           {item.html ? <span class="tab-label-code" set:html={item.value} /> : item.value}
         </button>
       ))
     }
   </div>
-  <div data-tabs-panels class="p-4" data-default-index={selectedIndex}>
+  <div data-tabs-panels class="p-4" data-default-index={defaultIndex}>
     <slot />
   </div>
 </div>

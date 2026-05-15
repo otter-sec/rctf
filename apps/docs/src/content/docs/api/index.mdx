@@ -3,7 +3,7 @@ title: API reference
 description: Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions.
 ---
 
-The rCTF API is a JSON REST API mounted under `/api`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `/api`.
+The rCTF API is a JSON REST API mounted under `[2m/api[22m{:ansi}`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `[2m/api[22m{:ansi}`.
 
 ## Versions
 
@@ -11,8 +11,8 @@ Both API versions are available at the same time:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
-| V1 | `/api/v1` | Supported | Legacy clients and compatibility with the original rCTF API. |
-| V2 | `/api/v2` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+| V1 | `[2m/api/[22mv1{:ansi}` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `[2m/api/[22mv2{:ansi}` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
 V2 keeps many response `kind` strings identical to v1 for compatible concepts. The response data may still be wider in v2.
 
@@ -48,8 +48,8 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 | --- | --- |
 | Public | No token is required. Some public routes still accept optional auth so admins can bypass start-time gates. |
 | Optional | The route works without a token, but an auth token may affect the response. |
-| Required | A missing or invalid token returns `badToken`. |
-| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `badPerms`. |
+| Required | A missing or invalid token returns `[2;31m401 [22mbadToken[0m{:ansi}`. |
+| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `[2;31m403 [22mbadPerms[0m{:ansi}`. |
 | Service | The shared service bearer token must match the configured provider secret. |
 
 ### Token types
@@ -84,11 +84,11 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `GET /api/v1/integrations/ctftime/leaderboard` returns `{ "standings": [...] }` instead of an rCTF envelope.
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `[36mGET[0m [2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mleaderboard{:ansi}` returns `{ "standings": [...] }` instead of an rCTF envelope.
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `badBody` with a machine-readable `reason` string:
+JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `[2;31m400 [22mbadBody[0m{:ansi}` with a machine-readable `reason` string:
 
 ```json
 {
@@ -100,7 +100,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `badJson`. Malformed form data returns `badBody` with `body:formData:malformed`.
+The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `[2;31m400 [22mbadJson[0m{:ansi}`. Malformed form data returns `[2;31m400 [22mbadBody[0m{:ansi}` with `body:formData:malformed`.
 
 ## Permissions
 
@@ -119,9 +119,9 @@ When a route lists multiple permission bits, the user must have all of them.
 
 ## Timing gates
 
-Routes marked as start-gated return `badNotStarted` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
+Routes marked as start-gated return `[2;31m401 [22mbadNotStarted[0m{:ansi}` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
 
-`POST /api/v1/challs/:id/submit` is also end-gated. It returns `badEnded` after `endTime`.
+`[32mPOST[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}` is also end-gated. It returns `[2;31m401 [22mbadEnded[0m{:ansi}` after `endTime`.
 
 ## Captcha
 
@@ -129,17 +129,17 @@ Captcha-protected routes validate a challenge response only when the configured 
 
 | Action | Routes |
 | --- | --- |
-| `register{:ts}` | `POST /api/v1/auth/register`, `POST /api/v2/auth/register`. |
-| `recover{:ts}` | `POST /api/v1/auth/recover`, `POST /api/v2/auth/recover`. |
-| `setEmail{:ts}` | `PUT /api/v1/users/me/auth/email`, `PUT /api/v2/users/me/auth/email`. |
-| `avatarUpload{:ts}` | `PATCH /api/v2/users/me/avatar`. |
-| `instancerStart{:ts}` | `PUT /api/v2/integrations/challs/:id/instance`. |
-| `instancerExtend{:ts}` | `PATCH /api/v2/integrations/challs/:id/instance`. |
-| `adminBotSubmit{:ts}` | `POST /api/v2/integrations/challs/:id/admin-bot`. |
+| `register{:ts}` | `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mregister{:ansi}`, `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mregister{:ansi}`. |
+| `recover{:ts}` | `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mrecover{:ansi}`, `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mrecover{:ansi}`. |
+| `setEmail{:ts}` | `[35mPUT[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`, `[35mPUT[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`. |
+| `avatarUpload{:ts}` | `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}`. |
+| `instancerStart{:ts}` | `[35mPUT[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`. |
+| `instancerExtend{:ts}` | `[33mPATCH[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`. |
+| `adminBotSubmit{:ts}` | `[32mPOST[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}`. |
 
 ## Rate limits
 
-Rate-limited routes return `badRateLimit` with `data.timeLeft`, measured in milliseconds:
+Rate-limited routes return `[2;31m429 [22mbadRateLimit[0m{:ansi}` with `data.timeLeft`, measured in milliseconds:
 
 | Action | Scope | Bucket |
 | --- | --- | --- |
@@ -149,26 +149,43 @@ Rate-limited routes return `badRateLimit` with `data.timeLeft`, measured in mill
 | Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms. |
 | Leaderboard search | IP address | Burst `3`, refill window `3000` ms. |
 
-## Per-route documentation shape
-
-Every section page documents routes in the same shape:
-
-1. A top-of-file `## Routes` summary table with columns `Method | Path | Version | Auth | Gate`.
-2. Per-route `### \`METHOD /api/vX/path\`` blocks ordered by API family.
-3. A five-row property table inside each block — `Auth`, `Gate`, `Permissions`, `Captcha action`, `Rate limit`. A `—` value means the row does not apply.
-4. `**Path params**`, `**Query**`, and `**Request body**` sub-blocks, each with a typed field table when present.
-5. A `**Response**` sub-block naming the success kind, showing the envelope, and listing data fields.
-6. An `**Errors**` line enumerating the error kinds the route may return. Descriptions live in [Responses](/api/responses).
-7. A `## V1 compatibility` section at the bottom of files with paired V1 routes.
-
 ## Route sections
 
 | Section | Scope |
 | --- | --- |
-| [Authentication](/api/auth) | Registration, login, verification, recovery, token behavior, and v1 compatibility. |
-| [Challenges](/api/challenges) | Public challenge listing, solves, v1 flag submission, and challenge response fields. |
-| [Leaderboard](/api/leaderboard) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
-| [Users](/api/users) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
-| [Admin](/api/admin) | Challenge management, users, verification queue, submissions, uploads, settings, and admin bot service routes. |
-| [Integrations](/api/integrations) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
-| [Responses](/api/responses) | Shared response kinds, error payloads, and common object models. |
+| [Authentication](/api/auth/) | Registration, login, verification, recovery, token behavior, and v1 compatibility. |
+| [Challenges](/api/challenges/) | Public challenge listing, solves, v1 flag submission, and challenge response fields. |
+| [Leaderboard](/api/leaderboard/) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
+| [Users](/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
+| [Admin](/api/admin/) | Challenge management, users, verification queue, submissions, uploads, settings, and admin bot service routes. |
+| [Integrations](/api/integrations/) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
+| [Responses](/api/responses/) | Shared response kinds, error payloads, and common object models. |
+
+```ansi
+[1;4mStandard ANSI colors:[0m
+- Dimmed:     [2;30m Black [2;31m Red [2;32m Green [2;33m Yellow [2;34m Blue [2;35m Magenta [2;36m Cyan [2;37m White [0m
+- Foreground: [30m Black [31m Red [32m Green [33m Yellow [34m Blue [35m Magenta [36m Cyan [37m White [0m
+- Background: [40m Black [41m Red [42m Green [43m Yellow [44m Blue [45m Magenta [46m Cyan [47m White [0m
+- Reversed:   [7;30m Black [7;31m Red [7;32m Green [7;33m Yellow [7;34m Blue [7;35m Magenta [7;36m Cyan [7;37m White [0m
+
+[1;4m8-bit colors (showing colors 160-171 as an example):[0m
+- Dimmed:     [2;38;5;160m 160 [2;38;5;161m 161 [2;38;5;162m 162 [2;38;5;163m 163 [2;38;5;164m 164 [2;38;5;165m 165 [2;38;5;166m 166 [2;38;5;167m 167 [2;38;5;168m 168 [2;38;5;169m 169 [2;38;5;170m 170 [2;38;5;171m 171 [0m
+- Foreground: [38;5;160m 160 [38;5;161m 161 [38;5;162m 162 [38;5;163m 163 [38;5;164m 164 [38;5;165m 165 [38;5;166m 166 [38;5;167m 167 [38;5;168m 168 [38;5;169m 169 [38;5;170m 170 [38;5;171m 171 [0m
+- Background: [48;5;160m 160 [48;5;161m 161 [48;5;162m 162 [48;5;163m 163 [48;5;164m 164 [48;5;165m 165 [48;5;166m 166 [48;5;167m 167 [48;5;168m 168 [48;5;169m 169 [48;5;170m 170 [48;5;171m 171 [0m
+- Reversed:   [7;38;5;160m 160 [7;38;5;161m 161 [7;38;5;162m 162 [7;38;5;163m 163 [7;38;5;164m 164 [7;38;5;165m 165 [7;38;5;166m 166 [7;38;5;167m 167 [7;38;5;168m 168 [7;38;5;169m 169 [7;38;5;170m 170 [7;38;5;171m 171 [0m
+
+[1;4m24-bit colors (full RGB):[0m
+- Dimmed:     [2;38;2;34;139;34m ForestGreen - RGB(34,139,34) [2;38;2;102;51;153m RebeccaPurple - RGB(102,51,153) [0m
+- Foreground: [38;2;34;139;34m ForestGreen - RGB(34,139,34) [38;2;102;51;153m RebeccaPurple - RGB(102,51,153) [0m
+- Background: [48;2;34;139;34m ForestGreen - RGB(34,139,34) [48;2;102;51;153m RebeccaPurple - RGB(102,51,153) [0m
+- Reversed:   [7;38;2;34;139;34m ForestGreen - RGB(34,139,34) [7;38;2;102;51;153m RebeccaPurple - RGB(102,51,153) [0m
+
+[1;4mFont styles:[0m
+- Default
+- [1mBold[0m
+- [2mDimmed[0m
+- [3mItalic[0m
+- [4mUnderline[0m
+- [7mReversed[0m
+- [9mStrikethrough[0m
+```

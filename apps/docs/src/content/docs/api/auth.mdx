@@ -3,25 +3,25 @@ title: Authentication
 description: Registration, verification, login, recovery, CTFtime handoff, and token validation routes.
 ---
 
-Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `GET /api/v1/auth/test`, which validates an auth token.
+Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `[36mGET[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mtest{:ansi}`, which validates an auth token.
 
 ## Routes
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `POST{:http}` | `/api/v2/auth/register` | V2 | Public | None |
-| `POST{:http}` | `/api/v2/auth/verify` | V2 | Public | None |
-| `POST{:http}` | `/api/v2/auth/recover` | V2 | Public | None |
-| `GET{:http}` | `/api/v2/auth/verify-info` | V2 | Public | None |
-| `POST{:http}` | `/api/v1/auth/register` | V1 | Public | None |
-| `POST{:http}` | `/api/v1/auth/login` | V1 | Public | None |
-| `POST{:http}` | `/api/v1/auth/verify` | V1 | Public | None |
-| `POST{:http}` | `/api/v1/auth/recover` | V1 | Public | None |
-| `GET{:http}` | `/api/v1/auth/test` | V1 | Required | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mauth[2m/[22mregister{:ansi}` | V2 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mauth[2m/[22mverify{:ansi}` | V2 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mauth[2m/[22mrecover{:ansi}` | V2 | Public | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mauth[2m/[22mverify-info{:ansi}` | V2 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mauth[2m/[22mregister{:ansi}` | V1 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mauth[2m/[22mlogin{:ansi}` | V1 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mauth[2m/[22mverify{:ansi}` | V1 | Public | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mauth[2m/[22mrecover{:ansi}` | V1 | Public | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mauth[2m/[22mtest{:ansi}` | V1 | Required | None |
 
 ## V2 routes
 
-### `POST /api/v2/auth/register`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mregister{:ansi}`
 
 Registers a team. Returns auth tokens immediately when verification is not required, otherwise sends a verification email.
 
@@ -48,14 +48,14 @@ Registers a team. Returns auth tokens immediately when verification is not requi
 | --- | --- | --- | --- |
 | `name` | `string{:ts}` | Yes | 2–64 printable ASCII characters. |
 | `email` | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
-| `ctftimeToken` | `string{:ts}` | Conditional | Required when `email` is omitted. Returns `badEndpoint` when CTFtime is not configured. |
+| `ctftimeToken` | `string{:ts}` | Conditional | Required when `email` is omitted. Returns `[2;31m404 [22mbadEndpoint[0m{:ansi}` when CTFtime is not configured. |
 | `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `register{:ts}`. |
 
 The route assigns the team to the default allowed division based on email ACLs. CTFtime registrations bypass ACLs entirely.
 
 **Response**
 
-When registration completes immediately (CTFtime auth, or no email provider is configured), returns `goodRegisterV2` (200):
+When registration completes immediately (CTFtime auth, or no email provider is configured), returns `[2;32m200 [22mgoodRegisterV2[0m{:ansi}`:
 
 ```json
 {
@@ -68,11 +68,11 @@ When registration completes immediately (CTFtime auth, or no email provider is c
 }
 ```
 
-When email verification is required, returns `goodVerifySent` (no data) and sends a verification email.
+When email verification is required, returns `[2;32m200 [22mgoodVerifySent[0m{:ansi}` (no data) and sends a verification email.
 
-**Errors**: `badBody`, `badEmail`, `badName`, `badKnownEmail`, `badKnownName`, `badKnownCtftimeId`, `badCompetitionNotAllowed`, `badDivisionNotAllowed`, `badRegistrationsDisabled`, `badCaptcha`, `badEndpoint`, `badCtftimeToken`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadEmail[0m{:ansi}`, `[2;31m400 [22mbadName[0m{:ansi}`, `[2;31m409 [22mbadKnownEmail[0m{:ansi}`, `[2;31m409 [22mbadKnownName[0m{:ansi}`, `[2;31m409 [22mbadKnownCtftimeId[0m{:ansi}`, `[2;31m403 [22mbadCompetitionNotAllowed[0m{:ansi}`, `[2;31m403 [22mbadDivisionNotAllowed[0m{:ansi}`, `[2;31m400 [22mbadRegistrationsDisabled[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m401 [22mbadCtftimeToken[0m{:ansi}`.
 
-### `POST /api/v2/auth/verify`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mverify{:ansi}`
 
 Consumes a verification token to complete a pending registration, log in with a team token, or finalize an email change.
 
@@ -102,17 +102,17 @@ Behavior branches on the token kind:
 
 | Token kind | Success kind | Effect |
 | --- | --- | --- |
-| Pending registration | `goodRegisterV2` | Creates the team and returns `authToken` + `teamToken`. Claims the verification row. |
-| Team | `goodVerify` | Returns a fresh `authToken`. |
-| Verify | `goodEmailSet` | Updates the team email after re-checking division ACLs. |
+| Pending registration | `[2;32m200 [22mgoodRegisterV2[0m{:ansi}` | Creates the team and returns `authToken` + `teamToken`. Claims the verification row. |
+| Team | `[2;32m200 [22mgoodVerify[0m{:ansi}` | Returns a fresh `authToken`. |
+| Verify | `[2;32m200 [22mgoodEmailSet[0m{:ansi}` | Updates the team email after re-checking division ACLs. |
 
-`goodRegisterV2` data matches the [register response](#post-apiv2authregister). `goodVerify` returns `{ authToken: string }`. `goodEmailSet` returns no data.
+`[2;32m200 [22mgoodRegisterV2[0m{:ansi}` data matches the [register response](#post-apiv2authregister). `[2;32m200 [22mgoodVerify[0m{:ansi}` returns `{ authToken: string }`. `[2;32m200 [22mgoodEmailSet[0m{:ansi}` returns no data.
 
-**Errors**: `badBody`, `badTokenVerification`, `badEmailChangeDivision`, `badKnownEmail`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadTokenVerification[0m{:ansi}`, `[2;31m403 [22mbadEmailChangeDivision[0m{:ansi}`, `[2;31m409 [22mbadKnownEmail[0m{:ansi}`.
 
-### `POST /api/v2/auth/recover`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mrecover{:ansi}`
 
-Sends an account-recovery email containing a team token. Always returns `goodVerifySent`, even when the email is unknown, to prevent account enumeration.
+Sends an account-recovery email containing a team token. Always returns `[2;32m200 [22mgoodVerifySent[0m{:ansi}`, even when the email is unknown, to prevent account enumeration.
 
 | Property | Value |
 | --- | --- |
@@ -138,11 +138,11 @@ Sends an account-recovery email containing a team token. Always returns `goodVer
 
 **Response**
 
-`goodVerifySent` (no data).
+`[2;32m200 [22mgoodVerifySent[0m{:ansi}` (no data).
 
-**Errors**: `badBody`, `badEmail`, `badEndpoint` (no email provider configured), `badCaptcha`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadEmail[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}` (no email provider configured), `[2;31m403 [22mbadCaptcha[0m{:ansi}`.
 
-### `GET /api/v2/auth/verify-info`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mverify-info{:ansi}`
 
 Previews a verification token without consuming it. Useful for showing context on the verification page before the user submits.
 
@@ -162,7 +162,7 @@ Previews a verification token without consuming it. Useful for showing context o
 
 **Response**
 
-`goodVerifyInfo` (200):
+`[2;32m200 [22mgoodVerifyInfo[0m{:ansi}`:
 
 ```json
 {
@@ -182,22 +182,22 @@ Previews a verification token without consuming it. Useful for showing context o
 | `data.email` | `string \| null{:ts}` | `null{:ts}` for team-token recovery previews. |
 | `data.name` | `string \| undefined{:ts}` | Present for pending-registration tokens. |
 
-**Errors**: `badBody`, `badTokenVerification`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadTokenVerification[0m{:ansi}`.
 
 ## V1 compatibility
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `POST /api/v1/auth/register`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mregister{:ansi}`
 
 Differs from V2:
 
 - Captcha field is `recaptchaCode` instead of `captchaCode`.
-- Immediate success returns `goodRegister` with `{ authToken: string }` only — no `teamToken`.
+- Immediate success returns `[2;32m200 [22mgoodRegister[0m{:ansi}` with `{ authToken: string }` only — no `teamToken`.
 
-### `POST /api/v1/auth/login`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mlogin{:ansi}`
 
-V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`POST /api/v2/auth/verify`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
+V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mverify{:ansi}`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
 
 | Property | Value |
 | --- | --- |
@@ -220,21 +220,21 @@ At least one of `teamToken` or `ctftimeToken` must be present. A team token is p
 
 **Response**
 
-`goodLogin` (200): `{ authToken: string }`.
+`[2;32m200 [22mgoodLogin[0m{:ansi}`: `{ authToken: string }`.
 
-**Errors**: `badBody`, `badTokenVerification`, `badCtftimeToken`, `badCtftimeNoExists`, `badEndpoint` (CTFtime not configured).
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadTokenVerification[0m{:ansi}`, `[2;31m401 [22mbadCtftimeToken[0m{:ansi}`, `[2;31m404 [22mbadCtftimeNoExists[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}` (CTFtime not configured).
 
-### `POST /api/v1/auth/verify`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mverify{:ansi}`
 
-Differs from V2: the pending-registration path returns `goodRegister` with `{ authToken: string }` only.
+Differs from V2: the pending-registration path returns `[2;32m200 [22mgoodRegister[0m{:ansi}` with `{ authToken: string }` only.
 
-### `POST /api/v1/auth/recover`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mrecover{:ansi}`
 
 Differs from V2: captcha field is `recaptchaCode` instead of `captchaCode`.
 
-### `GET /api/v1/auth/test`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mtest{:ansi}`
 
-Validates the supplied auth token. Returns `goodToken` (no data) when the token is valid, `badToken` otherwise. Useful for client-side session checks.
+Validates the supplied auth token. Returns `[2;32m200 [22mgoodToken[0m{:ansi}` (no data) when the token is valid, `[2;31m401 [22mbadToken[0m{:ansi}` otherwise. Useful for client-side session checks.
 
 | Property | Value |
 | --- | --- |
@@ -255,4 +255,4 @@ All tokens are AES-256-GCM encrypted with `tokenKey`. Rotating `tokenKey` invali
 | `Verify` | `loginTimeout` | Email updates and pending registrations. One-time. |
 | `CtftimeAuth` | `loginTimeout` | CTFtime registration and V1 login handoff. |
 
-Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `badTokenVerification` after the marker has been consumed or expired.
+Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `[2;31m401 [22mbadTokenVerification[0m{:ansi}` after the marker has been consumed or expired.

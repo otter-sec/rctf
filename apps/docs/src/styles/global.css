@@ -2,8 +2,8 @@
 
 @font-face {
   font-family: 'Outfit';
-  src: url('/fonts/OutfitVF-latin.woff2') format('woff2-variations');
-  font-weight: 100 900;
+  src: url('../assets/fonts/OutfitVF-latin.woff2') format('woff2-variations');
+  font-weight: 100 500;
   font-style: normal;
   font-display: swap;
 }
@@ -12,11 +12,11 @@
 
 @theme inline {
   --font-sans:
-    'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
   --font-mono:
-    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+    'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -38,9 +38,9 @@
 }
 
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('/fonts/GeistMonoVF.woff2') format('woff2-variations');
-  font-weight: 100 900;
+  font-family: 'Cascadia Code';
+  src: url('../assets/fonts/CascadiaCodeVF.woff2') format('woff2-variations');
+  font-weight: 200 500;
   font-style: normal;
   font-display: swap;
 }
@@ -55,11 +55,36 @@
   --accent: #c10007;
   --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
-  --success: oklch(0.55 0.14 145);
+  --success: oklch(53.2% 0.157 131.589);
   --diff-deleted: var(--destructive);
   --diff-inserted: var(--success);
   --border: #ececec;
   --ring: oklch(0.708 0 0);
+
+  --callout-note: oklch(55% 0.22 262);
+  --callout-tip: oklch(61% 0.17 140);
+  --callout-warning: oklch(70% 0.14 61);
+  --callout-danger: oklch(55% 0.24 10);
+  --callout-important: oklch(54% 0.29 302);
+  --callout-definition: oklch(54% 0.29 302);
+  --callout-theorem: oklch(59% 0.1 194);
+  --callout-lemma: oklch(69% 0.14 232);
+  --callout-proof: oklch(68% 0.03 276);
+  --callout-corollary: oklch(65% 0.1 217);
+  --callout-proposition: oklch(62% 0.03 276);
+  --callout-axiom: oklch(65% 0.18 272);
+  --callout-conjecture: oklch(73% 0.17 336);
+  --callout-notation: oklch(62% 0.03 276);
+  --callout-remark: oklch(68% 0.03 276);
+  --callout-intuition: oklch(70% 0.14 61);
+  --callout-recall: oklch(65% 0.1 217);
+  --callout-explanation: oklch(61% 0.17 140);
+  --callout-example: oklch(61% 0.17 140);
+  --callout-exercise: oklch(65% 0.18 272);
+  --callout-problem: oklch(70% 0.19 41);
+  --callout-answer: oklch(59% 0.1 194);
+  --callout-solution: oklch(61% 0.17 140);
+  --callout-summary: oklch(69% 0.14 232);
 }
 
 [data-theme='dark'] {
@@ -72,11 +97,36 @@
   --accent: #ff6467;
   --accent-foreground: #0e0e0e;
   --destructive: oklch(0.704 0.191 22.216);
-  --success: oklch(0.78 0.13 145);
+  --success: oklch(89.7% 0.196 126.665);
   --diff-deleted: var(--destructive);
   --diff-inserted: var(--success);
   --border: #2a2a2a;
   --ring: oklch(0.556 0 0);
+
+  --callout-note: oklch(77% 0.11 260);
+  --callout-tip: oklch(86% 0.11 143);
+  --callout-warning: oklch(92% 0.07 87);
+  --callout-danger: oklch(76% 0.13 3);
+  --callout-important: oklch(79% 0.12 305);
+  --callout-definition: oklch(79% 0.12 305);
+  --callout-theorem: oklch(86% 0.08 183);
+  --callout-lemma: oklch(85% 0.08 210);
+  --callout-proof: oklch(62% 0.04 276);
+  --callout-corollary: oklch(79% 0.1 229);
+  --callout-proposition: oklch(69% 0.04 275);
+  --callout-axiom: oklch(82% 0.09 277);
+  --callout-conjecture: oklch(87% 0.08 336);
+  --callout-notation: oklch(69% 0.04 275);
+  --callout-remark: oklch(62% 0.04 276);
+  --callout-intuition: oklch(92% 0.07 87);
+  --callout-recall: oklch(79% 0.1 229);
+  --callout-explanation: oklch(86% 0.11 143);
+  --callout-example: oklch(86% 0.11 143);
+  --callout-exercise: oklch(82% 0.09 277);
+  --callout-problem: oklch(82% 0.1 53);
+  --callout-answer: oklch(86% 0.08 183);
+  --callout-solution: oklch(86% 0.11 143);
+  --callout-summary: oklch(85% 0.08 210);
 }
 
 @layer base {
@@ -88,41 +138,7 @@
     @apply border-border outline-ring/50 tracking-tight;
   }
 
-  /* Inline code gets the accent color, rctf-style */
   :not(pre) > code {
     color: var(--accent);
-  }
-}
-
-@layer components {
-  /* Sidebar group chevron: scope to the immediate parent <details> only,
-     so nested details don't drag their children's chevrons open. */
-  [data-sidebar-group][open] > summary [data-sidebar-chevron] {
-    transform: rotate(90deg);
-  }
-
-  .file-tree ul {
-    list-style: none;
-    margin: 0;
-    padding-left: 1rem;
-  }
-  .file-tree > ul {
-    padding-left: 0;
-  }
-  .file-tree li {
-    position: relative;
-    padding: 0.125rem 0 0.125rem 1.25rem;
-    line-height: 1.5;
-  }
-  .file-tree li::before {
-    content: '├─';
-    position: absolute;
-    left: 0;
-    color: var(--muted-foreground);
-    opacity: 0.6;
-    font-family: var(--font-mono);
-  }
-  .file-tree li:last-child::before {
-    content: '└─';
   }
 }

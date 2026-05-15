@@ -25,31 +25,19 @@
   @apply rounded-none! border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code
-  .frame.has-title:not(.is-terminal)
-  .header::before {
+[data-tab-panel] > .expressive-code .frame.has-title:not(.is-terminal) .header::before {
   @apply border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code
-  .frame.has-title:not(.is-terminal)
-  .header
-  .title {
+[data-tab-panel] > .expressive-code .frame.has-title:not(.is-terminal) .header .title {
   @apply rounded-none! border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code:not(:first-child)
-  :is(.frame, .header, pre) {
+[data-tab-panel] > .expressive-code:not(:first-child) :is(.frame, .header, pre) {
   @apply border-t-border/75!;
 }
 
-[data-tab-panel]
-  > .expressive-code:not(:first-child)
-  .frame.has-title:not(.is-terminal)
-  .header::before {
+[data-tab-panel] > .expressive-code:not(:first-child) .frame.has-title:not(.is-terminal) .header::before {
   @apply border-t-border/75!;
 }
 
@@ -57,15 +45,11 @@
   @apply border-b-border/75!;
 }
 
-[data-tabs-panels]:has(
-  > [data-tab-panel]:not([hidden]) > .expressive-code:first-child
-) {
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > .expressive-code:first-child) {
   @apply pt-0;
 }
 
-[data-tabs-panels]:has(
-  > [data-tab-panel]:not([hidden]) > .expressive-code:last-child
-) {
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > .expressive-code:last-child) {
   @apply pb-0;
 }
 
@@ -73,10 +57,7 @@
   @apply border-t-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code:first-child
-  .frame.has-title:not(.is-terminal)
-  .header::before {
+[data-tab-panel] > .expressive-code:first-child .frame.has-title:not(.is-terminal) .header::before {
   @apply border-t-0!;
 }
 

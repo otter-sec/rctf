@@ -12,8 +12,8 @@ This guide covers the changes between rCTF v1 and v2 and what you need to do to 
 
 Database schema changes are handled automatically by Drizzle ORM. Run migrations before starting the new version:
 
-```bash title="Terminal"
-bun run db:migrate
+```ansi
+$ [31mbun[0m run db:migrate
 ```
 
 Or set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}` in your configuration to migrate on startup.
@@ -47,7 +47,7 @@ Or set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}` in your co
 
 ## API changes
 
-All v1 routes continue to work. The v2 API is available at `/api/v2/...` and includes several improvements and new endpoints.
+All v1 routes continue to work. The v2 API is available at `[2m/api/[22mv2[2m/[22m...{:ansi}` and includes several improvements and new endpoints.
 
 ### Captcha field rename
 
@@ -55,24 +55,24 @@ V2 routes use `[31mcaptchaCode[0m{:ansi}` instead of `[31mrecaptchaCode[0m{:
 
 ### File uploads
 
-The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
+The v2 admin upload endpoint (`[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mupload{:ansi}`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
 
 ### New v2 endpoints
 
 | Endpoint                                                    | Description                                           |
 | ----------------------------------------------------------- | ----------------------------------------------------- |
-| `GET /v2/auth/verify-info`                                  | Returns info about a verification token               |
-| `GET /v2/leaderboard/challs`                                | Challenge metadata with first 3 solvers per challenge |
-| `GET /v2/leaderboard/with-graph`                            | Combined leaderboard and graph in one request         |
-| `PATCH /v2/users/me/avatar`                                 | Upload and moderate avatar images                     |
-| `GET/POST /v2/admin/users`                                  | List all users with search, filters, and pagination   |
-| `GET/PUT /v2/admin/settings`                                | Runtime settings management                           |
-| `POST /v2/admin/users/:id/token`                            | Generate login token for a team                       |
-| `DELETE /v2/admin/challs/:id/solves/:userId`                | Delete a specific solve                               |
-| `GET /v2/admin/instancer/schema`                            | Instancer config JSON schema                          |
-| `GET/POST /v2/admin/admin-bot/*`                            | Admin bot job management                              |
-| `GET/PUT/PATCH/DELETE /v2/integrations/challs/:id/instance` | Challenge instance lifecycle                          |
-| `GET/POST /v2/integrations/challs/:id/admin-bot/*`          | Admin bot submission and status                       |
+| `[36mGET[0m [2m/[22mv2[2m/[22mauth[2m/[22mverify-info{:ansi}`                                  | Returns info about a verification token               |
+| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}`                                | Challenge metadata with first 3 solvers per challenge |
+| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}`                            | Combined leaderboard and graph in one request         |
+| `[33mPATCH[0m [2m/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}`                                 | Upload and moderate avatar images                     |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`                                  | List all users with search, filters, and pagination   |
+| `[36mGET[0m[2m/[22m[35mPUT[0m [2m/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}`                                | Runtime settings management                           |
+| `[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id[2m/[22mtoken{:ansi}`                            | Generate login token for a team                       |
+| `[31mDELETE[0m [2m/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id[2m/[22msolves[2m/[22m:userId{:ansi}`                | Delete a specific solve                               |
+| `[36mGET[0m [2m/[22mv2[2m/[22madmin[2m/[22minstancer[2m/[22mschema{:ansi}`                            | Instancer config JSON schema                          |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22m*{:ansi}`                            | Admin bot job management                              |
+| `[36mGET[0m[2m/[22m[35mPUT[0m[2m/[22m[33mPATCH[0m[2m/[22m[31mDELETE[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | Challenge instance lifecycle                          |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22m*{:ansi}`          | Admin bot submission and status                       |
 
 ### Response differences
 
@@ -143,4 +143,4 @@ The following configuration sections are new in v2:
 | `[31mproxy[0m{:ansi}`             | Reverse proxy and Cloudflare settings        |
 | `[31mmaxAvatarSize[0m{:ansi}`     | Maximum avatar upload size (default 1 MB)    |
 
-See the [Configuration](/configuration) reference for full details on all options.
+See the [Configuration](/configuration/) reference for full details on all options.

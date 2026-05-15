@@ -1,8 +1,4 @@
-import {
-  AttachedPluginData,
-  definePlugin,
-  type ExpressiveCodePlugin,
-} from '@expressive-code/core'
+import { AttachedPluginData, definePlugin, type ExpressiveCodePlugin } from '@expressive-code/core'
 import { h, select } from '@expressive-code/core/hast'
 import { isTerminalLanguage } from './terminal-languages'
 
@@ -20,7 +16,7 @@ export function pluginShellPrompt(): ExpressiveCodePlugin {
     baseStyles: `
       .shell-prompt {
         color: var(--accent);
-        font-weight: 700;
+        font-weight: 500;
         margin-right: 1ch;
         user-select: none;
         -webkit-user-select: none;
@@ -44,11 +40,7 @@ export function pluginShellPrompt(): ExpressiveCodePlugin {
 
         const codeNode = select('div.code', renderData.lineAst)
         if (!codeNode) return
-        const prompt = h(
-          'span',
-          { class: 'shell-prompt', 'aria-hidden': 'true' },
-          '$'
-        )
+        const prompt = h('span', { class: 'shell-prompt', 'aria-hidden': 'true' }, '$')
         codeNode.children.unshift(prompt)
       },
     },

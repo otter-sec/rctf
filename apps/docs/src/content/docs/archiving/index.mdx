@@ -7,24 +7,24 @@ import Callout from '@/components/callout.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 import Tab from '@/components/mdx/tab.astro'
 
-The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `[31misArchived[0m{:ansi}` set to `true{:ts}`, and non-`GET` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
+The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `[31misArchived[0m{:ansi}` set to `true{:ts}`, and non-`[36mGET[0m{:ansi}` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
 
 ## CLI
 
 The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build` exists, then invoke the root script:
 
-```bash title="Terminal"
-bun run --filter '@rctf/web' build
-bun run export \
-  --api-url https://ctf.example.com \
-  --backend cloudflare-pages \
-  --output ./export-output
+```ansi
+$ [31mbun[0m run [02m--filter[0m [32m'@rctf/web'[0m build
+$ [31mbun[0m run export \
+  [02m--api-url[0m [32mhttps://ctf.example.com[0m \
+  [02m--backend[0m [32mcloudflare-pages[0m \
+  [02m--output[0m ./export-output
 ```
 
 | Flag | Default | Description |
 | --- | --- | --- |
 | `--api-url` | required | Base URL of the live rCTF instance to crawl. |
-| `--backend` | required | Target host. One of `[32mcloudflare-pages[0m{:ansi}` or `[32mgithub-pages[0m{:ansi}`. |
+| `--backend` | required | Target host. One of `[32mcloudflare-pages[0m{:ansi}` or `[32mgithub-pages[0m{:ansi}`. |
 | `--web-build` | `apps/web/build{:sh}` | Pre-built SvelteKit frontend that is copied into the output. |
 | `--output` | `./export-output{:sh}` | Destination directory. Wiped and recreated on every run. |
 | `--concurrency` | `5{:ts}` | Concurrent in-flight API requests during the discovery phase. |
@@ -36,12 +36,12 @@ The output directory is deleted before each run. Point `--output` somewhere that
 
 The discovery phase fetches:
 
-- `/api/v2/integrations/client/config` with `[31misArchived[0m{:ansi}` patched to `true{:ts}`.
-- `/api/v2/challs` and `/api/v2/leaderboard/challs`.
+- `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mclient[2m/[22mconfig{:ansi}` with `[31misArchived[0m{:ansi}` patched to `true{:ts}`.
+- `[2m/api/[22mv2[2m/[22mchalls{:ansi}` and `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}`.
 - The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json`.
-- One `/api/v2/users/:id` response per unique user seen on the leaderboard.
+- One `[2m/api/[22mv2[2m/[22musers[2m/[22m:id{:ansi}` response per unique user seen on the leaderboard.
 - Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json` per challenge.
-- A static `badToken{:ts}` stub for `/api/v2/users/me` so the frontend stays in a logged-out state.
+- A static `[2;31m401 [22mbadToken[0m{:ansi}` stub for `[2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}` so the frontend stays in a logged-out state.
 
 Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/[hash]/[filename]`, and the JSON files in `api-data/` are rewritten to point at the local copies so the archive is self-contained.
 
@@ -98,7 +98,7 @@ The `cloudflare-pages` backend writes:
 Deploy from the output directory:
 
 ```ansi
-$ [34mnpx[0m wrangler pages deploy ./export-output
+$ [31mnpx[0m wrangler pages deploy ./export-output
 ```
 
 </Tab>
@@ -109,7 +109,7 @@ The `github-pages` backend writes an empty `.nojekyll` so files under `_app/` ar
 Publish with `gh-pages` from the repository root. The `--dotfiles` flag is required so `.nojekyll` is uploaded:
 
 ```ansi
-$ [34mnpx[0m gh-pages [2m-d[0m ./export-output [2m--dotfiles[0m
+$ [31mnpx[0m gh-pages [02m-d[0m ./export-output [02m--dotfiles[0m
 ```
 
 Pages served from a project subpath (`username.github.io/repo`) need a custom domain or root deployment, since the injected interceptor and SvelteKit build both assume the site is served from `/`.
@@ -119,15 +119,15 @@ Pages served from a project subpath (`username.github.io/repo`) need a custom do
 
 ## Runtime behavior
 
-The injected script wraps `window.fetch{:ts}` and routes `/api/*` calls through static files:
+The injected script wraps `window.fetch{:ts}` and routes `[2m/api/[22m*{:ansi}` calls through static files:
 
-- Any non-`GET` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
-- `/api/v2/leaderboard/with-graph`, `/api/v2/leaderboard/now`, and `/api/v2/leaderboard/graph` are answered from `dump.json` with in-memory `[31mdivision[0m{:ansi}` filtering, `[31msearch[0m{:ansi}` substring matching, and `[31moffset[0m{:ansi}` / `[31mlimit[0m{:ansi}` slicing. The scoreboard stays searchable without a backend.
-- `/api/v2/challs/:id/solves` is sliced from each challenge's `solves.json`.
-- `/api/v2/integrations/analytics/script` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
-- Every other `/api/*` `GET` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `badEndpoint` `404`.
+- Any non-`[36mGET[0m{:ansi}` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
+- `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}`, `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mnow{:ansi}`, and `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mgraph{:ansi}` are answered from `dump.json` with in-memory `[31mdivision[0m{:ansi}` filtering, `[31msearch[0m{:ansi}` substring matching, and `[31moffset[0m{:ansi}` / `[31mlimit[0m{:ansi}` slicing. The scoreboard stays searchable without a backend.
+- `[2m/api/[22mv2[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}` is sliced from each challenge's `solves.json`.
+- `[2m/api/[22mv2[2m/[22mintegrations[2m/[22manalytics[2m/[22mscript{:ansi}` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
+- Every other `[2m/api/[22m*{:ansi}` `[36mGET[0m{:ansi}` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `[2;31m404 [22mbadEndpoint[0m{:ansi}` `404`.
 
-The frontend reads `[31misArchived[0m{:ansi}` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
+The frontend reads `[31misArchived[0m{:ansi}` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
 
 ## Limitations
 
@@ -135,7 +135,7 @@ The frontend reads `[31misArchived[0m{:ansi}` from the client config and hides i
   The archive contains every JSON response the exporter saw at crawl time. Anything that requires authentication, server state, or live computation is absent.
 </Callout>
 
-- No login, registration, password recovery, or token issuance. `/api/v2/users/me` always returns `badToken{:ts}`.
+- No login, registration, password recovery, or token issuance. `[2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}` always returns `[2;31m401 [22mbadToken[0m{:ansi}`.
 - No admin pages. Admin endpoints require an authenticated session that the archive cannot produce.
 - No live updates. The leaderboard reflects the moment the exporter ran. Re-run the export to refresh.
 - No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.

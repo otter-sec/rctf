@@ -19,7 +19,7 @@ async function copyCommand(button: HTMLElement): Promise<void> {
   const prompt = button.querySelector<HTMLSpanElement>('.shell-prompt')
   const originalPrompt = prompt?.textContent ?? '$'
 
-  if (prompt) prompt.textContent = 'ok'
+  if (prompt) prompt.textContent = '✓'
   button.classList.add('copied')
 
   window.setTimeout(() => {

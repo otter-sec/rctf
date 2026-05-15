@@ -15,12 +15,7 @@ export type IconMap = {
   [key: string]: string
 }
 
-export type SidebarBadgeVariant =
-  | 'default'
-  | 'note'
-  | 'tip'
-  | 'caution'
-  | 'danger'
+export type SidebarBadgeVariant = 'default' | 'note' | 'tip' | 'caution' | 'danger'
 
 export type SidebarBadgeShorthand = 'new' | 'beta' | 'deprecated' | 'soon'
 
@@ -94,12 +89,4 @@ export type FlatDoc = {
   title: string
   label: string
   hidden: boolean
-}
-
-export type HeroAction = {
-  label: string
-  link: string
-  variant?: 'primary' | 'secondary' | 'ghost'
-  icon?: string
-  external?: boolean
 }

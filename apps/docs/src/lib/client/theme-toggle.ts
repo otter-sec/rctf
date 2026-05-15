@@ -1,21 +1,7 @@
+import { readStorage, writeStorage } from './storage'
+
 let controller: AbortController | null = null
 let lifecycleReady = false
-
-const THEME_STORAGE_KEY = 'theme'
-
-function readStoredTheme(): 'light' | 'dark' {
-  try {
-    return localStorage.getItem(THEME_STORAGE_KEY) === 'dark' ? 'dark' : 'light'
-  } catch {
-    return 'light'
-  }
-}
-
-function saveTheme(theme: 'light' | 'dark'): void {
-  try {
-    localStorage.setItem(THEME_STORAGE_KEY, theme)
-  } catch {}
-}
 
 function toggleTheme(): void {
   const element = document.documentElement
@@ -30,7 +16,7 @@ function toggleTheme(): void {
     element.classList.remove('[&_*]:transition-none')
   })
 
-  saveTheme(newTheme)
+  writeStorage(localStorage, 'theme', newTheme)
 }
 
 function initThemeToggle(): void {
@@ -40,16 +26,17 @@ function initThemeToggle(): void {
 
   document
     .querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')
-    .forEach(button =>
-      button.addEventListener('click', toggleTheme, { signal })
-    )
+    .forEach((button) => button.addEventListener('click', toggleTheme, { signal }))
 }
 
 function beforeSwap(event: Event): void {
   controller?.abort()
 
-  const { newDocument } = event as Event & { newDocument: Document }
-  newDocument.documentElement.setAttribute('data-theme', readStoredTheme())
+  const storedTheme = readStorage(localStorage, 'theme') || 'light'
+  ;(event as Event & { newDocument: Document }).newDocument.documentElement.setAttribute(
+    'data-theme',
+    storedTheme,
+  )
 }
 
 export function mountThemeToggle(): void {

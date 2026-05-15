@@ -1,6 +1,6 @@
-import { SITE } from '@/consts'
-import { clsx, type ClassValue } from 'clsx'
+import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { SITE } from '@/consts'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -57,6 +57,6 @@ export function titleCase(input: string): string {
     .replace(/[-_]+/g, ' ')
     .split(' ')
     .filter(Boolean)
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ')
 }

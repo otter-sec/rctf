@@ -23,23 +23,13 @@ const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
     <MobileSidebar tree={sidebar} />
 
     <div class="flex flex-col overflow-x-clip xl:pt-16 xl:pb-6">
-      <header
-        class="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm xl:hidden"
-      >
+      <header class="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm xl:hidden">
         <Header />
       </header>
 
-      <main
-        class={cn(
-          'mx-auto flex w-full grow flex-col items-start gap-6 px-4',
-          offsetClass,
-        )}
-      >
+      <main class={cn('mx-auto flex w-full grow flex-col items-start gap-6 px-4 pt-6 xl:pt-0', offsetClass)}>
         <div class="flex flex-col gap-3">
-          <span
-            class="text-muted-foreground font-mono text-xs tracking-wider uppercase"
-            >404</span
-          >
+          <span class="text-muted-foreground font-mono text-xs tracking-wider uppercase">404</span>
           <h1 class="text-4xl font-medium">Page not found</h1>
           <p class="text-muted-foreground max-w-md text-pretty">
             The page you're looking for doesn't exist, or has moved.
@@ -48,14 +38,9 @@ const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
 
         <Link
           href={BASE_URL}
-          class={cn(
-            buttonVariants({ variant: 'outline' }),
-            'group flex items-center gap-x-1.5',
-          )}
+          class={cn(buttonVariants({ variant: 'outline' }), 'group flex items-center gap-x-1.5')}
         >
-          <span class="transition-transform group-hover:-translate-x-1"
-            >&larr;</span
-          >
+          <span class="transition-transform group-hover:-translate-x-1">&larr;</span>
           Back to home
         </Link>
       </main>

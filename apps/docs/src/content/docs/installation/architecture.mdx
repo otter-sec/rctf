@@ -5,9 +5,9 @@ description: Reference for the bundled rCTF container, its build pipeline, in-co
 
 import Callout from '@/components/callout.astro'
 
-rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `/api` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
+rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `[2m/api[22m{:ansi}` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
 
-For deployment steps, see [Installation](/installation) and the [VPS setup walkthrough](/running-a-successful-ctf/03-setup). This page is a reference for the inner architecture.
+For deployment steps, see [Installation](/installation/) and the [VPS setup walkthrough](/running-a-successful-ctf/03-setup/). This page is a reference for the inner architecture.
 
 ## Container layout
 
@@ -46,7 +46,7 @@ Paths inside the running container after the production stage finishes assembly:
   </Dir>
 </FileTree>
 
-The `rctf.d/` and `uploads/` directories are mounted from the host by `compose.yml`. With the default local upload provider, files land under `/app/uploads` because the provider resolves `[31muploadDirectory[0m{:ansi}` from `process.cwd()` which is `/app`.
+The `rctf.d/` and `uploads/` directories are mounted from the host by `compose.yml`. With the default local upload provider, files land under `/app/uploads` because the provider resolves `[31muploadDirectory[0m{:ansi}` from `process.cwd()` which is `/app`.
 
 ## Build stages
 
@@ -84,16 +84,16 @@ ENV WORKER_EXTENSION=.js
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 ```
 
-`WORKER_EXTENSION{:sh}` is set to `[32m.js[0m{:ansi}` so the API process resolves its compiled worker entry (`./leaderboard.js`) rather than the `.ts` source used in development.
+`WORKER_EXTENSION{:sh}` is set to `[32m.js[0m{:ansi}` so the API process resolves its compiled worker entry (`./leaderboard.js`) rather than the `.ts` source used in development.
 
 ## Process supervision
 
-`/etc/supervisord.conf` defines two long-running programs. Both inherit the container's PID 1 (`supervisord`), have `[31mautorestart[0m=[32mtrue[0m{:ansi}`, and stream stdout/stderr to the container's stdout/stderr without rotation.
+`/etc/supervisord.conf` defines two long-running programs. Both inherit the container's PID 1 (`supervisord`), have `[31mautorestart[0m=[32mtrue[0m{:ansi}`, and stream stdout/stderr to the container's stdout/stderr without rotation.
 
 | Program | Command | Role |
 | --- | --- | --- |
-| `api` | `bun run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `[31minstanceType[0m{:ansi}` is `[32mall[0m{:ansi}` or `[32mleaderboard[0m{:ansi}`. |
-| `nginx` | `nginx -g 'daemon off;'` | Serves `/app/static` and reverse-proxies `/api` and `/uploads` to `127.0.0.1:3000`. |
+| `api` | `bun run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `[31minstanceType[0m{:ansi}` is `[32mall[0m{:ansi}` or `[32mleaderboard[0m{:ansi}`. |
+| `nginx` | `nginx -g 'daemon off;'` | Serves `/app/static` and reverse-proxies `[2m/api[22m{:ansi}` and `/uploads` to `127.0.0.1:3000`. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -111,7 +111,7 @@ autorestart=true
 If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program — it is a thread inside the API process, so it restarts together with the API.
 
 <Callout variant="note" title="Leaderboard updates without a worker thread">
-  When `[31minstanceType[0m{:ansi}` is `[32mfrontend[0m{:ansi}`, the API process does not start the worker. Another process running with `[32mleaderboard[0m{:ansi}` or `[32mall[0m{:ansi}` must be reachable on the same Redis instance for cached leaderboard reads to stay fresh.
+  When `[31minstanceType[0m{:ansi}` is `[32mfrontend[0m{:ansi}`, the API process does not start the worker. Another process running with `[32mleaderboard[0m{:ansi}` or `[32mall[0m{:ansi}` must be reachable on the same Redis instance for cached leaderboard reads to stay fresh.
 </Callout>
 
 ## Nginx
@@ -150,15 +150,15 @@ server {
 
 Notable behavior:
 
-- `[31mbrotli_static[0m{:ansi}` and `[31mgzip_static[0m{:ansi}` serve the `.br` and `.gz` files the SvelteKit `[31madapter-static[0m{:ansi}` precompresses (`[31mprecompress[0m{:ansi}`: `[32mtrue[0m{:ansi}` in `apps/web/svelte.config.ts`). No on-the-fly compression is configured.
+- `[31mbrotli_static[0m{:ansi}` and `[31mgzip_static[0m{:ansi}` serve the `.br` and `.gz` files the SvelteKit `[31madapter-static[0m{:ansi}` precompresses (`[31mprecompress[0m{:ansi}`: `[32mtrue[0m{:ansi}` in `apps/web/svelte.config.ts`). No on-the-fly compression is configured.
 - `/_app/immutable/` is the SvelteKit hashed-asset directory and gets a one-day immutable cache.
-- The admin upload route has request buffering disabled and `[31mclient_max_body_size[0m=[32m0[0m{:ansi}` so large uploads stream straight to the API.
-- `/api` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads` through its own static handler.
-- nginx adds `[31mReferrer-Policy[0m{:ansi}`: `[32mno-referrer[0m{:ansi}`, `[31mX-Frame-Options[0m{:ansi}`: `[32mDENY[0m{:ansi}`, and `[31mX-Content-Type-Options[0m{:ansi}`: `[32mnosniff[0m{:ansi}` on every response. CSP is **not** set here.
+- The admin upload route has request buffering disabled and `[31mclient_max_body_size[0m=[32m0[0m{:ansi}` so large uploads stream straight to the API.
+- `[2m/api[22m{:ansi}` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads` through its own static handler.
+- nginx adds `[31mReferrer-Policy[0m{:ansi}`: `[32mno-referrer[0m{:ansi}`, `[31mX-Frame-Options[0m{:ansi}`: `[32mDENY[0m{:ansi}`, and `[31mX-Content-Type-Options[0m{:ansi}`: `[32mnosniff[0m{:ansi}` on every response. CSP is **not** set here.
 
 ## Content Security Policy
 
-CSP is defined in `apps/web/svelte.config.ts` and applied by SvelteKit at build time. Because `apps/web` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">` tag in each rendered page along with the auto-generated script hashes. nginx does not add a `[31mContent-Security-Policy[0m{:ansi}` header.
+CSP is defined in `apps/web/svelte.config.ts` and applied by SvelteKit at build time. Because `apps/web` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">` tag in each rendered page along with the auto-generated script hashes. nginx does not add a `[31mContent-Security-Policy[0m{:ansi}` header.
 
 ```ts title="apps/web/svelte.config.ts"
 csp: dev
@@ -175,32 +175,32 @@ The directives:
 
 | Directive | Sources |
 | --- | --- |
-| `default-src` | `[32m'none'[0m{:ansi}` |
-| `script-src` | `[32m'self'[0m{:ansi}`, `https://www.google.com/recaptcha/`, `https://www.gstatic.com/recaptcha/`, `https://hcaptcha.com`, `https://*.hcaptcha.com`, `https://challenges.cloudflare.com` |
-| `style-src` | `[32m'self'[0m{:ansi}`, `[32m'unsafe-inline'[0m{:ansi}`, `https://hcaptcha.com`, `https://*.hcaptcha.com` |
-| `connect-src` | `[32m'self'[0m{:ansi}`, `data:`, `blob:`, `https://*.storage.googleapis.com/`, `https://*.amazonaws.com/`, `https://hcaptcha.com/`, `https://*.hcaptcha.com/`, `https://www.google.com/recaptcha/`, `https://www.google-analytics.com/`, `https://*.google-analytics.com/`, `https://*.analytics.google.com/`, `https://cloudflareinsights.com/`, `https://plausible.io/` |
-| `font-src` | `[32m'self'[0m{:ansi}` |
+| `default-src` | `[32m'none'[0m{:ansi}` |
+| `script-src` | `[32m'self'[0m{:ansi}`, `https://www.google.com/recaptcha/`, `https://www.gstatic.com/recaptcha/`, `https://hcaptcha.com`, `https://*.hcaptcha.com`, `https://challenges.cloudflare.com` |
+| `style-src` | `[32m'self'[0m{:ansi}`, `[32m'unsafe-inline'[0m{:ansi}`, `https://hcaptcha.com`, `https://*.hcaptcha.com` |
+| `connect-src` | `[32m'self'[0m{:ansi}`, `data:`, `blob:`, `https://*.storage.googleapis.com/`, `https://*.amazonaws.com/`, `https://hcaptcha.com/`, `https://*.hcaptcha.com/`, `https://www.google.com/recaptcha/`, `https://www.google-analytics.com/`, `https://*.google-analytics.com/`, `https://*.analytics.google.com/`, `https://cloudflareinsights.com/`, `https://plausible.io/` |
+| `font-src` | `[32m'self'[0m{:ansi}` |
 | `img-src` | `http:`, `https:`, `blob:`, `data:` |
 | `frame-src` | `https://www.youtube.com`, `https://youtube.com`, `https://www.youtube-nocookie.com`, `https://www.google.com/recaptcha/`, `https://recaptcha.google.com/recaptcha/`, `https://hcaptcha.com`, `https://*.hcaptcha.com`, `https://challenges.cloudflare.com` |
-| `base-uri` | `[32m'self'[0m{:ansi}` |
-| `form-action` | `[32m'self'[0m{:ansi}` |
-| `object-src` | `[32m'none'[0m{:ansi}` |
+| `base-uri` | `[32m'self'[0m{:ansi}` |
+| `form-action` | `[32m'self'[0m{:ansi}` |
+| `object-src` | `[32m'none'[0m{:ansi}` |
 
 The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime — captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts` and rebuilding.
 
 <Callout variant="warning" title="frame-ancestors">
-  The CSP omits `frame-ancestors` because it is ignored from `<meta>` tags. Click-jacking protection is enforced via the nginx `[31mX-Frame-Options[0m{:ansi}`: `[32mDENY[0m{:ansi}` header instead.
+  The CSP omits `frame-ancestors` because it is ignored from `<meta>` tags. Click-jacking protection is enforced via the nginx `[31mX-Frame-Options[0m{:ansi}`: `[32mDENY[0m{:ansi}` header instead.
 </Callout>
 
 ## Horizontal scaling with `instanceType{:ts}`
 
-The `[31minstanceType[0m{:ansi}` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs. See [Manual installation](/installation/manual#scaling-with-instance-types) for the basic config.
+The `[31minstanceType[0m{:ansi}` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs. See [Manual installation](/installation/manual/#scaling-with-instance-types) for the basic config.
 
 | Value | API server | Leaderboard worker thread |
 | --- | --- | --- |
-| `[32mall[0m{:ansi}` (default) | Yes | Yes |
-| `[32mfrontend[0m{:ansi}` | Yes | No |
-| `[32mleaderboard[0m{:ansi}` | No | Yes |
+| `[32mall[0m{:ansi}` (default) | Yes | Yes |
+| `[32mfrontend[0m{:ansi}` | Yes | No |
+| `[32mleaderboard[0m{:ansi}` | No | Yes |
 
 The dispatch happens at startup in `apps/api/src/index.ts`:
 
@@ -217,11 +217,11 @@ if (config.instanceType === 'frontend' || config.instanceType === 'all') {
 
 To scale horizontally:
 
-- Run any number of `[32mfrontend[0m{:ansi}` containers behind a load balancer. They share PostgreSQL, Redis, and (if using the local upload provider) a shared `/app/uploads` mount — switching to an S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `[32mleaderboard[0m{:ansi}` worker. The worker in `apps/api/src/workers/leaderboard.ts` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `[31mtick[0m{:ansi}`, so multiple `[32mleaderboard[0m{:ansi}` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `[31mrunning[0m{:ansi}` flag, which does not coordinate across processes.
+- Run any number of `[32mfrontend[0m{:ansi}` containers behind a load balancer. They share PostgreSQL, Redis, and (if using the local upload provider) a shared `/app/uploads` mount — switching to an S3 or GCS upload provider removes that constraint.
+- Run **exactly one** `[32mleaderboard[0m{:ansi}` worker. The worker in `apps/api/src/workers/leaderboard.ts` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `[31mtick[0m{:ansi}`, so multiple `[32mleaderboard[0m{:ansi}` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `[31mrunning[0m{:ansi}` flag, which does not coordinate across processes.
 
 <Callout variant="warning" title="One leaderboard worker">
-  Do not run more than one `[32mleaderboard[0m{:ansi}` instance. The bundled container's `[32mall[0m{:ansi}` mode is sufficient for most events; split into `[32mfrontend[0m{:ansi}` + `[32mleaderboard[0m{:ansi}` only when scaling the API horizontally.
+  Do not run more than one `[32mleaderboard[0m{:ansi}` instance. The bundled container's `[32mall[0m{:ansi}` mode is sufficient for most events; split into `[32mfrontend[0m{:ansi}` + `[32mleaderboard[0m{:ansi}` only when scaling the API horizontally.
 </Callout>
 
 ## External dependencies
@@ -230,15 +230,15 @@ The container only contains the rCTF application, nginx, and supervisor. Everyth
 
 | Service | Version pinned in `compose.yml` | Required by |
 | --- | --- | --- |
-| PostgreSQL | `[32mpostgres:18.0[0m{:ansi}` (any 15+) | Core data store. The `pg_trgm` extension is installed by migration `0015_add_trigram_search.sql` for team-name fuzzy search. |
-| Redis | `[32mredis:8.2.2[0m{:ansi}` (any 7+) | Cache for leaderboard snapshots, rate limiting, and provider locks. |
+| PostgreSQL | `[32mpostgres:18.0[0m{:ansi}` (any 15+) | Core data store. The `pg_trgm` extension is installed by migration `0015_add_trigram_search.sql` for team-name fuzzy search. |
+| Redis | `[32mredis:8.2.2[0m{:ansi}` (any 7+) | Cache for leaderboard snapshots, rate limiting, and provider locks. |
 
 Optional dependencies that the deployer must supply when the matching provider is enabled:
 
-- **S3 / GCS** for the `[32muploads/s3[0m{:ansi}` or `[32muploads/gcs[0m{:ansi}` upload providers — see [Uploads](/providers/uploads).
+- **S3 / GCS** for the `[32muploads/s3[0m{:ansi}` or `[32muploads/gcs[0m{:ansi}` upload providers — see [Uploads](/providers/uploads/).
 - **SES, SMTP, or another email provider** for the email integration.
 - **OpenAI** (or another moderation provider) for avatar moderation.
-- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances — see [Instancer](/integrations/instancer).
+- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances — see [Instancer](/integrations/instancer/).
 - **Captcha provider** (reCAPTCHA, hCaptcha, or Turnstile). The CSP already permits all three.
 
 The bundled `compose.yml` pins one PostgreSQL and one Redis container alongside `rctf`. The `rctf` service exposes `127.0.0.1:8080` and expects a reverse proxy (typically nginx or Caddy on the host) to terminate TLS and forward to it.

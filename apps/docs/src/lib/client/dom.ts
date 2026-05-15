@@ -6,27 +6,18 @@ export function trimTrailingSlash(path: string): string {
   return path.replace(/\/+$/, '')
 }
 
-export function findScrollAreaViewport(
-  root: ParentNode | null | undefined
-): HTMLElement | null {
+export function findScrollAreaViewport(root: ParentNode | null | undefined): HTMLElement | null {
   return root?.querySelector<HTMLElement>(SCROLL_AREA_VIEWPORT_SELECTOR) ?? null
 }
 
 export function isElementHidden(element: HTMLElement): boolean {
-  return (
-    Boolean(element.closest('[hidden]')) ||
-    element.getClientRects().length === 0
-  )
+  return Boolean(element.closest('[hidden]')) || element.getClientRects().length === 0
 }
 
-export function withDatasetFlag(
-  selector: string,
-  flag: string,
-  callback: () => void
-): void {
+export function withDatasetFlag(selector: string, flag: string, callback: () => void): void {
   const roots = Array.from(document.querySelectorAll<HTMLElement>(selector))
 
-  roots.forEach(root => {
+  roots.forEach((root) => {
     root.dataset[flag] = 'true'
   })
 
@@ -35,7 +26,7 @@ export function withDatasetFlag(
   } finally {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        roots.forEach(root => {
+        roots.forEach((root) => {
           delete root.dataset[flag]
         })
       })

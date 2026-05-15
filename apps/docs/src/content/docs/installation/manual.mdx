@@ -18,20 +18,16 @@ This guide covers setting up rCTF from source without Docker, suitable for devel
 <Steps>
 <Step title="Clone and install dependencies">
 
-```bash title="Terminal"
-git clone https://github.com/otter-sec/rctf.git
-cd rctf
-bun i
+```ansi
+$ [31mgit[0m clone https://github.com/otter-sec/rctf.git
+$ [31mcd[0m rctf
+$ [31mbun[0m i
 ```
 
 </Step>
 <Step title="Create a configuration directory">
 
-rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one at the project root:
-
-```bash title="Terminal"
-mkdir rctf.d
-```
+rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ [31mmkdir[0m rctf.d{:ansi}` at the project root.
 
 <FileTree>
   <Dir name='rctf.d'>
@@ -41,11 +37,10 @@ mkdir rctf.d
 
 Create a minimal configuration file:
 
-```yaml title="rctf.d/01-base.yaml"
+```yaml title="rctf.d/01-base.yaml" showLineNumbers {"Generate with: $ openssl rand -base64 32":3-4} {"Unix milliseconds":11-12}
 ctfName: My CTF
 origin: https://ctf.example.com
 
-# Generate with: openssl rand -base64 32
 tokenKey: <base64-encoded-32-byte-key>
 
 database:
@@ -53,7 +48,8 @@ database:
   redis: redis://localhost:6379
   migrate: before
 
-startTime: 1735689600000 # Unix milliseconds
+
+startTime: 1735689600000
 endTime: 1735776000000
 
 divisions:
@@ -62,21 +58,17 @@ divisions:
 
 <Callout variant="tip" title="Generating a token key">
 
-The `[31mtokenKey[0m{:ansi}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with:
-
-```bash title="Terminal"
-openssl rand -base64 32
-```
+    The `[31mtokenKey[0m{:ansi}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ [31mopenssl[0m rand -base64 32{:ansi}`.
 
 </Callout>
 
-You can also set configuration values through environment variables. See [Configuration](/configuration) for the full reference.
+You can also set configuration values through environment variables. See [Configuration](/configuration/) for the full reference.
 
 </Step>
 <Step title="Run database migrations">
 
-```bash title="Terminal"
-bun run db:migrate
+```ansi
+$ [31mbun[0m run db:migrate
 ```
 
 Alternatively, set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}` in your config to run migrations automatically on startup.
@@ -84,22 +76,22 @@ Alternatively, set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}
 </Step>
 <Step title="Start the development servers">
 
-```bash title="Terminal"
-bun dev
+```ansi
+$ [31mbun[0m dev
 ```
 
 This starts both the API server on `http://127.0.0.1:3000` and the SvelteKit dev server on `http://127.0.0.1:5173`. The dev server proxies API requests to the backend.
 
 To run them separately:
 
-```bash title="Terminal"
-bun run dev:api   # API only on :3000
-bun run dev:web   # Frontend only on :5173
+```ansi
+$ [31mbun[0m run dev:api   [02m# API only on :3000[0m
+$ [31mbun[0m run dev:web   [02m# Frontend only on :5173[0m
 ```
 
 <Callout variant="tip" title="One-shot dev setup">
 
-For a fresh local environment, `[32mbun run dev:mock[0m{:ansi}` chains `[32mdb:migrate[0m{:ansi}`, `[32mdev:seed[0m{:ansi}`, and `[32mdev[0m{:ansi}` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `[32mrev[0m{:ansi}`/`[32mpwn[0m{:ansi}`/`[32mcrypto[0m{:ansi}`/`[32mweb[0m{:ansi}`/`[32mmisc[0m{:ansi}`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+    For a fresh local environment, `$ [31mbun[0m run dev:mock{:ansi}` chains `$ [31mbun[0m run db:migrate{:ansi}`, `$ [31mbun[0m run dev:seed{:ansi}`, and `$ [31mbun[0m run dev{:ansi}` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
 
 </Callout>
 
@@ -110,9 +102,9 @@ For a fresh local environment, `[32mbun run dev:mock[0m{:ansi}` chains `[32mdb:m
 
 Build both the API and frontend:
 
-```bash title="Terminal"
-bun run --filter '@rctf/web' build   # Builds static frontend
-bun run --filter '@rctf/api' start   # Starts API server
+```ansi
+$ [31mbun[0m run [02m--filter[0m [32m'@rctf/web'[0m build   [02m# Builds static frontend[0m
+$ [31mbun[0m run [02m--filter[0m [32m'@rctf/api'[0m start   [02m# Starts API server[0m
 ```
 
 The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
@@ -137,8 +129,8 @@ instanceType: frontend # or 'leaderboard'
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
-```bash title="Terminal"
-bun test                    # Run all tests from root
-bun run test:coverage       # With coverage
-bun run typecheck           # Typecheck all workspaces
+```ansi
+$ [31mbun[0m test                    [02m# Run all tests from root[0m
+$ [31mbun[0m run test:coverage       [02m# With coverage[0m
+$ [31mbun[0m run typecheck           [02m# Typecheck all workspaces[0m
 ```

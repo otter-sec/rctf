@@ -7,42 +7,32 @@ import ThemeToggle from '@/components/theme-toggle.astro'
 import { SITE, SOCIAL_LINKS } from '@/consts'
 import { BASE_URL } from '@/lib/docs'
 import type { SidebarNode } from '@/types'
-import { Icon } from 'astro-icon/components'
-import { Image } from 'astro:assets'
-import wordmarkDark from '@/assets/wordmark-dark.svg'
-import wordmarkLight from '@/assets/wordmark-light.svg'
+import Icon from '@/components/icon.astro'
+import wordmarkDark from '@/assets/wordmark-dark.svg?raw'
+import wordmarkLight from '@/assets/wordmark-light.svg?raw'
 
 interface Props {
   tree: SidebarNode[]
-  editUrl?: string | null
 }
 
-const { tree, editUrl } = Astro.props
+const { tree } = Astro.props
 const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
 ---
 
-<aside
-  class="hidden xl:block"
-  aria-label="Site navigation"
-  transition:persist="docs-aside"
->
+<aside class="hidden xl:block" aria-label="Site navigation">
   <div
-    class="sticky top-[var(--docs-announcement-offset,0px)] flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-4 pb-6 pl-6"
+    class="sticky top-[var(--docs-announcement-offset,0px)] flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6"
   >
-    <Link
-      href={BASE_URL}
-      class="flex items-center no-underline"
-      aria-label={SITE.title}
-    >
-      <Image
-        src={wordmarkLight}
-        alt={SITE.title}
-        class="block h-6 w-auto dark:hidden"
+    <Link href={BASE_URL} class="flex items-center no-underline" aria-label={SITE.title}>
+      <span
+        class="block h-6 w-auto dark:hidden [&_svg]:h-full [&_svg]:w-auto"
+        aria-hidden="true"
+        set:html={wordmarkLight}
       />
-      <Image
-        src={wordmarkDark}
-        alt={SITE.title}
-        class="hidden h-6 w-auto dark:block"
+      <span
+        class="hidden h-6 w-auto dark:block [&_svg]:h-full [&_svg]:w-auto"
+        aria-hidden="true"
+        set:html={wordmarkDark}
       />
     </Link>
 
@@ -52,7 +42,7 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
       <Sidebar tree={tree} class="h-full px-2" />
     </nav>
 
-    <div class="border-border/70 flex h-12 items-center justify-between border-t">
+    <div class="border-border/70 flex h-[3.75rem] items-center justify-between border-t">
       <ThemeToggle transition:persist />
       <div class="flex items-center gap-1">
         {
@@ -63,11 +53,11 @@ const gitHubLink = SOCIAL_LINKS.find((link) => link.label === 'GitHub')
               class="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors"
               aria-label="GitHub"
             >
-              <Icon name="lucide:github" class="size-4" />
+              <Icon name="brand-github" class="size-4" />
             </Link>
           )
         }
-        <EditLink id="docs-edit-link" href={editUrl ?? '#'} variant="icon" hidden={!editUrl} />
+        <EditLink id="docs-edit-link" href="#" hidden />
       </div>
     </div>
   </div>

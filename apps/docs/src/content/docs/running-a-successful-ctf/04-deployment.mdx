@@ -65,15 +65,15 @@ The following guide outlines the prerequisites for deploying Klodd on GCP using 
 <Steps>
 <Step title="Create GKE cluster">
 
-```bash title="Terminal"
-gcloud config set project [project-id]
-gcloud container clusters create --release-channel regular --zone europe-west1-b --enable-network-policy --enable-autoscaling \
-  --min-nodes 1 --max-nodes 4 --num-nodes 1 --no-enable-master-authorized-networks --enable-autorepair \
-  --machine-type e2-standard-8 klodd-cluster
-gcloud container clusters get-credentials klodd-cluster --zone europe-west1-b
+```ansi
+$ [31mgcloud[0m config set project [32m[project-id][0m
+$ [31mgcloud[0m container clusters create [02m--release-channel[0m regular [02m--zone[0m [32meurope-west1-b[0m [02m--enable-network-policy[0m [02m--enable-autoscaling[0m \
+  [02m--min-nodes[0m 1 [02m--max-nodes[0m 4 [02m--num-nodes[0m 1 [02m--no-enable-master-authorized-networks[0m [02m--enable-autorepair[0m \
+  [02m--machine-type[0m e2-standard-8 [32mklodd-cluster[0m
+$ [31mgcloud[0m container clusters get-credentials [32mklodd-cluster[0m [02m--zone[0m [32meurope-west1-b[0m
 
-gcloud compute addresses create klodd-ip --region europe-west1
-gcloud compute addresses list # note down the external IP of klodd-ip
+$ [31mgcloud[0m compute addresses create [32mklodd-ip[0m [02m--region[0m [32meurope-west1[0m
+$ [31mgcloud[0m compute addresses list   [02m# note down the external IP of klodd-ip[0m
 ```
 
 </Step>
@@ -81,8 +81,8 @@ gcloud compute addresses list # note down the external IP of klodd-ip
 
 Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf). Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
 
-```bash title="Terminal"
-certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer.example.com,*.instancer.example.com
+```ansi
+$ [31mcertbot[0m certonly [02m--manual[0m [02m--preferred-challenge=dns[0m [02m--email[0m [32m[email][0m [02m-d[0m [32minstancer.example.com,*.instancer.example.com[0m
 ```
 
 </Step>
@@ -90,13 +90,13 @@ certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer
 
 Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
 
-```bash title="Terminal" mark={3,6}
-kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
-kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml
-kubectl apply -f 00-traefik.yaml # remember to update the load balancer IP
-kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml
-kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml
-kubectl apply -f 10-klodd.yaml # remember to update the klodd configuration, and all the instancer.example.com URLs here
+```ansi mark={3,6}
+$ [31mkubectl[0m create secret tls instancer [02m--cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem[0m [02m--key=/etc/letsencrypt/live/instancer.example.com/privkey.pem[0m
+$ [31mkubectl[0m apply [02m-f[0m [32mhttps://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml/[0m
+$ [31mkubectl[0m apply [02m-f[0m 00-traefik.yaml   [02m# remember to update the load balancer IP[0m
+$ [31mkubectl[0m apply [02m-f[0m [32mhttps://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml[0m
+$ [31mkubectl[0m apply [02m-f[0m [32mhttps://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml[0m
+$ [31mkubectl[0m apply [02m-f[0m 10-klodd.yaml   [02m# remember to update the klodd configuration, and all the instancer.example.com URLs here[0m
 ```
 
 </Step>
@@ -125,16 +125,16 @@ The admin bot can be configured using the examples available [here](https://gith
 <Steps>
 <Step title="Create Artifact Registry and build image">
 
-```bash title="Terminal"
-gcloud config set project [project-id]
-gcloud artifacts repositories create misc-images \
-    --repository-format=docker \
-    --location=europe-west1
-gcloud auth configure-docker europe-west1-docker.pkg.dev # configure authentication
+```ansi
+$ [31mgcloud[0m config set project [32m[project-id][0m
+$ [31mgcloud[0m artifacts repositories create [32mmisc-images[0m \
+    [02m--repository-format=docker[0m \
+    [02m--location=europe-west1[0m
+$ [31mgcloud[0m auth configure-docker [32meurope-west1-docker.pkg.dev[0m   [02m# configure authentication[0m
 
-cd image
-docker build -t europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest .
-docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest
+$ [31mcd[0m image
+$ [31mdocker[0m build [02m-t[0m [32meurope-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest[0m .
+$ [31mdocker[0m push [32meurope-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest[0m
 ```
 
 </Step>
@@ -142,15 +142,15 @@ docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:lates
 
 The `gcp` folder provides [Terraform](https://developer.hashicorp.com/terraform) configuration for automated deployment. Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Update the `project` variable to contain the GCP project ID and the `image` variable to the image path from the previous step. Optionally, configure reCAPTCHA to prevent submission abuse. Deploy the admin bot with the following commands:
 
-```bash title="Terminal"
-terraform init
-terraform apply # type `yes` when prompted
+```ansi
+$ [31mterraform[0m init
+$ [31mterraform[0m apply   [02m# type `yes` when prompted[0m
 ```
 
 </Step>
 <Step title="Access your admin bot">
 
-After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains) to the Cloud Run service via the GCP dashboard for a more professional URL.
+After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains/) to the Cloud Run service via the GCP dashboard for a more professional URL.
 
 </Step>
 </Steps>

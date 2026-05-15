@@ -3,7 +3,7 @@ title: Providers
 description: Overview of rCTF's pluggable provider system for captcha, email, uploads, scoring, moderation, and more.
 ---
 
-rCTF uses a pluggable provider system that allows you to choose between different implementations for key platform features. Each provider is configured with a `[31mname[0m{:ansi}` and an `[31moptions[0m{:ansi}` object in your [configuration](/configuration).
+rCTF uses a pluggable provider system that allows you to choose between different implementations for key platform features. Each provider is configured with a `[31mname[0m{:ansi}` and an `[31moptions[0m{:ansi}` object in your [configuration](/configuration/).
 
 ## Provider format
 
@@ -22,13 +22,13 @@ The `[31mname[0m{:ansi}` identifies which implementation to load, and `[31mop
 
 | Type                                | Config Field                              | Available Providers                                                                                                                         | Default                 |
 | ----------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| [Captcha](/providers/captcha)       | `[31mcaptcha.provider[0m{:ansi}`                 | `[32mcaptcha/recaptcha[0m{:ansi}`, `[32mcaptcha/hcaptcha[0m{:ansi}`, `[32mcaptcha/turnstile[0m{:ansi}`                                                           | None (disabled)         |
-| [Email](/providers/emails)          | `[31memail.provider[0m{:ansi}`                   | `[32memails/smtp[0m{:ansi}`, `[32memails/ses[0m{:ansi}`, `[32memails/postmark[0m{:ansi}`, `[32memails/mailgun[0m{:ansi}`                                                | None (disabled)         |
-| [Uploads](/providers/uploads)       | `[31muploadProvider[0m{:ansi}`                   | `[32muploads/local[0m{:ansi}`, `[32muploads/s3[0m{:ansi}`, `[32muploads/gcs[0m{:ansi}`                                                                           | `[32muploads/local[0m{:ansi}`  |
-| [Scoring](/providers/scores)        | `[31mscoreProvider[0m{:ansi}`                    | `[32mscores/classic[0m{:ansi}`, `[32mscores/sekai[0m{:ansi}`, `[32mscores/steep[0m{:ansi}`, `[32mscores/jammy[0m{:ansi}`, `[32mscores/genni[0m{:ansi}`, `[32mscores/legacy[0m{:ansi}` | `[32mscores/classic[0m{:ansi}` |
-| [Moderation](/providers/moderation) | `[31mavatarsModeration.provider[0m{:ansi}`       | `[32mmoderation/openai[0m{:ansi}`                                                                                                                  | None (disabled)         |
+| [Captcha](/providers/captcha/)       | `[31mcaptcha.provider[0m{:ansi}`                 | `[32mcaptcha/recaptcha[0m{:ansi}`, `[32mcaptcha/hcaptcha[0m{:ansi}`, `[32mcaptcha/turnstile[0m{:ansi}`                                                           | None (disabled)         |
+| [Email](/providers/emails/)          | `[31memail.provider[0m{:ansi}`                   | `[32memails/smtp[0m{:ansi}`, `[32memails/ses[0m{:ansi}`, `[32memails/postmark[0m{:ansi}`, `[32memails/mailgun[0m{:ansi}`                                                | None (disabled)         |
+| [Uploads](/providers/uploads/)       | `[31muploadProvider[0m{:ansi}`                   | `[32muploads/local[0m{:ansi}`, `[32muploads/s3[0m{:ansi}`, `[32muploads/gcs[0m{:ansi}`                                                                           | `[32muploads/local[0m{:ansi}`  |
+| [Scoring](/providers/scores/)        | `[31mscoreProvider[0m{:ansi}`                    | `[32mscores/classic[0m{:ansi}`, `[32mscores/sekai[0m{:ansi}`, `[32mscores/steep[0m{:ansi}`, `[32mscores/jammy[0m{:ansi}`, `[32mscores/genni[0m{:ansi}`, `[32mscores/legacy[0m{:ansi}` | `[32mscores/classic[0m{:ansi}` |
+| [Moderation](/providers/moderation/) | `[31mavatarsModeration.provider[0m{:ansi}`       | `[32mmoderation/openai[0m{:ansi}`                                                                                                                  | None (disabled)         |
 | Messages                            | `[31mbloodBot.destinations[].provider[0m{:ansi}` | `[32mmessages/discord[0m{:ansi}`, `[32mmessages/telegram[0m{:ansi}`                                                                                       | None (disabled)         |
-| [Analytics](/providers/analytics)   | `[31manalytics.provider[0m{:ansi}`               | `[32manalytics/google[0m{:ansi}`, `[32manalytics/cloudflare[0m{:ansi}`, `[32manalytics/plausible[0m{:ansi}`                                                      | None (disabled)         |
+| [Analytics](/providers/analytics/)   | `[31manalytics.provider[0m{:ansi}`               | `[32manalytics/google[0m{:ansi}`, `[32manalytics/cloudflare[0m{:ansi}`, `[32manalytics/plausible[0m{:ansi}`                                                      | None (disabled)         |
 | Instancer                           | `[31minstancerProvider[0m{:ansi}`                | `[32minstancer/docker-instancer[0m{:ansi}`, `[32minstancer/k8s-instancer[0m{:ansi}`                                                                       | None (disabled)         |
 | Admin Bot                           | `[31madminBot.provider[0m{:ansi}`                | `[32madmin-bot/rctf-js[0m{:ansi}`                                                                                                                  | None (disabled)         |
 

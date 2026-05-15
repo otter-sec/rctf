@@ -1,11 +1,5 @@
 import type { Element, ElementContent, Root } from 'hast'
-import {
-  findElementChild,
-  getNodeText,
-  hasClass,
-  isElement,
-  visitHast,
-} from './hast-utils'
+import { findElementChild, getNodeText, hasClass, isElement, visitHast } from './hast-utils'
 
 // Tabler icon paths (viewBox 0 0 24 24, stroke currentColor).
 const FILE_PATHS = [
@@ -62,24 +56,40 @@ const EXTENSIONS = [
 const EXT_RE = new RegExp(`\\.(${EXTENSIONS.join('|')})$`, 'i')
 const DOTFILE_RE =
   /^\.(gitignore|env|prettierrc|eslintrc|npmrc|yarnrc|nvmrc|editorconfig|gitkeep|gitattributes)/i
+const ANSI_RE = /\x1b\[[0-9;]*m/g
+const INLINE_LANG_RE = /\{:[A-Za-z0-9_-]+\}$/
+const API_ROUTE_RE =
+  /^\/(?:api(?:[/*#]|$)|(?:api\/)?v[12](?:\/|$)|now$|with-graph$|graph$)/
+const ABSOLUTE_FS_RE =
+  /^\/(?:etc|var|usr|opt|home|root|tmp|app|srv|mnt|workspace|Users)(?:\/|$)/
 
 function classify(text: string): 'file' | 'folder' | null {
+  const plainText = text.replace(ANSI_RE, '').replace(INLINE_LANG_RE, '')
   if (!text || text.length > 200) return null
-  if (/\s/.test(text)) return null
-  if (text.includes('://')) return null
-  if (text.startsWith('@')) return null
-  if (text.startsWith('-')) return null
-  if (text.startsWith('$ ')) return null
-  if (text.endsWith('/')) return 'folder'
+  if (/\s/.test(plainText)) return null
+  if (plainText.includes('://')) return null
+  if (plainText.startsWith('@')) return null
+  if (plainText.startsWith('-')) return null
+  if (plainText.startsWith('$ ')) return null
+  if (API_ROUTE_RE.test(plainText)) return null
+  if (plainText.endsWith('/')) {
+    if (plainText.startsWith('/') && !ABSOLUTE_FS_RE.test(plainText)) return null
+    return 'folder'
+  }
   // Require an explicit path signal: leading /, ./, or ../; multiple slashes;
   // a recognized file extension; or a known dotfile name. A single-slash
-  // kebab token like `package/feature` (a feature spec) is NOT
+  // kebab token like `provider-name/feature-name` is NOT
   // a path even though it contains a slash.
-  if (text.startsWith('/') || text.startsWith('./') || text.startsWith('../'))
+  if (plainText.startsWith('/')) {
+    if (ABSOLUTE_FS_RE.test(plainText) || EXT_RE.test(plainText)) return 'file'
+    return null
+  }
+  if (plainText.startsWith('./') || plainText.startsWith('../')) {
     return 'file'
-  if ((text.match(/\//g) || []).length >= 2) return 'file'
-  if (EXT_RE.test(text)) return 'file'
-  if (DOTFILE_RE.test(text)) return 'file'
+  }
+  if ((plainText.match(/\//g) || []).length >= 2) return 'file'
+  if (EXT_RE.test(plainText)) return 'file'
+  if (DOTFILE_RE.test(plainText)) return 'file'
   return null
 }
 
@@ -97,7 +107,7 @@ function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
       'aria-hidden': 'true',
       className: ['inline-path-icon', `is-${kind}`],
     },
-    children: paths.map(d => ({
+    children: paths.map((d) => ({
       type: 'element',
       tagName: 'path',
       properties: { d },
@@ -108,11 +118,7 @@ function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
 
 function alreadyDecorated(node: Element): boolean {
   const first = node.children?.[0]
-  return (
-    first?.type === 'element' &&
-    first.tagName === 'svg' &&
-    hasClass(first, 'inline-path-icon')
-  )
+  return first?.type === 'element' && first.tagName === 'svg' && hasClass(first, 'inline-path-icon')
 }
 
 function decorate(codeNode: Element, kind: 'file' | 'folder'): void {
@@ -123,7 +129,7 @@ function decorate(codeNode: Element, kind: 'file' | 'folder'): void {
 
 // Match <kebab-case>, <snake_case>, <lowercase> placeholders. Lowercase-start
 // keeps Rust generics (`<T>`, `<NewAccount>`, `<Vec<u8>>`) from matching,
-// while still catching the common `<program-name>` / `<your_account>` /
+// while still catching the common `<service-name>` / `<your_account>` /
 // `<filename>` shapes that appear in path strings.
 const PLACEHOLDER_RE = /<[a-z][a-z0-9_-]*>/g
 
@@ -163,7 +169,7 @@ function dimPlaceholders(node: Element): void {
 
 export function rehypeInlinePathIcon() {
   return (tree: Root) => {
-    visitHast(tree, node => {
+    visitHast(tree, (node) => {
       if (!isElement(node)) return
 
       // Skip block code and our own command pills.

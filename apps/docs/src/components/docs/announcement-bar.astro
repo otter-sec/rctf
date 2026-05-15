@@ -1,7 +1,7 @@
 ---
-import Link from '@/components/link.astro'
 import { DOCS } from '@/consts'
-import { Icon } from 'astro-icon/components'
+import Icon from '@/components/icon.astro'
+import Link from '@/components/link.astro'
 
 const announcement = DOCS.announcement
 const announcementId = announcement?.id ?? ''
@@ -39,7 +39,7 @@ const announcementId = announcement?.id ?? ''
           external={announcement.href.startsWith('http')}
         >
           <span class="min-w-0 text-balance">{announcement.message}</span>
-          <Icon name="lucide:arrow-right" class="hidden size-3.5 shrink-0 sm:block" />
+          <Icon name="arrow-right" class="hidden size-3.5 shrink-0 sm:block" />
         </Link>
       ) : (
         <span>{announcement.message}</span>
@@ -50,7 +50,7 @@ const announcementId = announcement?.id ?? ''
         aria-label="Dismiss announcement"
         data-announcement-dismiss
       >
-        <Icon name="lucide:x" class="size-4" />
+        <Icon name="x" class="size-4" />
       </button>
     </div>
   )

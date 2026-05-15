@@ -1,10 +1,5 @@
 import { definePlugin, type ExpressiveCodePlugin } from '@expressive-code/core'
-import {
-  select,
-  selectAll,
-  type Element,
-  type ElementContent,
-} from '@expressive-code/core/hast'
+import { select, selectAll, type Element, type ElementContent } from '@expressive-code/core/hast'
 import { isTerminalLanguage } from './terminal-languages'
 
 function hasClass(node: Element, className: string): boolean {

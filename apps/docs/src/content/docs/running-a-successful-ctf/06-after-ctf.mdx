@@ -7,7 +7,7 @@ import Callout from '@/components/callout.astro'
 
 Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, and infrastructure teardown.
 
-To keep challenges and the scoreboard publicly accessible after teardown, generate a read-only snapshot with the [static export tool](/archiving) before decommissioning the live instance.
+To keep challenges and the scoreboard publicly accessible after teardown, generate a read-only snapshot with the [static export tool](/archiving/) before decommissioning the live instance.
 
 ## Uploading scoreboard to CTFtime
 
@@ -18,12 +18,12 @@ Submitting the final scoreboard to CTFtime enables participating teams to receiv
 
 The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
 
-```bash title="Terminal"
-docker exec -it rctf-postgres-1 bash
+```ansi
+$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
 ```
 
-```bash title="Inside the postgres container"
-psql -U rctf
+```ansi title="Inside the postgres container"
+$ [31mpsql[0m [02m-U[0m rctf
 ```
 
 ```sql title="Inside the postgres shell"
@@ -46,9 +46,9 @@ Copy the returned authentication token, removing the surrounding quotation marks
 
 Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
 
-```bash title="Terminal"
-curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
-  -H "Authorization: Bearer TOKEN"
+```ansi
+$ [31mcurl[0m [32mhttps://ctf.example.com/api/v1/integrations/ctftime/leaderboard[0m \
+  [02m-H[0m [32m"Authorization: Bearer TOKEN"[0m
 ```
 
 </Step>
@@ -68,12 +68,12 @@ Point distribution may take approximately one hour for established events. For f
 
 For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
 
-```bash title="Terminal"
-docker exec -it rctf-postgres-1 bash
+```ansi
+$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
 ```
 
-```bash title="Inside the postgres container"
-psql -U rctf
+```ansi title="Inside the postgres container"
+$ [31mpsql[0m [02m-U[0m rctf
 ```
 
 ```sql title="Inside the postgres shell"

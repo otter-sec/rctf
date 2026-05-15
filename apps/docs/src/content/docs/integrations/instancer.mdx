@@ -177,7 +177,7 @@ TRAEFIK_PERMANENT_REDIRECT_MIDDLEWARE_NAME=permanent-https-redirect@file
 The Docker instancer stack starts from the repository root:
 
 ```ansi
-$ [34mdocker[0m compose [2m-f[0m deploy/docker-instancer/compose.yml up [2m-d[0m
+$ [31mdocker[0m compose [02m-f[0m deploy/docker-instancer/compose.yml up [02m-d[0m
 ```
 
 The same token belongs in rCTF:
@@ -268,7 +268,7 @@ Services may only reference networks declared under `[31mconfig.networks[0m{:a
 ## Kubernetes instancer
 
 <Callout variant="tip" title="Dedicated deployment guide">
-  See [Kubernetes instancer](/integrations/k8s-instancer) for the full Terraform deployment walkthrough, including GKE provisioning, ACME wildcard certificates, RBAC, network policies, and local Kind development.
+  See [Kubernetes instancer](/integrations/k8s-instancer/) for the full Terraform deployment walkthrough, including GKE provisioning, ACME wildcard certificates, RBAC, network policies, and local Kind development.
 </Callout>
 
 The Kubernetes provider creates `ChallengeInstance` custom resources. The controller watches those resources and creates a namespace, network policies, deployments, services, and Traefik routes for each participant instance.
@@ -288,15 +288,15 @@ The Terraform example under `deploy/terraform/instancer/example` provisions the 
 The Kubernetes module reads a generated controller installer from `apps/k8s-controller/dist/install.yaml`. Build and push the controller image, then generate the installer:
 
 ```ansi
-$ [34mcd[0m apps/k8s-controller
-$ [34mmake[0m build-installer IMG=registry.example.com/rctf-instancer-controller:tag
+$ [31mcd[0m apps/k8s-controller
+$ [31mmake[0m build-installer IMG=registry.example.com/rctf-instancer-controller:tag
 ```
 
 The Terraform example applies from `deploy/terraform/instancer/example`:
 
 ```ansi
-$ [34mterraform[0m init
-$ [34mterraform[0m apply
+$ [31mterraform[0m init
+$ [31mterraform[0m apply
 ```
 
 The Terraform outputs map directly to the rCTF provider config:
@@ -310,9 +310,9 @@ The Terraform outputs map directly to the rCTF provider config:
 For local controller development, the controller README uses Kind:
 
 ```ansi
-$ [34mkind[0m create cluster [2m--name[0m rctf [2m--config[0m kind-config.yaml
-$ [34mmake[0m install
-$ [34mmake[0m run ARGS="[2m-instancer-host[0m instancer.test"
+$ [31mkind[0m create cluster [02m--name[0m rctf [02m--config[0m kind-config.yaml
+$ [31mmake[0m install
+$ [31mmake[0m run ARGS="[02m-instancer-host[0m instancer.test"
 ```
 
 ### Kubernetes challenge config
@@ -389,14 +389,14 @@ The `[31megress[0m{:ansi}` flag is per pod. Challenges that should not reach t
 
 ## Lifecycle and API behavior
 
-Participant lifecycle routes are under `/api/v2/integrations/challs/:id/instance`:
+Participant lifecycle routes are under `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`:
 
 | Method | Action |
 | --- | --- |
-| `GET{:http}` | Returns current status, time left, and endpoints. |
-| `PUT{:http}` | Creates an instance. |
-| `PATCH{:http}` | Extends an instance when the challenge is extendable. |
-| `DELETE{:http}` | Stops an instance. |
+| `[36mGET[0m{:ansi}` | Returns current status, time left, and endpoints. |
+| `[35mPUT[0m{:ansi}` | Creates an instance. |
+| `[33mPATCH[0m{:ansi}` | Extends an instance when the challenge is extendable. |
+| `[31mDELETE[0m{:ansi}` | Stops an instance. |
 
 The returned status is one of `[32mstopped[0m{:ansi}`, `[32mstarting[0m{:ansi}`, `[32mrunning[0m{:ansi}`, `[32mstopping[0m{:ansi}`, or `[32merrored[0m{:ansi}`. Docker returns `[32mstopping[0m{:ansi}` only through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
 
@@ -425,8 +425,8 @@ The schema is useful for challenge import tools and generated challenge data val
 
 Common checks:
 
-- A `[32mbadEndpoint[0m{:ansi}` response means no instancer provider is configured.
-- A `[32mbadInstancerConfig[0m{:ansi}` response means the challenge config failed provider validation.
+- A `[2;31m404 [22mbadEndpoint[0m{:ansi}` response means no instancer provider is configured.
+- A `[2;31m400 [22mbadInstancerConfig[0m{:ansi}` response means the challenge config failed provider validation.
 - A Docker `[32mtcp[0m{:ansi}` expose becomes `[32mtcp-ssl[0m{:ansi}` because raw TCP cannot be SNI-routed by host.
 - A Kubernetes `[32mtcp[0m{:ansi}` expose is currently unsupported. The configured kind should be `[32mtcp-ssl[0m{:ansi}`.
 - Kubernetes requires `[31mcaCertificate[0m{:ansi}` even when the API server certificate is otherwise trusted by the host.

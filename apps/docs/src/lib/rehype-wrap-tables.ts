@@ -15,12 +15,7 @@ export function rehypeWrapTables() {
     visitHast(tree, (node, parent, index) => {
       if (!isElement(node)) return
       if (node.tagName !== 'table' || !parent || index === null) return
-      if (
-        isElement(parent) &&
-        parent.tagName === 'div' &&
-        hasClass(parent, 'table-wrapper')
-      )
-        return
+      if (isElement(parent) && parent.tagName === 'div' && hasClass(parent, 'table-wrapper')) return
 
       replaceChild(parent, index, tableWrapper(node))
       return 'skip'

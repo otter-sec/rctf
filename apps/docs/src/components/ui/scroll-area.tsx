@@ -1,6 +1,7 @@
-import { cn } from '@/lib/utils'
-import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui'
 import * as React from 'react'
+import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui'
+
+import { cn } from '@/lib/utils'
 
 function ScrollArea({
   className,
@@ -9,13 +10,13 @@ function ScrollArea({
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
   return (
     <ScrollAreaPrimitive.Root
-      data-slot='scroll-area'
+      data-slot="scroll-area"
       className={cn('relative', className)}
       {...props}
     >
       <ScrollAreaPrimitive.Viewport
-        data-slot='scroll-area-viewport'
-        className='ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] focus-visible:ring-4 focus-visible:outline-1'
+        data-slot="scroll-area-viewport"
+        className="ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] focus-visible:ring-4 focus-visible:outline-1"
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
@@ -32,21 +33,19 @@ function ScrollBar({
 }: React.ComponentProps<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>) {
   return (
     <ScrollAreaPrimitive.ScrollAreaScrollbar
-      data-slot='scroll-area-scrollbar'
+      data-slot="scroll-area-scrollbar"
       orientation={orientation}
       className={cn(
         'flex touch-none p-px transition-colors select-none',
-        orientation === 'vertical' &&
-          'h-full w-2.5 border-l border-l-transparent',
-        orientation === 'horizontal' &&
-          'h-2.5 flex-col border-t border-t-transparent',
-        className
+        orientation === 'vertical' && 'h-full w-2.5 border-l border-l-transparent',
+        orientation === 'horizontal' && 'h-2.5 flex-col border-t border-t-transparent',
+        className,
       )}
       {...props}
     >
       <ScrollAreaPrimitive.ScrollAreaThumb
-        data-slot='scroll-area-thumb'
-        className='bg-border relative flex-1 rounded-full'
+        data-slot="scroll-area-thumb"
+        className="bg-border relative flex-1 rounded-full"
       />
     </ScrollAreaPrimitive.ScrollAreaScrollbar>
   )

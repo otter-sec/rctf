@@ -1,13 +1,21 @@
-import {
-  ensureColorContrastOnBackground,
-  ExpressiveCodeTheme,
-} from '@expressive-code/core'
+import { ExpressiveCodeTheme, ensureColorContrastOnBackground } from '@expressive-code/core'
+
 import materialThemeDarkerRaw from '@shikijs/themes/material-theme-darker'
 import materialThemeLighterRaw from '@shikijs/themes/material-theme-lighter'
 
-// Same default Expressive Code uses internally. Pre-adjusting against this
-// once means EC's per-render adjustment is a no-op (already meets contrast),
-// and inline shiki, which has no contrast pipeline, sees the same colors.
+export const CODE_BACKGROUND_LIGHT = '#fafafa'
+export const CODE_BACKGROUND_DARK = '#151515'
+const ANSI_SUCCESS_LIGHT = 'oklch(53.2% 0.157 131.589)'
+const ANSI_SUCCESS_DARK = 'oklch(89.7% 0.196 126.665)'
+
+const isLightTheme = (theme: { name: string }) => theme.name === 'material-theme-lighter'
+export const codeBackground = (theme: { name: string }) =>
+  isLightTheme(theme) ? CODE_BACKGROUND_LIGHT : CODE_BACKGROUND_DARK
+
+// Pre-adjusting against the same background used by Expressive Code's style
+// overrides means EC's per-render adjustment is a no-op (already meets
+// contrast), and inline shiki — which has no contrast pipeline — sees the same
+// colors.
 const MIN_CONTRAST = 5.5
 
 // `ensureMinSyntaxHighlightingColorContrast` only walks tokenColor settings
@@ -33,24 +41,28 @@ const ANSI_COLOR_KEYS = [
   'terminal.ansiBrightWhite',
 ] as const
 
-function adjustAnsiPalette(theme: ExpressiveCodeTheme): void {
+function adjustAnsiPalette(theme: ExpressiveCodeTheme, background: string): void {
   for (const key of ANSI_COLOR_KEYS) {
     const color = theme.colors[key]
     if (!color) continue
-    theme.colors[key] = ensureColorContrastOnBackground(
-      color,
-      theme.bg,
-      MIN_CONTRAST
-    )
+    theme.colors[key] = ensureColorContrastOnBackground(color, background, MIN_CONTRAST)
   }
 }
 
+function applySemanticAnsiPalette(theme: ExpressiveCodeTheme): void {
+  const success = isLightTheme(theme) ? ANSI_SUCCESS_LIGHT : ANSI_SUCCESS_DARK
+  theme.colors['terminal.ansiGreen'] = success
+  theme.colors['terminal.ansiBrightGreen'] = success
+}
+
 function adjusted(raw: unknown): ExpressiveCodeTheme {
-  const theme = new ExpressiveCodeTheme(
-    raw as ConstructorParameters<typeof ExpressiveCodeTheme>[0]
-  )
-  theme.ensureMinSyntaxHighlightingColorContrast(MIN_CONTRAST)
-  adjustAnsiPalette(theme)
+  const theme = new ExpressiveCodeTheme(raw as ConstructorParameters<typeof ExpressiveCodeTheme>[0])
+  const background = codeBackground(theme)
+  theme.bg = background
+  theme.colors['editor.background'] = background
+  theme.ensureMinSyntaxHighlightingColorContrast(MIN_CONTRAST, background)
+  adjustAnsiPalette(theme, background)
+  applySemanticAnsiPalette(theme)
   return theme
 }
 

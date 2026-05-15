@@ -11,7 +11,12 @@ import {
 } from '@/lib/docs'
 import { gitLastUpdated } from '@/lib/git-lastmod'
 import { mdxComponents } from '@/lib/mdx-components'
-import { getPrevNext, getSidebarTree } from '@/lib/sidebar'
+import {
+  createSidebarContext,
+  getIndexChildrenFromContext,
+  getPrevNextFromContext,
+  getSidebarTreeFromContext,
+} from '@/lib/sidebar'
 import { render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -27,21 +32,27 @@ interface Props {
 }
 
 const { doc } = Astro.props
-const { Content, headings } = await render(doc)
+const [renderedDoc, docs] = await Promise.all([render(doc), getAllDocs()])
+const { Content, headings } = renderedDoc
+const sidebarContext = createSidebarContext(docs)
 
 const href = docHref(doc.id)
-const sidebar = await getSidebarTree(href)
-const { prev, next } = await getPrevNext(href)
+const isIndex = doc.id === 'index' || /\/index\.mdx?$/.test(doc.filePath ?? '')
+
+const sidebar = getSidebarTreeFromContext(sidebarContext, href)
+const prevNext = getPrevNextFromContext(sidebarContext, href)
+const indexChildren =
+  isIndex && doc.data.autoCards !== false ? getIndexChildrenFromContext(sidebarContext, href) : []
+
+let { prev, next } = prevNext
+if (doc.data.prev === false) prev = null
+if (doc.data.next === false) next = null
 const editUrl = getEditUrl(doc)
 
 const frontmatterLastUpdated = resolveLastUpdated(doc)
 const lastUpdated =
   frontmatterLastUpdated ??
-  (doc.data.lastUpdated === false
-    ? null
-    : doc.filePath
-      ? gitLastUpdated(doc.filePath)
-      : null)
+  (doc.data.lastUpdated === false ? null : doc.filePath ? gitLastUpdated(doc.filePath) : null)
 
 const toc = resolveTOC(doc)
 ---
@@ -57,6 +68,7 @@ const toc = resolveTOC(doc)
   tocMinDepth={toc.minDepth}
   tocMaxDepth={toc.maxDepth}
   tocEnabled={toc.enabled}
+  indexChildren={indexChildren}
 >
   <Content components={mdxComponents} />
 </DocLayout>

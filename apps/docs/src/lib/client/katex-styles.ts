@@ -1,4 +1,4 @@
-import katexStylesheetUrl from 'katex/dist/katex.min.css?url'
+const KATEX_STYLESHEET_URL = 'https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css'
 
 let lifecycleReady = false
 
@@ -13,13 +13,9 @@ function hasKatexStylesheet(): boolean {
 function ensureKatexStyles(): void {
   if (!hasKatexMarkup() || hasKatexStylesheet()) return
 
-  // Keep KaTeX CSS out of the server-rendered layout. Astro Erudite hit
-  // duplicate <head>/<html> output when this stylesheet was injected there:
-  // https://github.com/jktrn/astro-erudite/pull/50
-  // https://github.com/jktrn/astro-erudite/issues/49
   const link = document.createElement('link')
   link.rel = 'stylesheet'
-  link.href = katexStylesheetUrl
+  link.href = KATEX_STYLESHEET_URL
   link.dataset.katexStylesheet = 'true'
   document.head.appendChild(link)
 }

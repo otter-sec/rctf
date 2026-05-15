@@ -2,15 +2,9 @@ let controller: AbortController | null = null
 let lifecycleReady = false
 
 function setupMobileSidebar(): void {
-  const dialog = document.getElementById(
-    'mobile-sidebar'
-  ) as HTMLDialogElement | null
-  const trigger = document.getElementById(
-    'mobile-sidebar-trigger'
-  ) as HTMLButtonElement | null
-  const closeButton = document.getElementById(
-    'mobile-sidebar-close'
-  ) as HTMLButtonElement | null
+  const dialog = document.getElementById('mobile-sidebar') as HTMLDialogElement | null
+  const trigger = document.getElementById('mobile-sidebar-trigger') as HTMLButtonElement | null
+  const closeButton = document.getElementById('mobile-sidebar-close') as HTMLButtonElement | null
 
   if (!dialog) return
 
@@ -19,7 +13,7 @@ function setupMobileSidebar(): void {
   const { signal } = controller
 
   const open = () => {
-    if (!dialog.open) dialog.showModal()
+    dialog.showModal()
     trigger?.setAttribute('aria-expanded', 'true')
   }
 
@@ -33,10 +27,10 @@ function setupMobileSidebar(): void {
 
   dialog.addEventListener(
     'click',
-    event => {
+    (event) => {
       if (event.target === dialog) close()
     },
-    { signal }
+    { signal },
   )
 
   dialog.addEventListener(
@@ -44,27 +38,12 @@ function setupMobileSidebar(): void {
     () => {
       trigger?.setAttribute('aria-expanded', 'false')
     },
-    { signal }
+    { signal },
   )
 
   dialog
     .querySelectorAll<HTMLAnchorElement>('a[href]')
-    .forEach(link => link.addEventListener('click', close, { signal }))
-}
-
-function cleanupMobileSidebar(): void {
-  controller?.abort()
-  controller = null
-
-  const dialog = document.getElementById(
-    'mobile-sidebar'
-  ) as HTMLDialogElement | null
-  const trigger = document.getElementById(
-    'mobile-sidebar-trigger'
-  ) as HTMLButtonElement | null
-
-  if (dialog?.open) dialog.close()
-  trigger?.setAttribute('aria-expanded', 'false')
+    .forEach((link) => link.addEventListener('click', close, { signal }))
 }
 
 export function mountMobileSidebar(): void {
@@ -73,6 +52,6 @@ export function mountMobileSidebar(): void {
   if (lifecycleReady) return
   lifecycleReady = true
 
-  document.addEventListener('astro:before-swap', cleanupMobileSidebar)
+  document.addEventListener('astro:before-swap', () => controller?.abort())
   document.addEventListener('astro:after-swap', setupMobileSidebar)
 }

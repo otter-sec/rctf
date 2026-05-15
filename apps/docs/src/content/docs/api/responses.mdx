@@ -26,129 +26,129 @@ Responses without data omit `data`:
 }
 ```
 
-Global 404 errors return `badEndpoint`. Unhandled route errors return `errorInternal`.
+Global 404 errors return `[2;31m404 [22mbadEndpoint[0m{:ansi}`. Unhandled route errors return `[2;31m500 [22merrorInternal[0m{:ansi}`.
 
 ## Common errors
 
 | Kind | Status | Data | Meaning |
 | --- | --- | --- | --- |
-| `badJson` | `400` | None | The JSON body could not be parsed. |
-| `badBody` | `400` | `{ reason: string }` | Body, query, params, or form data validation failed. |
-| `badToken` | `401` | None | The auth token is missing or invalid. |
-| `badPerms` | `403` | None | The authenticated user is missing required permission bits. |
-| `badEndpoint` | `404` | None | The route or provider-backed endpoint is unavailable. |
-| `badNotStarted` | `401` | None | The route is gated until CTF start time. |
-| `badEnded` | `401` | None | The action is gated after CTF end time. |
-| `badCaptcha` | `403` | None | V2 captcha validation failed. |
-| `badRecaptchaCode` | `401` | None | V1 captcha validation failed. |
-| `badRateLimit` | `429` | `{ timeLeft: number }` | The route-specific rate-limit bucket is exhausted. |
-| `errorInternal` | `500` | None | An unhandled server error occurred. |
+| `[31mbadJson[0m{:ansi}` | `400` | None | The JSON body could not be parsed. |
+| `[31mbadBody[0m{:ansi}` | `400` | `{ reason: string }` | Body, query, params, or form data validation failed. |
+| `[31mbadToken[0m{:ansi}` | `401` | None | The auth token is missing or invalid. |
+| `[31mbadPerms[0m{:ansi}` | `403` | None | The authenticated user is missing required permission bits. |
+| `[31mbadEndpoint[0m{:ansi}` | `404` | None | The route or provider-backed endpoint is unavailable. |
+| `[31mbadNotStarted[0m{:ansi}` | `401` | None | The route is gated until CTF start time. |
+| `[31mbadEnded[0m{:ansi}` | `401` | None | The action is gated after CTF end time. |
+| `[31mbadCaptcha[0m{:ansi}` | `403` | None | V2 captcha validation failed. |
+| `[31mbadRecaptchaCode[0m{:ansi}` | `401` | None | V1 captcha validation failed. |
+| `[31mbadRateLimit[0m{:ansi}` | `429` | `{ timeLeft: number }` | The route-specific rate-limit bucket is exhausted. |
+| `[31merrorInternal[0m{:ansi}` | `500` | None | An unhandled server error occurred. |
 
 ## Auth and account errors
 
 | Kind | Status | Data | Meaning |
 | --- | --- | --- | --- |
-| `badEmail` | `400` | None | Email validation failed. |
-| `badName` | `400` | None | Team name validation failed. |
-| `badKnownEmail` | `409` | None | Another account already uses the email. |
-| `badKnownName` | `409` | None | Another account already uses the team name. |
-| `badKnownCtftimeId` | `409` | None | Another account already uses the CTFtime ID. |
-| `badUnknownEmail` | `404` | None | The email is not associated with an account. |
-| `badUnknownUser` | `404` | None | The user ID does not exist. |
-| `badTokenVerification` | `401` | None | A verify, team, or CTFtime auth token could not be verified. |
-| `badCtftimeToken` | `401` | None | The CTFtime auth token is invalid. |
-| `badCtftimeCode` | `401` | None | The CTFtime OAuth code is invalid. |
-| `badCtftimeNoExists` | `404` | None | The current user has no linked CTFtime team. |
-| `badEmailNoExists` | `404` | None | The current user has no email address. |
-| `badEmailChangeDivision` | `403` | None | The new email is not allowed to remain in the current division. |
-| `badDivisionNotAllowed` | `403` | None | The requested division is not allowed for the account. |
-| `badCompetitionNotAllowed` | `403` | None | Registration ACLs reject the account. |
-| `badRegistrationsDisabled` | `400` | None | Registration is disabled. |
-| `badTooManyMembers` | `409` | None | The team has reached `maxMembers`. |
-| `badZeroAuth` | `409` | None | The mutation would remove the account's final auth method. |
-| `badUserPrivileged` | `403` | None | The target user has nonzero admin permissions and cannot be modified by that route. |
+| `[31mbadEmail[0m{:ansi}` | `400` | None | Email validation failed. |
+| `[31mbadName[0m{:ansi}` | `400` | None | Team name validation failed. |
+| `[31mbadKnownEmail[0m{:ansi}` | `409` | None | Another account already uses the email. |
+| `[31mbadKnownName[0m{:ansi}` | `409` | None | Another account already uses the team name. |
+| `[31mbadKnownCtftimeId[0m{:ansi}` | `409` | None | Another account already uses the CTFtime ID. |
+| `[31mbadUnknownEmail[0m{:ansi}` | `404` | None | The email is not associated with an account. |
+| `[31mbadUnknownUser[0m{:ansi}` | `404` | None | The user ID does not exist. |
+| `[31mbadTokenVerification[0m{:ansi}` | `401` | None | A verify, team, or CTFtime auth token could not be verified. |
+| `[31mbadCtftimeToken[0m{:ansi}` | `401` | None | The CTFtime auth token is invalid. |
+| `[31mbadCtftimeCode[0m{:ansi}` | `401` | None | The CTFtime OAuth code is invalid. |
+| `[31mbadCtftimeNoExists[0m{:ansi}` | `404` | None | The current user has no linked CTFtime team. |
+| `[31mbadEmailNoExists[0m{:ansi}` | `404` | None | The current user has no email address. |
+| `[31mbadEmailChangeDivision[0m{:ansi}` | `403` | None | The new email is not allowed to remain in the current division. |
+| `[31mbadDivisionNotAllowed[0m{:ansi}` | `403` | None | The requested division is not allowed for the account. |
+| `[31mbadCompetitionNotAllowed[0m{:ansi}` | `403` | None | Registration ACLs reject the account. |
+| `[31mbadRegistrationsDisabled[0m{:ansi}` | `400` | None | Registration is disabled. |
+| `[31mbadTooManyMembers[0m{:ansi}` | `409` | None | The team has reached `maxMembers`. |
+| `[31mbadZeroAuth[0m{:ansi}` | `409` | None | The mutation would remove the account's final auth method. |
+| `[31mbadUserPrivileged[0m{:ansi}` | `403` | None | The target user has nonzero admin permissions and cannot be modified by that route. |
 
 ## Challenge and integration errors
 
 | Kind | Status | Data | Meaning |
 | --- | --- | --- | --- |
-| `badChallenge` | `404` | None | The challenge does not exist or is not available to the route. |
-| `badFlag` | `400` | None | The submitted flag is incorrect. |
-| `badAlreadySolvedChallenge` | `409` | None | The team already solved the challenge. |
-| `badUnknownSolve` | `404` | None | The solve row does not exist. |
-| `badDataUri` | `400` | None | A v1 upload data URI is malformed. |
-| `badFilesUpload` | `500` | None | The upload provider failed. |
-| `badAvatarFile` | `400` | None | The avatar file is not a valid image. |
-| `badAvatarFileSize` | `400` | `{ maxSize: number }` | The avatar exceeds `maxAvatarSize`. |
-| `badModerationNotPassed` | `400` | None | Avatar moderation rejected the image. |
-| `badInstancerConfig` | `400` | `{ error: string }` | Challenge instancer config failed provider validation. |
-| `badInstancerError` | `400` | `{ message: string }` | The instancer provider returned a lifecycle error. |
-| `badInstancerState` | `400` | `{ error: string }` | An admin bot instancer precondition was not met. |
-| `badAdminBotConfig` | `400` | `{ error: string }` | Admin bot challenge source failed provider validation. |
-| `badUnknownVerification` | `404` | None | Pending user verification does not exist. |
+| `[31mbadChallenge[0m{:ansi}` | `404` | None | The challenge does not exist or is not available to the route. |
+| `[31mbadFlag[0m{:ansi}` | `400` | None | The submitted flag is incorrect. |
+| `[31mbadAlreadySolvedChallenge[0m{:ansi}` | `409` | None | The team already solved the challenge. |
+| `[31mbadUnknownSolve[0m{:ansi}` | `404` | None | The solve row does not exist. |
+| `[31mbadDataUri[0m{:ansi}` | `400` | None | A v1 upload data URI is malformed. |
+| `[31mbadFilesUpload[0m{:ansi}` | `500` | None | The upload provider failed. |
+| `[31mbadAvatarFile[0m{:ansi}` | `400` | None | The avatar file is not a valid image. |
+| `[31mbadAvatarFileSize[0m{:ansi}` | `400` | `{ maxSize: number }` | The avatar exceeds `maxAvatarSize`. |
+| `[31mbadModerationNotPassed[0m{:ansi}` | `400` | None | Avatar moderation rejected the image. |
+| `[31mbadInstancerConfig[0m{:ansi}` | `400` | `{ error: string }` | Challenge instancer config failed provider validation. |
+| `[31mbadInstancerError[0m{:ansi}` | `400` | `{ message: string }` | The instancer provider returned a lifecycle error. |
+| `[31mbadInstancerState[0m{:ansi}` | `400` | `{ error: string }` | An admin bot instancer precondition was not met. |
+| `[31mbadAdminBotConfig[0m{:ansi}` | `400` | `{ error: string }` | Admin bot challenge source failed provider validation. |
+| `[31mbadUnknownVerification[0m{:ansi}` | `404` | None | Pending user verification does not exist. |
 
 ## Success response payloads
 
 | Kind | Data |
 | --- | --- |
-| `goodRegister` | `{ authToken: string }` |
-| `goodRegisterV2` | `{ authToken: string, teamToken: string }` |
-| `goodLogin` | `{ authToken: string }` |
-| `goodVerify` | `{ authToken: string }` |
-| `goodVerifyInfo` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }` |
-| `goodToken` | No data. |
-| `goodVerifySent` | No data. |
-| `goodEmailSet` | No data. |
-| `goodEmailRemoved` | No data. |
-| `goodCtftimeAuthSet` | No data. |
-| `goodCtftimeRemoved` | No data. |
-| `goodCtftimeToken` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }` |
-| `goodChallenges` | Challenge array. Shape depends on API version. |
-| `goodChallengeSolves` | Solve list. Shape depends on API version. |
-| `goodFlag` | No data. |
-| `goodLeaderboard` | `{ total: number, leaderboard: LeaderboardEntry[] }` |
-| `goodLeaderboardWithGraph` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }` |
-| `goodLeaderboardGraph` | `{ graph: LeaderboardGraphEntry[] }` |
-| `goodLeaderboardChallenges` | `{ challenges: Record<string, LeaderboardChallenge> }` |
-| `goodUserData` | Public user profile. Shape depends on API version. |
-| `goodUserSelfData` | Authenticated user's own profile. Shape depends on API version. |
-| `goodUserUpdate` | `{ user: UserUpdateResult }` |
-| `goodAvatarUpdated` | `{ url: string \| null }` |
-| `goodMemberData` | Team member array. |
-| `goodMemberCreate` | Team member object. |
-| `goodMemberDelete` | No data. |
-| `goodAdminChallenges` | Admin challenge array. Shape depends on API version. |
-| `goodAdminChallenge` | Admin challenge object. Shape depends on API version. |
-| `goodChallengeUpdate` | Updated admin challenge object. |
-| `goodChallengeDelete` | No data. |
-| `goodChallengeSolveDelete` | No data. |
-| `goodFilesUpload` | Uploaded file array. Shape depends on API version. |
-| `goodUploadsQuery` | Upload query result array. Shape depends on API version. |
-| `goodAdminUsers` | `{ total: number, users: AdminUserListItem[] }` |
-| `goodAdminUser` | Admin user detail with solves. |
-| `goodAdminUserUpdate` | No data. |
-| `goodAdminUserDelete` | No data. |
-| `goodCreateUserToken` | `{ token: string }` |
-| `goodAdminUserVerifications` | `{ verifications: PendingUserVerification[] }` |
-| `goodAdminUserVerificationComplete` | `{ userId: string }` |
-| `goodAdminUserVerificationResend` | `{ id: string }` |
-| `goodAdminSubmissions` | `{ total: number, submissions: AdminSubmission[] }` |
-| `goodAdminSettings` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
-| `goodAdminSettingsUpdate` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
-| `goodClientConfig` | Client config object. Shape depends on API version. |
-| `goodCtftimeLeaderboard` | `{ standings: { pos: number, team: string, score: number }[] }` |
-| `goodInstanceStatus` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }` |
-| `goodInstancerSchema` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }` |
-| `goodAdminBotConfig` | `{ sourceCode: string, fileExtension: string }` |
-| `goodAdminBotStatus` | `{ enabled: boolean, configLanguage: string }` |
-| `goodAdminBotJobSubmitted` | `{ jobId: string }` |
-| `goodAdminBotJobStatus` | `{ job: AdminBotJobStatusResponse \| null }` |
-| `goodAdminBotJobHistory` | `{ jobs: AdminBotJobHistoryItem[] }` |
-| `goodAdminBotJobLogs` | `{ logs: string \| null }` |
-| `goodAdminBotJobPull` | `{ job: PulledAdminBotJob \| null }` |
-| `goodAdminBotChallengeSource` | `{ sourceCode: string, configRevision: string }` |
-| `goodAdminBotJobUpdate` | `{ ok: boolean }` |
-| `goodAdminBotQueueDepth` | `{ depth: number }` |
+| `[2;32m200 [22mgoodRegister[0m{:ansi}` | `{ authToken: string }` |
+| `[2;32m200 [22mgoodRegisterV2[0m{:ansi}` | `{ authToken: string, teamToken: string }` |
+| `[2;32m200 [22mgoodLogin[0m{:ansi}` | `{ authToken: string }` |
+| `[2;32m200 [22mgoodVerify[0m{:ansi}` | `{ authToken: string }` |
+| `[2;32m200 [22mgoodVerifyInfo[0m{:ansi}` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }` |
+| `[2;32m200 [22mgoodToken[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodVerifySent[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodEmailSet[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodEmailRemoved[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodCtftimeAuthSet[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodCtftimeRemoved[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodCtftimeToken[0m{:ansi}` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }` |
+| `[2;32m200 [22mgoodChallenges[0m{:ansi}` | Challenge array. Shape depends on API version. |
+| `[2;32m200 [22mgoodChallengeSolves[0m{:ansi}` | Solve list. Shape depends on API version. |
+| `[2;32m200 [22mgoodFlag[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodLeaderboard[0m{:ansi}` | `{ total: number, leaderboard: LeaderboardEntry[] }` |
+| `[2;32m200 [22mgoodLeaderboardWithGraph[0m{:ansi}` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }` |
+| `[2;32m200 [22mgoodLeaderboardGraph[0m{:ansi}` | `{ graph: LeaderboardGraphEntry[] }` |
+| `[2;32m200 [22mgoodLeaderboardChallenges[0m{:ansi}` | `{ challenges: Record<string, LeaderboardChallenge> }` |
+| `[2;32m200 [22mgoodUserData[0m{:ansi}` | Public user profile. Shape depends on API version. |
+| `[2;32m200 [22mgoodUserSelfData[0m{:ansi}` | Authenticated user's own profile. Shape depends on API version. |
+| `[2;32m200 [22mgoodUserUpdate[0m{:ansi}` | `{ user: UserUpdateResult }` |
+| `[2;32m200 [22mgoodAvatarUpdated[0m{:ansi}` | `{ url: string \| null }` |
+| `[2;32m200 [22mgoodMemberData[0m{:ansi}` | Team member array. |
+| `[2;32m200 [22mgoodMemberCreate[0m{:ansi}` | Team member object. |
+| `[2;32m200 [22mgoodMemberDelete[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodAdminChallenges[0m{:ansi}` | Admin challenge array. Shape depends on API version. |
+| `[2;32m200 [22mgoodAdminChallenge[0m{:ansi}` | Admin challenge object. Shape depends on API version. |
+| `[2;32m200 [22mgoodChallengeUpdate[0m{:ansi}` | Updated admin challenge object. |
+| `[2;32m200 [22mgoodChallengeDelete[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodChallengeSolveDelete[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodFilesUpload[0m{:ansi}` | Uploaded file array. Shape depends on API version. |
+| `[2;32m200 [22mgoodUploadsQuery[0m{:ansi}` | Upload query result array. Shape depends on API version. |
+| `[2;32m200 [22mgoodAdminUsers[0m{:ansi}` | `{ total: number, users: AdminUserListItem[] }` |
+| `[2;32m200 [22mgoodAdminUser[0m{:ansi}` | Admin user detail with solves. |
+| `[2;32m200 [22mgoodAdminUserUpdate[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodAdminUserDelete[0m{:ansi}` | No data. |
+| `[2;32m200 [22mgoodCreateUserToken[0m{:ansi}` | `{ token: string }` |
+| `[2;32m200 [22mgoodAdminUserVerifications[0m{:ansi}` | `{ verifications: PendingUserVerification[] }` |
+| `[2;32m200 [22mgoodAdminUserVerificationComplete[0m{:ansi}` | `{ userId: string }` |
+| `[2;32m200 [22mgoodAdminUserVerificationResend[0m{:ansi}` | `{ id: string }` |
+| `[2;32m200 [22mgoodAdminSubmissions[0m{:ansi}` | `{ total: number, submissions: AdminSubmission[] }` |
+| `[2;32m200 [22mgoodAdminSettings[0m{:ansi}` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
+| `[2;32m200 [22mgoodAdminSettingsUpdate[0m{:ansi}` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
+| `[2;32m200 [22mgoodClientConfig[0m{:ansi}` | Client config object. Shape depends on API version. |
+| `[2;32m200 [22mgoodCtftimeLeaderboard[0m{:ansi}` | `{ standings: { pos: number, team: string, score: number }[] }` |
+| `[2;32m200 [22mgoodInstanceStatus[0m{:ansi}` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }` |
+| `[2;32m200 [22mgoodInstancerSchema[0m{:ansi}` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }` |
+| `[2;32m200 [22mgoodAdminBotConfig[0m{:ansi}` | `{ sourceCode: string, fileExtension: string }` |
+| `[2;32m200 [22mgoodAdminBotStatus[0m{:ansi}` | `{ enabled: boolean, configLanguage: string }` |
+| `[2;32m200 [22mgoodAdminBotJobSubmitted[0m{:ansi}` | `{ jobId: string }` |
+| `[2;32m200 [22mgoodAdminBotJobStatus[0m{:ansi}` | `{ job: AdminBotJobStatusResponse \| null }` |
+| `[2;32m200 [22mgoodAdminBotJobHistory[0m{:ansi}` | `{ jobs: AdminBotJobHistoryItem[] }` |
+| `[2;32m200 [22mgoodAdminBotJobLogs[0m{:ansi}` | `{ logs: string \| null }` |
+| `[2;32m200 [22mgoodAdminBotJobPull[0m{:ansi}` | `{ job: PulledAdminBotJob \| null }` |
+| `[2;32m200 [22mgoodAdminBotChallengeSource[0m{:ansi}` | `{ sourceCode: string, configRevision: string }` |
+| `[2;32m200 [22mgoodAdminBotJobUpdate[0m{:ansi}` | `{ ok: boolean }` |
+| `[2;32m200 [22mgoodAdminBotQueueDepth[0m{:ansi}` | `{ depth: number }` |
 
 ## Shared object shapes
 

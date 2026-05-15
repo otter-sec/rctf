@@ -3,21 +3,21 @@ title: Challenges
 description: API reference for challenge listing, solve listing, and flag submission routes.
 ---
 
-Challenge routes expose public challenge metadata, solve history, and the legacy flag submission endpoint. Admin challenge mutation routes are documented in [Admin](/api/admin).
+Challenge routes expose public challenge metadata, solve history, and the legacy flag submission endpoint. Admin challenge mutation routes are documented in [Admin](/api/admin/).
 
 ## Routes
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/challs` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `GET{:http}` | `/api/v2/challs/:id/solves` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
-| `GET{:http}` | `/api/v1/challs` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `GET{:http}` | `/api/v1/challs/:id/solves` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `POST{:http}` | `/api/v1/challs/:id/submit` | V1 | Required | Started + not ended |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mchalls{:ansi}` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls{:ansi}` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}` | V1 | Required | Started + not ended |
 
 ## V2 routes
 
-### `GET /api/v2/challs`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22mchalls{:ansi}`
 
 Returns the visible challenge list with V2 integration metadata.
 
@@ -31,7 +31,7 @@ Returns the visible challenge list with V2 integration metadata.
 
 **Response**
 
-`goodChallenges` (200) returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
+`[2;32m200 [22mgoodChallenges[0m{:ansi}` returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
 
 ```json
 {
@@ -48,18 +48,18 @@ Returns the visible challenge list with V2 integration metadata.
 | `description` | `string{:ts}` | Markdown challenge description. |
 | `category` | `string{:ts}` | Category name. |
 | `author` | `string{:ts}` | Author display name. |
-| `files` | `ChallengeFileV2[]{:ts}` | Downloadable files. See [`ChallengeFileV2`](/api/responses#challengefilev2). |
+| `files` | `ChallengeFileV2[]{:ts}` | Downloadable files. See [`ChallengeFileV2`](/api/responses/#challengefilev2). |
 | `points` | `number{:ts}` | Current score after dynamic scoring. |
 | `solves` | `number{:ts}` | Current solve count. |
 | `sortWeight` | `number \| null{:ts}` | Optional ordering weight. |
 | `instancerLifetime` | `number \| null{:ts}` | Instance timeout in milliseconds when the challenge has instancer config and an instancer provider is enabled. |
 | `instancerExtendable` | `boolean{:ts}` | `false{:ts}` only when challenge config explicitly disables extension. |
-| `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined{:ts}` | Participant input schema for admin bot challenges. See [`RegexRule`](/api/responses#regexrule). |
+| `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined{:ts}` | Participant input schema for admin bot challenges. See [`RegexRule`](/api/responses/#regexrule). |
 | `hasFlag` | `boolean{:ts}` | Indicates whether the challenge has a flag configured. |
 
-**Errors**: `badNotStarted`.
+**Errors**: `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
 
-### `GET /api/v2/challs/:id/solves`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}`
 
 Returns paginated solve history for one challenge.
 
@@ -86,7 +86,7 @@ Returns paginated solve history for one challenge.
 
 **Response**
 
-`goodChallengeSolves` (200):
+`[2;32m200 [22mgoodChallengeSolves[0m{:ansi}`:
 
 ```json
 {
@@ -119,17 +119,17 @@ Returns paginated solve history for one challenge.
 | `solves[].bloodIndex` | `number \| null{:ts}` | `0`, `1`, or `2` for the first three solves. Otherwise `null{:ts}`. |
 | `mySolvePosition` | `number \| null{:ts}` | The authenticated user's solve position for this challenge when optional auth is present. |
 
-**Errors**: `badChallenge`, `badNotStarted`.
+**Errors**: `[2;31m404 [22mbadChallenge[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
 
 ## V1 compatibility
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `GET /api/v1/challs`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22mchalls{:ansi}`
 
 Differs from V2:
 
-- `goodChallenges` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
+- `[2;32m200 [22mgoodChallenges[0m{:ansi}` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
 
 The V1 challenge list returns the same core fields without V2 integration metadata:
 
@@ -145,11 +145,11 @@ The V1 challenge list returns the same core fields without V2 integration metada
 | `solves` | `number{:ts}` |
 | `sortWeight` | `number \| null \| undefined{:ts}` |
 
-### `GET /api/v1/challs/:id/solves`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}`
 
 Differs from V2:
 
-- `goodChallengeSolves` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
+- `[2;32m200 [22mgoodChallengeSolves[0m{:ansi}` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
 
 ```json
 {
@@ -168,7 +168,7 @@ Differs from V2:
 }
 ```
 
-### `POST /api/v1/challs/:id/submit`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}`
 
 V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
@@ -178,7 +178,7 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 | Gate | Started + not ended |
 | Permissions | — |
 | Captcha action | — |
-| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`/api#rate-limits`](/api#rate-limits). |
+| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`[2m/api[22m#rate-limits{:ansi}`](/api/#rate-limits). |
 
 **Path params**
 
@@ -200,15 +200,15 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
 **Response**
 
-`goodFlag` (200, no data) when the submitted flag is correct. The route records a solve for the team.
+`[2;32m200 [22mgoodFlag[0m{:ansi}` (no data) when the submitted flag is correct. The route records a solve for the team.
 
-The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`/api/v2/admin/submissions`](/api/admin).
+The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`[2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`](/api/admin/).
 
-**Errors**: `badBody`, `badChallenge`, `badFlag`, `badAlreadySolvedChallenge`, `badNotStarted`, `badEnded`, `badRateLimit`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m404 [22mbadChallenge[0m{:ansi}`, `[2;31m400 [22mbadFlag[0m{:ansi}`, `[2;31m409 [22mbadAlreadySolvedChallenge[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`, `[2;31m401 [22mbadEnded[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
 
 ## Scoring behavior
 
-Challenge point values are computed by the configured [scoring provider](/providers/scores). The public challenge list returns the current point value, not the configured `points.min` or `points.max` range. Challenge updates and solve mutations trigger leaderboard recalculation.
+Challenge point values are computed by the configured [scoring provider](/providers/scores/). The public challenge list returns the current point value, not the configured `points.min` or `points.max` range. Challenge updates and solve mutations trigger leaderboard recalculation.
 
 ## Visibility behavior
 

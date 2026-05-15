@@ -266,7 +266,7 @@ captcha:
 
 Available captcha actions: `[32mregister[0m{:ansi}`, `[32mrecover[0m{:ansi}`, `[32msetEmail[0m{:ansi}`, `[32minstancerStart[0m{:ansi}`, `[32minstancerExtend[0m{:ansi}`, `[32mavatarUpload[0m{:ansi}`, `[32madminBotSubmit[0m{:ansi}`.
 
-See [Captcha Providers](/providers/captcha) for provider-specific configuration.
+See [Captcha Providers](/providers/captcha/) for provider-specific configuration.
 
 ### Providers
 
@@ -293,7 +293,7 @@ instancerProvider:
 | `[31mscoreProvider[0m{:ansi}`     | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider              |
 | `[31minstancerProvider[0m{:ansi}` | `object{:ts}` | -                            | Challenge instancer provider (optional) |
 
-See the [Providers](/providers) section for detailed configuration of each provider.
+See the [Providers](/providers/) section for detailed configuration of each provider.
 
 ### Admin bot
 
@@ -333,7 +333,7 @@ email:
 Email is required for account registration when CTFtime auth is not configured. It is also needed for account recovery and email-based division ACLs.
 
 </Callout>
-See [Email Providers](/providers/emails) for provider-specific options.
+See [Email Providers](/providers/emails/) for provider-specific options.
 
 ### UI
 
@@ -426,7 +426,7 @@ avatarsModeration:
 | `[31mavatarsModeration.provider[0m{:ansi}`             | `object{:ts}`  | -           | Moderation provider for avatar uploads      |
 | `[31mavatarsModeration.allowOnInternalError[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Allow avatar upload if moderation API fails |
 
-See [Moderation Providers](/providers/moderation) for details.
+See [Moderation Providers](/providers/moderation/) for details.
 
 ### Proxy
 
@@ -472,7 +472,7 @@ bloodBot:
 
 Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 
-See [Blood Bot](/integrations/bloodbot) for more details.
+See [Blood Bot](/integrations/bloodbot/) for more details.
 
 ## Complete example
 

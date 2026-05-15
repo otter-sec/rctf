@@ -1,10 +1,10 @@
 ---
 import SidebarBadge from '@/components/docs/sidebar-badge.astro'
 import Link from '@/components/link.astro'
-import { renderDescription } from '@/lib/render-description'
 import { cn } from '@/lib/utils'
+import { renderDescription } from '@/lib/render-description'
 import type { SidebarNode } from '@/types'
-import { Icon } from 'astro-icon/components'
+import Icon from '@/components/icon.astro'
 
 interface Props {
   node: SidebarNode
@@ -73,16 +73,11 @@ const groupKey = groupPath.join('/')
           {node.badge && <SidebarBadge badge={node.badge} />}
         </span>
         <Icon
-          name="lucide:chevron-right"
-          data-sidebar-chevron
-          class="text-muted-foreground size-4 shrink-0 transition-transform duration-200"
+          name="chevron-right"
+          class="text-muted-foreground size-4 shrink-0 transition-transform duration-200 [[open]>summary>&]:rotate-90"
         />
       </summary>
-      <ul
-        class={cn(
-          'border-border/70 mt-1 ml-3 flex flex-col gap-0.5 border-l pl-2',
-        )}
-      >
+      <ul class={cn('border-border/70 mt-1 ml-3 flex flex-col gap-0.5 border-l pl-2')}>
         {node.items.map((child) => (
           <li>
             <Astro.self node={child} depth={depth + 1} path={groupPath} />

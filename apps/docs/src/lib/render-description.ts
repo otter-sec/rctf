@@ -1,5 +1,6 @@
 import { codeToHtml } from 'shiki'
-import { darkTheme, lightTheme } from './shiki-themes'
+
+import { lightTheme, darkTheme } from './shiki-themes'
 
 const PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
 
@@ -17,9 +18,7 @@ export interface RenderedDescription {
   plain: string
 }
 
-export async function renderDescription(
-  text: string
-): Promise<RenderedDescription> {
+export async function renderDescription(text: string): Promise<RenderedDescription> {
   const plain = text.replace(PATTERN, (_, code) => code)
 
   const re = new RegExp(PATTERN.source, 'g')

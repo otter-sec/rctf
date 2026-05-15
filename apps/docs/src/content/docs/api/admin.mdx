@@ -3,7 +3,7 @@ title: Admin
 description: Challenge management, uploads, teams, verifications, submissions, settings, and admin bot service routes.
 ---
 
-Admin routes require a user auth token with the listed permission bits, except for admin bot service routes, which use the shared admin bot bearer token. Routes are grouped by resource. Permissions, captcha actions, and rate limits referenced in property tables are defined on the [API overview](/api).
+Admin routes require a user auth token with the listed permission bits, except for admin bot service routes, which use the shared admin bot bearer token. Routes are grouped by resource. Permissions, captcha actions, and rate limits referenced in property tables are defined on the [API overview](/api/).
 
 ## Permissions
 
@@ -21,41 +21,41 @@ Routes that list multiple permission bits require all of them.
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/admin/challs` | V2 | Required (`challsRead{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/challs/:id` | V2 | Required (`challsRead{:ts}`) | None |
-| `PUT{:http}` | `/api/v2/admin/challs/:id` | V2 | Required (`challsWrite{:ts}`) | None |
-| `DELETE{:http}` | `/api/v2/admin/challs/:challengeId/solves/:userId` | V2 | Required (`challsSolveWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/upload` | V2 | Required (`challsWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/upload/query` | V2 | Required (`challsRead{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/users` | V2 | Required (`usersWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/users` | V2 | Required (`usersWrite{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `PUT{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`) | None |
-| `DELETE{:http}` | `/api/v2/admin/users/:id` | V2 | Required (`usersWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/users/:id/token` | V2 | Required (`usersWrite{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/user-verifications` | V2 | Required (`usersWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/user-verifications/:id/complete` | V2 | Required (`usersWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/user-verifications/:id/resend` | V2 | Required (`usersWrite{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/submissions` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/submissions` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/settings` | V2 | Required (`settingsWrite{:ts}`) | None |
-| `PUT{:http}` | `/api/v2/admin/settings` | V2 | Required (`settingsWrite{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/instancer/schema` | V2 | Required (`challsRead{:ts}`) | None |
-| `GET{:http}` | `/api/v2/admin/admin-bot/status` | V2 | Required (`challsRead{:ts}`) | None |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/pull` | V2 | Service | None |
-| `GET{:http}` | `/api/v2/admin/admin-bot/challenges/:id/source` | V2 | Service | None |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/complete` | V2 | Service | None |
-| `POST{:http}` | `/api/v2/admin/admin-bot/jobs/:id/fail` | V2 | Service | None |
-| `GET{:http}` | `/api/v2/admin/admin-bot/queue-depth` | V2 | Service | None |
-| `GET{:http}` | `/api/v1/admin/challs` | V1 | Required (`challsRead{:ts}`) | None |
-| `PUT{:http}` | `/api/v1/admin/challs/:id` | V1 | Required (`challsWrite{:ts}`) | None |
-| `DELETE{:http}` | `/api/v1/admin/challs/:id` | V1 | Required (`challsWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v1/admin/upload` | V1 | Required (`challsWrite{:ts}`) | None |
-| `POST{:http}` | `/api/v1/admin/upload/query` | V1 | Required (`challsRead{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mchalls{:ansi}` | V2 | Required (`challsRead{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}` | V2 | Required (`challsRead{:ts}`) | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}` | V2 | Required (`challsWrite{:ts}`) | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:challengeId[2m/[22msolves[2m/[22m:userId{:ansi}` | V2 | Required (`challsSolveWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mupload{:ansi}` | V2 | Required (`challsWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22mupload[2m/[22mquery{:ansi}` | V2 | Required (`challsRead{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id[2m/[22mtoken{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications[2m/[22m:id[2m/[22mcomplete{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications[2m/[22m:id[2m/[22mresend{:ansi}` | V2 | Required (`usersWrite{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22minstancer[2m/[22mschema{:ansi}` | V2 | Required (`challsRead{:ts}`) | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mstatus{:ansi}` | V2 | Required (`challsRead{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22mpull{:ansi}` | V2 | Service | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mchallenges[2m/[22m:id[2m/[22msource{:ansi}` | V2 | Service | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mcomplete{:ansi}` | V2 | Service | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mfail{:ansi}` | V2 | Service | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mqueue-depth{:ansi}` | V2 | Service | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22madmin[2m/[22mchalls{:ansi}` | V1 | Required (`challsRead{:ts}`) | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv1[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}` | V1 | Required (`challsWrite{:ts}`) | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv1[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}` | V1 | Required (`challsWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22madmin[2m/[22mupload{:ansi}` | V1 | Required (`challsWrite{:ts}`) | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22madmin[2m/[22mupload[2m/[22mquery{:ansi}` | V1 | Required (`challsRead{:ts}`) | None |
 
 ## Challenge routes
 
-### `GET /api/v2/admin/challs`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls{:ansi}`
 
 Lists every challenge with full admin fields, including hidden challenges and unreleased challenges.
 
@@ -69,11 +69,11 @@ Lists every challenge with full admin fields, including hidden challenges and un
 
 **Response**
 
-`goodAdminChallenges` (200): array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
+`[2;32m200 [22mgoodAdminChallenges[0m{:ansi}`: array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
 
-**Errors**: `badToken`, `badPerms`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `GET /api/v2/admin/challs/:id`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}`
 
 Returns one admin challenge.
 
@@ -93,11 +93,11 @@ Returns one admin challenge.
 
 **Response**
 
-`goodAdminChallenge` (200): `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
+`[2;32m200 [22mgoodAdminChallenge[0m{:ansi}`: `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
 
-**Errors**: `badToken`, `badPerms`, `badChallenge`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadChallenge[0m{:ansi}`.
 
-### `PUT /api/v2/admin/challs/:id`
+### `[35mPUT[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}`
 
 Creates or updates a challenge. Omitted fields in `data` keep their current value. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears the integration config.
 
@@ -145,11 +145,11 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 
 **Response**
 
-`goodChallengeUpdate` (200): updated `AdminChallengeV2`.
+`[2;32m200 [22mgoodChallengeUpdate[0m{:ansi}`: updated `AdminChallengeV2`.
 
-**Errors**: `badBody`, `badToken`, `badPerms`, `badInstancerConfig`, `badAdminBotConfig`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m400 [22mbadInstancerConfig[0m{:ansi}`, `[2;31m400 [22mbadAdminBotConfig[0m{:ansi}`.
 
-### `DELETE /api/v2/admin/challs/:challengeId/solves/:userId`
+### `[31mDELETE[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:challengeId[2m/[22msolves[2m/[22m:userId{:ansi}`
 
 Deletes one solve for a specific user and challenge. Triggers a leaderboard recalculation.
 
@@ -170,13 +170,13 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 
 **Response**
 
-`goodChallengeSolveDelete` (200, no data).
+`[2;32m200 [22mgoodChallengeSolveDelete[0m{:ansi}` (no data).
 
-**Errors**: `badToken`, `badPerms`, `badUnknownSolve`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownSolve[0m{:ansi}`.
 
 ## Upload routes
 
-### `POST /api/v2/admin/upload`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mupload{:ansi}`
 
 Uploads one or more files. Files are deduplicated by SHA-256 — uploading the same content twice returns the existing URL.
 
@@ -194,7 +194,7 @@ Uploads one or more files. Files are deduplicated by SHA-256 — uploading the s
 
 **Response**
 
-`goodFilesUpload` (200): array of upload objects.
+`[2;32m200 [22mgoodFilesUpload[0m{:ansi}`: array of upload objects.
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -202,9 +202,9 @@ Uploads one or more files. Files are deduplicated by SHA-256 — uploading the s
 | `url` | `string{:ts}` | Public download URL. |
 | `size` | `number \| null{:ts}` | File size in bytes. |
 
-**Errors**: `badBody`, `badToken`, `badPerms`, `badFilesUpload`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m500 [22mbadFilesUpload[0m{:ansi}`.
 
-### `POST /api/v2/admin/upload/query`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mupload[2m/[22mquery{:ansi}`
 
 Checks whether files already exist by SHA-256 without uploading them.
 
@@ -233,13 +233,13 @@ Checks whether files already exist by SHA-256 without uploading them.
 
 **Response**
 
-`goodUploadsQuery` (200): array with one entry per query — each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
+`[2;32m200 [22mgoodUploadsQuery[0m{:ansi}`: array with one entry per query — each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
 ## Team routes
 
-### `GET /api/v2/admin/users`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`
 
 Lists teams. Query parameters control pagination, sorting, and search.
 
@@ -263,13 +263,13 @@ Lists teams. Query parameters control pagination, sorting, and search.
 
 **Response**
 
-`goodAdminUsers` (200): `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
+`[2;32m200 [22mgoodAdminUsers[0m{:ansi}`: `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `POST /api/v2/admin/users`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`
 
-Lists teams with rich filters. Same query parameters as `GET`, with filter object in the body.
+Lists teams with rich filters. Same query parameters as `[36mGET[0m{:ansi}`, with filter object in the body.
 
 | Property | Value |
 | --- | --- |
@@ -281,7 +281,7 @@ Lists teams with rich filters. Same query parameters as `GET`, with filter objec
 
 **Query**
 
-Identical to `GET /api/v2/admin/users`.
+Identical to `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`.
 
 **Request body**
 
@@ -301,11 +301,11 @@ Filter objects accept nullable `include` and `exclude` arrays.
 
 **Response**
 
-Same shape as `GET /api/v2/admin/users`.
+Same shape as `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`.
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `GET /api/v2/admin/users/:id`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}`
 
 Returns full team details, including solve history.
 
@@ -325,7 +325,7 @@ Returns full team details, including solve history.
 
 **Response**
 
-`goodAdminUser` (200):
+`[2;32m200 [22mgoodAdminUser[0m{:ansi}`:
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -343,9 +343,9 @@ Returns full team details, including solve history.
 | `createdAt` | `string{:ts}` | ISO timestamp. |
 | `solves[]` | `{ challengeId, challengeName, challengeCategory, createdAt }[]{:ts}` | Solve history. |
 
-**Errors**: `badToken`, `badPerms`, `badUnknownUser`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownUser[0m{:ansi}`.
 
-### `PUT /api/v2/admin/users/:id`
+### `[35mPUT[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}`
 
 Mutates team state. Admins cannot mutate users with admin permissions.
 
@@ -377,11 +377,11 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 
 **Response**
 
-`goodAdminUserUpdate` (200, no data).
+`[2;32m200 [22mgoodAdminUserUpdate[0m{:ansi}` (no data).
 
-**Errors**: `badBody`, `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownUser[0m{:ansi}`, `[2;31m403 [22mbadUserPrivileged[0m{:ansi}`.
 
-### `DELETE /api/v2/admin/users/:id`
+### `[31mDELETE[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id{:ansi}`
 
 Deletes a team. Cannot delete users with admin permissions.
 
@@ -401,11 +401,11 @@ Deletes a team. Cannot delete users with admin permissions.
 
 **Response**
 
-`goodAdminUserDelete` (200, no data).
+`[2;32m200 [22mgoodAdminUserDelete[0m{:ansi}` (no data).
 
-**Errors**: `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownUser[0m{:ansi}`, `[2;31m403 [22mbadUserPrivileged[0m{:ansi}`.
 
-### `POST /api/v2/admin/users/:id/token`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id[2m/[22mtoken{:ansi}`
 
 Generates a fresh long-lived team token. Useful for recovering teams that have lost access.
 
@@ -425,15 +425,15 @@ Generates a fresh long-lived team token. Useful for recovering teams that have l
 
 **Response**
 
-`goodCreateUserToken` (200): `{ token: string }`.
+`[2;32m200 [22mgoodCreateUserToken[0m{:ansi}`: `{ token: string }`.
 
-**Errors**: `badToken`, `badPerms`, `badUnknownUser`, `badUserPrivileged`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownUser[0m{:ansi}`, `[2;31m403 [22mbadUserPrivileged[0m{:ansi}`.
 
 ## Pending verification routes
 
 Pending verification rows represent users who registered with an email but have not yet completed email verification.
 
-### `GET /api/v2/admin/user-verifications`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications{:ansi}`
 
 Lists outstanding pending verifications.
 
@@ -447,11 +447,11 @@ Lists outstanding pending verifications.
 
 **Response**
 
-`goodAdminUserVerifications` (200): `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
+`[2;32m200 [22mgoodAdminUserVerifications[0m{:ansi}`: `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
 
-**Errors**: `badToken`, `badPerms`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `POST /api/v2/admin/user-verifications/:id/complete`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications[2m/[22m:id[2m/[22mcomplete{:ansi}`
 
 Manually completes a pending verification, creating the team without requiring the user to follow the verification email link.
 
@@ -471,11 +471,11 @@ Manually completes a pending verification, creating the team without requiring t
 
 **Response**
 
-`goodAdminUserVerificationComplete` (200): `{ userId: string }`.
+`[2;32m200 [22mgoodAdminUserVerificationComplete[0m{:ansi}`: `{ userId: string }`.
 
-**Errors**: `badToken`, `badPerms`, `badUnknownVerification`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownVerification[0m{:ansi}`.
 
-### `POST /api/v2/admin/user-verifications/:id/resend`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22muser-verifications[2m/[22m:id[2m/[22mresend{:ansi}`
 
 Resends the verification email for an outstanding row.
 
@@ -495,15 +495,15 @@ Resends the verification email for an outstanding row.
 
 **Response**
 
-`goodAdminUserVerificationResend` (200): `{ id: string }`.
+`[2;32m200 [22mgoodAdminUserVerificationResend[0m{:ansi}`: `{ id: string }`.
 
-**Errors**: `badToken`, `badPerms`, `badUnknownVerification`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadUnknownVerification[0m{:ansi}`.
 
 ## Submission audit routes
 
 The submissions table records every flag submission and admin bot job for compliance and abuse investigation. Each row is keyed by submission ID and includes the IP address.
 
-### `GET /api/v2/admin/submissions`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`
 
 Lists submission audit rows.
 
@@ -528,11 +528,11 @@ Lists submission audit rows.
 
 **Response**
 
-`goodAdminSubmissions` (200): `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
+`[2;32m200 [22mgoodAdminSubmissions[0m{:ansi}`: `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `POST /api/v2/admin/submissions`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`
 
 Lists submission audit rows with rich filters.
 
@@ -546,7 +546,7 @@ Lists submission audit rows with rich filters.
 
 **Query**
 
-Identical to `GET /api/v2/admin/submissions`.
+Identical to `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`.
 
 **Request body**
 
@@ -578,15 +578,15 @@ Identical to `GET /api/v2/admin/submissions`.
 
 **Response**
 
-Same shape as `GET /api/v2/admin/submissions`.
+Same shape as `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`.
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
 ## Settings routes
 
 Runtime settings override values from `rctf.d/*.yaml` config files without restarting the server. Setting a field to `null{:ts}` clears the override.
 
-### `GET /api/v2/admin/settings`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}`
 
 Returns the current overrides and defaults side-by-side.
 
@@ -600,11 +600,11 @@ Returns the current overrides and defaults side-by-side.
 
 **Response**
 
-`goodAdminSettings` (200): `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
+`[2;32m200 [22mgoodAdminSettings[0m{:ansi}`: `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
 
-**Errors**: `badToken`, `badPerms`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
-### `PUT /api/v2/admin/settings`
+### `[35mPUT[0m [2m/api/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}`
 
 Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboard recalculation.
 
@@ -642,13 +642,13 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 
 **Response**
 
-`goodAdminSettingsUpdate` (200): same shape as the `GET` response (returns the updated overrides and defaults).
+`[2;32m200 [22mgoodAdminSettingsUpdate[0m{:ansi}`: same shape as the `[36mGET[0m{:ansi}` response (returns the updated overrides and defaults).
 
-**Errors**: `badBody`, `badToken`, `badPerms`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
 ## Schema routes
 
-### `GET /api/v2/admin/instancer/schema`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22minstancer[2m/[22mschema{:ansi}`
 
 Returns the active instancer provider's JSON schema. Used by the challenge editor to validate `instancerConfig{:ts}`.
 
@@ -662,11 +662,11 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 
 **Response**
 
-`goodInstancerSchema` (200): `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
+`[2;32m200 [22mgoodInstancerSchema[0m{:ansi}`: `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
 
-**Errors**: `badToken`, `badPerms`, `badEndpoint` (no instancer provider configured).
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}` (no instancer provider configured).
 
-### `GET /api/v2/admin/admin-bot/status`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mstatus{:ansi}`
 
 Returns admin bot enablement and source language.
 
@@ -680,15 +680,15 @@ Returns admin bot enablement and source language.
 
 **Response**
 
-`goodAdminBotStatus` (200): `{ enabled: boolean, configLanguage: string }`.
+`[2;32m200 [22mgoodAdminBotStatus[0m{:ansi}`: `{ enabled: boolean, configLanguage: string }`.
 
-**Errors**: `badToken`, `badPerms`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`.
 
 ## Admin bot service routes
 
 These routes are not user-admin endpoints. They use the shared admin bot bearer token (`adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`) and are intended for the admin bot worker only.
 
-### `POST /api/v2/admin/admin-bot/jobs/pull`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22mpull{:ansi}`
 
 Claims the oldest queued job for processing.
 
@@ -702,13 +702,13 @@ Claims the oldest queued job for processing.
 
 **Response**
 
-`goodAdminBotJobPull` (200): `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
+`[2;32m200 [22mgoodAdminBotJobPull[0m{:ansi}`: `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
 
 A pulled job contains `id`, `challengeId`, `configRevision`, `userId`, `submittedAt`, `flag`, submitted `inputs`, and `instancerInstances`.
 
-**Errors**: `badToken`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`.
 
-### `GET /api/v2/admin/admin-bot/challenges/:id/source`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mchallenges[2m/[22m:id[2m/[22msource{:ansi}`
 
 Fetches the challenge source code for a specific config revision.
 
@@ -728,11 +728,11 @@ Fetches the challenge source code for a specific config revision.
 
 **Response**
 
-`goodAdminBotChallengeSource` (200): `{ sourceCode: string, configRevision: string }`.
+`[2;32m200 [22mgoodAdminBotChallengeSource[0m{:ansi}`: `{ sourceCode: string, configRevision: string }`.
 
-**Errors**: `badToken`, `badChallenge`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m404 [22mbadChallenge[0m{:ansi}`.
 
-### `POST /api/v2/admin/admin-bot/jobs/:id/complete`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mcomplete{:ansi}`
 
 Marks a running job as completed and stores logs.
 
@@ -764,11 +764,11 @@ Marks a running job as completed and stores logs.
 
 **Response**
 
-`goodAdminBotJobUpdate` (200): `{ ok: boolean }`.
+`[2;32m200 [22mgoodAdminBotJobUpdate[0m{:ansi}`: `{ ok: boolean }`.
 
-**Errors**: `badBody`, `badToken`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`.
 
-### `POST /api/v2/admin/admin-bot/jobs/:id/fail`
+### `[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mfail{:ansi}`
 
 Marks a running job as failed and stores logs.
 
@@ -792,11 +792,11 @@ Same shape as `complete`.
 
 **Response**
 
-`goodAdminBotJobUpdate` (200): `{ ok: boolean }`.
+`[2;32m200 [22mgoodAdminBotJobUpdate[0m{:ansi}`: `{ ok: boolean }`.
 
-**Errors**: `badBody`, `badToken`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`.
 
-### `GET /api/v2/admin/admin-bot/queue-depth`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mqueue-depth{:ansi}`
 
 Returns the number of queued jobs.
 
@@ -810,23 +810,23 @@ Returns the number of queued jobs.
 
 **Response**
 
-`goodAdminBotQueueDepth` (200): `{ depth: number }`.
+`[2;32m200 [22mgoodAdminBotQueueDepth[0m{:ansi}`: `{ depth: number }`.
 
-**Errors**: `badToken`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`.
 
 ## V1 compatibility
 
 ### Challenges
 
-#### `GET /api/v1/admin/challs`
+#### `[36mGET[0m [2m/api/[22mv1[2m/[22madmin[2m/[22mchalls{:ansi}`
 
-Same as [`GET /api/v2/admin/challs`](#get-apiv2adminchalls), but V1 admin challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`.
+Same as [`[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls{:ansi}`](#get-apiv2adminchalls), but V1 admin challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`.
 
-#### `PUT /api/v1/admin/challs/:id`
+#### `[35mPUT[0m [2m/api/[22mv1[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}`
 
-Same as [`PUT /api/v2/admin/challs/:id`](#put-apiv2adminchallsid), with the V1 challenge data shape (no `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, or file `size`).
+Same as [`[35mPUT[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}`](#put-apiv2adminchallsid), with the V1 challenge data shape (no `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, or file `size`).
 
-#### `DELETE /api/v1/admin/challs/:id`
+#### `[31mDELETE[0m [2m/api/[22mv1[2m/[22madmin[2m/[22mchalls[2m/[22m:id{:ansi}`
 
 V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent — V2 deletes via challenge mutation in the admin panel.
 
@@ -846,13 +846,13 @@ V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalcul
 
 **Response**
 
-`goodChallengeDelete` (200, no data).
+`[2;32m200 [22mgoodChallengeDelete[0m{:ansi}` (no data).
 
-**Errors**: `badToken`, `badPerms`, `badChallenge`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m404 [22mbadChallenge[0m{:ansi}`.
 
 ### Uploads
 
-#### `POST /api/v1/admin/upload`
+#### `[32mPOST[0m [2m/api/[22mv1[2m/[22madmin[2m/[22mupload{:ansi}`
 
 Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipart/form-data`.
 
@@ -868,11 +868,11 @@ Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipar
 
 V1 upload responses omit the `size` field.
 
-**Errors**: `badBody`, `badToken`, `badPerms`, `badDataUri`, `badFilesUpload`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m400 [22mbadDataUri[0m{:ansi}`, `[2;31m500 [22mbadFilesUpload[0m{:ansi}`.
 
-#### `POST /api/v1/admin/upload/query`
+#### `[32mPOST[0m [2m/api/[22mv1[2m/[22madmin[2m/[22mupload[2m/[22mquery{:ansi}`
 
-Same as [`POST /api/v2/admin/upload/query`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
+Same as [`[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mupload[2m/[22mquery{:ansi}`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
 
 ## `AdminChallengeV2`
 
@@ -883,12 +883,12 @@ Same as [`POST /api/v2/admin/upload/query`](#post-apiv2adminuploadquery), but V1
 | `description` | `string{:ts}` | Markdown description. |
 | `category` | `string{:ts}` | Category name. |
 | `author` | `string{:ts}` | Author. |
-| `files` | `ChallengeFileV2[]{:ts}` | Files. See [`ChallengeFileV2`](/api/responses#challengefilev2). |
+| `files` | `ChallengeFileV2[]{:ts}` | Files. See [`ChallengeFileV2`](/api/responses/#challengefilev2). |
 | `points` | `{ min: number, max: number }{:ts}` | Dynamic scoring bounds. |
 | `flag` | `string{:ts}` | Correct flag. |
 | `tiebreakEligible` | `boolean{:ts}` | Whether solves count toward the tiebreak timestamp. |
 | `sortWeight` | `number \| null \| undefined{:ts}` | Optional category ordering weight. |
-| `instancerConfig` | `InstancerConfig \| null \| undefined{:ts}` | Per-team instance config. See [`InstancerConfig`](/api/responses#instancerconfig). |
-| `adminBotConfig` | `AdminBotConfig \| null \| undefined{:ts}` | Admin bot config. See [`AdminBotConfig`](/api/responses#adminbotconfig). |
+| `instancerConfig` | `InstancerConfig \| null \| undefined{:ts}` | Per-team instance config. See [`InstancerConfig`](/api/responses/#instancerconfig). |
+| `adminBotConfig` | `AdminBotConfig \| null \| undefined{:ts}` | Admin bot config. See [`AdminBotConfig`](/api/responses/#adminbotconfig). |
 | `hidden` | `boolean{:ts}` | Hidden challenges are invisible to non-admin users. |
 | `releaseTime` | `number \| null \| undefined{:ts}` | Unix millisecond release timestamp. |

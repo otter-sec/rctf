@@ -4,7 +4,6 @@ import {
   getNodeText,
   hasClass,
   isElement,
-  replaceChild,
   visitHast,
 } from './hast-utils'
 
@@ -26,10 +25,10 @@ function firstTextNode(node: Element): Text | null {
 // flag values). Mark them so CSS can opt them into `overflow-wrap: anywhere`.
 const LONG_PILL = 24
 
-function makeButton(codeNode: Element, cmd: string): Element {
+function buttonProperties(cmd: string): Properties {
   // `<span role="button">`, not `<button>`. `<button>` is a form control,
   // and even with `display: inline` it preserves its bounding box across
-  // line wraps; `box-decoration-break: clone` therefore can't clone the
+  // line wraps — `box-decoration-break: clone` therefore can't clone the
   // pill chrome onto each line fragment, leaving long pills as one giant
   // rectangle. A `<span>` is naturally inline and clones cleanly.
   const properties: Properties = {
@@ -41,20 +40,31 @@ function makeButton(codeNode: Element, cmd: string): Element {
     title: `Copy: ${cmd}`,
   }
   if (cmd.length > LONG_PILL) properties['data-long-pill'] = 'true'
+
+  return properties
+}
+
+function promptNode(): Element {
   return {
     type: 'element',
     tagName: 'span',
-    properties,
-    children: [
-      {
-        type: 'element',
-        tagName: 'span',
-        properties: { className: ['shell-prompt'], 'aria-hidden': 'true' },
-        children: [{ type: 'text', value: '$' }],
-      },
-      codeNode,
-    ],
+    properties: { className: ['shell-prompt'], 'aria-hidden': 'true' },
+    children: [{ type: 'text', value: '$' }],
   }
+}
+
+function cloneCodeElement(codeNode: Element): Element {
+  return {
+    ...codeNode,
+    properties: { ...codeNode.properties },
+    children: [...codeNode.children],
+  }
+}
+
+function convertElementToButton(node: Element, codeNode: Element, cmd: string): void {
+  node.tagName = 'span'
+  node.properties = buttonProperties(cmd)
+  node.children = [promptNode(), codeNode]
 }
 
 export function rehypeInlineShellCmd() {
@@ -68,14 +78,9 @@ export function rehypeInlineShellCmd() {
       if (hasClass(node, 'inline-shell-cmd')) return 'skip'
 
       // Case A: shiki-wrapped inline code (`{:bash}`, `{:ansi}`, etc.)
-      // Structure: <span class="shiki ..."><code>...$ cmd...</code></span>
+      // Structure: <span class="shiki ..."><code>…$ cmd…</code></span>
       // Replace the .shiki wrapper entirely so it doesn't get its own pill styling.
-      if (
-        node.tagName === 'span' &&
-        hasClass(node, 'shiki') &&
-        parent &&
-        index !== null
-      ) {
+      if (node.tagName === 'span' && hasClass(node, 'shiki') && parent && index !== null) {
         const codeChild = findElementChild(node, 'code')
         if (codeChild) {
           const first = firstTextNode(codeChild)
@@ -83,7 +88,7 @@ export function rehypeInlineShellCmd() {
             const cmd = getNodeText(codeChild).slice(PREFIX.length)
             if (cmd.length > 0) {
               first.value = first.value.slice(PREFIX.length)
-              replaceChild(parent, index, makeButton(codeChild, cmd))
+              convertElementToButton(node, codeChild, cmd)
               return 'skip'
             }
           }
@@ -98,7 +103,7 @@ export function rehypeInlineShellCmd() {
           const cmd = fullText.slice(PREFIX.length)
           if (cmd.length > 0) {
             first.value = first.value.slice(PREFIX.length)
-            replaceChild(parent, index, makeButton(node, cmd))
+            convertElementToButton(node, cloneCodeElement(node), cmd)
             return 'skip'
           }
         }

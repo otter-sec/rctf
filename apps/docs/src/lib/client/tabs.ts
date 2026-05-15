@@ -20,12 +20,9 @@ function setupTabRoot(root: HTMLElement): void {
   if (!panelsWrapper) return
 
   const panels = Array.from(panelsWrapper.children).filter(
-    (panel): panel is HTMLElement => panel instanceof HTMLElement
+    (panel): panel is HTMLElement => panel instanceof HTMLElement,
   )
-  const defaultIndex = clampIndex(
-    Number(panelsWrapper.dataset.defaultIndex ?? 0),
-    panels.length
-  )
+  const defaultIndex = clampIndex(Number(panelsWrapper.dataset.defaultIndex ?? 0), panels.length)
 
   const select = (index: number) => {
     const selectedIndex = clampIndex(index, panels.length)
@@ -46,14 +43,13 @@ function setupTabRoot(root: HTMLElement): void {
 
   tabs.forEach((tab, index) => {
     tab.addEventListener('click', () => select(index))
-    tab.addEventListener('keydown', event => {
+    tab.addEventListener('keydown', (event) => {
       const isRight = event.key === 'ArrowRight'
       const isLeft = event.key === 'ArrowLeft'
       if (!isRight && !isLeft) return
 
       event.preventDefault()
-      const tabId =
-        (isRight ? index + 1 : index - 1 + tabs.length) % tabs.length
+      const tabId = (isRight ? index + 1 : index - 1 + tabs.length) % tabs.length
       tabs[tabId]?.focus()
       select(tabId)
     })
@@ -61,15 +57,13 @@ function setupTabRoot(root: HTMLElement): void {
 }
 
 function resetTabs(): void {
-  document.querySelectorAll<HTMLElement>(TAB_ROOT_SELECTOR).forEach(root => {
+  document.querySelectorAll<HTMLElement>(TAB_ROOT_SELECTOR).forEach((root) => {
     delete root.dataset.tabsInit
   })
 }
 
 export function setupTabs(): void {
-  document
-    .querySelectorAll<HTMLElement>(TAB_ROOT_SELECTOR)
-    .forEach(setupTabRoot)
+  document.querySelectorAll<HTMLElement>(TAB_ROOT_SELECTOR).forEach(setupTabRoot)
 }
 
 export function mountTabs(): void {

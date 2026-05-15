@@ -9,27 +9,27 @@ rCTF can be deployed in minutes using the automated installation script, or set 
 
 - **PostgreSQL 15+** with the `pg_trgm` extension (used for fuzzy team name search)
 - **Redis 7+** for caching, rate limiting, and leaderboard computation
-- **Bun 1.2+** (only required for [manual installation](/installation/manual))
+- **Bun 1.2+** (only required for [manual installation](/installation/manual/))
 
-For a production deployment, a VPS with at least 2 CPU cores and 4 GiB RAM is recommended. See the [Setting Up a CTF Platform](/running-a-successful-ctf/03-setup) guide for a complete walkthrough including Nginx, TLS, and firewall configuration.
+For a production deployment, a VPS with at least 2 CPU cores and 4 GiB RAM is recommended. See the [Setting Up a CTF Platform](/running-a-successful-ctf/03-setup/) guide for a complete walkthrough including Nginx, TLS, and firewall configuration.
 
 ## Quick start with Docker
 
 The fastest way to get rCTF running is the automated installation script:
 
-```bash title="Terminal"
-curl -L https://get.rctf.osec.io | sh
+```ansi
+$ [31mcurl[0m [02m-L[0m [32mhttps://get.rctf.osec.io[0m | [31msh[0m
 ```
 
 This installs rCTF to `/opt/rctf` with Docker Compose, including PostgreSQL, Redis, and the rCTF server. When prompted, answer `y` to start the platform immediately.
 
 After installation, configure your instance by editing files in `/opt/rctf/rctf.d/`:
 
-```bash title="Terminal"
-cd /opt/rctf && docker compose up -d --force-recreate --build
+```ansi
+$ [31mcd[0m /opt/rctf && [31mdocker[0m compose up [02m-d[0m [02m--force-recreate[0m [02m--build[0m
 ```
 
-See [Configuration](/configuration) for the full reference of available options.
+See [Configuration](/configuration/) for the full reference of available options.
 
 ## Project structure
 
@@ -55,6 +55,6 @@ rCTF is a Bun monorepo with the following layout:
 
 ## Next steps
 
-- [Manual installation](/installation/manual) for development or custom deployments
-- [Configuration](/configuration) for the full configuration reference
-- [Upgrading from v1](/installation/upgrading) if migrating from an older version
+- [Manual installation](/installation/manual/) for development or custom deployments
+- [Configuration](/configuration/) for the full configuration reference
+- [Upgrading from v1](/installation/upgrading/) if migrating from an older version

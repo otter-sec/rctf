@@ -9,27 +9,27 @@ User routes expose team profiles and account-level mutations. V2 adds avatar, co
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `GET{:http}` | `/api/v2/users/:id` | V2 | Public, optional admin bypass | Started |
-| `GET{:http}` | `/api/v2/users/me` | V2 | Required | None |
-| `PATCH{:http}` | `/api/v2/users/me` | V2 | Required | None |
-| `PATCH{:http}` | `/api/v2/users/me/avatar` | V2 | Required | None |
-| `PUT{:http}` | `/api/v2/users/me/auth/email` | V2 | Required | None |
-| `GET{:http}` | `/api/v1/users/:id` | V1 | Public, optional admin bypass | Started |
-| `GET{:http}` | `/api/v1/users/me` | V1 | Required | None |
-| `PATCH{:http}` | `/api/v1/users/me` | V1 | Required | None |
-| `GET{:http}` | `/api/v1/users/me/members` | V1 | Required | None |
-| `POST{:http}` | `/api/v1/users/me/members` | V1 | Required | None |
-| `DELETE{:http}` | `/api/v1/users/me/members/:id` | V1 | Required | None |
-| `PUT{:http}` | `/api/v1/users/me/auth/email` | V1 | Required | None |
-| `DELETE{:http}` | `/api/v1/users/me/auth/email` | V1 | Required | None |
-| `PUT{:http}` | `/api/v1/users/me/auth/ctftime` | V1 | Required | None |
-| `DELETE{:http}` | `/api/v1/users/me/auth/ctftime` | V1 | Required | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22musers[2m/[22m:id{:ansi}` | V2 | Public, optional admin bypass | Started |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}` | V2 | Required | None |
+| `[33mPATCH[0m{:ansi}` | `[2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}` | V2 | Required | None |
+| `[33mPATCH[0m{:ansi}` | `[2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}` | V2 | Required | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}` | V2 | Required | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22m:id{:ansi}` | V1 | Public, optional admin bypass | Started |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme{:ansi}` | V1 | Required | None |
+| `[33mPATCH[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme{:ansi}` | V1 | Required | None |
+| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers{:ansi}` | V1 | Required | None |
+| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers{:ansi}` | V1 | Required | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers[2m/[22m:id{:ansi}` | V1 | Required | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}` | V1 | Required | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}` | V1 | Required | None |
+| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22mctftime{:ansi}` | V1 | Required | None |
+| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22mctftime{:ansi}` | V1 | Required | None |
 
-`GET /api/v2/users/:id` and `GET /api/v1/users/:id` can be read before the CTF starts by an admin token with `challsRead{:ts}`.
+`[36mGET[0m [2m/api/[22mv2[2m/[22musers[2m/[22m:id{:ansi}` and `[36mGET[0m [2m/api/[22mv1[2m/[22musers[2m/[22m:id{:ansi}` can be read before the CTF starts by an admin token with `challsRead{:ts}`.
 
 ## V2 routes
 
-### `GET /api/v2/users/:id`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22musers[2m/[22m:id{:ansi}`
 
 Returns the public profile of a team.
 
@@ -49,7 +49,7 @@ Returns the public profile of a team.
 
 **Response**
 
-`goodUserData` (200):
+`[2;32m200 [22mgoodUserData[0m{:ansi}`:
 
 ```json
 {
@@ -83,9 +83,9 @@ Returns the public profile of a team.
 | `countryCode` | `string \| null{:ts}` | ISO 3166-like region code from `@rctf/util`. |
 | `statusText` | `string \| null{:ts}` | Team status text. |
 
-**Errors**: `badUnknownUser`, `badNotStarted`.
+**Errors**: `[2;31m404 [22mbadUnknownUser[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
 
-### `GET /api/v2/users/me`
+### `[36mGET[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}`
 
 Returns the authenticated team's own profile, including account-private fields.
 
@@ -99,7 +99,7 @@ Returns the authenticated team's own profile, including account-private fields.
 
 **Response**
 
-`goodUserSelfData` (200) returns the public profile fields plus account-private data:
+`[2;32m200 [22mgoodUserSelfData[0m{:ansi}` returns the public profile fields plus account-private data:
 
 ```json
 {
@@ -135,9 +135,9 @@ Returns the authenticated team's own profile, including account-private fields.
 
 All other fields match the [public profile](#get-apiv2usersid).
 
-**Errors**: `badToken`.
+**Errors**: `[2;31m401 [22mbadToken[0m{:ansi}`.
 
-### `PATCH /api/v2/users/me`
+### `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}`
 
 Updates profile fields. Recalculates cached user data and triggers a leaderboard update.
 
@@ -169,7 +169,7 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 
 **Response**
 
-`goodUserUpdate` (200):
+`[2;32m200 [22mgoodUserUpdate[0m{:ansi}`:
 
 ```json
 {
@@ -197,9 +197,9 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 | `user.countryCode` | `string \| null{:ts}` | Current country code. |
 | `user.statusText` | `string \| null{:ts}` | Current status text. |
 
-**Errors**: `badBody`, `badName`, `badKnownName`, `badDivisionNotAllowed`, `badRateLimit`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadName[0m{:ansi}`, `[2;31m409 [22mbadKnownName[0m{:ansi}`, `[2;31m403 [22mbadDivisionNotAllowed[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
 
-### `PATCH /api/v2/users/me/avatar`
+### `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}`
 
 Uploads or removes the team avatar. The route expects `multipart/form-data`.
 
@@ -222,7 +222,7 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 
 **Response**
 
-`goodAvatarUpdated` (200):
+`[2;32m200 [22mgoodAvatarUpdated[0m{:ansi}`:
 
 ```json
 {
@@ -238,11 +238,11 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 | --- | --- | --- |
 | `url` | `string \| null{:ts}` | New avatar URL, or `null{:ts}` when the avatar was deleted. |
 
-**Errors**: `badBody`, `badAvatarFile`, `badAvatarFileSize`, `badModerationNotPassed`, `badFilesUpload`, `badCaptcha`, `badRateLimit`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadAvatarFile[0m{:ansi}`, `[2;31m400 [22mbadAvatarFileSize[0m{:ansi}`, `[2;31m400 [22mbadModerationNotPassed[0m{:ansi}`, `[2;31m500 [22mbadFilesUpload[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
 
-### `PUT /api/v2/users/me/auth/email`
+### `[35mPUT[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`
 
-Updates the account email. When email delivery is configured, the route sends a verification email and returns `goodVerifySent`. When email delivery is not configured, it updates the email immediately and returns `goodEmailSet`.
+Updates the account email. When email delivery is configured, the route sends a verification email and returns `[2;32m200 [22mgoodVerifySent[0m{:ansi}`. When email delivery is not configured, it updates the email immediately and returns `[2;32m200 [22mgoodEmailSet[0m{:ansi}`.
 
 | Property | Value |
 | --- | --- |
@@ -266,7 +266,7 @@ Updates the account email. When email delivery is configured, the route sends a 
 | `email` | `string{:ts}` | Yes | New email address. |
 | `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `setEmail{:ts}`. |
 
-The route rejects emails that would move the team outside the division ACL (`badEmailChangeDivision`) and rejects duplicate emails (`badKnownEmail`).
+The route rejects emails that would move the team outside the division ACL (`[2;31m403 [22mbadEmailChangeDivision[0m{:ansi}`) and rejects duplicate emails (`[2;31m409 [22mbadKnownEmail[0m{:ansi}`).
 
 **Response**
 
@@ -274,36 +274,36 @@ Behavior branches on email provider configuration:
 
 | Condition | Success kind | Effect |
 | --- | --- | --- |
-| Email delivery configured | `goodVerifySent` | Sends a verification email; consume the token via [`POST /api/v2/auth/verify`](/api/auth#post-apiv2authverify). |
-| Email delivery not configured | `goodEmailSet` | Updates the email immediately. |
+| Email delivery configured | `[2;32m200 [22mgoodVerifySent[0m{:ansi}` | Sends a verification email; consume the token via [`[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mverify{:ansi}`](/api/auth/#post-apiv2authverify). |
+| Email delivery not configured | `[2;32m200 [22mgoodEmailSet[0m{:ansi}` | Updates the email immediately. |
 
 Both kinds return no data.
 
-**Errors**: `badBody`, `badEmail`, `badKnownEmail`, `badEmailChangeDivision`, `badCaptcha`, `badZeroAuth`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadEmail[0m{:ansi}`, `[2;31m409 [22mbadKnownEmail[0m{:ansi}`, `[2;31m403 [22mbadEmailChangeDivision[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m409 [22mbadZeroAuth[0m{:ansi}`.
 
 ## V1 compatibility
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `GET /api/v1/users/:id`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22musers[2m/[22m:id{:ansi}`
 
 Differs from V2: response omits `avatarUrl`, `countryCode`, `statusText`, and `bloodIndex` (on each entry in `solves`).
 
-### `GET /api/v1/users/me`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme{:ansi}`
 
 Differs from V2: response omits `avatarUrl`, `countryCode`, and `statusText`.
 
-### `PATCH /api/v1/users/me`
+### `[33mPATCH[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme{:ansi}`
 
-Differs from V2: only accepts `name` and `division`. Shares the profile name update rate limit (burst `3`, refill window `180000` ms per user) with [`PATCH /api/v2/users/me`](#patch-apiv2usersme).
+Differs from V2: only accepts `name` and `division`. Shares the profile name update rate limit (burst `3`, refill window `180000` ms per user) with [`[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}`](#patch-apiv2usersme).
 
-### `PUT /api/v1/users/me/auth/email`
+### `[35mPUT[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`
 
-Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 — `goodVerifySent` when email delivery is configured, `goodEmailSet` otherwise. Same division-ACL and duplicate-email rejections apply.
+Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 — `[2;32m200 [22mgoodVerifySent[0m{:ansi}` when email delivery is configured, `[2;32m200 [22mgoodEmailSet[0m{:ansi}` otherwise. Same division-ACL and duplicate-email rejections apply.
 
-### `DELETE /api/v1/users/me/auth/email`
+### `[31mDELETE[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`
 
-V1-only. Removes the account email. Preserves the `badZeroAuth` invariant: a team must keep at least one of email or CTFtime auth.
+V1-only. Removes the account email. Preserves the `[2;31m409 [22mbadZeroAuth[0m{:ansi}` invariant: a team must keep at least one of email or CTFtime auth.
 
 | Property | Value |
 | --- | --- |
@@ -315,11 +315,11 @@ V1-only. Removes the account email. Preserves the `badZeroAuth` invariant: a tea
 
 **Response**
 
-`goodEmailRemoved` (no data).
+`[2;32m200 [22mgoodEmailRemoved[0m{:ansi}` (no data).
 
-**Errors**: `badEmailNoExists`, `badZeroAuth`.
+**Errors**: `[2;31m404 [22mbadEmailNoExists[0m{:ansi}`, `[2;31m409 [22mbadZeroAuth[0m{:ansi}`.
 
-### `PUT /api/v1/users/me/auth/ctftime`
+### `[35mPUT[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22mctftime{:ansi}`
 
 V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
@@ -341,17 +341,17 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `badEndpoint` when CTFtime auth is not configured. |
+| `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `[2;31m404 [22mbadEndpoint[0m{:ansi}` when CTFtime auth is not configured. |
 
 **Response**
 
-`goodCtftimeAuthSet` (no data).
+`[2;32m200 [22mgoodCtftimeAuthSet[0m{:ansi}` (no data).
 
-**Errors**: `badBody`, `badEndpoint`, `badCtftimeToken`, `badKnownCtftimeId`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m401 [22mbadCtftimeToken[0m{:ansi}`, `[2;31m409 [22mbadKnownCtftimeId[0m{:ansi}`.
 
-### `DELETE /api/v1/users/me/auth/ctftime`
+### `[31mDELETE[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22mctftime{:ansi}`
 
-V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `badZeroAuth`, which preserves the invariant that every team has at least one of email or CTFtime auth.
+V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `[2;31m409 [22mbadZeroAuth[0m{:ansi}`, which preserves the invariant that every team has at least one of email or CTFtime auth.
 
 | Property | Value |
 | --- | --- |
@@ -363,13 +363,13 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 
 **Response**
 
-`goodCtftimeRemoved` (no data).
+`[2;32m200 [22mgoodCtftimeRemoved[0m{:ansi}` (no data).
 
-**Errors**: `badCtftimeNoExists`, `badZeroAuth`.
+**Errors**: `[2;31m404 [22mbadCtftimeNoExists[0m{:ansi}`, `[2;31m409 [22mbadZeroAuth[0m{:ansi}`.
 
-### `GET /api/v1/users/me/members`
+### `[36mGET[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers{:ansi}`
 
-V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `badEndpoint` when `userMembers` is disabled.
+V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `[2;31m404 [22mbadEndpoint[0m{:ansi}` when `userMembers` is disabled.
 
 | Property | Value |
 | --- | --- |
@@ -381,11 +381,11 @@ V1-only. Lists informational team-member email rows under the team account. Team
 
 **Response**
 
-`goodMemberData` (200) returns a team member array.
+`[2;32m200 [22mgoodMemberData[0m{:ansi}` returns a team member array.
 
-**Errors**: `badEndpoint`.
+**Errors**: `[2;31m404 [22mbadEndpoint[0m{:ansi}`.
 
-### `POST /api/v1/users/me/members`
+### `[32mPOST[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers{:ansi}`
 
 V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
@@ -411,11 +411,11 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
 **Response**
 
-`goodMemberCreate` (200) returns the created team member object.
+`[2;32m200 [22mgoodMemberCreate[0m{:ansi}` returns the created team member object.
 
-**Errors**: `badBody`, `badEmail`, `badKnownEmail`, `badTooManyMembers`, `badEndpoint`.
+**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadEmail[0m{:ansi}`, `[2;31m409 [22mbadKnownEmail[0m{:ansi}`, `[2;31m409 [22mbadTooManyMembers[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`.
 
-### `DELETE /api/v1/users/me/members/:id`
+### `[31mDELETE[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mmembers[2m/[22m:id{:ansi}`
 
 V1-only. Removes a team member email row.
 
@@ -435,9 +435,9 @@ V1-only. Removes a team member email row.
 
 **Response**
 
-`goodMemberDelete` (no data).
+`[2;32m200 [22mgoodMemberDelete[0m{:ansi}` (no data).
 
-**Errors**: `badEndpoint`.
+**Errors**: `[2;31m404 [22mbadEndpoint[0m{:ansi}`.
 
 ## Shared object shapes
 
@@ -459,8 +459,8 @@ The V1 solve shape omits `bloodIndex`.
 
 | Route | Scope | Bucket |
 | --- | --- | --- |
-| `PATCH /api/v1/users/me` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `PATCH /api/v2/users/me` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `PATCH /api/v2/users/me/avatar` | User | Avatar upload — burst `2`, refill window `120000` ms. |
+| `[33mPATCH[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme{:ansi}` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme{:ansi}` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}` | User | Avatar upload — burst `2`, refill window `120000` ms. |
 
-The profile name update bucket is shared between V1 and V2 PATCH routes per user. See the global [rate limit summary](/api/#rate-limits) and the [response reference](/api/responses) for envelope and error shapes.
+The profile name update bucket is shared between V1 and V2 PATCH routes per user. See the global [rate limit summary](/api/#rate-limits) and the [response reference](/api/responses/) for envelope and error shapes.

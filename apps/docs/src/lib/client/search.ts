@@ -25,7 +25,6 @@ const PAGEFIND_URL = `${BASE_PATH}/pagefind/pagefind.js`
 const EMPTY_STATE_CLASS = 'text-muted-foreground px-3 py-8 text-center text-sm'
 
 let pagefindPromise: Promise<Pagefind | null> | null = null
-let searchRequestId = 0
 let searchController: AbortController | null = null
 let lifecycleReady = false
 
@@ -34,13 +33,12 @@ async function loadPagefind(): Promise<Pagefind | null> {
 
   pagefindPromise = (async () => {
     try {
-      // Pagefind writes this module into dist/pagefind after Astro builds,
+      // Pagefind writes this module into dist/pagefind/ after Astro builds,
       // so Vite cannot resolve it as a static source import.
       const mod = await import(/* @vite-ignore */ PAGEFIND_URL)
       if (mod.init) await mod.init()
       return mod as Pagefind
     } catch {
-      pagefindPromise = null
       return null
     }
   })()
@@ -50,27 +48,16 @@ async function loadPagefind(): Promise<Pagefind | null> {
 
 function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
-  ms: number
-): ((...args: Args) => void) & { cancel: () => void } {
+  ms: number,
+): (...args: Args) => void {
   let timer: ReturnType<typeof setTimeout> | undefined
-
-  const debounced = (...args: Args) => {
+  return (...args: Args) => {
     if (timer) clearTimeout(timer)
     timer = setTimeout(() => fn(...args), ms)
   }
-
-  debounced.cancel = () => {
-    if (timer) clearTimeout(timer)
-    timer = undefined
-  }
-
-  return debounced
 }
 
-function appendHighlightedExcerpt(
-  container: HTMLElement,
-  excerpt: string
-): void {
+function appendHighlightedExcerpt(container: HTMLElement, excerpt: string): void {
   const markRe = /<\/?mark>/gi
   let cursor = 0
   let mark: HTMLElement | null = null
@@ -95,7 +82,18 @@ function appendHighlightedExcerpt(
   if (text) (mark ?? container).append(document.createTextNode(text))
 }
 
-function renderStatus(message: string): HTMLParagraphElement {
+function searchScopePrefixes(): string[] {
+  return []
+}
+
+function isInSearchScope(url: string, prefixes: string[]): boolean {
+  if (prefixes.length === 0) return true
+
+  const path = new URL(url, window.location.origin).pathname
+  return prefixes.some((prefix) => path === prefix.slice(0, -1) || path.startsWith(prefix))
+}
+
+function emptyState(message: string): HTMLParagraphElement {
   const p = document.createElement('p')
   p.id = 'search-empty'
   p.className = EMPTY_STATE_CLASS
@@ -125,82 +123,50 @@ function resultItem(data: PagefindData, index: number): HTMLLIElement {
 }
 
 async function runSearch(query: string): Promise<void> {
-  const requestId = ++searchRequestId
   const results = document.getElementById('search-results')
   if (!results) return
 
-  const trimmedQuery = query.trim()
-  if (!trimmedQuery) {
-    results.removeAttribute('aria-busy')
-    results.replaceChildren(renderStatus('Start typing to search the docs.'))
-    return
-  }
+  results.replaceChildren()
 
-  results.setAttribute('aria-busy', 'true')
-  if (!results.querySelector('[data-search-result]')) {
-    results.replaceChildren(renderStatus('Searching...'))
+  if (!query.trim()) {
+    results.append(emptyState('Start typing to search the docs.'))
+    return
   }
 
   const pagefind = await loadPagefind()
-  if (requestId !== searchRequestId) return
-
   if (!pagefind) {
-    results.removeAttribute('aria-busy')
-    results.replaceChildren(
-      renderStatus(
-        'Search index not available. Run `bun run build` to generate it.'
-      )
-    )
+    results.append(emptyState('Search index not available. Run `bun run build` to generate it.'))
     return
   }
 
-  try {
-    const { results: found } = await pagefind.search(trimmedQuery)
-    if (requestId !== searchRequestId) return
+  const { results: found } = await pagefind.search(query)
+  const scopePrefixes = searchScopePrefixes()
+  const top: PagefindData[] = []
 
-    const top = await Promise.all(
-      found.slice(0, 8).map(result => result.data())
-    )
-    if (requestId !== searchRequestId) return
-
-    if (top.length === 0) {
-      results.removeAttribute('aria-busy')
-      results.replaceChildren(renderStatus('No results found.'))
-      return
-    }
-
-    const list = document.createElement('ul')
-    list.className = 'flex flex-col gap-1'
-    list.append(...top.map(resultItem))
-
-    results.removeAttribute('aria-busy')
-    results.replaceChildren(list)
-  } catch {
-    if (requestId !== searchRequestId) return
-    results.removeAttribute('aria-busy')
-    results.replaceChildren(renderStatus('Search failed. Try again.'))
+  for (const result of found) {
+    const data = await result.data()
+    if (!isInSearchScope(data.url, scopePrefixes)) continue
+    top.push(data)
+    if (top.length >= 8) break
   }
+
+  if (top.length === 0) {
+    results.append(emptyState('No results found.'))
+    return
+  }
+
+  const list = document.createElement('ul')
+  list.className = 'flex flex-col gap-1'
+  list.append(...top.map(resultItem))
+  results.append(list)
 }
 
 const debouncedSearch = debounce(runSearch, 120)
 
-function cleanupSearch(): void {
-  searchController?.abort()
-  searchController = null
-  searchRequestId++
-  debouncedSearch.cancel()
-}
-
 function setupSearch(): void {
-  const dialog = document.getElementById(
-    'search-dialog'
-  ) as HTMLDialogElement | null
-  const triggers = document.querySelectorAll<HTMLButtonElement>(
-    '[data-search-trigger]'
-  )
-  const input = document.getElementById(
-    'search-input'
-  ) as HTMLInputElement | null
+  const dialog = document.getElementById('search-dialog') as HTMLDialogElement | null
+  const triggers = document.querySelectorAll<HTMLButtonElement>('[data-search-trigger]')
+  const input = document.getElementById('search-input') as HTMLInputElement | null
 
   if (!dialog || !input) return
 
@@ -217,29 +183,21 @@ function setupSearch(): void {
     if (dialog.open) dialog.close()
   }
 
-  triggers.forEach(trigger =>
-    trigger.addEventListener('click', open, { signal })
-  )
-  input.addEventListener('input', () => debouncedSearch(input.value), {
-    signal,
-  })
-  dialog.addEventListener('submit', event => event.preventDefault(), { signal })
+  triggers.forEach((trigger) => trigger.addEventListener('click', open, { signal }))
+  input.addEventListener('input', () => debouncedSearch(input.value), { signal })
 
   dialog.addEventListener(
     'click',
-    event => {
-      const target = event.target
-      if (target instanceof Element && target.closest('a[href]')) close()
+    (event) => {
       if (event.target === dialog) close()
     },
-    { signal }
+    { signal },
   )
 
   document.addEventListener(
     'keydown',
-    event => {
-      const isHotkey =
-        event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
+    (event) => {
+      const isHotkey = event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
 
       if (isHotkey) {
         event.preventDefault()
@@ -253,31 +211,30 @@ function setupSearch(): void {
 
       if (!dialog.open) return
 
-      const searchResults = dialog.querySelectorAll<HTMLAnchorElement>(
-        '[data-search-result]'
-      )
-      if (searchResults.length === 0) return
+      const results = dialog.querySelectorAll<HTMLAnchorElement>('[data-search-result]')
+      if (results.length === 0) return
 
-      const active = dialog.querySelector<HTMLAnchorElement>(
-        '[data-search-result]:focus'
-      )
-      const index = active ? Array.from(searchResults).indexOf(active) : -1
+      const active = dialog.querySelector<HTMLAnchorElement>('[data-search-result]:focus')
+      const index = active ? Array.from(results).indexOf(active) : -1
 
       if (event.key === 'ArrowDown') {
         event.preventDefault()
-        const next =
-          searchResults[Math.min(searchResults.length - 1, index + 1)]
+        const next = results[Math.min(results.length - 1, index + 1)]
         next?.focus()
       }
 
       if (event.key === 'ArrowUp') {
         event.preventDefault()
         if (index <= 0) input.focus()
-        else searchResults[index - 1].focus()
+        else results[index - 1].focus()
       }
     },
-    { signal }
+    { signal },
   )
+
+  dialog
+    .querySelectorAll<HTMLAnchorElement>('a[href]')
+    .forEach((link) => link.addEventListener('click', close, { signal }))
 }
 
 export function mountDocsSearch(): void {
@@ -286,6 +243,6 @@ export function mountDocsSearch(): void {
   if (lifecycleReady) return
   lifecycleReady = true
 
-  document.addEventListener('astro:before-swap', cleanupSearch)
+  document.addEventListener('astro:before-swap', () => searchController?.abort())
   document.addEventListener('astro:after-swap', setupSearch)
 }
