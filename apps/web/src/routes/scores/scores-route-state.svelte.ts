@@ -79,9 +79,14 @@ export function createScoresRouteState() {
     void goto(url, SCORES_GOTO_OPTIONS)
   }
 
+  function replaceUrl(url: URL) {
+    if (typeof window === 'undefined') return
+    window.history.replaceState(window.history.state, '', url)
+  }
+
   function commitSearch() {
     clearSearchTimer()
-    navigateTo(getCurrentUrlWithSearch())
+    replaceUrl(getCurrentUrlWithSearch())
   }
 
   function setSearchInput(value: string) {

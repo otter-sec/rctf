@@ -180,6 +180,9 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     get contextTeamIds() {
       return graph.contextTeamIds
     },
+    get scrollMetrics() {
+      return scrollMetrics
+    },
   }
 }
 

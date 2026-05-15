@@ -37,19 +37,10 @@
     children: Snippet
   }
 
-  let {
-    scoreData,
-    routeState,
-    viewportState,
-    graphProps,
-    challenges,
-    children,
-  }: Props = $props()
+  let { scoreData, routeState, viewportState, graphProps, challenges, children }: Props = $props()
 
   const scroll = $derived(viewportState.scroll)
-  const selfRowAnchor = $derived(
-    viewportState.showSelfRow ? viewportState.selfRowPosition : 'none'
-  )
+  const selfRowAnchor = $derived(viewportState.showSelfRow ? viewportState.selfRowPosition : 'none')
 
   const headerRowAttachment: Attachment<HTMLElement> = node => {
     viewportState.headerRowRef = node
@@ -57,6 +48,20 @@
       if (viewportState.headerRowRef === node) viewportState.headerRowRef = null
     }
   }
+  let headerChallengeScrollRef = $state<HTMLElement | null>(null)
+  let syncedHeaderScrollLeft = -1
+
+  $effect(() => {
+    const header = headerChallengeScrollRef
+    const scrollMetrics = viewportState.scrollMetrics
+    if (!header || !scrollMetrics) return
+
+    const nextScrollLeft = scrollMetrics.scrollLeft
+    if (syncedHeaderScrollLeft === nextScrollLeft) return
+
+    syncedHeaderScrollLeft = nextScrollLeft
+    header.scrollLeft = nextScrollLeft
+  })
 
   function handleChallengeFocus(id: string) {
     const wasFocused = routeState.focusedChallengeId === id
@@ -110,28 +115,34 @@
         scrollbarYClasses="score-scrollbar y"
       >
         <scroll-content>
-          <header-row {@attach headerRowAttachment}>
-            <header-graph-cell>
-              <header-graph-panel>
-                {@render graphPanel()}
-              </header-graph-panel>
-            </header-graph-cell>
-            {#if !scoreData.challengesQuery.isLoading}
-              <ScoresChallengeHeader
-                viewMode={routeState.viewMode}
-                sortMode={routeState.sortMode}
-                categoryGroups={scoreData.categoryGroups}
-                {challenges}
-                focusedChallengeId={routeState.focusedChallengeId}
-                onChallengeFocus={handleChallengeFocus}
-              />
-            {/if}
-          </header-row>
+          <header-spacer aria-hidden="true"></header-spacer>
 
           {@render children()}
         </scroll-content>
       </ScrollArea>
     </score-scroll>
+
+    <header-row {@attach headerRowAttachment}>
+      <header-graph-cell>
+        <header-graph-panel>
+          {@render graphPanel()}
+        </header-graph-panel>
+      </header-graph-cell>
+      <header-challenges bind:this={headerChallengeScrollRef}>
+        <header-challenge-content>
+          {#if !scoreData.challengesQuery.isLoading}
+            <ScoresChallengeHeader
+              viewMode={routeState.viewMode}
+              sortMode={routeState.sortMode}
+              categoryGroups={scoreData.categoryGroups}
+              {challenges}
+              focusedChallengeId={routeState.focusedChallengeId}
+              onChallengeFocus={handleChallengeFocus}
+            />
+          {/if}
+        </header-challenge-content>
+      </header-challenges>
+    </header-row>
   </score-shell>
 </score-frame>
 
@@ -195,8 +206,7 @@
     score-scroll :global(.score-scroll-area) {
       height: calc(
         100dvh - var(--score-app-header-height) - var(--score-toolbar-height) -
-          var(--score-mobile-graph-gap) - var(--score-header-height) -
-          var(--score-page-bottom-gap)
+          var(--score-mobile-graph-gap) - var(--score-header-height) - var(--score-page-bottom-gap)
       );
     }
 
@@ -220,17 +230,18 @@
       flex-direction: column;
     }
 
-    header-row {
+    header-row,
+    header-spacer {
       display: none;
     }
 
     header-graph-cell {
-      position: sticky;
-      inset-inline-start: 0;
+      position: relative;
       z-index: 30;
       flex-shrink: 0;
       width: var(--score-team-column-width);
       background: var(--background-l0);
+      pointer-events: auto;
     }
 
     header-graph-panel {
@@ -242,6 +253,19 @@
       border-start-start-radius: var(--radius-3xl);
       border-start-end-radius: var(--radius-3xl);
       border-end-start-radius: var(--radius-xl);
+    }
+
+    header-challenges {
+      display: block;
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      pointer-events: auto;
+    }
+
+    header-challenge-content {
+      display: block;
+      width: max-content;
     }
   }
 
@@ -290,13 +314,21 @@
         margin-inline-end: calc(var(--spacing) * -2.5);
       }
 
+      header-spacer {
+        display: block;
+        height: var(--score-header-height);
+        flex-shrink: 0;
+      }
+
       header-row {
-        position: sticky;
+        position: absolute;
+        inset-inline: 0;
         inset-block-start: 0;
-        z-index: 20;
+        z-index: 30;
         display: flex;
         height: var(--score-header-height);
         background: var(--background-l0);
+        pointer-events: none;
       }
     }
   }

@@ -150,13 +150,7 @@
         />
       </score-empty-state>
     {:else}
-      <ScoresLeaderboardFrame
-        {scoreData}
-        {routeState}
-        {viewportState}
-        {graphProps}
-        {challenges}
-      >
+      <ScoresLeaderboardFrame {scoreData} {routeState} {viewportState} {graphProps} {challenges}>
         <ScoresLeaderboardBody
           {scoreData}
           {graphState}

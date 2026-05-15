@@ -17,7 +17,6 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, ChartCore, Highlight, Spline, Svg, Text, Tooltip } from 'layerchart/svg'
-  import { SvelteMap } from 'svelte/reactivity'
   import { SCORE_GRAPH_AXIS_PADDING_PX } from './scores-layout-constants'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
@@ -110,7 +109,7 @@
     const mainIds = new Set(mainTeams.map(t => t.id))
     const uniqueContextTeams = contextTeams.filter(t => !mainIds.has(t.id))
 
-    const teamMeta = new SvelteMap<string, TeamMeta>()
+    const teamMeta = new Map<string, TeamMeta>()
 
     uniqueContextTeams.forEach((team, i) => {
       teamMeta.set(team.id, {

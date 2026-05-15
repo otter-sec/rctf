@@ -4,11 +4,10 @@
     SCORE_CELL_WIDTH_PX,
     SCORE_ROW_GAP_PX,
   } from './scores-layout-constants'
-  import { SvelteMap } from 'svelte/reactivity'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
-    url: string
+    svg: string
     width: number
   }
 
@@ -62,8 +61,8 @@
     'M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-2l-.15.005A2 2 0 0 0 9 9a1 1 0 0 0 1.974.23l.02-.113L11 9h2v2h-2l-.133.007c-1.111.12-1.154 1.73-.128 1.965l.128.021L11 13h2v2h-2l-.007-.117A1 1 0 0 0 9 15a2 2 0 0 0 1.85 1.995L11 17h2l.15-.005a2 2 0 0 0 1.844-1.838L15 15v-2l-.005-.15a2 2 0 0 0-.17-.667l-.075-.152l-.019-.032l.02-.03a2 2 0 0 0 .242-.795L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z',
   ] as const
 
-  const stripCache = new SvelteMap<string, RenderedStrip>()
-  const resolvedColorCache = new SvelteMap<string, string>()
+  const stripCache = new Map<string, RenderedStrip>()
+  const resolvedColorCache = new Map<string, string>()
   let lastPaletteScope = ''
   let cachedPalette: RenderPalette | null = null
   let activeStripConsumers = 0
@@ -127,7 +126,7 @@
   function getOrBuildPalette(categoryColors: string[]): RenderPalette {
     if (cachedPalette) return cachedPalette
 
-    const category = new SvelteMap<string, CategoryPalette>()
+    const category = new Map<string, CategoryPalette>()
 
     for (const color of new Set(categoryColors)) {
       category.set(color, {
@@ -147,9 +146,8 @@
     return cachedPalette
   }
 
-  function getSvgUrl(width: number, content: string): string {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${content}</svg>`
-    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+  function wrapSvg(width: number, content: string): string {
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${content}</svg>`
   }
 
   function buildChallengeStripSvg({
@@ -220,7 +218,7 @@
       )
     }
 
-    return { width, url: getSvgUrl(width, parts.join('')) }
+    return { width, svg: wrapSvg(width, parts.join('')) }
   }
 
   function buildCategoryStripSvg({
@@ -271,7 +269,7 @@
       )
     }
 
-    return { width, url: getSvgUrl(width, parts.join('')) }
+    return { width, svg: wrapSvg(width, parts.join('')) }
   }
 </script>
 
@@ -503,7 +501,7 @@
   {#snippet stripImage()}
     {#if strip}
       <solve-strip style:width={strip.width + 'px'} aria-hidden="true">
-        <img src={strip.url} alt="" draggable="false" />
+        {@html strip.svg}
       </solve-strip>
     {:else}
       <solve-strip loading style:width={imageWidth + 'px'} aria-hidden="true"></solve-strip>
@@ -547,12 +545,6 @@
       height: var(--score-row-height);
       flex-shrink: 0;
       user-select: none;
-
-      img {
-        display: block;
-        width: 100%;
-        height: 100%;
-      }
     }
 
     solve-hit-area {

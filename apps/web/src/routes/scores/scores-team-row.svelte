@@ -88,6 +88,8 @@
             src={data.avatarUrl}
             alt={data.name}
             data-avatar-image
+            decoding="async"
+            draggable="false"
             onerror={() => (imgFailed = true)}
           />
         {:else}
@@ -106,6 +108,8 @@
               alt="{data.countryCode} flag"
               title={data.countryCode}
               data-flag
+              decoding="async"
+              draggable="false"
             />
           {/if}
           {#if flagFilename && data.countryCode && data.statusText}
