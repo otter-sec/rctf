@@ -214,9 +214,9 @@ ACLs control which divisions a user can register for based on their email. Each 
 
 ACL rules are evaluated in order. The first matching rule determines the user's allowed divisions.
 
-<Callout variant="note">
+<Callout variant="warning" title="Email provider required, disable CTFtime auth">
 
-Division ACLs only apply when an email provider is configured. If CTFtime authentication is enabled, ACLs are bypassed entirely - all divisions become available.
+Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs - CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
 
 </Callout>
 ### Authentication
@@ -328,11 +328,6 @@ email:
 | `<red>email.from</red>` | `string{:ts}` | - | Sender email address (required if email enabled) |
 | `<red>email.logoUrl</red>` | `string{:ts}` | - | Logo URL for email templates (optional) |
 
-<Callout variant="note">
-
-Email is required for account registration when CTFtime auth is not configured. It is also needed for account recovery and email-based division ACLs.
-
-</Callout>
 See [Email Providers](/providers/emails/) for provider-specific options.
 
 ### UI
