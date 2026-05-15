@@ -1,8 +1,8 @@
 <script lang="ts" module>
   import {
-    SCORE_CELL_HEIGHT_PX,
-    SCORE_CELL_WIDTH_PX,
-    SCORE_ROW_GAP_PX,
+    SCORE_ROW_GAP_PX as CELL_GAP,
+    SCORE_CELL_HEIGHT_PX as CELL_HEIGHT,
+    SCORE_CELL_WIDTH_PX as CELL_WIDTH,
   } from './scores-layout-constants'
   import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
@@ -41,9 +41,6 @@
     palette: RenderPalette
   }
 
-  const CELL_WIDTH = SCORE_CELL_WIDTH_PX
-  const CELL_HEIGHT = SCORE_CELL_HEIGHT_PX
-  const CELL_GAP = SCORE_ROW_GAP_PX
   const ICON_RADIUS = 10
   const CAT_ICON_RADIUS = 14
   // 20 * (x / 24) = 22 => x = 22 * 24 / 20 = 26.4

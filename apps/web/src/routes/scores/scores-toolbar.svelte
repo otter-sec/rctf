@@ -29,6 +29,7 @@
     focusedChallenge: { id: string; name: string; icon: IconComponent; color: string } | null
     search: string
     isSearching: boolean
+    isDesktop: boolean
     onViewModeChange: (mode: ViewMode) => void
     onSortModeChange: (mode: SortMode) => void
     onDivisionChange: (division: string | undefined) => void
@@ -47,6 +48,7 @@
     focusedChallenge,
     search,
     isSearching,
+    isDesktop,
     onViewModeChange,
     onSortModeChange,
     onDivisionChange,
@@ -91,9 +93,7 @@
   }
 
   function getVisibleSearchInput() {
-    if (desktopSearchInput?.offsetParent) return desktopSearchInput
-    if (mobileSearchInput?.offsetParent) return mobileSearchInput
-    return desktopSearchInput ?? mobileSearchInput
+    return isDesktop ? desktopSearchInput : mobileSearchInput
   }
 
   function focusSearchInput() {

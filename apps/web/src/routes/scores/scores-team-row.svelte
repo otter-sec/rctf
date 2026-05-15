@@ -59,6 +59,15 @@
   const initials = $derived(data ? getInitials(data.name) : '')
 
   let imgFailed = $state(false)
+  let lastAvatarUrl: string | null | undefined = undefined
+  $effect(() => {
+    // virtual rows are keyed by index, so the same component instance is reused
+    // for different entries; reset img fallback when the avatar url changes
+    if (data?.avatarUrl !== lastAvatarUrl) {
+      lastAvatarUrl = data?.avatarUrl
+      imgFailed = false
+    }
+  })
 </script>
 
 <score-team-cell

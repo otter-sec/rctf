@@ -25,7 +25,7 @@
 
   type HeaderItem =
     | { type: 'category'; group: CategoryGroup }
-    | { type: 'challenge'; challenge: ChallengeInfo; isFirst?: boolean }
+    | { type: 'challenge'; challenge: ChallengeInfo }
 
   type HeaderTooltipPayload = {
     title: string
@@ -35,23 +35,17 @@
 
   const tooltipTether = Tooltip.createTether<HeaderTooltipPayload>()
 
-  const headerItems = $derived.by((): HeaderItem[][] => {
+  const headerNameItems = $derived.by((): HeaderItem[] => {
     if (viewMode === 'categories') {
-      return [categoryGroups.map(group => ({ type: 'category', group }))]
+      return categoryGroups.map(group => ({ type: 'category', group }))
     }
     if (sortMode === 'categories') {
-      return categoryGroups.map(group =>
-        group.challenges.map((challenge, i) => ({
-          type: 'challenge',
-          challenge,
-          isFirst: i === 0,
-        }))
+      return categoryGroups.flatMap(group =>
+        group.challenges.map(challenge => ({ type: 'challenge', challenge }))
       )
     }
-    return [challenges.map(challenge => ({ type: 'challenge', challenge }))]
+    return challenges.map(challenge => ({ type: 'challenge', challenge }))
   })
-
-  const headerNameItems = $derived(headerItems.flat())
 
   function challengeSubtitle(challenge: ChallengeInfo) {
     return `${challenge.points} pts \u00b7 ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`

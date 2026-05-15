@@ -121,6 +121,7 @@
       {focusedChallenge}
       search={routeState.searchInput}
       isSearching={scoreData.leaderboardQuery.isFetching && !!routeState.search}
+      isDesktop={viewportState.isDesktop}
       onViewModeChange={routeState.setViewMode}
       onSortModeChange={routeState.setSortMode}
       onDivisionChange={routeState.setDivision}
@@ -129,17 +130,8 @@
       onSearchChange={routeState.setSearchInput}
     />
 
-    {#if !scoreData.isLoading && scoreData.entries.length === 0 && routeState.focusedChallengeId}
-      <score-empty-state focused>
-        <EmptyState
-          icon={IconFlagFilled}
-          title="No solves"
-          subtitle="No matching teams have solved this challenge"
-        />
-      </score-empty-state>
-    {/if}
-
-    {#if !scoreData.isLoading && scoreData.entries.length === 0 && !routeState.focusedChallengeId}
+    {@const isEmpty = !scoreData.isLoading && scoreData.entries.length === 0}
+    {#if isEmpty && !routeState.focusedChallengeId}
       <score-empty-state>
         <EmptyState
           icon={IconChartAreaLineFilled}
@@ -162,6 +154,15 @@
           onSparklineHover={teamId => (sparklineHoveredTeamId = teamId)}
         />
       </ScoresLeaderboardFrame>
+      {#if isEmpty}
+        <score-empty-state focused>
+          <EmptyState
+            icon={IconFlagFilled}
+            title="No solves"
+            subtitle="No matching teams have solved this challenge"
+          />
+        </score-empty-state>
+      {/if}
     {/if}
   {/if}
 
@@ -178,7 +179,7 @@
     onOpenChange={open => (screenshotModalOpen = open)}
     teams={graphState.screenshotTeams}
     selfTeam={graphState.screenshotSelfTeam}
-    graphData={graphState.screenshotGraphData}
+    graphData={scoreData.allGraphData}
     categoryGroups={scoreData.categoryGroups}
     solvesByTeam={scoreData.solvesByTeam}
     ctfName={scoreData.clientConfigQuery.data?.ctfName ?? ''}

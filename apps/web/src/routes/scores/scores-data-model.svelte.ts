@@ -108,6 +108,8 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   )
 
   function fetchFocusedChallengePages() {
+    // FIXME(es3n1n): When filtering by challenge we need every page loaded
+    //  to know which teams solved it, so chain-fetch until exhausted
     if (
       config.focusedChallengeId() &&
       leaderboardQuery.hasNextPage &&
@@ -214,13 +216,6 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
   const screenshotSelfTeam = $derived(
     getScreenshotSelfTeam(config.currentUser(), sparklineDataByTeam)
   )
-  const screenshotGraphData = $derived(
-    config.allGraphData().map(team => ({
-      id: team.id,
-      name: team.name,
-      points: team.points,
-    }))
-  )
 
   return {
     selfGraphQuery,
@@ -235,9 +230,6 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
     },
     get screenshotSelfTeam() {
       return screenshotSelfTeam
-    },
-    get screenshotGraphData() {
-      return screenshotGraphData
     },
   }
 }

@@ -119,15 +119,37 @@
       (options.emphasizeListedTeams && options.graphTeamCount > options.teamCount)
   )
 
-  function getCategoryStats(teamId: string, group: CategoryGroup) {
-    const solves = solvesByTeam.get(teamId)
-    if (!solves) return { solved: 0, total: group.challenges.length, percent: 0 }
-    const solved = group.challenges.filter(c => solves.has(c.id)).length
-    return {
-      solved,
-      total: group.challenges.length,
-      percent: group.challenges.length > 0 ? (solved / group.challenges.length) * 100 : 0,
+  type CategoryStats = { solved: number; total: number; percent: number }
+
+  const categoryStatsByTeam = $derived.by(() => {
+    const result = new Map<string, Map<string, CategoryStats>>()
+    for (const team of displayTeams) {
+      const solves = solvesByTeam.get(team.id)
+      const perCategory = new Map<string, CategoryStats>()
+      for (const group of categoryGroups) {
+        const total = group.challenges.length
+        const solved = solves
+          ? group.challenges.reduce((n, c) => n + (solves.has(c.id) ? 1 : 0), 0)
+          : 0
+        perCategory.set(group.category, {
+          solved,
+          total,
+          percent: total > 0 ? (solved / total) * 100 : 0,
+        })
+      }
+      result.set(team.id, perCategory)
     }
+    return result
+  })
+
+  function getCategoryStats(teamId: string, group: CategoryGroup): CategoryStats {
+    return (
+      categoryStatsByTeam.get(teamId)?.get(group.category) ?? {
+        solved: 0,
+        total: group.challenges.length,
+        percent: 0,
+      }
+    )
   }
 
   const CELL_SIZE = 40
