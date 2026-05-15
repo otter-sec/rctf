@@ -22,7 +22,7 @@ export type SeedData = {
 
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
-export const SEED_TEAM_COUNT = 48
+export const SEED_TEAM_COUNT = 250
 export const SEED_CHALLENGE_COUNT = 18
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const

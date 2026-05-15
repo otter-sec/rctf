@@ -1,30 +1,19 @@
 <script lang="ts">
   import { cn, countryCodeToFlagFilename, getInitials, getRankStylesForPosition } from '$lib/utils'
-  import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
-  import ScoresSolveCells from './scores-solve-cells.svelte'
-  import ScoresSparkline from './scores-sparkline.svelte'
-  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
-
-  interface TeamData {
-    id: string
-    rank: number | null
-    globalRank?: number | null
-    name: string
-    avatarUrl: string | null
-    countryCode: string | null
-    statusText: string | null
-    score: number
-    solveCount: number
-    delta?: number
-    sparklineData?: { time: number; score: number }[]
-    isCurrentUser: boolean
-    divisionPlace?: number | null
-    divisionName?: string | null
-    color?: string
-  }
+  import type { ScoresTeamRowData } from './scores-leaderboard-team-row-data'
+  import ScoresDeltaIndicator from './scores-leaderboard-team-row-delta-indicator.svelte'
+  import ScoresSolveCells from './scores-leaderboard-team-row-solve-cells.svelte'
+  import ScoresSparkline from './scores-leaderboard-team-row-sparkline.svelte'
+  import type {
+    CategoryGroup,
+    ChallengeInfo,
+    SortMode,
+    TooltipData,
+    ViewMode,
+  } from './scores-shared-types'
 
   interface Props {
-    data: TeamData | null
+    data: ScoresTeamRowData | null
     solves: Set<string> | null
     solveTimes: Map<string, number> | null
     themeEpoch: number
@@ -82,20 +71,29 @@
 
 <div
   class={cn(
-    'score-row-team-cell bg-background-l0 sticky left-0 h-(--row-height) w-(--team-column-width) shrink-0',
+    'score-row-team-cell bg-background-l0 sticky left-0 h-(--row-height)',
+    'w-(--team-column-width) shrink-0',
     isSelf ? 'z-30' : 'z-10'
   )}
 >
   <div
     aria-hidden="true"
-    class="score-row-team-focus-ring pointer-events-none absolute inset-0 z-30 rounded-lg border-[3px] border-solid border-transparent opacity-0 md:rounded-r-none md:border-r-0"
+    class={[
+      'score-row-team-focus-ring pointer-events-none absolute inset-0 z-30 rounded-lg',
+      'border-[3px] border-solid border-transparent opacity-0',
+      'md:rounded-r-none md:border-r-0',
+    ]}
   ></div>
 
   <div
     class={cn(
-      'before:bg-background-l2 relative flex h-full w-full items-center gap-2 rounded-lg px-4 before:absolute before:inset-0 before:-z-10 before:rounded-lg md:rounded-r-none md:before:rounded-r-none',
+      'before:bg-background-l2 relative flex h-full w-full items-center gap-2 rounded-lg px-4',
+      'before:absolute before:inset-0 before:-z-10 before:rounded-lg',
+      'md:rounded-r-none md:before:rounded-r-none',
       styles?.gradient && [
-        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96 after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent md:after:rounded-r-none',
+        'after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-96',
+        'after:max-w-full after:rounded-lg after:bg-linear-to-r after:to-transparent',
+        'md:after:rounded-r-none',
         styles.gradient,
       ],
       data?.isCurrentUser && 'before:bg-background-self-l0'
@@ -120,21 +118,28 @@
       </div>
 
       <div
-        class="relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg sm:size-12"
+        class={[
+          'relative flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg',
+          'sm:size-12',
+        ]}
         data-slot="avatar"
       >
         {#if data.avatarUrl && !imgFailed}
           <img
             src={data.avatarUrl}
             alt={data.name}
+            decoding="async"
+            draggable="false"
             class="aspect-square size-full rounded-lg object-cover"
             onerror={() => (imgFailed = true)}
           />
         {:else}
           <!-- we need something more lightweight than bits-ui's avatar -->
           <span
-            class="bg-background-l4 text-foreground-l3 flex size-full items-center justify-center rounded-lg text-sm"
-            >{initials}</span
+            class={[
+              'bg-background-l4 text-foreground-l3 flex size-full items-center justify-center',
+              'rounded-lg text-sm',
+            ]}>{initials}</span
           >
         {/if}
       </div>
@@ -157,6 +162,8 @@
               src="/flags/{flagFilename}"
               alt="{data.countryCode} flag"
               title={data.countryCode}
+              decoding="async"
+              draggable="false"
               class="size-5 min-w-5 shrink-0"
             />
           {/if}
@@ -181,7 +188,10 @@
 
         {#if isDesktop}
           <div
-            class="pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block xl:pointer-events-auto xl:relative xl:opacity-100"
+            class={[
+              'pointer-events-none absolute hidden h-10 w-24 opacity-0 md:block',
+              'xl:pointer-events-auto xl:relative xl:opacity-100',
+            ]}
           >
             <ScoresSparkline
               data={data.sparklineData ?? []}
@@ -200,7 +210,8 @@
 {#if isDesktop}
   <div
     class={cn(
-      'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0 rounded-r-lg contain-[layout_style_paint] md:flex',
+      'score-row-content-cell bg-background-l2 relative hidden h-(--row-height) shrink-0',
+      'rounded-r-lg contain-[layout_style_paint] md:flex',
       !isSelf && isScrolling && 'pointer-events-none',
       isLoading && 'w-(--content-column-width) px-2',
       data?.isCurrentUser && 'bg-background-self-l0'
@@ -209,7 +220,10 @@
   >
     <div
       aria-hidden="true"
-      class="score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg border-[3px] border-l-0 border-solid border-transparent opacity-0"
+      class={[
+        'score-row-content-focus-ring pointer-events-none absolute inset-0 z-30 rounded-r-lg',
+        'border-[3px] border-l-0 border-solid border-transparent opacity-0',
+      ]}
     ></div>
 
     {#if !isLoading && data}
