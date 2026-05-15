@@ -1,12 +1,6 @@
 <script lang="ts">
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
-  import {
-    CUTOFF_TIME,
-    MEDAL_COLORS,
-    PAGE_SIZE,
-    SELF_COLOR,
-    X_AXIS_DIVISIONS,
-  } from '$lib/constants/scores'
+  import { MEDAL_COLORS, PAGE_SIZE, SELF_COLOR, X_AXIS_DIVISIONS } from '$lib/constants/scores'
   import {
     useClientConfig,
     useCurrentUser,
@@ -87,6 +81,9 @@
     isSelf: boolean
   }
 
+  const startTime = $derived(clientConfig?.startTime ?? 0)
+  const endTime = $derived(clientConfig?.endTime ?? Number.MAX_SAFE_INTEGER)
+
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
     const rawTop3 =
@@ -95,16 +92,8 @@
         : []
     const selfGraphData = selfGraphQuery.data
 
-    const filterByTime = (entries: GraphEntry[]) =>
-      entries
-        .map(e => ({
-          ...e,
-          points: e.points.filter(p => p.time <= CUTOFF_TIME),
-        }))
-        .filter(e => e.points.length > 0)
-
-    const mainTeams = filterByTime(rawGraph)
-    const contextTeams = filterByTime(rawTop3)
+    const mainTeams = rawGraph
+    const contextTeams = rawTop3
 
     const mainIds = new Set(mainTeams.map(t => t.id))
     const uniqueContextTeams = contextTeams.filter(t => !mainIds.has(t.id))
@@ -154,37 +143,36 @@
       !mainIds.has(selfGraphData.id) &&
       !selfIsOnCurrentPage
     ) {
-      const filteredSelf = filterByTime([selfGraphData])
-      if (filteredSelf.length > 0) {
-        const selfEntry = filteredSelf[0]!
-        teamMeta.set(selfEntry.id, {
-          index: -1,
-          color: SELF_COLOR,
-          isContext: false,
-          isSelf: true,
-        })
-        allTeams = [...allTeams, selfEntry]
-      }
+      teamMeta.set(selfGraphData.id, {
+        index: -1,
+        color: SELF_COLOR,
+        isContext: false,
+        isSelf: true,
+      })
+      allTeams = [...allTeams, selfGraphData]
     }
 
     const flatPoints = allTeams.flatMap(team => {
       const meta = teamMeta.get(team.id)!
-      return team.points
-        .toSorted((a, b) => a.time - b.time)
-        .map(p => ({
-          teamId: team.id,
-          teamName: team.name,
-          time: p.time,
-          score: p.score,
-          ...meta,
-        }))
+      return team.points.toReversed().map(p => ({
+        teamId: team.id,
+        teamName: team.name,
+        time: p.time,
+        score: p.score,
+        ...meta,
+      }))
     })
 
     return { allTeams, teamMeta, flatPoints }
   })
 
   const { flatPoints, teamMeta } = $derived(processedData)
-  const startTime = $derived(clientConfig?.startTime ?? 0)
+
+  const xDomain = $derived.by<[number, number] | undefined>(() => {
+    if (!clientConfig || flatPoints.length === 0) return undefined
+    return [startTime, endTime]
+  })
+
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
 
   const useMinutesFormat = $derived.by(() => {
@@ -229,6 +217,7 @@
     data={flatPoints}
     x="time"
     y="score"
+    {xDomain}
     yDomain={[0, null]}
     yNice
     padding={{ bottom: SCORE_GRAPH_AXIS_PADDING_PX }}

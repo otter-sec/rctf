@@ -1,5 +1,4 @@
 import {
-  CUTOFF_TIME,
   DELTA_WINDOW,
   SELF_COLOR,
   SPARKLINE_WINDOW,
@@ -197,8 +196,7 @@ export function getSparklineDataByTeam(
   let maxTime = 0
   for (const team of allTeams) {
     for (const point of team.points) {
-      if (point.time <= CUTOFF_TIME && point.time > maxTime)
-        maxTime = point.time
+      if (point.time > maxTime) maxTime = point.time
     }
   }
   const windowStart = maxTime - SPARKLINE_WINDOW
@@ -217,8 +215,7 @@ export function getRankDeltaByTeam(
   let currentTime = -Infinity
   for (const team of allGraphData) {
     for (const point of team.points) {
-      if (point.time <= CUTOFF_TIME && point.time > currentTime)
-        currentTime = point.time
+      if (point.time > currentTime) currentTime = point.time
     }
   }
   if (currentTime === -Infinity) return new Map()
@@ -347,9 +344,7 @@ function filterPoints(
   points: ScoreGraphPoint[],
   minTime = 0
 ): ScoreGraphPoint[] {
-  return points.filter(
-    point => point.time >= minTime && point.time <= CUTOFF_TIME
-  )
+  return points.filter(point => point.time >= minTime)
 }
 
 function getScoresAt(
