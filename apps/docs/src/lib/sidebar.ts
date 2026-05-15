@@ -82,8 +82,13 @@ export function createSidebarContext(docs: Doc[]): SidebarContext {
   }
 }
 
-async function loadSidebarContext(): Promise<SidebarContext> {
-  return createSidebarContext(await getAllDocs())
+let sidebarContextPromise: Promise<SidebarContext> | null = null
+
+export function loadSidebarContext(): Promise<SidebarContext> {
+  if (!sidebarContextPromise) {
+    sidebarContextPromise = getAllDocs().then(createSidebarContext)
+  }
+  return sidebarContextPromise
 }
 
 type OrderKey = {
@@ -235,6 +240,105 @@ export function getFlatDocOrderFromContext(
 
 export async function getFlatDocOrder(pathname: string = '/'): Promise<FlatDoc[]> {
   return getFlatDocOrderFromContext(await loadSidebarContext(), pathname)
+}
+
+export type ScrollGroupPage = {
+  doc: Doc
+  href: string
+  label: string
+}
+
+export type ScrollableDocGroup = {
+  path: string
+  label: string
+  description?: string
+  pages: ScrollGroupPage[]
+}
+
+function parentPath(path: string): string {
+  const parts = path.split('/')
+  return parts.slice(0, -1).join('/')
+}
+
+function ownName(path: string): string {
+  const parts = path.split('/')
+  return parts[parts.length - 1] ?? path
+}
+
+function groupOverride(path: string): MetaItemOverride {
+  const parent = parentPath(path)
+  return metaFor(parent).items?.[ownName(path)] ?? {}
+}
+
+function groupLabel(path: string): string {
+  const own = metaFor(path)
+  const override = groupOverride(path)
+  return own.label ?? override.label ?? titleCase(ownName(path))
+}
+
+function isScrollableGroup(path: string): boolean {
+  const own = metaFor(path)
+  const override = groupOverride(path)
+  return own.scrollable ?? override.scrollable ?? false
+}
+
+function docGroupAncestors(doc: Doc): string[] {
+  if (doc.id === 'index') return []
+
+  const parts = doc.id.split('/')
+  const isIndexDoc = /[/\\]index\.mdx?$/.test(doc.filePath ?? '')
+  const dirs = isIndexDoc ? parts : parts.slice(0, -1)
+
+  const paths: string[] = []
+
+  for (let length = dirs.length; length > 0; length--) {
+    paths.push(dirs.slice(0, length).join('/'))
+  }
+
+  return paths
+}
+
+function docBelongsToGroup(doc: Doc, groupPath: string): boolean {
+  return (
+    doc.id === groupPath || doc.id === `${groupPath}/index` || doc.id.startsWith(`${groupPath}/`)
+  )
+}
+
+function groupPagesFromFlatOrder(
+  context: SidebarContext,
+  groupPath: string,
+  pathname: string
+): ScrollGroupPage[] {
+  return getFlatDocOrderFromContext(context, pathname).flatMap(page => {
+    const doc = context.docByHref.get(page.href)
+    if (!doc || !docBelongsToGroup(doc, groupPath)) return []
+    return [{ doc, href: page.href, label: page.label }]
+  })
+}
+
+export function getScrollableGroupFromContext(
+  context: SidebarContext,
+  doc: Doc,
+  pathname: string
+): ScrollableDocGroup | null {
+  const groupPath = docGroupAncestors(doc).find(isScrollableGroup)
+  if (!groupPath) return null
+
+  const pages = groupPagesFromFlatOrder(context, groupPath, pathname)
+  if (pages.length <= 1) return null
+
+  const overview = pages.find(
+    page => page.doc.id === groupPath || page.doc.id === `${groupPath}/index`
+  )
+  const group: ScrollableDocGroup = {
+    path: groupPath,
+    label: groupLabel(groupPath),
+    pages,
+  }
+
+  if (overview?.doc.data.description) group.description = overview.doc.data.description
+
+  return group
 }
 
 export type IndexChild = {

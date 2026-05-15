@@ -19,9 +19,9 @@ const { tree } = Astro.props
 const gitHubLink = SOCIAL_LINKS.find(link => link.label === 'GitHub')
 ---
 
-<aside class='hidden xl:block' aria-label='Site navigation'>
+<aside transition:persist class='hidden xl:block' aria-label='Site navigation'>
   <div
-    class='sticky top-[var(--docs-announcement-offset,0px)] flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6'
+    class='sticky top-(--docs-announcement-offset,0px) flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6'
   >
     <Link href={BASE_URL} class='flex items-center no-underline' aria-label={SITE.title}>
       <span

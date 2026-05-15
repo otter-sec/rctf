@@ -11,7 +11,7 @@ import PageHead from '@/components/page-head.astro'
 import TOCHeader from '@/components/toc-header.astro'
 import TOCSidebar from '@/components/toc-sidebar.astro'
 import Base from '@/layouts/base.astro'
-import { docOgImageHref, type Doc } from '@/lib/docs'
+import { docHref, docOgImageHref, type Doc } from '@/lib/docs'
 import { renderDescription } from '@/lib/render-description'
 import type { IndexChild } from '@/lib/sidebar'
 import { cn } from '@/lib/utils'
@@ -30,6 +30,11 @@ interface Props {
   tocMaxDepth: number
   tocEnabled: boolean
   indexChildren: IndexChild[]
+  scrollGroup?: {
+    path: string
+    label: string
+    description?: string
+  } | null
 }
 
 const {
@@ -44,21 +49,23 @@ const {
   tocMaxDepth,
   tocEnabled,
   indexChildren,
+  scrollGroup = null,
 } = Astro.props
 
 const isDocsHome = doc.id === 'index'
-const hasArticleNavigation = Boolean(prev || next)
+const hasArticleNavigation = Boolean(prev || next) && !scrollGroup
 const currentYear = new Date().getFullYear()
 const banner = typeof doc.data.banner === 'string' ? doc.data.banner : null
 const hasBanner = Boolean(banner)
 const bannerSize = isDocsHome ? 'full' : 'compact'
+const pageTitle = scrollGroup?.label ?? doc.data.title
+const pageDescription = scrollGroup?.description ?? doc.data.description
+const pageHeaderEnabled = scrollGroup ? true : doc.data.pageHeader
 
 const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
 
-const renderedTitle = await renderDescription(doc.data.title)
-const renderedDescription = doc.data.description
-  ? await renderDescription(doc.data.description)
-  : null
+const renderedTitle = await renderDescription(pageTitle)
+const renderedDescription = pageDescription ? await renderDescription(pageDescription) : null
 
 const renderedIndexChildren = await Promise.all(
   indexChildren.map(async child => ({
@@ -75,6 +82,7 @@ const renderedIndexChildren = await Promise.all(
     title={renderedTitle.plain}
     description={renderedDescription?.plain}
     image={docOgImageHref(doc.id)}
+    canonicalHref={scrollGroup ? docHref(scrollGroup.path) : undefined}
   />
   {editUrl && <meta slot='head' name='docs-edit-url' content={editUrl} />}
 
@@ -99,20 +107,32 @@ const renderedIndexChildren = await Promise.all(
         <div
           class={cn(
             'grid grid-cols-1 gap-8',
-            doc.data.wide && tocEnabled
-              ? 'xl:grid-cols-[minmax(0,64rem)_minmax(14rem,16rem)]'
-              : doc.data.wide
-                ? 'xl:grid-cols-[minmax(0,64rem)]'
-                : 'xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]'
+            scrollGroup
+              ? 'xl:grid-cols-[minmax(0,60rem)]'
+              : doc.data.wide && tocEnabled
+                ? 'xl:grid-cols-[minmax(0,64rem)_minmax(14rem,16rem)]'
+                : doc.data.wide
+                  ? 'xl:grid-cols-[minmax(0,64rem)]'
+                  : 'xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]'
           )}
         >
           <article
-            class={cn('mx-auto w-full min-w-0 xl:mx-0', doc.data.wide ? 'max-w-5xl' : 'max-w-2xl')}
+            class={cn(
+              'mx-auto w-full min-w-0 xl:mx-0',
+              scrollGroup ? 'max-w-5xl' : doc.data.wide ? 'max-w-5xl' : 'max-w-2xl'
+            )}
             data-pagefind-body
+            data-scroll-group-root={scrollGroup ? scrollGroup.path : undefined}
           >
             {
-              doc.data.pageHeader && (
-                <header class={cn('mt-6 mb-8 flex flex-col gap-3', !hasBanner && 'xl:-mt-3')}>
+              pageHeaderEnabled && (
+                <header
+                  class={cn(
+                    'mt-6 mb-8 flex flex-col gap-3',
+                    !hasBanner && 'xl:-mt-3',
+                    scrollGroup && 'max-w-2xl'
+                  )}
+                >
                   <h1
                     id='post-title'
                     class='text-3xl leading-tight font-medium sm:text-4xl'
@@ -131,9 +151,15 @@ const renderedIndexChildren = await Promise.all(
               )
             }
 
-            <div class='prose max-w-none'>
-              <slot />
-            </div>
+            {
+              scrollGroup ? (
+                <slot />
+              ) : (
+                <div class='prose max-w-none'>
+                  <slot />
+                </div>
+              )
+            }
 
             {
               renderedIndexChildren.length > 0 && (
@@ -171,12 +197,12 @@ const renderedIndexChildren = await Promise.all(
           </article>
 
           {
-            tocEnabled ? (
+            tocEnabled && !scrollGroup ? (
               <TOCSidebar
                 headings={headings}
                 minDepth={tocMinDepth}
                 maxDepth={tocMaxDepth}
-                title={doc.data.title}
+                title={pageTitle}
                 class={hasBanner ? (bannerSize === 'full' ? 'mt-36' : 'mt-12') : undefined}
               />
             ) : !doc.data.wide ? (
@@ -191,6 +217,8 @@ const renderedIndexChildren = await Promise.all(
 
 <script>
   import { mountKatexStyles } from '@/lib/client/katex-styles'
+  import { mountScrollGroup } from '@/lib/client/scroll-group'
 
   mountKatexStyles()
+  mountScrollGroup()
 </script>

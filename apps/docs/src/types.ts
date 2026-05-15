@@ -33,6 +33,7 @@ export type MetaItemOverride = {
   hidden?: boolean
   collapsed?: boolean
   forceOpen?: boolean
+  scrollable?: boolean
 }
 
 export type MetaFile = {
@@ -42,6 +43,7 @@ export type MetaFile = {
   forceOpen?: boolean
   badge?: SidebarBadge
   hidden?: boolean
+  scrollable?: boolean
   items?: Record<string, MetaItemOverride>
 }
 

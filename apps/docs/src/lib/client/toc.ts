@@ -4,12 +4,47 @@ export type HeadingRegion = {
   end: number
 }
 
-const CONTENT_HEADING_SELECTOR = '.prose h2, .prose h3, .prose h4, .prose h5, .prose h6'
+const CONTENT_HEADING_SELECTOR = [
+  '.prose h2:not([data-scroll-page-title])',
+  '.prose h3',
+  '.prose h4',
+  '.prose h5',
+  '.prose h6',
+].join(', ')
+const SCROLL_GROUP_HEADING_SELECTOR = '.prose [data-scroll-page-title]'
 const DEFAULT_HEADER_OFFSET = 120
 const DEFAULT_SCROLL_THRESHOLD = 5
 
-export function getContentHeadings(): HTMLElement[] {
-  return Array.from(document.querySelectorAll<HTMLElement>(CONTENT_HEADING_SELECTOR)).filter(
+export function normalizeGroupedHeadingIds(): void {
+  document.querySelectorAll<HTMLElement>('[data-scroll-page-section]').forEach(section => {
+    const prefix = section.dataset.scrollPagePrefix
+    if (!prefix || section.dataset.scrollPageHeadingsNormalized === 'true') return
+
+    section.querySelectorAll<HTMLElement>('h2, h3, h4, h5, h6').forEach(heading => {
+      if (!heading.id || heading.hasAttribute('data-scroll-page-title')) return
+
+      const oldId = heading.id
+      const newId = `${prefix}-${oldId}`
+      heading.id = newId
+
+      section.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(link => {
+        if (link.getAttribute('href') === `#${oldId}`) link.setAttribute('href', `#${newId}`)
+      })
+    })
+
+    section.dataset.scrollPageHeadingsNormalized = 'true'
+  })
+}
+
+export function getContentHeadings(mode: 'content' | 'scroll-pages' = 'content'): HTMLElement[] {
+  normalizeGroupedHeadingIds()
+
+  const selector =
+    mode === 'scroll-pages' && document.querySelector('[data-scroll-page-section]')
+      ? SCROLL_GROUP_HEADING_SELECTOR
+      : CONTENT_HEADING_SELECTOR
+
+  return Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
     heading => Boolean(heading.id) && heading.offsetParent !== null
   )
 }

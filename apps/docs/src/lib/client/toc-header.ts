@@ -59,7 +59,7 @@ function resetState(): void {
 }
 
 function buildRegions(): void {
-  state.headings = getContentHeadings()
+  state.headings = getContentHeadings('scroll-pages')
   state.regions = buildHeadingRegions(state.headings)
 }
 
@@ -228,11 +228,9 @@ function initMobileTocHeader(): void {
 }
 
 export function mountMobileTocHeader(): void {
-  initMobileTocHeader()
-
   if (lifecycleReady) return
   lifecycleReady = true
 
   document.addEventListener('astro:before-swap', cleanupMobileTocHeader)
-  document.addEventListener('astro:after-swap', initMobileTocHeader)
+  document.addEventListener('astro:page-load', initMobileTocHeader)
 }

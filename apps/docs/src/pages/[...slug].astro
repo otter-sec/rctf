@@ -1,7 +1,9 @@
 ---
+import ScrollPageToc from '@/components/scroll-page-toc.astro'
 import DocLayout from '@/layouts/doc.astro'
 import {
   docHref,
+  docLabel,
   docSlugFromId,
   getAllDocs,
   getEditUrl,
@@ -11,12 +13,17 @@ import {
 } from '@/lib/docs'
 import { gitLastUpdated } from '@/lib/git-lastmod'
 import { mdxComponents } from '@/lib/mdx-components'
+import { renderDescription } from '@/lib/render-description'
+import { scrollGroupSectionId } from '@/lib/scroll-groups'
 import {
-  createSidebarContext,
   getIndexChildrenFromContext,
   getPrevNextFromContext,
+  getScrollableGroupFromContext,
   getSidebarTreeFromContext,
+  loadSidebarContext,
 } from '@/lib/sidebar'
+import { trimTrailingSlash } from '@/lib/utils'
+import type { MarkdownHeading } from 'astro'
 import { render } from 'astro:content'
 
 export async function getStaticPaths() {
@@ -32,29 +39,83 @@ interface Props {
 }
 
 const { doc } = Astro.props
-const [renderedDoc, docs] = await Promise.all([render(doc), getAllDocs()])
-const { Content, headings } = renderedDoc
-const sidebarContext = createSidebarContext(docs)
+const sidebarContext = await loadSidebarContext()
 
 const href = docHref(doc.id)
 const isIndex = doc.id === 'index' || /\/index\.mdx?$/.test(doc.filePath ?? '')
+const scrollGroup = getScrollableGroupFromContext(sidebarContext, doc, href)
+const pages = scrollGroup?.pages ?? [{ doc, href, label: docLabel(doc) }]
+
+function docLastUpdated(doc: Doc): Date | null {
+  const frontmatterLastUpdated = resolveLastUpdated(doc)
+  return (
+    frontmatterLastUpdated ??
+    (doc.data.lastUpdated === false ? null : doc.filePath ? gitLastUpdated(doc.filePath) : null)
+  )
+}
+
+function latestDate(dates: Array<Date | null>): Date | null {
+  const sorted = dates
+    .filter((date): date is Date => date !== null)
+    .sort((a, b) => b.getTime() - a.getTime())
+  return sorted[0] ?? null
+}
+
+const renderedPages = await Promise.all(
+  pages.map(async page => {
+    const isGroupOverview = scrollGroup
+      ? page.doc.id === scrollGroup.path || page.doc.id === `${scrollGroup.path}/index`
+      : false
+    const description = isGroupOverview ? undefined : page.doc.data.description
+    const [rendered, renderedLabel, renderedDescription] = await Promise.all([
+      render(page.doc),
+      renderDescription(page.label),
+      description ? renderDescription(description) : Promise.resolve(null),
+    ])
+
+    return {
+      ...page,
+      ...rendered,
+      sectionId: scrollGroupSectionId(page.doc.id),
+      tocHeadings: rendered.headings.map(heading => ({
+        ...heading,
+        slug: `${scrollGroupSectionId(page.doc.id)}-${heading.slug}`,
+      })),
+      renderedLabel,
+      renderedDescription,
+      isCurrent: trimTrailingSlash(page.href) === trimTrailingSlash(href),
+    }
+  })
+)
+
+const currentPage = renderedPages.find(page => page.isCurrent) ?? renderedPages[0]
+if (!currentPage) throw new Error(`Could not render docs page for ${doc.id}`)
+
+const Content = currentPage.Content
+const headings: MarkdownHeading[] = scrollGroup
+  ? renderedPages.map(page => ({
+      depth: 2,
+      slug: page.sectionId,
+      text: page.label,
+    }))
+  : currentPage.headings
 
 const sidebar = getSidebarTreeFromContext(sidebarContext, href)
 const prevNext = getPrevNextFromContext(sidebarContext, href)
 const indexChildren =
-  isIndex && doc.data.autoCards !== false ? getIndexChildrenFromContext(sidebarContext, href) : []
+  !scrollGroup && isIndex && doc.data.autoCards !== false
+    ? getIndexChildrenFromContext(sidebarContext, href)
+    : []
 
 let { prev, next } = prevNext
 if (doc.data.prev === false) prev = null
 if (doc.data.next === false) next = null
 const editUrl = getEditUrl(doc)
 
-const frontmatterLastUpdated = resolveLastUpdated(doc)
-const lastUpdated =
-  frontmatterLastUpdated ??
-  (doc.data.lastUpdated === false ? null : doc.filePath ? gitLastUpdated(doc.filePath) : null)
-
-const toc = resolveTOC(doc)
+const lastUpdated = scrollGroup
+  ? latestDate(scrollGroup.pages.map(page => docLastUpdated(page.doc)))
+  : docLastUpdated(doc)
+const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
 ---
 
 <DocLayout
@@ -69,6 +130,56 @@ const toc = resolveTOC(doc)
   tocMaxDepth={toc.maxDepth}
   tocEnabled={toc.enabled}
   indexChildren={indexChildren}
+  scrollGroup={scrollGroup}
 >
-  <Content components={mdxComponents} />
+  {
+    scrollGroup ? (
+      renderedPages.map((page, index) => {
+        const PageContent = page.Content
+
+        return (
+          <section
+            data-scroll-page-section
+            data-scroll-page-href={page.href}
+            data-scroll-page-target={page.sectionId}
+            data-scroll-page-prefix={page.sectionId}
+            data-pagefind-ignore={page.isCurrent ? undefined : ''}
+            class:list={[
+              'grid scroll-mt-32 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
+              index > 0 && 'border-border/70 mt-24 border-t pt-16',
+            ]}
+          >
+            <div class='prose max-w-none'>
+              <header class='not-prose mb-7'>
+                <h2
+                  id={page.sectionId}
+                  data-scroll-page-title
+                  class='text-foreground text-2xl leading-tight font-medium text-balance sm:text-3xl'
+                  data-doc-title
+                  set:html={page.renderedLabel.html}
+                />
+                {page.renderedDescription && (
+                  <p
+                    class='text-muted-foreground mt-3 text-lg text-pretty'
+                    data-doc-description
+                    set:html={page.renderedDescription.html}
+                  />
+                )}
+              </header>
+              <PageContent components={mdxComponents} />
+            </div>
+            <ScrollPageToc
+              headings={page.tocHeadings}
+              minDepth={toc.minDepth}
+              maxDepth={toc.maxDepth}
+              title={page.label}
+              titleTargetId={page.sectionId}
+            />
+          </section>
+        )
+      })
+    ) : (
+      <Content components={mdxComponents} />
+    )
+  }
 </DocLayout>
