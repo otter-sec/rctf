@@ -1,7 +1,7 @@
 import { findScrollAreaViewport } from './dom'
+import { mountClientModule } from './lifecycle'
 
 let cleanupScrollFades: (() => void) | null = null
-let lifecycleReady = false
 
 function setupScrollFades(): void {
   cleanupScrollFades?.()
@@ -49,14 +49,10 @@ function updateEditLink(): void {
   link.toggleAttribute('hidden', !url)
 }
 
-export function mountDocsAside(): void {
-  setupScrollFades()
-  updateEditLink()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', () => cleanupScrollFades?.())
-  document.addEventListener('astro:after-swap', setupScrollFades)
-  document.addEventListener('astro:after-swap', updateEditLink)
-}
+export const mountDocsAside = mountClientModule({
+  setup: () => {
+    setupScrollFades()
+    updateEditLink()
+  },
+  cleanup: () => cleanupScrollFades?.(),
+})

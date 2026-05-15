@@ -1,7 +1,7 @@
+import { mountClientModule } from './lifecycle'
 import { readStorage, writeStorage } from './storage'
 
 let controller: AbortController | null = null
-let lifecycleReady = false
 
 function toggleTheme(): void {
   const element = document.documentElement
@@ -39,12 +39,9 @@ function beforeSwap(event: Event): void {
   )
 }
 
-export function mountThemeToggle(): void {
-  initThemeToggle()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', beforeSwap)
-  document.addEventListener('astro:after-swap', initThemeToggle)
-}
+export const mountThemeToggle = mountClientModule({
+  setup: initThemeToggle,
+  // `beforeSwap` both aborts old click listeners and propagates the stored
+  // theme onto the incoming document before paint to avoid a flash.
+  cleanup: beforeSwap,
+})

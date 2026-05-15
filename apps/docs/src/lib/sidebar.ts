@@ -217,13 +217,7 @@ export async function getSidebarTree(pathname: string = '/'): Promise<SidebarNod
 function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
   for (const node of nodes) {
     if (node.type === 'link') {
-      acc.push({
-        id: '',
-        href: node.href,
-        title: node.label,
-        label: node.label,
-        hidden: false,
-      })
+      acc.push({ href: node.href, label: node.label })
     } else {
       flattenTree(node.items, acc)
     }

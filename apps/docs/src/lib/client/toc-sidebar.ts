@@ -1,4 +1,5 @@
 import { findScrollAreaViewport, withDatasetFlag } from './dom'
+import { mountClientModule } from './lifecycle'
 import {
   buildHeadingRegions,
   centerElementInScrollContainer,
@@ -38,7 +39,6 @@ const state: TocSidebarState = {
 let eventController: AbortController | null = null
 let visibilityObserver: MutationObserver | null = null
 let titleObserver: IntersectionObserver | null = null
-let lifecycleReady = false
 
 function resetState(): void {
   state.roots = Array.from(document.querySelectorAll<HTMLElement>('[data-toc-sidebar-root]')).map(
@@ -290,10 +290,7 @@ function initTocSidebar(): void {
   observeVisibilityChanges()
 }
 
-export function mountTocSidebar(): void {
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', cleanupTocSidebar)
-  document.addEventListener('astro:page-load', initTocSidebar)
-}
+export const mountTocSidebar = mountClientModule({
+  setup: initTocSidebar,
+  cleanup: cleanupTocSidebar,
+})

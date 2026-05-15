@@ -1,7 +1,7 @@
+import { mountClientModule } from './lifecycle'
+
 const INLINE_SHELL_SELECTOR = '.inline-shell-cmd'
 const COPY_FEEDBACK_MS = 1200
-
-let listenersReady = false
 
 async function copyCommand(button: HTMLElement): Promise<void> {
   if (button.dataset.copying === '1') return
@@ -49,10 +49,12 @@ function handleKeydown(event: KeyboardEvent): void {
   void copyCommand(button)
 }
 
-export function mountInlineShellCopy(): void {
-  if (listenersReady) return
-  listenersReady = true
-
-  document.addEventListener('click', handleClick)
-  document.addEventListener('keydown', handleKeydown)
-}
+// Delegated click/keydown listeners on `document` survive CSN navigations,
+// so there's nothing to set up per page.
+export const mountInlineShellCopy = mountClientModule({
+  setup: () => {},
+  initOnce: () => {
+    document.addEventListener('click', handleClick)
+    document.addEventListener('keydown', handleKeydown)
+  },
+})

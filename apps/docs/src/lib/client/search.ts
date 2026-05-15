@@ -20,13 +20,14 @@ type Pagefind = {
   init?: () => Promise<void>
 }
 
+import { mountClientModule } from './lifecycle'
+
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
 const PAGEFIND_URL = `${BASE_PATH}/pagefind/pagefind.js`
 const EMPTY_STATE_CLASS = 'text-muted-foreground px-3 py-8 text-center text-sm'
 
 let pagefindPromise: Promise<Pagefind | null> | null = null
 let searchController: AbortController | null = null
-let lifecycleReady = false
 
 async function loadPagefind(): Promise<Pagefind | null> {
   if (pagefindPromise) return pagefindPromise
@@ -237,12 +238,7 @@ function setupSearch(): void {
     .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
-export function mountDocsSearch(): void {
-  setupSearch()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', () => searchController?.abort())
-  document.addEventListener('astro:after-swap', setupSearch)
-}
+export const mountDocsSearch = mountClientModule({
+  setup: setupSearch,
+  cleanup: () => searchController?.abort(),
+})

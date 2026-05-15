@@ -86,9 +86,6 @@ export type SidebarGroup = {
 export type SidebarNode = SidebarLink | SidebarGroup
 
 export type FlatDoc = {
-  id: string
   href: string
-  title: string
   label: string
-  hidden: boolean
 }

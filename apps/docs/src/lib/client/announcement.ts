@@ -1,10 +1,9 @@
+import { mountClientModule } from './lifecycle'
 import { readStorage, writeStorage } from './storage'
 
 const ANNOUNCEMENT_SELECTOR = '[data-announcement-id]'
 const DISMISSED_ATTRIBUTE = 'data-docs-announcement-dismissed'
 const OFFSET_VAR = '--docs-announcement-offset'
-
-let listenersReady = false
 
 function storageKey(bar: HTMLElement): string | null {
   const id = bar.dataset.announcementId
@@ -62,14 +61,13 @@ function handleDismissClick(event: MouseEvent): void {
   updateAnnouncementOffset()
 }
 
-export function mountAnnouncementBar(): void {
-  applyDismissedState()
-
-  if (listenersReady) return
-  listenersReady = true
-
-  document.addEventListener('click', handleDismissClick)
-  window.addEventListener('scroll', updateAnnouncementOffset, { passive: true })
-  window.addEventListener('resize', updateAnnouncementOffset, { passive: true })
-  document.addEventListener('astro:after-swap', applyDismissedState)
-}
+// Click/scroll/resize are delegated to `document`/`window` once and survive
+// CSN navigations, so no per-page cleanup is needed.
+export const mountAnnouncementBar = mountClientModule({
+  setup: applyDismissedState,
+  initOnce: () => {
+    document.addEventListener('click', handleDismissClick)
+    window.addEventListener('scroll', updateAnnouncementOffset, { passive: true })
+    window.addEventListener('resize', updateAnnouncementOffset, { passive: true })
+  },
+})

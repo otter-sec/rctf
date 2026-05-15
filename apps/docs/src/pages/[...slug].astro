@@ -1,5 +1,5 @@
 ---
-import ScrollPageToc from '@/components/scroll-page-toc.astro'
+import TOCSidebar from '@/components/toc-sidebar.astro'
 import DocLayout from '@/layouts/doc.astro'
 import {
   docHref,
@@ -168,12 +168,13 @@ const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
               </header>
               <PageContent components={mdxComponents} />
             </div>
-            <ScrollPageToc
+            <TOCSidebar
               headings={page.tocHeadings}
               minDepth={toc.minDepth}
               maxDepth={toc.maxDepth}
               title={page.label}
               titleTargetId={page.sectionId}
+              pagefindIgnore
             />
           </section>
         )

@@ -10,10 +10,20 @@ interface Props {
   minDepth?: number
   maxDepth?: number
   title?: string
+  titleTargetId?: string
+  pagefindIgnore?: boolean
   class?: string
 }
 
-const { headings, minDepth = 2, maxDepth = 4, title, class: className } = Astro.props
+const {
+  headings,
+  minDepth = 2,
+  maxDepth = 4,
+  title,
+  titleTargetId,
+  pagefindIgnore = false,
+  class: className,
+} = Astro.props
 const renderedTitle = title ? await renderDescription(title) : null
 const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
 ---
@@ -21,13 +31,17 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
 {
   visible.length > 0 && (
     <aside
-      id='toc-sidebar-container'
       data-toc-sidebar-root
-      class={cn('sticky top-16 hidden h-[calc(100vh-8rem)] max-w-xs flex-col xl:flex', className)}
+      data-pagefind-ignore={pagefindIgnore ? '' : undefined}
+      class={cn(
+        'sticky top-16 hidden h-[calc(100vh-8rem)] max-w-xs flex-col self-start xl:flex',
+        className
+      )}
     >
       {renderedTitle && (
         <div
           data-toc-sidebar-title-wrapper
+          data-toc-title-target={titleTargetId}
           data-open='false'
           class='grid shrink-0 grid-rows-[0fr] px-4 transition-[grid-template-rows] duration-200 ease-out data-[open=true]:grid-rows-[1fr]'
         >
@@ -41,7 +55,7 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
         </div>
       )}
       <ScrollArea
-        client:load
+        client:idle
         className='min-h-0 flex-1 overflow-y-auto'
         type='hover'
         data-toc-scroll-area

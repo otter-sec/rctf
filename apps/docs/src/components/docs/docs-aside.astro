@@ -1,6 +1,6 @@
 ---
-import wordmarkDark from '@/assets/wordmark-dark.svg?raw'
-import wordmarkLight from '@/assets/wordmark-light.svg?raw'
+import WordmarkDark from '@/assets/wordmark-dark.svg'
+import WordmarkLight from '@/assets/wordmark-light.svg'
 import EditLink from '@/components/docs/edit-link.astro'
 import SearchTrigger from '@/components/docs/search-trigger.astro'
 import Sidebar from '@/components/docs/sidebar.astro'
@@ -24,16 +24,8 @@ const gitHubLink = SOCIAL_LINKS.find(link => link.label === 'GitHub')
     class='sticky top-(--docs-announcement-offset,0px) flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6'
   >
     <Link href={BASE_URL} class='flex items-center no-underline' aria-label={SITE.title}>
-      <span
-        class='block h-6 w-auto dark:hidden [&_svg]:h-full [&_svg]:w-auto'
-        aria-hidden='true'
-        set:html={wordmarkLight}
-      />
-      <span
-        class='hidden h-6 w-auto dark:block [&_svg]:h-full [&_svg]:w-auto'
-        aria-hidden='true'
-        set:html={wordmarkDark}
-      />
+      <WordmarkLight class='block h-6 w-auto dark:hidden' aria-hidden='true' />
+      <WordmarkDark class='hidden h-6 w-auto dark:block' aria-hidden='true' />
     </Link>
 
     <SearchTrigger />

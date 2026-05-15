@@ -1,8 +1,8 @@
+import { mountClientModule } from './lifecycle'
+
 const TAB_ROOT_SELECTOR = '[data-tabs]'
 const TAB_SELECTOR = ':scope > [role="tablist"] > [data-tab-index]'
 const PANEL_WRAPPER_SELECTOR = ':scope > [data-tabs-panels]'
-
-let lifecycleReady = false
 
 function clampIndex(index: number, length: number): number {
   if (!Number.isFinite(index)) return 0
@@ -66,14 +66,9 @@ export function setupTabs(): void {
   document.querySelectorAll<HTMLElement>(TAB_ROOT_SELECTOR).forEach(setupTabRoot)
 }
 
-export function mountTabs(): void {
-  setupTabs()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:after-swap', () => {
+export const mountTabs = mountClientModule({
+  setup: () => {
     resetTabs()
     setupTabs()
-  })
-}
+  },
+})

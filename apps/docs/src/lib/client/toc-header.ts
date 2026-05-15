@@ -1,4 +1,5 @@
 import { findScrollAreaViewport } from './dom'
+import { mountClientModule } from './lifecycle'
 import {
   buildHeadingRegions,
   centerElementInScrollContainer,
@@ -38,7 +39,6 @@ const state: MobileTocState = {
 }
 
 let eventController: AbortController | null = null
-let lifecycleReady = false
 
 function resetState(): void {
   const tocContainer = document.getElementById('mobile-toc-container')
@@ -227,10 +227,7 @@ function initMobileTocHeader(): void {
   window.addEventListener('resize', handleResize, { passive: true, signal })
 }
 
-export function mountMobileTocHeader(): void {
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', cleanupMobileTocHeader)
-  document.addEventListener('astro:page-load', initMobileTocHeader)
-}
+export const mountMobileTocHeader = mountClientModule({
+  setup: initMobileTocHeader,
+  cleanup: cleanupMobileTocHeader,
+})

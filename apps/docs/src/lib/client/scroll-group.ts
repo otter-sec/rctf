@@ -1,4 +1,5 @@
 import { findScrollAreaViewport, isElementHidden, trimTrailingSlash } from './dom'
+import { mountClientModule } from './lifecycle'
 import { centerElementInScrollContainer, normalizeGroupedHeadingIds } from './toc'
 
 type ScrollGroupSection = {
@@ -11,7 +12,6 @@ type ScrollGroupSection = {
 const HEADER_OFFSET = 120
 
 let controller: AbortController | null = null
-let lifecycleReady = false
 let sections: ScrollGroupSection[] = []
 let activePath: string | null = null
 
@@ -175,10 +175,7 @@ function initScrollGroup(): void {
   scheduleInitialScroll()
 }
 
-export function mountScrollGroup(): void {
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', cleanupScrollGroup)
-  document.addEventListener('astro:page-load', initScrollGroup)
-}
+export const mountScrollGroup = mountClientModule({
+  setup: initScrollGroup,
+  cleanup: cleanupScrollGroup,
+})

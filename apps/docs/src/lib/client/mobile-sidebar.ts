@@ -1,5 +1,6 @@
+import { mountClientModule } from './lifecycle'
+
 let controller: AbortController | null = null
-let lifecycleReady = false
 
 function setupMobileSidebar(): void {
   const dialog = document.getElementById('mobile-sidebar') as HTMLDialogElement | null
@@ -46,12 +47,7 @@ function setupMobileSidebar(): void {
     .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
-export function mountMobileSidebar(): void {
-  setupMobileSidebar()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', () => controller?.abort())
-  document.addEventListener('astro:after-swap', setupMobileSidebar)
-}
+export const mountMobileSidebar = mountClientModule({
+  setup: setupMobileSidebar,
+  cleanup: () => controller?.abort(),
+})

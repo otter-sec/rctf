@@ -1,4 +1,5 @@
 import { isElementHidden, trimTrailingSlash, withDatasetFlag } from './dom'
+import { mountClientModule } from './lifecycle'
 import { readJsonRecord, readNumber, removeStorage, writeJson, writeStorage } from './storage'
 
 const SIDEBAR_GROUP_STATE_KEY = 'rctf-docs-sidebar-groups'
@@ -7,7 +8,6 @@ const SIDEBAR_PENDING_SCROLL_KEY = 'rctf-docs-sidebar-pending-scroll'
 const SIDEBAR_VIEWPORT_SELECTOR =
   'nav[aria-label="Documentation"] [data-slot="scroll-area-viewport"]'
 
-let lifecycleReady = false
 let syncingSidebarGroups = false
 
 const sidebarGroupsWithPersistence = new WeakSet<HTMLDetailsElement>()
@@ -182,12 +182,7 @@ function setupSidebar(): void {
   })
 }
 
-export function mountDocsSidebar(): void {
-  setupSidebar()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', saveVisibleSidebarScrolls)
-  document.addEventListener('astro:after-swap', setupSidebar)
-}
+export const mountDocsSidebar = mountClientModule({
+  setup: setupSidebar,
+  cleanup: saveVisibleSidebarScrolls,
+})
