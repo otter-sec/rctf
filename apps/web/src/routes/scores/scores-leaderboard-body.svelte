@@ -61,6 +61,7 @@
     themeEpoch: viewportState.themeRenderEpoch,
     renderEpoch,
     isScrolling: scroll.isScrolling,
+    isDesktop: viewportState.isDesktop,
     onCellHover,
   })
 

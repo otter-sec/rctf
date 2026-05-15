@@ -15,6 +15,7 @@
     isSelf?: boolean
     isLoading?: boolean
     isScrolling?: boolean
+    isDesktop?: boolean
     viewMode: ViewMode
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
@@ -36,6 +37,7 @@
     isSelf = false,
     isLoading = false,
     isScrolling = false,
+    isDesktop = true,
     viewMode,
     sortMode,
     categoryGroups,
@@ -131,47 +133,51 @@
           </small>
         </score-points>
 
-        <spark-line>
-          <ScoresSparkline
-            data={data.sparklineData ?? []}
-            id={data.id}
-            color={data.color ?? 'var(--foreground-l3)'}
-            onHover={onSparklineHover}
-            onUnhover={onSparklineUnhover}
-          />
-        </spark-line>
+        {#if isDesktop}
+          <spark-line>
+            <ScoresSparkline
+              data={data.sparklineData ?? []}
+              id={data.id}
+              color={data.color ?? 'var(--foreground-l3)'}
+              onHover={onSparklineHover}
+              onUnhover={onSparklineUnhover}
+            />
+          </spark-line>
+        {/if}
       </score-total>
     {/if}
   </team-surface>
 </score-team-cell>
 
-<score-content-cell
-  scrolling={(!isSelf && isScrolling) || undefined}
-  loading={isLoading || undefined}
-  current={data?.isCurrentUser || undefined}
->
-  <focus-ring aria-hidden="true"></focus-ring>
+{#if isDesktop}
+  <score-content-cell
+    scrolling={(!isSelf && isScrolling) || undefined}
+    loading={isLoading || undefined}
+    current={data?.isCurrentUser || undefined}
+  >
+    <focus-ring aria-hidden="true"></focus-ring>
 
-  {#if !isLoading && data}
-    <ScoresSolveCells
-      teamId={data.id}
-      {viewMode}
-      {sortMode}
-      {categoryGroups}
-      {challenges}
-      {focusedChallengeId}
-      {themeEpoch}
-      {renderEpoch}
-      getSolves={cid => solves?.has(cid) ?? false}
-      getSolveTime={cid => solveTimes?.get(cid)}
-      {getCategoryStats}
-      {getBloodIndex}
-      {onCellHover}
-      {isScrolling}
-      isCurrentUser={data.isCurrentUser}
-    />
-  {/if}
-</score-content-cell>
+    {#if !isLoading && data}
+      <ScoresSolveCells
+        teamId={data.id}
+        {viewMode}
+        {sortMode}
+        {categoryGroups}
+        {challenges}
+        {focusedChallengeId}
+        {themeEpoch}
+        {renderEpoch}
+        getSolves={cid => solves?.has(cid) ?? false}
+        getSolveTime={cid => solveTimes?.get(cid)}
+        {getCategoryStats}
+        {getBloodIndex}
+        {onCellHover}
+        {isScrolling}
+        isCurrentUser={data.isCurrentUser}
+      />
+    {/if}
+  </score-content-cell>
+{/if}
 
 <style>
   score-team-cell {

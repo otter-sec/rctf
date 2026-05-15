@@ -312,6 +312,9 @@
     isCurrentUser = false,
   }: Props = $props()
 
+  let activeTooltipData = $state<TooltipData | null>(null)
+  let activeTooltipKey = $state<string | null>(null)
+
   if (typeof document !== 'undefined') {
     registerStripConsumer()
     onDestroy(() => unregisterStripConsumer())
@@ -404,15 +407,27 @@
     return rendered
   })
 
-  function setCellHover(data: TooltipData, x: number, y: number) {
+  function setCellHover(key: string, data: TooltipData, x: number, y: number) {
+    if (activeTooltipKey === key) return
+    activeTooltipKey = key
+    activeTooltipData = data
     onCellHover(data, x, y)
   }
 
   function clearCellHover() {
+    if (!activeTooltipKey && !activeTooltipData) return
+    activeTooltipKey = null
+    activeTooltipData = null
     onCellHover(null, 0, 0)
   }
 
   onDestroy(() => clearCellHover())
+
+  $effect(() => {
+    if (isScrolling && activeTooltipData) {
+      clearCellHover()
+    }
+  })
 
   function handleChallengeMouseMove(e: MouseEvent) {
     if (isScrolling) return
@@ -440,6 +455,7 @@
     const bloodIndex = getBloodIndex(challenge.id)
     const solveTime = getSolveTime(challenge.id)
     setCellHover(
+      `challenge:${teamId}:${challenge.id}:${solved ? 1 : 0}:${bloodIndex}:${solveTime ?? ''}`,
       {
         type: 'challenge',
         teamId,
@@ -479,6 +495,7 @@
 
     const stats = getCategoryStats(group)
     setCellHover(
+      `category:${teamId}:${group.category}:${stats.solved}:${stats.total}`,
       {
         type: 'category',
         teamId,
