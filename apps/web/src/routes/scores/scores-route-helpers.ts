@@ -1,4 +1,4 @@
-import type { SortMode, ViewMode } from './scores-shared-types'
+import type { SortMode, ViewMode } from './types'
 
 export const MIN_SEARCH_LENGTH = 2
 

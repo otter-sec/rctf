@@ -1,4 +1,4 @@
-import type { SortMode, ViewMode } from './scores-shared-types'
+import type { SortMode, ViewMode } from './types'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 
@@ -35,7 +35,8 @@ export function loadScoresPreferences(): Partial<ScoresPreferences> {
 
 export function saveScoresPreferences(prefs: Partial<ScoresPreferences>) {
   try {
-    const current = loadScoresPreferences()
+    const stored = localStorage.getItem(STORAGE_KEY)
+    const current = stored ? parseScoresPreferences(JSON.parse(stored)) : {}
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...prefs }))
   } catch {}
 }

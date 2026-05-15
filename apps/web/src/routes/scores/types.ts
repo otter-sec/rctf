@@ -20,6 +20,12 @@ export interface CategoryTooltipData {
 
 export type TooltipData = ChallengeTooltipData | CategoryTooltipData
 
+export function isChallengeTooltipData(
+  data: TooltipData
+): data is ChallengeTooltipData {
+  return data.type === 'challenge'
+}
+
 export type ViewMode = 'challenges' | 'categories'
 export type SortMode = 'categories' | 'solves'
 

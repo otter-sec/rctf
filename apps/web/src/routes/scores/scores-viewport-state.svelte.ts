@@ -3,20 +3,23 @@ import { onMount } from 'svelte'
 import {
   getEmptyGraphVisibility,
   getGraphVisibility,
-} from './scores-leaderboard-data-transforms'
+} from './scores-data-helpers'
 import {
-  CELL_WIDTH,
-  DIAGONAL_OVERFLOW,
-  ROW_GAP,
-  ROW_HEIGHT,
-} from './scores-leaderboard-layout-constants'
+  SCORE_CELL_WIDTH_PX,
+  SCORE_DIAGONAL_OVERFLOW_PX,
+  SCORE_ROW_GAP_PX,
+  SCORE_ROW_HEIGHT_FULL_PX,
+  SCORE_SCROLL_RESET_DELAY_MS,
+  SCORE_SCROLL_THRESHOLD_PX,
+  SCORE_VIRTUAL_OVERSCAN,
+} from './scores-layout-constants'
 import type {
   CurrentUserScoreData,
   GraphVisibility,
   ScoreEntry,
   ScoreGraphEntry,
   ViewportVisibility,
-} from './scores-shared-types'
+} from './types'
 
 type ScoresScroll = ReturnType<typeof useInfiniteVirtualScroll>
 type SelfRowPosition = 'top' | 'bottom'
@@ -58,9 +61,9 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
   }
 
   const scroll = useInfiniteVirtualScroll({
-    rowHeight: ROW_HEIGHT,
-    overscan: 10,
-    isScrollingResetDelay: 100,
+    rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
+    overscan: SCORE_VIRTUAL_OVERSCAN,
+    isScrollingResetDelay: SCORE_SCROLL_RESET_DELAY_MS,
     onLoadMore: config.fetchNextPage,
     onScroll: handleScrollMetrics,
   })
@@ -105,16 +108,14 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
   })
 
   const contentWidth = $derived(
-    config.cellCount() * (CELL_WIDTH + ROW_GAP) + DIAGONAL_OVERFLOW
+    config.cellCount() * (SCORE_CELL_WIDTH_PX + SCORE_ROW_GAP_PX) +
+      SCORE_DIAGONAL_OVERFLOW_PX
   )
   const graph = createScoresViewportGraphState({
     config,
     scroll,
     viewportVisibility: () => viewportVisibility,
   })
-  const scrollbarYPadding = $derived(
-    getScrollbarYPadding(showSelfRow, selfRowPosition, media.isDesktop)
-  )
   const fadeRefreshKey = $derived({
     contentWidth,
     listScrollMargin: header.listScrollMargin,
@@ -178,9 +179,6 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     },
     get contextTeamIds() {
       return graph.contextTeamIds
-    },
-    get scrollbarYPadding() {
-      return scrollbarYPadding
     },
     get scrollMetrics() {
       return scrollMetrics
@@ -444,16 +442,15 @@ function readScrollMetrics(viewport: HTMLElement): ScrollMetrics {
 }
 
 function getFadeVisibility(metrics: ScrollMetrics) {
-  const threshold = 10
   return {
-    top: metrics.scrollTop > threshold,
+    top: metrics.scrollTop > SCORE_SCROLL_THRESHOLD_PX,
     bottom:
       metrics.scrollTop + metrics.clientHeight <
-      metrics.scrollHeight - threshold,
-    left: metrics.scrollLeft > threshold,
+      metrics.scrollHeight - SCORE_SCROLL_THRESHOLD_PX,
+    left: metrics.scrollLeft > SCORE_SCROLL_THRESHOLD_PX,
     right:
       metrics.scrollLeft + metrics.clientWidth <
-      metrics.scrollWidth - threshold,
+      metrics.scrollWidth - SCORE_SCROLL_THRESHOLD_PX,
   }
 }
 
@@ -540,22 +537,6 @@ function getUserVisibility(
     userVisible: itemTop >= viewportTop && itemBottom <= viewportBottom,
     userClippedTop: itemTop < viewportTop,
   }
-}
-
-function getScrollbarYPadding(
-  showSelfRow: boolean,
-  selfRowPosition: SelfRowPosition,
-  isDesktop: boolean
-): string {
-  const selfRowPb = 'pb-[calc(var(--row-height-full)+var(--row-gap))]'
-  const selfRowPt = isDesktop
-    ? 'pt-[calc(var(--header-height)+var(--row-height-full)+var(--row-gap))]'
-    : 'pt-[calc(var(--row-height-full)+var(--row-gap))]'
-
-  if (showSelfRow && selfRowPosition === 'top') return `${selfRowPt} pb-1`
-  if (showSelfRow)
-    return `${isDesktop ? 'pt-(--header-height)' : ''} ${selfRowPb}`
-  return `${isDesktop ? 'pt-(--header-height)' : ''} pb-1`
 }
 
 function getTotalCount(

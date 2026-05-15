@@ -1,12 +1,10 @@
 <script lang="ts" module>
-  import { CELL_GAP, CELL_HEIGHT, CELL_WIDTH } from './scores-leaderboard-layout-constants'
-  import type {
-    CategoryGroup,
-    ChallengeInfo,
-    SortMode,
-    TooltipData,
-    ViewMode,
-  } from './scores-shared-types'
+  import {
+    SCORE_ROW_GAP_PX as CELL_GAP,
+    SCORE_CELL_HEIGHT_PX as CELL_HEIGHT,
+    SCORE_CELL_WIDTH_PX as CELL_WIDTH,
+  } from './scores-layout-constants'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
 
   interface RenderedStrip {
     svg: string
@@ -50,7 +48,6 @@
   const CATEGORY_ICON_SIZE = 28
   const MAX_RENDER_CACHE_ENTRIES = 512
 
-  // We inline these SVGs for performance to avoid component instantiation overhead
   const CHECK_PATH =
     'M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32'
   const DASHED_CIRCLE_PATH =
@@ -61,7 +58,6 @@
     'M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-2l-.15.005A2 2 0 0 0 9 9a1 1 0 0 0 1.974.23l.02-.113L11 9h2v2h-2l-.133.007c-1.111.12-1.154 1.73-.128 1.965l.128.021L11 13h2v2h-2l-.007-.117A1 1 0 0 0 9 15a2 2 0 0 0 1.85 1.995L11 17h2l.15-.005a2 2 0 0 0 1.844-1.838L15 15v-2l-.005-.15a2 2 0 0 0-.17-.667l-.075-.152l-.019-.032l.02-.03a2 2 0 0 0 .242-.795L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z',
   ] as const
 
-  // consumer ref-counting ensures cleanup when the last instance unmounts
   const stripCache = new Map<string, RenderedStrip>()
   const resolvedColorCache = new Map<string, string>()
   let lastPaletteScope = ''
@@ -159,7 +155,7 @@
     getSolves,
     getBloodIndex,
     palette,
-  }: ChallengeStripOptions) {
+  }: ChallengeStripOptions): RenderedStrip {
     const list = sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
     const width = list.length * (CELL_WIDTH + CELL_GAP)
     const parts: string[] = []
@@ -226,7 +222,7 @@
     categoryGroups,
     getCategoryStats,
     palette,
-  }: CategoryStripOptions) {
+  }: CategoryStripOptions): RenderedStrip {
     const width = categoryGroups.length * (CELL_WIDTH + CELL_GAP)
     const parts: string[] = []
 
@@ -275,7 +271,6 @@
 </script>
 
 <script lang="ts">
-  import { cn } from '$lib/utils'
   import { onDestroy } from 'svelte'
 
   interface Props {
@@ -356,7 +351,6 @@
   })
 
   const stripDataKey = $derived.by(() => {
-    // explicitly mark as dependency
     void renderEpoch
 
     if (viewMode === 'categories') {
@@ -406,9 +400,8 @@
             palette,
           })
 
-    const next: RenderedStrip = { svg: rendered.svg, width: rendered.width }
-    cacheStrip(key, next)
-    return next
+    cacheStrip(key, rendered)
+    return rendered
   })
 
   function setCellHover(key: string, data: TooltipData, x: number, y: number) {
@@ -518,38 +511,58 @@
   }
 </script>
 
-<div
-  class={cn(
-    'bg-background-l2 flex gap-1 rounded-r-md pr-(--diagonal-overflow) pl-1 contain-[layout_style_paint]',
-    isScrolling && 'pointer-events-none',
-    isCurrentUser && 'bg-background-self-l0'
-  )}
->
+<solve-cells scrolling={isScrolling || undefined} current={isCurrentUser || undefined}>
   {#snippet stripImage()}
     {#if strip}
-      <!-- inline svg renders synchronously with the row, avoiding the async
-           image loading pipeline that causes challenge circles to lag behind -->
-      <div
-        class="block h-16 shrink-0 select-none"
-        style:width={strip.width + 'px'}
-        aria-hidden="true"
-      >
+      <solve-strip style:width={strip.width + 'px'} aria-hidden="true">
         {@html strip.svg}
-      </div>
+      </solve-strip>
     {:else}
-      <div class="h-16 shrink-0" style:width={imageWidth + 'px'}></div>
+      <solve-strip loading style:width={imageWidth + 'px'} aria-hidden="true"></solve-strip>
     {/if}
   {/snippet}
 
   {#if viewMode === 'categories'}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="shrink-0" onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
+    <solve-hit-area onmousemove={handleCategoryMouseMove} onmouseleave={handleMouseLeave}>
       {@render stripImage()}
-    </div>
+    </solve-hit-area>
   {:else}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="shrink-0" onmousemove={handleChallengeMouseMove} onmouseleave={handleMouseLeave}>
+    <solve-hit-area onmousemove={handleChallengeMouseMove} onmouseleave={handleMouseLeave}>
       {@render stripImage()}
-    </div>
+    </solve-hit-area>
   {/if}
-</div>
+</solve-cells>
+
+<style>
+  solve-cells {
+    display: flex;
+    gap: calc(var(--spacing) * 1);
+    padding-inline-start: calc(var(--spacing) * 1);
+    padding-inline-end: var(--score-diagonal-overflow);
+    border-start-end-radius: var(--radius-md);
+    border-end-end-radius: var(--radius-md);
+    background: var(--background-l2);
+    contain: layout style paint;
+
+    &[scrolling] {
+      pointer-events: none;
+    }
+
+    &[current] {
+      background: var(--background-self-l0);
+    }
+
+    solve-strip {
+      display: block;
+      height: var(--score-row-height);
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    solve-hit-area {
+      flex-shrink: 0;
+    }
+  }
+</style>

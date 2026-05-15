@@ -4,7 +4,7 @@ import { onDestroy } from 'svelte'
 import {
   loadScoresPreferences,
   saveScoresPreferences,
-} from './scores-page-preferences'
+} from './scores-preferences'
 import {
   getActiveSearch,
   MIN_SEARCH_LENGTH,
@@ -14,8 +14,8 @@ import {
   withScoresSearch,
   withScoresSortMode,
   withScoresViewMode,
-} from './scores-page-url-params'
-import type { SortMode, ViewMode } from './scores-shared-types'
+} from './scores-route-helpers'
+import type { SortMode, ViewMode } from './types'
 
 const SEARCH_DEBOUNCE_MS = 400
 

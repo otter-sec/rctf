@@ -1,8 +1,4 @@
-import type {
-  CurrentUserScoreData,
-  ScoreEntry,
-  ScoreGraphPoint,
-} from './scores-shared-types'
+import type { CurrentUserScoreData, ScoreEntry, ScoreGraphPoint } from './types'
 
 export interface ScoresTeamRowData {
   id: string

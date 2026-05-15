@@ -19,7 +19,7 @@ import type {
   ScoreGraphEntry,
   ScoreGraphPoint,
   ScreenshotTeamEntry,
-} from './scores-shared-types'
+} from './types'
 
 interface ChallengeSource {
   name: string
@@ -225,11 +225,9 @@ export function getRankDeltaByTeam(
 
   const pastTime = currentTime - DELTA_WINDOW
   const allTeams = mergeWithSelfGraph(allGraphData, selfGraphData)
-  const teamsWithScores = allTeams.map(team => ({
-    id: team.id,
-    currentScore: getLatestScore(team.points, currentTime),
-    pastScore: getLatestScore(team.points, pastTime),
-  }))
+  const teamsWithScores = allTeams.map(team =>
+    getScoresAt(team, currentTime, pastTime)
+  )
   const currentRankMap = getRanks(teamsWithScores, 'currentScore')
   const pastRankMap = getRanks(teamsWithScores, 'pastScore')
 
@@ -354,16 +352,26 @@ function filterPoints(
   )
 }
 
-function getLatestScore(points: ScoreGraphPoint[], targetTime: number): number {
-  let latestTime = -Infinity
-  let latestScore = 0
-  for (const point of points) {
-    if (point.time <= targetTime && point.time > latestTime) {
-      latestTime = point.time
-      latestScore = point.score
+function getScoresAt(
+  team: ScoreGraphEntry,
+  currentTime: number,
+  pastTime: number
+): { id: string; currentScore: number; pastScore: number } {
+  let currentLatest = -Infinity
+  let currentScore = 0
+  let pastLatest = -Infinity
+  let pastScore = 0
+  for (const point of team.points) {
+    if (point.time <= currentTime && point.time > currentLatest) {
+      currentLatest = point.time
+      currentScore = point.score
+    }
+    if (point.time <= pastTime && point.time > pastLatest) {
+      pastLatest = point.time
+      pastScore = point.score
     }
   }
-  return latestScore
+  return { id: team.id, currentScore, pastScore }
 }
 
 function getRanks<T extends { currentScore: number; pastScore: number }>(

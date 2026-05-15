@@ -21,13 +21,13 @@ import {
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
-} from './scores-leaderboard-data-transforms'
+} from './scores-data-helpers'
 import type {
   CurrentUserScoreData,
   ScoreEntry,
   ScoreGraphEntry,
   SortMode,
-} from './scores-shared-types'
+} from './types'
 
 const LEADERBOARD_PAGE_SIZE = 100
 
@@ -107,15 +107,19 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     )
   )
 
-  $effect(() => {
+  function fetchFocusedChallengePages() {
+    // FIXME(es3n1n): When filtering by challenge we need every page loaded
+    //  to know which teams solved it, so chain-fetch until exhausted
     if (
       config.focusedChallengeId() &&
       leaderboardQuery.hasNextPage &&
       !leaderboardQuery.isFetchingNextPage
     ) {
-      leaderboardQuery.fetchNextPage()
+      void leaderboardQuery.fetchNextPage()
     }
-  })
+  }
+
+  $effect(fetchFocusedChallengePages)
 
   function getChallenges(sortMode: SortMode) {
     return sortMode === 'solves' ? challengesBySolves : challengesByCategory
