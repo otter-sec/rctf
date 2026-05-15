@@ -5,7 +5,7 @@ description: Reference for the bundled rCTF container, its build pipeline, in-co
 
 import Callout from '@/components/callout.astro'
 
-rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `<black>/api</black>` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
+rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `<route>/api</route>` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
 
 For deployment steps, see [Installation](/installation/) and the [VPS setup walkthrough](/running-a-successful-ctf/03-setup/). This page is a reference for the inner architecture.
 
@@ -93,7 +93,7 @@ CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 | Program | Command | Role |
 | --- | --- | --- |
 | `api` | `bun run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `nginx -g 'daemon off;'` | Serves `/app/static` and reverse-proxies `<black>/api</black>` and `/uploads` to `127.0.0.1:3000`. |
+| `nginx` | `nginx -g 'daemon off;'` | Serves `/app/static` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -155,7 +155,7 @@ Notable behavior:
 - `<red>brotli_static</red>` and `<red>gzip_static</red>` serve the `.br` and `.gz` files the SvelteKit `<red>adapter-static</red>` precompresses (`<red>precompress</red>`: `<green>true</green>` in `apps/web/svelte.config.ts`). No on-the-fly compression is configured.
 - `/_app/immutable/` is the SvelteKit hashed-asset directory and gets a one-day immutable cache.
 - The admin upload route has request buffering disabled and `<red>client_max_body_size</red>=<green>0</green>` so large uploads stream straight to the API.
-- `<black>/api</black>` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads` through its own static handler.
+- `<route>/api</route>` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads` through its own static handler.
 - nginx adds `<red>Referrer-Policy</red>`: `<green>no-referrer</green>`, `<red>X-Frame-Options</red>`: `<green>DENY</green>`, and `<red>X-Content-Type-Options</red>`: `<green>nosniff</green>` on every response. CSP is **not** set here.
 
 ## Content Security Policy

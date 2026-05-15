@@ -9,15 +9,15 @@ Challenge routes expose public challenge metadata, solve history, and the legacy
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `<cyan>GET</cyan>` | `<black>/api/v2/challs</black>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/challs/:id/solves</black>` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/challs</black>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/challs/:id/solves</black>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `<green>POST</green>` | `<black>/api/v1/challs/:id/submit</black>` | V1 | Required | Started + not ended |
+| `<route>GET</route>` | `<route>/api/v2/challs</route>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v2/challs/:id/solves</route>` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v1/challs</route>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v1/challs/:id/solves</route>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<route>POST</route>` | `<route>/api/v1/challs/:id/submit</route>` | V1 | Required | Started + not ended |
 
 ## V2 routes
 
-### `<cyan>GET</cyan> <black>/api/v2/challs</black>`
+### `<route>GET /api/v2/challs</route>`
 
 Returns the visible challenge list with V2 integration metadata.
 
@@ -59,7 +59,7 @@ Returns the visible challenge list with V2 integration metadata.
 
 **Errors**: `<red>401 badNotStarted</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/challs/:id/solves</black>`
+### `<route>GET /api/v2/challs/:id/solves</route>`
 
 Returns paginated solve history for one challenge.
 
@@ -98,7 +98,7 @@ Returns paginated solve history for one challenge.
         "id": "solve-id",
         "createdAt": 1710000000000,
         "userId": "team-id",
-        "userName": "maple bacon",
+        "userName": "otter-sec",
         "userAvatarUrl": null,
         "userCountryCode": "US",
         "userStatusText": null,
@@ -125,7 +125,7 @@ Returns paginated solve history for one challenge.
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `<cyan>GET</cyan> <black>/api/v1/challs</black>`
+### `<route>GET /api/v1/challs</route>`
 
 Differs from V2:
 
@@ -145,7 +145,7 @@ The V1 challenge list returns the same core fields without V2 integration metada
 | `solves`      | `number{:ts}`                          |
 | `sortWeight`  | `number \| null \| undefined{:ts}`     |
 
-### `<cyan>GET</cyan> <black>/api/v1/challs/:id/solves</black>`
+### `<route>GET /api/v1/challs/:id/solves</route>`
 
 Differs from V2:
 
@@ -161,14 +161,14 @@ Differs from V2:
         "id": "solve-id",
         "createdAt": 1710000000000,
         "userId": "team-id",
-        "userName": "maple bacon"
+        "userName": "otter-sec"
       }
     ]
   }
 }
 ```
 
-### `<green>POST</green> <black>/api/v1/challs/:id/submit</black>`
+### `<route>POST /api/v1/challs/:id/submit</route>`
 
 V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
@@ -178,7 +178,7 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 | Gate | Started + not ended |
 | Permissions | — |
 | Captcha action | — |
-| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`<black>/api#rate-limits</black>`](/api/#rate-limits). |
+| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`<route>/api#rate-limits</route>`](/api/#rate-limits). |
 
 **Path params**
 
@@ -202,7 +202,7 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
 `<green>200 goodFlag</green>` (no data) when the submitted flag is correct. The route records a solve for the team.
 
-The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`<black>/api/v2/admin/submissions</black>`](/api/admin/).
+The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`<route>/api/v2/admin/submissions</route>`](/api/admin/).
 
 **Errors**: `<red>400 badBody</red>`, `<red>404 badChallenge</red>`, `<red>400 badFlag</red>`, `<red>409 badAlreadySolvedChallenge</red>`, `<red>401 badNotStarted</red>`, `<red>401 badEnded</red>`, `<red>429 badRateLimit</red>`.
 

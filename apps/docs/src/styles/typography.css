@@ -171,7 +171,7 @@
     }
 
     :where(.inline-code-tone.is-black):not(:where(.not-prose, .not-prose *)) {
-      opacity: 0.66;
+      color: var(--muted-foreground);
     }
 
     :where(.inline-code-tone.is-red):not(:where(.not-prose, .not-prose *)) {

@@ -9,33 +9,33 @@ Leaderboard routes read cached standings produced by the leaderboard worker. The
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/now</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/with-graph</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/graph</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/challs</black>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/leaderboard/now</black>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/leaderboard/graph</black>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v2/leaderboard/now</route>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v2/leaderboard/with-graph</route>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v2/leaderboard/graph</route>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v2/leaderboard/challs</route>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v1/leaderboard/now</route>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<route>GET</route>` | `<route>/api/v1/leaderboard/graph</route>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
 
-Routes accept an optional auth token. When the token carries the listed permission bit, it bypasses the start-time gate. `<black>/api/v2/leaderboard/challs</black>` uses `challsRead{:ts}` instead of `leaderboardRead{:ts}`.
+Routes accept an optional auth token. When the token carries the listed permission bit, it bypasses the start-time gate. `<route>/api/v2/leaderboard/challs</route>` uses `challsRead{:ts}` instead of `leaderboardRead{:ts}`.
 
 ## Query parameters
 
-`<black>/now</black>`, `<black>/with-graph</black>`, and `<black>/graph</black>` use query-string pagination. The shared parameters:
+`<route>/now</route>`, `<route>/with-graph</route>`, and `<route>/graph</route>` use query-string pagination. The shared parameters:
 
 | Query | Routes | Required | Notes |
 | --- | --- | --- | --- |
 | `limit` | All list and graph routes | Yes | Integer greater than or equal to `1`. Config enforces the maximum. |
-| `offset` | V2 `<black>/now</black>`, V2 `<black>/with-graph</black>`, V2 `<black>/graph</black>`, V1 `<black>/now</black>` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
+| `offset` | V2 `<route>/now</route>`, V2 `<route>/with-graph</route>`, V2 `<route>/graph</route>`, V1 `<route>/now</route>` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
 | `division` | All list and graph routes | No | Filters standings to a configured division. |
-| `search` | V2 `<black>/now</black>`, V2 `<black>/with-graph</black>` only | No | Fuzzy team-name search. Must be 2 to 100 characters. |
+| `search` | V2 `<route>/now</route>`, V2 `<route>/with-graph</route>` only | No | Fuzzy team-name search. Must be 2 to 100 characters. |
 
-V1 `<black>/api/v1/leaderboard/graph</black>` accepts `limit` and optional `division`, but it does not accept `offset`.
+V1 `<route>/api/v1/leaderboard/graph</route>` accepts `limit` and optional `division`, but it does not accept `offset`.
 
 Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms — captcha-free but rate-limited) and return `<red>429 badRateLimit</red>` with `data.timeLeft` when the bucket is exhausted.
 
 ## V2 routes
 
-### `<cyan>GET</cyan> <black>/api/v2/leaderboard/now</black>`
+### `<route>GET /api/v2/leaderboard/now</route>`
 
 Returns the current standings page.
 
@@ -64,7 +64,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
     "leaderboard": [
       {
         "id": "team-id",
-        "name": "maple bacon",
+        "name": "otter-sec",
         "score": 1200,
         "avatarUrl": null,
         "countryCode": "US",
@@ -89,9 +89,9 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/leaderboard/with-graph</black>`
+### `<route>GET /api/v2/leaderboard/with-graph</route>`
 
-Returns the same standings payload as `<black>/now</black>`, plus graph samples. Useful for clients that render the standings table and the score graph together.
+Returns the same standings payload as `<route>/now</route>`, plus graph samples. Useful for clients that render the standings table and the score graph together.
 
 | Property       | Value                                                                        |
 | -------------- | ---------------------------------------------------------------------------- |
@@ -119,7 +119,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
     "graph": [
       {
         "id": "team-id",
-        "name": "maple bacon",
+        "name": "otter-sec",
         "points": [{ "time": 1710000000000, "score": 500 }]
       }
     ]
@@ -136,7 +136,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/leaderboard/graph</black>`
+### `<route>GET /api/v2/leaderboard/graph</route>`
 
 Returns only graph data.
 
@@ -164,7 +164,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
     "graph": [
       {
         "id": "team-id",
-        "name": "maple bacon",
+        "name": "otter-sec",
         "points": [{ "time": 1710000000000, "score": 500 }]
       }
     ]
@@ -181,7 +181,7 @@ The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` contr
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/leaderboard/challs</black>`
+### `<route>GET /api/v2/leaderboard/challs</route>`
 
 Returns challenge metadata used by leaderboard visualizations.
 
@@ -227,7 +227,7 @@ Returns challenge metadata used by leaderboard visualizations.
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `<cyan>GET</cyan> <black>/api/v1/leaderboard/now</black>`
+### `<route>GET /api/v1/leaderboard/now</route>`
 
 Returns the current standings page with the smaller V1 entry shape.
 
@@ -256,7 +256,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
     "leaderboard": [
       {
         "id": "team-id",
-        "name": "maple bacon",
+        "name": "otter-sec",
         "score": 1200
       }
     ]
@@ -266,7 +266,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v1/leaderboard/graph</black>`
+### `<route>GET /api/v1/leaderboard/graph</route>`
 
 Returns graph data. The response uses the same `<green>200 goodLeaderboardGraph</green>` shape as V2.
 

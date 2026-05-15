@@ -3,7 +3,7 @@ title: API reference
 description: Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions.
 ---
 
-The rCTF API is a JSON REST API mounted under `<black>/api</black>`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `<black>/api</black>`.
+The rCTF API is a JSON REST API mounted under `<route>/api</route>`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `<route>/api</route>`.
 
 ## Versions
 
@@ -11,8 +11,8 @@ Both API versions are available at the same time:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
-| V1 | `<black>/api/v1</black>` | Supported | Legacy clients and compatibility with the original rCTF API. |
-| V2 | `<black>/api/v2</black>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+| V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
 V2 keeps many response `kind` strings identical to v1 for compatible concepts. The response data may still be wider in v2.
 
@@ -84,7 +84,7 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<cyan>GET</cyan> <black>/api/v1/integrations/ctftime/leaderboard</black>` returns `{ "standings": [...] }` instead of an rCTF envelope.
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }` instead of an rCTF envelope.
 
 ## Request validation
 
@@ -121,7 +121,7 @@ When a route lists multiple permission bits, the user must have all of them.
 
 Routes marked as start-gated return `<red>401 badNotStarted</red>` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
 
-`<green>POST</green> <black>/api/v1/challs/:id/submit</black>` is also end-gated. It returns `<red>401 badEnded</red>` after `endTime`.
+`<route>POST /api/v1/challs/:id/submit</route>` is also end-gated. It returns `<red>401 badEnded</red>` after `endTime`.
 
 ## Captcha
 
@@ -129,13 +129,13 @@ Captcha-protected routes validate a challenge response only when the configured 
 
 | Action | Routes |
 | --- | --- |
-| `register{:ts}` | `<green>POST</green> <black>/api/v1/auth/register</black>`, `<green>POST</green> <black>/api/v2/auth/register</black>`. |
-| `recover{:ts}` | `<green>POST</green> <black>/api/v1/auth/recover</black>`, `<green>POST</green> <black>/api/v2/auth/recover</black>`. |
-| `setEmail{:ts}` | `<magenta>PUT</magenta> <black>/api/v1/users/me/auth/email</black>`, `<magenta>PUT</magenta> <black>/api/v2/users/me/auth/email</black>`. |
-| `avatarUpload{:ts}` | `<orange>PATCH</orange> <black>/api/v2/users/me/avatar</black>`. |
-| `instancerStart{:ts}` | `<magenta>PUT</magenta> <black>/api/v2/integrations/challs/:id/instance</black>`. |
-| `instancerExtend{:ts}` | `<orange>PATCH</orange> <black>/api/v2/integrations/challs/:id/instance</black>`. |
-| `adminBotSubmit{:ts}` | `<green>POST</green> <black>/api/v2/integrations/challs/:id/admin-bot</black>`. |
+| `register{:ts}` | `<route>POST /api/v1/auth/register</route>`, `<route>POST /api/v2/auth/register</route>`. |
+| `recover{:ts}` | `<route>POST /api/v1/auth/recover</route>`, `<route>POST /api/v2/auth/recover</route>`. |
+| `setEmail{:ts}` | `<route>PUT /api/v1/users/me/auth/email</route>`, `<route>PUT /api/v2/users/me/auth/email</route>`. |
+| `avatarUpload{:ts}` | `<route>PATCH /api/v2/users/me/avatar</route>`. |
+| `instancerStart{:ts}` | `<route>PUT /api/v2/integrations/challs/:id/instance</route>`. |
+| `instancerExtend{:ts}` | `<route>PATCH /api/v2/integrations/challs/:id/instance</route>`. |
+| `adminBotSubmit{:ts}` | `<route>POST /api/v2/integrations/challs/:id/admin-bot</route>`. |
 
 ## Rate limits
 

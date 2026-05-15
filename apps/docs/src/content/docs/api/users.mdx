@@ -9,27 +9,27 @@ User routes expose team profiles and account-level mutations. V2 adds avatar, co
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `<cyan>GET</cyan>` | `<black>/api/v2/users/:id</black>` | V2 | Public, optional admin bypass | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/users/me</black>` | V2 | Required | None |
-| `<orange>PATCH</orange>` | `<black>/api/v2/users/me</black>` | V2 | Required | None |
-| `<orange>PATCH</orange>` | `<black>/api/v2/users/me/avatar</black>` | V2 | Required | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v2/users/me/auth/email</black>` | V2 | Required | None |
-| `<cyan>GET</cyan>` | `<black>/api/v1/users/:id</black>` | V1 | Public, optional admin bypass | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/users/me</black>` | V1 | Required | None |
-| `<orange>PATCH</orange>` | `<black>/api/v1/users/me</black>` | V1 | Required | None |
-| `<cyan>GET</cyan>` | `<black>/api/v1/users/me/members</black>` | V1 | Required | None |
-| `<green>POST</green>` | `<black>/api/v1/users/me/members</black>` | V1 | Required | None |
-| `<red>DELETE</red>` | `<black>/api/v1/users/me/members/:id</black>` | V1 | Required | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v1/users/me/auth/email</black>` | V1 | Required | None |
-| `<red>DELETE</red>` | `<black>/api/v1/users/me/auth/email</black>` | V1 | Required | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v1/users/me/auth/ctftime</black>` | V1 | Required | None |
-| `<red>DELETE</red>` | `<black>/api/v1/users/me/auth/ctftime</black>` | V1 | Required | None |
+| `<route>GET</route>` | `<route>/api/v2/users/:id</route>` | V2 | Public, optional admin bypass | Started |
+| `<route>GET</route>` | `<route>/api/v2/users/me</route>` | V2 | Required | None |
+| `<route>PATCH</route>` | `<route>/api/v2/users/me</route>` | V2 | Required | None |
+| `<route>PATCH</route>` | `<route>/api/v2/users/me/avatar</route>` | V2 | Required | None |
+| `<route>PUT</route>` | `<route>/api/v2/users/me/auth/email</route>` | V2 | Required | None |
+| `<route>GET</route>` | `<route>/api/v1/users/:id</route>` | V1 | Public, optional admin bypass | Started |
+| `<route>GET</route>` | `<route>/api/v1/users/me</route>` | V1 | Required | None |
+| `<route>PATCH</route>` | `<route>/api/v1/users/me</route>` | V1 | Required | None |
+| `<route>GET</route>` | `<route>/api/v1/users/me/members</route>` | V1 | Required | None |
+| `<route>POST</route>` | `<route>/api/v1/users/me/members</route>` | V1 | Required | None |
+| `<route>DELETE</route>` | `<route>/api/v1/users/me/members/:id</route>` | V1 | Required | None |
+| `<route>PUT</route>` | `<route>/api/v1/users/me/auth/email</route>` | V1 | Required | None |
+| `<route>DELETE</route>` | `<route>/api/v1/users/me/auth/email</route>` | V1 | Required | None |
+| `<route>PUT</route>` | `<route>/api/v1/users/me/auth/ctftime</route>` | V1 | Required | None |
+| `<route>DELETE</route>` | `<route>/api/v1/users/me/auth/ctftime</route>` | V1 | Required | None |
 
-`<cyan>GET</cyan> <black>/api/v2/users/:id</black>` and `<cyan>GET</cyan> <black>/api/v1/users/:id</black>` can be read before the CTF starts by an admin token with `challsRead{:ts}`.
+`<route>GET /api/v2/users/:id</route>` and `<route>GET /api/v1/users/:id</route>` can be read before the CTF starts by an admin token with `challsRead{:ts}`.
 
 ## V2 routes
 
-### `<cyan>GET</cyan> <black>/api/v2/users/:id</black>`
+### `<route>GET /api/v2/users/:id</route>`
 
 Returns the public profile of a team.
 
@@ -56,7 +56,7 @@ Returns the public profile of a team.
   "kind": "goodUserData",
   "message": "The user's data was successfully retrieved.",
   "data": {
-    "name": "maple bacon",
+    "name": "otter-sec",
     "ctftimeId": null,
     "division": "open",
     "score": 1337,
@@ -85,7 +85,7 @@ Returns the public profile of a team.
 
 **Errors**: `<red>404 badUnknownUser</red>`, `<red>401 badNotStarted</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/users/me</black>`
+### `<route>GET /api/v2/users/me</route>`
 
 Returns the authenticated team's own profile, including account-private fields.
 
@@ -106,7 +106,7 @@ Returns the authenticated team's own profile, including account-private fields.
   "kind": "goodUserSelfData",
   "message": "The user's own data was successfully retrieved.",
   "data": {
-    "name": "maple bacon",
+    "name": "otter-sec",
     "ctftimeId": null,
     "division": "open",
     "score": 1337,
@@ -137,7 +137,7 @@ All other fields match the [public profile](#get-apiv2usersid).
 
 **Errors**: `<red>401 badToken</red>`.
 
-### `<orange>PATCH</orange> <black>/api/v2/users/me</black>`
+### `<route>PATCH /api/v2/users/me</route>`
 
 Updates profile fields. Recalculates cached user data and triggers a leaderboard update.
 
@@ -199,7 +199,7 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 
 **Errors**: `<red>400 badBody</red>`, `<red>400 badName</red>`, `<red>409 badKnownName</red>`, `<red>403 badDivisionNotAllowed</red>`, `<red>429 badRateLimit</red>`.
 
-### `<orange>PATCH</orange> <black>/api/v2/users/me/avatar</black>`
+### `<route>PATCH /api/v2/users/me/avatar</route>`
 
 Uploads or removes the team avatar. The route expects `multipart/form-data`.
 
@@ -240,7 +240,7 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 
 **Errors**: `<red>400 badBody</red>`, `<red>400 badAvatarFile</red>`, `<red>400 badAvatarFileSize</red>`, `<red>400 badModerationNotPassed</red>`, `<red>500 badFilesUpload</red>`, `<red>403 badCaptcha</red>`, `<red>429 badRateLimit</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v2/users/me/auth/email</black>`
+### `<route>PUT /api/v2/users/me/auth/email</route>`
 
 Updates the account email. When email delivery is configured, the route sends a verification email and returns `<green>200 goodVerifySent</green>`. When email delivery is not configured, it updates the email immediately and returns `<green>200 goodEmailSet</green>`.
 
@@ -274,7 +274,7 @@ Behavior branches on email provider configuration:
 
 | Condition | Success kind | Effect |
 | --- | --- | --- |
-| Email delivery configured | `<green>200 goodVerifySent</green>` | Sends a verification email; consume the token via [`<green>POST</green> <black>/api/v2/auth/verify</black>`](/api/auth/#post-apiv2authverify). |
+| Email delivery configured | `<green>200 goodVerifySent</green>` | Sends a verification email; consume the token via [`<route>POST /api/v2/auth/verify</route>`](/api/auth/#post-apiv2authverify). |
 | Email delivery not configured | `<green>200 goodEmailSet</green>` | Updates the email immediately. |
 
 Both kinds return no data.
@@ -285,23 +285,23 @@ Both kinds return no data.
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `<cyan>GET</cyan> <black>/api/v1/users/:id</black>`
+### `<route>GET /api/v1/users/:id</route>`
 
 Differs from V2: response omits `avatarUrl`, `countryCode`, `statusText`, and `bloodIndex` (on each entry in `solves`).
 
-### `<cyan>GET</cyan> <black>/api/v1/users/me</black>`
+### `<route>GET /api/v1/users/me</route>`
 
 Differs from V2: response omits `avatarUrl`, `countryCode`, and `statusText`.
 
-### `<orange>PATCH</orange> <black>/api/v1/users/me</black>`
+### `<route>PATCH /api/v1/users/me</route>`
 
-Differs from V2: only accepts `name` and `division`. Shares the profile name update rate limit (burst `3`, refill window `180000` ms per user) with [`<orange>PATCH</orange> <black>/api/v2/users/me</black>`](#patch-apiv2usersme).
+Differs from V2: only accepts `name` and `division`. Shares the profile name update rate limit (burst `3`, refill window `180000` ms per user) with [`<route>PATCH /api/v2/users/me</route>`](#patch-apiv2usersme).
 
-### `<magenta>PUT</magenta> <black>/api/v1/users/me/auth/email</black>`
+### `<route>PUT /api/v1/users/me/auth/email</route>`
 
 Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 — `<green>200 goodVerifySent</green>` when email delivery is configured, `<green>200 goodEmailSet</green>` otherwise. Same division-ACL and duplicate-email rejections apply.
 
-### `<red>DELETE</red> <black>/api/v1/users/me/auth/email</black>`
+### `<route>DELETE /api/v1/users/me/auth/email</route>`
 
 V1-only. Removes the account email. Preserves the `<red>409 badZeroAuth</red>` invariant: a team must keep at least one of email or CTFtime auth.
 
@@ -319,7 +319,7 @@ V1-only. Removes the account email. Preserves the `<red>409 badZeroAuth</red>` i
 
 **Errors**: `<red>404 badEmailNoExists</red>`, `<red>409 badZeroAuth</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v1/users/me/auth/ctftime</black>`
+### `<route>PUT /api/v1/users/me/auth/ctftime</route>`
 
 V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
@@ -349,7 +349,7 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
 **Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>401 badCtftimeToken</red>`, `<red>409 badKnownCtftimeId</red>`.
 
-### `<red>DELETE</red> <black>/api/v1/users/me/auth/ctftime</black>`
+### `<route>DELETE /api/v1/users/me/auth/ctftime</route>`
 
 V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `<red>409 badZeroAuth</red>`, which preserves the invariant that every team has at least one of email or CTFtime auth.
 
@@ -367,7 +367,7 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 
 **Errors**: `<red>404 badCtftimeNoExists</red>`, `<red>409 badZeroAuth</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v1/users/me/members</black>`
+### `<route>GET /api/v1/users/me/members</route>`
 
 V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `<red>404 badEndpoint</red>` when `userMembers` is disabled.
 
@@ -385,7 +385,7 @@ V1-only. Lists informational team-member email rows under the team account. Team
 
 **Errors**: `<red>404 badEndpoint</red>`.
 
-### `<green>POST</green> <black>/api/v1/users/me/members</black>`
+### `<route>POST /api/v1/users/me/members</route>`
 
 V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
@@ -415,7 +415,7 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
 **Errors**: `<red>400 badBody</red>`, `<red>400 badEmail</red>`, `<red>409 badKnownEmail</red>`, `<red>409 badTooManyMembers</red>`, `<red>404 badEndpoint</red>`.
 
-### `<red>DELETE</red> <black>/api/v1/users/me/members/:id</black>`
+### `<route>DELETE /api/v1/users/me/members/:id</route>`
 
 V1-only. Removes a team member email row.
 
@@ -459,8 +459,8 @@ The V1 solve shape omits `bloodIndex`.
 
 | Route | Scope | Bucket |
 | --- | --- | --- |
-| `<orange>PATCH</orange> <black>/api/v1/users/me</black>` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `<orange>PATCH</orange> <black>/api/v2/users/me</black>` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `<orange>PATCH</orange> <black>/api/v2/users/me/avatar</black>` | User | Avatar upload — burst `2`, refill window `120000` ms. |
+| `<route>PATCH /api/v1/users/me</route>` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `<route>PATCH /api/v2/users/me</route>` | User | Profile name update — burst `3`, refill window `180000` ms. |
+| `<route>PATCH /api/v2/users/me/avatar</route>` | User | Avatar upload — burst `2`, refill window `120000` ms. |
 
 The profile name update bucket is shared between V1 and V2 PATCH routes per user. See the global [rate limit summary](/api/#rate-limits) and the [response reference](/api/responses/) for envelope and error shapes.

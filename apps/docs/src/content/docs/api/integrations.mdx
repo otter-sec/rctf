@@ -9,24 +9,24 @@ Integration routes expose frontend configuration, CTFtime handoff, challenge ins
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/client/config</black>` | V2 | Public | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/analytics/script</black>` | V2 | Public | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
-| `<magenta>PUT</magenta>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
-| `<orange>PATCH</orange>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
-| `<red>DELETE</red>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/config</black>` | V2 | Public | Started |
-| `<green>POST</green>` | `<black>/api/v2/integrations/challs/:id/admin-bot</black>` | V2 | Required | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/status</black>` | V2 | Required | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/history</black>` | V2 | Required | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</black>` | V2 | Required | Started |
-| `<cyan>GET</cyan>` | `<black>/api/v1/integrations/client/config</black>` | V1 | Public | None |
-| `<green>POST</green>` | `<black>/api/v1/integrations/ctftime/callback</black>` | V1 | Public | None |
-| `<cyan>GET</cyan>` | `<black>/api/v1/integrations/ctftime/leaderboard</black>` | V1 | Permissioned | None |
+| `<route>GET</route>` | `<route>/api/v2/integrations/client/config</route>` | V2 | Public | None |
+| `<route>GET</route>` | `<route>/api/v2/integrations/analytics/script</route>` | V2 | Public | None |
+| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/instance</route>` | V2 | Required | Started |
+| `<route>PUT</route>` | `<route>/api/v2/integrations/challs/:id/instance</route>` | V2 | Required | Started |
+| `<route>PATCH</route>` | `<route>/api/v2/integrations/challs/:id/instance</route>` | V2 | Required | Started |
+| `<route>DELETE</route>` | `<route>/api/v2/integrations/challs/:id/instance</route>` | V2 | Required | Started |
+| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/config</route>` | V2 | Public | Started |
+| `<route>POST</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot</route>` | V2 | Required | Started |
+| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/status</route>` | V2 | Required | Started |
+| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/history</route>` | V2 | Required | Started |
+| `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>` | V2 | Required | Started |
+| `<route>GET</route>` | `<route>/api/v1/integrations/client/config</route>` | V1 | Public | None |
+| `<route>POST</route>` | `<route>/api/v1/integrations/ctftime/callback</route>` | V1 | Public | None |
+| `<route>GET</route>` | `<route>/api/v1/integrations/ctftime/leaderboard</route>` | V1 | Permissioned | None |
 
 ## Client config
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/client/config</black>`
+### `<route>GET /api/v2/integrations/client/config</route>`
 
 Returns the public client configuration consumed by the frontend.
 
@@ -74,7 +74,7 @@ Returns the public client configuration consumed by the frontend.
 | `isArchived` | `boolean{:ts}` | Whether the CTF has ended. |
 | `captcha` | `CaptchaClientConfig \| null{:ts}` | Public captcha provider options and protected endpoint map. |
 
-### `<cyan>GET</cyan> <black>/api/v1/integrations/client/config</black>`
+### `<route>GET /api/v1/integrations/client/config</route>`
 
 V1 client config. Differs from V2:
 
@@ -91,7 +91,7 @@ V1 client config. Differs from V2:
 
 ## Analytics script
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/analytics/script</black>`
+### `<route>GET /api/v2/integrations/analytics/script</route>`
 
 Returns the active analytics provider's JavaScript body. This route is not part of `@rctf/types`.
 
@@ -109,7 +109,7 @@ The route returns the provider's JavaScript body or a plain text error. It is no
 
 ## CTFtime
 
-### `<green>POST</green> <black>/api/v1/integrations/ctftime/callback</black>`
+### `<route>POST /api/v1/integrations/ctftime/callback</route>`
 
 V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team name and ID returned by CTFtime.
 
@@ -157,7 +157,7 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badCtftimeCode</red>`, `<red>404 badEndpoint</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v1/integrations/ctftime/leaderboard</black>`
+### `<route>GET /api/v1/integrations/ctftime/leaderboard</route>`
 
 V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route that returns its data directly without the rCTF envelope.
 
@@ -178,7 +178,7 @@ Raw body (200):
   "standings": [
     {
       "pos": 1,
-      "team": "maple bacon",
+      "team": "otter-sec",
       "score": 1200
     }
   ]
@@ -191,9 +191,9 @@ Raw body (200):
 
 ## Instancer lifecycle
 
-All four methods share the path `<black>/api/v2/integrations/challs/:id/instance</black>` and the same path params. The route returns `<red>404 badEndpoint</red>` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `<red>400 badInstancerError</red>` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
+All four methods share the path `<route>/api/v2/integrations/challs/:id/instance</route>` and the same path params. The route returns `<red>404 badEndpoint</red>` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `<red>400 badInstancerError</red>` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/instance</black>`
+### `<route>GET /api/v2/integrations/challs/:id/instance</route>`
 
 Returns the current instance status for the authenticated user.
 
@@ -237,7 +237,7 @@ Returns the current instance status for the authenticated user.
 
 **Errors**: `<red>404 badEndpoint</red>`, `<red>400 badInstancerError</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v2/integrations/challs/:id/instance</black>`
+### `<route>PUT /api/v2/integrations/challs/:id/instance</route>`
 
 Creates (starts) an instance for the authenticated user.
 
@@ -273,7 +273,7 @@ Creates (starts) an instance for the authenticated user.
 
 **Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
 
-### `<orange>PATCH</orange> <black>/api/v2/integrations/challs/:id/instance</black>`
+### `<route>PATCH /api/v2/integrations/challs/:id/instance</route>`
 
 Extends the running instance for the authenticated user.
 
@@ -309,7 +309,7 @@ Extends the running instance for the authenticated user.
 
 **Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
 
-### `<red>DELETE</red> <black>/api/v2/integrations/challs/:id/instance</black>`
+### `<route>DELETE /api/v2/integrations/challs/:id/instance</route>`
 
 Stops the instance for the authenticated user.
 
@@ -335,9 +335,9 @@ Stops the instance for the authenticated user.
 
 ## Admin bot participant routes
 
-Participant admin bot routes live under `<black>/api/v2/integrations/challs/:id/admin-bot/*</black>`. Admins with `challsRead` can bypass the start-time gate.
+Participant admin bot routes live under `<route>/api/v2/integrations/challs/:id/admin-bot/*</route>`. Admins with `challsRead` can bypass the start-time gate.
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/config</black>`
+### `<route>GET /api/v2/integrations/challs/:id/admin-bot/config</route>`
 
 Returns the released admin bot challenge source and its file extension.
 
@@ -375,7 +375,7 @@ Returns the released admin bot challenge source and its file extension.
 | `data.sourceCode`    | `string{:ts}` | Released admin bot challenge source.                   |
 | `data.fileExtension` | `string{:ts}` | File extension corresponding to the source's language. |
 
-### `<green>POST</green> <black>/api/v2/integrations/challs/:id/admin-bot</black>`
+### `<route>POST /api/v2/integrations/challs/:id/admin-bot</route>`
 
 Submits a participant admin bot job. Participants supply values for the configured input names.
 
@@ -433,7 +433,7 @@ The route returns `<red>400 badInstancerState</red>` when the challenge requires
 
 **Errors**: `<red>400 badBody</red>`, `<red>403 badCaptcha</red>`, `<red>429 badRateLimit</red>`, `<red>400 badInstancerState</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/status</black>`
+### `<route>GET /api/v2/integrations/challs/:id/admin-bot/status</route>`
 
 Returns the current active job for the authenticated user on that challenge.
 
@@ -476,7 +476,7 @@ Returns the current active job for the authenticated user on that challenge.
 | `data.job` | `AdminBotJobStatusResponse \| null{:ts}` | `null{:ts}` when the user has no active job for that challenge. |
 | `data.job.status` | `"queued" \| "running" \| "completed" \| "failed"{:ts}` | Job lifecycle state. |
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/history</black>`
+### `<route>GET /api/v2/integrations/challs/:id/admin-bot/history</route>`
 
 Returns retained completed and failed jobs for the authenticated user on that challenge.
 
@@ -519,7 +519,7 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 | ----------- | ------------------------------- | ----------------------------------- |
 | `data.jobs` | `AdminBotJobHistoryItem[]{:ts}` | Retained completed and failed jobs. |
 
-### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</black>`
+### `<route>GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>`
 
 Returns logs for a specific job.
 
@@ -558,4 +558,4 @@ Returns logs for a specific job.
 
 ## Service routes
 
-The admin bot worker service routes live under `<black>/api/v2/admin/admin-bot/*</black>` and are documented in [Admin](/api/admin/#admin-bot-service-routes).
+The admin bot worker service routes live under `<route>/api/v2/admin/admin-bot/*</route>` and are documented in [Admin](/api/admin/#admin-bot-service-routes).

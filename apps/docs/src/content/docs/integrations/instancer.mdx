@@ -392,14 +392,14 @@ The `<red>egress</red>` flag is per pod. Challenges that should not reach the in
 
 ## Lifecycle and API behavior
 
-Participant lifecycle routes are under `<black>/api/v2/integrations/challs/:id/instance</black>`:
+Participant lifecycle routes are under `<route>/api/v2/integrations/challs/:id/instance</route>`:
 
-| Method                   | Action                                                |
-| ------------------------ | ----------------------------------------------------- |
-| `<cyan>GET</cyan>`       | Returns current status, time left, and endpoints.     |
-| `<magenta>PUT</magenta>` | Creates an instance.                                  |
-| `<orange>PATCH</orange>` | Extends an instance when the challenge is extendable. |
-| `<red>DELETE</red>`      | Stops an instance.                                    |
+| Method                  | Action                                                |
+| ----------------------- | ----------------------------------------------------- |
+| `<route>GET</route>`    | Returns current status, time left, and endpoints.     |
+| `<route>PUT</route>`    | Creates an instance.                                  |
+| `<route>PATCH</route>`  | Extends an instance when the challenge is extendable. |
+| `<route>DELETE</route>` | Stops an instance.                                    |
 
 The returned status is one of `<green>stopped</green>`, `<green>starting</green>`, `<green>running</green>`, `<green>stopping</green>`, or `<green>errored</green>`. Docker returns `<green>stopping</green>` only through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
 

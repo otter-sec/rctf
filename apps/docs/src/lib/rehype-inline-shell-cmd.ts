@@ -3,7 +3,7 @@ import { findElementChild, getNodeText, hasClass, isElement, visitHast } from '.
 
 const PREFIX = '$ '
 const TONE_TAG_RE =
-  /<\/?(?:black|red|green|orange|yellow|blue|magenta|cyan|white|gray|grey|muted|dim)>/g
+  /<\/?(?:route|black|red|green|orange|yellow|blue|magenta|cyan|white|gray|grey|muted|dim)>/g
 
 function firstTextNode(node: Element): Text | null {
   for (const child of node.children) {

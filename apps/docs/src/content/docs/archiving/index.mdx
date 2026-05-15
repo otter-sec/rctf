@@ -7,7 +7,7 @@ import Callout from '@/components/callout.astro'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
-The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `<red>isArchived</red>` set to `true{:ts}`, and non-`<cyan>GET</cyan>` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
+The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `<red>isArchived</red>` set to `true{:ts}`, and non-`<route>GET</route>` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
 
 ## CLI
 
@@ -36,12 +36,12 @@ The output directory is deleted before each run. Point `--output` somewhere that
 
 The discovery phase fetches:
 
-- `<black>/api/v2/integrations/client/config</black>` with `<red>isArchived</red>` patched to `true{:ts}`.
-- `<black>/api/v2/challs</black>` and `<black>/api/v2/leaderboard/challs</black>`.
+- `<route>/api/v2/integrations/client/config</route>` with `<red>isArchived</red>` patched to `true{:ts}`.
+- `<route>/api/v2/challs</route>` and `<route>/api/v2/leaderboard/challs</route>`.
 - The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json`.
-- One `<black>/api/v2/users/:id</black>` response per unique user seen on the leaderboard.
+- One `<route>/api/v2/users/:id</route>` response per unique user seen on the leaderboard.
 - Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json` per challenge.
-- A static `<red>401 badToken</red>` stub for `<black>/api/v2/users/me</black>` so the frontend stays in a logged-out state.
+- A static `<red>401 badToken</red>` stub for `<route>/api/v2/users/me</route>` so the frontend stays in a logged-out state.
 
 Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/[hash]/[filename]`, and the JSON files in `api-data/` are rewritten to point at the local copies so the archive is self-contained.
 
@@ -119,13 +119,13 @@ Pages served from a project subpath (`username.github.io/repo`) need a custom do
 
 ## Runtime behavior
 
-The injected script wraps `window.fetch{:ts}` and routes `<black>/api/*</black>` calls through static files:
+The injected script wraps `window.fetch{:ts}` and routes `<route>/api/*</route>` calls through static files:
 
-- Any non-`<cyan>GET</cyan>` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
-- `<black>/api/v2/leaderboard/with-graph</black>`, `<black>/api/v2/leaderboard/now</black>`, and `<black>/api/v2/leaderboard/graph</black>` are answered from `dump.json` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
-- `<black>/api/v2/challs/:id/solves</black>` is sliced from each challenge's `solves.json`.
-- `<black>/api/v2/integrations/analytics/script</black>` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
-- Every other `<black>/api/*</black>` `<cyan>GET</cyan>` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `<red>404 badEndpoint</red>` `404`.
+- Any non-`<route>GET</route>` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
+- `<route>/api/v2/leaderboard/with-graph</route>`, `<route>/api/v2/leaderboard/now</route>`, and `<route>/api/v2/leaderboard/graph</route>` are answered from `dump.json` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
+- `<route>/api/v2/challs/:id/solves</route>` is sliced from each challenge's `solves.json`.
+- `<route>/api/v2/integrations/analytics/script</route>` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
+- Every other `<route>/api/*</route>` `<route>GET</route>` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `<red>404 badEndpoint</red>` `404`.
 
 The frontend reads `<red>isArchived</red>` from the client config and hides interactive controls (flag submission, profile edits, account creation) in the UI.
 
@@ -136,7 +136,7 @@ The frontend reads `<red>isArchived</red>` from the client config and hides inte
   authentication, server state, or live computation is absent.
 </Callout>
 
-- No login, registration, password recovery, or token issuance. `<black>/api/v2/users/me</black>` always returns `<red>401 badToken</red>`.
+- No login, registration, password recovery, or token issuance. `<route>/api/v2/users/me</route>` always returns `<red>401 badToken</red>`.
 - No admin pages. Admin endpoints require an authenticated session that the archive cannot produce.
 - No live updates. The leaderboard reflects the moment the exporter ran. Re-run the export to refresh.
 - No instancer, admin bot, or CTFtime export. Those depend on the live API and external services.

@@ -47,7 +47,7 @@ Or set `<red>database.migrate</red>` to `<green>before</green>` in your configur
 
 ## API changes
 
-All v1 routes continue to work. The v2 API is available at `<black>/api/v2/...</black>` and includes several improvements and new endpoints.
+All v1 routes continue to work. The v2 API is available at `<route>/api/v2/...</route>` and includes several improvements and new endpoints.
 
 ### Captcha field rename
 
@@ -55,24 +55,24 @@ V2 routes use `<red>captchaCode</red>` instead of `<red>recaptchaCode</red>` in 
 
 ### File uploads
 
-The v2 admin upload endpoint (`<green>POST</green> <black>/api/v2/admin/upload</black>`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
+The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
 
 ### New v2 endpoints
 
 | Endpoint | Description |
 | --- | --- |
-| `<cyan>GET</cyan> <black>/v2/auth/verify-info</black>` | Returns info about a verification token |
-| `<cyan>GET</cyan> <black>/v2/leaderboard/challs</black>` | Challenge metadata with first 3 solvers per challenge |
-| `<cyan>GET</cyan> <black>/v2/leaderboard/with-graph</black>` | Combined leaderboard and graph in one request |
-| `<orange>PATCH</orange> <black>/v2/users/me/avatar</black>` | Upload and moderate avatar images |
-| `<cyan>GET</cyan>/<green>POST</green> <black>/v2/admin/users</black>` | List all users with search, filters, and pagination |
-| `<cyan>GET</cyan>/<magenta>PUT</magenta> <black>/v2/admin/settings</black>` | Runtime settings management |
-| `<green>POST</green> <black>/v2/admin/users/:id/token</black>` | Generate login token for a team |
-| `<red>DELETE</red> <black>/v2/admin/challs/:id/solves/:userId</black>` | Delete a specific solve |
-| `<cyan>GET</cyan> <black>/v2/admin/instancer/schema</black>` | Instancer config JSON schema |
-| `<cyan>GET</cyan>/<green>POST</green> <black>/v2/admin/admin-bot/*</black>` | Admin bot job management |
-| `<cyan>GET</cyan>/<magenta>PUT</magenta>/<orange>PATCH</orange>/<red>DELETE</red> <black>/v2/integrations/challs/:id/instance</black>` | Challenge instance lifecycle |
-| `<cyan>GET</cyan>/<green>POST</green> <black>/v2/integrations/challs/:id/admin-bot/*</black>` | Admin bot submission and status |
+| `<route>GET /v2/auth/verify-info</route>` | Returns info about a verification token |
+| `<route>GET /v2/leaderboard/challs</route>` | Challenge metadata with first 3 solvers per challenge |
+| `<route>GET /v2/leaderboard/with-graph</route>` | Combined leaderboard and graph in one request |
+| `<route>PATCH /v2/users/me/avatar</route>` | Upload and moderate avatar images |
+| `<route>GET/POST /v2/admin/users</route>` | List all users with search, filters, and pagination |
+| `<route>GET/PUT /v2/admin/settings</route>` | Runtime settings management |
+| `<route>POST /v2/admin/users/:id/token</route>` | Generate login token for a team |
+| `<route>DELETE /v2/admin/challs/:id/solves/:userId</route>` | Delete a specific solve |
+| `<route>GET /v2/admin/instancer/schema</route>` | Instancer config JSON schema |
+| `<route>GET/POST /v2/admin/admin-bot/*</route>` | Admin bot job management |
+| `<route>GET/PUT/PATCH/DELETE /v2/integrations/challs/:id/instance</route>` | Challenge instance lifecycle |
+| `<route>GET/POST /v2/integrations/challs/:id/admin-bot/*</route>` | Admin bot submission and status |
 
 ### Response differences
 

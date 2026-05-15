@@ -21,41 +21,41 @@ Routes that list multiple permission bits require all of them.
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/challs</black>` | V2 | Required (`challsRead{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/challs/:id</black>` | V2 | Required (`challsRead{:ts}`) | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v2/admin/challs/:id</black>` | V2 | Required (`challsWrite{:ts}`) | None |
-| `<red>DELETE</red>` | `<black>/api/v2/admin/challs/:challengeId/solves/:userId</black>` | V2 | Required (`challsSolveWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/upload</black>` | V2 | Required (`challsWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/upload/query</black>` | V2 | Required (`challsRead{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/users</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/users</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/users/:id</black>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v2/admin/users/:id</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<red>DELETE</red>` | `<black>/api/v2/admin/users/:id</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/users/:id/token</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/user-verifications</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/user-verifications/:id/complete</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/user-verifications/:id/resend</black>` | V2 | Required (`usersWrite{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/submissions</black>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/submissions</black>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/settings</black>` | V2 | Required (`settingsWrite{:ts}`) | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v2/admin/settings</black>` | V2 | Required (`settingsWrite{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/instancer/schema</black>` | V2 | Required (`challsRead{:ts}`) | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/admin-bot/status</black>` | V2 | Required (`challsRead{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/pull</black>` | V2 | Service | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/admin-bot/challenges/:id/source</black>` | V2 | Service | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/:id/complete</black>` | V2 | Service | None |
-| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/:id/fail</black>` | V2 | Service | None |
-| `<cyan>GET</cyan>` | `<black>/api/v2/admin/admin-bot/queue-depth</black>` | V2 | Service | None |
-| `<cyan>GET</cyan>` | `<black>/api/v1/admin/challs</black>` | V1 | Required (`challsRead{:ts}`) | None |
-| `<magenta>PUT</magenta>` | `<black>/api/v1/admin/challs/:id</black>` | V1 | Required (`challsWrite{:ts}`) | None |
-| `<red>DELETE</red>` | `<black>/api/v1/admin/challs/:id</black>` | V1 | Required (`challsWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v1/admin/upload</black>` | V1 | Required (`challsWrite{:ts}`) | None |
-| `<green>POST</green>` | `<black>/api/v1/admin/upload/query</black>` | V1 | Required (`challsRead{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/challs</route>` | V2 | Required (`challsRead{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/challs/:id</route>` | V2 | Required (`challsRead{:ts}`) | None |
+| `<route>PUT</route>` | `<route>/api/v2/admin/challs/:id</route>` | V2 | Required (`challsWrite{:ts}`) | None |
+| `<route>DELETE</route>` | `<route>/api/v2/admin/challs/:challengeId/solves/:userId</route>` | V2 | Required (`challsSolveWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/upload</route>` | V2 | Required (`challsWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/upload/query</route>` | V2 | Required (`challsRead{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/users</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/users</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/users/:id</route>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `<route>PUT</route>` | `<route>/api/v2/admin/users/:id</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>DELETE</route>` | `<route>/api/v2/admin/users/:id</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/users/:id/token</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/user-verifications</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/user-verifications/:id/complete</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/user-verifications/:id/resend</route>` | V2 | Required (`usersWrite{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/submissions</route>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/submissions</route>` | V2 | Required (`usersWrite{:ts}`, `challsRead{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/settings</route>` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `<route>PUT</route>` | `<route>/api/v2/admin/settings</route>` | V2 | Required (`settingsWrite{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/instancer/schema</route>` | V2 | Required (`challsRead{:ts}`) | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/status</route>` | V2 | Required (`challsRead{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/pull</route>` | V2 | Service | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/challenges/:id/source</route>` | V2 | Service | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/:id/complete</route>` | V2 | Service | None |
+| `<route>POST</route>` | `<route>/api/v2/admin/admin-bot/jobs/:id/fail</route>` | V2 | Service | None |
+| `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/queue-depth</route>` | V2 | Service | None |
+| `<route>GET</route>` | `<route>/api/v1/admin/challs</route>` | V1 | Required (`challsRead{:ts}`) | None |
+| `<route>PUT</route>` | `<route>/api/v1/admin/challs/:id</route>` | V1 | Required (`challsWrite{:ts}`) | None |
+| `<route>DELETE</route>` | `<route>/api/v1/admin/challs/:id</route>` | V1 | Required (`challsWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v1/admin/upload</route>` | V1 | Required (`challsWrite{:ts}`) | None |
+| `<route>POST</route>` | `<route>/api/v1/admin/upload/query</route>` | V1 | Required (`challsRead{:ts}`) | None |
 
 ## Challenge routes
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/challs</black>`
+### `<route>GET /api/v2/admin/challs</route>`
 
 Lists every challenge with full admin fields, including hidden challenges and unreleased challenges.
 
@@ -73,7 +73,7 @@ Lists every challenge with full admin fields, including hidden challenges and un
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/challs/:id</black>`
+### `<route>GET /api/v2/admin/challs/:id</route>`
 
 Returns one admin challenge.
 
@@ -97,7 +97,7 @@ Returns one admin challenge.
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badChallenge</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v2/admin/challs/:id</black>`
+### `<route>PUT /api/v2/admin/challs/:id</route>`
 
 Creates or updates a challenge. Omitted fields in `data` keep their current value. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears the integration config.
 
@@ -149,7 +149,7 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>400 badInstancerConfig</red>`, `<red>400 badAdminBotConfig</red>`.
 
-### `<red>DELETE</red> <black>/api/v2/admin/challs/:challengeId/solves/:userId</black>`
+### `<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>`
 
 Deletes one solve for a specific user and challenge. Triggers a leaderboard recalculation.
 
@@ -176,7 +176,7 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 
 ## Upload routes
 
-### `<green>POST</green> <black>/api/v2/admin/upload</black>`
+### `<route>POST /api/v2/admin/upload</route>`
 
 Uploads one or more files. Files are deduplicated by SHA-256 — uploading the same content twice returns the existing URL.
 
@@ -204,7 +204,7 @@ Uploads one or more files. Files are deduplicated by SHA-256 — uploading the s
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>500 badFilesUpload</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/upload/query</black>`
+### `<route>POST /api/v2/admin/upload/query</route>`
 
 Checks whether files already exist by SHA-256 without uploading them.
 
@@ -237,7 +237,7 @@ Checks whether files already exist by SHA-256 without uploading them.
 
 ## Team routes
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/users</black>`
+### `<route>GET /api/v2/admin/users</route>`
 
 Lists teams. Query parameters control pagination, sorting, and search.
 
@@ -265,9 +265,9 @@ Lists teams. Query parameters control pagination, sorting, and search.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/users</black>`
+### `<route>POST /api/v2/admin/users</route>`
 
-Lists teams with rich filters. Same query parameters as `<cyan>GET</cyan>`, with filter object in the body.
+Lists teams with rich filters. Same query parameters as `<route>GET</route>`, with filter object in the body.
 
 | Property       | Value             |
 | -------------- | ----------------- |
@@ -279,7 +279,7 @@ Lists teams with rich filters. Same query parameters as `<cyan>GET</cyan>`, with
 
 **Query**
 
-Identical to `<cyan>GET</cyan> <black>/api/v2/admin/users</black>`.
+Identical to `<route>GET /api/v2/admin/users</route>`.
 
 **Request body**
 
@@ -299,11 +299,11 @@ Filter objects accept nullable `include` and `exclude` arrays.
 
 **Response**
 
-Same shape as `<cyan>GET</cyan> <black>/api/v2/admin/users</black>`.
+Same shape as `<route>GET /api/v2/admin/users</route>`.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/users/:id</black>`
+### `<route>GET /api/v2/admin/users/:id</route>`
 
 Returns full team details, including solve history.
 
@@ -343,7 +343,7 @@ Returns full team details, including solve history.
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v2/admin/users/:id</black>`
+### `<route>PUT /api/v2/admin/users/:id</route>`
 
 Mutates team state. Admins cannot mutate users with admin permissions.
 
@@ -379,7 +379,7 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`, `<red>403 badUserPrivileged</red>`.
 
-### `<red>DELETE</red> <black>/api/v2/admin/users/:id</black>`
+### `<route>DELETE /api/v2/admin/users/:id</route>`
 
 Deletes a team. Cannot delete users with admin permissions.
 
@@ -403,7 +403,7 @@ Deletes a team. Cannot delete users with admin permissions.
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`, `<red>403 badUserPrivileged</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/users/:id/token</black>`
+### `<route>POST /api/v2/admin/users/:id/token</route>`
 
 Generates a fresh long-lived team token. Useful for recovering teams that have lost access.
 
@@ -431,7 +431,7 @@ Generates a fresh long-lived team token. Useful for recovering teams that have l
 
 Pending verification rows represent users who registered with an email but have not yet completed email verification.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/user-verifications</black>`
+### `<route>GET /api/v2/admin/user-verifications</route>`
 
 Lists outstanding pending verifications.
 
@@ -449,7 +449,7 @@ Lists outstanding pending verifications.
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/user-verifications/:id/complete</black>`
+### `<route>POST /api/v2/admin/user-verifications/:id/complete</route>`
 
 Manually completes a pending verification, creating the team without requiring the user to follow the verification email link.
 
@@ -473,7 +473,7 @@ Manually completes a pending verification, creating the team without requiring t
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownVerification</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/user-verifications/:id/resend</black>`
+### `<route>POST /api/v2/admin/user-verifications/:id/resend</route>`
 
 Resends the verification email for an outstanding row.
 
@@ -501,7 +501,7 @@ Resends the verification email for an outstanding row.
 
 The submissions table records every flag submission and admin bot job for compliance and abuse investigation. Each row is keyed by submission ID and includes the IP address.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/submissions</black>`
+### `<route>GET /api/v2/admin/submissions</route>`
 
 Lists submission audit rows.
 
@@ -530,7 +530,7 @@ Lists submission audit rows.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/submissions</black>`
+### `<route>POST /api/v2/admin/submissions</route>`
 
 Lists submission audit rows with rich filters.
 
@@ -544,7 +544,7 @@ Lists submission audit rows with rich filters.
 
 **Query**
 
-Identical to `<cyan>GET</cyan> <black>/api/v2/admin/submissions</black>`.
+Identical to `<route>GET /api/v2/admin/submissions</route>`.
 
 **Request body**
 
@@ -576,7 +576,7 @@ Identical to `<cyan>GET</cyan> <black>/api/v2/admin/submissions</black>`.
 
 **Response**
 
-Same shape as `<cyan>GET</cyan> <black>/api/v2/admin/submissions</black>`.
+Same shape as `<route>GET /api/v2/admin/submissions</route>`.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
@@ -584,7 +584,7 @@ Same shape as `<cyan>GET</cyan> <black>/api/v2/admin/submissions</black>`.
 
 Runtime settings override values from `rctf.d/*.yaml` config files without restarting the server. Setting a field to `null{:ts}` clears the override.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/settings</black>`
+### `<route>GET /api/v2/admin/settings</route>`
 
 Returns the current overrides and defaults side-by-side.
 
@@ -602,7 +602,7 @@ Returns the current overrides and defaults side-by-side.
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
-### `<magenta>PUT</magenta> <black>/api/v2/admin/settings</black>`
+### `<route>PUT /api/v2/admin/settings</route>`
 
 Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboard recalculation.
 
@@ -645,13 +645,13 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 
 **Response**
 
-`<green>200 goodAdminSettingsUpdate</green>`: same shape as the `<cyan>GET</cyan>` response (returns the updated overrides and defaults).
+`<green>200 goodAdminSettingsUpdate</green>`: same shape as the `<route>GET</route>` response (returns the updated overrides and defaults).
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
 ## Schema routes
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/instancer/schema</black>`
+### `<route>GET /api/v2/admin/instancer/schema</route>`
 
 Returns the active instancer provider's JSON schema. Used by the challenge editor to validate `instancerConfig{:ts}`.
 
@@ -669,7 +669,7 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 
 **Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badEndpoint</red>` (no instancer provider configured).
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/admin-bot/status</black>`
+### `<route>GET /api/v2/admin/admin-bot/status</route>`
 
 Returns admin bot enablement and source language.
 
@@ -691,7 +691,7 @@ Returns admin bot enablement and source language.
 
 These routes are not user-admin endpoints. They use the shared admin bot bearer token (`adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`) and are intended for the admin bot worker only.
 
-### `<green>POST</green> <black>/api/v2/admin/admin-bot/jobs/pull</black>`
+### `<route>POST /api/v2/admin/admin-bot/jobs/pull</route>`
 
 Claims the oldest queued job for processing.
 
@@ -711,7 +711,7 @@ A pulled job contains `id`, `challengeId`, `configRevision`, `userId`, `submitte
 
 **Errors**: `<red>401 badToken</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/admin-bot/challenges/:id/source</black>`
+### `<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>`
 
 Fetches the challenge source code for a specific config revision.
 
@@ -735,7 +735,7 @@ Fetches the challenge source code for a specific config revision.
 
 **Errors**: `<red>401 badToken</red>`, `<red>404 badChallenge</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/admin-bot/jobs/:id/complete</black>`
+### `<route>POST /api/v2/admin/admin-bot/jobs/:id/complete</route>`
 
 Marks a running job as completed and stores logs.
 
@@ -771,7 +771,7 @@ Marks a running job as completed and stores logs.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`.
 
-### `<green>POST</green> <black>/api/v2/admin/admin-bot/jobs/:id/fail</black>`
+### `<route>POST /api/v2/admin/admin-bot/jobs/:id/fail</route>`
 
 Marks a running job as failed and stores logs.
 
@@ -799,7 +799,7 @@ Same shape as `complete`.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/admin/admin-bot/queue-depth</black>`
+### `<route>GET /api/v2/admin/admin-bot/queue-depth</route>`
 
 Returns the number of queued jobs.
 
@@ -821,15 +821,15 @@ Returns the number of queued jobs.
 
 ### Challenges
 
-#### `<cyan>GET</cyan> <black>/api/v1/admin/challs</black>`
+#### `<route>GET /api/v1/admin/challs</route>`
 
-Same as [`<cyan>GET</cyan> <black>/api/v2/admin/challs</black>`](#get-apiv2adminchalls), but V1 admin challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`.
+Same as [`<route>GET /api/v2/admin/challs</route>`](#get-apiv2adminchalls), but V1 admin challenge data omits `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, and file `size`.
 
-#### `<magenta>PUT</magenta> <black>/api/v1/admin/challs/:id</black>`
+#### `<route>PUT /api/v1/admin/challs/:id</route>`
 
-Same as [`<magenta>PUT</magenta> <black>/api/v2/admin/challs/:id</black>`](#put-apiv2adminchallsid), with the V1 challenge data shape (no `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, or file `size`).
+Same as [`<route>PUT /api/v2/admin/challs/:id</route>`](#put-apiv2adminchallsid), with the V1 challenge data shape (no `hidden`, `releaseTime`, `instancerConfig`, `adminBotConfig`, or file `size`).
 
-#### `<red>DELETE</red> <black>/api/v1/admin/challs/:id</black>`
+#### `<route>DELETE /api/v1/admin/challs/:id</route>`
 
 V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent — V2 deletes via challenge mutation in the admin panel.
 
@@ -855,7 +855,7 @@ V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalcul
 
 ### Uploads
 
-#### `<green>POST</green> <black>/api/v1/admin/upload</black>`
+#### `<route>POST /api/v1/admin/upload</route>`
 
 Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipart/form-data`.
 
@@ -871,9 +871,9 @@ V1 upload responses omit the `size` field.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>400 badDataUri</red>`, `<red>500 badFilesUpload</red>`.
 
-#### `<green>POST</green> <black>/api/v1/admin/upload/query</black>`
+#### `<route>POST /api/v1/admin/upload/query</route>`
 
-Same as [`<green>POST</green> <black>/api/v2/admin/upload/query</black>`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
+Same as [`<route>POST /api/v2/admin/upload/query</route>`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
 
 ## `AdminChallengeV2`
 

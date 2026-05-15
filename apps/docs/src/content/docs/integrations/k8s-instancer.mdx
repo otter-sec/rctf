@@ -28,7 +28,7 @@ A participant request flows through these in order:
 <Steps>
 <Step title="rCTF creates the custom resource">
 
-The API receives `<magenta>PUT</magenta> <black>/api/v2/integrations/challs/:id/instance</black>`, validates the challenge config with the provider schema, and creates a cluster-scoped `ChallengeInstance` resource in the `rctf-instancer.osec.io/v1` API group. The CR carries the challenge ID, team ID, expiry, pod specs, and expose entries.
+The API receives `<route>PUT /api/v2/integrations/challs/:id/instance</route>`, validates the challenge config with the provider schema, and creates a cluster-scoped `ChallengeInstance` resource in the `rctf-instancer.osec.io/v1` API group. The CR carries the challenge ID, team ID, expiry, pod specs, and expose entries.
 
 </Step>
 <Step title="The controller reconciles">
@@ -368,7 +368,7 @@ The controller logs the reconciliation flow and the sample's namespace, service,
 | Instances stuck in `<green>starting</green>` | Inspect the `ChallengeInstance` status conditions with `$ kubectl get challengeinstance -A -o yaml`. The `<red>NamespaceDeployed</red>`, `<red>DeploymentsDeployed</red>`, and `<red>ServicesDeployed</red>` conditions narrow the failing stage. |
 | 502 from the wildcard host | Traefik is reachable but the backing pod is not ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
 | 404 on the wildcard host | The catch-all `<red>IngressRoute</red>` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `<red>IngressRoute</red>` has a higher priority than `1{:ts}`. |
-| rCTF returns `<red>400 badInstancerConfig</red>` | The challenge `<red>config</red>` failed the provider's Zod schema. Fetch the schema from `<black>/api/v2/admin/instancer/schema</black>` and validate the challenge manifest against it. |
+| rCTF returns `<red>400 badInstancerConfig</red>` | The challenge `<red>config</red>` failed the provider's Zod schema. Fetch the schema from `<route>/api/v2/admin/instancer/schema</route>` and validate the challenge manifest against it. |
 | Namespace stuck `Terminating` | A child resource still holds a finalizer. The controller waits one second per reconcile while the namespace drains; check Traefik CRDs in the namespace if the wait does not resolve. |
 
 The controller exposes Kubernetes events through standard `kubectl describe` output. Pair `$ kubectl describe challengeinstance <name>` with the controller logs (`$ kubectl logs -n rctf-instancer-controller-system -l control-plane=controller-manager`) to trace any reconciliation failure.

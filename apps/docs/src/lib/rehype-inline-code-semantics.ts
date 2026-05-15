@@ -1,8 +1,23 @@
 import type { Element, ElementContent, Properties, Root, Text } from 'hast'
 import { getNodeText, hasClass, isElement, visitHast } from './hast-utils'
 
-const TONE_TAG_RE =
-  /<\/?(black|red|green|orange|yellow|blue|magenta|cyan|white|gray|grey|muted|dim)>/g
+const INLINE_TAG_RE =
+  /<\/?(route|black|red|green|orange|yellow|blue|magenta|cyan|white|gray|grey|muted|dim)>/g
+
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
+const METHOD_PATTERN = METHODS.join('|')
+const METHOD_GROUP_RE = new RegExp(`^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`)
+const ROUTE_RE = new RegExp(`^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`)
+
+const METHOD_TONES: Record<string, string> = {
+  GET: 'cyan',
+  POST: 'green',
+  PUT: 'magenta',
+  PATCH: 'orange',
+  DELETE: 'red',
+  HEAD: 'blue',
+  OPTIONS: 'blue',
+}
 
 const TONE_ALIASES: Record<string, string> = {
   dim: 'black',
@@ -12,7 +27,7 @@ const TONE_ALIASES: Record<string, string> = {
   yellow: 'orange',
 }
 
-interface ToneFrame {
+interface InlineFrame {
   tag: string | null
   children: ElementContent[]
 }
@@ -43,12 +58,82 @@ function toneNode(tag: string, children: ElementContent[]): Element {
   return span(['inline-code-tone', `is-${tone}`], children)
 }
 
-function parseToneTags(value: string): ElementContent[] | null {
-  const stack: ToneFrame[] = [{ tag: null, children: [] }]
+function methodNodes(methods: string): ElementContent[] {
+  return methods.split('/').flatMap((method, index) => {
+    const nodes: ElementContent[] = []
+    if (index > 0) nodes.push(text('/'))
+    nodes.push(toneNode(METHOD_TONES[method] ?? 'white', [text(method)]))
+    return nodes
+  })
+}
+
+function routePathNodes(path: string): ElementContent[] {
+  const nodes: ElementContent[] = []
+  let remaining = path
+
+  if (remaining === '/api') {
+    return [toneNode('black', [text(remaining)])]
+  }
+
+  if (remaining.startsWith('/api/')) {
+    nodes.push(toneNode('black', [text('/api/')]))
+    remaining = remaining.slice('/api/'.length)
+  } else if (remaining.startsWith('/api#')) {
+    nodes.push(toneNode('black', [text('/api')]))
+    remaining = remaining.slice('/api'.length)
+  } else if (remaining.startsWith('/')) {
+    nodes.push(toneNode('black', [text('/')]))
+    remaining = remaining.slice(1)
+  }
+
+  for (const [index, segment] of remaining.split('/').entries()) {
+    if (index > 0) nodes.push(toneNode('black', [text('/')]))
+    if (segment) nodes.push(text(segment))
+  }
+
+  return nodes
+}
+
+function routeChildren(value: string): ElementContent[] {
+  const route = value.trim()
+  if (METHOD_GROUP_RE.test(route)) return methodNodes(route)
+
+  const endpoint = route.match(ROUTE_RE)
+  if (endpoint) {
+    return [...methodNodes(endpoint[1] ?? ''), text(' '), ...routePathNodes(endpoint[2] ?? '')]
+  }
+
+  if (route.startsWith('/')) {
+    return routePathNodes(route)
+  }
+
+  return [text(value)]
+}
+
+function contentText(children: ElementContent[]): string {
+  return children
+    .map(child => {
+      if (child.type === 'text') return child.value
+      if (child.type === 'element') return contentText(child.children)
+      return ''
+    })
+    .join('')
+}
+
+function taggedNode(tag: string, children: ElementContent[]): Element {
+  if (tag === 'route') {
+    return span(['inline-code-route'], routeChildren(contentText(children)))
+  }
+
+  return toneNode(tag, children)
+}
+
+function parseInlineCodeTags(value: string): ElementContent[] | null {
+  const stack: InlineFrame[] = [{ tag: null, children: [] }]
   let lastIndex = 0
   let sawTag = false
 
-  for (const match of value.matchAll(TONE_TAG_RE)) {
+  for (const match of value.matchAll(INLINE_TAG_RE)) {
     const token = match[0]
     const tag = match[1]
     const index = match.index ?? 0
@@ -63,7 +148,7 @@ function parseToneTags(value: string): ElementContent[] | null {
       if (!frame || frame.tag !== tag) return null
       const parent = stack[stack.length - 1]
       if (!parent) return null
-      parent.children.push(toneNode(tag, frame.children))
+      parent.children.push(taggedNode(tag, frame.children))
     } else {
       stack.push({ tag, children: [] })
     }
@@ -91,9 +176,9 @@ function decorate(node: Element, children: ElementContent[]): void {
 }
 
 function maybeDecorateCode(node: Element): void {
-  const toneChildren = parseToneTags(getNodeText(node))
-  if (toneChildren) {
-    decorate(node, toneChildren)
+  const children = parseInlineCodeTags(getNodeText(node))
+  if (children) {
+    decorate(node, children)
   }
 }
 

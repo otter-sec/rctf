@@ -3,25 +3,25 @@ title: Authentication
 description: Registration, verification, login, recovery, CTFtime handoff, and token validation routes.
 ---
 
-Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `<cyan>GET</cyan> <black>/api/v1/auth/test</black>`, which validates an auth token.
+Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `<route>GET /api/v1/auth/test</route>`, which validates an auth token.
 
 ## Routes
 
 | Method                | Path                                      | Version | Auth     | Gate |
 | --------------------- | ----------------------------------------- | ------- | -------- | ---- |
-| `<green>POST</green>` | `<black>/api/v2/auth/register</black>`    | V2      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v2/auth/verify</black>`      | V2      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v2/auth/recover</black>`     | V2      | Public   | None |
-| `<cyan>GET</cyan>`    | `<black>/api/v2/auth/verify-info</black>` | V2      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v1/auth/register</black>`    | V1      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v1/auth/login</black>`       | V1      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v1/auth/verify</black>`      | V1      | Public   | None |
-| `<green>POST</green>` | `<black>/api/v1/auth/recover</black>`     | V1      | Public   | None |
-| `<cyan>GET</cyan>`    | `<black>/api/v1/auth/test</black>`        | V1      | Required | None |
+| `<route>POST</route>` | `<route>/api/v2/auth/register</route>`    | V2      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v2/auth/verify</route>`      | V2      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v2/auth/recover</route>`     | V2      | Public   | None |
+| `<route>GET</route>`  | `<route>/api/v2/auth/verify-info</route>` | V2      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v1/auth/register</route>`    | V1      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v1/auth/login</route>`       | V1      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v1/auth/verify</route>`      | V1      | Public   | None |
+| `<route>POST</route>` | `<route>/api/v1/auth/recover</route>`     | V1      | Public   | None |
+| `<route>GET</route>`  | `<route>/api/v1/auth/test</route>`        | V1      | Required | None |
 
 ## V2 routes
 
-### `<green>POST</green> <black>/api/v2/auth/register</black>`
+### `<route>POST /api/v2/auth/register</route>`
 
 Registers a team. Returns auth tokens immediately when verification is not required, otherwise sends a verification email.
 
@@ -37,7 +37,7 @@ Registers a team. Returns auth tokens immediately when verification is not requi
 
 ```json
 {
-  "name": "maple bacon",
+  "name": "otter-sec",
   "email": "team@example.com",
   "ctftimeToken": "optional-ctftime-token",
   "captchaCode": "optional-captcha-code"
@@ -72,7 +72,7 @@ When email verification is required, returns `<green>200 goodVerifySent</green>`
 
 **Errors**: `<red>400 badBody</red>`, `<red>400 badEmail</red>`, `<red>400 badName</red>`, `<red>409 badKnownEmail</red>`, `<red>409 badKnownName</red>`, `<red>409 badKnownCtftimeId</red>`, `<red>403 badCompetitionNotAllowed</red>`, `<red>403 badDivisionNotAllowed</red>`, `<red>400 badRegistrationsDisabled</red>`, `<red>403 badCaptcha</red>`, `<red>404 badEndpoint</red>`, `<red>401 badCtftimeToken</red>`.
 
-### `<green>POST</green> <black>/api/v2/auth/verify</black>`
+### `<route>POST /api/v2/auth/verify</route>`
 
 Consumes a verification token to complete a pending registration, log in with a team token, or finalize an email change.
 
@@ -110,7 +110,7 @@ Behavior branches on the token kind:
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badTokenVerification</red>`, `<red>403 badEmailChangeDivision</red>`, `<red>409 badKnownEmail</red>`.
 
-### `<green>POST</green> <black>/api/v2/auth/recover</black>`
+### `<route>POST /api/v2/auth/recover</route>`
 
 Sends an account-recovery email containing a team token. Always returns `<green>200 goodVerifySent</green>`, even when the email is unknown, to prevent account enumeration.
 
@@ -142,7 +142,7 @@ Sends an account-recovery email containing a team token. Always returns `<green>
 
 **Errors**: `<red>400 badBody</red>`, `<red>400 badEmail</red>`, `<red>404 badEndpoint</red>` (no email provider configured), `<red>403 badCaptcha</red>`.
 
-### `<cyan>GET</cyan> <black>/api/v2/auth/verify-info</black>`
+### `<route>GET /api/v2/auth/verify-info</route>`
 
 Previews a verification token without consuming it. Useful for showing context on the verification page before the user submits.
 
@@ -171,7 +171,7 @@ Previews a verification token without consuming it. Useful for showing context o
   "data": {
     "kind": "register",
     "email": "team@example.com",
-    "name": "maple bacon"
+    "name": "otter-sec"
   }
 }
 ```
@@ -188,16 +188,16 @@ Previews a verification token without consuming it. Useful for showing context o
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `<green>POST</green> <black>/api/v1/auth/register</black>`
+### `<route>POST /api/v1/auth/register</route>`
 
 Differs from V2:
 
 - Captcha field is `recaptchaCode` instead of `captchaCode`.
 - Immediate success returns `<green>200 goodRegister</green>` with `{ authToken: string }` only — no `teamToken`.
 
-### `<green>POST</green> <black>/api/v1/auth/login</black>`
+### `<route>POST /api/v1/auth/login</route>`
 
-V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`<green>POST</green> <black>/api/v2/auth/verify</black>`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
+V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`<route>POST /api/v2/auth/verify</route>`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
 
 | Property       | Value  |
 | -------------- | ------ |
@@ -224,15 +224,15 @@ At least one of `teamToken` or `ctftimeToken` must be present. A team token is p
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badTokenVerification</red>`, `<red>401 badCtftimeToken</red>`, `<red>404 badCtftimeNoExists</red>`, `<red>404 badEndpoint</red>` (CTFtime not configured).
 
-### `<green>POST</green> <black>/api/v1/auth/verify</black>`
+### `<route>POST /api/v1/auth/verify</route>`
 
 Differs from V2: the pending-registration path returns `<green>200 goodRegister</green>` with `{ authToken: string }` only.
 
-### `<green>POST</green> <black>/api/v1/auth/recover</black>`
+### `<route>POST /api/v1/auth/recover</route>`
 
 Differs from V2: captcha field is `recaptchaCode` instead of `captchaCode`.
 
-### `<cyan>GET</cyan> <black>/api/v1/auth/test</black>`
+### `<route>GET /api/v1/auth/test</route>`
 
 Validates the supplied auth token. Returns `<green>200 goodToken</green>` (no data) when the token is valid, `<red>401 badToken</red>` otherwise. Useful for client-side session checks.
 
