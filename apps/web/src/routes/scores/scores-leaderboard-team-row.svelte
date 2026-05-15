@@ -128,6 +128,8 @@
           <img
             src={data.avatarUrl}
             alt={data.name}
+            decoding="async"
+            draggable="false"
             class="aspect-square size-full rounded-lg object-cover"
             onerror={() => (imgFailed = true)}
           />
@@ -160,6 +162,8 @@
               src="/flags/{flagFilename}"
               alt="{data.countryCode} flag"
               title={data.countryCode}
+              decoding="async"
+              draggable="false"
               class="size-5 min-w-5 shrink-0"
             />
           {/if}

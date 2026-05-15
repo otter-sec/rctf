@@ -51,6 +51,20 @@
       if (viewportState.headerRowRef === node) viewportState.headerRowRef = null
     }
   }
+  let headerChallengeScrollRef = $state<HTMLElement | null>(null)
+  let syncedHeaderScrollLeft = -1
+
+  $effect(() => {
+    const header = headerChallengeScrollRef
+    const scrollMetrics = viewportState.scrollMetrics
+    if (!header || !scrollMetrics) return
+
+    const nextScrollLeft = scrollMetrics.scrollLeft
+    if (syncedHeaderScrollLeft === nextScrollLeft) return
+
+    syncedHeaderScrollLeft = nextScrollLeft
+    header.scrollLeft = nextScrollLeft
+  })
 
   function handleChallengeFocus(id: string) {
     const wasFocused = routeState.focusedChallengeId === id
@@ -74,7 +88,10 @@
 {/snippet}
 
 <div class="flex justify-center px-4 md:px-9">
-  <div class="scores-leaderboard relative w-full max-w-full md:w-fit" data-self-row={selfRowAnchor}>
+  <div
+    class="scores-leaderboard relative isolate w-full max-w-full md:w-fit"
+    data-self-row={selfRowAnchor}
+  >
     <ScoresFades
       showTop={viewportState.showTopFade}
       showBottom={viewportState.showBottomFade}
@@ -112,34 +129,44 @@
         scrollbarYClasses={`z-40 ${viewportState.scrollbarYPadding}`}
       >
         <div class="flex min-h-full flex-col">
-          <div
-            class="bg-background-l0 sticky top-0 z-20 hidden h-(--header-height) md:flex"
-            {@attach headerRowAttachment}
-          >
-            <div
-              class="
-                group/graph bg-background-l0 sticky left-0 z-30 w-(--team-column-width) shrink-0
-              "
-            >
-              <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
-                {@render graphPanel()}
-              </div>
-            </div>
-            {#if !scoreData.challengesQuery.isLoading}
-              <ScoresChallengeHeader
-                viewMode={routeState.viewMode}
-                sortMode={routeState.sortMode}
-                categoryGroups={scoreData.categoryGroups}
-                {challenges}
-                focusedChallengeId={routeState.focusedChallengeId}
-                onChallengeFocus={handleChallengeFocus}
-              />
-            {/if}
-          </div>
+          <div class="hidden h-(--header-height) shrink-0 md:block" aria-hidden="true"></div>
 
           {@render children()}
         </div>
       </ScrollArea>
+    </div>
+
+    <div
+      class="
+        bg-background-l0 pointer-events-none absolute inset-x-0 top-0 z-30 hidden
+        h-(--header-height) md:flex
+      "
+      {@attach headerRowAttachment}
+    >
+      <div
+        class="group/graph bg-background-l0 pointer-events-auto z-30 w-(--team-column-width) shrink-0"
+      >
+        <div class="bg-background-l1 h-full w-full rounded-t-3xl rounded-bl-xl">
+          {@render graphPanel()}
+        </div>
+      </div>
+      <div
+        bind:this={headerChallengeScrollRef}
+        class="pointer-events-auto min-w-0 flex-1 overflow-hidden"
+      >
+        <div class="w-max">
+          {#if !scoreData.challengesQuery.isLoading}
+            <ScoresChallengeHeader
+              viewMode={routeState.viewMode}
+              sortMode={routeState.sortMode}
+              categoryGroups={scoreData.categoryGroups}
+              {challenges}
+              focusedChallengeId={routeState.focusedChallengeId}
+              onChallengeFocus={handleChallengeFocus}
+            />
+          {/if}
+        </div>
+      </div>
     </div>
   </div>
 </div>

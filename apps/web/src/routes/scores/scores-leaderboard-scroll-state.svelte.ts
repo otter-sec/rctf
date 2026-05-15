@@ -182,6 +182,9 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
     get scrollbarYPadding() {
       return scrollbarYPadding
     },
+    get scrollMetrics() {
+      return scrollMetrics
+    },
   }
 }
 

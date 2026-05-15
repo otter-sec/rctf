@@ -28,9 +28,6 @@ export function observeElementRect<T extends Element>(
     const w = Math.round(width)
     const h = Math.round(height)
 
-    // Firefox bug
-    if (w === 0 || h === 0) return
-
     if (w !== lastWidth || h !== lastHeight) {
       lastWidth = w
       lastHeight = h
@@ -123,27 +120,24 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       cachedScrollWidth = currentElement.scrollWidth
     }
 
-    const processScroll = () => {
-      scrollRaf = 0
+    const getOffset = () => {
       if (!currentElement) return
+      const { horizontal, isRtl } = instance.options
+      return horizontal
+        ? capturedScrollLeft * ((isRtl && -1) || 1)
+        : capturedScrollTop
+    }
 
-      // read scroll position at the start of the raf callback, not during the
-      // synchronous scroll event handler. in chromium, reading scrollTop always
-      // calls `UpdateStyleAndLayoutForNode()` which forces a full synchronous
-      // layout flush. by deferring the read to raf, we read after the browser
-      // has already laid out and painted the previous frame
+    const captureScrollPosition = () => {
+      if (!currentElement) return
       capturedScrollTop = currentElement.scrollTop
       capturedScrollLeft = currentElement.scrollLeft
+    }
 
-      const { horizontal, isRtl } = instance.options
-
+    const emitScrollMetrics = () => {
+      if (!currentElement) return
       const scrollTop = capturedScrollTop
       const scrollLeft = capturedScrollLeft
-
-      const offset = horizontal ? scrollLeft * ((isRtl && -1) || 1) : scrollTop
-
-      cb(offset, true)
-
       const metrics: ScrollMetrics = {
         scrollTop,
         scrollLeft,
@@ -153,33 +147,31 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
         clientWidth: cachedClientWidth,
       }
       onScrollMetrics?.(metrics)
+    }
+
+    const updateVirtualOffset = () => {
+      const offset = getOffset()
+      if (offset === undefined) return
+
+      cb(offset, true)
 
       if (timeoutId) targetWindow.clearTimeout(timeoutId)
       timeoutId = targetWindow.setTimeout(() => {
-        if (!currentElement) return
-        const endOffset = horizontal
-          ? capturedScrollLeft * ((isRtl && -1) || 1)
-          : capturedScrollTop
-        cb(endOffset, false)
+        const endOffset = getOffset()
+        if (endOffset !== undefined) cb(endOffset, false)
       }, instance.options.isScrollingResetDelay)
     }
 
-    const onScroll = () => {
-      // schedule a raf to process the scroll - do NOT read scrollTop here.
-      // reading scroll properties synchronously in the scroll handler forces
-      // layout if any dom mutations are pending from the previous frame's
-      // reactive updates
-      if (!scrollRaf) {
-        scrollRaf = targetWindow.requestAnimationFrame(processScroll)
-      }
+    const processScroll = () => {
+      scrollRaf = 0
+      captureScrollPosition()
+      updateVirtualOffset()
+      emitScrollMetrics()
     }
 
-    const getOffset = () => {
-      if (!currentElement) return 0
-      const { horizontal, isRtl } = instance.options
-      return horizontal
-        ? currentElement.scrollLeft * ((isRtl && -1) || 1)
-        : currentElement.scrollTop
+    const onScroll = () => {
+      if (!scrollRaf)
+        scrollRaf = targetWindow.requestAnimationFrame(processScroll)
     }
 
     const setup = (element: HTMLElement) => {
@@ -209,7 +201,10 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       }
       updateScrollDimensions()
 
-      cb(getOffset(), false)
+      captureScrollPosition()
+      const offset = getOffset()
+      if (offset !== undefined) cb(offset, false)
+      emitScrollMetrics()
     }
 
     const poll = () => {
@@ -250,7 +245,6 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
   let lastCount = -1
   let lastScrollMargin = -1
   let lastScrollElement: HTMLElement | null = null
-  let hasMeasured = false
 
   function update(opts: {
     count: number
@@ -276,16 +270,6 @@ export function createInfiniteVirtualizer(config: InfiniteVirtualizerConfig) {
       lastScrollMargin = newScrollMargin
       lastScrollElement = scrollElement
       v.setOptions({ count, scrollMargin: newScrollMargin })
-    }
-
-    // Firefox bug workaround - needs double rAF to measure correctly :shrug:
-    if (scrollElement && count > 0 && (!hasMeasured || needsUpdate)) {
-      hasMeasured = true
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          v.measure()
-        })
-      })
     }
   }
 
