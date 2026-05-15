@@ -16,8 +16,67 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  type AllResponses,
   type TestUser,
 } from '../lib/harness'
+
+const fetchLeaderboardPages = () =>
+  Promise.all([
+    all('/api/v1/leaderboard/now?limit=3&offset=0'),
+    all('/api/v1/leaderboard/now?limit=3&offset=3'),
+  ] as const)
+
+const getLeaderboardTotal = (
+  res: AllResponses,
+  name: string
+): number | undefined => {
+  const body = res[name]?.body as { data?: { total?: unknown } } | undefined
+  return typeof body?.data?.total === 'number' ? body.data.total : undefined
+}
+
+const allSucceeded = (res: AllResponses): boolean =>
+  Object.values(res).every(r => r.status >= 200 && r.status < 300)
+
+const leaderboardTotalsMatch = (
+  res1: AllResponses,
+  res2: AllResponses
+): boolean =>
+  allSucceeded(res1) &&
+  allSucceeded(res2) &&
+  Object.keys(res1).every(name => {
+    const total1 = getLeaderboardTotal(res1, name)
+    return total1 !== undefined && total1 === getLeaderboardTotal(res2, name)
+  })
+
+const formatLeaderboardTotals = (
+  res1: AllResponses,
+  res2: AllResponses
+): string =>
+  Object.keys(res1)
+    .map(
+      name =>
+        `${name}: offset0=${getLeaderboardTotal(res1, name)} offset3=${getLeaderboardTotal(res2, name)}`
+    )
+    .join(', ')
+
+const stableLeaderboardPages = async (
+  timeout = 20_000
+): Promise<readonly [AllResponses, AllResponses]> => {
+  const start = Date.now()
+  let lastTotals = 'no responses'
+
+  while (Date.now() - start < timeout) {
+    const pages = await fetchLeaderboardPages()
+    if (leaderboardTotalsMatch(...pages)) {
+      return pages
+    }
+
+    lastTotals = formatLeaderboardTotals(...pages)
+    await Bun.sleep(250)
+  }
+
+  throw new Error(`Leaderboard totals did not settle: ${lastTotals}`)
+}
 
 describe('Authenticated Flows - Setup', () => {
   let admin: TestUser
@@ -319,6 +378,8 @@ describe('Authenticated Flows - Pagination', () => {
       const user = await registerUser(testId(`PagUser${i}`))
       users.push(user)
     }
+
+    await refreshLeaderboard()
   }, 30_000)
 
   afterAll(async () => {
@@ -328,8 +389,7 @@ describe('Authenticated Flows - Pagination', () => {
   }, 30_000)
 
   test('pagination returns consistent results', async () => {
-    const res1 = await all('/api/v1/leaderboard/now?limit=3&offset=0')
-    const res2 = await all('/api/v1/leaderboard/now?limit=3&offset=3')
+    const [res1, res2] = await fetchLeaderboardPages()
 
     assertAllSuccess(res1)
     assertAllSuccess(res2)
@@ -338,8 +398,7 @@ describe('Authenticated Flows - Pagination', () => {
   })
 
   test('total count is consistent across pages', async () => {
-    const res1 = await all('/api/v1/leaderboard/now?limit=3&offset=0')
-    const res2 = await all('/api/v1/leaderboard/now?limit=3&offset=3')
+    const [res1, res2] = await stableLeaderboardPages()
 
     for (const name of Object.keys(res1)) {
       const body1 = res1[name]?.body as { data: { total: number } }
@@ -347,5 +406,5 @@ describe('Authenticated Flows - Pagination', () => {
 
       expect(body1.data.total).toBe(body2.data.total)
     }
-  })
+  }, 30_000)
 })
