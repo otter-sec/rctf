@@ -170,11 +170,7 @@
 
   const xDomain = $derived.by<[number, number] | undefined>(() => {
     if (!clientConfig || flatPoints.length === 0) return undefined
-    let maxTime = -Infinity
-    for (const p of flatPoints) {
-      if (p.time > maxTime) maxTime = p.time
-    }
-    return [startTime, Math.min(endTime, maxTime)]
+    return [startTime, endTime]
   })
 
   const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
