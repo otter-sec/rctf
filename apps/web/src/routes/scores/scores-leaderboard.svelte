@@ -7,6 +7,13 @@
   import type { createScoresDataModel } from './scores-leaderboard-data-model.svelte'
   import ScoresGraphControls from './scores-leaderboard-graph-controls.svelte'
   import ScoresGraph from './scores-leaderboard-graph.svelte'
+  import {
+    CELL_WIDTH,
+    DIAGONAL_OVERFLOW,
+    HEADER_HEIGHT,
+    ROW_GAP,
+    ROW_HEIGHT,
+  } from './scores-leaderboard-layout-constants'
   import ScoresFades from './scores-leaderboard-scroll-fades.svelte'
   import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import type { createScoresRouteState } from './scores-page-url-state.svelte'
@@ -91,6 +98,11 @@
   <div
     class="scores-leaderboard relative isolate w-full max-w-full md:w-fit"
     data-self-row={selfRowAnchor}
+    style:--row-gap={`${ROW_GAP}px`}
+    style:--row-height-full={`${ROW_HEIGHT}px`}
+    style:--cell-width={`${CELL_WIDTH}px`}
+    style:--header-height={`${HEADER_HEIGHT}px`}
+    style:--diagonal-overflow={`${DIAGONAL_OVERFLOW}px`}
   >
     <ScoresFades
       showTop={viewportState.showTopFade}
@@ -177,13 +189,8 @@
     --toolbar-height: 96px;
     --mobile-graph-gap: 8px;
     --page-bottom-gap: 16px;
-    --row-gap: 4px;
-    --row-height-full: 68px;
     --row-height: calc(var(--row-height-full) - var(--row-gap));
-    --cell-width: 48px;
-    --header-height: 192px;
     --name-row-height: 128px;
-    --diagonal-overflow: 96px;
     --team-column-width: 100%;
     --content-column-width: 0px;
     --self-row-height: var(--row-height-full);
