@@ -115,7 +115,7 @@ instanceType: all # all | frontend | leaderboard
 | `<red>ctfName</red>` | `string{:ts}` | - | Display name of your CTF |
 | `<red>origin</red>` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
 | `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
-| `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only) |
+| `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling/) before splitting roles. |
 
 <Callout variant="warning">
 

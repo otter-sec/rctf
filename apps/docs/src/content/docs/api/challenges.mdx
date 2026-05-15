@@ -25,9 +25,9 @@ Returns the visible challenge list with V2 integration metadata.
 | -------------- | -------------------------------------------- |
 | Auth           | Public + optional bypass (`challsRead{:ts}`) |
 | Gate           | Started                                      |
-| Permissions    | —                                            |
-| Captcha action | —                                            |
-| Rate limit     | —                                            |
+| Permissions    | -                                            |
+| Captcha action | -                                            |
+| Rate limit     | -                                            |
 
 **Response**
 
@@ -67,9 +67,9 @@ Returns paginated solve history for one challenge.
 | -------------- | ------------------------------------- |
 | Auth           | Optional + bypass (`challsRead{:ts}`) |
 | Gate           | Started                               |
-| Permissions    | —                                     |
-| Captcha action | —                                     |
-| Rate limit     | —                                     |
+| Permissions    | -                                     |
+| Captcha action | -                                     |
+| Rate limit     | -                                     |
 
 **Path params**
 
@@ -176,8 +176,8 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 | --- | --- |
 | Auth | Required |
 | Gate | Started + not ended |
-| Permissions | — |
-| Captcha action | — |
+| Permissions | - |
+| Captcha action | - |
 | Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`<route>/api#rate-limits</route>`](/api/#rate-limits). |
 
 **Path params**

@@ -3,20 +3,36 @@ title: Upgrading from v1
 description: Migration guide from rCTF v1 to v2, covering database changes, API differences, and configuration updates.
 ---
 
+import Callout from '@/components/callout.astro'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
 This guide covers the changes between rCTF v1 and v2 and what you need to do to upgrade.
 
+## tl;dr - swap the image and restart
+
+The upgrade is automated. Point your existing deployment at the v2 image and start it - Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config is converted to the new shape at startup. No manual SQL, no config rewrite required to get back online.
+
+```yaml title="compose.yml"
+services:
+  rctf:
+    image: ghcr.io/otter-sec/rctf-new:latest
+```
+
+<Callout variant='warning' title='Back up the database first'>
+  Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump (e.g. `$
+  pg_dump`) before swapping the image so you have a path back if something goes wrong.
+</Callout>
+
+If you want to know what actually changes - new tables, new columns, API differences, and config sections that benefit from a manual rewrite - read on. None of it is required to upgrade.
+
 ## Database migration
 
-Database schema changes are handled automatically by Drizzle ORM. Run migrations before starting the new version:
+Schema changes are handled by Drizzle ORM and run automatically when `<red>database.migrate</red>` is `<green>before</green>` (the default in the bundled container). To run them by hand:
 
 ```sh
 $ bun run db:migrate
 ```
-
-Or set `<red>database.migrate</red>` to `<green>before</green>` in your configuration to migrate on startup.
 
 ### New tables
 

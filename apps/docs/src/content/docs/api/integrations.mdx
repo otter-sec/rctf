@@ -34,9 +34,9 @@ Returns the public client configuration consumed by the frontend.
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Response**
 
@@ -85,9 +85,9 @@ V1 client config. Differs from V2:
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 ## Analytics script
 
@@ -99,9 +99,9 @@ Returns the active analytics provider's JavaScript body. This route is not part 
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Response**
 
@@ -117,9 +117,9 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Request body**
 
@@ -166,8 +166,8 @@ V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route
 | Auth           | Permissioned           |
 | Gate           | None                   |
 | Permissions    | `leaderboardRead{:ts}` |
-| Captcha action | —                      |
-| Rate limit     | —                      |
+| Captcha action | -                      |
+| Rate limit     | -                      |
 
 **Response**
 
@@ -202,8 +202,8 @@ Returns the current instance status for the authenticated user.
 | Auth           | Required                                        |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -247,7 +247,7 @@ Creates (starts) an instance for the authenticated user.
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
 | Captcha action | `instancerStart{:ts}` (when configured)         |
-| Rate limit     | —                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -283,7 +283,7 @@ Extends the running instance for the authenticated user.
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
 | Captcha action | `instancerExtend{:ts}` (when configured)        |
-| Rate limit     | —                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -318,8 +318,8 @@ Stops the instance for the authenticated user.
 | Auth           | Required                                        |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -346,8 +346,8 @@ Returns the released admin bot challenge source and its file extension.
 | Auth           | Public                                          |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -442,8 +442,8 @@ Returns the current active job for the authenticated user on that challenge.
 | Auth           | Required                                        |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -485,8 +485,8 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 | Auth           | Required                                        |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 
@@ -528,8 +528,8 @@ Returns logs for a specific job.
 | Auth           | Required                                        |
 | Gate           | Started                                         |
 | Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | —                                               |
-| Rate limit     | —                                               |
+| Captcha action | -                                               |
+| Rate limit     | -                                               |
 
 **Path params**
 

@@ -29,9 +29,9 @@ Registers a team. Returns auth tokens immediately when verification is not requi
 | -------------- | --------------------------------- |
 | Auth           | Public                            |
 | Gate           | None                              |
-| Permissions    | —                                 |
+| Permissions    | -                                 |
 | Captcha action | `register{:ts}` (when configured) |
-| Rate limit     | —                                 |
+| Rate limit     | -                                 |
 
 **Request body**
 
@@ -80,9 +80,9 @@ Consumes a verification token to complete a pending registration, log in with a 
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Request body**
 
@@ -118,9 +118,9 @@ Sends an account-recovery email containing a team token. Always returns `<green>
 | -------------- | -------------------------------- |
 | Auth           | Public                           |
 | Gate           | None                             |
-| Permissions    | —                                |
+| Permissions    | -                                |
 | Captcha action | `recover{:ts}` (when configured) |
-| Rate limit     | —                                |
+| Rate limit     | -                                |
 
 **Request body**
 
@@ -150,9 +150,9 @@ Previews a verification token without consuming it. Useful for showing context o
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Query**
 
@@ -193,7 +193,7 @@ V1 routes remain available for legacy clients. Behavior matches V2 except where 
 Differs from V2:
 
 - Captcha field is `recaptchaCode` instead of `captchaCode`.
-- Immediate success returns `<green>200 goodRegister</green>` with `{ authToken: string }` only — no `teamToken`.
+- Immediate success returns `<green>200 goodRegister</green>` with `{ authToken: string }` only - no `teamToken`.
 
 ### `<route>POST /api/v1/auth/login</route>`
 
@@ -203,9 +203,9 @@ V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There
 | -------------- | ------ |
 | Auth           | Public |
 | Gate           | None   |
-| Permissions    | —      |
-| Captcha action | —      |
-| Rate limit     | —      |
+| Permissions    | -      |
+| Captcha action | -      |
+| Rate limit     | -      |
 
 **Request body**
 
@@ -240,9 +240,9 @@ Validates the supplied auth token. Returns `<green>200 goodToken</green>` (no da
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 ## Token lifecycle
 

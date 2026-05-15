@@ -31,7 +31,7 @@ Routes accept an optional auth token. When the token carries the listed permissi
 
 V1 `<route>/api/v1/leaderboard/graph</route>` accepts `limit` and optional `division`, but it does not accept `offset`.
 
-Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms — captcha-free but rate-limited) and return `<red>429 badRateLimit</red>` with `data.timeLeft` when the bucket is exhausted.
+Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms - captcha-free but rate-limited) and return `<red>429 badRateLimit</red>` with `data.timeLeft` when the bucket is exhausted.
 
 ## V2 routes
 
@@ -43,8 +43,8 @@ Returns the current standings page.
 | -------------- | ---------------------------------------------------------------------------- |
 | Auth           | Public + optional bypass (`leaderboardRead{:ts}`)                            |
 | Gate           | Started                                                                      |
-| Permissions    | —                                                                            |
-| Captcha action | —                                                                            |
+| Permissions    | -                                                                            |
+| Captcha action | -                                                                            |
 | Rate limit     | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
 
 **Query**
@@ -97,8 +97,8 @@ Returns the same standings payload as `<route>/now</route>`, plus graph samples.
 | -------------- | ---------------------------------------------------------------------------- |
 | Auth           | Public + optional bypass (`leaderboardRead{:ts}`)                            |
 | Gate           | Started                                                                      |
-| Permissions    | —                                                                            |
-| Captcha action | —                                                                            |
+| Permissions    | -                                                                            |
+| Captcha action | -                                                                            |
 | Rate limit     | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
 
 **Query**
@@ -144,9 +144,9 @@ Returns only graph data.
 | -------------- | ------------------------------------------------- |
 | Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
 | Gate           | Started                                           |
-| Permissions    | —                                                 |
-| Captcha action | —                                                 |
-| Rate limit     | —                                                 |
+| Permissions    | -                                                 |
+| Captcha action | -                                                 |
+| Rate limit     | -                                                 |
 
 **Query**
 
@@ -189,9 +189,9 @@ Returns challenge metadata used by leaderboard visualizations.
 | -------------- | -------------------------------------------- |
 | Auth           | Public + optional bypass (`challsRead{:ts}`) |
 | Gate           | Started                                      |
-| Permissions    | —                                            |
-| Captcha action | —                                            |
-| Rate limit     | —                                            |
+| Permissions    | -                                            |
+| Captcha action | -                                            |
+| Rate limit     | -                                            |
 
 **Response**
 
@@ -235,9 +235,9 @@ Returns the current standings page with the smaller V1 entry shape.
 | -------------- | ------------------------------------------------- |
 | Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
 | Gate           | Started                                           |
-| Permissions    | —                                                 |
-| Captcha action | —                                                 |
-| Rate limit     | —                                                 |
+| Permissions    | -                                                 |
+| Captcha action | -                                                 |
+| Rate limit     | -                                                 |
 
 **Query**
 
@@ -245,7 +245,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Response**
 
-`<green>200 goodLeaderboard</green>` with the V1 entry shape — `id`, `name`, and `score` only:
+`<green>200 goodLeaderboard</green>` with the V1 entry shape - `id`, `name`, and `score` only:
 
 ```json
 {
@@ -274,9 +274,9 @@ Returns graph data. The response uses the same `<green>200 goodLeaderboardGraph<
 | -------------- | ------------------------------------------------- |
 | Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
 | Gate           | Started                                           |
-| Permissions    | —                                                 |
-| Captcha action | —                                                 |
-| Rate limit     | —                                                 |
+| Permissions    | -                                                 |
+| Captcha action | -                                                 |
+| Rate limit     | -                                                 |
 
 **Query**
 
@@ -292,8 +292,8 @@ Accepts `limit` and optional `division`. Differs from V2: does not accept `offse
 
 The leaderboard worker sorts teams by score descending. Ties are broken in this order:
 
-1. Most recent solve of a challenge marked `tiebreakEligible` (`last_tiebreak_solve_at`) — earlier is better.
-2. Absolute last solve time — earlier is better.
+1. Most recent solve of a challenge marked `tiebreakEligible` (`last_tiebreak_solve_at`) - earlier is better.
+2. Absolute last solve time - earlier is better.
 
 This chain provides a stable tiebreak input when both scores and regular last-solve times match.
 

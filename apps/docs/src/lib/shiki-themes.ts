@@ -11,7 +11,7 @@ export const codeBackground = (theme: { name: string }) =>
 
 // Pre-adjusting against the same background used by Expressive Code's style
 // overrides means EC's per-render adjustment is a no-op (already meets
-// contrast), and inline shiki — which has no contrast pipeline — sees the same
+// contrast), and inline shiki - which has no contrast pipeline - sees the same
 // colors.
 const MIN_CONTRAST = 5.5
 

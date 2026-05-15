@@ -38,8 +38,8 @@ Returns the public profile of a team.
 | Auth           | Public, optional admin bypass              |
 | Gate           | Started                                    |
 | Permissions    | `challsRead{:ts}` (start-time bypass only) |
-| Captcha action | —                                          |
-| Rate limit     | —                                          |
+| Captcha action | -                                          |
+| Rate limit     | -                                          |
 
 **Path params**
 
@@ -93,9 +93,9 @@ Returns the authenticated team's own profile, including account-private fields.
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Response**
 
@@ -145,9 +145,9 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 | -------------- | -------------------------------------------------------------------- |
 | Auth           | Required                                                             |
 | Gate           | None                                                                 |
-| Permissions    | —                                                                    |
-| Captcha action | —                                                                    |
-| Rate limit     | Profile name update — burst `3`, refill window `180000` ms per user. |
+| Permissions    | -                                                                    |
+| Captcha action | -                                                                    |
+| Rate limit     | Profile name update - burst `3`, refill window `180000` ms per user. |
 
 **Request body**
 
@@ -207,9 +207,9 @@ Uploads or removes the team avatar. The route expects `multipart/form-data`.
 | -------------- | -------------------------------------------------------------- |
 | Auth           | Required                                                       |
 | Gate           | None                                                           |
-| Permissions    | —                                                              |
+| Permissions    | -                                                              |
 | Captcha action | `avatarUpload{:ts}` (when configured)                          |
-| Rate limit     | Avatar upload — burst `2`, refill window `120000` ms per user. |
+| Rate limit     | Avatar upload - burst `2`, refill window `120000` ms per user. |
 
 **Request**
 
@@ -248,9 +248,9 @@ Updates the account email. When email delivery is configured, the route sends a 
 | -------------- | --------------------------------- |
 | Auth           | Required                          |
 | Gate           | None                              |
-| Permissions    | —                                 |
+| Permissions    | -                                 |
 | Captcha action | `setEmail{:ts}` (when configured) |
-| Rate limit     | —                                 |
+| Rate limit     | -                                 |
 
 **Request body**
 
@@ -299,7 +299,7 @@ Differs from V2: only accepts `name` and `division`. Shares the profile name upd
 
 ### `<route>PUT /api/v1/users/me/auth/email</route>`
 
-Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 — `<green>200 goodVerifySent</green>` when email delivery is configured, `<green>200 goodEmailSet</green>` otherwise. Same division-ACL and duplicate-email rejections apply.
+Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 - `<green>200 goodVerifySent</green>` when email delivery is configured, `<green>200 goodEmailSet</green>` otherwise. Same division-ACL and duplicate-email rejections apply.
 
 ### `<route>DELETE /api/v1/users/me/auth/email</route>`
 
@@ -309,9 +309,9 @@ V1-only. Removes the account email. Preserves the `<red>409 badZeroAuth</red>` i
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Response**
 
@@ -327,9 +327,9 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Request body**
 
@@ -357,9 +357,9 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Response**
 
@@ -375,9 +375,9 @@ V1-only. Lists informational team-member email rows under the team account. Team
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Response**
 
@@ -393,9 +393,9 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Request body**
 
@@ -423,9 +423,9 @@ V1-only. Removes a team member email row.
 | -------------- | -------- |
 | Auth           | Required |
 | Gate           | None     |
-| Permissions    | —        |
-| Captcha action | —        |
-| Rate limit     | —        |
+| Permissions    | -        |
+| Captcha action | -        |
+| Rate limit     | -        |
 
 **Path params**
 
@@ -459,8 +459,8 @@ The V1 solve shape omits `bloodIndex`.
 
 | Route | Scope | Bucket |
 | --- | --- | --- |
-| `<route>PATCH /api/v1/users/me</route>` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `<route>PATCH /api/v2/users/me</route>` | User | Profile name update — burst `3`, refill window `180000` ms. |
-| `<route>PATCH /api/v2/users/me/avatar</route>` | User | Avatar upload — burst `2`, refill window `120000` ms. |
+| `<route>PATCH /api/v1/users/me</route>` | User | Profile name update - burst `3`, refill window `180000` ms. |
+| `<route>PATCH /api/v2/users/me</route>` | User | Profile name update - burst `3`, refill window `180000` ms. |
+| `<route>PATCH /api/v2/users/me/avatar</route>` | User | Avatar upload - burst `2`, refill window `120000` ms. |
 
 The profile name update bucket is shared between V1 and V2 PATCH routes per user. See the global [rate limit summary](/api/#rate-limits) and the [response reference](/api/responses/) for envelope and error shapes.

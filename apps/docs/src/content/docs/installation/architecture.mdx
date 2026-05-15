@@ -5,7 +5,7 @@ description: Reference for the bundled rCTF container, its build pipeline, in-co
 
 import Callout from '@/components/callout.astro'
 
-rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `<route>/api</route>` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
+rCTF ships as a single container managed by `supervisord`. It runs the Hono API server (a Bun process that also spawns the leaderboard worker as a Web Worker thread) and an nginx that serves the SvelteKit static build and proxies `/api` and `/uploads` to the API. The container is intended to sit behind a reverse proxy and expects PostgreSQL and Redis as external services. The bundled `compose.yml` wires those dependencies for a single-node deployment.
 
 For deployment steps, see [Installation](/installation/) and the [VPS setup walkthrough](/running-a-successful-ctf/03-setup/). This page is a reference for the inner architecture.
 
@@ -108,7 +108,7 @@ autostart=true
 autorestart=true
 ```
 
-If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program — it is a thread inside the API process, so it restarts together with the API.
+If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program - it is a thread inside the API process, so it restarts together with the API.
 
 <Callout variant='note' title='Leaderboard updates without a worker thread'>
   When `<red>instanceType</red>` is `<green>frontend</green>`, the API process does not start the
@@ -188,7 +188,7 @@ The directives:
 | `form-action` | `<green>'self'</green>` |
 | `object-src` | `<green>'none'</green>` |
 
-The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime — captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts` and rebuilding.
+The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime - captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts` and rebuilding.
 
 <Callout variant="warning" title="frame-ancestors">
   The CSP omits `frame-ancestors` because it is ignored from `<meta>` tags. Click-jacking protection is enforced via the nginx `<red>X-Frame-Options</red>`: `<green>DENY</green>` header instead.
@@ -196,15 +196,7 @@ The list above is the entire allow-set the bundled build ships with. There is no
 
 ## Horizontal scaling with `instanceType{:ts}`
 
-The `<red>instanceType</red>` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs. See [Manual installation](/installation/manual/#scaling-with-instance-types) for the basic config.
-
-| Value                          | API server | Leaderboard worker thread |
-| ------------------------------ | ---------- | ------------------------- |
-| `<green>all</green>` (default) | Yes        | Yes                       |
-| `<green>frontend</green>`      | Yes        | No                        |
-| `<green>leaderboard</green>`   | No         | Yes                       |
-
-The dispatch happens at startup in `apps/api/src/index.ts`:
+The `<red>instanceType</red>` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs - `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>`. The dispatch happens at startup in `apps/api/src/index.ts`:
 
 ```ts title="apps/api/src/index.ts"
 if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
@@ -217,19 +209,7 @@ if (config.instanceType === 'frontend' || config.instanceType === 'all') {
 }
 ```
 
-To scale horizontally:
-
-- Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (if using the local upload provider) a shared `/app/uploads` mount — switching to an S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `<green>leaderboard</green>` worker. The worker in `apps/api/src/workers/leaderboard.ts` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `<red>running</red>` flag, which does not coordinate across processes.
-
-<Callout variant='warning' title='One leaderboard worker'>
-  Do not run more than one `<green>leaderboard</green>` instance.
-
-The bundled container's `<green>all</green>` mode is sufficient for most events.
-
-Split into `<green>frontend</green>` + `<green>leaderboard</green>` only when scaling the API horizontally.
-
-</Callout>
+See [Scaling](/installation/scaling/) for the full mode table, the one-leaderboard-replica constraint, the forced-update limitation in split mode, and observed resource usage on real events.
 
 ## External dependencies
 
@@ -242,10 +222,10 @@ The container only contains the rCTF application, nginx, and supervisor. Everyth
 
 Optional dependencies that the deployer must supply when the matching provider is enabled:
 
-- **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers — see [Uploads](/providers/uploads/).
+- **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers - see [Uploads](/providers/uploads/).
 - **SES, SMTP, or another email provider** for the email integration.
 - **OpenAI** (or another moderation provider) for avatar moderation.
-- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances — see [Instancer](/integrations/instancer/).
+- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances - see [Instancer](/integrations/instancer/).
 - **Captcha provider** (reCAPTCHA, hCaptcha, or Turnstile). The CSP already permits all three.
 
 The bundled `compose.yml` pins one PostgreSQL and one Redis container alongside `rctf`. The `rctf` service exposes `127.0.0.1:8080` and expects a reverse proxy (typically nginx or Caddy on the host) to terminate TLS and forward to it.

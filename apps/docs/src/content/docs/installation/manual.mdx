@@ -10,8 +10,32 @@ This guide covers setting up rCTF from source without Docker, suitable for devel
 ## Prerequisites
 
 - [Bun](https://bun.sh/) 1.2 or later
-- PostgreSQL 15+ with the `pg_trgm` extension enabled
+- PostgreSQL 15+
 - Redis 7+
+
+## Project structure
+
+rCTF is a Bun-ish monorepo with the following layout:
+
+<FileTree>
+  <Dir name='apps'>
+    <Dir name='api' comment='Hono REST API server' />
+    <Dir name='web' comment='SvelteKit frontend (static build)' />
+    <Dir name='admin-bot' comment='Puppeteer-based admin bot service' />
+    <Dir name='k8s-controller' comment='Kubernetes challenge instancer (Go)' />
+    <Dir name='docker-instancer' comment='Docker challenge instancer (Python)' />
+    <Dir name='docs' comment='Documentation site' />
+    <Dir name='export' comment='Instance archiver tool' />
+    <Dir name='seed' comment='Database seeding utility' />
+  </Dir>
+  <Dir name='packages'>
+    <Dir name='config' comment='YAML/JSON config loader with Zod validation' />
+    <Dir name='db' comment='Drizzle ORM schema and migrations' />
+    <Dir name='scoring' comment='Pluggable scoring algorithms' />
+    <Dir name='types' comment='Shared route definitions and validators' />
+    <Dir name='util' comment='Small shared utilities' />
+  </Dir>
+</FileTree>
 
 ## Setup
 
@@ -37,7 +61,7 @@ rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JS
 
 Create a minimal configuration file:
 
-```yaml title="rctf.d/01-base.yaml" showLineNumbers {"Generate with: $ openssl rand -base64 32":3-4} {"Unix milliseconds":11-12}
+```yaml title="rctf.d/01-base.yaml" showLineNumbers {"Generate with: $ openssl rand -base64 32":3-4} {"Unix milliseconds":10-12}
 ctfName: My CTF
 origin: https://ctf.example.com
 
@@ -90,7 +114,7 @@ $ bun run dev:web   # Frontend only on :5173
 
 <Callout variant="tip" title="One-shot dev setup">
 
-    For a fresh local environment, `$ bun run dev:mock` chains `$ bun run db:migrate`, `$ bun run dev:seed`, and `$ bun run dev` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+    For a fresh local environment, `$ bun run dev:mock` chains `$ bun run db:migrate`, `$ bun run dev:seed`, and `$ bun run dev` together. The seed resets the database and populates it with an admin account, 250 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
 
 </Callout>
 
@@ -108,28 +132,16 @@ $ bun run --filter '@rctf/api' start   # Starts API server
 
 The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
-## Scaling with instance types
+## Scaling
 
-The `<red>instanceType</red>` configuration option controls which components run in a given process:
-
-| Value                          | Behavior                                            |
-| ------------------------------ | --------------------------------------------------- |
-| `<green>all</green>` (default) | Runs both the API server and the leaderboard worker |
-| `<green>frontend</green>`      | Runs the API server only                            |
-| `<green>leaderboard</green>`   | Runs the leaderboard computation worker only        |
-
-This allows horizontal scaling by running separate `<green>frontend</green>` and `<green>leaderboard</green>` instances:
-
-```yaml title="rctf.d/02-scaling.yaml"
-instanceType: frontend # or 'leaderboard'
-```
+The `<red>instanceType</red>` config option lets you split an rCTF process into `<green>frontend</green>`-only or `<green>leaderboard</green>`-only roles for horizontal scaling. See [Scaling](/installation/scaling/) for the full table, the one-leaderboard-replica constraint, and the forced-update limitation in split mode.
 
 ## Running tests
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
 ```sh
-$ bun test                    # Run all tests from root
+$ bun run test                # Run all tests from root
 $ bun run test:coverage       # With coverage
 $ bun run typecheck           # Typecheck all workspaces
 ```

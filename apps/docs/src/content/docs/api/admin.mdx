@@ -64,8 +64,8 @@ Lists every challenge with full admin fields, including hidden challenges and un
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `challsRead{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Response**
 
@@ -82,8 +82,8 @@ Returns one admin challenge.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `challsRead{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -106,8 +106,8 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 | Auth           | Required           |
 | Gate           | None               |
 | Permissions    | `challsWrite{:ts}` |
-| Captcha action | —                  |
-| Rate limit     | —                  |
+| Captcha action | -                  |
+| Rate limit     | -                  |
 
 **Path params**
 
@@ -158,8 +158,8 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 | Auth           | Required                |
 | Gate           | None                    |
 | Permissions    | `challsSolveWrite{:ts}` |
-| Captcha action | —                       |
-| Rate limit     | —                       |
+| Captcha action | -                       |
+| Rate limit     | -                       |
 
 **Path params**
 
@@ -178,15 +178,15 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 
 ### `<route>POST /api/v2/admin/upload</route>`
 
-Uploads one or more files. Files are deduplicated by SHA-256 — uploading the same content twice returns the existing URL.
+Uploads one or more files. Files are deduplicated by SHA-256 - uploading the same content twice returns the existing URL.
 
 | Property       | Value              |
 | -------------- | ------------------ |
 | Auth           | Required           |
 | Gate           | None               |
 | Permissions    | `challsWrite{:ts}` |
-| Captcha action | —                  |
-| Rate limit     | —                  |
+| Captcha action | -                  |
+| Rate limit     | -                  |
 
 **Request**
 
@@ -213,8 +213,8 @@ Checks whether files already exist by SHA-256 without uploading them.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `challsRead{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Request body**
 
@@ -231,7 +231,7 @@ Checks whether files already exist by SHA-256 without uploading them.
 
 **Response**
 
-`<green>200 goodUploadsQuery</green>`: array with one entry per query — each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
+`<green>200 goodUploadsQuery</green>`: array with one entry per query - each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
 
 **Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
 
@@ -246,8 +246,8 @@ Lists teams. Query parameters control pagination, sorting, and search.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Query**
 
@@ -274,8 +274,8 @@ Lists teams with rich filters. Same query parameters as `<route>GET</route>`, wi
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Query**
 
@@ -312,8 +312,8 @@ Returns full team details, including solve history.
 | Auth           | Required                             |
 | Gate           | None                                 |
 | Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | —                                    |
-| Rate limit     | —                                    |
+| Captcha action | -                                    |
+| Rate limit     | -                                    |
 
 **Path params**
 
@@ -352,8 +352,8 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -388,8 +388,8 @@ Deletes a team. Cannot delete users with admin permissions.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -412,8 +412,8 @@ Generates a fresh long-lived team token. Useful for recovering teams that have l
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -440,8 +440,8 @@ Lists outstanding pending verifications.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Response**
 
@@ -458,8 +458,8 @@ Manually completes a pending verification, creating the team without requiring t
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -482,8 +482,8 @@ Resends the verification email for an outstanding row.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `usersWrite{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Path params**
 
@@ -510,8 +510,8 @@ Lists submission audit rows.
 | Auth           | Required                             |
 | Gate           | None                                 |
 | Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | —                                    |
-| Rate limit     | —                                    |
+| Captcha action | -                                    |
+| Rate limit     | -                                    |
 
 **Query**
 
@@ -539,8 +539,8 @@ Lists submission audit rows with rich filters.
 | Auth           | Required                             |
 | Gate           | None                                 |
 | Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | —                                    |
-| Rate limit     | —                                    |
+| Captcha action | -                                    |
+| Rate limit     | -                                    |
 
 **Query**
 
@@ -593,8 +593,8 @@ Returns the current overrides and defaults side-by-side.
 | Auth           | Required             |
 | Gate           | None                 |
 | Permissions    | `settingsWrite{:ts}` |
-| Captcha action | —                    |
-| Rate limit     | —                    |
+| Captcha action | -                    |
+| Rate limit     | -                    |
 
 **Response**
 
@@ -611,8 +611,8 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 | Auth           | Required             |
 | Gate           | None                 |
 | Permissions    | `settingsWrite{:ts}` |
-| Captcha action | —                    |
-| Rate limit     | —                    |
+| Captcha action | -                    |
+| Rate limit     | -                    |
 
 **Request body**
 
@@ -660,8 +660,8 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `challsRead{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Response**
 
@@ -678,8 +678,8 @@ Returns admin bot enablement and source language.
 | Auth           | Required          |
 | Gate           | None              |
 | Permissions    | `challsRead{:ts}` |
-| Captcha action | —                 |
-| Rate limit     | —                 |
+| Captcha action | -                 |
+| Rate limit     | -                 |
 
 **Response**
 
@@ -699,9 +699,9 @@ Claims the oldest queued job for processing.
 | -------------- | ------- |
 | Auth           | Service |
 | Gate           | None    |
-| Permissions    | —       |
-| Captcha action | —       |
-| Rate limit     | —       |
+| Permissions    | -       |
+| Captcha action | -       |
+| Rate limit     | -       |
 
 **Response**
 
@@ -719,9 +719,9 @@ Fetches the challenge source code for a specific config revision.
 | -------------- | ------- |
 | Auth           | Service |
 | Gate           | None    |
-| Permissions    | —       |
-| Captcha action | —       |
-| Rate limit     | —       |
+| Permissions    | -       |
+| Captcha action | -       |
+| Rate limit     | -       |
 
 **Path params**
 
@@ -743,9 +743,9 @@ Marks a running job as completed and stores logs.
 | -------------- | ------- |
 | Auth           | Service |
 | Gate           | None    |
-| Permissions    | —       |
-| Captcha action | —       |
-| Rate limit     | —       |
+| Permissions    | -       |
+| Captcha action | -       |
+| Rate limit     | -       |
 
 **Path params**
 
@@ -779,9 +779,9 @@ Marks a running job as failed and stores logs.
 | -------------- | ------- |
 | Auth           | Service |
 | Gate           | None    |
-| Permissions    | —       |
-| Captcha action | —       |
-| Rate limit     | —       |
+| Permissions    | -       |
+| Captcha action | -       |
+| Rate limit     | -       |
 
 **Path params**
 
@@ -807,9 +807,9 @@ Returns the number of queued jobs.
 | -------------- | ------- |
 | Auth           | Service |
 | Gate           | None    |
-| Permissions    | —       |
-| Captcha action | —       |
-| Rate limit     | —       |
+| Permissions    | -       |
+| Captcha action | -       |
+| Rate limit     | -       |
 
 **Response**
 
@@ -831,15 +831,15 @@ Same as [`<route>PUT /api/v2/admin/challs/:id</route>`](#put-apiv2adminchallsid)
 
 #### `<route>DELETE /api/v1/admin/challs/:id</route>`
 
-V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent — V2 deletes via challenge mutation in the admin panel.
+V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent - V2 deletes via challenge mutation in the admin panel.
 
 | Property       | Value              |
 | -------------- | ------------------ |
 | Auth           | Required           |
 | Gate           | None               |
 | Permissions    | `challsWrite{:ts}` |
-| Captcha action | —                  |
-| Rate limit     | —                  |
+| Captcha action | -                  |
+| Rate limit     | -                  |
 
 **Path params**
 
@@ -873,7 +873,7 @@ V1 upload responses omit the `size` field.
 
 #### `<route>POST /api/v1/admin/upload/query</route>`
 
-Same as [`<route>POST /api/v2/admin/upload/query</route>`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only — no `size`.
+Same as [`<route>POST /api/v2/admin/upload/query</route>`](#post-apiv2adminuploadquery), but V1 upload query responses include nullable `url` only - no `size`.
 
 ## `AdminChallengeV2`
 

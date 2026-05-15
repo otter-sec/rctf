@@ -26,7 +26,7 @@ function buttonProperties(cmd: string): Properties {
 
   // `<span role="button">`, not `<button>`. `<button>` is a form control,
   // and even with `display: inline` it preserves its bounding box across
-  // line wraps — `box-decoration-break: clone` therefore can't clone the
+  // line wraps - `box-decoration-break: clone` therefore can't clone the
   // pill chrome onto each line fragment, leaving long pills as one giant
   // rectangle. A `<span>` is naturally inline and clones cleanly.
   const properties: Properties = {

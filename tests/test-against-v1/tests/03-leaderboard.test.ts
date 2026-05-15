@@ -158,7 +158,7 @@ describe('Leaderboard - With Test Data', () => {
   }, 30_000)
 
   test('leaderboard includes solvers with scores', async () => {
-    // Wait for both instances to reflect the solves before comparing —
+    // Wait for both instances to reflect the solves before comparing -
     // refreshLeaderboard's snapshot-diff in beforeAll can return early.
     const res = await awaitAllLeaderboard(entries =>
       solvers.every(s => entries.some(e => e.name === s.name && e.score > 0))
