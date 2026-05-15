@@ -18,12 +18,12 @@ Submitting the final scoreboard to CTFtime enables participating teams to receiv
 
 The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
 
-```ansi
-$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
+```sh
+$ docker exec -it rctf-postgres-1 bash
 ```
 
-```ansi title="Inside the postgres container"
-$ [31mpsql[0m [02m-U[0m rctf
+```sh title="Inside the postgres container"
+$ psql -U rctf
 ```
 
 ```sql title="Inside the postgres shell"
@@ -46,9 +46,9 @@ Copy the returned authentication token, removing the surrounding quotation marks
 
 Use the following command to retrieve the scoreboard export, replacing `TOKEN` with the authentication token from the previous step:
 
-```ansi
-$ [31mcurl[0m [32mhttps://ctf.example.com/api/v1/integrations/ctftime/leaderboard[0m \
-  [02m-H[0m [32m"Authorization: Bearer TOKEN"[0m
+```sh
+$ curl https://ctf.example.com/api/v1/integrations/ctftime/leaderboard \
+  -H "Authorization: Bearer TOKEN"
 ```
 
 </Step>
@@ -68,12 +68,12 @@ Point distribution may take approximately one hour for established events. For f
 
 For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
 
-```ansi
-$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
+```sh
+$ docker exec -it rctf-postgres-1 bash
 ```
 
-```ansi title="Inside the postgres container"
-$ [31mpsql[0m [02m-U[0m rctf
+```sh title="Inside the postgres container"
+$ psql -U rctf
 ```
 
 ```sql title="Inside the postgres shell"

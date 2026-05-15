@@ -9,15 +9,15 @@ Challenge routes expose public challenge metadata, solve history, and the legacy
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mchalls{:ansi}` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls{:ansi}` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}` | V1 | Required | Started + not ended |
+| `<cyan>GET</cyan>` | `<black>/api/v2/challs</black>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/challs/:id/solves</black>` | V2 | Optional + bypass (`challsRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v1/challs</black>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v1/challs/:id/solves</black>` | V1 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<green>POST</green>` | `<black>/api/v1/challs/:id/submit</black>` | V1 | Required | Started + not ended |
 
 ## V2 routes
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mchalls{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/challs</black>`
 
 Returns the visible challenge list with V2 integration metadata.
 
@@ -31,7 +31,7 @@ Returns the visible challenge list with V2 integration metadata.
 
 **Response**
 
-`[2;32m200 [22mgoodChallenges[0m{:ansi}` returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
+`<green>200 goodChallenges</green>` returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
 
 ```json
 {
@@ -57,9 +57,9 @@ Returns the visible challenge list with V2 integration metadata.
 | `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined{:ts}` | Participant input schema for admin bot challenges. See [`RegexRule`](/api/responses/#regexrule). |
 | `hasFlag` | `boolean{:ts}` | Indicates whether the challenge has a flag configured. |
 
-**Errors**: `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>401 badNotStarted</red>`.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/challs/:id/solves</black>`
 
 Returns paginated solve history for one challenge.
 
@@ -86,7 +86,7 @@ Returns paginated solve history for one challenge.
 
 **Response**
 
-`[2;32m200 [22mgoodChallengeSolves[0m{:ansi}`:
+`<green>200 goodChallengeSolves</green>`:
 
 ```json
 {
@@ -119,17 +119,17 @@ Returns paginated solve history for one challenge.
 | `solves[].bloodIndex` | `number \| null{:ts}` | `0`, `1`, or `2` for the first three solves. Otherwise `null{:ts}`. |
 | `mySolvePosition` | `number \| null{:ts}` | The authenticated user's solve position for this challenge when optional auth is present. |
 
-**Errors**: `[2;31m404 [22mbadChallenge[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>404 badChallenge</red>`, `<red>401 badNotStarted</red>`.
 
 ## V1 compatibility
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mchalls{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/challs</black>`
 
 Differs from V2:
 
-- `[2;32m200 [22mgoodChallenges[0m{:ansi}` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
+- `<green>200 goodChallenges</green>` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
 
 The V1 challenge list returns the same core fields without V2 integration metadata:
 
@@ -145,11 +145,11 @@ The V1 challenge list returns the same core fields without V2 integration metada
 | `solves`      | `number{:ts}`                          |
 | `sortWeight`  | `number \| null \| undefined{:ts}`     |
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msolves{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/challs/:id/solves</black>`
 
 Differs from V2:
 
-- `[2;32m200 [22mgoodChallengeSolves[0m{:ansi}` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
+- `<green>200 goodChallengeSolves</green>` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
 
 ```json
 {
@@ -168,7 +168,7 @@ Differs from V2:
 }
 ```
 
-### `[32mPOST[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}`
+### `<green>POST</green> <black>/api/v1/challs/:id/submit</black>`
 
 V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
@@ -178,7 +178,7 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 | Gate | Started + not ended |
 | Permissions | — |
 | Captcha action | — |
-| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`[2m/api[22m#rate-limits{:ansi}`](/api/#rate-limits). |
+| Rate limit | Burst `5`, refill window `25000` ms, scoped to user and challenge. See [`<black>/api#rate-limits</black>`](/api/#rate-limits). |
 
 **Path params**
 
@@ -200,11 +200,11 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
 **Response**
 
-`[2;32m200 [22mgoodFlag[0m{:ansi}` (no data) when the submitted flag is correct. The route records a solve for the team.
+`<green>200 goodFlag</green>` (no data) when the submitted flag is correct. The route records a solve for the team.
 
-The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`[2m/api/[22mv2[2m/[22madmin[2m/[22msubmissions{:ansi}`](/api/admin/).
+The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`<black>/api/v2/admin/submissions</black>`](/api/admin/).
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m404 [22mbadChallenge[0m{:ansi}`, `[2;31m400 [22mbadFlag[0m{:ansi}`, `[2;31m409 [22mbadAlreadySolvedChallenge[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`, `[2;31m401 [22mbadEnded[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>404 badChallenge</red>`, `<red>400 badFlag</red>`, `<red>409 badAlreadySolvedChallenge</red>`, `<red>401 badNotStarted</red>`, `<red>401 badEnded</red>`, `<red>429 badRateLimit</red>`.
 
 ## Scoring behavior
 

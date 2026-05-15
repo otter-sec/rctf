@@ -34,7 +34,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_NAME{:sh}` | `string{:ts}` | CTF display name |
 | `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
 | `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
-| `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `[32mall[0m{:ansi}`, `[32mfrontend[0m{:ansi}`, or `[32mleaderboard[0m{:ansi}` |
+| `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
 | `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
@@ -47,7 +47,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}` | PostgreSQL user |
 | `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}` | PostgreSQL password |
 | `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}` | PostgreSQL database name |
-| `RCTF_DATABASE_MIGRATE{:sh}` | `string{:ts}` | `[32mbefore[0m{:ansi}`, `[32monly[0m{:ansi}`, or `[32mnever[0m{:ansi}` |
+| `RCTF_DATABASE_MIGRATE{:sh}` | `string{:ts}` | `<green>before</green>`, `<green>only</green>`, or `<green>never</green>` |
 | `RCTF_REDIS_URL{:sh}` | `string{:ts}` | Redis connection string |
 | `RCTF_REDIS_HOST{:sh}` | `string{:ts}` | Redis host (if not using URL) |
 | `RCTF_REDIS_PORT{:sh}` | `integer{:ts}` | Redis port |
@@ -73,7 +73,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
 | `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
 | `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
-| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag (deprecated, use `[31manalytics.provider[0m{:ansi}`) |
+| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag (deprecated, use `<red>analytics.provider</red>`) |
 
 ### Email
 
@@ -94,7 +94,7 @@ The following environment variables are supported. They override values from con
 
 <Callout variant="note">
 
-Boolean environment variables accept `[32mtrue[0m{:ansi}`, `[32myes[0m{:ansi}`, `[32my[0m{:ansi}`, or `[32m1[0m{:ansi}` as truthy values. Anything else is treated as false.
+Boolean environment variables accept `<green>true</green>`, `<green>yes</green>`, `<green>y</green>`, or `<green>1</green>` as truthy values. Anything else is treated as false.
 
 </Callout>
 ## Configuration reference
@@ -112,14 +112,14 @@ instanceType: all # all | frontend | leaderboard
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mctfName[0m{:ansi}` | `string{:ts}` | - | Display name of your CTF |
-| `[31morigin[0m{:ansi}` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
-| `[31mtokenKey[0m{:ansi}` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
-| `[31minstanceType[0m{:ansi}` | `string{:ts}` | `[32mall[0m{:ansi}` | Controls which components run: `[32mall[0m{:ansi}` (API + leaderboard worker), `[32mfrontend[0m{:ansi}` (API only), `[32mleaderboard[0m{:ansi}` (worker only) |
+| `<red>ctfName</red>` | `string{:ts}` | - | Display name of your CTF |
+| `<red>origin</red>` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
+| `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
+| `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only) |
 
 <Callout variant="warning">
 
-The `[31mtokenKey[0m{:ansi}` is critical for security. All authentication tokens are encrypted with this key. If it is lost or changed, all existing tokens become invalid and users will need to re-authenticate.
+The `<red>tokenKey</red>` is critical for security. All authentication tokens are encrypted with this key. If it is lost or changed, all existing tokens become invalid and users will need to re-authenticate.
 
 </Callout>
 ### Database
@@ -131,7 +131,7 @@ database:
   migrate: never
 ```
 
-The `[31msql[0m{:ansi}` field accepts either a connection string or an object:
+The `<red>sql</red>` field accepts either a connection string or an object:
 
 ```yaml
 database:
@@ -146,7 +146,7 @@ database:
     connectTimeout: 3000 # Default: 3000 (ms)
 ```
 
-The `[31mredis[0m{:ansi}` field accepts either a connection string or an object:
+The `<red>redis</red>` field accepts either a connection string or an object:
 
 ```yaml
 database:
@@ -159,9 +159,9 @@ database:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mdatabase.sql[0m{:ansi}` | `string{:ts}` \| `object{:ts}` | - | PostgreSQL connection (required) |
-| `[31mdatabase.redis[0m{:ansi}` | `string{:ts}` \| `object{:ts}` | - | Redis connection (required) |
-| `[31mdatabase.migrate[0m{:ansi}` | `string{:ts}` | `[32mnever[0m{:ansi}` | `[32mbefore[0m{:ansi}` runs migrations on startup, `[32monly[0m{:ansi}` runs migrations and exits, `[32mnever[0m{:ansi}` skips |
+| `<red>database.sql</red>` | `string{:ts}` \| `object{:ts}` | - | PostgreSQL connection (required) |
+| `<red>database.redis</red>` | `string{:ts}` \| `object{:ts}` | - | Redis connection (required) |
+| `<red>database.migrate</red>` | `string{:ts}` | `<green>never</green>` | `<green>before</green>` runs migrations on startup, `<green>only</green>` runs migrations and exits, `<green>never</green>` skips |
 
 ### Timing
 
@@ -172,8 +172,8 @@ endTime: 1735776000000 # January 2, 2025 00:00 UTC
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mstartTime[0m{:ansi}` | `number{:ts}` | - | Competition start time in Unix milliseconds (required) |
-| `[31mendTime[0m{:ansi}` | `number{:ts}` | - | Competition end time in Unix milliseconds (required) |
+| `<red>startTime</red>` | `number{:ts}` | - | Competition start time in Unix milliseconds (required) |
+| `<red>endTime</red>` | `number{:ts}` | - | Competition end time in Unix milliseconds (required) |
 
 <Callout variant="tip">
 
@@ -198,9 +198,9 @@ divisionACLs:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mdivisions[0m{:ansi}` | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name |
-| `[31mdefaultDivision[0m{:ansi}` | `string{:ts}` | - | Default division for new users (optional) |
-| `[31mdivisionACLs[0m{:ansi}` | `array{:ts}` | - | Access control rules for divisions (optional) |
+| `<red>divisions</red>` | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name |
+| `<red>defaultDivision</red>` | `string{:ts}` | - | Default division for new users (optional) |
+| `<red>divisionACLs</red>` | `array{:ts}` | - | Access control rules for divisions (optional) |
 
 #### Division ACLs
 
@@ -208,9 +208,9 @@ ACLs control which divisions a user can register for based on their email. Each 
 
 | Field | Description |
 | --- | --- |
-| `[31mmatch[0m{:ansi}` | Match type: `[32mdomain[0m{:ansi}`, `[32memail[0m{:ansi}`, `[32mregex[0m{:ansi}`, or `[32many[0m{:ansi}` |
-| `[31mvalue[0m{:ansi}` | Value to match against (domain suffix, exact email, regex pattern, or empty for `[32many[0m{:ansi}`) |
-| `[31mdivisions[0m{:ansi}` | Array of division IDs this rule grants access to |
+| `<red>match</red>` | Match type: `<green>domain</green>`, `<green>email</green>`, `<green>regex</green>`, or `<green>any</green>` |
+| `<red>value</red>` | Value to match against (domain suffix, exact email, regex pattern, or empty for `<green>any</green>`) |
+| `<red>divisions</red>` | Array of division IDs this rule grants access to |
 
 ACL rules are evaluated in order. The first matching rule determines the user's allowed divisions.
 
@@ -233,16 +233,16 @@ ctftime:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mregistrationsEnabled[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Whether new registrations are allowed |
-| `[31muserMembers[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Enable team members feature |
-| `[31mmaxMembers[0m{:ansi}` | `number{:ts}` | `50{:ts}` | Maximum members per team |
-| `[31mloginTimeout[0m{:ansi}` | `number{:ts}` | `3600000{:ts}` | Verification/CTFtime token expiry in milliseconds (1 hour) |
-| `[31mctftime.clientId[0m{:ansi}` | `string{:ts}` | - | CTFtime OAuth client ID (numeric string) |
-| `[31mctftime.clientSecret[0m{:ansi}` | `string{:ts}` | - | CTFtime OAuth client secret |
+| `<red>registrationsEnabled</red>` | `boolean{:ts}` | `true{:ts}` | Whether new registrations are allowed |
+| `<red>userMembers</red>` | `boolean{:ts}` | `true{:ts}` | Enable team members feature |
+| `<red>maxMembers</red>` | `number{:ts}` | `50{:ts}` | Maximum members per team |
+| `<red>loginTimeout</red>` | `number{:ts}` | `3600000{:ts}` | Verification/CTFtime token expiry in milliseconds (1 hour) |
+| `<red>ctftime.clientId</red>` | `string{:ts}` | - | CTFtime OAuth client ID (numeric string) |
+| `<red>ctftime.clientSecret</red>` | `string{:ts}` | - | CTFtime OAuth client secret |
 
 <Callout variant="note">
 
-Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `[31mloginTimeout[0m{:ansi}`.
+Auth tokens (used for logging in) never expire. Only verification and CTFtime tokens expire according to `<red>loginTimeout</red>`.
 
 </Callout>
 ### Captcha
@@ -261,10 +261,10 @@ captcha:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mcaptcha.provider[0m{:ansi}` | `object{:ts}` | - | Captcha provider config (`[31mname[0m{:ansi}` + `[31moptions[0m{:ansi}`) |
-| `[31mcaptcha.protectedEndpoints[0m{:ansi}` | `array{:ts}` | - | List of actions requiring captcha |
+| `<red>captcha.provider</red>` | `object{:ts}` | - | Captcha provider config (`<red>name</red>` + `<red>options</red>`) |
+| `<red>captcha.protectedEndpoints</red>` | `array{:ts}` | - | List of actions requiring captcha |
 
-Available captcha actions: `[32mregister[0m{:ansi}`, `[32mrecover[0m{:ansi}`, `[32msetEmail[0m{:ansi}`, `[32minstancerStart[0m{:ansi}`, `[32minstancerExtend[0m{:ansi}`, `[32mavatarUpload[0m{:ansi}`, `[32madminBotSubmit[0m{:ansi}`.
+Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
 
 See [Captcha Providers](/providers/captcha/) for provider-specific configuration.
 
@@ -289,9 +289,9 @@ instancerProvider:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31muploadProvider[0m{:ansi}` | `object{:ts}` | `{ name: "uploads/local" }` | File upload provider |
-| `[31mscoreProvider[0m{:ansi}` | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider |
-| `[31minstancerProvider[0m{:ansi}` | `object{:ts}` | - | Challenge instancer provider (optional) |
+| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }` | File upload provider |
+| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider |
+| `<red>instancerProvider</red>` | `object{:ts}` | - | Challenge instancer provider (optional) |
 
 See the [Providers](/providers/) section for detailed configuration of each provider.
 
@@ -307,8 +307,8 @@ adminBot:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31madminBot.provider[0m{:ansi}` | `object{:ts}` | - | Admin bot provider config |
-| `[31madminBot.maxLogsPerUserChallenge[0m{:ansi}` | `integer{:ts}` | `5{:ts}` | Max stored log entries per user per challenge |
+| `<red>adminBot.provider</red>` | `object{:ts}` | - | Admin bot provider config |
+| `<red>adminBot.maxLogsPerUserChallenge</red>` | `integer{:ts}` | `5{:ts}` | Max stored log entries per user per challenge |
 
 ### Email
 
@@ -324,9 +324,9 @@ email:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31memail.provider[0m{:ansi}` | `object{:ts}` | - | Email provider config |
-| `[31memail.from[0m{:ansi}` | `string{:ts}` | - | Sender email address (required if email enabled) |
-| `[31memail.logoUrl[0m{:ansi}` | `string{:ts}` | - | Logo URL for email templates (optional) |
+| `<red>email.provider</red>` | `object{:ts}` | - | Email provider config |
+| `<red>email.from</red>` | `string{:ts}` | - | Sender email address (required if email enabled) |
+| `<red>email.logoUrl</red>` | `string{:ts}` | - | Logo URL for email templates (optional) |
 
 <Callout variant="note">
 
@@ -358,18 +358,18 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mhomeContent[0m{:ansi}` | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown) |
-| `[31msponsors[0m{:ansi}` | `array{:ts}` | `[]` | List of sponsors (`[31mname[0m{:ansi}`, `[31micon[0m{:ansi}`, `[31mdescription[0m{:ansi}`, `[31murl[0m{:ansi}`) |
-| `[31mmeta.description[0m{:ansi}` | `string{:ts}` | `"rCTF event description"` | HTML meta description |
-| `[31mmeta.imageUrl[0m{:ansi}` | `string{:ts}` | `""` | HTML meta image URL |
-| `[31mfaviconUrl[0m{:ansi}` | `string{:ts}` | rCTF default | Favicon URL |
-| `[31mlogoLightUrl[0m{:ansi}` | `string{:ts}` | `""` | Logo for light mode |
-| `[31mlogoDarkUrl[0m{:ansi}` | `string{:ts}` | `""` | Logo for dark mode |
-| `[31mflagFormatPlaceholder[0m{:ansi}` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"` | Flag format hint shown to participants |
+| `<red>homeContent</red>` | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown) |
+| `<red>sponsors</red>` | `array{:ts}` | `[]` | List of sponsors (`<red>name</red>`, `<red>icon</red>`, `<red>description</red>`, `<red>url</red>`) |
+| `<red>meta.description</red>` | `string{:ts}` | `"rCTF event description"` | HTML meta description |
+| `<red>meta.imageUrl</red>` | `string{:ts}` | `""` | HTML meta image URL |
+| `<red>faviconUrl</red>` | `string{:ts}` | rCTF default | Favicon URL |
+| `<red>logoLightUrl</red>` | `string{:ts}` | `""` | Logo for light mode |
+| `<red>logoDarkUrl</red>` | `string{:ts}` | `""` | Logo for dark mode |
+| `<red>flagFormatPlaceholder</red>` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"` | Flag format hint shown to participants |
 
 <Callout variant="tip">
 
-Most UI settings and client config timing values (`[31mctfName[0m{:ansi}`, `[31mstartTime[0m{:ansi}`, `[31mendTime[0m{:ansi}`, `[31mhomeContent[0m{:ansi}`, `[31msponsors[0m{:ansi}`, `[31mmeta[0m{:ansi}`, `[31mfaviconUrl[0m{:ansi}`, `[31mlogoLightUrl[0m{:ansi}`, `[31mlogoDarkUrl[0m{:ansi}`) can also be changed at runtime through the admin settings API without restarting the server.
+Most UI settings and client config timing values (`<red>ctfName</red>`, `<red>startTime</red>`, `<red>endTime</red>`, `<red>homeContent</red>`, `<red>sponsors</red>`, `<red>meta</red>`, `<red>faviconUrl</red>`, `<red>logoLightUrl</red>`, `<red>logoDarkUrl</red>`) can also be changed at runtime through the admin settings API without restarting the server.
 
 </Callout>
 ### Analytics
@@ -385,7 +385,7 @@ analytics:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31manalytics.provider[0m{:ansi}` | `object{:ts}` | - | Analytics provider (`[32manalytics/google[0m{:ansi}`, `[32manalytics/cloudflare[0m{:ansi}`, `[32manalytics/plausible[0m{:ansi}`) |
+| `<red>analytics.provider</red>` | `object{:ts}` | - | Analytics provider (`<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`, `<green>analytics/plausible</green>`) |
 
 ### Limits
 
@@ -402,13 +402,13 @@ leaderboard:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mmaxAvatarSize[0m{:ansi}` | `number{:ts}` | `1048576{:ts}` (1 MB) | Maximum avatar upload size in bytes |
-| `[31mleaderboard.maxLimit[0m{:ansi}` | `number{:ts}` | `100{:ts}` | Max teams returned per leaderboard request |
-| `[31mleaderboard.maxOffset[0m{:ansi}` | `number{:ts}` | `4294967296{:ts}` | Max pagination offset |
-| `[31mleaderboard.updateInterval[0m{:ansi}` | `number{:ts}` | `30000{:ts}` (30s) | Leaderboard recalculation interval in ms |
-| `[31mleaderboard.graphMaxTeams[0m{:ansi}` | `number{:ts}` | `10{:ts}` | Max teams displayed on score graph |
-| `[31mleaderboard.graphSampleTime[0m{:ansi}` | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms |
-| `[31mleaderboard.graphWithListLimit[0m{:ansi}` | `number{:ts}` | `100{:ts}` | Max teams for combined leaderboard + graph endpoint |
+| `<red>maxAvatarSize</red>` | `number{:ts}` | `1048576{:ts}` (1 MB) | Maximum avatar upload size in bytes |
+| `<red>leaderboard.maxLimit</red>` | `number{:ts}` | `100{:ts}` | Max teams returned per leaderboard request |
+| `<red>leaderboard.maxOffset</red>` | `number{:ts}` | `4294967296{:ts}` | Max pagination offset |
+| `<red>leaderboard.updateInterval</red>` | `number{:ts}` | `30000{:ts}` (30s) | Leaderboard recalculation interval in ms |
+| `<red>leaderboard.graphMaxTeams</red>` | `number{:ts}` | `10{:ts}` | Max teams displayed on score graph |
+| `<red>leaderboard.graphSampleTime</red>` | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms |
+| `<red>leaderboard.graphWithListLimit</red>` | `number{:ts}` | `100{:ts}` | Max teams for combined leaderboard + graph endpoint |
 
 ### Moderation
 
@@ -423,8 +423,8 @@ avatarsModeration:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mavatarsModeration.provider[0m{:ansi}` | `object{:ts}` | - | Moderation provider for avatar uploads |
-| `[31mavatarsModeration.allowOnInternalError[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Allow avatar upload if moderation API fails |
+| `<red>avatarsModeration.provider</red>` | `object{:ts}` | - | Moderation provider for avatar uploads |
+| `<red>avatarsModeration.allowOnInternalError</red>` | `boolean{:ts}` | `true{:ts}` | Allow avatar upload if moderation API fails |
 
 See [Moderation Providers](/providers/moderation/) for details.
 
@@ -438,12 +438,12 @@ proxy:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mproxy.cloudflare[0m{:ansi}` | `boolean{:ts}` | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP |
-| `[31mproxy.trust[0m{:ansi}` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
+| `<red>proxy.cloudflare</red>` | `boolean{:ts}` | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP |
+| `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
 
 <Callout variant="warning">
 
-Set `[31mproxy.cloudflare[0m{:ansi}` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `[31mproxy.trust[0m{:ansi}` instead.
+Set `<red>proxy.cloudflare</red>` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `<red>proxy.trust</red>` instead.
 
 </Callout>
 ### Blood bot
@@ -465,10 +465,10 @@ bloodBot:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `[31mbloodBot.bloodsCount[0m{:ansi}` | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
-| `[31mbloodBot.destinations[0m{:ansi}` | `array{:ts}` | - | At least one destination (required) |
-| `[31mbloodBot.destinations[].provider[0m{:ansi}` | `object{:ts}` | - | Messages provider config |
-| `[31mbloodBot.destinations[].messageTemplate[0m{:ansi}` | `string{:ts}` | - | Custom message template (optional) |
+| `<red>bloodBot.bloodsCount</red>` | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
+| `<red>bloodBot.destinations</red>` | `array{:ts}` | - | At least one destination (required) |
+| `<red>bloodBot.destinations[].provider</red>` | `object{:ts}` | - | Messages provider config |
+| `<red>bloodBot.destinations[].messageTemplate</red>` | `string{:ts}` | - | Custom message template (optional) |
 
 Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 

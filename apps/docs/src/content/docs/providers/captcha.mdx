@@ -25,19 +25,19 @@ captcha:
 
 ## Protected endpoints
 
-The `[31mprotectedEndpoints[0m{:ansi}` array controls which actions require captcha verification:
+The `<red>protectedEndpoints</red>` array controls which actions require captcha verification:
 
-| Action                          | Description                             |
-| ------------------------------- | --------------------------------------- |
-| `[32mregister[0m{:ansi}`        | New account registration                |
-| `[32mrecover[0m{:ansi}`         | Account recovery via email              |
-| `[32msetEmail[0m{:ansi}`        | Changing account email                  |
-| `[32minstancerStart[0m{:ansi}`  | Starting a challenge instance           |
-| `[32minstancerExtend[0m{:ansi}` | Extending a challenge instance lifetime |
-| `[32mavatarUpload[0m{:ansi}`    | Uploading a team avatar                 |
-| `[32madminBotSubmit[0m{:ansi}`  | Submitting a job to the admin bot       |
+| Action                           | Description                             |
+| -------------------------------- | --------------------------------------- |
+| `<green>register</green>`        | New account registration                |
+| `<green>recover</green>`         | Account recovery via email              |
+| `<green>setEmail</green>`        | Changing account email                  |
+| `<green>instancerStart</green>`  | Starting a challenge instance           |
+| `<green>instancerExtend</green>` | Extending a challenge instance lifetime |
+| `<green>avatarUpload</green>`    | Uploading a team avatar                 |
+| `<green>adminBotSubmit</green>`  | Submitting a job to the admin bot       |
 
-Only the actions listed in `[31mprotectedEndpoints[0m{:ansi}` will require captcha. Unlisted actions proceed without verification.
+Only the actions listed in `<red>protectedEndpoints</red>` will require captcha. Unlisted actions proceed without verification.
 
 ## Providers
 
@@ -55,10 +55,10 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option                    | Environment Variable             | Description          |
-| ------------------------- | -------------------------------- | -------------------- |
-| `[31msiteKey[0m{:ansi}`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
-| `[31msecretKey[0m{:ansi}` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
+| Option                 | Environment Variable             | Description          |
+| ---------------------- | -------------------------------- | -------------------- |
+| `<red>siteKey</red>`   | `RCTF_RECAPTCHA_SITE_KEY{:sh}`   | reCAPTCHA site key   |
+| `<red>secretKey</red>` | `RCTF_RECAPTCHA_SECRET_KEY{:sh}` | reCAPTCHA secret key |
 
 </Tab>
 <Tab>
@@ -74,10 +74,10 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option                    | Environment Variable            | Description         |
-| ------------------------- | ------------------------------- | ------------------- |
-| `[31msiteKey[0m{:ansi}`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
-| `[31msecretKey[0m{:ansi}` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
+| Option                 | Environment Variable            | Description         |
+| ---------------------- | ------------------------------- | ------------------- |
+| `<red>siteKey</red>`   | `RCTF_HCAPTCHA_SITE_KEY{:sh}`   | hCaptcha site key   |
+| `<red>secretKey</red>` | `RCTF_HCAPTCHA_SECRET_KEY{:sh}` | hCaptcha secret key |
 
 </Tab>
 <Tab>
@@ -93,17 +93,17 @@ captcha:
       secretKey: your-secret-key
 ```
 
-| Option                    | Environment Variable             | Description          |
-| ------------------------- | -------------------------------- | -------------------- |
-| `[31msiteKey[0m{:ansi}`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
-| `[31msecretKey[0m{:ansi}` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
+| Option                 | Environment Variable             | Description          |
+| ---------------------- | -------------------------------- | -------------------- |
+| `<red>siteKey</red>`   | `RCTF_TURNSTILE_SITE_KEY{:sh}`   | Turnstile site key   |
+| `<red>secretKey</red>` | `RCTF_TURNSTILE_SECRET_KEY{:sh}` | Turnstile secret key |
 
 </Tab>
 </Tabs>
 
 ## Migrating from v1
 
-If you are using the legacy `[31mrecaptcha[0m{:ansi}` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
+If you are using the legacy `<red>recaptcha</red>` top-level config from v1, it is automatically converted to the new format at startup. However, migrating is recommended:
 
 <Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
 <Tab>

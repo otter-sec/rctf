@@ -2,6 +2,8 @@ import type { Element, Properties, Root, Text } from 'hast'
 import { findElementChild, getNodeText, hasClass, isElement, visitHast } from './hast-utils'
 
 const PREFIX = '$ '
+const TONE_TAG_RE =
+  /<\/?(?:black|red|green|orange|yellow|blue|magenta|cyan|white|gray|grey|muted|dim)>/g
 
 function firstTextNode(node: Element): Text | null {
   for (const child of node.children) {
@@ -20,6 +22,8 @@ function firstTextNode(node: Element): Text | null {
 const LONG_PILL = 24
 
 function buttonProperties(cmd: string): Properties {
+  const copyText = cmd.replace(TONE_TAG_RE, '')
+
   // `<span role="button">`, not `<button>`. `<button>` is a form control,
   // and even with `display: inline` it preserves its bounding box across
   // line wraps — `box-decoration-break: clone` therefore can't clone the
@@ -29,11 +33,11 @@ function buttonProperties(cmd: string): Properties {
     role: 'button',
     tabIndex: 0,
     className: ['inline-shell-cmd'],
-    'data-copy': cmd,
-    'aria-label': `Copy command: ${cmd}`,
-    title: `Copy: ${cmd}`,
+    'data-copy': copyText,
+    'aria-label': `Copy command: ${copyText}`,
+    title: `Copy: ${copyText}`,
   }
-  if (cmd.length > LONG_PILL) properties['data-long-pill'] = 'true'
+  if (copyText.length > LONG_PILL) properties['data-long-pill'] = 'true'
 
   return properties
 }

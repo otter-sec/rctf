@@ -9,24 +9,24 @@ Integration routes expose frontend configuration, CTFtime handoff, challenge ins
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mclient[2m/[22mconfig{:ansi}` | V2 | Public | None |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22manalytics[2m/[22mscript{:ansi}` | V2 | Public | None |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | V2 | Required | Started |
-| `[35mPUT[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | V2 | Required | Started |
-| `[33mPATCH[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | V2 | Required | Started |
-| `[31mDELETE[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | V2 | Required | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mconfig{:ansi}` | V2 | Public | Started |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}` | V2 | Required | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mstatus{:ansi}` | V2 | Required | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mhistory{:ansi}` | V2 | Required | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:jobId[2m/[22mlogs{:ansi}` | V2 | Required | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mintegrations[2m/[22mclient[2m/[22mconfig{:ansi}` | V1 | Public | None |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mcallback{:ansi}` | V1 | Public | None |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mleaderboard{:ansi}` | V1 | Permissioned | None |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/client/config</black>` | V2 | Public | None |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/analytics/script</black>` | V2 | Public | None |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
+| `<magenta>PUT</magenta>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
+| `<orange>PATCH</orange>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
+| `<red>DELETE</red>` | `<black>/api/v2/integrations/challs/:id/instance</black>` | V2 | Required | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/config</black>` | V2 | Public | Started |
+| `<green>POST</green>` | `<black>/api/v2/integrations/challs/:id/admin-bot</black>` | V2 | Required | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/status</black>` | V2 | Required | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/history</black>` | V2 | Required | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</black>` | V2 | Required | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v1/integrations/client/config</black>` | V1 | Public | None |
+| `<green>POST</green>` | `<black>/api/v1/integrations/ctftime/callback</black>` | V1 | Public | None |
+| `<cyan>GET</cyan>` | `<black>/api/v1/integrations/ctftime/leaderboard</black>` | V1 | Permissioned | None |
 
 ## Client config
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mclient[2m/[22mconfig{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/client/config</black>`
 
 Returns the public client configuration consumed by the frontend.
 
@@ -40,7 +40,7 @@ Returns the public client configuration consumed by the frontend.
 
 **Response**
 
-`[2;32m200 [22mgoodClientConfig[0m{:ansi}`:
+`<green>200 goodClientConfig</green>`:
 
 ```json
 {
@@ -74,7 +74,7 @@ Returns the public client configuration consumed by the frontend.
 | `isArchived` | `boolean{:ts}` | Whether the CTF has ended. |
 | `captcha` | `CaptchaClientConfig \| null{:ts}` | Public captcha provider options and protected endpoint map. |
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mintegrations[2m/[22mclient[2m/[22mconfig{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/integrations/client/config</black>`
 
 V1 client config. Differs from V2:
 
@@ -91,7 +91,7 @@ V1 client config. Differs from V2:
 
 ## Analytics script
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22manalytics[2m/[22mscript{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/analytics/script</black>`
 
 Returns the active analytics provider's JavaScript body. This route is not part of `@rctf/types`.
 
@@ -109,7 +109,7 @@ The route returns the provider's JavaScript body or a plain text error. It is no
 
 ## CTFtime
 
-### `[32mPOST[0m [2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mcallback{:ansi}`
+### `<green>POST</green> <black>/api/v1/integrations/ctftime/callback</black>`
 
 V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team name and ID returned by CTFtime.
 
@@ -135,7 +135,7 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 
 **Response**
 
-`[2;32m200 [22mgoodCtftimeToken[0m{:ansi}`:
+`<green>200 goodCtftimeToken</green>`:
 
 ```json
 {
@@ -155,9 +155,9 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 | `data.ctftimeName` | `string{:ts}` | CTFtime team name. |
 | `data.ctftimeId` | `string{:ts}` | CTFtime team ID. |
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadCtftimeCode[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badCtftimeCode</red>`, `<red>404 badEndpoint</red>`.
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mleaderboard{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/integrations/ctftime/leaderboard</black>`
 
 V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route that returns its data directly without the rCTF envelope.
 
@@ -191,9 +191,9 @@ Raw body (200):
 
 ## Instancer lifecycle
 
-All four methods share the path `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` and the same path params. The route returns `[2;31m404 [22mbadEndpoint[0m{:ansi}` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `[2;31m400 [22mbadInstancerError[0m{:ansi}` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
+All four methods share the path `<black>/api/v2/integrations/challs/:id/instance</black>` and the same path params. The route returns `<red>404 badEndpoint</red>` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `<red>400 badInstancerError</red>` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/instance</black>`
 
 Returns the current instance status for the authenticated user.
 
@@ -213,7 +213,7 @@ Returns the current instance status for the authenticated user.
 
 **Response**
 
-`[2;32m200 [22mgoodInstanceStatus[0m{:ansi}`:
+`<green>200 goodInstanceStatus</green>`:
 
 ```json
 {
@@ -235,9 +235,9 @@ Returns the current instance status for the authenticated user.
 
 `Endpoint` has `kind`, `host`, `port`, and optional `title`. Endpoint kinds are `tcp`, `tcp-ssl`, `http`, and `https`.
 
-**Errors**: `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m400 [22mbadInstancerError[0m{:ansi}`.
+**Errors**: `<red>404 badEndpoint</red>`, `<red>400 badInstancerError</red>`.
 
-### `[35mPUT[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`
+### `<magenta>PUT</magenta> <black>/api/v2/integrations/challs/:id/instance</black>`
 
 Creates (starts) an instance for the authenticated user.
 
@@ -269,11 +269,11 @@ Creates (starts) an instance for the authenticated user.
 
 **Response**
 
-`[2;32m200 [22mgoodInstanceStatus[0m{:ansi}`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m400 [22mbadInstancerError[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
 
-### `[33mPATCH[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`
+### `<orange>PATCH</orange> <black>/api/v2/integrations/challs/:id/instance</black>`
 
 Extends the running instance for the authenticated user.
 
@@ -305,11 +305,11 @@ Extends the running instance for the authenticated user.
 
 **Response**
 
-`[2;32m200 [22mgoodInstanceStatus[0m{:ansi}`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m400 [22mbadInstancerError[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
 
-### `[31mDELETE[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`
+### `<red>DELETE</red> <black>/api/v2/integrations/challs/:id/instance</black>`
 
 Stops the instance for the authenticated user.
 
@@ -329,15 +329,15 @@ Stops the instance for the authenticated user.
 
 **Response**
 
-`[2;32m200 [22mgoodInstanceStatus[0m{:ansi}`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `[2;31m404 [22mbadEndpoint[0m{:ansi}`, `[2;31m400 [22mbadInstancerError[0m{:ansi}`.
+**Errors**: `<red>404 badEndpoint</red>`, `<red>400 badInstancerError</red>`.
 
 ## Admin bot participant routes
 
-Participant admin bot routes live under `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22m*{:ansi}`. Admins with `challsRead` can bypass the start-time gate.
+Participant admin bot routes live under `<black>/api/v2/integrations/challs/:id/admin-bot/*</black>`. Admins with `challsRead` can bypass the start-time gate.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mconfig{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/config</black>`
 
 Returns the released admin bot challenge source and its file extension.
 
@@ -357,7 +357,7 @@ Returns the released admin bot challenge source and its file extension.
 
 **Response**
 
-`[2;32m200 [22mgoodAdminBotConfig[0m{:ansi}`:
+`<green>200 goodAdminBotConfig</green>`:
 
 ```json
 {
@@ -375,7 +375,7 @@ Returns the released admin bot challenge source and its file extension.
 | `data.sourceCode`    | `string{:ts}` | Released admin bot challenge source.                   |
 | `data.fileExtension` | `string{:ts}` | File extension corresponding to the source's language. |
 
-### `[32mPOST[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}`
+### `<green>POST</green> <black>/api/v2/integrations/challs/:id/admin-bot</black>`
 
 Submits a participant admin bot job. Participants supply values for the configured input names.
 
@@ -413,7 +413,7 @@ Only one queued or running job per user per challenge is allowed.
 
 **Response**
 
-`[2;32m200 [22mgoodAdminBotJobSubmitted[0m{:ansi}`:
+`<green>200 goodAdminBotJobSubmitted</green>`:
 
 ```json
 {
@@ -429,11 +429,11 @@ Only one queued or running job per user per challenge is allowed.
 | ------------ | ------------- | ------------------------- |
 | `data.jobId` | `string{:ts}` | Submitted job identifier. |
 
-The route returns `[2;31m400 [22mbadInstancerState[0m{:ansi}` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
+The route returns `<red>400 badInstancerState</red>` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`, `[2;31m400 [22mbadInstancerState[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>403 badCaptcha</red>`, `<red>429 badRateLimit</red>`, `<red>400 badInstancerState</red>`.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mstatus{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/status</black>`
 
 Returns the current active job for the authenticated user on that challenge.
 
@@ -453,7 +453,7 @@ Returns the current active job for the authenticated user on that challenge.
 
 **Response**
 
-`[2;32m200 [22mgoodAdminBotJobStatus[0m{:ansi}`:
+`<green>200 goodAdminBotJobStatus</green>`:
 
 ```json
 {
@@ -476,7 +476,7 @@ Returns the current active job for the authenticated user on that challenge.
 | `data.job` | `AdminBotJobStatusResponse \| null{:ts}` | `null{:ts}` when the user has no active job for that challenge. |
 | `data.job.status` | `"queued" \| "running" \| "completed" \| "failed"{:ts}` | Job lifecycle state. |
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mhistory{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/history</black>`
 
 Returns retained completed and failed jobs for the authenticated user on that challenge.
 
@@ -496,7 +496,7 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 
 **Response**
 
-`[2;32m200 [22mgoodAdminBotJobHistory[0m{:ansi}`:
+`<green>200 goodAdminBotJobHistory</green>`:
 
 ```json
 {
@@ -519,7 +519,7 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 | ----------- | ------------------------------- | ----------------------------------- |
 | `data.jobs` | `AdminBotJobHistoryItem[]{:ts}` | Retained completed and failed jobs. |
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:jobId[2m/[22mlogs{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</black>`
 
 Returns logs for a specific job.
 
@@ -540,7 +540,7 @@ Returns logs for a specific job.
 
 **Response**
 
-`[2;32m200 [22mgoodAdminBotJobLogs[0m{:ansi}`:
+`<green>200 goodAdminBotJobLogs</green>`:
 
 ```json
 {
@@ -558,4 +558,4 @@ Returns logs for a specific job.
 
 ## Service routes
 
-The admin bot worker service routes live under `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22m*{:ansi}` and are documented in [Admin](/api/admin/#admin-bot-service-routes).
+The admin bot worker service routes live under `<black>/api/v2/admin/admin-bot/*</black>` and are documented in [Admin](/api/admin/#admin-bot-service-routes).

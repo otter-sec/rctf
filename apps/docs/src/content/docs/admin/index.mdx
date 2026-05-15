@@ -36,9 +36,9 @@ UPDATE users SET perms = 3 WHERE email = 'author@example.com';
 
 If using Docker:
 
-```ansi
-$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
-$ [31mpsql[0m [02m-U[0m rctf
+```sh
+$ docker exec -it rctf-postgres-1 bash
+$ psql -U rctf
 UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
 ```
 

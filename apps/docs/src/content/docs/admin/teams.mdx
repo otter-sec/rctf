@@ -15,7 +15,7 @@ Each team authenticates with a shared team token. Admins can generate a new logi
 
 ## Divisions
 
-Teams are assigned to a division at registration. Divisions are configured in the `[31mdivisions[0m{:ansi}` config option:
+Teams are assigned to a division at registration. Divisions are configured in the `<red>divisions</red>` config option:
 
 ```yaml
 divisions:
@@ -28,12 +28,12 @@ Division assignment can be restricted by email using [division ACLs](/configurat
 
 ## Team members
 
-When `[31muserMembers[0m{:ansi}` is enabled in the configuration (default: `true{:ts}`), teams can add members by email. This is informational - members share the same team token.
+When `<red>userMembers</red>` is enabled in the configuration (default: `true{:ts}`), teams can add members by email. This is informational - members share the same team token.
 
-| Setting                     | Default     | Description                 |
-| --------------------------- | ----------- | --------------------------- |
-| `[31muserMembers[0m{:ansi}` | `true{:ts}` | Enable team members feature |
-| `[31mmaxMembers[0m{:ansi}`  | `50{:ts}`   | Maximum members per team    |
+| Setting                  | Default     | Description                 |
+| ------------------------ | ----------- | --------------------------- |
+| `<red>userMembers</red>` | `true{:ts}` | Enable team members feature |
+| `<red>maxMembers</red>`  | `50{:ts}`   | Maximum members per team    |
 
 ## Account requirements
 

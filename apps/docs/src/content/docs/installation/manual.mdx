@@ -18,16 +18,16 @@ This guide covers setting up rCTF from source without Docker, suitable for devel
 <Steps>
 <Step title="Clone and install dependencies">
 
-```ansi
-$ [31mgit[0m clone https://github.com/otter-sec/rctf.git
-$ [31mcd[0m rctf
-$ [31mbun[0m i
+```sh
+$ git clone https://github.com/otter-sec/rctf.git
+$ cd rctf
+$ bun i
 ```
 
 </Step>
 <Step title="Create a configuration directory">
 
-rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ [31mmkdir[0m rctf.d{:ansi}` at the project root.
+rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ mkdir rctf.d` at the project root.
 
 <FileTree>
   <Dir name='rctf.d'>
@@ -57,7 +57,7 @@ divisions:
 
 <Callout variant="tip" title="Generating a token key">
 
-    The `[31mtokenKey[0m{:ansi}` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ [31mopenssl[0m rand -base64 32{:ansi}`.
+    The `<red>tokenKey</red>` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ openssl rand -base64 32`.
 
 </Callout>
 
@@ -66,31 +66,31 @@ You can also set configuration values through environment variables. See [Config
 </Step>
 <Step title="Run database migrations">
 
-```ansi
-$ [31mbun[0m run db:migrate
+```sh
+$ bun run db:migrate
 ```
 
-Alternatively, set `[31mdatabase.migrate[0m{:ansi}` to `[32mbefore[0m{:ansi}` in your config to run migrations automatically on startup.
+Alternatively, set `<red>database.migrate</red>` to `<green>before</green>` in your config to run migrations automatically on startup.
 
 </Step>
 <Step title="Start the development servers">
 
-```ansi
-$ [31mbun[0m dev
+```sh
+$ bun dev
 ```
 
 This starts both the API server on `http://127.0.0.1:3000` and the SvelteKit dev server on `http://127.0.0.1:5173`. The dev server proxies API requests to the backend.
 
 To run them separately:
 
-```ansi
-$ [31mbun[0m run dev:api   [02m# API only on :3000[0m
-$ [31mbun[0m run dev:web   [02m# Frontend only on :5173[0m
+```sh
+$ bun run dev:api   # API only on :3000
+$ bun run dev:web   # Frontend only on :5173
 ```
 
 <Callout variant="tip" title="One-shot dev setup">
 
-    For a fresh local environment, `$ [31mbun[0m run dev:mock{:ansi}` chains `$ [31mbun[0m run db:migrate{:ansi}`, `$ [31mbun[0m run dev:seed{:ansi}`, and `$ [31mbun[0m run dev{:ansi}` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+    For a fresh local environment, `$ bun run dev:mock` chains `$ bun run db:migrate`, `$ bun run dev:seed`, and `$ bun run dev` together. The seed resets the database and populates it with an admin account, 48 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
 
 </Callout>
 
@@ -101,24 +101,24 @@ $ [31mbun[0m run dev:web   [02m# Frontend only on :5173[0m
 
 Build both the API and frontend:
 
-```ansi
-$ [31mbun[0m run [02m--filter[0m [32m'@rctf/web'[0m build   [02m# Builds static frontend[0m
-$ [31mbun[0m run [02m--filter[0m [32m'@rctf/api'[0m start   [02m# Starts API server[0m
+```sh
+$ bun run --filter '@rctf/web' build   # Builds static frontend
+$ bun run --filter '@rctf/api' start   # Starts API server
 ```
 
 The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
 ## Scaling with instance types
 
-The `[31minstanceType[0m{:ansi}` configuration option controls which components run in a given process:
+The `<red>instanceType</red>` configuration option controls which components run in a given process:
 
-| Value                         | Behavior                                            |
-| ----------------------------- | --------------------------------------------------- |
-| `[32mall[0m{:ansi}` (default) | Runs both the API server and the leaderboard worker |
-| `[32mfrontend[0m{:ansi}`      | Runs the API server only                            |
-| `[32mleaderboard[0m{:ansi}`   | Runs the leaderboard computation worker only        |
+| Value                          | Behavior                                            |
+| ------------------------------ | --------------------------------------------------- |
+| `<green>all</green>` (default) | Runs both the API server and the leaderboard worker |
+| `<green>frontend</green>`      | Runs the API server only                            |
+| `<green>leaderboard</green>`   | Runs the leaderboard computation worker only        |
 
-This allows horizontal scaling by running separate `[32mfrontend[0m{:ansi}` and `[32mleaderboard[0m{:ansi}` instances:
+This allows horizontal scaling by running separate `<green>frontend</green>` and `<green>leaderboard</green>` instances:
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard'
@@ -128,8 +128,8 @@ instanceType: frontend # or 'leaderboard'
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
-```ansi
-$ [31mbun[0m test                    [02m# Run all tests from root[0m
-$ [31mbun[0m run test:coverage       [02m# With coverage[0m
-$ [31mbun[0m run typecheck           [02m# Typecheck all workspaces[0m
+```sh
+$ bun test                    # Run all tests from root
+$ bun run test:coverage       # With coverage
+$ bun run typecheck           # Typecheck all workspaces
 ```

@@ -3,7 +3,7 @@ title: API reference
 description: Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions.
 ---
 
-The rCTF API is a JSON REST API mounted under `[2m/api[22m{:ansi}`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `[2m/api[22m{:ansi}`.
+The rCTF API is a JSON REST API mounted under `<black>/api</black>`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `<black>/api</black>`.
 
 ## Versions
 
@@ -11,8 +11,8 @@ Both API versions are available at the same time:
 
 | Version | Prefix | Status | Use |
 | --- | --- | --- | --- |
-| V1 | `[2m/api/[22mv1{:ansi}` | Supported | Legacy clients and compatibility with the original rCTF API. |
-| V2 | `[2m/api/[22mv2{:ansi}` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+| V1 | `<black>/api/v1</black>` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `<black>/api/v2</black>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
 V2 keeps many response `kind` strings identical to v1 for compatible concepts. The response data may still be wider in v2.
 
@@ -48,8 +48,8 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 | --- | --- |
 | Public | No token is required. Some public routes still accept optional auth so admins can bypass start-time gates. |
 | Optional | The route works without a token, but an auth token may affect the response. |
-| Required | A missing or invalid token returns `[2;31m401 [22mbadToken[0m{:ansi}`. |
-| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `[2;31m403 [22mbadPerms[0m{:ansi}`. |
+| Required | A missing or invalid token returns `<red>401 badToken</red>`. |
+| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `<red>403 badPerms</red>`. |
 | Service | The shared service bearer token must match the configured provider secret. |
 
 ### Token types
@@ -84,11 +84,11 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `[36mGET[0m [2m/api/[22mv1[2m/[22mintegrations[2m/[22mctftime[2m/[22mleaderboard{:ansi}` returns `{ "standings": [...] }` instead of an rCTF envelope.
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<cyan>GET</cyan> <black>/api/v1/integrations/ctftime/leaderboard</black>` returns `{ "standings": [...] }` instead of an rCTF envelope.
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `[2;31m400 [22mbadBody[0m{:ansi}` with a machine-readable `reason` string:
+JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `<red>400 badBody</red>` with a machine-readable `reason` string:
 
 ```json
 {
@@ -100,7 +100,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `[2;31m400 [22mbadJson[0m{:ansi}`. Malformed form data returns `[2;31m400 [22mbadBody[0m{:ansi}` with `body:formData:malformed`.
+The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `<red>400 badJson</red>`. Malformed form data returns `<red>400 badBody</red>` with `body:formData:malformed`.
 
 ## Permissions
 
@@ -119,9 +119,9 @@ When a route lists multiple permission bits, the user must have all of them.
 
 ## Timing gates
 
-Routes marked as start-gated return `[2;31m401 [22mbadNotStarted[0m{:ansi}` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
+Routes marked as start-gated return `<red>401 badNotStarted</red>` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
 
-`[32mPOST[0m [2m/api/[22mv1[2m/[22mchalls[2m/[22m:id[2m/[22msubmit{:ansi}` is also end-gated. It returns `[2;31m401 [22mbadEnded[0m{:ansi}` after `endTime`.
+`<green>POST</green> <black>/api/v1/challs/:id/submit</black>` is also end-gated. It returns `<red>401 badEnded</red>` after `endTime`.
 
 ## Captcha
 
@@ -129,17 +129,17 @@ Captcha-protected routes validate a challenge response only when the configured 
 
 | Action | Routes |
 | --- | --- |
-| `register{:ts}` | `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mregister{:ansi}`, `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mregister{:ansi}`. |
-| `recover{:ts}` | `[32mPOST[0m [2m/api/[22mv1[2m/[22mauth[2m/[22mrecover{:ansi}`, `[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mrecover{:ansi}`. |
-| `setEmail{:ts}` | `[35mPUT[0m [2m/api/[22mv1[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`, `[35mPUT[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mauth[2m/[22memail{:ansi}`. |
-| `avatarUpload{:ts}` | `[33mPATCH[0m [2m/api/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}`. |
-| `instancerStart{:ts}` | `[35mPUT[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`. |
-| `instancerExtend{:ts}` | `[33mPATCH[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}`. |
-| `adminBotSubmit{:ts}` | `[32mPOST[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}`. |
+| `register{:ts}` | `<green>POST</green> <black>/api/v1/auth/register</black>`, `<green>POST</green> <black>/api/v2/auth/register</black>`. |
+| `recover{:ts}` | `<green>POST</green> <black>/api/v1/auth/recover</black>`, `<green>POST</green> <black>/api/v2/auth/recover</black>`. |
+| `setEmail{:ts}` | `<magenta>PUT</magenta> <black>/api/v1/users/me/auth/email</black>`, `<magenta>PUT</magenta> <black>/api/v2/users/me/auth/email</black>`. |
+| `avatarUpload{:ts}` | `<orange>PATCH</orange> <black>/api/v2/users/me/avatar</black>`. |
+| `instancerStart{:ts}` | `<magenta>PUT</magenta> <black>/api/v2/integrations/challs/:id/instance</black>`. |
+| `instancerExtend{:ts}` | `<orange>PATCH</orange> <black>/api/v2/integrations/challs/:id/instance</black>`. |
+| `adminBotSubmit{:ts}` | `<green>POST</green> <black>/api/v2/integrations/challs/:id/admin-bot</black>`. |
 
 ## Rate limits
 
-Rate-limited routes return `[2;31m429 [22mbadRateLimit[0m{:ansi}` with `data.timeLeft`, measured in milliseconds:
+Rate-limited routes return `<red>429 badRateLimit</red>` with `data.timeLeft`, measured in milliseconds:
 
 | Action               | Scope              | Bucket                                |
 | -------------------- | ------------------ | ------------------------------------- |

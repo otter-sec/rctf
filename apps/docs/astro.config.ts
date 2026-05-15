@@ -13,6 +13,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
 import { ecOptions } from './src/lib/ec-config'
+import { rehypeInlineCodeSemantics } from './src/lib/rehype-inline-code-semantics'
 import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
 import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
 import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
@@ -54,6 +55,7 @@ export default defineConfig({
         },
       ],
       rehypeInlineShellCmd,
+      rehypeInlineCodeSemantics,
       rehypeInlinePathIcon,
       rehypeHeadingIds,
       [

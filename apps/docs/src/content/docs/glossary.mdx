@@ -137,7 +137,7 @@ A pluggable module that implements a well-known interface for an integration poi
 
 ### Rate limit bucket
 
-A per-action token bucket keyed by user, challenge, or IP. When a bucket is exhausted, the route returns `[2;31m429 [22mbadRateLimit[0m{:ansi}` with `timeLeft{:ts}` (milliseconds until the next token). See [Rate limits](/api/#rate-limits).
+A per-action token bucket keyed by user, challenge, or IP. When a bucket is exhausted, the route returns `<red>429 badRateLimit</red>` with `timeLeft{:ts}` (milliseconds until the next token). See [Rate limits](/api/#rate-limits).
 
 ### Runtime settings
 

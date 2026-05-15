@@ -21,7 +21,7 @@ The rCTF API is configured with an admin bot provider. The provider points at th
 </Step>
 <Step title="Save challenge code">
 
-The admin challenge editor sends the TypeScript source to the browser worker's `[2m/[22mv1[2m/[22mtest{:ansi}` endpoint. The worker builds the source, validates the exported `Challenge{:ts}`, returns the public input schema, and lets the API store a config revision.
+The admin challenge editor sends the TypeScript source to the browser worker's `<black>/v1/test</black>` endpoint. The worker builds the source, validates the exported `Challenge{:ts}`, returns the public input schema, and lets the API store a config revision.
 
 </Step>
 <Step title="Submit a job">
@@ -108,14 +108,16 @@ PORT=21337
 
 Run the bundled Compose service from the repository root:
 
-```ansi
-$ [31mdocker[0m compose [02m-f[0m deploy/admin-bot/compose.yml up [02m-d[0m
+```sh
+$ docker compose -f deploy/admin-bot/compose.yml up -d
 ```
 
 The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network` network.
 
-<Callout variant="warning" title="Network exposure">
-  Keep the worker reachable only from trusted infrastructure. The `[2m/[22mv1[2m/[22mtest{:ansi}` endpoint is bearer-authenticated, but it still builds trusted challenge source. The worker should not be exposed as a public internet service.
+<Callout variant='warning' title='Network exposure'>
+  Keep the worker reachable only from trusted infrastructure. The `<black>/v1/test</black>` endpoint
+  is bearer-authenticated, but it still builds trusted challenge source. The worker should not be
+  exposed as a public internet service.
 </Callout>
 
 ## Challenge source
@@ -176,7 +178,7 @@ The `Challenge{:ts}` constructor accepts these fields:
 | `restrictDomains{:ts}` | No | PAC-based host and URL allow or deny rules. |
 | `requireInstancerInstancesRunning{:ts}` | No | Requires a running instancer instance before queuing the job and passes displayed endpoints into `ctx.job.instancerInstances{:ts}`. |
 
-By default, Chrome starts with `[02m--no-sandbox[0m{:ansi}`, `[02m--disable-jit[0m{:ansi}`, `[02m--disable-wasm[0m{:ansi}`, and `[02m--disable-dev-shm-usage[0m{:ansi}`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
+By default, Chrome starts with `<black>--no-sandbox</black>`, `<black>--disable-jit</black>`, `<black>--disable-wasm</black>`, and `<black>--disable-dev-shm-usage</black>`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
 
 ## Challenge context
 
@@ -252,11 +254,11 @@ The participant-side API uses these endpoints:
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mconfig{:ansi}` | Returns source code and file extension for the released challenge config. |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}` | Validates inputs and queues a job. |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mstatus{:ansi}` | Returns the latest job, logs when present, and queue position while queued. |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mhistory{:ansi}` | Returns completed and failed jobs retained for the current user. |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:jobId[2m/[22mlogs{:ansi}` | Returns stored logs for one retained job. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/config</black>` | Returns source code and file extension for the released challenge config. |
+| `<green>POST</green>` | `<black>/api/v2/integrations/challs/:id/admin-bot</black>` | Validates inputs and queues a job. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/status</black>` | Returns the latest job, logs when present, and queue position while queued. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/history</black>` | Returns completed and failed jobs retained for the current user. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</black>` | Returns stored logs for one retained job. |
 
 Each user may have one queued or running admin bot job per challenge. Submissions are rate-limited to one request per ten seconds per user and challenge.
 
@@ -266,10 +268,10 @@ The worker uses the service-authenticated admin API:
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22mpull{:ansi}` | Claims the oldest queued job. |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mchallenges[2m/[22m:id[2m/[22msource{:ansi}` | Fetches challenge source for the claimed revision. |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mcomplete{:ansi}` | Marks a running job as completed and stores logs. |
-| `[32mPOST[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:id[2m/[22mfail{:ansi}` | Marks a running job as failed and stores logs. |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22mqueue-depth{:ansi}` | Returns the number of queued jobs. |
+| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/pull</black>` | Claims the oldest queued job. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/admin/admin-bot/challenges/:id/source</black>` | Fetches challenge source for the claimed revision. |
+| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/:id/complete</black>` | Marks a running job as completed and stores logs. |
+| `<green>POST</green>` | `<black>/api/v2/admin/admin-bot/jobs/:id/fail</black>` | Marks a running job as failed and stores logs. |
+| `<cyan>GET</cyan>` | `<black>/api/v2/admin/admin-bot/queue-depth</black>` | Returns the number of queued jobs. |
 
 Each worker process runs one job at a time. Multiple worker processes can poll the same API when more browser throughput is needed.

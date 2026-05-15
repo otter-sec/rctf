@@ -9,33 +9,33 @@ Leaderboard routes read cached standings produced by the leaderboard worker. The
 
 | Method | Path | Version | Auth | Gate |
 | --- | --- | --- | --- | --- |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mnow{:ansi}` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mgraph{:ansi}` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mleaderboard[2m/[22mnow{:ansi}` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
-| `[36mGET[0m{:ansi}` | `[2m/api/[22mv1[2m/[22mleaderboard[2m/[22mgraph{:ansi}` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/now</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/with-graph</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/graph</black>` | V2 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v2/leaderboard/challs</black>` | V2 | Public + optional bypass (`challsRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v1/leaderboard/now</black>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
+| `<cyan>GET</cyan>` | `<black>/api/v1/leaderboard/graph</black>` | V1 | Public + optional bypass (`leaderboardRead{:ts}`) | Started |
 
-Routes accept an optional auth token. When the token carries the listed permission bit, it bypasses the start-time gate. `[2m/api/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}` uses `challsRead{:ts}` instead of `leaderboardRead{:ts}`.
+Routes accept an optional auth token. When the token carries the listed permission bit, it bypasses the start-time gate. `<black>/api/v2/leaderboard/challs</black>` uses `challsRead{:ts}` instead of `leaderboardRead{:ts}`.
 
 ## Query parameters
 
-`[2m/[22mnow{:ansi}`, `[2m/[22mwith-graph{:ansi}`, and `[2m/[22mgraph{:ansi}` use query-string pagination. The shared parameters:
+`<black>/now</black>`, `<black>/with-graph</black>`, and `<black>/graph</black>` use query-string pagination. The shared parameters:
 
 | Query | Routes | Required | Notes |
 | --- | --- | --- | --- |
 | `limit` | All list and graph routes | Yes | Integer greater than or equal to `1`. Config enforces the maximum. |
-| `offset` | V2 `[2m/[22mnow{:ansi}`, V2 `[2m/[22mwith-graph{:ansi}`, V2 `[2m/[22mgraph{:ansi}`, V1 `[2m/[22mnow{:ansi}` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
+| `offset` | V2 `<black>/now</black>`, V2 `<black>/with-graph</black>`, V2 `<black>/graph</black>`, V1 `<black>/now</black>` | Yes | Integer greater than or equal to `0`. Config enforces the maximum. |
 | `division` | All list and graph routes | No | Filters standings to a configured division. |
-| `search` | V2 `[2m/[22mnow{:ansi}`, V2 `[2m/[22mwith-graph{:ansi}` only | No | Fuzzy team-name search. Must be 2 to 100 characters. |
+| `search` | V2 `<black>/now</black>`, V2 `<black>/with-graph</black>` only | No | Fuzzy team-name search. Must be 2 to 100 characters. |
 
-V1 `[2m/api/[22mv1[2m/[22mleaderboard[2m/[22mgraph{:ansi}` accepts `limit` and optional `division`, but it does not accept `offset`.
+V1 `<black>/api/v1/leaderboard/graph</black>` accepts `limit` and optional `division`, but it does not accept `offset`.
 
-Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms — captcha-free but rate-limited) and return `[2;31m429 [22mbadRateLimit[0m{:ansi}` with `data.timeLeft` when the bucket is exhausted.
+Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms — captcha-free but rate-limited) and return `<red>429 badRateLimit</red>` with `data.timeLeft` when the bucket is exhausted.
 
 ## V2 routes
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mleaderboard[2m/[22mnow{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/leaderboard/now</black>`
 
 Returns the current standings page.
 
@@ -53,7 +53,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboard[0m{:ansi}`:
+`<green>200 goodLeaderboard</green>`:
 
 ```json
 {
@@ -87,11 +87,11 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 | `divisionPlace` | `number{:ts}` | Rank inside the returned division context. |
 | `solves[]` | `{ id: string, solveTime: number }[]{:ts}` | Challenge IDs and solve timestamps. |
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/leaderboard/with-graph</black>`
 
-Returns the same standings payload as `[2m/[22mnow{:ansi}`, plus graph samples. Useful for clients that render the standings table and the score graph together.
+Returns the same standings payload as `<black>/now</black>`, plus graph samples. Useful for clients that render the standings table and the score graph together.
 
 | Property       | Value                                                                        |
 | -------------- | ---------------------------------------------------------------------------- |
@@ -107,7 +107,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboardWithGraph[0m{:ansi}`:
+`<green>200 goodLeaderboardWithGraph</green>`:
 
 ```json
 {
@@ -134,9 +134,9 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 | `graph[]` | `LeaderboardGraphEntry[]{:ts}` | Teams included in the graph sample. See [`LeaderboardGraphEntry`](/api/responses/). |
 | `graph[].points[]` | `{ time: number, score: number }[]{:ts}` | Score samples over time. |
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mleaderboard[2m/[22mgraph{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/leaderboard/graph</black>`
 
 Returns only graph data.
 
@@ -154,7 +154,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboardGraph[0m{:ansi}`:
+`<green>200 goodLeaderboardGraph</green>`:
 
 ```json
 {
@@ -179,9 +179,9 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` controls how many teams are kept for graphing, and `leaderboard.graphSampleTime` controls sample cadence.
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
 
-### `[36mGET[0m [2m/api/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v2/leaderboard/challs</black>`
 
 Returns challenge metadata used by leaderboard visualizations.
 
@@ -195,7 +195,7 @@ Returns challenge metadata used by leaderboard visualizations.
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboardChallenges[0m{:ansi}`:
+`<green>200 goodLeaderboardChallenges</green>`:
 
 ```json
 {
@@ -221,13 +221,13 @@ Returns challenge metadata used by leaderboard visualizations.
 | `data.challenges` | `Record<string, LeaderboardChallenge>{:ts}` | Keyed by challenge ID. See [`LeaderboardChallenge`](/api/responses/). |
 | `firstSolvers` | `{ id: string }[]{:ts}` | Up to the first three team IDs for each challenge. |
 
-**Errors**: `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>401 badNotStarted</red>`.
 
 ## V1 compatibility
 
 V1 routes remain available for legacy clients. Behavior matches V2 except where noted below. Shared response and error semantics apply unless overridden.
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mleaderboard[2m/[22mnow{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/leaderboard/now</black>`
 
 Returns the current standings page with the smaller V1 entry shape.
 
@@ -245,7 +245,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboard[0m{:ansi}` with the V1 entry shape — `id`, `name`, and `score` only:
+`<green>200 goodLeaderboard</green>` with the V1 entry shape — `id`, `name`, and `score` only:
 
 ```json
 {
@@ -264,11 +264,11 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 }
 ```
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
 
-### `[36mGET[0m [2m/api/[22mv1[2m/[22mleaderboard[2m/[22mgraph{:ansi}`
+### `<cyan>GET</cyan> <black>/api/v1/leaderboard/graph</black>`
 
-Returns graph data. The response uses the same `[2;32m200 [22mgoodLeaderboardGraph[0m{:ansi}` shape as V2.
+Returns graph data. The response uses the same `<green>200 goodLeaderboardGraph</green>` shape as V2.
 
 | Property       | Value                                             |
 | -------------- | ------------------------------------------------- |
@@ -284,9 +284,9 @@ Accepts `limit` and optional `division`. Differs from V2: does not accept `offse
 
 **Response**
 
-`[2;32m200 [22mgoodLeaderboardGraph[0m{:ansi}`. See [`LeaderboardGraphEntry`](/api/responses/) for the entry shape.
+`<green>200 goodLeaderboardGraph</green>`. See [`LeaderboardGraphEntry`](/api/responses/) for the entry shape.
 
-**Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadNotStarted[0m{:ansi}`.
+**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
 
 ## Ranking rules
 

@@ -34,8 +34,8 @@ All the examples will use `example.com` which refers to the domain name hosting 
 
 After you've deployed a VPS in your preferred provider, you'll need to SSH into it using:
 
-```ansi
-$ [31mssh[0m [32mroot@123.123.123.123[0m
+```sh
+$ ssh root@123.123.123.123
 ```
 
 All the subsequent commands should be run inside the VPS as the root user.
@@ -45,8 +45,8 @@ All the subsequent commands should be run inside the VPS as the root user.
 
 We provide a simple installation script that sets up rCTF automatically:
 
-```ansi
-$ [31mcurl[0m [02m-L[0m [32mhttps://get.rctf.osec.io[0m | [31msh[0m
+```sh
+$ curl -L https://get.rctf.osec.io | sh
 ```
 
 When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
@@ -58,7 +58,7 @@ The `/opt/rctf/rctf.d` folder contains the configuration files where your instan
 
 - CTF name, description, image, origin, home content, start and end time
 - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
-- `[31mproxy.cloudflare[0m{:ansi}` if behind Cloudflare
+- `<red>proxy.cloudflare</red>` if behind Cloudflare
 - GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/providers/uploads/))
 
 </Step>
@@ -66,8 +66,8 @@ The `/opt/rctf/rctf.d` folder contains the configuration files where your instan
 
 After each configuration change, you need to restart rCTF by running the following command:
 
-```ansi
-$ [31mcd[0m /opt/rctf && [31mdocker[0m compose up [02m-d[0m [02m--force-recreate[0m [02m--build[0m
+```sh
+$ cd /opt/rctf && docker compose up -d --force-recreate --build
 ```
 
 </Step>
@@ -95,11 +95,11 @@ In SSL/TLS > Origin Server tab, create a new certificate where all the settings 
 
 We will setup a firewall using UFW to only allow Cloudflare IPs to access the web server:
 
-```ansi
-$ [31mufw[0m allow 22
-[02m# source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh[0m
-$ [31mfor[0m cfip in `[31mcurl[0m [02m-sw[0m [32m'\n'[0m [32mhttps://www.cloudflare.com/ips-v{4,6}[0m`; do [31mufw[0m allow proto tcp from $cfip comment [32m'Cloudflare IP'[0m; done
-$ [31mufw[0m enable   [02m# answer `y` when prompted regarding enabling firewall[0m
+```sh
+$ ufw allow 22
+# source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh
+$ for cfip in `curl -sw '\n' https://www.cloudflare.com/ips-v{4,6}`; do ufw allow proto tcp from $cfip comment 'Cloudflare IP'; done
+$ ufw enable   # answer `y` when prompted regarding enabling firewall
 ```
 
 </Step>
@@ -154,9 +154,9 @@ server {
 
 Create a symlink so Nginx loads the configuration, then apply it:
 
-```ansi
-$ [31mln[0m [02m-s[0m /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-$ [31mnginx[0m [02m-t[0m && [31mnginx[0m [02m-s[0m reload
+```sh
+$ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+$ nginx -t && nginx -s reload
 ```
 
 Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
@@ -219,9 +219,9 @@ server {
 
 Create a symlink so Nginx loads the configuration, then apply it:
 
-```ansi
-$ [31mln[0m [02m-s[0m /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-$ [31mnginx[0m [02m-t[0m && [31mnginx[0m [02m-s[0m reload
+```sh
+$ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+$ nginx -t && nginx -s reload
 ```
 
 Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
@@ -244,12 +244,12 @@ Register a new account in rCTF.
 
 In the VPS running rCTF, run the following commands to grant the account admin permissions:
 
-```ansi
-$ [31mdocker[0m exec [02m-it[0m rctf-postgres-1 bash
+```sh
+$ docker exec -it rctf-postgres-1 bash
 ```
 
-```ansi title="Inside the postgres container"
-$ [31mpsql[0m [02m-U[0m rctf
+```sh title="Inside the postgres container"
+$ psql -U rctf
 ```
 
 ```sql title="Inside the postgres shell"

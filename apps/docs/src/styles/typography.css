@@ -166,6 +166,42 @@
       @apply text-(--success);
     }
 
+    :where(.inline-code-tone):not(:where(.not-prose, .not-prose *)) {
+      font-weight: 500;
+    }
+
+    :where(.inline-code-tone.is-black):not(:where(.not-prose, .not-prose *)) {
+      opacity: 0.66;
+    }
+
+    :where(.inline-code-tone.is-red):not(:where(.not-prose, .not-prose *)) {
+      color: var(--destructive);
+    }
+
+    :where(.inline-code-tone.is-green):not(:where(.not-prose, .not-prose *)) {
+      color: var(--success);
+    }
+
+    :where(.inline-code-tone.is-orange):not(:where(.not-prose, .not-prose *)) {
+      color: var(--tone-peach);
+    }
+
+    :where(.inline-code-tone.is-blue):not(:where(.not-prose, .not-prose *)) {
+      color: var(--tone-blue);
+    }
+
+    :where(.inline-code-tone.is-magenta):not(:where(.not-prose, .not-prose *)) {
+      color: var(--tone-mauve);
+    }
+
+    :where(.inline-code-tone.is-cyan):not(:where(.not-prose, .not-prose *)) {
+      color: var(--tone-sapphire);
+    }
+
+    :where(.inline-code-tone.is-white):not(:where(.not-prose, .not-prose *)) {
+      color: color-mix(in oklab, var(--foreground) 88%, transparent);
+    }
+
     :where(.inline-path-icon):not(:where(.not-prose, .not-prose *)) {
       @apply text-muted-foreground mr-[0.4ch] inline-block h-[0.95em] w-[0.95em] shrink-0 align-[-0.15em];
     }

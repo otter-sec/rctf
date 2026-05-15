@@ -23,7 +23,7 @@ uploadProvider:
 
 - **Deduplication**: Files are stored by their SHA256 hash. Uploading the same file content twice does not create a duplicate.
 - **Caching**: All uploaded files are served with immutable cache headers (`max-age=31536000`).
-- **Avatars**: Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `[31mmaxAvatarSize[0m{:ansi}` config option (default 1 MB).
+- **Avatars**: Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `<red>maxAvatarSize</red>` config option (default 1 MB).
 
 ## Providers
 
@@ -39,9 +39,9 @@ uploadProvider:
     uploadDirectory: /path/to/uploads # Optional
 ```
 
-| Option                          | Default         | Description                |
-| ------------------------------- | --------------- | -------------------------- |
-| `[31muploadDirectory[0m{:ansi}` | `{cwd}/uploads` | Directory for file storage |
+| Option                       | Default         | Description                |
+| ---------------------------- | --------------- | -------------------------- |
+| `<red>uploadDirectory</red>` | `{cwd}/uploads` | Directory for file storage |
 
 Files are served via the API server at `/uploads/*`. Path traversal protection is built in.
 
@@ -66,12 +66,12 @@ uploadProvider:
     awsRegion: us-east-1
 ```
 
-| Option                       | Environment Variable      | Description           |
-| ---------------------------- | ------------------------- | --------------------- |
-| `[31mbucketName[0m{:ansi}`   | `RCTF_S3_BUCKET{:sh}`     | S3 bucket name        |
-| `[31mawsKeyId[0m{:ansi}`     | `RCTF_S3_KEY_ID{:sh}`     | AWS access key ID     |
-| `[31mawsKeySecret[0m{:ansi}` | `RCTF_S3_KEY_SECRET{:sh}` | AWS secret access key |
-| `[31mawsRegion[0m{:ansi}`    | `RCTF_S3_REGION{:sh}`     | AWS region            |
+| Option                    | Environment Variable      | Description           |
+| ------------------------- | ------------------------- | --------------------- |
+| `<red>bucketName</red>`   | `RCTF_S3_BUCKET{:sh}`     | S3 bucket name        |
+| `<red>awsKeyId</red>`     | `RCTF_S3_KEY_ID{:sh}`     | AWS access key ID     |
+| `<red>awsKeySecret</red>` | `RCTF_S3_KEY_SECRET{:sh}` | AWS secret access key |
+| `<red>awsRegion</red>`    | `RCTF_S3_REGION{:sh}`     | AWS region            |
 
 Files are stored with `public-read` ACL and `attachment` content disposition. The bucket must allow public reads.
 
@@ -96,9 +96,9 @@ uploadProvider:
 
 | Option | Environment Variable | Description |
 | --- | --- | --- |
-| `[31mprojectId[0m{:ansi}` | `RCTF_GCS_PROJECT_ID{:sh}` | GCP project ID |
-| `[31mbucketName[0m{:ansi}` | `RCTF_GCS_BUCKET{:sh}` | GCS bucket name |
-| `[31mcredentials[0m{:ansi}` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
+| `<red>projectId</red>` | `RCTF_GCS_PROJECT_ID{:sh}` | GCP project ID |
+| `<red>bucketName</red>` | `RCTF_GCS_BUCKET{:sh}` | GCS bucket name |
+| `<red>credentials</red>` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket must be configured to allow public access.
 
