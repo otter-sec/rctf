@@ -25,7 +25,7 @@ export const DEFAULT_ROTATING_BANNER_GRAPHIC_ID = 'rctf'
 
 export function getBannerGraphic(src: string): BannerGraphic {
   return (
-    BANNER_GRAPHICS.find((graphic) => graphic.src === src) ?? {
+    BANNER_GRAPHICS.find(graphic => graphic.src === src) ?? {
       id: src,
       src,
       title: 'Banner',

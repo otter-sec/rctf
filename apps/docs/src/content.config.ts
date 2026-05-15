@@ -1,5 +1,5 @@
-import { glob } from 'astro/loaders'
 import { defineCollection } from 'astro:content'
+import { glob } from 'astro/loaders'
 import { z } from 'astro/zod'
 
 const badgeShorthand = z.enum(['new', 'beta', 'deprecated', 'soon'])
@@ -26,7 +26,7 @@ const tableOfContentsConfig = z
     minDepth: z.number().int().min(1).max(6).default(2),
     maxDepth: z.number().int().min(1).max(6).default(4),
   })
-  .refine((value) => value.minDepth <= value.maxDepth, {
+  .refine(value => value.minDepth <= value.maxDepth, {
     message: 'tableOfContents.minDepth must be less than or equal to maxDepth',
     path: ['minDepth'],
   })

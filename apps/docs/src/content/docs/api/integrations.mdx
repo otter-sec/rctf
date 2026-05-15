@@ -30,13 +30,13 @@ Integration routes expose frontend configuration, CTFtime handoff, challenge ins
 
 Returns the public client configuration consumed by the frontend.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Response**
 
@@ -81,13 +81,13 @@ V1 client config. Differs from V2:
 - Omits `flagFormatPlaceholder`, `analytics`, `instancerEnabled`, `isArchived`, `logoLightUrl`, `logoDarkUrl`, and the generic `captcha` object.
 - Includes `globalSiteTag` and `recaptcha`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 ## Analytics script
 
@@ -95,13 +95,13 @@ V1 client config. Differs from V2:
 
 Returns the active analytics provider's JavaScript body. This route is not part of `@rctf/types`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Response**
 
@@ -113,13 +113,13 @@ The route returns the provider's JavaScript body or a plain text error. It is no
 
 V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team name and ID returned by CTFtime.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Request body**
 
@@ -129,9 +129,9 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `ctftimeCode` | `string{:ts}` | Yes | OAuth code returned by CTFtime. |
+| Field         | Type          | Required | Notes                           |
+| ------------- | ------------- | -------- | ------------------------------- |
+| `ctftimeCode` | `string{:ts}` | Yes      | OAuth code returned by CTFtime. |
 
 **Response**
 
@@ -161,13 +161,13 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 
 V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route that returns its data directly without the rCTF envelope.
 
-| Property | Value |
-| --- | --- |
-| Auth | Permissioned |
-| Gate | None |
-| Permissions | `leaderboardRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                  |
+| -------------- | ---------------------- |
+| Auth           | Permissioned           |
+| Gate           | None                   |
+| Permissions    | `leaderboardRead{:ts}` |
+| Captcha action | —                      |
+| Rate limit     | —                      |
 
 **Response**
 
@@ -185,8 +185,8 @@ Raw body (200):
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
+| Field       | Type                                                  | Notes                   |
+| ----------- | ----------------------------------------------------- | ----------------------- |
 | `standings` | `{ pos: number, team: string, score: number }[]{:ts}` | Ordered standings rows. |
 
 ## Instancer lifecycle
@@ -197,19 +197,19 @@ All four methods share the path `[2m/api/[22mv2[2m/[22mintegrations[2m/[22
 
 Returns the current instance status for the authenticated user.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -241,19 +241,19 @@ Returns the current instance status for the authenticated user.
 
 Creates (starts) an instance for the authenticated user.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | `instancerStart{:ts}` (when configured) |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | `instancerStart{:ts}` (when configured)         |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Request body**
 
@@ -277,19 +277,19 @@ Creates (starts) an instance for the authenticated user.
 
 Extends the running instance for the authenticated user.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | `instancerExtend{:ts}` (when configured) |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | `instancerExtend{:ts}` (when configured)        |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Request body**
 
@@ -313,19 +313,19 @@ Extends the running instance for the authenticated user.
 
 Stops the instance for the authenticated user.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -341,19 +341,19 @@ Participant admin bot routes live under `[2m/api/[22mv2[2m/[22mintegrations
 
 Returns the released admin bot challenge source and its file extension.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Public                                          |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -370,28 +370,28 @@ Returns the released admin bot challenge source and its file extension.
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `data.sourceCode` | `string{:ts}` | Released admin bot challenge source. |
+| Field                | Type          | Notes                                                  |
+| -------------------- | ------------- | ------------------------------------------------------ |
+| `data.sourceCode`    | `string{:ts}` | Released admin bot challenge source.                   |
 | `data.fileExtension` | `string{:ts}` | File extension corresponding to the source's language. |
 
 ### `[32mPOST[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot{:ansi}`
 
 Submits a participant admin bot job. Participants supply values for the configured input names.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | `adminBotSubmit{:ts}` (when configured) |
-| Rate limit | Burst `1`, refill window `10000` ms per user and challenge. |
+| Property       | Value                                                       |
+| -------------- | ----------------------------------------------------------- |
+| Auth           | Required                                                    |
+| Gate           | Started                                                     |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate.             |
+| Captcha action | `adminBotSubmit{:ts}` (when configured)                     |
+| Rate limit     | Burst `1`, refill window `10000` ms per user and challenge. |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Request body**
 
@@ -425,8 +425,8 @@ Only one queued or running job per user per challenge is allowed.
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
+| Field        | Type          | Notes                     |
+| ------------ | ------------- | ------------------------- |
 | `data.jobId` | `string{:ts}` | Submitted job identifier. |
 
 The route returns `[2;31m400 [22mbadInstancerState[0m{:ansi}` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
@@ -437,19 +437,19 @@ The route returns `[2;31m400 [22mbadInstancerState[0m{:ansi}` when the challe
 
 Returns the current active job for the authenticated user on that challenge.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -480,19 +480,19 @@ Returns the current active job for the authenticated user on that challenge.
 
 Returns retained completed and failed jobs for the authenticated user on that challenge.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -515,28 +515,28 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
+| Field       | Type                            | Notes                               |
+| ----------- | ------------------------------- | ----------------------------------- |
 | `data.jobs` | `AdminBotJobHistoryItem[]{:ts}` | Retained completed and failed jobs. |
 
 ### `[36mGET[0m [2m/api/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22mjobs[2m/[22m:jobId[2m/[22mlogs{:ansi}`
 
 Returns logs for a specific job.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` bypasses the start-time gate. |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                           |
+| -------------- | ----------------------------------------------- |
+| Auth           | Required                                        |
+| Gate           | Started                                         |
+| Permissions    | `challsRead{:ts}` bypasses the start-time gate. |
+| Captcha action | —                                               |
+| Rate limit     | —                                               |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
-| `jobId` | `string{:ts}` | Yes | Job ID. |
+| Field   | Type          | Required | Notes         |
+| ------- | ------------- | -------- | ------------- |
+| `id`    | `string{:ts}` | Yes      | Challenge ID. |
+| `jobId` | `string{:ts}` | Yes      | Job ID.       |
 
 **Response**
 
@@ -552,8 +552,8 @@ Returns logs for a specific job.
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
+| Field       | Type                  | Notes                                                |
+| ----------- | --------------------- | ---------------------------------------------------- |
 | `data.logs` | `string \| null{:ts}` | Logs body, or `null{:ts}` when no logs are retained. |
 
 ## Service routes

@@ -16,12 +16,12 @@ const { href, class: className, ...rest } = Astro.props
   href={href}
   class={cn(
     'text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors',
-    className,
+    className
   )}
   external
-  aria-label="Edit this page"
-  title="Edit this page"
+  aria-label='Edit this page'
+  title='Edit this page'
   {...rest}
 >
-  <Icon name="pencil" class="size-4" />
+  <Icon name='pencil' class='size-4' />
 </Link>

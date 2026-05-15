@@ -10,7 +10,7 @@ const DEFAULT_SCROLL_THRESHOLD = 5
 
 export function getContentHeadings(): HTMLElement[] {
   return Array.from(document.querySelectorAll<HTMLElement>(CONTENT_HEADING_SELECTOR)).filter(
-    (heading) => Boolean(heading.id) && heading.offsetParent !== null,
+    heading => Boolean(heading.id) && heading.offsetParent !== null
   )
 }
 
@@ -36,7 +36,7 @@ function isInViewport(top: number, bottom: number, viewportTop: number, viewport
 export function getVisibleHeadingIds(
   headings: HTMLElement[],
   regions: HeadingRegion[],
-  offset = DEFAULT_HEADER_OFFSET,
+  offset = DEFAULT_HEADER_OFFSET
 ): string[] {
   if (headings.length === 0) return []
 
@@ -44,14 +44,14 @@ export function getVisibleHeadingIds(
   const viewportBottom = window.scrollY + window.innerHeight
   const visibleIds = new Set<string>()
 
-  headings.forEach((heading) => {
+  headings.forEach(heading => {
     const headingBottom = heading.offsetTop + heading.offsetHeight
     if (isInViewport(heading.offsetTop, headingBottom, viewportTop, viewportBottom)) {
       visibleIds.add(heading.id)
     }
   })
 
-  regions.forEach((region) => {
+  regions.forEach(region => {
     if (region.start > viewportBottom || region.end < viewportTop) return
 
     const heading = document.getElementById(region.id)
@@ -81,7 +81,7 @@ export function centerElementInScrollContainer(container: HTMLElement, element: 
   const maxScroll = container.scrollHeight - container.clientHeight
   const targetScroll = Math.max(
     0,
-    Math.min(currentElementTop - (containerHeight - elementHeight) / 2, maxScroll),
+    Math.min(currentElementTop - (containerHeight - elementHeight) / 2, maxScroll)
   )
 
   if (Math.abs(targetScroll - container.scrollTop) > DEFAULT_SCROLL_THRESHOLD) {
@@ -93,7 +93,7 @@ export function setVerticalScrollMask(
   scroller: HTMLElement,
   target: HTMLElement,
   classes: { top: string; bottom: string },
-  threshold = DEFAULT_SCROLL_THRESHOLD,
+  threshold = DEFAULT_SCROLL_THRESHOLD
 ): void {
   const { scrollTop, scrollHeight, clientHeight } = scroller
   const isAtTop = scrollTop <= threshold
@@ -105,17 +105,17 @@ export function setVerticalScrollMask(
 
 export function headingHtml(
   heading: HTMLElement,
-  options: { longPillThreshold?: number } = {},
+  options: { longPillThreshold?: number } = {}
 ): string {
   const { longPillThreshold } = options
   const clone = heading.cloneNode(true) as HTMLElement
-  clone.querySelectorAll('.heading-anchor').forEach((el) => el.remove())
-  clone.querySelectorAll<HTMLElement>('.shiki').forEach((el) => {
+  clone.querySelectorAll('.heading-anchor').forEach(el => el.remove())
+  clone.querySelectorAll<HTMLElement>('.shiki').forEach(el => {
     el.removeAttribute('style')
   })
 
   if (longPillThreshold !== undefined) {
-    clone.querySelectorAll<HTMLElement>('.shiki, code').forEach((el) => {
+    clone.querySelectorAll<HTMLElement>('.shiki, code').forEach(el => {
       if ((el.textContent ?? '').length > longPillThreshold) {
         el.dataset.longPill = 'true'
       }

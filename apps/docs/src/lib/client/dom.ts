@@ -17,7 +17,7 @@ export function isElementHidden(element: HTMLElement): boolean {
 export function withDatasetFlag(selector: string, flag: string, callback: () => void): void {
   const roots = Array.from(document.querySelectorAll<HTMLElement>(selector))
 
-  roots.forEach((root) => {
+  roots.forEach(root => {
     root.dataset[flag] = 'true'
   })
 
@@ -26,7 +26,7 @@ export function withDatasetFlag(selector: string, flag: string, callback: () => 
   } finally {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        roots.forEach((root) => {
+        roots.forEach(root => {
           delete root.dataset[flag]
         })
       })

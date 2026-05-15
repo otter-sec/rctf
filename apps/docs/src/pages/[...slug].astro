@@ -21,7 +21,7 @@ import { render } from 'astro:content'
 
 export async function getStaticPaths() {
   const docs = await getAllDocs()
-  return docs.map((doc) => ({
+  return docs.map(doc => ({
     params: { slug: docSlugFromId(doc.id) },
     props: { doc },
   }))

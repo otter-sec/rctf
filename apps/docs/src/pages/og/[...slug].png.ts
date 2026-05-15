@@ -1,10 +1,10 @@
-import { BANNER_GRAPHICS, getBannerGraphic, type BannerGraphic } from '@/lib/banner-graphics'
-import { docSlugFromId, getAllDocs, type Doc } from '@/lib/docs'
-import { lightTheme, darkTheme } from '@/lib/shiki-themes'
-import type { MetaFile } from '@/types'
-import { ImageResponse } from '@vercel/og'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { BANNER_GRAPHICS, getBannerGraphic, type BannerGraphic } from '@/lib/banner-graphics'
+import { docSlugFromId, getAllDocs, type Doc } from '@/lib/docs'
+import { darkTheme, lightTheme } from '@/lib/shiki-themes'
+import type { MetaFile } from '@/types'
+import { ImageResponse } from '@vercel/og'
 import React from 'react'
 import sharp from 'sharp'
 import { codeToTokens } from 'shiki'
@@ -23,7 +23,7 @@ const bannerPanel = {
 const outfitRegular = readFile(resolve(process.cwd(), 'src/assets/fonts/Outfit-Regular.ttf'))
 const outfitMedium = readFile(resolve(process.cwd(), 'src/assets/fonts/Outfit-Medium.ttf'))
 const cascadiaCodeRegular = readFile(
-  resolve(process.cwd(), 'src/assets/fonts/CascadiaCode-Regular.ttf'),
+  resolve(process.cwd(), 'src/assets/fonts/CascadiaCode-Regular.ttf')
 )
 const wordmarkLight = readFile(resolve(process.cwd(), 'src/assets/wordmark-light.svg'), 'utf8')
 const wordmarkDark = readFile(resolve(process.cwd(), 'src/assets/wordmark-dark.svg'), 'utf8')
@@ -42,7 +42,7 @@ const metaModules = {
 export async function getStaticPaths() {
   const docs = await getAllDocs()
 
-  return docs.map((doc) => ({
+  return docs.map(doc => ({
     params: { slug: docSlugFromId(doc.id) ?? 'index' },
     props: { doc },
   }))
@@ -109,7 +109,7 @@ export async function GET({ props }: { props: Props }) {
             width: '100%',
             height: '100%',
           },
-        }),
+        })
       ),
       React.createElement(
         'div',
@@ -168,15 +168,15 @@ export async function GET({ props }: { props: Props }) {
                         marginRight: 11,
                       },
                     },
-                    '›',
+                    '›'
                   )
                 : null,
               React.createElement(
                 'span',
                 { key: `part-${index}`, style: { letterSpacing: TRACKING_TIGHT } },
-                part,
+                part
               ),
-            ]),
+            ])
           ),
           React.createElement(
             'div',
@@ -190,7 +190,7 @@ export async function GET({ props }: { props: Props }) {
                 letterSpacing: TRACKING_TIGHT,
               },
             },
-            title.nodes,
+            title.nodes
           ),
           description?.plain
             ? React.createElement(
@@ -207,11 +207,11 @@ export async function GET({ props }: { props: Props }) {
                     maxWidth: 940,
                   },
                 },
-                description.nodes,
+                description.nodes
               )
-            : null,
-        ),
-      ),
+            : null
+        )
+      )
     ),
     {
       ...size,
@@ -220,7 +220,7 @@ export async function GET({ props }: { props: Props }) {
         { name: 'Outfit', data: outfitMediumData, weight: 500, style: 'normal' },
         { name: 'Cascadia Code', data: cascadiaCodeData, weight: 400, style: 'normal' },
       ],
-    },
+    }
   )
 }
 
@@ -236,7 +236,7 @@ async function bannerDataUrl(path: string, banner: BannerGraphic): Promise<strin
     metadata.height,
     bannerPanel.width,
     bannerPanel.height,
-    banner,
+    banner
   )
   const data = await sharp(path)
     .extract(crop)
@@ -256,7 +256,7 @@ type OgTheme = ReturnType<typeof resolveTheme>
 
 async function renderInlineText(
   text: string,
-  theme: OgTheme,
+  theme: OgTheme
 ): Promise<{ plain: string; nodes: React.ReactNode[] }> {
   const nodes: React.ReactNode[] = []
   const plain = text.replace(INLINE_CODE_PATTERN, (_, code) => code)
@@ -277,8 +277,8 @@ async function renderInlineText(
         lang,
         theme,
         index++,
-        /\s/.test(text[match.index + full.length] ?? ''),
-      ),
+        /\s/.test(text[match.index + full.length] ?? '')
+      )
     )
     lastIndex = match.index + full.length
   }
@@ -308,8 +308,8 @@ function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number
             marginRight: trailingSpace ? '0.25em' : 0,
           },
         },
-        word,
-      ),
+        word
+      )
     )
   })
 }
@@ -319,7 +319,7 @@ async function renderInlineCode(
   lang: string | undefined,
   theme: OgTheme,
   index: number,
-  trailingSpace = false,
+  trailingSpace = false
 ): Promise<React.ReactNode> {
   const codeStyle = {
     display: 'flex',
@@ -358,9 +358,9 @@ async function renderInlineCode(
             whiteSpace: 'pre',
           },
         },
-        token.content,
-      ),
-    ),
+        token.content
+      )
+    )
   )
 }
 
@@ -377,11 +377,11 @@ function coverCrop(
   sourceHeight: number,
   targetWidth: number,
   targetHeight: number,
-  banner: BannerGraphic,
+  banner: BannerGraphic
 ) {
   const [xPercent, yPercent] = banner.objectPosition
     .split(' ')
-    .map((value) => Number.parseFloat(value) / 100)
+    .map(value => Number.parseFloat(value) / 100)
 
   const scale = Math.max(targetWidth / sourceWidth, targetHeight / sourceHeight)
   const width = Math.min(sourceWidth, Math.round(targetWidth / scale))
@@ -470,10 +470,7 @@ function metaFor(dirPath: string): MetaFile {
 }
 
 function sentenceCase(input: string): string {
-  const text = input
-    .split('-')
-    .filter(Boolean)
-    .join(' ')
+  const text = input.split('-').filter(Boolean).join(' ')
 
   return text.charAt(0).toUpperCase() + text.slice(1)
 }

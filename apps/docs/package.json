@@ -13,24 +13,6 @@
     "prettier": "prettier --write . --ignore-path .gitignore",
     "prettier:check": "prettier --check . --ignore-path .gitignore"
   },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "printWidth": 100,
-    "proseWrap": "never",
-    "plugins": [
-      "prettier-plugin-astro"
-    ],
-    "overrides": [
-      {
-        "files": "*.astro",
-        "options": {
-          "parser": "astro"
-        }
-      }
-    ]
-  },
   "dependencies": {
     "@astrojs/check": "0.9.7",
     "@astrojs/markdown-remark": "7.0.0",
@@ -71,7 +53,6 @@
   "devDependencies": {
     "@types/hast": "3.0.4",
     "astro-pagefind": "1.8.6",
-    "prettier": "3.8.3",
-    "prettier-plugin-astro": "0.14.1"
+    "prettier": "3.8.3"
   }
 }

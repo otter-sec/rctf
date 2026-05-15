@@ -27,10 +27,10 @@ function setupMobileSidebar(): void {
 
   dialog.addEventListener(
     'click',
-    (event) => {
+    event => {
       if (event.target === dialog) close()
     },
-    { signal },
+    { signal }
   )
 
   dialog.addEventListener(
@@ -38,12 +38,12 @@ function setupMobileSidebar(): void {
     () => {
       trigger?.setAttribute('aria-expanded', 'false')
     },
-    { signal },
+    { signal }
   )
 
   dialog
     .querySelectorAll<HTMLAnchorElement>('a[href]')
-    .forEach((link) => link.addEventListener('click', close, { signal }))
+    .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
 export function mountMobileSidebar(): void {

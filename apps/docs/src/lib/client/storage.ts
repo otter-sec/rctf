@@ -27,7 +27,7 @@ export function removeStorage(storage: StorageLike, key: string): void {
 export function readJsonRecord<T>(
   storage: StorageLike,
   key: string,
-  fallback: Record<string, T> = {},
+  fallback: Record<string, T> = {}
 ): Record<string, T> {
   const value = storageValue(storage, key)
   if (!value) return fallback

@@ -48,7 +48,7 @@ async function loadPagefind(): Promise<Pagefind | null> {
 
 function debounce<Args extends unknown[]>(
   fn: (...args: Args) => void,
-  ms: number,
+  ms: number
 ): (...args: Args) => void {
   let timer: ReturnType<typeof setTimeout> | undefined
   return (...args: Args) => {
@@ -90,7 +90,7 @@ function isInSearchScope(url: string, prefixes: string[]): boolean {
   if (prefixes.length === 0) return true
 
   const path = new URL(url, window.location.origin).pathname
-  return prefixes.some((prefix) => path === prefix.slice(0, -1) || path.startsWith(prefix))
+  return prefixes.some(prefix => path === prefix.slice(0, -1) || path.startsWith(prefix))
 }
 
 function emptyState(message: string): HTMLParagraphElement {
@@ -183,20 +183,20 @@ function setupSearch(): void {
     if (dialog.open) dialog.close()
   }
 
-  triggers.forEach((trigger) => trigger.addEventListener('click', open, { signal }))
+  triggers.forEach(trigger => trigger.addEventListener('click', open, { signal }))
   input.addEventListener('input', () => debouncedSearch(input.value), { signal })
 
   dialog.addEventListener(
     'click',
-    (event) => {
+    event => {
       if (event.target === dialog) close()
     },
-    { signal },
+    { signal }
   )
 
   document.addEventListener(
     'keydown',
-    (event) => {
+    event => {
       const isHotkey = event.key.toLowerCase() === 'k' && (event.metaKey || event.ctrlKey)
 
       if (isHotkey) {
@@ -229,12 +229,12 @@ function setupSearch(): void {
         else results[index - 1].focus()
       }
     },
-    { signal },
+    { signal }
   )
 
   dialog
     .querySelectorAll<HTMLAnchorElement>('a[href]')
-    .forEach((link) => link.addEventListener('click', close, { signal }))
+    .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
 export function mountDocsSearch(): void {

@@ -34,7 +34,7 @@ function applyDismissedState(): void {
   const bars = Array.from(document.querySelectorAll<HTMLElement>(ANNOUNCEMENT_SELECTOR))
   let hasDismissedAnnouncement = false
 
-  bars.forEach((bar) => {
+  bars.forEach(bar => {
     if (!isDismissed(bar)) return
 
     hasDismissedAnnouncement = true

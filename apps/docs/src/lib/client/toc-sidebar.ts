@@ -40,7 +40,7 @@ function resetState(): void {
   const tocContainer = document.getElementById('toc-sidebar-container')
 
   state.links = Array.from(
-    document.querySelectorAll<HTMLElement>('#toc-sidebar-container [data-heading-link]'),
+    document.querySelectorAll<HTMLElement>('#toc-sidebar-container [data-heading-link]')
   )
   state.activeIds = []
   state.headings = []
@@ -68,7 +68,7 @@ function updateScrollMask(): void {
 }
 
 function linkForHeading(headingId: string): HTMLElement | null {
-  return state.links.find((link) => link.dataset.headingLink === headingId) ?? null
+  return state.links.find(link => link.dataset.headingLink === headingId) ?? null
 }
 
 function scrollToActiveHeading(headingIds: string[]): void {
@@ -79,9 +79,9 @@ function scrollToActiveHeading(headingIds: string[]): void {
 }
 
 function updateActiveLinks(headingIds: string[]): void {
-  state.links.forEach((link) => link.classList.remove('text-foreground'))
+  state.links.forEach(link => link.classList.remove('text-foreground'))
 
-  headingIds.forEach((id) => {
+  headingIds.forEach(id => {
     linkForHeading(id)?.classList.add('text-foreground')
   })
 
@@ -89,18 +89,16 @@ function updateActiveLinks(headingIds: string[]): void {
 }
 
 function syncItemVisibility(visibleHeadings: HTMLElement[]): void {
-  const visibleIds = new Set(visibleHeadings.map((heading) => heading.id))
+  const visibleIds = new Set(visibleHeadings.map(heading => heading.id))
 
-  document
-    .querySelectorAll<HTMLElement>('#toc-sidebar-container [data-toc-item]')
-    .forEach((item) => {
-      const slug = item.dataset.tocItem
-      item.hidden = !slug || !visibleIds.has(slug)
-    })
+  document.querySelectorAll<HTMLElement>('#toc-sidebar-container [data-toc-item]').forEach(item => {
+    const slug = item.dataset.tocItem
+    item.hidden = !slug || !visibleIds.has(slug)
+  })
 }
 
 function syncHeadingLabels(): void {
-  state.links.forEach((link) => {
+  state.links.forEach(link => {
     const slug = link.dataset.headingLink
     if (!slug) return
 
@@ -127,14 +125,14 @@ function setupTitleVisibility(): void {
   cleanupTitleVisibility()
 
   titleObserver = new IntersectionObserver(
-    (entries) => {
+    entries => {
       const entry = entries[0]
       if (!entry) return
 
       wrapper.dataset.open =
         !entry.isIntersecting && entry.boundingClientRect.bottom <= 0 ? 'true' : 'false'
     },
-    { rootMargin: '0px', threshold: 0 },
+    { rootMargin: '0px', threshold: 0 }
   )
 
   titleObserver.observe(heading)
@@ -166,11 +164,11 @@ function observeVisibilityChanges(): void {
   const root = document.querySelector('.prose')
   if (!root) return
 
-  visibilityObserver = new MutationObserver((mutations) => {
+  visibilityObserver = new MutationObserver(mutations => {
     const relevant = mutations.some(
-      (mutation) =>
+      mutation =>
         mutation.type === 'attributes' &&
-        (mutation.attributeName === 'hidden' || mutation.attributeName === 'open'),
+        (mutation.attributeName === 'hidden' || mutation.attributeName === 'open')
     )
 
     if (relevant) handleResize()

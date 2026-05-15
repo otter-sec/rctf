@@ -39,8 +39,8 @@ uploadProvider:
     uploadDirectory: /path/to/uploads # Optional
 ```
 
-| Option                   | Default         | Description                |
-| ------------------------ | --------------- | -------------------------- |
+| Option                          | Default         | Description                |
+| ------------------------------- | --------------- | -------------------------- |
 | `[31muploadDirectory[0m{:ansi}` | `{cwd}/uploads` | Directory for file storage |
 
 Files are served via the API server at `/uploads/*`. Path traversal protection is built in.
@@ -66,8 +66,8 @@ uploadProvider:
     awsRegion: us-east-1
 ```
 
-| Option                | Environment Variable      | Description           |
-| --------------------- | ------------------------- | --------------------- |
+| Option                       | Environment Variable      | Description           |
+| ---------------------------- | ------------------------- | --------------------- |
 | `[31mbucketName[0m{:ansi}`   | `RCTF_S3_BUCKET{:sh}`     | S3 bucket name        |
 | `[31mawsKeyId[0m{:ansi}`     | `RCTF_S3_KEY_ID{:sh}`     | AWS access key ID     |
 | `[31mawsKeySecret[0m{:ansi}` | `RCTF_S3_KEY_SECRET{:sh}` | AWS secret access key |
@@ -94,10 +94,10 @@ uploadProvider:
       client_email: ...
 ```
 
-| Option               | Environment Variable        | Description                                          |
-| -------------------- | --------------------------- | ---------------------------------------------------- |
-| `[31mprojectId[0m{:ansi}`   | `RCTF_GCS_PROJECT_ID{:sh}`  | GCP project ID                                       |
-| `[31mbucketName[0m{:ansi}`  | `RCTF_GCS_BUCKET{:sh}`      | GCS bucket name                                      |
+| Option | Environment Variable | Description |
+| --- | --- | --- |
+| `[31mprojectId[0m{:ansi}` | `RCTF_GCS_PROJECT_ID{:sh}` | GCP project ID |
+| `[31mbucketName[0m{:ansi}` | `RCTF_GCS_BUCKET{:sh}` | GCS bucket name |
 | `[31mcredentials[0m{:ansi}` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket must be configured to allow public access.

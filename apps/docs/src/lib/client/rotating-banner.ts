@@ -81,9 +81,9 @@ function storeGraphicId(graphicId: string): void {
 function selectedBanner(
   options: BannerOption[],
   currentGraphicId: string,
-  action: RotationAction,
+  action: RotationAction
 ): BannerOption {
-  const currentIndex = options.findIndex((option) => option.id === currentGraphicId)
+  const currentIndex = options.findIndex(option => option.id === currentGraphicId)
 
   if (action === 'next') {
     return options[currentIndex >= 0 ? (currentIndex + 1) % options.length : 0]
@@ -146,14 +146,14 @@ function abortable<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
 
     signal.addEventListener('abort', onAbort, { once: true })
     promise.then(
-      (value) => {
+      value => {
         cleanup()
         resolve(value)
       },
       (error: unknown) => {
         cleanup()
         reject(error)
-      },
+      }
     )
   })
 }
@@ -236,7 +236,7 @@ function updateBannerCaption(banner: Element, selected: BannerOption): void {
 function applyBanner(
   banner: Element,
   selected: BannerOption,
-  { imageMode = 'preload', persistSelection = true }: ApplyBannerOptions = {},
+  { imageMode = 'preload', persistSelection = true }: ApplyBannerOptions = {}
 ): void {
   if (banner instanceof HTMLElement) {
     banner.dataset.bannerGraphicId = selected.id
@@ -274,11 +274,11 @@ export function setupRotatingDocBanners(
   root: ParentNode = document,
   currentGraphicId = '',
   action: RotationAction = 'preserve',
-  options: ApplyBannerOptions = {},
+  options: ApplyBannerOptions = {}
 ): void {
   const banners = root.querySelectorAll(BANNER_SELECTOR)
 
-  banners.forEach((banner) => {
+  banners.forEach(banner => {
     const bannerOptions = parseBannerOptions(banner.getAttribute('data-banner-options'))
     if (bannerOptions.length === 0) return
 
@@ -295,11 +295,11 @@ async function prepareRotatingDocBanners(
   root: ParentNode,
   currentGraphicId: string,
   action: RotationAction,
-  signal: AbortSignal,
+  signal: AbortSignal
 ): Promise<void> {
   const preloads: Promise<void>[] = []
 
-  root.querySelectorAll(BANNER_SELECTOR).forEach((banner) => {
+  root.querySelectorAll(BANNER_SELECTOR).forEach(banner => {
     const bannerOptions = parseBannerOptions(banner.getAttribute('data-banner-options'))
     if (bannerOptions.length === 0) return
 
@@ -333,8 +333,8 @@ function updateBannerFromControl(control: HTMLElement): void {
     selectedBanner(
       bannerOptions,
       currentGraphicId || readStoredGraphicId() || defaultGraphicId,
-      action,
-    ),
+      action
+    )
   )
 }
 
@@ -373,7 +373,7 @@ function beforePreparation(event: Event): void {
       navigationEvent.newDocument,
       currentGraphicId,
       action,
-      navigationEvent.signal,
+      navigationEvent.signal
     )
   }
 }

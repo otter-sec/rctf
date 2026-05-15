@@ -4,7 +4,6 @@ import '@/styles/typography.css'
 import '@/styles/tab-panels.css'
 import '@/styles/toc.css'
 import '@/styles/doc-meta.css'
-
 import AnnouncementBar from '@/components/docs/announcement-bar.astro'
 import Search from '@/components/docs/search.astro'
 import Head from '@/components/head.astro'
@@ -12,11 +11,11 @@ import { DOCS, SITE } from '@/consts'
 ---
 
 <!doctype html>
-<html class="bg-background text-foreground scheme-light-dark" lang={SITE.locale}>
+<html class='bg-background text-foreground scheme-light-dark' lang={SITE.locale}>
   <Head>
-    <slot name="head" />
+    <slot name='head' />
   </Head>
-  <body class="flex min-h-screen flex-col font-sans">
+  <body class='flex min-h-screen flex-col font-sans'>
     <AnnouncementBar />
     <slot />
     {DOCS.search.enabled && <Search />}

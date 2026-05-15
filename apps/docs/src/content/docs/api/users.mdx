@@ -33,19 +33,19 @@ User routes expose team profiles and account-level mutations. V2 adds avatar, co
 
 Returns the public profile of a team.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public, optional admin bypass |
-| Gate | Started |
-| Permissions | `challsRead{:ts}` (start-time bypass only) |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                      |
+| -------------- | ------------------------------------------ |
+| Auth           | Public, optional admin bypass              |
+| Gate           | Started                                    |
+| Permissions    | `challsRead{:ts}` (start-time bypass only) |
+| Captcha action | —                                          |
+| Rate limit     | —                                          |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team ID. |
+| Field | Type          | Required | Notes    |
+| ----- | ------------- | -------- | -------- |
+| `id`  | `string{:ts}` | Yes      | Team ID. |
 
 **Response**
 
@@ -89,13 +89,13 @@ Returns the public profile of a team.
 
 Returns the authenticated team's own profile, including account-private fields.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Response**
 
@@ -125,13 +125,13 @@ Returns the authenticated team's own profile, including account-private fields.
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `id` | `string{:ts}` | Team ID. |
-| `email` | `string \| null{:ts}` | Email address when set. |
-| `teamToken` | `string{:ts}` | Long-lived team token. Treat it as a credential. |
-| `allowedDivisions` | `string[]{:ts}` | Divisions available to the team based on ACLs. |
-| `perms` | `number \| null{:ts}` | Admin permission bitmask. |
+| Field              | Type                  | Notes                                            |
+| ------------------ | --------------------- | ------------------------------------------------ |
+| `id`               | `string{:ts}`         | Team ID.                                         |
+| `email`            | `string \| null{:ts}` | Email address when set.                          |
+| `teamToken`        | `string{:ts}`         | Long-lived team token. Treat it as a credential. |
+| `allowedDivisions` | `string[]{:ts}`       | Divisions available to the team based on ACLs.   |
+| `perms`            | `number \| null{:ts}` | Admin permission bitmask.                        |
 
 All other fields match the [public profile](#get-apiv2usersid).
 
@@ -141,13 +141,13 @@ All other fields match the [public profile](#get-apiv2usersid).
 
 Updates profile fields. Recalculates cached user data and triggers a leaderboard update.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | Profile name update — burst `3`, refill window `180000` ms per user. |
+| Property       | Value                                                                |
+| -------------- | -------------------------------------------------------------------- |
+| Auth           | Required                                                             |
+| Gate           | None                                                                 |
+| Permissions    | —                                                                    |
+| Captcha action | —                                                                    |
+| Rate limit     | Profile name update — burst `3`, refill window `180000` ms per user. |
 
 **Request body**
 
@@ -188,14 +188,14 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `user.name` | `string{:ts}` | Updated team name. |
-| `user.email` | `string \| null{:ts}` | Current email. |
-| `user.division` | `string{:ts}` | Current division. |
-| `user.avatarUrl` | `string \| null{:ts}` | Current avatar URL. |
+| Field              | Type                  | Notes                 |
+| ------------------ | --------------------- | --------------------- |
+| `user.name`        | `string{:ts}`         | Updated team name.    |
+| `user.email`       | `string \| null{:ts}` | Current email.        |
+| `user.division`    | `string{:ts}`         | Current division.     |
+| `user.avatarUrl`   | `string \| null{:ts}` | Current avatar URL.   |
 | `user.countryCode` | `string \| null{:ts}` | Current country code. |
-| `user.statusText` | `string \| null{:ts}` | Current status text. |
+| `user.statusText`  | `string \| null{:ts}` | Current status text.  |
 
 **Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadName[0m{:ansi}`, `[2;31m409 [22mbadKnownName[0m{:ansi}`, `[2;31m403 [22mbadDivisionNotAllowed[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
 
@@ -203,13 +203,13 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 
 Uploads or removes the team avatar. The route expects `multipart/form-data`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | `avatarUpload{:ts}` (when configured) |
-| Rate limit | Avatar upload — burst `2`, refill window `120000` ms per user. |
+| Property       | Value                                                          |
+| -------------- | -------------------------------------------------------------- |
+| Auth           | Required                                                       |
+| Gate           | None                                                           |
+| Permissions    | —                                                              |
+| Captcha action | `avatarUpload{:ts}` (when configured)                          |
+| Rate limit     | Avatar upload — burst `2`, refill window `120000` ms per user. |
 
 **Request**
 
@@ -234,8 +234,8 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 }
 ```
 
-| Field | Type | Notes |
-| --- | --- | --- |
+| Field | Type                  | Notes                                                       |
+| ----- | --------------------- | ----------------------------------------------------------- |
 | `url` | `string \| null{:ts}` | New avatar URL, or `null{:ts}` when the avatar was deleted. |
 
 **Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m400 [22mbadAvatarFile[0m{:ansi}`, `[2;31m400 [22mbadAvatarFileSize[0m{:ansi}`, `[2;31m400 [22mbadModerationNotPassed[0m{:ansi}`, `[2;31m500 [22mbadFilesUpload[0m{:ansi}`, `[2;31m403 [22mbadCaptcha[0m{:ansi}`, `[2;31m429 [22mbadRateLimit[0m{:ansi}`.
@@ -244,13 +244,13 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 
 Updates the account email. When email delivery is configured, the route sends a verification email and returns `[2;32m200 [22mgoodVerifySent[0m{:ansi}`. When email delivery is not configured, it updates the email immediately and returns `[2;32m200 [22mgoodEmailSet[0m{:ansi}`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
+| Property       | Value                             |
+| -------------- | --------------------------------- |
+| Auth           | Required                          |
+| Gate           | None                              |
+| Permissions    | —                                 |
 | Captcha action | `setEmail{:ts}` (when configured) |
-| Rate limit | — |
+| Rate limit     | —                                 |
 
 **Request body**
 
@@ -261,10 +261,10 @@ Updates the account email. When email delivery is configured, the route sends a 
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `email` | `string{:ts}` | Yes | New email address. |
-| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `setEmail{:ts}`. |
+| Field         | Type          | Required | Notes                                               |
+| ------------- | ------------- | -------- | --------------------------------------------------- |
+| `email`       | `string{:ts}` | Yes      | New email address.                                  |
+| `captchaCode` | `string{:ts}` | No       | Checked only when captcha protects `setEmail{:ts}`. |
 
 The route rejects emails that would move the team outside the division ACL (`[2;31m403 [22mbadEmailChangeDivision[0m{:ansi}`) and rejects duplicate emails (`[2;31m409 [22mbadKnownEmail[0m{:ansi}`).
 
@@ -305,13 +305,13 @@ Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`
 
 V1-only. Removes the account email. Preserves the `[2;31m409 [22mbadZeroAuth[0m{:ansi}` invariant: a team must keep at least one of email or CTFtime auth.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Response**
 
@@ -323,13 +323,13 @@ V1-only. Removes the account email. Preserves the `[2;31m409 [22mbadZeroAuth[
 
 V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Request body**
 
@@ -353,13 +353,13 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
 V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `[2;31m409 [22mbadZeroAuth[0m{:ansi}`, which preserves the invariant that every team has at least one of email or CTFtime auth.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Response**
 
@@ -371,13 +371,13 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 
 V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `[2;31m404 [22mbadEndpoint[0m{:ansi}` when `userMembers` is disabled.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Response**
 
@@ -389,13 +389,13 @@ V1-only. Lists informational team-member email rows under the team account. Team
 
 V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Request body**
 
@@ -405,9 +405,9 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `email` | `string{:ts}` | Yes | Member email address. |
+| Field   | Type          | Required | Notes                 |
+| ------- | ------------- | -------- | --------------------- |
+| `email` | `string{:ts}` | Yes      | Member email address. |
 
 **Response**
 
@@ -419,19 +419,19 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
 V1-only. Removes a team member email row.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team member row ID. |
+| Field | Type          | Required | Notes               |
+| ----- | ------------- | -------- | ------------------- |
+| `id`  | `string{:ts}` | Yes      | Team member row ID. |
 
 **Response**
 
@@ -443,14 +443,14 @@ V1-only. Removes a team member email row.
 
 ### `UserSolveV2`
 
-| Field | Type |
-| --- | --- |
-| `category` | `string{:ts}` |
-| `name` | `string{:ts}` |
-| `points` | `number \| null{:ts}` |
-| `solves` | `number \| null{:ts}` |
-| `id` | `string{:ts}` |
-| `createdAt` | `number{:ts}` |
+| Field        | Type                  |
+| ------------ | --------------------- |
+| `category`   | `string{:ts}`         |
+| `name`       | `string{:ts}`         |
+| `points`     | `number \| null{:ts}` |
+| `solves`     | `number \| null{:ts}` |
+| `id`         | `string{:ts}`         |
+| `createdAt`  | `number{:ts}`         |
 | `bloodIndex` | `number \| null{:ts}` |
 
 The V1 solve shape omits `bloodIndex`.

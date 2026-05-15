@@ -1,7 +1,7 @@
 ---
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { cn, getHeadingMargin } from '@/lib/utils'
 import { renderDescription } from '@/lib/render-description'
+import { cn, getHeadingMargin } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 
 interface Props {
@@ -14,26 +14,26 @@ interface Props {
 
 const { headings, minDepth = 2, maxDepth = 4, title, class: className } = Astro.props
 const renderedTitle = title ? await renderDescription(title) : null
-const visible = headings.filter((h) => h.depth >= minDepth && h.depth <= maxDepth)
+const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
 ---
 
 {
   visible.length > 0 && (
     <aside
-      id="toc-sidebar-container"
+      id='toc-sidebar-container'
       data-toc-sidebar-root
       class={cn('sticky top-16 hidden h-[calc(100vh-8rem)] max-w-xs flex-col xl:flex', className)}
     >
       {renderedTitle && (
         <div
-          id="toc-sidebar-title-wrapper"
-          data-open="false"
-          class="grid shrink-0 grid-rows-[0fr] px-4 transition-[grid-template-rows] duration-200 ease-out data-[open=true]:grid-rows-[1fr]"
+          id='toc-sidebar-title-wrapper'
+          data-open='false'
+          class='grid shrink-0 grid-rows-[0fr] px-4 transition-[grid-template-rows] duration-200 ease-out data-[open=true]:grid-rows-[1fr]'
         >
-          <div class="overflow-hidden">
+          <div class='overflow-hidden'>
             <span
-              id="toc-sidebar-title"
-              class="text-foreground block pb-3 text-base font-medium text-balance"
+              id='toc-sidebar-title'
+              class='text-foreground block pb-3 text-base font-medium text-balance'
               data-doc-title
               set:html={renderedTitle.html}
             />
@@ -42,20 +42,20 @@ const visible = headings.filter((h) => h.depth >= minDepth && h.depth <= maxDept
       )}
       <ScrollArea
         client:load
-        className="min-h-0 flex-1 overflow-y-auto"
-        type="hover"
+        className='min-h-0 flex-1 overflow-y-auto'
+        type='hover'
         data-toc-scroll-area
       >
-        <ul class="flex list-none flex-col gap-y-1.5 px-4">
-          {visible.map((heading) => (
+        <ul class='flex list-none flex-col gap-y-1.5 px-4'>
+          {visible.map(heading => (
             <li
               data-toc-item={heading.slug}
-              class={cn('text-sm text-foreground/60', getHeadingMargin(heading.depth))}
+              class={cn('text-foreground/60 text-sm', getHeadingMargin(heading.depth))}
             >
               <a
                 href={`#${heading.slug}`}
                 data-heading-link={heading.slug}
-                class="hover:text-foreground block underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit"
+                class='hover:text-foreground block underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit'
               >
                 <span data-toc-text>{heading.text}</span>
               </a>

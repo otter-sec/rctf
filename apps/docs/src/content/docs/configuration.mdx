@@ -29,30 +29,30 @@ The following environment variables are supported. They override values from con
 
 ### Core
 
-| Variable                  | Type          | Description                                              |
-| ------------------------- | ------------- | -------------------------------------------------------- |
-| `RCTF_NAME{:sh}`          | `string{:ts}` | CTF display name                                         |
-| `RCTF_ORIGIN{:sh}`        | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`)         |
-| `RCTF_TOKEN_KEY{:sh}`     | `string{:ts}` | Base64-encoded 32-byte key for token encryption          |
+| Variable | Type | Description |
+| --- | --- | --- |
+| `RCTF_NAME{:sh}` | `string{:ts}` | CTF display name |
+| `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
+| `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
 | `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `[32mall[0m{:ansi}`, `[32mfrontend[0m{:ansi}`, or `[32mleaderboard[0m{:ansi}` |
-| `RCTF_CONF_PATH{:sh}`     | `string{:ts}` | Path to config directory (overrides search)              |
+| `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
 
-| Variable                      | Type           | Description                                       |
-| ----------------------------- | -------------- | ------------------------------------------------- |
-| `RCTF_DATABASE_URL{:sh}`      | `string{:ts}`  | PostgreSQL connection string                      |
-| `RCTF_DATABASE_HOST{:sh}`     | `string{:ts}`  | PostgreSQL host (if not using URL)                |
-| `RCTF_DATABASE_PORT{:sh}`     | `integer{:ts}` | PostgreSQL port                                   |
-| `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}`  | PostgreSQL user                                   |
-| `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}`  | PostgreSQL password                               |
-| `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}`  | PostgreSQL database name                          |
-| `RCTF_DATABASE_MIGRATE{:sh}`  | `string{:ts}`  | `[32mbefore[0m{:ansi}`, `[32monly[0m{:ansi}`, or `[32mnever[0m{:ansi}` |
-| `RCTF_REDIS_URL{:sh}`         | `string{:ts}`  | Redis connection string                           |
-| `RCTF_REDIS_HOST{:sh}`        | `string{:ts}`  | Redis host (if not using URL)                     |
-| `RCTF_REDIS_PORT{:sh}`        | `integer{:ts}` | Redis port                                        |
-| `RCTF_REDIS_PASSWORD{:sh}`    | `string{:ts}`  | Redis password                                    |
-| `RCTF_REDIS_DATABASE{:sh}`    | `integer{:ts}` | Redis database number                             |
+| Variable | Type | Description |
+| --- | --- | --- |
+| `RCTF_DATABASE_URL{:sh}` | `string{:ts}` | PostgreSQL connection string |
+| `RCTF_DATABASE_HOST{:sh}` | `string{:ts}` | PostgreSQL host (if not using URL) |
+| `RCTF_DATABASE_PORT{:sh}` | `integer{:ts}` | PostgreSQL port |
+| `RCTF_DATABASE_USERNAME{:sh}` | `string{:ts}` | PostgreSQL user |
+| `RCTF_DATABASE_PASSWORD{:sh}` | `string{:ts}` | PostgreSQL password |
+| `RCTF_DATABASE_DATABASE{:sh}` | `string{:ts}` | PostgreSQL database name |
+| `RCTF_DATABASE_MIGRATE{:sh}` | `string{:ts}` | `[32mbefore[0m{:ansi}`, `[32monly[0m{:ansi}`, or `[32mnever[0m{:ansi}` |
+| `RCTF_REDIS_URL{:sh}` | `string{:ts}` | Redis connection string |
+| `RCTF_REDIS_HOST{:sh}` | `string{:ts}` | Redis host (if not using URL) |
+| `RCTF_REDIS_PORT{:sh}` | `integer{:ts}` | Redis port |
+| `RCTF_REDIS_PASSWORD{:sh}` | `string{:ts}` | Redis password |
+| `RCTF_REDIS_DATABASE{:sh}` | `integer{:ts}` | Redis database number |
 
 ### Timing and auth
 
@@ -67,13 +67,13 @@ The following environment variables are supported. They override values from con
 
 ### UI and meta
 
-| Variable                     | Type          | Description                                                        |
-| ---------------------------- | ------------- | ------------------------------------------------------------------ |
-| `RCTF_HOME_CONTENT{:sh}`     | `string{:ts}` | Home page markdown content                                         |
-| `RCTF_FAVICON_URL{:sh}`      | `string{:ts}` | Favicon URL                                                        |
-| `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description                                                   |
-| `RCTF_IMAGE_URL{:sh}`        | `string{:ts}` | Meta image URL                                                     |
-| `RCTF_GLOBAL_SITE_TAG{:sh}`  | `string{:ts}` | Google Analytics tag (deprecated, use `[31manalytics.provider[0m{:ansi}`) |
+| Variable | Type | Description |
+| --- | --- | --- |
+| `RCTF_HOME_CONTENT{:sh}` | `string{:ts}` | Home page markdown content |
+| `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
+| `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
+| `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
+| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag (deprecated, use `[31manalytics.provider[0m{:ansi}`) |
 
 ### Email
 
@@ -110,11 +110,11 @@ tokenKey: <base64-32-byte-key> # Token encryption key (required)
 instanceType: all # all | frontend | leaderboard
 ```
 
-| Field                 | Type          | Default      | Description                                                                                                                              |
-| --------------------- | ------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `[31mctfName[0m{:ansi}`      | `string{:ts}` | -            | Display name of your CTF                                                                                                                 |
-| `[31morigin[0m{:ansi}`       | `string{:ts}` | -            | Public URL of your CTF (no trailing slash)                                                                                               |
-| `[31mtokenKey[0m{:ansi}`     | `string{:ts}` | -            | Base64-encoded 32-byte key for AES-GCM token encryption                                                                                  |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mctfName[0m{:ansi}` | `string{:ts}` | - | Display name of your CTF |
+| `[31morigin[0m{:ansi}` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
+| `[31mtokenKey[0m{:ansi}` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
 | `[31minstanceType[0m{:ansi}` | `string{:ts}` | `[32mall[0m{:ansi}` | Controls which components run: `[32mall[0m{:ansi}` (API + leaderboard worker), `[32mfrontend[0m{:ansi}` (API only), `[32mleaderboard[0m{:ansi}` (worker only) |
 
 <Callout variant="warning">
@@ -157,11 +157,11 @@ database:
     database: 0 # Optional, default 0
 ```
 
-| Field                     | Type                           | Default        | Description                                                                                               |
-| ------------------------- | ------------------------------ | -------------- | --------------------------------------------------------------------------------------------------------- |
-| `[31mdatabase.sql[0m{:ansi}`     | `string{:ts}` \| `object{:ts}` | -              | PostgreSQL connection (required)                                                                          |
-| `[31mdatabase.redis[0m{:ansi}`   | `string{:ts}` \| `object{:ts}` | -              | Redis connection (required)                                                                               |
-| `[31mdatabase.migrate[0m{:ansi}` | `string{:ts}`                  | `[32mnever[0m{:ansi}` | `[32mbefore[0m{:ansi}` runs migrations on startup, `[32monly[0m{:ansi}` runs migrations and exits, `[32mnever[0m{:ansi}` skips |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mdatabase.sql[0m{:ansi}` | `string{:ts}` \| `object{:ts}` | - | PostgreSQL connection (required) |
+| `[31mdatabase.redis[0m{:ansi}` | `string{:ts}` \| `object{:ts}` | - | Redis connection (required) |
+| `[31mdatabase.migrate[0m{:ansi}` | `string{:ts}` | `[32mnever[0m{:ansi}` | `[32mbefore[0m{:ansi}` runs migrations on startup, `[32monly[0m{:ansi}` runs migrations and exits, `[32mnever[0m{:ansi}` skips |
 
 ### Timing
 
@@ -170,10 +170,10 @@ startTime: 1735689600000 # January 1, 2025 00:00 UTC
 endTime: 1735776000000 # January 2, 2025 00:00 UTC
 ```
 
-| Field              | Type          | Default | Description                                            |
-| ------------------ | ------------- | ------- | ------------------------------------------------------ |
-| `[31mstartTime[0m{:ansi}` | `number{:ts}` | -       | Competition start time in Unix milliseconds (required) |
-| `[31mendTime[0m{:ansi}`   | `number{:ts}` | -       | Competition end time in Unix milliseconds (required)   |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mstartTime[0m{:ansi}` | `number{:ts}` | - | Competition start time in Unix milliseconds (required) |
+| `[31mendTime[0m{:ansi}` | `number{:ts}` | - | Competition end time in Unix milliseconds (required) |
 
 <Callout variant="tip">
 
@@ -196,21 +196,21 @@ divisionACLs:
     divisions: [open]
 ```
 
-| Field                    | Type          | Default            | Description                                   |
-| ------------------------ | ------------- | ------------------ | --------------------------------------------- |
-| `[31mdivisions[0m{:ansi}`       | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name            |
-| `[31mdefaultDivision[0m{:ansi}` | `string{:ts}` | -                  | Default division for new users (optional)     |
-| `[31mdivisionACLs[0m{:ansi}`    | `array{:ts}`  | -                  | Access control rules for divisions (optional) |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mdivisions[0m{:ansi}` | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name |
+| `[31mdefaultDivision[0m{:ansi}` | `string{:ts}` | - | Default division for new users (optional) |
+| `[31mdivisionACLs[0m{:ansi}` | `array{:ts}` | - | Access control rules for divisions (optional) |
 
 #### Division ACLs
 
 ACLs control which divisions a user can register for based on their email. Each ACL entry has:
 
-| Field              | Description                                                                                   |
-| ------------------ | --------------------------------------------------------------------------------------------- |
-| `[31mmatch[0m{:ansi}`     | Match type: `[32mdomain[0m{:ansi}`, `[32memail[0m{:ansi}`, `[32mregex[0m{:ansi}`, or `[32many[0m{:ansi}`                  |
-| `[31mvalue[0m{:ansi}`     | Value to match against (domain suffix, exact email, regex pattern, or empty for `[32many[0m{:ansi}`) |
-| `[31mdivisions[0m{:ansi}` | Array of division IDs this rule grants access to                                              |
+| Field | Description |
+| --- | --- |
+| `[31mmatch[0m{:ansi}` | Match type: `[32mdomain[0m{:ansi}`, `[32memail[0m{:ansi}`, `[32mregex[0m{:ansi}`, or `[32many[0m{:ansi}` |
+| `[31mvalue[0m{:ansi}` | Value to match against (domain suffix, exact email, regex pattern, or empty for `[32many[0m{:ansi}`) |
+| `[31mdivisions[0m{:ansi}` | Array of division IDs this rule grants access to |
 
 ACL rules are evaluated in order. The first matching rule determines the user's allowed divisions.
 
@@ -231,14 +231,14 @@ ctftime:
   clientSecret: your-secret
 ```
 
-| Field                         | Type           | Default        | Description                                                |
-| ----------------------------- | -------------- | -------------- | ---------------------------------------------------------- |
-| `[31mregistrationsEnabled[0m{:ansi}` | `boolean{:ts}` | `true{:ts}`    | Whether new registrations are allowed                      |
-| `[31muserMembers[0m{:ansi}`          | `boolean{:ts}` | `true{:ts}`    | Enable team members feature                                |
-| `[31mmaxMembers[0m{:ansi}`           | `number{:ts}`  | `50{:ts}`      | Maximum members per team                                   |
-| `[31mloginTimeout[0m{:ansi}`         | `number{:ts}`  | `3600000{:ts}` | Verification/CTFtime token expiry in milliseconds (1 hour) |
-| `[31mctftime.clientId[0m{:ansi}`     | `string{:ts}`  | -              | CTFtime OAuth client ID (numeric string)                   |
-| `[31mctftime.clientSecret[0m{:ansi}` | `string{:ts}`  | -              | CTFtime OAuth client secret                                |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mregistrationsEnabled[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Whether new registrations are allowed |
+| `[31muserMembers[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Enable team members feature |
+| `[31mmaxMembers[0m{:ansi}` | `number{:ts}` | `50{:ts}` | Maximum members per team |
+| `[31mloginTimeout[0m{:ansi}` | `number{:ts}` | `3600000{:ts}` | Verification/CTFtime token expiry in milliseconds (1 hour) |
+| `[31mctftime.clientId[0m{:ansi}` | `string{:ts}` | - | CTFtime OAuth client ID (numeric string) |
+| `[31mctftime.clientSecret[0m{:ansi}` | `string{:ts}` | - | CTFtime OAuth client secret |
 
 <Callout variant="note">
 
@@ -259,10 +259,10 @@ captcha:
     - recover
 ```
 
-| Field                               | Type          | Default | Description                                                |
-| ----------------------------------- | ------------- | ------- | ---------------------------------------------------------- |
-| `[31mcaptcha.provider[0m{:ansi}`           | `object{:ts}` | -       | Captcha provider config (`[31mname[0m{:ansi}` + `[31moptions[0m{:ansi}`) |
-| `[31mcaptcha.protectedEndpoints[0m{:ansi}` | `array{:ts}`  | -       | List of actions requiring captcha                          |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mcaptcha.provider[0m{:ansi}` | `object{:ts}` | - | Captcha provider config (`[31mname[0m{:ansi}` + `[31moptions[0m{:ansi}`) |
+| `[31mcaptcha.protectedEndpoints[0m{:ansi}` | `array{:ts}` | - | List of actions requiring captcha |
 
 Available captcha actions: `[32mregister[0m{:ansi}`, `[32mrecover[0m{:ansi}`, `[32msetEmail[0m{:ansi}`, `[32minstancerStart[0m{:ansi}`, `[32minstancerExtend[0m{:ansi}`, `[32mavatarUpload[0m{:ansi}`, `[32madminBotSubmit[0m{:ansi}`.
 
@@ -287,11 +287,11 @@ instancerProvider:
     authToken: secret
 ```
 
-| Field                      | Type          | Default                      | Description                             |
-| -------------------------- | ------------- | ---------------------------- | --------------------------------------- |
-| `[31muploadProvider[0m{:ansi}`    | `object{:ts}` | `{ name: "uploads/local" }`  | File upload provider                    |
-| `[31mscoreProvider[0m{:ansi}`     | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider              |
-| `[31minstancerProvider[0m{:ansi}` | `object{:ts}` | -                            | Challenge instancer provider (optional) |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31muploadProvider[0m{:ansi}` | `object{:ts}` | `{ name: "uploads/local" }` | File upload provider |
+| `[31mscoreProvider[0m{:ansi}` | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider |
+| `[31minstancerProvider[0m{:ansi}` | `object{:ts}` | - | Challenge instancer provider (optional) |
 
 See the [Providers](/providers/) section for detailed configuration of each provider.
 
@@ -305,9 +305,9 @@ adminBot:
   maxLogsPerUserChallenge: 5
 ```
 
-| Field                                     | Type           | Default  | Description                                   |
-| ----------------------------------------- | -------------- | -------- | --------------------------------------------- |
-| `[31madminBot.provider[0m{:ansi}`                | `object{:ts}`  | -        | Admin bot provider config                     |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31madminBot.provider[0m{:ansi}` | `object{:ts}` | - | Admin bot provider config |
 | `[31madminBot.maxLogsPerUserChallenge[0m{:ansi}` | `integer{:ts}` | `5{:ts}` | Max stored log entries per user per challenge |
 
 ### Email
@@ -322,11 +322,11 @@ email:
   logoUrl: https://example.com/logo.png
 ```
 
-| Field                   | Type          | Default | Description                                      |
-| ----------------------- | ------------- | ------- | ------------------------------------------------ |
-| `[31memail.provider[0m{:ansi}` | `object{:ts}` | -       | Email provider config                            |
-| `[31memail.from[0m{:ansi}`     | `string{:ts}` | -       | Sender email address (required if email enabled) |
-| `[31memail.logoUrl[0m{:ansi}`  | `string{:ts}` | -       | Logo URL for email templates (optional)          |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31memail.provider[0m{:ansi}` | `object{:ts}` | - | Email provider config |
+| `[31memail.from[0m{:ansi}` | `string{:ts}` | - | Sender email address (required if email enabled) |
+| `[31memail.logoUrl[0m{:ansi}` | `string{:ts}` | - | Logo URL for email templates (optional) |
 
 <Callout variant="note">
 
@@ -356,16 +356,16 @@ logoDarkUrl: https://example.com/logo-dark.svg
 flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 ```
 
-| Field                          | Type          | Default                               | Description                                                                         |
-| ------------------------------ | ------------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
-| `[31mhomeContent[0m{:ansi}`           | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown)                                                        |
-| `[31msponsors[0m{:ansi}`              | `array{:ts}`  | `[]`                                  | List of sponsors (`[31mname[0m{:ansi}`, `[31micon[0m{:ansi}`, `[31mdescription[0m{:ansi}`, `[31murl[0m{:ansi}`) |
-| `[31mmeta.description[0m{:ansi}`      | `string{:ts}` | `"rCTF event description"`            | HTML meta description                                                               |
-| `[31mmeta.imageUrl[0m{:ansi}`         | `string{:ts}` | `""`                                  | HTML meta image URL                                                                 |
-| `[31mfaviconUrl[0m{:ansi}`            | `string{:ts}` | rCTF default                          | Favicon URL                                                                         |
-| `[31mlogoLightUrl[0m{:ansi}`          | `string{:ts}` | `""`                                  | Logo for light mode                                                                 |
-| `[31mlogoDarkUrl[0m{:ansi}`           | `string{:ts}` | `""`                                  | Logo for dark mode                                                                  |
-| `[31mflagFormatPlaceholder[0m{:ansi}` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"`              | Flag format hint shown to participants                                              |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mhomeContent[0m{:ansi}` | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown) |
+| `[31msponsors[0m{:ansi}` | `array{:ts}` | `[]` | List of sponsors (`[31mname[0m{:ansi}`, `[31micon[0m{:ansi}`, `[31mdescription[0m{:ansi}`, `[31murl[0m{:ansi}`) |
+| `[31mmeta.description[0m{:ansi}` | `string{:ts}` | `"rCTF event description"` | HTML meta description |
+| `[31mmeta.imageUrl[0m{:ansi}` | `string{:ts}` | `""` | HTML meta image URL |
+| `[31mfaviconUrl[0m{:ansi}` | `string{:ts}` | rCTF default | Favicon URL |
+| `[31mlogoLightUrl[0m{:ansi}` | `string{:ts}` | `""` | Logo for light mode |
+| `[31mlogoDarkUrl[0m{:ansi}` | `string{:ts}` | `""` | Logo for dark mode |
+| `[31mflagFormatPlaceholder[0m{:ansi}` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"` | Flag format hint shown to participants |
 
 <Callout variant="tip">
 
@@ -383,9 +383,9 @@ analytics:
       src: https://plausible.io/js/script.js
 ```
 
-| Field                       | Type          | Default | Description                                                                                                 |
-| --------------------------- | ------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
-| `[31manalytics.provider[0m{:ansi}` | `object{:ts}` | -       | Analytics provider (`[32manalytics/google[0m{:ansi}`, `[32manalytics/cloudflare[0m{:ansi}`, `[32manalytics/plausible[0m{:ansi}`) |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31manalytics.provider[0m{:ansi}` | `object{:ts}` | - | Analytics provider (`[32manalytics/google[0m{:ansi}`, `[32manalytics/cloudflare[0m{:ansi}`, `[32manalytics/plausible[0m{:ansi}`) |
 
 ### Limits
 
@@ -400,15 +400,15 @@ leaderboard:
   graphWithListLimit: 100
 ```
 
-| Field                                   | Type          | Default                | Description                                         |
-| --------------------------------------- | ------------- | ---------------------- | --------------------------------------------------- |
-| `[31mmaxAvatarSize[0m{:ansi}`                  | `number{:ts}` | `1048576{:ts}` (1 MB)  | Maximum avatar upload size in bytes                 |
-| `[31mleaderboard.maxLimit[0m{:ansi}`           | `number{:ts}` | `100{:ts}`             | Max teams returned per leaderboard request          |
-| `[31mleaderboard.maxOffset[0m{:ansi}`          | `number{:ts}` | `4294967296{:ts}`      | Max pagination offset                               |
-| `[31mleaderboard.updateInterval[0m{:ansi}`     | `number{:ts}` | `30000{:ts}` (30s)     | Leaderboard recalculation interval in ms            |
-| `[31mleaderboard.graphMaxTeams[0m{:ansi}`      | `number{:ts}` | `10{:ts}`              | Max teams displayed on score graph                  |
-| `[31mleaderboard.graphSampleTime[0m{:ansi}`    | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms                |
-| `[31mleaderboard.graphWithListLimit[0m{:ansi}` | `number{:ts}` | `100{:ts}`             | Max teams for combined leaderboard + graph endpoint |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mmaxAvatarSize[0m{:ansi}` | `number{:ts}` | `1048576{:ts}` (1 MB) | Maximum avatar upload size in bytes |
+| `[31mleaderboard.maxLimit[0m{:ansi}` | `number{:ts}` | `100{:ts}` | Max teams returned per leaderboard request |
+| `[31mleaderboard.maxOffset[0m{:ansi}` | `number{:ts}` | `4294967296{:ts}` | Max pagination offset |
+| `[31mleaderboard.updateInterval[0m{:ansi}` | `number{:ts}` | `30000{:ts}` (30s) | Leaderboard recalculation interval in ms |
+| `[31mleaderboard.graphMaxTeams[0m{:ansi}` | `number{:ts}` | `10{:ts}` | Max teams displayed on score graph |
+| `[31mleaderboard.graphSampleTime[0m{:ansi}` | `number{:ts}` | `1800000{:ts}` (30min) | Time between graph data points in ms |
+| `[31mleaderboard.graphWithListLimit[0m{:ansi}` | `number{:ts}` | `100{:ts}` | Max teams for combined leaderboard + graph endpoint |
 
 ### Moderation
 
@@ -421,9 +421,9 @@ avatarsModeration:
   allowOnInternalError: true
 ```
 
-| Field                                           | Type           | Default     | Description                                 |
-| ----------------------------------------------- | -------------- | ----------- | ------------------------------------------- |
-| `[31mavatarsModeration.provider[0m{:ansi}`             | `object{:ts}`  | -           | Moderation provider for avatar uploads      |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mavatarsModeration.provider[0m{:ansi}` | `object{:ts}` | - | Moderation provider for avatar uploads |
 | `[31mavatarsModeration.allowOnInternalError[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Allow avatar upload if moderation API fails |
 
 See [Moderation Providers](/providers/moderation/) for details.
@@ -436,10 +436,10 @@ proxy:
   trust: false
 ```
 
-| Field                     | Type                                                                | Default      | Description                                                                                                                                          |
-| ------------------------- | ------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[31mproxy.cloudflare[0m{:ansi}` | `boolean{:ts}`                                                      | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP                                                                                             |
-| `[31mproxy.trust[0m{:ansi}`      | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mproxy.cloudflare[0m{:ansi}` | `boolean{:ts}` | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP |
+| `[31mproxy.trust[0m{:ansi}` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
 
 <Callout variant="warning">
 
@@ -463,12 +463,12 @@ bloodBot:
           chatId: '-1001234567890'
 ```
 
-| Field                                            | Type          | Default  | Description                             |
-| ------------------------------------------------ | ------------- | -------- | --------------------------------------- |
-| `[31mbloodBot.bloodsCount[0m{:ansi}`                    | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
-| `[31mbloodBot.destinations[0m{:ansi}`                   | `array{:ts}`  | -        | At least one destination (required)     |
-| `[31mbloodBot.destinations[].provider[0m{:ansi}`        | `object{:ts}` | -        | Messages provider config                |
-| `[31mbloodBot.destinations[].messageTemplate[0m{:ansi}` | `string{:ts}` | -        | Custom message template (optional)      |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mbloodBot.bloodsCount[0m{:ansi}` | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
+| `[31mbloodBot.destinations[0m{:ansi}` | `array{:ts}` | - | At least one destination (required) |
+| `[31mbloodBot.destinations[].provider[0m{:ansi}` | `object{:ts}` | - | Messages provider config |
+| `[31mbloodBot.destinations[].messageTemplate[0m{:ansi}` | `string{:ts}` | - | Custom message template (optional) |
 
 Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 

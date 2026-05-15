@@ -85,8 +85,8 @@ function updateCurrentSectionText(headingIds: string[]): void {
   }
 
   const activeHtml = state.headings
-    .filter((heading) => headingIds.includes(heading.id))
-    .map((heading) => headingHtml(heading))
+    .filter(heading => headingIds.includes(heading.id))
+    .map(heading => headingHtml(heading))
     .filter(Boolean)
     .join(', ')
 
@@ -101,7 +101,7 @@ function scrollToActiveHeading(activeHeadingId: string): void {
   if (!state.listElement || !state.scrollArea) return
 
   const activeItem = state.listElement.querySelector<HTMLElement>(
-    dataAttributeSelector('data-heading-id', activeHeadingId),
+    dataAttributeSelector('data-heading-id', activeHeadingId)
   )
   if (activeItem) centerElementInScrollContainer(state.scrollArea, activeItem)
 }
@@ -109,7 +109,7 @@ function scrollToActiveHeading(activeHeadingId: string): void {
 function updateMobileTocLinks(headingIds: string[]): void {
   if (!state.listElement || !state.currentSectionText) return
 
-  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach((item) => {
+  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach(item => {
     const headingId = item.dataset.headingId
     item.classList.toggle('text-foreground', Boolean(headingId && headingIds.includes(headingId)))
   })
@@ -135,7 +135,7 @@ function updateProgressCircle(): void {
 function syncHeadingLabels(): void {
   if (!state.listElement) return
 
-  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach((link) => {
+  state.listElement.querySelectorAll<HTMLElement>('.mobile-toc-item').forEach(link => {
     const slug = link.dataset.headingId
     if (!slug) return
 
@@ -169,13 +169,13 @@ function handleResize(): void {
 }
 
 function setupInteractions(signal: AbortSignal): void {
-  state.listElement?.querySelectorAll('.mobile-toc-item').forEach((item) => {
+  state.listElement?.querySelectorAll('.mobile-toc-item').forEach(item => {
     item.addEventListener(
       'click',
       () => {
         if (state.detailsElement) state.detailsElement.open = false
       },
-      { signal },
+      { signal }
     )
   })
 
@@ -186,7 +186,7 @@ function setupInteractions(signal: AbortSignal): void {
     () => {
       if (state.detailsElement?.open) window.setTimeout(updateScrollMask, 100)
     },
-    { signal },
+    { signal }
   )
 }
 

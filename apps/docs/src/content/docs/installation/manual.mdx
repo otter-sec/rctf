@@ -48,7 +48,6 @@ database:
   redis: redis://localhost:6379
   migrate: before
 
-
 startTime: 1735689600000
 endTime: 1735776000000
 
@@ -113,8 +112,8 @@ The API server listens on the port specified by the `PORT{:sh}` environment vari
 
 The `[31minstanceType[0m{:ansi}` configuration option controls which components run in a given process:
 
-| Value                  | Behavior                                            |
-| ---------------------- | --------------------------------------------------- |
+| Value                         | Behavior                                            |
+| ----------------------------- | --------------------------------------------------- |
 | `[32mall[0m{:ansi}` (default) | Runs both the API server and the leaderboard worker |
 | `[32mfrontend[0m{:ansi}`      | Runs the API server only                            |
 | `[32mleaderboard[0m{:ansi}`   | Runs the leaderboard computation worker only        |

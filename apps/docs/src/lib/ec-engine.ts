@@ -1,6 +1,6 @@
 import { ExpressiveCodeEngine } from '@expressive-code/core'
-import { ecOptions, ecDefaultPlugins } from './ec-config'
-import { lightTheme, darkTheme } from './shiki-themes'
+import { ecDefaultPlugins, ecOptions } from './ec-config'
+import { darkTheme, lightTheme } from './shiki-themes'
 
 let enginePromise: Promise<ExpressiveCodeEngine> | null = null
 let stylesPromise: Promise<string> | null = null

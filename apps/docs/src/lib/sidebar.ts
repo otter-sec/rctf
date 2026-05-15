@@ -1,3 +1,5 @@
+import { BASE_URL, docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
+import { isCurrentPath, titleCase, trimTrailingSlash } from '@/lib/utils'
 import type {
   FlatDoc,
   MetaFile,
@@ -7,8 +9,6 @@ import type {
   SidebarLink,
   SidebarNode,
 } from '@/types'
-import { BASE_URL, docHref, docLabel, getAllDocs, type Doc } from '@/lib/docs'
-import { isCurrentPath, titleCase, trimTrailingSlash } from '@/lib/utils'
 
 const metaModules = {
   ...(import.meta.glob('/src/content/docs/_meta.ts', {
@@ -40,7 +40,7 @@ function hasDoc(node: TreeNode): node is DocTreeNode {
 }
 
 function ensureNode(parent: TreeNode, name: string, fullPath: string): TreeNode {
-  let existing = parent.children.find((c) => c.name === name)
+  let existing = parent.children.find(c => c.name === name)
   if (!existing) {
     existing = { name, fullPath, children: [] }
     parent.children.push(existing)
@@ -77,7 +77,7 @@ export function createSidebarContext(docs: Doc[]): SidebarContext {
   return {
     docs,
     tree: buildTree(docs),
-    docByHref: new Map(docs.map((doc) => [docHref(doc.id), doc])),
+    docByHref: new Map(docs.map(doc => [docHref(doc.id), doc])),
     rootMeta: metaFor(''),
   }
 }
@@ -99,7 +99,7 @@ function compareByOrder(a: OrderKey, b: OrderKey): number {
 function resolveDocLink(
   node: DocTreeNode,
   parentMeta: MetaFile,
-  pathname: string,
+  pathname: string
 ): { link: SidebarLink; sortKey: OrderKey } | null {
   const { doc } = node
   if (doc.data.sidebar?.hidden) return null
@@ -127,7 +127,7 @@ function resolveDocLink(
 function resolveGroup(
   node: TreeNode,
   parentMeta: MetaFile,
-  pathname: string,
+  pathname: string
 ): { group: SidebarGroup; sortKey: OrderKey } | null {
   const own = metaFor(node.fullPath)
   if (own.hidden) return null
@@ -161,7 +161,7 @@ function resolveGroup(
   const forceOpen = override.forceOpen ?? own.forceOpen ?? false
 
   const hasActiveDescendant = items.some(
-    (i) => (i.type === 'link' && i.isCurrent) || (i.type === 'group' && i.hasActiveDescendant),
+    i => (i.type === 'link' && i.isCurrent) || (i.type === 'group' && i.hasActiveDescendant)
   )
 
   return {
@@ -195,12 +195,12 @@ function buildNodes(parent: TreeNode, parentMeta: MetaFile, pathname: string): S
   }
 
   resolved.sort((a, b) => compareByOrder(a.sortKey, b.sortKey))
-  return resolved.map((r) => r.node)
+  return resolved.map(r => r.node)
 }
 
 export function getSidebarTreeFromContext(
   context: SidebarContext,
-  pathname: string = '/',
+  pathname: string = '/'
 ): SidebarNode[] {
   return buildNodes(context.tree, context.rootMeta, pathname)
 }
@@ -228,7 +228,7 @@ function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
 
 export function getFlatDocOrderFromContext(
   context: SidebarContext,
-  pathname: string = '/',
+  pathname: string = '/'
 ): FlatDoc[] {
   return flattenTree(getSidebarTreeFromContext(context, pathname))
 }
@@ -248,11 +248,11 @@ function findGroupChildren(nodes: SidebarNode[], href: string): SidebarNode[] | 
   for (const node of nodes) {
     if (node.type !== 'group') continue
     const hasIndex = node.items.some(
-      (item) => item.type === 'link' && trimTrailingSlash(item.href) === normalized,
+      item => item.type === 'link' && trimTrailingSlash(item.href) === normalized
     )
     if (hasIndex) {
       return node.items.filter(
-        (item) => !(item.type === 'link' && trimTrailingSlash(item.href) === normalized),
+        item => !(item.type === 'link' && trimTrailingSlash(item.href) === normalized)
       )
     }
     const found = findGroupChildren(node.items, href)
@@ -285,11 +285,11 @@ export async function getIndexChildren(href: string): Promise<IndexChild[]> {
 
 export function getPrevNextFromContext(
   context: SidebarContext,
-  currentHref: string,
+  currentHref: string
 ): { prev: FlatDoc | null; next: FlatDoc | null } {
   const flat = getFlatDocOrderFromContext(context, currentHref)
   const normalized = trimTrailingSlash(currentHref)
-  const index = flat.findIndex((d) => trimTrailingSlash(d.href) === normalized)
+  const index = flat.findIndex(d => trimTrailingSlash(d.href) === normalized)
   if (index === -1) {
     if (normalized === trimTrailingSlash(BASE_URL)) {
       return { prev: null, next: flat[0] ?? null }
@@ -303,7 +303,7 @@ export function getPrevNextFromContext(
 }
 
 export async function getPrevNext(
-  currentHref: string,
+  currentHref: string
 ): Promise<{ prev: FlatDoc | null; next: FlatDoc | null }> {
   return getPrevNextFromContext(await loadSidebarContext(), currentHref)
 }

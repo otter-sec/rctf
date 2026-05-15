@@ -31,7 +31,7 @@ export function getNodeText(node: ElementContent): string {
 export function findElementChild(node: Element, tagName: string): Element | null {
   return (
     node.children.find(
-      (child): child is Element => isElement(child) && child.tagName === tagName,
+      (child): child is Element => isElement(child) && child.tagName === tagName
     ) ?? null
   )
 }
@@ -50,7 +50,7 @@ function childNodes(node: HastNode): ElementContent[] | null {
 
 export function visitHast(
   tree: Root,
-  visitor: (node: HastNode, parent: HastParent | null, index: number | null) => VisitAction,
+  visitor: (node: HastNode, parent: HastParent | null, index: number | null) => VisitAction
 ): void {
   const walk = (node: HastNode, parent: HastParent | null, index: number | null): void => {
     if (visitor(node, parent, index) === 'skip') return

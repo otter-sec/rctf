@@ -1,5 +1,4 @@
-import { ExpressiveCodeTheme, ensureColorContrastOnBackground } from '@expressive-code/core'
-
+import { ensureColorContrastOnBackground, ExpressiveCodeTheme } from '@expressive-code/core'
 import materialThemeDarkerRaw from '@shikijs/themes/material-theme-darker'
 import materialThemeLighterRaw from '@shikijs/themes/material-theme-lighter'
 

@@ -59,20 +59,20 @@ The v2 admin upload endpoint (`[32mPOST[0m [2m/api/[22mv2[2m/[22madmin[2m
 
 ### New v2 endpoints
 
-| Endpoint                                                    | Description                                           |
-| ----------------------------------------------------------- | ----------------------------------------------------- |
-| `[36mGET[0m [2m/[22mv2[2m/[22mauth[2m/[22mverify-info{:ansi}`                                  | Returns info about a verification token               |
-| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}`                                | Challenge metadata with first 3 solvers per challenge |
-| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}`                            | Combined leaderboard and graph in one request         |
-| `[33mPATCH[0m [2m/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}`                                 | Upload and moderate avatar images                     |
-| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers{:ansi}`                                  | List all users with search, filters, and pagination   |
-| `[36mGET[0m[2m/[22m[35mPUT[0m [2m/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}`                                | Runtime settings management                           |
-| `[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id[2m/[22mtoken{:ansi}`                            | Generate login token for a team                       |
-| `[31mDELETE[0m [2m/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id[2m/[22msolves[2m/[22m:userId{:ansi}`                | Delete a specific solve                               |
-| `[36mGET[0m [2m/[22mv2[2m/[22madmin[2m/[22minstancer[2m/[22mschema{:ansi}`                            | Instancer config JSON schema                          |
-| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22m*{:ansi}`                            | Admin bot job management                              |
-| `[36mGET[0m[2m/[22m[35mPUT[0m[2m/[22m[33mPATCH[0m[2m/[22m[31mDELETE[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | Challenge instance lifecycle                          |
-| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22m*{:ansi}`          | Admin bot submission and status                       |
+| Endpoint | Description |
+| --- | --- |
+| `[36mGET[0m [2m/[22mv2[2m/[22mauth[2m/[22mverify-info{:ansi}` | Returns info about a verification token |
+| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mchalls{:ansi}` | Challenge metadata with first 3 solvers per challenge |
+| `[36mGET[0m [2m/[22mv2[2m/[22mleaderboard[2m/[22mwith-graph{:ansi}` | Combined leaderboard and graph in one request |
+| `[33mPATCH[0m [2m/[22mv2[2m/[22musers[2m/[22mme[2m/[22mavatar{:ansi}` | Upload and moderate avatar images |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers{:ansi}` | List all users with search, filters, and pagination |
+| `[36mGET[0m[2m/[22m[35mPUT[0m [2m/[22mv2[2m/[22madmin[2m/[22msettings{:ansi}` | Runtime settings management |
+| `[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22musers[2m/[22m:id[2m/[22mtoken{:ansi}` | Generate login token for a team |
+| `[31mDELETE[0m [2m/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m:id[2m/[22msolves[2m/[22m:userId{:ansi}` | Delete a specific solve |
+| `[36mGET[0m [2m/[22mv2[2m/[22madmin[2m/[22minstancer[2m/[22mschema{:ansi}` | Instancer config JSON schema |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22madmin[2m/[22madmin-bot[2m/[22m*{:ansi}` | Admin bot job management |
+| `[36mGET[0m[2m/[22m[35mPUT[0m[2m/[22m[33mPATCH[0m[2m/[22m[31mDELETE[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22minstance{:ansi}` | Challenge instance lifecycle |
+| `[36mGET[0m[2m/[22m[32mPOST[0m [2m/[22mv2[2m/[22mintegrations[2m/[22mchalls[2m/[22m:id[2m/[22madmin-bot[2m/[22m*{:ansi}` | Admin bot submission and status |
 
 ### Response differences
 
@@ -134,8 +134,8 @@ Additional analytics providers are available: `[32manalytics/cloudflare[0m{:an
 
 The following configuration sections are new in v2:
 
-| Section                    | Purpose                                      |
-| -------------------------- | -------------------------------------------- |
+| Section                           | Purpose                                      |
+| --------------------------------- | -------------------------------------------- |
 | `[31madminBot[0m{:ansi}`          | Admin bot provider and settings              |
 | `[31mavatarsModeration[0m{:ansi}` | Avatar content moderation (OpenAI)           |
 | `[31mbloodBot[0m{:ansi}`          | First blood notifications (Discord/Telegram) |

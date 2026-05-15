@@ -25,13 +25,13 @@ Authentication is team-based. A team owns one account, one team token, and any n
 
 Registers a team. Returns auth tokens immediately when verification is not required, otherwise sends a verification email.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
+| Property       | Value                             |
+| -------------- | --------------------------------- |
+| Auth           | Public                            |
+| Gate           | None                              |
+| Permissions    | —                                 |
 | Captcha action | `register{:ts}` (when configured) |
-| Rate limit | — |
+| Rate limit     | —                                 |
 
 **Request body**
 
@@ -76,13 +76,13 @@ When email verification is required, returns `[2;32m200 [22mgoodVerifySent[0m
 
 Consumes a verification token to complete a pending registration, log in with a team token, or finalize an email change.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Request body**
 
@@ -92,9 +92,9 @@ Consumes a verification token to complete a pending registration, log in with a 
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `verifyToken` | `string{:ts}` | Yes | Pending-registration, team, or verify token. |
+| Field         | Type          | Required | Notes                                        |
+| ------------- | ------------- | -------- | -------------------------------------------- |
+| `verifyToken` | `string{:ts}` | Yes      | Pending-registration, team, or verify token. |
 
 **Response**
 
@@ -114,13 +114,13 @@ Behavior branches on the token kind:
 
 Sends an account-recovery email containing a team token. Always returns `[2;32m200 [22mgoodVerifySent[0m{:ansi}`, even when the email is unknown, to prevent account enumeration.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
+| Property       | Value                            |
+| -------------- | -------------------------------- |
+| Auth           | Public                           |
+| Gate           | None                             |
+| Permissions    | —                                |
 | Captcha action | `recover{:ts}` (when configured) |
-| Rate limit | — |
+| Rate limit     | —                                |
 
 **Request body**
 
@@ -131,10 +131,10 @@ Sends an account-recovery email containing a team token. Always returns `[2;32m
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `email` | `string{:ts}` | Yes | Recovery destination. |
-| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `recover{:ts}`. |
+| Field         | Type          | Required | Notes                                              |
+| ------------- | ------------- | -------- | -------------------------------------------------- |
+| `email`       | `string{:ts}` | Yes      | Recovery destination.                              |
+| `captchaCode` | `string{:ts}` | No       | Checked only when captcha protects `recover{:ts}`. |
 
 **Response**
 
@@ -146,19 +146,19 @@ Sends an account-recovery email containing a team token. Always returns `[2;32m
 
 Previews a verification token without consuming it. Useful for showing context on the verification page before the user submits.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Query**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `token` | `string{:ts}` | Yes | Pending-registration, team, or verify token. |
+| Field   | Type          | Required | Notes                                        |
+| ------- | ------------- | -------- | -------------------------------------------- |
+| `token` | `string{:ts}` | Yes      | Pending-registration, team, or verify token. |
 
 **Response**
 
@@ -199,13 +199,13 @@ Differs from V2:
 
 V1-only. Exchanges a team token or a CTFtime auth token for an auth token. There is no V2 equivalent for CTFtime login; V2 clients use [`[32mPOST[0m [2m/api/[22mv2[2m/[22mauth[2m/[22mverify{:ansi}`](#post-apiv2authverify) with a team token, or the CTFtime callback flow.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value  |
+| -------------- | ------ |
+| Auth           | Public |
+| Gate           | None   |
+| Permissions    | —      |
+| Captcha action | —      |
+| Rate limit     | —      |
 
 **Request body**
 
@@ -236,23 +236,23 @@ Differs from V2: captcha field is `recaptchaCode` instead of `captchaCode`.
 
 Validates the supplied auth token. Returns `[2;32m200 [22mgoodToken[0m{:ansi}` (no data) when the token is valid, `[2;31m401 [22mbadToken[0m{:ansi}` otherwise. Useful for client-side session checks.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value    |
+| -------------- | -------- |
+| Auth           | Required |
+| Gate           | None     |
+| Permissions    | —        |
+| Captcha action | —        |
+| Rate limit     | —        |
 
 ## Token lifecycle
 
 All tokens are AES-256-GCM encrypted with `tokenKey`. Rotating `tokenKey` invalidates every existing token.
 
-| Token kind | Lifetime | Used by |
-| --- | --- | --- |
-| `Auth` | No expiry | `Authorization: Bearer <auth-token>` on user routes. |
-| `Team` | No expiry | Recovery, V1 login, and V2 verify with a team token. |
-| `Verify` | `loginTimeout` | Email updates and pending registrations. One-time. |
-| `CtftimeAuth` | `loginTimeout` | CTFtime registration and V1 login handoff. |
+| Token kind    | Lifetime       | Used by                                              |
+| ------------- | -------------- | ---------------------------------------------------- |
+| `Auth`        | No expiry      | `Authorization: Bearer <auth-token>` on user routes. |
+| `Team`        | No expiry      | Recovery, V1 login, and V2 verify with a team token. |
+| `Verify`      | `loginTimeout` | Email updates and pending registrations. One-time.   |
+| `CtftimeAuth` | `loginTimeout` | CTFtime registration and V1 login handoff.           |
 
 Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `[2;31m401 [22mbadTokenVerification[0m{:ansi}` after the marker has been consumed or expired.

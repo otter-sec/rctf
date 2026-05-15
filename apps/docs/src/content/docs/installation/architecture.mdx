@@ -196,11 +196,11 @@ The list above is the entire allow-set the bundled build ships with. There is no
 
 The `[31minstanceType[0m{:ansi}` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs. See [Manual installation](/installation/manual/#scaling-with-instance-types) for the basic config.
 
-| Value | API server | Leaderboard worker thread |
-| --- | --- | --- |
-| `[32mall[0m{:ansi}` (default) | Yes | Yes |
-| `[32mfrontend[0m{:ansi}` | Yes | No |
-| `[32mleaderboard[0m{:ansi}` | No | Yes |
+| Value                         | API server | Leaderboard worker thread |
+| ----------------------------- | ---------- | ------------------------- |
+| `[32mall[0m{:ansi}` (default) | Yes        | Yes                       |
+| `[32mfrontend[0m{:ansi}`      | Yes        | No                        |
+| `[32mleaderboard[0m{:ansi}`   | No         | Yes                       |
 
 The dispatch happens at startup in `apps/api/src/index.ts`:
 

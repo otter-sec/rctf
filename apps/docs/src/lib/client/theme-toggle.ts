@@ -26,7 +26,7 @@ function initThemeToggle(): void {
 
   document
     .querySelectorAll<HTMLButtonElement>('[data-theme-toggle]')
-    .forEach((button) => button.addEventListener('click', toggleTheme, { signal }))
+    .forEach(button => button.addEventListener('click', toggleTheme, { signal }))
 }
 
 function beforeSwap(event: Event): void {
@@ -35,7 +35,7 @@ function beforeSwap(event: Event): void {
   const storedTheme = readStorage(localStorage, 'theme') || 'light'
   ;(event as Event & { newDocument: Document }).newDocument.documentElement.setAttribute(
     'data-theme',
-    storedTheme,
+    storedTheme
   )
 }
 

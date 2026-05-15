@@ -3,8 +3,8 @@ import { pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
-import { pluginShellPrompt } from './ec-shell-prompt'
 import { pluginOutputSeparator } from './ec-output-separator'
+import { pluginShellPrompt } from './ec-shell-prompt'
 import { codeBackground } from './shiki-themes'
 
 const isLightTheme = (theme: { name: string }) => theme.name === 'material-theme-lighter'
@@ -46,8 +46,7 @@ export const ecOptions = {
     codeBackground: ({ theme }: { theme: { name: string } }) => codeBackground(theme),
     frames: {
       editorActiveTabForeground: 'var(--muted-foreground)',
-      editorActiveTabBackground: ({ theme }: { theme: { name: string } }) =>
-        codeBackground(theme),
+      editorActiveTabBackground: ({ theme }: { theme: { name: string } }) => codeBackground(theme),
       editorActiveTabIndicatorBottomColor: 'transparent',
       editorActiveTabIndicatorTopColor: 'transparent',
       editorTabBarBackground: 'transparent',

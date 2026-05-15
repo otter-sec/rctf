@@ -9,17 +9,17 @@ interface Props {
 const { title, defaultOpen = false } = Astro.props
 ---
 
-<details class="group" open={defaultOpen}>
+<details class='group' open={defaultOpen}>
   <summary
-    class="hover:bg-muted/30 flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium transition-colors select-none [&::-webkit-details-marker]:hidden"
+    class='hover:bg-muted/30 flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-medium transition-colors select-none [&::-webkit-details-marker]:hidden'
   >
     <span>{title}</span>
     <Icon
-      name="chevron-down"
-      class="text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180"
+      name='chevron-down'
+      class='text-muted-foreground size-4 shrink-0 transition-transform group-open:rotate-180'
     />
   </summary>
-  <div class="prose max-w-none px-4 pb-4 text-sm" data-accordion-content>
+  <div class='prose max-w-none px-4 pb-4 text-sm' data-accordion-content>
     <slot />
   </div>
 </details>

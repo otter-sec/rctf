@@ -59,13 +59,13 @@ Routes that list multiple permission bits require all of them.
 
 Lists every challenge with full admin fields, including hidden challenges and unreleased challenges.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `challsRead{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Response**
 
@@ -77,19 +77,19 @@ Lists every challenge with full admin fields, including hidden challenges and un
 
 Returns one admin challenge.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `challsRead{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -101,19 +101,19 @@ Returns one admin challenge.
 
 Creates or updates a challenge. Omitted fields in `data` keep their current value. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears the integration config.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value              |
+| -------------- | ------------------ |
+| Auth           | Required           |
+| Gate           | None               |
+| Permissions    | `challsWrite{:ts}` |
+| Captcha action | —                  |
+| Rate limit     | —                  |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. Created if not present. |
+| Field | Type          | Required | Notes                                 |
+| ----- | ------------- | -------- | ------------------------------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. Created if not present. |
 
 **Request body**
 
@@ -153,20 +153,20 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 
 Deletes one solve for a specific user and challenge. Triggers a leaderboard recalculation.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsSolveWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                   |
+| -------------- | ----------------------- |
+| Auth           | Required                |
+| Gate           | None                    |
+| Permissions    | `challsSolveWrite{:ts}` |
+| Captcha action | —                       |
+| Rate limit     | —                       |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `challengeId` | `string{:ts}` | Yes | Challenge ID. |
-| `userId` | `string{:ts}` | Yes | Team ID whose solve is being removed. |
+| Field         | Type          | Required | Notes                                 |
+| ------------- | ------------- | -------- | ------------------------------------- |
+| `challengeId` | `string{:ts}` | Yes      | Challenge ID.                         |
+| `userId`      | `string{:ts}` | Yes      | Team ID whose solve is being removed. |
 
 **Response**
 
@@ -180,13 +180,13 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 
 Uploads one or more files. Files are deduplicated by SHA-256 — uploading the same content twice returns the existing URL.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value              |
+| -------------- | ------------------ |
+| Auth           | Required           |
+| Gate           | None               |
+| Permissions    | `challsWrite{:ts}` |
+| Captcha action | —                  |
+| Rate limit     | —                  |
 
 **Request**
 
@@ -196,11 +196,11 @@ Uploads one or more files. Files are deduplicated by SHA-256 — uploading the s
 
 `[2;32m200 [22mgoodFilesUpload[0m{:ansi}`: array of upload objects.
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `name` | `string{:ts}` | Display filename. |
-| `url` | `string{:ts}` | Public download URL. |
-| `size` | `number \| null{:ts}` | File size in bytes. |
+| Field  | Type                  | Notes                |
+| ------ | --------------------- | -------------------- |
+| `name` | `string{:ts}`         | Display filename.    |
+| `url`  | `string{:ts}`         | Public download URL. |
+| `size` | `number \| null{:ts}` | File size in bytes.  |
 
 **Errors**: `[2;31m400 [22mbadBody[0m{:ansi}`, `[2;31m401 [22mbadToken[0m{:ansi}`, `[2;31m403 [22mbadPerms[0m{:ansi}`, `[2;31m500 [22mbadFilesUpload[0m{:ansi}`.
 
@@ -208,28 +208,26 @@ Uploads one or more files. Files are deduplicated by SHA-256 — uploading the s
 
 Checks whether files already exist by SHA-256 without uploading them.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `challsRead{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Request body**
 
 ```json
 {
-  "uploads": [
-    { "sha256": "<hex-digest>", "name": "dist.zip" }
-  ]
+  "uploads": [{ "sha256": "<hex-digest>", "name": "dist.zip" }]
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `uploads[].sha256` | `string{:ts}` | Yes | Hex-encoded SHA-256 digest. |
-| `uploads[].name` | `string{:ts}` | Yes | Display filename. |
+| Field              | Type          | Required | Notes                       |
+| ------------------ | ------------- | -------- | --------------------------- |
+| `uploads[].sha256` | `string{:ts}` | Yes      | Hex-encoded SHA-256 digest. |
+| `uploads[].name`   | `string{:ts}` | Yes      | Display filename.           |
 
 **Response**
 
@@ -243,13 +241,13 @@ Checks whether files already exist by SHA-256 without uploading them.
 
 Lists teams. Query parameters control pagination, sorting, and search.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Query**
 
@@ -271,13 +269,13 @@ Lists teams. Query parameters control pagination, sorting, and search.
 
 Lists teams with rich filters. Same query parameters as `[36mGET[0m{:ansi}`, with filter object in the body.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Query**
 
@@ -292,10 +290,10 @@ Identical to `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi}
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `status` | `Filter<AdminTeamStatus>{:ts}` | No | `active`, `banned`, `admin`. |
-| `division` | `Filter<string>{:ts}` | No | Division keys. |
+| Field      | Type                           | Required | Notes                        |
+| ---------- | ------------------------------ | -------- | ---------------------------- |
+| `status`   | `Filter<AdminTeamStatus>{:ts}` | No       | `active`, `banned`, `admin`. |
+| `division` | `Filter<string>{:ts}`          | No       | Division keys.               |
 
 Filter objects accept nullable `include` and `exclude` arrays.
 
@@ -309,19 +307,19 @@ Same shape as `[36mGET[0m [2m/api/[22mv2[2m/[22madmin[2m/[22musers{:ansi
 
 Returns full team details, including solve history.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                |
+| -------------- | ------------------------------------ |
+| Auth           | Required                             |
+| Gate           | None                                 |
+| Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | —                                    |
+| Rate limit     | —                                    |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team ID. |
+| Field | Type          | Required | Notes    |
+| ----- | ------------- | -------- | -------- |
+| `id`  | `string{:ts}` | Yes      | Team ID. |
 
 **Response**
 
@@ -349,19 +347,19 @@ Returns full team details, including solve history.
 
 Mutates team state. Admins cannot mutate users with admin permissions.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team ID. |
+| Field | Type          | Required | Notes    |
+| ----- | ------------- | -------- | -------- |
+| `id`  | `string{:ts}` | Yes      | Team ID. |
 
 **Request body**
 
@@ -385,19 +383,19 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 
 Deletes a team. Cannot delete users with admin permissions.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team ID. |
+| Field | Type          | Required | Notes    |
+| ----- | ------------- | -------- | -------- |
+| `id`  | `string{:ts}` | Yes      | Team ID. |
 
 **Response**
 
@@ -409,19 +407,19 @@ Deletes a team. Cannot delete users with admin permissions.
 
 Generates a fresh long-lived team token. Useful for recovering teams that have lost access.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Team ID. |
+| Field | Type          | Required | Notes    |
+| ----- | ------------- | -------- | -------- |
+| `id`  | `string{:ts}` | Yes      | Team ID. |
 
 **Response**
 
@@ -437,13 +435,13 @@ Pending verification rows represent users who registered with an email but have 
 
 Lists outstanding pending verifications.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Response**
 
@@ -455,19 +453,19 @@ Lists outstanding pending verifications.
 
 Manually completes a pending verification, creating the team without requiring the user to follow the verification email link.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Pending verification ID. |
+| Field | Type          | Required | Notes                    |
+| ----- | ------------- | -------- | ------------------------ |
+| `id`  | `string{:ts}` | Yes      | Pending verification ID. |
 
 **Response**
 
@@ -479,19 +477,19 @@ Manually completes a pending verification, creating the team without requiring t
 
 Resends the verification email for an outstanding row.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `usersWrite{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Pending verification ID. |
+| Field | Type          | Required | Notes                    |
+| ----- | ------------- | -------- | ------------------------ |
+| `id`  | `string{:ts}` | Yes      | Pending verification ID. |
 
 **Response**
 
@@ -507,13 +505,13 @@ The submissions table records every flag submission and admin bot job for compli
 
 Lists submission audit rows.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                |
+| -------------- | ------------------------------------ |
+| Auth           | Required                             |
+| Gate           | None                                 |
+| Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | —                                    |
+| Rate limit     | —                                    |
 
 **Query**
 
@@ -536,13 +534,13 @@ Lists submission audit rows.
 
 Lists submission audit rows with rich filters.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `usersWrite{:ts}`, `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                |
+| -------------- | ------------------------------------ |
+| Auth           | Required                             |
+| Gate           | None                                 |
+| Permissions    | `usersWrite{:ts}`, `challsRead{:ts}` |
+| Captcha action | —                                    |
+| Rate limit     | —                                    |
 
 **Query**
 
@@ -590,13 +588,13 @@ Runtime settings override values from `rctf.d/*.yaml` config files without resta
 
 Returns the current overrides and defaults side-by-side.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `settingsWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                |
+| -------------- | -------------------- |
+| Auth           | Required             |
+| Gate           | None                 |
+| Permissions    | `settingsWrite{:ts}` |
+| Captcha action | —                    |
+| Rate limit     | —                    |
 
 **Response**
 
@@ -608,13 +606,13 @@ Returns the current overrides and defaults side-by-side.
 
 Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboard recalculation.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `settingsWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                |
+| -------------- | -------------------- |
+| Auth           | Required             |
+| Gate           | None                 |
+| Permissions    | `settingsWrite{:ts}` |
+| Captcha action | —                    |
+| Rate limit     | —                    |
 
 **Request body**
 
@@ -626,7 +624,12 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
     "startTime": 1770000000000,
     "endTime": 1770100000000,
     "sponsors": [
-      { "name": "Example", "icon": "https://example.com/icon.png", "description": "Sponsor", "url": "https://example.com" }
+      {
+        "name": "Example",
+        "icon": "https://example.com/icon.png",
+        "description": "Sponsor",
+        "url": "https://example.com"
+      }
     ],
     "meta": { "description": "Example CTF", "imageUrl": "https://example.com/card.png" },
     "faviconUrl": null,
@@ -636,9 +639,9 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 }
 ```
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `data` | `Partial<AdminSettings>{:ts}` | Yes | Nullable values clear overrides. |
+| Field  | Type                          | Required | Notes                            |
+| ------ | ----------------------------- | -------- | -------------------------------- |
+| `data` | `Partial<AdminSettings>{:ts}` | Yes      | Nullable values clear overrides. |
 
 **Response**
 
@@ -652,13 +655,13 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 
 Returns the active instancer provider's JSON schema. Used by the challenge editor to validate `instancerConfig{:ts}`.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `challsRead{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Response**
 
@@ -670,13 +673,13 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 
 Returns admin bot enablement and source language.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsRead{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value             |
+| -------------- | ----------------- |
+| Auth           | Required          |
+| Gate           | None              |
+| Permissions    | `challsRead{:ts}` |
+| Captcha action | —                 |
+| Rate limit     | —                 |
 
 **Response**
 
@@ -692,13 +695,13 @@ These routes are not user-admin endpoints. They use the shared admin bot bearer 
 
 Claims the oldest queued job for processing.
 
-| Property | Value |
-| --- | --- |
-| Auth | Service |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value   |
+| -------------- | ------- |
+| Auth           | Service |
+| Gate           | None    |
+| Permissions    | —       |
+| Captcha action | —       |
+| Rate limit     | —       |
 
 **Response**
 
@@ -712,19 +715,19 @@ A pulled job contains `id`, `challengeId`, `configRevision`, `userId`, `submitte
 
 Fetches the challenge source code for a specific config revision.
 
-| Property | Value |
-| --- | --- |
-| Auth | Service |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value   |
+| -------------- | ------- |
+| Auth           | Service |
+| Gate           | None    |
+| Permissions    | —       |
+| Captcha action | —       |
+| Rate limit     | —       |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -736,19 +739,19 @@ Fetches the challenge source code for a specific config revision.
 
 Marks a running job as completed and stores logs.
 
-| Property | Value |
-| --- | --- |
-| Auth | Service |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value   |
+| -------------- | ------- |
+| Auth           | Service |
+| Gate           | None    |
+| Permissions    | —       |
+| Captcha action | —       |
+| Rate limit     | —       |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Job ID. |
+| Field | Type          | Required | Notes   |
+| ----- | ------------- | -------- | ------- |
+| `id`  | `string{:ts}` | Yes      | Job ID. |
 
 **Request body**
 
@@ -772,19 +775,19 @@ Marks a running job as completed and stores logs.
 
 Marks a running job as failed and stores logs.
 
-| Property | Value |
-| --- | --- |
-| Auth | Service |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value   |
+| -------------- | ------- |
+| Auth           | Service |
+| Gate           | None    |
+| Permissions    | —       |
+| Captcha action | —       |
+| Rate limit     | —       |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Job ID. |
+| Field | Type          | Required | Notes   |
+| ----- | ------------- | -------- | ------- |
+| `id`  | `string{:ts}` | Yes      | Job ID. |
 
 **Request body**
 
@@ -800,13 +803,13 @@ Same shape as `complete`.
 
 Returns the number of queued jobs.
 
-| Property | Value |
-| --- | --- |
-| Auth | Service |
-| Gate | None |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value   |
+| -------------- | ------- |
+| Auth           | Service |
+| Gate           | None    |
+| Permissions    | —       |
+| Captcha action | —       |
+| Rate limit     | —       |
 
 **Response**
 
@@ -830,19 +833,19 @@ Same as [`[35mPUT[0m [2m/api/[22mv2[2m/[22madmin[2m/[22mchalls[2m/[22m
 
 V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalculation. No V2 equivalent — V2 deletes via challenge mutation in the admin panel.
 
-| Property | Value |
-| --- | --- |
-| Auth | Required |
-| Gate | None |
-| Permissions | `challsWrite{:ts}` |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value              |
+| -------------- | ------------------ |
+| Auth           | Required           |
+| Gate           | None               |
+| Permissions    | `challsWrite{:ts}` |
+| Captcha action | —                  |
+| Rate limit     | —                  |
 
 **Path params**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `id` | `string{:ts}` | Yes | Challenge ID. |
+| Field | Type          | Required | Notes         |
+| ----- | ------------- | -------- | ------------- |
+| `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
 **Response**
 
@@ -860,9 +863,7 @@ Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipar
 
 ```json
 {
-  "files": [
-    { "name": "dist.zip", "data": "data:application/zip;base64,..." }
-  ]
+  "files": [{ "name": "dist.zip", "data": "data:application/zip;base64,..." }]
 }
 ```
 

@@ -1,27 +1,23 @@
-import { defineConfig } from 'astro/config'
-
+import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import mdx from '@astrojs/mdx'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
+import rehypeShiki from '@shikijs/rehype'
+import tailwindcss from '@tailwindcss/vite'
 import pagefind from 'astro-pagefind'
-
-import { rehypeHeadingIds } from '@astrojs/markdown-remark'
+import { defineConfig } from 'astro/config'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
 import rehypeExpressiveCode from 'rehype-expressive-code'
 import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
-import rehypeShiki from '@shikijs/rehype'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
-
-import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
-import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
-import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
 import { ecOptions } from './src/lib/ec-config'
-import { lightTheme, darkTheme } from './src/lib/shiki-themes'
+import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
+import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
+import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
+import { darkTheme, lightTheme } from './src/lib/shiki-themes'
 import { resolveSiteUrl } from './src/lib/site-url'
-
-import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   site: resolveSiteUrl(),

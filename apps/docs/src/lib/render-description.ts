@@ -1,6 +1,5 @@
 import { codeToHtml } from 'shiki'
-
-import { lightTheme, darkTheme } from './shiki-themes'
+import { darkTheme, lightTheme } from './shiki-themes'
 
 const PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
 

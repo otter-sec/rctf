@@ -18,9 +18,9 @@ avatarsModeration:
   allowOnInternalError: true
 ```
 
-| Field                                           | Type           | Default     | Description                                                   |
-| ----------------------------------------------- | -------------- | ----------- | ------------------------------------------------------------- |
-| `[31mavatarsModeration.provider[0m{:ansi}`             | `object{:ts}`  | -           | Moderation provider configuration                             |
+| Field | Type | Default | Description |
+| --- | --- | --- | --- |
+| `[31mavatarsModeration.provider[0m{:ansi}` | `object{:ts}` | - | Moderation provider configuration |
 | `[31mavatarsModeration.allowOnInternalError[0m{:ansi}` | `boolean{:ts}` | `true{:ts}` | Whether to allow avatar uploads when the moderation API fails |
 
 <Callout variant="tip">
@@ -43,10 +43,10 @@ avatarsModeration:
       model: omni-moderation-latest # Optional
 ```
 
-| Option          | Environment Variable                                           | Default                  | Description             |
-| --------------- | -------------------------------------------------------------- | ------------------------ | ----------------------- |
-| `[31mapiKey[0m{:ansi}` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | -                        | OpenAI API key          |
-| `[31mmodel[0m{:ansi}`  | `RCTF_MODERATION_OPENAI_MODEL{:sh}`                            | `omni-moderation-latest` | OpenAI moderation model |
+| Option | Environment Variable | Default | Description |
+| --- | --- | --- | --- |
+| `[31mapiKey[0m{:ansi}` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | - | OpenAI API key |
+| `[31mmodel[0m{:ansi}` | `RCTF_MODERATION_OPENAI_MODEL{:sh}` | `omni-moderation-latest` | OpenAI moderation model |
 
 The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image is flagged as inappropriate, the upload is rejected with an error.
 

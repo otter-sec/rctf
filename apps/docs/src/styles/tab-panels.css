@@ -37,7 +37,10 @@
   @apply border-t-border/75!;
 }
 
-[data-tab-panel] > .expressive-code:not(:first-child) .frame.has-title:not(.is-terminal) .header::before {
+[data-tab-panel]
+  > .expressive-code:not(:first-child)
+  .frame.has-title:not(.is-terminal)
+  .header::before {
   @apply border-t-border/75!;
 }
 

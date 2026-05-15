@@ -21,14 +21,14 @@ Each challenge defines a point range via `[31mpoints.min[0m{:ansi}` and `[31m
 
 All scoring providers receive a context object with:
 
-| Field                   | Description                                                               |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `[31mminPoints[0m{:ansi}`      | Minimum points for the challenge (floor)                                  |
-| `[31mmaxPoints[0m{:ansi}`      | Maximum points for the challenge (ceiling, when 0 solves)                 |
-| `[31msolves[0m{:ansi}`         | Current number of solves                                                  |
-| `[31mmaxSolves[0m{:ansi}`      | Maximum solves across all challenges (used by `[32mscores/legacy[0m{:ansi}`)     |
-| `[31meventStartTime[0m{:ansi}` | Competition start time (used by `[32mscores/jammy[0m{:ansi}`)                    |
-| `[31meventEndTime[0m{:ansi}`   | Competition end time (used by `[32mscores/jammy[0m{:ansi}`)                      |
+| Field | Description |
+| --- | --- |
+| `[31mminPoints[0m{:ansi}` | Minimum points for the challenge (floor) |
+| `[31mmaxPoints[0m{:ansi}` | Maximum points for the challenge (ceiling, when 0 solves) |
+| `[31msolves[0m{:ansi}` | Current number of solves |
+| `[31mmaxSolves[0m{:ansi}` | Maximum solves across all challenges (used by `[32mscores/legacy[0m{:ansi}`) |
+| `[31meventStartTime[0m{:ansi}` | Competition start time (used by `[32mscores/jammy[0m{:ansi}`) |
+| `[31meventEndTime[0m{:ansi}` | Competition end time (used by `[32mscores/jammy[0m{:ansi}`) |
 | `[31mfirstSolveTime[0m{:ansi}` | Time of the first solve for the challenge (used by `[32mscores/jammy[0m{:ansi}`) |
 
 ## Providers
@@ -87,8 +87,8 @@ scoreProvider:
     maximumScoreTime: 0.8 # Optional, default 0.8
 ```
 
-| Option                    | Default    | Description                                                                                                                       |
-| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Option | Default | Description |
+| --- | --- | --- |
 | `[31mmaximumScoreTime[0m{:ansi}` | `0.8{:ts}` | Fraction of event duration used to ramp from minimum to maximum points. First solves after this threshold receive maximum points. |
 
 <Callout variant="note">

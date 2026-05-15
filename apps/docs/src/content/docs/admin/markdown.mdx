@@ -12,23 +12,21 @@ rCTF renders Markdown in challenge descriptions, the home page content, and spon
 rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote containing `[!TYPE]`; subsequent blockquote lines are the alert body. The body is parsed as Markdown (except for `CONNECTION`, see below).
 
 ```md title="Challenge description"
-> [!NOTE]
-> The flag format is `rctf{...}`.
+> [!NOTE] The flag format is `rctf{...}`.
 
-> [!WARNING]
-> Brute-forcing the endpoint will result in a rate limit.
+> [!WARNING] Brute-forcing the endpoint will result in a rate limit.
 ```
 
 Six alert types are recognized. Any other value (e.g. `> [!INFO]`) falls back to a plain blockquote.
 
-| Type           | Trigger                | Use for                                                  |
-| -------------- | ---------------------- | -------------------------------------------------------- |
-| `note`         | `> [!NOTE]{:md}`       | General information.                                     |
-| `tip`          | `> [!TIP]{:md}`        | Optional advice or shortcuts.                            |
-| `important`    | `> [!IMPORTANT]{:md}`  | Information players must read.                           |
-| `warning`      | `> [!WARNING]{:md}`    | Behaviour that can cause problems if ignored.            |
-| `caution`      | `> [!CAUTION]{:md}`    | Actions with potentially destructive consequences.       |
-| `connection`   | `> [!CONNECTION]{:md}` | Remote connection info for hosted challenges (see below). |
+| Type | Trigger | Use for |
+| --- | --- | --- |
+| `note` | `> [!NOTE]{:md}` | General information. |
+| `tip` | `> [!TIP]{:md}` | Optional advice or shortcuts. |
+| `important` | `> [!IMPORTANT]{:md}` | Information players must read. |
+| `warning` | `> [!WARNING]{:md}` | Behaviour that can cause problems if ignored. |
+| `caution` | `> [!CAUTION]{:md}` | Actions with potentially destructive consequences. |
+| `connection` | `> [!CONNECTION]{:md}` | Remote connection info for hosted challenges (see below). |
 
 The trigger keyword is case-insensitive. Indentation and additional blockquote lines follow standard Markdown blockquote rules.
 
@@ -43,11 +41,9 @@ The docs site renders alerts using its own component, which looks different from
 `> [!CONNECTION]` is a real, distinct alert type — not just a styled `NOTE`. It is designed for the **Remote** field of a challenge: a single line containing a connection string or URL.
 
 ```md title="Challenge description"
-> [!CONNECTION]
-> `nc challs.example.com 1337`
+> [!CONNECTION] `nc challs.example.com 1337`
 
-> [!CONNECTION]
-> https://web-chall.example.com
+> [!CONNECTION] https://web-chall.example.com
 ```
 
 Unlike the other alerts, the connection body is **not** parsed as Markdown. Wrapping backticks are stripped, and the content is rendered as either:

@@ -5,7 +5,7 @@ export type Doc = CollectionEntry<'docs'>
 
 export async function getAllDocs(): Promise<Doc[]> {
   const docs = await getCollection('docs')
-  return docs.filter((doc) => !doc.data.draft)
+  return docs.filter(doc => !doc.data.draft)
 }
 
 // Astro injects `BASE_URL` from the `base:` field in astro.config.ts.

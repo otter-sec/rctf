@@ -154,58 +154,58 @@ Global 404 errors return `[2;31m404 [22mbadEndpoint[0m{:ansi}`. Unhandled rou
 
 ### `ChallengeFileV2`
 
-| Field | Type |
-| --- | --- |
-| `name` | `string` |
-| `url` | `string` |
+| Field  | Type             |
+| ------ | ---------------- |
+| `name` | `string`         |
+| `url`  | `string`         |
 | `size` | `number \| null` |
 
 ### `Endpoint`
 
-| Field | Type |
-| --- | --- |
-| `kind` | `"tcp" \| "tcp-ssl" \| "http" \| "https"` |
-| `host` | `string` |
-| `port` | `number` |
-| `title` | `string \| undefined` |
+| Field   | Type                                      |
+| ------- | ----------------------------------------- |
+| `kind`  | `"tcp" \| "tcp-ssl" \| "http" \| "https"` |
+| `host`  | `string`                                  |
+| `port`  | `number`                                  |
+| `title` | `string \| undefined`                     |
 
 ### `InstancerConfig`
 
-| Field | Type |
-| --- | --- |
-| `challengeIntegrationId` | `string` |
-| `config` | `Record<string, unknown>` |
-| `expose` | `Expose[]` |
-| `timeoutMilliseconds` | `number` |
-| `extendable` | `boolean \| undefined` |
+| Field                    | Type                      |
+| ------------------------ | ------------------------- |
+| `challengeIntegrationId` | `string`                  |
+| `config`                 | `Record<string, unknown>` |
+| `expose`                 | `Expose[]`                |
+| `timeoutMilliseconds`    | `number`                  |
+| `extendable`             | `boolean \| undefined`    |
 
 ### `Expose`
 
-| Field | Type |
-| --- | --- |
-| `kind` | `"tcp" \| "tcp-ssl" \| "http" \| "https"` |
-| `hostPrefix` | `string` |
-| `containerName` | `string` |
-| `containerPort` | `number` |
-| `shouldDisplay` | `boolean \| undefined` |
-| `title` | `string \| undefined` |
+| Field           | Type                                      |
+| --------------- | ----------------------------------------- |
+| `kind`          | `"tcp" \| "tcp-ssl" \| "http" \| "https"` |
+| `hostPrefix`    | `string`                                  |
+| `containerName` | `string`                                  |
+| `containerPort` | `number`                                  |
+| `shouldDisplay` | `boolean \| undefined`                    |
+| `title`         | `string \| undefined`                     |
 
 ### `AdminBotConfig`
 
-| Field | Type |
-| --- | --- |
-| `code` | `string` |
-| `inputs` | `Record<string, RegexRule>` |
-| `revision` | `string` |
-| `timeoutMilliseconds` | `number` |
-| `requireInstancerInstancesRunning` | `boolean \| undefined` |
+| Field                              | Type                        |
+| ---------------------------------- | --------------------------- |
+| `code`                             | `string`                    |
+| `inputs`                           | `Record<string, RegexRule>` |
+| `revision`                         | `string`                    |
+| `timeoutMilliseconds`              | `number`                    |
+| `requireInstancerInstancesRunning` | `boolean \| undefined`      |
 
 ### `RegexRule`
 
-| Field | Type |
-| --- | --- |
-| `pattern` | `string` |
-| `flags` | `string \| undefined` |
+| Field     | Type                  |
+| --------- | --------------------- |
+| `pattern` | `string`              |
+| `flags`   | `string \| undefined` |
 
 ## Enum values
 

@@ -1,22 +1,22 @@
 ---
-import DocsAside from '@/components/docs/docs-aside.astro'
 import DocBanner from '@/components/docs/banner.astro'
 import DocNavigation from '@/components/docs/doc-navigation.astro'
+import DocsAside from '@/components/docs/docs-aside.astro'
 import LastUpdated from '@/components/docs/last-updated.astro'
 import MobileSidebar from '@/components/docs/mobile-sidebar.astro'
 import Header from '@/components/header.astro'
+import CardGrid from '@/components/mdx/card-grid.astro'
+import Card from '@/components/mdx/card.astro'
 import PageHead from '@/components/page-head.astro'
 import TOCHeader from '@/components/toc-header.astro'
 import TOCSidebar from '@/components/toc-sidebar.astro'
-import Card from '@/components/mdx/card.astro'
-import CardGrid from '@/components/mdx/card-grid.astro'
 import Base from '@/layouts/base.astro'
 import { docOgImageHref, type Doc } from '@/lib/docs'
 import { renderDescription } from '@/lib/render-description'
 import type { IndexChild } from '@/lib/sidebar'
 import { cn } from '@/lib/utils'
-import type { MarkdownHeading } from 'astro'
 import type { FlatDoc, SidebarNode } from '@/types'
+import type { MarkdownHeading } from 'astro'
 
 interface Props {
   doc: Doc
@@ -61,29 +61,29 @@ const renderedDescription = doc.data.description
   : null
 
 const renderedIndexChildren = await Promise.all(
-  indexChildren.map(async (child) => ({
+  indexChildren.map(async child => ({
     ...child,
     renderedLabel: await renderDescription(child.label),
     rendered: child.description ? await renderDescription(child.description) : null,
-  })),
+  }))
 )
 ---
 
 <Base>
   <PageHead
-    slot="head"
+    slot='head'
     title={renderedTitle.plain}
     description={renderedDescription?.plain}
     image={docOgImageHref(doc.id)}
   />
-  {editUrl && <meta slot="head" name="docs-edit-url" content={editUrl} />}
+  {editUrl && <meta slot='head' name='docs-edit-url' content={editUrl} />}
 
-  <div class="grid flex-1 grid-cols-1 xl:grid-cols-[16rem_minmax(0,1fr)]">
+  <div class='grid flex-1 grid-cols-1 xl:grid-cols-[16rem_minmax(0,1fr)]'>
     <DocsAside tree={sidebar} />
     <MobileSidebar tree={sidebar} />
 
     <div class={cn('flex flex-col overflow-x-clip xl:pb-6', hasBanner ? 'xl:pt-0' : 'xl:pt-16')}>
-      <header class="bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm xl:hidden">
+      <header class='bg-background/80 sticky top-0 z-40 border-b backdrop-blur-sm xl:hidden'>
         <Header />
       </header>
 
@@ -103,7 +103,7 @@ const renderedIndexChildren = await Promise.all(
               ? 'xl:grid-cols-[minmax(0,64rem)_minmax(14rem,16rem)]'
               : doc.data.wide
                 ? 'xl:grid-cols-[minmax(0,64rem)]'
-                : 'xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
+                : 'xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]'
           )}
         >
           <article
@@ -114,15 +114,15 @@ const renderedIndexChildren = await Promise.all(
               doc.data.pageHeader && (
                 <header class={cn('mt-6 mb-8 flex flex-col gap-3', !hasBanner && 'xl:-mt-3')}>
                   <h1
-                    id="post-title"
-                    class="text-3xl leading-tight font-medium sm:text-4xl"
+                    id='post-title'
+                    class='text-3xl leading-tight font-medium sm:text-4xl'
                     data-doc-title
                     set:html={renderedTitle.html}
                   />
 
                   {renderedDescription && (
                     <p
-                      class="text-muted-foreground text-lg text-pretty"
+                      class='text-muted-foreground text-lg text-pretty'
                       data-doc-description
                       set:html={renderedDescription.html}
                     />
@@ -131,14 +131,14 @@ const renderedIndexChildren = await Promise.all(
               )
             }
 
-            <div class="prose max-w-none">
+            <div class='prose max-w-none'>
               <slot />
             </div>
 
             {
               renderedIndexChildren.length > 0 && (
-                <CardGrid class="not-prose mt-8">
-                  {renderedIndexChildren.map((child) => (
+                <CardGrid class='not-prose mt-8'>
+                  {renderedIndexChildren.map(child => (
                     <Card
                       title={child.label}
                       titleHtml={child.renderedLabel.html}
@@ -153,18 +153,18 @@ const renderedIndexChildren = await Promise.all(
               )
             }
 
-            <footer class="border-border/70 mt-16 border-t" data-pagefind-ignore>
+            <footer class='border-border/70 mt-16 border-t' data-pagefind-ignore>
               {
                 hasArticleNavigation && (
-                  <div class="py-6">
+                  <div class='py-6'>
                     <DocNavigation prev={prev} next={next} />
                   </div>
                 )
               }
               <div
-                class="text-muted-foreground flex h-[3.75rem] w-full flex-wrap items-center justify-between gap-3 text-sm leading-none"
+                class='text-muted-foreground flex h-[3.75rem] w-full flex-wrap items-center justify-between gap-3 text-sm leading-none'
               >
-                <span class="leading-none">&copy; {currentYear} rCTF Docs</span>
+                <span class='leading-none'>&copy; {currentYear} rCTF Docs</span>
                 {lastUpdated && <LastUpdated date={lastUpdated} />}
               </div>
             </footer>
@@ -180,7 +180,7 @@ const renderedIndexChildren = await Promise.all(
                 class={hasBanner ? (bannerSize === 'full' ? 'mt-36' : 'mt-12') : undefined}
               />
             ) : !doc.data.wide ? (
-              <div class="hidden xl:block" aria-hidden="true" />
+              <div class='hidden xl:block' aria-hidden='true' />
             ) : null
           }
         </div>

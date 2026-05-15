@@ -1,11 +1,5 @@
 import type { Element, Properties, Root, Text } from 'hast'
-import {
-  findElementChild,
-  getNodeText,
-  hasClass,
-  isElement,
-  visitHast,
-} from './hast-utils'
+import { findElementChild, getNodeText, hasClass, isElement, visitHast } from './hast-utils'
 
 const PREFIX = '$ '
 

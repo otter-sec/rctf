@@ -58,10 +58,8 @@ const DOTFILE_RE =
   /^\.(gitignore|env|prettierrc|eslintrc|npmrc|yarnrc|nvmrc|editorconfig|gitkeep|gitattributes)/i
 const ANSI_RE = /\x1b\[[0-9;]*m/g
 const INLINE_LANG_RE = /\{:[A-Za-z0-9_-]+\}$/
-const API_ROUTE_RE =
-  /^\/(?:api(?:[/*#]|$)|(?:api\/)?v[12](?:\/|$)|now$|with-graph$|graph$)/
-const ABSOLUTE_FS_RE =
-  /^\/(?:etc|var|usr|opt|home|root|tmp|app|srv|mnt|workspace|Users)(?:\/|$)/
+const API_ROUTE_RE = /^\/(?:api(?:[/*#]|$)|(?:api\/)?v[12](?:\/|$)|now$|with-graph$|graph$)/
+const ABSOLUTE_FS_RE = /^\/(?:etc|var|usr|opt|home|root|tmp|app|srv|mnt|workspace|Users)(?:\/|$)/
 
 function classify(text: string): 'file' | 'folder' | null {
   const plainText = text.replace(ANSI_RE, '').replace(INLINE_LANG_RE, '')
@@ -107,7 +105,7 @@ function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
       'aria-hidden': 'true',
       className: ['inline-path-icon', `is-${kind}`],
     },
-    children: paths.map((d) => ({
+    children: paths.map(d => ({
       type: 'element',
       tagName: 'path',
       properties: { d },
@@ -169,7 +167,7 @@ function dimPlaceholders(node: Element): void {
 
 export function rehypeInlinePathIcon() {
   return (tree: Root) => {
-    visitHast(tree, (node) => {
+    visitHast(tree, node => {
       if (!isElement(node)) return
 
       // Skip block code and our own command pills.

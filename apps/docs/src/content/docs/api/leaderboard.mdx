@@ -39,13 +39,13 @@ Search requests are rate-limited per IP address (burst `3`, refill window `3000`
 
 Returns the current standings page.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
+| Property       | Value                                                                        |
+| -------------- | ---------------------------------------------------------------------------- |
+| Auth           | Public + optional bypass (`leaderboardRead{:ts}`)                            |
+| Gate           | Started                                                                      |
+| Permissions    | —                                                                            |
+| Captcha action | —                                                                            |
+| Rate limit     | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
 
 **Query**
 
@@ -93,13 +93,13 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 Returns the same standings payload as `[2m/[22mnow{:ansi}`, plus graph samples. Useful for clients that render the standings table and the score graph together.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
+| Property       | Value                                                                        |
+| -------------- | ---------------------------------------------------------------------------- |
+| Auth           | Public + optional bypass (`leaderboardRead{:ts}`)                            |
+| Gate           | Started                                                                      |
+| Permissions    | —                                                                            |
+| Captcha action | —                                                                            |
+| Rate limit     | Search bucket per IP (burst `3`, refill `3000` ms) when `search` is provided |
 
 **Query**
 
@@ -140,13 +140,13 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 Returns only graph data.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                             |
+| -------------- | ------------------------------------------------- |
+| Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate           | Started                                           |
+| Permissions    | —                                                 |
+| Captcha action | —                                                 |
+| Rate limit     | —                                                 |
 
 **Query**
 
@@ -185,13 +185,13 @@ The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` contr
 
 Returns challenge metadata used by leaderboard visualizations.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`challsRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                        |
+| -------------- | -------------------------------------------- |
+| Auth           | Public + optional bypass (`challsRead{:ts}`) |
+| Gate           | Started                                      |
+| Permissions    | —                                            |
+| Captcha action | —                                            |
+| Rate limit     | —                                            |
 
 **Response**
 
@@ -231,13 +231,13 @@ V1 routes remain available for legacy clients. Behavior matches V2 except where 
 
 Returns the current standings page with the smaller V1 entry shape.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                             |
+| -------------- | ------------------------------------------------- |
+| Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate           | Started                                           |
+| Permissions    | —                                                 |
+| Captcha action | —                                                 |
+| Rate limit     | —                                                 |
 
 **Query**
 
@@ -270,13 +270,13 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 Returns graph data. The response uses the same `[2;32m200 [22mgoodLeaderboardGraph[0m{:ansi}` shape as V2.
 
-| Property | Value |
-| --- | --- |
-| Auth | Public + optional bypass (`leaderboardRead{:ts}`) |
-| Gate | Started |
-| Permissions | — |
-| Captcha action | — |
-| Rate limit | — |
+| Property       | Value                                             |
+| -------------- | ------------------------------------------------- |
+| Auth           | Public + optional bypass (`leaderboardRead{:ts}`) |
+| Gate           | Started                                           |
+| Permissions    | —                                                 |
+| Captcha action | —                                                 |
+| Rate limit     | —                                                 |
 
 **Query**
 

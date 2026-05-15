@@ -141,13 +141,13 @@ Captcha-protected routes validate a challenge response only when the configured 
 
 Rate-limited routes return `[2;31m429 [22mbadRateLimit[0m{:ansi}` with `data.timeLeft`, measured in milliseconds:
 
-| Action | Scope | Bucket |
-| --- | --- | --- |
-| Flag submission | User and challenge | Burst `5`, refill window `25000` ms. |
-| Profile name update | User | Burst `3`, refill window `180000` ms. |
-| Avatar upload | User | Burst `2`, refill window `120000` ms. |
-| Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms. |
-| Leaderboard search | IP address | Burst `3`, refill window `3000` ms. |
+| Action               | Scope              | Bucket                                |
+| -------------------- | ------------------ | ------------------------------------- |
+| Flag submission      | User and challenge | Burst `5`, refill window `25000` ms.  |
+| Profile name update  | User               | Burst `3`, refill window `180000` ms. |
+| Avatar upload        | User               | Burst `2`, refill window `120000` ms. |
+| Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.  |
+| Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.   |
 
 ## Route sections
 
