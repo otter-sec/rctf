@@ -61,30 +61,20 @@
   --border: #ececec;
   --ring: oklch(0.708 0 0);
 
-  --callout-note: oklch(55% 0.22 262);
-  --callout-tip: oklch(61% 0.17 140);
-  --callout-warning: oklch(70% 0.14 61);
-  --callout-danger: oklch(55% 0.24 10);
-  --callout-important: oklch(54% 0.29 302);
-  --callout-definition: oklch(54% 0.29 302);
-  --callout-theorem: oklch(59% 0.1 194);
-  --callout-lemma: oklch(69% 0.14 232);
-  --callout-proof: oklch(68% 0.03 276);
-  --callout-corollary: oklch(65% 0.1 217);
-  --callout-proposition: oklch(62% 0.03 276);
-  --callout-axiom: oklch(65% 0.18 272);
-  --callout-conjecture: oklch(73% 0.17 336);
-  --callout-notation: oklch(62% 0.03 276);
-  --callout-remark: oklch(68% 0.03 276);
-  --callout-intuition: oklch(70% 0.14 61);
-  --callout-recall: oklch(65% 0.1 217);
-  --callout-explanation: oklch(61% 0.17 140);
-  --callout-example: oklch(61% 0.17 140);
-  --callout-exercise: oklch(65% 0.18 272);
-  --callout-problem: oklch(70% 0.19 41);
-  --callout-answer: oklch(59% 0.1 194);
-  --callout-solution: oklch(61% 0.17 140);
-  --callout-summary: oklch(69% 0.14 232);
+  --tone-rosewater: oklch(71% 0.1 33);
+  --tone-flamingo: oklch(69% 0.13 21);
+  --tone-pink: oklch(73% 0.17 338);
+  --tone-mauve: oklch(55% 0.25 297);
+  --tone-red: oklch(55% 0.22 20);
+  --tone-maroon: oklch(63% 0.2 20);
+  --tone-peach: oklch(69% 0.2 42);
+  --tone-yellow: oklch(71% 0.15 68);
+  --tone-green: oklch(63% 0.18 140);
+  --tone-teal: oklch(60% 0.1 201);
+  --tone-sky: oklch(68% 0.14 235);
+  --tone-sapphire: oklch(65% 0.11 213);
+  --tone-blue: oklch(56% 0.23 262);
+  --tone-lavender: oklch(66% 0.18 273);
 }
 
 [data-theme='dark'] {
@@ -103,30 +93,20 @@
   --border: #2a2a2a;
   --ring: oklch(0.556 0 0);
 
-  --callout-note: oklch(77% 0.11 260);
-  --callout-tip: oklch(86% 0.11 143);
-  --callout-warning: oklch(92% 0.07 87);
-  --callout-danger: oklch(76% 0.13 3);
-  --callout-important: oklch(79% 0.12 305);
-  --callout-definition: oklch(79% 0.12 305);
-  --callout-theorem: oklch(86% 0.08 183);
-  --callout-lemma: oklch(85% 0.08 210);
-  --callout-proof: oklch(62% 0.04 276);
-  --callout-corollary: oklch(79% 0.1 229);
-  --callout-proposition: oklch(69% 0.04 275);
-  --callout-axiom: oklch(82% 0.09 277);
-  --callout-conjecture: oklch(87% 0.08 336);
-  --callout-notation: oklch(69% 0.04 275);
-  --callout-remark: oklch(62% 0.04 276);
-  --callout-intuition: oklch(92% 0.07 87);
-  --callout-recall: oklch(79% 0.1 229);
-  --callout-explanation: oklch(86% 0.11 143);
-  --callout-example: oklch(86% 0.11 143);
-  --callout-exercise: oklch(82% 0.09 277);
-  --callout-problem: oklch(82% 0.1 53);
-  --callout-answer: oklch(86% 0.08 183);
-  --callout-solution: oklch(86% 0.11 143);
-  --callout-summary: oklch(85% 0.08 210);
+  --tone-rosewater: oklch(92% 0.02 30);
+  --tone-flamingo: oklch(88% 0.04 18);
+  --tone-pink: oklch(87% 0.08 336);
+  --tone-mauve: oklch(79% 0.12 305);
+  --tone-red: oklch(76% 0.13 3);
+  --tone-maroon: oklch(78% 0.09 9);
+  --tone-peach: oklch(82% 0.1 53);
+  --tone-yellow: oklch(92% 0.07 87);
+  --tone-green: oklch(86% 0.11 143);
+  --tone-teal: oklch(86% 0.08 183);
+  --tone-sky: oklch(85% 0.08 210);
+  --tone-sapphire: oklch(79% 0.1 229);
+  --tone-blue: oklch(77% 0.11 260);
+  --tone-lavender: oklch(82% 0.09 277);
 }
 
 @layer base {
