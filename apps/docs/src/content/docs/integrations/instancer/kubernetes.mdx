@@ -3,7 +3,7 @@ title: Kubernetes instancer
 description: Deploy the rCTF Kubernetes instancer on GKE with the bundled Terraform modules and operator.
 ---
 
-The Kubernetes instancer is the production-grade backend for per-team challenge instances. It runs an operator inside the cluster that reconciles a `ChallengeInstance` custom resource into a namespace, network policies, deployments, services, and Traefik routes. The rCTF API only talks to the Kubernetes API server through the `<green>instancer/k8s-instancer</green>` provider; the operator owns every other moving piece.
+The Kubernetes instancer is the scalable backend for per-team challenge instances. It runs an operator inside the cluster that reconciles a `ChallengeInstance` custom resource into a namespace, network policies, deployments, services, and Traefik routes. The rCTF API only talks to the Kubernetes API server through the `<green>instancer/k8s-instancer</green>` provider; the operator owns every other moving piece.
 
 This page covers deploying that stack from scratch on Google Kubernetes Engine using the bundled Terraform modules. For the challenge-side `<red>instancerConfig</red>` schema and the participant lifecycle, see [Instancer](/integrations/instancer/).
 
@@ -57,31 +57,17 @@ The Terraform example assumes GKE plus Cloudflare for DNS and ACME. GCP Cloud DN
 | Requirement | Notes |
 | --- | --- |
 | GCP project with billing enabled | Used for GKE, Artifact Registry, and optionally Cloud DNS. |
-| `gcloud` and `kubectl` | Needed for cluster auth and the controller installer. |
+| `gcloud` and `kubectl` | Needed for cluster auth. |
 | `terraform` 1.5+ | The example pins providers but not the Terraform CLI. |
 | `kind` (optional) | Only required for local controller development. |
 | Domain plus DNS provider | One of Cloudflare or GCP Cloud DNS. Used for the ACME DNS-01 challenge and the wildcard `A` record. |
 | Let's Encrypt account email | Registered through the `acme_registration` resource. |
-| Container registry | Hosts the built `k8s-controller` image. The Terraform example creates a separate Artifact Registry repository for challenge images. |
 
 The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone></red>` (or just `<red><instancer_zone></red>` when no subdomain is set). All per-instance hostnames live under a wildcard one level below.
 
-## Building the controller installer
+## Controller image
 
-The Terraform `k8s` module reads a generated installer at `apps/k8s-controller/dist/install.yaml`. Build and push the controller image, then regenerate the installer with the same image reference:
-
-```sh
-$ cd apps/k8s-controller
-$ make docker-build docker-push IMG=registry.example.com/rctf-instancer-controller:v1
-$ make build-installer IMG=registry.example.com/rctf-instancer-controller:v1
-```
-
-`$ make build-installer` runs `manifests`, `generate`, and `kustomize` first, so the resulting `dist/install.yaml` contains the CRD, RBAC, deployment, and a placeholder `<red>INSTANCER_HOST</red>` token that the Terraform `k8s` module replaces with the configured hostname.
-
-<Callout variant='note' title='Multi-arch builds'>
-  Use `$ make docker-buildx IMG=...` to build a multi-architecture image. The default platforms are
-  `linux/amd64`, `linux/arm64`, `linux/s390x`, and `linux/ppc64le`.
-</Callout>
+The operator image is published at `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` and the matching `install.yaml` ships in the repo at `apps/k8s-controller/dist/install.yaml`. The Terraform `k8s` module reads that file directly and substitutes the configured hostname into the `<red>INSTANCER_HOST</red>` placeholder - there is nothing to build or push before running `terraform apply`.
 
 ## Terraform variables
 
@@ -144,26 +130,11 @@ gcp_instancer_min_node_count = 1
 gcp_instancer_max_node_count = 8
 ```
 
-<Callout variant="note" title="Preemptible nodes">
-  The GKE module accepts a `<red>preemptible</red>` flag that defaults to `false{:ts}`. It is not exposed through the example variables; edit `deploy/terraform/instancer/example/main.tf` to pass `<green>preemptible = true</green>` into the module if the workload tolerates VM evictions.
-</Callout>
-
 To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in `dns.tf` and `tls.tf`, uncomment the `google_dns_record_set` and `gcloud` ACME blocks, and set `<red>gcp_dns_managed_zone_name</red>`.
 
 ## Deployment
 
 <Steps>
-<Step title="Build and push the controller image">
-
-```sh
-$ cd apps/k8s-controller
-$ make docker-build docker-push IMG=registry.example.com/rctf-instancer-controller:v1
-$ make build-installer IMG=registry.example.com/rctf-instancer-controller:v1
-```
-
-The installer is written to `apps/k8s-controller/dist/install.yaml`. The Terraform `k8s` module reads it relative to `deploy/terraform/instancer/modules/k8s/rctf-instancer.tf`, so do not move either file.
-
-</Step>
 <Step title="Initialize Terraform">
 
 ```sh
@@ -180,7 +151,7 @@ $ terraform init
 $ terraform apply
 ```
 
-Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and the controller installer. The first apply typically takes 10 to 15 minutes; ACME validation alone can add a few minutes if DNS propagation is slow.
+Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and applies the bundled `apps/k8s-controller/dist/install.yaml` (pointing at the prebuilt `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` image). The first apply typically takes 10 to 15 minutes; ACME validation alone can add a few minutes if DNS propagation is slow.
 
 </Step>
 <Step title="Fetch kubectl credentials">
@@ -364,7 +335,7 @@ The controller logs the reconciliation flow and the sample's namespace, service,
 | Symptom | Likely cause |
 | --- | --- |
 | `terraform apply` hangs on `acme_certificate` | DNS propagation for the DNS-01 record is slow. Verify the Cloudflare or Cloud DNS TXT record is visible from a public resolver. |
-| Controller pod `CrashLoopBackOff` after install | The image referenced in `dist/install.yaml` is missing or unauthorized. Rebuild with the correct `IMG=...` and reapply. |
+| Controller pod `CrashLoopBackOff` after install | The image reference in `dist/install.yaml` cannot be pulled. The default is `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` - verify the node has registry access and the tag still exists. |
 | Instances stuck in `<green>starting</green>` | Inspect the `ChallengeInstance` status conditions with `$ kubectl get challengeinstance -A -o yaml`. The `<red>NamespaceDeployed</red>`, `<red>DeploymentsDeployed</red>`, and `<red>ServicesDeployed</red>` conditions narrow the failing stage. |
 | 502 from the wildcard host | Traefik is reachable but the backing pod is not ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
 | 404 on the wildcard host | The catch-all `<red>IngressRoute</red>` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `<red>IngressRoute</red>` has a higher priority than `1{:ts}`. |

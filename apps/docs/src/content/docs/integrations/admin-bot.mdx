@@ -5,6 +5,16 @@ description: Configure browser-based admin bot jobs for web challenges.
 
 The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It is meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
 
+<Callout variant='warning' title='Not battle-tested under high load'>
+  Most of rCTF v2 has been used to run large public events, but the admin bot has not been
+  exercised under that kind of traffic yet. The implementation is functional and we expect it to
+  hold up, but expect rougher edges than the rest of the platform - load-test before relying on it
+  for a high-volume event, and watch the queue depth and worker logs during the CTF.
+
+If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues) - and if you _did_ run the admin bot successfully through a public CTF, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
+
+</Callout>
+
 <Callout variant="warning" title="Trusted challenge code">
   Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is available through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
 </Callout>
@@ -127,32 +137,97 @@ Admin bot challenge code exports a `Challenge{:ts}` instance. The loader only al
 This example restricts participant input to one challenge origin, stores the flag in browser local storage for that origin, visits the submitted URL, and records a challenge log line:
 
 ```ts title="admin-bot.ts" showLineNumbers=false
+import { sleep } from 'bun'
 import { Challenge, type ChallengeContext } from '../src/types'
 
 export const challenge = new Challenge({
+  // required:
   timeoutMilliseconds: 30_000,
+
   inputs: {
-    url: { pattern: '^https://challenge\\.example\\.com/.*$' },
+    url: { pattern: '^http(s?)://.*' },
   },
+
+  handler: async (ctx: ChallengeContext): Promise<void> => {
+    const url = ctx.input.url!
+    const page = await ctx.browserContext.newPage()
+
+    ctx.output.info('challenge', 'hello from my challenge!', {
+      optional: 'values',
+      that: 'will be',
+      displayed: 'separately!',
+    })
+    ctx.output.warn('challenge', 'warn!')
+    ctx.output.error('challenge', 'error!')
+    ctx.output.fatal('challenge', 'fatal!')
+
+    try {
+      await page.goto(url)
+    } catch (e) {
+      // Without this, the error propagated is that something went wrong.
+      // Ideally, there would be automagic so you don't need to do this, 
+      //   but page navigations throw a normal error, and searching in a string is... ugly.
+      // @see https://github.com/puppeteer/puppeteer/blob/main/packages/puppeteer-core/src/cdp/Frame.ts#L210-L212
+      ctx.output.fatal('challenge', `failed to visit provided URL: ${e}`, {
+        url,
+      })
+      return
+    }
+    await sleep(15_000)
+    await page.close()
+  },
+
   hooksConfig: {
     showConsoleLogs: true,
     showBrowserErrors: true,
     showNavigation: true,
-    limitTabsNumber: 2,
+    limitTabsNumber: -1, // no limit
   },
-  handler: async (ctx: ChallengeContext): Promise<void> => {
-    const page = await ctx.browserContext.newPage()
-    await page.goto('https://challenge.example.com/')
-    await page.evaluate(flag => {
-      localStorage.setItem('flag', flag)
-    }, ctx.job.flag)
 
-    ctx.output.info('challenge', 'visiting submitted URL', {
-      url: ctx.input.url,
-    })
-    await page.goto(ctx.input.url!, { waitUntil: 'networkidle2' })
-    await page.close()
+  // optional:
+  browser: 'chrome',
+  // vvv argv array. by default we apply some default argv values,
+  //   but if you override this we'll not add anything to the list!
+  browserArguments: undefined,
+  browserVersion: 'stable',
+  puppeteerLaunchOptionsExtra: undefined, // Record<string, unknown>
+  // vvv Record<string, unknown>. by default we apply some default values,
+  //  but if you override this we'll not add anything to this mapping!
+  extraPrefsFirefox: undefined,
+
+  maxLogValueChars: 4096, // limit number of characters within strings in logs
+  maxLogLines: 64, // limit the number of lines stored per submission
+
+  restrictDomains: {
+    // note on case sensitivity:
+    // - `host` is always lowercased by the browser
+    // - `url` param preserves the original casing of the path/query
+    //
+    // note on dns rebinding bypasses:
+    // pac rules match on host/url strings only - they do not resolve DNS.
+    // a blocklist-only config (disallowRegex without a catch-all) can be
+    // bypassed by aliases that resolve to internal IPs (e.g. 127.0.0.1.nip.io).
+    // to prevent this, pair allowRegex with a catch-all disallowRegex
+    // so that only explicitly allowed hosts can be reached.
+
+    // allow example.com, but not any other example.com subdomain
+    host: {
+      allowRegex: [{ pattern: '^example.com$' }],
+      disallowRegex: [{ pattern: '^.*\\.example\\.com$' }],
+    },
+    // allow example.com/kek, but not any other urls on example.com
+    url: {
+      allowRegex: [{ pattern: 'example.com\\/kek' }],
+      disallowRegex: [{ pattern: 'example.com' }],
+    },
   },
+
+  // 1. If challenge has no instancer configured, this value will be ignored.
+  // 2. The values in `ChallengeContext.job.instancerInstances` will not be filled,
+  //  unless this variable is set to true.
+  // 3. This provides no guarantee that instances will still be alive by the time the handler executes,
+  //  because the platform would not prevent someone from stopping the instance once the job is queued.
+  requireInstancerInstancesRunning: false,
 })
 ```
 
@@ -275,3 +350,16 @@ The worker uses the service-authenticated admin API:
 | `<route>GET</route>` | `<route>/api/v2/admin/admin-bot/queue-depth</route>` | Returns the number of queued jobs. |
 
 Each worker process runs one job at a time. Multiple worker processes can poll the same API when more browser throughput is needed.
+
+## Scaling under load
+
+Admin bot jobs are throughput-bound on browser sessions, not CPU. A worker spends most of its wall time waiting on Puppeteer - page loads, redirects, and the configured timeout - so steady-state CPU on a worker can stay low even when the queue is backing up. Autoscaling on CPU will react late and under-provision; scaling on **queue depth** is the right signal.
+
+The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is meant to drive that signal. A practical setup is to scrape it (via an exporter or a small sidecar) into Prometheus, set a target queue depth per replica (e.g. 5–10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
+
+<Callout variant='note' title='No production-ready manifests yet'>
+  We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot
+  fleet - the queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to
+  the deployer for now. If you build one and want to upstream it, see the note at the top of this
+  page.
+</Callout>

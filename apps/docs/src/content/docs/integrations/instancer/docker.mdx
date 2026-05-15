@@ -1,0 +1,143 @@
+---
+title: Docker instancer
+description: Deploy the rCTF Docker instancer with the bundled Compose stack and configure Docker-backed instanced challenges.
+---
+
+import Callout from '@/components/callout.astro'
+
+The Docker instancer is a Python FastAPI service that manages Docker containers, Docker networks, Docker volumes, Redis instance locks, Redis expirations, and Traefik labels. It is the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
+
+For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/integrations/instancer/).
+
+## Deployment
+
+The bundled deployment files live under `deploy/docker-instancer`:
+
+<FileTree>
+  <Dir name='deploy'>
+    <Dir name='docker-instancer'>
+      <File name='compose.yml' comment='Traefik, Redis, and tiny-instancer service' />
+      <File name='.env.example' comment='Required environment variables' />
+      <File name='Dockerfile' comment='Python 3.14 runtime image' />
+      <Dir name='conf' comment='Traefik static and dynamic config' />
+      <Dir name='certs' comment='TLS certificate mount point' />
+    </Dir>
+  </Dir>
+</FileTree>
+
+The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The instancer API itself is bound to `127.0.0.1:12237` on the host and to `tiny-instancer:1337` inside the `rctf_network` Docker network.
+
+The environment file requires shared auth, Redis, and public instance host settings:
+
+```sh title="deploy/docker-instancer/.env"
+DEV_ENV=false
+BIND_PORT=1337
+WEB_WORKERS=1
+USE_PROXY_HEADERS=true
+
+AUTH_TOKEN=<shared-secret>
+INSTANCES_HOST=instancer.example.com
+
+REDIS_HOST=cache
+REDIS_PORT_NUMBER=6379
+REDIS_PASSWORD=<redis-password>
+
+TRAEFIK_PERMANENT_REDIRECT_MIDDLEWARE_NAME=permanent-https-redirect@file
+```
+
+The Docker instancer stack starts from the repository root:
+
+```sh
+$ docker compose -f deploy/docker-instancer/compose.yml up -d
+```
+
+The same token belongs in rCTF:
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://tiny-instancer:1337
+    authToken: <shared-secret>
+```
+
+When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL is:
+
+```yaml title="rctf.d/instancer.yaml"
+instancerProvider:
+  name: instancer/docker-instancer
+  options:
+    apiUrl: http://127.0.0.1:12237
+    authToken: <shared-secret>
+```
+
+The Traefik TLS config expects these files:
+
+<FileTree>
+  <Dir name='deploy'>
+    <Dir name='docker-instancer'>
+      <Dir name='certs'>
+        <File name='fullchain.pem' comment='Certificate chain' />
+        <File name='privkey.pem' comment='Private key' />
+      </Dir>
+    </Dir>
+  </Dir>
+</FileTree>
+
+## Docker challenge config
+
+The Docker provider accepts a Docker Compose-like object under `<red>config</red>`:
+
+<Callout variant='note' title='Schema compatible with Konata'>
+  The `<red>instancerConfig</red>` shape shown here is what [Konata](/integrations/konata/)
+  consumes, so the same block can be committed alongside a challenge and synced to rCTF via the
+  Konata CLI or CI actions.
+</Callout>
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  challengeIntegrationId: web-demo
+  timeoutMilliseconds: 600000
+  extendable: true
+  config:
+    services:
+      app:
+        image: ghcr.io/example/web-demo:latest
+        environment:
+          FLAG: flag{example}
+        networks:
+          - internal
+        expose:
+          - '8080'
+        read_only: true
+        mem_limit: 128m
+        cpus: 0.5
+        pids_limit: 128
+    networks:
+      internal:
+        internal: true
+  expose:
+    - kind: https
+      hostPrefix: web-demo
+      containerName: app
+      containerPort: 8080
+      title: Challenge
+```
+
+The top-level Docker config supports `<red>services</red>`, `<red>networks</red>`, and `<red>volumes</red>`. At least one service is required after defaults are applied.
+
+Each service supports these field groups:
+
+| Fields | Purpose |
+| --- | --- |
+| `<red>image</red>` | Docker image. This is required for each explicit service. |
+| `<red>hostname</red>`, `<red>environment</red>`, `<red>command</red>`, `<red>entrypoint</red>`, `<red>working_dir</red>`, `<red>user</red>` | Process and runtime metadata. |
+| `<red>networks</red>`, `<red>network_mode</red>`, `<red>dns</red>`, `<red>dns_opt</red>`, `<red>dns_search</red>`, `<red>extra_hosts</red>`, `<red>expose</red>` | Network configuration. |
+| `<red>volumes</red>`, `<red>tmpfs</red>`, `<red>shm_size</red>`, `<red>read_only</red>` | Filesystem configuration. |
+| `<red>privileged</red>`, `<red>security_opt</red>`, `<red>cap_add</red>`, `<red>cap_drop</red>` | Container privilege controls. |
+| `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, `<red>ulimits</red>`, `<red>sysctls</red>` | Resource and kernel limits. |
+| `<red>healthcheck</red>`, `<red>labels</red>`, `<red>restart</red>` | Health, metadata, and restart behavior. |
+
+Explicit services default to a read-only root filesystem, `<green>no-new-privileges</green>`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `64` PIDs, and `nofile` soft and hard limits of `1024`.
+
+Services may only reference networks declared under `<red>config.networks</red>`. Named volume mounts may only reference volumes declared under `<red>config.volumes</red>`. Absolute and relative bind-style mount sources are not checked against the volume map.
