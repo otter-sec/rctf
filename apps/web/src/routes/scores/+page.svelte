@@ -47,7 +47,6 @@
     allGraphData: () => scoreData.allGraphData,
     currentUser: () => scoreData.currentUser,
     teamColorMap: () => scoreData.teamColorMap,
-    endTime: () => scoreData.endTime,
   })
 
   let screenshotModalOpen = $state(false)

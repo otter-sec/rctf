@@ -1,6 +1,6 @@
 <script lang="ts">
   import { SPARKLINE_WINDOW } from '$lib/constants/scores'
-  import { useClientConfig, useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
+  import { useCurrentUser, useLeaderboard, useSelfUserGraph } from '$lib/query'
   import { cn, getTimeOrdinal } from '$lib/utils'
   import { ChartCore, Spline, Svg } from 'layerchart/svg'
 
@@ -8,16 +8,15 @@
   const user = $derived(userQuery.data)
   const globalPlace = $derived(user?.globalPlace ?? null)
 
-  const clientConfigQuery = useClientConfig()
-  const endTime = $derived(clientConfigQuery.data?.endTime ?? Number.MAX_SAFE_INTEGER)
-
   const graphQuery = useSelfUserGraph(() => globalPlace)
   const graphData = $derived.by(() => {
     const points = graphQuery.data?.points ?? []
-    const filteredPoints = points.filter(p => p.time <= endTime)
-    const maxTime = Math.max(...filteredPoints.map(p => p.time), 0)
+    let maxTime = 0
+    for (const point of points) {
+      if (point.time > maxTime) maxTime = point.time
+    }
     const windowStart = maxTime - SPARKLINE_WINDOW
-    return filteredPoints.filter(p => p.time >= windowStart)
+    return points.filter(p => p.time >= windowStart)
   })
 
   const leaderboardQuery = useLeaderboard(() => ({ limit: 1, offset: 0 }))

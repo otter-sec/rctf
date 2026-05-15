@@ -190,36 +190,32 @@ export function mergeWithSelfGraph<T extends { id: string }>(
 
 export function getSparklineDataByTeam(
   allGraphData: ScoreGraphEntry[],
-  selfGraphData: ScoreGraphEntry | null | undefined,
-  endTime: number
+  selfGraphData: ScoreGraphEntry | null | undefined
 ): Map<string, ScoreGraphPoint[]> {
   const allTeams = mergeWithSelfGraph(allGraphData, selfGraphData)
   let maxTime = 0
   for (const team of allTeams) {
     for (const point of team.points) {
-      if (point.time <= endTime && point.time > maxTime)
-        maxTime = point.time
+      if (point.time > maxTime) maxTime = point.time
     }
   }
   const windowStart = maxTime - SPARKLINE_WINDOW
   return new Map(
-    allTeams.map(team => [team.id, filterPoints(team.points, endTime, windowStart)])
+    allTeams.map(team => [team.id, filterPoints(team.points, windowStart)])
   )
 }
 
 export function getRankDeltaByTeam(
   search: string | undefined,
   allGraphData: ScoreGraphEntry[],
-  selfGraphData: ScoreGraphEntry | null | undefined,
-  endTime: number
+  selfGraphData: ScoreGraphEntry | null | undefined
 ): Map<string, number> {
   if (search) return new Map()
 
   let currentTime = -Infinity
   for (const team of allGraphData) {
     for (const point of team.points) {
-      if (point.time <= endTime && point.time > currentTime)
-        currentTime = point.time
+      if (point.time > currentTime) currentTime = point.time
     }
   }
   if (currentTime === -Infinity) return new Map()
@@ -346,12 +342,9 @@ function compareChallengesByCategory(
 
 function filterPoints(
   points: ScoreGraphPoint[],
-  endTime: number,
   minTime = 0
 ): ScoreGraphPoint[] {
-  return points.filter(
-    point => point.time >= minTime && point.time <= endTime
-  )
+  return points.filter(point => point.time >= minTime)
 }
 
 function getScoresAt(

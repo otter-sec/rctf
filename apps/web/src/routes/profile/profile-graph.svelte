@@ -74,19 +74,26 @@
     startTime: number,
     endTime: number
   ): [number, number] | undefined {
-    const first = points[0]
-    const last = points.at(-1)
-    if (!first || !last) return undefined
-    const min = startTime > 0 ? startTime : first.time
+    if (points.length === 0) return undefined
 
-    if (first.time === last.time) {
-      return [min, Math.min(endTime, first.time + domainPadding)]
+    let minTime = Infinity
+    let maxTime = -Infinity
+    for (const point of points) {
+      if (point.time < minTime) minTime = point.time
+      if (point.time > maxTime) maxTime = point.time
     }
-    return [min, Math.min(endTime, last.time)]
+
+    const min = startTime > 0 ? startTime : minTime
+    const max = minTime === maxTime ? maxTime + domainPadding : maxTime
+    return [min, Math.min(endTime, max)]
   }
 
   function chartScoreMax(points: ScoreLinePoint[]): number {
-    return Math.max(1, ...points.map(point => point.score))
+    let maxScore = 1
+    for (const point of points) {
+      if (point.score > maxScore) maxScore = point.score
+    }
+    return maxScore
   }
 
   interface Props {
@@ -99,46 +106,37 @@
   let { class: className = '', graphData, clientConfig, solves = [] }: Props = $props()
 
   const sampledPoints = $derived<SampleScorePoint[]>(
-    graphData.points
-      .filter(p => p.time >= clientConfig.startTime && p.time <= clientConfig.endTime)
-      .toSorted((a, b) => a.time - b.time)
-      .map(p => ({
-        kind: 'sample',
-        key: `sample-${p.time}`,
-        teamName: graphData.name,
-        time: p.time,
-        score: p.score,
-        color: scoreLineColor,
-      }))
+    graphData.points.toReversed().map(p => ({
+      kind: 'sample',
+      key: `sample-${p.time}`,
+      teamName: graphData.name,
+      time: p.time,
+      score: p.score,
+      color: scoreLineColor,
+    }))
   )
 
   const solvePoints = $derived.by<SolveScorePoint[]>(() => {
     let score = 0
-    return solves
-      .filter(
-        solve =>
-          solve.createdAt >= clientConfig.startTime && solve.createdAt <= clientConfig.endTime
-      )
-      .toSorted((a, b) => a.createdAt - b.createdAt)
-      .map(solve => {
-        const scoreBefore = score
-        score += solve.points ?? 0
-        const category = getProfileCategoryDisplay(solve.category)
+    return solves.map(solve => {
+      const scoreBefore = score
+      score += solve.points ?? 0
+      const category = getProfileCategoryDisplay(solve.category)
 
-        return {
-          kind: 'solve',
-          key: `solve-${solve.id}`,
-          challengeName: solve.name,
-          categoryKey: category.key,
-          categoryIcon: category.icon,
-          time: solve.createdAt,
-          score,
-          scoreBefore,
-          points: solve.points,
-          color: category.color,
-          style: category.style,
-        }
-      })
+      return {
+        kind: 'solve',
+        key: `solve-${solve.id}`,
+        challengeName: solve.name,
+        categoryKey: category.key,
+        categoryIcon: category.icon,
+        time: solve.createdAt,
+        score,
+        scoreBefore,
+        points: solve.points,
+        color: category.color,
+        style: category.style,
+      }
+    })
   })
 
   const chartPoints = $derived<ScorePoint[]>(solvePoints.length > 0 ? solvePoints : sampledPoints)
@@ -158,19 +156,18 @@
     solvePoints.length > 0 ? [...scoreLinePoints, ...sampledLinePoints] : scoreLinePoints
   )
   const xDomain = $derived(
-    chartTimeDomain(
-      domainPoints.toSorted((a, b) => a.time - b.time),
-      clientConfig.startTime,
-      clientConfig.endTime
-    )
+    chartTimeDomain(domainPoints, clientConfig.startTime, clientConfig.endTime)
   )
   const yMax = $derived(chartScoreMax(domainPoints))
 
   const useMinutesFormat = $derived.by(() => {
     if (chartPoints.length === 0) return false
-    const times = chartPoints.map(p => p.time)
-    const minTime = Math.min(...times)
-    const maxTime = Math.max(...times)
+    let minTime = Infinity
+    let maxTime = -Infinity
+    for (const point of chartPoints) {
+      if (point.time < minTime) minTime = point.time
+      if (point.time > maxTime) maxTime = point.time
+    }
     const minRangeForHoursOnly = (X_AXIS_DIVISIONS + 1) * 60 * 60 * 1000
     return maxTime - minTime < minRangeForHoursOnly
   })

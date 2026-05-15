@@ -44,14 +44,10 @@ interface ScoresGraphDataConfig {
   allGraphData: () => ScoreGraphEntry[]
   currentUser: () => CurrentUserScoreData | null | undefined
   teamColorMap: () => Map<string, string>
-  endTime: () => number
 }
 
 export function createScoresDataModel(config: ScoresDataModelConfig) {
   const clientConfigQuery = useClientConfig()
-  const endTime = $derived(
-    clientConfigQuery.data?.endTime ?? Number.MAX_SAFE_INTEGER
-  )
   const divisions = $derived(clientConfigQuery.data?.divisions ?? {})
   const division = $derived.by((): string | undefined => {
     const value = config.division()
@@ -170,9 +166,6 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     get dataEpoch() {
       return dataEpoch
     },
-    get endTime() {
-      return endTime
-    },
     get categoryGroups() {
       return categoryGroups
     },
@@ -203,18 +196,13 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
   )
 
   const sparklineDataByTeam = $derived(
-    getSparklineDataByTeam(
-      config.allGraphData(),
-      selfGraphQuery.data,
-      config.endTime()
-    )
+    getSparklineDataByTeam(config.allGraphData(), selfGraphQuery.data)
   )
   const rankDeltaByTeam = $derived(
     getRankDeltaByTeam(
       config.search(),
       config.allGraphData(),
-      selfGraphQuery.data,
-      config.endTime()
+      selfGraphQuery.data
     )
   )
   const screenshotTeams = $derived(
