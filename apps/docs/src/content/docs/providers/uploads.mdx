@@ -5,7 +5,15 @@ description: Configure file storage with local filesystem, Amazon S3, or Google 
 
 import Callout from '@/components/callout.astro'
 
-Upload providers handle storage for challenge file attachments and team avatars. The default provider stores files locally.
+Upload providers handle storage for challenge file attachments **and team avatars** - both share the same provider, so anything you configure here affects both.
+
+<Callout variant='warning' title='v2 needs delete permissions'>
+  Unlike rCTF v1, the v2 upload provider requires permission to **delete** objects, not just upload
+  them. Avatar replacement and the admin-side file deletion flows both rely on it. If you reuse a v1
+  IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, upgrade
+  it to include `<green>s3:DeleteObject</green>` (or the GCS equivalent `
+  <green>storage.objects.delete</green>`).
+</Callout>
 
 ## Configuration
 
@@ -101,6 +109,71 @@ uploadProvider:
 | `<red>credentials</red>` | `RCTF_GCS_CREDENTIALS{:sh}` | GCP credentials object (env var accepts JSON string) |
 
 Files are stored with public visibility. The bucket must be configured to allow public access.
+
+</Tab>
+</Tabs>
+
+## Terraform templates
+
+The repo ships Terraform modules under `deploy/terraform/storage/` that provision an S3 or GCS bucket with the right CORS rules, an IAM user/service account, and a policy scoped to exactly the actions rCTF needs. Each module writes the generated credentials to a local file so you can paste them straight into your `rctf.d/` config.
+
+<Tabs items={['AWS S3', 'GCS']}>
+<Tab>
+
+```sh
+$ cd deploy/terraform/storage/main
+$ terraform init
+$ terraform apply -var="region=eu-west-3" -var="bucket_name=my-ctf-uploads"
+```
+
+Outputs are written next to the module:
+
+- `aws-rctf-access-key.json` - `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user
+- `rctf_iam_user_arn`, `bucket` - Terraform outputs printed to stdout
+
+Drop the credentials into your config:
+
+```yaml title="rctf.d/03-uploads.yaml"
+uploadProvider:
+  name: uploads/s3
+  options:
+    bucketName: my-ctf-uploads
+    awsKeyId: <access_key_id from aws-rctf-access-key.json>
+    awsKeySecret: <secret_access_key from aws-rctf-access-key.json>
+    awsRegion: eu-west-3
+```
+
+The module sets up CORS (`<green>GET</green>`, `<green>HEAD</green>` from any origin by default - override with `<red>-var="cors_allowed_origins=[\"https://ctf.example.com\"]"</red>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
+
+</Tab>
+<Tab>
+
+```sh
+$ cd deploy/terraform/storage/gcs
+$ terraform init
+$ terraform apply -var="project_id=my-gcp-project" -var="region=europe-west1" -var="bucket_name=my-ctf-uploads"
+```
+
+Outputs are written next to the module:
+
+- `gcs-sa-key.json` - service-account key for the dedicated `rctf-bucket` service account
+- `rctf_sa_email`, `bucket` - Terraform outputs printed to stdout
+
+Drop the credentials into your config (paste the contents of `gcs-sa-key.json` under `<red>credentials</red>`):
+
+```yaml title="rctf.d/03-uploads.yaml"
+uploadProvider:
+  name: uploads/gcs
+  options:
+    projectId: my-gcp-project
+    bucketName: my-ctf-uploads
+    credentials:
+      type: service_account
+      project_id: my-gcp-project
+      # ...rest of gcs-sa-key.json
+```
+
+The module sets up CORS (`<green>GET</green>`, `<green>HEAD</green>` from any origin by default - override with `<red>-var="cors_allowed_origins=[\"https://ctf.example.com\"]"</red>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.
 
 </Tab>
 </Tabs>

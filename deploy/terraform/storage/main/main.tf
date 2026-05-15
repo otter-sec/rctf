@@ -1,5 +1,4 @@
 # terraform init && terraform apply -var="region=eu-west-3" -var="bucket_name=[...]"
-# TODO(es3n1n): CORS
 
 terraform {
   required_providers {
@@ -24,6 +23,12 @@ variable "bucket_name" {
   description = "The bucket name where all of the challenges should be stored."
 }
 
+variable "cors_allowed_origins" {
+  type        = list(string)
+  description = "Allowed origins for bucket CORS."
+  default     = ["*"]
+}
+
 provider "aws" {
   region = var.region
 }
@@ -31,6 +36,17 @@ provider "aws" {
 resource "aws_s3_bucket" "challenges" {
   bucket        = var.bucket_name
   force_destroy = true
+}
+
+resource "aws_s3_bucket_cors_configuration" "challenges" {
+  bucket = aws_s3_bucket.challenges.id
+
+  cors_rule {
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = var.cors_allowed_origins
+    allowed_headers = ["*"]
+    max_age_seconds = 3600
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "ownership" {

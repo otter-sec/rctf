@@ -7,6 +7,14 @@ import Callout from '@/components/callout.astro'
 
 Email providers handle sending verification and recovery emails. An email provider is required for email-based registration, account recovery, and email changes.
 
+<Callout variant='tip' title='What we use in practice'>
+  For events we run or help operate - including Malta CTF, idek CTF, and DiceCTF - we typically use
+  [Postmark](https://postmarkapp.com/) for transactional delivery. The others are perfectly
+  reasonable choices too: SMTP works with any provider you already have credentials for, SES is the
+  cheapest at volume if you're already on AWS, and Mailgun is a fine alternative if you prefer it.
+  Pick whichever fits your existing infrastructure.
+</Callout>
+
 ## Configuration
 
 Email configuration includes the provider, a sender address, and an optional logo URL for email templates:
@@ -23,7 +31,7 @@ email:
 
 <Callout variant="note">
 
-Email is required for registration when CTFtime authentication is not configured. Without an email provider, users cannot register, recover their accounts, or use email-based division ACLs.
+Without an email provider, users cannot recover their accounts, or use email-based division ACLs.
 
 </Callout>
 ## Providers
