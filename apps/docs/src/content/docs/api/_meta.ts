@@ -5,7 +5,6 @@ export default {
   collapsed: true,
   scrollable: true,
   items: {
-    index: { label: 'Overview', order: 0 },
     auth: { label: 'Authentication', order: 1, badge: 'new' },
     challenges: { label: 'Challenges', order: 2 },
     leaderboard: { label: 'Leaderboard', order: 3 },

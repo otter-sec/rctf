@@ -61,16 +61,22 @@ function latestDate(dates: Array<Date | null>): Date | null {
   return sorted[0] ?? null
 }
 
+function isGroupOverviewPage(pageDoc: Doc): boolean {
+  if (!scrollGroup) return false
+  return pageDoc.id === scrollGroup.path || pageDoc.id === `${scrollGroup.path}/index`
+}
+
 const renderedPages = await Promise.all(
   pages.map(async page => {
-    const isGroupOverview = scrollGroup
-      ? page.doc.id === scrollGroup.path || page.doc.id === `${scrollGroup.path}/index`
-      : false
-    const description = isGroupOverview ? undefined : page.doc.data.description
+    const isOverview = isGroupOverviewPage(page.doc)
     const [rendered, renderedLabel, renderedDescription] = await Promise.all([
       render(page.doc),
       renderDescription(page.label),
-      description ? renderDescription(description) : Promise.resolve(null),
+      // The page header already shows the overview's description; don't
+      // duplicate it inside the section.
+      isOverview || !page.doc.data.description
+        ? Promise.resolve(null)
+        : renderDescription(page.doc.data.description),
     ])
 
     return {
@@ -93,11 +99,13 @@ if (!currentPage) throw new Error(`Could not render docs page for ${doc.id}`)
 
 const Content = currentPage.Content
 const headings: MarkdownHeading[] = scrollGroup
-  ? renderedPages.map(page => ({
-      depth: 2,
-      slug: page.sectionId,
-      text: page.label,
-    }))
+  ? renderedPages
+      .filter(page => !isGroupOverviewPage(page.doc))
+      .map(page => ({
+          depth: 2,
+          slug: page.sectionId,
+          text: page.label,
+        }))
   : currentPage.headings
 
 const sidebar = getSidebarTreeFromContext(sidebarContext, href)
@@ -136,44 +144,47 @@ const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
     scrollGroup ? (
       renderedPages.map((page, index) => {
         const PageContent = page.Content
+        const isOverview = isGroupOverviewPage(page.doc)
 
         return (
           <section
             data-scroll-page-section
             data-scroll-page-href={page.href}
-            data-scroll-page-target={page.sectionId}
+            data-scroll-page-target={isOverview ? 'post-title' : page.sectionId}
             data-scroll-page-prefix={page.sectionId}
             data-pagefind-ignore={page.isCurrent ? undefined : ''}
             class:list={[
-              'grid scroll-mt-32 grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
+              'grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
               index > 0 && 'border-border/70 mt-24 border-t pt-16',
             ]}
           >
             <div class='prose max-w-none'>
-              <header class='not-prose mb-7'>
-                <h2
-                  id={page.sectionId}
-                  data-scroll-page-title
-                  class='text-foreground text-2xl leading-tight font-medium text-balance sm:text-3xl'
-                  data-doc-title
-                  set:html={page.renderedLabel.html}
-                />
-                {page.renderedDescription && (
-                  <p
-                    class='text-muted-foreground mt-3 text-lg text-pretty'
-                    data-doc-description
-                    set:html={page.renderedDescription.html}
+              {!isOverview && (
+                <header class='not-prose mb-7'>
+                  <h2
+                    id={page.sectionId}
+                    data-scroll-page-title
+                    class='text-foreground scroll-mt-32 text-2xl leading-tight font-medium text-balance sm:text-3xl xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)]'
+                    data-doc-title
+                    set:html={page.renderedLabel.html}
                   />
-                )}
-              </header>
+                  {page.renderedDescription && (
+                    <p
+                      class='text-muted-foreground mt-3 text-lg text-pretty'
+                      data-doc-description
+                      set:html={page.renderedDescription.html}
+                    />
+                  )}
+                </header>
+              )}
               <PageContent components={mdxComponents} />
             </div>
             <TOCSidebar
               headings={page.tocHeadings}
               minDepth={toc.minDepth}
               maxDepth={toc.maxDepth}
-              title={page.label}
-              titleTargetId={page.sectionId}
+              title={isOverview ? undefined : page.label}
+              titleTargetId={isOverview ? 'post-title' : page.sectionId}
               pagefindIgnore
             />
           </section>

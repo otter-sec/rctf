@@ -5,11 +5,14 @@ import * as React from 'react'
 function ScrollArea({
   className,
   children,
+  type = 'scroll',
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
   return (
     <ScrollAreaPrimitive.Root
       data-slot='scroll-area'
+      type={type}
+      scrollHideDelay={250}
       className={cn('relative', className)}
       {...props}
     >

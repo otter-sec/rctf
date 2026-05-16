@@ -142,32 +142,29 @@ function resolveGroup(
 
   const items = buildNodes(node, own, pathname)
 
-  if (node.doc && !node.doc.data.sidebar?.hidden) {
-    const indexOverride: MetaItemOverride = own.items?.index ?? {}
-    if (!indexOverride.hidden) {
-      const href = docHref(node.doc.id)
-      const label = node.doc.data.sidebar?.label ?? indexOverride.label ?? 'Overview'
-      const badge = node.doc.data.sidebar?.badge ?? indexOverride.badge
-      items.unshift({
-        type: 'link',
-        label,
-        href,
-        badge,
-        isCurrent: isCurrentPath(href, pathname),
-      })
-    }
-  }
+  // If the group's directory has an index doc, hoist its href/badge onto the
+  // group itself so the summary row becomes a real link to that page,
+  // instead of injecting a separate "Overview" child entry.
+  const indexDoc =
+    node.doc && !node.doc.data.sidebar?.hidden && !(own.items?.index?.hidden ?? false)
+      ? node.doc
+      : null
+  const groupHref = indexDoc ? docHref(indexDoc.id) : undefined
+  const groupIsCurrent = groupHref ? isCurrentPath(groupHref, pathname) : false
 
-  if (items.length === 0) return null
+  if (items.length === 0 && !indexDoc) return null
 
   const label = own.label ?? override.label ?? titleCase(node.name)
   const order = override.order ?? own.order ?? Infinity
-  const badge: SidebarBadge | undefined = override.badge ?? own.badge
+  const badge: SidebarBadge | undefined =
+    indexDoc?.data.sidebar?.badge ?? override.badge ?? own.badge
   const forceOpen = override.forceOpen ?? own.forceOpen ?? false
 
-  const hasActiveDescendant = items.some(
-    i => (i.type === 'link' && i.isCurrent) || (i.type === 'group' && i.hasActiveDescendant)
-  )
+  const hasActiveDescendant =
+    groupIsCurrent ||
+    items.some(
+      i => (i.type === 'link' && i.isCurrent) || (i.type === 'group' && i.hasActiveDescendant)
+    )
 
   return {
     group: {
@@ -177,6 +174,8 @@ function resolveGroup(
       forceOpen,
       badge,
       hasActiveDescendant,
+      href: groupHref,
+      isCurrent: groupIsCurrent,
       items,
     },
     sortKey: { order, label },
@@ -219,6 +218,7 @@ function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
     if (node.type === 'link') {
       acc.push({ href: node.href, label: node.label })
     } else {
+      if (node.href) acc.push({ href: node.href, label: node.label })
       flattenTree(node.items, acc)
     }
   }
@@ -345,14 +345,7 @@ function findGroupChildren(nodes: SidebarNode[], href: string): SidebarNode[] | 
   const normalized = trimTrailingSlash(href)
   for (const node of nodes) {
     if (node.type !== 'group') continue
-    const hasIndex = node.items.some(
-      item => item.type === 'link' && trimTrailingSlash(item.href) === normalized
-    )
-    if (hasIndex) {
-      return node.items.filter(
-        item => !(item.type === 'link' && trimTrailingSlash(item.href) === normalized)
-      )
-    }
+    if (node.href && trimTrailingSlash(node.href) === normalized) return node.items
     const found = findGroupChildren(node.items, href)
     if (found !== null) return found
   }
@@ -368,12 +361,13 @@ export function getIndexChildrenFromContext(context: SidebarContext, href: strin
       const doc = context.docByHref.get(node.href)
       return [{ label: node.label, href: node.href, description: doc?.data.description }]
     }
-    const first = node.items[0]
-    if (first?.type === 'link') {
-      const doc = context.docByHref.get(first.href)
-      return [{ label: node.label, href: first.href, description: doc?.data.description }]
-    }
-    return []
+    // For groups, prefer the group's own index doc; fall back to the first
+    // descendant link.
+    const targetHref =
+      node.href ?? (node.items[0]?.type === 'link' ? node.items[0].href : undefined)
+    if (!targetHref) return []
+    const doc = context.docByHref.get(targetHref)
+    return [{ label: node.label, href: targetHref, description: doc?.data.description }]
   })
 }
 

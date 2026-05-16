@@ -80,6 +80,9 @@ export type SidebarGroup = {
   forceOpen: boolean
   badge?: SidebarBadge
   hasActiveDescendant?: boolean
+  /** Present when the group has an index doc — the summary acts as a link. */
+  href?: string
+  isCurrent?: boolean
   items: SidebarNode[]
 }
 

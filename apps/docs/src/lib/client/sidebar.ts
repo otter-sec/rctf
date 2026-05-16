@@ -1,3 +1,4 @@
+import { navigate } from 'astro:transitions/client'
 import { isElementHidden, trimTrailingSlash, withDatasetFlag } from './dom'
 import { mountClientModule } from './lifecycle'
 import { readJsonRecord, readNumber, removeStorage, writeJson, writeStorage } from './storage'
@@ -158,6 +159,53 @@ function expandActiveLinkParents(link: HTMLElement): void {
   }
 }
 
+function forceGroupOpen(details: HTMLDetailsElement): void {
+  if (details.open) return
+  details.open = true
+  const key = sidebarGroupKey(details)
+  if (!key) return
+  const state = readSidebarGroupState()
+  if (state[key] === true) return
+  state[key] = true
+  writeSidebarGroupState(state)
+}
+
+/**
+ * Group summaries contain a navigation Link plus a chevron toggle button.
+ * Clicks anywhere on the summary (label, padding, badge) should navigate to
+ * the group's overview; only the chevron toggles the accordion.
+ *
+ * We can't `stopPropagation` because that also blocks `<ClientRouter />`'s
+ * link interception and triggers a full page reload. Instead, cancel the
+ * click's defaults (toggle + native navigation) and drive the navigation
+ * ourselves via `navigate()`.
+ */
+function handleOverviewLinkClick(event: MouseEvent): void {
+  if (event.button !== 0) return
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (event.defaultPrevented) return
+
+  const target = event.target instanceof Element ? event.target : null
+  if (!target) return
+
+  // Chevron toggle → let native <summary> toggle behaviour run.
+  if (target.closest('[data-sidebar-group-toggle]')) return
+
+  const summary = target.closest<HTMLElement>('summary')
+  const link =
+    target.closest<HTMLAnchorElement>('a[data-sidebar-overview-link]') ??
+    summary?.querySelector<HTMLAnchorElement>('a[data-sidebar-overview-link]') ??
+    null
+  if (!link) return
+
+  const details = link.closest('details')
+  if (!(details instanceof HTMLDetailsElement)) return
+
+  event.preventDefault()
+  forceGroupOpen(details)
+  navigate(link.href)
+}
+
 function updateActiveSidebarLink(): void {
   const current = trimTrailingSlash(window.location.pathname)
 
@@ -185,4 +233,7 @@ function setupSidebar(): void {
 export const mountDocsSidebar = mountClientModule({
   setup: setupSidebar,
   cleanup: saveVisibleSidebarScrolls,
+  initOnce: () => {
+    document.addEventListener('click', handleOverviewLinkClick)
+  },
 })
