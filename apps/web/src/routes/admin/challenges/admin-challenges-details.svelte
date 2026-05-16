@@ -108,6 +108,7 @@
           tiebreakEligible: form.tiebreakEligible,
           sortWeight: form.sortWeight || undefined,
           files: form.files,
+          remotes: form.remotes,
           instancerConfig: form.instancerConfig,
           adminBotConfig: form.adminBotConfig.enabled ? { code: form.adminBotConfig.code } : null,
           hidden: form.hidden,
@@ -137,6 +138,7 @@
                 flag: form.flag,
                 points: { min: form.pointsMin, max: form.pointsMax },
                 files: form.files,
+                remotes: form.remotes,
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
                 instancerConfig: form.instancerConfig,
@@ -290,6 +292,7 @@
           tiebreakEligible={form.tiebreakEligible}
           sortWeight={form.sortWeight}
           files={form.files}
+          remotes={form.remotes}
           instancerConfig={form.instancerConfig}
           adminBotConfig={form.adminBotConfig}
           hidden={form.hidden}
@@ -300,6 +303,7 @@
           bind:instancerValid
           onShowPreview={() => (showPreviewDialog = true)}
           onFilesChange={files => send({ type: 'UPDATE_FILES', files })}
+          onRemotesChange={remotes => send({ type: 'UPDATE_REMOTES', remotes })}
           onInstancerConfigChange={config =>
             send({ type: 'UPDATE_INSTANCER', instancerConfig: config })}
           onAdminBotConfigChange={config =>

@@ -20,13 +20,14 @@
     IconRobot,
     IconTrophyFilled,
   } from '$lib/icons'
-  import type { AdminBotConfig } from '$lib/machines'
+  import type { AdminBotConfig, Remote } from '$lib/machines'
   import { useClientConfig } from '$lib/query'
   import { cn } from '$lib/utils'
   import type { Snippet } from 'svelte'
   import AdminChallengesDetailsAdminbot from './admin-challenges-details-adminbot.svelte'
   import AdminChallengesDetailsAttachments from './admin-challenges-details-attachments.svelte'
   import AdminChallengesDetailsInstancer from './admin-challenges-details-instancer.svelte'
+  import AdminChallengesDetailsRemotes from './admin-challenges-details-remotes.svelte'
   import AdminChallengesDetailsSolves from './admin-challenges-details-solves.svelte'
 
   interface Props {
@@ -40,6 +41,7 @@
     tiebreakEligible: boolean
     sortWeight: number
     files: { name: string; url: string; size: number | null }[]
+    remotes: Remote[]
     instancerConfig: InstancerConfig | null
     adminBotConfig: AdminBotConfig
     hidden: boolean
@@ -51,6 +53,7 @@
     actions?: Snippet
     onShowPreview: () => void
     onFilesChange: (files: Props['files']) => void
+    onRemotesChange: (remotes: Remote[]) => void
     onInstancerConfigChange: (config: InstancerConfig | null) => void
     onAdminBotConfigChange: (config: AdminBotConfig) => void
     onNameChange: (v: string) => void
@@ -78,6 +81,7 @@
     tiebreakEligible,
     sortWeight,
     files,
+    remotes,
     instancerConfig,
     adminBotConfig,
     hidden,
@@ -89,6 +93,7 @@
     actions,
     onShowPreview,
     onFilesChange,
+    onRemotesChange,
     onInstancerConfigChange,
     onAdminBotConfigChange,
     onNameChange,
@@ -182,6 +187,10 @@
         <IconFileFilled class="size-4" />
         Files{files.length ? ` (${files.length})` : ''}
       </Tabs.Trigger>
+      <Tabs.Trigger value="remotes" class={tabClassMobile}>
+        <IconCloudComputingFilled class="size-4" />
+        Remotes{remotes.length ? ` (${remotes.length})` : ''}
+      </Tabs.Trigger>
       <Tabs.Trigger value="instancer" class={tabClassMobile}>
         <IconCloudComputingFilled class="size-4" />
         Instancer
@@ -221,6 +230,10 @@
       <Tabs.Trigger value="files" class={tabClassDesktop}>
         <IconFileFilled class="size-4" />
         Files{files.length ? ` (${files.length})` : ''}
+      </Tabs.Trigger>
+      <Tabs.Trigger value="remotes" class={tabClassDesktop}>
+        <IconCloudComputingFilled class="size-4" />
+        Remotes{remotes.length ? ` (${remotes.length})` : ''}
       </Tabs.Trigger>
       <Tabs.Trigger value="instancer" class={tabClassDesktop}>
         <IconCloudComputingFilled class="size-4" />
@@ -464,6 +477,14 @@
       <ScrollArea class="h-full px-4 pt-4 @lg/form:px-8" fadeSize={64} fadeColor="background-l2">
         <div class={cn('p-1 pb-4', isDisabled && 'opacity-60')}>
           <AdminChallengesDetailsAttachments {files} {isDisabled} {onFilesChange} />
+        </div>
+      </ScrollArea>
+    </Tabs.Content>
+
+    <Tabs.Content value="remotes" class="min-h-0 flex-1">
+      <ScrollArea class="h-full px-4 pt-4 @lg/form:px-5" fadeSize={64} fadeColor="background-l2">
+        <div class={cn('pb-4', isDisabled && 'opacity-60')}>
+          <AdminChallengesDetailsRemotes {remotes} {isDisabled} {onRemotesChange} />
         </div>
       </ScrollArea>
     </Tabs.Content>

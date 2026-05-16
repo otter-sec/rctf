@@ -61,6 +61,28 @@
         </div>
       {/if}
 
+      {#if challenge.remotes.length > 0}
+        <div class="flex flex-col overflow-hidden rounded-lg border-2">
+          <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Remotes</div>
+          <div class="flex flex-col gap-1 p-2">
+            {#each challenge.remotes as remote}
+              <div
+                class="bg-background-l4 flex items-center gap-3 rounded-md px-3 py-2"
+              >
+                <div class="flex min-w-0 flex-col">
+                  <span class="text-foreground-l0 text-base font-mono">
+                    {remote.host}:{remote.port}
+                  </span>
+                  <span class="text-foreground-l3 text-sm">
+                    {remote.title ?? remote.kind}
+                  </span>
+                </div>
+              </div>
+            {/each}
+          </div>
+        </div>
+      {/if}
+
       {#if challenge.instancerLifetime}
         <div class="flex flex-col overflow-hidden rounded-lg border-2">
           <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Instancer</div>

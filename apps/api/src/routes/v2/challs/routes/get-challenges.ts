@@ -19,6 +19,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx }) => {
         points: item.score ?? 0,
         solves: item.solveCount ?? 0,
         sortWeight: item.data.sortWeight ?? null,
+        remotes: item.data.remotes ?? [],
         instancerLifetime: Boolean(config.instancerProvider)
           ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
           : null,

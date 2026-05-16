@@ -17,6 +17,7 @@ adminGroup.route(PullAdminBotJobRouteV2, async ({ ctx, res }) => {
       submittedAt: pulled.created_at,
       flag: pulled.flag,
       inputs: pulled.inputs,
+      remotes: pulled.remotes ?? [],
       instancerInstances: pulled.instancer_instances,
     },
   })

@@ -12,6 +12,13 @@ export interface JobMetadata {
 
   flag: string
 
+  remotes: {
+    kind: string
+    host: string
+    port: number
+    title?: string
+  }[]
+
   instancerInstances: {
     type: string
     host: string

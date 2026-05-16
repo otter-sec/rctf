@@ -10,7 +10,7 @@ import {
   timestamp,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
-import { challenges } from './challenges'
+import { challenges, type Remote } from './challenges'
 import { users } from './users'
 
 export interface InstancerInstance {
@@ -37,6 +37,7 @@ export const adminBotJobs = pgTable(
     configRevision: text('config_revision').notNull(),
     flag: text().notNull(),
     inputs: jsonb().$type<Record<string, string>>().notNull(),
+    remotes: jsonb().$type<Remote[]>().notNull().default([]),
     instancerInstances: jsonb('instancer_instances')
       .$type<InstancerInstance[]>()
       .notNull(),

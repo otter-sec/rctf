@@ -1,6 +1,11 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { adminBotJobs, submissions, type InstancerInstance } from '@rctf/db'
+import {
+  adminBotJobs,
+  submissions,
+  type InstancerInstance,
+  type Remote,
+} from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import {
   AdminBotJobStatus,
@@ -20,6 +25,7 @@ type PulledJob = Record<string, unknown> & {
   config_revision: string
   flag: string
   inputs: Record<string, string>
+  remotes: Remote[]
   instancer_instances: InstancerInstance[]
   timeout_ms: number
   created_at: string
@@ -160,6 +166,7 @@ export const createJob = async (
     configRevision: string
     flag: string
     inputs: Record<string, string>
+    remotes: Remote[]
     instancerInstances: InstancerInstance[]
     timeoutMs: number
     submissionIp: string | undefined
@@ -177,6 +184,7 @@ export const createJob = async (
     configRevision: params.configRevision,
     flag: params.flag,
     inputs: params.inputs,
+    remotes: params.remotes,
     instancerInstances: params.instancerInstances,
     timeoutMs: params.timeoutMs,
     createdAt: now,

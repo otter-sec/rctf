@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { RemoteSchema } from '../util'
 
 export const GoodAdminBotJobPull = response('goodAdminBotJobPull', {
   status: 200,
@@ -14,6 +15,7 @@ export const GoodAdminBotJobPull = response('goodAdminBotJobPull', {
         submittedAt: z.string(),
         flag: z.string(),
         inputs: z.record(z.string(), z.string()),
+        remotes: z.array(RemoteSchema),
         instancerInstances: z.array(
           z.object({
             type: z.string(),

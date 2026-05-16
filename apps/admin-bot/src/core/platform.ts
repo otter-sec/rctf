@@ -9,6 +9,13 @@ interface InstancerInstance {
   title?: string
 }
 
+export interface Remote {
+  kind: string
+  host: string
+  port: number
+  title?: string
+}
+
 export interface PulledJob {
   id: string
   challengeId: string
@@ -17,6 +24,7 @@ export interface PulledJob {
   submittedAt: string
   flag: string
   inputs: Record<string, string>
+  remotes: Remote[]
   instancerInstances: InstancerInstance[]
 }
 

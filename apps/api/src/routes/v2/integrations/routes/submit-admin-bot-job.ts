@@ -189,6 +189,7 @@ integrationsGroup.route(
           body.inputs[name]!,
         ])
       ),
+      remotes: challenge.data.remotes ?? [],
       instancerInstances,
       timeoutMs: adminBotConfig.timeoutMilliseconds,
       submissionIp: ctx.var.ip,

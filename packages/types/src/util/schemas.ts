@@ -53,6 +53,15 @@ export const ExposeSchema = z.object({
   title: z.optional(z.string()),
 })
 
+export const RemoteSchema = z.object({
+  kind: z.enum(ExposeKind),
+  host: z.string(),
+  port: z.int(),
+  title: z.optional(z.string()),
+})
+
+export type Remote = z.infer<typeof RemoteSchema>
+
 // NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
   challengeIntegrationId: z.string(),

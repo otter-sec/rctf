@@ -78,6 +78,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       ...file,
       size: file.size ?? null,
     })),
+    remotes: updated.data.remotes ?? [],
     hidden: updated.data.hidden ?? false,
   })
 })

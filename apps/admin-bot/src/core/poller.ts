@@ -74,6 +74,7 @@ export const processJob = async (
         userId: job.userId,
         submittedAt: new Date(job.submittedAt),
         flag: job.flag,
+        remotes: job.remotes,
         instancerInstances: job.instancerInstances,
       },
       job.inputs,

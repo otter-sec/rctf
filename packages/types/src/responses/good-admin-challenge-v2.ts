@@ -5,6 +5,7 @@ import {
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   InstancerConfigSchema,
+  RemoteSchema,
 } from '../util'
 
 export const AdminChallengeSchemaV2 = z.object({
@@ -18,6 +19,7 @@ export const AdminChallengeSchemaV2 = z.object({
   flag: z.string(),
   tiebreakEligible: z.boolean(),
   sortWeight: z.nullish(z.number()),
+  remotes: z.array(RemoteSchema),
   instancerConfig: z.nullish(InstancerConfigSchema),
   adminBotConfig: z.nullish(AdminBotConfigSchema),
   hidden: z.boolean(),

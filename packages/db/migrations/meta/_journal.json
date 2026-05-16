@@ -148,6 +148,13 @@
       "when": 1778537921694,
       "tag": "0020_add_submission_logs",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1778898175000,
+      "tag": "0021_add_admin_bot_job_remotes",
+      "breakpoints": true
     }
   ]
 }

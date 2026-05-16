@@ -40,6 +40,13 @@ export interface RegexRule {
   flags?: string
 }
 
+export interface Remote {
+  kind: ExposeKind
+  host: string
+  port: number
+  title?: string
+}
+
 export interface AdminBotConfig {
   code: string
   inputs: Record<string, RegexRule>
@@ -58,6 +65,7 @@ export interface ChallengeData {
   flag: string
   tiebreakEligible: boolean
   sortWeight?: number
+  remotes?: Remote[]
   instancerConfig?: InstancerConfig
   adminBotConfig?: AdminBotConfig
   hidden?: boolean

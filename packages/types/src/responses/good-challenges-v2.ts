@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { RemoteSchema } from '../util'
 
 export const GoodChallengesV2 = response('goodChallenges', {
   status: 200,
@@ -21,6 +22,7 @@ export const GoodChallengesV2 = response('goodChallenges', {
       points: z.int(),
       solves: z.int(),
       sortWeight: z.nullable(z.number()),
+      remotes: z.array(RemoteSchema),
       instancerLifetime: z.nullable(z.number()),
       instancerExtendable: z.boolean(),
       adminBotInputs: z.nullish(

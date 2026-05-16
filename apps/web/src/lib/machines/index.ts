@@ -2,6 +2,7 @@ import type {
   AdminChallenge,
   AdminChallengeDetail,
   InstancerConfig,
+  Remote,
 } from '@rctf/types'
 import { assign, setup } from 'xstate'
 
@@ -9,6 +10,8 @@ export interface AdminBotConfig {
   enabled: boolean
   code: string
 }
+
+export type { Remote }
 
 export interface FormData {
   name: string
@@ -21,6 +24,7 @@ export interface FormData {
   tiebreakEligible: boolean
   sortWeight: number
   files: { name: string; url: string; size: number | null }[]
+  remotes: Remote[]
   instancerConfig: InstancerConfig | null
   adminBotConfig: AdminBotConfig
   hidden: boolean
@@ -51,6 +55,7 @@ type EditorEvent =
   | { type: 'KEEP_EDITING' }
   | { type: 'UPDATE_FORM'; field: keyof FormData; value: unknown }
   | { type: 'UPDATE_FILES'; files: FormData['files'] }
+  | { type: 'UPDATE_REMOTES'; remotes: Remote[] }
   | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
   | { type: 'UPDATE_ADMIN_BOT'; adminBotConfig: AdminBotConfig }
 
@@ -65,6 +70,7 @@ const emptyForm: FormData = {
   tiebreakEligible: true,
   sortWeight: 0,
   files: [],
+  remotes: [],
   instancerConfig: null,
   adminBotConfig: { enabled: false, code: '' },
   hidden: false,
@@ -87,6 +93,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   tiebreakEligible: c.tiebreakEligible,
   sortWeight: c.sortWeight ?? 0,
   files: c.files ? [...c.files] : [],
+  remotes: c.remotes ? [...c.remotes] : [],
   instancerConfig: c.instancerConfig ?? null,
   adminBotConfig: adminBotConfigFromServer(c.adminBotConfig),
   hidden: c.hidden ?? false,
@@ -104,6 +111,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   tiebreakEligible: d.tiebreakEligible,
   sortWeight: d.sortWeight ?? 0,
   files: d.files ? [...d.files] : [],
+  remotes: d.remotes ? [...d.remotes] : [],
   instancerConfig: d.instancerConfig ?? null,
   adminBotConfig: adminBotConfigFromServer(d.adminBotConfig),
   hidden: d.hidden ?? false,
@@ -165,6 +173,10 @@ export const editorMachine = setup({
       if (event.type !== 'UPDATE_FILES') return {}
       return { form: { ...context.form, files: event.files } }
     }),
+    updateRemotes: assign(({ context, event }) => {
+      if (event.type !== 'UPDATE_REMOTES') return {}
+      return { form: { ...context.form, remotes: event.remotes } }
+    }),
     updateInstancer: assign(({ context, event }) => {
       if (event.type !== 'UPDATE_INSTANCER') return {}
       return {
@@ -219,6 +231,7 @@ export const editorMachine = setup({
       on: {
         UPDATE_FORM: { actions: 'updateForm' },
         UPDATE_FILES: { actions: 'updateFiles' },
+        UPDATE_REMOTES: { actions: 'updateRemotes' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
         CANCEL: [
@@ -241,6 +254,7 @@ export const editorMachine = setup({
       on: {
         UPDATE_FORM: { actions: 'updateForm' },
         UPDATE_FILES: { actions: 'updateFiles' },
+        UPDATE_REMOTES: { actions: 'updateRemotes' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
         CANCEL: [
