@@ -36,6 +36,7 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "hast-util-to-html": "9.0.5",
+    "katex": "0.16.45",
     "radix-ui": "1.4.3",
     "react": "19.0.0",
     "react-dom": "19.0.0",

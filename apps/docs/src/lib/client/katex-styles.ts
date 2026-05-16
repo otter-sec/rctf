@@ -11,9 +11,8 @@ function hasKatexStylesheet(): boolean {
 async function ensureKatexStyles(): Promise<void> {
   if (!hasKatexMarkup() || hasKatexStylesheet()) return
 
-  // The katex package ships as a transitive dep of rehype-katex; importing
-  // its CSS as a Vite URL keeps version-locking automatic and avoids any
-  // CDN dependency.
+  // Importing KaTeX CSS as a Vite URL keeps it version-locked with the
+  // package dependency and avoids any CDN dependency.
   const { default: href } = await import('katex/dist/katex.min.css?url')
   const link = document.createElement('link')
   link.rel = 'stylesheet'
