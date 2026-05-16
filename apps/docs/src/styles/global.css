@@ -75,6 +75,13 @@
   --tone-sapphire: oklch(65% 0.11 213);
   --tone-blue: oklch(56% 0.23 262);
   --tone-lavender: oklch(66% 0.18 273);
+
+  --inline-tone-red: #be2f2c;
+  --inline-tone-green: #566d35;
+  --inline-tone-orange: #a64930;
+  --inline-tone-blue: #4c6690;
+  --inline-tone-magenta: #9039c9;
+  --inline-tone-cyan: #256f74;
 }
 
 [data-theme='dark'] {
@@ -107,6 +114,13 @@
   --tone-sapphire: oklch(79% 0.1 229);
   --tone-blue: oklch(77% 0.11 260);
   --tone-lavender: oklch(82% 0.09 277);
+
+  --inline-tone-red: #f07178;
+  --inline-tone-green: #c3e88d;
+  --inline-tone-orange: #ffcb6b;
+  --inline-tone-blue: #82aaff;
+  --inline-tone-magenta: #c792ea;
+  --inline-tone-cyan: #89ddff;
 }
 
 @layer base {

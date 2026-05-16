@@ -244,27 +244,27 @@
   }
 
   :where(.inline-code-tone.is-red) {
-    color: var(--destructive);
+    color: var(--inline-tone-red);
   }
 
   :where(.inline-code-tone.is-green) {
-    color: var(--success);
+    color: var(--inline-tone-green);
   }
 
   :where(.inline-code-tone.is-orange) {
-    color: var(--tone-peach);
+    color: var(--inline-tone-orange);
   }
 
   :where(.inline-code-tone.is-blue) {
-    color: var(--tone-blue);
+    color: var(--inline-tone-blue);
   }
 
   :where(.inline-code-tone.is-magenta) {
-    color: var(--tone-mauve);
+    color: var(--inline-tone-magenta);
   }
 
   :where(.inline-code-tone.is-cyan) {
-    color: var(--tone-sapphire);
+    color: var(--inline-tone-cyan);
   }
 
   :where(.inline-code-tone.is-white) {
