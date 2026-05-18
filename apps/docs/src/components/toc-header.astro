@@ -66,12 +66,20 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
           </div>
         </summary>
 
-        <ScrollArea client:idle className='mx-auto max-w-3xl' data-toc-header-scroll>
+        <ScrollArea
+          client:idle
+          className='mx-auto max-w-[calc(var(--container-2xl)+2rem)]'
+          data-toc-header-scroll
+        >
           <div class='max-h-[30vh]'>
             <ul class='flex list-none flex-col gap-y-2 px-4 pb-4' id='mobile-table-of-contents'>
               {visible.map(heading => (
                 <li
-                  class={cn('px-4 text-sm', getHeadingMargin(heading.depth), 'text-foreground/60')}
+                  class={cn(
+                    'px-4 pl-6 text-sm',
+                    getHeadingMargin(heading.depth),
+                    'text-foreground/60'
+                  )}
                 >
                   <a
                     href={`#${heading.slug}`}

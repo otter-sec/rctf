@@ -1,6 +1,7 @@
 import Callout from '@/components/callout.astro'
 import AccordionItem from '@/components/mdx/accordion-item.astro'
 import Accordion from '@/components/mdx/accordion.astro'
+import Aside from '@/components/mdx/aside.astro'
 import Badge from '@/components/mdx/badge.astro'
 import CardGrid from '@/components/mdx/card-grid.astro'
 import Card from '@/components/mdx/card.astro'
@@ -15,6 +16,7 @@ import Tabs from '@/components/mdx/tabs.astro'
 export const mdxComponents = {
   Accordion,
   AccordionItem,
+  Aside,
   Badge,
   Callout,
   Card,

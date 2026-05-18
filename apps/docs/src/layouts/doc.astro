@@ -105,6 +105,7 @@ const renderedIndexChildren = await Promise.all(
 
       <main class={cn('mx-auto flex w-full grow flex-col gap-y-6 px-4', offsetClass)}>
         <div
+          data-doc-content-grid
           class={cn(
             'grid grid-cols-1 gap-8',
             scrollGroup
@@ -119,9 +120,10 @@ const renderedIndexChildren = await Promise.all(
           <article
             class={cn(
               'mx-auto w-full min-w-0 xl:mx-0',
-              scrollGroup ? 'max-w-2xl xl:max-w-5xl' : doc.data.wide ? 'max-w-5xl' : 'max-w-2xl'
+              scrollGroup ? 'max-w-2xl xl:max-w-none' : doc.data.wide ? 'max-w-5xl' : 'max-w-2xl'
             )}
             data-pagefind-body
+            data-mdx-aside-shell
             data-scroll-group-root={scrollGroup ? scrollGroup.path : undefined}
           >
             {
@@ -130,7 +132,7 @@ const renderedIndexChildren = await Promise.all(
                   class={cn(
                     'mt-6 mb-8 flex flex-col gap-3',
                     !hasBanner && 'xl:-mt-3',
-                    scrollGroup && 'max-w-2xl'
+                    !doc.data.wide && 'max-w-2xl'
                   )}
                 >
                   <h1
@@ -155,7 +157,7 @@ const renderedIndexChildren = await Promise.all(
               scrollGroup ? (
                 <slot />
               ) : (
-                <div class='prose max-w-none'>
+                <div class='prose max-w-none' data-mdx-aside-layout>
                   <slot />
                 </div>
               )
@@ -217,8 +219,10 @@ const renderedIndexChildren = await Promise.all(
 
 <script>
   import { mountKatexStyles } from '@/lib/client/katex-styles'
+  import { mountMdxAsides } from '@/lib/client/mdx-aside'
   import { mountScrollGroup } from '@/lib/client/scroll-group'
 
   mountKatexStyles()
+  mountMdxAsides()
   mountScrollGroup()
 </script>

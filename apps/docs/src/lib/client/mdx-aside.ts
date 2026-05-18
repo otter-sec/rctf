@@ -1,0 +1,61 @@
+import { mountClientModule } from './lifecycle'
+
+const ASIDE_LAYOUT_SELECTOR = '[data-mdx-aside-layout]'
+const ASIDE_SELECTOR = '[data-mdx-aside]'
+const ASIDE_RAIL_SELECTOR = '[data-mdx-aside-rail]'
+
+function directAsides(layout: HTMLElement): HTMLElement[] {
+  return Array.from(layout.children).filter(
+    (child): child is HTMLElement =>
+      child instanceof HTMLElement &&
+      child.matches(ASIDE_SELECTOR) &&
+      !child.hasAttribute('data-mdx-aside-clone')
+  )
+}
+
+function removeIds(element: HTMLElement): void {
+  element.removeAttribute('id')
+  element.querySelectorAll<HTMLElement>('[id]').forEach(child => child.removeAttribute('id'))
+}
+
+function cloneAside(aside: HTMLElement): HTMLElement {
+  const clone = aside.cloneNode(true) as HTMLElement
+  clone.removeAttribute('data-mdx-aside-source')
+  clone.setAttribute('data-mdx-aside-clone', '')
+  removeIds(clone)
+  return clone
+}
+
+function setupAsideLayout(layout: HTMLElement): void {
+  const asides = directAsides(layout)
+  if (asides.length === 0) return
+
+  const rail = document.createElement('div')
+  rail.setAttribute('data-mdx-aside-rail', '')
+  rail.setAttribute('data-pagefind-ignore', '')
+  rail.style.setProperty('--mdx-aside-offset', `${asides[0].offsetTop}px`)
+
+  asides.forEach(aside => {
+    rail.append(cloneAside(aside))
+    aside.setAttribute('data-mdx-aside-source', '')
+  })
+
+  layout.append(rail)
+}
+
+function cleanupMdxAsides(): void {
+  document.querySelectorAll(ASIDE_RAIL_SELECTOR).forEach(rail => rail.remove())
+  document
+    .querySelectorAll<HTMLElement>('[data-mdx-aside-source]')
+    .forEach(aside => aside.removeAttribute('data-mdx-aside-source'))
+}
+
+function initMdxAsides(): void {
+  cleanupMdxAsides()
+  document.querySelectorAll<HTMLElement>(ASIDE_LAYOUT_SELECTOR).forEach(setupAsideLayout)
+}
+
+export const mountMdxAsides = mountClientModule({
+  setup: initMdxAsides,
+  cleanup: cleanupMdxAsides,
+})

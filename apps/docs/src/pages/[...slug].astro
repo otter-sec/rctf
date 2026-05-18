@@ -153,12 +153,13 @@ const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
             data-scroll-page-target={isOverview ? 'post-title' : page.sectionId}
             data-scroll-page-prefix={page.sectionId}
             data-pagefind-ignore={page.isCurrent ? undefined : ''}
+            data-doc-content-grid
             class:list={[
               'grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
               index > 0 && 'border-border/70 mt-24 border-t pt-16',
             ]}
           >
-            <div class='prose max-w-none'>
+            <div class='prose max-w-none' data-mdx-aside-layout>
               {!isOverview && (
                 <header class='not-prose mb-7'>
                   <h2
@@ -183,7 +184,7 @@ const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
               headings={page.tocHeadings}
               minDepth={toc.minDepth}
               maxDepth={toc.maxDepth}
-              title={isOverview ? undefined : page.label}
+              title={page.label}
               titleTargetId={isOverview ? 'post-title' : page.sectionId}
               pagefindIgnore
             />

@@ -233,6 +233,42 @@
     :where(.katex-display):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/80 my-6 overflow-x-auto overflow-y-hidden py-2 tracking-normal;
     }
+
+    &[data-mdx-aside-layout]:has(> [data-mdx-aside]) {
+      --mdx-aside-gap: 2rem;
+      --mdx-aside-column-width: min(42rem, calc((100% - var(--mdx-aside-gap)) / 2));
+
+      @apply xl:relative;
+    }
+
+    &[data-mdx-aside-layout]:has(> [data-mdx-aside])
+      > :not([data-mdx-aside]):not([data-mdx-aside-rail]) {
+      @apply xl:mx-0 xl:max-w-(--mdx-aside-column-width);
+    }
+
+    &[data-mdx-aside-layout] > [data-mdx-aside][data-mdx-aside-source] {
+      @apply xl:hidden;
+    }
+
+    &[data-mdx-aside-layout] > [data-mdx-aside-rail] {
+      @apply hidden xl:absolute xl:top-(--mdx-aside-offset,0px) xl:right-0 xl:bottom-0 xl:block xl:w-(--mdx-aside-column-width);
+    }
+
+    &[data-mdx-aside-layout] > [data-mdx-aside-rail] > [data-mdx-aside] {
+      @apply xl:sticky xl:top-16 xl:my-0 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto;
+    }
+  }
+
+  [data-mdx-aside-shell]:has([data-mdx-aside]) {
+    @apply xl:max-w-none;
+  }
+
+  [data-doc-content-grid]:has([data-mdx-aside]) {
+    @apply xl:grid-cols-[minmax(0,86rem)];
+  }
+
+  [data-doc-content-grid]:has([data-mdx-aside]) > [data-toc-sidebar-root] {
+    @apply xl:hidden;
   }
 
   :where(.inline-code-tone) {

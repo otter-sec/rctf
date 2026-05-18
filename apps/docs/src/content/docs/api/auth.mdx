@@ -3,6 +3,17 @@ title: Authentication
 description: Registration, verification, login, recovery, CTFtime handoff, and token validation routes.
 ---
 
+<Aside>
+Both API versions are available at the same time:
+
+| Version | Prefix | Status | Use |
+| --- | --- | --- | --- |
+| V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
+| V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
+
+Many v2 routes share the same response `kind` string as their v1 equivalents, but the `data` payload is often wider in v2 (avatars, country codes, blood index, etc.).
+</Aside>
+
 Authentication is team-based. A team owns one account, one team token, and any number of auth tokens. Every route on this page is public except `<route>GET /api/v1/auth/test</route>`, which validates an auth token.
 
 ## Routes
