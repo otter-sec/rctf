@@ -102,10 +102,10 @@ const headings: MarkdownHeading[] = scrollGroup
   ? renderedPages
       .filter(page => !isGroupOverviewPage(page.doc))
       .map(page => ({
-          depth: 2,
-          slug: page.sectionId,
-          text: page.label,
-        }))
+        depth: 2,
+        slug: page.sectionId,
+        text: page.label,
+      }))
   : currentPage.headings
 
 const sidebar = getSidebarTreeFromContext(sidebarContext, href)

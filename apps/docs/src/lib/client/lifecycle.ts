@@ -14,7 +14,7 @@
 export function mountClientModule(opts: {
   setup: () => void
   cleanup?: (event: Event) => void
-  /** Runs once on first mount — for delegated listeners that survive navigation. */
+  /** Runs once on first mount - for delegated listeners that survive navigation. */
   initOnce?: () => void
 }): () => void {
   let ready = false

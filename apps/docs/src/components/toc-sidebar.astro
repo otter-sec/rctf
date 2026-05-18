@@ -54,11 +54,7 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
           </div>
         </div>
       )}
-      <ScrollArea
-        client:idle
-        className='min-h-0 flex-1 overflow-y-auto'
-        data-toc-scroll-area
-      >
+      <ScrollArea client:idle className='min-h-0 flex-1 overflow-y-auto' data-toc-scroll-area>
         <ul class='flex list-none flex-col gap-y-1.5 px-4'>
           {visible.map(heading => (
             <li

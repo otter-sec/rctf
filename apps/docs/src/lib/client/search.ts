@@ -1,3 +1,5 @@
+import { mountClientModule } from './lifecycle'
+
 type PagefindResult = {
   id: string
   data: () => Promise<PagefindData>
@@ -19,8 +21,6 @@ type Pagefind = {
   search: (query: string) => Promise<{ results: PagefindResult[] }>
   init?: () => Promise<void>
 }
-
-import { mountClientModule } from './lifecycle'
 
 const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
 const PAGEFIND_URL = `${BASE_PATH}/pagefind/pagefind.js`
