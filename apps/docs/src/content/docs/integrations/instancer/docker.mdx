@@ -88,12 +88,6 @@ The Traefik TLS config expects these files:
 
 The Docker provider accepts a Docker Compose-like object under `<red>config</red>`:
 
-<Callout variant='note' title='Schema compatible with Konata'>
-  The `<red>instancerConfig</red>` shape shown here is what [Konata](/integrations/konata/)
-  consumes, so the same block can be committed alongside a challenge and synced to rCTF via the
-  Konata CLI or CI actions.
-</Callout>
-
 ```yaml title="challenge.yaml"
 instancerConfig:
   challengeIntegrationId: web-demo

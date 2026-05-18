@@ -19,7 +19,7 @@ Instanced challenges are useful when teams need private mutable state, a dedicat
 This page covers the parts that are the same for both providers - the architecture, the common challenge fields, and the participant lifecycle. The provider-specific deployment guides live one level deeper:
 
 - [Docker instancer](/integrations/instancer/docker/) - bundled Python FastAPI service driving Docker, Traefik, and Redis.
-- [Kubernetes instancer](/integrations/instancer/kubernetes/) - Go operator driving GKE (or Kind for local dev), Traefik, and Terraform.
+- [Kubernetes instancer](/integrations/instancer/kubernetes/) - Go operator driving GKE, Traefik, and Terraform.
 
 ## Architecture
 
@@ -64,8 +64,8 @@ instancerProvider:
 | --- | --- |
 | `<red>instancerProvider.options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
 | `<red>instancerProvider.options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
-| `TINY_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
-| `TINY_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
+| `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
+| `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 
 See [Docker instancer](/integrations/instancer/docker/) for the deployment walkthrough and Docker-specific challenge schema.
 
@@ -102,13 +102,7 @@ See [Kubernetes instancer](/integrations/instancer/kubernetes/) for the Terrafor
 
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`:
-
-<Callout variant='note' title='Schema compatible with Konata'>
-  The `<red>instancerConfig</red>` shape shown here is what [Konata](/integrations/konata/)
-  consumes, so the same block can be committed alongside a challenge and synced to rCTF via the
-  Konata CLI or CI actions.
-</Callout>
+Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active; only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata/) consumes - Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
@@ -178,11 +172,15 @@ captcha:
     - instancerExtend
 ```
 
-## Schema and troubleshooting
+## Provider schema and the admin UI
 
-Admins can retrieve the active provider's JSON schema from `<route>GET /api/v2/admin/instancer/schema</route>`
+The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic** - the same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
 
-The schema is useful for challenge import tools and generated challenge data validation.
+The response is generated from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
+
+### Dynamic admin UI
+
+The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Switching the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild - every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI does not cover.
 
 <Callout variant='note' title='Challenge repository tooling'>
   [Konata](/integrations/konata/) is a CTF challenge management tool with rCTF support, including
@@ -190,12 +188,3 @@ The schema is useful for challenge import tools and generated challenge data val
   [DiceCTF Quals 2026 challenges](https://github.com/dicegang/dicectf-quals-2026-challenges)
   repository is a useful reference for Konata-style challenge configuration.
 </Callout>
-
-Common checks:
-
-- A `<red>404 badEndpoint</red>` response means no instancer provider is configured.
-- A `<red>400 badInstancerConfig</red>` response means the challenge config failed provider validation.
-- A Docker `<green>tcp</green>` expose becomes `<green>tcp-ssl</green>` because raw TCP cannot be SNI-routed by host.
-- A Kubernetes `<green>tcp</green>` expose is currently unsupported. The configured kind should be `<green>tcp-ssl</green>`.
-- Kubernetes requires `<red>caCertificate</red>` even when the API server certificate is otherwise trusted by the host.
-- The admin bot `<red>requireInstancerInstancesRunning</red>` check only confirms an instance is running before queueing the job. Challenge handlers should still tolerate a stopped or expired instance.

@@ -42,17 +42,17 @@ A typical layout (taken from the DiceCTF Quals 2026 deployment repository):
         <Dir name='challenge' />
       </Dir>
       <Dir name='mirror-temple'>
-        <File name='kona.yml' />
+        <File name='kona.yml' comment='Per-challenge config' />
       </Dir>
     </Dir>
     <Dir name='pwn'>
       <Dir name='garden'>
-        <File name='kona.yml' />
+        <File name='kona.yml' comment='Per-challenge config' />
       </Dir>
     </Dir>
     <Dir name='sanity'>
       <Dir name='survey'>
-        <File name='kona.yml' comment='discovery.skip: true' />
+        <File name='kona.yml' comment='Skipped because discovery.skip: true' />
       </Dir>
     </Dir>
   </Dir>
@@ -143,7 +143,25 @@ Free-form key/value map of domain names available to the Jinja templates inside 
 
 ### `templates`
 
-Overrides for the rendered challenge description and endpoint block. Defaults wrap the description with a connection-info section followed by `**Author**: ...`. Overrides are Jinja2 templates with `<red>challenge</red>`, `<red>config</red>`, and `<red>models</red>` in scope. The DiceCTF example overrides `<red>endpoints_text</red>` to render endpoints as a Discord-style `> [!CONNECTION]` block.
+Overrides for the rendered challenge description and endpoint block. The defaults wrap the description with a connection-info section followed by `**Author**: ...`. Overrides are Jinja2 templates with `<red>challenge</red>`, `<red>config</red>`, and `<red>models</red>` in scope.
+
+| Field | Purpose |
+| --- | --- |
+| `<red>challenge_description</red>` | Top-level description template. Receives `<red>endpoints_rendered</red>` already filled in by the per-provider endpoints template. |
+| `<red>endpoints_text.rctf</red>` | Endpoints template used when syncing to rCTF. The default renders a `> [!CONNECTION]` callout, which the rCTF frontend turns into a styled connection-info box. |
+| `<red>endpoints_text.ctfd</red>` | Endpoints template used when syncing to CTFd. The default is plain `socat`/`nc`/`ncat --ssl`/`http(s)` lines. |
+| `<red>ctfd_attribution</red>` | Suffix appended to the description on CTFd syncs (defaults to `**Author**: {{ challenge.author }}`). |
+
+`<red>endpoints_text</red>` is per-provider because rCTF and CTFd render markdown differently: each provider sees its own rendered endpoints, then `<red>challenge_description</red>` is run once per provider with that provider's `<red>endpoints_rendered</red>` in scope. To override just one side, set only that key - the other keeps its default.
+
+```yaml
+templates:
+  endpoints_text:
+    rctf: |
+      {% for endpoint in challenge.endpoints %}
+      ...your override...
+      {% endfor %}
+```
 
 ### `discovery`
 
@@ -200,7 +218,7 @@ discovery:
 | `<red>endpoints</red>` | Static endpoints (host/port) rendered into the description by the endpoints template. |
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
 | `<red>sort_weight</red>` | Numeric sort hint passed through to rCTF. |
-| `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer/)). Mutually exclusive with static endpoints in practice - pick one. |
+| `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer/)) |
 
 ### Attachments
 
@@ -241,17 +259,33 @@ attachments:
 | `<red>additional</red>` | Synthetic files injected into the archive. Each entry specifies `<red>path</red>` plus exactly one of `<red>str</red>` or `<red>base64</red>`. Typical use: a dummy flag file so the build still works. |
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
 
-### Flags from files
+### Flags
 
-Flags may live in a file alongside the challenge instead of inline:
+`<red>flags</red>` is a per-platform map. Each platform has its own shape - rCTF accepts exactly one flag, CTFd accepts a list - and within each platform a flag value can be written in three forms: an inline literal string, `<red>{ str: ... }</red>`, or `<red>{ file: ... }</red>` (read at sync time, path resolved relative to the challenge directory).
 
 ```yaml
+# rCTF flag, inline literal - most common.
+flags:
+  rctf: dice{example}
+
+# rCTF flag, explicit str form. Equivalent to the inline literal above.
+flags:
+  rctf:
+    str: dice{example}
+
+# rCTF flag, read from a file. Pairs well with an `additional` attachment that ships a dummy flag.txt
+# (see Attachments) so the build context stays self-contained.
 flags:
   rctf:
     file: flag.txt
 ```
 
-The path is resolved against the challenge directory. This pairs well with `<red>additional</red>` attachments that ship a dummy `flag.txt` so the build context stays self-contained.
+| Field | Type | Notes |
+| --- | --- | --- |
+| `<red>flags.rctf</red>` | `string{:ts}` \| `{ str }{:ts}` \| `{ file }{:ts}` | Single flag synced to rCTF. |
+| `<red>flags.ctfd[]</red>` | list | Multiple flags synced to CTFd. |
+| `<red>flags.ctfd[].type</red>` | `string{:ts}` | CTFd flag type. Defaults to `<green>static</green>`. Pass `<green>regex</green>` for regex flags. |
+| `<red>flags.ctfd[].flag</red>` | `string{:ts}` \| `{ str }{:ts}` \| `{ file }{:ts}` | Flag value. Same three forms as `<red>flags.rctf</red>`. |
 
 ### Endpoints
 
@@ -316,7 +350,7 @@ deployment:
         image: true
 ```
 
-…or inline documents (the most common form in the DiceCTF repo):
+…or inline documents:
 
 ```yaml
 deployment:
@@ -347,7 +381,7 @@ deployment:
 
 ### Instanced challenges
 
-For challenges using the rCTF instancer, drop the `<red>endpoints</red>` block and add `<red>instancer_config</red>` instead. The schema mirrors the [rCTF instancer config](/integrations/instancer/#challenge-configuration); Konata serializes it straight through:
+For challenges using the rCTF instancer, add `<red>instancer_config</red>`. The schema mirrors the [rCTF instancer config](/integrations/instancer/#challenge-configuration) - the outer envelope is the same across providers; only the inner `<red>config</red>` differs (Docker Compose-like for docker-instancer, `<red>pods[]</red>` for k8s-instancer). The whole Konata schema accepts both `snake_case` and `camelCase` keys.
 
 ```yaml title="web/mirror-temple/kona.yml"
 challenges:
@@ -404,7 +438,7 @@ deployment:
       platform: linux/amd64
 ```
 
-The instanced flow only needs an image - the rCTF instancer's k8s-controller handles namespaces, services, network policies, and ingress at runtime. No `<red>kubernetes_inline_manifests</red>` block is required.
+The instanced flow only needs pod definitions - the rCTF instancer's k8s-controller handles namespaces, services, network policies, and ingress at runtime. No `<red>kubernetes_inline_manifests</red>` block is required.
 
 ## CLI
 
@@ -435,6 +469,8 @@ $ kona compress ./challenge/dist --format zip --output handout.zip
 | `path` (positional) | Source file or directory.                                               |
 | `-f`, `--format`    | `<green>tar_gz</green>` (default) or `<green>zip</green>`.              |
 | `-o`, `--output`    | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
+
+Both formats are **deterministic**: file mtimes are zeroed (fixed to `1980-01-01` for zip, `0` for tar.gz), uid/gid become `0`, uname/gname become `<green>kona</green>`, permissions are normalized to `0777`, the gzip header drops its own filename and mtime, and entries are sorted by archive path. Compressing the same set of files always produces a byte-identical archive (and therefore an identical hash), so attachment dedup and CI cache hits stay stable across machines, runs, and users. The same normalization is applied to attachments Konata builds internally during `<black>sync</black>`.
 
 ## CI integration
 
@@ -481,6 +517,7 @@ jobs:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.SERVICE_ACCOUNT }}
 
+      # Doing it like this is faster than anything else
       - name: Install gke-gcloud-auth-plugin
         run: |
           curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --batch --dearmor -o /usr/share/keyrings/cloud.google.gpg
@@ -501,11 +538,8 @@ jobs:
 Notable bits:
 
 - **Workload Identity Federation** is preferred over a long-lived JSON key. The `id-token: write` permission is what makes `google-github-actions/auth@v3` work with WIF.
-- **`gke-gcloud-auth-plugin`** must be installed on the runner before Kubernetes manifests can be applied; the GitHub-hosted `ubuntu-latest` image does not ship it.
 - **`gcloud auth configure-docker`** is needed for every Artifact Registry host the matrix shard might push to.
 - **`RCTF_TOKEN`** is the admin team token referenced by the root `kona.yml` (`<red>secrets.token.env: RCTF_TOKEN</red>`).
-
-For a self-hosted / non-GKE deployment the GCP-specific steps drop out and the workflow is just `detect` → `sync` with `RCTF_TOKEN` in scope.
 
 ## Real-world reference
 
