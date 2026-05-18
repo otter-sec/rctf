@@ -127,7 +127,7 @@ server {
     ssl_certificate_key /etc/ssl/cf_privkey.pem;
 
     # NOTE: It is *very* important to only whitelist Cloudflare IPs for the webserver (which we'll do in the following steps),
-    # as this otherwise lets you spoof the IP (not that this is particularly useful though).
+    # as this otherwise lets you spoof the IP.
     set_real_ip_from 0.0.0.0/0;
     real_ip_header CF-Connecting-IP;
 

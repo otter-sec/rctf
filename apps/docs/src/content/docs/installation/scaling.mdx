@@ -27,10 +27,11 @@ In practice the platform barely uses the box it sits on. [DiceCTF 2026 Quals](ht
 </Callout>
 
 <Callout variant='note' title='Deliberately overprovisioned'>
-  The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running rCTF
-  v2: if something unexpected blew up in CPU or memory during the CTF, we wanted enough runway to diagnose
-  and patch without the platform falling over in the meantime. A smaller instance would have been more than
-  sufficient for the actual observed load - `CPX62` definitely works, but it is not a recommended baseline.
+  The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running
+  rCTF v2: if something unexpected blew up in CPU or memory during the CTF, we wanted enough runway
+  to diagnose and patch without the platform falling over in the meantime. A smaller instance would
+  have been more than sufficient for the actual observed load - `CPX62` definitely works, but it is
+  not a recommended baseline.
 </Callout>
 
 A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point and is what the [VPS setup walkthrough](/running-a-successful-ctf/03-setup/) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml` and dominate steady-state memory more than the rCTF container itself.

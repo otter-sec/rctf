@@ -54,103 +54,37 @@ It is extremely important to make sure competitors are not able to access any in
 
 In an instanced remote configuration, each competitor receives a dedicated instance. This is necessary for challenges where the vulnerability inherently provides file write or remote code execution capabilities, which could otherwise be exploited by competitors to disrupt challenge functionality, remove flags, or interfere with other participants.
 
-### Klodd
+rCTF v2 ships first-party support for instanced challenges, so you don't need a third-party integration here. Pick whichever backend matches your operational comfort level:
 
-One method for deploying instanced challenges on rCTF is the third-party integration [Klodd](https://klodd.tjcsec.club/). Its architecture is similar to kCTF, with challenges deployed to a Kubernetes cluster on-demand. Comprehensive deployment and configuration documentation is available on the Klodd website.
+- **[Docker instancer](/integrations/instancer/docker/)** - bundled Python FastAPI service that runs on a standalone Docker host alongside Traefik and Redis. Lightweight; good fit for small-to-medium events.
+- **[Kubernetes instancer](/integrations/instancer/kubernetes/)** - Go operator that reconciles `ChallengeInstance` custom resources into per-team namespaces with network policies, Traefik routes, and ACME wildcard TLS. Comes with a Terraform module for GKE. The scalable option.
 
-#### GCP
+The shared `<red>instancerConfig</red>` schema, participant lifecycle, and admin UI are documented in the [instancer overview](/integrations/instancer/).
 
-The following guide outlines the prerequisites for deploying Klodd on GCP using GKE:
-
-<Steps>
-<Step title="Create GKE cluster">
-
-```sh
-$ gcloud config set project [project-id]
-$ gcloud container clusters create --release-channel regular --zone europe-west1-b --enable-network-policy --enable-autoscaling \
-  --min-nodes 1 --max-nodes 4 --num-nodes 1 --no-enable-master-authorized-networks --enable-autorepair \
-  --machine-type e2-standard-8 klodd-cluster
-$ gcloud container clusters get-credentials klodd-cluster --zone europe-west1-b
-
-$ gcloud compute addresses create klodd-ip --region europe-west1
-$ gcloud compute addresses list   # note down the external IP of klodd-ip
-```
-
-</Step>
-<Step title="Set up Cloudflare Worker and certificate">
-
-Set up a Cloudflare Worker for authentication by following instructions [here](https://klodd.tjcsec.club/install-guide/prerequisites/#rctf). Then, follow [certbot's instructions](https://certbot.eff.org/instructions) on how to provision a certificate, ideally using a wildcard certificate for a subdomain under which all the instances are and the instancer URL itself:
-
-```sh
-$ certbot certonly --manual --preferred-challenge=dns --email [email] -d instancer.example.com,*.instancer.example.com
-```
-
-</Step>
-<Step title="Deploy Klodd">
-
-Klodd can now be deployed to the GKE cluster. The following commands use the files from the `klodd/` folder in [the example CTF repository](https://github.com/otter-sec/rctf-example-ctf) as a base:
-
-```sh mark={3,6}
-$ kubectl create secret tls instancer --cert=/etc/letsencrypt/live/instancer.example.com/fullchain.pem --key=/etc/letsencrypt/live/instancer.example.com/privkey.pem
-$ kubectl apply -f https://raw.githubusercontent.com/traefik/traefik/v3.4/docs/content/reference/dynamic-configuration/kubernetes-crd-definition-v1.yml/
-$ kubectl apply -f 00-traefik.yaml   # remember to update the load balancer IP
-$ kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-crd.yaml
-$ kubectl apply -f https://raw.githubusercontent.com/TJCSec/klodd/master/manifests/klodd-rbac.yaml
-$ kubectl apply -f 10-klodd.yaml   # remember to update the klodd configuration, and all the instancer.example.com URLs here
-```
-
-</Step>
-<Step title="Configure DNS">
-
-Create a wildcard `A` DNS record for `*.instancer.example.com` pointing to [klodd-ip], and an `A` DNS record for `instancer.example.com` pointing to [klodd-ip]. Once configured, refer to [Klodd's challenge deployment guide](https://klodd.tjcsec.club/install-guide/challenges/) for instructions on deploying individual challenges.
-
-</Step>
-</Steps>
-
-Challenges will be accessible at `https://instancer.example.com/challenge/[metadata.name]` once the configuration is complete.
+If you'd rather stick with an existing setup, third-party integrations like [Klodd](https://klodd.tjcsec.club/) still work against rCTF, but the first-party instancer is the recommended path going forward.
 
 <Callout variant="warning">
 
 Instances can be deployed before the CTF begins. Exercise caution when deploying challenges in advance if their names are predictable.
 
 </Callout>
-### tiny-instancer
-
-A more lightweight alternative is [tiny-instancer](https://github.com/es3n1n/tiny-instancer), which can be deployed on a standalone machine. Detailed installation instructions are available in the project's README.
 
 ## Admin bot
 
-The admin bot can be configured using the examples available [here](https://github.com/otter-sec/rctf-admin-bot/tree/main/examples). Begin by creating a custom Docker image using the `image` folder as a base. Modify `config.js` to execute the Puppeteer actions required for the challenge. The image must then be built and uploaded to a Docker registry. The following example uses GCP's Artifact Registry:
+rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript handlers in a Puppeteer-driven Chrome/Firefox session. The handlers live alongside the challenge, validate participant input, and stream structured per-job logs back to the platform. Configuration, the handler API, scaling notes, and deployment guidance are all in the dedicated [Admin bot](/integrations/admin-bot/) page.
 
-<Steps>
-<Step title="Create Artifact Registry and build image">
+## Keeping challenges in sync
 
-```sh
-$ gcloud config set project [project-id]
-$ gcloud artifacts repositories create misc-images \
-    --repository-format=docker \
-    --location=europe-west1
-$ gcloud auth configure-docker europe-west1-docker.pkg.dev   # configure authentication
+Updating a challenge is where most operational pain comes from. Touching the source code without updating the published attachment leaves teams solving against stale handouts; rebuilding the Docker image but forgetting to roll the running deployment leaves the flag pointing at the old binary; tweaking `<red>instancerConfig</red>` in the admin UI without bumping the image causes new instances to come up with mismatched assets. Each of these is easy to miss in the moment and hard to debug after the fact.
 
-$ cd image
-$ docker build -t europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest .
-$ docker push europe-west1-docker.pkg.dev/[PROJECT_ID]/misc-images/admin-bot:latest
-```
+<Callout variant='tip' title='Use Konata + CI as the single source of truth'>
+  Commit every challenge's `kona.yml` alongside the source, and let [Konata](/integrations/konata/)
+  drive deployment from CI on every push to `main`. With the [Konata GitHub
+  Action](/integrations/konata/#ci-integration), one commit can rebuild and push the Docker image,
+  re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the
+  running deployment - all from the same source tree, in the right order.
+</Callout>
 
-</Step>
-<Step title="Deploy with Terraform">
+Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile` export, a `make handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/integrations/konata/#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
 
-The `gcp` folder provides [Terraform](https://developer.hashicorp.com/terraform) configuration for automated deployment. Navigate to the `gcp` folder and copy `terraform.tfvars.example` to `terraform.tfvars`. Update the `project` variable to contain the GCP project ID and the `image` variable to the image path from the previous step. Optionally, configure reCAPTCHA to prevent submission abuse. Deploy the admin bot with the following commands:
-
-```sh
-$ terraform init
-$ terraform apply   # type `yes` when prompted
-```
-
-</Step>
-<Step title="Access your admin bot">
-
-After a few minutes, the deployment will provide a submit URL for accessing the admin bot at `/[challenge name]`. Optionally, a [custom domain can be mapped](https://cloud.google.com/run/docs/mapping-custom-domains/) to the Cloud Run service via the GCP dashboard for a more professional URL.
-
-</Step>
-</Steps>
+The DiceCTF Quals 2026 challenge repository is a working reference for this workflow end-to-end - challenge sources, `kona.yml` files, and a [`deploy.yaml`](https://github.com/dicegang/dicectf-quals-2026-challenges/blob/main/.github/workflows/deploy.yaml) that ships every change through Konata.

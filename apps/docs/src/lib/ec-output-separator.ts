@@ -50,17 +50,30 @@ export function pluginOutputSeparator(): ExpressiveCodePlugin {
         const commands: string[] = []
         let hasCmd = false
         let hasOut = false
+        let inContinuation = false
 
         for (const line of lines) {
           const codeNode = select('div.code', line)
-          const isCmd = !!select('span.shell-prompt', line)
+          const hasPrompt = !!select('span.shell-prompt', line)
+          const isCmd = hasPrompt || inContinuation
+
           if (isCmd) {
             addClass(line, 'ec-cmd')
             hasCmd = true
-            if (codeNode) commands.push(extractCommandText(codeNode))
+            if (codeNode) {
+              const text = extractCommandText(codeNode)
+              if (hasPrompt || commands.length === 0) {
+                commands.push(text)
+              } else {
+                commands[commands.length - 1] += '\n' + text
+              }
+            }
+            const lineText = codeNode ? extractCommandText(codeNode) : ''
+            inContinuation = /\\\s*$/.test(lineText)
           } else {
             addClass(line, 'ec-out')
             hasOut = true
+            inContinuation = false
           }
         }
 

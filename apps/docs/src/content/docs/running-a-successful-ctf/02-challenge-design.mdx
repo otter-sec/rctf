@@ -45,7 +45,7 @@ Each challenge should include the following:
 | **Tags** | Additional categorizations. Tags are often used for bounties, challenges part of a series, or challenges that fit into multiple categories. | Optional, common |
 | **Difficulty** | Relative difficulty level. This is a contentious topic due to the subjective nature of difficulty ratings, so this is sometimes excluded. | Optional, uncommon |
 | **Flag** | The solution in the established format. | Required |
-| **Attachments** | Any downloadable attachments. Attachments should be nicely zipped and uniquely named to avoid issues like `dist(4).tar.gz`. | Optional, common |
+| **Attachments** | Any downloadable attachments. Attachments should be nicely zipped and uniquely named to avoid issues like `dist(4).tar.gz`. (`<green>konata</green>` helps with this!) | Optional, common |
 | **Remote** | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>` rather than a `<code>`. rCTF provides a custom `[!CONNECTION]` callout for this purpose. | Optional, common |
 | **Instancer** | Configuration for instancer challenges (if applicable). This should not be public but rather documented internally, and open-sourced after the CTF. | Optional, uncommon |
 | **Solution** | A working solve script or writeup. This should be referenced internally during playtesting and released after the CTF. | Optional, recommended |
@@ -92,7 +92,7 @@ CMD ["python", "app.py"]
 
 #### Using with rCTF instancer
 
-If you are using rCTF's [instancer integration](/integrations/instancer/), the Docker Compose-like configuration is defined in the challenge's `<red>instancerConfig</red>` field. The instancer handles container lifecycle, networking, and cleanup automatically.
+If you are using rCTF's [docker instancer integration](/integrations/instancer/), the Docker Compose-like configuration is defined in the challenge's `<red>instancerConfig</red>` field. The instancer handles container lifecycle, networking, and cleanup automatically.
 
 ## Pre-event checklist
 

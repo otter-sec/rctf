@@ -5,9 +5,7 @@ description: Post-CTF tasks including uploading scoreboards to CTFtime, distribu
 
 import Callout from '@/components/callout.astro'
 
-Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, and infrastructure teardown.
-
-To keep challenges and the scoreboard publicly accessible after teardown, generate a read-only snapshot with the [static export tool](/archiving/) before decommissioning the live instance.
+Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, [archiving](#archive-the-platform), and infrastructure teardown.
 
 ## Uploading scoreboard to CTFtime
 
@@ -16,17 +14,9 @@ Submitting the final scoreboard to CTFtime enables participating teams to receiv
 <Steps>
 <Step title="Update admin permissions">
 
-The admin user must have the appropriate permissions to access the CTFtime integration endpoint. Update the permissions as follows:
+The CTFtime export endpoint requires the `<red>leaderboardRead</red>` (`4{:ts}`) permission. If the admin account was already provisioned with full perms (`63{:ts}`) during initial setup, this step is a no-op. Otherwise see [Administration › Permissions](/admin/#permissions) for the full table and the exact SQL to run - the snippet for granting CTFtime-export-capable perms is:
 
-```sh
-$ docker exec -it rctf-postgres-1 bash
-```
-
-```sh title="Inside the postgres container"
-$ psql -U rctf
-```
-
-```sql title="Inside the postgres shell"
+```sql
 UPDATE users SET perms = 7 WHERE email = '[...]';
 ```
 
@@ -66,25 +56,10 @@ Point distribution may take approximately one hour for established events. For f
 </Steps>
 ## Prize distribution
 
-For competitions with prizes, team contact information can be retrieved directly from the database. This approach is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
+For competitions with prizes, look up the winning teams in the admin panel's [teams view](/admin/teams/) - it lists every team with its email and division, and supports name search and pagination. This is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
 
-```sh
-$ docker exec -it rctf-postgres-1 bash
-```
+For divisional prizes, filter the list by division in the same view.
 
-```sh title="Inside the postgres container"
-$ psql -U rctf
-```
-
-```sql title="Inside the postgres shell"
-SELECT * FROM users WHERE name IN ('Team 1', 'Team 2', 'Team 3');
-```
-
-<Callout variant="tip">
-
-For competitions using divisions, the query can be extended to filter by division if prize distribution varies by category.
-
-</Callout>
 ## Feedback collection
 
 Releasing a post-competition feedback form (e.g., Google Forms) provides valuable insights for future events. Consider soliciting feedback on the following areas:
@@ -109,6 +84,12 @@ Encouraging participants to publish writeups benefits the broader CTF community 
 - Compile and share links to community writeups in the Discord server or on the event website.
 - Release official writeups for challenges that received few or no community solutions.
 
+## Archive the platform
+
+Before decommissioning anything, run an archive of the live instance. rCTF ships a [static export tool](/archiving/) that snapshots challenges, scoreboard, and team pages into a read-only site you can host on any static-file backend (S3, GitHub Pages, Netlify, plain nginx, ...). Once the snapshot is up, participants can still browse the final standings and revisit challenge metadata long after the live platform is gone - which is the right time to also link writeups against permanent URLs.
+
+See [Archiving](/archiving/) for the export commands and hosting tips. We recommend doing this **before** the teardown checklist below.
+
 ## Infrastructure teardown
 
 The timing of infrastructure teardown depends on several factors: remaining budget, the desire to keep challenges accessible for writeup authors, and the willingness to maintain operational services. Most organizers scale down infrastructure shortly after the competition concludes while maintaining minimal services for several days to allow participants to verify their solutions.
@@ -119,9 +100,11 @@ For infrastructure sponsored by cloud providers (e.g., Google Cloud credits), se
 
 Ensure the following resources are properly decommissioned to avoid unexpected costs:
 
+- Publish the static archive (see [Archiving](/archiving/)) before deleting anything else.
 - Take down the CTF platform, and back up the database and configuration before deletion to simplify setup for future events.
-- Remove kCTF clusters, VPS instances, Klodd/tiny-instancer deployments, and associated GKE resources.
-- For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts.
-- Rotate or revoke any API keys, tokens, or credentials used during the event.
+- Remove challenge infrastructure: kCTF clusters and any VPS instances used for shared remotes, plus the [Docker instancer](/integrations/instancer/docker/) or [Kubernetes instancer](/integrations/instancer/kubernetes/) deployment (including the GKE cluster, Traefik, and the ACME wildcard secret).
+- Remove the [admin bot](/integrations/admin-bot/) worker(s) and any queue/scraper sidecars if you deployed an autoscaled fleet.
+- For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts (including the S3/GCS upload bucket if you migrated off the local provider).
+- Rotate or revoke any API keys, tokens, or credentials used during the event - rCTF's `<red>tokenKey</red>`, the instancer `<red>authToken</red>`, the admin bot service token, captcha secrets, registry push credentials, and any deploy tokens (e.g. the Konata `<red>RCTF_TOKEN</red>`).
 
 </Callout>
