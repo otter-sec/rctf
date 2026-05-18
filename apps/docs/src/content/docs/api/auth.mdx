@@ -222,7 +222,7 @@ At least one of `teamToken` or `ctftimeToken` must be present. A team token is p
 
 `<green>200 goodLogin</green>`: `{ authToken: string }`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badTokenVerification</red>`, `<red>401 badCtftimeToken</red>`, `<red>404 badCtftimeNoExists</red>`, `<red>404 badEndpoint</red>` (CTFtime not configured).
+**Errors**: `<red>400 badBody</red>`, `<red>401 badTokenVerification</red>`, `<red>401 badCtftimeToken</red>`, `<red>404 badUnknownUser</red>`.
 
 ### `<route>POST /api/v1/auth/verify</route>`
 

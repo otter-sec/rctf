@@ -126,11 +126,17 @@ $ bun run dev:web   # Frontend only on :5173
 Build both the API and frontend:
 
 ```sh
+$ bun run --filter '@rctf/api' build   # Builds API server bundle
 $ bun run --filter '@rctf/web' build   # Builds static frontend
-$ bun run --filter '@rctf/api' start   # Starts API server
 ```
 
-The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+Start the API server:
+
+```sh
+$ NODE_ENV=production WORKER_EXTENSION=.js bun run apps/api/dist/index.js
+```
+
+`WORKER_EXTENSION=.js{:sh}` makes the API load the compiled leaderboard worker from `apps/api/dist/`. The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
 ## Scaling
 
@@ -141,7 +147,7 @@ The `<red>instanceType</red>` config option lets you split an rCTF process into 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
 ```sh
-$ bun run test                # Run all tests from root
-$ bun run test:coverage       # With coverage
-$ bun run typecheck           # Typecheck all workspaces
+$ bun run test                 # Run all tests from root
+$ bun run test:server:coverage # Server tests with coverage
+$ bun run typecheck            # Typecheck all workspaces
 ```

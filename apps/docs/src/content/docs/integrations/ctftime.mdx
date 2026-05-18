@@ -41,7 +41,7 @@ Or via environment variables:
 2. The browser redirects to CTFtime's OAuth authorization page
 3. After approval, CTFtime redirects back with an authorization code
 4. The frontend sends the code to the rCTF API
-5. The API exchanges the code for a CTFtime access token and creates an rCTF authentication token
+5. The API exchanges the code for a CTFtime access token and creates an rCTF CTFtime auth token
 
 ### Registration with CTFtime
 
@@ -49,7 +49,7 @@ When a user registers with CTFtime, they provide a team name and the CTFtime tok
 
 ### Login with CTFtime
 
-Returning users provide their CTFtime token to log in. The API matches their CTFtime ID to an existing account.
+Returning users provide their CTFtime auth token to log in. The API matches their CTFtime ID to an existing account and returns an rCTF auth token.
 
 ## Division ACL behavior
 
