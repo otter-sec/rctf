@@ -9,5 +9,6 @@ export default {
     '04-deployment': { label: 'Deploying challenges', order: 4 },
     '05-during-ctf': { label: 'During the CTF', order: 5 },
     '06-after-ctf': { label: 'After the CTF', order: 6 },
+    '07-common-mistakes': { label: 'Common mistakes', order: 7, badge: 'new' },
   },
 } satisfies MetaFile

@@ -58,3 +58,8 @@ variable "gcp_instancer_max_node_count" {
     type = string
     default = 1
 }
+
+variable "gcp_instancer_pod_pids_limit" {
+    type = number
+    default = 4096
+}

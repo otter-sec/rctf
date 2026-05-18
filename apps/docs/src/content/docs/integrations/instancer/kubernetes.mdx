@@ -108,6 +108,7 @@ Copy `terraform.tfvars.example` to `terraform.tfvars` and fill in:
 | `<red>gcp_instancer_machine_type</red>` | Yes | GCE machine type, for example `<green>e2-medium</green>`. |
 | `<red>gcp_instancer_min_node_count</red>` | No | Autoscaling minimum. Defaults to `1{:ts}`. |
 | `<red>gcp_instancer_max_node_count</red>` | No | Autoscaling maximum. Defaults to `1{:ts}`. |
+| `<red>gcp_instancer_pod_pids_limit</red>` | No | Per-pod kubelet PID cap. Defaults to `4096{:ts}`. Bounds fork bombs in challenge pods so one container can't drain the node's `kernel.pid_max`. Must be `>= 1024` per GKE's kubelet validation. |
 
 A minimal Cloudflare-backed file looks like this:
 

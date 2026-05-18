@@ -20,6 +20,17 @@ In a shared remote, every competitor gets access to a single shared instance bet
 
 Google has created [kCTF](https://google.github.io/kctf/introduction.html) for this purpose, which enables challenge deployment on GCP with instance scaling, health checks, automatic restarts upon failure, and secure sandboxing on shared hosts. For a simpler alternative, shared instances can also be run on a traditional VPS either inside Docker or directly on the host.
 
+<Callout variant='warning' title='Wrap shared remotes in a jail'>
+  Any shared remote where the intended solve gives a competitor code execution must run the
+  vulnerable process inside a per-connection sandbox. Concretely:
+
+- **[pwn.red/jail](https://github.com/redpwn/jail)** is the modern drop-in - a small base image that forks the challenge per connection inside an nsjail with read-only rootfs, no network, dropped caps, and CPU/memory/time limits. Add two lines to a Dockerfile (`FROM pwn.red/jail`) and you get isolation per session for free. Recommended default for pwn / RCE-style shared remotes.
+- **[nsjail](https://github.com/google/nsjail)** is the lower-level building block both kCTF and pwn.red/jail wrap. kCTF runs every challenge inside an nsjail by default; if you're not on kCTF and not using pwn.red/jail, configure nsjail yourself.
+
+Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp`, or just kill the process for everyone else.
+
+</Callout>
+
 ### kCTF
 
 kCTF maintains its own [documentation](https://google.github.io/kctf/), so this section focuses on considerations that may not be immediately apparent, particularly for first-time users:
@@ -34,7 +45,7 @@ kCTF maintains its own [documentation](https://google.github.io/kctf/), so this 
 
 If the complexity of kCTF is undesirable due to GCP and Kubernetes requirements, a simpler option is to deploy challenges using Docker on one or more dedicated hosts. It is advisable to avoid reusing the same VPS as the CTF platform, as challenges may receive significant traffic volumes and isolating participant data from intentionally vulnerable services is a recommended security practice.
 
-The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrapping challenges in nsjail can further reduce the attack surface and mitigate such risks.
+The most straightforward deployment method is [Docker Compose](https://docs.docker.com/compose/), with each challenge assigned a unique port. Note that challenges resulting in remote code execution carry risks of container breakouts (particularly if elevated privileges are required) or malicious actions such as disk exhaustion. Wrap the challenge process in [pwn.red/jail](https://github.com/redpwn/jail) or nsjail - see the [shared-remote callout above](#shared-remote).
 
 <Callout variant="danger">
 

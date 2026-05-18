@@ -1,0 +1,93 @@
+---
+title: Common mistakes
+description: The recurring operational and security mistakes CTF organizers make, with rCTF-specific notes on what's already handled.
+---
+
+import Callout from '@/components/callout.astro'
+
+These are the mistakes we keep seeing in post-CTF retros - ours and other teams'. Each section is a thing to watch for in general; the rCTF-specific notes call out what the platform already does and what is still on you.
+
+## Not being prepared for traffic
+
+The classic failure mode: registration opens, the homepage lights up, and the platform either falls over under the connection burst or quietly degrades because nobody load-tested the path participants will actually hit.
+
+<Callout variant='warning' title='What to watch for'>
+
+- The first ~5 minutes after start: concurrent registrations + login + first leaderboard view all collide. Load-test the registration/login/leaderboard paths from a separate machine with a realistic mix before the day.
+- The challenge-cluster scale, separately from the platform box. Each instanced challenge can spawn one pod per team - size for the worst-case `expected teams × instanced challenges with overlapping deadlines`.
+- Cold-start latency on first-team-starts-this-challenge. Pre-pull challenge images on every node.
+- Captcha actually being enabled. The endpoints rCTF gates by default only get protected if a provider is configured.
+
+</Callout>
+
+With rCTF you can stop worrying about the platform itself. The leaderboard is computed by a background worker and served from a Redis cache, nginx serves the frontend with brotli/gzip precompression and immutable cache headers, and the [Docker](/integrations/instancer/docker/) and [Kubernetes](/integrations/instancer/kubernetes/) instancers handle per-team-instance lifecycle (the k8s-instancer's GKE module is configured for autoscaling out of the box). Captcha is integrated for [recaptcha/hcaptcha/turnstile](/providers/captcha/) and gates registration, login, and instancer-start when the provider is set.
+
+## Skipping per-pod resource limits on challenge instances
+
+A K8s pod without `<red>resources.limits</red>` is allowed to use whatever the node has free. One team's solver running `:(){ :|:& };:` or a runaway memory leak in a guest VM challenge can starve the node and take everyone else's instances of every other challenge down with it. Same story for unbounded PIDs, FDs, and ephemeral storage. This is the silent failure that looks like "the platform is slow" but is really one pod chewing the whole node.
+
+<Callout variant='warning' title='What to watch for'>
+
+- Pods declared with only `<red>requests</red>` and no `<red>limits</red>` - the scheduler sizes the node on requests but lets the pod burst unbounded.
+- The CPU/memory limit guessed from a single happy-path test. A pwn challenge's intended exploit usually allocates more than the author's manual `nc localhost ...` did.
+- Missing `<red>pids_limit</red>` (Docker) or `<red>resources.limits.ephemeral-storage</red>` (K8s). A fork bomb or `dd if=/dev/zero of=/tmp/x` is a fully in-bounds participant action.
+- No `<red>terminationGracePeriodSeconds</red>` cap. Teams holding open TCP connections can delay pod cleanup for minutes when an instance expires.
+
+</Callout>
+
+With rCTF, the k8s-instancer's `<red>instancerConfig.config.pods[]</red>` is a real PodSpec - set `<red>resources.requests</red>` and `<red>resources.limits</red>` directly on each container. Kubernetes has no per-container PID limit field (it's a kubelet-level setting), so the bundled GKE Terraform module sets the kubelet's `<red>podPidsLimit</red>` to `4096{:ts}` cluster-wide via the `<red>gcp_instancer_pod_pids_limit</red>` variable - a fork bomb inside a challenge pod hits that cap and stops, instead of exhausting the node's `kernel.pid_max` for every other pod. The Docker provider has its own per-service caps in [Docker challenge config](/integrations/instancer/docker/#docker-challenge-config): `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>`, with defaults of `6m` mem / `1.0` CPU / `64` PIDs / `1024` nofile if you don't override them.
+
+## Exposing the cloud instance-metadata service to challenges
+
+Anything reachable from a challenge container can reach the cloud provider's instance-metadata service (`http://169.254.169.254` on AWS/GCP/Hetzner Cloud, `http://[fd00:ec2::254]` on IPv6). On a default cloud VM, that endpoint hands out short-lived credentials for the node's service account - which usually has more than enough permissions to read your storage buckets, push to your registry, or escalate further.
+
+<Callout variant='warning' title='What to watch for'>
+
+- Egress from challenge containers to `169.254.0.0/16` (IPv4 link-local) and the IPv6 metadata addresses. Block both stacks.
+- Custom CNI / `NetworkPolicy` bypass annotations on the cluster - a misconfigured CNI on bare-metal will silently drop the rules. Verify from inside a test pod that `curl http://169.254.169.254` fails.
+- Shared-remote VPS / bare-VM challenges where no NetworkPolicy applies. Drop IMDS at the host firewall (`iptables -A OUTPUT -d 169.254.169.254 -j DROP` and equivalent) or run the host without an attached service account.
+
+</Callout>
+
+With rCTF, the [Kubernetes instancer](/integrations/instancer/kubernetes/#network-policies) ships three `NetworkPolicy` resources per instance namespace. The default `egress` policy explicitly excludes RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`) - `169.254.169.254` lives in that link-local block, so IMDS is unreachable from challenge pods by default. The Terraform module also enables GKE's `workload_metadata_concealment` for a second layer at the node level. If a challenge genuinely needs public-internet egress, opt in with `<red>egress: true</red>` on the pod - that opens public egress while keeping link-local / RFC1918 blocked. Don't drop the policy itself.
+
+## Running a shared remote without per-connection sandboxing
+
+A shared remote where the intended solve grants code execution (most pwn, plenty of misc) needs every connection to run in its own sandbox. Without one, the first solver can replace the challenge binary, drop a backdoor in `/tmp`, exhaust the FD/proc table, or just kill the process - and every subsequent connection plays against the corrupted state.
+
+<Callout variant='warning' title='What to watch for'>
+
+- Any pwn/RCE challenge served as a long-lived shared process. Each TCP connection must fork into its own sandbox with read-only rootfs, no network, dropped capabilities, and CPU/memory/time limits.
+- kCTF templates whose `nsjail` config was stripped during customization. Verify the wrapper is still there.
+- Per-team instanced pods that still serve multiple parallel connections from the same team - inner jailing limits the blast radius of one bad connection.
+
+</Callout>
+
+rCTF itself doesn't sandbox the challenge process - that's a challenge-side concern - but the patterns we recommend everywhere it's possible:
+
+- **[pwn.red/jail](https://github.com/redpwn/jail)** as the default. Small base image, forks the challenge per connection inside an nsjail with all the right defaults. Two lines in a `Dockerfile` (`FROM pwn.red/jail`).
+- **kCTF challenges are already in nsjail** by default. Use kCTF's `kctf chal create{:sh}` template as-is.
+- **Raw [nsjail](https://github.com/google/nsjail)** for everything else. Tune `--max_cpus`, `--rlimit_as`, `--time_limit`, `--disable_proc` per challenge.
+
+See the [shared-remote callout in Deploying challenges](/running-a-successful-ctf/04-deployment/#shared-remote) for the deployment-side walkthrough.
+
+## Mounting broad Kubernetes service-account tokens into challenge pods
+
+The other half of the IMDS problem: by default, every pod in a Kubernetes namespace gets the `default` service-account token mounted at `/var/run/secrets/kubernetes.io/serviceaccount/`. If that service account has any cluster-wide permissions - or if the cluster auto-grants `system:authenticated` more than it should - a participant who pops the challenge pod can talk to the API server and pivot.
+
+<Callout variant='warning' title='What to watch for'>
+
+- `<red>automountServiceAccountToken</red>` defaulting to `true{:ts}` on every challenge pod. Set it to `false{:ts}` unless the challenge genuinely needs the in-cluster API (we've never seen one that did).
+- The `system:authenticated` group's cluster-role bindings. Some Helm charts and older GKE defaults grant `system:basic-user` or broader. Audit `kubectl get clusterrolebindings -o yaml | grep -A4 system:authenticated` and revoke anything with real verbs.
+- The instancer cluster sharing a tenant with your team's internal services. A challenge-pod escape into the same cluster becomes an internal-services escape.
+- Widened controller RBAC left over from debugging. Narrow it back before the event.
+
+</Callout>
+
+With rCTF, the k8s-instancer's `<red>instancerConfig.config.pods[]</red>` schema accepts the standard PodSpec - including `<red>automountServiceAccountToken</red>` - so you can set `false{:ts}` declaratively next to the rest of the pod config. The `inst-<challenge>-<team>` namespace the controller creates also has no extra RBAC bindings of its own - only the rCTF-controller cluster role exists at the cluster level, scoped to `ChallengeInstance` resources, so there's no namespace-default service account binding handing challenges cluster privilege.
+
+<Callout variant='tip' title='When in doubt, treat every challenge image as already-compromised'>
+  The defaults rCTF ships with are designed around the assumption that participants will get code
+  execution inside the challenge container, because in most pwn/web challenges that is the intended
+  solution.
+</Callout>

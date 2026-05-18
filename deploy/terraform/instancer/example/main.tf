@@ -60,6 +60,7 @@ module "gke" {
     machine_type = var.gcp_instancer_machine_type
     min_node_count = var.gcp_instancer_min_node_count
     max_node_count = var.gcp_instancer_max_node_count
+    pod_pids_limit = var.gcp_instancer_pod_pids_limit
 }
 
 output "challenge_registry_url" {
