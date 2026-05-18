@@ -17,11 +17,13 @@ $ curl -L https://get.rctf.osec.io | sh
 
 This installs rCTF to `/opt/rctf` with Docker Compose, including PostgreSQL, Redis, and the rCTF server. When prompted, answer `y` to start the platform immediately.
 
-After installation, configure your instance by editing files in `/opt/rctf/rctf.d/`:
+After installation, configure your instance by editing the YAML files in `/opt/rctf/rctf.d/` (at minimum, set `<red>ctfName</red>`, `<red>origin</red>`, `<red>startTime</red>`, and `<red>endTime</red>` - see [Configuration](/configuration/) for the full reference). Once the config is in place, apply the changes by rebuilding the stack:
 
 ```sh
 $ cd /opt/rctf && docker compose up -d --force-recreate --build
 ```
+
+Re-run that command after every config change.
 
 See [Configuration](/configuration/) for the full reference of available options.
 

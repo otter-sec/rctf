@@ -173,4 +173,4 @@ The provider plugin that stores challenge files and user avatars. Options: `uplo
 
 ### Verify token
 
-A one-time token issued to confirm an email address (registration or email change). It is parsed as `TokenKind.Verify{:ts}` and expires after `loginTimeout{:yaml}` milliseconds. See [Authentication](/api/auth/).
+A one-time token issued to confirm an email address (registration or email change). It is parsed as `TokenKind.Verify{:ts}` and expires after `loginTimeout{:yaml}` milliseconds. Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `<red>401 badTokenVerification</red>` after the marker has been consumed or expired. See [Authentication](/api/auth/).

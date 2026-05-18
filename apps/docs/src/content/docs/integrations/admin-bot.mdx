@@ -212,13 +212,13 @@ export const challenge = new Challenge({
 
     // allow example.com, but not any other example.com subdomain
     host: {
-      allowRegex: [{ pattern: '^example.com$' }],
+      allowRegex: [{ pattern: '^example\\.com$' }],
       disallowRegex: [{ pattern: '^.*\\.example\\.com$' }],
     },
     // allow example.com/kek, but not any other urls on example.com
     url: {
-      allowRegex: [{ pattern: 'example.com\\/kek' }],
-      disallowRegex: [{ pattern: 'example.com' }],
+      allowRegex: [{ pattern: 'example\\.com\\/kek' }],
+      disallowRegex: [{ pattern: 'example\\.com' }],
     },
   },
 

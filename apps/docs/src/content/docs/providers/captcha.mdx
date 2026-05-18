@@ -44,7 +44,7 @@ Only the actions listed in `<red>protectedEndpoints</red>` will require captcha.
 <Tabs items={['captcha/recaptcha', 'captcha/hcaptcha', 'captcha/turnstile']}>
 <Tab>
 
-Google reCAPTCHA (v2 or v3).
+Google reCAPTCHA v2 Invisible. The frontend renders the widget with `size: 'invisible'{:ts}` and verifies the response against `https://www.google.com/recaptcha/api/siteverify`.
 
 ```yaml
 captcha:

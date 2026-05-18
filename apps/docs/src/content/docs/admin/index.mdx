@@ -30,7 +30,7 @@ After registering a normal account, grant admin permissions via the database:
 -- Full admin (all permissions)
 UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
 
--- Challenge manager only (read + write challenges)
+-- Challenge editor (read + write challenges)
 UPDATE users SET perms = 3 WHERE email = 'author@example.com';
 ```
 

@@ -11,7 +11,7 @@ rCTF is intentionally lightweight. A single-node deployment of the bundled conta
 
 ## Resource expectations
 
-The API process is a single Bun runtime and the frontend is a static SvelteKit build served by nginx. The leaderboard worker runs as a Web Worker inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
+The API process is a single Bun runtime and the frontend is a static SvelteKit build served by nginx. The leaderboard worker runs as a Bun `Worker` thread inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
 
 In practice the platform barely uses the box it sits on. [DiceCTF 2026 Quals](https://2026.ctf.dicega.ng/scores) - a large, well-attended event - ran the entire platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **1.6 cores**:
 
@@ -22,7 +22,7 @@ In practice the platform barely uses the box it sits on. [DiceCTF 2026 Quals](ht
 
 <Callout variant='warning' title='RAM data lost'>
   Memory metrics for the same window were not retained. Expect a similarly modest footprint - the
-  API process is a single Bun runtime and the leaderboard worker is a Web Worker thread, not a
+  API process is a single Bun runtime and the leaderboard worker is a Bun `Worker` thread, not a
   separate process.
 </Callout>
 
