@@ -119,7 +119,7 @@ const renderedIndexChildren = await Promise.all(
           <article
             class={cn(
               'mx-auto w-full min-w-0 xl:mx-0',
-              scrollGroup ? 'max-w-5xl' : doc.data.wide ? 'max-w-5xl' : 'max-w-2xl'
+              scrollGroup ? 'max-w-2xl xl:max-w-5xl' : doc.data.wide ? 'max-w-5xl' : 'max-w-2xl'
             )}
             data-pagefind-body
             data-scroll-group-root={scrollGroup ? scrollGroup.path : undefined}
