@@ -20,6 +20,7 @@ function permissionNames(value: number): string[] {
 }
 
 function deriveAuth(): string {
+  if (def.serviceAuth) return 'Service'
   if (def.authRequired) return 'Required'
   if (def.optionalAuth) return 'Optional'
   return 'Public'

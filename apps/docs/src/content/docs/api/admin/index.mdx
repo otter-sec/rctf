@@ -1,0 +1,187 @@
+---
+title: Admin
+description: Challenge management, uploads, teams, verifications, submissions, settings, and admin bot service routes.
+---
+
+<RouteAside>
+  <RouteList>
+    <RouteListItem
+      title="Admin challenge list"
+      method="GET"
+      path="/api/[v2,v1]/admin/challs"
+      href="/api/admin/challenge-list/"
+    />
+    <RouteListItem
+      title="Admin challenge detail"
+      method="GET"
+      path="/api/[v2,v1]/admin/challs/:id"
+      href="/api/admin/challenge-detail/"
+    />
+    <RouteListItem
+      title="Create or update challenge"
+      method="PUT"
+      path="/api/[v2,v1]/admin/challs/:id"
+      href="/api/admin/challenge-update/"
+    />
+    <RouteListItem
+      title="Delete a solve"
+      method="DELETE"
+      path="/api/v2/admin/challs/:challengeId/solves/:userId"
+      href="/api/admin/challenge-delete-solve/"
+    />
+    <RouteListItem
+      title="Delete a challenge"
+      method="DELETE"
+      path="/api/v1/admin/challs/:id"
+      href="/api/admin/challenge-delete/"
+    />
+    <RouteListItem
+      title="Upload files"
+      method="POST"
+      path="/api/[v2,v1]/admin/upload"
+      href="/api/admin/upload/"
+    />
+    <RouteListItem
+      title="Query uploads"
+      method="POST"
+      path="/api/[v2,v1]/admin/upload/query"
+      href="/api/admin/upload-query/"
+    />
+    <RouteListItem
+      title="List teams"
+      method="GET"
+      path="/api/v2/admin/users"
+      href="/api/admin/teams/"
+    />
+    <RouteListItem
+      title="Filter teams"
+      method="POST"
+      path="/api/v2/admin/users"
+      href="/api/admin/team-filter/"
+    />
+    <RouteListItem
+      title="Team detail"
+      method="GET"
+      path="/api/v2/admin/users/:id"
+      href="/api/admin/team-detail/"
+    />
+    <RouteListItem
+      title="Update team"
+      method="PUT"
+      path="/api/v2/admin/users/:id"
+      href="/api/admin/team-update/"
+    />
+    <RouteListItem
+      title="Delete team"
+      method="DELETE"
+      path="/api/v2/admin/users/:id"
+      href="/api/admin/team-delete/"
+    />
+    <RouteListItem
+      title="Create team token"
+      method="POST"
+      path="/api/v2/admin/users/:id/token"
+      href="/api/admin/team-token/"
+    />
+    <RouteListItem
+      title="Pending verifications"
+      method="GET"
+      path="/api/v2/admin/user-verifications"
+      href="/api/admin/verifications/"
+    />
+    <RouteListItem
+      title="Complete verification"
+      method="POST"
+      path="/api/v2/admin/user-verifications/:id/complete"
+      href="/api/admin/verification-complete/"
+    />
+    <RouteListItem
+      title="Resend verification"
+      method="POST"
+      path="/api/v2/admin/user-verifications/:id/resend"
+      href="/api/admin/verification-resend/"
+    />
+    <RouteListItem
+      title="List submissions"
+      method="GET"
+      path="/api/v2/admin/submissions"
+      href="/api/admin/submissions/"
+    />
+    <RouteListItem
+      title="Filter submissions"
+      method="POST"
+      path="/api/v2/admin/submissions"
+      href="/api/admin/submission-filter/"
+    />
+    <RouteListItem
+      title="Read settings"
+      method="GET"
+      path="/api/v2/admin/settings"
+      href="/api/admin/settings/"
+    />
+    <RouteListItem
+      title="Update settings"
+      method="PUT"
+      path="/api/v2/admin/settings"
+      href="/api/admin/settings-update/"
+    />
+    <RouteListItem
+      title="Instancer schema"
+      method="GET"
+      path="/api/v2/admin/instancer/schema"
+      href="/api/admin/instancer-schema/"
+    />
+    <RouteListItem
+      title="Admin bot status"
+      method="GET"
+      path="/api/v2/admin/admin-bot/status"
+      href="/api/admin/admin-bot-status/"
+    />
+    <RouteListItem
+      title="Pull admin bot job"
+      method="POST"
+      path="/api/v2/admin/admin-bot/jobs/pull"
+      href="/api/admin/admin-bot-pull/"
+    />
+    <RouteListItem
+      title="Admin bot source"
+      method="GET"
+      path="/api/v2/admin/admin-bot/challenges/:id/source"
+      href="/api/admin/admin-bot-source/"
+    />
+    <RouteListItem
+      title="Complete admin bot job"
+      method="POST"
+      path="/api/v2/admin/admin-bot/jobs/:id/complete"
+      href="/api/admin/admin-bot-complete/"
+    />
+    <RouteListItem
+      title="Fail admin bot job"
+      method="POST"
+      path="/api/v2/admin/admin-bot/jobs/:id/fail"
+      href="/api/admin/admin-bot-fail/"
+    />
+    <RouteListItem
+      title="Admin bot queue depth"
+      method="GET"
+      path="/api/v2/admin/admin-bot/queue-depth"
+      href="/api/admin/admin-bot-queue-depth/"
+    />
+  </RouteList>
+</RouteAside>
+
+These admin API pages cover challenge data, uploads, teams, pending email verifications, submission audit rows, runtime settings, and admin bot service work. Most user facing admin routes need a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token instead.
+
+Permissions, captcha actions, and rate limit conventions are documented in the [API overview](/api/).
+
+### Permissions
+
+| Permission | Used by |
+| --- | --- |
+| `challsRead{:ts}` | Reading admin challenge data, upload state, instancer schemas, admin bot status, and admin user solve history. |
+| `challsWrite{:ts}` | Updating challenges and uploading files. |
+| `challsSolveWrite{:ts}` | Removing solves. |
+| `usersWrite{:ts}` | Listing and editing teams, creating team tokens, managing pending verifications, and reading submission audit rows. |
+| `settingsWrite{:ts}` | Reading and updating runtime settings. |
+
+When a route lists more than one permission bit, the token needs every listed bit.

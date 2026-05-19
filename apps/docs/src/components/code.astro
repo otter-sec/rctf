@@ -7,9 +7,10 @@ interface Props {
   lang: string
   title?: string
   meta?: string
+  dataCurlExample?: boolean
 }
 
-const { code, lang, title, meta = '' } = Astro.props
+const { code, lang, title, meta = '', dataCurlExample = false } = Astro.props
 
 const metaParts: string[] = []
 if (title) metaParts.push(`title="${title}"`)
@@ -23,6 +24,9 @@ const { renderedGroupAst } = await engine.render({
   meta: fullMeta,
 })
 const html = toHtml(renderedGroupAst as Parameters<typeof toHtml>[0])
+const taggedHtml = dataCurlExample
+  ? html.replace(/class="([^"]*\bexpressive-code\b[^"]*)"/, 'data-curl-example class="$1"')
+  : html
 ---
 
-<Fragment set:html={html} />
+<Fragment set:html={taggedHtml} />

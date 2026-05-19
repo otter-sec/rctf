@@ -1,0 +1,99 @@
+---
+title: Integrations
+description: Client config, analytics, CTFtime, instancer, and admin bot participant routes.
+---
+
+<RouteAside>
+  <RouteList>
+    <RouteListItem
+      title="Client config"
+      method="GET"
+      path="/api/[v2,v1]/integrations/client/config"
+      href="/api/integrations/client-config/"
+    />
+    <RouteListItem
+      title="Analytics script"
+      method="GET"
+      path="/api/v2/integrations/analytics/script"
+      href="/api/integrations/analytics-script/"
+    />
+    <RouteListItem
+      title="Instance status"
+      method="GET"
+      path="/api/v2/integrations/challs/:id/instance"
+      href="/api/integrations/instance-status/"
+    />
+    <RouteListItem
+      title="Start an instance"
+      method="PUT"
+      path="/api/v2/integrations/challs/:id/instance"
+      href="/api/integrations/instance-start/"
+    />
+    <RouteListItem
+      title="Extend an instance"
+      method="PATCH"
+      path="/api/v2/integrations/challs/:id/instance"
+      href="/api/integrations/instance-extend/"
+    />
+    <RouteListItem
+      title="Stop an instance"
+      method="DELETE"
+      path="/api/v2/integrations/challs/:id/instance"
+      href="/api/integrations/instance-stop/"
+    />
+    <RouteListItem
+      title="Admin bot config"
+      method="GET"
+      path="/api/v2/integrations/challs/:id/admin-bot/config"
+      href="/api/integrations/admin-bot-config/"
+    />
+    <RouteListItem
+      title="Submit admin bot job"
+      method="POST"
+      path="/api/v2/integrations/challs/:id/admin-bot"
+      href="/api/integrations/admin-bot-submit/"
+    />
+    <RouteListItem
+      title="Admin bot job status"
+      method="GET"
+      path="/api/v2/integrations/challs/:id/admin-bot/status"
+      href="/api/integrations/admin-bot-status/"
+    />
+    <RouteListItem
+      title="Admin bot job history"
+      method="GET"
+      path="/api/v2/integrations/challs/:id/admin-bot/history"
+      href="/api/integrations/admin-bot-history/"
+    />
+    <RouteListItem
+      title="Admin bot job logs"
+      method="GET"
+      path="/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs"
+      href="/api/integrations/admin-bot-logs/"
+    />
+    <RouteListItem
+      title="CTFtime callback"
+      method="POST"
+      path="/api/v1/integrations/ctftime/callback"
+      href="/api/integrations/ctftime-callback/"
+    />
+    <RouteListItem
+      title="CTFtime leaderboard"
+      method="GET"
+      path="/api/v1/integrations/ctftime/leaderboard"
+      href="/api/integrations/ctftime-leaderboard/"
+    />
+  </RouteList>
+</RouteAside>
+
+Integration routes help the web app and external services coordinate with rCTF. They cover public runtime config, analytics script delivery, CTFtime handoff, per team challenge instances, and participant admin bot jobs.
+
+The admin bot worker service routes use a separate service token and are documented in [Admin](/api/admin/).
+
+### Version choice
+
+Client config is available in both V1 and V2. Newer clients usually want V2 because it includes the current analytics, captcha, logo, archive, and instancer fields. The remaining integration routes are version specific.
+
+### Timeline behavior
+
+Instance and participant admin bot routes open after the CTF starts. Admins with `challsRead{:ts}` can read through that start gate when they need to review challenges before the event begins.

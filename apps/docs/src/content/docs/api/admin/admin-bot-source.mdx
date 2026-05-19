@@ -1,0 +1,31 @@
+---
+title: '<route>GET</route> Admin bot source'
+description: '<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>'
+---
+
+import { GetAdminBotChallengeSourceRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample
+    def={GetAdminBotChallengeSourceRouteV2}
+    params={{ id: 'challenge-id' }}
+  />
+</RouteAside>
+
+<RouteMetaFromDef def={GetAdminBotChallengeSourceRouteV2} />
+
+The admin bot worker calls this service route to read the source code saved for a challenge config revision.
+
+The request is authenticated with the shared admin bot bearer token from `adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`.
+
+<RequestBody
+  def={GetAdminBotChallengeSourceRouteV2}
+  source="params"
+  title="Path parameters"
+/>
+
+<ResponseBody
+  def={GetAdminBotChallengeSourceRouteV2}
+  response="goodAdminBotChallengeSource"
+  title="Response fields"
+/>

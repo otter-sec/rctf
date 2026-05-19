@@ -1,5 +1,6 @@
 ---
 import Code from '@/components/code.astro'
+import { methodToneTag } from '@/lib/code-semantics'
 import { dimPlaceholders, generateExample, walkObjectSchema } from '@/lib/route-introspect'
 
 interface Props {
@@ -42,7 +43,8 @@ function substituteParams(path: string): string {
   })
 }
 
-const method = (def.method as string) ?? 'GET'
+const method = ((def.method as string) ?? 'GET').toUpperCase()
+const methodTone = methodToneTag(method)
 const path = substituteParams(def.path as string)
 
 const queryObj = buildObject(def.query, query)
@@ -55,8 +57,10 @@ const queryString = queryObj
 
 const bodyObj = buildObject(def.body, body, pick)
 const isWriteMethod = method === 'POST' || method === 'PUT' || method === 'PATCH'
+const isFormData = def.bodyFormat === 'form-data'
 const hasBody = !!bodyObj && isWriteMethod
-const needsAuth = def.authRequired === true || def.optionalAuth === true
+const needsAuth = def.authRequired === true || def.optionalAuth === true || !!def.serviceAuth
+const tokenLabel = def.serviceAuth === 'adminBot' ? 'admin-bot-token' : 'auth-token'
 const needsExplicitMethod = method !== 'GET' && !(method === 'POST' && hasBody)
 
 const fullUrl = `${baseUrl}/api${path}${queryString}`
@@ -71,11 +75,20 @@ function add(line: string): void {
   lines[lines.length - 1] += ' \\'
   lines.push(line)
 }
-if (needsExplicitMethod) add(`  <dim>-X ${method}</dim>`)
-if (needsAuth) add(`  <dim>-H</dim> <white>"Authorization: Bearer <dim><auth-token></dim>"</white>`)
-if (hasBody) add(`  <dim>--json</dim> '${bodyIndented}'`)
+if (needsExplicitMethod) add(`  <dim>-X</dim> <${methodTone}>${method}</${methodTone}>`)
+if (needsAuth) add(`  <dim>-H</dim> <white>"Authorization: Bearer <dim><${tokenLabel}></dim>"</white>`)
+if (hasBody && isFormData) {
+  for (const [key, value] of Object.entries(bodyObj)) {
+    if (value === null || value === undefined) continue
+    const fallback = key === 'files' ? '@dist.zip' : key === 'avatar' ? '@avatar.png' : String(value)
+    const rendered = typeof value === 'string' ? value : fallback
+    add(`  <dim>-F</dim> <white>"${key}=${rendered}"</white>`)
+  }
+} else if (hasBody) {
+  add(`  <dim>--json</dim> '${bodyIndented}'`)
+}
 
 const code = lines.join('\n')
 ---
 
-<Code lang="json" code={code} meta='frame="terminal"' />
+<Code lang="json" code={code} meta='frame="terminal"' dataCurlExample />

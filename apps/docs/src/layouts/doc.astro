@@ -199,7 +199,7 @@ const renderedIndexChildren = await Promise.all(
           </article>
 
           {
-            tocEnabled && !scrollGroup ? (
+            tocEnabled && !scrollGroup && (
               <TOCSidebar
                 headings={headings}
                 minDepth={tocMinDepth}
@@ -207,9 +207,7 @@ const renderedIndexChildren = await Promise.all(
                 title={pageTitle}
                 class={hasBanner ? (bannerSize === 'full' ? 'mt-36' : 'mt-12') : undefined}
               />
-            ) : !doc.data.wide ? (
-              <div class="hidden xl:block" aria-hidden="true" />
-            ) : null
+            )
           }
         </div>
       </main>

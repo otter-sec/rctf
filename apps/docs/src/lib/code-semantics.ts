@@ -58,6 +58,10 @@ const METHOD_TONES = new Map<string, ToneTag>([
   ['OPTIONS', 'blue'],
 ] satisfies [Method, ToneTag][])
 
+export function methodToneTag(method: string): ToneTag {
+  return METHOD_TONES.get(method.toUpperCase()) ?? 'white'
+}
+
 const METHOD_PATTERN = METHODS.join('|')
 const METHOD_GROUP_RE = new RegExp(`^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`)
 const ROUTE_RE = new RegExp(`^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`)
@@ -109,7 +113,7 @@ function isDimTone(tone: string): boolean {
 
 function methodNodes(methods: string): ElementContent[] {
   return methods.split('/').flatMap((method, i) => {
-    const node = toneNode(METHOD_TONES.get(method) ?? 'white', [textNode(method)])
+    const node = toneNode(methodToneTag(method), [textNode(method)])
     return i === 0 ? [node] : [textNode('/'), node]
   })
 }

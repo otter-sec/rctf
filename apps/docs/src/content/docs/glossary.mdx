@@ -1,176 +1,90 @@
 ---
 title: Glossary
-description: Definitions for rCTF-specific terminology used across configuration, the admin panel, the API, and integrations.
+description: Definitions for common CTF terms used across challenges, scoring, teams, and leaderboards.
 ---
 
-This page defines terms that appear across rCTF configuration, the admin panel, the API, and the integrations. Each entry is scoped to how rCTF uses the term, not generic CTF jargon.
-
-## A
-
-### Admin bot
-
-A separate browser worker that runs trusted TypeScript challenge handlers against participant-submitted inputs. Used for client-side web challenges where the platform needs a controlled browser session with challenge-specific state. See [Admin bot](/integrations/admin-bot/).
-
-### Admin-bot provider
-
-The provider plugin that bridges the rCTF API and the admin bot worker. The built-in `admin-bot/rctf-js{:yaml}` provider validates TypeScript challenge configs and proxies job requests. Configured under `adminBot.provider{:yaml}` and documented at [Admin bot](/integrations/admin-bot/).
-
-### `adminBotConfig`
-
-The challenge-data field that stores compiled admin bot source plus its public input schema, rendered file extension, and config revision. The challenge editor populates this through the admin bot worker's test endpoint.
-
-### Analytics provider
-
-The provider plugin that emits the analytics script tag injected into the frontend. Options: `analytics/google{:yaml}`, `analytics/cloudflare{:yaml}`. See [Analytics providers](/providers/analytics/).
-
-### Auth token
-
-The long-lived bearer token sent as `Authorization: Bearer <auth-token>{:http}` on user-authenticated routes. Auth tokens do not expire on their own and are invalidated only by rotating `tokenKey{:yaml}`. See [Authentication](/api/auth/).
-
-## B
-
-### Blood
-
-A solve that lands within the first few solves of a challenge. rCTF tracks first, second, and third blood; `bloodBot.bloodsCount{:yaml}` (1-3) controls how many tiers are announced. See [Blood bot](/integrations/bloodbot/).
-
-### Blood index
-
-A `0`-based integer describing which blood tier a solve earned: `0` for first blood, `1` for second, `2` for third. Solves outside the tracked window have no blood index.
-
-### BloodBot
-
-The notification service that posts blood announcements to Discord or Telegram destinations. Each destination is a message provider plus an optional template. See [Blood bot](/integrations/bloodbot/).
+This page defines common Capture the Flag terms. It keeps the scope to words participants and organizers usually use during an event.
 
 ## C
 
-### Captcha provider
+### Challenge
 
-The provider plugin that validates participant captcha responses for protected actions. Options: `captcha/recaptcha{:yaml}`, `captcha/hcaptcha{:yaml}`, `captcha/turnstile{:yaml}`. See [Captcha providers](/providers/captcha/).
+A task that participants solve to earn points. Challenges usually include a prompt, one or more files or services, and a flag that proves the team found the intended answer.
 
-### Captcha-protected action
+### Category
 
-An action listed under `captcha.protectedEndpoints{:yaml}` that requires a valid captcha token before the request is processed. The action enum is `register{:ts}`, `recover{:ts}`, `setEmail{:ts}`, `instancerStart{:ts}`, `instancerExtend{:ts}`, `avatarUpload{:ts}`, `adminBotSubmit{:ts}`. See [Configuration](/configuration/#captcha).
+A label that groups similar challenges. Common categories include web, crypto, pwn, reverse engineering, forensics, and miscellaneous.
 
-### Client config
+### CTF
 
-The sanitized config payload exposed to the frontend through the integrations API. Only public fields are included; secrets stay server-side. The v2 client config also surfaces runtime timing overrides.
-
-### CTFtime auth token
-
-A short-lived token issued during a CTFtime OAuth handoff. It is parsed as `TokenKind.CtftimeAuth{:ts}` and exchanged for an auth token when registration or login completes. Expiry is governed by `loginTimeout{:yaml}`. See [Authentication](/api/auth/).
+Short for Capture the Flag. In this style of security competition, teams solve challenges and submit flags for points.
 
 ## D
 
 ### Division
 
-A logical grouping of teams (for example, "Open" or "Student") used to partition the leaderboard. Divisions are declared under `divisions{:yaml}` and the default for new accounts is set by `defaultDivision{:yaml}`. See [Configuration](/configuration/#divisions).
+A separate leaderboard group inside the same event. Divisions are often used for eligibility groups such as open, student, high school, onsite, or invited teams.
 
-### Division ACL
+### Dynamic scoring
 
-An ordered list of access-control rules under `divisionACLs{:yaml}` that constrain which divisions a user may register for, based on `domain{:yaml}`, `email{:yaml}`, `regex{:yaml}`, or `any{:yaml}` matches against their email. The first matching rule wins. ACLs are bypassed when a user authenticates through CTFtime. See [Configuration](/configuration/#division-acls).
+A scoring system where a challenge can become worth fewer points as more teams solve it. This helps early solves on difficult challenges matter more than later solves on widely solved challenges.
 
-## E
+## F
 
-### Email provider
+### First blood
 
-The provider plugin that delivers verification and recovery email. Options: `emails/smtp{:yaml}`, `emails/ses{:yaml}`, `emails/postmark{:yaml}`, `emails/mailgun{:yaml}`. See [Email providers](/providers/emails/).
+The first accepted solve on a challenge. Some events also recognize second blood and third blood for the next two accepted solves.
 
-## I
+### Flag
 
-### Instance type
+The answer submitted for a challenge. Flags are usually formatted as a recognizable string so the scoring system can check whether a submission is correct.
 
-The `instanceType{:yaml}` value (`all{:ts}`, `frontend{:ts}`, or `leaderboard{:ts}`) that selects which components a given rCTF process runs. `all{:ts}` runs the API plus the leaderboard worker, `frontend{:ts}` runs the API only, and `leaderboard{:ts}` runs the worker only. See [Scaling](/installation/scaling/) for how to deploy split roles and [Configuration](/configuration/#core-settings) for the field itself.
+## H
 
-### Instancer
+### Hint
 
-The subsystem that creates one isolated, per-team challenge environment on demand. rCTF owns the lifecycle (create, extend, inspect, stop) while the configured instancer provider owns the compute backend. See [Instancer](/integrations/instancer/).
-
-### Instancer provider
-
-The provider plugin that translates rCTF lifecycle calls into Docker or Kubernetes operations. Options: `instancer/docker-instancer{:yaml}`, `instancer/k8s-instancer{:yaml}`. Configured under `instancerProvider{:yaml}`. See [Instancer](/integrations/instancer/).
-
-### `instancerConfig`
-
-The challenge-data field that stores `challengeIntegrationId{:yaml}`, timeout, exposed endpoints, extension policy, and provider-specific service configuration for an instanced challenge. See [Instancer challenge configuration](/integrations/instancer/#challenge-configuration).
+Extra information released to help teams make progress on a challenge. Some events make hints free, while others attach a point penalty or release them after a delay.
 
 ## L
 
 ### Last solve time
 
-The timestamp of a team's most recent tiebreak-eligible solve. When two teams share a score, the team with the earlier last solve time is ranked higher.
+The time of a team's most recent accepted solve. Many CTFs use this as a leaderboard tiebreaker, where the team that reached the same score earlier ranks higher.
 
-## M
+### Leaderboard
 
-### Message provider
-
-The provider plugin used by BloodBot destinations to deliver announcements. Options: `messages/discord{:yaml}`, `messages/telegram{:yaml}`. See [Blood bot](/integrations/bloodbot/#message-providers).
-
-### Moderation provider
-
-The provider plugin that screens avatar uploads. The only built-in option is `moderation/openai{:yaml}`. Behavior on provider error is governed by `avatarsModeration.allowOnInternalError{:yaml}`. See [Moderation providers](/providers/moderation/).
-
-## O
-
-### Origin
-
-The public base URL of the rCTF deployment, set as `origin{:yaml}`. It anchors generated links such as team profile URLs in BloodBot templates. The instancer's own public hostname is unrelated and is configured per provider.
+The ranking of teams during or after the event. Leaderboards usually sort by score first and then use one or more tiebreakers.
 
 ## P
 
-### Permission bitmask
+### Points
 
-The integer stored in `users.perms` that represents an admin's permissions as bitwise OR of `challsRead{:ts}` (`1`), `challsWrite{:ts}` (`2`), `leaderboardRead{:ts}` (`4`), `challsSolveWrite{:ts}` (`8`), `usersWrite{:ts}` (`16`), and `settingsWrite{:ts}` (`32`). A full admin has `63`. See [Permissions](/admin/#permissions) and the [API reference](/api/#permissions).
-
-### Permission bypass
-
-The mechanism that lets an admin with the relevant permission bit access a route that is otherwise gated by competition timing. For example, `challsRead{:ts}` lets a user view challenges before `startTime{:yaml}`. Also known as a start-time bypass. See [Permission bypass](/admin/#permission-bypass).
-
-### Protected endpoint
-
-Any route listed under `captcha.protectedEndpoints{:yaml}`. The route validates a captcha response before running. See [Captcha-protected action](#captcha-protected-action).
-
-### Provider
-
-A pluggable module that implements a well-known interface for an integration point such as scoring, uploads, captcha, email, messages, analytics, moderation, instancer, or admin bot. Providers are selected by `name{:yaml}` and configured with an `options{:yaml}` object. See [Providers](/providers/).
-
-## R
-
-### Rate limit bucket
-
-A per-action token bucket keyed by user, challenge, or IP. When a bucket is exhausted, the route returns `<red>429 badRateLimit</red>` with `timeLeft{:ts}` (milliseconds until the next token). See [Rate limits](/api/#rate-limits).
-
-### Runtime settings
-
-Database-stored overrides for selected config values (CTF name, start time, end time, home content, sponsors, meta, favicon, logos) that take effect without a restart. Setting an override to `null{:ts}` reverts to the file-based default. Requires the `settingsWrite{:ts}` permission. See [Runtime settings](/admin/#runtime-settings).
+The score awarded for solving a challenge. Point values may be fixed, dynamic, or adjusted manually by organizers.
 
 ## S
 
-### Score provider
+### Sanity check
 
-The provider plugin that computes a challenge's current point value from its solve count and other context. Options: `scores/classic{:yaml}`, `scores/sekai{:yaml}`, `scores/steep{:yaml}`, `scores/jammy{:yaml}`, `scores/genni{:yaml}`, `scores/legacy{:yaml}`. See [Scoring providers](/providers/scores/).
+A simple challenge that helps teams confirm they can log in, submit flags, and understand the event format.
+
+### Solve
+
+An accepted flag submission for a challenge. A solve usually awards points and records the time when the team completed the challenge.
+
+### Submission
+
+An attempt to submit a flag. Submissions can be accepted, rejected, or ignored depending on the event rules and challenge state.
 
 ## T
 
-### Team token
+### Team
 
-A long-lived recovery token that authenticates a team without an email round-trip. It is parsed as `TokenKind.Team{:ts}` on the verify endpoint and exchanged for an auth token. V2 registration returns the team token directly when registration completes without email verification. See [Authentication](/api/auth/).
+One or more participants competing together under the same score.
 
-### Tiebreak-eligible solve
+### Tiebreaker
 
-A solve on a challenge whose data marks it as eligible for tiebreaking. Only eligible solves contribute to a team's last solve time. Challenges that should not influence tiebreaking (for example, sanity checks or post-event challenges) can be marked ineligible.
+A rule used when two teams have the same score. Common tiebreakers include last solve time, earliest final score, or the time of the most recent solve on selected challenges.
 
-### Token kind
+### Tiebreak eligible solve
 
-The enum tag (`TokenKind.Auth{:ts}`, `TokenKind.Team{:ts}`, `TokenKind.Verify{:ts}`, `TokenKind.CtftimeAuth{:ts}`) that the verify endpoint reads from an encrypted token to decide how to handle it. See [Authentication](/api/auth/).
-
-## U
-
-### Upload provider
-
-The provider plugin that stores challenge files and user avatars. Options: `uploads/local{:yaml}`, `uploads/s3{:yaml}`, `uploads/gcs{:yaml}`. See [Upload providers](/providers/uploads/).
-
-## V
-
-### Verify token
-
-A one-time token issued to confirm an email address (registration or email change). It is parsed as `TokenKind.Verify{:ts}` and expires after `loginTimeout{:yaml}` milliseconds. Verify tokens additionally require a one-time Redis marker, so a valid encrypted token can still return `<red>401 badTokenVerification</red>` after the marker has been consumed or expired. See [Authentication](/api/auth/).
+A solve that counts toward the leaderboard tiebreaker. Events may exclude warmup, survey, sanity check, or post event challenges from tiebreaking.

@@ -1,0 +1,22 @@
+---
+title: '<route>GET</route> Admin bot queue depth'
+description: '<route>GET /api/v2/admin/admin-bot/queue-depth</route>'
+---
+
+import { GetAdminBotQueueDepthRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={GetAdminBotQueueDepthRouteV2} />
+</RouteAside>
+
+<RouteMetaFromDef def={GetAdminBotQueueDepthRouteV2} />
+
+The admin bot worker can call this service route to check how many jobs are waiting in the queue.
+
+The request is authenticated with the shared admin bot bearer token from `adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`.
+
+<ResponseBody
+  def={GetAdminBotQueueDepthRouteV2}
+  response="goodAdminBotQueueDepth"
+  title="Response fields"
+/>

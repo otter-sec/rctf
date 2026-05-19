@@ -62,15 +62,6 @@
       @apply mt-5 mb-3;
     }
 
-    :where(a.heading-anchor):not(:where(.not-prose, .not-prose *)) {
-      @apply text-muted-foreground/40 hover:text-foreground ml-2 inline-block no-underline opacity-0 transition-opacity;
-    }
-
-    :where(h2, h3, h4, h5, h6):hover a.heading-anchor,
-    a.heading-anchor:focus-visible {
-      @apply opacity-100;
-    }
-
     :where(p):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/80 my-5;
     }
@@ -81,6 +72,18 @@
 
     :where(a):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground decoration-muted-foreground hover:decoration-foreground font-medium wrap-break-word underline underline-offset-[3px] transition-colors;
+    }
+
+    :where(a.heading-anchor):not(:where(.not-prose, .not-prose *)) {
+      @apply text-muted-foreground/50 ml-2 inline-block select-none no-underline opacity-0;
+      transition-duration: 50ms;
+      transition-property: opacity, color;
+      transition-timing-function: ease-out;
+    }
+
+    :where(h2, h3, h4, h5, h6):hover a.heading-anchor,
+    a.heading-anchor:focus-visible {
+      @apply opacity-60;
     }
 
     :where(ul):not(:where(.not-prose, .not-prose *)) {
@@ -214,6 +217,23 @@
       @apply text-foreground/80 small px-4 py-2 text-left align-top wrap-break-word *:first:mt-0! *:last:mb-0! max-xl:whitespace-nowrap [[align=center]]:text-center [[align=right]]:text-right;
     }
 
+    :where([data-nowrap-tables] .table-wrapper table):not(:where(.not-prose, .not-prose *)) {
+      width: max-content;
+      min-width: 100%;
+      table-layout: auto;
+    }
+
+    :where(
+        [data-nowrap-tables] .table-wrapper th,
+        [data-nowrap-tables] .table-wrapper td,
+        [data-nowrap-tables] .table-wrapper th *,
+        [data-nowrap-tables] .table-wrapper td *
+      ):not(:where(.not-prose, .not-prose *)) {
+      white-space: nowrap;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
     :where(th:first-child, td:first-child):not(:where(.not-prose, .not-prose *)) {
       @apply pl-0;
     }
@@ -310,6 +330,11 @@
       [data-tab-panel]:not(:has([data-tabs]))
       :where(pre) {
       @apply xl:my-0! xl:max-h-none! xl:min-h-0! xl:flex-1!;
+    }
+
+    .expressive-code[data-curl-example] pre {
+      max-height: calc((100vh - 8rem) / 3) !important;
+      overflow-y: auto !important;
     }
   }
 

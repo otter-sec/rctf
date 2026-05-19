@@ -1,4 +1,7 @@
 ---
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/utils'
+
 interface Props {
   class?: string
 }
@@ -6,12 +9,13 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<nav
-  class:list={[
-    'not-prose divide-border divide-y-2 overflow-x-clip',
-    'xl:min-h-0 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto',
-    className,
-  ]}
+<ScrollArea
+  client:idle
+  className={cn('not-prose overflow-hidden xl:min-h-0 xl:max-h-[calc(100vh-8rem)]', className)}
+  fades
+  viewportClassName="max-h-[inherit]"
 >
-  <slot />
-</nav>
+  <nav class="divide-border divide-y-2 overflow-x-clip">
+    <slot />
+  </nav>
+</ScrollArea>

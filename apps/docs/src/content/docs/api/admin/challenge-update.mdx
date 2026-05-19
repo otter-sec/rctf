@@ -1,0 +1,86 @@
+---
+title: '<route>PUT</route> Create or update challenge'
+description: '<route>PUT /api/[v2,v1]/admin/challs/:id</route>'
+---
+
+import {
+  BadBody,
+  BadJson,
+  UpdateChallengeRoute,
+  UpdateChallengeRouteV2,
+} from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="admin-challenge-update-version">
+    <Tab>
+      <RouteExample
+        def={UpdateChallengeRouteV2}
+        params={{ id: 'challenge-id' }}
+        body={{
+          data: {
+            name: 'web demo',
+            category: 'web',
+            author: 'organizers',
+            description: 'Solve it.',
+            flag: 'flag{example}',
+            points: { min: 100, max: 500 },
+            tiebreakEligible: true,
+            files: [{ name: 'dist.zip', url: '/uploads/dist.zip', size: 12345 }],
+            sortWeight: 10,
+            hidden: false,
+            releaseTime: null,
+          },
+        }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+    <Tab>
+      <RouteExample
+        def={UpdateChallengeRoute}
+        params={{ id: 'challenge-id' }}
+        body={{
+          data: {
+            name: 'web demo',
+            category: 'web',
+            author: 'organizers',
+            description: 'Solve it.',
+            flag: 'flag{example}',
+            points: { min: 100, max: 500 },
+            tiebreakEligible: true,
+            files: [{ name: 'dist.zip', url: '/uploads/dist.zip' }],
+            sortWeight: 10,
+          },
+        }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={UpdateChallengeRouteV2} />
+
+This route creates a new challenge or updates an existing one. Fields left out of `data` keep their current values. Setting `instancerConfig{:ts}` or `adminBotConfig{:ts}` to `null{:ts}` clears that integration config.
+
+After a challenge changes, the leaderboard is recalculated. The active instancer provider validates `instancerConfig{:ts}`, and the active admin bot provider validates `adminBotConfig{:ts}` before saving a new revision.
+
+<Tabs items={['V2', 'V1']} sync="admin-challenge-update-version">
+  <Tab>
+    <RequestBody def={UpdateChallengeRouteV2} source="params" title="Path parameters" />
+    <RequestBody def={UpdateChallengeRouteV2} title="Request body" />
+  </Tab>
+  <Tab>
+    <RequestBody def={UpdateChallengeRoute} source="params" title="Path parameters" />
+    <RequestBody def={UpdateChallengeRoute} title="Request body" />
+  </Tab>
+</Tabs>
+
+<Tabs items={['V2', 'V1']} sync="admin-challenge-update-version">
+  <Tab>
+    <ResponseBody def={UpdateChallengeRouteV2} response="goodChallengeUpdate" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={UpdateChallengeRoute} response="goodChallengeUpdate" title="Response fields" />
+  </Tab>
+</Tabs>
+
+V1 does not include hidden state, scheduled release time, instancer config, admin bot config, or file sizes.

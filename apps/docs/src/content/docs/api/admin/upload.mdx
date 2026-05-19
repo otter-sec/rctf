@@ -1,0 +1,47 @@
+---
+title: '<route>POST</route> Upload files'
+description: '<route>POST /api/[v2,v1]/admin/upload</route>'
+---
+
+import { BadBody, BadJson, UploadFilesRoute, UploadFilesRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="admin-upload-version">
+    <Tab>
+      <RouteExample def={UploadFilesRouteV2} body={{ files: '@dist.zip' }} extra={[BadBody]} />
+    </Tab>
+    <Tab>
+      <RouteExample
+        def={UploadFilesRoute}
+        body={{ files: [{ name: 'dist.zip', data: 'data:application/zip;base64,...' }] }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={UploadFilesRouteV2} />
+
+This route uploads challenge files. Files are deduplicated by SHA 256, so uploading the same bytes again returns the existing URL.
+
+V2 sends `multipart/form-data` with one or more `files` fields. V1 accepts JSON with base64 data URIs and remains available for older admin clients.
+
+<Tabs items={['V2', 'V1']} sync="admin-upload-version">
+  <Tab>
+    <RequestBody def={UploadFilesRouteV2} title="Request body" />
+  </Tab>
+  <Tab>
+    <RequestBody def={UploadFilesRoute} title="Request body" />
+  </Tab>
+</Tabs>
+
+<Tabs items={['V2', 'V1']} sync="admin-upload-version">
+  <Tab>
+    <ResponseBody def={UploadFilesRouteV2} response="goodFilesUpload" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={UploadFilesRoute} response="goodFilesUpload" title="Response fields" />
+  </Tab>
+</Tabs>
+
+V1 upload responses do not include file `size`.
