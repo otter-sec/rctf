@@ -5,10 +5,15 @@ import {
   type ExpressiveCodePlugin,
 } from '@expressive-code/core'
 import { h, type Element, type Parents } from '@expressive-code/core/hast'
-import { parseCodeToneRanges, toneClassNames } from './code-semantics'
+import { parseCodeToneRanges, toneClassNames, toneStyle } from './code-semantics'
 
 function stripElementSyntaxStyles(node: Element): Element {
-  const { style: _style, ...properties } = node.properties ?? {}
+  const {
+    class: _class,
+    className: _className,
+    style: _style,
+    ...properties
+  } = node.properties ?? {}
   return {
     ...node,
     properties,
@@ -35,8 +40,17 @@ class CodeToneAnnotation extends ExpressiveCodeAnnotation {
   }
 
   render({ nodesToTransform }: AnnotationRenderOptions): Parents[] {
-    const className = toneClassNames(this.tone).join(' ')
-    return nodesToTransform.map(node => h('span', { class: className }, stripSyntaxStyles(node)))
+    const style = toneStyle(this.tone)
+    return nodesToTransform.map(node =>
+      h(
+        'span',
+        {
+          className: toneClassNames(this.tone),
+          ...(style ? { style } : {}),
+        },
+        stripSyntaxStyles(node)
+      )
+    )
   }
 }
 

@@ -1,0 +1,52 @@
+---
+import { renderDescription } from '@/lib/render-description'
+import { cn } from '@/lib/utils'
+
+interface Props {
+  auth: string
+  gate?: string
+  permissions?: string
+  captcha?: string
+  rateLimit?: string
+  class?: string
+}
+
+const {
+  auth,
+  gate = '-',
+  permissions = '-',
+  captcha = '-',
+  rateLimit = '-',
+  class: className,
+} = Astro.props
+
+const items = await Promise.all(
+  [
+    { label: 'Auth', value: auth },
+    { label: 'Gate', value: gate },
+    { label: 'Permissions', value: permissions },
+    { label: 'Captcha', value: captcha },
+    { label: 'Rate limit', value: rateLimit },
+  ].map(async item => ({ ...item, rendered: await renderDescription(item.value) }))
+)
+---
+
+<dl
+  class={cn(
+    'not-prose my-6 grid grid-cols-2 gap-x-6 gap-y-4 border-y-2 py-4 md:grid-cols-5',
+    className
+  )}
+>
+  {
+    items.map(item => (
+      <div class='min-w-0'>
+        <dt class='text-muted-foreground text-xs leading-none font-medium'>{item.label}</dt>
+        <dd
+          class='text-foreground mt-1.5 text-sm leading-snug font-medium wrap-break-word'
+          data-doc-description
+          set:html={item.rendered.html}
+        />
+      </div>
+    ))
+  }
+</dl>

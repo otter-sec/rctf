@@ -315,7 +315,8 @@ export function getScrollableGroupFromContext(
   doc: Doc,
   pathname: string
 ): ScrollableDocGroup | null {
-  const groupPath = docGroupAncestors(doc).find(isScrollableGroup)
+  const scrollableGroups = docGroupAncestors(doc).filter(isScrollableGroup)
+  const groupPath = scrollableGroups[scrollableGroups.length - 1]
   if (!groupPath) return null
 
   const pages = groupPagesFromFlatOrder(context, groupPath, pathname)

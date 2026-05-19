@@ -22,6 +22,15 @@
   @apply font-mono;
 }
 
-.tab-label-code span {
+.tab-label-code code,
+.tab-label-code .shiki {
+  @apply bg-transparent! p-0! font-[inherit] text-inherit;
+}
+
+.tab-label-code .shiki code {
+  @apply p-0!;
+}
+
+.tab-label-code .shiki span {
   @apply shiki-tokens;
 }

@@ -179,7 +179,7 @@
     }
 
     :where(hr):not(:where(.not-prose, .not-prose *)) {
-      @apply my-8 border-t;
+      @apply my-8 border-t-2;
     }
 
     :where(.table-wrapper):not(:where(.not-prose, .not-prose *)) {
@@ -195,11 +195,11 @@
     }
 
     :where(thead):not(:where(.not-prose, .not-prose *)) {
-      @apply border-muted-foreground/30 border-b;
+      @apply border-b-2;
     }
 
     :where(tr):not(:where(.not-prose, .not-prose *)) {
-      @apply border-muted-foreground/30 border-y first:border-t-0 last:border-b-0;
+      @apply border-y-2 first:border-t-0 last:border-b-0;
     }
 
     :where(th):not(:where(.not-prose, .not-prose *)) {
@@ -208,6 +208,14 @@
 
     :where(td):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/80 small px-4 py-2 text-left align-top wrap-break-word *:first:mt-0! *:last:mb-0! max-xl:whitespace-nowrap [[align=center]]:text-center [[align=right]]:text-right;
+    }
+
+    :where(th:first-child, td:first-child):not(:where(.not-prose, .not-prose *)) {
+      @apply pl-0;
+    }
+
+    :where(th:last-child, td:last-child):not(:where(.not-prose, .not-prose *)) {
+      @apply pr-0;
     }
 
     :where(img, video, figure, .expressive-code):not(:where(.not-prose, .not-prose *)) {
@@ -227,7 +235,7 @@
     }
 
     :where(kbd):not(:where(.not-prose, .not-prose *)) {
-      @apply text-foreground bg-muted rounded-md border px-2 py-1 text-xs font-medium;
+      @apply text-foreground bg-muted rounded-md border-2 px-2 py-1 text-xs font-medium;
     }
 
     :where(.katex-display):not(:where(.not-prose, .not-prose *)) {
@@ -238,7 +246,7 @@
       --mdx-aside-gap: 2rem;
       --mdx-aside-column-width: min(42rem, calc((100% - var(--mdx-aside-gap)) / 2));
 
-      @apply xl:relative;
+      @apply xl:relative xl:min-h-(--mdx-aside-min-height);
     }
 
     &[data-mdx-aside-layout]:has(> [data-mdx-aside])
@@ -275,8 +283,16 @@
     font-weight: 500;
   }
 
+  :where(.inline-code-tone *) {
+    color: inherit !important;
+  }
+
   :where(.inline-code-tone.is-black) {
     color: var(--muted-foreground);
+  }
+
+  :where(.inline-code-tone.is-dim, .inline-code-tone.is-dimmed) {
+    opacity: 0.5;
   }
 
   :where(.inline-code-tone.is-red) {

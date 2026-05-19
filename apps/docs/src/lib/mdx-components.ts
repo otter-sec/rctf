@@ -8,6 +8,9 @@ import Card from '@/components/mdx/card.astro'
 import Dir from '@/components/mdx/file-tree-dir.astro'
 import File from '@/components/mdx/file-tree-file.astro'
 import FileTree from '@/components/mdx/file-tree.astro'
+import RouteListItem from '@/components/mdx/route-list-item.astro'
+import RouteList from '@/components/mdx/route-list.astro'
+import RouteMeta from '@/components/mdx/route-meta.astro'
 import Step from '@/components/mdx/step.astro'
 import Steps from '@/components/mdx/steps.astro'
 import Tab from '@/components/mdx/tab.astro'
@@ -24,6 +27,9 @@ export const mdxComponents = {
   Dir,
   File,
   FileTree,
+  RouteList,
+  RouteListItem,
+  RouteMeta,
   Step,
   Steps,
   Tab,

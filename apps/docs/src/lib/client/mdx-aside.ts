@@ -1,4 +1,5 @@
 import { mountClientModule } from './lifecycle'
+import { setupTabs } from './tabs'
 
 const ASIDE_LAYOUT_SELECTOR = '[data-mdx-aside-layout]'
 const ASIDE_SELECTOR = '[data-mdx-aside]'
@@ -18,17 +19,29 @@ function removeIds(element: HTMLElement): void {
   element.querySelectorAll<HTMLElement>('[id]').forEach(child => child.removeAttribute('id'))
 }
 
+function resetClonedClientState(element: HTMLElement): void {
+  element
+    .querySelectorAll<HTMLElement>('[data-tabs-init]')
+    .forEach(child => delete child.dataset.tabsInit)
+}
+
 function cloneAside(aside: HTMLElement): HTMLElement {
   const clone = aside.cloneNode(true) as HTMLElement
   clone.removeAttribute('data-mdx-aside-source')
   clone.setAttribute('data-mdx-aside-clone', '')
   removeIds(clone)
+  resetClonedClientState(clone)
   return clone
+}
+
+function asideContentBottom(asides: HTMLElement[]): number {
+  return Math.max(...asides.map(aside => aside.offsetTop + aside.offsetHeight))
 }
 
 function setupAsideLayout(layout: HTMLElement): void {
   const asides = directAsides(layout)
   if (asides.length === 0) return
+  layout.style.setProperty('--mdx-aside-min-height', `${asideContentBottom(asides)}px`)
 
   const rail = document.createElement('div')
   rail.setAttribute('data-mdx-aside-rail', '')
@@ -41,10 +54,14 @@ function setupAsideLayout(layout: HTMLElement): void {
   })
 
   layout.append(rail)
+  setupTabs()
 }
 
 function cleanupMdxAsides(): void {
   document.querySelectorAll(ASIDE_RAIL_SELECTOR).forEach(rail => rail.remove())
+  document
+    .querySelectorAll<HTMLElement>(ASIDE_LAYOUT_SELECTOR)
+    .forEach(layout => layout.style.removeProperty('--mdx-aside-min-height'))
   document
     .querySelectorAll<HTMLElement>('[data-mdx-aside-source]')
     .forEach(aside => aside.removeAttribute('data-mdx-aside-source'))

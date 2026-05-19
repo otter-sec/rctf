@@ -10,6 +10,7 @@ type ScrollGroupSection = {
 }
 
 const HEADER_OFFSET = 120
+const BOTTOM_THRESHOLD = 2
 
 let controller: AbortController | null = null
 let sections: ScrollGroupSection[] = []
@@ -42,7 +43,18 @@ function sectionForPath(path: string): ScrollGroupSection | null {
   return sections.find(section => section.path === normalized) ?? null
 }
 
+function isAtDocumentBottom(): boolean {
+  const scroller = document.scrollingElement ?? document.documentElement
+  const maxScrollY = scroller.scrollHeight - window.innerHeight
+
+  if (maxScrollY <= 0) return false
+  return window.scrollY >= maxScrollY - BOTTOM_THRESHOLD
+}
+
 function activeSection(): ScrollGroupSection | null {
+  const lastSection = sections[sections.length - 1] ?? null
+  if (lastSection && isAtDocumentBottom()) return lastSection
+
   const threshold = window.scrollY + HEADER_OFFSET
   let active = sections[0] ?? null
 

@@ -19,18 +19,30 @@ const TONE_TAGS = [
 type ToneTag = (typeof TONE_TAGS)[number]
 
 const ROUTE_TAG = 'route'
+const RESPONSE_TAG = 'response'
 
 const TONE_ALIASES = new Map<string, ToneTag>([
-  ['dim', 'black'],
-  ['dimmed', 'black'],
   ['gray', 'black'],
   ['grey', 'black'],
   ['muted', 'black'],
   ['yellow', 'orange'],
 ])
 
+const TONE_COLORS = new Map<string, string>([
+  ['black', 'var(--muted-foreground)'],
+  ['red', 'var(--inline-tone-red)'],
+  ['green', 'var(--inline-tone-green)'],
+  ['orange', 'var(--inline-tone-orange)'],
+  ['blue', 'var(--inline-tone-blue)'],
+  ['magenta', 'var(--inline-tone-magenta)'],
+  ['cyan', 'var(--inline-tone-cyan)'],
+  ['white', 'color-mix(in oklab, var(--foreground) 88%, transparent)'],
+])
+
 const tagRegex = (tags: readonly string[]) => new RegExp(`<\\/?(${tags.join('|')})>`, 'g')
-const CODE_TAG_RE = tagRegex([ROUTE_TAG, ...TONE_TAGS])
+export const CODE_SEMANTIC_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
+
+const CODE_TAG_RE = tagRegex(CODE_SEMANTIC_TAGS)
 const CODE_TONE_TAG_RE = tagRegex(TONE_TAGS)
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
@@ -49,6 +61,7 @@ const METHOD_TONES = new Map<string, ToneTag>([
 const METHOD_PATTERN = METHODS.join('|')
 const METHOD_GROUP_RE = new RegExp(`^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`)
 const ROUTE_RE = new RegExp(`^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`)
+const RESPONSE_RE = /^([1-5](?:\d{2}|XX))(?:\s+(.+))?$/i
 
 export function textNode(value: string): Text {
   return { type: 'text', value }
@@ -72,11 +85,26 @@ function normalizeTone(tag: string): string {
 }
 
 export function toneClassNames(tag: string): string[] {
-  return ['inline-code-tone', `is-${normalizeTone(tag)}`]
+  return ['inline-code-tone', ...tag.split('+').map(tone => `is-${normalizeTone(tone)}`)]
+}
+
+export function toneStyle(tag: string): string | undefined {
+  const tones = tag.split('+').map(normalizeTone)
+  const declarations: string[] = []
+  const color = tones.map(tone => TONE_COLORS.get(tone)).find(Boolean)
+
+  if (color) declarations.push(`color: ${color}`)
+  if (tones.some(isDimTone)) declarations.push('opacity: 0.5')
+
+  return declarations.length > 0 ? declarations.join('; ') : undefined
 }
 
 function toneNode(tag: string, children: ElementContent[]): Element {
   return spanNode(toneClassNames(tag), children)
+}
+
+function isDimTone(tone: string): boolean {
+  return tone === 'dim' || tone === 'dimmed'
 }
 
 function methodNodes(methods: string): ElementContent[] {
@@ -116,6 +144,32 @@ function routeChildren(value: string): ElementContent[] {
 
   if (route.startsWith('/')) return routePathNodes(route)
   return [textNode(value)]
+}
+
+function responseTone(status: string): ToneTag {
+  if (status.startsWith('2')) return 'green'
+  if (status.startsWith('3')) return 'orange'
+  if (status.startsWith('4') || status.startsWith('5')) return 'red'
+  return 'white'
+}
+
+function responseChildren(value: string): ElementContent[] {
+  const response = value.trim()
+  const match = response.match(RESPONSE_RE)
+  if (!match) return [textNode(value)]
+
+  const status = match[1]
+  if (!status) return [textNode(value)]
+
+  const kind = match[2]
+  const tone = responseTone(status)
+
+  return [
+    toneNode(tone, [
+      toneNode(`${tone}+dim`, [textNode(status)]),
+      ...(kind ? [textNode(` ${kind}`)] : []),
+    ]),
+  ]
 }
 
 function isRouteText(value: string): boolean {
@@ -210,13 +264,19 @@ function flatText(nodes: ParsedNode[]): string {
   return nodes.map(n => (n.type === 'text' ? n.value : flatText(n.children))).join('')
 }
 
-function renderNodes(nodes: ParsedNode[]): ElementContent[] {
+function renderNodes(nodes: ParsedNode[], parentTone: string | null = null): ElementContent[] {
   return nodes.map(node => {
     if (node.type === 'text') return textNode(node.value)
     if (node.tag === ROUTE_TAG) {
       return spanNode(['inline-code-route'], routeChildren(flatText(node.children)))
     }
-    return toneNode(node.tag, renderNodes(node.children))
+    if (node.tag === RESPONSE_TAG) {
+      return spanNode(['inline-code-response'], responseChildren(flatText(node.children)))
+    }
+    const tone = normalizeTone(node.tag)
+    const classTone = isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
+    const childTone = isDimTone(tone) ? parentTone : tone
+    return toneNode(classTone, renderNodes(node.children, childTone))
   })
 }
 
@@ -241,13 +301,15 @@ export function parseCodeToneRanges(value: string): ParsedCodeTones | null {
   if (!parsed) return null
 
   const ranges: CodeToneRange[] = []
-  const walk = (nodes: ParsedNode[]): void => {
+  const walk = (nodes: ParsedNode[], parentTone: string | null = null): void => {
     for (const node of nodes) {
       if (node.type === 'text') continue
+      const tone = normalizeTone(node.tag)
+      const rangeTone = isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
       if (node.start < node.end) {
-        ranges.push({ tone: normalizeTone(node.tag), start: node.start, end: node.end })
+        ranges.push({ tone: rangeTone, start: node.start, end: node.end })
       }
-      walk(node.children)
+      walk(node.children, isDimTone(tone) ? parentTone : tone)
     }
   }
   walk(parsed.children)
