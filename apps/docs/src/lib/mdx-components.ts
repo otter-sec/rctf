@@ -12,6 +12,7 @@ import FileTree from '@/components/mdx/file-tree.astro'
 import RequestBody from '@/components/mdx/request-body.astro'
 import ResponseBody from '@/components/mdx/response-body.astro'
 import ResponseTabs from '@/components/mdx/response-tabs.astro'
+import RouteAside from '@/components/mdx/route-aside.astro'
 import RouteExample from '@/components/mdx/route-example.astro'
 import RouteListItem from '@/components/mdx/route-list-item.astro'
 import RouteList from '@/components/mdx/route-list.astro'
@@ -37,6 +38,7 @@ export const mdxComponents = {
   RequestBody,
   ResponseBody,
   ResponseTabs,
+  RouteAside,
   RouteExample,
   RouteList,
   RouteListItem,

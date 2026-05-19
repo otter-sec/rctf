@@ -5,7 +5,7 @@ description: '<route>POST /api/[v2,v1]/auth/register</route>'
 
 import { BadBody, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
 
-<Aside>
+<RouteAside>
   <Tabs items={['V2', 'V1']} sync="register-version">
     <Tab>
       <RouteExample
@@ -24,7 +24,7 @@ import { BadBody, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
       />
     </Tab>
   </Tabs>
-</Aside>
+</RouteAside>
 
 Creates a team account. Most deployments ask the team to prove ownership of an email address before the account becomes usable, so a successful request often sends a verification email instead of returning tokens immediately.
 

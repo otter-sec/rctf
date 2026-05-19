@@ -5,7 +5,7 @@ description: '<route>POST /api/[v2,v1]/auth/recover</route>'
 
 import { BadBody, BadJson, RecoverRoute, RecoverRouteV2 } from '@rctf/types'
 
-<Aside>
+<RouteAside>
   <Tabs items={['V2', 'V1']} sync="recover-version">
     <Tab>
       <RouteExample def={RecoverRouteV2} extra={[BadJson, BadBody]} />
@@ -14,7 +14,7 @@ import { BadBody, BadJson, RecoverRoute, RecoverRouteV2 } from '@rctf/types'
       <RouteExample def={RecoverRoute} extra={[BadJson, BadBody]} />
     </Tab>
   </Tabs>
-</Aside>
+</RouteAside>
 
 Starts account recovery for a team that still has access to its email inbox. When the request is accepted, the server sends a recovery email containing a team token.
 

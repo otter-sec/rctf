@@ -62,8 +62,6 @@ const pageTitle = scrollGroup?.label ?? doc.data.title
 const pageDescription = scrollGroup?.description ?? doc.data.description
 const pageHeaderEnabled = scrollGroup ? true : doc.data.pageHeader
 
-const offsetClass = 'xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]'
-
 const renderedTitle = await renderDescription(pageTitle)
 const renderedDescription = pageDescription ? await renderDescription(pageDescription) : null
 
@@ -103,7 +101,9 @@ const renderedIndexChildren = await Promise.all(
         )
       }
 
-      <main class={cn('mx-auto flex w-full grow flex-col gap-y-6 px-4', offsetClass)}>
+      <main
+        class="mx-auto flex w-full grow flex-col gap-y-6 pr-6 pl-4 xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]"
+      >
         <div
           data-doc-content-grid
           class={cn(

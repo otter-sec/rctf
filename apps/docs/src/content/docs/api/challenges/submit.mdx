@@ -5,9 +5,9 @@ description: '<route>POST /api/v1/challs/:id/submit</route>'
 
 import { BadBody, BadJson, SubmitFlagRoute } from '@rctf/types'
 
-<Aside>
+<RouteAside>
   <RouteExample def={SubmitFlagRoute} body={{ flag: 'flag{example}' }} extra={[BadJson, BadBody]} />
-</Aside>
+</RouteAside>
 
 Submits a flag for the authenticated team. V1-only — there is no V2 equivalent.
 

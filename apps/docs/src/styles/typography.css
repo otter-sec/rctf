@@ -265,6 +265,42 @@
     &[data-mdx-aside-layout] > [data-mdx-aside-rail] > [data-mdx-aside] {
       @apply xl:sticky xl:top-16 xl:my-0 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto;
     }
+
+    &[data-mdx-aside-layout] > [data-mdx-aside-rail] > [data-mdx-aside-route] {
+      @apply xl:flex xl:flex-col xl:overflow-hidden;
+    }
+
+    [data-mdx-aside-rail] [data-mdx-aside-route] [data-tabs] {
+      @apply xl:my-0 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col;
+    }
+
+    [data-mdx-aside-rail] [data-mdx-aside-route] [data-tabs-panels] {
+      @apply xl:flex xl:min-h-0 xl:flex-1 xl:flex-col;
+    }
+
+    [data-mdx-aside-rail] [data-mdx-aside-route] [data-tab-panel]:not([hidden]) {
+      @apply xl:flex xl:min-h-0 xl:flex-1 xl:flex-col;
+    }
+
+    /* expressive code applies all: revert, so we need !important */
+    [data-mdx-aside-rail]
+      [data-mdx-aside-route]
+      [data-tab-panel]:not(:has([data-tabs]))
+      > .expressive-code,
+    [data-mdx-aside-rail]
+      [data-mdx-aside-route]
+      [data-tab-panel]:not(:has([data-tabs]))
+      > .expressive-code
+      > figure {
+      @apply xl:my-0! xl:flex! xl:min-h-0! xl:flex-1! xl:flex-col!;
+    }
+
+    [data-mdx-aside-rail]
+      [data-mdx-aside-route]
+      [data-tab-panel]:not(:has([data-tabs]))
+      :where(pre) {
+      @apply xl:my-0! xl:max-h-none! xl:min-h-0! xl:flex-1!;
+    }
   }
 
   [data-mdx-aside-shell]:has([data-mdx-aside]) {

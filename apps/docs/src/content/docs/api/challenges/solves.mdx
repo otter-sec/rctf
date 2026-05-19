@@ -5,7 +5,7 @@ description: '<route>GET /api/[v2,v1]/challs/:id/solves</route>'
 
 import { GetChallengeSolvesRoute, GetChallengeSolvesRouteV2 } from '@rctf/types'
 
-<Aside>
+<RouteAside>
   <Tabs items={['V2', 'V1']} sync="solves-version">
     <Tab>
       <RouteExample def={GetChallengeSolvesRouteV2} query={{ limit: 100, offset: 0 }} />
@@ -14,7 +14,7 @@ import { GetChallengeSolvesRoute, GetChallengeSolvesRouteV2 } from '@rctf/types'
       <RouteExample def={GetChallengeSolvesRoute} query={{ limit: 100, offset: 0 }} />
     </Tab>
   </Tabs>
-</Aside>
+</RouteAside>
 
 Returns paginated solve history for one challenge.
 

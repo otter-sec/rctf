@@ -5,7 +5,7 @@ description: '<route>GET /api/[v2,v1]/challs</route>'
 
 import { GetChallengesRoute, GetChallengesRouteV2 } from '@rctf/types'
 
-<Aside>
+<RouteAside>
   <Tabs items={['V2', 'V1']} sync="challs-version">
     <Tab>
       <RouteExample def={GetChallengesRouteV2} />
@@ -14,7 +14,7 @@ import { GetChallengesRoute, GetChallengesRouteV2 } from '@rctf/types'
       <RouteExample def={GetChallengesRoute} />
     </Tab>
   </Tabs>
-</Aside>
+</RouteAside>
 
 Returns the visible challenge list. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
 
