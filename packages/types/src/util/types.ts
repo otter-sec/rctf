@@ -2,19 +2,25 @@ import { z } from 'zod/mini'
 import { BadEmail, BadName } from '../responses'
 import { normalizeEmail, normalizeName, validateEmail } from '../v1-validators'
 
-export const UserEmail = z.pipe(z.string(), z.transform(normalizeEmail)).check(
-  z.refine(validateEmail, {
-    message: 'Enter a valid email',
-    params: { response: BadEmail },
-  })
-)
+export const UserEmail = z
+  .pipe(z.string(), z.transform(normalizeEmail))
+  .check(
+    z.refine(validateEmail, {
+      message: 'Enter a valid email',
+      params: { response: BadEmail },
+    })
+  )
+  .check(z.describe('Email address. Normalized to lowercase and trimmed.'))
 
-export const UserName = z.pipe(z.string(), z.transform(normalizeName)).check(
-  z.refine((name: string) => /^[ -~]{2,64}$/.test(name), {
-    message: 'Name must be 2-64 printable characters',
-    params: { response: BadName },
-  })
-)
+export const UserName = z
+  .pipe(z.string(), z.transform(normalizeName))
+  .check(
+    z.refine((name: string) => /^[ -~]{2,64}$/.test(name), {
+      message: 'Name must be 2-64 printable characters',
+      params: { response: BadName },
+    })
+  )
+  .check(z.describe('2-64 printable ASCII characters.'))
 
 export const NumericString = z.pipe(
   z.transform((item: unknown) => {

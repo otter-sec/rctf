@@ -53,6 +53,14 @@ function directNestedTabs(panel: HTMLElement): HTMLElement[] {
   )
 }
 
+function syncGroupPeers(root: HTMLElement): HTMLElement[] {
+  const group = root.dataset.syncGroup
+  if (!group) return []
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(`[data-tabs][data-sync-group="${CSS.escape(group)}"]`)
+  ).filter(peer => peer !== root)
+}
+
 function peerNestedTabs(root: HTMLElement): HTMLElement[] {
   const panel = root.parentElement?.closest<HTMLElement>(TAB_PANEL_SELECTOR)
   const panelsWrapper = panel?.parentElement
@@ -139,7 +147,8 @@ function setupTabRoot(root: HTMLElement): void {
     if (options.syncNestedPanels) syncNestedPanels(previousPanel, selectedPanel)
     if (!options.syncPeers) return
 
-    peerNestedTabs(root).forEach(peer => {
+    const peers = [...peerNestedTabs(root), ...syncGroupPeers(root)]
+    peers.forEach(peer => {
       const peerTabs = directTabButtons(peer)
       const peerIndex = indexForKey(peerTabs, selectedKey)
       const selectPeer = selectByRoot.get(peer)

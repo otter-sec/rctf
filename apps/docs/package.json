@@ -26,6 +26,7 @@
     "@expressive-code/plugin-shiki": "0.40.2",
     "@expressive-code/plugin-text-markers": "0.40.2",
     "@rctf/scoring": "workspace:*",
+    "@rctf/types": "workspace:*",
     "@shikijs/rehype": "3.23.0",
     "@shikijs/themes": "3.23.0",
     "@tailwindcss/vite": "4.2.1",

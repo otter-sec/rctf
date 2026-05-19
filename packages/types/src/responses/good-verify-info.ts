@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { example } from '../util'
 
 export const GoodVerifyInfo = response('goodVerifyInfo', {
   status: 200,
@@ -10,7 +11,7 @@ export const GoodVerifyInfo = response('goodVerifyInfo', {
       z.literal('team'),
       z.literal('update'),
     ]),
-    email: z.nullable(z.string()),
-    name: z.optional(z.string()),
+    email: z.nullable(example(z.string(), 'team@example.com')),
+    name: z.optional(example(z.string(), 'otter-sec')),
   }),
 })

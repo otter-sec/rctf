@@ -4,9 +4,10 @@ import { renderDescription } from '@/lib/render-description'
 interface Props {
   items: string[]
   defaultIndex?: number
+  sync?: string
 }
 
-const { items, defaultIndex = 0 } = Astro.props
+const { items, defaultIndex = 0, sync } = Astro.props
 
 const ANNOT_RE = /\{:([a-z0-9]+)\}\s*$/i
 const RESPONSE_RE = /^(\d{3})\s+([a-z][a-z0-9]*)$/i
@@ -41,7 +42,7 @@ const renderedItems = await Promise.all(
 )
 ---
 
-<div class="my-6 rounded-lg border-2" data-tabs>
+<div class="my-6 rounded-lg border-2" data-tabs data-sync-group={sync}>
   <div
     role="tablist"
     class="border-border bg-muted/30 flex flex-wrap gap-1 rounded-t-[6px] border-b-2 px-2 py-1.5"

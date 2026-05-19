@@ -1,0 +1,48 @@
+---
+import RouteMeta from '@/components/mdx/route-meta.astro'
+import { Permissions, type ProtectedAction } from '@rctf/types'
+
+interface Props {
+  def: any
+  rateLimit?: string
+}
+
+const { def, rateLimit } = Astro.props
+
+function deriveAuth(): string {
+  if (def.authRequired) return 'Required'
+  if (def.optionalAuth) return 'Optional'
+  return 'Public'
+}
+
+function deriveGate(): string {
+  const parts: string[] = []
+  if (def.onlyWhenStarted) parts.push('Started')
+  if (def.onlyWhenNotFinished) parts.push('Before end')
+  return parts.length === 0 ? 'None' : parts.join(' + ')
+}
+
+function derivePermissions(): string {
+  if (typeof def.permissions !== 'number') return '-'
+  const names: string[] = []
+  for (const [key, bit] of Object.entries(Permissions)) {
+    if (typeof bit === 'number' && (def.permissions & bit) === bit) {
+      names.push(`\`${key}{:ts}\``)
+    }
+  }
+  return names.length > 0 ? names.join(', ') : '-'
+}
+
+function deriveCaptcha(): string {
+  const action = def.captchaAction as ProtectedAction | undefined
+  return action ? `\`${action}{:ts}\`` : '-'
+}
+---
+
+<RouteMeta
+  auth={deriveAuth()}
+  gate={deriveGate()}
+  permissions={derivePermissions()}
+  captcha={deriveCaptcha()}
+  rateLimit={rateLimit}
+/>

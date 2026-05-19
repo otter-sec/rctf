@@ -3,336 +3,36 @@ title: '<route>POST</route> Verify a token'
 description: '<route>POST /api/[v2,v1]/auth/verify</route>'
 ---
 
+import { BadBody, BadJson, VerifyRoute, VerifyRouteV2 } from '@rctf/types'
+
 <Aside>
-<Tabs items={['V2', 'V1']}>
-  <Tab>
-
-```json frame="terminal"
-$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-new-dev.es3n1n.io/api/v2/auth/verify"</white> \
-  <dim>--json</dim> '{
-    "verifyToken": "<dim><verify-token></dim>"
-  }'
-```
-
-<Tabs
-  items={[
-    '<response>200 goodVerify</response>',
-    '<response>200 goodEmailSet</response>',
-    '<response>200 goodRegisterV2</response>',
-    '<response>400 badJson</response>',
-    '<response>400 badBody</response>',
-    '<response>401 badTokenVerification</response>',
-    '<response>403 badEmailChangeDivision</response>',
-    '<response>404 badUnknownUser</response>',
-    '<response>409 badKnownEmail</response>',
-    '<response>409 badKnownName</response>',
-    '<response>409 badKnownCtftimeId</response>',
-  ]}
->
-  <Tab>
-
-```json
-{
-  "kind": "goodVerify",
-  "message": "The email was verified.",
-  "data": {
-    "authToken": "<dim><auth-token></dim>"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "goodEmailSet",
-  "message": "The email was successfully updated."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "goodRegisterV2",
-  "message": "The user was created.",
-  "data": {
-    "authToken": "<dim><auth-token></dim>",
-    "teamToken": "<dim><team-token></dim>"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badJson",
-  "message": "The request JSON body is malformed."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badBody",
-  "message": "The request body does not meet requirements.",
-  "data": {
-    "reason": "body:verifyToken: Invalid input"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badTokenVerification",
-  "message": "The token provided is invalid."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badEmailChangeDivision",
-  "message": "You are not allowed to stay in your division with this email."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badUnknownUser",
-  "message": "The user does not exist."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownEmail",
-  "message": "An account with this email already exists."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownName",
-  "message": "An account with this name already exists."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownCtftimeId",
-  "message": "An account with this CTFtime ID already exists."
-}
-```
-
-  </Tab>
-</Tabs>
-
-  </Tab>
-
-  <Tab>
-
-```json frame="terminal"
-$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-dev.es3n1n.io/api/v1/auth/verify"</white> \
-  <dim>--json</dim> '{
-    "verifyToken": "<dim><verify-token></dim>"
-  }'
-```
-
-<Tabs
-  items={[
-    '<response>200 goodVerify</response>',
-    '<response>200 goodEmailSet</response>',
-    '<response>200 goodRegister</response>',
-    '<response>400 badJson</response>',
-    '<response>400 badBody</response>',
-    '<response>401 badTokenVerification</response>',
-    '<response>403 badEmailChangeDivision</response>',
-    '<response>404 badUnknownUser</response>',
-    '<response>409 badKnownEmail</response>',
-    '<response>409 badKnownName</response>',
-    '<response>409 badKnownCtftimeId</response>',
-  ]}
->
-  <Tab>
-
-```json
-{
-  "kind": "goodVerify",
-  "message": "The email was verified.",
-  "data": {
-    "authToken": "<dim><auth-token></dim>"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "goodEmailSet",
-  "message": "The email was successfully updated."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "goodRegister",
-  "message": "The user was created.",
-  "data": {
-    "authToken": "<dim><auth-token></dim>"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badJson",
-  "message": "The request JSON body is malformed."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badBody",
-  "message": "The request body does not meet requirements.",
-  "data": {
-    "reason": "body:verifyToken: Invalid input"
-  }
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badTokenVerification",
-  "message": "The token provided is invalid."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badEmailChangeDivision",
-  "message": "You are not allowed to stay in your division with this email."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badUnknownUser",
-  "message": "The user does not exist."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownEmail",
-  "message": "An account with this email already exists."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownName",
-  "message": "An account with this name already exists."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badKnownCtftimeId",
-  "message": "An account with this CTFtime ID already exists."
-}
-```
-
-  </Tab>
-</Tabs>
-
-  </Tab>
-</Tabs>
+  <Tabs items={['V2', 'V1']} sync="verify-version">
+    <Tab>
+      <RouteExample
+        def={VerifyRouteV2}
+        extra={[BadJson, BadBody]}
+        examples={{ badBody: { reason: 'body:verifyToken: Invalid input' } }}
+      />
+    </Tab>
+    <Tab>
+      <RouteExample
+        def={VerifyRoute}
+        extra={[BadJson, BadBody]}
+        examples={{ badBody: { reason: 'body:verifyToken: Invalid input' } }}
+      />
+    </Tab>
+  </Tabs>
 </Aside>
 
 Consumes a verification-style token and turns it into the next account state. The same endpoint handles pending registrations, account recovery with a team token, and email-change confirmations.
 
 Use the V2 route for new clients. It returns the wider registration response when a pending registration is completed.
 
-<RouteMeta auth="Public" gate="None" />
+<RouteMetaFromDef def={VerifyRouteV2} />
 
-| Field         | Type          | Required | Notes                                        |
-| ------------- | ------------- | -------- | -------------------------------------------- |
-| `verifyToken` | `string{:ts}` | Yes      | Pending-registration, team, or verify token. |
+<RequestBody def={VerifyRouteV2} />
 
-<Tabs items={['V2', 'V1']}>
+<Tabs items={['V2', 'V1']} sync="verify-version">
   <Tab>
 
 `<route>POST /api/v2/auth/verify</route>` can complete a pending registration, mint an auth token from a team token, or confirm an email change.

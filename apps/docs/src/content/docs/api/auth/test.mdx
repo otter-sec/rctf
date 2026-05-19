@@ -3,44 +3,14 @@ title: '<route>GET</route> Test an auth token'
 description: '<route>GET /api/v1/auth/test</route>'
 ---
 
+import { TestAuthRoute } from '@rctf/types'
+
 <Aside>
-```json frame="terminal"
-$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-dev.es3n1n.io/api/v1/auth/test"</white> \
-  <dim>-H</dim> <white>"Authorization: Bearer <dim><auth-token></dim>"</white>
-```
-
-<Tabs
-  items={[
-    '<response>200 goodToken</response>',
-    '<response>401 badToken</response>',
-  ]}
->
-  <Tab>
-
-```json
-{
-  "kind": "goodToken",
-  "message": "The authorization token is valid."
-}
-```
-
-  </Tab>
-
-  <Tab>
-
-```json
-{
-  "kind": "badToken",
-  "message": "The token provided is invalid."
-}
-```
-
-  </Tab>
-</Tabs>
+  <RouteExample def={TestAuthRoute} />
 </Aside>
 
 Checks whether the current auth token is still usable. This V1 route is still current because there is no V2 replacement for token validation.
 
 A valid token returns `<response>200 goodToken</response>` with no data. Missing, malformed, expired, or otherwise invalid auth headers are rejected before any account data is returned.
 
-<RouteMeta auth="Required" gate="None" />
+<RouteMetaFromDef def={TestAuthRoute} />
