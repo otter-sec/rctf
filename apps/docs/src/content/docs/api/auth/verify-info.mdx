@@ -9,24 +9,18 @@ import { BadBody, GetVerifyInfoRouteV2 } from '@rctf/types'
   <RouteExample def={GetVerifyInfoRouteV2} extra={[BadBody]} />
 </RouteAside>
 
-Reads the public context for a verification token without consuming it. Use this before rendering a confirmation page so the UI can show what the token is about before the user submits it.
-
-This preview step is only available in V2. V1 clients submit the token directly when the user confirms the action.
-
 <RouteMetaFromDef def={GetVerifyInfoRouteV2} />
 
-**Query**
+Reads the public context for a verification token without marking it as used. This is useful before rendering a confirmation page, because the UI can show what the token is about before the user submits it.
 
-<RequestBody def={GetVerifyInfoRouteV2} source="query" />
+This preview step is available in V2. V1 clients submit the token directly when the user confirms the action.
 
-**Response**
+<RequestBody def={GetVerifyInfoRouteV2} source="query" title="Query parameters" />
+
+#### Response
 
 A valid token returns `<response>200 goodVerifyInfo</response>` with enough detail to describe the pending action.
 
-| Field | Type | Notes |
-| --- | --- | --- |
-| `data.kind` | `"register" \| "team" \| "update"{:ts}` | Token purpose. |
-| `data.email` | `string \| null{:ts}` | `null{:ts}` for team-token recovery previews. |
-| `data.name` | `string \| undefined{:ts}` | Present for pending-registration tokens. |
+<ResponseBody def={GetVerifyInfoRouteV2} response="goodVerifyInfo" title="Response fields" />
 
-Previewing does not claim the token. The same token still has to be submitted to [verify a token](/api/auth/verify/) to complete the action.
+Previewing does not mark the token as used. The same token still has to be submitted to [verify a token](/api/auth/verify/) to complete the action.

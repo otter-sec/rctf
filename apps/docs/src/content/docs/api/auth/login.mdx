@@ -9,16 +9,16 @@ import { BadBody, BadJson, LoginRoute } from '@rctf/types'
   <RouteExample def={LoginRoute} pick={['teamToken']} extra={[BadJson, BadBody]} />
 </RouteAside>
 
-Exchanges a longer-lived team credential for an auth token that can be used on user routes. This V1 route is still current because there is no V2 replacement for team-token login.
-
 <RouteMetaFromDef def={LoginRoute} />
 
-**Request body**
+Exchanges a longer lived team credential for an auth token that can be used on user routes. This V1 route is still current because there is no V2 replacement for team token login.
 
-<RequestBody def={LoginRoute} />
+<RequestBody def={LoginRoute} title="Request body" />
 
 `teamToken` is parsed as `TokenKind.Team{:ts}`. `ctftimeToken` is parsed as `TokenKind.CtftimeAuth{:ts}` and then matched to a team linked to that CTFtime ID.
 
-**Response**
+#### Response
 
 A successful login returns `<response>200 goodLogin</response>` with a fresh `authToken`. Token verification happens before any account data is returned, so expired, malformed, or unrecognized handoff tokens never mint an auth token.
+
+<ResponseBody def={LoginRoute} response="goodLogin" title="Response fields" />

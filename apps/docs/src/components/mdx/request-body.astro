@@ -1,51 +1,26 @@
 ---
+import ApiFieldList from '@/components/mdx/api-field-list.astro'
 import { renderDescription } from '@/lib/render-description'
-import { walkObjectSchema } from '@/lib/route-introspect'
+import { requestFieldDescription, walkObjectSchema } from '@/lib/route-introspect'
 
 interface Props {
   def: any
   source?: 'body' | 'query' | 'params'
+  title?: string
 }
 
-const { def, source = 'body' } = Astro.props
+const { def, source = 'body', title } = Astro.props
 
-const rows = await Promise.all(
+const items = await Promise.all(
   walkObjectSchema(def?.[source]).map(async field => ({
     name: field.name,
     typeHtml: (await renderDescription(`\`${field.typeLabel}{:ts}\``)).html,
-    required: field.required ? 'Yes' : 'No',
-    notesHtml: field.description ? (await renderDescription(field.description)).html : '',
+    required: field.required,
+    descriptionHtml: (
+      await renderDescription(field.description ?? requestFieldDescription(field.name, source))
+    ).html,
   }))
 )
 ---
 
-{
-  rows.length > 0 && (
-    <table>
-      <thead>
-        <tr>
-          <th>Field</th>
-          <th>Type</th>
-          <th>Required</th>
-          <th>Notes</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map(row => (
-          <tr>
-            <td>
-              <code>{row.name}</code>
-            </td>
-            <td>
-              <Fragment set:html={row.typeHtml} />
-            </td>
-            <td>{row.required}</td>
-            <td>
-              <Fragment set:html={row.notesHtml} />
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  )
-}
+<ApiFieldList {items} {title} />

@@ -118,6 +118,78 @@ export interface ResponseField {
   description?: string
 }
 
+const COMMON_FIELD_DESCRIPTIONS: Record<string, string> = {
+  authToken: 'Auth token returned by the route.',
+  teamToken: 'Team token returned by the route.',
+  captchaCode: 'Captcha challenge token.',
+  recaptchaCode: 'reCAPTCHA challenge token.',
+  ctftimeToken: 'CTFtime authentication token.',
+  email: 'Email address.',
+  id: 'Unique identifier.',
+  jobId: 'Job identifier.',
+  userId: 'Team identifier.',
+  challengeId: 'Challenge identifier.',
+  name: 'Display name.',
+  kind: 'Response or object kind.',
+  type: 'Object type.',
+  total: 'Total number of matching records.',
+  limit: 'Maximum number of records to return.',
+  offset: 'Number of records to skip before returning results.',
+  search: 'Search string.',
+  division: 'Division name or filter.',
+  score: 'Current score.',
+  points: 'Point value.',
+  time: 'Timestamp for the sample.',
+  solveTime: 'Solve timestamp.',
+  createdAt: 'Creation timestamp.',
+  expiresAt: 'Expiration timestamp.',
+  avatarUrl: 'Avatar image URL.',
+  countryCode: 'Country or region code.',
+  statusText: 'Team status text.',
+  globalPlace: 'Global leaderboard rank.',
+  divisionPlace: 'Division leaderboard rank.',
+  url: 'Resource URL.',
+  size: 'Size in bytes.',
+}
+
+function fieldKey(path: string): string {
+  return path.replace(/\[\]/g, '').split('.').at(-1) ?? path
+}
+
+function sentenceFromFieldName(name: string): string {
+  const words = name
+    .replace(/\[\]/g, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replaceAll('.', ' ')
+    .replaceAll('_', ' ')
+    .trim()
+    .toLowerCase()
+  return words || 'field'
+}
+
+export function requestFieldDescription(name: string, source: 'body' | 'query' | 'params'): string {
+  const key = fieldKey(name)
+  const common = COMMON_FIELD_DESCRIPTIONS[key]
+  if (common) return common
+
+  const label = sentenceFromFieldName(name)
+  switch (source) {
+    case 'params':
+      return `Route parameter for ${label}.`
+    case 'query':
+      return `Query parameter for ${label}.`
+    case 'body':
+      return `Request body field for ${label}.`
+  }
+}
+
+export function responseFieldDescription(path: string): string {
+  const key = fieldKey(path)
+  const common = COMMON_FIELD_DESCRIPTIONS[key]
+  if (common) return common
+  return `Returned ${sentenceFromFieldName(path)} value.`
+}
+
 export function walkResponseSchema(schema: AnySchema, prefix = ''): ResponseField[] {
   if (!schema) return []
   const d = def(schema)

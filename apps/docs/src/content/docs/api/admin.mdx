@@ -67,7 +67,7 @@ Lists every challenge with full admin fields, including hidden challenges and un
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminChallenges</response>`: array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
 
@@ -85,13 +85,13 @@ Returns one admin challenge.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminChallenge</response>`: `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
 
@@ -109,7 +109,7 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 | Captcha action | -                  |
 | Rate limit     | -                  |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes                                 |
 | ----- | ------------- | -------- | ------------------------------------- |
@@ -143,7 +143,7 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 
 `instancerConfig{:ts}` is validated against the active instancer provider schema. `adminBotConfig{:ts}` source is validated by the active admin bot provider and stored with a generated revision. Updating a challenge triggers a leaderboard recalculation.
 
-**Response**
+#### Response
 
 `<response>200 goodChallengeUpdate</response>`: updated `AdminChallengeV2`.
 
@@ -161,14 +161,14 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 | Captcha action | -                       |
 | Rate limit     | -                       |
 
-**Path params**
+**Path parameters**
 
 | Field         | Type          | Required | Notes                                 |
 | ------------- | ------------- | -------- | ------------------------------------- |
 | `challengeId` | `string{:ts}` | Yes      | Challenge ID.                         |
 | `userId`      | `string{:ts}` | Yes      | Team ID whose solve is being removed. |
 
-**Response**
+#### Response
 
 `<response>200 goodChallengeSolveDelete</response>` (no data).
 
@@ -188,11 +188,11 @@ Uploads one or more files. Files are deduplicated by SHA-256 - uploading the sam
 | Captcha action | -                  |
 | Rate limit     | -                  |
 
-**Request**
+**Request body**
 
 `multipart/form-data` with one or more `files` form fields.
 
-**Response**
+#### Response
 
 `<response>200 goodFilesUpload</response>`: array of upload objects.
 
@@ -229,7 +229,7 @@ Checks whether files already exist by SHA-256 without uploading them.
 | `uploads[].sha256` | `string{:ts}` | Yes      | Hex-encoded SHA-256 digest. |
 | `uploads[].name`   | `string{:ts}` | Yes      | Display filename.           |
 
-**Response**
+#### Response
 
 `<response>200 goodUploadsQuery</response>`: array with one entry per query - each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
 
@@ -249,7 +249,7 @@ Lists teams. Query parameters control pagination, sorting, and search.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Query**
+**Query parameters**
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
@@ -259,7 +259,7 @@ Lists teams. Query parameters control pagination, sorting, and search.
 | `sortBy` | `AdminTeamSortBy{:ts}` | No | `createdAt`, `team`, `email`, `division`, `score`, `solves`, or `status`. |
 | `sortOrder` | `SortOrder{:ts}` | No | `asc` or `desc`. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUsers</response>`: `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
 
@@ -277,7 +277,7 @@ Lists teams with rich filters. Same query parameters as `<route>GET</route>`, wi
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Query**
+**Query parameters**
 
 Identical to `<route>GET /api/v2/admin/users</route>`.
 
@@ -297,7 +297,7 @@ Identical to `<route>GET /api/v2/admin/users</route>`.
 
 Filter objects accept nullable `include` and `exclude` arrays.
 
-**Response**
+#### Response
 
 Same shape as `<route>GET /api/v2/admin/users</route>`.
 
@@ -315,13 +315,13 @@ Returns full team details, including solve history.
 | Captcha action | -                                    |
 | Rate limit     | -                                    |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes    |
 | ----- | ------------- | -------- | -------- |
 | `id`  | `string{:ts}` | Yes      | Team ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUser</response>`:
 
@@ -355,7 +355,7 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes    |
 | ----- | ------------- | -------- | -------- |
@@ -373,7 +373,7 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 | --- | --- | --- | --- |
 | `data.banned` | `boolean{:ts}` | No | Banning removes the team from leaderboard output after recalculation without deleting solves. Unbanning restores rank after recalculation. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUserUpdate</response>` (no data).
 
@@ -391,13 +391,13 @@ Deletes a team. Cannot delete users with admin permissions.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes    |
 | ----- | ------------- | -------- | -------- |
 | `id`  | `string{:ts}` | Yes      | Team ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUserDelete</response>` (no data).
 
@@ -415,13 +415,13 @@ Generates a fresh long-lived team token. Useful for recovering teams that have l
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes    |
 | ----- | ------------- | -------- | -------- |
 | `id`  | `string{:ts}` | Yes      | Team ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodCreateUserToken</response>`: `{ token: string }`.
 
@@ -443,7 +443,7 @@ Lists outstanding pending verifications.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUserVerifications</response>`: `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
 
@@ -461,13 +461,13 @@ Manually completes a pending verification, creating the team without requiring t
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes                    |
 | ----- | ------------- | -------- | ------------------------ |
 | `id`  | `string{:ts}` | Yes      | Pending verification ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUserVerificationComplete</response>`: `{ userId: string }`.
 
@@ -485,13 +485,13 @@ Resends the verification email for an outstanding row.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes                    |
 | ----- | ------------- | -------- | ------------------------ |
 | `id`  | `string{:ts}` | Yes      | Pending verification ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminUserVerificationResend</response>`: `{ id: string }`.
 
@@ -513,7 +513,7 @@ Lists submission audit rows.
 | Captcha action | -                                    |
 | Rate limit     | -                                    |
 
-**Query**
+**Query parameters**
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
@@ -524,7 +524,7 @@ Lists submission audit rows.
 | `challengeSearch` | `string{:ts}` | No | 1–100 characters. |
 | `teamSearch` | `string{:ts}` | No | 1–100 characters. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminSubmissions</response>`: `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
 
@@ -542,7 +542,7 @@ Lists submission audit rows with rich filters.
 | Captcha action | -                                    |
 | Rate limit     | -                                    |
 
-**Query**
+**Query parameters**
 
 Identical to `<route>GET /api/v2/admin/submissions</route>`.
 
@@ -574,7 +574,7 @@ Identical to `<route>GET /api/v2/admin/submissions</route>`.
 | `createdAfter` | `string{:ts}` | No | ISO timestamp lower bound. |
 | `createdBefore` | `string{:ts}` | No | ISO timestamp upper bound. |
 
-**Response**
+#### Response
 
 Same shape as `<route>GET /api/v2/admin/submissions</route>`.
 
@@ -596,7 +596,7 @@ Returns the current overrides and defaults side-by-side.
 | Captcha action | -                    |
 | Rate limit     | -                    |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminSettings</response>`: `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
 
@@ -643,7 +643,7 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 | ------ | ----------------------------- | -------- | -------------------------------- |
 | `data` | `Partial<AdminSettings>{:ts}` | Yes      | Nullable values clear overrides. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminSettingsUpdate</response>`: same shape as the `<route>GET</route>` response (returns the updated overrides and defaults).
 
@@ -663,7 +663,7 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Response**
+#### Response
 
 `<response>200 goodInstancerSchema</response>`: `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
 
@@ -681,7 +681,7 @@ Returns admin bot enablement and source language.
 | Captcha action | -                 |
 | Rate limit     | -                 |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotStatus</response>`: `{ enabled: boolean, configLanguage: string }`.
 
@@ -703,7 +703,7 @@ Claims the oldest queued job for processing.
 | Captcha action | -       |
 | Rate limit     | -       |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobPull</response>`: `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
 
@@ -723,13 +723,13 @@ Fetches the challenge source code for a specific config revision.
 | Captcha action | -       |
 | Rate limit     | -       |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotChallengeSource</response>`: `{ sourceCode: string, configRevision: string }`.
 
@@ -747,7 +747,7 @@ Marks a running job as completed and stores logs.
 | Captcha action | -       |
 | Rate limit     | -       |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes   |
 | ----- | ------------- | -------- | ------- |
@@ -765,7 +765,7 @@ Marks a running job as completed and stores logs.
 | --- | --- | --- | --- |
 | `logs` | `string \| undefined{:ts}` | No | Newline-delimited JSON. Maximum `1048576` characters. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobUpdate</response>`: `{ ok: boolean }`.
 
@@ -783,7 +783,7 @@ Marks a running job as failed and stores logs.
 | Captcha action | -       |
 | Rate limit     | -       |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes   |
 | ----- | ------------- | -------- | ------- |
@@ -793,7 +793,7 @@ Marks a running job as failed and stores logs.
 
 Same shape as `complete`.
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobUpdate</response>`: `{ ok: boolean }`.
 
@@ -811,7 +811,7 @@ Returns the number of queued jobs.
 | Captcha action | -       |
 | Rate limit     | -       |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotQueueDepth</response>`: `{ depth: number }`.
 
@@ -841,13 +841,13 @@ V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalcul
 | Captcha action | -                  |
 | Rate limit     | -                  |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodChallengeDelete</response>` (no data).
 

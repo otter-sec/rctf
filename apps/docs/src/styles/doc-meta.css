@@ -18,6 +18,20 @@
   @apply shiki-tokens;
 }
 
+[data-api-field-type],
+[data-api-field-type] code,
+[data-api-field-type] .shiki {
+  @apply bg-transparent! p-0! font-mono text-inherit;
+}
+
+[data-api-field-type] .shiki code {
+  @apply p-0!;
+}
+
+[data-api-field-type] .shiki span {
+  @apply shiki-tokens;
+}
+
 .tab-label-code {
   @apply font-mono;
 }

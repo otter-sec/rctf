@@ -38,7 +38,7 @@ Returns the public client configuration consumed by the frontend.
 | Captcha action | -      |
 | Rate limit     | -      |
 
-**Response**
+#### Response
 
 `<response>200 goodClientConfig</response>`:
 
@@ -103,7 +103,7 @@ Returns the active analytics provider's JavaScript body. This route is not part 
 | Captcha action | -      |
 | Rate limit     | -      |
 
-**Response**
+#### Response
 
 The route returns the provider's JavaScript body or a plain text error. It is not wrapped in the rCTF envelope. The API caches the script in memory for one hour. When no analytics provider is configured the route returns `404`. Upstream fetch failures return `502`.
 
@@ -133,7 +133,7 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 | ------------- | ------------- | -------- | ------------------------------- |
 | `ctftimeCode` | `string{:ts}` | Yes      | OAuth code returned by CTFtime. |
 
-**Response**
+#### Response
 
 `<response>200 goodCtftimeToken</response>`:
 
@@ -169,7 +169,7 @@ V1-only. Returns the CTFtime-formatted leaderboard. This is the only typed route
 | Captcha action | -                      |
 | Rate limit     | -                      |
 
-**Response**
+#### Response
 
 Raw body (200):
 
@@ -205,13 +205,13 @@ Returns the current instance status for the authenticated user.
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodInstanceStatus</response>`:
 
@@ -249,7 +249,7 @@ Creates (starts) an instance for the authenticated user.
 | Captcha action | `instancerStart{:ts}` (when configured)         |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
@@ -267,7 +267,7 @@ Creates (starts) an instance for the authenticated user.
 | --- | --- | --- | --- |
 | `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `instancerStart{:ts}`. |
 
-**Response**
+#### Response
 
 `<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
@@ -285,7 +285,7 @@ Extends the running instance for the authenticated user.
 | Captcha action | `instancerExtend{:ts}` (when configured)        |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
@@ -303,7 +303,7 @@ Extends the running instance for the authenticated user.
 | --- | --- | --- | --- |
 | `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `instancerExtend{:ts}`. |
 
-**Response**
+#### Response
 
 `<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
@@ -321,13 +321,13 @@ Stops the instance for the authenticated user.
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
@@ -349,13 +349,13 @@ Returns the released admin bot challenge source and its file extension.
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotConfig</response>`:
 
@@ -387,7 +387,7 @@ Submits a participant admin bot job. Participants supply values for the configur
 | Captcha action | `adminBotSubmit{:ts}` (when configured)                     |
 | Rate limit     | Burst `1`, refill window `10000` ms per user and challenge. |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
@@ -411,7 +411,7 @@ Submits a participant admin bot job. Participants supply values for the configur
 
 Only one queued or running job per user per challenge is allowed.
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobSubmitted</response>`:
 
@@ -445,13 +445,13 @@ Returns the current active job for the authenticated user on that challenge.
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobStatus</response>`:
 
@@ -488,13 +488,13 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes         |
 | ----- | ------------- | -------- | ------------- |
 | `id`  | `string{:ts}` | Yes      | Challenge ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobHistory</response>`:
 
@@ -531,14 +531,14 @@ Returns logs for a specific job.
 | Captcha action | -                                               |
 | Rate limit     | -                                               |
 
-**Path params**
+**Path parameters**
 
 | Field   | Type          | Required | Notes         |
 | ------- | ------------- | -------- | ------------- |
 | `id`    | `string{:ts}` | Yes      | Challenge ID. |
 | `jobId` | `string{:ts}` | Yes      | Job ID.       |
 
-**Response**
+#### Response
 
 `<response>200 goodAdminBotJobLogs</response>`:
 

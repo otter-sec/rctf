@@ -1,5 +1,11 @@
 @reference './global.css';
 
+[data-tabs],
+[data-tabs-panels],
+[data-tabs-panels] [data-tab-panel] {
+  @apply min-w-0;
+}
+
 [data-tabs-panels]:has(.steps) {
   @apply overflow-visible;
 }

@@ -16,27 +16,29 @@ import { GetChallengeSolvesRoute, GetChallengeSolvesRouteV2 } from '@rctf/types'
   </Tabs>
 </RouteAside>
 
-Returns paginated solve history for one challenge.
-
-V2 returns solve avatars, country codes, division placements, blood index, and the authenticated user's `mySolvePosition` when optional auth is present. V1 returns only the minimal solve row.
-
 <RouteMetaFromDef def={GetChallengeSolvesRouteV2} />
 
-**Path parameters**
+Returns a page of solve history for one challenge.
 
-<RequestBody def={GetChallengeSolvesRouteV2} source="params" />
+V2 includes solve avatars, country codes, division placements, blood index, and the authenticated user's `mySolvePosition` when optional auth is present. V1 remains available for older clients and returns a smaller solve row.
 
-**Query**
+<RequestBody def={GetChallengeSolvesRouteV2} source="params" title="Path parameters" />
 
-<RequestBody def={GetChallengeSolvesRouteV2} source="query" />
-
-**Response fields**
+<RequestBody def={GetChallengeSolvesRouteV2} source="query" title="Query parameters" />
 
 <Tabs items={['V2', 'V1']} sync="solves-version">
   <Tab>
-    <ResponseBody def={GetChallengeSolvesRouteV2} response="goodChallengeSolves" />
+    <ResponseBody
+      def={GetChallengeSolvesRouteV2}
+      response="goodChallengeSolves"
+      title="Response fields"
+    />
   </Tab>
   <Tab>
-    <ResponseBody def={GetChallengeSolvesRoute} response="goodChallengeSolves" />
+    <ResponseBody
+      def={GetChallengeSolvesRoute}
+      response="goodChallengeSolves"
+      title="Response fields"
+    />
   </Tab>
 </Tabs>

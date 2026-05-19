@@ -26,34 +26,42 @@ import { BadBody, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
   </Tabs>
 </RouteAside>
 
+<RouteMetaFromDef def={RegisterRouteV2} />
+
 Creates a team account. Most deployments ask the team to prove ownership of an email address before the account becomes usable, so a successful request often sends a verification email instead of returning tokens immediately.
 
-Use the V2 route for new clients. The V1 route is still supported for clients that already use the original contract.
-
-<RouteMetaFromDef def={RegisterRouteV2} />
+For new clients, prefer the V2 route. The V1 route remains available for clients that already use the original registration fields.
 
 <Tabs items={['V2', 'V1']} sync="register-version">
   <Tab>
 
-`<route>POST /api/v2/auth/register</route>` uses `captchaCode` for captcha-protected registration. If the team can be created immediately, the response includes both an auth token for user routes and a team token for recovery or team-scoped auth flows.
+`<route>POST /api/v2/auth/register</route>` uses `captchaCode` for captcha protected registration. If the team can be created immediately, the response includes both an auth token for user routes and a team token for recovery or team scoped auth flows.
 
-<RequestBody def={RegisterRouteV2} />
+<RequestBody def={RegisterRouteV2} title="Request body" />
+
+#### Response
 
 If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
 
 If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegisterV2</response>` with both tokens.
 
+<ResponseBody def={RegisterRouteV2} response="goodRegisterV2" title="Response fields" />
+
   </Tab>
 
   <Tab>
 
-`<route>POST /api/v1/auth/register</route>` uses `recaptchaCode` for captcha-protected registration. If the team can be created immediately, the response includes an auth token.
+`<route>POST /api/v1/auth/register</route>` uses `recaptchaCode` for captcha protected registration. If the team can be created immediately, the response includes an auth token.
 
-<RequestBody def={RegisterRoute} />
+<RequestBody def={RegisterRoute} title="Request body" />
+
+#### Response
 
 If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
 
 If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegister</response>` with an `authToken`.
+
+<ResponseBody def={RegisterRoute} response="goodRegister" title="Response fields" />
 
   </Tab>
 </Tabs>

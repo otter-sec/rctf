@@ -41,13 +41,13 @@ Returns the public profile of a team.
 | Captcha action | -                                          |
 | Rate limit     | -                                          |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes    |
 | ----- | ------------- | -------- | -------- |
 | `id`  | `string{:ts}` | Yes      | Team ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodUserData</response>`:
 
@@ -97,7 +97,7 @@ Returns the authenticated team's own profile, including account-private fields.
 | Captcha action | -        |
 | Rate limit     | -        |
 
-**Response**
+#### Response
 
 `<response>200 goodUserSelfData</response>` returns the public profile fields plus account-private data:
 
@@ -167,7 +167,7 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 | `countryCode` | `string \| null{:ts}` | No | Region code or `null{:ts}`. |
 | `statusText` | `string \| null{:ts}` | No | String up to 60 characters or `null{:ts}`. |
 
-**Response**
+#### Response
 
 `<response>200 goodUserUpdate</response>`:
 
@@ -211,7 +211,7 @@ Uploads or removes the team avatar. The route expects `multipart/form-data`.
 | Captcha action | `avatarUpload{:ts}` (when configured)                          |
 | Rate limit     | Avatar upload - burst `2`, refill window `120000` ms per user. |
 
-**Request**
+**Request body**
 
 | Form field | Type | Required | Notes |
 | --- | --- | --- | --- |
@@ -220,7 +220,7 @@ Uploads or removes the team avatar. The route expects `multipart/form-data`.
 
 The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts it to WebP, optionally sends it to the moderation provider, uploads it through the active upload provider, and deletes the previous avatar when replacing it.
 
-**Response**
+#### Response
 
 `<response>200 goodAvatarUpdated</response>`:
 
@@ -268,7 +268,7 @@ Updates the account email. When email delivery is configured, the route sends a 
 
 The route rejects emails that would move the team outside the division ACL (`<response>403 badEmailChangeDivision</response>`) and rejects duplicate emails (`<response>409 badKnownEmail</response>`).
 
-**Response**
+#### Response
 
 Behavior branches on email provider configuration:
 
@@ -313,7 +313,7 @@ V1-only. Removes the account email. Preserves the `<response>409 badZeroAuth</re
 | Captcha action | -        |
 | Rate limit     | -        |
 
-**Response**
+#### Response
 
 `<response>200 goodEmailRemoved</response>` (no data).
 
@@ -343,7 +343,7 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 | --- | --- | --- | --- |
 | `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `<response>404 badEndpoint</response>` when CTFtime auth is not configured. |
 
-**Response**
+#### Response
 
 `<response>200 goodCtftimeAuthSet</response>` (no data).
 
@@ -361,7 +361,7 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 | Captcha action | -        |
 | Rate limit     | -        |
 
-**Response**
+#### Response
 
 `<response>200 goodCtftimeRemoved</response>` (no data).
 
@@ -379,7 +379,7 @@ V1-only. Lists informational team-member email rows under the team account. Team
 | Captcha action | -        |
 | Rate limit     | -        |
 
-**Response**
+#### Response
 
 `<response>200 goodMemberData</response>` returns a team member array.
 
@@ -409,7 +409,7 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 | ------- | ------------- | -------- | --------------------- |
 | `email` | `string{:ts}` | Yes      | Member email address. |
 
-**Response**
+#### Response
 
 `<response>200 goodMemberCreate</response>` returns the created team member object.
 
@@ -427,13 +427,13 @@ V1-only. Removes a team member email row.
 | Captcha action | -        |
 | Rate limit     | -        |
 
-**Path params**
+**Path parameters**
 
 | Field | Type          | Required | Notes               |
 | ----- | ------------- | -------- | ------------------- |
 | `id`  | `string{:ts}` | Yes      | Team member row ID. |
 
-**Response**
+#### Response
 
 `<response>200 goodMemberDelete</response>` (no data).
 
