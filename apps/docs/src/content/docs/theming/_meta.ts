@@ -1,7 +1,7 @@
 import type { MetaFile } from '@/types'
 
 export default {
-  label: 'Theming and styling',
+  label: 'Theming',
   collapsed: true,
   items: {
     colors: { label: 'Color system', order: 1 },
