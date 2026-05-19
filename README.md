@@ -1,12 +1,8 @@
-<img src="./apps/docs/public/web-app-manifest-192x192.png" align="left" width="128" height="128" hspace="20" alt="rCTF" />
-
-# rCTF
+<img src="./apps/docs/public/favicon.svg" align="left" width="128" height="128" hspace="20" alt="rCTF" />
 
 rCTF is a platform for hosting cybersecurity [capture-the-flag](<https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)>) competitions. Originally developed by [redpwn](https://redpwn.net/), it is now maintained by the [OtterSec](https://osec.io) team.
 
 To get started with rCTF, visit the [documentation](https://rctf.osec.io). If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
-
-<br clear="left" />
 
 ## Development
 
