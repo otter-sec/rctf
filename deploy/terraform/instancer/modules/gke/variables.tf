@@ -38,5 +38,5 @@ variable "max_node_count" {
 
 variable "pod_pids_limit" {
     type = number
-    default = 4096
+    default = 1024
 }

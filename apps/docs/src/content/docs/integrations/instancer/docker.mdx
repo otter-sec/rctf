@@ -27,6 +27,21 @@ The bundled deployment files live under `deploy/docker-instancer`:
 
 The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The instancer API itself is bound to `127.0.0.1:12237` on the host and to `tiny-instancer:1337` inside the `rctf_network` Docker network.
 
+<Callout variant="warning" title="Hosting the instancer on a separate machine">
+
+The bundled `compose.yml` binds the instancer API to `127.0.0.1:12237` because the default deployment expects rCTF and the instancer to share the `rctf_network` Docker network on the same host - the loopback bind is intentional.
+
+If you split the instancer onto its own host (which we recommend - it isolates challenge workloads from the platform), change the port mapping to bind globally:
+
+```yaml title="deploy/docker-instancer/compose.yml"
+ports:
+  - '12237:1337'
+```
+
+The API is authenticated by a shared `<red>AUTH_TOKEN</red>`, but the endpoint must not be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
+
+</Callout>
+
 The environment file requires shared auth, Redis, and public instance host settings:
 
 ```sh title="deploy/docker-instancer/.env"
@@ -153,6 +168,6 @@ Each service supports these field groups:
 | `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, `<red>ulimits</red>`, `<red>sysctls</red>` | Resource and kernel limits. |
 | `<red>healthcheck</red>`, `<red>labels</red>`, `<red>restart</red>` | Health, metadata, and restart behavior. |
 
-Explicit services default to a read-only root filesystem, `<green>no-new-privileges</green>`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `64` PIDs, and `nofile` soft and hard limits of `1024`.
+Explicit services default to a read-only root filesystem, `<green>no-new-privileges</green>`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `1024` PIDs, and `nofile` soft and hard limits of `1024`.
 
 Services may only reference networks declared under `<red>config.networks</red>`. Named volume mounts may only reference volumes declared under `<red>config.volumes</red>`. Absolute and relative bind-style mount sources are not checked against the volume map.

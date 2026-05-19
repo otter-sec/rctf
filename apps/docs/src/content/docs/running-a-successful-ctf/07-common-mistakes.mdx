@@ -5,89 +5,283 @@ description: The recurring operational and security mistakes CTF organizers make
 
 import Callout from '@/components/callout.astro'
 
-These are the mistakes we keep seeing in post-CTF retros - ours and other teams'. Each section is a thing to watch for in general; the rCTF-specific notes call out what the platform already does and what is still on you.
+Recurring failure modes from post-CTF retros - ours and other teams'. Each section flags what to watch for; the rCTF-specific notes call out what the platform already handles.
 
-## Not being prepared for traffic
+## Non-technical
 
-The classic failure mode: registration opens, the homepage lights up, and the platform either falls over under the connection burst or quietly degrades because nobody load-tested the path participants will actually hit.
+### Not planning properly and/or not having deadlines
 
-<Callout variant='warning' title='What to watch for'>
+The single biggest problem we see.
 
-- The first ~5 minutes after start: concurrent registrations + login + first leaderboard view all collide. Load-test the registration/login/leaderboard paths from a separate machine with a realistic mix before the day.
-- The challenge-cluster scale, separately from the platform box. Each instanced challenge can spawn one pod per team - size for the worst-case `expected teams × instanced challenges with overlapping deadlines`.
-- Cold-start latency on first-team-starts-this-challenge. Pre-pull challenge images on every node.
-- Captcha actually being enabled. The endpoints rCTF gates by default only get protected if a provider is configured.
+CTFs without internal deadlines slip on every axis:
 
-</Callout>
+- challenges land the night before
+- infra is provisioned an hour before the CTF
+- the solution scripts are not ready by the time CTF starts
+- ...
 
-With rCTF you can stop worrying about the platform itself. The leaderboard is computed by a background worker and served from a Redis cache, nginx serves the frontend with brotli/gzip precompression and immutable cache headers, and the [Docker](/integrations/instancer/docker/) and [Kubernetes](/integrations/instancer/kubernetes/) instancers handle per-team-instance lifecycle (the k8s-instancer's GKE module is configured for autoscaling out of the box). Captcha is integrated for [recaptcha/hcaptcha/turnstile](/providers/captcha/) and gates registration, login, and instancer-start when the provider is set.
-
-## Skipping per-pod resource limits on challenge instances
-
-A K8s pod without `<red>resources.limits</red>` is allowed to use whatever the node has free. One team's solver running `:(){ :|:& };:` or a runaway memory leak in a guest VM challenge can starve the node and take everyone else's instances of every other challenge down with it. Same story for unbounded PIDs, FDs, and ephemeral storage. This is the silent failure that looks like "the platform is slow" but is really one pod chewing the whole node.
+Set hard internal dates for challenge freeze, infra freeze, and dry-run - and treat the dry-run as non-negotiable.
 
 <Callout variant='warning' title='What to watch for'>
 
-- Pods declared with only `<red>requests</red>` and no `<red>limits</red>` - the scheduler sizes the node on requests but lets the pod burst unbounded.
-- The CPU/memory limit guessed from a single happy-path test. A pwn challenge's intended exploit usually allocates more than the author's manual `nc localhost ...` did.
-- Missing `<red>pids_limit</red>` (Docker) or `<red>resources.limits.ephemeral-storage</red>` (K8s). A fork bomb or `dd if=/dev/zero of=/tmp/x` is a fully in-bounds participant action.
-- No `<red>terminationGracePeriodSeconds</red>` cap. Teams holding open TCP connections can delay pod cleanup for minutes when an instance expires.
+- No challenge-freeze date. "Almost done" challenges merge during the event.
+- No infra-freeze date. Last-minute config changes hit prod with no soak time.
+- No dry-run. The first time someone tries to start an instance shouldn't be when participants do.
+- No owner per challenge for during-event triage. When something breaks at 3am, the answer to "who fixes this" must already exist.
 
 </Callout>
 
-With rCTF, the k8s-instancer's `<red>instancerConfig.config.pods[]</red>` is a real PodSpec - set `<red>resources.requests</red>` and `<red>resources.limits</red>` directly on each container. Kubernetes has no per-container PID limit field (it's a kubelet-level setting), so the bundled GKE Terraform module sets the kubelet's `<red>podPidsLimit</red>` to `4096{:ts}` cluster-wide via the `<red>gcp_instancer_pod_pids_limit</red>` variable - a fork bomb inside a challenge pod hits that cap and stops, instead of exhausting the node's `kernel.pid_max` for every other pod. The Docker provider has its own per-service caps in [Docker challenge config](/integrations/instancer/docker/#docker-challenge-config): `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>`, with defaults of `6m` mem / `1.0` CPU / `64` PIDs / `1024` nofile if you don't override them.
+<Callout variant='note'>
 
-## Exposing the cloud instance-metadata service to challenges
+Trust me, you don't want chasing people down 8h before the CTF starts to be your responsibility just because you happened to be the one running the infra. Deadlines exist so the infra person isn't the one paying for everyone else's slippage.
 
-Anything reachable from a challenge container can reach the cloud provider's instance-metadata service (`http://169.254.169.254` on AWS/GCP/Hetzner Cloud, `http://[fd00:ec2::254]` on IPv6). On a default cloud VM, that endpoint hands out short-lived credentials for the node's service account - which usually has more than enough permissions to read your storage buckets, push to your registry, or escalate further.
+</Callout>
+
+## Technical
+
+### Cloud providers
+
+#### Not requesting quota in advance
+
+Fresh GCP / AWS / Azure accounts ship with painfully low default quotas - on GCP for example a brand-new project typically caps regional in-use IP addresses, persistent disk, and CPU cores at numbers far below what a CTF cluster needs at peak. Hitting a quota mid-event means autoscaling stops, new instances refuse to spawn, and there is no fast path to fixing it. **Quota reviews can take up to multiple days. Request increases at least two weeks before the event.**
 
 <Callout variant='warning' title='What to watch for'>
 
-- Egress from challenge containers to `169.254.0.0/16` (IPv4 link-local) and the IPv6 metadata addresses. Block both stacks.
-- Custom CNI / `NetworkPolicy` bypass annotations on the cluster - a misconfigured CNI on bare-metal will silently drop the rules. Verify from inside a test pod that `curl http://169.254.169.254` fails.
-- Shared-remote VPS / bare-VM challenges where no NetworkPolicy applies. Drop IMDS at the host firewall (`iptables -A OUTPUT -d 169.254.169.254 -j DROP` and equivalent) or run the host without an attached service account.
+- **Default quotas on a new project** - GCP `CPUS`, `IN_USE_ADDRESSES`, `PERSISTENT_DISK_SSD_GB`, GPU quotas in some regions, and the per-region GKE `<red>SUBNETWORKS</red>` cap. AWS `vCPU` per instance family, Elastic IPs, EBS volumes. Azure regional vCPU per family.
+- **Sponsored credits without sponsored quota** - getting $10k of cloud credit does not raise your quotas. Quotas live on the project, not the billing account.
+- **Same-week requests rejected or queued** - quota teams need justification (event date, expected concurrent VMs/teams, region) and sometimes ask follow-up questions. Filing the request the day before will not work.
+- **Region picked for latency, not capacity** - some GPU types and high-core machine families are quota-gated per region. Pick the region, then verify the quota is approvable there.
+- **No headroom on the request** - request 1.5-2x of your worst-case estimate. Burst, retries, and pre-pulled images all consume more than the steady-state number you'd guess.
 
 </Callout>
 
-With rCTF, the [Kubernetes instancer](/integrations/instancer/kubernetes/#network-policies) ships three `NetworkPolicy` resources per instance namespace. The default `egress` policy explicitly excludes RFC1918 (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), CGNAT (`100.64.0.0/10`), and link-local (`169.254.0.0/16`) - `169.254.169.254` lives in that link-local block, so IMDS is unreachable from challenge pods by default. The Terraform module also enables GKE's `workload_metadata_concealment` for a second layer at the node level. If a challenge genuinely needs public-internet egress, opt in with `<red>egress: true</red>` on the pod - that opens public egress while keeping link-local / RFC1918 blocked. Don't drop the policy itself.
+<Callout variant='note'>
 
-## Running a shared remote without per-connection sandboxing
+For GCP, the [IAM quotas page](https://console.cloud.google.com/iam-admin/quotas) is per-project. File the increase, then verify the new limit is reflected in the same UI before assuming you're good. For AWS, Service Quotas requests are tied to the account + region pair - request in every region you'll deploy to.
 
-A shared remote where the intended solve grants code execution (most pwn, plenty of misc) needs every connection to run in its own sandbox. Without one, the first solver can replace the challenge binary, drop a backdoor in `/tmp`, exhaust the FD/proc table, or just kill the process - and every subsequent connection plays against the corrupted state.
+</Callout>
+
+<Callout variant='warning' title='GCP trial accounts stay capped forever'>
+
+If your project is still on the free-trial billing account, GCP will reject most quota-increase requests no matter how far in advance you ask - trial projects are deliberately gated to low limits and that does not change.
+
+The workaround that has worked for us:
+
+1. **Upgrade to a paid billing account** before requesting any quota increase. Free credits still apply, but the account class is what the quota team looks at.
+2. **Warm up the project for a few days.** Run a small always-on VPS (e2-small, ~$10) for 3-7 days before filing the request. A project with consistent billable usage reads as a real customer to the quota reviewer; a project with zero spend reads as someone trying to game free tier.
+3. **Then file the quota increase.** Reference the active workload in the justification ("currently running production workloads, scaling up for an event on YYYY-MM-DD").
+
+Skipping the warmup and going straight from $0 spend to "please give me 200 vCPUs" gets denied or sent to a manual review queue that doesn't move fast.
+
+</Callout>
+
+#### Exposing the instance-metadata service to challenges
+
+Anything reachable from a challenge container can reach `http://169.254.169.254` (AWS/GCP/Hetzner, or `http://[fd00:ec2::254]` on IPv6) and pull short-lived credentials for the node's service account.
 
 <Callout variant='warning' title='What to watch for'>
 
-- Any pwn/RCE challenge served as a long-lived shared process. Each TCP connection must fork into its own sandbox with read-only rootfs, no network, dropped capabilities, and CPU/memory/time limits.
-- kCTF templates whose `nsjail` config was stripped during customization. Verify the wrapper is still there.
-- Per-team instanced pods that still serve multiple parallel connections from the same team - inner jailing limits the blast radius of one bad connection.
+- Egress from challenge containers to `169.254.0.0/16` and the IPv6 metadata addresses - block both stacks.
+- Misconfigured CNI silently dropping rules on bare-metal. Verify `curl http://169.254.169.254` fails from a test pod.
+- Shared-remote VPS / bare-VM challenges with no NetworkPolicy - drop IMDS at the host firewall or run the host without an attached service account.
 
 </Callout>
 
-rCTF itself doesn't sandbox the challenge process - that's a challenge-side concern - but the patterns we recommend everywhere it's possible:
+<Callout variant='note' title='What rCTF handles'>
 
-- **[pwn.red/jail](https://github.com/redpwn/jail)** as the default. Small base image, forks the challenge per connection inside an nsjail with all the right defaults. Two lines in a `Dockerfile` (`FROM pwn.red/jail`).
-- **kCTF challenges are already in nsjail** by default. Use kCTF's `kctf chal create{:sh}` template as-is.
-- **Raw [nsjail](https://github.com/google/nsjail)** for everything else. Tune `--max_cpus`, `--rlimit_as`, `--time_limit`, `--disable_proc` per challenge.
+The [Kubernetes instancer](/integrations/instancer/kubernetes/#network-policies) ships `NetworkPolicy` per instance namespace excluding RFC1918, CGNAT, and link-local (which covers IMDS) by default. The Terraform module also enables GKE's `workload_metadata_concealment`. Opt into public egress with `<red>egress: true</red>` on the pod - don't drop the policy itself.
 
-See the [shared-remote callout in Deploying challenges](/running-a-successful-ctf/04-deployment/#shared-remote) for the deployment-side walkthrough.
+The bundled GKE Terraform module provisions an **IPv4-only** cluster, so the IPv6 IMDS address (`<red>[fd00:ec2::254]</red>`) is unreachable from challenge pods by virtue of the cluster having no IPv6 at all. If you switch the cluster to dual-stack, the shipped `NetworkPolicy` has no IPv6 allow rule and will implicitly deny all IPv6 egress - meaning IPv6 IMDS stays blocked, but challenges that need IPv6 internet egress will also break silently. Extend the policy with an explicit IPv6 `IPBlock` (and matching `<red>fd00::/8</red>` / `<red>fe80::/10</red>` exceptions) before enabling dual-stack.
 
-## Mounting broad Kubernetes service-account tokens into challenge pods
+</Callout>
 
-The other half of the IMDS problem: by default, every pod in a Kubernetes namespace gets the `default` service-account token mounted at `/var/run/secrets/kubernetes.io/serviceaccount/`. If that service account has any cluster-wide permissions - or if the cluster auto-grants `system:authenticated` more than it should - a participant who pops the challenge pod can talk to the API server and pivot.
+### Kubernetes
+
+#### Skipping per-pod resource limits
+
+A pod without `<red>resources.limits</red>` can use whatever the node has free. One team's fork bomb or runaway leak takes every other instance on that node down with it.
 
 <Callout variant='warning' title='What to watch for'>
 
-- `<red>automountServiceAccountToken</red>` defaulting to `true{:ts}` on every challenge pod. Set it to `false{:ts}` unless the challenge genuinely needs the in-cluster API (we've never seen one that did).
-- The `system:authenticated` group's cluster-role bindings. Some Helm charts and older GKE defaults grant `system:basic-user` or broader. Audit `kubectl get clusterrolebindings -o yaml | grep -A4 system:authenticated` and revoke anything with real verbs.
-- The instancer cluster sharing a tenant with your team's internal services. A challenge-pod escape into the same cluster becomes an internal-services escape.
-- Widened controller RBAC left over from debugging. Narrow it back before the event.
+- Pods declared with only `<red>requests</red>` and no `<red>limits</red>`.
+- Limits guessed from a single happy-path test.
+- No `<red>terminationGracePeriodSeconds</red>` cap - held TCP connections delay pod cleanup for minutes.
 
 </Callout>
 
-With rCTF, the k8s-instancer's `<red>instancerConfig.config.pods[]</red>` schema accepts the standard PodSpec - including `<red>automountServiceAccountToken</red>` - so you can set `false{:ts}` declaratively next to the rest of the pod config. The `inst-<challenge>-<team>` namespace the controller creates also has no extra RBAC bindings of its own - only the rCTF-controller cluster role exists at the cluster level, scoped to `ChallengeInstance` resources, so there's no namespace-default service account binding handing challenges cluster privilege.
+<Callout variant='note'>
 
-<Callout variant="tip" title="When in doubt, treat every challenge image as already-compromised">
-  The defaults rCTF ships with are designed around the assumption that participants will get code
-  execution inside the challenge container, because in most pwn/web challenges that is the intended
-  solution.
+The k8s-instancer's `<red>instancerConfig.config.pods[]</red>` is a real PodSpec - set `<red>resources.requests/limits</red>` directly.
+
+</Callout>
+
+#### Mounting broad service-account tokens
+
+Every pod in a namespace gets the `default` service-account token at `/var/run/secrets/kubernetes.io/serviceaccount/`. If that SA has cluster-wide perms - or the cluster over-grants `system:authenticated` - a popped challenge becomes API server access.
+
+<Callout variant='warning' title='What to watch for'>
+
+- `<red>automountServiceAccountToken</red>` left at `true{:ts}` - set `false{:ts}` unless the challenge genuinely needs the in-cluster API (we've never seen one that did).
+- `system:authenticated` cluster-role bindings. Audit `kubectl get clusterrolebindings -o yaml | grep -A4 system:authenticated` and revoke anything with real verbs.
+- Widened controller RBAC left over from debugging.
+
+</Callout>
+
+<Callout variant='note'>
+
+The k8s-instancer's `<red>instancerConfig.config.pods[]</red>` accepts the standard PodSpec including `<red>automountServiceAccountToken</red>`.
+
+</Callout>
+
+### Challenges
+
+#### Shared remote without per-connection sandboxing
+
+A shared remote where the intended solve grants code execution (most pwn, plenty of misc) needs every connection in its own sandbox. Without one, the first solver can replace the binary, drop a backdoor in `/tmp`, exhaust the FD/proc table, or kill the process - and every subsequent connection plays against corrupted state.
+
+<Callout variant='warning' title='What to watch for'>
+
+- Pwn/RCE served as a long-lived shared process - each TCP connection must fork into its own sandbox (read-only rootfs, no network, dropped caps, CPU/mem/time limits).
+- kCTF templates with `nsjail` stripped during customization.
+- Per-team pods serving multiple parallel connections - inner jailing still limits blast radius.
+
+</Callout>
+
+Recommended patterns:
+
+- **[pwn.red/jail](https://github.com/redpwn/jail)** - small base image, forks per connection inside nsjail with sane defaults. Two lines in a Dockerfile.
+- **kCTF challenges are already in nsjail** - use `kctf chal create{:sh}` as-is.
+- **Raw [nsjail](https://github.com/google/nsjail)** for everything else. Tune `--max_cpus`, `--rlimit_as`, `--time_limit`, `--disable_proc`.
+
+See the [shared-remote callout in Deploying challenges](/running-a-successful-ctf/04-deployment/#shared-remote) for the deployment walkthrough.
+
+#### Distributing malware samples / forensics artifacts unprotected
+
+Forensics, rev, and other malware challenges that hand out raw malicious binaries will get flagged by AV vendors fast. A flagged bucket means participants will need to click through 5 popups to download anything.
+
+Make sure to add strong passwords to archives with malicious files.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **Sample shipped as a plain `.exe`, `.dll`, or unencrypted archive** - within minutes of upload, EDR endpoints across participating teams report it and the file gets pulled / blacklisted at the CDN edge.
+- **Weak ZIP/7z password** - AV engines (and SmartScreen, Defender, CrowdStrike, etc.) brute-force common passwords like `infected`, `malware`, `password`, `2024` to scan archive contents anyway. Use a non-dictionary password and put it in the challenge description.
+
+</Callout>
+
+#### Nothing to protect against an evil player
+
+CPU/memory limits aren't enough on their own. A participant running `:(){ :|:& };:`, `dd if=/dev/zero of=/tmp/x`, or just opening 100k file descriptors is doing something fully in-bounds - it has to be capped at the runtime layer, not assumed away.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **No PID cap** - fork bombs exhaust the host's `kernel.pid_max` and take down everything else on the box. Set `pids_limit` (Docker), `--rlimit_nproc` (nsjail), or kubelet `podPidsLimit` (K8s, cluster-wide).
+- **No ephemeral storage limit** - `dd` to `/tmp` fills the host's overlayfs. Set `resources.limits.ephemeral-storage` on K8s pods; cap `/tmp` size on bare-metal challenges (`tmpfs` with `size=`).
+- **No FD / nofile ulimit** - `for i in $(seq 100000); do exec {fd}<>/dev/null; done` exhausts the file-descriptor table. Set `ulimits.nofile` (Docker) or `--rlimit_nofile` (nsjail).
+- **No time limit on shared-remote connections** - a participant holding open thousands of slow TCP connections starves the connection table. nsjail `--time_limit` per connection is the cheapest fix.
+- **Defaults that look fine because the author's test was friendly** - the threat model isn't the author. Test against a hostile client before shipping.
+
+</Callout>
+
+<Callout variant='note' title='What rCTF handles'>
+
+The [Docker instancer](/integrations/instancer/docker/#docker-challenge-config) defaults to `6m` mem / `1.0` CPU / `1024` PIDs / `1024` nofile per service if you don't override them, and exposes `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>` for tuning. The GKE Terraform module sets kubelet `<red>podPidsLimit</red>` to `1024{:ts}` cluster-wide via `<red>gcp_instancer_pod_pids_limit</red>`, so a fork bomb inside a challenge pod hits that cap instead of the node's `kernel.pid_max`.
+
+The K8s side is otherwise hands-off - ephemeral-storage limits, `<red>readOnlyRootFilesystem</red>`, FD ulimits, and `<red>terminationGracePeriodSeconds</red>` are not defaulted. See the [per-pod safety checklist](/integrations/instancer/kubernetes/#per-pod-safety-checklist) on the Kubernetes instancer page for the full list of fields you need to set yourself.
+
+</Callout>
+
+<Callout variant="tip">
+  When in doubt, treat every challenge image as already-compromised. Assume participants will get
+  code execution inside the challenge container, even if the intended solution is not RCE.
+</Callout>
+
+### Misc
+
+#### Improper host hardening
+
+A fresh cloud VM running an unpatched kernel with the default Docker socket exposed is a free root for anyone who pops a challenge. nday kernel exploits are public within hours of disclosure, and the path from "container code execution" to "host root" is shorter than people remember.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **Unpatched kernel** - run `unattended-upgrades` (or equivalent) on challenge hosts, and reboot into the newer kernel before the event. Public LPEs land on github days after CVE disclosure.
+- **Mounted `/var/run/docker.sock` into a container** - effectively `--privileged`. Anyone with code execution in that container can `docker run -v /:/host` and walk out.
+- **`--privileged`, `--cap-add=SYS_ADMIN`, `--pid=host`, `--net=host`** - each one alone is an escape primitive. Don't add capabilities to "make it work" without understanding what you handed over.
+- **Outdated runc / Docker / containerd** - container-escape CVEs get patched but unpatched hosts stay vulnerable. Pin minimum versions and verify.
+
+</Callout>
+
+#### Challenges machine runs out of disk space
+
+Easy to miss because it's not what you'd expect to fill up. The challenge box looks idle on CPU/memory dashboards while the disk silently fills from things nobody thinks to watch.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **Docker container logs** - `json-file` is the default driver and has no rotation unless you set `max-size` / `max-file` in `/etc/docker/daemon.json`. A noisy challenge logging every request fills `/var/lib/docker/containers/*/.log` for the lifetime of the container.
+- **journald** - same story for systemd-managed services. Set `SystemMaxUse=` in `journald.conf` instead of trusting the default.
+- **Image layer accumulation** - rebuilding/redeploying challenges leaves dangling images and build cache in `/var/lib/docker`. Schedule `docker system prune` (or watch the disk and run it manually before the event).
+
+</Callout>
+
+#### Client-IP extraction not tested end-to-end
+
+Every layer in front of the platform - Cloudflare, an L7 load balancer, nginx, Traefik - rewrites the source address. If the chain isn't configured correctly, the platform and the challenges see the _proxy's_ IP, not the participant's. The failure is silent until rate-limits or bans fire, at which point you either ban Cloudflare and lock everyone out, or ban nobody because every request looks like it came from `127.0.0.1`. The matching variant on the challenge side - web challenges that read `X-Forwarded-For` without validating the upstream hop - is trivially spoofable by participants and breaks IP-gated flag checks.
+
+Test the entire production proxy chain before the event. Hit the platform from a known external IP through the real DNS and confirm the admin/audit log shows that IP. Then hit a challenge through the same path and confirm the challenge sees the same IP.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **`USE_PROXY_HEADERS=true{:ts}` set on the platform but the trusted-proxy CIDR not locked down** - if any upstream IP is trusted, anyone can spoof `<red>X-Forwarded-For</red>` and bypass per-IP rate limits, abuse heuristics, and bans.
+- **nginx `<red>set_real_ip_from</red>` / Traefik `<red>forwardedHeaders.trustedIPs</red>` covering more than the actual proxy range** - same problem; trust must end at the edge you control.
+- **Cloudflare in front but `<red>CF-Connecting-IP</red>` not restored to the request** - the platform logs Cloudflare's edge IP, and banning that IP bans every participant routed through the same colo.
+- **Untested staging chain** - the staging environment without Cloudflare in front works fine; production with the full chain doesn't. The only meaningful test is through the production DNS, with the production proxy chain active.
+
+</Callout>
+
+#### Not being prepared for traffic
+
+The first ~5 minutes after start collide concurrent registrations, logins, and leaderboard reads. Load-test those paths from a separate machine ahead of time, and size the challenge cluster for `expected teams × overlapping instanced challenges`.
+
+<Callout variant='warning' title='What to watch for'>
+
+- Captcha not enabled.
+- Ratelimits not enforced on sensitive infra parts - make sure to configure the trusted ips range for reverse proxy
+
+</Callout>
+
+<Callout variant='note'>
+
+The rCTF itself: leaderboard via a background worker + Redis cache, nginx with brotli/gzip and immutable cache headers, the [Docker](/integrations/instancer/docker/) and [Kubernetes](/integrations/instancer/kubernetes/) instancers for per-team lifecycle (the GKE module autoscales out of the box), and captcha integration for [recaptcha/hcaptcha/turnstile](/providers/captcha/) on registration, login, and instancer-start. Ratelimits are enforced out of the box.
+
+</Callout>
+
+## Onsite
+
+### Connection issues
+
+The venue's network is rarely the network you tested on. Rented venues, university lecture halls, and hotel conference rooms usually sit behind some kind of managed wireless (eduroam, vendor captive portal, hotel guest Wi-Fi) running through a Fortinet / Palo Alto / Cisco appliance with opinions about what traffic is allowed - and the day-of is the worst possible time to find out.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **eduroam / vendor-managed Wi-Fi** - egress is often filtered. We've seen Fortinet boxes block outbound SSH (TCP/22), arbitrary high/low ports, and anything that looks like a tunneling protocol.
+- **Exotic firewalls quietly mangling traffic** - DPI appliances that pass HTTPS but drop unrecognized TCP payloads make everything work very weird. Test the actual challenge solutions for all challenges end-to-end.
+- **Plan not sized for ~10 teams on one AP** - 40 laptops simultaneously pulling Docker images and other heavy load saturates some APs fast. Confirm the venue's bandwidth and AP density before committing.
+- **NAT / CGNAT collapsing teams to a single source IP** - any rate limit keyed on client IP (registration, login, captcha-on-failure) suddenly fires on legitimate traffic. Whitelist the venue's egress range, or relax the limits.
+
+</Callout>
+
+<Callout variant='note'>
+
+Always ask the venue for: the egress firewall vendor, a list of blocked ports, the per-AP / per-room bandwidth cap, and whether they can provide a temporary firewall exception. If they can't answer, assume the worst and bring a backup uplink.
+
+</Callout>
+
+### Not enough VPN configs
+
+Onsite CTFs that also allow remote participation sometimes hand out WireGuard / OpenVPN configs so challenge networks are reachable without dropping the firewall. Two recurring mistakes: generating only a handful of configs (four per onsite team, none for remote players), and binding the VPN to the venue's LAN so remote players physically can't connect. Both force remote teams to spin up their own VPNs to reach the same network the onsite teams use - which is annoying at best and tilts the playing field at worst.
+
+<Callout variant='warning' title='What to watch for'>
+
+- **Handful of configs** - you need configs for all of the players, not just whoever showed up in person. Pre-generate ~100 configs (a very high number, sure, but generating configs is free) so you can hand them out without scrambling.
+- **VPN endpoint only listening on the venue's internal IP** - remote players over the public internet can't reach it. Bind the VPN endpoint to a public IP (or a cloud VPS that bridges to the venue network), not the venue's LAN.
+
 </Callout>

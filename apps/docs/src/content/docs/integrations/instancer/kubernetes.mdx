@@ -108,7 +108,7 @@ Copy `terraform.tfvars.example` to `terraform.tfvars` and fill in:
 | `<red>gcp_instancer_machine_type</red>` | Yes | GCE machine type, for example `<green>e2-medium</green>`. |
 | `<red>gcp_instancer_min_node_count</red>` | No | Autoscaling minimum. Defaults to `1{:ts}`. |
 | `<red>gcp_instancer_max_node_count</red>` | No | Autoscaling maximum. Defaults to `1{:ts}`. |
-| `<red>gcp_instancer_pod_pids_limit</red>` | No | Per-pod kubelet PID cap. Defaults to `4096{:ts}`. Bounds fork bombs in challenge pods so one container can't drain the node's `kernel.pid_max`. Must be `>= 1024` per GKE's kubelet validation. |
+| `<red>gcp_instancer_pod_pids_limit</red>` | No | Per-pod kubelet PID cap. Defaults to `1024{:ts}`. Bounds fork bombs in challenge pods so one container can't drain the node's `kernel.pid_max`. Must be `>= 1024` per GKE's kubelet validation. |
 
 A minimal Cloudflare-backed file looks like this:
 
@@ -246,6 +246,35 @@ The `<red>exposed</red>` label is applied automatically based on whether a pod i
 <Callout variant="note" title="Cluster network plugin">
   Network policies only enforce isolation when the cluster's CNI supports them. GKE's default
   dataplane enforces them; on a bare-metal cluster make sure the chosen CNI honors `NetworkPolicy`.
+</Callout>
+
+## Per-pod safety checklist
+
+Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every resource cap, and the controller deploys what you give it verbatim. Things to set on every pod you ship through `<red>instancerConfig.config.pods[]</red>`:
+
+| Setting | Why it matters |
+| --- | --- |
+| `<red>resources.limits.cpu</red>` / `<red>resources.limits.memory</red>` | Without limits a pod can use whatever the node has free. Set them per-container. |
+| `<red>resources.limits.ephemeral-storage</red>` | A participant `dd`-ing `/tmp` fills the node's overlayfs and takes down every other pod sharing it. Pick a value (`128Mi` is reasonable for most challenges). |
+| `<red>securityContext.readOnlyRootFilesystem: true</red>` | Pairs with the ephemeral-storage limit. If the challenge needs to write somewhere, mount a sized `<red>emptyDir</red>` with `<red>sizeLimit</red>`. |
+| `<red>securityContext.allowPrivilegeEscalation: false</red>` and dropped `<red>capabilities</red>` | Defaults are unsafe. Drop `ALL` and only add what the challenge actually needs. |
+| `<red>automountServiceAccountToken: false</red>` on the pod | Otherwise the default service-account token gets mounted into the container. |
+| `<red>terminationGracePeriodSeconds</red>` | Cap it (e.g. `10{:ts}`) so held TCP connections don't delay pod cleanup for minutes when an instance expires. |
+| `<red>volumes[].emptyDir.sizeLimit</red>` | Any `<red>emptyDir</red>` mount needs a size cap or the same disk-fill issue applies. |
+
+<Callout variant="warning" title="File descriptor / nofile limits">
+Kubernetes' PodSpec has no first-class `<red>ulimits</red>` field. The CRI passes container ulimits through containerd's `<red>default_ulimits</red>`, which on GKE COS_CONTAINERD nodes is not exposed via the kubelet config - changing it requires a custom node startup script or DaemonSet that rewrites `/etc/containerd/config.toml`.
+
+If your challenge is sensitive to FD exhaustion, the practical workaround is to set the limit in the entrypoint:
+
+```sh title="Dockerfile entrypoint"
+#!/bin/sh
+ulimit -n 1024
+exec /your/challenge "$@"
+```
+
+This is per-image, not platform-enforced, so it's only as strong as the image. Don't rely on it for hostile-input boundaries that absolutely must not break - use a per-connection sandbox (nsjail) instead.
+
 </Callout>
 
 ## RBAC and the rCTF service account

@@ -1,0 +1,48 @@
+---
+title: Things we will not implement
+description: Features rCTF will deliberately never implement because they undermine fairness, transparency, or the educational nature of CTFs.
+---
+
+import Callout from '@/components/callout.astro'
+
+A handful of "features" appear on every other platform's roadmap and we consider all of them mistakes. rCTF will never ship any of these - they undermine fairness, transparency, or learning, and that's not a tradeoff we're interested in. Please don't open PRs adding them.
+
+## First blood bonus points
+
+Awarding bonus points to the first team to solve a challenge.
+
+<Callout variant='note' title="Why we won't add it">
+
+The bonus correlates with timezone and headcount, not skill. Teams awake at the start gate or with more solvers split across challenges run away from the field on a metric that has nothing to do with problem-solving. Recognition for first blood (via [Bloodbot](/integrations/blood-bot/)) is fine - extra scoring weight for it is not.
+
+</Callout>
+
+## Leaderboard freeze
+
+Hiding the scoreboard for the last N hours of the event.
+
+<Callout variant='note' title="Why we won't add it">
+
+The scoreboard is information participants use to decide what to work on. Freezing it doesn't add drama. Transparency during and after the event is non-negotiable.
+
+</Callout>
+
+## Limited flag submission attempts
+
+Capping the number of flags a team can submit, or imposing per-team penalties on wrong submissions.
+
+<Callout variant='note' title="Why we won't add it">
+
+Legitimate participants typo flags, mis-paste them. A cap punishes the participant experience without meaningfully stopping anything (brute force is rate-limited at the platform level, not the user level). The "feature" mostly stresses teams that are doing nothing wrong.
+
+</Callout>
+
+## Requiring authentication to see challenges or leaderboard
+
+Gating the challenge list and scoreboard behind login.
+
+<Callout variant='note' title="Why we won't add it">
+
+CTFs are educational events. Spectators, friends-of-teams, and people deciding whether to register next year all benefit from being able to see what's going on. Locking it down is hostile to the community.
+
+</Callout>

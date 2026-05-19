@@ -14,6 +14,11 @@ export default {
       order: 8,
     },
     archiving: { label: 'Archiving', order: 9, badge: 'new' },
-    glossary: { order: 10, badge: 'new' },
+    'things-we-will-not-implement': {
+      label: 'Things we will not implement',
+      order: 10,
+      badge: 'new',
+    },
+    glossary: { order: 11, badge: 'new' },
   },
 } satisfies MetaFile
