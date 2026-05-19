@@ -19,11 +19,13 @@ interface Props {
 
 const { def, extra = [], examples = {} } = Astro.props
 
-const responses: ResponseDef[] = [
-  ...(def.goodResponses ?? []),
-  ...(def.badResponses ?? []),
-  ...extra,
-]
+const responses: ResponseDef[] = []
+const seen = new Set<string>()
+for (const resp of [...(def.goodResponses ?? []), ...(def.badResponses ?? []), ...extra]) {
+  if (seen.has(resp.kind)) continue
+  seen.add(resp.kind)
+  responses.push(resp)
+}
 
 function exampleData(resp: ResponseDef): unknown | undefined {
   if (Object.prototype.hasOwnProperty.call(examples, resp.kind)) {

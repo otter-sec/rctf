@@ -3,23 +3,15 @@ title: '<route>POST</route> Recover an account'
 description: '<route>POST /api/[v2,v1]/auth/recover</route>'
 ---
 
-import { BadBody, BadEndpoint, BadJson, RecoverRoute, RecoverRouteV2 } from '@rctf/types'
+import { BadBody, BadJson, RecoverRoute, RecoverRouteV2 } from '@rctf/types'
 
 <Aside>
   <Tabs items={['V2', 'V1']} sync="recover-version">
     <Tab>
-      <RouteExample
-        def={RecoverRouteV2}
-        extra={[BadJson, BadBody, BadEndpoint]}
-        examples={{ badBody: { reason: 'body:email: Invalid input' } }}
-      />
+      <RouteExample def={RecoverRouteV2} extra={[BadJson, BadBody]} />
     </Tab>
     <Tab>
-      <RouteExample
-        def={RecoverRoute}
-        extra={[BadJson, BadBody, BadEndpoint]}
-        examples={{ badBody: { reason: 'body:email: Invalid input' } }}
-      />
+      <RouteExample def={RecoverRoute} extra={[BadJson, BadBody]} />
     </Tab>
   </Tabs>
 </Aside>

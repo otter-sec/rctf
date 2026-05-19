@@ -26,12 +26,18 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   badResponses: [BadNotStarted, BadChallenge, BadBody],
   optionalAuth: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(z.describe('Integer `>= 1`. Maximum enforced by config.')),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Integer `>= 0`.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

@@ -1,0 +1,42 @@
+---
+title: '<route>GET</route> Challenge solves'
+description: '<route>GET /api/[v2,v1]/challs/:id/solves</route>'
+---
+
+import { GetChallengeSolvesRoute, GetChallengeSolvesRouteV2 } from '@rctf/types'
+
+<Aside>
+  <Tabs items={['V2', 'V1']} sync="solves-version">
+    <Tab>
+      <RouteExample def={GetChallengeSolvesRouteV2} query={{ limit: 100, offset: 0 }} />
+    </Tab>
+    <Tab>
+      <RouteExample def={GetChallengeSolvesRoute} query={{ limit: 100, offset: 0 }} />
+    </Tab>
+  </Tabs>
+</Aside>
+
+Returns paginated solve history for one challenge.
+
+V2 returns solve avatars, country codes, division placements, blood index, and the authenticated user's `mySolvePosition` when optional auth is present. V1 returns only the minimal solve row.
+
+<RouteMetaFromDef def={GetChallengeSolvesRouteV2} />
+
+**Path parameters**
+
+<RequestBody def={GetChallengeSolvesRouteV2} source="params" />
+
+**Query**
+
+<RequestBody def={GetChallengeSolvesRouteV2} source="query" />
+
+**Response fields**
+
+<Tabs items={['V2', 'V1']} sync="solves-version">
+  <Tab>
+    <ResponseBody def={GetChallengeSolvesRouteV2} response="goodChallengeSolves" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={GetChallengeSolvesRoute} response="goodChallengeSolves" />
+  </Tab>
+</Tabs>

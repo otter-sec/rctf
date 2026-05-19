@@ -9,6 +9,16 @@ interface Props {
 
 const { def, rateLimit } = Astro.props
 
+function permissionNames(value: number): string[] {
+  const names: string[] = []
+  for (const [key, bit] of Object.entries(Permissions)) {
+    if (typeof bit === 'number' && (value & bit) === bit) {
+      names.push(`\`${key}{:ts}\``)
+    }
+  }
+  return names
+}
+
 function deriveAuth(): string {
   if (def.authRequired) return 'Required'
   if (def.optionalAuth) return 'Optional'
@@ -19,17 +29,19 @@ function deriveGate(): string {
   const parts: string[] = []
   if (def.onlyWhenStarted) parts.push('Started')
   if (def.onlyWhenNotFinished) parts.push('Before end')
-  return parts.length === 0 ? 'None' : parts.join(' + ')
+  if (parts.length === 0) return 'None'
+  let gate = parts.join(' + ')
+  const bypass = def.onlyWhenStartedPermissionsBypass
+  if (typeof bypass === 'number') {
+    const names = permissionNames(bypass)
+    if (names.length > 0) gate += ` (bypass ${names.join(', ')})`
+  }
+  return gate
 }
 
 function derivePermissions(): string {
   if (typeof def.permissions !== 'number') return '-'
-  const names: string[] = []
-  for (const [key, bit] of Object.entries(Permissions)) {
-    if (typeof bit === 'number' && (def.permissions & bit) === bit) {
-      names.push(`\`${key}{:ts}\``)
-    }
-  }
+  const names = permissionNames(def.permissions)
   return names.length > 0 ? names.join(', ') : '-'
 }
 

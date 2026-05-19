@@ -5,7 +5,7 @@ export default {
   collapsed: true,
   items: {
     auth: { label: 'Authentication', order: 10, badge: 'new', collapsed: false },
-    challenges: { label: 'Challenges', order: 11 },
+    challenges: { label: 'Challenges', order: 11, collapsed: false },
     leaderboard: { label: 'Leaderboard', order: 12 },
     users: { label: 'Users', order: 13 },
     admin: { label: 'Admin', order: 14 },

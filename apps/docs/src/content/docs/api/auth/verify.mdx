@@ -8,18 +8,10 @@ import { BadBody, BadJson, VerifyRoute, VerifyRouteV2 } from '@rctf/types'
 <Aside>
   <Tabs items={['V2', 'V1']} sync="verify-version">
     <Tab>
-      <RouteExample
-        def={VerifyRouteV2}
-        extra={[BadJson, BadBody]}
-        examples={{ badBody: { reason: 'body:verifyToken: Invalid input' } }}
-      />
+      <RouteExample def={VerifyRouteV2} extra={[BadJson, BadBody]} />
     </Tab>
     <Tab>
-      <RouteExample
-        def={VerifyRoute}
-        extra={[BadJson, BadBody]}
-        examples={{ badBody: { reason: 'body:verifyToken: Invalid input' } }}
-      />
+      <RouteExample def={VerifyRoute} extra={[BadJson, BadBody]} />
     </Tab>
   </Tabs>
 </Aside>

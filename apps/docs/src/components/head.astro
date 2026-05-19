@@ -1,7 +1,10 @@
 ---
 import { withBase } from '@/lib/docs'
+import { getEcStyles } from '@/lib/ec-engine'
 import { ClientRouter } from 'astro:transitions'
 import Favicons from './favicons.astro'
+
+const ecStyles = await getEcStyles()
 ---
 
 <head>
@@ -23,6 +26,8 @@ import Favicons from './favicons.astro'
   <link rel="manifest" href={withBase('/site.webmanifest')} />
   <Favicons />
   <ClientRouter />
+
+  <style is:global set:html={ecStyles}></style>
 
   <slot />
 </head>

@@ -1,0 +1,52 @@
+---
+import { renderDescription } from '@/lib/render-description'
+import { walkResponseSchema } from '@/lib/route-introspect'
+
+interface Props {
+  def: any
+  response: string
+}
+
+const { def, response } = Astro.props
+
+const allResponses = [...(def.goodResponses ?? []), ...(def.badResponses ?? [])]
+const resp = allResponses.find((r: any) => r.kind === response)
+const fields = resp ? walkResponseSchema(resp.dataSchema) : []
+
+const rows = await Promise.all(
+  fields.map(async field => ({
+    path: field.path,
+    typeHtml: (await renderDescription(`\`${field.typeLabel}{:ts}\``)).html,
+    notesHtml: field.description ? (await renderDescription(field.description)).html : '',
+  }))
+)
+---
+
+{
+  rows.length > 0 && (
+    <table>
+      <thead>
+        <tr>
+          <th>Field</th>
+          <th>Type</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(row => (
+          <tr>
+            <td>
+              <code>{row.path}</code>
+            </td>
+            <td>
+              <Fragment set:html={row.typeHtml} />
+            </td>
+            <td>
+              <Fragment set:html={row.notesHtml} />
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}

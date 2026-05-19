@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
-import { example } from '../util'
+import { example } from '../util/example'
 
 export const GoodVerify = response('goodVerify', {
   status: 200,

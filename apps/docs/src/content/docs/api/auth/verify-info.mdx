@@ -6,11 +6,7 @@ description: '<route>GET /api/v2/auth/verify-info</route>'
 import { BadBody, GetVerifyInfoRouteV2 } from '@rctf/types'
 
 <Aside>
-  <RouteExample
-    def={GetVerifyInfoRouteV2}
-    extra={[BadBody]}
-    examples={{ badBody: { reason: 'query:token: Invalid input' } }}
-  />
+  <RouteExample def={GetVerifyInfoRouteV2} extra={[BadBody]} />
 </Aside>
 
 Reads the public context for a verification token without consuming it. Use this before rendering a confirmation page so the UI can show what the token is about before the user submits it.

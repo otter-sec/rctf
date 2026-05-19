@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
-import { example } from '../util'
+import { example } from '../util/example'
 
 export const GoodRegisterV2 = response('goodRegisterV2', {
   status: 200,

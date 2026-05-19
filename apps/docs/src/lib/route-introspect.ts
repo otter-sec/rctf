@@ -82,6 +82,87 @@ export function typeLabel(schema: AnySchema): string {
   }
 }
 
+function objectShapeLabel(schema: AnySchema): string {
+  const d = def(schema)
+  if (d?.type !== 'object') return typeLabel(schema)
+  const fields = Object.entries(d.shape as Record<string, AnySchema>).map(([k, v]) => {
+    const optional = def(v)?.type === 'optional' ? '?' : ''
+    return `${k}${optional}: ${typeLabel(unwrap(v))}`
+  })
+  return `{ ${fields.join(', ')} }`
+}
+
+function typeLabelExtended(schema: AnySchema): string {
+  const d = def(schema)
+  if (!d) return 'unknown'
+  switch (d.type) {
+    case 'nullable':
+      return `${typeLabelExtended(d.innerType)} | null`
+    case 'optional':
+      return `${typeLabelExtended(d.innerType)} | undefined`
+    case 'default':
+    case 'prefault':
+    case 'catch':
+    case 'readonly':
+      return typeLabelExtended(d.innerType)
+    case 'record':
+      return `Record<${typeLabel(d.keyType)}, ${objectShapeLabel(d.valueType)}>`
+    default:
+      return typeLabel(schema)
+  }
+}
+
+export interface ResponseField {
+  path: string
+  typeLabel: string
+  description?: string
+}
+
+export function walkResponseSchema(schema: AnySchema, prefix = ''): ResponseField[] {
+  if (!schema) return []
+  const d = def(schema)
+  if (!d) return []
+
+  // Peel off nullable/optional wrappers when inner is structural (object/array)
+  // so we keep walking into the structure. For wrapped primitives, fall through
+  // and emit a leaf row with the extended type label.
+  if (UNWRAPPABLE.has(d.type)) {
+    const innerD = def(d.innerType)
+    if (innerD?.type === 'object' || innerD?.type === 'array') {
+      return walkResponseSchema(d.innerType, prefix)
+    }
+  }
+
+  if (d.type === 'array') {
+    const elementBase = unwrap(d.element)
+    if (def(elementBase)?.type === 'object') {
+      return walkResponseSchema(d.element, prefix ? `${prefix}[]` : '')
+    }
+    return [
+      {
+        path: prefix,
+        typeLabel: typeLabelExtended(schema),
+        description: description(schema),
+      },
+    ]
+  }
+
+  if (d.type === 'object') {
+    return Object.entries(d.shape as Record<string, AnySchema>).flatMap(([name, field]) => {
+      const fieldPath = prefix ? `${prefix}.${name}` : name
+      return walkResponseSchema(field, fieldPath)
+    })
+  }
+
+  return [
+    {
+      path: prefix,
+      typeLabel: typeLabelExtended(schema),
+      description: description(schema),
+    },
+  ]
+}
+
 export function walkObjectSchema(schema: AnySchema): FieldInfo[] {
   const d = def(schema)
   if (d?.type !== 'object') return []

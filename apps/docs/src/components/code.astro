@@ -1,5 +1,5 @@
 ---
-import { getEcEngine, getEcStyles } from '@/lib/ec-engine'
+import { getEcEngine } from '@/lib/ec-engine'
 import { toHtml } from 'hast-util-to-html'
 
 interface Props {
@@ -23,12 +23,6 @@ const { renderedGroupAst } = await engine.render({
   meta: fullMeta,
 })
 const html = toHtml(renderedGroupAst as Parameters<typeof toHtml>[0])
-
-const locals = Astro.locals as { __ecStylesEmitted?: boolean }
-const emitStyles = !locals.__ecStylesEmitted
-locals.__ecStylesEmitted = true
-const baseCss = emitStyles ? await getEcStyles() : ''
 ---
 
-{baseCss && <style is:global set:html={baseCss} />}
 <Fragment set:html={html} />

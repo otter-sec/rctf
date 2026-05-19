@@ -3,7 +3,7 @@ title: '<route>POST</route> Register a team'
 description: '<route>POST /api/[v2,v1]/auth/register</route>'
 ---
 
-import { BadBody, BadEndpoint, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
+import { BadBody, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
 
 <Aside>
   <Tabs items={['V2', 'V1']} sync="register-version">
@@ -12,8 +12,7 @@ import { BadBody, BadEndpoint, BadJson, RegisterRoute, RegisterRouteV2 } from '@
         def={RegisterRouteV2}
         pick={['name', 'email', 'captchaCode']}
         body={{ email: 'team@example.com', name: 'otter-sec' }}
-        extra={[BadJson, BadBody, BadEndpoint]}
-        examples={{ badBody: { reason: 'body:name: Invalid input' } }}
+        extra={[BadJson, BadBody]}
       />
     </Tab>
     <Tab>
@@ -21,8 +20,7 @@ import { BadBody, BadEndpoint, BadJson, RegisterRoute, RegisterRouteV2 } from '@
         def={RegisterRoute}
         pick={['name', 'email', 'recaptchaCode']}
         body={{ email: 'team@example.com', name: 'otter-sec' }}
-        extra={[BadJson, BadBody, BadEndpoint]}
-        examples={{ badBody: { reason: 'body:name: Invalid input' } }}
+        extra={[BadJson, BadBody]}
       />
     </Tab>
   </Tabs>

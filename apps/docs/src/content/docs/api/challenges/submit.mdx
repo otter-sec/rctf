@@ -1,0 +1,29 @@
+---
+title: '<route>POST</route> Submit a flag'
+description: '<route>POST /api/v1/challs/:id/submit</route>'
+---
+
+import { BadBody, BadJson, SubmitFlagRoute } from '@rctf/types'
+
+<Aside>
+  <RouteExample def={SubmitFlagRoute} body={{ flag: 'flag{example}' }} extra={[BadJson, BadBody]} />
+</Aside>
+
+Submits a flag for the authenticated team. V1-only — there is no V2 equivalent.
+
+<RouteMetaFromDef
+  def={SubmitFlagRoute}
+  rateLimit="Burst `5`, refill window `25000` ms, scoped to user and challenge."
+/>
+
+Rate-limit conventions are documented under [`<route>/api#rate-limits</route>`](/api/#rate-limits).
+
+**Path parameters**
+
+<RequestBody def={SubmitFlagRoute} source="params" />
+
+**Request body**
+
+<RequestBody def={SubmitFlagRoute} />
+
+A correct flag returns `<response>200 goodFlag</response>` (no data) and records a solve for the team. The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`<route>/api/v2/admin/submissions</route>`](/api/admin/).
