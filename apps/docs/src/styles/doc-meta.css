@@ -24,6 +24,16 @@
   @apply bg-transparent! p-0! font-mono text-inherit;
 }
 
+[data-api-field-type] {
+  display: -webkit-box;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
 [data-api-field-type] .shiki code {
   @apply p-0!;
 }

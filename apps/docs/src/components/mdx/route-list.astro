@@ -6,6 +6,12 @@ interface Props {
 const { class: className } = Astro.props
 ---
 
-<nav class:list={['not-prose divide-border divide-y-2 overflow-x-clip', className]}>
+<nav
+  class:list={[
+    'not-prose divide-border divide-y-2 overflow-x-clip',
+    'xl:min-h-0 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto',
+    className,
+  ]}
+>
   <slot />
 </nav>

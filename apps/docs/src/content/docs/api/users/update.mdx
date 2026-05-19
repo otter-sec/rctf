@@ -1,0 +1,59 @@
+---
+title: '<route>PATCH</route> Update profile'
+description: '<route>PATCH /api/[v2,v1]/users/me</route>'
+---
+
+import { BadBody, BadJson, UpdateUserRoute, UpdateUserRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="users-update-version">
+    <Tab>
+      <RouteExample
+        def={UpdateUserRouteV2}
+        body={{
+          name: 'new team name',
+          division: 'open',
+          countryCode: 'US',
+          statusText: 'solving web',
+        }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+    <Tab>
+      <RouteExample
+        def={UpdateUserRoute}
+        body={{ name: 'new team name', division: 'open' }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef
+  def={UpdateUserRouteV2}
+  rateLimit="Profile name update bucket. Burst `3` and refill window `180000` ms per user."
+/>
+
+This route updates profile fields for the authenticated team. Profile changes recalculate cached user data and trigger a leaderboard update.
+
+V2 can update the name, division, country or region code, and status text. V1 can update the name and division.
+
+Name updates use the shared profile name update bucket. Division updates are checked against the divisions allowed for the team's current email address.
+
+<Tabs items={['V2', 'V1']} sync="users-update-version">
+  <Tab>
+    <RequestBody def={UpdateUserRouteV2} title="Request body" />
+  </Tab>
+  <Tab>
+    <RequestBody def={UpdateUserRoute} title="Request body" />
+  </Tab>
+</Tabs>
+
+<Tabs items={['V2', 'V1']} sync="users-update-version">
+  <Tab>
+    <ResponseBody def={UpdateUserRouteV2} response="goodUserUpdate" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={UpdateUserRoute} response="goodUserUpdate" title="Response fields" />
+  </Tab>
+</Tabs>

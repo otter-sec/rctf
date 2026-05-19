@@ -33,8 +33,12 @@
       @apply mt-0;
     }
 
+    :where(h1, h2, h3):not(:where(.not-prose, .not-prose *)) {
+      @apply font-medium;
+    }
+
     :where(h1, h2, h3, h4, h5, h6):not(:where(.not-prose, .not-prose *)) {
-      @apply text-foreground scroll-mt-32 font-medium xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)];
+      @apply text-foreground scroll-mt-32 xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)];
     }
 
     /* Don't use an <h1> in your posts, one is already generated in blog/[...id].astro */
