@@ -68,8 +68,6 @@ const config: Config = {
               'https://*.analytics.google.com/',
               // cloudflare web analytics
               'https://cloudflareinsights.com/',
-              // plausible analytics (self-hosted instances need manual CSP update)
-              'https://plausible.io/',
             ],
             'font-src': ['self'],
             'img-src': ['http:', 'https:', 'blob:', 'data:'],

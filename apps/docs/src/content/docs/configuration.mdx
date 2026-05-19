@@ -372,15 +372,14 @@ Most UI settings and client config timing values (`<red>ctfName</red>`, `<red>st
 ```yaml
 analytics:
   provider:
-    name: analytics/plausible
+    name: analytics/google
     options:
-      domain: ctf.example.com
-      src: https://plausible.io/js/script.js
+      siteTag: G-XXXXXXXXX
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>analytics.provider</red>` | `object{:ts}` | - | Analytics provider (`<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`, `<green>analytics/plausible</green>`) |
+| `<red>analytics.provider</red>` | `object{:ts}` | - | Analytics provider (`<green>analytics/google</green>`, `<green>analytics/cloudflare</green>`) |
 
 ### Limits
 

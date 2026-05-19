@@ -145,7 +145,7 @@ For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/
 - Adminbot integration
 - Instancer integration
 - Avatar moderation
-- More analytics providers (`cloudflare`, `plausible`)
+- More analytics providers (`cloudflare`)
 
 ### v1 Todo
 
