@@ -14,13 +14,13 @@ For the participant lifecycle, the common `<red>instancerConfig</red>` fields, a
 The bundled deployment files live under `deploy/docker-instancer`:
 
 <FileTree>
-  <Dir name='deploy'>
-    <Dir name='docker-instancer'>
-      <File name='compose.yml' comment='Traefik, Redis, and tiny-instancer service' />
-      <File name='.env.example' comment='Required environment variables' />
-      <File name='Dockerfile' comment='Python 3.14 runtime image' />
-      <Dir name='conf' comment='Traefik static and dynamic config' />
-      <Dir name='certs' comment='TLS certificate mount point' />
+  <Dir name="deploy">
+    <Dir name="docker-instancer">
+      <File name="compose.yml" comment="Traefik, Redis, and tiny-instancer service" />
+      <File name=".env.example" comment="Required environment variables" />
+      <File name="Dockerfile" comment="Python 3.14 runtime image" />
+      <Dir name="conf" comment="Traefik static and dynamic config" />
+      <Dir name="certs" comment="TLS certificate mount point" />
     </Dir>
   </Dir>
 </FileTree>
@@ -74,11 +74,11 @@ instancerProvider:
 The Traefik TLS config expects these files:
 
 <FileTree>
-  <Dir name='deploy'>
-    <Dir name='docker-instancer'>
-      <Dir name='certs'>
-        <File name='fullchain.pem' comment='Certificate chain' />
-        <File name='privkey.pem' comment='Private key' />
+  <Dir name="deploy">
+    <Dir name="docker-instancer">
+      <Dir name="certs">
+        <File name="fullchain.pem" comment="Certificate chain" />
+        <File name="privkey.pem" comment="Private key" />
       </Dir>
     </Dir>
   </Dir>

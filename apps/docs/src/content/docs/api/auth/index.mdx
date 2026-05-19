@@ -4,44 +4,39 @@ description: Registration, verification, recovery, login, and token validation r
 ---
 
 <Aside>
-<RouteList>
-  <RouteListItem
-    title="Register a team"
-    method="POST"
-    path="/api/[v2,v1]/auth/register"
-    href="/api/auth/register/"
-  />
-  <RouteListItem
-    title="Verify a token"
-    method="POST"
-    path="/api/[v2,v1]/auth/verify"
-    href="/api/auth/verify/"
-  />
-  <RouteListItem
-    title="Recover an account"
-    method="POST"
-    path="/api/[v2,v1]/auth/recover"
-    href="/api/auth/recover/"
-  />
-  <RouteListItem
-    title="Preview a verification token"
-    method="GET"
-    path="/api/v2/auth/verify-info"
-    href="/api/auth/verify-info/"
-  />
-  <RouteListItem
-    title="Log in"
-    method="POST"
-    path="/api/v1/auth/login"
-    href="/api/auth/login/"
-  />
-  <RouteListItem
-    title="Test an auth token"
-    method="GET"
-    path="/api/v1/auth/test"
-    href="/api/auth/test/"
-  />
-</RouteList>
+  <RouteList>
+    <RouteListItem
+      title="Register a team"
+      method="POST"
+      path="/api/[v2,v1]/auth/register"
+      href="/api/auth/register/"
+    />
+    <RouteListItem
+      title="Verify a token"
+      method="POST"
+      path="/api/[v2,v1]/auth/verify"
+      href="/api/auth/verify/"
+    />
+    <RouteListItem
+      title="Recover an account"
+      method="POST"
+      path="/api/[v2,v1]/auth/recover"
+      href="/api/auth/recover/"
+    />
+    <RouteListItem
+      title="Preview a verification token"
+      method="GET"
+      path="/api/v2/auth/verify-info"
+      href="/api/auth/verify-info/"
+    />
+    <RouteListItem title="Log in" method="POST" path="/api/v1/auth/login" href="/api/auth/login/" />
+    <RouteListItem
+      title="Test an auth token"
+      method="GET"
+      path="/api/v1/auth/test"
+      href="/api/auth/test/"
+    />
+  </RouteList>
 </Aside>
 
 Authentication in rCTF is team-based. A team is the account that owns the name, email address, score, solves, members, and settings. Browser sessions and API clients act on behalf of a team by sending an auth token in the `Authorization` header.
@@ -52,12 +47,12 @@ Most authenticated API requests use the `Authorization: Bearer <dim><auth-token>
 
 The other token kinds are used while setting up, recovering, or changing a team account.
 
-| Token kind | Lifetime | Used by |
-| --- | --- | --- |
-| `Auth` | No expiry | `Authorization: Bearer <dim><auth-token></dim>` on user routes. |
-| `Team` | No expiry | Account recovery, login, and token verification. |
-| `Verify` | `loginTimeout` | Email updates and pending registrations. One-time. |
-| `CtftimeAuth` | `loginTimeout` | CTFtime registration and login handoff. |
+| Token kind    | Lifetime       | Used by                                                         |
+| ------------- | -------------- | --------------------------------------------------------------- |
+| `Auth`        | No expiry      | `Authorization: Bearer <dim><auth-token></dim>` on user routes. |
+| `Team`        | No expiry      | Account recovery, login, and token verification.                |
+| `Verify`      | `loginTimeout` | Email updates and pending registrations. One-time.              |
+| `CtftimeAuth` | `loginTimeout` | CTFtime registration and login handoff.                         |
 
 Tokens are AES-256-GCM encrypted with `tokenKey`. Rotating `tokenKey` invalidates any auth, team, verify, or CTFtime handoff token issued before the rotation.
 

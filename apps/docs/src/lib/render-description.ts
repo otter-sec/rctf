@@ -1,11 +1,7 @@
 import type { Element } from 'hast'
 import { toHtml } from 'hast-util-to-html'
 import { codeToHtml } from 'shiki'
-import {
-  CODE_SEMANTIC_TAGS,
-  parseCodeSemantics,
-  stripCodeTags,
-} from './code-semantics'
+import { CODE_SEMANTIC_TAGS, parseCodeSemantics, stripCodeTags } from './code-semantics'
 import { darkTheme, lightTheme } from './shiki-themes'
 
 const PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g

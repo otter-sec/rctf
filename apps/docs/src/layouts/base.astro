@@ -11,11 +11,11 @@ import { DOCS, SITE } from '@/consts'
 ---
 
 <!doctype html>
-<html class='bg-background text-foreground scheme-light-dark' lang={SITE.locale}>
+<html class="bg-background text-foreground scheme-light-dark" lang={SITE.locale}>
   <Head>
-    <slot name='head' />
+    <slot name="head" />
   </Head>
-  <body class='flex min-h-screen flex-col font-sans'>
+  <body class="flex min-h-screen flex-col font-sans">
     <AnnouncementBar />
     <slot />
     {DOCS.search.enabled && <Search />}

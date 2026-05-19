@@ -39,10 +39,10 @@ const items = await Promise.all(
 >
   {
     items.map(item => (
-      <div class='min-w-0'>
-        <dt class='text-muted-foreground text-xs leading-none font-medium'>{item.label}</dt>
+      <div class="min-w-0">
+        <dt class="text-muted-foreground text-xs leading-none font-medium">{item.label}</dt>
         <dd
-          class='text-foreground mt-1.5 text-sm leading-snug font-medium wrap-break-word'
+          class="text-foreground mt-1.5 text-sm leading-snug font-medium wrap-break-word"
           data-doc-description
           set:html={item.rendered.html}
         />

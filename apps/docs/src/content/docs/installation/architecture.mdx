@@ -14,33 +14,33 @@ For deployment steps, see [Installation](/installation/) and the [VPS setup walk
 Paths inside the running container after the production stage finishes assembly:
 
 <FileTree>
-  <Dir name='app'>
-    <Dir name='apps'>
-      <Dir name='api'>
-        <Dir name='dist' comment='Bun-built API + leaderboard worker' />
-        <Dir name='templates' comment='Email templates' />
+  <Dir name="app">
+    <Dir name="apps">
+      <Dir name="api">
+        <Dir name="dist" comment="Bun-built API + leaderboard worker" />
+        <Dir name="templates" comment="Email templates" />
       </Dir>
     </Dir>
-    <Dir name='packages'>
-      <Dir name='config' comment='Loader sources' />
-      <Dir name='db'>
-        <Dir name='src' />
-        <Dir name='migrations' comment='Drizzle SQL migrations' />
+    <Dir name="packages">
+      <Dir name="config" comment="Loader sources" />
+      <Dir name="db">
+        <Dir name="src" />
+        <Dir name="migrations" comment="Drizzle SQL migrations" />
       </Dir>
-      <Dir name='scoring' />
-      <Dir name='types' />
-      <Dir name='util' />
+      <Dir name="scoring" />
+      <Dir name="types" />
+      <Dir name="util" />
     </Dir>
-    <Dir name='node_modules' comment='Production-only deps' />
-    <Dir name='static' comment='SvelteKit static build, served by nginx' />
-    <Dir name='rctf.d' comment='Mounted config directory' />
-    <Dir name='uploads' comment='Local upload provider data (when used)' />
+    <Dir name="node_modules" comment="Production-only deps" />
+    <Dir name="static" comment="SvelteKit static build, served by nginx" />
+    <Dir name="rctf.d" comment="Mounted config directory" />
+    <Dir name="uploads" comment="Local upload provider data (when used)" />
   </Dir>
-  <Dir name='etc'>
-    <File name='supervisord.conf' comment='Process definitions' />
-    <Dir name='nginx'>
-      <Dir name='http.d'>
-        <File name='default.conf' comment='Static + /api proxy' />
+  <Dir name="etc">
+    <File name="supervisord.conf" comment="Process definitions" />
+    <Dir name="nginx">
+      <Dir name="http.d">
+        <File name="default.conf" comment="Static + /api proxy" />
       </Dir>
     </Dir>
   </Dir>
@@ -110,7 +110,7 @@ autorestart=true
 
 If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program - it is a thread inside the API process, so it restarts together with the API.
 
-<Callout variant='note' title='Leaderboard updates without a worker thread'>
+<Callout variant="note" title="Leaderboard updates without a worker thread">
   When `<red>instanceType</red>` is `<green>frontend</green>`, the API process does not start the
   worker. Another process running with `<green>leaderboard</green>` or `<green>all</green>` must be
   reachable on the same Redis instance for cached leaderboard reads to stay fresh.

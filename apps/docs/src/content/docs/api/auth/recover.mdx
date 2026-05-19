@@ -202,10 +202,10 @@ The response does not reveal whether the email belongs to an account. Unknown em
 
 `<route>POST /api/v2/auth/recover</route>` uses `captchaCode` for captcha-protected recovery.
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `email` | `string{:ts}` | Yes | Recovery destination. |
-| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `recover{:ts}`. |
+| Field         | Type          | Required | Notes                                              |
+| ------------- | ------------- | -------- | -------------------------------------------------- |
+| `email`       | `string{:ts}` | Yes      | Recovery destination.                              |
+| `captchaCode` | `string{:ts}` | No       | Checked only when captcha protects `recover{:ts}`. |
 
 When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. Submit the recovery token from the email to [verify a token](/api/auth/verify/) to mint a fresh auth token.
 
@@ -215,10 +215,10 @@ When email delivery is configured and the request passes validation, the route r
 
 `<route>POST /api/v1/auth/recover</route>` uses `recaptchaCode` for captcha-protected recovery.
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `email` | `string{:ts}` | Yes | Recovery destination. |
-| `recaptchaCode` | `string{:ts}` | No | Checked only when captcha protects `recover{:ts}`. |
+| Field           | Type          | Required | Notes                                              |
+| --------------- | ------------- | -------- | -------------------------------------------------- |
+| `email`         | `string{:ts}` | Yes      | Recovery destination.                              |
+| `recaptchaCode` | `string{:ts}` | No       | Checked only when captcha protects `recover{:ts}`. |
 
 When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. The recovery token from the email can be exchanged for an auth token with [log in](/api/auth/login/) or submitted to [verify a token](/api/auth/verify/).
 

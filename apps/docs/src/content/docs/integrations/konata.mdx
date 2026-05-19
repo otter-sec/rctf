@@ -9,7 +9,7 @@ import Callout from '@/components/callout.astro'
 
 This page covers Konata as it relates to rCTF. For the upstream tool and source see the [Konata repository](https://github.com/project-sekai-ctf/konata).
 
-<Callout variant='note' title='Pre-1.0 status'>
+<Callout variant="note" title="Pre-1.0 status">
   Konata is pre-1.0. The schema is settled enough that we've used it to run public CTFs end-to-end
   (the DiceCTF Quals 2026 challenge repository is a good real-world reference) but breaking changes
   are still on the table until 1.0.
@@ -33,26 +33,26 @@ Konata assumes a directory tree with one root config at `kona.yml` and one confi
 A typical layout (taken from the DiceCTF Quals 2026 deployment repository):
 
 <FileTree>
-  <Dir name='ctf-challenges'>
-    <File name='kona.yml' highlight comment='Global config' />
-    <Dir name='web'>
-      <Dir name='dicewallet'>
-        <File name='kona.yml' comment='Per-challenge config' />
-        <File name='Dockerfile' />
-        <Dir name='challenge' />
+  <Dir name="ctf-challenges">
+    <File name="kona.yml" highlight comment="Global config" />
+    <Dir name="web">
+      <Dir name="dicewallet">
+        <File name="kona.yml" comment="Per-challenge config" />
+        <File name="Dockerfile" />
+        <Dir name="challenge" />
       </Dir>
-      <Dir name='mirror-temple'>
-        <File name='kona.yml' comment='Per-challenge config' />
-      </Dir>
-    </Dir>
-    <Dir name='pwn'>
-      <Dir name='garden'>
-        <File name='kona.yml' comment='Per-challenge config' />
+      <Dir name="mirror-temple">
+        <File name="kona.yml" comment="Per-challenge config" />
       </Dir>
     </Dir>
-    <Dir name='sanity'>
-      <Dir name='survey'>
-        <File name='kona.yml' comment='Skipped because discovery.skip: true' />
+    <Dir name="pwn">
+      <Dir name="garden">
+        <File name="kona.yml" comment="Per-challenge config" />
+      </Dir>
+    </Dir>
+    <Dir name="sanity">
+      <Dir name="survey">
+        <File name="kona.yml" comment="Skipped because discovery.skip: true" />
       </Dir>
     </Dir>
   </Dir>

@@ -23,14 +23,14 @@ const hasChildren = Astro.slots.has('default')
           ]}
         >
           <Icon
-            name='chevron-right'
-            class='text-muted-foreground size-3 shrink-0 transition-transform [[open]>summary>&]:rotate-90'
+            name="chevron-right"
+            class="text-muted-foreground size-3 shrink-0 transition-transform [[open]>summary>&]:rotate-90"
           />
-          <Icon name='folder' class='text-muted-foreground size-4 shrink-0' />
-          <span class='font-mono'>{name}/</span>
-          {comment && <span class='text-muted-foreground/75 ml-2'>{comment}</span>}
+          <Icon name="folder" class="text-muted-foreground size-4 shrink-0" />
+          <span class="font-mono">{name}/</span>
+          {comment && <span class="text-muted-foreground/75 ml-2">{comment}</span>}
         </summary>
-        <ul class='mt-0.5 ml-[11px] list-none space-y-0.5 border-l-2 pl-3'>
+        <ul class="mt-0.5 ml-[11px] list-none space-y-0.5 border-l-2 pl-3">
           <slot />
         </ul>
       </details>
@@ -43,10 +43,10 @@ const hasChildren = Astro.slots.has('default')
           highlight && 'bg-primary/10 text-primary font-medium',
         ]}
       >
-        <span class='size-3 shrink-0' aria-hidden='true' />
-        <Icon name='folder' class='text-muted-foreground size-4 shrink-0' />
-        <span class='font-mono'>{name}/</span>
-        {comment && <span class='text-muted-foreground/75 ml-2'>{comment}</span>}
+        <span class="size-3 shrink-0" aria-hidden="true" />
+        <Icon name="folder" class="text-muted-foreground size-4 shrink-0" />
+        <span class="font-mono">{name}/</span>
+        {comment && <span class="text-muted-foreground/75 ml-2">{comment}</span>}
       </span>
     </li>
   )

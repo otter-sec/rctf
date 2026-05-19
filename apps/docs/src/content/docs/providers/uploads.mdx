@@ -7,7 +7,7 @@ import Callout from '@/components/callout.astro'
 
 Upload providers handle storage for challenge file attachments **and team avatars** - both share the same provider, so anything you configure here affects both.
 
-<Callout variant='warning' title='v2 needs delete permissions'>
+<Callout variant="warning" title="v2 needs delete permissions">
   Unlike rCTF v1, the v2 upload provider requires permission to **delete** objects, not just upload
   them. Avatar replacement and the admin-side file deletion flows both rely on it. If you reuse a v1
   IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, upgrade

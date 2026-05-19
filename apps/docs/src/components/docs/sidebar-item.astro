@@ -33,7 +33,7 @@ const groupKey = groupPath.join('/')
         'aria-[current=page]:hover:text-accent'
       )}
     >
-      <span class='wrap-break-word' data-doc-title set:html={renderedLabel.html} />
+      <span class="wrap-break-word" data-doc-title set:html={renderedLabel.html} />
       {node.badge && <SidebarBadge badge={node.badge} />}
     </Link>
   ) : node.forceOpen ? (
@@ -43,12 +43,12 @@ const groupKey = groupPath.join('/')
           'text-foreground flex items-center justify-between gap-2 rounded-md px-2 py-1 text-sm font-medium select-none'
         )}
       >
-        <span class='flex min-w-0 items-center gap-2'>
-          <span class='wrap-break-word' data-doc-title set:html={renderedLabel.html} />
+        <span class="flex min-w-0 items-center gap-2">
+          <span class="wrap-break-word" data-doc-title set:html={renderedLabel.html} />
           {node.badge && <SidebarBadge badge={node.badge} />}
         </span>
       </div>
-      <ul class='border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l pl-2'>
+      <ul class="border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l pl-2">
         {node.items.map(child => (
           <li>
             <Astro.self node={child} depth={depth + 1} path={groupPath} />
@@ -76,24 +76,24 @@ const groupKey = groupPath.join('/')
             data-sidebar-link={node.href}
             data-sidebar-overview-link
             aria-current={node.isCurrent ? 'page' : undefined}
-            class='flex min-w-0 grow items-center gap-2 text-inherit no-underline'
+            class="flex min-w-0 grow items-center gap-2 text-inherit no-underline"
           >
-            <span class='wrap-break-word' data-doc-title set:html={renderedLabel.html} />
+            <span class="wrap-break-word" data-doc-title set:html={renderedLabel.html} />
             {node.badge && <SidebarBadge badge={node.badge} />}
           </Link>
         ) : (
-          <span class='flex min-w-0 grow items-center gap-2'>
-            <span class='wrap-break-word' data-doc-title set:html={renderedLabel.html} />
+          <span class="flex min-w-0 grow items-center gap-2">
+            <span class="wrap-break-word" data-doc-title set:html={renderedLabel.html} />
             {node.badge && <SidebarBadge badge={node.badge} />}
           </span>
         )}
         <span
           data-sidebar-group-toggle
-          class='hover:bg-foreground/10 -mr-1 flex size-5 shrink-0 items-center justify-center rounded-md opacity-60'
+          class="hover:bg-foreground/10 -mr-1 flex size-5 shrink-0 items-center justify-center rounded-md opacity-60"
         >
           <Icon
-            name='chevron-right'
-            class='size-4 transition-transform duration-200 [[open]>summary>span>&]:rotate-90'
+            name="chevron-right"
+            class="size-4 transition-transform duration-200 [[open]>summary>span>&]:rotate-90"
           />
         </span>
       </summary>

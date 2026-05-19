@@ -5,7 +5,7 @@ description: Deploy the rCTF Kubernetes instancer on GKE with the bundled Terraf
 
 The Kubernetes instancer is the scalable backend for per-team challenge instances. It runs an operator inside the cluster that reconciles a `ChallengeInstance` custom resource into a namespace, network policies, deployments, services, and Traefik routes. The rCTF API only talks to the Kubernetes API server through the `<green>instancer/k8s-instancer</green>` provider; the operator owns every other moving piece.
 
-<Callout variant='warning' title='Hostile workloads'>
+<Callout variant="warning" title="Hostile workloads">
   Challenge images run untrusted code. The defaults assume strict isolation, but new variables,
   wider RBAC, any other "sensitive" config changes can quickly invalidate that assumption.
 </Callout>
@@ -71,20 +71,20 @@ The operator image is published at `<red>ghcr.io/otter-sec/rctf-new/k8s-controll
 The example `terraform.tfvars` lives in `deploy/terraform/instancer/example/`:
 
 <FileTree>
-  <Dir name='deploy'>
-    <Dir name='terraform'>
-      <Dir name='instancer'>
-        <Dir name='example' highlight>
-          <File name='main.tf' comment='Providers, GKE module wiring' />
-          <File name='dns.tf' comment='Cloudflare or GCP Cloud DNS record' />
-          <File name='tls.tf' comment='ACME wildcard certificate and Traefik TLSStore' />
-          <File name='rctf-instancer.tf' comment='k8s module call and rCTF ServiceAccount' />
-          <File name='variables.tf' comment='Input variables' />
-          <File name='terraform.tfvars.example' comment='Example values' />
+  <Dir name="deploy">
+    <Dir name="terraform">
+      <Dir name="instancer">
+        <Dir name="example" highlight>
+          <File name="main.tf" comment="Providers, GKE module wiring" />
+          <File name="dns.tf" comment="Cloudflare or GCP Cloud DNS record" />
+          <File name="tls.tf" comment="ACME wildcard certificate and Traefik TLSStore" />
+          <File name="rctf-instancer.tf" comment="k8s module call and rCTF ServiceAccount" />
+          <File name="variables.tf" comment="Input variables" />
+          <File name="terraform.tfvars.example" comment="Example values" />
         </Dir>
-        <Dir name='modules'>
-          <Dir name='gke' comment='GKE cluster and Artifact Registry' />
-          <Dir name='k8s' comment='Traefik, error pages, controller installer' />
+        <Dir name="modules">
+          <Dir name="gke" comment="GKE cluster and Artifact Registry" />
+          <Dir name="k8s" comment="Traefik, error pages, controller installer" />
         </Dir>
       </Dir>
     </Dir>
@@ -243,7 +243,7 @@ The controller creates three `NetworkPolicy` resources in every instance namespa
 
 The `<red>exposed</red>` label is applied automatically based on whether a pod is named by any `<red>expose[]</red>` entry. The `<red>egress</red>` label is driven by the per-pod `<red>egress: true</red>` flag in `<red>instancerConfig</red>`. Challenges that should not reach the internet leave it `<green>false</green>`.
 
-<Callout variant='note' title='Cluster network plugin'>
+<Callout variant="note" title="Cluster network plugin">
   Network policies only enforce isolation when the cluster's CNI supports them. GKE's default
   dataplane enforces them; on a bare-metal cluster make sure the chosen CNI honors `NetworkPolicy`.
 </Callout>

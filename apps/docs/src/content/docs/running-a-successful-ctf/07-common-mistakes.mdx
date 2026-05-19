@@ -86,7 +86,7 @@ The other half of the IMDS problem: by default, every pod in a Kubernetes namesp
 
 With rCTF, the k8s-instancer's `<red>instancerConfig.config.pods[]</red>` schema accepts the standard PodSpec - including `<red>automountServiceAccountToken</red>` - so you can set `false{:ts}` declaratively next to the rest of the pod config. The `inst-<challenge>-<team>` namespace the controller creates also has no extra RBAC bindings of its own - only the rCTF-controller cluster role exists at the cluster level, scoped to `ChallengeInstance` resources, so there's no namespace-default service account binding handing challenges cluster privilege.
 
-<Callout variant='tip' title='When in doubt, treat every challenge image as already-compromised'>
+<Callout variant="tip" title="When in doubt, treat every challenge image as already-compromised">
   The defaults rCTF ships with are designed around the assumption that participants will get code
   execution inside the challenge container, because in most pwn/web challenges that is the intended
   solution.

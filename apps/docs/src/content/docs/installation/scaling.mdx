@@ -17,16 +17,16 @@ In practice the platform barely uses the box it sits on. [DiceCTF 2026 Quals](ht
 
 <Image
   src={cpuGraph}
-  alt='DiceCTF 2026 Quals CPU usage graph, peaking around 150% (~1.5 cores) during the event window'
+  alt="DiceCTF 2026 Quals CPU usage graph, peaking around 150% (~1.5 cores) during the event window"
 />
 
-<Callout variant='warning' title='RAM data lost'>
+<Callout variant="warning" title="RAM data lost">
   Memory metrics for the same window were not retained. Expect a similarly modest footprint - the
   API process is a single Bun runtime and the leaderboard worker is a Bun `Worker` thread, not a
   separate process.
 </Callout>
 
-<Callout variant='note' title='Deliberately overprovisioned'>
+<Callout variant="note" title="Deliberately overprovisioned">
   The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running
   rCTF v2: if something unexpected blew up in CPU or memory during the CTF, we wanted enough runway
   to diagnose and patch without the platform falling over in the meantime. A smaller instance would

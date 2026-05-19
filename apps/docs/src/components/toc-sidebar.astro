@@ -42,20 +42,20 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
         <div
           data-toc-sidebar-title-wrapper
           data-toc-title-target={titleTargetId}
-          data-open='false'
-          class='grid shrink-0 grid-rows-[0fr] px-4 transition-[grid-template-rows] duration-200 ease-out data-[open=true]:grid-rows-[1fr]'
+          data-open="false"
+          class="grid shrink-0 grid-rows-[0fr] px-4 transition-[grid-template-rows] duration-200 ease-out data-[open=true]:grid-rows-[1fr]"
         >
-          <div class='overflow-hidden'>
+          <div class="overflow-hidden">
             <span
-              class='text-foreground block pb-3 text-base font-medium text-balance'
+              class="text-foreground block pb-3 text-base font-medium text-balance"
               data-doc-title
               set:html={renderedTitle.html}
             />
           </div>
         </div>
       )}
-      <ScrollArea client:idle className='min-h-0 flex-1 overflow-y-auto' data-toc-scroll-area>
-        <ul class='flex list-none flex-col gap-y-1.5 px-4'>
+      <ScrollArea client:idle className="min-h-0 flex-1 overflow-y-auto" data-toc-scroll-area>
+        <ul class="flex list-none flex-col gap-y-1.5 px-4">
           {visible.map(heading => (
             <li
               data-toc-item={heading.slug}
@@ -64,7 +64,7 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
               <a
                 href={`#${heading.slug}`}
                 data-heading-link={heading.slug}
-                class='hover:text-foreground block underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit'
+                class="hover:text-foreground block underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit"
               >
                 <span data-toc-text set:html={renderTocHeading(heading.text)} />
               </a>

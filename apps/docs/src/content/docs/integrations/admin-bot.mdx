@@ -87,11 +87,11 @@ The worker is a separate Bun service under `apps/admin-bot`. It exposes a protec
 The bundled deployment files live under `deploy/admin-bot`:
 
 <FileTree>
-  <Dir name='deploy'>
-    <Dir name='admin-bot'>
-      <File name='compose.yml' comment='Service, volume, tmpfs, and network settings' />
-      <File name='.env.example' comment='Required worker environment variables' />
-      <File name='Dockerfile' comment='Bun runtime and browser dependencies' />
+  <Dir name="deploy">
+    <Dir name="admin-bot">
+      <File name="compose.yml" comment="Service, volume, tmpfs, and network settings" />
+      <File name=".env.example" comment="Required worker environment variables" />
+      <File name="Dockerfile" comment="Bun runtime and browser dependencies" />
     </Dir>
   </Dir>
 </FileTree>
@@ -124,7 +124,7 @@ $ docker compose -f deploy/admin-bot/compose.yml up -d
 
 The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network` network.
 
-<Callout variant='warning' title='Network exposure'>
+<Callout variant="warning" title="Network exposure">
   Keep the worker reachable only from trusted infrastructure. The `<route>/v1/test</route>` endpoint
   is bearer-authenticated, but it still builds trusted challenge source. The worker should not be
   exposed as a public internet service.
@@ -357,7 +357,7 @@ Admin bot jobs are throughput-bound on browser sessions, not CPU. A worker spend
 
 The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is meant to drive that signal. A practical setup is to scrape it (via an exporter or a small sidecar) into Prometheus, set a target queue depth per replica (e.g. 5–10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
 
-<Callout variant='note' title='No production-ready manifests yet'>
+<Callout variant="note" title="No production-ready manifests yet">
   We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot
   fleet - the queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to the
   deployer for now. If you build one and want to upstream it, see the note at the top of this page.

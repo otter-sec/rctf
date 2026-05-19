@@ -38,7 +38,7 @@ Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` an
 <Tabs items={['scores/classic', 'scores/sekai', 'scores/steep', 'scores/jammy', 'scores/genni', 'scores/legacy']}>
 <Tab>
 
-<ScoreDecayChart focus='classic' />
+<ScoreDecayChart focus="classic" />
 
 The **default** scoring algorithm. Uses a logistic decay function that decreases points as more teams solve the challenge.
 
@@ -52,7 +52,7 @@ Challenges start at `<red>maxPoints</red>` with zero solves and decay toward `<r
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='sekai' />
+<ScoreDecayChart focus="sekai" />
 
 Logarithmic decay with tuned constants (gradient=10, decay=60). Produces a gentler curve than `<green>scores/classic</green>`.
 
@@ -64,7 +64,7 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='steep' />
+<ScoreDecayChart focus="steep" />
 
 Similar to `<green>scores/classic</green>` but with a steeper decay curve. Points drop more aggressively with early solves, making challenges differentiate faster.
 
@@ -76,7 +76,7 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart type='time' />
+<ScoreDecayChart type="time" />
 
 Time-based scoring that values challenges by when they were first solved. Unlike other providers, this one considers the first solve time relative to the event duration rather than how many teams solved the challenge.
 
@@ -100,7 +100,7 @@ This provider requires `<red>startTime</red>` and `<red>endTime</red>` to be set
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='genni' />
+<ScoreDecayChart focus="genni" />
 
 Binary scoring: returns `<red>maxPoints</red>` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
 
@@ -112,7 +112,7 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='legacy' />
+<ScoreDecayChart focus="legacy" />
 
 Hyperbolic tangent-based decay that normalizes against the maximum solve count across all challenges. This was the original rCTF scoring algorithm.
 

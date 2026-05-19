@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup-bun-deps
-      - run: bun run prettier -- --check
+      - run: bun run prettier:check
 
   typecheck:
     runs-on: ubuntu-24.04

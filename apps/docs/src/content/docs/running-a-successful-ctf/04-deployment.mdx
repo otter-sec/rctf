@@ -88,7 +88,7 @@ rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript h
 
 Updating a challenge is where most operational pain comes from. Touching the source code without updating the published attachment leaves teams solving against stale handouts; rebuilding the Docker image but forgetting to roll the running deployment leaves the flag pointing at the old binary; tweaking `<red>instancerConfig</red>` in the admin UI without bumping the image causes new instances to come up with mismatched assets. Each of these is easy to miss in the moment and hard to debug after the fact.
 
-<Callout variant='tip' title='Use Konata + CI as the single source of truth'>
+<Callout variant="tip" title="Use Konata + CI as the single source of truth">
   Commit every challenge's `kona.yml` alongside the source, and let [Konata](/integrations/konata/)
   drive deployment from CI on every push to `main`. With the [Konata GitHub
   Action](/integrations/konata/#ci-integration), one commit can rebuild and push the Docker image,

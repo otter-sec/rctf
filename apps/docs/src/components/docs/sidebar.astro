@@ -11,9 +11,9 @@ interface Props {
 const { tree, class: className } = Astro.props
 ---
 
-<nav aria-label='Documentation' class={className} data-sidebar-root>
-  <ScrollArea client:idle className='h-full'>
-    <ul class='flex flex-col gap-0.5'>
+<nav aria-label="Documentation" class={className} data-sidebar-root>
+  <ScrollArea client:idle className="h-full">
+    <ul class="flex flex-col gap-0.5">
       {
         tree.map(node => (
           <li>

@@ -19,37 +19,37 @@ const { tree } = Astro.props
 const gitHubLink = SOCIAL_LINKS.find(link => link.label === 'GitHub')
 ---
 
-<aside transition:persist class='hidden xl:block' aria-label='Site navigation'>
+<aside transition:persist class="hidden xl:block" aria-label="Site navigation">
   <div
-    class='sticky top-(--docs-announcement-offset,0px) flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6'
+    class="sticky top-(--docs-announcement-offset,0px) flex h-[calc(100dvh-var(--docs-announcement-offset,0px))] flex-col gap-4 pt-16 pr-2 pb-6 pl-6"
   >
-    <Link href={BASE_URL} class='flex items-center no-underline' aria-label={SITE.title}>
-      <WordmarkLight class='block h-6 w-auto dark:hidden' aria-hidden='true' />
-      <WordmarkDark class='hidden h-6 w-auto dark:block' aria-hidden='true' />
+    <Link href={BASE_URL} class="flex items-center no-underline" aria-label={SITE.title}>
+      <WordmarkLight class="block h-6 w-auto dark:hidden" aria-hidden="true" />
+      <WordmarkDark class="hidden h-6 w-auto dark:block" aria-hidden="true" />
     </Link>
 
     <SearchTrigger />
 
-    <nav class='-mx-2 min-h-0 flex-1' aria-label='Documentation' data-sidebar-nav>
-      <Sidebar tree={tree} class='h-full px-2' />
+    <nav class="-mx-2 min-h-0 flex-1" aria-label="Documentation" data-sidebar-nav>
+      <Sidebar tree={tree} class="h-full px-2" />
     </nav>
 
-    <div class='border-border/70 flex h-[3.75rem] items-center justify-between border-t'>
+    <div class="border-border/70 flex h-[3.75rem] items-center justify-between border-t">
       <ThemeToggle transition:persist />
-      <div class='flex items-center gap-1'>
+      <div class="flex items-center gap-1">
         {
           gitHubLink && (
             <Link
               href={gitHubLink.href}
               external
-              class='text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors'
-              aria-label='GitHub'
+              class="text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors"
+              aria-label="GitHub"
             >
-              <Icon name='brand-github' class='size-4' />
+              <Icon name="brand-github" class="size-4" />
             </Link>
           )
         }
-        <EditLink id='docs-edit-link' href='#' hidden />
+        <EditLink id="docs-edit-link" href="#" hidden />
       </div>
     </div>
   </div>

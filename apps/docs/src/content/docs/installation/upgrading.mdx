@@ -19,7 +19,7 @@ services:
     image: ghcr.io/otter-sec/rctf-new:latest
 ```
 
-<Callout variant='warning' title='Back up the database first'>
+<Callout variant="warning" title="Back up the database first">
   Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump (e.g. `$
   pg_dump`) before swapping the image so you have a path back if something goes wrong.
 </Callout>

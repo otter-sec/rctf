@@ -9,7 +9,7 @@ The instancer integration creates one isolated challenge service per team. rCTF 
 
 Instanced challenges are useful when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
 
-<Callout variant='warning' title='Hostile workloads'>
+<Callout variant="warning" title="Hostile workloads">
   Treat challenge images as hostile. Set resource limits, keep containers or pods unprivileged, and
   avoid mounting host paths unless the challenge explicitly needs them.
 </Callout>
@@ -182,7 +182,7 @@ The response is generated from the provider's own schema at request time, so it 
 
 The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Switching the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild - every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI does not cover.
 
-<Callout variant='note' title='Challenge repository tooling'>
+<Callout variant="note" title="Challenge repository tooling">
   [Konata](/integrations/konata/) is a CTF challenge management tool with rCTF support, including
   challenge syncing, Docker image publishing, and Kubernetes manifest deployment. The archived
   [DiceCTF Quals 2026 challenges](https://github.com/dicegang/dicectf-quals-2026-challenges)

@@ -50,33 +50,33 @@ Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor
 The resulting directory is ready to upload to a static host:
 
 <FileTree>
-  <Dir name='export-output'>
-    <File name='index.html' comment='SvelteKit shell with the fetch interceptor injected' />
-    <File name='404.html' comment='Copy of index.html for SPA fallback' />
-    <File name='index.html.gz' />
-    <File name='index.html.br' />
-    <Dir name='_app' comment='SvelteKit build assets' />
-    <Dir name='api-data' comment='Static API responses'>
-      <Dir name='v2'>
-        <File name='challs.json' />
-        <Dir name='leaderboard'>
-          <File name='dump.json' comment='Full leaderboard + graph for client-side filtering' />
+  <Dir name="export-output">
+    <File name="index.html" comment="SvelteKit shell with the fetch interceptor injected" />
+    <File name="404.html" comment="Copy of index.html for SPA fallback" />
+    <File name="index.html.gz" />
+    <File name="index.html.br" />
+    <Dir name="_app" comment="SvelteKit build assets" />
+    <Dir name="api-data" comment="Static API responses">
+      <Dir name="v2">
+        <File name="challs.json" />
+        <Dir name="leaderboard">
+          <File name="dump.json" comment="Full leaderboard + graph for client-side filtering" />
         </Dir>
-        <Dir name='users'>
-          <File name='[id].json' />
+        <Dir name="users">
+          <File name="[id].json" />
         </Dir>
-        <Dir name='challs'>
-          <Dir name='[id]'>
-            <File name='solves.json' />
+        <Dir name="challs">
+          <Dir name="[id]">
+            <File name="solves.json" />
           </Dir>
         </Dir>
       </Dir>
     </Dir>
-    <Dir name='uploads' comment='Mirrored /uploads/ and uploads/external/[hash]/' />
-    <File name='_redirects' comment='cloudflare-pages only' />
-    <File name='_headers' comment='cloudflare-pages only' />
-    <File name='wrangler.toml' comment='cloudflare-pages only' />
-    <File name='.nojekyll' comment='github-pages only' />
+    <Dir name="uploads" comment="Mirrored /uploads/ and uploads/external/[hash]/" />
+    <File name="_redirects" comment="cloudflare-pages only" />
+    <File name="_headers" comment="cloudflare-pages only" />
+    <File name="wrangler.toml" comment="cloudflare-pages only" />
+    <File name=".nojekyll" comment="github-pages only" />
   </Dir>
 </FileTree>
 
@@ -131,7 +131,7 @@ The frontend reads `<red>isArchived</red>` from the client config and hides inte
 
 ## Limitations
 
-<Callout variant='warning' title='Read-only by design'>
+<Callout variant="warning" title="Read-only by design">
   The archive contains every JSON response the exporter saw at crawl time. Anything that requires
   authentication, server state, or live computation is absent.
 </Callout>

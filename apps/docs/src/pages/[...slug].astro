@@ -159,19 +159,19 @@ const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
               index > 0 && 'mt-24 border-t-2 pt-16',
             ]}
           >
-            <div class='prose max-w-none' data-mdx-aside-layout>
+            <div class="prose max-w-none" data-mdx-aside-layout>
               {!isOverview && (
-                <header class='not-prose mb-7'>
+                <header class="not-prose mb-7">
                   <h2
                     id={page.sectionId}
                     data-scroll-page-title
-                    class='text-foreground scroll-mt-32 text-2xl leading-tight font-medium text-balance sm:text-3xl xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)]'
+                    class="text-foreground scroll-mt-32 text-2xl leading-tight font-medium text-balance sm:text-3xl xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)]"
                     data-doc-title
                     set:html={page.renderedLabel.html}
                   />
                   {page.renderedDescription && (
                     <p
-                      class='text-muted-foreground mt-3 text-lg text-pretty'
+                      class="text-muted-foreground mt-3 text-lg text-pretty"
                       data-doc-description
                       set:html={page.renderedDescription.html}
                     />

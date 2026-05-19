@@ -119,17 +119,17 @@ const description =
 const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'providers').replace('/', '-')}`
 ---
 
-<figure class='not-prose my-6 overflow-hidden rounded-lg border-2'>
+<figure class="not-prose my-6 overflow-hidden rounded-lg border-2">
   <svg
     viewBox={`0 0 ${width} ${height}`}
-    role='img'
+    role="img"
     aria-labelledby={`${chartId}-title ${chartId}-desc`}
-    class='bg-background block w-full'
+    class="bg-background block w-full"
   >
     <title id={`${chartId}-title`}>{title}</title>
     <desc id={`${chartId}-desc`}>{description}</desc>
 
-    <rect x='0' y='0' width={width} height={height} class='fill-background'></rect>
+    <rect x="0" y="0" width={width} height={height} class="fill-background"></rect>
 
     {
       yTicks.map(tick => (
@@ -139,14 +139,14 @@ const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'provi
             x2={width - plot.right}
             y1={y(tick)}
             y2={y(tick)}
-            class='stroke-border'
-            stroke-width='1'
+            class="stroke-border"
+            stroke-width="1"
           />
           <text
             x={plot.left - 12}
             y={y(tick) + 4}
-            text-anchor='end'
-            class='fill-muted-foreground text-[11px]'
+            text-anchor="end"
+            class="fill-muted-foreground text-[11px]"
           >
             {tick}
           </text>
@@ -162,14 +162,14 @@ const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'provi
             x2={x(tick)}
             y1={plot.top}
             y2={height - plot.bottom}
-            class='stroke-border/50'
-            stroke-width='1'
+            class="stroke-border/50"
+            stroke-width="1"
           />
           <text
             x={x(tick)}
             y={height - plot.bottom + 22}
-            text-anchor='middle'
-            class='fill-muted-foreground text-[11px]'
+            text-anchor="middle"
+            class="fill-muted-foreground text-[11px]"
           >
             {tick}
           </text>
@@ -182,27 +182,27 @@ const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'provi
       x2={plot.left}
       y1={plot.top}
       y2={height - plot.bottom}
-      class='stroke-foreground'
-      stroke-width='1.5'></line>
+      class="stroke-foreground"
+      stroke-width="1.5"></line>
     <line
       x1={plot.left}
       x2={width - plot.right}
       y1={height - plot.bottom}
       y2={height - plot.bottom}
-      class='stroke-foreground'
-      stroke-width='1.5'></line>
+      class="stroke-foreground"
+      stroke-width="1.5"></line>
 
     {
       polylines.map(item => (
         <polyline
           points={item.points}
-          fill='none'
+          fill="none"
           stroke={item.color}
           class:list={[item.focused ? 'opacity-100' : 'opacity-[0.32] dark:opacity-[0.55]']}
           stroke-width={item.focused ? '4' : '2'}
-          stroke-linecap='round'
-          stroke-linejoin='round'
-          vector-effect='non-scaling-stroke'
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
         />
       ))
     }
@@ -210,22 +210,22 @@ const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'provi
     <text
       x={plot.left + plotWidth / 2}
       y={height - 14}
-      text-anchor='middle'
-      class='fill-muted-foreground text-[12px]'
+      text-anchor="middle"
+      class="fill-muted-foreground text-[12px]"
     >
       {type === 'solves' ? 'Solves' : 'Event elapsed before first solve (%)'}
     </text>
     <text
-      x='18'
+      x="18"
       y={plot.top + plotHeight / 2}
-      text-anchor='middle'
+      text-anchor="middle"
       transform={`rotate(-90 18 ${plot.top + plotHeight / 2})`}
-      class='fill-muted-foreground text-[12px]'
+      class="fill-muted-foreground text-[12px]"
     >
       Points
     </text>
   </svg>
-  <figcaption class='border-border/70 flex flex-wrap gap-x-4 gap-y-2 border-t px-4 py-3 text-xs'>
+  <figcaption class="border-border/70 flex flex-wrap gap-x-4 gap-y-2 border-t px-4 py-3 text-xs">
     {
       series.map(item => (
         <span
@@ -237,7 +237,7 @@ const chartId = `score-chart-${type}-${(focusedName ?? series[0]?.name ?? 'provi
           ]}
         >
           <span
-            class='inline-block h-2.5 w-2.5 rounded-full'
+            class="inline-block h-2.5 w-2.5 rounded-full"
             style={`background-color: ${item.color}`}
           />
           <span>{item.label}</span>

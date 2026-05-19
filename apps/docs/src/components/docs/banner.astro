@@ -112,36 +112,36 @@ const rotatingBannerBootstrapScript = `
   <img
     src={initialImageSrc}
     alt={initialGraphic.description}
-    class='size-full object-cover'
+    class="size-full object-cover"
     style={`object-position: ${initialGraphic.objectPosition}`}
     data-banner-image
   />
   <figcaption
-    class='bg-background/80 text-muted-foreground absolute right-3 bottom-3 max-w-[calc(100%-1.5rem)] overflow-hidden rounded-md px-2 py-1 text-[0.6875rem] leading-tight whitespace-nowrap opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100'
+    class="bg-background/80 text-muted-foreground absolute right-3 bottom-3 max-w-[calc(100%-1.5rem)] overflow-hidden rounded-md px-2 py-1 text-[0.6875rem] leading-tight whitespace-nowrap opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:opacity-100 focus-within:opacity-100"
     data-banner-caption
     set:html={initialCaption}
   />
   {
     isRotating && (
       <div
-        class='bg-background/80 text-muted-foreground pointer-events-none absolute bottom-3 left-3 inline-flex rounded-md p-1 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100'
+        class="bg-background/80 text-muted-foreground pointer-events-none absolute bottom-3 left-3 inline-flex rounded-md p-1 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover:pointer-events-auto group-hover:opacity-100"
         data-banner-controls
       >
         <button
-          type='button'
-          class='hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-          aria-label='Previous banner artwork'
-          data-banner-control='previous'
+          type="button"
+          class="hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          aria-label="Previous banner artwork"
+          data-banner-control="previous"
         >
-          <Icon name='arrow-left' class='size-3.5' aria-hidden='true' />
+          <Icon name="arrow-left" class="size-3.5" aria-hidden="true" />
         </button>
         <button
-          type='button'
-          class='hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none'
-          aria-label='Next banner artwork'
-          data-banner-control='next'
+          type="button"
+          class="hover:bg-muted hover:text-foreground focus-visible:ring-ring inline-flex size-6 items-center justify-center rounded-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+          aria-label="Next banner artwork"
+          data-banner-control="next"
         >
-          <Icon name='arrow-right' class='size-3.5' aria-hidden='true' />
+          <Icon name="arrow-right" class="size-3.5" aria-hidden="true" />
         </button>
       </div>
     )

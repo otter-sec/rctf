@@ -101,10 +101,10 @@ Exchanges a longer-lived team credential for an auth token that can be used on u
 
 **Request body**
 
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `teamToken` | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
-| `ctftimeToken` | `string{:ts}` | Conditional | Required when `teamToken` is omitted. |
+| Field          | Type          | Required    | Notes                                    |
+| -------------- | ------------- | ----------- | ---------------------------------------- |
+| `teamToken`    | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
+| `ctftimeToken` | `string{:ts}` | Conditional | Required when `teamToken` is omitted.    |
 
 `teamToken` is parsed as `TokenKind.Team{:ts}`. `ctftimeToken` is parsed as `TokenKind.CtftimeAuth{:ts}` and then matched to a team linked to that CTFtime ID.
 

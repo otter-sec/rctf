@@ -18,22 +18,22 @@ This guide covers setting up rCTF from source without Docker, suitable for devel
 rCTF is a (mostly) Bun monorepo with the following layout:
 
 <FileTree>
-  <Dir name='apps'>
-    <Dir name='api' comment='Hono REST API server' />
-    <Dir name='web' comment='SvelteKit frontend (static build)' />
-    <Dir name='admin-bot' comment='Puppeteer-based admin bot service' />
-    <Dir name='k8s-controller' comment='Kubernetes challenge instancer (Go)' />
-    <Dir name='docker-instancer' comment='Docker challenge instancer (Python)' />
-    <Dir name='docs' comment='Documentation site' />
-    <Dir name='export' comment='Instance archiver tool' />
-    <Dir name='seed' comment='Database seeding utility' />
+  <Dir name="apps">
+    <Dir name="api" comment="Hono REST API server" />
+    <Dir name="web" comment="SvelteKit frontend (static build)" />
+    <Dir name="admin-bot" comment="Puppeteer-based admin bot service" />
+    <Dir name="k8s-controller" comment="Kubernetes challenge instancer (Go)" />
+    <Dir name="docker-instancer" comment="Docker challenge instancer (Python)" />
+    <Dir name="docs" comment="Documentation site" />
+    <Dir name="export" comment="Instance archiver tool" />
+    <Dir name="seed" comment="Database seeding utility" />
   </Dir>
-  <Dir name='packages'>
-    <Dir name='config' comment='YAML/JSON config loader with Zod validation' />
-    <Dir name='db' comment='Drizzle ORM schema and migrations' />
-    <Dir name='scoring' comment='Pluggable scoring algorithms' />
-    <Dir name='types' comment='Shared route definitions and validators' />
-    <Dir name='util' comment='Small shared utilities' />
+  <Dir name="packages">
+    <Dir name="config" comment="YAML/JSON config loader with Zod validation" />
+    <Dir name="db" comment="Drizzle ORM schema and migrations" />
+    <Dir name="scoring" comment="Pluggable scoring algorithms" />
+    <Dir name="types" comment="Shared route definitions and validators" />
+    <Dir name="util" comment="Small shared utilities" />
   </Dir>
 </FileTree>
 
@@ -54,8 +54,8 @@ $ bun i
 rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ mkdir rctf.d` at the project root.
 
 <FileTree>
-  <Dir name='rctf.d'>
-    <File name='01-base.yaml' highlight comment='create this next' />
+  <Dir name="rctf.d">
+    <File name="01-base.yaml" highlight comment="create this next" />
   </Dir>
 </FileTree>
 
