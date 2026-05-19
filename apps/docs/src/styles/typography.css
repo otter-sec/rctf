@@ -270,6 +270,12 @@
       @apply xl:flex xl:flex-col xl:overflow-hidden;
     }
 
+    [data-mdx-aside-route] > .expressive-code,
+    [data-mdx-aside-route] > .expressive-code > figure,
+    [data-mdx-aside-route] > .expressive-code pre {
+      @apply w-full max-w-none min-w-0;
+    }
+
     [data-mdx-aside-rail] [data-mdx-aside-route] [data-tabs] {
       @apply xl:my-0 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col;
     }
