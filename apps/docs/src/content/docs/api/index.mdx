@@ -39,7 +39,7 @@ type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 User-authenticated routes require an auth token in the `Authorization` header:
 
 ```text
-Authorization: Bearer <auth-token>
+Authorization: Bearer <dim><auth-token></dim>
 ```
 
 Service-authenticated admin bot routes also use the `Authorization` header, but the token is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
@@ -56,7 +56,7 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 
 | Token | Lifetime | Used by |
 | --- | --- | --- |
-| Auth | No expiry | `Authorization: Bearer <auth-token>` on user routes. |
+| Auth | No expiry | `Authorization: Bearer <dim><auth-token></dim>` on user routes. |
 | Team | No expiry | Account recovery and v1 login. V2 registration returns it directly when registration completes without email verification. |
 | Verify | `loginTimeout` | Email update verification. |
 | CTFtime auth | `loginTimeout` | CTFtime registration and login handoff. |
