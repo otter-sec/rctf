@@ -14,7 +14,7 @@ Both API versions are available at the same time:
 | V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
 | V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-Many v2 routes share the same response `kind` string as their v1 equivalents, but the `data` payload is often wider in v2 (avatars, country codes, blood index, etc.).
+The versions are route contracts, not separate complete APIs. Use V2 where a V2 route exists, and use V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `kind` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, etc.).
 
 ## Typed route contract
 
@@ -48,8 +48,8 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 | --- | --- |
 | Public | No token is required. Some public routes still accept optional auth so admins can bypass start-time gates. |
 | Optional | The route works without a token, but an auth token may affect the response. |
-| Required | A missing or invalid token returns `<red>401 badToken</red>`. |
-| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `<red>403 badPerms</red>`. |
+| Required | A missing or invalid token returns `<response>401 badToken</response>`. |
+| Permissioned | The user token must be valid and the user must have every required permission bit. Missing bits return `<response>403 badPerms</response>`. |
 | Service | The shared service bearer token must match the configured provider secret. |
 
 ### Token types
@@ -88,7 +88,7 @@ The v1 CTFtime leaderboard route is the only typed route that intentionally retu
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `<red>400 badBody</red>` with a machine-readable `reason` string:
+JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `<response>400 badBody</response>` with a machine-readable `reason` string:
 
 ```json
 {
@@ -100,7 +100,7 @@ JSON routes parse the request body as JSON when a body schema exists. Form route
 }
 ```
 
-The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `<red>400 badJson</red>`. Malformed form data returns `<red>400 badBody</red>` with `body:formData:malformed`.
+The reason prefix identifies the source as `body`, `query`, or `params`. Malformed JSON returns `<response>400 badJson</response>`. Malformed form data returns `<response>400 badBody</response>` with `body:formData:malformed`.
 
 ## Permissions
 
@@ -119,9 +119,9 @@ When a route lists multiple permission bits, the user must have all of them.
 
 ## Timing gates
 
-Routes marked as start-gated return `<red>401 badNotStarted</red>` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
+Routes marked as start-gated return `<response>401 badNotStarted</response>` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
 
-`<route>POST /api/v1/challs/:id/submit</route>` is also end-gated. It returns `<red>401 badEnded</red>` after `endTime`.
+`<route>POST /api/v1/challs/:id/submit</route>` is also end-gated. It returns `<response>401 badEnded</response>` after `endTime`.
 
 ## Captcha
 
@@ -139,7 +139,7 @@ Captcha-protected routes validate a challenge response only when the configured 
 
 ## Rate limits
 
-Rate-limited routes return `<red>429 badRateLimit</red>` with `data.timeLeft`, measured in milliseconds:
+Rate-limited routes return `<response>429 badRateLimit</response>` with `data.timeLeft`, measured in milliseconds:
 
 | Action               | Scope              | Bucket                                |
 | -------------------- | ------------------ | ------------------------------------- |
@@ -153,7 +153,7 @@ Rate-limited routes return `<red>429 badRateLimit</red>` with `data.timeLeft`, m
 
 | Section | Scope |
 | --- | --- |
-| [Authentication](/api/auth/) | Registration, login, verification, recovery, token behavior, and v1 compatibility. |
+| [Authentication](/api/auth/) | Registration, verification, recovery, login, and token validation across V2 and V1 route contracts. |
 | [Challenges](/api/challenges/) | Public challenge listing, solves, v1 flag submission, and challenge response fields. |
 | [Leaderboard](/api/leaderboard/) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
 | [Users](/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |

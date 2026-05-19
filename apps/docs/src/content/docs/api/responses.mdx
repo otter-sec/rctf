@@ -26,7 +26,7 @@ Responses without data omit `data`:
 }
 ```
 
-Global 404 errors return `<red>404 badEndpoint</red>`. Unhandled route errors return `<red>500 errorInternal</red>`.
+Global 404 errors return `<response>404 badEndpoint</response>`. Unhandled route errors return `<response>500 errorInternal</response>`.
 
 ## Common errors
 
@@ -91,64 +91,64 @@ Global 404 errors return `<red>404 badEndpoint</red>`. Unhandled route errors re
 
 | Kind | Data |
 | --- | --- |
-| `<green>200 goodRegister</green>` | `{ authToken: string }` |
-| `<green>200 goodRegisterV2</green>` | `{ authToken: string, teamToken: string }` |
-| `<green>200 goodLogin</green>` | `{ authToken: string }` |
-| `<green>200 goodVerify</green>` | `{ authToken: string }` |
-| `<green>200 goodVerifyInfo</green>` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }` |
-| `<green>200 goodToken</green>` | No data. |
-| `<green>200 goodVerifySent</green>` | No data. |
-| `<green>200 goodEmailSet</green>` | No data. |
-| `<green>200 goodEmailRemoved</green>` | No data. |
-| `<green>200 goodCtftimeAuthSet</green>` | No data. |
-| `<green>200 goodCtftimeRemoved</green>` | No data. |
-| `<green>200 goodCtftimeToken</green>` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }` |
-| `<green>200 goodChallenges</green>` | Challenge array. Shape depends on API version. |
-| `<green>200 goodChallengeSolves</green>` | Solve list. Shape depends on API version. |
-| `<green>200 goodFlag</green>` | No data. |
-| `<green>200 goodLeaderboard</green>` | `{ total: number, leaderboard: LeaderboardEntry[] }` |
-| `<green>200 goodLeaderboardWithGraph</green>` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }` |
-| `<green>200 goodLeaderboardGraph</green>` | `{ graph: LeaderboardGraphEntry[] }` |
-| `<green>200 goodLeaderboardChallenges</green>` | `{ challenges: Record<string, LeaderboardChallenge> }` |
-| `<green>200 goodUserData</green>` | Public user profile. Shape depends on API version. |
-| `<green>200 goodUserSelfData</green>` | Authenticated user's own profile. Shape depends on API version. |
-| `<green>200 goodUserUpdate</green>` | `{ user: UserUpdateResult }` |
-| `<green>200 goodAvatarUpdated</green>` | `{ url: string \| null }` |
-| `<green>200 goodMemberData</green>` | Team member array. |
-| `<green>200 goodMemberCreate</green>` | Team member object. |
-| `<green>200 goodMemberDelete</green>` | No data. |
-| `<green>200 goodAdminChallenges</green>` | Admin challenge array. Shape depends on API version. |
-| `<green>200 goodAdminChallenge</green>` | Admin challenge object. Shape depends on API version. |
-| `<green>200 goodChallengeUpdate</green>` | Updated admin challenge object. |
-| `<green>200 goodChallengeDelete</green>` | No data. |
-| `<green>200 goodChallengeSolveDelete</green>` | No data. |
-| `<green>200 goodFilesUpload</green>` | Uploaded file array. Shape depends on API version. |
-| `<green>200 goodUploadsQuery</green>` | Upload query result array. Shape depends on API version. |
-| `<green>200 goodAdminUsers</green>` | `{ total: number, users: AdminUserListItem[] }` |
-| `<green>200 goodAdminUser</green>` | Admin user detail with solves. |
-| `<green>200 goodAdminUserUpdate</green>` | No data. |
-| `<green>200 goodAdminUserDelete</green>` | No data. |
-| `<green>200 goodCreateUserToken</green>` | `{ token: string }` |
-| `<green>200 goodAdminUserVerifications</green>` | `{ verifications: PendingUserVerification[] }` |
-| `<green>200 goodAdminUserVerificationComplete</green>` | `{ userId: string }` |
-| `<green>200 goodAdminUserVerificationResend</green>` | `{ id: string }` |
-| `<green>200 goodAdminSubmissions</green>` | `{ total: number, submissions: AdminSubmission[] }` |
-| `<green>200 goodAdminSettings</green>` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
-| `<green>200 goodAdminSettingsUpdate</green>` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
-| `<green>200 goodClientConfig</green>` | Client config object. Shape depends on API version. |
-| `<green>200 goodCtftimeLeaderboard</green>` | `{ standings: { pos: number, team: string, score: number }[] }` |
-| `<green>200 goodInstanceStatus</green>` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }` |
-| `<green>200 goodInstancerSchema</green>` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }` |
-| `<green>200 goodAdminBotConfig</green>` | `{ sourceCode: string, fileExtension: string }` |
-| `<green>200 goodAdminBotStatus</green>` | `{ enabled: boolean, configLanguage: string }` |
-| `<green>200 goodAdminBotJobSubmitted</green>` | `{ jobId: string }` |
-| `<green>200 goodAdminBotJobStatus</green>` | `{ job: AdminBotJobStatusResponse \| null }` |
-| `<green>200 goodAdminBotJobHistory</green>` | `{ jobs: AdminBotJobHistoryItem[] }` |
-| `<green>200 goodAdminBotJobLogs</green>` | `{ logs: string \| null }` |
-| `<green>200 goodAdminBotJobPull</green>` | `{ job: PulledAdminBotJob \| null }` |
-| `<green>200 goodAdminBotChallengeSource</green>` | `{ sourceCode: string, configRevision: string }` |
-| `<green>200 goodAdminBotJobUpdate</green>` | `{ ok: boolean }` |
-| `<green>200 goodAdminBotQueueDepth</green>` | `{ depth: number }` |
+| `<response>200 goodRegister</response>` | `{ authToken: string }` |
+| `<response>200 goodRegisterV2</response>` | `{ authToken: string, teamToken: string }` |
+| `<response>200 goodLogin</response>` | `{ authToken: string }` |
+| `<response>200 goodVerify</response>` | `{ authToken: string }` |
+| `<response>200 goodVerifyInfo</response>` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }` |
+| `<response>200 goodToken</response>` | No data. |
+| `<response>200 goodVerifySent</response>` | No data. |
+| `<response>200 goodEmailSet</response>` | No data. |
+| `<response>200 goodEmailRemoved</response>` | No data. |
+| `<response>200 goodCtftimeAuthSet</response>` | No data. |
+| `<response>200 goodCtftimeRemoved</response>` | No data. |
+| `<response>200 goodCtftimeToken</response>` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }` |
+| `<response>200 goodChallenges</response>` | Challenge array. Shape depends on API version. |
+| `<response>200 goodChallengeSolves</response>` | Solve list. Shape depends on API version. |
+| `<response>200 goodFlag</response>` | No data. |
+| `<response>200 goodLeaderboard</response>` | `{ total: number, leaderboard: LeaderboardEntry[] }` |
+| `<response>200 goodLeaderboardWithGraph</response>` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }` |
+| `<response>200 goodLeaderboardGraph</response>` | `{ graph: LeaderboardGraphEntry[] }` |
+| `<response>200 goodLeaderboardChallenges</response>` | `{ challenges: Record<string, LeaderboardChallenge> }` |
+| `<response>200 goodUserData</response>` | Public user profile. Shape depends on API version. |
+| `<response>200 goodUserSelfData</response>` | Authenticated user's own profile. Shape depends on API version. |
+| `<response>200 goodUserUpdate</response>` | `{ user: UserUpdateResult }` |
+| `<response>200 goodAvatarUpdated</response>` | `{ url: string \| null }` |
+| `<response>200 goodMemberData</response>` | Team member array. |
+| `<response>200 goodMemberCreate</response>` | Team member object. |
+| `<response>200 goodMemberDelete</response>` | No data. |
+| `<response>200 goodAdminChallenges</response>` | Admin challenge array. Shape depends on API version. |
+| `<response>200 goodAdminChallenge</response>` | Admin challenge object. Shape depends on API version. |
+| `<response>200 goodChallengeUpdate</response>` | Updated admin challenge object. |
+| `<response>200 goodChallengeDelete</response>` | No data. |
+| `<response>200 goodChallengeSolveDelete</response>` | No data. |
+| `<response>200 goodFilesUpload</response>` | Uploaded file array. Shape depends on API version. |
+| `<response>200 goodUploadsQuery</response>` | Upload query result array. Shape depends on API version. |
+| `<response>200 goodAdminUsers</response>` | `{ total: number, users: AdminUserListItem[] }` |
+| `<response>200 goodAdminUser</response>` | Admin user detail with solves. |
+| `<response>200 goodAdminUserUpdate</response>` | No data. |
+| `<response>200 goodAdminUserDelete</response>` | No data. |
+| `<response>200 goodCreateUserToken</response>` | `{ token: string }` |
+| `<response>200 goodAdminUserVerifications</response>` | `{ verifications: PendingUserVerification[] }` |
+| `<response>200 goodAdminUserVerificationComplete</response>` | `{ userId: string }` |
+| `<response>200 goodAdminUserVerificationResend</response>` | `{ id: string }` |
+| `<response>200 goodAdminSubmissions</response>` | `{ total: number, submissions: AdminSubmission[] }` |
+| `<response>200 goodAdminSettings</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
+| `<response>200 goodAdminSettingsUpdate</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }` |
+| `<response>200 goodClientConfig</response>` | Client config object. Shape depends on API version. |
+| `<response>200 goodCtftimeLeaderboard</response>` | `{ standings: { pos: number, team: string, score: number }[] }` |
+| `<response>200 goodInstanceStatus</response>` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }` |
+| `<response>200 goodInstancerSchema</response>` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }` |
+| `<response>200 goodAdminBotConfig</response>` | `{ sourceCode: string, fileExtension: string }` |
+| `<response>200 goodAdminBotStatus</response>` | `{ enabled: boolean, configLanguage: string }` |
+| `<response>200 goodAdminBotJobSubmitted</response>` | `{ jobId: string }` |
+| `<response>200 goodAdminBotJobStatus</response>` | `{ job: AdminBotJobStatusResponse \| null }` |
+| `<response>200 goodAdminBotJobHistory</response>` | `{ jobs: AdminBotJobHistoryItem[] }` |
+| `<response>200 goodAdminBotJobLogs</response>` | `{ logs: string \| null }` |
+| `<response>200 goodAdminBotJobPull</response>` | `{ job: PulledAdminBotJob \| null }` |
+| `<response>200 goodAdminBotChallengeSource</response>` | `{ sourceCode: string, configRevision: string }` |
+| `<response>200 goodAdminBotJobUpdate</response>` | `{ ok: boolean }` |
+| `<response>200 goodAdminBotQueueDepth</response>` | `{ depth: number }` |
 
 ## Shared object shapes
 

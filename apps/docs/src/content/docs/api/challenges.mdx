@@ -31,7 +31,7 @@ Returns the visible challenge list with V2 integration metadata.
 
 **Response**
 
-`<green>200 goodChallenges</green>` returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
+`<response>200 goodChallenges</response>` returns an array of challenge objects. Hidden challenges are omitted for non-admin users, and challenges with a future `releaseTime` are omitted until their release timestamp.
 
 ```json
 {
@@ -57,7 +57,7 @@ Returns the visible challenge list with V2 integration metadata.
 | `adminBotInputs` | `Record<string, RegexRule> \| null \| undefined{:ts}` | Participant input schema for admin bot challenges. See [`RegexRule`](/api/responses/#regexrule). |
 | `hasFlag` | `boolean{:ts}` | Indicates whether the challenge has a flag configured. |
 
-**Errors**: `<red>401 badNotStarted</red>`.
+**Errors**: `<response>401 badNotStarted</response>`.
 
 ### `<route>GET /api/v2/challs/:id/solves</route>`
 
@@ -86,7 +86,7 @@ Returns paginated solve history for one challenge.
 
 **Response**
 
-`<green>200 goodChallengeSolves</green>`:
+`<response>200 goodChallengeSolves</response>`:
 
 ```json
 {
@@ -119,7 +119,7 @@ Returns paginated solve history for one challenge.
 | `solves[].bloodIndex` | `number \| null{:ts}` | `0`, `1`, or `2` for the first three solves. Otherwise `null{:ts}`. |
 | `mySolvePosition` | `number \| null{:ts}` | The authenticated user's solve position for this challenge when optional auth is present. |
 
-**Errors**: `<red>404 badChallenge</red>`, `<red>401 badNotStarted</red>`.
+**Errors**: `<response>404 badChallenge</response>`, `<response>401 badNotStarted</response>`.
 
 ## V1 compatibility
 
@@ -129,7 +129,7 @@ V1 routes remain available for legacy clients. Behavior matches V2 except where 
 
 Differs from V2:
 
-- `<green>200 goodChallenges</green>` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
+- `<response>200 goodChallenges</response>` data omits V2 integration metadata (`instancerLifetime`, `instancerExtendable`, `adminBotInputs`, `hasFlag`) and uses a simpler `files` shape.
 
 The V1 challenge list returns the same core fields without V2 integration metadata:
 
@@ -149,7 +149,7 @@ The V1 challenge list returns the same core fields without V2 integration metada
 
 Differs from V2:
 
-- `<green>200 goodChallengeSolves</green>` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
+- `<response>200 goodChallengeSolves</response>` data returns `{ solves }` without `mySolvePosition`, and each solve row carries only `id`, `createdAt`, `userId`, and `userName` (no avatar, country, status, places, or `bloodIndex`).
 
 ```json
 {
@@ -200,11 +200,11 @@ V1-only. Submits a flag for the authenticated team. There is no V2 equivalent.
 
 **Response**
 
-`<green>200 goodFlag</green>` (no data) when the submitted flag is correct. The route records a solve for the team.
+`<response>200 goodFlag</response>` (no data) when the submitted flag is correct. The route records a solve for the team.
 
 The route records a submission audit row for both correct and incorrect attempts. Admins can read those rows through [`<route>/api/v2/admin/submissions</route>`](/api/admin/).
 
-**Errors**: `<red>400 badBody</red>`, `<red>404 badChallenge</red>`, `<red>400 badFlag</red>`, `<red>409 badAlreadySolvedChallenge</red>`, `<red>401 badNotStarted</red>`, `<red>401 badEnded</red>`, `<red>429 badRateLimit</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>404 badChallenge</response>`, `<response>400 badFlag</response>`, `<response>409 badAlreadySolvedChallenge</response>`, `<response>401 badNotStarted</response>`, `<response>401 badEnded</response>`, `<response>429 badRateLimit</response>`.
 
 ## Scoring behavior
 

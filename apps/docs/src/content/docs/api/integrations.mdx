@@ -40,7 +40,7 @@ Returns the public client configuration consumed by the frontend.
 
 **Response**
 
-`<green>200 goodClientConfig</green>`:
+`<response>200 goodClientConfig</response>`:
 
 ```json
 {
@@ -135,7 +135,7 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 
 **Response**
 
-`<green>200 goodCtftimeToken</green>`:
+`<response>200 goodCtftimeToken</response>`:
 
 ```json
 {
@@ -155,7 +155,7 @@ V1-only. Exchanges a CTFtime OAuth code for a CTFtime auth token plus the team n
 | `data.ctftimeName` | `string{:ts}` | CTFtime team name. |
 | `data.ctftimeId` | `string{:ts}` | CTFtime team ID. |
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badCtftimeCode</red>`, `<red>404 badEndpoint</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badCtftimeCode</response>`, `<response>404 badEndpoint</response>`.
 
 ### `<route>GET /api/v1/integrations/ctftime/leaderboard</route>`
 
@@ -191,7 +191,7 @@ Raw body (200):
 
 ## Instancer lifecycle
 
-All four methods share the path `<route>/api/v2/integrations/challs/:id/instance</route>` and the same path params. The route returns `<red>404 badEndpoint</red>` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `<red>400 badInstancerError</red>` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
+All four methods share the path `<route>/api/v2/integrations/challs/:id/instance</route>` and the same path params. The route returns `<response>404 badEndpoint</response>` when no instancer provider is configured or the challenge has no instancer config. Provider failures return `<response>400 badInstancerError</response>` with `data.message`. Admins with `challsRead` can bypass the start-time gate.
 
 ### `<route>GET /api/v2/integrations/challs/:id/instance</route>`
 
@@ -213,7 +213,7 @@ Returns the current instance status for the authenticated user.
 
 **Response**
 
-`<green>200 goodInstanceStatus</green>`:
+`<response>200 goodInstanceStatus</response>`:
 
 ```json
 {
@@ -235,7 +235,7 @@ Returns the current instance status for the authenticated user.
 
 `Endpoint` has `kind`, `host`, `port`, and optional `title`. Endpoint kinds are `tcp`, `tcp-ssl`, `http`, and `https`.
 
-**Errors**: `<red>404 badEndpoint</red>`, `<red>400 badInstancerError</red>`.
+**Errors**: `<response>404 badEndpoint</response>`, `<response>400 badInstancerError</response>`.
 
 ### `<route>PUT /api/v2/integrations/challs/:id/instance</route>`
 
@@ -269,9 +269,9 @@ Creates (starts) an instance for the authenticated user.
 
 **Response**
 
-`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>404 badEndpoint</response>`, `<response>403 badCaptcha</response>`, `<response>400 badInstancerError</response>`.
 
 ### `<route>PATCH /api/v2/integrations/challs/:id/instance</route>`
 
@@ -305,9 +305,9 @@ Extends the running instance for the authenticated user.
 
 **Response**
 
-`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>403 badCaptcha</red>`, `<red>400 badInstancerError</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>404 badEndpoint</response>`, `<response>403 badCaptcha</response>`, `<response>400 badInstancerError</response>`.
 
 ### `<route>DELETE /api/v2/integrations/challs/:id/instance</route>`
 
@@ -329,9 +329,9 @@ Stops the instance for the authenticated user.
 
 **Response**
 
-`<green>200 goodInstanceStatus</green>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
+`<response>200 goodInstanceStatus</response>`. See [GET response](#get-apiv2integrationschallsidinstance) for the data shape.
 
-**Errors**: `<red>404 badEndpoint</red>`, `<red>400 badInstancerError</red>`.
+**Errors**: `<response>404 badEndpoint</response>`, `<response>400 badInstancerError</response>`.
 
 ## Admin bot participant routes
 
@@ -357,7 +357,7 @@ Returns the released admin bot challenge source and its file extension.
 
 **Response**
 
-`<green>200 goodAdminBotConfig</green>`:
+`<response>200 goodAdminBotConfig</response>`:
 
 ```json
 {
@@ -413,7 +413,7 @@ Only one queued or running job per user per challenge is allowed.
 
 **Response**
 
-`<green>200 goodAdminBotJobSubmitted</green>`:
+`<response>200 goodAdminBotJobSubmitted</response>`:
 
 ```json
 {
@@ -429,9 +429,9 @@ Only one queued or running job per user per challenge is allowed.
 | ------------ | ------------- | ------------------------- |
 | `data.jobId` | `string{:ts}` | Submitted job identifier. |
 
-The route returns `<red>400 badInstancerState</red>` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
+The route returns `<response>400 badInstancerState</response>` when the challenge requires a running instance and the current user's instance is stopped, missing, or expires before the admin bot timeout.
 
-**Errors**: `<red>400 badBody</red>`, `<red>403 badCaptcha</red>`, `<red>429 badRateLimit</red>`, `<red>400 badInstancerState</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>403 badCaptcha</response>`, `<response>429 badRateLimit</response>`, `<response>400 badInstancerState</response>`.
 
 ### `<route>GET /api/v2/integrations/challs/:id/admin-bot/status</route>`
 
@@ -453,7 +453,7 @@ Returns the current active job for the authenticated user on that challenge.
 
 **Response**
 
-`<green>200 goodAdminBotJobStatus</green>`:
+`<response>200 goodAdminBotJobStatus</response>`:
 
 ```json
 {
@@ -496,7 +496,7 @@ Returns retained completed and failed jobs for the authenticated user on that ch
 
 **Response**
 
-`<green>200 goodAdminBotJobHistory</green>`:
+`<response>200 goodAdminBotJobHistory</response>`:
 
 ```json
 {
@@ -540,7 +540,7 @@ Returns logs for a specific job.
 
 **Response**
 
-`<green>200 goodAdminBotJobLogs</green>`:
+`<response>200 goodAdminBotJobLogs</response>`:
 
 ```json
 {

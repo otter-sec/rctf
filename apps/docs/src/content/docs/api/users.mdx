@@ -49,7 +49,7 @@ Returns the public profile of a team.
 
 **Response**
 
-`<green>200 goodUserData</green>`:
+`<response>200 goodUserData</response>`:
 
 ```json
 {
@@ -83,7 +83,7 @@ Returns the public profile of a team.
 | `countryCode` | `string \| null{:ts}` | ISO 3166-like region code from `@rctf/util`. |
 | `statusText` | `string \| null{:ts}` | Team status text. |
 
-**Errors**: `<red>404 badUnknownUser</red>`, `<red>401 badNotStarted</red>`.
+**Errors**: `<response>404 badUnknownUser</response>`, `<response>401 badNotStarted</response>`.
 
 ### `<route>GET /api/v2/users/me</route>`
 
@@ -99,7 +99,7 @@ Returns the authenticated team's own profile, including account-private fields.
 
 **Response**
 
-`<green>200 goodUserSelfData</green>` returns the public profile fields plus account-private data:
+`<response>200 goodUserSelfData</response>` returns the public profile fields plus account-private data:
 
 ```json
 {
@@ -135,7 +135,7 @@ Returns the authenticated team's own profile, including account-private fields.
 
 All other fields match the [public profile](#get-apiv2usersid).
 
-**Errors**: `<red>401 badToken</red>`.
+**Errors**: `<response>401 badToken</response>`.
 
 ### `<route>PATCH /api/v2/users/me</route>`
 
@@ -169,7 +169,7 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 
 **Response**
 
-`<green>200 goodUserUpdate</green>`:
+`<response>200 goodUserUpdate</response>`:
 
 ```json
 {
@@ -197,7 +197,7 @@ Updates profile fields. Recalculates cached user data and triggers a leaderboard
 | `user.countryCode` | `string \| null{:ts}` | Current country code. |
 | `user.statusText`  | `string \| null{:ts}` | Current status text.  |
 
-**Errors**: `<red>400 badBody</red>`, `<red>400 badName</red>`, `<red>409 badKnownName</red>`, `<red>403 badDivisionNotAllowed</red>`, `<red>429 badRateLimit</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>400 badName</response>`, `<response>409 badKnownName</response>`, `<response>403 badDivisionNotAllowed</response>`, `<response>429 badRateLimit</response>`.
 
 ### `<route>PATCH /api/v2/users/me/avatar</route>`
 
@@ -222,7 +222,7 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 
 **Response**
 
-`<green>200 goodAvatarUpdated</green>`:
+`<response>200 goodAvatarUpdated</response>`:
 
 ```json
 {
@@ -238,11 +238,11 @@ The route checks `maxAvatarSize`, resizes the image to 256×256 pixels, converts
 | ----- | --------------------- | ----------------------------------------------------------- |
 | `url` | `string \| null{:ts}` | New avatar URL, or `null{:ts}` when the avatar was deleted. |
 
-**Errors**: `<red>400 badBody</red>`, `<red>400 badAvatarFile</red>`, `<red>400 badAvatarFileSize</red>`, `<red>400 badModerationNotPassed</red>`, `<red>500 badFilesUpload</red>`, `<red>403 badCaptcha</red>`, `<red>429 badRateLimit</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>400 badAvatarFile</response>`, `<response>400 badAvatarFileSize</response>`, `<response>400 badModerationNotPassed</response>`, `<response>500 badFilesUpload</response>`, `<response>403 badCaptcha</response>`, `<response>429 badRateLimit</response>`.
 
 ### `<route>PUT /api/v2/users/me/auth/email</route>`
 
-Updates the account email. When email delivery is configured, the route sends a verification email and returns `<green>200 goodVerifySent</green>`. When email delivery is not configured, it updates the email immediately and returns `<green>200 goodEmailSet</green>`.
+Updates the account email. When email delivery is configured, the route sends a verification email and returns `<response>200 goodVerifySent</response>`. When email delivery is not configured, it updates the email immediately and returns `<response>200 goodEmailSet</response>`.
 
 | Property       | Value                             |
 | -------------- | --------------------------------- |
@@ -266,7 +266,7 @@ Updates the account email. When email delivery is configured, the route sends a 
 | `email`       | `string{:ts}` | Yes      | New email address.                                  |
 | `captchaCode` | `string{:ts}` | No       | Checked only when captcha protects `setEmail{:ts}`. |
 
-The route rejects emails that would move the team outside the division ACL (`<red>403 badEmailChangeDivision</red>`) and rejects duplicate emails (`<red>409 badKnownEmail</red>`).
+The route rejects emails that would move the team outside the division ACL (`<response>403 badEmailChangeDivision</response>`) and rejects duplicate emails (`<response>409 badKnownEmail</response>`).
 
 **Response**
 
@@ -274,12 +274,12 @@ Behavior branches on email provider configuration:
 
 | Condition | Success kind | Effect |
 | --- | --- | --- |
-| Email delivery configured | `<green>200 goodVerifySent</green>` | Sends a verification email; consume the token via [`<route>POST /api/v2/auth/verify</route>`](/api/auth/#post-apiv2authverify). |
-| Email delivery not configured | `<green>200 goodEmailSet</green>` | Updates the email immediately. |
+| Email delivery configured | `<response>200 goodVerifySent</response>` | Sends a verification email. Consume the token via [`<route>POST /api/v2/auth/verify</route>`](/api/auth/verify/). |
+| Email delivery not configured | `<response>200 goodEmailSet</response>` | Updates the email immediately. |
 
 Both kinds return no data.
 
-**Errors**: `<red>400 badBody</red>`, `<red>400 badEmail</red>`, `<red>409 badKnownEmail</red>`, `<red>403 badEmailChangeDivision</red>`, `<red>403 badCaptcha</red>`, `<red>409 badZeroAuth</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>400 badEmail</response>`, `<response>409 badKnownEmail</response>`, `<response>403 badEmailChangeDivision</response>`, `<response>403 badCaptcha</response>`, `<response>409 badZeroAuth</response>`.
 
 ## V1 compatibility
 
@@ -299,11 +299,11 @@ Differs from V2: only accepts `name` and `division`. Shares the profile name upd
 
 ### `<route>PUT /api/v1/users/me/auth/email</route>`
 
-Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 - `<green>200 goodVerifySent</green>` when email delivery is configured, `<green>200 goodEmailSet</green>` otherwise. Same division-ACL and duplicate-email rejections apply.
+Differs from V2: V1 request body uses the V1 captcha field name (`recaptchaCode`). Response semantics match V2 - `<response>200 goodVerifySent</response>` when email delivery is configured, `<response>200 goodEmailSet</response>` otherwise. Same division-ACL and duplicate-email rejections apply.
 
 ### `<route>DELETE /api/v1/users/me/auth/email</route>`
 
-V1-only. Removes the account email. Preserves the `<red>409 badZeroAuth</red>` invariant: a team must keep at least one of email or CTFtime auth.
+V1-only. Removes the account email. Preserves the `<response>409 badZeroAuth</response>` invariant: a team must keep at least one of email or CTFtime auth.
 
 | Property       | Value    |
 | -------------- | -------- |
@@ -315,9 +315,9 @@ V1-only. Removes the account email. Preserves the `<red>409 badZeroAuth</red>` i
 
 **Response**
 
-`<green>200 goodEmailRemoved</green>` (no data).
+`<response>200 goodEmailRemoved</response>` (no data).
 
-**Errors**: `<red>404 badEmailNoExists</red>`, `<red>409 badZeroAuth</red>`.
+**Errors**: `<response>404 badEmailNoExists</response>`, `<response>409 badZeroAuth</response>`.
 
 ### `<route>PUT /api/v1/users/me/auth/ctftime</route>`
 
@@ -341,17 +341,17 @@ V1-only. Links the account to a CTFtime team via a CTFtime auth token.
 
 | Field | Type | Required | Notes |
 | --- | --- | --- | --- |
-| `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `<red>404 badEndpoint</red>` when CTFtime auth is not configured. |
+| `ctftimeToken` | `string{:ts}` | Yes | CTFtime auth token. Returns `<response>404 badEndpoint</response>` when CTFtime auth is not configured. |
 
 **Response**
 
-`<green>200 goodCtftimeAuthSet</green>` (no data).
+`<response>200 goodCtftimeAuthSet</response>` (no data).
 
-**Errors**: `<red>400 badBody</red>`, `<red>404 badEndpoint</red>`, `<red>401 badCtftimeToken</red>`, `<red>409 badKnownCtftimeId</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>404 badEndpoint</response>`, `<response>401 badCtftimeToken</response>`, `<response>409 badKnownCtftimeId</response>`.
 
 ### `<route>DELETE /api/v1/users/me/auth/ctftime</route>`
 
-V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `<red>409 badZeroAuth</red>`, which preserves the invariant that every team has at least one of email or CTFtime auth.
+V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth method returns `<response>409 badZeroAuth</response>`, which preserves the invariant that every team has at least one of email or CTFtime auth.
 
 | Property       | Value    |
 | -------------- | -------- |
@@ -363,13 +363,13 @@ V1-only. Unlinks the account's CTFtime auth. Removing the last remaining auth me
 
 **Response**
 
-`<green>200 goodCtftimeRemoved</green>` (no data).
+`<response>200 goodCtftimeRemoved</response>` (no data).
 
-**Errors**: `<red>404 badCtftimeNoExists</red>`, `<red>409 badZeroAuth</red>`.
+**Errors**: `<response>404 badCtftimeNoExists</response>`, `<response>409 badZeroAuth</response>`.
 
 ### `<route>GET /api/v1/users/me/members</route>`
 
-V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `<red>404 badEndpoint</red>` when `userMembers` is disabled.
+V1-only. Lists informational team-member email rows under the team account. Team members do not create separate login identities. Returns `<response>404 badEndpoint</response>` when `userMembers` is disabled.
 
 | Property       | Value    |
 | -------------- | -------- |
@@ -381,9 +381,9 @@ V1-only. Lists informational team-member email rows under the team account. Team
 
 **Response**
 
-`<green>200 goodMemberData</green>` returns a team member array.
+`<response>200 goodMemberData</response>` returns a team member array.
 
-**Errors**: `<red>404 badEndpoint</red>`.
+**Errors**: `<response>404 badEndpoint</response>`.
 
 ### `<route>POST /api/v1/users/me/members</route>`
 
@@ -411,9 +411,9 @@ V1-only. Adds a team member email row. Teams are limited by `maxMembers`.
 
 **Response**
 
-`<green>200 goodMemberCreate</green>` returns the created team member object.
+`<response>200 goodMemberCreate</response>` returns the created team member object.
 
-**Errors**: `<red>400 badBody</red>`, `<red>400 badEmail</red>`, `<red>409 badKnownEmail</red>`, `<red>409 badTooManyMembers</red>`, `<red>404 badEndpoint</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>400 badEmail</response>`, `<response>409 badKnownEmail</response>`, `<response>409 badTooManyMembers</response>`, `<response>404 badEndpoint</response>`.
 
 ### `<route>DELETE /api/v1/users/me/members/:id</route>`
 
@@ -435,9 +435,9 @@ V1-only. Removes a team member email row.
 
 **Response**
 
-`<green>200 goodMemberDelete</green>` (no data).
+`<response>200 goodMemberDelete</response>` (no data).
 
-**Errors**: `<red>404 badEndpoint</red>`.
+**Errors**: `<response>404 badEndpoint</response>`.
 
 ## Shared object shapes
 

@@ -1,0 +1,83 @@
+---
+title: '<route>GET</route> Preview a verification token'
+description: '<route>GET /api/v2/auth/verify-info</route>'
+---
+
+<Aside>
+```json frame="terminal"
+$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-new-dev.es3n1n.io/api/v2/auth/verify-info?token=<dim><verify-token></dim>"</white>
+```
+
+<Tabs
+  items={[
+    '<response>200 goodVerifyInfo</response>',
+    '<response>400 badBody</response>',
+    '<response>401 badTokenVerification</response>',
+  ]}
+>
+  <Tab>
+
+```json
+{
+  "kind": "goodVerifyInfo",
+  "message": "The verification info was retrieved.",
+  "data": {
+    "kind": "register",
+    "email": "team@example.com",
+    "name": "otter-sec"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badBody",
+  "message": "The request body does not meet requirements.",
+  "data": {
+    "reason": "query:token: Invalid input"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badTokenVerification",
+  "message": "The token provided is invalid."
+}
+```
+
+  </Tab>
+</Tabs>
+</Aside>
+
+Reads the public context for a verification token without consuming it. Use this before rendering a confirmation page so the UI can show what the token is about before the user submits it.
+
+This preview step is only available in V2. V1 clients submit the token directly when the user confirms the action.
+
+<RouteMeta auth="Public" gate="None" />
+
+**Query**
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `token` | `string{:ts}` | Yes | Pending-registration, team, or verify token. |
+
+**Response**
+
+A valid token returns `<response>200 goodVerifyInfo</response>` with enough detail to describe the pending action.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `data.kind` | `"register" \| "team" \| "update"{:ts}` | Token purpose. |
+| `data.email` | `string \| null{:ts}` | `null{:ts}` for team-token recovery previews. |
+| `data.name` | `string \| undefined{:ts}` | Present for pending-registration tokens. |
+
+Previewing does not claim the token. The same token still has to be submitted to [verify a token](/api/auth/verify/) to complete the action.

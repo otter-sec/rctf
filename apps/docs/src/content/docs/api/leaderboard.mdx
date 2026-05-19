@@ -31,7 +31,7 @@ Routes accept an optional auth token. When the token carries the listed permissi
 
 V1 `<route>/api/v1/leaderboard/graph</route>` accepts `limit` and optional `division`, but it does not accept `offset`.
 
-Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms - captcha-free but rate-limited) and return `<red>429 badRateLimit</red>` with `data.timeLeft` when the bucket is exhausted.
+Search requests are rate-limited per IP address (burst `3`, refill window `3000` ms - captcha-free but rate-limited) and return `<response>429 badRateLimit</response>` with `data.timeLeft` when the bucket is exhausted.
 
 ## V2 routes
 
@@ -53,7 +53,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Response**
 
-`<green>200 goodLeaderboard</green>`:
+`<response>200 goodLeaderboard</response>`:
 
 ```json
 {
@@ -87,7 +87,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 | `divisionPlace` | `number{:ts}` | Rank inside the returned division context. |
 | `solves[]` | `{ id: string, solveTime: number }[]{:ts}` | Challenge IDs and solve timestamps. |
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badNotStarted</response>`, `<response>429 badRateLimit</response>`.
 
 ### `<route>GET /api/v2/leaderboard/with-graph</route>`
 
@@ -107,7 +107,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 
 **Response**
 
-`<green>200 goodLeaderboardWithGraph</green>`:
+`<response>200 goodLeaderboardWithGraph</response>`:
 
 ```json
 {
@@ -134,7 +134,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, optional `
 | `graph[]` | `LeaderboardGraphEntry[]{:ts}` | Teams included in the graph sample. See [`LeaderboardGraphEntry`](/api/responses/). |
 | `graph[].points[]` | `{ time: number, score: number }[]{:ts}` | Score samples over time. |
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`, `<red>429 badRateLimit</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badNotStarted</response>`, `<response>429 badRateLimit</response>`.
 
 ### `<route>GET /api/v2/leaderboard/graph</route>`
 
@@ -154,7 +154,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Response**
 
-`<green>200 goodLeaderboardGraph</green>`:
+`<response>200 goodLeaderboardGraph</response>`:
 
 ```json
 {
@@ -179,7 +179,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 The graph uses the worker's cached sample set. `leaderboard.graphMaxTeams` controls how many teams are kept for graphing, and `leaderboard.graphSampleTime` controls sample cadence.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badNotStarted</response>`.
 
 ### `<route>GET /api/v2/leaderboard/challs</route>`
 
@@ -195,7 +195,7 @@ Returns challenge metadata used by leaderboard visualizations.
 
 **Response**
 
-`<green>200 goodLeaderboardChallenges</green>`:
+`<response>200 goodLeaderboardChallenges</response>`:
 
 ```json
 {
@@ -221,7 +221,7 @@ Returns challenge metadata used by leaderboard visualizations.
 | `data.challenges` | `Record<string, LeaderboardChallenge>{:ts}` | Keyed by challenge ID. See [`LeaderboardChallenge`](/api/responses/). |
 | `firstSolvers` | `{ id: string }[]{:ts}` | Up to the first three team IDs for each challenge. |
 
-**Errors**: `<red>401 badNotStarted</red>`.
+**Errors**: `<response>401 badNotStarted</response>`.
 
 ## V1 compatibility
 
@@ -245,7 +245,7 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 
 **Response**
 
-`<green>200 goodLeaderboard</green>` with the V1 entry shape - `id`, `name`, and `score` only:
+`<response>200 goodLeaderboard</response>` with the V1 entry shape - `id`, `name`, and `score` only:
 
 ```json
 {
@@ -264,11 +264,11 @@ See [Query parameters](#query-parameters). Accepts `limit`, `offset`, and option
 }
 ```
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badNotStarted</response>`.
 
 ### `<route>GET /api/v1/leaderboard/graph</route>`
 
-Returns graph data. The response uses the same `<green>200 goodLeaderboardGraph</green>` shape as V2.
+Returns graph data. The response uses the same `<response>200 goodLeaderboardGraph</response>` shape as V2.
 
 | Property       | Value                                             |
 | -------------- | ------------------------------------------------- |
@@ -284,9 +284,9 @@ Accepts `limit` and optional `division`. Differs from V2: does not accept `offse
 
 **Response**
 
-`<green>200 goodLeaderboardGraph</green>`. See [`LeaderboardGraphEntry`](/api/responses/) for the entry shape.
+`<response>200 goodLeaderboardGraph</response>`. See [`LeaderboardGraphEntry`](/api/responses/) for the entry shape.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badNotStarted</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badNotStarted</response>`.
 
 ## Ranking rules
 

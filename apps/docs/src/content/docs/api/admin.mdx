@@ -69,9 +69,9 @@ Lists every challenge with full admin fields, including hidden challenges and un
 
 **Response**
 
-`<green>200 goodAdminChallenges</green>`: array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
+`<response>200 goodAdminChallenges</response>`: array of `AdminChallengeV2`. See [`AdminChallengeV2`](#adminchallengev2) below.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>GET /api/v2/admin/challs/:id</route>`
 
@@ -93,9 +93,9 @@ Returns one admin challenge.
 
 **Response**
 
-`<green>200 goodAdminChallenge</green>`: `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
+`<response>200 goodAdminChallenge</response>`: `AdminChallengeV2` object. See [`AdminChallengeV2`](#adminchallengev2).
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badChallenge</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badChallenge</response>`.
 
 ### `<route>PUT /api/v2/admin/challs/:id</route>`
 
@@ -145,9 +145,9 @@ Creates or updates a challenge. Omitted fields in `data` keep their current valu
 
 **Response**
 
-`<green>200 goodChallengeUpdate</green>`: updated `AdminChallengeV2`.
+`<response>200 goodChallengeUpdate</response>`: updated `AdminChallengeV2`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>400 badInstancerConfig</red>`, `<red>400 badAdminBotConfig</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>400 badInstancerConfig</response>`, `<response>400 badAdminBotConfig</response>`.
 
 ### `<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>`
 
@@ -170,9 +170,9 @@ Deletes one solve for a specific user and challenge. Triggers a leaderboard reca
 
 **Response**
 
-`<green>200 goodChallengeSolveDelete</green>` (no data).
+`<response>200 goodChallengeSolveDelete</response>` (no data).
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownSolve</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownSolve</response>`.
 
 ## Upload routes
 
@@ -194,7 +194,7 @@ Uploads one or more files. Files are deduplicated by SHA-256 - uploading the sam
 
 **Response**
 
-`<green>200 goodFilesUpload</green>`: array of upload objects.
+`<response>200 goodFilesUpload</response>`: array of upload objects.
 
 | Field  | Type                  | Notes                |
 | ------ | --------------------- | -------------------- |
@@ -202,7 +202,7 @@ Uploads one or more files. Files are deduplicated by SHA-256 - uploading the sam
 | `url`  | `string{:ts}`         | Public download URL. |
 | `size` | `number \| null{:ts}` | File size in bytes.  |
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>500 badFilesUpload</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>500 badFilesUpload</response>`.
 
 ### `<route>POST /api/v2/admin/upload/query</route>`
 
@@ -231,9 +231,9 @@ Checks whether files already exist by SHA-256 without uploading them.
 
 **Response**
 
-`<green>200 goodUploadsQuery</green>`: array with one entry per query - each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
+`<response>200 goodUploadsQuery</response>`: array with one entry per query - each entry has nullable `url` and nullable `size`. A `null{:ts}` URL means the file is not yet uploaded.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ## Team routes
 
@@ -261,9 +261,9 @@ Lists teams. Query parameters control pagination, sorting, and search.
 
 **Response**
 
-`<green>200 goodAdminUsers</green>`: `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
+`<response>200 goodAdminUsers</response>`: `{ total: number, users: AdminUserListItem[] }`. Each list item includes ID, name, email, division, perms, banned state, score, solve count, avatar URL, country code, status text, and `createdAt`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>POST /api/v2/admin/users</route>`
 
@@ -301,7 +301,7 @@ Filter objects accept nullable `include` and `exclude` arrays.
 
 Same shape as `<route>GET /api/v2/admin/users</route>`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>GET /api/v2/admin/users/:id</route>`
 
@@ -323,7 +323,7 @@ Returns full team details, including solve history.
 
 **Response**
 
-`<green>200 goodAdminUser</green>`:
+`<response>200 goodAdminUser</response>`:
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -341,7 +341,7 @@ Returns full team details, including solve history.
 | `createdAt` | `string{:ts}` | ISO timestamp. |
 | `solves[]` | `{ challengeId, challengeName, challengeCategory, createdAt }[]{:ts}` | Solve history. |
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownUser</response>`.
 
 ### `<route>PUT /api/v2/admin/users/:id</route>`
 
@@ -375,9 +375,9 @@ Mutates team state. Admins cannot mutate users with admin permissions.
 
 **Response**
 
-`<green>200 goodAdminUserUpdate</green>` (no data).
+`<response>200 goodAdminUserUpdate</response>` (no data).
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`, `<red>403 badUserPrivileged</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownUser</response>`, `<response>403 badUserPrivileged</response>`.
 
 ### `<route>DELETE /api/v2/admin/users/:id</route>`
 
@@ -399,9 +399,9 @@ Deletes a team. Cannot delete users with admin permissions.
 
 **Response**
 
-`<green>200 goodAdminUserDelete</green>` (no data).
+`<response>200 goodAdminUserDelete</response>` (no data).
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`, `<red>403 badUserPrivileged</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownUser</response>`, `<response>403 badUserPrivileged</response>`.
 
 ### `<route>POST /api/v2/admin/users/:id/token</route>`
 
@@ -423,9 +423,9 @@ Generates a fresh long-lived team token. Useful for recovering teams that have l
 
 **Response**
 
-`<green>200 goodCreateUserToken</green>`: `{ token: string }`.
+`<response>200 goodCreateUserToken</response>`: `{ token: string }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownUser</red>`, `<red>403 badUserPrivileged</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownUser</response>`, `<response>403 badUserPrivileged</response>`.
 
 ## Pending verification routes
 
@@ -445,9 +445,9 @@ Lists outstanding pending verifications.
 
 **Response**
 
-`<green>200 goodAdminUserVerifications</green>`: `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
+`<response>200 goodAdminUserVerifications</response>`: `{ verifications: PendingUserVerification[] }`. Each row contains `id`, `name`, `email`, `division`, `createdAt`, and `expiresAt`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>POST /api/v2/admin/user-verifications/:id/complete</route>`
 
@@ -469,9 +469,9 @@ Manually completes a pending verification, creating the team without requiring t
 
 **Response**
 
-`<green>200 goodAdminUserVerificationComplete</green>`: `{ userId: string }`.
+`<response>200 goodAdminUserVerificationComplete</response>`: `{ userId: string }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownVerification</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownVerification</response>`.
 
 ### `<route>POST /api/v2/admin/user-verifications/:id/resend</route>`
 
@@ -493,9 +493,9 @@ Resends the verification email for an outstanding row.
 
 **Response**
 
-`<green>200 goodAdminUserVerificationResend</green>`: `{ id: string }`.
+`<response>200 goodAdminUserVerificationResend</response>`: `{ id: string }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badUnknownVerification</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badUnknownVerification</response>`.
 
 ## Submission audit routes
 
@@ -526,9 +526,9 @@ Lists submission audit rows.
 
 **Response**
 
-`<green>200 goodAdminSubmissions</green>`: `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
+`<response>200 goodAdminSubmissions</response>`: `{ total: number, submissions: AdminSubmission[] }`. Each row includes submission ID, kind, challenge metadata, user metadata, IP address, result, provider-specific details, optional `relatedId`, and `createdAt`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>POST /api/v2/admin/submissions</route>`
 
@@ -578,7 +578,7 @@ Identical to `<route>GET /api/v2/admin/submissions</route>`.
 
 Same shape as `<route>GET /api/v2/admin/submissions</route>`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ## Settings routes
 
@@ -598,9 +598,9 @@ Returns the current overrides and defaults side-by-side.
 
 **Response**
 
-`<green>200 goodAdminSettings</green>`: `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
+`<response>200 goodAdminSettings</response>`: `{ overrides: AdminSettings, defaults: AdminSettings }`. `overrides` are runtime values from the database; `defaults` come from config files and environment variables.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ### `<route>PUT /api/v2/admin/settings</route>`
 
@@ -645,9 +645,9 @@ Updates runtime overrides. Updating `startTime` or `endTime` forces a leaderboar
 
 **Response**
 
-`<green>200 goodAdminSettingsUpdate</green>`: same shape as the `<route>GET</route>` response (returns the updated overrides and defaults).
+`<response>200 goodAdminSettingsUpdate</response>`: same shape as the `<route>GET</route>` response (returns the updated overrides and defaults).
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ## Schema routes
 
@@ -665,9 +665,9 @@ Returns the active instancer provider's JSON schema. Used by the challenge edito
 
 **Response**
 
-`<green>200 goodInstancerSchema</green>`: `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
+`<response>200 goodInstancerSchema</response>`: `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badEndpoint</red>` (no instancer provider configured).
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badEndpoint</response>` (no instancer provider configured).
 
 ### `<route>GET /api/v2/admin/admin-bot/status</route>`
 
@@ -683,9 +683,9 @@ Returns admin bot enablement and source language.
 
 **Response**
 
-`<green>200 goodAdminBotStatus</green>`: `{ enabled: boolean, configLanguage: string }`.
+`<response>200 goodAdminBotStatus</response>`: `{ enabled: boolean, configLanguage: string }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`.
 
 ## Admin bot service routes
 
@@ -705,11 +705,11 @@ Claims the oldest queued job for processing.
 
 **Response**
 
-`<green>200 goodAdminBotJobPull</green>`: `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
+`<response>200 goodAdminBotJobPull</response>`: `{ job: PulledAdminBotJob \| null }`. When no job is queued, returns `{ job: null }`.
 
 A pulled job contains `id`, `challengeId`, `configRevision`, `userId`, `submittedAt`, `flag`, submitted `inputs`, and `instancerInstances`.
 
-**Errors**: `<red>401 badToken</red>`.
+**Errors**: `<response>401 badToken</response>`.
 
 ### `<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>`
 
@@ -731,9 +731,9 @@ Fetches the challenge source code for a specific config revision.
 
 **Response**
 
-`<green>200 goodAdminBotChallengeSource</green>`: `{ sourceCode: string, configRevision: string }`.
+`<response>200 goodAdminBotChallengeSource</response>`: `{ sourceCode: string, configRevision: string }`.
 
-**Errors**: `<red>401 badToken</red>`, `<red>404 badChallenge</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>404 badChallenge</response>`.
 
 ### `<route>POST /api/v2/admin/admin-bot/jobs/:id/complete</route>`
 
@@ -767,9 +767,9 @@ Marks a running job as completed and stores logs.
 
 **Response**
 
-`<green>200 goodAdminBotJobUpdate</green>`: `{ ok: boolean }`.
+`<response>200 goodAdminBotJobUpdate</response>`: `{ ok: boolean }`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`.
 
 ### `<route>POST /api/v2/admin/admin-bot/jobs/:id/fail</route>`
 
@@ -795,9 +795,9 @@ Same shape as `complete`.
 
 **Response**
 
-`<green>200 goodAdminBotJobUpdate</green>`: `{ ok: boolean }`.
+`<response>200 goodAdminBotJobUpdate</response>`: `{ ok: boolean }`.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`.
 
 ### `<route>GET /api/v2/admin/admin-bot/queue-depth</route>`
 
@@ -813,9 +813,9 @@ Returns the number of queued jobs.
 
 **Response**
 
-`<green>200 goodAdminBotQueueDepth</green>`: `{ depth: number }`.
+`<response>200 goodAdminBotQueueDepth</response>`: `{ depth: number }`.
 
-**Errors**: `<red>401 badToken</red>`.
+**Errors**: `<response>401 badToken</response>`.
 
 ## V1 compatibility
 
@@ -849,9 +849,9 @@ V1-only. Deletes a challenge and all its solves. Triggers a leaderboard recalcul
 
 **Response**
 
-`<green>200 goodChallengeDelete</green>` (no data).
+`<response>200 goodChallengeDelete</response>` (no data).
 
-**Errors**: `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>404 badChallenge</red>`.
+**Errors**: `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>404 badChallenge</response>`.
 
 ### Uploads
 
@@ -869,7 +869,7 @@ Differs from V2: accepts JSON with base64-encoded data URIs instead of `multipar
 
 V1 upload responses omit the `size` field.
 
-**Errors**: `<red>400 badBody</red>`, `<red>401 badToken</red>`, `<red>403 badPerms</red>`, `<red>400 badDataUri</red>`, `<red>500 badFilesUpload</red>`.
+**Errors**: `<response>400 badBody</response>`, `<response>401 badToken</response>`, `<response>403 badPerms</response>`, `<response>400 badDataUri</response>`, `<response>500 badFilesUpload</response>`.
 
 #### `<route>POST /api/v1/admin/upload/query</route>`
 

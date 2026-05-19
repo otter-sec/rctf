@@ -1,0 +1,437 @@
+---
+title: '<route>POST</route> Register a team'
+description: '<route>POST /api/[v2,v1]/auth/register</route>'
+---
+
+<Aside>
+<Tabs items={['V2', 'V1']}>
+  <Tab>
+
+```json frame="terminal"
+$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-new-dev.es3n1n.io/api/v2/auth/register"</white> \
+  <dim>--json</dim> '{
+    "name": "otter-sec",
+    "email": "team@example.com",
+    "captchaCode": "<dim><captcha-code></dim>"
+  }'
+```
+
+<Tabs
+  items={[
+    '<response>200 goodVerifySent</response>',
+    '<response>200 goodRegisterV2</response>',
+    '<response>400 badJson</response>',
+    '<response>400 badBody</response>',
+    '<response>400 badEmail</response>',
+    '<response>400 badName</response>',
+    '<response>400 badRegistrationsDisabled</response>',
+    '<response>401 badCtftimeToken</response>',
+    '<response>403 badCompetitionNotAllowed</response>',
+    '<response>403 badCaptcha</response>',
+    '<response>404 badEndpoint</response>',
+    '<response>409 badKnownEmail</response>',
+    '<response>409 badKnownName</response>',
+    '<response>409 badKnownCtftimeId</response>',
+  ]}
+>
+  <Tab>
+
+```json
+{
+  "kind": "goodVerifySent",
+  "message": "The account verification email was sent."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "goodRegisterV2",
+  "message": "The user was created.",
+  "data": {
+    "authToken": "<dim><auth-token></dim>",
+    "teamToken": "<dim><team-token></dim>"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badJson",
+  "message": "The request JSON body is malformed."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badBody",
+  "message": "The request body does not meet requirements.",
+  "data": {
+    "reason": "body:name: Invalid input"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badEmail",
+  "message": "The email address is malformed."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badName",
+  "message": "The name should only use english letters, numbers, and symbols."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badRegistrationsDisabled",
+  "message": "The registrations are disabled."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badCtftimeToken",
+  "message": "The CTFtime token provided is invalid."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badCompetitionNotAllowed",
+  "message": "You are not allowed to join this CTF."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badCaptcha",
+  "message": "The captcha verification failed."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badEndpoint",
+  "message": "The request endpoint could not be found."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownEmail",
+  "message": "An account with this email already exists."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownName",
+  "message": "An account with this name already exists."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownCtftimeId",
+  "message": "An account with this CTFtime ID already exists."
+}
+```
+
+  </Tab>
+</Tabs>
+
+  </Tab>
+
+  <Tab>
+
+```json frame="terminal"
+$ <red>curl</red> <dim>-sS</dim> <white>"https://rctf-dev.es3n1n.io/api/v1/auth/register"</white> \
+  <dim>--json</dim> '{
+    "name": "otter-sec",
+    "email": "team@example.com",
+    "recaptchaCode": "<dim><captcha-code></dim>"
+  }'
+```
+
+<Tabs
+  items={[
+    '<response>200 goodVerifySent</response>',
+    '<response>200 goodRegister</response>',
+    '<response>400 badJson</response>',
+    '<response>400 badBody</response>',
+    '<response>400 badEmail</response>',
+    '<response>400 badName</response>',
+    '<response>400 badRegistrationsDisabled</response>',
+    '<response>401 badCtftimeToken</response>',
+    '<response>401 badRecaptchaCode</response>',
+    '<response>403 badCompetitionNotAllowed</response>',
+    '<response>404 badEndpoint</response>',
+    '<response>409 badKnownEmail</response>',
+    '<response>409 badKnownName</response>',
+    '<response>409 badKnownCtftimeId</response>',
+  ]}
+>
+  <Tab>
+
+```json
+{
+  "kind": "goodVerifySent",
+  "message": "The account verification email was sent."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "goodRegister",
+  "message": "The user was created.",
+  "data": {
+    "authToken": "<dim><auth-token></dim>"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badJson",
+  "message": "The request JSON body is malformed."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badBody",
+  "message": "The request body does not meet requirements.",
+  "data": {
+    "reason": "body:name: Invalid input"
+  }
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badEmail",
+  "message": "The email address is malformed."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badName",
+  "message": "The name should only use english letters, numbers, and symbols."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badRegistrationsDisabled",
+  "message": "The registrations are disabled."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badCtftimeToken",
+  "message": "The CTFtime token provided is invalid."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badRecaptchaCode",
+  "message": "The recaptcha code is invalid."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badCompetitionNotAllowed",
+  "message": "You are not allowed to join this CTF."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badEndpoint",
+  "message": "The request endpoint could not be found."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownEmail",
+  "message": "An account with this email already exists."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownName",
+  "message": "An account with this name already exists."
+}
+```
+
+  </Tab>
+
+  <Tab>
+
+```json
+{
+  "kind": "badKnownCtftimeId",
+  "message": "An account with this CTFtime ID already exists."
+}
+```
+
+  </Tab>
+</Tabs>
+
+  </Tab>
+</Tabs>
+</Aside>
+
+Creates a team account. Most deployments ask the team to prove ownership of an email address before the account becomes usable, so a successful request often sends a verification email instead of returning tokens immediately.
+
+Use the V2 route for new clients. The V1 route is still supported for clients that already use the original contract.
+
+<RouteMeta auth="Public" gate="None" captcha="`register{:ts}` (when configured)" />
+
+<Tabs items={['V2', 'V1']}>
+  <Tab>
+
+`<route>POST /api/v2/auth/register</route>` uses `captchaCode` for captcha-protected registration. If the team can be created immediately, the response includes both an auth token for user routes and a team token for recovery or team-scoped auth flows.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string{:ts}` | Yes | 2-64 printable ASCII characters. |
+| `email` | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
+| `ctftimeToken` | `string{:ts}` | Conditional | Required when `email` is omitted. Only usable when CTFtime auth is configured. |
+| `captchaCode` | `string{:ts}` | No | Checked only when captcha protects `register{:ts}`. |
+
+If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
+
+If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegisterV2</response>` with both tokens.
+
+  </Tab>
+
+  <Tab>
+
+`<route>POST /api/v1/auth/register</route>` uses `recaptchaCode` for captcha-protected registration. If the team can be created immediately, the response includes an auth token.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `name` | `string{:ts}` | Yes | 2-64 printable ASCII characters. |
+| `email` | `string{:ts}` | Conditional | Required when `ctftimeToken` is omitted. |
+| `ctftimeToken` | `string{:ts}` | Conditional | Required when `email` is omitted. Only usable when CTFtime auth is configured. |
+| `recaptchaCode` | `string{:ts}` | No | Checked only when captcha protects `register{:ts}`. |
+
+If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
+
+If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegister</response>` with an `authToken`.
+
+  </Tab>
+</Tabs>
+
+Email registrations are checked against division ACLs before the verification email is sent. The server chooses the default allowed division for the email address, so the client does not send a division in this request. CTFtime registrations do not go through email ACLs.
