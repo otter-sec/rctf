@@ -464,11 +464,11 @@ Helper for producing an attachment archive from a folder or file. Useful when yo
 $ <red>kona</red> compress ./challenge/dist <dim>--format</dim> zip <dim>--output</dim> handout.zip
 ```
 
-| Flag                | Behavior                                                                |
-| ------------------- | ----------------------------------------------------------------------- |
-| `path` (positional) | Source file or directory.                                               |
-| `<dim>-f</dim>`, `<dim>--format</dim>`    | `<green>tar_gz</green>` (default) or `<green>zip</green>`.              |
-| `<dim>-o</dim>`, `<dim>--output</dim>`    | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
+| Flag | Behavior |
+| --- | --- |
+| `path` (positional) | Source file or directory. |
+| `<dim>-f</dim>`, `<dim>--format</dim>` | `<green>tar_gz</green>` (default) or `<green>zip</green>`. |
+| `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
 
 Both formats are **deterministic**: file mtimes are zeroed (fixed to `1980-01-01` for zip, `0` for tar.gz), uid/gid become `0`, uname/gname become `<green>kona</green>`, permissions are normalized to `0777`, the gzip header drops its own filename and mtime, and entries are sorted by archive path. Compressing the same set of files always produces a byte-identical archive (and therefore an identical hash), so attachment dedup and CI cache hits stay stable across machines, runs, and users. The same normalization is applied to attachments Konata builds internally during `sync`.
 
