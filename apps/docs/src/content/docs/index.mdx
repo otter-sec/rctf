@@ -2,33 +2,38 @@
 title: rCTF
 description: An open-source CTF platform with indestructible performance and a modern user experience.
 tableOfContents: false
+pageHeader: false
 autoCards: false
 ---
 
 import { Image } from 'astro:assets'
-import banner from '../../assets/banner.svg'
+import bannerLight from '../../assets/banner-light.svg'
+import bannerDark from '../../assets/banner-dark.svg'
 
-<Image src={banner} alt="rCTF banner" />
+<div class="not-prose">
+  <Image src={bannerLight} alt="rCTF banner" class="block w-full dark:hidden" />
+  <Image src={bannerDark} alt="rCTF banner" class="hidden w-full dark:block" />
+</div>
 
 rCTF is an open-source capture-the-flag platform, serving thousands of teams with indestructible performance and a modern user experience. It is developed and maintained by the [OtterSec](https://osec.io) team.
 
 <CardGrid>
   <Card title="Installation" icon="download" href="/installation/">
-    Get rCTF running in minutes with Docker or set it up from source for full control.
+    Spin up a Docker stack in a few minutes, or step through a manual VPS install.
   </Card>
   <Card title="Configuration" icon="list" href="/configuration/">
-    Full reference for every config option (database, scoring, auth, and more).
+    Every option in your config files and env vars, plus what each one actually does.
   </Card>
   <Card title="Providers" icon="puzzle" href="/providers/">
-    Plug in email, uploads, captcha, scoring algorithms, and challenge instancers.
+    Configure captcha, emails, uploads, scoring, moderation, and analytics.
   </Card>
   <Card title="Administration" icon="shield-exclamation" href="/admin/">
-    Manage challenges, teams, and submissions from the admin panel.
+    Run the event from the web. Add challenges, manage users, edit settings.
   </Card>
   <Card title="API reference" icon="code" href="/api/">
-    REST API documentation for integrating with rCTF programmatically.
+    Typed JSON routes for auth, challenges, teams, leaderboard, and admin actions.
   </Card>
   <Card title="Theming" icon="bulb" href="/theming/colors/">
-    Customize the look and feel with rCTF's layered color system.
+    OKLCH color tokens with semantic naming, plus dark mode out of the box.
   </Card>
 </CardGrid>
