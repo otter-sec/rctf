@@ -400,3 +400,15 @@ export async function getPrevNext(
 ): Promise<{ prev: FlatDoc | null; next: FlatDoc | null }> {
   return getPrevNextFromContext(await loadSidebarContext(), currentHref)
 }
+
+export function getScrollGroupPrevNextFromContext(
+  context: SidebarContext,
+  group: ScrollableDocGroup
+): { prev: FlatDoc | null; next: FlatDoc | null } {
+  if (group.pages.length === 0) return { prev: null, next: null }
+  const firstHref = group.pages[0].href
+  const lastHref = group.pages[group.pages.length - 1].href
+  const { prev } = getPrevNextFromContext(context, firstHref)
+  const { next } = getPrevNextFromContext(context, lastHref)
+  return { prev, next }
+}

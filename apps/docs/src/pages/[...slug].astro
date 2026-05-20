@@ -19,6 +19,7 @@ import {
   getIndexChildrenFromContext,
   getPrevNextFromContext,
   getScrollableGroupFromContext,
+  getScrollGroupPrevNextFromContext,
   getSidebarTreeFromContext,
   loadSidebarContext,
 } from '@/lib/sidebar'
@@ -109,15 +110,18 @@ const headings: MarkdownHeading[] = scrollGroup
   : currentPage.headings
 
 const sidebar = getSidebarTreeFromContext(sidebarContext, href)
-const prevNext = getPrevNextFromContext(sidebarContext, href)
+const prevNext = scrollGroup
+  ? getScrollGroupPrevNextFromContext(sidebarContext, scrollGroup)
+  : getPrevNextFromContext(sidebarContext, href)
 const indexChildren =
   !scrollGroup && isIndex && doc.data.autoCards !== false
     ? getIndexChildrenFromContext(sidebarContext, href)
     : []
 
+const navDoc = scrollGroup?.pages[0].doc ?? doc
 let { prev, next } = prevNext
-if (doc.data.prev === false) prev = null
-if (doc.data.next === false) next = null
+if (navDoc.data.prev === false) prev = null
+if (navDoc.data.next === false) next = null
 const editUrl = getEditUrl(doc)
 
 const lastUpdated = scrollGroup

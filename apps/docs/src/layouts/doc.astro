@@ -51,7 +51,7 @@ const {
   scrollGroup = null,
 } = Astro.props
 
-const hasArticleNavigation = Boolean(prev || next) && !scrollGroup
+const hasArticleNavigation = Boolean(prev || next)
 const currentYear = new Date().getFullYear()
 const pageTitle = scrollGroup?.label ?? doc.data.title
 const pageDescription = scrollGroup?.description ?? doc.data.description
