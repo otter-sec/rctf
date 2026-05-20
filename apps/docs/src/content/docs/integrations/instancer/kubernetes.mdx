@@ -255,7 +255,7 @@ Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every res
 | Setting | Why it matters |
 | --- | --- |
 | `<red>resources.limits.cpu</red>` / `<red>resources.limits.memory</red>` | Without limits a pod can use whatever the node has free. Set them per-container. |
-| `<red>resources.limits.ephemeral-storage</red>` | A participant `dd`-ing `/tmp` fills the node's overlayfs and takes down every other pod sharing it. Pick a value (`128Mi` is reasonable for most challenges). |
+| `<red>resources.limits.ephemeral-storage</red>` | A participant `dd`-ing `/tmp/` fills the node's overlayfs and takes down every other pod sharing it. Pick a value (`128Mi` is reasonable for most challenges). |
 | `<red>securityContext.readOnlyRootFilesystem: true</red>` | Pairs with the ephemeral-storage limit. If the challenge needs to write somewhere, mount a sized `<red>emptyDir</red>` with `<red>sizeLimit</red>`. |
 | `<red>securityContext.allowPrivilegeEscalation: false</red>` and dropped `<red>capabilities</red>` | Defaults are unsafe. Drop `ALL` and only add what the challenge actually needs. |
 | `<red>automountServiceAccountToken: false</red>` on the pod | Otherwise the default service-account token gets mounted into the container. |

@@ -27,7 +27,7 @@ Google has created [kCTF](https://google.github.io/kctf/introduction.html) for t
 - **[pwn.red/jail](https://github.com/redpwn/jail)** is the modern drop-in - a small base image that forks the challenge per connection inside an nsjail with read-only rootfs, no network, dropped caps, and CPU/memory/time limits. Add two lines to a Dockerfile (`FROM pwn.red/jail`) and you get isolation per session for free. Recommended default for pwn / RCE-style shared remotes.
 - **[nsjail](https://github.com/google/nsjail)** is the lower-level building block both kCTF and pwn.red/jail wrap. kCTF runs every challenge inside an nsjail by default; if you're not on kCTF and not using pwn.red/jail, configure nsjail yourself.
 
-Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp`, or just kill the process for everyone else.
+Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp/`, or just kill the process for everyone else.
 
 </Callout>
 

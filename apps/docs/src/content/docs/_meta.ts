@@ -9,7 +9,7 @@ export default {
     admin: { label: 'Administration', order: 5 },
     api: { label: 'API reference', order: 6 },
     theming: { label: 'Theming and styling', order: 7, badge: 'new' },
-    meta: { label: 'Meta', order: 8 },
-    archiving: { label: 'Archiving', order: 9, badge: 'new' },
+    archiving: { label: 'Archiving', order: 8, badge: 'new' },
+    meta: { label: 'Meta', order: 9 },
   },
 } satisfies MetaFile
