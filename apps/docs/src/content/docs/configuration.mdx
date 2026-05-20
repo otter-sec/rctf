@@ -5,11 +5,11 @@ description: Complete reference for all rCTF configuration options including fil
 
 import Callout from '@/components/callout.astro'
 
-rCTF is configured through YAML or JSON files in a `rctf.d/` directory and optional environment variable overrides.
+rCTF is configured through YAML or JSON files in a `rctf.d/{:dir}` directory and optional environment variable overrides.
 
 ## Configuration loading
 
-Configuration is loaded from a directory named `rctf.d/`. The loader searches upward from the `packages/config/` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
+Configuration is loaded from a directory named `rctf.d/{:dir}`. The loader searches upward from the `packages/config/{:dir}` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
 
 All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order. This allows you to split configuration across multiple files for organization:
 
@@ -99,7 +99,7 @@ Boolean environment variables accept `<green>true</green>`, `<green>yes</green>`
 </Callout>
 ## Configuration reference
 
-Below is the complete reference of all configuration options available in `rctf.d/` files.
+Below is the complete reference of all configuration options available in `rctf.d/{:dir}` files.
 
 ### Core settings
 

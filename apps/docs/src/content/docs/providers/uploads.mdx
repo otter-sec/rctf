@@ -49,7 +49,7 @@ uploadProvider:
 
 | Option                       | Default         | Description                |
 | ---------------------------- | --------------- | -------------------------- |
-| `<red>uploadDirectory</red>` | `{cwd}/uploads` | Directory for file storage |
+| `<red>uploadDirectory</red>` | `{cwd}/uploads/{:dir}` | Directory for file storage |
 
 Files are served via the API server at `/uploads/*`. Path traversal protection is built in.
 
@@ -115,7 +115,7 @@ Files are stored with public visibility. The bucket must be configured to allow 
 
 ## Terraform templates
 
-The repo ships Terraform modules under `deploy/terraform/storage/` that provision an S3 or GCS bucket with the right CORS rules, an IAM user/service account, and a policy scoped to exactly the actions rCTF needs. Each module writes the generated credentials to a local file so you can paste them straight into your `rctf.d/` config.
+The repo ships Terraform modules under `deploy/terraform/storage/{:dir}` that provision an S3 or GCS bucket with the right CORS rules, an IAM user/service account, and a policy scoped to exactly the actions rCTF needs. Each module writes the generated credentials to a local file so you can paste them straight into your `rctf.d/{:dir}` config.
 
 <Tabs items={['AWS S3', 'GCS']}>
 <Tab>
@@ -128,7 +128,7 @@ $ terraform apply -var="region=eu-west-3" -var="bucket_name=my-ctf-uploads"
 
 Outputs are written next to the module:
 
-- `aws-rctf-access-key.json` - `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user
+- `aws-rctf-access-key.json{:file}` - `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user
 - `rctf_iam_user_arn`, `bucket` - Terraform outputs printed to stdout
 
 Drop the credentials into your config:
@@ -156,10 +156,10 @@ $ terraform apply -var="project_id=my-gcp-project" -var="region=europe-west1" -v
 
 Outputs are written next to the module:
 
-- `gcs-sa-key.json` - service-account key for the dedicated `rctf-bucket` service account
+- `gcs-sa-key.json{:file}` - service-account key for the dedicated `rctf-bucket` service account
 - `rctf_sa_email`, `bucket` - Terraform outputs printed to stdout
 
-Drop the credentials into your config (paste the contents of `gcs-sa-key.json` under `<red>credentials</red>`):
+Drop the credentials into your config (paste the contents of `gcs-sa-key.json{:file}` under `<red>credentials</red>`):
 
 ```yaml title="rctf.d/03-uploads.yaml"
 uploadProvider:

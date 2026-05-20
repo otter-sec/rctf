@@ -27,7 +27,7 @@ Google has created [kCTF](https://google.github.io/kctf/introduction.html) for t
 - **[pwn.red/jail](https://github.com/redpwn/jail)** is the modern drop-in - a small base image that forks the challenge per connection inside an nsjail with read-only rootfs, no network, dropped caps, and CPU/memory/time limits. Add two lines to a Dockerfile (`FROM pwn.red/jail`) and you get isolation per session for free. Recommended default for pwn / RCE-style shared remotes.
 - **[nsjail](https://github.com/google/nsjail)** is the lower-level building block both kCTF and pwn.red/jail wrap. kCTF runs every challenge inside an nsjail by default; if you're not on kCTF and not using pwn.red/jail, configure nsjail yourself.
 
-Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp/`, or just kill the process for everyone else.
+Use one of these everywhere it's possible. A shared remote without per-connection isolation lets the first solver replace the binary, drop a backdoor in `/tmp/{:dir}`, or just kill the process for everyone else.
 
 </Callout>
 
@@ -89,13 +89,13 @@ rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript h
 Updating a challenge is where most operational pain comes from. Touching the source code without updating the published attachment leaves teams solving against stale handouts; rebuilding the Docker image but forgetting to roll the running deployment leaves the flag pointing at the old binary; tweaking `<red>instancerConfig</red>` in the admin UI without bumping the image causes new instances to come up with mismatched assets. Each of these is easy to miss in the moment and hard to debug after the fact.
 
 <Callout variant="tip" title="Use Konata + CI as the single source of truth">
-  Commit every challenge's `kona.yml` alongside the source, and let [Konata](/integrations/konata/)
+  Commit every challenge's `kona.yml{:file}` alongside the source, and let [Konata](/integrations/konata/)
   drive deployment from CI on every push to `main`. With the [Konata GitHub
   Action](/integrations/konata/#ci-integration), one commit can rebuild and push the Docker image,
   re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the
   running deployment - all from the same source tree, in the right order.
 </Callout>
 
-Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile` export, a `make handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/integrations/konata/#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
+Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile{:file}` export, a `make handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/integrations/konata/#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
 
-The DiceCTF Quals 2026 challenge repository is a working reference for this workflow end-to-end - challenge sources, `kona.yml` files, and a [`deploy.yaml`](https://github.com/dicegang/dicectf-quals-2026-challenges/blob/main/.github/workflows/deploy.yaml) that ships every change through Konata.
+The DiceCTF Quals 2026 challenge repository is a working reference for this workflow end-to-end - challenge sources, `kona.yml{:file}` files, and a [`deploy.yaml{:file}`](https://github.com/dicegang/dicectf-quals-2026-challenges/blob/main/.github/workflows/deploy.yaml) that ships every change through Konata.

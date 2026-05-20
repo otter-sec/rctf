@@ -49,12 +49,12 @@ We provide a simple installation script that sets up rCTF automatically:
 $ curl -L https://get.rctf.osec.io | sh
 ```
 
-When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
+When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf/{:dir}` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
 
 </Step>
 <Step title="Configure your instance">
 
-The `/opt/rctf/rctf.d` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration/). Consider configuring at least the following:
+The `/opt/rctf/rctf.d/{:dir}` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration/). Consider configuring at least the following:
 
 - CTF name, description, image, origin, home content, start and end time
 - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
@@ -88,7 +88,7 @@ In Cloudflare, navigate to your domain > DNS > Records and create an `A` record 
 </Step>
 <Step title="Create origin certificate">
 
-In SSL/TLS > Origin Server tab, create a new certificate where all the settings are default except the hostname is set to the domain name where you'll run the CTF platform, e.g. `ctf.example.com`. Copy the origin certificate into the `/etc/ssl/cf_fullchain.pem` file, and the private key into the `/etc/ssl/cf_privkey.pem` file.
+In SSL/TLS > Origin Server tab, create a new certificate where all the settings are default except the hostname is set to the domain name where you'll run the CTF platform, e.g. `ctf.example.com`. Copy the origin certificate into the `/etc/ssl/cf_fullchain.pem{:file}` file, and the private key into the `/etc/ssl/cf_privkey.pem{:file}` file.
 
 </Step>
 <Step title="Configure UFW firewall">
@@ -105,7 +105,7 @@ $ ufw enable   # answer `y` when prompted regarding enabling firewall
 </Step>
 <Step title="Install and configure Nginx">
 
-Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
 
 ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
 # Redirect HTTP -> HTTPS
@@ -175,7 +175,7 @@ In your DNS registrar, configure a new `A` DNS record pointing to `123.123.123.1
 </Step>
 <Step title="Install and configure Nginx">
 
-Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf` with the following contents (note the comments on stuff you need to update):
+Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
 
 ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
 # Redirect HTTP -> HTTPS

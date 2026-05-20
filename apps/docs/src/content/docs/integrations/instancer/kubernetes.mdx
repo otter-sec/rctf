@@ -16,9 +16,9 @@ A working deployment has three cooperating components:
 
 | Component | Source | Responsibility |
 | --- | --- | --- |
-| `<green>K8sInstancerProvider</green>` | `apps/api/src/providers/instancer/k8s-instancer.ts` | Translates rCTF lifecycle calls into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
-| `k8s-controller` | `apps/k8s-controller/` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
-| Traefik | `deploy/terraform/instancer/modules/k8s/traefik.tf` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
+| `<green>K8sInstancerProvider</green>` | `apps/api/src/providers/instancer/k8s-instancer.ts{:file}` | Translates rCTF lifecycle calls into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
+| `k8s-controller` | `apps/k8s-controller/{:dir}` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
+| Traefik | `deploy/terraform/instancer/modules/k8s/traefik.tf{:file}` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
 
 A participant request flows through these in order:
 
@@ -64,11 +64,11 @@ The instancer's public hostname is `<red><instancer_subdomain>.<instancer_zone><
 
 ## Controller image
 
-The operator image is published at `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` and the matching `install.yaml` ships in the repo at `apps/k8s-controller/dist/install.yaml`. The Terraform `k8s` module reads that file directly and substitutes the configured hostname into the `<red>INSTANCER_HOST</red>` placeholder - there is nothing to build or push before running `terraform apply`.
+The operator image is published at `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` and the matching `install.yaml{:file}` ships in the repo at `apps/k8s-controller/dist/install.yaml{:file}`. The Terraform `k8s` module reads that file directly and substitutes the configured hostname into the `<red>INSTANCER_HOST</red>` placeholder - there is nothing to build or push before running `terraform apply`.
 
 ## Terraform variables
 
-The example `terraform.tfvars` lives in `deploy/terraform/instancer/example/`:
+The example `terraform.tfvars{:file}` lives in `deploy/terraform/instancer/example/{:dir}`:
 
 <FileTree>
   <Dir name="deploy">
@@ -91,7 +91,7 @@ The example `terraform.tfvars` lives in `deploy/terraform/instancer/example/`:
   </Dir>
 </FileTree>
 
-Copy `terraform.tfvars.example` to `terraform.tfvars` and fill in:
+Copy `terraform.tfvars.example{:file}` to `terraform.tfvars{:file}` and fill in:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
@@ -128,7 +128,7 @@ gcp_instancer_min_node_count = 1
 gcp_instancer_max_node_count = 8
 ```
 
-To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in `dns.tf` and `tls.tf`, uncomment the `google_dns_record_set` and `gcloud` ACME blocks, and set `<red>gcp_dns_managed_zone_name</red>`.
+To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in `dns.tf{:file}` and `tls.tf{:file}`, uncomment the `google_dns_record_set` and `gcloud` ACME blocks, and set `<red>gcp_dns_managed_zone_name</red>`.
 
 ## Deployment
 
@@ -149,7 +149,7 @@ $ terraform init
 $ terraform apply
 ```
 
-Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and applies the bundled `apps/k8s-controller/dist/install.yaml` (pointing at the prebuilt `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` image). The first apply typically takes 10 to 15 minutes; ACME validation alone can add a few minutes if DNS propagation is slow.
+Terraform provisions GKE, the node pool, Artifact Registry, the Cloudflare or Cloud DNS record, the ACME wildcard certificate, Traefik, the error-pages deployment, the `rctf` service account, and applies the bundled `apps/k8s-controller/dist/install.yaml{:file}` (pointing at the prebuilt `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` image). The first apply typically takes 10 to 15 minutes; ACME validation alone can add a few minutes if DNS propagation is slow.
 
 </Step>
 <Step title="Fetch kubectl credentials">
@@ -172,7 +172,7 @@ Three Terraform outputs map directly to provider options:
 | `<red>rctf_instancer_auth_token</red>` | `<red>instancerProvider.options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
 | `<red>rctf_instancer_ca_certificate</red>` | `<red>instancerProvider.options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
 
-Render them into rCTF's `rctf.d/`:
+Render them into rCTF's `rctf.d/{:dir}`:
 
 ```sh
 $ terraform output -raw rctf_instancer_api_url
@@ -204,22 +204,22 @@ Create an instanced challenge that uses the `<green>instancer/k8s-instancer</gre
 
 ## What Terraform provisions
 
-The example layers the GKE module, the k8s module, and the example-level resources in `rctf-instancer.tf`, `dns.tf`, and `tls.tf`:
+The example layers the GKE module, the k8s module, and the example-level resources in `rctf-instancer.tf{:file}`, `dns.tf{:file}`, and `tls.tf{:file}`:
 
 | Resource | Source | Purpose |
 | --- | --- | --- |
-| GKE cluster (`google_container_cluster`) | `modules/gke/gke.tf` | Stable release channel, workload identity, `COS_CONTAINERD` nodes, weekly Wednesday 07:00 to 19:00 UTC maintenance window. |
-| GKE primary node pool | `modules/gke/gke.tf` | Autoscaling between `min_node_count` and `max_node_count`, surge upgrades, optional preemptible nodes, workload metadata concealment. |
-| GCP service account | `modules/gke/gke.tf` | Identity for cluster nodes. Granted `<green>roles/artifactregistry.writer</green>` on the challenge registry. |
-| Artifact Registry repo (`google_artifact_registry_repository`) | `modules/gke/registry.tf` | Docker registry named `challenge-registry`. Keeps the five most recent versions, deletes images older than `<green>30d</green>`. |
-| Traefik (`helm_release.traefik`) | `modules/k8s/traefik.tf` | `LoadBalancer` service with `<green>externalTrafficPolicy: Local</green>` to preserve client IPs, plus the dashboard entrypoint for `kubectl port-forward`. |
-| Nginx error pages | `modules/k8s/traefik.tf` | `kubernetes_deployment_v1.error-pages` plus a `ConfigMap` rendering 404 and 502 templates with `<red>ctf_name</red>`. |
-| Traefik `Middleware` and catch-all `IngressRoute` | `modules/k8s/traefik.tf` | Middleware intercepts 502 errors and serves the Nginx page. The catch-all `<red>HostRegexp(.*)</red>` route returns the 404 page for unmatched hosts. |
-| Controller installer (`kubectl_manifest`) | `modules/k8s/rctf-instancer.tf` | Applies every manifest in `apps/k8s-controller/dist/install.yaml`, replacing `<red>INSTANCER_HOST</red>` with the resolved hostname. |
-| ACME wildcard certificate (`acme_certificate`) | `example/tls.tf` | DNS-01 challenge through Cloudflare or Cloud DNS. The chain and key land in the `instancer-wildcard-tls` `Secret` in the `traefik` namespace. |
-| Traefik `TLSStore` (`kubectl_manifest`) | `example/tls.tf` | Sets `instancer-wildcard-tls` as the default certificate for the cluster. |
-| Wildcard DNS record (`cloudflare_dns_record`) | `example/dns.tf` | `<red>*.<subdomain></red>` `A` record pointing at the Traefik LoadBalancer IP. The GCP variant uses `google_dns_record_set`. |
-| `rctf` service account, `ClusterRole`, `ClusterRoleBinding`, and `Secret` | `example/rctf-instancer.tf` | Service account in `kube-system` with verbs `<green>create</green>`, `<green>get</green>`, `<green>delete</green>`, and `<green>patch</green>` on `challengeinstances.rctf-instancer.osec.io`. A long-lived `kubernetes.io/service-account-token` secret backs the `<red>rctf_instancer_auth_token</red>` output. |
+| GKE cluster (`google_container_cluster`) | `modules/gke/gke.tf{:file}` | Stable release channel, workload identity, `COS_CONTAINERD` nodes, weekly Wednesday 07:00 to 19:00 UTC maintenance window. |
+| GKE primary node pool | `modules/gke/gke.tf{:file}` | Autoscaling between `min_node_count` and `max_node_count`, surge upgrades, optional preemptible nodes, workload metadata concealment. |
+| GCP service account | `modules/gke/gke.tf{:file}` | Identity for cluster nodes. Granted `<green>roles/artifactregistry.writer</green>` on the challenge registry. |
+| Artifact Registry repo (`google_artifact_registry_repository`) | `modules/gke/registry.tf{:file}` | Docker registry named `challenge-registry`. Keeps the five most recent versions, deletes images older than `<green>30d</green>`. |
+| Traefik (`helm_release.traefik`) | `modules/k8s/traefik.tf{:file}` | `LoadBalancer` service with `<green>externalTrafficPolicy: Local</green>` to preserve client IPs, plus the dashboard entrypoint for `kubectl port-forward`. |
+| Nginx error pages | `modules/k8s/traefik.tf{:file}` | `kubernetes_deployment_v1.error-pages` plus a `ConfigMap` rendering 404 and 502 templates with `<red>ctf_name</red>`. |
+| Traefik `Middleware` and catch-all `IngressRoute` | `modules/k8s/traefik.tf{:file}` | Middleware intercepts 502 errors and serves the Nginx page. The catch-all `<red>HostRegexp(.*)</red>` route returns the 404 page for unmatched hosts. |
+| Controller installer (`kubectl_manifest`) | `modules/k8s/rctf-instancer.tf{:file}` | Applies every manifest in `apps/k8s-controller/dist/install.yaml{:file}`, replacing `<red>INSTANCER_HOST</red>` with the resolved hostname. |
+| ACME wildcard certificate (`acme_certificate`) | `example/tls.tf{:file}` | DNS-01 challenge through Cloudflare or Cloud DNS. The chain and key land in the `instancer-wildcard-tls` `Secret` in the `traefik` namespace. |
+| Traefik `TLSStore` (`kubectl_manifest`) | `example/tls.tf{:file}` | Sets `instancer-wildcard-tls` as the default certificate for the cluster. |
+| Wildcard DNS record (`cloudflare_dns_record`) | `example/dns.tf{:file}` | `<red>*.<subdomain></red>` `A` record pointing at the Traefik LoadBalancer IP. The GCP variant uses `google_dns_record_set`. |
+| `rctf` service account, `ClusterRole`, `ClusterRoleBinding`, and `Secret` | `example/rctf-instancer.tf{:file}` | Service account in `kube-system` with verbs `<green>create</green>`, `<green>get</green>`, `<green>delete</green>`, and `<green>patch</green>` on `challengeinstances.rctf-instancer.osec.io`. A long-lived `kubernetes.io/service-account-token` secret backs the `<red>rctf_instancer_auth_token</red>` output. |
 
 Traefik is configured with three ports:
 
@@ -255,7 +255,7 @@ Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every res
 | Setting | Why it matters |
 | --- | --- |
 | `<red>resources.limits.cpu</red>` / `<red>resources.limits.memory</red>` | Without limits a pod can use whatever the node has free. Set them per-container. |
-| `<red>resources.limits.ephemeral-storage</red>` | A participant `dd`-ing `/tmp/` fills the node's overlayfs and takes down every other pod sharing it. Pick a value (`128Mi` is reasonable for most challenges). |
+| `<red>resources.limits.ephemeral-storage</red>` | A participant `dd`-ing `/tmp/{:dir}` fills the node's overlayfs and takes down every other pod sharing it. Pick a value (`128Mi` is reasonable for most challenges). |
 | `<red>securityContext.readOnlyRootFilesystem: true</red>` | Pairs with the ephemeral-storage limit. If the challenge needs to write somewhere, mount a sized `<red>emptyDir</red>` with `<red>sizeLimit</red>`. |
 | `<red>securityContext.allowPrivilegeEscalation: false</red>` and dropped `<red>capabilities</red>` | Defaults are unsafe. Drop `ALL` and only add what the challenge actually needs. |
 | `<red>automountServiceAccountToken: false</red>` on the pod | Otherwise the default service-account token gets mounted into the container. |
@@ -263,7 +263,7 @@ Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every res
 | `<red>volumes[].emptyDir.sizeLimit</red>` | Any `<red>emptyDir</red>` mount needs a size cap or the same disk-fill issue applies. |
 
 <Callout variant="warning" title="File descriptor / nofile limits">
-Kubernetes' PodSpec has no first-class `<red>ulimits</red>` field. The CRI passes container ulimits through containerd's `<red>default_ulimits</red>`, which on GKE COS_CONTAINERD nodes is not exposed via the kubelet config - changing it requires a custom node startup script or DaemonSet that rewrites `/etc/containerd/config.toml`.
+Kubernetes' PodSpec has no first-class `<red>ulimits</red>` field. The CRI passes container ulimits through containerd's `<red>default_ulimits</red>`, which on GKE COS_CONTAINERD nodes is not exposed via the kubelet config - changing it requires a custom node startup script or DaemonSet that rewrites `/etc/containerd/config.toml{:file}`.
 
 If your challenge is sensitive to FD exhaustion, the practical workaround is to set the limit in the entrypoint:
 
@@ -290,7 +290,7 @@ rule:
 
 The rCTF API never reads or writes any other resource type. The `kubernetes_secret_v1.rctf_token` resource issues a `kubernetes.io/service-account-token` so the token does not rotate; the value is surfaced through the `<red>rctf_instancer_auth_token</red>` Terraform output.
 
-The controller itself runs with its own RBAC from `apps/k8s-controller/config/`. It needs broad permissions on namespaces, deployments, services, network policies, and Traefik `IngressRoute`, `IngressRouteTCP`, and `Middleware` resources so it can reconcile per-instance objects. The CRD lives in `apps/k8s-controller/config/crd/bases/` and is generated by `$ make manifests`.
+The controller itself runs with its own RBAC from `apps/k8s-controller/config/{:dir}`. It needs broad permissions on namespaces, deployments, services, network policies, and Traefik `IngressRoute`, `IngressRouteTCP`, and `Middleware` resources so it can reconcile per-instance objects. The CRD lives in `apps/k8s-controller/config/crd/bases/{:dir}` and is generated by `$ make manifests`.
 
 ## Example challenge config (Konata)
 
@@ -378,7 +378,7 @@ For the rest of the Konata schema see [Konata](/integrations/konata/).
 
 ## Local development with Kind
 
-For controller iteration, the README in `apps/k8s-controller/` uses Kind. Routing inside the cluster requires `cloud-provider-kind` so that `LoadBalancer` services receive an external IP.
+For controller iteration, the README in `apps/k8s-controller/{:dir}` uses Kind. Routing inside the cluster requires `cloud-provider-kind` so that `LoadBalancer` services receive an external IP.
 
 <Steps>
 <Step title="Install Kind and the cloud provider shim">
@@ -397,7 +397,7 @@ $ cd apps/k8s-controller
 $ kind create cluster --name rctf --config kind-config.yaml
 ```
 
-The bundled `kind-config.yaml` provisions one control plane and one worker node.
+The bundled `kind-config.yaml{:file}` provisions one control plane and one worker node.
 
 </Step>
 <Step title="Run cloud-provider-kind">
@@ -411,7 +411,7 @@ $ cloud-provider-kind
 </Step>
 <Step title="Apply the surrounding stack">
 
-Point the Terraform example at the local Kind context. In `deploy/terraform/instancer/example/main.tf` switch from the GCP-backed `kubernetes`, `helm`, and `kubectl` providers to the commented-out `kind-rctf` blocks, then apply:
+Point the Terraform example at the local Kind context. In `deploy/terraform/instancer/example/main.tf{:file}` switch from the GCP-backed `kubernetes`, `helm`, and `kubectl` providers to the commented-out `kind-rctf` blocks, then apply:
 
 ```sh
 $ cd deploy/terraform/instancer/example
@@ -446,7 +446,7 @@ The controller logs the reconciliation flow and the sample's namespace, service,
 | Symptom | Likely cause |
 | --- | --- |
 | `terraform apply` hangs on `acme_certificate` | DNS propagation for the DNS-01 record is slow. Verify the Cloudflare or Cloud DNS TXT record is visible from a public resolver. |
-| Controller pod `CrashLoopBackOff` after install | The image reference in `dist/install.yaml` cannot be pulled. The default is `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` - verify the node has registry access and the tag still exists. |
+| Controller pod `CrashLoopBackOff` after install | The image reference in `dist/install.yaml{:file}` cannot be pulled. The default is `<red>ghcr.io/otter-sec/rctf-new/k8s-controller</red>` - verify the node has registry access and the tag still exists. |
 | Instances stuck in `<green>starting</green>` | Inspect the `ChallengeInstance` status conditions with `$ kubectl get challengeinstance -A -o yaml`. The `<red>NamespaceDeployed</red>`, `<red>DeploymentsDeployed</red>`, and `<red>ServicesDeployed</red>` conditions narrow the failing stage. |
 | 502 from the wildcard host | Traefik is reachable but the backing pod is not ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
 | 404 on the wildcard host | The catch-all `<red>IngressRoute</red>` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `<red>IngressRoute</red>` has a higher priority than `1{:ts}`. |

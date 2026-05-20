@@ -34,6 +34,11 @@ function inlineCodeHtml(code: string): string {
   return `<code>${escapeHtml(code)}</code>`
 }
 
+function inlinePathHtml(code: string, kind: string): string {
+  const normalizedKind = kind === 'dir' ? 'folder' : 'file'
+  return `<code data-inline-path-kind="${normalizedKind}">${escapeHtml(code)}</code>`
+}
+
 function textHtml(text: string): string {
   const parts: string[] = []
   let lastIndex = 0
@@ -67,7 +72,9 @@ export async function renderDescription(text: string): Promise<RenderedDescripti
     if (match.index > lastIndex) {
       parts.push(textHtml(text.slice(lastIndex, match.index)))
     }
-    if (lang) {
+    if (lang === 'dir' || lang === 'file') {
+      parts.push(inlinePathHtml(code, lang))
+    } else if (lang) {
       const rendered = await codeToHtml(code, {
         lang,
         themes: { light: lightTheme, dark: darkTheme },

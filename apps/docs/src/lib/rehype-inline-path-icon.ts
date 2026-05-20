@@ -1,5 +1,5 @@
 import type { Element, ElementContent, Root } from 'hast'
-import { findElementChild, getNodeText, hasClass, isElement, visitHast } from './hast-utils'
+import { findElementChild, hasClass, isElement, visitHast } from './hast-utils'
 
 // Tabler icon paths (viewBox 0 0 24 24, stroke currentColor).
 const FILE_PATHS = [
@@ -10,88 +10,47 @@ const FOLDER_PATHS = [
   'M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z',
 ]
 
-const EXTENSIONS = [
-  'toml',
-  'rs',
-  'ts',
-  'tsx',
-  'js',
-  'jsx',
-  'mjs',
-  'cjs',
-  'json',
-  'jsonc',
-  'json5',
-  'md',
-  'mdx',
-  'yaml',
-  'yml',
-  'lock',
-  'txt',
-  'sh',
-  'bash',
-  'zsh',
-  'fish',
-  'css',
-  'scss',
-  'html',
-  'svg',
-  'png',
-  'jpg',
-  'jpeg',
-  'webp',
-  'gif',
-  'env',
-  'sol',
-  'graphql',
-  'gql',
-  'sql',
-  'xml',
-  'astro',
-  'vue',
-  'svelte',
-  'ini',
-  'cfg',
-]
-const EXT_RE = new RegExp(`\\.(${EXTENSIONS.join('|')})$`, 'i')
-const DOTFILE_RE =
-  /^\.(gitignore|env|prettierrc|eslintrc|npmrc|yarnrc|nvmrc|editorconfig|gitkeep|gitattributes)/i
-const ANSI_RE = /\x1b\[[0-9;]*m/g
-const INLINE_LANG_RE = /\{:[A-Za-z0-9_-]+\}$/
-const API_ROUTE_RE = /^\/(?:api(?:[/*#]|$)|(?:api\/)?v[12](?:\/|$)|now$|with-graph$|graph$)/
-const ABSOLUTE_FS_RE = /^\/(?:etc|var|usr|opt|home|root|tmp|app|srv|mnt|workspace|Users)(?:\/|$)/
+const PATH_HINT_RE = /\{:(dir|file)\}$/
+const PATH_KIND_PROPERTY = 'data-inline-path-kind'
 
-function classify(text: string): 'file' | 'folder' | null {
-  const plainText = text.replace(ANSI_RE, '').replace(INLINE_LANG_RE, '')
-  if (!text || text.length > 200) return null
-  if (/\s/.test(plainText)) return null
-  if (plainText.includes('://')) return null
-  if (plainText.startsWith('@')) return null
-  if (plainText.startsWith('-')) return null
-  if (plainText.startsWith('$ ')) return null
-  if (API_ROUTE_RE.test(plainText)) return null
-  if (plainText.endsWith('/')) {
-    if (plainText.startsWith('/') && !ABSOLUTE_FS_RE.test(plainText)) return null
-    return 'folder'
-  }
-  // Require an explicit path signal: leading /, ./, or ../; multiple slashes;
-  // a recognized file extension; or a known dotfile name. A single-slash
-  // kebab token like `provider-name/feature-name` is NOT
-  // a path even though it contains a slash.
-  if (plainText.startsWith('/')) {
-    if (ABSOLUTE_FS_RE.test(plainText) || EXT_RE.test(plainText)) return 'file'
-    return null
-  }
-  if (plainText.startsWith('./') || plainText.startsWith('../')) {
-    return 'file'
-  }
-  if ((plainText.match(/\//g) || []).length >= 2) return 'file'
-  if (EXT_RE.test(plainText)) return 'file'
-  if (DOTFILE_RE.test(plainText)) return 'file'
-  return null
+type InlinePathKind = 'file' | 'folder'
+
+function normalizeHint(kind: string): InlinePathKind {
+  return kind === 'dir' ? 'folder' : 'file'
 }
 
-function svgIcon(paths: string[], kind: 'file' | 'folder'): Element {
+function hintedKind(text: string): InlinePathKind | null {
+  const hint = text.match(PATH_HINT_RE)?.[1]
+  return hint ? normalizeHint(hint) : null
+}
+
+function stripHint(text: string): string {
+  return text.replace(PATH_HINT_RE, '')
+}
+
+function setPathKind(node: Element, kind: InlinePathKind): void {
+  node.properties[PATH_KIND_PROPERTY] = kind
+}
+
+function pathKind(node: Element): InlinePathKind | null {
+  const kind = node.properties[PATH_KIND_PROPERTY]
+  return kind === 'file' || kind === 'folder' ? kind : null
+}
+
+function stripInlinePathHint(node: Element): InlinePathKind | null {
+  if (node.children.length !== 1) return null
+  const child = node.children[0]
+  if (!child || child.type !== 'text') return null
+
+  const kind = hintedKind(child.value)
+  if (!kind) return null
+
+  child.value = stripHint(child.value)
+  setPathKind(node, kind)
+  return kind
+}
+
+function svgIcon(paths: string[], kind: InlinePathKind): Element {
   return {
     type: 'element',
     tagName: 'svg',
@@ -119,7 +78,7 @@ function alreadyDecorated(node: Element): boolean {
   return first?.type === 'element' && first.tagName === 'svg' && hasClass(first, 'inline-path-icon')
 }
 
-function decorate(codeNode: Element, kind: 'file' | 'folder'): void {
+function decorate(codeNode: Element, kind: InlinePathKind): void {
   if (alreadyDecorated(codeNode)) return
   const icon = svgIcon(kind === 'folder' ? FOLDER_PATHS : FILE_PATHS, kind)
   codeNode.children.unshift(icon)
@@ -165,6 +124,19 @@ function dimPlaceholders(node: Element): void {
   }
 }
 
+export function rehypeInlinePathHints() {
+  return (tree: Root) => {
+    visitHast(tree, node => {
+      if (!isElement(node)) return
+      if (node.tagName === 'pre') return 'skip'
+      if (node.tagName !== 'code') return
+
+      stripInlinePathHint(node)
+      return 'skip'
+    })
+  }
+}
+
 export function rehypeInlinePathIcon() {
   return (tree: Root) => {
     visitHast(tree, node => {
@@ -178,7 +150,7 @@ export function rehypeInlinePathIcon() {
       if (node.tagName === 'span' && hasClass(node, 'shiki')) {
         const codeChild = findElementChild(node, 'code')
         if (codeChild) {
-          const kind = classify(getNodeText(codeChild))
+          const kind = pathKind(codeChild) ?? stripInlinePathHint(codeChild)
           if (kind) {
             dimPlaceholders(codeChild)
             decorate(codeChild, kind)
@@ -189,7 +161,7 @@ export function rehypeInlinePathIcon() {
 
       // Plain inline <code>.
       if (node.tagName === 'code') {
-        const kind = classify(getNodeText(node))
+        const kind = pathKind(node) ?? stripInlinePathHint(node)
         if (kind) {
           dimPlaceholders(node)
           decorate(node, kind)

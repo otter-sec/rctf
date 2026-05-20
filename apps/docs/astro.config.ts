@@ -14,7 +14,7 @@ import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
 import { ecOptions } from './src/lib/ec-config'
 import { rehypeInlineCodeSemantics } from './src/lib/rehype-inline-code-semantics'
-import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
+import { rehypeInlinePathHints, rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
 import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
 import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
 import { darkTheme, lightTheme } from './src/lib/shiki-themes'
@@ -47,6 +47,7 @@ export default defineConfig({
       rehypeWrapTables,
       rehypeKatex,
       [rehypeExpressiveCode, { themes: [lightTheme, darkTheme], ...ecOptions }],
+      rehypeInlinePathHints,
       [
         rehypeShiki,
         {

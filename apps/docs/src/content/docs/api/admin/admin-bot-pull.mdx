@@ -13,6 +13,6 @@ import { PullAdminBotJobRouteV2 } from '@rctf/types'
 
 The admin bot worker calls this service route when it is ready for more work. It receives the oldest queued job. When nothing is waiting, the response has `job` set to `null{:ts}`.
 
-The request is authenticated with the shared admin bot bearer token from `adminBot.provider.options.secretKey{:yaml}` in `rctf.d/`.
+The request is authenticated with the shared admin bot bearer token from `adminBot.provider.options.secretKey{:yaml}` in `rctf.d/{:dir}`.
 
 <ResponseBody def={PullAdminBotJobRouteV2} response="goodAdminBotJobPull" title="Response fields" />

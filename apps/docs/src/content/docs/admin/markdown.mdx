@@ -5,7 +5,7 @@ description: Markdown extensions available in challenge descriptions, home page 
 
 import Callout from '@/components/callout.astro'
 
-rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. Rendering is handled by [`marked`](https://marked.js.org/) with two custom extensions (alerts and timer), followed by [DOMPurify](https://github.com/cure53/DOMPurify) sanitization. The renderer is defined in `apps/web/src/lib/utils/markdown.ts` and hydrated by `apps/web/src/lib/components/markdown.svelte`.
+rCTF renders Markdown in challenge descriptions, the home page content, and sponsor descriptions. Rendering is handled by [`marked`](https://marked.js.org/) with two custom extensions (alerts and timer), followed by [DOMPurify](https://github.com/cure53/DOMPurify) sanitization. The renderer is defined in `apps/web/src/lib/utils/markdown.ts{:file}` and hydrated by `apps/web/src/lib/components/markdown.svelte{:file}`.
 
 ## Alerts
 

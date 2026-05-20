@@ -28,7 +28,7 @@ The instancer path has three layers:
 <Steps>
 <Step title="Select a provider">
 
-The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations.
+The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/{:dir}`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations.
 
 </Step>
 <Step title="Configure a challenge">
@@ -45,7 +45,7 @@ Participants create, extend, inspect, and delete their instance from the challen
 
 ## Provider configuration
 
-The `<red>instancerProvider</red>` config selects one provider in `rctf.d/`:
+The `<red>instancerProvider</red>` config selects one provider in `rctf.d/{:dir}`:
 
 <Tabs items={['Docker', 'Kubernetes']}>
 <Tab>

@@ -119,7 +119,7 @@ The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field is a real Pod
 
 ### Mounting broad service-account tokens
 
-Every pod in a namespace can receive the `default` service-account token at `/var/run/secrets/kubernetes.io/serviceaccount/`. If that service account has broad permissions, or if the cluster over-grants `system:authenticated`, a compromised challenge can become Kubernetes API access.
+Every pod in a namespace can receive the `default` service-account token at `/var/run/secrets/kubernetes.io/serviceaccount/{:dir}`. If that service account has broad permissions, or if the cluster over-grants `system:authenticated`, a compromised challenge can become Kubernetes API access.
 
 <Callout variant='important' title='Disable tokens unless needed'>
 
@@ -137,7 +137,7 @@ The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field accepts the s
 
 ### Shared remote without per-connection sandboxing
 
-A shared remote where the intended solution grants code execution, such as many pwn and misc challenges, should isolate each connection. Without per-connection sandboxing, one solver can alter the binary, write a backdoor to `/tmp/`, exhaust process or file-descriptor tables, or kill the shared process. Later connections then interact with corrupted state.
+A shared remote where the intended solution grants code execution, such as many pwn and misc challenges, should isolate each connection. Without per-connection sandboxing, one solver can alter the binary, write a backdoor to `/tmp/{:dir}`, exhaust process or file-descriptor tables, or kill the shared process. Later connections then interact with corrupted state.
 
 <Callout variant='problem' title='Failure mode'>
 
@@ -167,12 +167,12 @@ Ship suspicious binaries inside a password-protected archive, and put the passwo
 
 ### Missing runtime abuse limits
 
-CPU and memory limits are not enough on their own. A participant can run a fork bomb like `:(){ :|:& };:`, fill `/tmp/` with `dd if=/dev/zero of=/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits rather than assumptions about participant behavior.
+CPU and memory limits are not enough on their own. A participant can run a fork bomb like `:(){ :|:& };:`, fill `/tmp/{:dir}` with `dd if=/dev/zero of=/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits rather than assumptions about participant behavior.
 
 <Tabs items={['Docker', 'Kubernetes', 'nsjail']}>
 <Tab>
 
-For Docker services, set `pids_limit` so fork bombs cannot exhaust the host `kernel.pid_max`. Set `ulimits.nofile` so a process cannot exhaust the file-descriptor table. If `/tmp/` is writable, use a size-limited `tmpfs`. Bare-metal challenges need the same storage cap with a `tmpfs` `size=` option.
+For Docker services, set `pids_limit` so fork bombs cannot exhaust the host `kernel.pid_max`. Set `ulimits.nofile` so a process cannot exhaust the file-descriptor table. If `/tmp/{:dir}` is writable, use a size-limited `tmpfs`. Bare-metal challenges need the same storage cap with a `tmpfs` `size=` option.
 
 </Tab>
 <Tab>
@@ -214,7 +214,7 @@ A cloud VM with an unpatched kernel, exposed Docker socket, or unnecessary privi
 
 <Callout variant='important' title='Keep the host boundary intact'>
 
-Run unattended upgrades or an equivalent process on challenge hosts, then reboot into the newer kernel before the event. Do not mount `/var/run/docker.sock` into challenge containers. Avoid `--privileged`, `--cap-add=SYS_ADMIN`, `--pid=host`, and `--net=host` unless the security impact has been reviewed. Keep runc, Docker, and containerd on patched versions.
+Run unattended upgrades or an equivalent process on challenge hosts, then reboot into the newer kernel before the event. Do not mount `/var/run/docker.sock{:file}` into challenge containers. Avoid `--privileged`, `--cap-add=SYS_ADMIN`, `--pid=host`, and `--net=host` unless the security impact has been reviewed. Keep runc, Docker, and containerd on patched versions.
 
 Public local privilege-escalation exploits can appear within days of disclosure. A container with Docker socket access can also start a container with `docker run -v /:/host` and walk out to the host filesystem. Pin minimum runtime versions and verify them before the event.
 
@@ -226,7 +226,7 @@ Disk exhaustion is easy to miss because CPU and memory dashboards can remain qui
 
 <Callout variant='warning' title='Common disk sources'>
 
-Docker `json-file` logs have no rotation unless `max-size` and `max-file` are set in `/etc/docker/daemon.json`, so a noisy challenge can fill `/var/lib/docker/containers/*/.log` for the lifetime of the container. `journald` can grow in the same way unless `SystemMaxUse=` is configured. Rebuilds and redeploys also leave dangling images and build cache in `/var/lib/docker/`, so schedule `docker system prune` or monitor disk usage closely before the event.
+Docker `json-file` logs have no rotation unless `max-size` and `max-file` are set in `/etc/docker/daemon.json{:file}`, so a noisy challenge can fill `/var/lib/docker/containers/*/.log{:file}` for the lifetime of the container. `journald` can grow in the same way unless `SystemMaxUse=` is configured. Rebuilds and redeploys also leave dangling images and build cache in `/var/lib/docker/{:dir}`, so schedule `docker system prune` or monitor disk usage closely before the event.
 
 </Callout>
 

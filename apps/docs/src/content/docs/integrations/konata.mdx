@@ -5,7 +5,7 @@ description: CLI tool and CI actions for syncing CTF challenges to rCTF, buildin
 
 import Callout from '@/components/callout.astro'
 
-[Konata](https://github.com/project-sekai-ctf/konata) (CLI command: `kona`) is a CTF challenge-management tool. It walks a repository of challenge directories, builds and pushes Docker images, applies Kubernetes manifests, and syncs the resulting challenge metadata to rCTF (and CTFd, when configured) - all driven by per-challenge `kona.yml` files and a single root `kona.yml` for global settings.
+[Konata](https://github.com/project-sekai-ctf/konata) (CLI command: `kona`) is a CTF challenge-management tool. It walks a repository of challenge directories, builds and pushes Docker images, applies Kubernetes manifests, and syncs the resulting challenge metadata to rCTF (and CTFd, when configured) - all driven by per-challenge `kona.yml{:file}` files and a single root `kona.yml{:file}` for global settings.
 
 This page covers Konata as it relates to rCTF. For the upstream tool and source see the [Konata repository](https://github.com/project-sekai-ctf/konata).
 
@@ -28,7 +28,7 @@ Python 3.12 or newer is required. The `kona` binary exposes two commands: `<blac
 
 ## Repository layout
 
-Konata assumes a directory tree with one root config at `kona.yml` and one config per challenge somewhere underneath it. The challenge folder structure is arbitrary; Konata walks up to `<red>discovery.challenge_folder_depth</red>` levels deep (default `3{:ts}`) looking for files named `kona.yml` or `kona.yaml`.
+Konata assumes a directory tree with one root config at `kona.yml{:file}` and one config per challenge somewhere underneath it. The challenge folder structure is arbitrary; Konata walks up to `<red>discovery.challenge_folder_depth</red>` levels deep (default `3{:ts}`) looking for files named `kona.yml{:file}` or `kona.yaml{:file}`.
 
 A typical layout (taken from the DiceCTF Quals 2026 deployment repository):
 
@@ -60,7 +60,7 @@ A typical layout (taken from the DiceCTF Quals 2026 deployment repository):
 
 ## Global config
 
-The root `kona.yml` configures credentials, clusters, registries, and shared template overrides. Everything below is optional; a minimum config just needs an `<red>rctf</red>` block.
+The root `kona.yml{:file}` configures credentials, clusters, registries, and shared template overrides. Everything below is optional; a minimum config just needs an `<red>rctf</red>` block.
 
 ```yaml title="kona.yml"
 secrets:
@@ -96,7 +96,7 @@ Named references the rest of the config can pull from. Each entry must specify e
 | Field | Behavior |
 | --- | --- |
 | `<red>value</red>` | Inline literal. Useful for non-secret values you still want to centralize. |
-| `<red>file_path</red>` | Path read from disk at load time. Relative paths resolve against the directory containing the root `kona.yml`. |
+| `<red>file_path</red>` | Path read from disk at load time. Relative paths resolve against the directory containing the root `kona.yml{:file}`. |
 | `<red>env</red>` | Read from the environment. Konata fails fast if the variable is unset. |
 
 The reference is then used wherever the schema accepts a `<red>secret</red>` or `<red>value</red>` field:
@@ -128,7 +128,7 @@ Named Kubernetes clusters that challenge `<red>kubernetes_manifests</red>` / `<r
 | `<red>gcloud</red>` | Targeting GKE. Konata runs `gcloud container clusters get-credentials` under the hood - the workflow needs a logged-in `gcloud` and the `gke-gcloud-auth-plugin`. |
 | `<red>kind</red>` | Local Kind cluster. `<red>cluster_name</red>` defaults to `<green>kind</green>`. |
 | `<red>kubeconfig</red>` | Inline kubeconfig pulled from a `<red>secret</red>` or `<red>value</red>`. |
-| `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config` from the host (the default). |
+| `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config{:file}` from the host (the default). |
 | `<red>incluster: true</red>` | Use the in-pod service-account credentials when Konata itself runs inside the cluster. |
 
 `<red>alias_to</red>` lets a challenge reference one cluster name while routing to another. The DiceCTF example uses this so per-challenge configs say `<red>cluster_name: main</red>` and the operator swaps `main → prod` at the root level.
@@ -169,7 +169,7 @@ Top-level discovery knobs:
 
 | Field | Default | Purpose |
 | --- | --- | --- |
-| `<red>challenge_folder_depth</red>` | `3{:ts}` | Max depth from root when scanning for `kona.yml` / `kona.yaml`. |
+| `<red>challenge_folder_depth</red>` | `3{:ts}` | Max depth from root when scanning for `kona.yml{:file}` / `kona.yaml{:file}`. |
 | `<red>attachment_analysis_depth</red>` | `50{:ts}` | Per-challenge cap when walking attachment file lists. |
 | `<red>klodd_domain</red>` | - | Klodd domain when using the [Klodd](https://github.com/redpwn/klodd) integration. |
 | `<red>klodd_endpoint_name</red>` | - | Klodd endpoint identifier. |
@@ -180,7 +180,7 @@ Top-level discovery knobs:
 
 ## Per-challenge config
 
-Each challenge directory has a `kona.yml` (or `kona.yaml`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The minimum static challenge has nothing but a category, name, author, description, and flag:
+Each challenge directory has a `kona.yml{:file}` (or `kona.yaml{:file}`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The minimum static challenge has nothing but a category, name, author, description, and flag:
 
 ```yaml title="sanity/survey/kona.yml"
 challenges:
@@ -254,7 +254,7 @@ attachments:
 
 | Field | Purpose |
 | --- | --- |
-| `<red>files</red>` | Files relative to the challenge directory. Directory entries (`chall/src/`) recurse into all files underneath. |
+| `<red>files</red>` | Files relative to the challenge directory. Directory entries (`chall/src/{:dir}`) recurse into all files underneath. |
 | `<red>exclude</red>` | Globs filtered out of the resolved file list before archiving. |
 | `<red>additional</red>` | Synthetic files injected into the archive. Each entry specifies `<red>path</red>` plus exactly one of `<red>str</red>` or `<red>base64</red>`. Typical use: a dummy flag file so the build still works. |
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
@@ -452,7 +452,7 @@ $ kona sync -d ./ctf-challenges
 
 | Flag | Behavior |
 | --- | --- |
-| `-d`, `--deploy-directory` | Root of the deploy repo (the folder containing the root `kona.yml`). Required. |
+| `-d`, `--deploy-directory` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Required. |
 | `--only <name>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree; non-matching challenges are skipped. |
 | `--challenge-path <path>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
 
@@ -539,7 +539,7 @@ Notable bits:
 
 - **Workload Identity Federation** is preferred over a long-lived JSON key. The `id-token: write` permission is what makes `google-github-actions/auth@v3` work with WIF.
 - **`gcloud auth configure-docker`** is needed for every Artifact Registry host the matrix shard might push to.
-- **`RCTF_TOKEN`** is the admin team token referenced by the root `kona.yml` (`<red>secrets.token.env: RCTF_TOKEN</red>`).
+- **`RCTF_TOKEN`** is the admin team token referenced by the root `kona.yml{:file}` (`<red>secrets.token.env: RCTF_TOKEN</red>`).
 
 ## Real-world reference
 

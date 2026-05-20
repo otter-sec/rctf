@@ -7,11 +7,11 @@ import Callout from '@/components/callout.astro'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
-The `apps/export` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `<red>isArchived</red>` set to `true{:ts}`, and non-`<route>GET</route>` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
+The `apps/export/{:dir}` tool produces a self-contained static snapshot of a running rCTF instance. It crawls the live API, writes every response to JSON under `api-data/{:dir}`, mirrors uploaded files, copies the SvelteKit web build, and injects a `window.fetch{:ts}` interceptor that serves those JSON files in place of the API. The exported client config has `<red>isArchived</red>` set to `true{:ts}`, and non-`<route>GET</route>` requests return `405 Method Not Allowed`, so the archive remains functional without a database or API server.
 
 ## CLI
 
-The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build` exists, then invoke the root script:
+The exporter runs against a live rCTF API. Build the SvelteKit frontend first so a static `apps/web/build/{:dir}` exists, then invoke the root script:
 
 ```sh
 $ bun run --filter '@rctf/web' build
@@ -25,8 +25,8 @@ $ bun run export \
 | --- | --- | --- |
 | `--api-url` | required | Base URL of the live rCTF instance to crawl. |
 | `--backend` | required | Target host. One of `<green>cloudflare-pages</green>` or `<green>github-pages</green>`. |
-| `--web-build` | `apps/web/build{:sh}` | Pre-built SvelteKit frontend that is copied into the output. |
-| `--output` | `./export-output{:sh}` | Destination directory. Wiped and recreated on every run. |
+| `--web-build` | `apps/web/build/{:dir}` | Pre-built SvelteKit frontend that is copied into the output. |
+| `--output` | `./export-output/{:dir}` | Destination directory. Wiped and recreated on every run. |
 | `--concurrency` | `5{:ts}` | Concurrent in-flight API requests during the discovery phase. |
 | `--skip-uploads` | off | Skips downloading challenge files and avatars. URL rewriting is skipped with it. |
 
@@ -38,12 +38,12 @@ The discovery phase fetches:
 
 - `<route>/api/v2/integrations/client/config</route>` with `<red>isArchived</red>` patched to `true{:ts}`.
 - `<route>/api/v2/challs</route>` and `<route>/api/v2/leaderboard/challs</route>`.
-- The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json`.
+- The full leaderboard and graph, paginated and merged into a single `api-data/v2/leaderboard/dump.json{:file}`.
 - One `<route>/api/v2/users/:id</route>` response per unique user seen on the leaderboard.
-- Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json` per challenge.
+- Every challenge's paginated solves, merged into one `api-data/v2/challs/:id/solves.json{:file}` per challenge.
 - A static `<red>401 badToken</red>` stub for `<route>/api/v2/users/me</route>` so the frontend stays in a logged-out state.
 
-Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/[hash]/[filename]`, and the JSON files in `api-data/` are rewritten to point at the local copies so the archive is self-contained.
+Unless `--skip-uploads` is passed, every challenge file URL, avatar URL, sponsor icon, favicon, logo, and OG image is downloaded. Anything under `/uploads/` is mirrored to the same path. Absolute URLs (S3, Discord CDN, and similar) are hashed and stored under `uploads/external/[hash]/[filename]{:file}`, and the JSON files in `api-data/{:dir}` are rewritten to point at the local copies so the archive is self-contained.
 
 ## Output layout
 
@@ -80,7 +80,7 @@ The resulting directory is ready to upload to a static host:
   </Dir>
 </FileTree>
 
-The injector also strips the `Content-Security-Policy{:http}` meta tag from `index.html` so the inline interceptor script can execute on the static host.
+The injector also strips the `Content-Security-Policy{:http}` meta tag from `index.html{:file}` so the inline interceptor script can execute on the static host.
 
 ## Deployment
 
@@ -91,9 +91,9 @@ The exporter prints the matching deploy command on success.
 
 The `cloudflare-pages` backend writes:
 
-- `_redirects` with `/* /index.html 200` so SvelteKit's client-side routes resolve.
-- `_headers` setting `Cache-Control: public, max-age=31536000, immutable{:http}` on `/api-data/*`, `/uploads/*`, and `/_app/*`, plus `Access-Control-Allow-Origin: *{:http}` on `/api-data/*`.
-- `wrangler.toml` with a placeholder `name = "rctf-archive"` and `pages_build_output_dir = "."`. Edit the name before deploying.
+- `_redirects{:file}` with `/* /index.html 200` so SvelteKit's client-side routes resolve.
+- `_headers{:file}` setting `Cache-Control: public, max-age=31536000, immutable{:http}` on `/api-data/*`, `/uploads/*`, and `/_app/*`, plus `Access-Control-Allow-Origin: *{:http}` on `/api-data/*`.
+- `wrangler.toml{:file}` with a placeholder `name = "rctf-archive"` and `pages_build_output_dir = "."`. Edit the name before deploying.
 
 Deploy from the output directory:
 
@@ -104,9 +104,9 @@ $ npx wrangler pages deploy ./export-output
 </Tab>
 <Tab>
 
-The `github-pages` backend writes an empty `.nojekyll` so files under `_app/` are served instead of being filtered by Jekyll.
+The `github-pages` backend writes an empty `.nojekyll{:file}` so files under `_app/{:dir}` are served instead of being filtered by Jekyll.
 
-Publish with `gh-pages` from the repository root. The `--dotfiles` flag is required so `.nojekyll` is uploaded:
+Publish with `gh-pages` from the repository root. The `--dotfiles` flag is required so `.nojekyll{:file}` is uploaded:
 
 ```sh
 $ npx gh-pages -d ./export-output --dotfiles
@@ -122,8 +122,8 @@ Pages served from a project subpath (`username.github.io/repo`) need a custom do
 The injected script wraps `window.fetch{:ts}` and routes `<route>/api/*</route>` calls through static files:
 
 - Any non-`<route>GET</route>` request returns `405 Method Not Allowed` with `kind: 'badEndpoint'{:ts}` and the message `This is a read-only archive.{:ts}`. Login, registration, flag submission, profile edits, and admin actions all fail with this response.
-- `<route>/api/v2/leaderboard/with-graph</route>`, `<route>/api/v2/leaderboard/now</route>`, and `<route>/api/v2/leaderboard/graph</route>` are answered from `dump.json` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
-- `<route>/api/v2/challs/:id/solves</route>` is sliced from each challenge's `solves.json`.
+- `<route>/api/v2/leaderboard/with-graph</route>`, `<route>/api/v2/leaderboard/now</route>`, and `<route>/api/v2/leaderboard/graph</route>` are answered from `dump.json{:file}` with in-memory `<red>division</red>` filtering, `<red>search</red>` substring matching, and `<red>offset</red>` / `<red>limit</red>` slicing. The scoreboard stays searchable without a backend.
+- `<route>/api/v2/challs/:id/solves</route>` is sliced from each challenge's `solves.json{:file}`.
 - `<route>/api/v2/integrations/analytics/script</route>` returns an empty `404` so the archived bundle does not ping a third-party analytics provider.
 - Every other `<route>/api/*</route>` `<route>GET</route>` is rewritten to `/api-data/<path>.json` and served from the static bundle. Missing files return a `<red>404 badEndpoint</red>` `404`.
 

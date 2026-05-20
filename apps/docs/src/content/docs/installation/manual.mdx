@@ -51,7 +51,7 @@ $ bun i
 </Step>
 <Step title="Create a configuration directory">
 
-rCTF loads configuration from a `rctf.d/` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ mkdir rctf.d` at the project root.
+rCTF loads configuration from a `rctf.d/{:dir}` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ mkdir rctf.d` at the project root.
 
 <FileTree>
   <Dir name="rctf.d">
@@ -136,7 +136,7 @@ Start the API server:
 $ NODE_ENV=production WORKER_EXTENSION=.js bun run apps/api/dist/index.js
 ```
 
-`WORKER_EXTENSION=.js{:sh}` makes the API load the compiled leaderboard worker from `apps/api/dist/`. The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+`WORKER_EXTENSION=.js{:sh}` makes the API load the compiled leaderboard worker from `apps/api/dist/{:dir}`. The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
 ## Scaling
 

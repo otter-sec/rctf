@@ -34,7 +34,7 @@ In practice the platform barely uses the box it sits on. [DiceCTF 2026 Quals](ht
   not a recommended baseline.
 </Callout>
 
-A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/03-setup/) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml` and dominate steady-state memory more than the rCTF container itself.
+A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/03-setup/) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
 
 ## Instance types
 
@@ -46,7 +46,7 @@ The `<red>instanceType</red>` config option (env: `RCTF_INSTANCE_TYPE{:sh}`) sel
 | `<green>frontend</green>`      | Yes        | No                        |
 | `<green>leaderboard</green>`   | No         | Yes                       |
 
-The dispatch happens at startup in `apps/api/src/index.ts`:
+The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
 
 ```ts title="apps/api/src/index.ts"
 if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
@@ -67,8 +67,8 @@ instanceType: frontend # or 'leaderboard' or 'all'
 
 To scale beyond a single container:
 
-- Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads` mount - switching to the S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `<red>running</red>` flag, which does not coordinate across processes.
+- Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads/{:dir}` mount - switching to the S3 or GCS upload provider removes that constraint.
+- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `<red>running</red>` flag, which does not coordinate across processes.
 
 <Callout variant='warning' title='Only one leaderboard worker at a time'>
   This includes `<green>all</green>`, which already runs a leaderboard worker. If you split into
@@ -90,4 +90,4 @@ The bundled container's `<green>all</green>` mode is sufficient for most events.
 
 ## Deployment templates
 
-There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml`, no Terraform module). It is on the roadmap and will land here when ready. For now, the bundled single-node `compose.yml` is the only supported template - splitting into `<green>frontend</green>` + `<green>leaderboard</green>` containers is something you wire up yourself against your own orchestrator.
+There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml{:file}`, no Terraform module). It is on the roadmap and will land here when ready. For now, the bundled single-node `compose.yml{:file}` is the only supported template - splitting into `<green>frontend</green>` + `<green>leaderboard</green>` containers is something you wire up yourself against your own orchestrator.

@@ -7,7 +7,7 @@ import Swatch from '@/components/mdx/swatch'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
-The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a port of shadcn/ui for Svelte 5. Components live in `apps/web/src/lib/components/ui/` and use [tailwind-variants](https://www.tailwind-variants.org/) for variant-based styling. Application-specific components (Navigation, Markdown, ThemeToggle) are in the parent `components/` directory. Icons come from [Tabler Icons](https://tabler.io/icons) via `@iconify-svelte`.
+The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a port of shadcn/ui for Svelte 5. Components live in `apps/web/src/lib/components/ui/{:dir}` and use [tailwind-variants](https://www.tailwind-variants.org/) for variant-based styling. Application-specific components (Navigation, Markdown, ThemeToggle) are in the parent `components/{:dir}` directory. Icons come from [Tabler Icons](https://tabler.io/icons) via `@iconify-svelte`.
 
 The following components are available in rCTF:
 
@@ -36,12 +36,12 @@ Use the shadcn-svelte CLI to scaffold the component into your project:
 $ bunx shadcn-svelte@latest add button
 ```
 
-This creates the component files in `apps/web/src/lib/components/ui/button/`.
+This creates the component files in `apps/web/src/lib/components/ui/button/{:dir}`.
 
 </Step>
 <Step title="Register in the barrel file">
 
-Add the component to the barrel export in `apps/web/src/lib/components/index.ts`:
+Add the component to the barrel export in `apps/web/src/lib/components/index.ts{:file}`:
 
 ```ts title="lib/components/index.ts" ins={3-9}
 export { Badge, badgeVariants, type BadgeVariant } from './ui/badge'

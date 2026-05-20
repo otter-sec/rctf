@@ -11,7 +11,7 @@ For the participant lifecycle, the common `<red>instancerConfig</red>` fields, a
 
 ## Deployment
 
-The bundled deployment files live under `deploy/docker-instancer`:
+The bundled deployment files live under `deploy/docker-instancer/{:dir}`:
 
 <FileTree>
   <Dir name="deploy">
@@ -29,7 +29,7 @@ The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The
 
 <Callout variant="warning" title="Hosting the instancer on a separate machine">
 
-The bundled `compose.yml` binds the instancer API to `127.0.0.1:12237` because the default deployment expects rCTF and the instancer to share the `rctf_network` Docker network on the same host - the loopback bind is intentional.
+The bundled `compose.yml{:file}` binds the instancer API to `127.0.0.1:12237` because the default deployment expects rCTF and the instancer to share the `rctf_network` Docker network on the same host - the loopback bind is intentional.
 
 If you split the instancer onto its own host (which we recommend - it isolates challenge workloads from the platform), change the port mapping to bind globally:
 
@@ -103,7 +103,7 @@ The Traefik TLS config expects these files:
 
 Every instanced challenge creates its own user-defined Docker network. Docker carves those networks out of the daemon's default address pool, which on a fresh install is only `172.17.0.0/16` plus a small chunk of `192.168.0.0/16` - enough for ~30 networks before `docker network create` starts failing with `could not find an available, non-overlapping IPv4 address pool`. For a production CTF this runs out fast.
 
-Expand the pool by adding the following to `/etc/docker/daemon.json` on the instancer host:
+Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on the instancer host:
 
 ```json title="/etc/docker/daemon.json"
 {

@@ -82,9 +82,9 @@ captcha:
 
 ## Worker service
 
-The worker is a separate Bun service under `apps/admin-bot`. It exposes a protected test endpoint for config validation and polls rCTF for queued jobs.
+The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It exposes a protected test endpoint for config validation and polls rCTF for queued jobs.
 
-The bundled deployment files live under `deploy/admin-bot`:
+The bundled deployment files live under `deploy/admin-bot/{:dir}`:
 
 <FileTree>
   <Dir name="deploy">
@@ -103,7 +103,7 @@ The worker service uses these environment variables:
 | `RCTF_BASE_URL{:sh}` | Base URL of the rCTF API from the worker container or process. |
 | `RCTF_SECRET_KEY{:sh}` | Shared bearer token. This must match the provider secret in rCTF config. |
 | `RCTF_EXTRA_HEADERS{:sh}` | JSON object of extra headers added to worker-to-API requests. |
-| `BROWSER_CACHE_DIR{:sh}` | Browser download cache directory. The Docker image defaults to `/data/browser-cache`. |
+| `BROWSER_CACHE_DIR{:sh}` | Browser download cache directory. The Docker image defaults to `/data/browser-cache/{:dir}`. |
 | `POLL_INTERVAL_MS{:sh}` | Queue polling interval. The default is `5000{:ts}`. |
 | `PORT{:sh}` | Worker HTTP port. The default is `21337{:ts}`. |
 
