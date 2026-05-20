@@ -5,7 +5,7 @@ description: Understanding and customizing the rCTF color system, including ligh
 
 import Swatch from '@/components/mdx/swatch'
 
-All colors in rCTF are defined using [OKLCH](https://oklch.com). Colors are declared as CSS custom properties in `apps/web/src/app.css{:file}`, with `:root` containing light mode values and `[data-theme='dark']` providing dark mode overrides. The theme is toggled via the `data-theme` attribute on `<html>`, persisted to `localStorage`, and respects `prefers-color-scheme` on first load.
+All colors in rCTF are defined using [OKLCH](https://oklch.com). Colors are declared as CSS custom properties in `apps/web/src/app.css{:file}`, with `:root{:css}` containing light mode values and `[data-theme='dark']{:css}` providing dark mode overrides. The theme is toggled via the `data-theme` attribute on `<html>{:html}`, persisted to `localStorage`, and respects `prefers-color-scheme` on first load.
 
 ## Color reference
 
@@ -22,7 +22,7 @@ The foundation of rCTF's color system is an altered version of [shadcn/ui](https
 | `l4` | <Swatch color="background-l4" label="oklch(89% 0 0)" /> | <Swatch color="background-l4-dark" label="oklch(30% 0 0)" mode="dark" /> | <Swatch color="foreground-l4" label="oklch(65% 0 0)" /> | <Swatch color="foreground-l4-dark" label="oklch(59.7% 0 0)" mode="dark" /> |
 | `l5` | <Swatch color="background-l5" label="oklch(84% 0 0)" /> | <Swatch color="background-l5-dark" label="oklch(40% 0 0)" mode="dark" /> | <Swatch color="foreground-l5" label="oklch(70% 0 0)" /> | <Swatch color="foreground-l5-dark" label="neutral-500" mode="dark" /> |
 
-These variables are mapped to Tailwind utilities via `@theme inline` in `app.css{:file}`, enabling classes like `bg-background-l1` and `text-foreground-l2` that we use throughout the application.
+These variables are mapped to Tailwind utilities via `@theme inline{:css}` in `app.css{:file}`, enabling classes like `bg-background-l1{:css}` and `text-foreground-l2{:css}` that we use throughout the application.
 
 ### Semantic colors
 
@@ -77,7 +77,7 @@ Prose colors are used for text in prose content, such as descriptions of challen
 
 Each challenge category is assigned an arbitrary color set from the following sets:
 
-| Color | <span className="text-nowrap">`background-${color}-l0`</span> | <span className="text-nowrap">`background-${color}-l1`</span> | <span className="text-nowrap">`foreground-${color}-l0`</span> | <span className="text-nowrap">`foreground-${color}-l1`</span> |
+| Color | <span className="text-nowrap">`background-${color}-l0{:css}`</span> | <span className="text-nowrap">`background-${color}-l1{:css}`</span> | <span className="text-nowrap">`foreground-${color}-l0{:css}`</span> | <span className="text-nowrap">`foreground-${color}-l1{:css}`</span> |
 | --- | --- | --- | --- | --- |
 | `red` | <Swatch color="background-red-l0" label="red-400 @ 15%" /> | <Swatch color="background-red-l1" label="red-400 @ 5%" /> | <Swatch color="foreground-red-l0" label="red-900 @ 90%" /> | <Swatch color="foreground-red-l1" label="red-900 @ 80%" /> |
 | `orange` | <Swatch color="background-orange-l0" label="orange-400 @ 15%" /> | <Swatch color="background-orange-l1" label="orange-400 @ 5%" /> | <Swatch color="foreground-orange-l0" label="orange-900 @ 90%" /> | <Swatch color="foreground-orange-l1" label="orange-900 @ 80%" /> |
