@@ -5,9 +5,8 @@ import materialThemeLighterRaw from '@shikijs/themes/material-theme-lighter'
 export const CODE_BACKGROUND_LIGHT = '#fafafa'
 export const CODE_BACKGROUND_DARK = '#151515'
 
-const isLightTheme = (theme: { name: string }) => theme.name === 'material-theme-lighter'
 export const codeBackground = (theme: { name: string }) =>
-  isLightTheme(theme) ? CODE_BACKGROUND_LIGHT : CODE_BACKGROUND_DARK
+  theme.name === 'material-theme-lighter' ? CODE_BACKGROUND_LIGHT : CODE_BACKGROUND_DARK
 
 // Pre-adjusting against the same background used by Expressive Code's style
 // overrides means EC's per-render adjustment is a no-op (already meets

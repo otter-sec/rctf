@@ -61,11 +61,10 @@ rCTF loads configuration from a `rctf.d/{:dir}` directory. Files inside it (YAML
 
 Create a minimal configuration file:
 
-```yaml title="rctf.d/01-base.yaml" showLineNumbers {"Generate with: $ openssl rand -base64 32":3-4} {"Unix milliseconds":10-12}
+```yaml title="rctf.d/01-base.yaml" showLineNumbers
 ctfName: My CTF
 origin: https://ctf.example.com
-
-tokenKey: <base64-encoded-32-byte-key>
+tokenKey: <dim><base64-encoded-32-byte-key></dim>
 
 database:
   sql: postgres://user:password@localhost:5432/rctf

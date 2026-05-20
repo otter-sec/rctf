@@ -5,7 +5,7 @@ import {
   type ExpressiveCodePlugin,
 } from '@expressive-code/core'
 import { h, type Element, type Parents } from '@expressive-code/core/hast'
-import { parseCodeToneRanges, toneClassNames, toneStyle } from './code-semantics'
+import { parseCodeToneRanges, toneClassNames, toneStyle } from './code-annotations'
 
 function stripElementSyntaxStyles(node: Element): Element {
   const {
@@ -21,10 +21,6 @@ function stripElementSyntaxStyles(node: Element): Element {
       child.type === 'element' ? stripElementSyntaxStyles(child) : child
     ),
   }
-}
-
-function stripSyntaxStyles(node: Parents): Parents {
-  return node.type === 'element' ? stripElementSyntaxStyles(node) : node
 }
 
 class CodeToneAnnotation extends ExpressiveCodeAnnotation {
@@ -48,7 +44,7 @@ class CodeToneAnnotation extends ExpressiveCodeAnnotation {
           className: toneClassNames(this.tone),
           ...(style ? { style } : {}),
         },
-        stripSyntaxStyles(node)
+        node.type === 'element' ? stripElementSyntaxStyles(node) : node
       )
     )
   }

@@ -1,5 +1,5 @@
 import { toHtml } from 'hast-util-to-html'
-import { routeCodeNode, textNode } from './code-semantics'
+import { routeCodeNode, textNode } from './code-annotations'
 
 export function renderTocHeading(value: string): string {
   const routeNode = routeCodeNode(value)

@@ -40,7 +40,6 @@ const docsSchema = z.object({
   prev: z.union([navigationLink, z.literal(false)]).optional(),
   next: z.union([navigationLink, z.literal(false)]).optional(),
   tableOfContents: z.union([z.boolean(), tableOfContentsConfig]).optional(),
-  banner: z.union([z.string(), z.literal(false)]).optional(),
   wide: z.boolean().default(false),
   pageHeader: z.boolean().default(true),
   autoCards: z.boolean().default(true),

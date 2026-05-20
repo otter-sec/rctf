@@ -1,9 +1,6 @@
 import { mountClientModule } from './lifecycle'
 
-const INLINE_SHELL_SELECTOR = '.inline-shell-cmd'
-const COPY_FEEDBACK_MS = 1200
-
-async function copyCommand(button: HTMLElement): Promise<void> {
+async function copyShellCommand(button: HTMLElement): Promise<void> {
   if (button.dataset.copying === '1') return
 
   const command = button.getAttribute('data-copy')
@@ -26,17 +23,17 @@ async function copyCommand(button: HTMLElement): Promise<void> {
     if (prompt) prompt.textContent = originalPrompt
     button.classList.remove('copied')
     delete button.dataset.copying
-  }, COPY_FEEDBACK_MS)
+  }, 1200)
 }
 
 function shellCommandFromEvent(event: Event): HTMLElement | null {
   const target = event.target instanceof HTMLElement ? event.target : null
-  return target?.closest<HTMLElement>(INLINE_SHELL_SELECTOR) ?? null
+  return target?.closest<HTMLElement>('.copyable-shell-command') ?? null
 }
 
 function handleClick(event: MouseEvent): void {
   const button = shellCommandFromEvent(event)
-  if (button) void copyCommand(button)
+  if (button) void copyShellCommand(button)
 }
 
 function handleKeydown(event: KeyboardEvent): void {
@@ -46,12 +43,12 @@ function handleKeydown(event: KeyboardEvent): void {
   if (!button) return
 
   event.preventDefault()
-  void copyCommand(button)
+  void copyShellCommand(button)
 }
 
 // Delegated click/keydown listeners on `document` survive CSN navigations,
 // so there's nothing to set up per page.
-export const mountInlineShellCopy = mountClientModule({
+export const mountShellCommandCopy = mountClientModule({
   setup: () => {},
   initOnce: () => {
     document.addEventListener('click', handleClick)

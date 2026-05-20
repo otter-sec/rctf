@@ -1,14 +1,14 @@
 import type { Element } from 'hast'
 import { toHtml } from 'hast-util-to-html'
 import { codeToHtml } from 'shiki'
-import { CODE_SEMANTIC_TAGS, parseCodeSemantics, stripCodeTags } from './code-semantics'
+import {
+  CODE_ANNOTATION_TAGS,
+  parseCodeAnnotations,
+  stripCodeAnnotationTags,
+} from './code-annotations'
 import { darkTheme, lightTheme } from './shiki-themes'
 
 const PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
-const INLINE_CODE_SEMANTIC_RE = new RegExp(
-  `<(${CODE_SEMANTIC_TAGS.join('|')})>[\\s\\S]*?<\\/\\1>`,
-  'g'
-)
 
 function escapeHtml(text: string): string {
   return text
@@ -20,13 +20,13 @@ function escapeHtml(text: string): string {
 }
 
 function inlineCodeHtml(code: string): string {
-  const semanticChildren = parseCodeSemantics(code)
-  if (semanticChildren) {
+  const annotatedChildren = parseCodeAnnotations(code)
+  if (annotatedChildren) {
     const node: Element = {
       type: 'element',
       tagName: 'code',
-      properties: { className: ['inline-code-enhanced', 'inline-code-with-tones'] },
-      children: semanticChildren,
+      properties: { className: ['annotated-code', 'code-with-tones'] },
+      children: annotatedChildren,
     }
     return toHtml(node)
   }
@@ -34,17 +34,13 @@ function inlineCodeHtml(code: string): string {
   return `<code>${escapeHtml(code)}</code>`
 }
 
-function inlinePathHtml(code: string, kind: string): string {
-  const normalizedKind = kind === 'dir' ? 'folder' : 'file'
-  return `<code data-inline-path-kind="${normalizedKind}">${escapeHtml(code)}</code>`
-}
-
 function textHtml(text: string): string {
   const parts: string[] = []
   let lastIndex = 0
   let match: RegExpExecArray | null
+  const annotationRe = new RegExp(`<(${CODE_ANNOTATION_TAGS.join('|')})>[\\s\\S]*?<\\/\\1>`, 'g')
 
-  while ((match = INLINE_CODE_SEMANTIC_RE.exec(text)) !== null) {
+  while ((match = annotationRe.exec(text)) !== null) {
     if (match.index > lastIndex) parts.push(escapeHtml(text.slice(lastIndex, match.index)))
     parts.push(inlineCodeHtml(match[0]))
     lastIndex = match.index + match[0].length
@@ -60,7 +56,9 @@ export interface RenderedDescription {
 }
 
 export async function renderDescription(text: string): Promise<RenderedDescription> {
-  const plain = stripCodeTags(text.replace(PATTERN, (_, code) => stripCodeTags(code)))
+  const plain = stripCodeAnnotationTags(
+    text.replace(PATTERN, (_, code) => stripCodeAnnotationTags(code))
+  )
 
   const re = new RegExp(PATTERN.source, 'g')
   const parts: string[] = []
@@ -73,7 +71,9 @@ export async function renderDescription(text: string): Promise<RenderedDescripti
       parts.push(textHtml(text.slice(lastIndex, match.index)))
     }
     if (lang === 'dir' || lang === 'file') {
-      parts.push(inlinePathHtml(code, lang))
+      parts.push(
+        `<code data-code-path-kind="${lang === 'dir' ? 'folder' : 'file'}">${escapeHtml(code)}</code>`
+      )
     } else if (lang) {
       const rendered = await codeToHtml(code, {
         lang,

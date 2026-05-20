@@ -137,49 +137,53 @@
       @apply shiki-tokens;
     }
 
-    :where(.inline-shell-cmd):not(:where(.not-prose, .not-prose *)) {
+    :where(.copyable-shell-command):not(:where(.not-prose, .not-prose *)) {
       @apply code-pill bg-muted/50 text-foreground cursor-pointer border-0 font-mono text-sm font-medium transition-colors;
     }
 
-    :where(.inline-shell-cmd):hover:not(:where(.not-prose, .not-prose *)) {
+    :where(.copyable-shell-command):hover:not(:where(.not-prose, .not-prose *)) {
       @apply bg-muted;
     }
 
-    :where(.inline-shell-cmd):focus-visible:not(:where(.not-prose, .not-prose *)) {
+    :where(.copyable-shell-command):focus-visible:not(:where(.not-prose, .not-prose *)) {
       @apply outline-ring outline-2 outline-offset-2;
     }
 
-    .inline-shell-cmd[data-long-pill='true']:not(.not-prose):not(.not-prose *) {
+    .copyable-shell-command[data-long-pill='true']:not(.not-prose):not(.not-prose *) {
       @apply wrap-anywhere;
     }
 
-    .inline-shell-cmd[data-long-pill='true'] code {
+    .copyable-shell-command[data-long-pill='true'] code {
       @apply inline wrap-anywhere;
     }
 
-    .inline-shell-cmd code {
+    .copyable-shell-command code {
       @apply code-pill-inner text-inherit;
     }
 
-    :where(.inline-shell-cmd span):not(.shell-prompt):not(.inline-code-tone):not(
+    :where(.copyable-shell-command span):not(.shell-prompt):not(.code-tone):not(
         :where(.not-prose, .not-prose *)
       ) {
       @apply shiki-tokens;
     }
 
-    :where(.inline-shell-cmd .shell-prompt):not(:where(.not-prose, .not-prose *)) {
+    :where(.copyable-shell-command .shell-prompt):not(:where(.not-prose, .not-prose *)) {
       @apply text-accent mr-[1ch] font-medium transition-colors select-none;
     }
 
-    :where(.inline-shell-cmd.copied .shell-prompt):not(:where(.not-prose, .not-prose *)) {
+    :where(.copyable-shell-command.copied .shell-prompt):not(:where(.not-prose, .not-prose *)) {
       @apply text-(--success);
     }
 
-    :where(.inline-path-icon):not(:where(.not-prose, .not-prose *)) {
+    :where(.link-icon):not(:where(.not-prose, .not-prose *)) {
+      @apply text-muted-foreground ml-[0.35ch] inline-block h-[0.95em] w-[0.95em] shrink-0 align-[-0.125em];
+    }
+
+    :where(.code-path-icon):not(:where(.not-prose, .not-prose *)) {
       @apply text-muted-foreground mr-[0.4ch] inline-block h-[0.95em] w-[0.95em] shrink-0 align-[-0.15em];
     }
 
-    :where(.path-placeholder):not(:where(.not-prose, .not-prose *)) {
+    :where(.code-path-placeholder):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/50;
     }
 
@@ -352,51 +356,51 @@
     @apply xl:hidden;
   }
 
-  :where(.inline-code-tone) {
+  :where(.code-tone) {
     font-weight: 500;
   }
 
-  :where(.inline-code-tone *) {
+  :where(.code-tone *) {
     color: inherit !important;
   }
 
-  :where(.inline-code-tone.is-black) {
+  :where(.code-tone.is-black) {
     color: var(--muted-foreground);
   }
 
-  :where(.inline-code-tone.is-dim, .inline-code-tone.is-dimmed) {
+  :where(.code-tone.is-dim, .code-tone.is-dimmed) {
     opacity: 0.5;
   }
 
-  :where(.inline-code-tone.is-red) {
+  :where(.code-tone.is-red) {
     color: var(--inline-tone-red);
   }
 
-  :where(.inline-code-tone.is-green) {
+  :where(.code-tone.is-green) {
     color: var(--inline-tone-green);
   }
 
-  :where(.inline-code-tone.is-orange) {
+  :where(.code-tone.is-orange) {
     color: var(--inline-tone-orange);
   }
 
-  :where(.inline-code-tone.is-yellow) {
+  :where(.code-tone.is-yellow) {
     color: var(--inline-tone-yellow);
   }
 
-  :where(.inline-code-tone.is-blue) {
+  :where(.code-tone.is-blue) {
     color: var(--inline-tone-blue);
   }
 
-  :where(.inline-code-tone.is-magenta) {
+  :where(.code-tone.is-magenta) {
     color: var(--inline-tone-magenta);
   }
 
-  :where(.inline-code-tone.is-cyan) {
+  :where(.code-tone.is-cyan) {
     color: var(--inline-tone-cyan);
   }
 
-  :where(.inline-code-tone.is-white) {
+  :where(.code-tone.is-white) {
     color: color-mix(in oklab, var(--foreground) 88%, transparent);
   }
 }
@@ -405,7 +409,7 @@
   @apply text-sm leading-6;
 
   code,
-  .inline-shell-cmd {
+  .copyable-shell-command {
     @apply px-[0.25rem] py-[0.1rem] text-xs;
   }
 

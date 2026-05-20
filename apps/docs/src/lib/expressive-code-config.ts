@@ -3,33 +3,35 @@ import { pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
-import { pluginCodeTones } from './ec-code-tones'
-import { pluginOutputSeparator } from './ec-output-separator'
-import { pluginShellPrompt } from './ec-shell-prompt'
+import { pluginOutputSeparators } from './expressive-code-output-separators'
+import { pluginShellPrompts } from './expressive-code-shell-prompts'
+import { pluginCodeTones } from './expressive-code-tones'
 import { codeBackground } from './shiki-themes'
 
-const isLightTheme = (theme: { name: string }) => theme.name === 'material-theme-lighter'
-
-export const ecOptionalPlugins = () => [
+export const expressiveCodeOptionalPlugins = () => [
   pluginCollapsibleSections(),
   pluginLineNumbers(),
-  pluginShellPrompt(),
+  pluginShellPrompts(),
   pluginCodeTones(),
-  pluginOutputSeparator(),
+  pluginOutputSeparators(),
 ]
 
-export const ecDefaultPlugins = () => [pluginShiki(), pluginFrames(), pluginTextMarkers()]
+export const expressiveCodeDefaultPlugins = () => [
+  pluginShiki(),
+  pluginFrames(),
+  pluginTextMarkers(),
+]
 
-export const ecOptions = {
-  plugins: ecOptionalPlugins(),
+export const expressiveCodeOptions = {
+  plugins: expressiveCodeOptionalPlugins(),
   useDarkModeMediaQuery: false,
-  // Themes are pre-adjusted in shiki-themes.ts so EC and inline shiki render
-  // identical colors. Skip EC's per-render readjustment, which would otherwise
-  // redo the contrast pass against the codeBg override and drift EC's
-  // tokens away from the inline pills.
+  // Themes are pre-adjusted in shiki-themes.ts so Expressive Code and inline
+  // Shiki render identical colors. Skip Expressive Code's per-render
+  // readjustment, which would otherwise redo the contrast pass against the
+  // codeBackground override and drift tokens away from the inline pills.
   minSyntaxHighlightingColorContrast: 0,
   themeCssSelector: (theme: { name: string }) =>
-    `[data-theme="${isLightTheme(theme) ? 'light' : 'dark'}"]`,
+    `[data-theme="${theme.name === 'material-theme-lighter' ? 'light' : 'dark'}"]`,
   defaultProps: {
     wrap: true,
     showLineNumbers: true,

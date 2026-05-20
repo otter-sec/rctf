@@ -40,9 +40,9 @@ const TONE_COLORS = new Map<string, string>([
 ])
 
 const tagRegex = (tags: readonly string[]) => new RegExp(`<\\/?(${tags.join('|')})>`, 'g')
-export const CODE_SEMANTIC_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
+export const CODE_ANNOTATION_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
 
-const CODE_TAG_RE = tagRegex(CODE_SEMANTIC_TAGS)
+const CODE_ANNOTATION_TAG_RE = tagRegex(CODE_ANNOTATION_TAGS)
 const CODE_TONE_TAG_RE = tagRegex(TONE_TAGS)
 
 const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
@@ -89,7 +89,7 @@ function normalizeTone(tag: string): string {
 }
 
 export function toneClassNames(tag: string): string[] {
-  return ['inline-code-tone', ...tag.split('+').map(tone => `is-${normalizeTone(tone)}`)]
+  return ['code-tone', ...tag.split('+').map(tone => `is-${normalizeTone(tone)}`)]
 }
 
 export function toneStyle(tag: string): string | undefined {
@@ -186,13 +186,13 @@ export function routeCodeNode(value: string): Element | null {
   return {
     type: 'element',
     tagName: 'code',
-    properties: { className: ['inline-code-enhanced', 'inline-code-with-tones'] },
-    children: [spanNode(['inline-code-route'], routeChildren(value))],
+    properties: { className: ['annotated-code', 'code-with-tones'] },
+    children: [spanNode(['code-route'], routeChildren(value))],
   }
 }
 
-export function stripCodeTags(value: string): string {
-  return value.replace(CODE_TAG_RE, '')
+export function stripCodeAnnotationTags(value: string): string {
+  return value.replace(CODE_ANNOTATION_TAG_RE, '')
 }
 
 interface ParsedText {
@@ -272,10 +272,10 @@ function renderNodes(nodes: ParsedNode[], parentTone: string | null = null): Ele
   return nodes.map(node => {
     if (node.type === 'text') return textNode(node.value)
     if (node.tag === ROUTE_TAG) {
-      return spanNode(['inline-code-route'], routeChildren(flatText(node.children)))
+      return spanNode(['code-route'], routeChildren(flatText(node.children)))
     }
     if (node.tag === RESPONSE_TAG) {
-      return spanNode(['inline-code-response'], responseChildren(flatText(node.children)))
+      return spanNode(['code-response'], responseChildren(flatText(node.children)))
     }
     const tone = normalizeTone(node.tag)
     const classTone = isDimTone(tone) && parentTone ? `${parentTone}+${tone}` : tone
@@ -284,8 +284,8 @@ function renderNodes(nodes: ParsedNode[], parentTone: string | null = null): Ele
   })
 }
 
-export function parseCodeSemantics(value: string): ElementContent[] | null {
-  const parsed = parseTagTree(value, CODE_TAG_RE)
+export function parseCodeAnnotations(value: string): ElementContent[] | null {
+  const parsed = parseTagTree(value, CODE_ANNOTATION_TAG_RE)
   return parsed && renderNodes(parsed.children)
 }
 

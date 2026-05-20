@@ -3,7 +3,6 @@ import { readStorage, writeStorage } from './storage'
 
 const ANNOUNCEMENT_SELECTOR = '[data-announcement-id]'
 const DISMISSED_ATTRIBUTE = 'data-docs-announcement-dismissed'
-const OFFSET_VAR = '--docs-announcement-offset'
 
 function storageKey(bar: HTMLElement): string | null {
   const id = bar.dataset.announcementId
@@ -26,7 +25,7 @@ export function updateAnnouncementOffset(): void {
     ? Math.max(0, Math.min(bar.offsetHeight, bar.getBoundingClientRect().bottom))
     : 0
 
-  document.documentElement.style.setProperty(OFFSET_VAR, `${offset}px`)
+  document.documentElement.style.setProperty('--docs-announcement-offset', `${offset}px`)
 }
 
 function applyDismissedState(): void {

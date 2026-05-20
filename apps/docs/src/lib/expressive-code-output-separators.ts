@@ -2,11 +2,6 @@ import { definePlugin, type ExpressiveCodePlugin } from '@expressive-code/core'
 import { select, selectAll, type Element, type ElementContent } from '@expressive-code/core/hast'
 import { isTerminalLanguage } from './terminal-languages'
 
-function hasClass(node: Element, className: string): boolean {
-  const classes = node.properties?.className
-  return Array.isArray(classes) && classes.includes(className)
-}
-
 function addClass(node: Element, className: string): void {
   const classes = node.properties?.className
   const arr = Array.isArray(classes) ? [...classes] : []
@@ -23,13 +18,19 @@ function extractText(node: ElementContent): string {
 function extractCommandText(codeNode: Element): string {
   const parts: string[] = []
   for (const child of codeNode.children) {
-    if (child.type === 'element' && hasClass(child, 'shell-prompt')) continue
+    if (
+      child.type === 'element' &&
+      Array.isArray(child.properties?.className) &&
+      child.properties.className.includes('shell-prompt')
+    ) {
+      continue
+    }
     parts.push(extractText(child))
   }
   return parts.join('')
 }
 
-export function pluginOutputSeparator(): ExpressiveCodePlugin {
+export function pluginOutputSeparators(): ExpressiveCodePlugin {
   return definePlugin({
     name: 'Output Separator',
     baseStyles: `

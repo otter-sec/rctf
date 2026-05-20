@@ -22,10 +22,6 @@ type Pagefind = {
   init?: () => Promise<void>
 }
 
-const BASE_PATH = import.meta.env.BASE_URL.replace(/\/$/, '')
-const PAGEFIND_URL = `${BASE_PATH}/pagefind/pagefind.js`
-const EMPTY_STATE_CLASS = 'text-muted-foreground px-3 py-8 text-center text-sm'
-
 let pagefindPromise: Promise<Pagefind | null> | null = null
 let searchController: AbortController | null = null
 
@@ -36,7 +32,9 @@ async function loadPagefind(): Promise<Pagefind | null> {
     try {
       // Pagefind writes this module into dist/pagefind/ after Astro builds,
       // so Vite cannot resolve it as a static source import.
-      const mod = await import(/* @vite-ignore */ PAGEFIND_URL)
+      const mod = await import(
+        /* @vite-ignore */ `${import.meta.env.BASE_URL.replace(/\/$/, '')}/pagefind/pagefind.js`
+      )
       if (mod.init) await mod.init()
       return mod as Pagefind
     } catch {
@@ -83,21 +81,10 @@ function appendHighlightedExcerpt(container: HTMLElement, excerpt: string): void
   if (text) (mark ?? container).append(document.createTextNode(text))
 }
 
-function searchScopePrefixes(): string[] {
-  return []
-}
-
-function isInSearchScope(url: string, prefixes: string[]): boolean {
-  if (prefixes.length === 0) return true
-
-  const path = new URL(url, window.location.origin).pathname
-  return prefixes.some(prefix => path === prefix.slice(0, -1) || path.startsWith(prefix))
-}
-
 function emptyState(message: string): HTMLParagraphElement {
   const p = document.createElement('p')
   p.id = 'search-empty'
-  p.className = EMPTY_STATE_CLASS
+  p.className = 'text-muted-foreground px-3 py-8 text-center text-sm'
   p.textContent = message
   return p
 }
@@ -141,12 +128,10 @@ async function runSearch(query: string): Promise<void> {
   }
 
   const { results: found } = await pagefind.search(query)
-  const scopePrefixes = searchScopePrefixes()
   const top: PagefindData[] = []
 
   for (const result of found) {
     const data = await result.data()
-    if (!isInSearchScope(data.url, scopePrefixes)) continue
     top.push(data)
     if (top.length >= 8) break
   }

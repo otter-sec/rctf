@@ -1,15 +1,9 @@
 import { mountClientModule } from './lifecycle'
 
-function hasKatexMarkup(): boolean {
-  return Boolean(document.querySelector('.katex'))
-}
-
-function hasKatexStylesheet(): boolean {
-  return Boolean(document.querySelector('link[data-katex-stylesheet]'))
-}
-
 async function ensureKatexStyles(): Promise<void> {
-  if (!hasKatexMarkup() || hasKatexStylesheet()) return
+  if (!document.querySelector('.katex') || document.querySelector('link[data-katex-stylesheet]')) {
+    return
+  }
 
   // Importing KaTeX CSS as a Vite URL keeps it version-locked with the
   // package dependency and avoids any CDN dependency.

@@ -26,8 +26,6 @@ type TocSidebarRootState = {
   tocScrollArea: HTMLElement | null
 }
 
-const LONG_PILL_THRESHOLD = 24
-
 const state: TocSidebarState = {
   roots: [],
   links: [],
@@ -130,7 +128,7 @@ function syncHeadingLabels(): void {
     if (!heading || !target) return
 
     target.innerHTML = headingHtml(heading, {
-      longPillThreshold: LONG_PILL_THRESHOLD,
+      longPillThreshold: 24,
     })
   })
 }

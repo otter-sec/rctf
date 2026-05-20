@@ -10,7 +10,7 @@
   @apply code-pill-inner;
 }
 
-[data-toc-text] .inline-path-icon {
+[data-toc-text] .code-path-icon {
   @apply hidden;
 }
 

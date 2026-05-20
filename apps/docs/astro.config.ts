@@ -12,11 +12,12 @@ import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
-import { ecOptions } from './src/lib/ec-config'
-import { rehypeInlineCodeSemantics } from './src/lib/rehype-inline-code-semantics'
-import { rehypeInlinePathHints, rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
-import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
-import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
+import { expressiveCodeOptions } from './src/lib/expressive-code-config'
+import { rehypeCodeAnnotations } from './src/lib/rehype-code-annotations'
+import { rehypeCodePathHints, rehypeCodePathIcons } from './src/lib/rehype-code-paths'
+import { rehypeCopyableShellCommands } from './src/lib/rehype-copyable-shell-commands'
+import { rehypeLinkIcons } from './src/lib/rehype-link-icons'
+import { rehypeTableWrappers } from './src/lib/rehype-table-wrappers'
 import { darkTheme, lightTheme } from './src/lib/shiki-themes'
 import { resolveSiteUrl } from './src/lib/site-url'
 
@@ -44,10 +45,10 @@ export default defineConfig({
           rel: ['nofollow', 'noreferrer', 'noopener'],
         },
       ],
-      rehypeWrapTables,
+      rehypeTableWrappers,
       rehypeKatex,
-      [rehypeExpressiveCode, { themes: [lightTheme, darkTheme], ...ecOptions }],
-      rehypeInlinePathHints,
+      [rehypeExpressiveCode, { themes: [lightTheme, darkTheme], ...expressiveCodeOptions }],
+      rehypeCodePathHints,
       [
         rehypeShiki,
         {
@@ -55,9 +56,10 @@ export default defineConfig({
           inline: 'tailing-curly-colon',
         },
       ],
-      rehypeInlineShellCmd,
-      rehypeInlineCodeSemantics,
-      rehypeInlinePathIcon,
+      rehypeCopyableShellCommands,
+      rehypeCodeAnnotations,
+      rehypeCodePathIcons,
+      rehypeLinkIcons,
       rehypeHeadingIds,
       [
         rehypeAutolinkHeadings,

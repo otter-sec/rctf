@@ -1,9 +1,4 @@
-import {
-  AttachedPluginData,
-  definePlugin,
-  type ExpressiveCodeBlock,
-  type ExpressiveCodePlugin,
-} from '@expressive-code/core'
+import { AttachedPluginData, definePlugin, type ExpressiveCodePlugin } from '@expressive-code/core'
 import { h, select } from '@expressive-code/core/hast'
 import { isTerminalLanguage } from './terminal-languages'
 
@@ -15,11 +10,7 @@ const shellPromptData = new AttachedPluginData<ShellPromptData>(() => ({
   promptLines: new Set<number>(),
 }))
 
-function isPromptAwareBlock(codeBlock: ExpressiveCodeBlock): boolean {
-  return codeBlock.props.frame === 'terminal' || isTerminalLanguage(codeBlock.language)
-}
-
-export function pluginShellPrompt(): ExpressiveCodePlugin {
+export function pluginShellPrompts(): ExpressiveCodePlugin {
   return definePlugin({
     name: 'Shell Prompt',
     baseStyles: `
@@ -33,7 +24,7 @@ export function pluginShellPrompt(): ExpressiveCodePlugin {
     `,
     hooks: {
       preprocessCode: ({ codeBlock }) => {
-        if (!isPromptAwareBlock(codeBlock)) return
+        if (codeBlock.props.frame !== 'terminal' && !isTerminalLanguage(codeBlock.language)) return
 
         const data = shellPromptData.getOrCreateFor(codeBlock)
         codeBlock.getLines().forEach((line, idx) => {

@@ -2,14 +2,12 @@ import { mountClientModule } from './lifecycle'
 import { setupTabs } from './tabs'
 
 const ASIDE_LAYOUT_SELECTOR = '[data-mdx-aside-layout]'
-const ASIDE_SELECTOR = '[data-mdx-aside]'
-const ASIDE_RAIL_SELECTOR = '[data-mdx-aside-rail]'
 
 function directAsides(layout: HTMLElement): HTMLElement[] {
   return Array.from(layout.children).filter(
     (child): child is HTMLElement =>
       child instanceof HTMLElement &&
-      child.matches(ASIDE_SELECTOR) &&
+      child.matches('[data-mdx-aside]') &&
       !child.hasAttribute('data-mdx-aside-clone')
   )
 }
@@ -58,7 +56,7 @@ function setupAsideLayout(layout: HTMLElement): void {
 }
 
 function cleanupMdxAsides(): void {
-  document.querySelectorAll(ASIDE_RAIL_SELECTOR).forEach(rail => rail.remove())
+  document.querySelectorAll('[data-mdx-aside-rail]').forEach(rail => rail.remove())
   document
     .querySelectorAll<HTMLElement>(ASIDE_LAYOUT_SELECTOR)
     .forEach(layout => layout.style.removeProperty('--mdx-aside-min-height'))
