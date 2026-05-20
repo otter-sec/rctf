@@ -75,7 +75,7 @@
     }
 
     :where(a.heading-anchor):not(:where(.not-prose, .not-prose *)) {
-      @apply text-muted-foreground/50 ml-2 inline-block select-none no-underline opacity-0;
+      @apply text-muted-foreground/50 ml-2 inline-block no-underline opacity-0 select-none;
       transition-duration: 50ms;
       transition-property: opacity, color;
       transition-timing-function: ease-out;
@@ -224,11 +224,11 @@
     }
 
     :where(
-        [data-nowrap-tables] .table-wrapper th,
-        [data-nowrap-tables] .table-wrapper td,
-        [data-nowrap-tables] .table-wrapper th *,
-        [data-nowrap-tables] .table-wrapper td *
-      ):not(:where(.not-prose, .not-prose *)) {
+      [data-nowrap-tables] .table-wrapper th,
+      [data-nowrap-tables] .table-wrapper td,
+      [data-nowrap-tables] .table-wrapper th *,
+      [data-nowrap-tables] .table-wrapper td *
+    ):not(:where(.not-prose, .not-prose *)) {
       white-space: nowrap;
       overflow-wrap: normal;
       word-break: normal;

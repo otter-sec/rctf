@@ -24,7 +24,11 @@ V2 includes the current captcha and analytics fields, logo URLs, archive state, 
 
 <Tabs items={['V2', 'V1']} sync="integrations-client-config-version">
   <Tab>
-    <ResponseBody def={GetClientConfigRouteV2} response="goodClientConfig" title="Response fields" />
+    <ResponseBody
+      def={GetClientConfigRouteV2}
+      response="goodClientConfig"
+      title="Response fields"
+    />
   </Tab>
   <Tab>
     <ResponseBody def={GetClientConfigRoute} response="goodClientConfig" title="Response fields" />

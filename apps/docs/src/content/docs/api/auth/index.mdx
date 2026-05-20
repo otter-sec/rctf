@@ -59,5 +59,7 @@ Tokens are encrypted with AES 256 GCM using `tokenKey`. Rotating `tokenKey` inva
 Verify tokens also depend on a one time Redis marker. The encrypted token can still decrypt successfully after the marker has been used or expired, but the verification request will not complete.
 
 <Callout title="Version choice">
-  For new clients, prefer the V2 route when both V1 and V2 exist for the same action. V2 uses the newer captcha field name and returns more response data. V1 remains useful for actions that do not have a V2 route, such as logging in with a team token or testing an auth token.
+  For new clients, prefer the V2 route when both V1 and V2 exist for the same action. V2 uses the
+  newer captcha field name and returns more response data. V1 remains useful for actions that do not
+  have a V2 route, such as logging in with a team token or testing an auth token.
 </Callout>

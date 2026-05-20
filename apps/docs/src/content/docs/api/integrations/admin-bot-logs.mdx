@@ -6,10 +6,7 @@ description: '<route>GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/l
 import { GetAdminBotJobLogsRouteV2 } from '@rctf/types'
 
 <RouteAside>
-  <RouteExample
-    def={GetAdminBotJobLogsRouteV2}
-    params={{ id: 'challenge-id', jobId: 'job-id' }}
-  />
+  <RouteExample def={GetAdminBotJobLogsRouteV2} params={{ id: 'challenge-id', jobId: 'job-id' }} />
 </RouteAside>
 
 <RouteMetaFromDef def={GetAdminBotJobLogsRouteV2} />
@@ -18,4 +15,8 @@ This route gives the retained logs for a completed or failed admin bot job. The 
 
 <RequestBody def={GetAdminBotJobLogsRouteV2} source="params" title="Path parameters" />
 
-<ResponseBody def={GetAdminBotJobLogsRouteV2} response="goodAdminBotJobLogs" title="Response fields" />
+<ResponseBody
+  def={GetAdminBotJobLogsRouteV2}
+  response="goodAdminBotJobLogs"
+  title="Response fields"
+/>

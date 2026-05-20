@@ -156,16 +156,16 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 
 ### `ChallengeFileV2`
 
-| Field  | Type             |
-| ------ | ---------------- |
+| Field  | Type                  |
+| ------ | --------------------- |
 | `name` | `string{:ts}`         |
 | `url`  | `string{:ts}`         |
 | `size` | `number \| null{:ts}` |
 
 ### `Endpoint`
 
-| Field   | Type                                      |
-| ------- | ----------------------------------------- |
+| Field   | Type                                           |
+| ------- | ---------------------------------------------- |
 | `kind`  | `"tcp" \| "tcp-ssl" \| "http" \| "https"{:ts}` |
 | `host`  | `string{:ts}`                                  |
 | `port`  | `number{:ts}`                                  |
@@ -173,8 +173,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 
 ### `InstancerConfig`
 
-| Field                    | Type                      |
-| ------------------------ | ------------------------- |
+| Field                    | Type                           |
+| ------------------------ | ------------------------------ |
 | `challengeIntegrationId` | `string{:ts}`                  |
 | `config`                 | `Record<string, unknown>{:ts}` |
 | `expose`                 | `Expose[]{:ts}`                |
@@ -183,8 +183,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 
 ### `Expose`
 
-| Field           | Type                                      |
-| --------------- | ----------------------------------------- |
+| Field           | Type                                           |
+| --------------- | ---------------------------------------------- |
 | `kind`          | `"tcp" \| "tcp-ssl" \| "http" \| "https"{:ts}` |
 | `hostPrefix`    | `string{:ts}`                                  |
 | `containerName` | `string{:ts}`                                  |
@@ -194,8 +194,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 
 ### `AdminBotConfig`
 
-| Field                              | Type                        |
-| ---------------------------------- | --------------------------- |
+| Field                              | Type                             |
+| ---------------------------------- | -------------------------------- |
 | `code`                             | `string{:ts}`                    |
 | `inputs`                           | `Record<string, RegexRule>{:ts}` |
 | `revision`                         | `string{:ts}`                    |
@@ -204,8 +204,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 
 ### `RegexRule`
 
-| Field     | Type                  |
-| --------- | --------------------- |
+| Field     | Type                       |
+| --------- | -------------------------- |
 | `pattern` | `string{:ts}`              |
 | `flags`   | `string \| undefined{:ts}` |
 

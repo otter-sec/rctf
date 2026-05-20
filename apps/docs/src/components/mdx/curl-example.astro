@@ -76,11 +76,13 @@ function add(line: string): void {
   lines.push(line)
 }
 if (needsExplicitMethod) add(`  <dim>-X</dim> <${methodTone}>${method}</${methodTone}>`)
-if (needsAuth) add(`  <dim>-H</dim> <white>"Authorization: Bearer <dim><${tokenLabel}></dim>"</white>`)
+if (needsAuth)
+  add(`  <dim>-H</dim> <white>"Authorization: Bearer <dim><${tokenLabel}></dim>"</white>`)
 if (hasBody && isFormData) {
   for (const [key, value] of Object.entries(bodyObj)) {
     if (value === null || value === undefined) continue
-    const fallback = key === 'files' ? '@dist.zip' : key === 'avatar' ? '@avatar.png' : String(value)
+    const fallback =
+      key === 'files' ? '@dist.zip' : key === 'avatar' ? '@avatar.png' : String(value)
     const rendered = typeof value === 'string' ? value : fallback
     add(`  <dim>-F</dim> <white>"${key}=${rendered}"</white>`)
   }

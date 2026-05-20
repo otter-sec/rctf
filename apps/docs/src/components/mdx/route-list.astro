@@ -11,7 +11,7 @@ const { class: className } = Astro.props
 
 <ScrollArea
   client:idle
-  className={cn('not-prose overflow-hidden xl:min-h-0 xl:max-h-[calc(100vh-8rem)]', className)}
+  className={cn('not-prose overflow-hidden xl:max-h-[calc(100vh-8rem)] xl:min-h-0', className)}
   fades
   viewportClassName="max-h-[inherit]"
 >

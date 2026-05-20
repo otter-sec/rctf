@@ -6,10 +6,7 @@ description: '<route>POST /api/v2/admin/user-verifications/:id/complete</route>'
 import { CompleteAdminUserVerificationRouteV2 } from '@rctf/types'
 
 <RouteAside>
-  <RouteExample
-    def={CompleteAdminUserVerificationRouteV2}
-    params={{ id: 'verification-id' }}
-  />
+  <RouteExample def={CompleteAdminUserVerificationRouteV2} params={{ id: 'verification-id' }} />
 </RouteAside>
 
 <RouteMetaFromDef def={CompleteAdminUserVerificationRouteV2} />
@@ -18,11 +15,7 @@ This route lets an organizer complete a pending email verification manually and 
 
 Duplicate email and duplicate name checks still apply.
 
-<RequestBody
-  def={CompleteAdminUserVerificationRouteV2}
-  source="params"
-  title="Path parameters"
-/>
+<RequestBody def={CompleteAdminUserVerificationRouteV2} source="params" title="Path parameters" />
 
 <ResponseBody
   def={CompleteAdminUserVerificationRouteV2}

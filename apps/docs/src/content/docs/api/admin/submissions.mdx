@@ -17,6 +17,10 @@ Query parameters control pagination, sorting, and lightweight challenge or team 
 
 <RequestBody def={GetAdminSubmissionsRouteV2} source="query" title="Query parameters" />
 
-<ResponseBody def={GetAdminSubmissionsRouteV2} response="goodAdminSubmissions" title="Response fields" />
+<ResponseBody
+  def={GetAdminSubmissionsRouteV2}
+  response="goodAdminSubmissions"
+  title="Response fields"
+/>
 
 Each row includes challenge metadata, team metadata, the source IP address, result details, and creation time.

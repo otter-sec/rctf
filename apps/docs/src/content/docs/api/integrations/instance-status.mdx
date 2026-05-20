@@ -17,6 +17,10 @@ When no instancer provider is configured, or when the challenge has no instancer
 
 <RequestBody def={GetInstanceStatusRouteV2} source="params" title="Path parameters" />
 
-<ResponseBody def={GetInstanceStatusRouteV2} response="goodInstanceStatus" title="Response fields" />
+<ResponseBody
+  def={GetInstanceStatusRouteV2}
+  response="goodInstanceStatus"
+  title="Response fields"
+/>
 
 `endpoints` are returned in the order configured for the challenge. Endpoint kinds include `tcp`, `tcp-ssl`, `http`, and `https`.

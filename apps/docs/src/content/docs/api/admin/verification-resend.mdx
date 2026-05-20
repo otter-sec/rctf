@@ -15,11 +15,7 @@ This route sends another verification email for an outstanding pending verificat
 
 If email delivery is not configured, the route returns `<response>404 badEndpoint</response>` because there is no provider available to send the message.
 
-<RequestBody
-  def={ResendAdminUserVerificationRouteV2}
-  source="params"
-  title="Path parameters"
-/>
+<RequestBody def={ResendAdminUserVerificationRouteV2} source="params" title="Path parameters" />
 
 <ResponseBody
   def={ResendAdminUserVerificationRouteV2}

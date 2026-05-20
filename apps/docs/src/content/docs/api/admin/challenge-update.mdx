@@ -3,12 +3,7 @@ title: '<route>PUT</route> Create or update challenge'
 description: '<route>PUT /api/[v2,v1]/admin/challs/:id</route>'
 ---
 
-import {
-  BadBody,
-  BadJson,
-  UpdateChallengeRoute,
-  UpdateChallengeRouteV2,
-} from '@rctf/types'
+import { BadBody, BadJson, UpdateChallengeRoute, UpdateChallengeRouteV2 } from '@rctf/types'
 
 <RouteAside>
   <Tabs items={['V2', 'V1']} sync="admin-challenge-update-version">
@@ -76,10 +71,18 @@ After a challenge changes, the leaderboard is recalculated. The active instancer
 
 <Tabs items={['V2', 'V1']} sync="admin-challenge-update-version">
   <Tab>
-    <ResponseBody def={UpdateChallengeRouteV2} response="goodChallengeUpdate" title="Response fields" />
+    <ResponseBody
+      def={UpdateChallengeRouteV2}
+      response="goodChallengeUpdate"
+      title="Response fields"
+    />
   </Tab>
   <Tab>
-    <ResponseBody def={UpdateChallengeRoute} response="goodChallengeUpdate" title="Response fields" />
+    <ResponseBody
+      def={UpdateChallengeRoute}
+      response="goodChallengeUpdate"
+      title="Response fields"
+    />
   </Tab>
 </Tabs>
 
