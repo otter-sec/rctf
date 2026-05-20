@@ -107,7 +107,7 @@ A pod without `<red>resources.limits</red>` can use whatever the node has free. 
 
 <Callout variant='problem' title='Failure mode'>
 
-The common version of this issue is a PodSpec with only `<red>requests</red>`, limits based on a single happy-path test, and no `<red>terminationGracePeriodSeconds</red>` cap. Held TCP connections can delay cleanup while the node remains under pressure.
+The common version of this issue is a PodSpec with only `<red>requests</red>`, limits based on a single happy-path test, and no `<red>terminationGracePeriodSeconds</red>` cap.
 
 </Callout>
 
@@ -141,7 +141,7 @@ A shared remote where the intended solution grants code execution, such as many 
 
 <Callout variant='problem' title='Failure mode'>
 
-The risky pattern is a pwn or RCE challenge served as one long-lived process. Each TCP connection should fork into its own sandbox with a read-only root filesystem, no network, dropped capabilities, and CPU, memory, and time limits. Also check customized kCTF templates where `nsjail` was removed, and per-team pods that still serve multiple parallel connections.
+The risky pattern is a pwn or RCE challenge served as one long-lived process. Each TCP connection should fork into its own sandbox with a read-only root filesystem, no network, dropped capabilities, and CPU, memory, and time limits. Make sure kCTF challenges did not remove `nsjail`.
 
 </Callout>
 
@@ -210,7 +210,7 @@ The Kubernetes side otherwise leaves several settings to the challenge author. E
 
 ### Improper host hardening
 
-A cloud VM with an unpatched kernel, exposed Docker socket, or unnecessary privileges can turn challenge code execution into host access. Container-escape and local privilege-escalation issues are patched regularly, but unpatched hosts remain exposed.
+A cloud VM with an unpatched kernel or unnecessary privileges can turn challenge code execution into host access. Container-escape and local privilege-escalation issues are patched regularly, but unpatched hosts remain exposed.
 
 <Callout variant='important' title='Keep the host boundary intact'>
 
@@ -271,7 +271,7 @@ The venue network is often different from the network used during testing. Rente
 <Tabs items={['Wireless', 'Firewall', 'NAT']}>
 <Tab>
 
-Ask for the per-AP and per-room bandwidth cap, then compare it against the expected laptop count. A rough warning sign is one access point expected to serve around 10 teams, or 40 laptops pulling challenge files, Docker images, or VPN updates at once.
+Ask for the per-AP and per-room bandwidth cap, then compare it against the expected laptop count.
 
 </Tab>
 <Tab>
@@ -294,10 +294,10 @@ If the venue cannot provide network details, plan a backup uplink and test it be
 
 ### Not enough VPN configs
 
-Onsite CTFs that also allow remote participation sometimes provide WireGuard or OpenVPN configs so challenge networks are reachable without exposing all services publicly. Two recurring issues are generating too few configs and binding the VPN only to the venue LAN. A common failure is having enough configs for a few onsite devices, but none for remote players. Either issue can force remote teams to build their own access path, which adds friction and can create an uneven experience.
+Onsite CTFs that also allow remote participation sometimes provide WireGuard or OpenVPN configs so challenge networks are reachable without exposing all services publicly, or to create a local network across all participants. A common issue we're seeing is having enough configs for a few onsite devices but none for remote players. This forces remote teams to build their own access path, which by itself is not really a problem but is annoying for the players, considering that VPN config generation is free.
 
 <Callout variant='warning' title='Prepare the access pool early'>
 
-Generate configs for all players, not only the people attending onsite. Pre-generating a large pool, such as 100 configs, is inexpensive and avoids last-minute manual work. Bind the VPN endpoint to a public IP, or use a cloud VPS that bridges to the venue network, so remote players can reach it over the public internet.
+Generate configs for all players, not only the people attending onsite. Pre-generate a large pool, such as 100 configs. Bind the VPN endpoint to a public IP, or use a cloud VPS that bridges to the venue network so remote players can reach it over the public internet.
 
 </Callout>
