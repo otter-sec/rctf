@@ -28,7 +28,7 @@ Division assignment can be restricted by email using [division ACLs](/configurat
 
 ## Team members
 
-When `<red>userMembers</red>` is enabled in the configuration (default: `true{:ts}`), teams can add members by email. This is informational - members share the same team token.
+When `<red>userMembers</red>` is enabled in the configuration (which is the default), teams can add members by email. This is purely informational, and members share the same team token.
 
 | Setting                  | Default     | Description                 |
 | ------------------------ | ----------- | --------------------------- |
@@ -39,7 +39,7 @@ When `<red>userMembers</red>` is enabled in the configuration (default: `true{:t
 
 Every user account must have at least one authentication method:
 
-- **Email** - Used for registration, recovery, and email-based features
-- **CTFtime ID** - Used for CTFtime OAuth authentication
+- An **email** address, used for registration, recovery, and email-based features.
+- A **CTFtime ID**, used for CTFtime OAuth authentication.
 
 A user cannot remove their email if they have no CTFtime ID linked, and vice versa.

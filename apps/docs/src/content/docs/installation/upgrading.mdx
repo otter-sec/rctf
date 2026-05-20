@@ -9,9 +9,9 @@ import Tabs from '@/components/mdx/tabs.astro'
 
 This guide covers the changes between rCTF v1 and v2 and what you need to do to upgrade.
 
-## tl;dr - swap the image and restart
+## In short, swap the image and restart
 
-The upgrade is automated. Point your existing deployment at the v2 image and start it - Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config is converted to the new shape at startup. No manual SQL, no config rewrite required to get back online.
+The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config is converted to the new shape at startup. No manual SQL, no config rewrite required to get back online.
 
 ```yaml title="compose.yml"
 services:
@@ -24,7 +24,7 @@ services:
   pg_dump`) before swapping the image so you have a path back if something goes wrong.
 </Callout>
 
-If you want to know what actually changes - new tables, new columns, API differences, and config sections that benefit from a manual rewrite - read on. None of it is required to upgrade.
+If you want to know what actually changes (new tables, new columns, API differences, and config sections that benefit from a manual rewrite), read on. None of it is required to upgrade.
 
 ## Database migration
 
@@ -144,7 +144,7 @@ analytics:
       siteTag: G-XXXXXXXX
 ```
 
-Additional analytics providers are available: `<green>analytics/cloudflare</green>`.
+Additional analytics providers are also available, such as `<green>analytics/cloudflare</green>`.
 
 ### New configuration sections
 

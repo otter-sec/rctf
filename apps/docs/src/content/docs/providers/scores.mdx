@@ -33,7 +33,7 @@ All scoring providers receive a context object with:
 
 ## Providers
 
-Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` and `<red>maxPoints</red>: <green>500</green>`. Solve-based providers show the full provider family with the current tab highlighted; `<green>scores/jammy</green>` uses its own time-based curve.
+Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` and `<red>maxPoints</red>: <green>500</green>`. Solve-based providers show the full provider family with the current tab highlighted, while `<green>scores/jammy</green>` uses its own time-based curve.
 
 <Tabs items={['scores/classic', 'scores/sekai', 'scores/steep', 'scores/jammy', 'scores/genni', 'scores/legacy']}>
 <Tab>
@@ -102,7 +102,7 @@ This provider requires `<red>startTime</red>` and `<red>endTime</red>` to be set
 
 <ScoreDecayChart focus="genni" />
 
-Binary scoring: returns `<red>maxPoints</red>` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
+A binary scoring algorithm. It returns `<red>maxPoints</red>` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
 
 ```yaml
 scoreProvider:

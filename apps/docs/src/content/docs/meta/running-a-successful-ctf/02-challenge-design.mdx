@@ -56,20 +56,20 @@ For challenges that require a remote component, containerization using Docker is
 
 #### Best practices
 
-- **One challenge per container** - Keep each challenge self-contained. If a challenge requires multiple services (e.g., a web app and a database), use Docker Compose.
-- **Minimal base images** - Use lightweight images like `alpine` or `debian-slim` to reduce build times and attack surface.
-- **Build artifacts separately** - Use multi-stage builds to compile binaries in one stage and copy only the final artifact into the runtime image.
-- **Non-root users** - Run challenge services as a non-root user inside the container to limit the impact of container escapes.
-- **Read-only filesystem** - Where possible, mount the root filesystem as read-only (`readOnly: true{:yml}` or `<dim>--read-only</dim>`) and use a tmpfs for writable directories.
+- Keep **one challenge per container** so each challenge stays self-contained. If a challenge requires multiple services (e.g., a web app and a database), use Docker Compose.
+- Reach for **minimal base images** like `alpine` or `debian-slim` to reduce build times and attack surface.
+- **Build artifacts separately** with multi-stage builds, compiling binaries in one stage and copying only the final artifact into the runtime image.
+- Run challenge services as **non-root users** inside the container to limit the impact of container escapes.
+- Use a **read-only filesystem** where possible by mounting the root filesystem as read-only (`readOnly: true{:yml}` or `<dim>--read-only</dim>`) and using a tmpfs for writable directories.
 
 #### Security defaults
 
 When deploying challenges, apply the following security settings:
 
-- `cap_drop: ALL{:yml}` - Drop all Linux capabilities
-- `no-new-privileges: true{:yml}` - Prevent privilege escalation
-- Memory and PID limits - Prevent resource exhaustion (e.g., fork bombs)
-- Network isolation - Use internal networks for multi-container challenges where services should not be directly reachable
+- `cap_drop: ALL{:yml}` drops all Linux capabilities.
+- `no-new-privileges: true{:yml}` prevents privilege escalation.
+- Memory and PID limits prevent resource exhaustion (e.g., fork bombs).
+- Network isolation uses internal networks for multi-container challenges where services should not be directly reachable.
 
 #### Example Dockerfile
 

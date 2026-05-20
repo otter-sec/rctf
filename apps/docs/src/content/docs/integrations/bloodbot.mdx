@@ -40,7 +40,7 @@ Sends announcements via a Discord webhook.
 | ---------------- | ------------------- |
 | `<red>url</red>` | Discord webhook URL |
 
-To create a webhook: Server Settings > Integrations > Webhooks > New Webhook. Copy the webhook URL.
+To create a webhook, navigate to Server Settings > Integrations > Webhooks > New Webhook, then copy the webhook URL.
 
 </Tab>
 <Tab>
@@ -83,9 +83,10 @@ bloodBot:
 
 ### Default templates
 
-If no custom template is provided, default templates are used:
+If no custom template is provided, default templates are used.
 
-- **Discord**: ``Congratulations to [`{{teamName}}`]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`!``
-- **Telegram**: ``Congratulations to [*{{teamName}}*]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`\!``
+The Discord default is ``Congratulations to [`{{teamName}}`]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`!``.
+
+The Telegram default is ``Congratulations to [*{{teamName}}*]({{teamUrl}}) for {{bloodNumSentence}} blood on `{{challengeCategory}}/{{challengeName}}`\!``.
 
 The Telegram template uses MarkdownV2 syntax and escapes the `!` character as required by the Telegram API.

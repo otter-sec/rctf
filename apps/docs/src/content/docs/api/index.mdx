@@ -3,7 +3,7 @@ title: API reference
 description: Reference for rCTF API versions, authentication, envelopes, permissions, rate limits, and typed route definitions.
 ---
 
-The rCTF API is a JSON REST API mounted under `<route>/api</route>`. Route definitions live in `@rctf/types`, and the API server registers each route by prefixing the typed path with `<route>/api</route>`.
+The rCTF API is a JSON REST API served from `<route>/api</route>`. Route definitions are exported from the `@rctf/types` package, and the API server registers each route by prefixing the typed path with `<route>/api</route>`.
 
 ## Versions
 
@@ -14,7 +14,7 @@ Both API versions are available at the same time:
 | V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
 | V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-The versions are route contracts, not separate complete APIs. Use V2 where a V2 route exists, and use V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, etc.).
+The two versions overlap rather than forming separate complete APIs. Use V2 where a V2 route exists, and fall back to V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, and similar additions).
 
 ## Typed route contract
 
@@ -32,7 +32,7 @@ type Query = RouteQueryInput<typeof GetChallengesRouteV2>
 type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 ```
 
-`RouteBodyInput<T>{:ts}` describes the client-side input shape before zod coercions and transforms. `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` do the same for query strings and path params.
+`RouteBodyInput<T>{:ts}` describes the client-side input shape before any zod coercions and transforms have run. The matching `RouteQueryInput<T>{:ts}` and `RouteParamsInput<T>{:ts}` helpers do the same for query strings and path parameters.
 
 ## Authentication
 
@@ -61,7 +61,7 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 | Verify | `loginTimeout` | Email update verification. |
 | CTFtime auth | `loginTimeout` | CTFtime registration and login handoff. |
 
-Tokens are encrypted with AES-GCM using `tokenKey`. Changing `tokenKey` invalidates existing tokens.
+Tokens are encrypted with AES-GCM using the configured `tokenKey`. Changing `tokenKey` invalidates every token that was issued before the rotation.
 
 ## Response envelope
 

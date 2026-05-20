@@ -29,9 +29,9 @@ The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The
 
 <Callout variant="warning" title="Hosting the instancer on a separate machine">
 
-The bundled `compose.yml{:file}` binds the instancer API to `127.0.0.1:12237` because the default deployment expects rCTF and the instancer to share the `rctf_network` Docker network on the same host - the loopback bind is intentional.
+The bundled `compose.yml{:file}` binds the instancer API to `127.0.0.1:12237` because the default deployment expects rCTF and the instancer to share the `rctf_network` Docker network on the same host. The loopback bind is intentional.
 
-If you split the instancer onto its own host (which we recommend - it isolates challenge workloads from the platform), change the port mapping to bind globally:
+If you split the instancer onto its own host (which we recommend, since it isolates challenge workloads from the platform), change the port mapping to bind globally:
 
 ```yaml title="deploy/docker-instancer/compose.yml"
 ports:
@@ -101,7 +101,7 @@ The Traefik TLS config expects these files:
 
 ### Docker daemon address pool
 
-Every instanced challenge creates its own user-defined Docker network. Docker carves those networks out of the daemon's default address pool, which on a fresh install is only `172.17.0.0/16` plus a small chunk of `192.168.0.0/16` - enough for ~30 networks before `$ <red>docker</red> network create` starts failing with `could not find an available, non-overlapping IPv4 address pool`. For a production CTF this runs out fast.
+Every instanced challenge creates its own user-defined Docker network. Docker carves those networks out of the daemon's default address pool, which on a fresh install is only `172.17.0.0/16` plus a small chunk of `192.168.0.0/16`. That's enough for ~30 networks before `$ <red>docker</red> network create` starts failing with `could not find an available, non-overlapping IPv4 address pool`. For a production CTF this runs out fast.
 
 Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on the instancer host:
 
@@ -116,7 +116,7 @@ Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on t
 }
 ```
 
-This carves `100.64.0.0/10` (the CGNAT range, safe to use internally) into `/24` subnets, giving you **16384** Docker networks - enough for ~8192 concurrent instances in the worst case (each challenge typically creates two networks). Add more `default-address-pools` entries if you need still more room.
+This carves `100.64.0.0/10` (the CGNAT range, safe to use internally) into `/24` subnets, giving you **16384** Docker networks. That's enough for ~8192 concurrent instances in the worst case (each challenge typically creates two networks). Add more `default-address-pools` entries if you need still more room.
 
 Restart Docker after editing the file (`$ <red>systemctl</red> restart docker`) so the new pool is picked up. Networks already created on the old pool keep working but consume their original ranges.
 

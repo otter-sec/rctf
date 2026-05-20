@@ -15,11 +15,11 @@ Effective monitoring is essential for identifying and resolving issues before th
 
 Monitor the following components throughout the competition:
 
-- **rCTF platform** - Watch API server logs for elevated error rates.
-- **PostgreSQL** - Monitor connection pool usage, query latency, and disk space. High connection counts may indicate a connection leak or excessive load.
-- **Redis** - Monitor memory usage and connected clients. Redis is used for caching, rate limiting, and leaderboard computation. If Redis becomes unavailable, rate limiting and caching will fail.
-- **Challenge containers** - Monitor CPU, memory, and network usage for hosted challenges.
-- **Reverse proxy (Nginx)** - Monitor request rates, error rates (5xx), and response times. If behind Cloudflare, use the Cloudflare dashboard for DDoS metrics.
+- For the **rCTF platform**, watch API server logs for elevated error rates.
+- For **PostgreSQL**, monitor connection pool usage, query latency, and disk space. High connection counts may indicate a connection leak or excessive load.
+- For **Redis**, monitor memory usage and connected clients. Redis is used for caching, rate limiting, and leaderboard computation. If Redis becomes unavailable, rate limiting and caching will fail.
+- For **challenge containers**, monitor CPU, memory, and network usage for hosted challenges.
+- For the **reverse proxy (Nginx)**, monitor request rates, error rates (5xx), and response times. If behind Cloudflare, use the Cloudflare dashboard for DDoS metrics.
 
 <Callout variant="tip">
 
@@ -38,27 +38,27 @@ Despite thorough preparation, issues will inevitably arise during the competitio
 
 If a challenge becomes unavailable, the response depends on the deployment method:
 
-- **Docker containers** - Check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <container>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <service>` if needed.
-- **Instancer-managed challenges** - Verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
-- **Static challenges** (no remote) - Verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
+- For **Docker containers**, check container status with `$ <red>docker</red> ps` and logs with `$ <red>docker</red> logs <container>`. Restart with `$ <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <service>` if needed.
+- For **instancer-managed challenges**, verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
+- For **static challenges** (no remote), verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
 
 Once the issue is resolved, post an announcement in the `#announcements` channel informing participants that the challenge is back online.
 
 ### Platform issues
 
-If the rCTF platform itself becomes unresponsive:
+If the rCTF platform itself becomes unresponsive, work through the following steps:
 
-1. **Check API server logs** - Look for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker: `$ <red>docker</red> logs rctf-rctf-1`.
-2. **Verify database connectivity** - Ensure PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries: `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 psql <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
-3. **Verify Redis connectivity** - Ensure Redis is running: `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 redis-cli ping`.
-4. **Restart the rCTF service** - If the issue is not immediately identifiable: `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
-5. **Check resource usage** - Verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
+1. **Check API server logs** for crash traces, out-of-memory errors, or unhandled exceptions. If using Docker, run `$ <red>docker</red> logs rctf-rctf-1`.
+2. **Verify database connectivity** by ensuring PostgreSQL is running and accepting connections. Check for connection pool exhaustion or long-running queries with `$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 psql <dim>-U</dim> rctf <dim>-c</dim> <green>"SELECT count(*) FROM pg_stat_activity;"</green>`.
+3. **Verify Redis connectivity** by ensuring Redis is running. Run `$ <red>docker</red> exec <dim>-it</dim> rctf-redis-1 redis-cli ping`.
+4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
+5. **Check resource usage** to verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 
 For extended outages, consider extending the competition end time to compensate for lost time.
 
 ### Security incidents
 
-Security incidents require immediate attention. Common scenarios include:
+Security incidents require immediate attention. Common scenarios include the following:
 
 - If evidence of **flag sharing** between teams is identified, document the evidence and consider disqualification.
 - If challenge infrastructure is being targeted (e.g., DoS attacks), consider temporarily taking the affected challenge offline and implementing additional rate limiting or IP blocking.
@@ -68,7 +68,7 @@ Security incidents require immediate attention. Common scenarios include:
 
 ### Broken challenges
 
-If a challenge is reported as broken, the first step is verification. Have the challenge author test the intended solution against the live deployment. If the challenge is confirmed broken:
+If a challenge is reported as broken, the first step is verification. Have the challenge author test the intended solution against the live deployment. If the challenge is confirmed broken, work through the following steps:
 
 1. Post an announcement acknowledging the issue and indicating that a fix is in progress.
 2. Apply the necessary fix to the challenge.

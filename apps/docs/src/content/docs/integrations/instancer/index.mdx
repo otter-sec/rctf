@@ -16,10 +16,10 @@ Instanced challenges are useful when teams need private mutable state, a dedicat
 
 ## Pick a backend
 
-This page covers the parts that are the same for both providers - the architecture, the common challenge fields, and the participant lifecycle. The provider-specific deployment guides live one level deeper:
+This page covers the parts that are the same for both providers, namely the architecture, the common challenge fields, and the participant lifecycle. The provider-specific deployment guides live one level deeper:
 
-- [Docker instancer](/integrations/instancer/docker/) - bundled Python FastAPI service driving Docker, Traefik, and Redis.
-- [Kubernetes instancer](/integrations/instancer/kubernetes/) - Go operator driving GKE, Traefik, and Terraform.
+- [Docker instancer](/integrations/instancer/docker/) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
+- [Kubernetes instancer](/integrations/instancer/kubernetes/) is a Go operator driving GKE, Traefik, and Terraform.
 
 ## Architecture
 
@@ -102,7 +102,7 @@ See [Kubernetes instancer](/integrations/instancer/kubernetes/) for the Terrafor
 
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active; only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata/) consumes - Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
+Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata/) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
@@ -174,13 +174,13 @@ captcha:
 
 ## Provider schema and the admin UI
 
-The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic** - the same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
+The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
 
 The response is generated from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
 
 ### Dynamic admin UI
 
-The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Switching the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild - every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI does not cover.
+The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Switching the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI does not cover.
 
 <Callout variant="note" title="Challenge repository tooling">
   [Konata](/integrations/konata/) is a CTF challenge management tool with rCTF support, including

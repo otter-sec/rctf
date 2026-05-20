@@ -73,7 +73,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
 | `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
 | `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
-| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag (deprecated, auto-converted to `<red>analytics.provider</red>` at startup; see [Upgrading from v1](/installation/upgrading/#analytics-provider)) |
+| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading/#analytics-provider). |
 
 ### Email
 
@@ -216,7 +216,7 @@ ACL rules are evaluated in order. The first matching rule determines the user's 
 
 <Callout variant="warning" title="Email provider required, disable CTFtime auth">
 
-Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs - CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
+Division ACLs match on email, so an email provider must be configured for them to apply. CTFtime authentication should also be disabled on instances that use ACLs, since CTFtime sign-ins bypass ACL evaluation entirely and grant access to every division.
 
 </Callout>
 ### Authentication

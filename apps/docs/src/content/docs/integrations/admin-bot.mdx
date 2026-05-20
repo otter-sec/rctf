@@ -8,10 +8,10 @@ The admin bot integration runs trusted TypeScript challenge handlers in a separa
 <Callout variant='warning' title='Not battle-tested under high load'>
   Most of rCTF v2 has been used to run large public events, but the admin bot has not been
   exercised under that kind of traffic yet. The implementation is functional and we expect it to
-  hold up, but expect rougher edges than the rest of the platform - load-test before relying on it
+  hold up, but expect rougher edges than the rest of the platform. Load-test before relying on it
   for a high-volume event, and watch the queue depth and worker logs during the CTF.
 
-If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues) - and if you _did_ run the admin bot successfully through a public CTF, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
+If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues). And if you _did_ run the admin bot successfully through a public CTF, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
 
 </Callout>
 
@@ -204,7 +204,7 @@ export const challenge = new Challenge({
     // - `url` param preserves the original casing of the path/query
     //
     // note on dns rebinding bypasses:
-    // pac rules match on host/url strings only - they do not resolve DNS.
+    // pac rules match on host/url strings only, and do not resolve DNS.
     // a blocklist-only config (disallowRegex without a catch-all) can be
     // bypassed by aliases that resolve to internal IPs (e.g. 127.0.0.1.nip.io).
     // to prevent this, pair allowRegex with a catch-all disallowRegex
@@ -353,12 +353,12 @@ Each worker process runs one job at a time. Multiple worker processes can poll t
 
 ## Scaling under load
 
-Admin bot jobs are throughput-bound on browser sessions, not CPU. A worker spends most of its wall time waiting on Puppeteer - page loads, redirects, and the configured timeout - so steady-state CPU on a worker can stay low even when the queue is backing up. Autoscaling on CPU will react late and under-provision; scaling on **queue depth** is the right signal.
+Admin bot jobs are throughput-bound on browser sessions, not CPU. A worker spends most of its wall time waiting on Puppeteer (page loads, redirects, and the configured timeout), so steady-state CPU on a worker can stay low even when the queue is backing up. Autoscaling on CPU will react late and under-provision, so scaling on **queue depth** is the right signal.
 
-The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is meant to drive that signal. A practical setup is to scrape it (via an exporter or a small sidecar) into Prometheus, set a target queue depth per replica (e.g. 5–10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
+The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is meant to drive that signal. A practical setup is to scrape it (via an exporter or a small sidecar) into Prometheus, set a target queue depth per replica (somewhere around 5 to 10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
 
 <Callout variant="note" title="No production-ready manifests yet">
   We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot
-  fleet - the queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to the
+  fleet. The queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to the
   deployer for now. If you build one and want to upstream it, see the note at the top of this page.
 </Callout>

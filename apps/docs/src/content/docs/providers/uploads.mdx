@@ -5,7 +5,7 @@ description: Configure file storage with local filesystem, Amazon S3, or Google 
 
 import Callout from '@/components/callout.astro'
 
-Upload providers handle storage for challenge file attachments **and team avatars** - both share the same provider, so anything you configure here affects both.
+Upload providers handle storage for challenge file attachments **and team avatars**. Both share the same provider, so anything you configure here affects both.
 
 <Callout variant="warning" title="v2 needs delete permissions">
   Unlike rCTF v1, the v2 upload provider requires permission to **delete** objects, not just upload
@@ -29,9 +29,9 @@ uploadProvider:
 
 ## File handling
 
-- **Deduplication**: Files are stored by their SHA256 hash. Uploading the same file content twice does not create a duplicate.
-- **Caching**: All uploaded files are served with immutable cache headers (`max-age=31536000`).
-- **Avatars**: Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `<red>maxAvatarSize</red>` config option (default 1 MB).
+- Files are stored by their SHA256 hash, so uploading the same file content twice does not create a duplicate.
+- All uploaded files are served with immutable cache headers (`max-age=31536000`).
+- Team avatars are resized to 256x256 pixels and converted to WebP format before upload. The maximum avatar size is controlled by the `<red>maxAvatarSize</red>` config option (default 1 MB).
 
 ## Providers
 
@@ -128,8 +128,8 @@ $ <red>terraform</red> apply <dim>-var=</dim><green>"region=eu-west-3"</green> <
 
 Outputs are written next to the module:
 
-- `aws-rctf-access-key.json{:file}` - `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user
-- `rctf_iam_user_arn`, `bucket` - Terraform outputs printed to stdout
+- `aws-rctf-access-key.json{:file}` holds `{ access_key_id, secret_access_key }` for the dedicated `rctf-bucket` IAM user.
+- `rctf_iam_user_arn` and `bucket` are Terraform outputs printed to stdout.
 
 Drop the credentials into your config:
 
@@ -143,7 +143,7 @@ uploadProvider:
     awsRegion: eu-west-3
 ```
 
-The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default - override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
+The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default, which you can override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
 
 </Tab>
 <Tab>
@@ -156,8 +156,8 @@ $ <red>terraform</red> apply <dim>-var=</dim><green>"project_id=my-gcp-project"<
 
 Outputs are written next to the module:
 
-- `gcs-sa-key.json{:file}` - service-account key for the dedicated `rctf-bucket` service account
-- `rctf_sa_email`, `bucket` - Terraform outputs printed to stdout
+- `gcs-sa-key.json{:file}` holds the service-account key for the dedicated `rctf-bucket` service account.
+- `rctf_sa_email` and `bucket` are Terraform outputs printed to stdout.
 
 Drop the credentials into your config (paste the contents of `gcs-sa-key.json{:file}` under `<red>credentials</red>`):
 
@@ -173,7 +173,7 @@ uploadProvider:
       # ...rest of gcs-sa-key.json
 ```
 
-The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default - override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.
+The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default, which you can override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.
 
 </Tab>
 </Tabs>
