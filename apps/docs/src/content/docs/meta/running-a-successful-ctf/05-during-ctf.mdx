@@ -5,11 +5,11 @@ description: Operational procedures for monitoring, incident response, and issue
 
 import Callout from '@/components/callout.astro'
 
-Now that you've deployed the challenges and the CTF platform is up and running, it's time to start the competition. This section covers monitoring practices, incident response procedures, and operational guidelines for handling issues that arise during the event.
+With challenges deployed and the CTF platform live, the competition is ready to start. This section covers monitoring, incident response, and operational guidance for the issues that show up during the event.
 
 ## Monitoring
 
-Effective monitoring is essential for identifying and resolving issues before they significantly impact participants.
+Good monitoring catches issues before they hit participants.
 
 ### Infrastructure monitoring
 
@@ -28,11 +28,11 @@ Consider setting up a simple uptime monitor (e.g., [UptimeRobot](https://uptimer
 </Callout>
 ### Staffing and shift coverage
 
-For competitions exceeding 12 hours, it is advisable to establish a shift rotation to ensure continuous coverage. When possible, leverage team members in different time zones to provide around-the-clock support without requiring overnight shifts. At minimum, ensure that at least one person with infrastructure access is available at all times to respond to critical incidents. If authors are unavailable for their specific challenges, ensure adequate internal documentation is available for a support team member to help with specific tickets.
+For competitions running longer than 12 hours, set up a shift rotation so coverage stays continuous. A team spread across time zones can cover the full event without anyone pulling overnight shifts. At minimum, keep at least one person with infrastructure access on call at all times for critical incidents. If a challenge author isn't available, make sure the support team has enough internal documentation to handle tickets on that challenge.
 
 ## Incident response
 
-Despite thorough preparation, issues will inevitably arise during the competition. Establish clear procedures for common incident types.
+Even with thorough preparation, things will go wrong during the competition. Have clear procedures ready for common incident types.
 
 ### Challenge outages
 
@@ -42,7 +42,7 @@ If a challenge becomes unavailable, the response depends on the deployment metho
 - For **instancer-managed challenges**, verify the instancer service is running and reachable. Check the instancer logs for errors. If individual instances are failing, the issue may be with the challenge image itself rather than the instancer.
 - For **static challenges** (no remote), verify that challenge files are accessible through the upload provider. If using S3/GCS, check bucket permissions and CDN status.
 
-Once the issue is resolved, post an announcement in the `#announcements` channel informing participants that the challenge is back online.
+Once the issue is fixed, post an announcement in the `#announcements` channel letting participants know the challenge is back online.
 
 ### Platform issues
 
@@ -54,7 +54,7 @@ If the rCTF platform itself becomes unresponsive, work through the following ste
 4. **Restart the rCTF service** if the issue is not immediately identifiable. Run `$ <red>cd</red> /opt/rctf && <red>docker</red> compose restart rctf`.
 5. **Check resource usage** to verify the host has sufficient CPU, memory, and disk space. High leaderboard update frequency or large team counts can increase resource usage.
 
-For extended outages, consider extending the competition end time to compensate for lost time.
+For extended outages, push the competition end time back to make up for the lost time.
 
 ### Security incidents
 
@@ -68,54 +68,54 @@ Security incidents require immediate attention. Common scenarios include the fol
 
 ### Broken challenges
 
-If a challenge is reported as broken, the first step is verification. Have the challenge author test the intended solution against the live deployment. If the challenge is confirmed broken, work through the following steps:
+If a challenge is reported as broken, verify it first. Have the author run the intended solution against the live deployment. If it's actually broken, work through the following steps:
 
-1. Post an announcement acknowledging the issue and indicating that a fix is in progress.
-2. Apply the necessary fix to the challenge.
-3. Test the fix thoroughly before redeployment.
-4. Announce when the challenge is operational again.
+1. Post an announcement acknowledging the issue and that a fix is in progress.
+2. Apply the fix to the challenge.
+3. Test the fix before redeploying.
+4. Announce when the challenge is back online.
 
 <Callout variant="warning" title="Mid-competition modifications">
 
-Exercise extreme caution when modifying challenges during the competition, as changes can invalidate progress made by participants. If any team has already solved the challenge, the challenge should generally be considered solvable and modifications should be avoided unless the challenge is fundamentally broken.
+Be very careful when modifying challenges during the competition, since changes can invalidate progress made by participants. If any team has already solved the challenge, consider it solvable and avoid further modifications unless the challenge is fundamentally broken.
 
 </Callout>
 ### Unintended solutions
 
-Unintended solutions (where participants solve a challenge through a method not anticipated by the author) are common in CTFs. The recommended approach is to accept the unintended solution as valid, as penalizing creativity would be unfair to participants who invested effort into finding the alternative approach.
+Unintended solutions (where participants solve a challenge through a method the author didn't anticipate) are common in CTFs. The usual call is to accept the unintended solution as valid. Penalizing creativity isn't fair to the participants who put in the effort to find an alternative approach.
 
-If the unintended solution trivializes the challenge (e.g., a configuration error exposing the flag directly), consider deploying a "revenge" variant with the vulnerability patched. Note that releasing a revenge challenge may inadvertently hint at the nature of the unintended solution.
+If the unintended solution trivializes the challenge (e.g., a configuration error exposing the flag directly), consider deploying a "revenge" variant with the vulnerability patched. Be aware that releasing a revenge challenge can inadvertently hint at the nature of the unintended solution.
 
 ### Attachment updates
 
-If challenge attachments require updates (e.g., to fix typos or provide missing files), update the attachment and post a clear announcement specifying what changed. Avoid changes that would invalidate existing progress.
+If challenge attachments need updates (e.g., typo fixes or missing files), update the attachment and post a clear announcement spelling out what changed. Avoid changes that would invalidate existing progress.
 
 ## Hint policy
 
-As established in the [prerequisites section](/meta/running-a-successful-ctf/01-prerequisites/#hints), a strict no-hint policy is recommended for fairness. However, structured hint releases may be appropriate for unsolved challenges as the competition progresses. If hints are to be released, follow this procedure:
+As covered in the [prerequisites section](/meta/running-a-successful-ctf/01-prerequisites/#hints), a strict no-hint policy is the default for fairness. That said, structured hint releases can be appropriate for unsolved challenges as the competition progresses. If you release hints, follow this procedure:
 
-1. Around the halfway point of the competition, request that interested participants open support tickets describing their current progress on unsolved challenges.
-2. The challenge author reviews submitted progress and determines whether a hint is warranted and, if so, what information to provide.
-3. Any approved hints must be released publicly in the `#announcements` channel to ensure all participants have equal access.
+1. Around the halfway point of the competition, ask interested participants to open support tickets describing their current progress on unsolved challenges.
+2. The challenge author reviews the submitted progress and decides whether a hint is warranted and what to provide.
+3. Any approved hints must go out publicly in the `#announcements` channel so all participants have equal access.
 
 <Callout variant="danger" title="Post-solve hints">
 
-Once a challenge has been solved, no additional hints should be released for that challenge. Doing so would be unfair to teams that solved it without assistance.
+Once a challenge has been solved, don't release any more hints for it. Doing so would be unfair to teams that solved it without help.
 
 </Callout>
 <Callout variant="tip" title="Timing considerations">
 
-When releasing hints, consider that participating teams are often distributed across multiple time zones. Releasing a hint during one region's sleeping hours may provide an unfair advantage to teams in other regions. If possible, time hint releases to coincide with periods when most participants are likely to be active.
+Participating teams are usually spread across multiple time zones. Releasing a hint during one region's sleeping hours hands the rest an unfair advantage. Where possible, time hint releases for when most participants are likely to be active.
 
 </Callout>
 <Callout variant="note" title="Beginner-friendly challenges">
 
-For challenges designated as beginner-friendly, it is generally acceptable to provide hints or guidance to novice teams who request help. This can support their learning and encourage participation, as long as it does not impact the final competition rankings.
+For challenges marked as beginner-friendly, giving hints or guidance to novice teams who ask is usually fine. It helps them learn and encourages participation, as long as it doesn't affect the final competition rankings.
 
 </Callout>
 ## Announcements
 
-Maintain clear and timely communication with participants throughout the competition. The following events should always be announced:
+Keep communication with participants clear and timely throughout the competition. Always announce the following:
 
 - Competition start and end reminders
 - Challenge releases (if challenges are released in waves)
@@ -126,4 +126,4 @@ Maintain clear and timely communication with participants throughout the competi
 - Survey release
 - Writeups release
 
-Keep announcements concise and informative. For temporal announcements, consider using Discord's [timestamp](https://r.3v.fi/discord-timestamps/) for relative times.
+Keep announcements concise and informative. For time-related announcements, Discord's [timestamp](https://r.3v.fi/discord-timestamps/) formatting handles relative times across time zones.

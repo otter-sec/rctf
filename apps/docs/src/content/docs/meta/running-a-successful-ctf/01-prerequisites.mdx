@@ -5,7 +5,7 @@ description: Organizational structure, timeline, CTFtime registration, sponsorsh
 
 import Callout from '@/components/callout.astro'
 
-Running a CTF is a significant undertaking that requires coordination across challenge development, infrastructure, sponsorship, and communication. The following sections outline the organizational and logistical foundations you'll need to establish before technical details are covered.
+Running a CTF takes coordination across challenge development, infrastructure, sponsorship, and communication. The following sections cover the organizational and logistical groundwork you'll want in place before the technical details come up.
 
 ## Organizational structure
 
@@ -13,7 +13,7 @@ A successful CTF requires a dedicated team with clearly defined roles and respon
 
 - **Organizers** are the core coordinators, responsible for managing the event from start to finish. Their duties include managing timelines, overseeing team operations, making final decisions, maintaining sponsor relationships, and handling logistics such as merchandise orders and prize distribution.
 - **Challenge authors** create and implement the CTF's challenges. In addition to developing problems, authors typically playtest each other's work to ensure quality and balance.
-- **Infrastructure leads** manage the technical aspects of the competition. Their responsibilities include deploying the platform, hosting challenges, maintaining system health, enforcing security (such as firewalls and anti-DDoS measures), and scaling resources when appropriate. They should be available throughout the competition for incident response, or the team should be organized into shifts to provide continuous coverage (leveraging different time zones can help here).
+- **Infrastructure leads** manage the technical side of the competition. Their work includes deploying the platform, hosting challenges, watching system health, enforcing security (firewalls, anti-DDoS, and so on), and scaling resources when appropriate. They should be available throughout the competition for incident response, or the team should rotate shifts to cover the full event (a team spread across time zones helps here).
 - **Support team members** address participant tickets and resolve issues as they arise.
 
 <Callout variant="tip" title="Team size">
@@ -23,7 +23,7 @@ For a typical 24-48 hour CTF with 20-30 challenges, a team of 5-10 organizers is
 </Callout>
 ### Timeline
 
-It is advisable to begin preparations at least 2-3 months before the event. The following is a suggested timeline:
+Start preparations at least 2-3 months before the event. A suggested timeline:
 
 - **Three months** before the event, the organizers should finalize the competition date, ideate challenges, and reach out to sponsors. The event should also be registered on CTFtime (see [CTFtime](#ctftime) for more information).
 - **Two months** before the event, challenge development should begin.
@@ -32,7 +32,7 @@ It is advisable to begin preparations at least 2-3 months before the event. The 
 
 ## CTFtime
 
-[CTFtime](https://ctftime.org) serves as the central hub for tracking CTF events, participating teams, and related information. It is the most effective way to promote a CTF to the broader community and to verify that a planned date does not conflict with other events.
+[CTFtime](https://ctftime.org) is the central hub for tracking CTF events, participating teams, and related information. It's the most effective way to promote a CTF to the broader community and to verify that a planned date does not conflict with other events.
 
 <Callout variant="note" title="Regarding conflicts">
 
@@ -45,7 +45,7 @@ To list your CTF on CTFtime, you need to complete three steps:
 2. [Register your event](https://ctftime.org/event/mail/). This creates an entry for your recurring CTF series, such as "My CTF." Event registration must be reviewed and manually approved by the CTFtime team, so be sure to start this process early, well before your event date, to ensure your listing appears in time.
 3. [Add an edition of your event](https://ctftime.org/event/new/). Each instance of your CTF (for example, "My CTF 2026" held on April 1st, 2026) is considered an edition. Once your event is registered and approved, you can add a new edition for each specific competition date.
 
-Following the conclusion of the CTF, it is highly recommended to upload the final scoreboard to the event page. This enables participating teams to receive points, which contribute to their global ranking. The longer an event has been organized (that is, the more editions it has), [the higher weight](https://ctftime.org/faq/#weight-vote) it may achieve based on competitor votes.
+After the CTF wraps up, upload the final scoreboard to the event page. This is what gives participating teams the points that contribute to their global ranking. The more editions an event has run, the [higher weight](https://ctftime.org/faq/#weight-vote) it can earn from competitor votes.
 
 <Callout variant="note">
 
@@ -54,11 +54,11 @@ Additional information regarding CTF organization is available on CTFtime's [org
 </Callout>
 ## Homepage
 
-The homepage of a CTF is the first point of contact for participants. It should be designed to convey information regarding event timing, rules, prizes, sponsors, and other relevant details.
+The homepage is the first thing participants see. It should cover event timing, rules, prizes, sponsors, and anything else worth surfacing up front.
 
 ### Rules
 
-Clear rules are essential for fair competition and participant expectations. The following is an example ruleset:
+Clear rules keep the competition fair and set participant expectations. An example ruleset:
 
 > - There is no team limit.\*
 > - Do not attack or interfere with other teams, the competition infrastructure, or other competitors.
@@ -77,13 +77,13 @@ Clear rules are essential for fair competition and participant expectations. The
 </Callout>
 ### Sponsorships and prizes
 
-While not strictly mandatory, the majority of competitions choose to provide prizes for the top three teams. Additionally, some events award prizes for outstanding write-ups, as these serve as valuable learning resources for the community. To obtain such funding, it is often necessary to obtain sponsorship from companies, organizations, or individuals.
+Most competitions provide prizes for the top three teams, even though prizes aren't strictly mandatory. Some events also award prizes for outstanding write-ups, which double as learning resources for the community. Funding for prizes usually comes from sponsorships with companies, organizations, or individuals.
 
-The following are some general rules of thumb when seeking sponsorships:
+A few rules of thumb when seeking sponsorships:
 
-- It is advisable to begin outreach to potential sponsors well in advance (the above [timeline](#timeline) advises 2-3 months), as companies may require considerable time to evaluate and confirm sponsorship arrangements.
-- Consider preparing a sponsorship proposal document that outlines the benefits of sponsoring the event. This typically also includes multiple sponsorship tiers/options.
-- Consider leveraging existing relationships with companies or organizations that have sponsored similar events in the past.
+- Start reaching out well in advance (the above [timeline](#timeline) suggests 2-3 months). Companies often need time to evaluate and confirm sponsorship arrangements.
+- Prepare a sponsorship proposal document that outlines the benefits of sponsoring the event. These usually include multiple sponsorship tiers and options.
+- Tap into existing relationships with companies or organizations that have sponsored similar events in the past.
 
 The following are potential sponsors to consider:
 
@@ -103,7 +103,7 @@ In exchange for sponsorship, sponsors typically expect certain benefits. These m
 
 ### Discord setup
 
-The majority of CTFs utilize Discord as the primary communication platform for announcements, support, and post-event discussion.
+Most CTFs use Discord as the main communication channel for announcements, support, and post-event discussion.
 
 A typical Discord server configuration for a CTF includes the following channels:
 
@@ -117,15 +117,15 @@ A typical Discord server configuration for a CTF includes the following channels
 | `#looking-for-team` | Team formation for participants seeking teammates |
 | `#web`/`#rev`/`#pwn`/... | Category-specific discussion channels, if desired |
 
-It is common to receive a high volume of support requests from participants. For this reason, it is significantly more efficient and manageable to handle such inquiries within a centralized server environment rather than through individual direct messages. Typical support requests may include issues related to the CTF platform, malfunctioning challenges, incorrect flags, or requests for hints.
+Expect a lot of support requests from participants during the CTF. Handling them in one central server is far easier than chasing direct messages. Typical requests cover platform issues, broken challenges, incorrect flags, and hint requests.
 
 ### Hints
 
 <Callout variant="danger" title="No-hint policy">
 
-It is strongly advised to implement and enforce a strict no-hint policy, as providing hints to individual teams may be perceived as conferring an unfair advantage in what is ultimately a competitive environment.
+Enforce a strict no-hint policy. Giving hints to individual teams looks like favoritism in what is, at the end of the day, a competition.
 
 </Callout>
-Should a participant inquire about a particular challenge, organizers should limit their response to verifying that the challenge infrastructure and corresponding solution function as intended, typically by using a reference exploit. No additional information regarding the challenge should be disclosed to competitors.
+If a participant asks about a particular challenge, organizers should only confirm that the challenge infrastructure and reference solution still work (usually by running the reference exploit). Don't disclose anything else about the challenge.
 
 If hints or clarifications become necessary, see the [hint policy section](/meta/running-a-successful-ctf/05-during-ctf/#hint-policy) for more information.

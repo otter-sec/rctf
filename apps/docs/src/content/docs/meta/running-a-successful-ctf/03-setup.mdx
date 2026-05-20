@@ -5,13 +5,13 @@ description: Complete guide to deploying rCTF, configuring Nginx with TLS, and c
 
 import Callout from '@/components/callout.astro'
 
-There are two primary CTF platforms that are publicly available:
+There are two main CTF platforms in public use:
 
 - [rCTF](https://rctf.osec.io) (you are here!)
 
 - [CTFd](https://ctfd.io/)
 
-This guide will focus on using rCTF, though this guide would still be similar no matter which platform is being used.
+This guide focuses on rCTF, but the setup looks similar on either platform.
 
 ## Prerequisites
 
@@ -20,7 +20,7 @@ For this guide, you'll need at least the following:
 - A domain name to host your CTF platform and challenges on (e.g. `example.com`)
 - A VPS to host the CTF platform from any provider (Hetzner, Vultr, DigitalOcean, GCP, AWS, etc.), preferably with at least 2 cores and 4 GiB RAM. The guide uses Ubuntu 24.04, but you are free to also use any other preferred OS of choice.
 
-Additionally, you'll want a TLS certificate either by using something like [Cloudflare](https://cloudflare.com) with proxied host or [certbot](https://certbot.eff.org/instructions) to manually provision it.
+You'll also want a TLS certificate, either through [Cloudflare](https://cloudflare.com) with a proxied host or through [certbot](https://certbot.eff.org/instructions) for manual provisioning.
 
 <Callout variant="note">
 
@@ -75,7 +75,7 @@ $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--f
 
 ## Setting up the web server
 
-By default, the CTF platform is only directly accessible from the VPS itself. For this, we'll set up Nginx to act as a webserver handling TLS and proxying the traffic forward to rCTF. It is also helpful to have Cloudflare in front so that you can deal with DDoS attacks and implement easy rate-limiting.
+By default, the CTF platform is only accessible from the VPS itself. To expose it, set up Nginx as a webserver that handles TLS and proxies traffic to rCTF. Putting Cloudflare in front of that also helps with DDoS attacks and gives you easy rate-limiting.
 
 <Tabs items={['Using Cloudflare', 'Using certbot']}>
 <Tab>

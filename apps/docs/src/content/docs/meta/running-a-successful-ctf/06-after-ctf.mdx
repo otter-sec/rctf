@@ -5,11 +5,11 @@ description: Post-CTF tasks including uploading scoreboards to CTFtime, distribu
 
 import Callout from '@/components/callout.astro'
 
-Following the conclusion of the competition, several administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution procedures, feedback collection, [archiving](#archive-the-platform), and infrastructure teardown.
+After the competition wraps up, a handful of administrative tasks remain. This section covers scoreboard submission to CTFtime, prize distribution, feedback collection, [archiving](#archive-the-platform), and infrastructure teardown.
 
 ## Uploading scoreboard to CTFtime
 
-Submitting the final scoreboard to CTFtime enables participating teams to receive ranking points. The following procedure exports the scoreboard in the format CTFtime expects.
+Submitting the final scoreboard to CTFtime is what gives participating teams their ranking points. The procedure below exports the scoreboard in the format CTFtime expects.
 
 <Steps>
 <Step title="Update admin permissions">
@@ -23,7 +23,7 @@ UPDATE users SET perms = 7 WHERE email = '[...]';
 </Step>
 <Step title="Retrieve authentication token">
 
-Log in to the CTF platform as the admin account and execute the following snippet in the browser's developer console:
+Log in to the CTF platform as the admin account and run the following snippet in the browser's developer console:
 
 ```js title="Browser console" showLineNumbers=false
 localStorage.getItem('token')
@@ -48,7 +48,7 @@ Submit the command output through the CTFtime event dashboard.
 
 <Callout variant="note">
 
-Point distribution may take approximately one hour for established events. For first-time events, points are awarded only after the one-week weight voting period concludes.
+Point distribution can take around an hour for established events. For first-time events, points are awarded only after the one-week weight voting period ends.
 
 </Callout>
 
@@ -62,7 +62,7 @@ For divisional prizes, filter the list by division in the same view.
 
 ## Feedback collection
 
-Releasing a post-competition feedback form (e.g., Google Forms) provides valuable insights for future events. Consider soliciting feedback on the following areas:
+A post-competition feedback form (e.g., Google Forms) gives you real signal for future events. Worth asking about:
 
 | Category       | Topics to address                                                    |
 | -------------- | -------------------------------------------------------------------- |
@@ -72,12 +72,12 @@ Releasing a post-competition feedback form (e.g., Google Forms) provides valuabl
 
 <Callout variant="tip">
 
-Feedback collected from participants is invaluable for improving subsequent events. Review responses thoroughly before planning the next competition.
+Participant feedback is the best signal for what to change next time. Read through the responses before planning the next edition.
 
 </Callout>
 ## Writeup collection
 
-Encouraging participants to publish writeups benefits the broader CTF community and provides learning resources for future competitors. Consider the following approaches:
+Encouraging participants to publish writeups gives back to the broader CTF community and creates learning material for future competitors. Some approaches:
 
 - Announce a deadline for writeup submissions (typically one to two weeks after the event).
 - Offer incentives such as prizes for outstanding writeups or recognition in official channels.
@@ -92,13 +92,13 @@ See [Archiving](/archiving/) for the export commands and hosting tips. We recomm
 
 ## Infrastructure teardown
 
-The timing of infrastructure teardown depends on several factors, such as remaining budget, the desire to keep challenges accessible for writeup authors, and the willingness to maintain operational services. Most organizers scale down infrastructure shortly after the competition concludes while maintaining minimal services for several days to allow participants to verify their solutions.
+When to tear infrastructure down depends on a few things, like remaining budget, whether you want to keep challenges accessible for writeup authors, and how much operational work you're willing to keep doing. Most organizers scale things down shortly after the competition ends, but keep minimal services running for a few days so participants can verify their solutions.
 
-For infrastructure sponsored by cloud providers (e.g., Google Cloud credits), services may remain operational until credits are depleted, provided no sensitive data is at risk.
+For infrastructure paid for by cloud-provider credits (e.g., Google Cloud), services can stay up until the credits run out, as long as no sensitive data is at risk.
 
 <Callout variant="warning" title="Teardown checklist">
 
-Ensure the following resources are properly decommissioned to avoid unexpected costs:
+Decommission the following resources so you don't get hit with unexpected costs:
 
 - Publish the static archive (see [Archiving](/archiving/)) before deleting anything else.
 - Take down the CTF platform, and back up the database and configuration before deletion to simplify setup for future events.
