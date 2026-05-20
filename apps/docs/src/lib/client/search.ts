@@ -171,10 +171,13 @@ function setupSearch(): void {
 
   triggers.forEach(trigger => trigger.addEventListener('click', open, { signal }))
   input.addEventListener('input', () => debouncedSearch(input.value), { signal })
+  dialog.addEventListener('submit', event => event.preventDefault(), { signal })
 
   dialog.addEventListener(
     'click',
     event => {
+      const target = event.target instanceof Element ? event.target : null
+      if (target?.closest('a[href]')) close()
       if (event.target === dialog) close()
     },
     { signal }
@@ -217,10 +220,6 @@ function setupSearch(): void {
     },
     { signal }
   )
-
-  dialog
-    .querySelectorAll<HTMLAnchorElement>('a[href]')
-    .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
 export const mountDocsSearch = mountClientModule({
