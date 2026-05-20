@@ -24,6 +24,7 @@ type Pagefind = {
 
 let pagefindPromise: Promise<Pagefind | null> | null = null
 let searchController: AbortController | null = null
+let searchRequestId = 0
 
 async function loadPagefind(): Promise<Pagefind | null> {
   if (pagefindPromise) return pagefindPromise
@@ -111,6 +112,7 @@ function resultItem(data: PagefindData, index: number): HTMLLIElement {
 }
 
 async function runSearch(query: string): Promise<void> {
+  const requestId = ++searchRequestId
   const results = document.getElementById('search-results')
   if (!results) return
 
@@ -122,16 +124,19 @@ async function runSearch(query: string): Promise<void> {
   }
 
   const pagefind = await loadPagefind()
+  if (requestId !== searchRequestId) return
   if (!pagefind) {
     results.append(emptyState('Search index not available. Run `bun run build` to generate it.'))
     return
   }
 
   const { results: found } = await pagefind.search(query)
-  const top: PagefindData[] = []
+  if (requestId !== searchRequestId) return
 
+  const top: PagefindData[] = []
   for (const result of found) {
     const data = await result.data()
+    if (requestId !== searchRequestId) return
     top.push(data)
     if (top.length >= 8) break
   }

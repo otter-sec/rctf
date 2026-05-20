@@ -14,7 +14,7 @@ function setupMobileSidebar(): void {
   const { signal } = controller
 
   const open = () => {
-    dialog.showModal()
+    if (!dialog.open) dialog.showModal()
     trigger?.setAttribute('aria-expanded', 'true')
   }
 
