@@ -10,8 +10,9 @@ Upload providers handle storage for both challenge file attachments **and team a
 <Callout variant="warning" title="v2 needs delete permissions">
   Unlike rCTF v1, the v2 upload provider needs permission to **delete** objects, not just upload
   them. Avatar replacement and the admin-side file deletion flows both depend on it. If you reuse a
-  v1 IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`,
-  add `<green>s3:DeleteObject</green>` to it (or the GCS equivalent `<green>storage.objects.delete</green>`).
+  v1 IAM policy that only grants `<green>s3:GetObject</green>` / `<green>s3:PutObject</green>`, add
+  `<green>s3:DeleteObject</green>` to it (or the GCS equivalent `
+  <green>storage.objects.delete</green>`).
 </Callout>
 
 ## Configuration

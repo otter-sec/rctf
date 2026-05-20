@@ -112,7 +112,7 @@ function appendIconWithLastWord(link: Element): void {
 
 export function rehypeLinkIcons() {
   return (tree: Root) => {
-    visitHtml(tree, (node) => {
+    visitHtml(tree, node => {
       if (!isElement(node)) return
 
       if (node.tagName === 'pre') return 'skip'
