@@ -36,9 +36,9 @@ UPDATE users SET perms = 3 WHERE email = 'author@example.com';
 
 If using Docker:
 
-```sh
-$ docker exec -it rctf-postgres-1 bash
-$ psql -U rctf
+```console
+$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 bash
+$ <red>psql</red> <dim>-U</dim> rctf
 UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
 ```
 

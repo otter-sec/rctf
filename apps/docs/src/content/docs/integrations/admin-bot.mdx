@@ -118,8 +118,8 @@ PORT=21337
 
 Run the bundled Compose service from the repository root:
 
-```sh
-$ docker compose -f deploy/admin-bot/compose.yml up -d
+```console
+$ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-d</dim>
 ```
 
 The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network` network.
@@ -253,7 +253,7 @@ The `Challenge{:ts}` constructor accepts these fields:
 | `restrictDomains{:ts}` | No | PAC-based host and URL allow or deny rules. |
 | `requireInstancerInstancesRunning{:ts}` | No | Requires a running instancer instance before queuing the job and passes displayed endpoints into `ctx.job.instancerInstances{:ts}`. |
 
-By default, Chrome starts with `<black>--no-sandbox</black>`, `<black>--disable-jit</black>`, `<black>--disable-wasm</black>`, and `<black>--disable-dev-shm-usage</black>`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
+By default, Chrome starts with `<dim>--no-sandbox</dim>`, `<dim>--disable-jit</dim>`, `<dim>--disable-wasm</dim>`, and `<dim>--disable-dev-shm-usage</dim>`. Firefox starts with JIT and Wasm disabled through preferences. Replacing `browserArguments{:ts}` or `extraPrefsFirefox{:ts}` removes those defaults.
 
 ## Challenge context
 

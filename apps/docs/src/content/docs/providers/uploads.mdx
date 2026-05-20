@@ -120,10 +120,10 @@ The repo ships Terraform modules under `deploy/terraform/storage/{:dir}` that pr
 <Tabs items={['AWS S3', 'GCS']}>
 <Tab>
 
-```sh
-$ cd deploy/terraform/storage/main
-$ terraform init
-$ terraform apply -var="region=eu-west-3" -var="bucket_name=my-ctf-uploads"
+```console
+$ <red>cd</red> deploy/terraform/storage/main
+$ <red>terraform</red> init
+$ <red>terraform</red> apply <dim>-var=</dim><green>"region=eu-west-3"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>
 ```
 
 Outputs are written next to the module:
@@ -143,15 +143,15 @@ uploadProvider:
     awsRegion: eu-west-3
 ```
 
-The module sets up CORS (`<green>GET</green>`, `<green>HEAD</green>` from any origin by default - override with `<red>-var="cors_allowed_origins=[\"https://ctf.example.com\"]"</red>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
+The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default - override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the IAM user `s3:GetObject`, `s3:PutObject`, `s3:DeleteObject`, plus the matching ACL actions and `s3:ListBucket`.
 
 </Tab>
 <Tab>
 
-```sh
-$ cd deploy/terraform/storage/gcs
-$ terraform init
-$ terraform apply -var="project_id=my-gcp-project" -var="region=europe-west1" -var="bucket_name=my-ctf-uploads"
+```console
+$ <red>cd</red> deploy/terraform/storage/gcs
+$ <red>terraform</red> init
+$ <red>terraform</red> apply <dim>-var=</dim><green>"project_id=my-gcp-project"</green> <dim>-var=</dim><green>"region=europe-west1"</green> <dim>-var=</dim><green>"bucket_name=my-ctf-uploads"</green>
 ```
 
 Outputs are written next to the module:
@@ -173,7 +173,7 @@ uploadProvider:
       # ...rest of gcs-sa-key.json
 ```
 
-The module sets up CORS (`<green>GET</green>`, `<green>HEAD</green>` from any origin by default - override with `<red>-var="cors_allowed_origins=[\"https://ctf.example.com\"]"</red>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.
+The module sets up CORS (`<route>GET</route>`, `<route>HEAD</route>` from any origin by default - override with `<dim>-var=</dim><green>"cors_allowed_origins=[\"https://ctf.example.com\"]"</green>`) and grants the service account a custom role with `storage.objects.create`, `storage.objects.get`, `storage.objects.list`, and `storage.objects.delete`.
 
 </Tab>
 </Tabs>

@@ -11,16 +11,16 @@ For a production deployment, a VPS with at least 2 CPU cores and 4 GiB RAM is re
 
 The fastest way to get rCTF running is the automated installation script:
 
-```sh
-$ curl -L https://get.rctf.osec.io | sh
+```console
+$ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io | <red>sh</red>
 ```
 
 This installs rCTF to `/opt/rctf/{:dir}` with Docker Compose, including PostgreSQL, Redis, and the rCTF server. When prompted, answer `y` to start the platform immediately.
 
 After installation, configure your instance by editing the YAML files in `/opt/rctf/rctf.d/{:dir}` (at minimum, set `<red>ctfName</red>`, `<red>origin</red>`, `<red>startTime</red>`, and `<red>endTime</red>` - see [Configuration](/configuration/) for the full reference). Once the config is in place, apply the changes by rebuilding the stack:
 
-```sh
-$ cd /opt/rctf && docker compose up -d --force-recreate --build
+```console
+$ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
 ```
 
 Re-run that command after every config change.

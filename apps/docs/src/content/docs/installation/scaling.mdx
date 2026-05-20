@@ -68,7 +68,7 @@ instanceType: frontend # or 'leaderboard' or 'all'
 To scale beyond a single container:
 
 - Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads/{:dir}` mount - switching to the S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval)` and writes results to a shared Redis cache. There is no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `<red>running</red>` flag, which does not coordinate across processes.
+- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval){:ts}` and writes results to a shared Redis cache. There is no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks within the same process are guarded by an in-process `<red>running</red>` flag, which does not coordinate across processes.
 
 <Callout variant='warning' title='Only one leaderboard worker at a time'>
   This includes `<green>all</green>`, which already runs a leaderboard worker. If you split into

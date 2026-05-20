@@ -58,8 +58,8 @@ The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-a
 | `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Target-platform base reused by `prod-deps` and `production`. |
 | `package-configs` | `build-base` | Copies every workspace `package.json{:file}` plus `bun.lock{:file}` so dependency layers cache independently of source. |
 | `deps` | `build-base` | Full install (including devDependencies) for the API and web workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, `@rctf/export`, `@rctf/seed`, and the test workspaces. |
-| `prod-deps` | `runtime-base` | Production-only install (`--production`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
-| `build` | `build-base` | Runs `bun run --filter '@rctf/api' build` then `bun run --filter '@rctf/web' build` against the full sources. |
+| `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
+| `build` | `build-base` | Runs `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/api'</green> build` then `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build` against the full sources. |
 | `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, package sources, migrations, email templates, and the SvelteKit static output into `/app/{:dir}`. |
 
 ```dockerfile title="deploy/rctf/Dockerfile"
@@ -84,16 +84,16 @@ ENV WORKER_EXTENSION=.js
 CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 ```
 
-`WORKER_EXTENSION{:sh}` is set to `<green>.js</green>` so the API process resolves its compiled worker entry (`./leaderboard.js{:file}`) rather than the `.ts` source used in development.
+`<yellow>WORKER_EXTENSION</yellow>` is set to `<green>.js</green>` so the API process resolves its compiled worker entry (`./leaderboard.js{:file}`) rather than the `.ts` source used in development.
 
 ## Process supervision
 
-`/etc/supervisord.conf{:file}` defines two long-running programs. Both inherit the container's PID 1 (`supervisord`), have `<red>autorestart</red>=<green>true</green>`, and stream stdout/stderr to the container's stdout/stderr without rotation.
+`/etc/supervisord.conf{:file}` defines two long-running programs. Both inherit the container's PID 1 (`supervisord`), have `autorestart=true{:ini}`, and stream stdout/stderr to the container's stdout/stderr without rotation.
 
 | Program | Command | Role |
 | --- | --- | --- |
-| `api` | `bun run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
-| `nginx` | `nginx -g 'daemon off;'` | Serves `/app/static/{:dir}` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
+| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
 
 ```ini title="deploy/rctf/supervisord.conf"
 [program:api]
@@ -156,11 +156,11 @@ Notable behavior:
 - `/_app/immutable/` is the SvelteKit hashed-asset directory and gets a one-day immutable cache.
 - The admin upload route has request buffering disabled and `<red>client_max_body_size</red>=<green>0</green>` so large uploads stream straight to the API.
 - `<route>/api</route>` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads/{:dir}` through its own static handler.
-- nginx adds `<red>Referrer-Policy</red>`: `<green>no-referrer</green>`, `<red>X-Frame-Options</red>`: `<green>DENY</green>`, and `<red>X-Content-Type-Options</red>`: `<green>nosniff</green>` on every response. CSP is **not** set here.
+- nginx adds `Referrer-Policy: no-referrer{:http}`, `X-Frame-Options: DENY{:http}`, and `X-Content-Type-Options: nosniff{:http}` on every response. CSP is **not** set here.
 
 ## Content Security Policy
 
-CSP is defined in `apps/web/svelte.config.ts{:file}` and applied by SvelteKit at build time. Because `apps/web/{:dir}` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">` tag in each rendered page along with the auto-generated script hashes. nginx does not add a `<red>Content-Security-Policy</red>` header.
+CSP is defined in `apps/web/svelte.config.ts{:file}` and applied by SvelteKit at build time. Because `apps/web/{:dir}` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">{:html}` tag in each rendered page along with the auto-generated script hashes. nginx does not add a `Content-Security-Policy{:http}` header.
 
 ```ts title="apps/web/svelte.config.ts"
 csp: dev
@@ -191,7 +191,7 @@ The directives:
 The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime - captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts{:file}` and rebuilding.
 
 <Callout variant="warning" title="frame-ancestors">
-  The CSP omits `frame-ancestors` because it is ignored from `<meta>` tags. Click-jacking protection is enforced via the nginx `<red>X-Frame-Options</red>`: `<green>DENY</green>` header instead.
+  The CSP omits `frame-ancestors` because it is ignored from `<meta>{:html}` tags. Click-jacking protection is enforced via the nginx `X-Frame-Options: DENY{:http}` header instead.
 </Callout>
 
 ## Horizontal scaling with `instanceType{:ts}`

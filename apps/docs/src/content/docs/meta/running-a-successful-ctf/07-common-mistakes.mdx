@@ -61,17 +61,13 @@ Ask for roughly 1.5 to 2x the worst-case estimate. The margin covers burst, retr
 
 </Callout>
 
-<Callout variant='important' title='GCP trial accounts usually remain capped'>
-
-If a GCP project is still on a free-trial billing account, quota-increase requests may be rejected regardless of timing. Trial projects are intentionally kept at lower limits.
+GCP trial projects are a common edge case. If a project is still on a free-trial billing account, quota-increase requests may be rejected regardless of timing because trial projects are intentionally kept at lower limits.
 
 1. Upgrade to a paid billing account before requesting quota increases. Free credits can still apply, but the billing account class matters during review.
 
 2. Run a small always-on VM, such as an `e2-small`, for 3 to 7 days before filing the request. Consistent billable usage helps the project look like an active workload rather than a brand-new account.
 
 3. File the request with context. Reference the active workload and the event date in the justification. A note like `currently running production workloads, scaling up for an event on YYYY-MM-DD` is clearer than a bare capacity request. Projects that move directly from no usage to a very large quota request are more likely to be denied or sent to a slower manual review queue.
-
-</Callout>
 
 ### Exposing the instance-metadata service to challenges
 
@@ -85,19 +81,11 @@ For shared-remote VPS or bare-VM challenges without Kubernetes `NetworkPolicy`, 
 
 </Callout>
 
-<Callout variant='example' title='Verification check'>
+From a test pod, run `$ <red>curl</red> http://169.254.169.254`. The request should fail. If the cluster is dual-stack, also test the IPv6 metadata address. On bare-metal clusters, this catches CNI configurations that silently ignore the intended policy.
 
-From a test pod, run `$ curl http://169.254.169.254`. The request should fail. If the cluster is dual-stack, also test the IPv6 metadata address. On bare-metal clusters, this catches CNI configurations that silently ignore the intended policy.
-
-</Callout>
-
-<Callout variant='note' title='What rCTF handles'>
-
-The [Kubernetes instancer](/integrations/instancer/kubernetes/#network-policies) includes a `NetworkPolicy` per instance namespace that excludes RFC1918, CGNAT, and link-local ranges by default. That covers IMDS on IPv4. The Terraform module also enables GKE `workload_metadata_concealment`. Opt into public egress with `<red>egress</red>: <green>true</green>` on the pod rather than removing the policy.
+For rCTF Kubernetes instancer deployments, the [Kubernetes instancer](/integrations/instancer/kubernetes/#network-policies) includes a `NetworkPolicy` per instance namespace that excludes RFC1918, CGNAT, and link-local ranges by default. That covers IMDS on IPv4. The Terraform module also enables GKE `workload_metadata_concealment`. Opt into public egress with `egress: true{:yml}` on the pod rather than removing the policy.
 
 The bundled GKE Terraform module provisions an IPv4-only cluster, so the IPv6 IMDS address, `[fd00:ec2::254]`, is unreachable from challenge pods because the cluster has no IPv6. If you switch the cluster to dual-stack, the shipped `NetworkPolicy` has no IPv6 allow rule and will implicitly deny IPv6 egress. That keeps IPv6 IMDS blocked, but challenges that need IPv6 internet egress will also fail until you add an explicit IPv6 `IPBlock` with matching `fd00::/8` and `fe80::/10` exceptions.
-
-</Callout>
 
 ## Kubernetes
 
@@ -105,17 +93,9 @@ The bundled GKE Terraform module provisions an IPv4-only cluster, so the IPv6 IM
 
 A pod without `<red>resources.limits</red>` can use whatever the node has free. A fork bomb or memory leak in one instance can affect other instances on the same node.
 
-<Callout variant='problem' title='Failure mode'>
-
 The common version of this issue is a PodSpec with only `<red>requests</red>`, limits based on a single happy-path test, and no `<red>terminationGracePeriodSeconds</red>` cap.
 
-</Callout>
-
-<Callout variant='note' title='What rCTF exposes'>
-
 The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field is a real PodSpec. Set `<red>resources.requests/limits</red>` directly.
-
-</Callout>
 
 ### Mounting broad service-account tokens
 
@@ -123,15 +103,11 @@ Every pod in a namespace can receive the `default` service-account token at `/va
 
 <Callout variant='important' title='Disable tokens unless needed'>
 
-Set `<red>automountServiceAccountToken</red>` to <green>false</green> unless the challenge genuinely needs the in-cluster API. Audit `system:authenticated` cluster-role bindings with `kubectl get clusterrolebindings -o yaml | grep -A4 system:authenticated`, and remove bindings with meaningful verbs. Also check that temporary controller RBAC changes from debugging were reverted before the event.
+Set `<red>automountServiceAccountToken</red>` to `false{:yml}` unless the challenge genuinely needs the in-cluster API. Audit `system:authenticated` cluster-role bindings with `$ <red>kubectl</red> get clusterrolebindings <dim>-o</dim> yaml | <red>grep</red> <dim>-A4</dim> system:authenticated`, and remove bindings with meaningful verbs. Also check that temporary controller RBAC changes from debugging were reverted before the event.
 
 </Callout>
-
-<Callout variant='note' title='What rCTF exposes'>
 
 The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field accepts the standard PodSpec, including `<red>automountServiceAccountToken</red>`.
-
-</Callout>
 
 ## Challenges
 
@@ -139,17 +115,9 @@ The k8s-instancer `<red>instancerConfig.config.pods[]</red>` field accepts the s
 
 A shared remote where the intended solution grants code execution, such as many pwn and misc challenges, should isolate each connection. Without per-connection sandboxing, one solver can alter the binary, write a backdoor to `/tmp/{:dir}`, exhaust process or file-descriptor tables, or kill the shared process. Later connections then interact with corrupted state.
 
-<Callout variant='problem' title='Failure mode'>
-
 The risky pattern is a pwn or RCE challenge served as one long-lived process. Each TCP connection should fork into its own sandbox with a read-only root filesystem, no network, dropped capabilities, and CPU, memory, and time limits. Make sure kCTF challenges did not remove `nsjail`.
 
-</Callout>
-
-<Callout variant='tip' title='Recommended patterns'>
-
-[pwn.red/jail](https://github.com/redpwn/jail) is a small base image that forks per connection inside nsjail with reasonable defaults, and it usually takes only a couple of Dockerfile lines to adopt. kCTF challenges already include nsjail when created with `kctf chal create{:sh}`. For custom services, raw [nsjail](https://github.com/google/nsjail) is still a good fit when `--max_cpus`, `--rlimit_as`, `--time_limit`, and `--disable_proc` are tuned for the challenge.
-
-</Callout>
+[pwn.red/jail](https://github.com/redpwn/jail) is a small base image that forks per connection inside nsjail with reasonable defaults, and it usually takes only a couple of Dockerfile lines to adopt. kCTF challenges already include nsjail when created with `$ <red>kctf</red> chal create`. For custom services, raw [nsjail](https://github.com/google/nsjail) is still a good fit when `<dim>--max_cpus</dim>`, `<dim>--rlimit_as</dim>`, `<dim>--time_limit</dim>`, and `<dim>--disable_proc</dim>` are tuned for the challenge.
 
 See the [shared-remote callout in Deploying challenges](/meta/running-a-successful-ctf/04-deployment/#shared-remote) for the deployment walkthrough.
 
@@ -159,15 +127,11 @@ Forensics, reverse engineering, and malware-analysis challenges sometimes distri
 
 The highest-risk version is a sample shipped as a plain `.exe`, `.dll`, or unencrypted archive. Endpoint products across participating teams can report the file within minutes, and a CDN or storage provider may pull or blacklist it.
 
-<Callout variant='warning' title='Archive malicious samples'>
-
 Ship suspicious binaries inside a password-protected archive, and put the password in the challenge description. Use a non-dictionary password rather than common values like `infected`, `malware`, `password`, or the event year, since AV engines, SmartScreen, Defender, and CrowdStrike may try those values automatically.
-
-</Callout>
 
 ### Missing runtime abuse limits
 
-CPU and memory limits are not enough on their own. A participant can run a fork bomb like `:(){ :|:& };:`, fill `/tmp/{:dir}` with `dd if=/dev/zero of=/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits rather than assumptions about participant behavior.
+CPU and memory limits are not enough on their own. A participant can run a fork bomb like `$ :(){ :|:& };:`, fill `/tmp/{:dir}` with `$ <red>dd</red> if=/dev/zero of=/tmp/x`, or open a large number of file descriptors from inside a challenge process. Those behaviors need runtime limits rather than assumptions about participant behavior.
 
 <Tabs items={['Docker', 'Kubernetes', 'nsjail']}>
 <Tab>
@@ -182,29 +146,18 @@ For Kubernetes services, set `resources.limits.ephemeral-storage` on pods and co
 </Tab>
 <Tab>
 
-For nsjail services, use `--rlimit_nproc`, `--rlimit_nofile`, and `--time_limit`. Shared remote services should have a per-connection time limit so slow or long-lived TCP connections cannot starve the connection table.
+For nsjail services, use `<dim>--rlimit_nproc</dim>`, `<dim>--rlimit_nofile</dim>`, and `<dim>--time_limit</dim>`. Shared remote services should have a per-connection time limit so slow or long-lived TCP connections cannot starve the connection table.
 
 </Tab>
 </Tabs>
 
-<Callout variant='example' title='Abuse test'>
-
-Before release, test challenge services with intentionally abusive clients. Include `:(){ :|:& };:`, `dd if=/dev/zero of=/tmp/x`, `for i in $(seq 100000); do exec {fd}<>/dev/null; done`, and slow TCP connections where the challenge uses a shared remote.
-
-</Callout>
-
-<Callout variant='note' title='What rCTF handles'>
+Before release, test challenge services with intentionally abusive clients. Include `$ :(){ :|:& };:`, `$ <red>dd</red> if=/dev/zero of=/tmp/x`, `$ for i in $(<red>seq</red> 100000); do exec {fd}<>/dev/null; done`, and slow TCP connections where the challenge uses a shared remote.
 
 The [Docker instancer](/integrations/instancer/docker/#docker-challenge-config) defaults to `6m` memory, `1.0` CPU, `1024` PIDs, and `1024` nofile per service when not overridden. It also exposes `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>` for tuning. The GKE Terraform module sets kubelet `<red>podPidsLimit</red>` to `1024{:ts}` cluster-wide through `<red>gcp_instancer_pod_pids_limit</red>`, so a fork bomb inside a challenge pod hits that cap before the node `kernel.pid_max`.
 
 The Kubernetes side otherwise leaves several settings to the challenge author. Ephemeral-storage limits, `<red>readOnlyRootFilesystem</red>`, FD ulimits, and `<red>terminationGracePeriodSeconds</red>` are not defaulted. See the [per-pod safety checklist](/integrations/instancer/kubernetes/#per-pod-safety-checklist) on the Kubernetes instancer page for the full list of fields to set.
 
-</Callout>
-
-<Callout variant="tip">
-  When in doubt, treat every challenge image as already compromised. Assume participants can get
-  code execution inside the challenge container, even when the intended solution is not RCE.
-</Callout>
+When in doubt, treat every challenge image as already compromised. Assume participants can get code execution inside the challenge container, even when the intended solution is not RCE.
 
 ## Miscellaneous
 
@@ -212,37 +165,25 @@ The Kubernetes side otherwise leaves several settings to the challenge author. E
 
 A cloud VM with an unpatched kernel or unnecessary privileges can turn challenge code execution into host access. Container-escape and local privilege-escalation issues are patched regularly, but unpatched hosts remain exposed.
 
-<Callout variant='important' title='Keep the host boundary intact'>
+Run unattended upgrades or an equivalent process on challenge hosts, then reboot into the newer kernel before the event. Do not mount `/var/run/docker.sock{:file}` into challenge containers. Avoid `<dim>--privileged</dim>`, `<dim>--cap-add=SYS_ADMIN</dim>`, `<dim>--pid=host</dim>`, and `<dim>--net=host</dim>` unless the security impact has been reviewed. Keep runc, Docker, and containerd on patched versions.
 
-Run unattended upgrades or an equivalent process on challenge hosts, then reboot into the newer kernel before the event. Do not mount `/var/run/docker.sock{:file}` into challenge containers. Avoid `--privileged`, `--cap-add=SYS_ADMIN`, `--pid=host`, and `--net=host` unless the security impact has been reviewed. Keep runc, Docker, and containerd on patched versions.
-
-Public local privilege-escalation exploits can appear within days of disclosure. A container with Docker socket access can also start a container with `docker run -v /:/host` and walk out to the host filesystem. Pin minimum runtime versions and verify them before the event.
-
-</Callout>
+Public local privilege-escalation exploits can appear within days of disclosure. A container with Docker socket access can also start a container with `$ <red>docker</red> run <dim>-v</dim> /:/host` and walk out to the host filesystem. Pin minimum runtime versions and verify them before the event.
 
 ### Challenge machine runs out of disk space
 
 Disk exhaustion is easy to miss because CPU and memory dashboards can remain quiet while logs, images, and caches grow in the background.
 
-<Callout variant='warning' title='Common disk sources'>
-
-Docker `json-file` logs have no rotation unless `max-size` and `max-file` are set in `/etc/docker/daemon.json{:file}`, so a noisy challenge can fill `/var/lib/docker/containers/*/.log{:file}` for the lifetime of the container. `journald` can grow in the same way unless `SystemMaxUse=` is configured. Rebuilds and redeploys also leave dangling images and build cache in `/var/lib/docker/{:dir}`, so schedule `docker system prune` or monitor disk usage closely before the event.
-
-</Callout>
+Docker `json-file` logs have no rotation unless `max-size` and `max-file` are set in `/etc/docker/daemon.json{:file}`, so a noisy challenge can fill `/var/lib/docker/containers/*/.log{:file}` for the lifetime of the container. `journald` can grow in the same way unless `SystemMaxUse=` is configured. Rebuilds and redeploys also leave dangling images and build cache in `/var/lib/docker/{:dir}`, so schedule `$ <red>docker</red> system prune` or monitor disk usage closely before the event.
 
 ### Client-IP extraction not tested end-to-end
 
 Every layer in front of the platform, such as Cloudflare, an L7 load balancer, nginx, or Traefik, can rewrite the source address. If the chain is not configured correctly, the platform and challenges may see the proxy IP rather than the participant IP. The failure is often silent until rate limits or bans behave incorrectly. A bad chain can ban a shared Cloudflare edge IP and lock participants out, or make every request appear to come from `127.0.0.1`. The challenge-side version is also important, since a web challenge that trusts `X-Forwarded-For` without validating the upstream hop can be spoofed by participants.
 
-<Callout variant='example' title='Production proxy test'>
-
 Send a request through the real DNS from a known external IP and confirm the admin or audit log shows that IP. Then test a challenge through the same path and confirm the challenge sees the same address. A staging path without the full proxy chain is not enough for this check.
-
-</Callout>
 
 <Callout variant='important' title='Trust only the edge you control'>
 
-If `USE_PROXY_HEADERS=true{:ts}` is enabled without a locked-down trusted-proxy CIDR, participants can spoof `X-Forwarded-For`. The same applies to nginx `set_real_ip_from` and Traefik `forwardedHeaders.trustedIPs` when the trusted range is wider than the proxy layer you control. With Cloudflare, restore `CF-Connecting-IP` so the platform does not log only Cloudflare edge IPs.
+If `<yellow>USE_PROXY_HEADERS</yellow>=true` is enabled without a locked-down trusted-proxy CIDR, participants can spoof `X-Forwarded-For`. The same applies to nginx `set_real_ip_from` and Traefik `forwardedHeaders.trustedIPs` when the trusted range is wider than the proxy layer you control. With Cloudflare, restore `CF-Connecting-IP` so the platform does not log only Cloudflare edge IPs.
 
 </Callout>
 
@@ -250,17 +191,9 @@ If `USE_PROXY_HEADERS=true{:ts}` is enabled without a locked-down trusted-proxy 
 
 The first few minutes after start combine concurrent registrations, logins, challenge reads, and leaderboard reads. Load-test those paths from a separate machine before the event, and size the challenge cluster for `expected teams × overlapping instanced challenges`.
 
-<Callout variant='warning' title='Capacity checks'>
-
 Enable captcha for sensitive unauthenticated actions, verify rate limits on sensitive platform paths, and configure trusted proxy IP ranges before the load test. The test should use the production proxy chain rather than a local or staging shortcut.
 
-</Callout>
-
-<Callout variant='note' title='What rCTF handles'>
-
 rCTF helps with this through the leaderboard worker and Redis cache, nginx brotli and gzip support, immutable cache headers, [Docker](/integrations/instancer/docker/) and [Kubernetes](/integrations/instancer/kubernetes/) instancers for per-team lifecycles, GKE module autoscaling, captcha integrations for [reCAPTCHA, hCaptcha, and Turnstile](/providers/captcha/), and default route rate limits.
-
-</Callout>
 
 ## Onsite
 
@@ -268,27 +201,13 @@ rCTF helps with this through the leaderboard worker and Redis cache, nginx brotl
 
 The venue network is often different from the network used during testing. Rented venues, university lecture halls, and hotel conference rooms may use eduroam, vendor-managed Wi-Fi, captive portals, or enterprise firewalls from vendors such as Fortinet, Palo Alto, or Cisco. Discovering those restrictions on the day of the event leaves little time to adapt.
 
-<Tabs items={['Wireless', 'Firewall', 'NAT']}>
-<Tab>
+Ask for the egress firewall vendor, blocked ports, per-AP and per-room bandwidth caps, and whether temporary firewall exceptions are available. Compare bandwidth against the expected laptop count, and test actual challenge solutions end to end on the venue network.
 
-Ask for the per-AP and per-room bandwidth cap, then compare it against the expected laptop count.
-
-</Tab>
-<Tab>
-
-Ask for the firewall vendor, blocked ports, and whether a temporary exception can be added. Some managed networks block outbound SSH on TCP port `22`, arbitrary high or low ports, or traffic that resembles tunneling. DPI appliances can pass HTTPS while dropping unrecognized TCP payloads. Test actual challenge solutions end to end on the venue network.
-
-</Tab>
-<Tab>
-
-NAT or CGNAT can collapse many teams to one source IP. Any IP-keyed rate limit can then affect legitimate traffic. Whitelist the venue egress range or relax the relevant limits for onsite traffic.
-
-</Tab>
-</Tabs>
+Some managed networks block outbound SSH on TCP port `22`, arbitrary high or low ports, or traffic that resembles tunneling. DPI appliances can pass HTTPS while dropping unrecognized TCP payloads. NAT or CGNAT can also collapse many teams to one source IP, which makes IP-keyed rate limits affect legitimate traffic. Whitelist the venue egress range or relax the relevant limits for onsite traffic.
 
 <Callout variant='tip'>
 
-If the venue cannot provide network details, plan a backup uplink and test it before participants arrive. Ask for the egress firewall vendor, blocked ports, per-AP and per-room bandwidth caps, and whether temporary firewall exceptions are available.
+If the venue cannot provide network details, plan a backup uplink and test it before participants arrive.
 
 </Callout>
 
@@ -296,8 +215,4 @@ If the venue cannot provide network details, plan a backup uplink and test it be
 
 Onsite CTFs that also allow remote participation sometimes provide WireGuard or OpenVPN configs so challenge networks are reachable without exposing all services publicly, or to create a local network across all participants. A common issue we're seeing is having enough configs for a few onsite devices but none for remote players. This forces remote teams to build their own access path, which by itself is not really a problem but is annoying for the players, considering that VPN config generation is free.
 
-<Callout variant='warning' title='Prepare the access pool early'>
-
 Generate configs for all players, not only the people attending onsite. Pre-generate a large pool, such as 100 configs. Bind the VPN endpoint to a public IP, or use a cloud VPS that bridges to the venue network so remote players can reach it over the public internet.
-
-</Callout>

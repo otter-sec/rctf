@@ -42,16 +42,16 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 <Steps>
 <Step title="Clone and install dependencies">
 
-```sh
-$ git clone https://github.com/otter-sec/rctf.git
-$ cd rctf
-$ bun i
+```console
+$ <red>git</red> clone https://github.com/otter-sec/rctf.git
+$ <red>cd</red> rctf
+$ <red>bun</red> i
 ```
 
 </Step>
 <Step title="Create a configuration directory">
 
-rCTF loads configuration from a `rctf.d/{:dir}` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ mkdir rctf.d` at the project root.
+rCTF loads configuration from a `rctf.d/{:dir}` directory. Files inside it (YAML or JSON) are loaded alphabetically and deep-merged. Create one with `$ <red>mkdir</red> rctf.d` at the project root.
 
 <FileTree>
   <Dir name="rctf.d">
@@ -81,7 +81,7 @@ divisions:
 
 <Callout variant="tip" title="Generating a token key">
 
-    The `<red>tokenKey</red>` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ openssl rand -base64 32`.
+    The `<red>tokenKey</red>` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ <red>openssl</red> rand <dim>-base64</dim> 32`.
 
 </Callout>
 
@@ -90,8 +90,8 @@ You can also set configuration values through environment variables. See [Config
 </Step>
 <Step title="Run database migrations">
 
-```sh
-$ bun run db:migrate
+```console
+$ <red>bun</red> run db:migrate
 ```
 
 Alternatively, set `<red>database.migrate</red>` to `<green>before</green>` in your config to run migrations automatically on startup.
@@ -99,22 +99,22 @@ Alternatively, set `<red>database.migrate</red>` to `<green>before</green>` in y
 </Step>
 <Step title="Start the development servers">
 
-```sh
-$ bun dev
+```console
+$ <red>bun</red> dev
 ```
 
 This starts both the API server on `http://127.0.0.1:3000` and the SvelteKit dev server on `http://127.0.0.1:5173`. The dev server proxies API requests to the backend.
 
 To run them separately:
 
-```sh
-$ bun run dev:api   # API only on :3000
-$ bun run dev:web   # Frontend only on :5173
+```console
+$ <red>bun</red> run dev:api   <dim># API only on :3000</dim>
+$ <red>bun</red> run dev:web   <dim># Frontend only on :5173</dim>
 ```
 
 <Callout variant="tip" title="One-shot dev setup">
 
-    For a fresh local environment, `$ bun run dev:mock` chains `$ bun run db:migrate`, `$ bun run dev:seed`, and `$ bun run dev` together. The seed resets the database and populates it with an admin account, 250 teams, 18 challenges across `rev`/`pwn`/`crypto`/`web`/`misc`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
+    For a fresh local environment, `$ <red>bun</red> run dev:mock` chains `$ <red>bun</red> run db:migrate`, `$ <red>bun</red> run dev:seed`, and `$ <red>bun</red> run dev` together. The seed resets the database and populates it with an admin account, 250 teams, 18 challenges across `<orange>rev</orange>`/`<red>pwn</red>`/`<yellow>crypto</yellow>`/`<blue>web</blue>`/`<magenta>misc</magenta>`, plus realistic solves and submissions. Login URLs for the admin and a sample team are printed to the console.
 
 </Callout>
 
@@ -125,18 +125,18 @@ $ bun run dev:web   # Frontend only on :5173
 
 Build both the API and frontend:
 
-```sh
-$ bun run --filter '@rctf/api' build   # Builds API server bundle
-$ bun run --filter '@rctf/web' build   # Builds static frontend
+```console
+$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/api'</green> build   <dim># Builds API server bundle</dim>
+$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build   <dim># Builds static frontend</dim>
 ```
 
 Start the API server:
 
-```sh
-$ NODE_ENV=production WORKER_EXTENSION=.js bun run apps/api/dist/index.js
+```console
+$ <yellow>NODE_ENV</yellow>=production <yellow>WORKER_EXTENSION</yellow>=.js <red>bun</red> run apps/api/dist/index.js
 ```
 
-`WORKER_EXTENSION=.js{:sh}` makes the API load the compiled leaderboard worker from `apps/api/dist/{:dir}`. The API server listens on the port specified by the `PORT{:sh}` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+`<yellow>WORKER_EXTENSION</yellow>=.js` makes the API load the compiled leaderboard worker from `apps/api/dist/{:dir}`. The API server listens on the port specified by the `<yellow>PORT</yellow>` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
 
 ## Scaling
 
@@ -146,8 +146,8 @@ The `<red>instanceType</red>` config option lets you split an rCTF process into 
 
 Tests use PGlite (in-process PostgreSQL) and ioredis-mock, so no external services are needed:
 
-```sh
-$ bun run test                 # Run all tests from root
-$ bun run test:server:coverage # Server tests with coverage
-$ bun run typecheck            # Typecheck all workspaces
+```console
+$ <red>bun</red> run test                 <dim># Run all tests from root</dim>
+$ <red>bun</red> run test:server:coverage <dim># Server tests with coverage</dim>
+$ <red>bun</red> run typecheck            <dim># Typecheck all workspaces</dim>
 ```

@@ -9,7 +9,7 @@ rCTF renders Markdown in challenge descriptions, the home page content, and spon
 
 ## Alerts
 
-rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote containing `[!TYPE]`; subsequent blockquote lines are the alert body. The body is parsed as Markdown (except for `CONNECTION`, see below).
+rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote containing `[!TYPE]{:md}`; subsequent blockquote lines are the alert body. The body is parsed as Markdown (except for `CONNECTION`, see below).
 
 ```md title="Challenge description"
 > [!NOTE] The flag format is `rctf{...}`.
@@ -17,7 +17,7 @@ rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote c
 > [!WARNING] Brute-forcing the endpoint will result in a rate limit.
 ```
 
-Six alert types are recognized. Any other value (e.g. `> [!INFO]`) falls back to a plain blockquote.
+Six alert types are recognized. Any other value (e.g. `> [!INFO]{:md}`) falls back to a plain blockquote.
 
 | Type | Trigger | Use for |
 | --- | --- | --- |
@@ -38,7 +38,7 @@ The docs site renders alerts using its own component, which looks different from
 
 ### Connection callout
 
-`> [!CONNECTION]` is a real, distinct alert type - not just a styled `NOTE`. It is designed for the **Remote** field of a challenge: a single line containing a connection string or URL.
+`> [!CONNECTION]{:md}` is a real, distinct alert type - not just a styled `NOTE`. It is designed for the **Remote** field of a challenge: a single line containing a connection string or URL.
 
 ```md title="Challenge description"
 > [!CONNECTION] `nc challs.example.com 1337`
@@ -55,7 +55,7 @@ A copy button is rendered alongside the value so players can paste it directly i
 
 ## Timer
 
-The `<timer />` inline element renders a live countdown for the competition.
+The `<timer />{:html}` inline element renders a live countdown for the competition.
 
 ```md title="Home content"
 The CTF begins in <timer />. Good luck!
@@ -72,7 +72,7 @@ The timer updates once per second on the client.
 
 <Callout variant="note" title="No per-element target">
 
-rCTF does not support `<timer to="...">` or `<timer until="...">`. The countdown target is always the global competition schedule. If you need per-challenge deadlines, communicate them in plain text or as part of the description body.
+rCTF does not support `<timer to="...">{:html}` or `<timer until="...">{:html}`. The countdown target is always the global competition schedule. If you need per-challenge deadlines, communicate them in plain text or as part of the description body.
 
 </Callout>
 
@@ -98,8 +98,8 @@ For a reference on what CommonMark supports, see the [CommonMark spec](https://s
 
 After parsing, output passes through DOMPurify before insertion. Author-facing implications:
 
-- `<script>` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
-- Most HTML tags supported by DOMPurify's default profile are allowed (e.g. `<details>`, `<summary>`, `<sub>`, `<sup>`, `<kbd>`).
+- `<script>{:html}` tags, inline event handlers (`onclick=`, `onerror=`, etc.), and dangerous protocols are stripped. Inline JavaScript will never execute.
+- Most HTML tags supported by DOMPurify's default profile are allowed (e.g. `<details>{:html}`, `<summary>{:html}`, `<sub>{:html}`, `<sup>{:html}`, `<kbd>{:html}`).
 - The only custom attributes preserved beyond defaults are `data-alert`, `data-type`, `data-content`, and `data-timer`, which the renderer uses as hydration markers for the alert and timer extensions. Authoring these attributes by hand has no effect - they are only emitted by the extensions.
 
 If you need richer interactivity than these extensions provide, it must be added in the frontend code, not via embedded HTML in a description.

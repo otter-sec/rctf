@@ -177,7 +177,7 @@ endTime: 1735776000000 # January 2, 2025 00:00 UTC
 
 <Callout variant="tip">
 
-To convert a date to Unix milliseconds: `date -d "2025-01-01T00:00:00Z" +%s000{:sh}` or use `new Date('2025-01-01T00:00:00Z').getTime()` in JavaScript.
+To convert a date to Unix milliseconds: `$ <red>date</red> <dim>-d</dim> <green>"2025-01-01T00:00:00Z"</green> +%s000` or use `new Date('2025-01-01T00:00:00Z').getTime(){:ts}` in JavaScript.
 
 </Callout>
 ### Divisions
@@ -198,7 +198,7 @@ divisionACLs:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>divisions</red>` | `object{:ts}` | `{ open: "Open" }` | Map of division ID to display name |
+| `<red>divisions</red>` | `object{:ts}` | `{ open: "Open" }{:ts}` | Map of division ID to display name |
 | `<red>defaultDivision</red>` | `string{:ts}` | - | Default division for new users (optional) |
 | `<red>divisionACLs</red>` | `array{:ts}` | - | Access control rules for divisions (optional) |
 
@@ -289,8 +289,8 @@ instancerProvider:
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }` | File upload provider |
-| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }` | Scoring algorithm provider |
+| `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
+| `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
 | `<red>instancerProvider</red>` | `object{:ts}` | - | Challenge instancer provider (optional) |
 
 See the [Providers](/providers/) section for detailed configuration of each provider.
@@ -353,14 +353,14 @@ flagFormatPlaceholder: 'flag{[\x20-\x7e]+}'
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
-| `<red>homeContent</red>` | `string{:ts}` | `"Home content. Markdown supported."` | Home page content (Markdown) |
-| `<red>sponsors</red>` | `array{:ts}` | `[]` | List of sponsors (`<red>name</red>`, `<red>icon</red>`, `<red>description</red>`, `<red>url</red>`) |
-| `<red>meta.description</red>` | `string{:ts}` | `"rCTF event description"` | HTML meta description |
-| `<red>meta.imageUrl</red>` | `string{:ts}` | `""` | HTML meta image URL |
+| `<red>homeContent</red>` | `string{:ts}` | `"Home content. Markdown supported."{:ts}` | Home page content (Markdown) |
+| `<red>sponsors</red>` | `array{:ts}` | `[]{:json}` | List of sponsors (`<red>name</red>`, `<red>icon</red>`, `<red>description</red>`, `<red>url</red>`) |
+| `<red>meta.description</red>` | `string{:ts}` | `"rCTF event description"{:ts}` | HTML meta description |
+| `<red>meta.imageUrl</red>` | `string{:ts}` | `""{:ts}` | HTML meta image URL |
 | `<red>faviconUrl</red>` | `string{:ts}` | rCTF default | Favicon URL |
-| `<red>logoLightUrl</red>` | `string{:ts}` | `""` | Logo for light mode |
-| `<red>logoDarkUrl</red>` | `string{:ts}` | `""` | Logo for dark mode |
-| `<red>flagFormatPlaceholder</red>` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"` | Flag format hint shown to participants |
+| `<red>logoLightUrl</red>` | `string{:ts}` | `""{:ts}` | Logo for light mode |
+| `<red>logoDarkUrl</red>` | `string{:ts}` | `""{:ts}` | Logo for dark mode |
+| `<red>flagFormatPlaceholder</red>` | `string{:ts}` | `"flag{[\\x20-\\x7e]+}"{:ts}` | Flag format hint shown to participants |
 
 <Callout variant="tip">
 

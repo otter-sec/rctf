@@ -34,8 +34,8 @@ All the examples will use `example.com` which refers to the domain name hosting 
 
 After you've deployed a VPS in your preferred provider, you'll need to SSH into it using:
 
-```sh
-$ ssh root@123.123.123.123
+```console
+$ <red>ssh</red> root@123.123.123.123
 ```
 
 All the subsequent commands should be run inside the VPS as the root user.
@@ -45,8 +45,8 @@ All the subsequent commands should be run inside the VPS as the root user.
 
 We provide a simple installation script that sets up rCTF automatically:
 
-```sh
-$ curl -L https://get.rctf.osec.io | sh
+```console
+$ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io | <red>sh</red>
 ```
 
 When prompted if rCTF should be started, answer `y`. The installation script configures rCTF into the `/opt/rctf/{:dir}` directory which will contain all of our rCTF configuration and from which commands to restart rCTF should be run.
@@ -66,8 +66,8 @@ The `/opt/rctf/rctf.d/{:dir}` folder contains the configuration files where your
 
 After each configuration change, you need to restart rCTF by running the following command:
 
-```sh
-$ cd /opt/rctf && docker compose up -d --force-recreate --build
+```console
+$ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>
 ```
 
 </Step>
@@ -95,17 +95,17 @@ In SSL/TLS > Origin Server tab, create a new certificate where all the settings 
 
 We will setup a firewall using UFW to only allow Cloudflare IPs to access the web server:
 
-```sh
-$ ufw allow 22
-# source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh
-$ for cfip in `curl -sw '\n' https://www.cloudflare.com/ips-v{4,6}`; do ufw allow proto tcp from $cfip comment 'Cloudflare IP'; done
-$ ufw enable   # answer `y` when prompted regarding enabling firewall
+```console
+$ <red>ufw</red> allow 22
+<dim># source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh</dim>
+$ for cfip in `<red>curl</red> <dim>-sw</dim> '\n' https://www.cloudflare.com/ips-v{4,6}`; do <red>ufw</red> allow proto tcp from $cfip comment 'Cloudflare IP'; done
+$ <red>ufw</red> enable   <dim># answer `y` when prompted regarding enabling firewall</dim>
 ```
 
 </Step>
 <Step title="Install and configure Nginx">
 
-Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
+Install Nginx using `$ <red>apt</red> update && <red>apt</red> install <dim>-y</dim> nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
 
 ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15}
 # Redirect HTTP -> HTTPS
@@ -154,12 +154,12 @@ server {
 
 Create a symlink so Nginx loads the configuration, then apply it:
 
-```sh
-$ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-$ nginx -t && nginx -s reload
+```console
+$ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+$ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
 ```
 
-Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, run `$ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 </Step>
 </Steps>
@@ -175,7 +175,7 @@ In your DNS registrar, configure a new `A` DNS record pointing to `123.123.123.1
 </Step>
 <Step title="Install and configure Nginx">
 
-Install Nginx using `apt update && apt install -y nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
+Install Nginx using `$ <red>apt</red> update && <red>apt</red> install <dim>-y</dim> nginx`. Then, create `/etc/nginx/sites-available/rctf.conf{:file}` with the following contents (note the comments on stuff you need to update):
 
 ```nginx title="/etc/nginx/sites-available/rctf.conf" showLineNumbers mark={4,15-17}
 # Redirect HTTP -> HTTPS
@@ -219,12 +219,12 @@ server {
 
 Create a symlink so Nginx loads the configuration, then apply it:
 
-```sh
-$ ln -s /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
-$ nginx -t && nginx -s reload
+```console
+$ <red>ln</red> <dim>-s</dim> /etc/nginx/sites-available/rctf.conf /etc/nginx/sites-enabled/rctf.conf
+$ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload
 ```
 
-Every time you update the configuration, run `nginx -t && nginx -s reload{:sh}` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
+Every time you update the configuration, run `$ <red>nginx</red> <dim>-t</dim> && <red>nginx</red> <dim>-s</dim> reload` to validate and apply changes. After all these steps, you should be able to visit `https://ctf.example.com` and view rCTF!
 
 </Step>
 </Steps>
@@ -244,12 +244,12 @@ Register a new account in rCTF.
 
 In the VPS running rCTF, run the following commands to grant the account admin permissions:
 
-```sh
-$ docker exec -it rctf-postgres-1 bash
+```console
+$ <red>docker</red> exec <dim>-it</dim> rctf-postgres-1 bash
 ```
 
-```sh title="Inside the postgres container"
-$ psql -U rctf
+```console title="Inside the postgres container"
+$ <red>psql</red> <dim>-U</dim> rctf
 ```
 
 ```sql title="Inside the postgres shell"

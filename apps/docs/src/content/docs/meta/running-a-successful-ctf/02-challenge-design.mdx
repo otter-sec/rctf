@@ -46,7 +46,7 @@ Each challenge should include the following:
 | **Difficulty** | Relative difficulty level. This is a contentious topic due to the subjective nature of difficulty ratings, so this is sometimes excluded. | Optional, uncommon |
 | **Flag** | The solution in the established format. | Required |
 | **Attachments** | Any downloadable attachments. Attachments should be nicely zipped and uniquely named to avoid issues like `dist(4).tar.gz`. (`<green>konata</green>` helps with this!) | Optional, common |
-| **Remote** | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>` rather than a `<code>`. rCTF provides a custom `[!CONNECTION]` callout for this purpose. | Optional, common |
+| **Remote** | Connection information for hosted challenges (if applicable). They should be placed in a one-line `<pre>{:html}` rather than a `<code>{:html}`. rCTF provides a custom `[!CONNECTION]{:md}` callout for this purpose. | Optional, common |
 | **Instancer** | Configuration for instancer challenges (if applicable). This should not be public but rather documented internally, and open-sourced after the CTF. | Optional, uncommon |
 | **Solution** | A working solve script or writeup. This should be referenced internally during playtesting and released after the CTF. | Optional, recommended |
 
@@ -60,14 +60,14 @@ For challenges that require a remote component, containerization using Docker is
 - **Minimal base images** - Use lightweight images like `alpine` or `debian-slim` to reduce build times and attack surface.
 - **Build artifacts separately** - Use multi-stage builds to compile binaries in one stage and copy only the final artifact into the runtime image.
 - **Non-root users** - Run challenge services as a non-root user inside the container to limit the impact of container escapes.
-- **Read-only filesystem** - Where possible, mount the root filesystem as read-only (`readOnly: true` or `--read-only`) and use a tmpfs for writable directories.
+- **Read-only filesystem** - Where possible, mount the root filesystem as read-only (`readOnly: true{:yml}` or `<dim>--read-only</dim>`) and use a tmpfs for writable directories.
 
 #### Security defaults
 
 When deploying challenges, apply the following security settings:
 
-- `cap_drop: ALL` - Drop all Linux capabilities
-- `no-new-privileges: true` - Prevent privilege escalation
+- `cap_drop: ALL{:yml}` - Drop all Linux capabilities
+- `no-new-privileges: true{:yml}` - Prevent privilege escalation
 - Memory and PID limits - Prevent resource exhaustion (e.g., fork bombs)
 - Network isolation - Use internal networks for multi-container challenges where services should not be directly reachable
 

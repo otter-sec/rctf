@@ -14,7 +14,7 @@ Both API versions are available at the same time:
 | V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
 | V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-The versions are route contracts, not separate complete APIs. Use V2 where a V2 route exists, and use V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `kind` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, etc.).
+The versions are route contracts, not separate complete APIs. Use V2 where a V2 route exists, and use V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, etc.).
 
 ## Typed route contract
 
@@ -39,7 +39,7 @@ type Response = RouteSuccessResponse<typeof GetChallengesRouteV2>
 User-authenticated routes require an auth token in the `Authorization` header:
 
 ```text
-Authorization: Bearer <dim><auth-token></dim>
+Authorization: Bearer <auth-token>
 ```
 
 Service-authenticated admin bot routes also use the `Authorization` header, but the token is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
@@ -56,7 +56,7 @@ Service-authenticated admin bot routes also use the `Authorization` header, but 
 
 | Token | Lifetime | Used by |
 | --- | --- | --- |
-| Auth | No expiry | `Authorization: Bearer <dim><auth-token></dim>` on user routes. |
+| Auth | No expiry | `Authorization: Bearer <auth-token>` on user routes. |
 | Team | No expiry | Account recovery and v1 login. V2 registration returns it directly when registration completes without email verification. |
 | Verify | `loginTimeout` | Email update verification. |
 | CTFtime auth | `loginTimeout` | CTFtime registration and login handoff. |
@@ -84,7 +84,7 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }` instead of an rCTF envelope.
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` instead of an rCTF envelope.
 
 ## Request validation
 
