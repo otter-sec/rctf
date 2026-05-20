@@ -5,7 +5,7 @@ description: Configure email delivery with SMTP, Amazon SES, Postmark, or Mailgu
 
 import Callout from '@/components/callout.astro'
 
-Email providers handle sending verification and recovery emails. An email provider is required for email-based registration, account recovery, and email changes.
+Email providers send verification and recovery emails. You need one configured if you want email-based registration, account recovery, or email changes to work.
 
 <Callout variant="tip" title="What we use in practice">
   For events we run or help operate (including Malta CTF, idek CTF, and DiceCTF), we typically use
@@ -17,7 +17,7 @@ Email providers handle sending verification and recovery emails. An email provid
 
 ## Configuration
 
-Email configuration includes the provider, a sender address, and an optional logo URL for email templates:
+Email config includes the provider, a sender address, and an optional logo URL for email templates:
 
 ```yaml
 email:
@@ -31,7 +31,7 @@ email:
 
 <Callout variant="note">
 
-Without an email provider, registrations complete immediately without verification (no email is sent), users cannot recover their accounts, and email-based division ACLs cannot be enforced.
+Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.
 
 </Callout>
 ## Providers
@@ -39,7 +39,7 @@ Without an email provider, registrations complete immediately without verificati
 <Tabs items={['emails/smtp', 'emails/ses', 'emails/postmark', 'emails/mailgun']}>
 <Tab>
 
-Sends emails via SMTP using Nodemailer.
+Sends emails over SMTP using Nodemailer.
 
 ```yaml
 email:
@@ -57,7 +57,7 @@ email:
 </Tab>
 <Tab>
 
-Sends emails via Amazon Simple Email Service.
+Sends emails through Amazon Simple Email Service.
 
 ```yaml
 email:
@@ -78,14 +78,14 @@ email:
 
 <Callout variant="warning">
 
-Ensure your SES account is out of the sandbox and the sender address is verified before use.
+Make sure your SES account is out of the sandbox and the sender address is verified before you use it.
 
 </Callout>
 
 </Tab>
 <Tab>
 
-Sends emails via the [Postmark](https://postmarkapp.com/) API.
+Sends emails through the [Postmark](https://postmarkapp.com/) API.
 
 ```yaml
 email:
@@ -103,7 +103,7 @@ email:
 </Tab>
 <Tab>
 
-Sends emails via the [Mailgun](https://www.mailgun.com/) API.
+Sends emails through the [Mailgun](https://www.mailgun.com/) API.
 
 ```yaml
 email:

@@ -7,7 +7,7 @@ import Callout from '@/components/callout.astro'
 import Icon from '@/components/icon.astro'
 import Swatch from '@/components/mdx/swatch'
 
-Each challenge category in rCTF has a dedicated color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts{:file}`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0{:css}`, which components reference via Tailwind classes such as `text-category-foreground-l0{:css}`.
+Each challenge category in rCTF has its own color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts{:file}`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0{:css}`, which components reference through Tailwind classes such as `text-category-foreground-l0{:css}`.
 
 ## Default categories
 
@@ -27,7 +27,7 @@ Each of the default categories uses a color specified in [Category colors](/them
 | `koth` | King of the Hill | <Swatch color="pink-400" label="pink" /> | <Icon name="chess-queen-filled" class="text-muted-foreground size-6" aria-hidden="true" /> |
 | `osint` | OSINT | <Swatch color="gray-400" label="gray" /> | <Icon name="eye-filled" class="text-muted-foreground size-6" aria-hidden="true" /> |
 
-We additionally enable category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) to allow flexible naming.
+A handful of category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) make naming a bit more flexible.
 
 <Callout variant="note" title="How category styling works">
 
@@ -113,19 +113,19 @@ export const categoryOrder = [
 ]
 ```
 
-Categories not in this list appear alphabetically after listed ones.
+Categories not in this list show up alphabetically after the listed ones.
 
 </Step>
 <Step title="Add color variables (if using a new color)">
 
-If your category uses a color not already in the palette, add variables to `app.css{:file}` following the existing pattern. Define `--background-{color}-l0{:css}`, `--background-{color}-l1{:css}`, `--background-{color}-l1-hover{:css}`, `--foreground-{color}-l0{:css}`, and `--foreground-{color}-l1{:css}` for both `:root{:css}` and `[data-theme='dark']{:css}`. Don't forget to additionally map the colors in `@theme inline{:css}`.
+If your category uses a color not already in the palette, add variables to `app.css{:file}` following the existing pattern. Define `--background-{color}-l0{:css}`, `--background-{color}-l1{:css}`, `--background-{color}-l1-hover{:css}`, `--foreground-{color}-l0{:css}`, and `--foreground-{color}-l1{:css}` for both `:root{:css}` and `[data-theme='dark']{:css}`. Don't forget to map the colors in `@theme inline{:css}` too.
 
 </Step>
 </Steps>
 
 ## Utility functions
 
-The following utility functions are available to help with category configuration:
+The following utility functions help with category configuration:
 
 | Function | Purpose |
 | --- | --- |

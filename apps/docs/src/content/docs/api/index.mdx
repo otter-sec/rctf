@@ -14,7 +14,7 @@ Both API versions are available at the same time:
 | V1 | `<route>/api/v1</route>` | Supported | Legacy clients and compatibility with the original rCTF API. |
 | V2 | `<route>/api/v2</route>` | Recommended | New integrations, richer response data, runtime settings, avatars, instancers, admin bot jobs, and admin search APIs. |
 
-The two versions overlap rather than forming separate complete APIs. Use V2 where a V2 route exists, and fall back to V1 routes for actions that do not have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, and similar additions).
+The two versions overlap rather than forming separate complete APIs. Use V2 where a V2 route exists, and fall back to V1 routes for actions that don't have V2 replacements. Many V2 routes share the same response `<red>kind</red>` string as their V1 equivalents, but the `data` payload is often wider in V2 (avatars, country codes, blood index, and similar additions).
 
 ## Typed route contract
 
@@ -42,7 +42,7 @@ User-authenticated routes require an auth token in the `Authorization` header:
 Authorization: Bearer <auth-token>
 ```
 
-Service-authenticated admin bot routes also use the `Authorization` header, but the token is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
+Service-authenticated admin bot routes also use the `Authorization` header, but the token here is the shared admin bot service secret from `adminBot.provider.options.secretKey`.
 
 | Auth mode | Behavior |
 | --- | --- |
@@ -84,11 +84,11 @@ Routes whose response definition has no data schema omit the `data` field:
 }
 ```
 
-The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` instead of an rCTF envelope.
+The v1 CTFtime leaderboard route is the only typed route that intentionally returns the data body directly. `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` returns `{ "standings": [...] }{:json}` rather than an rCTF envelope.
 
 ## Request validation
 
-JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation errors return `<response>400 badBody</response>` with a machine-readable `reason` string:
+JSON routes parse the request body as JSON when a body schema exists. Form routes parse `multipart/form-data`. Validation failures return `<response>400 badBody</response>` with a machine-readable `reason` string:
 
 ```json
 {
@@ -115,17 +115,17 @@ Admin routes use bitmask permissions from `Permissions{:ts}`:
 | `usersWrite{:ts}` | `16` | Admin user lists, user mutation, pending verification management, submission audit logs. |
 | `settingsWrite{:ts}` | `32` | Runtime settings reads and updates. |
 
-When a route lists multiple permission bits, the user must have all of them.
+When a route lists multiple permission bits, the user needs all of them.
 
 ## Timing gates
 
 Routes marked as start-gated return `<response>401 badNotStarted</response>` before `startTime`. Admin users can bypass that gate when the route defines a bypass permission and their token has the required bit.
 
-`<route>POST /api/v1/challs/:id/submit</route>` is also end-gated. It returns `<response>401 badEnded</response>` after `endTime`.
+`<route>POST /api/v1/challs/:id/submit</route>` is also end-gated, returning `<response>401 badEnded</response>` after `endTime`.
 
 ## Captcha
 
-Captcha-protected routes validate a challenge response only when the configured captcha provider marks that action as protected. V1 request bodies use `recaptchaCode`. V2 request bodies use `captchaCode`.
+Captcha-protected routes only validate a challenge response when the configured captcha provider marks that action as protected. V1 request bodies use `recaptchaCode`, and V2 request bodies use `captchaCode`.
 
 | Action | Routes |
 | --- | --- |

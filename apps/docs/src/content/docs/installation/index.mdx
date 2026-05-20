@@ -3,9 +3,9 @@ title: Installation
 description: Deploy rCTF in minutes with Docker or set it up manually.
 ---
 
-rCTF can be deployed in minutes using the automated installation script, or set up manually for more control over the environment.
+You can have rCTF running in minutes with the automated installation script, or set it up manually for more control over the environment.
 
-For a production deployment, a VPS with at least 2 CPU cores and 4 GiB RAM is recommended. See the [Setting Up a CTF Platform](/meta/running-a-successful-ctf/03-setup/) guide for a complete walkthrough including Nginx, TLS, and firewall configuration.
+For production, plan on a VPS with at least 2 CPU cores and 4 GiB RAM. The [Setting Up a CTF Platform](/meta/running-a-successful-ctf/03-setup/) guide walks through the full deployment, including Nginx, TLS, and firewall configuration.
 
 ## Quick start with Docker
 
@@ -15,9 +15,9 @@ The fastest way to get rCTF running is the automated installation script:
 $ <red>curl</red> <dim>-L</dim> https://get.rctf.osec.io | <red>sh</red>
 ```
 
-This installs rCTF to `/opt/rctf/{:dir}` with Docker Compose, including PostgreSQL, Redis, and the rCTF server. When prompted, answer `y` to start the platform immediately.
+The script installs rCTF to `/opt/rctf/{:dir}` with Docker Compose, including PostgreSQL, Redis, and the rCTF server. When prompted, answer `y` to start the platform immediately.
 
-After installation, configure your instance by editing the YAML files in `/opt/rctf/rctf.d/{:dir}` (at minimum, set `<red>ctfName</red>`, `<red>origin</red>`, `<red>startTime</red>`, and `<red>endTime</red>`, and see [Configuration](/configuration/) for the full reference). Once the config is in place, apply the changes by rebuilding the stack:
+After installation, configure your instance by editing the YAML files in `/opt/rctf/rctf.d/{:dir}`. At minimum, set `<red>ctfName</red>`, `<red>origin</red>`, `<red>startTime</red>`, and `<red>endTime</red>` (see [Configuration](/configuration/) for the full reference). Once the config is in place, apply the changes by rebuilding the stack:
 
 ```console
 $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--force-recreate</dim> <dim>--build</dim>

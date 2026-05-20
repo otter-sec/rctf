@@ -5,9 +5,9 @@ description: Configure per-team challenge instances with Docker or Kubernetes.
 
 import Callout from '@/components/callout.astro'
 
-The instancer integration creates one isolated challenge service per team. rCTF owns the user-facing lifecycle, while an instancer provider owns the compute backend that creates, reads, extends, and deletes the running instance.
+The instancer integration creates one isolated challenge service per team. rCTF owns the user-facing lifecycle, and an instancer provider owns the compute backend that creates, reads, extends, and deletes the running instance.
 
-Instanced challenges are useful when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
+Instanced challenges work well when teams need private mutable state, a dedicated service process, or a target that should disappear after a timeout.
 
 <Callout variant="warning" title="Hostile workloads">
   Treat challenge images as hostile. Set resource limits, keep containers or pods unprivileged, and
@@ -28,17 +28,17 @@ The instancer path has three layers:
 <Steps>
 <Step title="Select a provider">
 
-The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/{:dir}`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations.
+The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/{:dir}`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
 
 </Step>
 <Step title="Configure a challenge">
 
-Each instanced challenge stores `<red>instancerConfig</red>` in challenge data. The common fields define the stable challenge integration ID, timeout, exposed endpoints, and provider-specific config.
+Each instanced challenge stores `<red>instancerConfig</red>` in challenge data. The common fields cover the stable challenge integration ID, timeout, exposed endpoints, and provider-specific config.
 
 </Step>
 <Step title="Run participant instances">
 
-Participants create, extend, inspect, and delete their instance from the challenge page. rCTF returns provider status and endpoints in the same order as the challenge's `<red>expose</red>` array.
+Participants create, extend, inspect, and delete their instance from the challenge page. rCTF returns provider status and endpoints in the same order as the challenge's `<red>expose</red>` array, so the frontend can line them up cleanly.
 
 </Step>
 </Steps>
@@ -50,7 +50,7 @@ The `<red>instancerProvider</red>` config selects one provider in `rctf.d/{:dir}
 <Tabs items={['Docker', 'Kubernetes']}>
 <Tab>
 
-`<green>instancer/docker-instancer</green>` talks to the bundled Docker instancer or any compatible tiny-instancer API:
+`<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API:
 
 ```yaml title="rctf.d/instancer.yaml"
 instancerProvider:
@@ -122,9 +122,9 @@ instancerConfig:
 
 | Field | Purpose |
 | --- | --- |
-| `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. It should stay stable after launch. |
+| `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. Don't change it after launch. |
 | `<red>timeoutMilliseconds</red>` | Instance lifetime for create and extend operations. |
-| `<red>extendable</red>` | Enables participant-initiated extension when set to `true{:ts}`. |
+| `<red>extendable</red>` | Lets participants extend their instance when set to `true{:ts}`. |
 | `<red>config</red>` | Provider-specific service or pod configuration. See [Docker](/integrations/instancer/docker/#docker-challenge-config) or [Kubernetes](/integrations/instancer/kubernetes/#kubernetes-challenge-config) for the schema. |
 | `<red>expose</red>` | Public endpoints rCTF should display or keep hidden for internal routing. |
 
@@ -161,7 +161,7 @@ Participant lifecycle routes are under `<route>/api/v2/integrations/challs/:id/i
 | `<route>PATCH</route>`  | Extends an instance when the challenge is extendable. |
 | `<route>DELETE</route>` | Stops an instance.                                    |
 
-The returned status is one of `<green>stopped</green>`, `<green>starting</green>`, `<green>running</green>`, `<green>stopping</green>`, or `<green>errored</green>`. Docker returns `<green>stopping</green>` only through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
+The returned status is one of `<green>stopped</green>`, `<green>starting</green>`, `<green>running</green>`, `<green>stopping</green>`, or `<green>errored</green>`. Docker only emits `<green>stopping</green>` through rCTF's shared response schema, while Kubernetes returns it when a custom resource has a deletion timestamp.
 
 Captcha can protect create and extend actions:
 
@@ -176,11 +176,11 @@ captcha:
 
 The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
 
-The response is generated from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
+The response comes from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
 
 ### Dynamic admin UI
 
-The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Switching the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI does not cover.
+The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Swapping the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
 
 <Callout variant="note" title="Challenge repository tooling">
   [Konata](/integrations/konata/) is a CTF challenge management tool with rCTF support, including

@@ -7,11 +7,11 @@ import Callout from '@/components/callout.astro'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
-This guide covers the changes between rCTF v1 and v2 and what you need to do to upgrade.
+This guide covers what changed between rCTF v1 and v2, and what you need to do to upgrade.
 
 ## In short, swap the image and restart
 
-The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config is converted to the new shape at startup. No manual SQL, no config rewrite required to get back online.
+The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config gets converted to the new shape at startup. No manual SQL, no config rewrite needed to get back online.
 
 ```yaml title="compose.yml"
 services:
@@ -21,14 +21,14 @@ services:
 
 <Callout variant="warning" title="Back up the database first">
   Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump (e.g. `$
-  pg_dump`) before swapping the image so you have a path back if something goes wrong.
+  pg_dump`) before swapping the image so you have a way back if something goes wrong.
 </Callout>
 
-If you want to know what actually changes (new tables, new columns, API differences, and config sections that benefit from a manual rewrite), read on. None of it is required to upgrade.
+If you want to know what actually changes (new tables, new columns, API differences, and config sections worth rewriting by hand), read on. None of it is required to upgrade.
 
 ## Database migration
 
-Schema changes are handled by Drizzle ORM and run automatically when `<red>database.migrate</red>` is `<green>before</green>` (the default in the bundled container). To run them by hand:
+Drizzle ORM handles schema changes and runs them automatically when `<red>database.migrate</red>` is `<green>before</green>` (the default in the bundled container). To run them by hand:
 
 ```console
 $ <red>bun</red> run db:migrate
@@ -63,15 +63,15 @@ $ <red>bun</red> run db:migrate
 
 ## API changes
 
-All v1 routes continue to work. The v2 API is available at `<route>/api/v2/...</route>` and includes several improvements and new endpoints.
+All v1 routes still work. The v2 API lives at `<route>/api/v2/...</route>` and adds several improvements and new endpoints.
 
 ### Captcha field rename
 
-V2 routes use `<red>captchaCode</red>` instead of `<red>recaptchaCode</red>` in request bodies. This applies to all endpoints that support captcha validation.
+V2 routes use `<red>captchaCode</red>` instead of `<red>recaptchaCode</red>` in request bodies. This applies to every endpoint that supports captcha validation.
 
 ### File uploads
 
-The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
+The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) takes binary files via `multipart/form-data` rather than the base64-encoded data URIs v1 used.
 
 ### New v2 endpoints
 
@@ -100,7 +100,7 @@ The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) accept
 
 ### Captcha provider
 
-The v1 `<red>recaptcha</red>` top-level config is automatically converted to the new `<red>captcha.provider</red>` format at startup. However, migrating to the new format is recommended:
+The v1 `<red>recaptcha</red>` top-level config gets converted to the new `<red>captcha.provider</red>` format at startup automatically. We still recommend migrating to the new format by hand:
 
 <Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
 <Tab>
@@ -134,7 +134,7 @@ The new format also supports `<green>captcha/hcaptcha</green>` and `<green>captc
 
 ### Analytics provider
 
-The v1 `<red>globalSiteTag</red>` config is automatically converted to the `<red>analytics.provider</red>` format. Migrate to:
+The v1 `<red>globalSiteTag</red>` config gets converted to the `<red>analytics.provider</red>` format automatically. Migrate to:
 
 ```yaml title="v2 (recommended)"
 analytics:
@@ -148,7 +148,7 @@ Additional analytics providers are also available, such as `<green>analytics/clo
 
 ### New configuration sections
 
-The following configuration sections are new in v2:
+v2 adds the following configuration sections:
 
 | Section                        | Purpose                                      |
 | ------------------------------ | -------------------------------------------- |
@@ -159,4 +159,4 @@ The following configuration sections are new in v2:
 | `<red>proxy</red>`             | Reverse proxy and Cloudflare settings        |
 | `<red>maxAvatarSize</red>`     | Maximum avatar upload size (default 1 MB)    |
 
-See the [Configuration](/configuration/) reference for full details on all options.
+See the [Configuration](/configuration/) reference for details on every option.

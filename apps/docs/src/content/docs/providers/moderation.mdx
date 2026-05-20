@@ -5,7 +5,7 @@ description: Configure avatar content moderation with OpenAI's moderation API.
 
 import Callout from '@/components/callout.astro'
 
-Moderation providers check uploaded avatar images for inappropriate content. This is an optional feature, and without a moderation provider, all avatars are accepted.
+Moderation providers check uploaded avatar images for inappropriate content. It's optional, and without a moderation provider, every avatar gets accepted.
 
 ## Configuration
 
@@ -25,7 +25,7 @@ avatarsModeration:
 
 <Callout variant="tip">
 
-Setting `<red>allowOnInternalError</red>` to `true{:ts}` (the default) ensures that temporary OpenAI API outages do not prevent users from uploading avatars. Set to `false{:ts}` if strict moderation is required.
+Setting `<red>allowOnInternalError</red>` to `true{:ts}` (the default) means a temporary OpenAI API outage doesn't block avatar uploads. Set it to `false{:ts}` if you need strict moderation.
 
 </Callout>
 ## Providers
@@ -48,14 +48,14 @@ avatarsModeration:
 | `<red>apiKey</red>` | `RCTF_MODERATION_OPENAI_API_KEY{:sh}` or `OPENAI_API_KEY{:sh}` | - | OpenAI API key |
 | `<red>model</red>` | `RCTF_MODERATION_OPENAI_MODEL{:sh}` | `omni-moderation-latest` | OpenAI moderation model |
 
-The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image is flagged as inappropriate, the upload is rejected with an error.
+The provider sends the avatar image (resized to 256x256 WebP) to the OpenAI moderation endpoint. If the image gets flagged as inappropriate, the upload is rejected with an error.
 
 ## Moderation pipeline
 
-When a user uploads an avatar, the following pipeline runs:
+When a user uploads an avatar, the pipeline runs in this order:
 
-1. Image is validated against `<red>maxAvatarSize</red>` (default 1 MB)
-2. Image is resized to 256x256 pixels and converted to WebP
-3. If a moderation provider is configured, the image is checked
-4. If approved (or no provider configured), the image is uploaded via the upload provider
-5. The previous avatar, if any, is deleted
+1. Check the image against `<red>maxAvatarSize</red>` (default 1 MB).
+2. Resize to 256x256 pixels and convert to WebP.
+3. If a moderation provider is configured, run the image through it.
+4. If approved (or no provider configured), hand the image to the upload provider.
+5. Delete the previous avatar, if any.

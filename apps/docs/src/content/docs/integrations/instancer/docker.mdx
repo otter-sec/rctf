@@ -5,7 +5,7 @@ description: Deploy the rCTF Docker instancer with the bundled Compose stack and
 
 import Callout from '@/components/callout.astro'
 
-The Docker instancer is a Python FastAPI service that manages Docker containers, Docker networks, Docker volumes, Redis instance locks, Redis expirations, and Traefik labels. It is the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
+The Docker instancer is a Python FastAPI service that manages Docker containers, networks, volumes, Redis instance locks, Redis expirations, and Traefik labels. It's the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
 
 For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/integrations/instancer/).
 
@@ -25,7 +25,7 @@ The bundled deployment files live under `deploy/docker-instancer/{:dir}`:
   </Dir>
 </FileTree>
 
-The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The instancer API itself is bound to `127.0.0.1:12237` on the host and to `tiny-instancer:1337` inside the `rctf_network` Docker network.
+The Compose stack exposes Traefik on `80{:ts}`, `443{:ts}`, and `1337{:ts}`. The instancer API itself binds to `127.0.0.1:12237` on the host and to `tiny-instancer:1337` inside the `rctf_network` Docker network.
 
 <Callout variant="warning" title="Hosting the instancer on a separate machine">
 
@@ -38,7 +38,7 @@ ports:
   - '12237:1337'
 ```
 
-The API is authenticated by a shared `<red>AUTH_TOKEN</red>`, but the endpoint must not be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
+The API is authenticated by a shared `<red>AUTH_TOKEN</red>`, but the endpoint shouldn't be reachable from anything other than rCTF. Put a host firewall in front of it that only allows the rCTF host's source IP.
 
 </Callout>
 
@@ -118,7 +118,7 @@ Expand the pool by adding the following to `/etc/docker/daemon.json{:file}` on t
 
 This carves `100.64.0.0/10` (the CGNAT range, safe to use internally) into `/24` subnets, giving you **16384** Docker networks. That's enough for ~8192 concurrent instances in the worst case (each challenge typically creates two networks). Add more `default-address-pools` entries if you need still more room.
 
-Restart Docker after editing the file (`$ <red>systemctl</red> restart docker`) so the new pool is picked up. Networks already created on the old pool keep working but consume their original ranges.
+Restart Docker after editing the file (`$ <red>systemctl</red> restart docker`) so it picks up the new pool. Networks already created on the old pool keep working but stick with their original ranges.
 
 ## Docker challenge config
 
@@ -170,4 +170,4 @@ Each service supports these field groups:
 
 Explicit services default to a read-only root filesystem, `<green>no-new-privileges</green>`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `1024` PIDs, and `nofile` soft and hard limits of `1024`.
 
-Services may only reference networks declared under `<red>config.networks</red>`. Named volume mounts may only reference volumes declared under `<red>config.volumes</red>`. Absolute and relative bind-style mount sources are not checked against the volume map.
+Services may only reference networks declared under `<red>config.networks</red>`. Named volume mounts may only reference volumes declared under `<red>config.volumes</red>`. Absolute and relative bind-style mount sources aren't checked against the volume map.

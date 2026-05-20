@@ -5,11 +5,11 @@ description: Overview of rCTF administration, permissions, and settings manageme
 
 import Callout from '@/components/callout.astro'
 
-The rCTF admin panel provides challenge management, user administration, and platform settings through the web interface.
+The rCTF admin panel handles challenge management, user administration, and platform settings from the web interface.
 
 ## Permissions
 
-rCTF uses a bitwise permission system. Each permission is a flag that can be combined to create different admin roles.
+rCTF uses a bitwise permission system. Each permission is a flag, and you combine them to build different admin roles.
 
 | Permission         | Value | Description                                         |
 | ------------------ | ----- | --------------------------------------------------- |
@@ -44,16 +44,16 @@ UPDATE users SET perms = 63 WHERE email = 'admin@example.com';
 
 <Callout variant="warning">
 
-Permission changes take effect after the user cache expires (30 seconds) or when the user updates their profile. There is no need to restart the server.
+Permission changes take effect once the user cache expires (30 seconds) or when the user updates their profile. You don't need to restart the server.
 
 </Callout>
 ### Permission bypass
 
-Users with appropriate permissions can bypass competition timeline restrictions. For example, a user with `challsRead` can view challenges before the CTF starts.
+Users with the right permissions can bypass competition timeline restrictions. A user with `challsRead`, for example, can view challenges before the CTF starts.
 
 ## Runtime settings
 
-Platform settings can be modified at runtime without restarting the server. This requires `settingsWrite` permission.
+You can change platform settings at runtime without restarting the server. This requires the `settingsWrite` permission.
 
 Editable settings:
 
@@ -71,4 +71,4 @@ Editable settings:
 
 These settings override values from the config files. Setting a value to `null{:ts}` reverts to the config file default.
 
-CTF start and end time overrides must keep the start before the end. Runtime timing overrides are returned through the v2 client config.
+Start and end time overrides have to keep the start before the end. Runtime timing overrides are returned through the v2 client config.

@@ -11,7 +11,7 @@ rCTF is configured through YAML or JSON files in a `rctf.d/{:dir}` directory and
 
 Configuration is loaded from a directory named `rctf.d/{:dir}`. The loader searches upward from the `packages/config/{:dir}` directory, or you can specify a path via the `RCTF_CONF_PATH{:sh}` environment variable.
 
-All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order. This allows you to split configuration across multiple files for organization:
+All files in the directory (`.yaml`, `.yml`, or `.json`) are loaded **alphabetically** and deep-merged in order, so you can split configuration across multiple files for organization:
 
 <FileTree>
   <Dir name="rctf.d">

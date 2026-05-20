@@ -3,20 +3,20 @@ title: Admin bot
 description: Configure browser-based admin bot jobs for web challenges.
 ---
 
-The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It is meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
+The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It's meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
 
 <Callout variant='warning' title='Not battle-tested under high load'>
-  Most of rCTF v2 has been used to run large public events, but the admin bot has not been
-  exercised under that kind of traffic yet. The implementation is functional and we expect it to
-  hold up, but expect rougher edges than the rest of the platform. Load-test before relying on it
-  for a high-volume event, and watch the queue depth and worker logs during the CTF.
+  Most of rCTF v2 has run large public events, but the admin bot hasn't been pushed under that kind
+  of traffic yet. The implementation works and we expect it to hold up, but expect rougher edges
+  than the rest of the platform. Load-test before relying on it for a high-volume event, and watch
+  the queue depth and worker logs during the CTF.
 
-If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues). And if you _did_ run the admin bot successfully through a public CTF, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
+If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues). And if you _did_ run the admin bot through a public CTF without trouble, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
 
 </Callout>
 
 <Callout variant="warning" title="Trusted challenge code">
-  Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is available through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
+  Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is reachable through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
 </Callout>
 
 ## Request lifecycle
@@ -26,7 +26,7 @@ An admin bot job moves through the platform in this order:
 <Steps>
 <Step title="Configure the provider">
 
-The rCTF API is configured with an admin bot provider. The provider points at the browser worker and uses a shared bearer token for service authentication.
+The rCTF API gets configured with an admin bot provider. The provider points at the browser worker and uses a shared bearer token for service authentication.
 
 </Step>
 <Step title="Save challenge code">
@@ -36,7 +36,7 @@ The admin challenge editor sends the TypeScript source to the browser worker's `
 </Step>
 <Step title="Submit a job">
 
-A participant submits values for the configured inputs. The API validates required inputs, regex rules, captcha, rate limit state, active job state, and optional instancer state before queuing the job.
+A participant submits values for the configured inputs. The API checks required inputs, regex rules, captcha, rate limit state, active job state, and optional instancer state before queueing the job.
 
 </Step>
 <Step title="Run the browser handler">
@@ -48,7 +48,7 @@ The worker polls rCTF for queued jobs, fetches the matching challenge source rev
 
 ## Backend configuration
 
-The backend config enables the provider and tells rCTF where the admin bot worker is reachable from the API process:
+The backend config turns the provider on and tells rCTF where the admin bot worker is reachable from the API process:
 
 ```yaml title="rctf.d/admin-bot.yaml"
 adminBot:
@@ -70,7 +70,7 @@ adminBot:
 | `RCTF_ADMIN_BOT_SECRET_KEY{:sh}` | Environment override for `secretKey{:yaml}`. |
 | `adminBot.maxLogsPerUserChallenge{:yaml}` | Number of completed or failed job logs retained per user and challenge. The default is `5{:ts}`. |
 
-The same shared secret must be passed to the worker as `RCTF_SECRET_KEY{:sh}`. The API uses it when validating service routes, and the worker uses it when authenticating back to the API.
+The same shared secret has to go to the worker as `RCTF_SECRET_KEY{:sh}`. The API uses it when validating service routes, and the worker uses it when authenticating back to the API.
 
 Protect participant submissions with captcha by adding the `adminBotSubmit{:yaml}` action:
 
@@ -82,7 +82,7 @@ captcha:
 
 ## Worker service
 
-The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It exposes a protected test endpoint for config validation and polls rCTF for queued jobs.
+The worker is a separate Bun service under `apps/admin-bot/{:dir}`. It exposes a protected test endpoint for config validation, and polls rCTF for queued jobs.
 
 The bundled deployment files live under `deploy/admin-bot/{:dir}`:
 
@@ -122,19 +122,19 @@ Run the bundled Compose service from the repository root:
 $ <red>docker</red> compose <dim>-f</dim> deploy/admin-bot/compose.yml up <dim>-d</dim>
 ```
 
-The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network` network.
+The Compose file binds the worker to `127.0.0.1:21337`, mounts a persistent browser cache, uses tmpfs for browser scratch data, drops Linux capabilities, and joins the external `rctf_network`.
 
 <Callout variant="warning" title="Network exposure">
   Keep the worker reachable only from trusted infrastructure. The `<route>/v1/test</route>` endpoint
-  is bearer-authenticated, but it still builds trusted challenge source. The worker should not be
-  exposed as a public internet service.
+  is bearer-authenticated, but it still builds trusted challenge source. Don't expose the worker as
+  a public internet service.
 </Callout>
 
 ## Challenge source
 
 Admin bot challenge code exports a `Challenge{:ts}` instance. The loader only allows imports that resolve to the admin bot type module, such as `../src/types`, `../types`, `./types`, `./src/types`, `src/types`, and `types`.
 
-This example restricts participant input to one challenge origin, stores the flag in browser local storage for that origin, visits the submitted URL, and records a challenge log line:
+This example restricts participant input to one challenge origin, stores the flag in browser local storage for that origin, visits the submitted URL, and writes a challenge log line:
 
 ```ts title="admin-bot.ts" showLineNumbers=false
 import { sleep } from 'bun'
@@ -231,7 +231,7 @@ export const challenge = new Challenge({
 })
 ```
 
-The exported `Challenge{:ts}` is validated when the challenge is saved. Invalid regex patterns, missing exports, and unsupported imports are returned to the admin challenge editor as config errors.
+The exported `Challenge{:ts}` is validated when the challenge is saved. Invalid regex patterns, missing exports, and unsupported imports come back to the admin challenge editor as config errors.
 
 ## Challenge config fields
 
@@ -288,7 +288,7 @@ Stored logs are newline-delimited JSON. The API accepts up to `1048576{:ts}` cha
 | `showNavigation{:ts}` | Captures tab creation, main-frame navigation, service worker creation, and tab close events. |
 | `limitTabsNumber{:ts}` | Closes the browser when too many page targets are opened. Use `-1{:ts}` for no limit and `0{:ts}` to prevent page tabs. |
 
-Chrome supports extension page logging and service worker console logging. Firefox does not support those two hook surfaces in the current worker.
+Chrome supports extension page logging and service worker console logging. Firefox doesn't support those two hook surfaces in the current worker.
 
 ## Domain restrictions
 
@@ -305,11 +305,11 @@ restrictDomains: {
 }
 ```
 
-PAC rules match browser host and URL strings. They do not resolve DNS, so a denylist-only rule can miss aliases that resolve to internal IP addresses.
+PAC rules match browser host and URL strings. They don't resolve DNS, so a denylist-only rule can miss aliases that resolve to internal IP addresses.
 
 ## Instancer integration
 
-`requireInstancerInstancesRunning{:ts}` connects admin bot jobs to challenge instances. The API checks that the user's instance is running and that its remaining lifetime is at least `timeoutMilliseconds{:ts}` before the job is queued.
+`requireInstancerInstancesRunning{:ts}` ties admin bot jobs to challenge instances. Before queueing the job, the API checks that the user's instance is running and that its remaining lifetime is at least `timeoutMilliseconds{:ts}`.
 
 When the check passes, the handler receives displayed endpoints in `ctx.job.instancerInstances{:ts}`:
 
@@ -319,7 +319,7 @@ for (const endpoint of ctx.job.instancerInstances) {
 }
 ```
 
-The check only happens before queueing. A participant can still stop the instance before the worker reaches the job, so handlers should tolerate failed connections and report a clear log message.
+The check only happens before queueing. A participant can still stop the instance before the worker gets to the job, so handlers should tolerate failed connections and report a clear log message.
 
 ## Participant behavior
 
@@ -335,7 +335,7 @@ The participant-side API uses these endpoints:
 | `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/history</route>` | Returns completed and failed jobs retained for the current user. |
 | `<route>GET</route>` | `<route>/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>` | Returns stored logs for one retained job. |
 
-Each user may have one queued or running admin bot job per challenge. Submissions are rate-limited to one request per ten seconds per user and challenge.
+Each user can have one queued or running admin bot job per challenge. Submissions are rate-limited to one request every ten seconds per user and challenge.
 
 ## Service API
 
@@ -353,9 +353,9 @@ Each worker process runs one job at a time. Multiple worker processes can poll t
 
 ## Scaling under load
 
-Admin bot jobs are throughput-bound on browser sessions, not CPU. A worker spends most of its wall time waiting on Puppeteer (page loads, redirects, and the configured timeout), so steady-state CPU on a worker can stay low even when the queue is backing up. Autoscaling on CPU will react late and under-provision, so scaling on **queue depth** is the right signal.
+Admin bot jobs are bound by browser session throughput, not CPU. A worker spends most of its wall time waiting on Puppeteer (page loads, redirects, the configured timeout), so steady-state CPU stays low even when the queue is backing up. Autoscaling on CPU will react late and under-provision, so scale on **queue depth** instead.
 
-The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is meant to drive that signal. A practical setup is to scrape it (via an exporter or a small sidecar) into Prometheus, set a target queue depth per replica (somewhere around 5 to 10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
+The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is built for exactly this. The usual setup is to scrape it (via an exporter or small sidecar) into Prometheus, set a target queue depth per replica (somewhere around 5 to 10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
 
 <Callout variant="note" title="No production-ready manifests yet">
   We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot
