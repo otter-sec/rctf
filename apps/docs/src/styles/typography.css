@@ -161,7 +161,9 @@
       @apply code-pill-inner text-inherit;
     }
 
-    :where(.inline-shell-cmd span):not(.shell-prompt):not(:where(.not-prose, .not-prose *)) {
+    :where(.inline-shell-cmd span):not(.shell-prompt):not(.inline-code-tone):not(
+        :where(.not-prose, .not-prose *)
+      ) {
       @apply shiki-tokens;
     }
 
@@ -376,6 +378,10 @@
 
   :where(.inline-code-tone.is-orange) {
     color: var(--inline-tone-orange);
+  }
+
+  :where(.inline-code-tone.is-yellow) {
+    color: var(--inline-tone-yellow);
   }
 
   :where(.inline-code-tone.is-blue) {

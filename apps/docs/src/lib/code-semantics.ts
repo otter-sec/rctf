@@ -25,7 +25,6 @@ const TONE_ALIASES = new Map<string, ToneTag>([
   ['gray', 'black'],
   ['grey', 'black'],
   ['muted', 'black'],
-  ['yellow', 'orange'],
 ])
 
 const TONE_COLORS = new Map<string, string>([
@@ -33,6 +32,7 @@ const TONE_COLORS = new Map<string, string>([
   ['red', 'var(--inline-tone-red)'],
   ['green', 'var(--inline-tone-green)'],
   ['orange', 'var(--inline-tone-orange)'],
+  ['yellow', 'var(--inline-tone-yellow)'],
   ['blue', 'var(--inline-tone-blue)'],
   ['magenta', 'var(--inline-tone-magenta)'],
   ['cyan', 'var(--inline-tone-cyan)'],

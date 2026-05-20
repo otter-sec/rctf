@@ -79,6 +79,7 @@
   --inline-tone-red: #be2f2c;
   --inline-tone-green: #566d35;
   --inline-tone-orange: #a64930;
+  --inline-tone-yellow: #806000;
   --inline-tone-blue: #4c6690;
   --inline-tone-magenta: #9039c9;
   --inline-tone-cyan: #256f74;
@@ -117,7 +118,8 @@
 
   --inline-tone-red: #f07178;
   --inline-tone-green: #c3e88d;
-  --inline-tone-orange: #ffcb6b;
+  --inline-tone-orange: #fab387;
+  --inline-tone-yellow: #f9e2af;
   --inline-tone-blue: #82aaff;
   --inline-tone-magenta: #c792ea;
   --inline-tone-cyan: #89ddff;

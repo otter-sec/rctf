@@ -32,8 +32,8 @@ When adding a new shadcn-svelte component to rCTF, you need to install it, regis
 
 Use the shadcn-svelte CLI to scaffold the component into your project:
 
-```sh
-$ bunx shadcn-svelte@latest add button
+```console
+$ <red>bunx</red> shadcn-svelte@latest add button
 ```
 
 This creates the component files in `apps/web/src/lib/components/ui/button/{:dir}`.
@@ -85,11 +85,7 @@ export const buttonVariants = tv({
 </Step>
 <Step title="Normalize font weights">
 
-Convert all heavy font weights to `font-medium` for visual consistency:
-
-| Original                | Replace with  |
-| ----------------------- | ------------- |
-| Any weight above medium | `font-medium` |
+Convert all heavy font weights to `font-medium{:css}` for visual consistency (`font-semibold{:css}`, `font-bold{:css}`, `font-extrabold{:css}`, `font-black{:css}`).
 
 </Step>
 <Step title="Convert color tokens">
@@ -98,22 +94,22 @@ Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors
 
 | rCTF token | Example | Light | Dark | Context |
 | --- | --- | --- | --- | --- |
-| `--background` | `bg-background-l0` | <Swatch color="background-l0" /> | <Swatch color="background-l0-dark" mode="dark" /> | Page background |
-| `--foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Primary body text |
-| `--card` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Card surfaces |
-| `--card-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Card text |
-| `--popover` | `bg-background-l1` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Dropdowns, popovers |
-| `--popover-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text in overlays |
-| `--primary` | `bg-background-accent` | <Swatch color="background-accent" /> | <Swatch color="background-accent-dark" mode="dark" /> | Accent buttons, badges |
-| `--primary-foreground` | `text-foreground-accent` | <Swatch color="foreground-accent" /> | <Swatch color="foreground-accent-dark" mode="dark" /> | Text on accent backgrounds/accent-colored text |
-| `--secondary` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Secondary buttons, badges |
-| `--secondary-foreground` | `text-foreground-l1` | <Swatch color="foreground-l1" /> | <Swatch color="foreground-l1-dark" mode="dark" /> | Text on secondary backgrounds |
-| `--muted` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Subtle backgrounds |
-| `--muted-foreground` | `text-foreground-l3` | <Swatch color="foreground-l3" /> | <Swatch color="foreground-l3-dark" mode="dark" /> | Placeholders, hints |
-| `--accent` | `bg-background-l2` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Hover states, highlights, generic hover |
-| `--accent-foreground` | `text-foreground-l0` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text on hover backgrounds |
-| `--destructive` | `bg-background-destructive` | <Swatch color="background-destructive" /> | <Swatch color="background-destructive-dark" mode="dark" /> | Error states |
-| `--input` | `bg-background-l4` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Form inputs |
+| `--background{:css}` | `bg-background-l0{:css}` | <Swatch color="background-l0" /> | <Swatch color="background-l0-dark" mode="dark" /> | Page background |
+| `--foreground{:css}` | `text-foreground-l0{:css}` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Primary body text |
+| `--card{:css}` | `bg-background-l1{:css}` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Card surfaces |
+| `--card-foreground{:css}` | `text-foreground-l0{:css}` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Card text |
+| `--popover{:css}` | `bg-background-l1{:css}` | <Swatch color="background-l1" /> | <Swatch color="background-l1-dark" mode="dark" /> | Dropdowns, popovers |
+| `--popover-foreground{:css}` | `text-foreground-l0{:css}` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text in overlays |
+| `--primary{:css}` | `bg-background-accent{:css}` | <Swatch color="background-accent" /> | <Swatch color="background-accent-dark" mode="dark" /> | Accent buttons, badges |
+| `--primary-foreground{:css}` | `text-foreground-accent{:css}` | <Swatch color="foreground-accent" /> | <Swatch color="foreground-accent-dark" mode="dark" /> | Text on accent backgrounds/accent-colored text |
+| `--secondary{:css}` | `bg-background-l4{:css}` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Secondary buttons, badges |
+| `--secondary-foreground{:css}` | `text-foreground-l1{:css}` | <Swatch color="foreground-l1" /> | <Swatch color="foreground-l1-dark" mode="dark" /> | Text on secondary backgrounds |
+| `--muted{:css}` | `bg-background-l2{:css}` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Subtle backgrounds |
+| `--muted-foreground{:css}` | `text-foreground-l3{:css}` | <Swatch color="foreground-l3" /> | <Swatch color="foreground-l3-dark" mode="dark" /> | Placeholders, hints |
+| `--accent{:css}` | `bg-background-l2{:css}` | <Swatch color="background-l2" /> | <Swatch color="background-l2-dark" mode="dark" /> | Hover states, highlights, generic hover |
+| `--accent-foreground{:css}` | `text-foreground-l0{:css}` | <Swatch color="foreground-l0" /> | <Swatch color="foreground-l0-dark" mode="dark" /> | Text on hover backgrounds |
+| `--destructive{:css}` | `bg-background-destructive{:css}` | <Swatch color="background-destructive" /> | <Swatch color="background-destructive-dark" mode="dark" /> | Error states |
+| `--input{:css}` | `bg-background-l4{:css}` | <Swatch color="background-l4" /> | <Swatch color="background-l4-dark" mode="dark" /> | Form inputs |
 | `hover:bg-background-accent-hover` | hover | <Swatch color="background-accent-hover" /> | <Swatch color="background-accent-hover-dark" mode="dark" /> | Accent hover states |
 | `hover:bg-background-l5` | hover | <Swatch color="background-l5" /> | <Swatch color="background-l5-dark" mode="dark" /> | Secondary hover states |
 
