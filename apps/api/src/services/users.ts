@@ -32,11 +32,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
-import {
-  emitBanReversalEvents,
-  emitUnbanRestoreEvents,
-  recomputeChallengePoints,
-} from './solve-points'
+import { emitBanReversalEvents, emitUnbanRestoreEvents } from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -646,8 +642,8 @@ export const updateAdminUser = async (
     const uniqueIds = Array.from(
       new Set(affectedChallenges.map(c => c.challengeid))
     )
+    // hand recompute to the leaderboard worker
     for (const challengeId of uniqueIds) {
-      await recomputeChallengePoints(db, challengeId, 'decay-recompute')
       requestChallengeRecompute(redis, challengeId)
     }
   }
@@ -682,8 +678,8 @@ export const deleteAdminUser = async (
 
   await db.delete(users).where(eq(users.id, id))
 
+  // hand recompute to the leaderboard worker
   for (const challengeId of uniqueIds) {
-    await recomputeChallengePoints(db, challengeId, 'decay-recompute')
     requestChallengeRecompute(redis, challengeId)
   }
 

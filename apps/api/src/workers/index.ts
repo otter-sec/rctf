@@ -8,32 +8,112 @@ export const LEADERBOARD_FORCE_UPDATE_CHANNEL = 'leaderboard:force-update'
 export const LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL =
   'leaderboard:recompute-challenge'
 
-let leaderboardWorker: Worker | undefined
-let dynamicScoresWorker: Worker | undefined
+const RESTART_BACKOFF_BASE_MS = 500
+const RESTART_BACKOFF_MAX_MS = 30_000
+const RESTART_BACKOFF_RESET_MS = 30_000
 
-const startWorker = (logger: pino.Logger, fileName: string, name: string) => {
-  const workerUrl = new URL(fileName, import.meta.url).href
-
-  const w = new Worker(workerUrl, { type: 'module', name })
-  w.addEventListener('error', event => {
-    logger.error({ workerUrl, error: event.message }, `${name} worker error`)
-  })
-
-  logger.info({ workerUrl }, `started ${name} worker`)
-  return w
+type Supervised = {
+  get worker(): Worker | undefined
+  stop(): void
 }
 
-export const startLeaderboardWorker = (logger: pino.Logger) => {
-  leaderboardWorker = startWorker(
-    logger,
+const supervise = (
+  log: pino.Logger,
+  fileName: string,
+  name: string
+): Supervised => {
+  const workerUrl = new URL(fileName, import.meta.url).href
+  let current: Worker | undefined
+  let stopped = false
+  let attempts = 0
+  let stableTimer: ReturnType<typeof setTimeout> | undefined
+
+  const spawn = (): void => {
+    if (stopped) {
+      return
+    }
+
+    const w = new Worker(workerUrl, { type: 'module', name })
+    let closeHandled = false
+
+    if (stableTimer) {
+      clearTimeout(stableTimer)
+    }
+    stableTimer = setTimeout(() => {
+      attempts = 0
+      stableTimer = undefined
+    }, RESTART_BACKOFF_RESET_MS)
+
+    const scheduleRestart = (cause: string, detail: unknown): void => {
+      if (closeHandled || stopped) {
+        return
+      }
+      closeHandled = true
+      if (stableTimer) {
+        clearTimeout(stableTimer)
+        stableTimer = undefined
+      }
+      const delay = Math.min(
+        RESTART_BACKOFF_MAX_MS,
+        RESTART_BACKOFF_BASE_MS * Math.pow(2, attempts)
+      )
+      attempts++
+      log.warn(
+        { workerUrl, name, cause, detail, delay, attempts },
+        `${name} worker stopped; respawning`
+      )
+      setTimeout(spawn, delay)
+    }
+
+    w.addEventListener('error', event => {
+      log.error({ workerUrl, error: event.message }, `${name} worker error`)
+      try {
+        w.terminate()
+      } catch {}
+      scheduleRestart('error', event.message)
+    })
+
+    w.addEventListener('close', () => {
+      scheduleRestart('close', null)
+    })
+
+    current = w
+    log.info({ workerUrl }, `started ${name} worker`)
+  }
+
+  spawn()
+
+  return {
+    get worker() {
+      return current
+    },
+    stop() {
+      stopped = true
+      if (stableTimer) {
+        clearTimeout(stableTimer)
+        stableTimer = undefined
+      }
+      try {
+        current?.terminate()
+      } catch {}
+    },
+  }
+}
+
+let leaderboardSupervisor: Supervised | undefined
+let dynamicScoresSupervisor: Supervised | undefined
+
+export const startLeaderboardWorker = (log: pino.Logger) => {
+  leaderboardSupervisor = supervise(
+    log,
     `./leaderboard${workerExt}`,
     'leaderboard-worker'
   )
 }
 
-export const startDynamicScoresWorker = (logger: pino.Logger) => {
-  dynamicScoresWorker = startWorker(
-    logger,
+export const startDynamicScoresWorker = (log: pino.Logger) => {
+  dynamicScoresSupervisor = supervise(
+    log,
     `./dynamic-scores${workerExt}`,
     'dynamic-scores-worker'
   )
@@ -41,7 +121,7 @@ export const startDynamicScoresWorker = (logger: pino.Logger) => {
 
 export const forceLeaderboardUpdate = (redis?: TypedRedis): void => {
   try {
-    leaderboardWorker?.postMessage({ type: 'force-update' })
+    leaderboardSupervisor?.worker?.postMessage({ type: 'force-update' })
   } catch (err) {
     logger.error({ err }, 'failed to post leaderboard force-update message')
   }
@@ -58,7 +138,7 @@ export const requestChallengeRecompute = (
   challengeId: string
 ): void => {
   try {
-    leaderboardWorker?.postMessage({
+    leaderboardSupervisor?.worker?.postMessage({
       type: 'recompute-challenge',
       challengeId,
     })
@@ -82,10 +162,6 @@ export const requestChallengeRecompute = (
 }
 
 export const stopWorkers = (): void => {
-  try {
-    leaderboardWorker?.terminate()
-  } catch {}
-  try {
-    dynamicScoresWorker?.terminate()
-  } catch {}
+  leaderboardSupervisor?.stop()
+  dynamicScoresSupervisor?.stop()
 }

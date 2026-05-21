@@ -3,6 +3,7 @@ import { createDatabase, type DynamicScoringSource } from '@rctf/db'
 import {
   ChallengeScoringKind,
   DynamicScoresMode,
+  DynamicScoresPayloadSchema,
   DynamicScoringTransport,
 } from '@rctf/types'
 import { pino } from 'pino'
@@ -21,11 +22,6 @@ const redis = await createRedis()
 const DEFAULT_POLL_INTERVAL_S = 30
 const MIN_POLL_INTERVAL_S = 5
 const MAX_BACKOFF_MS = 5 * 60 * 1000
-
-type PollPayload = {
-  scores: Array<{ userId: string; points: number }>
-  mode?: DynamicScoresMode
-}
 
 let pollable: DynamicChallengeInfo[] = []
 const timers = new Map<string, ReturnType<typeof setTimeout>>()
@@ -57,18 +53,18 @@ const pollOnce = async (c: DynamicChallengeInfo): Promise<boolean> => {
       return false
     }
 
-    // assuming the body matches the schema
-    const body = (await res.json()) as PollPayload
+    const parsed = DynamicScoresPayloadSchema.safeParse(await res.json())
+    if (!parsed.success) {
+      logger.warn(
+        { challengeId: c.id, issues: parsed.error.issues },
+        'dynamic poll payload failed validation'
+      )
+      return false
+    }
 
-    const r = await upsertDynamicSolves(
-      db,
-      c.id,
-      body.scores.map(s => ({
-        userId: s.userId,
-        points: Math.trunc(s.points),
-      })),
-      { mode: body.mode ?? DynamicScoresMode.REPLACEMENT }
-    )
+    const r = await upsertDynamicSolves(db, c.id, parsed.data.scores, {
+      mode: parsed.data.mode ?? DynamicScoresMode.REPLACEMENT,
+    })
 
     if (r.inserted + r.updated + r.deleted > 0) {
       forceLeaderboardUpdate(redis)

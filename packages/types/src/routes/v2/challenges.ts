@@ -23,6 +23,10 @@ export const GetChallengesRouteV2 = defineRoute({
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
+// intentionally has neither onlyWhenStarted nor onlyWhenNotFinished: a
+// dynamic scoring backend must be able to seed scores before the event
+// starts, and the leaderboard worker will drain any post-end deliveries into
+// the final tally too
 export const SubmitDynamicScoresRouteV2 = defineRoute({
   path: '/v2/challs/:id/scores',
   method: 'POST',

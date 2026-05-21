@@ -62,8 +62,8 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
     return respondBadSignature(c)
   }
 
-  const timestamp = Number.parseInt(timestampHeader, 10)
-  if (!Number.isFinite(timestamp)) {
+  const timestamp = Number(timestampHeader)
+  if (!Number.isInteger(timestamp)) {
     return respondBadSignature(c)
   }
   if (Math.abs(Date.now() - timestamp) > MAX_SKEW_MS) {

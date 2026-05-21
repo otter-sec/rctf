@@ -227,7 +227,7 @@ export const createSolveAndGetBloodNumber = async (
   // every solver of this challenge on its next tick
   return await db.transaction(async tx => {
     await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtext(${params.challengeId}))`
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${params.challengeId}, 0))`
     )
 
     const result = await tx

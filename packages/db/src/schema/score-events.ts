@@ -24,7 +24,9 @@ export const scoreEvents = pgTable(
   {
     id: text().primaryKey().notNull(),
     challengeid: text().notNull(),
-    userid: text().notNull(),
+    // when the originating user is deleted, the FK SET NULL turns
+    // the row into a tombstone so the per-challenge history survives
+    userid: text(),
     pointsDelta: integer('points_delta').notNull(),
     eventAt: timestamp('event_at', { withTimezone: true, mode: 'string' })
       .defaultNow()
@@ -52,7 +54,7 @@ export const scoreEvents = pgTable(
       name: 'score_events_userid_fkey',
     })
       .onUpdate('cascade')
-      .onDelete('cascade'),
+      .onDelete('set null'),
     foreignKey({
       columns: [table.challengeid],
       foreignColumns: [challenges.id],

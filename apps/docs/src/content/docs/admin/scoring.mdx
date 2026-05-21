@@ -80,6 +80,14 @@ Dynamic challenges talk to rCTF in one of two directions:
 
 Both transports share the same payload shape and the same `<red>upsertDynamicSolves</red>` persistence path, so a challenge that supports both can be reconfigured without code changes.
 
+<Callout variant="warning" title="Stop the feed when the event ends">
+  Unlike flag submissions, the dynamic-scores endpoint has no built-in event-timing gate. The
+  scoring backend can push, and rCTF can poll, both before start and after end. Cutting deliveries
+  off cleanly at end is still the operator's responsibility: every late delivery (post-end as well
+  as post-freeze) does land in the tally, so a backend that keeps publishing will keep moving the
+  scoreboard around after the CTF is supposed to be over.
+</Callout>
+
 ### Team identifiers
 
 Every entry in the score list references an rCTF **team ID** - the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. The usual options:

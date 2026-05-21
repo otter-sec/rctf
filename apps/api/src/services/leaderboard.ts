@@ -448,14 +448,26 @@ const processSolveBatch = (
       : null
   }
 
-  const applySolvesUntil = (untilEpochMs: number): void => {
+  const applySolvesUntil = (
+    untilEpochMs: number,
+    drainRemaining: boolean
+  ): void => {
     let changed = false
 
     for (; solveIndex < solveRows.length; solveIndex++) {
       const solve = solveRows[solveIndex]!
       const createdAtMs = new Date(solve.createdat).valueOf()
       if (createdAtMs > untilEpochMs) {
-        break
+        if (!drainRemaining) {
+          break
+        }
+
+        // dynamic challenges accept late deliveries
+        const ch = state.challengeInfos.get(solve.challengeid)
+        if (!ch || ch.scoringKind !== ChallengeScoringKind.DYNAMIC) {
+          hadUnappliedSolves = true
+          continue
+        }
       }
 
       if (!applySolve(state, solve, createdAtMs)) {
@@ -475,7 +487,7 @@ const processSolveBatch = (
   }
 
   const runSample = (time: number, isTrailing: boolean): void => {
-    applySolvesUntil(time)
+    applySolvesUntil(time, isTrailing)
 
     const userScores: Sample['userScores'] = []
     for (const [id, userInfo] of state.userInfos) {

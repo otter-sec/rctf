@@ -144,7 +144,7 @@ export const applyDecayPointsForChallenge = async (
   const timing = await getCompetitionTiming(db)
   return await db.transaction(async tx => {
     await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtext(${challengeId}))`
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
     )
     return recomputeDecayWithinTx(tx, challengeId, source, timing)
   })
@@ -186,7 +186,7 @@ export const upsertDynamicSolves = async (
 ): Promise<{ inserted: number; updated: number; deleted: number }> => {
   return await db.transaction(async tx => {
     await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtext(${challengeId}))`
+      sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
     )
 
     const existing = await tx
@@ -433,19 +433,18 @@ export const emitSolveDeletionEvent = async (
   })
 }
 
+// COALESCE because pre-dynamic-scoring rows have no scoring field at all
+const scoringKindIs = (kind: ChallengeScoringKind) =>
+  sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${kind}`
+
 export const getDecayChallengeIds = async (
   db: DatabaseClient
 ): Promise<string[]> => {
   const rows = await db
-    .select({ id: challenges.id, data: challenges.data })
+    .select({ id: challenges.id })
     .from(challenges)
-    .where(challengeIsPublicSql)
-  return rows
-    .filter(r => {
-      const kind = r.data?.scoring?.kind ?? ChallengeScoringKind.DECAY
-      return kind === ChallengeScoringKind.DECAY
-    })
-    .map(r => r.id)
+    .where(and(challengeIsPublicSql, scoringKindIs(ChallengeScoringKind.DECAY)))
+  return rows.map(r => r.id)
 }
 
 export type DynamicChallengeInfo = {
@@ -456,10 +455,8 @@ export type DynamicChallengeInfo = {
 export const getDynamicChallenges = async (
   db: DatabaseClient
 ): Promise<DynamicChallengeInfo[]> => {
-  const rows = await db
+  return await db
     .select({ id: challenges.id, data: challenges.data })
     .from(challenges)
-  return rows.filter(
-    r => r.data?.scoring?.kind === ChallengeScoringKind.DYNAMIC
-  )
+    .where(scoringKindIs(ChallengeScoringKind.DYNAMIC))
 }
