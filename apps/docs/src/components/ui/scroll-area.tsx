@@ -2,19 +2,35 @@ import { cn } from '@/lib/utils'
 import { ScrollArea as ScrollAreaPrimitive } from 'radix-ui'
 import * as React from 'react'
 
+type ScrollAreaOrientation = 'vertical' | 'horizontal' | 'both'
+
 type ScrollAreaProps = React.ComponentProps<typeof ScrollAreaPrimitive.Root> & {
   fades?: boolean
+  fadeOrientation?: ScrollAreaOrientation
+  scrollbars?: ScrollAreaOrientation
   viewportClassName?: string
 }
 
 type ScrollAreaFadeState = {
   top: boolean
   bottom: boolean
+  left: boolean
+  right: boolean
+}
+
+type ScrollAreaFadesProps = {
+  fadeState: ScrollAreaFadeState
+  showHorizontalFades: boolean
+  showHorizontalScrollbar: boolean
+  showVerticalFades: boolean
+  showVerticalScrollbar: boolean
 }
 
 function ScrollArea({
   className,
   fades = false,
+  fadeOrientation = 'vertical',
+  scrollbars = 'vertical',
   viewportClassName,
   children,
   type = 'scroll',
@@ -24,22 +40,37 @@ function ScrollArea({
   const [fadeState, setFadeState] = React.useState<ScrollAreaFadeState>({
     top: false,
     bottom: false,
+    left: false,
+    right: false,
   })
+  const showVerticalFades = fades && (fadeOrientation === 'vertical' || fadeOrientation === 'both')
+  const showHorizontalFades =
+    fades && (fadeOrientation === 'horizontal' || fadeOrientation === 'both')
+  const showVerticalScrollbar = scrollbars === 'vertical' || scrollbars === 'both'
+  const showHorizontalScrollbar = scrollbars === 'horizontal' || scrollbars === 'both'
 
   const updateFadeState = React.useCallback(() => {
     const viewport = viewportRef.current
     if (!viewport || !fades) return
 
     const maxScrollTop = viewport.scrollHeight - viewport.clientHeight
+    const maxScrollLeft = viewport.scrollWidth - viewport.clientWidth
     const next = {
-      top: maxScrollTop > 1 && viewport.scrollTop > 1,
-      bottom: maxScrollTop > 1 && viewport.scrollTop < maxScrollTop - 1,
+      top: showVerticalFades && maxScrollTop > 1 && viewport.scrollTop > 1,
+      bottom: showVerticalFades && maxScrollTop > 1 && viewport.scrollTop < maxScrollTop - 1,
+      left: showHorizontalFades && maxScrollLeft > 1 && viewport.scrollLeft > 1,
+      right: showHorizontalFades && maxScrollLeft > 1 && viewport.scrollLeft < maxScrollLeft - 1,
     }
 
     setFadeState(current =>
-      current.top === next.top && current.bottom === next.bottom ? current : next
+      current.top === next.top &&
+      current.bottom === next.bottom &&
+      current.left === next.left &&
+      current.right === next.right
+        ? current
+        : next
     )
-  }, [fades])
+  }, [fades, showHorizontalFades, showVerticalFades])
 
   React.useEffect(() => {
     if (!fades) return
@@ -72,19 +103,46 @@ function ScrollArea({
         ref={viewportRef}
         data-slot="scroll-area-viewport"
         className={cn(
-          'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full rounded-[inherit] transition-[color,box-shadow] focus-visible:ring-4 focus-visible:outline-1',
+          'ring-ring/10 dark:ring-ring/20 dark:outline-ring/40 outline-ring/50 size-full',
+          'rounded-[inherit] transition-[color,box-shadow]',
+          'focus-visible:ring-4 focus-visible:outline-1',
           viewportClassName
         )}
       >
         {children}
       </ScrollAreaPrimitive.Viewport>
-      {fades && (
+      <ScrollAreaFades
+        fadeState={fadeState}
+        showHorizontalFades={showHorizontalFades}
+        showHorizontalScrollbar={showHorizontalScrollbar}
+        showVerticalFades={showVerticalFades}
+        showVerticalScrollbar={showVerticalScrollbar}
+      />
+      {showVerticalScrollbar && <ScrollBar />}
+      {showHorizontalScrollbar && <ScrollBar orientation="horizontal" />}
+      <ScrollAreaPrimitive.Corner />
+    </ScrollAreaPrimitive.Root>
+  )
+}
+
+function ScrollAreaFades({
+  fadeState,
+  showHorizontalFades,
+  showHorizontalScrollbar,
+  showVerticalFades,
+  showVerticalScrollbar,
+}: ScrollAreaFadesProps) {
+  return (
+    <>
+      {showVerticalFades && (
         <>
           <div
             aria-hidden="true"
             data-slot="scroll-area-fade-top"
             className={cn(
-              'from-background pointer-events-none absolute inset-x-0 top-0 z-10 h-8 bg-gradient-to-b to-transparent transition-opacity',
+              'from-background pointer-events-none absolute top-0 left-0 z-10 h-8',
+              showVerticalScrollbar ? 'right-2.5' : 'right-0',
+              'bg-linear-to-b to-transparent transition-opacity',
               fadeState.top ? 'opacity-100' : 'opacity-0'
             )}
           />
@@ -92,15 +150,39 @@ function ScrollArea({
             aria-hidden="true"
             data-slot="scroll-area-fade-bottom"
             className={cn(
-              'from-background pointer-events-none absolute inset-x-0 bottom-0 z-10 h-8 bg-gradient-to-t to-transparent transition-opacity',
+              'from-background pointer-events-none absolute bottom-0 left-0 z-10 h-8',
+              showVerticalScrollbar ? 'right-2.5' : 'right-0',
+              'bg-linear-to-t to-transparent transition-opacity',
               fadeState.bottom ? 'opacity-100' : 'opacity-0'
             )}
           />
         </>
       )}
-      <ScrollBar />
-      <ScrollAreaPrimitive.Corner />
-    </ScrollAreaPrimitive.Root>
+      {showHorizontalFades && (
+        <>
+          <div
+            aria-hidden="true"
+            data-slot="scroll-area-fade-left"
+            className={cn(
+              'from-background pointer-events-none absolute top-0 left-0 z-10 w-8',
+              showHorizontalScrollbar ? 'bottom-2.5' : 'bottom-0',
+              'bg-linear-to-r to-transparent transition-opacity',
+              fadeState.left ? 'opacity-100' : 'opacity-0'
+            )}
+          />
+          <div
+            aria-hidden="true"
+            data-slot="scroll-area-fade-right"
+            className={cn(
+              'from-background pointer-events-none absolute top-0 right-0 z-10 w-8',
+              showHorizontalScrollbar ? 'bottom-2.5' : 'bottom-0',
+              'bg-linear-to-l to-transparent transition-opacity',
+              fadeState.right ? 'opacity-100' : 'opacity-0'
+            )}
+          />
+        </>
+      )}
+    </>
   )
 }
 

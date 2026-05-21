@@ -48,7 +48,7 @@ const groupKey = groupPath.join('/')
           {node.badge && <SidebarBadge badge={node.badge} />}
         </span>
       </div>
-      <ul class="border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l pl-2">
+      <ul class="border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l-2 pl-2">
         {node.items.map(child => (
           <li>
             <Astro.self node={child} depth={depth + 1} path={groupPath} />
@@ -97,7 +97,7 @@ const groupKey = groupPath.join('/')
           />
         </span>
       </summary>
-      <ul class={cn('border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l pl-2')}>
+      <ul class={cn('border-border/70 mt-0.5 ml-3 flex flex-col gap-0.5 border-l-2 pl-2')}>
         {node.items.map(child => (
           <li>
             <Astro.self node={child} depth={depth + 1} path={groupPath} />

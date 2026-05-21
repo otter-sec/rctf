@@ -6,12 +6,13 @@ export function rehypeTableWrappers() {
     visitHtml(tree, (node, index, parent) => {
       if (!isElement(node)) return
       if (node.tagName !== 'table' || !parent || index === undefined) return
-      if (isElement(parent) && parent.tagName === 'div' && hasClass(parent, 'table-wrapper')) return
+      if (isElement(parent) && parent.tagName === 'TableScrollArea') return
+      if (isElement(parent) && hasClass(parent, 'table-wrapper')) return
 
       replaceChild(parent, index, {
         type: 'element',
-        tagName: 'div',
-        properties: { className: ['table-wrapper'] },
+        tagName: 'TableScrollArea',
+        properties: {},
         children: [node],
       })
       return 'skip'

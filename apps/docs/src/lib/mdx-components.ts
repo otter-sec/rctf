@@ -21,6 +21,7 @@ import RouteMeta from '@/components/mdx/route-meta.astro'
 import Step from '@/components/mdx/step.astro'
 import Steps from '@/components/mdx/steps.astro'
 import Tab from '@/components/mdx/tab.astro'
+import TableScrollArea from '@/components/mdx/table-scroll-area.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
 export const mdxComponents = {
@@ -47,5 +48,6 @@ export const mdxComponents = {
   Step,
   Steps,
   Tab,
+  TableScrollArea,
   Tabs,
 }

@@ -196,7 +196,7 @@
     }
 
     :where(.table-wrapper):not(:where(.not-prose, .not-prose *)) {
-      @apply my-6 max-w-full min-w-0 overflow-x-auto;
+      @apply my-6 max-w-full min-w-0 overflow-hidden;
     }
 
     :where(table):not(:where(.not-prose, .not-prose *)) {
