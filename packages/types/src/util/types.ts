@@ -36,6 +36,21 @@ export const NumericString = z.pipe(
   z.string()
 )
 
+const UPLOAD_FILE_NAME_PATTERN = /^(?!\.{1,2}$)[^/\\\0:]{1,255}$/
+const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/i
+
+export const UploadFileName = z
+  .string()
+  .check(
+    z.minLength(1),
+    z.maxLength(255),
+    z.regex(UPLOAD_FILE_NAME_PATTERN, 'Invalid upload file name')
+  )
+
+export const UploadSha256 = z
+  .string()
+  .check(z.regex(SHA256_HEX_PATTERN, 'Expected SHA-256 hex digest'))
+
 export interface FileField extends Blob {
   readonly name: string
   readonly lastModified?: number
@@ -57,9 +72,15 @@ export const isFileField = (value: unknown): value is FileField => {
   )
 }
 
-export const FileFieldSchema = z.custom<FileField>(isFileField, {
-  message: 'Expected file upload',
-})
+export const FileFieldSchema = z
+  .custom<FileField>(isFileField, {
+    message: 'Expected file upload',
+  })
+  .check(
+    z.refine((file: FileField) => UPLOAD_FILE_NAME_PATTERN.test(file.name), {
+      message: 'Invalid upload file name',
+    })
+  )
 
 export const MultipleFileFieldSchema = z.pipe(
   z.transform((val: unknown) => (Array.isArray(val) ? val : [val])),

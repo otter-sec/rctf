@@ -53,6 +53,8 @@ import {
   SubmissionSortBy,
   SubmissionSortOrder,
   SubmissionTeamStatus,
+  UploadFileName,
+  UploadSha256,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -304,7 +306,7 @@ export const UploadFilesRouteV2 = defineRoute({
     files: MultipleFileFieldSchema,
   }),
   goodResponses: [GoodFilesUploadV2],
-  badResponses: [BadPerms, BadToken],
+  badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsWrite,
   bodyFormat: 'form-data',
@@ -359,13 +361,13 @@ export const QueryUploadsRouteV2 = defineRoute({
   body: z.object({
     uploads: z.array(
       z.object({
-        sha256: z.string(),
-        name: z.string(),
+        sha256: UploadSha256,
+        name: UploadFileName,
       })
     ),
   }),
   goodResponses: [GoodUploadsQueryV2],
-  badResponses: [BadPerms, BadToken],
+  badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })

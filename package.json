@@ -15,6 +15,9 @@
     "tests/admin-bot",
     "tests/admin-bot-e2e"
   ],
+  "overrides": {
+    "yaml": "2.9.0"
+  },
   "scripts": {
     "dev": "bun --ellide-lines=0 run --filter '@rctf/api' --filter '@rctf/web' dev",
     "dev:api": "bun run --filter '@rctf/api' dev",

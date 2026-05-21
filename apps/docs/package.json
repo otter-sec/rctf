@@ -14,11 +14,11 @@
     "prettier:check": "prettier --check . --ignore-path .gitignore"
   },
   "dependencies": {
-    "@astrojs/check": "0.9.7",
-    "@astrojs/markdown-remark": "7.0.0",
-    "@astrojs/mdx": "5.0.0",
-    "@astrojs/react": "5.0.0",
-    "@astrojs/sitemap": "3.7.1",
+    "@astrojs/check": "0.9.9",
+    "@astrojs/markdown-remark": "7.1.1",
+    "@astrojs/mdx": "5.0.4",
+    "@astrojs/react": "5.0.4",
+    "@astrojs/sitemap": "3.7.2",
     "@expressive-code/core": "0.40.2",
     "@expressive-code/plugin-collapsible-sections": "0.40.2",
     "@expressive-code/plugin-frames": "0.40.2",
@@ -33,7 +33,7 @@
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "@vercel/og": "0.11.1",
-    "astro": "6.0.2",
+    "astro": "6.3.1",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "hast-util-to-html": "9.0.5",
@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "@types/hast": "3.0.4",
-    "astro-pagefind": "1.8.6",
+    "astro-pagefind": "2.0.0",
     "prettier": "3.8.3"
   }
 }

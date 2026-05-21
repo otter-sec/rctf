@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import { GetLeaderboardWithGraphRoute } from '@rctf/types'
-import { getGraph, getGraphForEntries } from '../../../../cache/leaderboard'
+import { getGraphForEntries } from '../../../../cache/leaderboard'
 import {
   getLeaderboardWithTotal,
   searchLeaderboard,
@@ -44,10 +44,13 @@ leaderboardGroup.route(
       return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
     }
 
-    const [graph, { total, leaderboard }] = await Promise.all([
-      getGraph(ctx.var.db, ctx.var.redis, limit, offset, division),
-      getLeaderboardWithTotal(ctx.var.db, limit, offset, division),
-    ])
+    const { total, leaderboard } = await getLeaderboardWithTotal(
+      ctx.var.db,
+      limit,
+      offset,
+      division
+    )
+    const graph = await getGraphForEntries(ctx.var.redis, leaderboard)
 
     return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
   }
