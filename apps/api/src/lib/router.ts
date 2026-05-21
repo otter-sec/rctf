@@ -266,6 +266,10 @@ export const declareRouter = <
       ) {
         return context.json(...respond.accessDenied())
       }
+
+      if (definition.rejectBanned && user.banned) {
+        return context.json(...respond.accessDenied())
+      }
     } else if (wantsOptionalAuth) {
       user = await getAuthenticatedUser(context)
     }

@@ -84,7 +84,10 @@ type ChallengeSolvesWithPosition = {
   solvePosition: number | null
 }
 
-const createRankedSolves = (db: DatabaseClient) =>
+const createRankedSolvesForChallenges = (
+  db: DatabaseClient,
+  challengeIds: string[]
+) =>
   db.$with('ranked').as(
     db
       .select({
@@ -104,7 +107,9 @@ const createRankedSolves = (db: DatabaseClient) =>
       })
       .from(solves)
       .innerJoin(users, eq(users.id, solves.userid))
-      .where(eq(users.banned, false))
+      .where(
+        and(inArray(solves.challengeid, challengeIds), eq(users.banned, false))
+      )
   )
 
 export const getPrivateChallenges = async (
@@ -365,7 +370,7 @@ export const getChallengeSolvesWithPosition = async (
     }
   }
 
-  const ranked = createRankedSolves(db)
+  const ranked = createRankedSolvesForChallenges(db, [challengeId])
   const rows = await db
     .with(ranked)
     .select({
@@ -424,27 +429,45 @@ export const getUserChallengeSolves = async (
 ): Promise<
   { solve: Solve; challengeData: ChallengeData; bloodIndex: number | null }[]
 > => {
-  const ranked = createRankedSolves(db)
   const rows = await db
-    .with(ranked)
     .select({
       solve: solves,
       challengeData: challenges.data,
-      position: ranked.position,
     })
-    .from(ranked)
-    .innerJoin(solves, eq(solves.id, ranked.solveId))
+    .from(solves)
     .innerJoin(
       challenges,
       and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
     )
-    .where(eq(ranked.userId, userId))
+    .innerJoin(users, eq(users.id, solves.userid))
+    .where(and(eq(solves.userid, userId), eq(users.banned, false)))
     .orderBy(asc(solves.createdat))
+
+  const challengeIds = Array.from(
+    new Set(rows.map(row => row.solve.challengeid))
+  )
+  if (challengeIds.length === 0) {
+    return []
+  }
+
+  const ranked = createRankedSolvesForChallenges(db, challengeIds)
+  const bloodRows = await db
+    .with(ranked)
+    .select({
+      solveId: ranked.solveId,
+      position: ranked.position,
+    })
+    .from(ranked)
+    .where(lte(ranked.position, 3))
+
+  const bloodBySolveId = new Map(
+    bloodRows.map(row => [row.solveId, row.position - 1])
+  )
 
   return rows.map(row => ({
     solve: row.solve,
     challengeData: row.challengeData,
-    bloodIndex: row.position <= 3 ? row.position - 1 : null,
+    bloodIndex: bloodBySolveId.get(row.solve.id) ?? null,
   }))
 }
 

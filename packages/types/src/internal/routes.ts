@@ -25,6 +25,7 @@ export interface RouteConfig {
   onlyWhenStarted?: boolean
   onlyWhenStartedPermissionsBypass?: Permissions
   onlyWhenNotFinished?: boolean
+  rejectBanned?: boolean
   returnBodyAsIs?: boolean
   bodyFormat?: BodyFormat
   captchaAction?: ProtectedAction
@@ -54,6 +55,9 @@ export interface RouteDefinition<T extends RouteConfig = RouteConfig> {
   readonly onlyWhenStartedPermissionsBypass: T['onlyWhenStartedPermissionsBypass']
   readonly onlyWhenNotFinished: T['onlyWhenNotFinished'] extends boolean
     ? T['onlyWhenNotFinished']
+    : false
+  readonly rejectBanned: T['rejectBanned'] extends boolean
+    ? T['rejectBanned']
     : false
   readonly returnBodyAsIs: T['returnBodyAsIs'] extends boolean
     ? T['returnBodyAsIs']
@@ -87,6 +91,8 @@ export function defineRoute<const T extends RouteConfig>(
     onlyWhenStartedPermissionsBypass: config.onlyWhenStartedPermissionsBypass,
     onlyWhenNotFinished: (config.onlyWhenNotFinished ??
       false) as RouteDefinition<T>['onlyWhenNotFinished'],
+    rejectBanned: (config.rejectBanned ??
+      false) as RouteDefinition<T>['rejectBanned'],
     returnBodyAsIs: (config.returnBodyAsIs ??
       false) as RouteDefinition<T>['returnBodyAsIs'],
     bodyFormat: (config.bodyFormat ??

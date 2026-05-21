@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
+  BadBody,
   BadChallenge,
   BadDataUri,
   BadPerms,
@@ -13,6 +14,7 @@ import {
   GoodFilesUpload,
   GoodUploadsQuery,
 } from '../../responses'
+import { UploadFileName, UploadSha256 } from '../../util'
 
 const AdminChallengeParams = z.object({
   id: z.string(),
@@ -88,13 +90,13 @@ export const UploadFilesRoute = defineRoute({
   body: z.object({
     files: z.array(
       z.object({
-        name: z.string(),
+        name: UploadFileName,
         data: z.string(),
       })
     ),
   }),
   goodResponses: [GoodFilesUpload],
-  badResponses: [BadDataUri, BadPerms, BadToken],
+  badResponses: [BadBody, BadDataUri, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsWrite,
 })
@@ -105,13 +107,13 @@ export const QueryUploadsRoute = defineRoute({
   body: z.object({
     uploads: z.array(
       z.object({
-        sha256: z.string(),
-        name: z.string(),
+        sha256: UploadSha256,
+        name: UploadFileName,
       })
     ),
   }),
   goodResponses: [GoodUploadsQuery],
-  badResponses: [BadPerms, BadToken],
+  badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.challsRead,
 })

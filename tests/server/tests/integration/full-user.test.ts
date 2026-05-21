@@ -131,6 +131,48 @@ describe('full-user service', () => {
       }
     })
 
+    test('excludes solves from banned self profile', async () => {
+      const { user, cleanup: userCleanup } = await generateRealTestUser()
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+
+      try {
+        const db = getDb()
+        const authToken = await generateAuthToken(user.id)
+
+        const submitRes = await request(
+          app,
+          `/api/v1/challs/${encodeURIComponent(challenge.id)}/submit`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ flag: challenge.flag }),
+          }
+        )
+        await expectResponse(submitRes, GoodFlag)
+
+        await db
+          .update(users)
+          .set({ banned: true })
+          .where(eq(users.id, user.id))
+
+        const profileRes = await request(app, '/api/v1/users/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
+
+        const body = await expectResponse(profileRes, GoodUserSelfData)
+        expect(body.data.solves).toHaveLength(0)
+      } finally {
+        await challengeCleanup()
+        await userCleanup()
+      }
+    })
+
     test('returns user data via /api/v1/users/:id with solves', async () => {
       // Create user and challenge
       const { user, cleanup: userCleanup } = await generateRealTestUser()

@@ -16,6 +16,20 @@ export default class LocalProvider extends UploadProvider {
     )
   }
 
+  private resolveUploadPath(key: string): string {
+    const filePath = path.resolve(path.join(this.uploadDirectory, key))
+    const relative = path.relative(this.uploadDirectory, filePath)
+    if (
+      relative === '' ||
+      relative.startsWith('..') ||
+      path.isAbsolute(relative)
+    ) {
+      throw new Error('Invalid file path')
+    }
+
+    return filePath
+  }
+
   override async startupWebPart(app: Hono<AppEnv>): Promise<void> {
     app.use(
       '/uploads/*',
@@ -34,30 +48,20 @@ export default class LocalProvider extends UploadProvider {
   }
 
   override uploadFile = async (data: Buffer, key: string): Promise<string> => {
-    const filePath = path.resolve(path.join(this.uploadDirectory, key))
-    const relative = path.relative(this.uploadDirectory, filePath)
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      throw new Error('Invalid file path')
-    }
-
+    const filePath = this.resolveUploadPath(key)
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true })
     await fs.promises.writeFile(filePath, data)
     return `/uploads/${encodeKey(key)}`
   }
 
   override deleteFile = async (key: string): Promise<void> => {
-    const filePath = path.resolve(path.join(this.uploadDirectory, key))
-    const relative = path.relative(this.uploadDirectory, filePath)
-    if (relative.startsWith('..') || path.isAbsolute(relative)) {
-      throw new Error('Invalid file path')
-    }
-
+    const filePath = this.resolveUploadPath(key)
     await fs.promises.unlink(filePath).catch(() => {})
   }
 
   override getFileUrl = async (key: string): Promise<string | null> => {
     try {
-      await fs.promises.access(path.join(this.uploadDirectory, key))
+      await fs.promises.access(this.resolveUploadPath(key))
     } catch {
       return null
     }
@@ -66,7 +70,7 @@ export default class LocalProvider extends UploadProvider {
 
   override getFileInfo = async (key: string): Promise<FileInfo> => {
     try {
-      const stats = await fs.promises.stat(path.join(this.uploadDirectory, key))
+      const stats = await fs.promises.stat(this.resolveUploadPath(key))
       return {
         url: `/uploads/${encodeKey(key)}`,
         size: stats.size,
