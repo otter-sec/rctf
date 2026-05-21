@@ -1,0 +1,29 @@
+---
+import ApiFieldList from '@/components/mdx/api-field-list.astro'
+import { renderDescription } from '@/lib/render-description'
+import { responseFieldDescription, walkResponseSchema } from '@/lib/route-introspect'
+
+interface Props {
+  def: any
+  response: string
+  title?: string
+}
+
+const { def, response, title } = Astro.props
+
+const allResponses = [...(def.goodResponses ?? []), ...(def.badResponses ?? [])]
+const resp = allResponses.find((r: any) => r.kind === response)
+const fields = resp ? walkResponseSchema(resp.dataSchema) : []
+
+const items = await Promise.all(
+  fields.map(async field => ({
+    name: field.path,
+    typeHtml: (await renderDescription(`\`${field.typeLabel}{:ts}\``)).html,
+    descriptionHtml: (
+      await renderDescription(field.description ?? responseFieldDescription(field.path))
+    ).html,
+  }))
+)
+---
+
+<ApiFieldList {items} {title} />

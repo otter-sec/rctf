@@ -1,0 +1,32 @@
+---
+title: '<route>GET</route> Challenge list'
+description: '<route>GET /api/[v2,v1]/challs</route>'
+---
+
+import { GetChallengesRoute, GetChallengesRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="challs-version">
+    <Tab>
+      <RouteExample def={GetChallengesRouteV2} />
+    </Tab>
+    <Tab>
+      <RouteExample def={GetChallengesRoute} />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={GetChallengesRouteV2} />
+
+Returns the challenge list visible to the current request. Regular users do not receive hidden challenges or challenges with a future `releaseTime`.
+
+For new clients, prefer V2. It adds instancer metadata, admin bot input schemas, and the `hasFlag` field. V1 remains available for older clients and returns the original challenge fields.
+
+<Tabs items={['V2', 'V1']} sync="challs-version">
+  <Tab>
+    <ResponseBody def={GetChallengesRouteV2} response="goodChallenges" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={GetChallengesRoute} response="goodChallenges" title="Response fields" />
+  </Tab>
+</Tabs>

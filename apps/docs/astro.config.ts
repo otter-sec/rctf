@@ -4,7 +4,6 @@ import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
 import rehypeShiki from '@shikijs/rehype'
 import tailwindcss from '@tailwindcss/vite'
-import icon from 'astro-icon'
 import pagefind from 'astro-pagefind'
 import { defineConfig } from 'astro/config'
 import rehypeAutolinkHeadings from 'rehype-autolink-headings'
@@ -13,21 +12,24 @@ import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
-import { ecOptions } from './src/lib/ec-config'
-import { rehypeInlinePathIcon } from './src/lib/rehype-inline-path-icon'
-import { rehypeInlineShellCmd } from './src/lib/rehype-inline-shell-cmd'
-import { rehypeWrapTables } from './src/lib/rehype-wrap-tables'
-import { latte, mocha } from './src/lib/shiki-themes'
+import { expressiveCodeOptions } from './src/lib/expressive-code-config'
+import { rehypeCodeAnnotations } from './src/lib/rehype-code-annotations'
+import { rehypeCodePathHints, rehypeCodePathIcons } from './src/lib/rehype-code-paths'
+import { rehypeCopyableShellCommands } from './src/lib/rehype-copyable-shell-commands'
+import { rehypeLinkIcons } from './src/lib/rehype-link-icons'
+import { rehypeTableWrappers } from './src/lib/rehype-table-wrappers'
+import { darkTheme, lightTheme } from './src/lib/shiki-themes'
 import { resolveSiteUrl } from './src/lib/site-url'
 
 export default defineConfig({
   site: resolveSiteUrl(),
-  integrations: [mdx(), react(), sitemap(), icon(), pagefind()],
+  trailingSlash: 'always',
+  integrations: [mdx(), react(), sitemap(), pagefind()],
   vite: {
     plugins: [tailwindcss()],
   },
   server: {
-    port: 1234,
+    port: 4321,
     host: true,
   },
   devToolbar: {
@@ -43,18 +45,21 @@ export default defineConfig({
           rel: ['nofollow', 'noreferrer', 'noopener'],
         },
       ],
-      rehypeWrapTables,
+      rehypeTableWrappers,
       rehypeKatex,
-      [rehypeExpressiveCode, { themes: [latte, mocha], ...ecOptions }],
+      [rehypeExpressiveCode, { themes: [lightTheme, darkTheme], ...expressiveCodeOptions }],
+      rehypeCodePathHints,
       [
         rehypeShiki,
         {
-          themes: { light: latte, dark: mocha },
+          themes: { light: lightTheme, dark: darkTheme },
           inline: 'tailing-curly-colon',
         },
       ],
-      rehypeInlineShellCmd,
-      rehypeInlinePathIcon,
+      rehypeCopyableShellCommands,
+      rehypeCodeAnnotations,
+      rehypeCodePathIcons,
+      rehypeLinkIcons,
       rehypeHeadingIds,
       [
         rehypeAutolinkHeadings,

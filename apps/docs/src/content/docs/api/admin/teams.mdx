@@ -1,0 +1,22 @@
+---
+title: '<route>GET</route> List teams'
+description: '<route>GET /api/v2/admin/users</route>'
+---
+
+import { GetAdminUsersRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={GetAdminUsersRouteV2} query={{ limit: 50, offset: 0 }} />
+</RouteAside>
+
+<RouteMetaFromDef def={GetAdminUsersRouteV2} />
+
+This route shows teams for the admin panel. Query parameters control pagination, sorting, and name or email search.
+
+[Filter teams](/api/admin/team-filter/) is available when a UI also needs status or division filters.
+
+<RequestBody def={GetAdminUsersRouteV2} source="query" title="Query parameters" />
+
+<ResponseBody def={GetAdminUsersRouteV2} response="goodAdminUsers" title="Response fields" />
+
+Each list item includes public profile fields, admin state, cached score data, and creation time.

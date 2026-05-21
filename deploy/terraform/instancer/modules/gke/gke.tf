@@ -58,6 +58,10 @@ resource "google_container_node_pool" "primary" {
         metadata = {
             disable-legacy-endpoints = true
         }
+
+        kubelet_config {
+            pod_pids_limit = var.pod_pids_limit
+        }
     }
 
     autoscaling {

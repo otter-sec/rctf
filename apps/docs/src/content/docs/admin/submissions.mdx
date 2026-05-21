@@ -5,7 +5,7 @@ description: Viewing and managing challenge submissions in rCTF.
 
 import Callout from '@/components/callout.astro'
 
-Submissions (solves) are recorded when a team successfully submits the correct flag for a challenge. Admins can view and manage solves through the admin panel, and can review submission IP history for both flag submissions and admin bot submissions.
+A submission (solve) gets recorded when a team submits the correct flag for a challenge. Admins can view and manage solves from the admin panel, and review submission IP history for both flag submissions and admin bot submissions.
 
 ## Viewing solves
 
@@ -13,23 +13,19 @@ Admins can view solves for any challenge, including the team name, solve timesta
 
 ## Deleting solves
 
-Admins with the `challsSolveWrite` permission can delete individual solves. This is useful for handling cheating or accidental solves.
+Admins with the `challsSolveWrite` permission can delete individual solves. Useful for handling cheating or accidental solves.
 
 <Callout variant="warning">
 
-Deleting a solve triggers an automatic leaderboard recalculation. The team's score and rank will be updated to reflect the removal.
+Deleting a solve triggers an automatic leaderboard recalculation, and the team's score and rank update to match.
 
 </Callout>
 ## Submission tracking
 
-Each solve record includes the IP address of the submitter. The admin panel also includes a submissions table that records IPs for flag attempts and admin bot submissions, with sorting by time, challenge, team, IP, submission type, and result. This can be used for investigating suspicious activity such as flag sharing between teams.
+Each solve record includes the submitter's IP. The admin panel also has a submissions table that records IPs for flag attempts and admin bot submissions, sortable by time, challenge, team, IP, submission type, and result. It's the right place to look when investigating suspicious activity like flag sharing between teams.
 
 ## First bloods
 
-The first three teams to solve a challenge are tracked as "bloods":
+The first three teams to solve a challenge are tracked as "bloods", recorded as **first blood** at index 0, **second blood** at index 1, and **third blood** at index 2.
 
-- **First blood** (index 0)
-- **Second blood** (index 1)
-- **Third blood** (index 2)
-
-Blood status is determined by the solve timestamp. If a [blood bot](/integrations/bloodbot) is configured, announcements are sent automatically when these milestones are reached.
+Blood status comes from the solve timestamp. If a [blood bot](/integrations/bloodbot/) is configured, it announces these milestones automatically as they're hit.

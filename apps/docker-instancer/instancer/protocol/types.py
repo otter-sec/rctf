@@ -76,7 +76,7 @@ class Service(BaseModel):
     cap_drop: list[str] = Field(default_factory=lambda: ['ALL'])
     mem_limit: str = Field(default='6m')
     cpus: float = 1.0
-    pids_limit: int = Field(default=64)
+    pids_limit: int = Field(default=1024)
     ulimits: dict[str, Ulimit] = Field(default_factory=lambda: {'nofile': Ulimit(soft=1024, hard=1024)})
     sysctls: dict[str, str] = Field(default_factory=dict)
     labels: dict[str, str] = Field(default_factory=dict)

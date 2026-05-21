@@ -15,12 +15,7 @@ export type IconMap = {
   [key: string]: string
 }
 
-export type SidebarBadgeVariant =
-  | 'default'
-  | 'note'
-  | 'tip'
-  | 'caution'
-  | 'danger'
+export type SidebarBadgeVariant = 'default' | 'note' | 'tip' | 'caution' | 'danger'
 
 export type SidebarBadgeShorthand = 'new' | 'beta' | 'deprecated' | 'soon'
 
@@ -38,6 +33,7 @@ export type MetaItemOverride = {
   hidden?: boolean
   collapsed?: boolean
   forceOpen?: boolean
+  scrollable?: boolean
 }
 
 export type MetaFile = {
@@ -47,6 +43,7 @@ export type MetaFile = {
   forceOpen?: boolean
   badge?: SidebarBadge
   hidden?: boolean
+  scrollable?: boolean
   items?: Record<string, MetaItemOverride>
 }
 
@@ -83,23 +80,15 @@ export type SidebarGroup = {
   forceOpen: boolean
   badge?: SidebarBadge
   hasActiveDescendant?: boolean
+  /** Present when the group has an index doc - the summary acts as a link. */
+  href?: string
+  isCurrent?: boolean
   items: SidebarNode[]
 }
 
 export type SidebarNode = SidebarLink | SidebarGroup
 
 export type FlatDoc = {
-  id: string
   href: string
-  title: string
   label: string
-  hidden: boolean
-}
-
-export type HeroAction = {
-  label: string
-  link: string
-  variant?: 'primary' | 'secondary' | 'ghost'
-  icon?: string
-  external?: boolean
 }

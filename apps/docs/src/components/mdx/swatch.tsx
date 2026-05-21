@@ -344,10 +344,10 @@ const colors: Record<string, string> = {
   'background-destructive-hover-dark': `color-mix(in oklch, ${tailwind['red-900']} 40%, transparent)`,
   'foreground-destructive-dark': tailwind['red-400'],
 
-  'background-success': `color-mix(in oklch, ${tailwind['emerald-500']} 10%, transparent)`,
-  'foreground-success': `color-mix(in oklch, ${tailwind['emerald-700']} 80%, transparent)`,
-  'background-success-dark': `color-mix(in oklch, ${tailwind['emerald-900']} 10%, transparent)`,
-  'foreground-success-dark': tailwind['emerald-300'],
+  'background-success': `color-mix(in oklch, ${tailwind['lime-500']} 10%, transparent)`,
+  'foreground-success': `color-mix(in oklch, ${tailwind['lime-700']} 80%, transparent)`,
+  'background-success-dark': `color-mix(in oklch, ${tailwind['lime-900']} 10%, transparent)`,
+  'foreground-success-dark': tailwind['lime-300'],
 
   'foreground-prose': 'oklch(43.9% 0 0)',
   'foreground-prose-link': tailwind['sky-700'],

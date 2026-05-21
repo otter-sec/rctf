@@ -1,6 +1,6 @@
 ---
 title: Analytics providers
-description: Track visitor metrics with Google Analytics, Cloudflare Web Analytics, or Plausible.
+description: Track visitor metrics with Google Analytics, Cloudflare Web Analytics.
 ---
 
 Analytics providers inject a tracking script into the frontend. No data is collected server-side.
@@ -17,7 +17,7 @@ analytics:
 
 ## Providers
 
-<Tabs items={['analytics/google', 'analytics/cloudflare', 'analytics/plausible']}>
+<Tabs items={['analytics/google', 'analytics/cloudflare']}>
 <Tab>
 
 Google Analytics 4.
@@ -30,9 +30,9 @@ analytics:
       siteTag: G-XXXXXXXX
 ```
 
-| Option           | Description                       |
-| ---------------- | --------------------------------- |
-| `siteTag{:yaml}` | Google Analytics 4 measurement ID |
+| Option               | Description                       |
+| -------------------- | --------------------------------- |
+| `<red>siteTag</red>` | Google Analytics 4 measurement ID |
 
 </Tab>
 <Tab>
@@ -47,26 +47,9 @@ analytics:
       token: your-cf-token
 ```
 
-| Option         | Description                    |
-| -------------- | ------------------------------ |
-| `token{:yaml}` | Cloudflare Web Analytics token |
-
-</Tab>
-<Tab>
-
-[Plausible](https://plausible.io/) analytics. Supports self-hosted instances.
-
-```yaml
-analytics:
-  provider:
-    name: analytics/plausible
-    options:
-      apiHost: https://plausible.io
-```
-
-| Option           | Default                | Description                        |
-| ---------------- | ---------------------- | ---------------------------------- |
-| `apiHost{:yaml}` | `https://plausible.io` | API host, override for self-hosted |
+| Option             | Description                    |
+| ------------------ | ------------------------------ |
+| `<red>token</red>` | Cloudflare Web Analytics token |
 
 </Tab>
 </Tabs>

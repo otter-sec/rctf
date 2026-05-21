@@ -1,6 +1,6 @@
 ---
+import Icon from '@/components/icon.astro'
 import { Button } from '@/components/ui/button'
-import { Icon } from 'astro-icon/components'
 ---
 
 <Button
@@ -10,8 +10,8 @@ import { Icon } from 'astro-icon/components'
   title="Toggle theme"
   className="-my-2 -me-2 size-8"
 >
-  <Icon name="lucide:sun" class="size-4 dark:hidden" />
-  <Icon name="lucide:moon" class="absolute hidden size-4 dark:block" />
+  <Icon name="sun" class="size-4 dark:hidden" />
+  <Icon name="moon" class="absolute hidden size-4 dark:block" />
   <span class="sr-only">Toggle theme</span>
 </Button>
 
@@ -27,9 +27,7 @@ import { Icon } from 'astro-icon/components'
 
     const theme = (() => {
       if (['dark', 'light'].includes(storedTheme)) return storedTheme
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     })()
 
     document.documentElement.setAttribute('data-theme', theme)

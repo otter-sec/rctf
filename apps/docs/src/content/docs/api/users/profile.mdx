@@ -1,0 +1,34 @@
+---
+title: '<route>GET</route> Public profile'
+description: '<route>GET /api/[v2,v1]/users/:id</route>'
+---
+
+import { GetUserRoute, GetUserRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="users-profile-version">
+    <Tab>
+      <RouteExample def={GetUserRouteV2} params={{ id: 'team-id' }} />
+    </Tab>
+    <Tab>
+      <RouteExample def={GetUserRoute} params={{ id: 'team-id' }} />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={GetUserRouteV2} />
+
+This route returns the public profile for one team. Public profiles are available after the CTF starts, and admin tokens with `challsRead{:ts}` can read through that gate.
+
+For new clients, V2 is usually the best fit. It includes avatar URL, country or region code, status text, and `bloodIndex` on solve rows. V1 remains available for older clients.
+
+<RequestBody def={GetUserRouteV2} source="params" title="Path parameters" />
+
+<Tabs items={['V2', 'V1']} sync="users-profile-version">
+  <Tab>
+    <ResponseBody def={GetUserRouteV2} response="goodUserData" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={GetUserRoute} response="goodUserData" title="Response fields" />
+  </Tab>
+</Tabs>

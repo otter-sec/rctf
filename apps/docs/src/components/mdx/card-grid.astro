@@ -15,12 +15,6 @@ const columnClass: Record<number, string> = {
 }
 ---
 
-<div
-  class={cn(
-    'not-prose grid grid-cols-1 gap-4 my-6',
-    columnClass[columns],
-    className,
-  )}
->
+<div class={cn('not-prose grid grid-cols-1 gap-4 my-6', columnClass[columns], className)}>
   <slot />
 </div>

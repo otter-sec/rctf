@@ -1,0 +1,39 @@
+---
+title: Challenges
+description: Challenge listing, solve listing, and flag submission routes.
+---
+
+<RouteAside>
+  <RouteList>
+    <RouteListItem
+      title="Challenge list"
+      method="GET"
+      path="/api/[v2,v1]/challs"
+      href="/api/challenges/list/"
+    />
+    <RouteListItem
+      title="Challenge solves"
+      method="GET"
+      path="/api/[v2,v1]/challs/:id/solves"
+      href="/api/challenges/solves/"
+    />
+    <RouteListItem
+      title="Submit a flag"
+      method="POST"
+      path="/api/v1/challs/:id/submit"
+      href="/api/challenges/submit/"
+    />
+  </RouteList>
+</RouteAside>
+
+Challenge routes provide public challenge metadata, solve history, and the legacy flag submission endpoint. Admin challenge mutation routes are documented in [Admin](/api/admin/).
+
+For new clients, prefer V2 routes. V1 routes remain available for older clients. Flag submission still uses V1 because there is no V2 route for that action.
+
+### Scoring behavior
+
+Challenge point values come from the configured [scoring provider](/providers/scores/). The public challenge list returns the current point value. It does not expose the configured `points.min` or `points.max` range. Challenge updates and solve changes trigger leaderboard recalculation.
+
+### Visibility behavior
+
+Regular users see challenges once those challenges are visible and released. Admin users with `challsRead{:ts}` can read through the CTF start gate with the same public routes. Hidden and scheduled release rules still apply inside the challenge service.

@@ -443,10 +443,10 @@ export default class TinyInstancerProvider implements InstancerProvider {
   constructor(_options: unknown) {
     const options = {
       authToken:
-        process.env.TINY_INSTANCER_AUTH_TOKEN ??
+        process.env.DOCKER_INSTANCER_AUTH_TOKEN ??
         (_options as TinyInstancerProviderOptions).authToken,
       apiUrl:
-        process.env.TINY_INSTANCER_API_URL ??
+        process.env.DOCKER_INSTANCER_API_URL ??
         (_options as TinyInstancerProviderOptions).apiUrl,
     } as TinyInstancerProviderOptions
 

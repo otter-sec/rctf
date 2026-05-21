@@ -3,20 +3,36 @@ title: Upgrading from v1
 description: Migration guide from rCTF v1 to v2, covering database changes, API differences, and configuration updates.
 ---
 
+import Callout from '@/components/callout.astro'
 import Tab from '@/components/mdx/tab.astro'
 import Tabs from '@/components/mdx/tabs.astro'
 
-This guide covers the changes between rCTF v1 and v2 and what you need to do to upgrade.
+This guide covers what changed between rCTF v1 and v2, and what you need to do to upgrade.
+
+## In short, swap the image and restart
+
+The upgrade is automated. Point your existing deployment at the v2 image and start it. Drizzle migrations run on boot, and v1 `<red>recaptcha</red>` / `<red>globalSiteTag</red>` config gets converted to the new shape at startup. No manual SQL, no config rewrite needed to get back online.
+
+```yaml title="compose.yml"
+services:
+  rctf:
+    image: ghcr.io/otter-sec/rctf-new:latest
+```
+
+<Callout variant="warning" title="Back up the database first">
+  Migrations are forward-only and modify the schema in place. Take a PostgreSQL dump (e.g. `$
+  pg_dump`) before swapping the image so you have a way back if something goes wrong.
+</Callout>
+
+If you want to know what actually changes (new tables, new columns, API differences, and config sections worth rewriting by hand), read on. None of it is required to upgrade.
 
 ## Database migration
 
-Database schema changes are handled automatically by Drizzle ORM. Run migrations before starting the new version:
+Drizzle ORM handles schema changes and runs them automatically when `<red>database.migrate</red>` is `<green>before</green>` (the default in the bundled container). To run them by hand:
 
-```bash title="Terminal"
-bun run db:migrate
+```console
+$ <red>bun</red> run db:migrate
 ```
-
-Or set `database.migrate{:yaml}` to `before{:yaml}` in your configuration to migrate on startup.
 
 ### New tables
 
@@ -47,32 +63,32 @@ Or set `database.migrate{:yaml}` to `before{:yaml}` in your configuration to mig
 
 ## API changes
 
-All v1 routes continue to work. The v2 API is available at `/api/v2/...` and includes several improvements and new endpoints.
+All v1 routes still work. The v2 API lives at `<route>/api/v2/...</route>` and adds several improvements and new endpoints.
 
 ### Captcha field rename
 
-V2 routes use `captchaCode{:yaml}` instead of `recaptchaCode{:yaml}` in request bodies. This applies to all endpoints that support captcha validation.
+V2 routes use `<red>captchaCode</red>` instead of `<red>recaptchaCode</red>` in request bodies. This applies to every endpoint that supports captcha validation.
 
 ### File uploads
 
-The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files via `multipart/form-data` instead of base64-encoded data URIs used in v1.
+The v2 admin upload endpoint (`<route>POST /api/v2/admin/upload</route>`) takes binary files via `multipart/form-data` rather than the base64-encoded data URIs v1 used.
 
 ### New v2 endpoints
 
-| Endpoint                                                    | Description                                           |
-| ----------------------------------------------------------- | ----------------------------------------------------- |
-| `GET /v2/auth/verify-info`                                  | Returns info about a verification token               |
-| `GET /v2/leaderboard/challs`                                | Challenge metadata with first 3 solvers per challenge |
-| `GET /v2/leaderboard/with-graph`                            | Combined leaderboard and graph in one request         |
-| `PATCH /v2/users/me/avatar`                                 | Upload and moderate avatar images                     |
-| `GET/POST /v2/admin/users`                                  | List all users with search, filters, and pagination   |
-| `GET/PUT /v2/admin/settings`                                | Runtime settings management                           |
-| `POST /v2/admin/users/:id/token`                            | Generate login token for a team                       |
-| `DELETE /v2/admin/challs/:id/solves/:userId`                | Delete a specific solve                               |
-| `GET /v2/admin/instancer/schema`                            | Instancer config JSON schema                          |
-| `GET/POST /v2/admin/admin-bot/*`                            | Admin bot job management                              |
-| `GET/PUT/PATCH/DELETE /v2/integrations/challs/:id/instance` | Challenge instance lifecycle                          |
-| `GET/POST /v2/integrations/challs/:id/admin-bot/*`          | Admin bot submission and status                       |
+| Endpoint | Description |
+| --- | --- |
+| `<route>GET /v2/auth/verify-info</route>` | Returns info about a verification token |
+| `<route>GET /v2/leaderboard/challs</route>` | Challenge metadata with first 3 solvers per challenge |
+| `<route>GET /v2/leaderboard/with-graph</route>` | Combined leaderboard and graph in one request |
+| `<route>PATCH /v2/users/me/avatar</route>` | Upload and moderate avatar images |
+| `<route>GET/POST /v2/admin/users</route>` | List all users with search, filters, and pagination |
+| `<route>GET/PUT /v2/admin/settings</route>` | Runtime settings management |
+| `<route>POST /v2/admin/users/:id/token</route>` | Generate login token for a team |
+| `<route>DELETE /v2/admin/challs/:id/solves/:userId</route>` | Delete a specific solve |
+| `<route>GET /v2/admin/instancer/schema</route>` | Instancer config JSON schema |
+| `<route>GET/POST /v2/admin/admin-bot/*</route>` | Admin bot job management |
+| `<route>GET/PUT/PATCH/DELETE /v2/integrations/challs/:id/instance</route>` | Challenge instance lifecycle |
+| `<route>GET/POST /v2/integrations/challs/:id/admin-bot/*</route>` | Admin bot submission and status |
 
 ### Response differences
 
@@ -84,7 +100,7 @@ The v2 admin upload endpoint (`POST /api/v2/admin/upload`) accepts binary files 
 
 ### Captcha provider
 
-The v1 `recaptcha{:yaml}` top-level config is automatically converted to the new `captcha.provider{:yaml}` format at startup. However, migrating to the new format is recommended:
+The v1 `<red>recaptcha</red>` top-level config gets converted to the new `<red>captcha.provider</red>` format at startup automatically. We still recommend migrating to the new format by hand:
 
 <Tabs items={['v1 (deprecated)', 'v2 (recommended)']}>
 <Tab>
@@ -114,11 +130,11 @@ captcha:
 </Tab>
 </Tabs>
 
-The new format also supports `captcha/hcaptcha{:yaml}` and `captcha/turnstile{:yaml}` providers.
+The new format also supports `<green>captcha/hcaptcha</green>` and `<green>captcha/turnstile</green>` providers.
 
 ### Analytics provider
 
-The v1 `globalSiteTag{:yaml}` config is automatically converted to the `analytics.provider{:yaml}` format. Migrate to:
+The v1 `<red>globalSiteTag</red>` config gets converted to the `<red>analytics.provider</red>` format automatically. Migrate to:
 
 ```yaml title="v2 (recommended)"
 analytics:
@@ -128,19 +144,19 @@ analytics:
       siteTag: G-XXXXXXXX
 ```
 
-Additional analytics providers are available: `analytics/cloudflare{:yaml}` and `analytics/plausible{:yaml}`.
+Additional analytics providers are also available, such as `<green>analytics/cloudflare</green>`.
 
 ### New configuration sections
 
-The following configuration sections are new in v2:
+v2 adds the following configuration sections:
 
-| Section                    | Purpose                                      |
-| -------------------------- | -------------------------------------------- |
-| `adminBot{:yaml}`          | Admin bot provider and settings              |
-| `avatarsModeration{:yaml}` | Avatar content moderation (OpenAI)           |
-| `bloodBot{:yaml}`          | First blood notifications (Discord/Telegram) |
-| `analytics{:yaml}`         | Analytics provider                           |
-| `proxy{:yaml}`             | Reverse proxy and Cloudflare settings        |
-| `maxAvatarSize{:yaml}`     | Maximum avatar upload size (default 1 MB)    |
+| Section                        | Purpose                                      |
+| ------------------------------ | -------------------------------------------- |
+| `<red>adminBot</red>`          | Admin bot provider and settings              |
+| `<red>avatarsModeration</red>` | Avatar content moderation (OpenAI)           |
+| `<red>bloodBot</red>`          | First blood notifications (Discord/Telegram) |
+| `<red>analytics</red>`         | Analytics provider                           |
+| `<red>proxy</red>`             | Reverse proxy and Cloudflare settings        |
+| `<red>maxAvatarSize</red>`     | Maximum avatar upload size (default 1 MB)    |
 
-See the [Configuration](/configuration) reference for full details on all options.
+See the [Configuration](/configuration/) reference for details on every option.

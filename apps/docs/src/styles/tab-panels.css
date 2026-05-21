@@ -1,5 +1,11 @@
 @reference './global.css';
 
+[data-tabs],
+[data-tabs-panels],
+[data-tabs-panels] [data-tab-panel] {
+  @apply min-w-0;
+}
+
 [data-tabs-panels]:has(.steps) {
   @apply overflow-visible;
 }
@@ -20,29 +26,28 @@
   @apply -mx-4 my-4! max-w-none!;
 }
 
+[data-tab-panel] > [data-tabs] {
+  @apply -mx-4 my-4! max-w-none! rounded-none! border-x-0!;
+}
+
+[data-tab-panel] > [data-tabs] > [role='tablist'] {
+  @apply rounded-none!;
+}
+
 [data-tab-panel] > .expressive-code,
 [data-tab-panel] > .expressive-code :is(.frame, .header, pre) {
   @apply rounded-none! border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code
-  .frame.has-title:not(.is-terminal)
-  .header::before {
+[data-tab-panel] > .expressive-code .frame.has-title:not(.is-terminal) .header::before {
   @apply border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code
-  .frame.has-title:not(.is-terminal)
-  .header
-  .title {
+[data-tab-panel] > .expressive-code .frame.has-title:not(.is-terminal) .header .title {
   @apply rounded-none! border-x-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code:not(:first-child)
-  :is(.frame, .header, pre) {
+[data-tab-panel] > .expressive-code:not(:first-child) :is(.frame, .header, pre) {
   @apply border-t-border/75!;
 }
 
@@ -57,15 +62,56 @@
   @apply border-b-border/75!;
 }
 
-[data-tabs-panels]:has(
-  > [data-tab-panel]:not([hidden]) > .expressive-code:first-child
-) {
+[data-tab-panel] > [data-tabs]:not(:first-child) {
+  @apply border-t-border/75!;
+}
+
+[data-tab-panel] > [data-tabs]:not(:last-child) {
+  @apply border-b-border/75!;
+}
+
+[data-tab-panel] > :is(.expressive-code, [data-tabs]):has(+ :is(.expressive-code, [data-tabs])) {
+  @apply mb-0!;
+}
+
+[data-tab-panel] > :is(.expressive-code, [data-tabs]) + :is(.expressive-code, [data-tabs]) {
+  @apply mt-0!;
+}
+
+[data-tab-panel] > .expressive-code + [data-tabs],
+[data-tab-panel] > [data-tabs] + [data-tabs] {
+  @apply border-t-0!;
+}
+
+[data-tab-panel] > [data-tabs] + .expressive-code :is(.frame, .header, pre) {
+  @apply border-t-0!;
+}
+
+[data-tab-panel]
+  > [data-tabs]
+  + .expressive-code
+  .frame.has-title:not(.is-terminal)
+  .header::before {
+  @apply border-t-0!;
+}
+
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > .expressive-code:first-child) {
   @apply pt-0;
 }
 
-[data-tabs-panels]:has(
-  > [data-tab-panel]:not([hidden]) > .expressive-code:last-child
-) {
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > .expressive-code:last-child) {
+  @apply pb-0;
+}
+
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > [data-tabs]:first-child) {
+  @apply pt-0;
+}
+
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > [data-tabs]:last-child) {
+  @apply pb-0;
+}
+
+[data-tabs-panels]:has(> [data-tab-panel]:not([hidden]) > [data-tabs] + script:last-child) {
   @apply pb-0;
 }
 
@@ -73,10 +119,11 @@
   @apply border-t-0!;
 }
 
-[data-tab-panel]
-  > .expressive-code:first-child
-  .frame.has-title:not(.is-terminal)
-  .header::before {
+[data-tab-panel] > [data-tabs]:first-child {
+  @apply border-t-0!;
+}
+
+[data-tab-panel] > .expressive-code:first-child .frame.has-title:not(.is-terminal) .header::before {
   @apply border-t-0!;
 }
 
@@ -84,10 +131,31 @@
   @apply border-b-0!;
 }
 
+[data-tab-panel] > [data-tabs]:last-child {
+  @apply border-b-0!;
+}
+
+[data-tab-panel] > [data-tabs]:has(+ script:last-child) {
+  @apply mb-0! border-b-0!;
+}
+
 [data-tab-panel] > .expressive-code:first-child :is(.frame, .header) {
   @apply rounded-t-md!;
 }
 
+[data-tab-panel] > [data-tabs]:first-child,
+[data-tab-panel] > [data-tabs]:first-child > [role='tablist'] {
+  @apply rounded-t-md!;
+}
+
 [data-tab-panel] > .expressive-code:last-child :is(.frame, pre) {
+  @apply rounded-b-md!;
+}
+
+[data-tab-panel] > [data-tabs]:last-child {
+  @apply rounded-b-md!;
+}
+
+[data-tab-panel] > [data-tabs]:has(+ script:last-child) {
   @apply rounded-b-md!;
 }

@@ -1,32 +1,27 @@
 ---
-import { Icon } from 'astro-icon/components'
+import Icon from '@/components/icon.astro'
 import Link from '@/components/link.astro'
 import { cn } from '@/lib/utils'
 
 interface Props {
   href: string
-  variant?: 'text' | 'icon'
   class?: string
   [key: string]: unknown
 }
 
-const { href, variant = 'text', class: className, ...rest } = Astro.props
-const isIcon = variant === 'icon'
+const { href, class: className, ...rest } = Astro.props
 ---
 
 <Link
   href={href}
   class={cn(
-    isIcon
-      ? 'text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors'
-      : 'text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm underline decoration-transparent underline-offset-[3px] transition-colors hover:decoration-inherit',
-    className,
+    'text-muted-foreground hover:bg-muted/50 hover:text-foreground inline-flex size-8 items-center justify-center rounded-md no-underline transition-colors',
+    className
   )}
   external
-  aria-label={isIcon ? 'Edit this page' : undefined}
-  title={isIcon ? 'Edit this page' : undefined}
+  aria-label="Edit this page"
+  title="Edit this page"
   {...rest}
 >
-  <Icon name="lucide:pencil" class={isIcon ? 'size-4' : 'size-3.5'} />
-  {!isIcon && 'Edit this page'}
+  <Icon name="pencil" class="size-4" />
 </Link>

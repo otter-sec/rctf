@@ -1,5 +1,6 @@
 {
   "extends": "astro/tsconfigs/strict",
+  "exclude": ["codemod.ts", "sentence-case.ts", "dist", "src/content/docs/**/_*/**"],
   "compilerOptions": {
     "strictNullChecks": true,
     "baseUrl": ".",
@@ -8,6 +9,5 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "react"
-  },
-  "exclude": ["build", "dist"]
+  }
 }

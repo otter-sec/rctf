@@ -1,0 +1,18 @@
+---
+title: '<route>DELETE</route> Stop an instance'
+description: '<route>DELETE /api/v2/integrations/challs/:id/instance</route>'
+---
+
+import { DeleteInstanceRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={DeleteInstanceRouteV2} params={{ id: 'challenge-id' }} />
+</RouteAside>
+
+<RouteMetaFromDef def={DeleteInstanceRouteV2} />
+
+This route asks the instancer provider to stop the authenticated team's instance. The response reports the latest state returned by the provider.
+
+<RequestBody def={DeleteInstanceRouteV2} source="params" title="Path parameters" />
+
+<ResponseBody def={DeleteInstanceRouteV2} response="goodInstanceStatus" title="Response fields" />

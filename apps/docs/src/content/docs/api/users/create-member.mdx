@@ -1,0 +1,24 @@
+---
+title: '<route>POST</route> Add a team member'
+description: '<route>POST /api/v1/users/me/members</route>'
+---
+
+import { BadBody, BadJson, CreateMemberRoute } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample
+    def={CreateMemberRoute}
+    body={{ email: 'member@example.com' }}
+    extra={[BadJson, BadBody]}
+  />
+</RouteAside>
+
+<RouteMetaFromDef def={CreateMemberRoute} />
+
+This route adds an informational team member email row under the authenticated team account. Teams can have up to `maxMembers` member rows.
+
+It is available in V1. When `userMembers` is disabled, the route returns `<response>404 badEndpoint</response>`.
+
+<RequestBody def={CreateMemberRoute} title="Request body" />
+
+<ResponseBody def={CreateMemberRoute} response="goodMemberCreate" title="Response fields" />

@@ -35,7 +35,7 @@ function createAnchor(x: number, y: number): HoverTooltipAnchor {
 }
 
 /**
- * Drives a manually-anchored tooltip with hover-delay semantics — used by
+ * Drives a manually-anchored tooltip with hover-delay semantics - used by
  * virtualized rows where attaching real `Tooltip.Trigger` nodes per cell is
  * impractical. Pair the returned controller with `<HoverTooltip>`.
  */

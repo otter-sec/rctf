@@ -1,0 +1,49 @@
+---
+title: '<route>POST</route> Query uploads'
+description: '<route>POST /api/[v2,v1]/admin/upload/query</route>'
+---
+
+import { BadBody, BadJson, QueryUploadsRoute, QueryUploadsRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="admin-upload-query-version">
+    <Tab>
+      <RouteExample
+        def={QueryUploadsRouteV2}
+        body={{ uploads: [{ sha256: '<hex-digest>', name: 'dist.zip' }] }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+    <Tab>
+      <RouteExample
+        def={QueryUploadsRoute}
+        body={{ uploads: [{ sha256: '<hex-digest>', name: 'dist.zip' }] }}
+        extra={[BadJson, BadBody]}
+      />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={QueryUploadsRouteV2} />
+
+This route lets the admin panel check whether files already exist by SHA 256 before uploading them. A `null{:ts}` URL means the file has not been uploaded yet.
+
+For new clients, V2 is usually the best fit because it also returns nullable file size. V1 only returns the nullable URL.
+
+<Tabs items={['V2', 'V1']} sync="admin-upload-query-version">
+  <Tab>
+    <RequestBody def={QueryUploadsRouteV2} title="Request body" />
+  </Tab>
+  <Tab>
+    <RequestBody def={QueryUploadsRoute} title="Request body" />
+  </Tab>
+</Tabs>
+
+<Tabs items={['V2', 'V1']} sync="admin-upload-query-version">
+  <Tab>
+    <ResponseBody def={QueryUploadsRouteV2} response="goodUploadsQuery" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={QueryUploadsRoute} response="goodUploadsQuery" title="Response fields" />
+  </Tab>
+</Tabs>

@@ -1,0 +1,26 @@
+---
+title: '<route>GET</route> Preview a verification token'
+description: '<route>GET /api/v2/auth/verify-info</route>'
+---
+
+import { BadBody, GetVerifyInfoRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={GetVerifyInfoRouteV2} extra={[BadBody]} />
+</RouteAside>
+
+<RouteMetaFromDef def={GetVerifyInfoRouteV2} />
+
+Reads the public context for a verification token without marking it as used. This is useful before rendering a confirmation page, because the UI can show what the token is about before the user submits it.
+
+This preview step is available in V2. V1 clients submit the token directly when the user confirms the action.
+
+<RequestBody def={GetVerifyInfoRouteV2} source="query" title="Query parameters" />
+
+#### Response
+
+A valid token returns `<response>200 goodVerifyInfo</response>` with enough detail to describe the pending action.
+
+<ResponseBody def={GetVerifyInfoRouteV2} response="goodVerifyInfo" title="Response fields" />
+
+Previewing does not mark the token as used. The same token still has to be submitted to [verify a token](/api/auth/verify/) to complete the action.

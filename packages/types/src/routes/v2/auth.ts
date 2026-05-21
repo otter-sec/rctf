@@ -30,10 +30,22 @@ export const RegisterRouteV2 = defineRoute({
   captchaAction: ProtectedAction.Register,
   body: z
     .object({
-      email: z.optional(UserEmail),
+      email: z
+        .optional(UserEmail)
+        .check(z.describe('Required when `ctftimeToken` is omitted.')),
       name: UserName,
-      ctftimeToken: z.optional(z.string()),
-      captchaCode: z.optional(z.string()),
+      ctftimeToken: z
+        .optional(z.string())
+        .check(
+          z.describe(
+            'Required when `email` is omitted. Only usable when CTFtime auth is configured.'
+          )
+        ),
+      captchaCode: z
+        .optional(z.string())
+        .check(
+          z.describe('Checked only when captcha protects `register{:ts}`.')
+        ),
     })
     .check(
       z.superRefine((data, ctx) => {
@@ -66,7 +78,9 @@ export const VerifyRouteV2 = defineRoute({
   path: '/v2/auth/verify',
   method: 'POST',
   body: z.object({
-    verifyToken: z.string(),
+    verifyToken: z
+      .string()
+      .check(z.describe('Pending-registration, team, or verify token.')),
   }),
   goodResponses: [GoodVerify, GoodEmailSet, GoodRegisterV2],
   badResponses: [
@@ -85,8 +99,10 @@ export const RecoverRouteV2 = defineRoute({
   method: 'POST',
   captchaAction: ProtectedAction.Recover,
   body: z.object({
-    email: UserEmail,
-    captchaCode: z.optional(z.string()),
+    email: UserEmail.check(z.describe('Recovery destination.')),
+    captchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects `recover{:ts}`.')),
   }),
   goodResponses: [GoodVerifySent],
   badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadCaptcha],
@@ -97,7 +113,9 @@ export const GetVerifyInfoRouteV2 = defineRoute({
   path: '/v2/auth/verify-info',
   method: 'GET',
   query: z.object({
-    token: z.string(),
+    token: z
+      .string()
+      .check(z.describe('Pending-registration, team, or verify token.')),
   }),
   goodResponses: [GoodVerifyInfo],
   badResponses: [BadTokenVerification],

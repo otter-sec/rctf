@@ -1,16 +1,11 @@
+import { mountClientModule } from './lifecycle'
+
 let controller: AbortController | null = null
-let lifecycleReady = false
 
 function setupMobileSidebar(): void {
-  const dialog = document.getElementById(
-    'mobile-sidebar'
-  ) as HTMLDialogElement | null
-  const trigger = document.getElementById(
-    'mobile-sidebar-trigger'
-  ) as HTMLButtonElement | null
-  const closeButton = document.getElementById(
-    'mobile-sidebar-close'
-  ) as HTMLButtonElement | null
+  const dialog = document.getElementById('mobile-sidebar') as HTMLDialogElement | null
+  const trigger = document.getElementById('mobile-sidebar-trigger') as HTMLButtonElement | null
+  const closeButton = document.getElementById('mobile-sidebar-close') as HTMLButtonElement | null
 
   if (!dialog) return
 
@@ -52,27 +47,7 @@ function setupMobileSidebar(): void {
     .forEach(link => link.addEventListener('click', close, { signal }))
 }
 
-function cleanupMobileSidebar(): void {
-  controller?.abort()
-  controller = null
-
-  const dialog = document.getElementById(
-    'mobile-sidebar'
-  ) as HTMLDialogElement | null
-  const trigger = document.getElementById(
-    'mobile-sidebar-trigger'
-  ) as HTMLButtonElement | null
-
-  if (dialog?.open) dialog.close()
-  trigger?.setAttribute('aria-expanded', 'false')
-}
-
-export function mountMobileSidebar(): void {
-  setupMobileSidebar()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', cleanupMobileSidebar)
-  document.addEventListener('astro:after-swap', setupMobileSidebar)
-}
+export const mountMobileSidebar = mountClientModule({
+  setup: setupMobileSidebar,
+  cleanup: () => controller?.abort(),
+})

@@ -25,6 +25,7 @@ export const startLeaderboardWorker = (logger: pino.Logger) => {
 
 export const forceLeaderboardUpdate = (): void => {
   try {
+    // TODO(es3n1n): route this through Redis so frontend-only instances can wake a separate leaderboard worker.
     leaderboardWorker?.postMessage({ type: 'force-update' })
   } catch (error) {
     console.error('Error forcing leaderboard update', error)

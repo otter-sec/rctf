@@ -1,5 +1,5 @@
 ---
-import { Icon } from 'astro-icon/components'
+import Icon from '@/components/icon.astro'
 ---
 
 <dialog
@@ -7,11 +7,8 @@ import { Icon } from 'astro-icon/components'
   class="bg-background text-foreground fixed top-24 left-1/2 m-0 w-[min(40rem,90vw)] -translate-x-1/2 overflow-hidden rounded-lg border p-0 shadow-lg backdrop:bg-black/40 backdrop:backdrop-blur-sm open:flex open:flex-col"
   aria-label="Search documentation"
 >
-  <form
-    method="dialog"
-    class="border-border/70 flex items-center gap-2 border-b px-3 py-2"
-  >
-    <Icon name="lucide:search" class="text-muted-foreground size-4" />
+  <form method="dialog" class="border-border/70 flex items-center gap-2 border-b px-3 py-2">
+    <Icon name="search" class="text-muted-foreground size-4" />
     <input
       type="search"
       id="search-input"
@@ -27,12 +24,9 @@ import { Icon } from 'astro-icon/components'
   </form>
   <div
     id="search-results"
-    class="flex min-h-28 max-h-[min(24rem,60vh)] flex-col overflow-y-auto p-2 text-sm"
+    class="flex max-h-[min(24rem,60vh)] flex-col overflow-y-auto p-2 text-sm"
   >
-    <p
-      id="search-empty"
-      class="text-muted-foreground px-3 py-8 text-center text-sm"
-    >
+    <p id="search-empty" class="text-muted-foreground px-3 py-8 text-center text-sm">
       Start typing to search the docs.
     </p>
   </div>

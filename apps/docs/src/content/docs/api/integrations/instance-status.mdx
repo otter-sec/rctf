@@ -1,0 +1,26 @@
+---
+title: '<route>GET</route> Instance status'
+description: '<route>GET /api/v2/integrations/challs/:id/instance</route>'
+---
+
+import { GetInstanceStatusRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={GetInstanceStatusRouteV2} params={{ id: 'challenge-id' }} />
+</RouteAside>
+
+<RouteMetaFromDef def={GetInstanceStatusRouteV2} />
+
+This route gives the authenticated team's current instance state for a challenge. It is used to show whether the instance is stopped, starting, running, stopping, or in an error state.
+
+When no instancer provider is configured, or when the challenge has no instancer settings, the route returns `<response>404 badEndpoint</response>`. Provider errors return `<response>400 badInstancerError</response>` with a provider message.
+
+<RequestBody def={GetInstanceStatusRouteV2} source="params" title="Path parameters" />
+
+<ResponseBody
+  def={GetInstanceStatusRouteV2}
+  response="goodInstanceStatus"
+  title="Response fields"
+/>
+
+`endpoints` are returned in the order configured for the challenge. Endpoint kinds include `tcp`, `tcp-ssl`, `http`, and `https`.

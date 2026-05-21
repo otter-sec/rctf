@@ -2,7 +2,9 @@ export const DEFAULT_SITE_URL = 'https://rctf.osec.io'
 
 type Environment = Record<string, string | undefined>
 
-export function resolveSiteUrl(env: Environment = process.env): string {
+const defaultEnv: Environment = typeof process !== 'undefined' && process.env ? process.env : {}
+
+export function resolveSiteUrl(env: Environment = defaultEnv): string {
   return (
     normalizeSiteUrl(env.SITE_URL) ??
     normalizeSiteUrl(env.PUBLIC_SITE_URL) ??
@@ -26,9 +28,7 @@ function normalizeSiteUrl(value: string | undefined): string | null {
   const trimmed = value?.trim()
   if (!trimmed) return null
 
-  const withProtocol = /^https?:\/\//i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`
+  const withProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
 
   try {
     const url = new URL(withProtocol)

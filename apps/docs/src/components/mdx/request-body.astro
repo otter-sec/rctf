@@ -1,0 +1,26 @@
+---
+import ApiFieldList from '@/components/mdx/api-field-list.astro'
+import { renderDescription } from '@/lib/render-description'
+import { requestFieldDescription, walkObjectSchema } from '@/lib/route-introspect'
+
+interface Props {
+  def: any
+  source?: 'body' | 'query' | 'params'
+  title?: string
+}
+
+const { def, source = 'body', title } = Astro.props
+
+const items = await Promise.all(
+  walkObjectSchema(def?.[source]).map(async field => ({
+    name: field.name,
+    typeHtml: (await renderDescription(`\`${field.typeLabel}{:ts}\``)).html,
+    required: field.required,
+    descriptionHtml: (
+      await renderDescription(field.description ?? requestFieldDescription(field.name, source))
+    ).html,
+  }))
+)
+---
+
+<ApiFieldList {items} {title} />

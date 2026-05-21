@@ -1,12 +1,8 @@
-<div align="center">
-
-# ![rCTF](/apps/docs/docs/public/banner.svg)
+<img src="./apps/docs/public/favicon.svg" align="left" width="128" height="128" hspace="20" alt="rCTF" />
 
 rCTF is a platform for hosting cybersecurity [capture-the-flag](<https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)>) competitions. Originally developed by [redpwn](https://redpwn.net/), it is now maintained by the [OtterSec](https://osec.io) team.
 
 To get started with rCTF, visit the [documentation](https://rctf.osec.io). If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
-
-</div>
 
 ## Development
 
@@ -133,55 +129,3 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    ```
 
 For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/challenges/solves, and start the dev server (login URLs are printed to stdout). Use `bun dev:seed` to reseed without restarting.
-
-## New features compared to v1
-
-- No more `verify.recover` token type, we just use team tokens from now on
-- Scores configuration
-- New captcha providers (`turnstile`, `hcaptcha`)
-- New `s3` upload provider
-- GCS TF now needs a `storage.objects.delete` permission
-- Bloodbot integration
-- Adminbot integration
-- Instancer integration
-- Avatar moderation
-- More analytics providers (`cloudflare`, `plausible`)
-
-### v1 Todo
-
-- [x] Run migrations programatically depending on the config value instead of just running in dockerfile entry
-- [x] Go through all config vars and check that all of them are used
-- [x] Make sure all the mount points in docker compose are the same as v1, so that you can just replace the image and everything would still work
-- [x] Captcha
-
-### v2 Todo
-
-- [x] avatars for all team endpoints
-- [x] better file upload route
-- [x] specific position in solves
-- [x] in solves list for a chal return also team's scoreboard position (global + division)
-- [x] in global leaderboard return division positions
-- [x] delete a solve (admin only)
-- [x] resetting teams token (admin only)
-- [x] update client config (admin only)
-- [x] file sizes
-- [x] add csp headers
-- [x] instancer integration
-- - [x] docker
-- - [x] k8s
-- [x] admin bot integration
-- [x] blood bot integration
-- [x] analytics (google, cloudflare, something else?)
-- [x] refactor bloodbot
-- [ ] cf worker for docs, get rid of docker compose temp setup
-- [ ] benchmark on a 1vcpu 1gb machine (kroot had some issues with building, probably because of ram)
-- [x] rctf2pages
-- [x] run tests in ci
-- [ ] flag signing
-
-### Features we will **NEVER** implement
-
-- First blood bonus points
-- Leaderboard freeze
-- Limited number of flag submission attempts
-- Requiring to be authorized to see challenges or leaderboard

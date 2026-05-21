@@ -1,0 +1,22 @@
+---
+title: '<route>GET</route> Admin bot job history'
+description: '<route>GET /api/v2/integrations/challs/:id/admin-bot/history</route>'
+---
+
+import { GetAdminBotJobHistoryRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={GetAdminBotJobHistoryRouteV2} params={{ id: 'challenge-id' }} />
+</RouteAside>
+
+<RouteMetaFromDef def={GetAdminBotJobHistoryRouteV2} />
+
+This route gives the retained completed and failed admin bot jobs for the authenticated team on a challenge. It is useful for showing recent submissions without including the full log body in the list.
+
+<RequestBody def={GetAdminBotJobHistoryRouteV2} source="params" title="Path parameters" />
+
+<ResponseBody
+  def={GetAdminBotJobHistoryRouteV2}
+  response="goodAdminBotJobHistory"
+  title="Response fields"
+/>

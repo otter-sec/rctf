@@ -1,0 +1,92 @@
+---
+title: Scaling
+description: Resource expectations, instance types, and horizontal scaling notes for rCTF deployments.
+---
+
+import Callout from '@/components/callout.astro'
+import { Image } from 'astro:assets'
+import cpuGraph from '../../../assets/dicectf-2026-cpu.png'
+
+rCTF is intentionally lightweight. A single-node deployment of the bundled container is enough for almost any event, and horizontal scaling only kicks in at the upper end of CTF traffic.
+
+## Resource expectations
+
+The API process is a single Bun runtime, and the frontend is a static SvelteKit build served by nginx. The leaderboard worker runs as a Bun `Worker` thread inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
+
+In practice the platform barely touches the box it runs on. [DiceCTF 2026 Quals](https://2026.ctf.dicega.ng/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **1.6 cores**, as shown below.
+
+<Image
+  src={cpuGraph}
+  alt="DiceCTF 2026 Quals CPU usage graph, peaking around 150% (~1.5 cores) during the event window"
+/>
+
+<Callout variant="warning" title="RAM data lost">
+  Memory metrics for the same window weren't retained. Expect a similarly modest footprint, since
+  the API process is a single Bun runtime and the leaderboard worker is a Bun `Worker` thread, not a
+  separate process.
+</Callout>
+
+<Callout variant="note" title="Deliberately overprovisioned">
+  The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running
+  rCTF v2, so if something unexpected blew up in CPU or memory during the CTF, we wanted enough
+  runway to diagnose and patch without the platform tipping over in the meantime. A much smaller
+  instance would have been plenty for the actual observed load. `CPX62` works, but don't treat it as
+  a recommended baseline.
+</Callout>
+
+A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/03-setup/) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
+
+## Instance types
+
+The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs.
+
+| Value                          | API server | Leaderboard worker thread |
+| ------------------------------ | ---------- | ------------------------- |
+| `<green>all</green>` (default) | Yes        | Yes                       |
+| `<green>frontend</green>`      | Yes        | No                        |
+| `<green>leaderboard</green>`   | No         | Yes                       |
+
+The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
+
+```ts title="apps/api/src/index.ts"
+if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
+  startLeaderboardWorker(logger)
+}
+
+if (config.instanceType === 'frontend' || config.instanceType === 'all') {
+  const port = Number(process.env.PORT ?? 3000)
+  Bun.serve({ port, fetch: app.fetch })
+}
+```
+
+```yaml title="rctf.d/02-scaling.yaml"
+instanceType: frontend # or 'leaderboard' or 'all'
+```
+
+## Horizontal scaling
+
+To scale beyond a single container:
+
+- Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads/{:dir}` mount. Switching to the S3 or GCS upload provider removes that constraint.
+- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval){:ts}` and writes results to a shared Redis cache. There's no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks inside the same process are guarded by an in-process `<red>running</red>` flag, which doesn't coordinate across processes.
+
+<Callout variant='warning' title='Only one leaderboard worker at a time'>
+  This includes `<green>all</green>`, which already runs a leaderboard worker. If you split into
+  `<green>frontend</green>` + `<green>leaderboard</green>`, every other container must be
+  `<green>frontend</green>`, never another `<green>all</green>` or a second
+  `<green>leaderboard</green>`.
+
+The bundled container's `<green>all</green>` mode is plenty for most events.
+
+</Callout>
+
+<Callout variant='note' title='Forced leaderboard updates in split mode'>
+  In split `<green>frontend</green>` + `<green>leaderboard</green>` deployments, API mutations
+  can't directly wake the separate leaderboard worker. The worker still refreshes from PostgreSQL
+  and Redis on `<red>leaderboard.updateInterval</red>`, but immediate `forceLeaderboardUpdate(){:ts}`
+  messages only work when the worker is in the same Bun process, such as `<green>all</green>` mode.
+</Callout>
+
+## Deployment templates
+
+There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml{:file}`, no Terraform module). It's on the roadmap and will land here when ready. For now, the bundled single-node `compose.yml{:file}` is the only supported template, and splitting into `<green>frontend</green>` + `<green>leaderboard</green>` containers is something you wire up yourself against your own orchestrator.

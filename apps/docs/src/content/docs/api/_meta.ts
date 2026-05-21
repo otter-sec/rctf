@@ -4,10 +4,12 @@ export default {
   label: 'API reference',
   collapsed: true,
   items: {
-    index: { label: 'Overview', order: 0 },
-    challenges: { label: 'Challenges', order: 1 },
-    leaderboard: { label: 'Leaderboard', order: 2 },
-    users: { label: 'Users', order: 3 },
-    admin: { label: 'Admin', order: 4 },
+    auth: { label: 'Authentication', order: 10, badge: 'new', collapsed: false },
+    challenges: { label: 'Challenges', order: 11, collapsed: false },
+    leaderboard: { label: 'Leaderboard', order: 12 },
+    users: { label: 'Users', order: 13 },
+    admin: { label: 'Admin', order: 14 },
+    integrations: { label: 'Integrations', order: 15, badge: 'new' },
+    responses: { label: 'Responses', order: 16, badge: 'new' },
   },
 } satisfies MetaFile

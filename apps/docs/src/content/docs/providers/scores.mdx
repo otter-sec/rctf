@@ -6,7 +6,7 @@ description: Choose and configure a dynamic scoring algorithm for your CTF.
 import Callout from '@/components/callout.astro'
 import ScoreDecayChart from '@/components/mdx/score-decay-chart.astro'
 
-Scoring providers determine how challenge point values change as teams solve them. rCTF includes six scoring algorithms.
+Scoring providers control how challenge point values change as teams solve them. rCTF ships six scoring algorithms.
 
 ## Configuration
 
@@ -15,46 +15,46 @@ scoreProvider:
   name: scores/classic # Default
 ```
 
-Each challenge defines a point range via `points.min{:yaml}` and `points.max{:yaml}` in its data. The scoring provider calculates the current point value based on the number of solves and other context.
+Each challenge sets a point range via `<red>points.min</red>` and `<red>points.max</red>` in its data. The scoring provider calculates the current point value from the solve count and other context.
 
 ## Score context
 
 All scoring providers receive a context object with:
 
-| Field                   | Description                                                               |
-| ----------------------- | ------------------------------------------------------------------------- |
-| `minPoints{:yaml}`      | Minimum points for the challenge (floor)                                  |
-| `maxPoints{:yaml}`      | Maximum points for the challenge (ceiling, when 0 solves)                 |
-| `solves{:yaml}`         | Current number of solves                                                  |
-| `maxSolves{:yaml}`      | Maximum solves across all challenges (used by `scores/legacy{:yaml}`)     |
-| `eventStartTime{:yaml}` | Competition start time (used by `scores/jammy{:yaml}`)                    |
-| `eventEndTime{:yaml}`   | Competition end time (used by `scores/jammy{:yaml}`)                      |
-| `firstSolveTime{:yaml}` | Time of the first solve for the challenge (used by `scores/jammy{:yaml}`) |
+| Field | Description |
+| --- | --- |
+| `<red>minPoints</red>` | Minimum points for the challenge (floor) |
+| `<red>maxPoints</red>` | Maximum points for the challenge (ceiling, when 0 solves) |
+| `<red>solves</red>` | Current number of solves |
+| `<red>maxSolves</red>` | Maximum solves across all challenges (used by `<green>scores/legacy</green>`) |
+| `<red>eventStartTime</red>` | Competition start time (used by `<green>scores/jammy</green>`) |
+| `<red>eventEndTime</red>` | Competition end time (used by `<green>scores/jammy</green>`) |
+| `<red>firstSolveTime</red>` | Time of the first solve for the challenge (used by `<green>scores/jammy</green>`) |
 
 ## Providers
 
-Charts use a sample challenge with `minPoints: 100{:yaml}` and `maxPoints: 500{:yaml}`. Solve-based providers show the full provider family with the current tab highlighted; `scores/jammy{:yaml}` uses its own time-based curve.
+Charts use a sample challenge with `<red>minPoints</red>: <green>100</green>` and `<red>maxPoints</red>: <green>500</green>`. Solve-based providers show the full provider family with the current tab highlighted, while `<green>scores/jammy</green>` uses its own time-based curve.
 
 <Tabs items={['scores/classic', 'scores/sekai', 'scores/steep', 'scores/jammy', 'scores/genni', 'scores/legacy']}>
 <Tab>
 
-<ScoreDecayChart focus='classic' />
+<ScoreDecayChart focus="classic" />
 
-The **default** scoring algorithm. Uses a logistic decay function that decreases points as more teams solve the challenge.
+The **default** scoring algorithm. Uses a logistic decay function that drops points as more teams solve the challenge.
 
 ```yaml
 scoreProvider:
   name: scores/classic
 ```
 
-Challenges start at `maxPoints{:yaml}` with zero solves and decay toward `minPoints{:yaml}` as the solve count increases. The decay curve is moderate, suitable for most CTFs.
+Challenges start at `<red>maxPoints</red>` with zero solves and decay toward `<red>minPoints</red>` as the solve count climbs. The decay curve is moderate, which works for most CTFs.
 
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='sekai' />
+<ScoreDecayChart focus="sekai" />
 
-Logarithmic decay with tuned constants (gradient=10, decay=60). Produces a gentler curve than `scores/classic{:yaml}`.
+Logarithmic decay with tuned constants (gradient=10, decay=60). Produces a gentler curve than `<green>scores/classic</green>`.
 
 ```yaml
 scoreProvider:
@@ -64,9 +64,9 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='steep' />
+<ScoreDecayChart focus="steep" />
 
-Similar to `scores/classic{:yaml}` but with a steeper decay curve. Points drop more aggressively with early solves, making challenges differentiate faster.
+Similar to `<green>scores/classic</green>` but with a steeper decay curve. Points drop more aggressively with early solves, so challenges differentiate faster.
 
 ```yaml
 scoreProvider:
@@ -76,9 +76,9 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart type='time' />
+<ScoreDecayChart type="time" />
 
-Time-based scoring that values challenges by when they were first solved. Unlike other providers, this one considers the first solve time relative to the event duration rather than how many teams solved the challenge.
+Time-based scoring that values challenges by when they were first solved. Unlike the other providers, this one looks at the first solve time relative to the event duration rather than how many teams solved the challenge.
 
 ```yaml
 scoreProvider:
@@ -87,22 +87,22 @@ scoreProvider:
     maximumScoreTime: 0.8 # Optional, default 0.8
 ```
 
-| Option                    | Default    | Description                                                                                                                       |
-| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| `maximumScoreTime{:yaml}` | `0.8{:ts}` | Fraction of event duration used to ramp from minimum to maximum points. First solves after this threshold receive maximum points. |
+| Option | Default | Description |
+| --- | --- | --- |
+| `<red>maximumScoreTime</red>` | `0.8{:ts}` | Fraction of event duration used to ramp from minimum to maximum points. First solves after this threshold receive maximum points. |
 
 <Callout variant="note">
 
-This provider requires `startTime{:yaml}` and `endTime{:yaml}` to be set in the configuration. It uses the first solve time to anchor the scoring curve.
+This provider needs `<red>startTime</red>` and `<red>endTime</red>` set in the configuration. It uses the first solve time to anchor the scoring curve.
 
 </Callout>
 
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='genni' />
+<ScoreDecayChart focus="genni" />
 
-Binary scoring: returns `maxPoints{:yaml}` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Useful for challenges that should not contribute to the score once widely solved.
+A binary scoring algorithm. It returns `<red>maxPoints</red>` if the challenge has 0 to 2 solves, and `0{:ts}` points otherwise. Good for challenges that shouldn't contribute to the score once they're widely solved.
 
 ```yaml
 scoreProvider:
@@ -112,7 +112,7 @@ scoreProvider:
 </Tab>
 <Tab>
 
-<ScoreDecayChart focus='legacy' />
+<ScoreDecayChart focus="legacy" />
 
 Hyperbolic tangent-based decay that normalizes against the maximum solve count across all challenges. This was the original rCTF scoring algorithm.
 
@@ -123,7 +123,7 @@ scoreProvider:
 
 <Callout variant="note">
 
-This provider requires `maxSolves{:yaml}` (the maximum solve count across all challenges) to properly normalize the curve. It may produce unexpected results if challenge solve counts vary widely.
+This provider needs `<red>maxSolves</red>` (the maximum solve count across all challenges) to normalize the curve. Expect surprising results if challenge solve counts vary widely.
 
 </Callout>
 

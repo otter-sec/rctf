@@ -31,7 +31,10 @@ export const SubmitFlagRoute = defineRoute({
   path: '/v1/challs/:id/submit',
   method: 'POST',
   body: z.object({
-    flag: z.string().check(z.maxLength(1024)),
+    flag: z
+      .string()
+      .check(z.maxLength(1024))
+      .check(z.describe('Maximum length `1024`.')),
   }),
   goodResponses: [GoodFlag],
   badResponses: [
@@ -47,7 +50,7 @@ export const SubmitFlagRoute = defineRoute({
   ],
   authRequired: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsWrite,
@@ -61,12 +64,18 @@ export const GetChallengeSolvesRoute = defineRoute({
   badResponses: [BadNotStarted, BadChallenge, BadBody],
   authRequired: false,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(z.describe('Integer `>= 1`. Maximum enforced by config.')),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Integer `>= 0`.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

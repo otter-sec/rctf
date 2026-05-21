@@ -5,11 +5,19 @@ description: Configure email delivery with SMTP, Amazon SES, Postmark, or Mailgu
 
 import Callout from '@/components/callout.astro'
 
-Email providers handle sending verification and recovery emails. An email provider is required for email-based registration, account recovery, and email changes.
+Email providers send verification and recovery emails. You need one configured if you want email-based registration, account recovery, or email changes to work.
+
+<Callout variant="tip" title="What we use in practice">
+  For events we run or help operate (including Malta CTF, idek CTF, and DiceCTF), we typically use
+  [Postmark](https://postmarkapp.com/) for transactional delivery. The others are perfectly
+  reasonable choices too. SMTP works with any provider you already have credentials for, SES is the
+  cheapest at volume if you're already on AWS, and Mailgun is a fine alternative if you prefer it.
+  Pick whichever fits your existing infrastructure.
+</Callout>
 
 ## Configuration
 
-Email configuration includes the provider, a sender address, and an optional logo URL for email templates:
+Email config includes the provider, a sender address, and an optional logo URL for email templates:
 
 ```yaml
 email:
@@ -23,7 +31,7 @@ email:
 
 <Callout variant="note">
 
-Email is required for registration when CTFtime authentication is not configured. Without an email provider, users cannot register, recover their accounts, or use email-based division ACLs.
+Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.
 
 </Callout>
 ## Providers
@@ -31,7 +39,7 @@ Email is required for registration when CTFtime authentication is not configured
 <Tabs items={['emails/smtp', 'emails/ses', 'emails/postmark', 'emails/mailgun']}>
 <Tab>
 
-Sends emails via SMTP using Nodemailer.
+Sends emails over SMTP using Nodemailer.
 
 ```yaml
 email:
@@ -42,14 +50,14 @@ email:
   from: noreply@example.com
 ```
 
-| Option           | Environment Variable | Description         |
-| ---------------- | -------------------- | ------------------- |
-| `smtpUrl{:yaml}` | `RCTF_SMTP_URL{:sh}` | SMTP connection URL |
+| Option               | Environment Variable | Description         |
+| -------------------- | -------------------- | ------------------- |
+| `<red>smtpUrl</red>` | `RCTF_SMTP_URL{:sh}` | SMTP connection URL |
 
 </Tab>
 <Tab>
 
-Sends emails via Amazon Simple Email Service.
+Sends emails through Amazon Simple Email Service.
 
 ```yaml
 email:
@@ -62,22 +70,22 @@ email:
   from: noreply@example.com
 ```
 
-| Option                | Environment Variable       | Description           |
-| --------------------- | -------------------------- | --------------------- |
-| `awsKeyId{:yaml}`     | `RCTF_SES_KEY_ID{:sh}`     | AWS access key ID     |
-| `awsKeySecret{:yaml}` | `RCTF_SES_KEY_SECRET{:sh}` | AWS secret access key |
-| `awsRegion{:yaml}`    | `RCTF_SES_REGION{:sh}`     | AWS region            |
+| Option                    | Environment Variable       | Description           |
+| ------------------------- | -------------------------- | --------------------- |
+| `<red>awsKeyId</red>`     | `RCTF_SES_KEY_ID{:sh}`     | AWS access key ID     |
+| `<red>awsKeySecret</red>` | `RCTF_SES_KEY_SECRET{:sh}` | AWS secret access key |
+| `<red>awsRegion</red>`    | `RCTF_SES_REGION{:sh}`     | AWS region            |
 
 <Callout variant="warning">
 
-Ensure your SES account is out of the sandbox and the sender address is verified before use.
+Make sure your SES account is out of the sandbox and the sender address is verified before you use it.
 
 </Callout>
 
 </Tab>
 <Tab>
 
-Sends emails via the [Postmark](https://postmarkapp.com/) API.
+Sends emails through the [Postmark](https://postmarkapp.com/) API.
 
 ```yaml
 email:
@@ -88,14 +96,14 @@ email:
   from: noreply@example.com
 ```
 
-| Option               | Environment Variable              | Description           |
-| -------------------- | --------------------------------- | --------------------- |
-| `serverToken{:yaml}` | `RCTF_POSTMARK_SERVER_TOKEN{:sh}` | Postmark server token |
+| Option                   | Environment Variable              | Description           |
+| ------------------------ | --------------------------------- | --------------------- |
+| `<red>serverToken</red>` | `RCTF_POSTMARK_SERVER_TOKEN{:sh}` | Postmark server token |
 
 </Tab>
 <Tab>
 
-Sends emails via the [Mailgun](https://www.mailgun.com/) API.
+Sends emails through the [Mailgun](https://www.mailgun.com/) API.
 
 ```yaml
 email:
@@ -107,10 +115,10 @@ email:
   from: noreply@example.com
 ```
 
-| Option          | Environment Variable        | Description            |
-| --------------- | --------------------------- | ---------------------- |
-| `apiKey{:yaml}` | `RCTF_MAILGUN_API_KEY{:sh}` | Mailgun API key        |
-| `domain{:yaml}` | `RCTF_MAILGUN_DOMAIN{:sh}`  | Mailgun sending domain |
+| Option              | Environment Variable        | Description            |
+| ------------------- | --------------------------- | ---------------------- |
+| `<red>apiKey</red>` | `RCTF_MAILGUN_API_KEY{:sh}` | Mailgun API key        |
+| `<red>domain</red>` | `RCTF_MAILGUN_DOMAIN{:sh}`  | Mailgun sending domain |
 
 </Tab>
 </Tabs>

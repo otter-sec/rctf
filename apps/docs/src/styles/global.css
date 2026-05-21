@@ -2,8 +2,8 @@
 
 @font-face {
   font-family: 'Outfit';
-  src: url('/fonts/OutfitVF-latin.woff2') format('woff2-variations');
-  font-weight: 100 900;
+  src: url('../assets/fonts/OutfitVF-latin.woff2') format('woff2-variations');
+  font-weight: 100 500;
   font-style: normal;
   font-display: swap;
 }
@@ -12,11 +12,11 @@
 
 @theme inline {
   --font-sans:
-    'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    'Outfit', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
   --font-mono:
-    'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    'Liberation Mono', 'Courier New', monospace;
+    'Cascadia Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -38,9 +38,9 @@
 }
 
 @font-face {
-  font-family: 'Geist Mono';
-  src: url('/fonts/GeistMonoVF.woff2') format('woff2-variations');
-  font-weight: 100 900;
+  font-family: 'Cascadia Code';
+  src: url('../assets/fonts/CascadiaCodeVF.woff2') format('woff2-variations');
+  font-weight: 200 500;
   font-style: normal;
   font-display: swap;
 }
@@ -55,10 +55,34 @@
   --accent: #c10007;
   --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
-  --ctp-red: var(--destructive);
-  --ctp-green: oklch(0.55 0.14 145);
+  --success: oklch(53.2% 0.157 131.589);
+  --diff-deleted: var(--destructive);
+  --diff-inserted: var(--success);
   --border: #ececec;
   --ring: oklch(0.708 0 0);
+
+  --tone-rosewater: oklch(71% 0.1 33);
+  --tone-flamingo: oklch(69% 0.13 21);
+  --tone-pink: oklch(73% 0.17 338);
+  --tone-mauve: oklch(55% 0.25 297);
+  --tone-red: oklch(55% 0.22 20);
+  --tone-maroon: oklch(63% 0.2 20);
+  --tone-peach: oklch(69% 0.2 42);
+  --tone-yellow: oklch(71% 0.15 68);
+  --tone-green: oklch(63% 0.18 140);
+  --tone-teal: oklch(60% 0.1 201);
+  --tone-sky: oklch(68% 0.14 235);
+  --tone-sapphire: oklch(65% 0.11 213);
+  --tone-blue: oklch(56% 0.23 262);
+  --tone-lavender: oklch(66% 0.18 273);
+
+  --inline-tone-red: #be2f2c;
+  --inline-tone-green: #566d35;
+  --inline-tone-orange: #a64930;
+  --inline-tone-yellow: #806000;
+  --inline-tone-blue: #4c6690;
+  --inline-tone-magenta: #9039c9;
+  --inline-tone-cyan: #256f74;
 }
 
 [data-theme='dark'] {
@@ -71,10 +95,34 @@
   --accent: #ff6467;
   --accent-foreground: #0e0e0e;
   --destructive: oklch(0.704 0.191 22.216);
-  --ctp-red: var(--destructive);
-  --ctp-green: oklch(0.78 0.13 145);
+  --success: oklch(89.7% 0.196 126.665);
+  --diff-deleted: var(--destructive);
+  --diff-inserted: var(--success);
   --border: #2a2a2a;
   --ring: oklch(0.556 0 0);
+
+  --tone-rosewater: oklch(92% 0.02 30);
+  --tone-flamingo: oklch(88% 0.04 18);
+  --tone-pink: oklch(87% 0.08 336);
+  --tone-mauve: oklch(79% 0.12 305);
+  --tone-red: oklch(76% 0.13 3);
+  --tone-maroon: oklch(78% 0.09 9);
+  --tone-peach: oklch(82% 0.1 53);
+  --tone-yellow: oklch(92% 0.07 87);
+  --tone-green: oklch(86% 0.11 143);
+  --tone-teal: oklch(86% 0.08 183);
+  --tone-sky: oklch(85% 0.08 210);
+  --tone-sapphire: oklch(79% 0.1 229);
+  --tone-blue: oklch(77% 0.11 260);
+  --tone-lavender: oklch(82% 0.09 277);
+
+  --inline-tone-red: #f07178;
+  --inline-tone-green: #c3e88d;
+  --inline-tone-orange: #fab387;
+  --inline-tone-yellow: #f9e2af;
+  --inline-tone-blue: #82aaff;
+  --inline-tone-magenta: #c792ea;
+  --inline-tone-cyan: #89ddff;
 }
 
 @layer base {
@@ -86,41 +134,7 @@
     @apply border-border outline-ring/50 tracking-tight;
   }
 
-  /* Inline code gets the accent color, rctf-style */
   :not(pre) > code {
     color: var(--accent);
-  }
-}
-
-@layer components {
-  /* Sidebar group chevron: scope to the immediate parent <details> only,
-     so nested details don't drag their children's chevrons open. */
-  [data-sidebar-group][open] > summary [data-sidebar-chevron] {
-    transform: rotate(90deg);
-  }
-
-  .file-tree ul {
-    list-style: none;
-    margin: 0;
-    padding-left: 1rem;
-  }
-  .file-tree > ul {
-    padding-left: 0;
-  }
-  .file-tree li {
-    position: relative;
-    padding: 0.125rem 0 0.125rem 1.25rem;
-    line-height: 1.5;
-  }
-  .file-tree li::before {
-    content: '├─';
-    position: absolute;
-    left: 0;
-    color: var(--muted-foreground);
-    opacity: 0.6;
-    font-family: var(--font-mono);
-  }
-  .file-tree li:last-child::before {
-    content: '└─';
   }
 }

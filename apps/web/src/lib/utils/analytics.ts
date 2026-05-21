@@ -39,34 +39,9 @@ const cloudflareHandler: AnalyticsHandler = {
   },
 }
 
-// Plausible Analytics
-const plausibleHandler: AnalyticsHandler = {
-  async init(options) {
-    const domain = options.domain
-    if (!domain) {
-      throw new Error('Plausible Analytics requires domain')
-    }
-
-    const apiHost = options.apiHost || 'https://plausible.io'
-    const script = document.createElement('script')
-    script.defer = true
-    script.dataset.domain = domain
-    script.dataset.api = `${apiHost}/api/event`
-    script.src = ANALYTICS_SCRIPT_URL
-    document.head.appendChild(script)
-
-    await new Promise<void>((resolve, reject) => {
-      script.onload = () => resolve()
-      script.onerror = () =>
-        reject(new Error('Failed to load Plausible script'))
-    })
-  },
-}
-
 const analyticsHandlers: Record<string, AnalyticsHandler> = {
   'analytics/google': googleHandler,
   'analytics/cloudflare': cloudflareHandler,
-  'analytics/plausible': plausibleHandler,
 }
 
 export async function initAnalytics(

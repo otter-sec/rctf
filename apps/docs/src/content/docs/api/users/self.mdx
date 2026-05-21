@@ -1,0 +1,34 @@
+---
+title: '<route>GET</route> Own profile'
+description: '<route>GET /api/[v2,v1]/users/me</route>'
+---
+
+import { GetUserSelfRoute, GetUserSelfRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <Tabs items={['V2', 'V1']} sync="users-self-version">
+    <Tab>
+      <RouteExample def={GetUserSelfRouteV2} />
+    </Tab>
+    <Tab>
+      <RouteExample def={GetUserSelfRoute} />
+    </Tab>
+  </Tabs>
+</RouteAside>
+
+<RouteMetaFromDef def={GetUserSelfRouteV2} />
+
+This route returns the authenticated team's profile, including private account fields. It is useful for account settings, profile screens, and client side session state.
+
+V2 includes the same public profile additions as [public profile](/api/users/profile/). V1 returns the older profile fields and remains available for clients that already use it.
+
+<Tabs items={['V2', 'V1']} sync="users-self-version">
+  <Tab>
+    <ResponseBody def={GetUserSelfRouteV2} response="goodUserSelfData" title="Response fields" />
+  </Tab>
+  <Tab>
+    <ResponseBody def={GetUserSelfRoute} response="goodUserSelfData" title="Response fields" />
+  </Tab>
+</Tabs>
+
+Treat `teamToken` as a credential. It can be used for account recovery and team scoped auth flows.

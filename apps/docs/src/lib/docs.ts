@@ -8,13 +8,9 @@ export async function getAllDocs(): Promise<Doc[]> {
   return docs.filter(doc => !doc.data.draft)
 }
 
-// Astro injects `BASE_URL` from the `base:` field in astro.config.ts
-// (always trailing-slashed, e.g. `/docs/`). Default to `/` for tools that
-// import this file outside an Astro build (tests, codemods).
-export const BASE_URL: string = (import.meta.env?.BASE_URL ?? '/').replace(
-  /\/?$/,
-  '/'
-)
+// Astro injects `BASE_URL` from the `base:` field in astro.config.ts.
+// Default to `/` for tools that import this file outside an Astro build.
+export const BASE_URL: string = (import.meta.env?.BASE_URL ?? '/').replace(/\/?$/, '/')
 
 /**
  * Prefix a root-relative path with the configured `base`.
@@ -28,9 +24,13 @@ export function withBase(path: string): string {
 
 export function docHref(id: string): string {
   if (id === 'index') return BASE_URL
-  if (id.endsWith('/index'))
-    return BASE_URL + id.slice(0, -'/index'.length) + '/'
+  if (id.endsWith('/index')) return BASE_URL + id.slice(0, -'/index'.length) + '/'
   return BASE_URL + id + '/'
+}
+
+export function docOgImageHref(id: string): string {
+  const slug = docSlugFromId(id) ?? 'index'
+  return `${BASE_URL}og/${slug}.png`
 }
 
 export function docSlugFromId(id: string): string | undefined {
@@ -54,9 +54,7 @@ export function getEditUrl(doc: Doc): string | null {
   const marker = 'src/content/docs/'
   const markerIndex = normalizedPath.indexOf(marker)
   const rel =
-    markerIndex === -1
-      ? normalizedPath
-      : normalizedPath.slice(markerIndex + marker.length)
+    markerIndex === -1 ? normalizedPath : normalizedPath.slice(markerIndex + marker.length)
   return DOCS.editUrlBase.replace(/\/+$/, '') + '/' + rel
 }
 

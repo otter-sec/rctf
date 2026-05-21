@@ -1,0 +1,61 @@
+---
+import RouteMeta from '@/components/mdx/route-meta.astro'
+import { Permissions, type ProtectedAction } from '@rctf/types'
+
+interface Props {
+  def: any
+  rateLimit?: string
+}
+
+const { def, rateLimit } = Astro.props
+
+function permissionNames(value: number): string[] {
+  const names: string[] = []
+  for (const [key, bit] of Object.entries(Permissions)) {
+    if (typeof bit === 'number' && (value & bit) === bit) {
+      names.push(`\`${key}{:ts}\``)
+    }
+  }
+  return names
+}
+
+function deriveAuth(): string {
+  if (def.serviceAuth) return 'Service'
+  if (def.authRequired) return 'Required'
+  if (def.optionalAuth) return 'Optional'
+  return 'Public'
+}
+
+function deriveGate(): string {
+  const parts: string[] = []
+  if (def.onlyWhenStarted) parts.push('Started')
+  if (def.onlyWhenNotFinished) parts.push('Before end')
+  if (parts.length === 0) return 'None'
+  let gate = parts.join(' + ')
+  const bypass = def.onlyWhenStartedPermissionsBypass
+  if (typeof bypass === 'number') {
+    const names = permissionNames(bypass)
+    if (names.length > 0) gate += ` (bypass ${names.join(', ')})`
+  }
+  return gate
+}
+
+function derivePermissions(): string {
+  if (typeof def.permissions !== 'number') return '-'
+  const names = permissionNames(def.permissions)
+  return names.length > 0 ? names.join(', ') : '-'
+}
+
+function deriveCaptcha(): string {
+  const action = def.captchaAction as ProtectedAction | undefined
+  return action ? `\`${action}{:ts}\`` : '-'
+}
+---
+
+<RouteMeta
+  auth={deriveAuth()}
+  gate={deriveGate()}
+  permissions={derivePermissions()}
+  captcha={deriveCaptcha()}
+  rateLimit={rateLimit}
+/>

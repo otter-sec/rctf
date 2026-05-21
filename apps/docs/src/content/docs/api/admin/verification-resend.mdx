@@ -1,0 +1,24 @@
+---
+title: '<route>POST</route> Resend verification'
+description: '<route>POST /api/v2/admin/user-verifications/:id/resend</route>'
+---
+
+import { ResendAdminUserVerificationRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={ResendAdminUserVerificationRouteV2} params={{ id: 'verification-id' }} />
+</RouteAside>
+
+<RouteMetaFromDef def={ResendAdminUserVerificationRouteV2} />
+
+This route sends another verification email for an outstanding pending verification row.
+
+If email delivery is not configured, the route returns `<response>404 badEndpoint</response>` because there is no provider available to send the message.
+
+<RequestBody def={ResendAdminUserVerificationRouteV2} source="params" title="Path parameters" />
+
+<ResponseBody
+  def={ResendAdminUserVerificationRouteV2}
+  response="goodAdminUserVerificationResend"
+  title="Response fields"
+/>

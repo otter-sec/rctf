@@ -48,6 +48,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
+      # Exposed to 127.0.0.1 only because rctf will reach it through a tiny-network network
+      # If you're hosting tiny-instancer separately (which you should), expose this globally and make sure to put a firewall
       - "127.0.0.1:12237:1337"
 
 networks:

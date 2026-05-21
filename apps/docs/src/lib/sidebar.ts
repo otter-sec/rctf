@@ -20,9 +20,7 @@ const metaModules = {
 }
 
 function metaFor(dirPath: string): MetaFile {
-  const key = dirPath
-    ? `/src/content/docs/${dirPath}/_meta.ts`
-    : '/src/content/docs/_meta.ts'
+  const key = dirPath ? `/src/content/docs/${dirPath}/_meta.ts` : '/src/content/docs/_meta.ts'
   return metaModules[key]?.default ?? {}
 }
 
@@ -41,11 +39,7 @@ function hasDoc(node: TreeNode): node is DocTreeNode {
   return Boolean(node.doc)
 }
 
-function ensureNode(
-  parent: TreeNode,
-  name: string,
-  fullPath: string
-): TreeNode {
+function ensureNode(parent: TreeNode, name: string, fullPath: string): TreeNode {
   let existing = parent.children.find(c => c.name === name)
   if (!existing) {
     existing = { name, fullPath, children: [] }
@@ -72,6 +66,31 @@ function buildTree(docs: Doc[]): TreeNode {
   return root
 }
 
+export type SidebarContext = {
+  docs: Doc[]
+  tree: TreeNode
+  docByHref: Map<string, Doc>
+  rootMeta: MetaFile
+}
+
+export function createSidebarContext(docs: Doc[]): SidebarContext {
+  return {
+    docs,
+    tree: buildTree(docs),
+    docByHref: new Map(docs.map(doc => [docHref(doc.id), doc])),
+    rootMeta: metaFor(''),
+  }
+}
+
+let sidebarContextPromise: Promise<SidebarContext> | null = null
+
+export function loadSidebarContext(): Promise<SidebarContext> {
+  if (!sidebarContextPromise) {
+    sidebarContextPromise = getAllDocs().then(createSidebarContext)
+  }
+  return sidebarContextPromise
+}
+
 type OrderKey = {
   order: number
   label: string
@@ -96,8 +115,7 @@ function resolveDocLink(
   const href = docHref(doc.id)
   const label = doc.data.sidebar?.label ?? override.label ?? docLabel(doc)
   const order = doc.data.sidebar?.order ?? override.order ?? Infinity
-  const badge: SidebarBadge | undefined =
-    doc.data.sidebar?.badge ?? override.badge
+  const badge: SidebarBadge | undefined = doc.data.sidebar?.badge ?? override.badge
 
   return {
     link: {
@@ -122,62 +140,49 @@ function resolveGroup(
   const override: MetaItemOverride = parentMeta.items?.[node.name] ?? {}
   if (override.hidden) return null
 
-  // Build children first.
   const items = buildNodes(node, own, pathname)
 
-  // If this node also has its own index doc, prepend it as "Overview".
-  if (node.doc && !node.doc.data.sidebar?.hidden) {
-    const indexOverride: MetaItemOverride = own.items?.index ?? {}
-    if (!indexOverride.hidden) {
-      const href = docHref(node.doc.id)
-      const label =
-        node.doc.data.sidebar?.label ?? indexOverride.label ?? 'Overview'
-      const badge = node.doc.data.sidebar?.badge ?? indexOverride.badge
-      items.unshift({
-        type: 'link',
-        label,
-        href,
-        badge,
-        isCurrent: isCurrentPath(href, pathname),
-      })
-    }
-  }
+  // If the group's directory has an index doc, hoist its href/badge onto the
+  // group itself so the summary row becomes a real link to that page,
+  // instead of injecting a separate "Overview" child entry.
+  const indexDoc =
+    node.doc && !node.doc.data.sidebar?.hidden && !(own.items?.index?.hidden ?? false)
+      ? node.doc
+      : null
+  const groupHref = indexDoc ? docHref(indexDoc.id) : undefined
+  const groupIsCurrent = groupHref ? isCurrentPath(groupHref, pathname) : false
 
-  if (items.length === 0) return null
+  if (items.length === 0 && !indexDoc) return null
 
   const label = own.label ?? override.label ?? titleCase(node.name)
-  // A group's sort order: parent override > own _meta.order > Infinity.
   const order = override.order ?? own.order ?? Infinity
-  const badge: SidebarBadge | undefined = override.badge ?? own.badge
+  const badge: SidebarBadge | undefined =
+    indexDoc?.data.sidebar?.badge ?? override.badge ?? own.badge
   const forceOpen = override.forceOpen ?? own.forceOpen ?? false
 
-  const hasActiveDescendant = items.some(
-    i =>
-      (i.type === 'link' && i.isCurrent) ||
-      (i.type === 'group' && i.hasActiveDescendant)
-  )
+  const hasActiveDescendant =
+    groupIsCurrent ||
+    items.some(
+      i => (i.type === 'link' && i.isCurrent) || (i.type === 'group' && i.hasActiveDescendant)
+    )
 
   return {
     group: {
       type: 'group',
       label,
-      collapsed: forceOpen
-        ? false
-        : (override.collapsed ?? own.collapsed ?? !hasActiveDescendant),
+      collapsed: forceOpen ? false : (override.collapsed ?? own.collapsed ?? !hasActiveDescendant),
       forceOpen,
       badge,
       hasActiveDescendant,
+      href: groupHref,
+      isCurrent: groupIsCurrent,
       items,
     },
     sortKey: { order, label },
   }
 }
 
-function buildNodes(
-  parent: TreeNode,
-  parentMeta: MetaFile,
-  pathname: string
-): SidebarNode[] {
+function buildNodes(parent: TreeNode, parentMeta: MetaFile, pathname: string): SidebarNode[] {
   const resolved: Array<{ node: SidebarNode; sortKey: OrderKey }> = []
 
   for (const child of parent.children) {
@@ -185,11 +190,9 @@ function buildNodes(
     if (isRootIndex) continue
 
     if (child.children.length > 0) {
-      // Group (may also carry an index doc).
       const result = resolveGroup(child, parentMeta, pathname)
       if (result) resolved.push({ node: result.group, sortKey: result.sortKey })
     } else if (hasDoc(child)) {
-      // Pure leaf doc.
       const result = resolveDocLink(child, parentMeta, pathname)
       if (result) resolved.push({ node: result.link, sortKey: result.sortKey })
     }
@@ -199,41 +202,185 @@ function buildNodes(
   return resolved.map(r => r.node)
 }
 
-export async function getSidebarTree(
+export function getSidebarTreeFromContext(
+  context: SidebarContext,
   pathname: string = '/'
-): Promise<SidebarNode[]> {
-  const docs = await getAllDocs()
-  const tree = buildTree(docs)
-  const rootMeta = metaFor('')
-  return buildNodes(tree, rootMeta, pathname)
+): SidebarNode[] {
+  return buildNodes(context.tree, context.rootMeta, pathname)
+}
+
+export async function getSidebarTree(pathname: string = '/'): Promise<SidebarNode[]> {
+  return getSidebarTreeFromContext(await loadSidebarContext(), pathname)
 }
 
 function flattenTree(nodes: SidebarNode[], acc: FlatDoc[] = []): FlatDoc[] {
   for (const node of nodes) {
     if (node.type === 'link') {
-      acc.push({
-        id: '',
-        href: node.href,
-        title: node.label,
-        label: node.label,
-        hidden: false,
-      })
+      acc.push({ href: node.href, label: node.label })
     } else {
+      if (node.href) acc.push({ href: node.href, label: node.label })
       flattenTree(node.items, acc)
     }
   }
   return acc
 }
 
-export async function getFlatDocOrder(): Promise<FlatDoc[]> {
-  const tree = await getSidebarTree(BASE_URL)
-  return flattenTree(tree)
+export function getFlatDocOrderFromContext(
+  context: SidebarContext,
+  pathname: string = '/'
+): FlatDoc[] {
+  return flattenTree(getSidebarTreeFromContext(context, pathname))
 }
 
-export async function getPrevNext(
+export async function getFlatDocOrder(pathname: string = '/'): Promise<FlatDoc[]> {
+  return getFlatDocOrderFromContext(await loadSidebarContext(), pathname)
+}
+
+export type ScrollGroupPage = {
+  doc: Doc
+  href: string
+  label: string
+}
+
+export type ScrollableDocGroup = {
+  path: string
+  label: string
+  description?: string
+  pages: ScrollGroupPage[]
+}
+
+function parentPath(path: string): string {
+  const parts = path.split('/')
+  return parts.slice(0, -1).join('/')
+}
+
+function ownName(path: string): string {
+  const parts = path.split('/')
+  return parts[parts.length - 1] ?? path
+}
+
+function groupOverride(path: string): MetaItemOverride {
+  const parent = parentPath(path)
+  return metaFor(parent).items?.[ownName(path)] ?? {}
+}
+
+function groupLabel(path: string): string {
+  const own = metaFor(path)
+  const override = groupOverride(path)
+  return own.label ?? override.label ?? titleCase(ownName(path))
+}
+
+function isScrollableGroup(path: string): boolean {
+  const own = metaFor(path)
+  const override = groupOverride(path)
+  return own.scrollable ?? override.scrollable ?? false
+}
+
+function docGroupAncestors(doc: Doc): string[] {
+  if (doc.id === 'index') return []
+
+  const parts = doc.id.split('/')
+  const isIndexDoc = /[/\\]index\.mdx?$/.test(doc.filePath ?? '')
+  const dirs = isIndexDoc ? parts : parts.slice(0, -1)
+
+  const paths: string[] = []
+
+  for (let length = dirs.length; length > 0; length--) {
+    paths.push(dirs.slice(0, length).join('/'))
+  }
+
+  return paths
+}
+
+function docBelongsToGroup(doc: Doc, groupPath: string): boolean {
+  return (
+    doc.id === groupPath || doc.id === `${groupPath}/index` || doc.id.startsWith(`${groupPath}/`)
+  )
+}
+
+function groupPagesFromFlatOrder(
+  context: SidebarContext,
+  groupPath: string,
+  pathname: string
+): ScrollGroupPage[] {
+  return getFlatDocOrderFromContext(context, pathname).flatMap(page => {
+    const doc = context.docByHref.get(page.href)
+    if (!doc || !docBelongsToGroup(doc, groupPath)) return []
+    return [{ doc, href: page.href, label: page.label }]
+  })
+}
+
+export function getScrollableGroupFromContext(
+  context: SidebarContext,
+  doc: Doc,
+  pathname: string
+): ScrollableDocGroup | null {
+  const scrollableGroups = docGroupAncestors(doc).filter(isScrollableGroup)
+  const groupPath = scrollableGroups[scrollableGroups.length - 1]
+  if (!groupPath) return null
+
+  const pages = groupPagesFromFlatOrder(context, groupPath, pathname)
+  if (pages.length <= 1) return null
+
+  const overview = pages.find(
+    page => page.doc.id === groupPath || page.doc.id === `${groupPath}/index`
+  )
+  const group: ScrollableDocGroup = {
+    path: groupPath,
+    label: groupLabel(groupPath),
+    pages,
+  }
+
+  if (overview?.doc.data.description) group.description = overview.doc.data.description
+
+  return group
+}
+
+export type IndexChild = {
+  label: string
+  href: string
+  description?: string
+}
+
+function findGroupChildren(nodes: SidebarNode[], href: string): SidebarNode[] | null {
+  const normalized = trimTrailingSlash(href)
+  for (const node of nodes) {
+    if (node.type !== 'group') continue
+    if (node.href && trimTrailingSlash(node.href) === normalized) return node.items
+    const found = findGroupChildren(node.items, href)
+    if (found !== null) return found
+  }
+  return null
+}
+
+export function getIndexChildrenFromContext(context: SidebarContext, href: string): IndexChild[] {
+  const tree = getSidebarTreeFromContext(context, href)
+  const nodes = href === BASE_URL ? tree : (findGroupChildren(tree, href) ?? [])
+
+  return nodes.flatMap((node): IndexChild[] => {
+    if (node.type === 'link') {
+      const doc = context.docByHref.get(node.href)
+      return [{ label: node.label, href: node.href, description: doc?.data.description }]
+    }
+    // For groups, prefer the group's own index doc; fall back to the first
+    // descendant link.
+    const targetHref =
+      node.href ?? (node.items[0]?.type === 'link' ? node.items[0].href : undefined)
+    if (!targetHref) return []
+    const doc = context.docByHref.get(targetHref)
+    return [{ label: node.label, href: targetHref, description: doc?.data.description }]
+  })
+}
+
+export async function getIndexChildren(href: string): Promise<IndexChild[]> {
+  return getIndexChildrenFromContext(await loadSidebarContext(), href)
+}
+
+export function getPrevNextFromContext(
+  context: SidebarContext,
   currentHref: string
-): Promise<{ prev: FlatDoc | null; next: FlatDoc | null }> {
-  const flat = await getFlatDocOrder()
+): { prev: FlatDoc | null; next: FlatDoc | null } {
+  const flat = getFlatDocOrderFromContext(context, currentHref)
   const normalized = trimTrailingSlash(currentHref)
   const index = flat.findIndex(d => trimTrailingSlash(d.href) === normalized)
   if (index === -1) {
@@ -246,4 +393,22 @@ export async function getPrevNext(
     prev: index > 0 ? flat[index - 1] : null,
     next: index < flat.length - 1 ? flat[index + 1] : null,
   }
+}
+
+export async function getPrevNext(
+  currentHref: string
+): Promise<{ prev: FlatDoc | null; next: FlatDoc | null }> {
+  return getPrevNextFromContext(await loadSidebarContext(), currentHref)
+}
+
+export function getScrollGroupPrevNextFromContext(
+  context: SidebarContext,
+  group: ScrollableDocGroup
+): { prev: FlatDoc | null; next: FlatDoc | null } {
+  if (group.pages.length === 0) return { prev: null, next: null }
+  const firstHref = group.pages[0].href
+  const lastHref = group.pages[group.pages.length - 1].href
+  const { prev } = getPrevNextFromContext(context, firstHref)
+  const { next } = getPrevNextFromContext(context, lastHref)
+  return { prev, next }
 }

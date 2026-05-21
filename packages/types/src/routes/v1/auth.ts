@@ -32,10 +32,22 @@ export const RegisterRoute = defineRoute({
   captchaAction: ProtectedAction.Register,
   body: z
     .object({
-      email: z.optional(UserEmail),
+      email: z
+        .optional(UserEmail)
+        .check(z.describe('Required when `ctftimeToken` is omitted.')),
       name: UserName,
-      ctftimeToken: z.optional(z.string()),
-      recaptchaCode: z.optional(z.string()),
+      ctftimeToken: z
+        .optional(z.string())
+        .check(
+          z.describe(
+            'Required when `email` is omitted. Only usable when CTFtime auth is configured.'
+          )
+        ),
+      recaptchaCode: z
+        .optional(z.string())
+        .check(
+          z.describe('Checked only when captcha protects `register{:ts}`.')
+        ),
     })
     .check(
       z.superRefine((data, ctx) => {
@@ -69,8 +81,12 @@ export const LoginRoute = defineRoute({
   method: 'POST',
   body: z
     .object({
-      teamToken: z.optional(z.string()),
-      ctftimeToken: z.optional(z.string()),
+      teamToken: z
+        .optional(z.string())
+        .check(z.describe('Required when `ctftimeToken` is omitted.')),
+      ctftimeToken: z
+        .optional(z.string())
+        .check(z.describe('Required when `teamToken` is omitted.')),
     })
     .check(
       z.superRefine((data, ctx) => {
@@ -93,8 +109,10 @@ export const RecoverRoute = defineRoute({
   method: 'POST',
   captchaAction: ProtectedAction.Recover,
   body: z.object({
-    email: UserEmail,
-    recaptchaCode: z.optional(z.string()),
+    email: UserEmail.check(z.describe('Recovery destination.')),
+    recaptchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects `recover{:ts}`.')),
   }),
   goodResponses: [GoodVerifySent],
   badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadRecaptchaCode],
@@ -105,7 +123,9 @@ export const VerifyRoute = defineRoute({
   path: '/v1/auth/verify',
   method: 'POST',
   body: z.object({
-    verifyToken: z.string(),
+    verifyToken: z
+      .string()
+      .check(z.describe('Pending-registration, team, or verify token.')),
   }),
   goodResponses: [GoodVerify, GoodEmailSet, GoodRegister],
   badResponses: [

@@ -1,0 +1,23 @@
+---
+title: '<route>DELETE</route> Delete a solve'
+description: '<route>DELETE /api/v2/admin/challs/:challengeId/solves/:userId</route>'
+---
+
+import { DeleteChallengeSolveRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample
+    def={DeleteChallengeSolveRouteV2}
+    params={{ challengeId: 'challenge-id', userId: 'team-id' }}
+  />
+</RouteAside>
+
+<RouteMetaFromDef def={DeleteChallengeSolveRouteV2} />
+
+This route removes one solve for a specific team and challenge. The challenge and team remain in place, and the leaderboard is recalculated after the solve is removed.
+
+<RequestBody def={DeleteChallengeSolveRouteV2} source="params" title="Path parameters" />
+
+#### Response
+
+A successful request returns `<response>200 goodChallengeSolveDelete</response>` with no data.

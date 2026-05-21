@@ -4,15 +4,49 @@ export type HeadingRegion = {
   end: number
 }
 
-const CONTENT_HEADING_SELECTOR =
-  '.prose h2, .prose h3, .prose h4, .prose h5, .prose h6'
+const CONTENT_HEADING_SELECTOR = [
+  '.prose h2:not([data-scroll-page-title])',
+  '.prose h3',
+  '.prose h4',
+  '.prose h5',
+  '.prose h6',
+].join(', ')
+const SCROLL_GROUP_HEADING_SELECTOR = '.prose [data-scroll-page-title]'
 const DEFAULT_HEADER_OFFSET = 120
 const DEFAULT_SCROLL_THRESHOLD = 5
 
-export function getContentHeadings(): HTMLElement[] {
-  return Array.from(
-    document.querySelectorAll<HTMLElement>(CONTENT_HEADING_SELECTOR)
-  ).filter(heading => Boolean(heading.id) && heading.offsetParent !== null)
+export function normalizeGroupedHeadingIds(): void {
+  document.querySelectorAll<HTMLElement>('[data-scroll-page-section]').forEach(section => {
+    const prefix = section.dataset.scrollPagePrefix
+    if (!prefix || section.dataset.scrollPageHeadingsNormalized === 'true') return
+
+    section.querySelectorAll<HTMLElement>('h2, h3, h4, h5, h6').forEach(heading => {
+      if (!heading.id || heading.hasAttribute('data-scroll-page-title')) return
+
+      const oldId = heading.id
+      const newId = `${prefix}-${oldId}`
+      heading.id = newId
+
+      section.querySelectorAll<HTMLAnchorElement>('a[href]').forEach(link => {
+        if (link.getAttribute('href') === `#${oldId}`) link.setAttribute('href', `#${newId}`)
+      })
+    })
+
+    section.dataset.scrollPageHeadingsNormalized = 'true'
+  })
+}
+
+export function getContentHeadings(mode: 'content' | 'scroll-pages' = 'content'): HTMLElement[] {
+  normalizeGroupedHeadingIds()
+
+  const selector =
+    mode === 'scroll-pages' && document.querySelector('[data-scroll-page-section]')
+      ? SCROLL_GROUP_HEADING_SELECTOR
+      : CONTENT_HEADING_SELECTOR
+
+  return Array.from(document.querySelectorAll<HTMLElement>(selector)).filter(
+    heading => Boolean(heading.id) && heading.offsetParent !== null
+  )
 }
 
 export function buildHeadingRegions(headings: HTMLElement[]): HeadingRegion[] {
@@ -26,12 +60,7 @@ export function buildHeadingRegions(headings: HTMLElement[]): HeadingRegion[] {
   })
 }
 
-function isInViewport(
-  top: number,
-  bottom: number,
-  viewportTop: number,
-  viewportBottom: number
-) {
+function isInViewport(top: number, bottom: number, viewportTop: number, viewportBottom: number) {
   return (
     (top >= viewportTop && top <= viewportBottom) ||
     (bottom >= viewportTop && bottom <= viewportBottom) ||
@@ -52,14 +81,7 @@ export function getVisibleHeadingIds(
 
   headings.forEach(heading => {
     const headingBottom = heading.offsetTop + heading.offsetHeight
-    if (
-      isInViewport(
-        heading.offsetTop,
-        headingBottom,
-        viewportTop,
-        viewportBottom
-      )
-    ) {
+    if (isInViewport(heading.offsetTop, headingBottom, viewportTop, viewportBottom)) {
       visibleIds.add(heading.id)
     }
   })
@@ -83,29 +105,18 @@ export function getVisibleHeadingIds(
 }
 
 export function sameStringArray(left: string[], right: string[]): boolean {
-  return (
-    left.length === right.length &&
-    left.every((value, index) => value === right[index])
-  )
+  return left.length === right.length && left.every((value, index) => value === right[index])
 }
 
-export function centerElementInScrollContainer(
-  container: HTMLElement,
-  element: Element
-): void {
-  const { top: containerTop, height: containerHeight } =
-    container.getBoundingClientRect()
-  const { top: elementTop, height: elementHeight } =
-    element.getBoundingClientRect()
+export function centerElementInScrollContainer(container: HTMLElement, element: Element): void {
+  const { top: containerTop, height: containerHeight } = container.getBoundingClientRect()
+  const { top: elementTop, height: elementHeight } = element.getBoundingClientRect()
 
   const currentElementTop = elementTop - containerTop + container.scrollTop
   const maxScroll = container.scrollHeight - container.clientHeight
   const targetScroll = Math.max(
     0,
-    Math.min(
-      currentElementTop - (containerHeight - elementHeight) / 2,
-      maxScroll
-    )
+    Math.min(currentElementTop - (containerHeight - elementHeight) / 2, maxScroll)
   )
 
   if (Math.abs(targetScroll - container.scrollTop) > DEFAULT_SCROLL_THRESHOLD) {
@@ -149,9 +160,6 @@ export function headingHtml(
   return clone.innerHTML.trim()
 }
 
-export function dataAttributeSelector(
-  attribute: string,
-  value: string
-): string {
+export function dataAttributeSelector(attribute: string, value: string): string {
   return `[${attribute}="${CSS.escape(value)}"]`
 }

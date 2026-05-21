@@ -1,0 +1,29 @@
+---
+title: '<route>PUT</route> Update team'
+description: '<route>PUT /api/v2/admin/users/:id</route>'
+---
+
+import { BadBody, BadJson, UpdateAdminUserRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample
+    def={UpdateAdminUserRouteV2}
+    params={{ id: 'team-id' }}
+    body={{ data: { banned: true } }}
+    extra={[BadJson, BadBody]}
+  />
+</RouteAside>
+
+<RouteMetaFromDef def={UpdateAdminUserRouteV2} />
+
+This route changes admin controlled team state. The current route supports banning and unbanning teams.
+
+Banning removes the team from leaderboard output after recalculation without deleting solves. Unbanning restores its rank after the leaderboard is recalculated. Admin users are protected from changes through this route.
+
+<RequestBody def={UpdateAdminUserRouteV2} source="params" title="Path parameters" />
+
+<RequestBody def={UpdateAdminUserRouteV2} title="Request body" />
+
+#### Response
+
+A successful request returns `<response>200 goodAdminUserUpdate</response>` with no data.

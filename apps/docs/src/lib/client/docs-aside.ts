@@ -1,7 +1,7 @@
 import { findScrollAreaViewport } from './dom'
+import { mountClientModule } from './lifecycle'
 
 let cleanupScrollFades: (() => void) | null = null
-let lifecycleReady = false
 
 function setupScrollFades(): void {
   cleanupScrollFades?.()
@@ -13,8 +13,7 @@ function setupScrollFades(): void {
 
   function update(): void {
     const atTop = viewport!.scrollTop <= 1
-    const atBottom =
-      viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
+    const atBottom = viewport!.scrollTop + viewport!.clientHeight >= viewport!.scrollHeight - 1
 
     nav!.style.maskImage =
       atTop && atBottom
@@ -43,23 +42,17 @@ function updateEditLink(): void {
   const link = document.getElementById('docs-edit-link')
   if (!link) return
 
-  const meta = document.querySelector<HTMLMetaElement>(
-    'meta[name="docs-edit-url"]'
-  )
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="docs-edit-url"]')
   const url = meta?.content ?? ''
 
   link.setAttribute('href', url || '#')
   link.toggleAttribute('hidden', !url)
 }
 
-export function mountDocsAside(): void {
-  setupScrollFades()
-  updateEditLink()
-
-  if (lifecycleReady) return
-  lifecycleReady = true
-
-  document.addEventListener('astro:before-swap', () => cleanupScrollFades?.())
-  document.addEventListener('astro:after-swap', setupScrollFades)
-  document.addEventListener('astro:after-swap', updateEditLink)
-}
+export const mountDocsAside = mountClientModule({
+  setup: () => {
+    setupScrollFades()
+    updateEditLink()
+  },
+  cleanup: () => cleanupScrollFades?.(),
+})

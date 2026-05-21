@@ -3,14 +3,14 @@
 
 [data-toc-text] code,
 [data-toc-text] .shiki {
-  @apply code-pill bg-muted/50! font-mono wrap-break-word underline decoration-transparent underline-offset-[3px] transition-colors duration-200;
+  @apply code-pill bg-muted/50! text-foreground font-mono wrap-break-word underline decoration-transparent underline-offset-[3px] transition-colors duration-200;
 }
 
 [data-toc-text] .shiki code {
   @apply code-pill-inner;
 }
 
-[data-toc-text] .inline-path-icon {
+[data-toc-text] .code-path-icon {
   @apply hidden;
 }
 
@@ -22,10 +22,19 @@
   @apply opacity-60 transition duration-200;
 }
 
+[data-toc-text] code:not(.shiki code) {
+  @apply opacity-60 transition duration-200;
+}
+
 [data-heading-link].text-foreground [data-toc-text] .shiki,
+[data-heading-link].text-foreground [data-toc-text] code:not(.shiki code),
 [data-heading-link]:hover [data-toc-text] .shiki,
+[data-heading-link]:hover [data-toc-text] code:not(.shiki code),
 .mobile-toc-item.text-foreground [data-toc-text] .shiki,
+.mobile-toc-item.text-foreground [data-toc-text] code:not(.shiki code),
 .mobile-toc-item:hover [data-toc-text] .shiki,
+.mobile-toc-item:hover [data-toc-text] code:not(.shiki code),
+#mobile-toc-current-section code:not(.shiki code),
 #mobile-toc-current-section .shiki {
   @apply opacity-100;
 }
