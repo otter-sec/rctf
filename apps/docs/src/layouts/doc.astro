@@ -95,7 +95,10 @@ const renderedIndexChildren = await Promise.all(
       }
 
       <main
-        class="mx-auto flex w-full grow flex-col gap-y-6 pr-6 pl-4 xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))]"
+        class={cn(
+          'mx-auto flex w-full grow flex-col gap-y-6 pr-4 pl-4 xl:ml-[max(0px,calc((100vw-16rem-96rem)/2))] xl:pr-6',
+          !doc.data.pageHeader && 'mt-4 xl:mt-0'
+        )}
       >
         <div
           data-doc-content-grid
