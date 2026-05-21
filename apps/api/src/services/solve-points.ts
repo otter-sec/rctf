@@ -198,8 +198,13 @@ export const upsertDynamicSolves = async (
       .from(solves)
       .where(eq(solves.challengeid, challengeId))
 
+    // last write wins
+    const dedupedEntries = Array.from(
+      new Map(entries.map(e => [e.userId, e])).values()
+    )
+
     const byUser = new Map(existing.map(r => [r.userid, r]))
-    const requestedIds = new Set(entries.map(e => e.userId))
+    const requestedIds = new Set(dedupedEntries.map(e => e.userId))
 
     const events: Array<{
       id: string
@@ -222,7 +227,7 @@ export const upsertDynamicSolves = async (
 
     const now = new Date().toISOString()
 
-    for (const entry of entries) {
+    for (const entry of dedupedEntries) {
       const prior = byUser.get(entry.userId)
       if (!prior) {
         if (entry.points === 0) {
