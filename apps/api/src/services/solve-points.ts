@@ -256,6 +256,20 @@ export const upsertDynamicSolves = async (
       if (prior.points === entry.points) {
         continue
       }
+
+      // negative scores are staying
+      if (entry.points === 0) {
+        deletes.push(prior.id)
+        events.push({
+          id: crypto.randomUUID(),
+          challengeid: challengeId,
+          userid: entry.userId,
+          pointsDelta: -prior.points,
+          source: 'feed',
+        })
+        continue
+      }
+
       updates.push({ id: prior.id, points: entry.points })
       events.push({
         id: crypto.randomUUID(),
@@ -269,9 +283,6 @@ export const upsertDynamicSolves = async (
     if (opts.mode === DynamicScoresMode.REPLACEMENT) {
       for (const row of existing) {
         if (requestedIds.has(row.userid)) {
-          continue
-        }
-        if (row.points === 0) {
           continue
         }
         deletes.push(row.id)
