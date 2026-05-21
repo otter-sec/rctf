@@ -9,7 +9,7 @@ import adminGroup from '../group'
 adminGroup.route(UpdateAdminSettingsRouteV2, async ({ res, ctx, body }) => {
   const overrides = await updateSettings(ctx.var.db, body.data, ctx.var.redis)
   if ('startTime' in body.data || 'endTime' in body.data) {
-    forceLeaderboardUpdate()
+    forceLeaderboardUpdate(ctx.var.redis)
   }
   const defaults = getConfigDefaults()
   return res.goodAdminSettingsUpdate({ overrides, defaults })

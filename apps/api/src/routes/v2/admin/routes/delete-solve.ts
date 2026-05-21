@@ -10,6 +10,6 @@ adminGroup.route(DeleteChallengeSolveRouteV2, async ({ res, ctx, params }) => {
     return res.badUnknownSolve()
   }
 
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeSolveDelete()
 })

@@ -1,8 +1,12 @@
-import { ExposeKind } from '@rctf/types'
+import {
+  ChallengeScoringKind,
+  DynamicScoringTransport,
+  ExposeKind,
+} from '@rctf/types'
 import { sql } from 'drizzle-orm'
 import { index, integer, jsonb, pgTable, text } from 'drizzle-orm/pg-core'
 
-export { ExposeKind }
+export { ChallengeScoringKind, DynamicScoringTransport, ExposeKind }
 
 export interface ChallengePoints {
   min: number
@@ -48,6 +52,17 @@ export interface AdminBotConfig {
   requireInstancerInstancesRunning: boolean
 }
 
+export interface DynamicScoringSource {
+  transport: DynamicScoringTransport
+  url?: string
+  pollIntervalSeconds?: number
+  secret: string
+}
+
+export type ChallengeScoring =
+  | { kind: ChallengeScoringKind.DECAY }
+  | { kind: ChallengeScoringKind.DYNAMIC; source: DynamicScoringSource }
+
 export interface ChallengeData {
   name: string
   description: string
@@ -62,6 +77,7 @@ export interface ChallengeData {
   adminBotConfig?: AdminBotConfig
   hidden?: boolean
   releaseTime?: number | null
+  scoring?: ChallengeScoring
 }
 
 export const challenges = pgTable(

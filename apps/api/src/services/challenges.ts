@@ -3,10 +3,11 @@ import type {
   Challenge,
   ChallengeData,
   DatabaseClient,
+  DatabaseTx,
   InstancerConfig,
   Solve,
 } from '@rctf/db'
-import { challenges, solves, submissions, users } from '@rctf/db'
+import { challenges, scoreEvents, solves, submissions, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
   BadAlreadySolvedChallenge,
@@ -18,14 +19,19 @@ import type {
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
-import { SubmissionKind, SubmissionResult } from '@rctf/types'
+import {
+  ChallengeScoringKind,
+  SubmissionKind,
+  SubmissionResult,
+} from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
-import { forceLeaderboardUpdate } from '../workers'
+import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
+import { scoringKindOf } from './solve-points'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
@@ -127,7 +133,7 @@ export const getPrivateChallenges = async (
 }
 
 export const getPrivateChallenge = async (
-  db: DatabaseClient,
+  db: DatabaseClient | DatabaseTx,
   id: string
 ): Promise<Challenge | undefined> => {
   return await db
@@ -156,19 +162,41 @@ const challengeDefaultOrder = [
   desc(challenges.id),
 ] as const
 
+export type ChallengeWithMyScore = Challenge & { myScore?: number }
+
 export const getChallenges = async (
-  db: DatabaseClient
-): Promise<Challenge[]> => {
-  return await db
-    .select({
-      id: challenges.id,
-      data: challenges.data,
-      score: challenges.score,
-      solveCount: challenges.solveCount,
-    })
+  db: DatabaseClient,
+  userId?: string
+): Promise<ChallengeWithMyScore[]> => {
+  const baseSelect = {
+    id: challenges.id,
+    data: challenges.data,
+    score: challenges.score,
+    solveCount: challenges.solveCount,
+  }
+
+  if (!userId) {
+    return await db
+      .select(baseSelect)
+      .from(challenges)
+      .where(challengeIsPublicSql)
+      .orderBy(...challengeDefaultOrder)
+  }
+
+  const rows = await db
+    .select({ ...baseSelect, myScore: solves.points })
     .from(challenges)
+    .leftJoin(
+      solves,
+      and(eq(solves.challengeid, challenges.id), eq(solves.userid, userId))
+    )
     .where(challengeIsPublicSql)
     .orderBy(...challengeDefaultOrder)
+
+  return rows.map(({ myScore, ...rest }) => ({
+    ...rest,
+    myScore: myScore ?? undefined,
+  }))
 }
 
 export const getChallenge = async (
@@ -195,6 +223,8 @@ export const createSolveAndGetBloodNumber = async (
   const solveId = crypto.randomUUID()
   const submissionId = crypto.randomUUID()
 
+  // the leaderboard worker picks up the recompute request and reprices
+  // every solver of this challenge on its next tick
   return await db.transaction(async tx => {
     await tx.execute(
       sql`SELECT pg_advisory_xact_lock(hashtext(${params.challengeId}))`
@@ -212,10 +242,13 @@ export const createSolveAndGetBloodNumber = async (
       )
       .then(takeUnique)
 
-    await tx.execute(sql`
-      INSERT INTO solves (id, challengeid, userid, createdat, submissionip)
-      VALUES (${solveId}, ${params.challengeId}, ${params.userId}, NOW(), ${params.submissionIp ?? null})
-    `)
+    await tx.insert(solves).values({
+      id: solveId,
+      challengeid: params.challengeId,
+      userid: params.userId,
+      createdat: sql`NOW()`,
+      submissionip: params.submissionIp ?? null,
+    })
 
     await tx.insert(submissions).values({
       id: submissionId,
@@ -245,6 +278,7 @@ const defaultChallengeData: ChallengeData = {
   flag: '',
   tiebreakEligible: true,
   hidden: false,
+  scoring: { kind: ChallengeScoringKind.DECAY },
 }
 
 const defaultInstancerConfig: InstancerConfig = {
@@ -252,6 +286,19 @@ const defaultInstancerConfig: InstancerConfig = {
   config: {},
   expose: [],
   timeoutMilliseconds: 0,
+}
+
+export class ChallengeKindChangeBlockedError extends Error {
+  constructor(
+    public readonly fromKind: ChallengeScoringKind,
+    public readonly toKind: ChallengeScoringKind,
+    public readonly solveCount: number
+  ) {
+    super(
+      `cannot change scoring kind from ${fromKind} to ${toKind} while ${solveCount} solves exist`
+    )
+    this.name = 'ChallengeKindChangeBlockedError'
+  }
 }
 
 export const upsertChallenge = async (
@@ -270,6 +317,27 @@ export const upsertChallenge = async (
     adminBotConfig: partialAdminBotConfig,
     ...partialRest
   } = partial
+
+  if (current && partial.scoring) {
+    const currentKind = current.data.scoring?.kind ?? ChallengeScoringKind.DECAY
+    const nextKind = partial.scoring.kind
+    if (currentKind !== nextKind) {
+      const solveCountRow = await db
+        .select({ count: sql<number>`COUNT(*)::int` })
+        .from(solves)
+        .where(eq(solves.challengeid, id))
+        .then(takeUnique)
+
+      const solveCount = solveCountRow?.count ?? 0
+      if (solveCount > 0) {
+        throw new ChallengeKindChangeBlockedError(
+          currentKind,
+          nextKind,
+          solveCount
+        )
+      }
+    }
+  }
 
   // null = clear, undefined = keep current, object = merge
   let instancerConfig: InstancerConfig | undefined
@@ -552,6 +620,11 @@ export const submitFlag = async (
     return res.badChallenge()
   }
 
+  if (scoringKindOf(challenge.data) !== ChallengeScoringKind.DECAY) {
+    // we can assign scores by ourselves only for these
+    return res.badChallenge()
+  }
+
   const timeLeft = await rateLimitFlag(redis, params.userId, params.challengeId)
   if (timeLeft !== undefined) {
     log.info(
@@ -636,7 +709,8 @@ export const submitFlag = async (
       })
   }
 
-  forceLeaderboardUpdate()
+  requestChallengeRecompute(redis, params.challengeId)
+  forceLeaderboardUpdate(redis)
   return res.goodFlag()
 }
 
@@ -647,13 +721,30 @@ export const deleteSolve = async (
     userId: string
   }
 ): Promise<Solve[]> => {
-  return db
-    .delete(solves)
-    .where(
-      and(
-        eq(solves.userid, params.userId),
-        eq(solves.challengeid, params.challengeId)
+  return await db.transaction(async tx => {
+    const removed = await tx
+      .delete(solves)
+      .where(
+        and(
+          eq(solves.userid, params.userId),
+          eq(solves.challengeid, params.challengeId)
+        )
       )
-    )
-    .returning()
+      .returning()
+
+    const eventsToInsert = removed
+      .filter(s => (s.points ?? 0) !== 0)
+      .map(s => ({
+        id: crypto.randomUUID(),
+        challengeid: params.challengeId,
+        userid: params.userId,
+        pointsDelta: -(s.points ?? 0),
+        source: 'delete' as const,
+      }))
+    if (eventsToInsert.length > 0) {
+      await tx.insert(scoreEvents).values(eventsToInsert)
+    }
+
+    return removed
+  })
 }

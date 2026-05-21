@@ -4,6 +4,7 @@ import {
   AdminBotConfigSchema,
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
+  ChallengeScoringSchema,
   InstancerConfigSchema,
 } from '../util'
 
@@ -22,6 +23,7 @@ export const AdminChallengeSchemaV2 = z.object({
   adminBotConfig: z.nullish(AdminBotConfigSchema),
   hidden: z.boolean(),
   releaseTime: z.nullish(z.number()),
+  scoring: z.nullish(ChallengeScoringSchema),
 })
 
 export const GoodAdminChallengeV2 = response('goodAdminChallenge', {

@@ -1,4 +1,4 @@
-import type { DatabaseClient, PostgresClient } from '@rctf/db'
+import type { Challenge, DatabaseClient, PostgresClient } from '@rctf/db'
 import type { Context } from 'hono'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
@@ -10,6 +10,7 @@ export type AppEnv = {
     logger: PinoLogger
     redis: TypedRedis
     ip: string
+    dynamicChallenge?: Challenge
   }
 }
 export type ApiContext = Context<AppEnv>

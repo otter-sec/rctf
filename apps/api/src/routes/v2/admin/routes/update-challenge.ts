@@ -1,8 +1,19 @@
 import type { AdminBotConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
 import { adminBotProvider, instancerProvider } from '../../../../providers'
-import { upsertChallenge } from '../../../../services/challenges'
-import { forceLeaderboardUpdate } from '../../../../workers'
+import {
+  ChallengeKindChangeBlockedError,
+  getPrivateChallenge,
+  upsertChallenge,
+} from '../../../../services/challenges'
+import {
+  recomputeChallengePoints,
+  scoringConfigChanged,
+} from '../../../../services/solve-points'
+import {
+  forceLeaderboardUpdate,
+  requestChallengeRecompute,
+} from '../../../../workers'
 import adminGroup from '../group'
 
 const sha256Hex = (data: string): string => {
@@ -61,16 +72,39 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
     resolvedAdminBotConfig = null
   }
 
-  const updated = await upsertChallenge(ctx.var.db, params.id, {
-    ...body.data,
-    adminBotConfig: resolvedAdminBotConfig,
-    files: body.data.files?.map(file => ({
-      ...file,
-      size: file.size ?? undefined,
-    })),
-  })
+  const before = await getPrivateChallenge(ctx.var.db, params.id)
 
-  forceLeaderboardUpdate()
+  let updated
+  try {
+    updated = await upsertChallenge(ctx.var.db, params.id, {
+      ...body.data,
+      adminBotConfig: resolvedAdminBotConfig,
+      files: body.data.files?.map(file => ({
+        ...file,
+        size: file.size ?? undefined,
+      })),
+    })
+  } catch (err) {
+    if (err instanceof ChallengeKindChangeBlockedError) {
+      return res.badBody({
+        reason: `scoring:kind:${err.fromKind}->${err.toKind} blocked: ${err.solveCount} solves exist`,
+      })
+    }
+    throw err
+  }
+
+  if (scoringConfigChanged(before?.data, updated.data)) {
+    await recomputeChallengePoints(ctx.var.db, params.id, 'algo-change').catch(
+      err =>
+        ctx.var.logger.error(
+          { err, challengeId: params.id },
+          'failed to recompute points after challenge update'
+        )
+    )
+    requestChallengeRecompute(ctx.var.redis, params.id)
+  }
+
+  forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeUpdate({
     id: updated.id,
     ...updated.data,

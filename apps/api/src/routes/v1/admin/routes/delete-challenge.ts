@@ -5,6 +5,6 @@ import adminGroup from '../group'
 
 adminGroup.route(DeleteChallengeRoute, async ({ res, ctx, params }) => {
   await deleteChallenge(ctx.var.db, params.id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeDelete()
 })

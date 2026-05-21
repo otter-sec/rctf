@@ -31,7 +31,12 @@ import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
-import { forceLeaderboardUpdate } from '../workers'
+import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
+import {
+  emitBanReversalEvents,
+  emitUnbanRestoreEvents,
+  recomputeChallengePoints,
+} from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -207,7 +212,7 @@ export const updateUserInternal = async (
   }
 
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true, user: updated! }
 }
 
@@ -607,11 +612,15 @@ export const updateAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
+  const wasBanned = targetUser.banned ?? false
+  const willBeBanned = data.banned ?? wasBanned
+  const bannedChanged = wasBanned !== willBeBanned
+
   await db
     .update(users)
     .set({
-      banned: data.banned ?? targetUser.banned ?? false,
-      ...(data.banned
+      banned: willBeBanned,
+      ...(willBeBanned
         ? {
             score: 0,
             globalRank: null,
@@ -623,8 +632,28 @@ export const updateAdminUser = async (
     })
     .where(eq(users.id, id))
 
+  if (bannedChanged) {
+    if (willBeBanned) {
+      await emitBanReversalEvents(db, id)
+    } else {
+      await emitUnbanRestoreEvents(db, id)
+    }
+
+    const affectedChallenges = await db
+      .select({ challengeid: solves.challengeid })
+      .from(solves)
+      .where(eq(solves.userid, id))
+    const uniqueIds = Array.from(
+      new Set(affectedChallenges.map(c => c.challengeid))
+    )
+    for (const challengeId of uniqueIds) {
+      await recomputeChallengePoints(db, challengeId, 'decay-recompute')
+      requestChallengeRecompute(redis, challengeId)
+    }
+  }
+
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true }
 }
 
@@ -642,8 +671,23 @@ export const deleteAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
+  await emitBanReversalEvents(db, id)
+  const affectedChallenges = await db
+    .select({ challengeid: solves.challengeid })
+    .from(solves)
+    .where(eq(solves.userid, id))
+  const uniqueIds = Array.from(
+    new Set(affectedChallenges.map(c => c.challengeid))
+  )
+
   await db.delete(users).where(eq(users.id, id))
+
+  for (const challengeId of uniqueIds) {
+    await recomputeChallengePoints(db, challengeId, 'decay-recompute')
+    requestChallengeRecompute(redis, challengeId)
+  }
+
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true }
 }

@@ -8,6 +8,7 @@ import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
 import { appEnvMiddleware } from './middlewares/app-env'
+import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
 import {
   adminBotProvider,
   analyticsProvider,
@@ -15,7 +16,7 @@ import {
 } from './providers'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
-import { startLeaderboardWorker } from './workers'
+import { startDynamicScoresWorker, startLeaderboardWorker } from './workers'
 
 const logger = pino({
   level:
@@ -91,6 +92,7 @@ export const setupApp = async () => {
   )
   registerApiRoutes(app, {
     adminBot: adminBotProvider?.authMiddleware || badEndpointMiddleware,
+    dynamicChallenge: dynamicChallengeAuthMiddleware,
   })
   await uploadProvider.startupWebPart(app)
   if (adminBotProvider) {
@@ -113,6 +115,7 @@ const main = async () => {
 
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(logger)
+    startDynamicScoresWorker(logger)
   }
 
   if (config.instanceType === 'frontend' || config.instanceType === 'all') {

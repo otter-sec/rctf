@@ -1,8 +1,9 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 import { example } from '../util/example'
+import { ChallengeScoringKind } from '../util/schemas'
 
-export const GoodChallengesV2 = response('goodChallenges', {
+export const GoodChallengesV2 = response('goodChallengesV2', {
   status: 200,
   message: 'The retrieval of challenges was successful.',
   data: z.array(
@@ -59,6 +60,16 @@ export const GoodChallengesV2 = response('goodChallenges', {
       hasFlag: example(z.boolean(), true).check(
         z.describe('Whether the challenge has a flag configured.')
       ),
+      scoringKind: z
+        .optional(z.enum(ChallengeScoringKind))
+        .check(z.describe('Scoring kind: decay, static, or dynamic.')),
+      yourScore: z
+        .optional(z.int())
+        .check(
+          z.describe(
+            "Caller's current points for this challenge. Present when the user has a solve (or feed entry) for it."
+          )
+        ),
     })
   ),
 })

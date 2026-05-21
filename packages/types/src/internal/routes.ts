@@ -29,7 +29,7 @@ export interface RouteConfig {
   returnBodyAsIs?: boolean
   bodyFormat?: BodyFormat
   captchaAction?: ProtectedAction
-  serviceAuth?: 'adminBot'
+  serviceAuth?: 'adminBot' | 'dynamicChallenge'
 }
 
 export interface RouteDefinition<T extends RouteConfig = RouteConfig> {

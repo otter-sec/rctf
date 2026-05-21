@@ -37,6 +37,46 @@ export const ChallengePointsSchema = z.object({
   max: z.int(),
 })
 
+export enum ChallengeScoringKind {
+  DECAY = 'decay',
+  DYNAMIC = 'dynamic',
+}
+
+export enum DynamicScoringTransport {
+  WEBHOOK = 'webhook',
+  POLL = 'poll',
+}
+
+export const DynamicScoringSourceSchema = z.object({
+  transport: z.enum(DynamicScoringTransport),
+  url: z.optional(z.string()),
+  pollIntervalSeconds: z.optional(z.int()),
+  secret: z.string(),
+})
+
+export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal(ChallengeScoringKind.DECAY) }),
+  z.object({
+    kind: z.literal(ChallengeScoringKind.DYNAMIC),
+    source: DynamicScoringSourceSchema,
+  }),
+])
+
+export enum DynamicScoresMode {
+  CUMULATIVE = 'cumulative',
+  REPLACEMENT = 'replacement',
+}
+
+export const DynamicScoresPayloadSchema = z.object({
+  scores: z.array(
+    z.object({
+      userId: z.string(),
+      points: z.int(),
+    })
+  ),
+  mode: z.optional(z.enum(DynamicScoresMode)),
+})
+
 export const EndpointSchema = z.object({
   kind: z.enum(ExposeKind),
   host: z.string(),

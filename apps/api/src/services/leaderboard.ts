@@ -3,6 +3,7 @@ import type { DatabaseClient } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
+import { ChallengeScoringKind } from '@rctf/types'
 import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
 import {
   leaderboardOrderSql,
@@ -16,12 +17,21 @@ import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
 import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
+import { scoringKindOf } from './solve-points'
 import { userNameSearchFilter } from './users'
 
 const numberOfBloods = 3
 
+type ExtendedChallengeInfo = InternalChallengeInfo & {
+  scoringKind: ChallengeScoringKind
+}
+
+type ExtendedUserInfo = InternalUserInfo & {
+  solveContribs: Map<string, number>
+}
+
 const buildScoreContext = (
-  ch: InternalChallengeInfo,
+  ch: ExtendedChallengeInfo,
   maxSolves: number,
   timing: CompetitionTiming
 ): ScoreContext => {
@@ -48,8 +58,8 @@ type LeaderboardRuntimeState = {
   providerIdentity: string
   timingFingerprint: string
   challengesFingerprint: string
-  userInfos: Map<string, InternalUserInfo>
-  challengeInfos: Map<string, InternalChallengeInfo>
+  userInfos: Map<string, ExtendedUserInfo>
+  challengeInfos: Map<string, ExtendedChallengeInfo>
   firstBloods: Map<string, string[]>
   samples: CalculatedLeaderboard['samples']
   lastSampleIsTrailing: boolean
@@ -79,6 +89,9 @@ type PublicChallengeSnapshot = {
     sortWeight?: number
     hidden?: boolean
     releaseTime?: number | null
+    scoring?:
+      | { kind: ChallengeScoringKind.DECAY }
+      | { kind: ChallengeScoringKind.DYNAMIC; source: unknown }
   }
 }
 
@@ -87,6 +100,7 @@ type SolveRow = {
   challengeid: string
   userid: string
   createdat: string
+  points: number
 }
 
 type LeaderboardRebuildSeed = {
@@ -104,13 +118,11 @@ export type CachedLeaderboardComputation = {
 }
 
 const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
-  // 1. Score difference
   const scoreDiff = b.score - a.score
   if (scoreDiff !== 0) {
     return scoreDiff
   }
 
-  // 2. Last tiebreak eligible solve difference
   const lastTiebreakEligibleSolveDiff =
     (a.lastTiebreakEligibleSolve ?? Infinity) -
     (b.lastTiebreakEligibleSolve ?? Infinity)
@@ -121,7 +133,6 @@ const compareUsers = (a: InternalUserInfo, b: InternalUserInfo): number => {
     return lastTiebreakEligibleSolveDiff
   }
 
-  // 3. Last solve difference
   return (a.lastSolve ?? Infinity) - (b.lastSolve ?? Infinity)
 }
 
@@ -169,6 +180,7 @@ const getAllSolvesOrdered = async (db: DatabaseClient): Promise<SolveRow[]> => {
       challengeid: solves.challengeid,
       userid: solves.userid,
       createdat: solves.createdat,
+      points: solves.points,
     })
     .from(solves)
     .orderBy(asc(solves.createdat), asc(solves.id))
@@ -188,6 +200,7 @@ const getSolvesAfterCursor = async (
       challengeid: solves.challengeid,
       userid: solves.userid,
       createdat: solves.createdat,
+      points: solves.points,
     })
     .from(solves)
     .where(
@@ -221,6 +234,7 @@ const patchUsers = (
         lastSolve: undefined,
         lastTiebreakEligibleSolve: undefined,
         solvedChallengeIds: [],
+        solveContribs: new Map(),
       })
       continue
     }
@@ -243,7 +257,6 @@ const patchUsers = (
   for (const [id, info] of state.userInfos) {
     if (!freshIds.has(id)) {
       state.userInfos.delete(id)
-      // only counts as a visible change if they were on the leaderboard
       if (info.lastSolve !== undefined) {
         changed = true
         needsRebuild = true
@@ -266,6 +279,7 @@ const buildChallengesFingerprint = (
       ch.data.points?.min ?? 0,
       ch.data.points?.max ?? 0,
       ch.data.sortWeight ?? null,
+      ch.data.scoring?.kind ?? ChallengeScoringKind.DECAY,
     ])
   )
 
@@ -273,7 +287,7 @@ const createRuntimeState = (
   seed: LeaderboardRebuildSeed,
   timing: CompetitionTiming
 ): LeaderboardRuntimeState => {
-  const userInfos = new Map<string, InternalUserInfo>()
+  const userInfos = new Map<string, ExtendedUserInfo>()
   for (const user of seed.dbUsers) {
     userInfos.set(user.id, {
       id: user.id,
@@ -284,10 +298,11 @@ const createRuntimeState = (
       lastSolve: undefined,
       lastTiebreakEligibleSolve: undefined,
       solvedChallengeIds: [],
+      solveContribs: new Map(),
     })
   }
 
-  const challengeInfos = new Map<string, InternalChallengeInfo>()
+  const challengeInfos = new Map<string, ExtendedChallengeInfo>()
   for (const challenge of seed.dbChallenges) {
     const points = challenge.data.points ?? { min: 0, max: 0 }
     challengeInfos.set(challenge.id, {
@@ -301,6 +316,7 @@ const createRuntimeState = (
       maxPoints: points.max ?? 0,
       sortWeight: challenge.data.sortWeight ?? null,
       firstSolveTime: null,
+      scoringKind: scoringKindOf(challenge.data),
     })
   }
 
@@ -336,22 +352,30 @@ const recomputeScores = (
       )
     : 0
 
+  // calculate decay challenge values
   for (const [, challengeInfo] of state.challengeInfos) {
+    if (challengeInfo.scoringKind !== ChallengeScoringKind.DECAY) {
+      continue
+    }
     challengeInfo.score = scoreProvider.calculate(
       buildScoreContext(challengeInfo, maxSolves, timing)
     )
   }
 
+  // calculate dynamic challenge values
   for (const [, userInfo] of state.userInfos) {
-    userInfo.score = 0
+    let total = 0
     for (const challengeId of userInfo.solvedChallengeIds) {
       const challengeInfo = state.challengeInfos.get(challengeId)
       if (!challengeInfo) {
         continue
       }
-
-      userInfo.score += challengeInfo.score
+      total +=
+        challengeInfo.scoringKind === ChallengeScoringKind.DYNAMIC
+          ? (userInfo.solveContribs.get(challengeId) ?? 0)
+          : challengeInfo.score
     }
+    userInfo.score = total
   }
 }
 
@@ -390,6 +414,10 @@ const applySolve = (
     userInfo.lastTiebreakEligibleSolve = createdAtMs
   }
   userInfo.solvedChallengeIds.push(solve.challengeid)
+
+  if (challengeInfo.scoringKind === ChallengeScoringKind.DYNAMIC) {
+    userInfo.solveContribs.set(solve.challengeid, solve.points)
+  }
 
   return true
 }
@@ -488,8 +516,6 @@ const processSolveBatch = (
         ? new Date(state.lastSolveCursor.createdat).valueOf()
         : null
 
-    // samples are point-in-time snapshots,
-    //  so later solves do not rewrite earlier boundaries
     const loopStart =
       lastProcessedSolveTime !== null
         ? Math.max(
@@ -656,22 +682,18 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
       }
     }
 
-    // initial
     if (!state) {
       return await rebuild()
     }
 
-    // provider changed
     if (state.providerIdentity !== providerIdentity) {
       return await rebuild()
     }
 
-    // event timing changed
     if (state.timingFingerprint !== currentTimingFingerprint) {
       return await rebuild()
     }
 
-    // challenges changed
     if (state.challengesFingerprint !== challengesFingerprint) {
       return await rebuild()
     }
@@ -684,20 +706,19 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
     const deltaSolves = await getSolvesAfterCursor(db, state.lastSolveCursor)
 
     if (deltaSolves.length === 0) {
-      // verify no solves were deleted while none were added
       const totalSolves = await getSolveCount(db)
       if (totalSolves !== state.processedSolveCount) {
         return await rebuild()
       }
 
+      const dynamicChanged = await refreshDynamicContribs(db, state, timing)
       return {
         calculated: cloneCalculatedLeaderboard(state),
-        changed: userPatch.changed,
+        changed: userPatch.changed || dynamicChanged,
         recomputedFromScratch: false,
       }
     }
 
-    // validate delta matches expected count (detects deletes + re-inserts)
     const totalSolves = await getSolveCount(db)
     const expectedDelta = totalSolves - state.processedSolveCount
     if (deltaSolves.length !== expectedDelta) {
@@ -714,12 +735,87 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
       state.lastSolveCursor = batchResult.lastConsumedSolveCursor
     }
 
+    const dynamicChanged = await refreshDynamicContribs(db, state, timing)
     return {
       calculated: cloneCalculatedLeaderboard(state),
-      changed: batchResult.changed || userPatch.changed,
+      changed: batchResult.changed || userPatch.changed || dynamicChanged,
       recomputedFromScratch: false,
     }
   }
+}
+
+const dropDynamicContrib = (
+  userInfo: ExtendedUserInfo,
+  challengeId: string
+): void => {
+  userInfo.solveContribs.delete(challengeId)
+  userInfo.solvedChallengeIds = userInfo.solvedChallengeIds.filter(
+    id => id !== challengeId
+  )
+}
+
+const refreshDynamicContribs = async (
+  db: DatabaseClient,
+  state: LeaderboardRuntimeState,
+  timing: CompetitionTiming
+): Promise<boolean> => {
+  const dynamicIds = new Set(
+    Array.from(state.challengeInfos.values())
+      .filter(info => info.scoringKind === ChallengeScoringKind.DYNAMIC)
+      .map(info => info.id)
+  )
+  if (dynamicIds.size === 0) {
+    return false
+  }
+
+  const rows = await db
+    .select({
+      challengeid: solves.challengeid,
+      userid: solves.userid,
+      points: solves.points,
+    })
+    .from(solves)
+    .where(
+      sql`${solves.challengeid} IN (${sql.join(
+        Array.from(dynamicIds, id => sql`${id}`),
+        sql`, `
+      )})`
+    )
+
+  const contribKey = (userId: string, challengeId: string) =>
+    `${userId}|${challengeId}`
+  const dbContribs = new Map<string, number>()
+  for (const row of rows) {
+    const userInfo = state.userInfos.get(row.userid)
+    if (!userInfo || userInfo.banned) {
+      continue
+    }
+
+    dbContribs.set(contribKey(row.userid, row.challengeid), row.points)
+  }
+
+  let changed = false
+  for (const userInfo of state.userInfos.values()) {
+    for (const challengeId of dynamicIds) {
+      const dbPoints = dbContribs.get(contribKey(userInfo.id, challengeId))
+      const memPoints = userInfo.solveContribs.get(challengeId)
+      if (dbPoints === memPoints) {
+        continue
+      }
+
+      if (dbPoints === undefined) {
+        dropDynamicContrib(userInfo, challengeId)
+      } else {
+        userInfo.solveContribs.set(challengeId, dbPoints)
+      }
+      changed = true
+    }
+  }
+
+  if (changed) {
+    recomputeScores(state, timing)
+  }
+  return changed
 }
 
 export const searchLeaderboard = async (
@@ -731,7 +827,6 @@ export const searchLeaderboard = async (
 ) => {
   const searchFilter = userNameSearchFilter(search)
 
-  // only include users on the leaderboard (have ranks assigned by the leaderboard worker)
   const whereClause = and(
     searchFilter,
     userIsPublicRankedSql,
