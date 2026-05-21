@@ -711,10 +711,13 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
         return await rebuild()
       }
 
-      const dynamicChanged = await refreshDynamicContribs(db, state, timing)
+      const dynamicRefresh = await refreshDynamicContribs(db, state, timing)
+      if (dynamicRefresh.needsRebuild) {
+        return await rebuild()
+      }
       return {
         calculated: cloneCalculatedLeaderboard(state),
-        changed: userPatch.changed || dynamicChanged,
+        changed: userPatch.changed || dynamicRefresh.changed,
         recomputedFromScratch: false,
       }
     }
@@ -735,10 +738,14 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
       state.lastSolveCursor = batchResult.lastConsumedSolveCursor
     }
 
-    const dynamicChanged = await refreshDynamicContribs(db, state, timing)
+    const dynamicRefresh = await refreshDynamicContribs(db, state, timing)
+    if (dynamicRefresh.needsRebuild) {
+      return await rebuild()
+    }
     return {
       calculated: cloneCalculatedLeaderboard(state),
-      changed: batchResult.changed || userPatch.changed || dynamicChanged,
+      changed:
+        batchResult.changed || userPatch.changed || dynamicRefresh.changed,
       recomputedFromScratch: false,
     }
   }
@@ -754,18 +761,20 @@ const dropDynamicContrib = (
   )
 }
 
+type RefreshResult = { changed: boolean; needsRebuild: boolean }
+
 const refreshDynamicContribs = async (
   db: DatabaseClient,
   state: LeaderboardRuntimeState,
   timing: CompetitionTiming
-): Promise<boolean> => {
+): Promise<RefreshResult> => {
   const dynamicIds = new Set(
     Array.from(state.challengeInfos.values())
       .filter(info => info.scoringKind === ChallengeScoringKind.DYNAMIC)
       .map(info => info.id)
   )
   if (dynamicIds.size === 0) {
-    return false
+    return { changed: false, needsRebuild: false }
   }
 
   const rows = await db
@@ -805,9 +814,17 @@ const refreshDynamicContribs = async (
 
       if (dbPoints === undefined) {
         dropDynamicContrib(userInfo, challengeId)
-      } else {
-        userInfo.solveContribs.set(challengeId, dbPoints)
+        changed = true
+        continue
       }
+
+      if (memPoints === undefined) {
+        // a dynamic solve exists in the db that wasn't picked up by
+        // processSolveBatch this tick
+        return { changed: true, needsRebuild: true }
+      }
+
+      userInfo.solveContribs.set(challengeId, dbPoints)
       changed = true
     }
   }
@@ -815,7 +832,7 @@ const refreshDynamicContribs = async (
   if (changed) {
     recomputeScores(state, timing)
   }
-  return changed
+  return { changed, needsRebuild: false }
 }
 
 export const searchLeaderboard = async (
