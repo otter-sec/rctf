@@ -35,6 +35,7 @@
     "test:admin-bot:coverage": "cd tests/admin-bot && bun test --coverage",
     "test:admin-bot:e2e": "cd tests/admin-bot-e2e && bun test",
     "test:against-v1": "cd tests/test-against-v1 && bun run test",
+    "test:dynamic-scoring": "cd tests/dynamic-scoring && bun run test",
     "export": "bun run apps/export/src/index.ts",
     "prettier": "prettier --write \"**/*.{ts,tsx,svelte,astro,html,json,css,md,mdx}\" --ignore-path .gitignore --log-level warn",
     "prettier:check": "prettier --check \"**/*.{ts,tsx,svelte,astro,html,json,css,md,mdx}\" --ignore-path .gitignore --log-level warn",

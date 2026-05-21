@@ -155,4 +155,4 @@ const refresh = async (): Promise<void> => {
 }
 
 await refresh()
-setInterval(refresh, 30_000)
+setInterval(refresh, 3_000)

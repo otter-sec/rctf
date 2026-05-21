@@ -1,0 +1,86 @@
+services:
+  rctf:
+    image: ghcr.io/otter-sec/rctf-new:dynamic-scoring-tests
+    build:
+      context: ../../
+      dockerfile: deploy/rctf/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8090:80'
+    networks:
+      - rctf
+    volumes:
+      - ./rctf.d:/app/rctf.d
+      - ./.data/uploads:/app/uploads
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      mock-backend:
+        condition: service_healthy
+
+  redis:
+    image: redis:8.2.2
+    restart: always
+    networks:
+      rctf:
+        aliases:
+          - redis
+    command: ['redis-server', '--requirepass', 'rctf']
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli --pass rctf ping || exit 1']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  postgres:
+    image: postgres:18.0
+    restart: always
+    networks:
+      rctf:
+        aliases:
+          - postgres
+    environment:
+      - POSTGRES_PASSWORD=rctf
+      - POSTGRES_USER=rctf
+      - POSTGRES_DB=rctf
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rctf -d rctf']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    ports:
+      - '127.0.0.1:35432:5432'
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql
+        tmpfs:
+          size: 1073741824
+
+  mock-backend:
+    build:
+      context: ./mock-backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:8091:80'
+    networks:
+      rctf:
+        aliases:
+          - mock-backend
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'wget -qO- http://127.0.0.1:80/health > /dev/null || exit 1',
+        ]
+      interval: 3s
+      timeout: 3s
+      retries: 5
+      start_period: 3s
+
+networks:
+  rctf:
