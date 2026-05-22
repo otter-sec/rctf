@@ -6,25 +6,18 @@ import { lightTheme } from '@/lib/shiki-themes'
 import type { MetaFile } from '@/types'
 import { ImageResponse } from '@vercel/og'
 import type { ElementContent } from 'hast'
-import React from 'react'
-import { codeToTokens } from 'shiki'
-import type { BundledLanguage } from 'shiki'
+import { createElement as h, type CSSProperties, type ReactElement, type ReactNode } from 'react'
+import { codeToTokens, type BundledLanguage } from 'shiki'
 
-const size = {
-  width: 1200,
-  height: 630,
+const THEME = {
+  background: '#ffffff',
+  foreground: '#171717',
+  muted: '#737373',
+  subtle: '#737373',
+  codeForeground: '#171717',
+  codeBackground: '#f0f0f0',
 }
 
-const outfitRegular = readFile(resolve(process.cwd(), 'src/assets/fonts/Outfit-Regular.ttf'))
-const outfitMedium = readFile(resolve(process.cwd(), 'src/assets/fonts/Outfit-Medium.ttf'))
-const cascadiaCodeRegular = readFile(
-  resolve(process.cwd(), 'src/assets/fonts/CascadiaCode-Regular.ttf')
-)
-const wordmarkLight = readFile(resolve(process.cwd(), 'src/assets/wordmark-light.svg'), 'utf8')
-const INLINE_CODE_PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
-const TRACKING_TIGHT = '-0.025em'
-
-// Mirrors --inline-tone-* in apps/docs/src/styles/global.css (light theme).
 const TONE_HEX: Record<string, string> = {
   red: '#be2f2c',
   green: '#566d35',
@@ -35,244 +28,216 @@ const TONE_HEX: Record<string, string> = {
   cyan: '#256f74',
 }
 
+const ASSETS = resolve(process.cwd(), 'src/assets')
+const outfitRegular = readFile(`${ASSETS}/fonts/Outfit-Regular.ttf`)
+const outfitMedium = readFile(`${ASSETS}/fonts/Outfit-Medium.ttf`)
+const cascadiaCode = readFile(`${ASSETS}/fonts/CascadiaCode-Regular.ttf`)
+const wordmark = readFile(`${ASSETS}/wordmark-light.svg`, 'utf8').then(
+  svg => `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+)
+
 const metaModules = {
-  ...(import.meta.glob('/src/content/docs/_meta.ts', {
-    eager: true,
-  }) as Record<string, { default: MetaFile }>),
-  ...(import.meta.glob('/src/content/docs/**/_meta.ts', {
-    eager: true,
-  }) as Record<string, { default: MetaFile }>),
+  ...(import.meta.glob('/src/content/docs/_meta.ts', { eager: true }) as Record<
+    string,
+    { default: MetaFile }
+  >),
+  ...(import.meta.glob('/src/content/docs/**/_meta.ts', { eager: true }) as Record<
+    string,
+    { default: MetaFile }
+  >),
+}
+
+const CODE_PILL: CSSProperties = {
+  display: 'flex',
+  alignItems: 'baseline',
+  background: THEME.codeBackground,
+  color: THEME.codeForeground,
+  borderRadius: 5,
+  padding: '0.03em 0.22em',
+  fontFamily: 'Cascadia Code',
+  fontSize: '0.88em',
+  letterSpacing: '-0.025em',
+  whiteSpace: 'pre',
+}
+
+interface InlineRender {
+  plain: string
+  nodes: ReactNode[]
 }
 
 export async function getStaticPaths() {
   const docs = await getAllDocs()
-
   return docs.map(doc => ({
     params: { slug: docSlugFromId(doc.id) ?? 'index' },
     props: { doc },
   }))
 }
 
-interface Props {
-  doc: Doc
+export async function GET({ props }: { props: { doc: Doc } }) {
+  const { doc } = props
+  const [title, description, wordmarkSrc, outfitR, outfitM, cascadia] = await Promise.all([
+    renderInlineText(doc.data.title),
+    doc.data.description ? renderInlineText(doc.data.description) : null,
+    wordmark,
+    outfitRegular,
+    outfitMedium,
+    cascadiaCode,
+  ])
+
+  return new ImageResponse(layout(doc.id, title, description, wordmarkSrc), {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: 'Outfit', data: outfitR, weight: 400, style: 'normal' },
+      { name: 'Outfit', data: outfitM, weight: 500, style: 'normal' },
+      { name: 'Cascadia Code', data: cascadia, weight: 400, style: 'normal' },
+    ],
+  })
 }
 
-export async function GET({ props }: { props: Props }) {
-  const { doc } = props
-  const theme = resolveTheme()
-  const [title, description, wordmark, outfitRegularData, outfitMediumData, cascadiaCodeData] =
-    await Promise.all([
-      renderInlineText(doc.data.title, theme),
-      doc.data.description ? renderInlineText(doc.data.description, theme) : null,
-      svgDataUrl(wordmarkLight),
-      outfitRegular,
-      outfitMedium,
-      cascadiaCodeRegular,
-    ])
-  const breadcrumb = breadcrumbParts(doc.id)
-
-  return new ImageResponse(
-    React.createElement(
-      'div',
-      {
-        style: {
-          position: 'relative',
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          background: theme.background,
-          color: theme.foreground,
-          fontFamily: 'Outfit',
-          letterSpacing: TRACKING_TIGHT,
-        },
-      },
-      React.createElement(
-        'div',
-        {
-          style: {
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            padding: 64,
-          },
-        },
-        React.createElement('img', {
-          src: wordmark,
-          alt: 'rCTF',
-          style: {
-            // SVG viewBox is 1020x308; preserve aspect ratio so the logo
-            // hugs the top-left padding instead of being centered in a wider box.
-            width: 220,
-            height: 66,
-          },
-        }),
-        React.createElement(
-          'div',
-          {
-            style: {
-              display: 'flex',
-              flexDirection: 'column',
-              maxWidth: 980,
-            },
-          },
-          React.createElement(
-            'div',
-            {
-              style: {
-                display: 'flex',
-                alignItems: 'center',
-                color: theme.subtle,
-                fontSize: 21,
-                fontWeight: 500,
-                lineHeight: 1,
-                letterSpacing: TRACKING_TIGHT,
-                marginBottom: 20,
-              },
-            },
-            breadcrumb.flatMap((part, index) => [
-              index > 0
-                ? React.createElement(
-                    'span',
-                    {
-                      key: `chevron-${index}`,
-                      style: {
-                        color: theme.subtle,
-                        letterSpacing: TRACKING_TIGHT,
-                        marginLeft: 11,
-                        marginRight: 11,
-                      },
-                    },
-                    '›'
-                  )
-                : null,
-              React.createElement(
-                'span',
-                { key: `part-${index}`, style: { letterSpacing: TRACKING_TIGHT } },
-                part
-              ),
-            ])
-          ),
-          React.createElement(
-            'div',
-            {
-              style: {
-                display: 'flex',
-                flexWrap: 'wrap',
-                fontSize: titleSize(title.plain),
-                fontWeight: 500,
-                lineHeight: 1.02,
-                letterSpacing: TRACKING_TIGHT,
-              },
-            },
-            title.nodes
-          ),
-          description?.plain
-            ? React.createElement(
-                'div',
-                {
-                  style: {
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    color: theme.muted,
-                    fontSize: 28,
-                    lineHeight: 1.23,
-                    letterSpacing: TRACKING_TIGHT,
-                    marginTop: 18,
-                    maxWidth: 940,
-                  },
-                },
-                description.nodes
-              )
-            : null
-        )
-      )
-    ),
+function layout(
+  id: string,
+  title: InlineRender,
+  description: InlineRender | null,
+  wordmarkSrc: string
+): ReactElement {
+  return h(
+    'div',
     {
-      ...size,
-      fonts: [
-        { name: 'Outfit', data: outfitRegularData, weight: 400, style: 'normal' },
-        { name: 'Outfit', data: outfitMediumData, weight: 500, style: 'normal' },
-        { name: 'Cascadia Code', data: cascadiaCodeData, weight: 400, style: 'normal' },
-      ],
-    }
+      style: {
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: 64,
+        background: THEME.background,
+        color: THEME.foreground,
+        fontFamily: 'Outfit',
+        letterSpacing: '-0.025em',
+      },
+    },
+    h('img', { src: wordmarkSrc, alt: 'rCTF', style: { width: 220, height: 66 } }),
+    h(
+      'div',
+      { style: { display: 'flex', flexDirection: 'column', maxWidth: 980 } },
+      breadcrumbRow(id),
+      titleRow(title),
+      description?.plain ? descriptionRow(description) : null
+    )
   )
 }
 
-async function svgDataUrl(svg: Promise<string>): Promise<string> {
-  const data = await svg
-  return `data:image/svg+xml;base64,${Buffer.from(data).toString('base64')}`
+function breadcrumbRow(id: string): ReactNode {
+  const parts = breadcrumbParts(id)
+  return h(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        color: THEME.subtle,
+        fontSize: 21,
+        fontWeight: 500,
+        lineHeight: 1,
+        letterSpacing: '-0.025em',
+        marginBottom: 20,
+      },
+    },
+    ...parts.flatMap((part, i) => {
+      const label = h('span', { key: `b-${i}`, style: { letterSpacing: '-0.025em' } }, part)
+      if (i === 0) return [label]
+      const sep = h(
+        'span',
+        {
+          key: `c-${i}`,
+          style: {
+            color: THEME.subtle,
+            letterSpacing: '-0.025em',
+            marginLeft: 11,
+            marginRight: 11,
+          },
+        },
+        '›'
+      )
+      return [sep, label]
+    })
+  )
 }
 
-type OgTheme = ReturnType<typeof resolveTheme>
+function titleRow({ plain, nodes }: InlineRender): ReactNode {
+  return h(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        fontSize: titleSize(plain),
+        fontWeight: 500,
+        lineHeight: 1.02,
+        letterSpacing: '-0.025em',
+      },
+    },
+    ...nodes
+  )
+}
 
-async function renderInlineText(
-  text: string,
-  theme: OgTheme
-): Promise<{ plain: string; nodes: React.ReactNode[] }> {
-  const nodes: React.ReactNode[] = []
-  const plain = stripCodeAnnotationTags(text.replace(INLINE_CODE_PATTERN, (_, code) => code))
-  const re = new RegExp(INLINE_CODE_PATTERN.source, 'g')
-  let lastIndex = 0
-  let index = 0
-  let match: RegExpExecArray | null
+function descriptionRow({ nodes }: InlineRender): ReactNode {
+  return h(
+    'div',
+    {
+      style: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        color: THEME.muted,
+        fontSize: 28,
+        lineHeight: 1.23,
+        letterSpacing: '-0.025em',
+        marginTop: 18,
+        maxWidth: 940,
+      },
+    },
+    ...nodes
+  )
+}
 
-  while ((match = re.exec(text)) !== null) {
+async function renderInlineText(text: string): Promise<InlineRender> {
+  const plain = stripCodeAnnotationTags(
+    text.replace(/`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g, (_, code) => code)
+  )
+  const nodes: ReactNode[] = []
+  let cursor = 0
+  let key = 0
+
+  for (const match of text.matchAll(/`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g)) {
     const [full, code, lang] = match
-    if (match.index > lastIndex) {
-      pushAnnotatedTextNodes(nodes, text.slice(lastIndex, match.index), index++, theme)
-    }
-
-    nodes.push(
-      await renderInlineCode(
-        code,
-        lang,
-        theme,
-        index++,
-        /\s/.test(text[match.index + full.length] ?? '')
-      )
-    )
-    lastIndex = match.index + full.length
+    const start = match.index ?? 0
+    if (start > cursor) pushAnnotated(nodes, text.slice(cursor, start), key++)
+    const trailingSpace = /\s/.test(text[start + full.length] ?? '')
+    nodes.push(await renderInlineCode(code, lang, key++, trailingSpace))
+    cursor = start + full.length
   }
-
-  if (lastIndex < text.length) {
-    pushAnnotatedTextNodes(nodes, text.slice(lastIndex), index++, theme)
-  }
+  if (cursor < text.length) pushAnnotated(nodes, text.slice(cursor), key++)
 
   return { plain, nodes }
 }
 
-function pushAnnotatedTextNodes(
-  nodes: React.ReactNode[],
-  text: string,
-  baseIndex: number,
-  theme: OgTheme
-): void {
+function pushAnnotated(out: ReactNode[], text: string, baseKey: number): void {
   const annotated = parseCodeAnnotations(text)
-  if (!annotated) {
-    pushTextNodes(nodes, text, baseIndex)
-    return
-  }
-  pushHastNodes(nodes, annotated, theme, `ann-${baseIndex}`, true)
+  if (annotated) pushHastNodes(out, annotated, `ann-${baseKey}`, true)
+  else pushWords(out, text, baseKey)
 }
 
 function pushHastNodes(
-  out: React.ReactNode[],
+  out: ReactNode[],
   hastNodes: ElementContent[],
-  theme: OgTheme,
   keyPrefix: string,
   topLevel: boolean
 ): void {
   hastNodes.forEach((node, i) => {
     const key = `${keyPrefix}-${i}`
     if (node.type === 'text') {
-      // Top-level text is laid out as a flex item next to pills; satori
-      // collapses its leading whitespace, so route through pushTextNodes
-      // which encodes whitespace as margins. Inside a pill (whiteSpace:
-      // pre) the raw string preserves spaces.
-      if (topLevel) pushTextNodes(out, node.value, key)
+      if (topLevel) pushWords(out, node.value, key)
       else out.push(node.value)
       return
     }
@@ -282,54 +247,42 @@ function pushHastNodes(
       ? (node.properties.className as string[])
       : []
     const tones = classes.filter(c => c.startsWith('is-')).map(c => c.slice(3))
-
-    const style: React.CSSProperties = { letterSpacing: TRACKING_TIGHT }
-
-    const colorTone = tones.find(t => TONE_HEX[t])
-    if (colorTone) style.color = TONE_HEX[colorTone]
-    else if (tones.includes('black')) style.color = theme.muted
-    else if (tones.includes('white')) style.color = theme.foreground
-
-    if (tones.includes('dim') || tones.includes('dimmed')) style.opacity = 0.5
-
-    if (classes.includes('code-route') || classes.includes('code-response')) {
-      Object.assign(style, {
-        display: 'flex',
-        alignItems: 'baseline',
-        background: theme.codeBackground,
-        color: style.color ?? theme.codeForeground,
-        borderRadius: 5,
-        padding: '0.03em 0.22em',
-        fontFamily: 'Cascadia Code',
-        fontSize: '0.88em',
-        whiteSpace: 'pre',
-      })
-    }
-
-    const children: React.ReactNode[] = []
-    pushHastNodes(children, node.children as ElementContent[], theme, key, false)
-
-    out.push(React.createElement('span', { key, style }, ...children))
+    const children: ReactNode[] = []
+    pushHastNodes(children, node.children as ElementContent[], key, false)
+    out.push(h('span', { key, style: spanStyle(tones, classes) }, ...children))
   })
 }
 
-function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number | string): void {
+function spanStyle(tones: string[], classes: string[]): CSSProperties {
+  const style: CSSProperties = { letterSpacing: '-0.025em' }
+
+  const colorTone = tones.find(t => TONE_HEX[t])
+  if (colorTone) style.color = TONE_HEX[colorTone]
+  else if (tones.includes('black')) style.color = THEME.muted
+  else if (tones.includes('white')) style.color = THEME.foreground
+
+  if (tones.includes('dim') || tones.includes('dimmed')) style.opacity = 0.5
+
+  if (classes.includes('code-route') || classes.includes('code-response')) {
+    return { ...CODE_PILL, ...style, color: style.color ?? THEME.codeForeground }
+  }
+  return style
+}
+
+function pushWords(out: ReactNode[], text: string, baseKey: number | string): void {
   const parts = text.match(/\s*\S+\s*/g) ?? []
-  parts.forEach((part, index) => {
+  parts.forEach((part, i) => {
     const word = part.trim()
     if (!word) return
-    const leading = /^\s/.test(part)
-    const trailing = /\s$/.test(part)
-
-    nodes.push(
-      React.createElement(
+    out.push(
+      h(
         'span',
         {
-          key: `text-${baseIndex}-${index}`,
+          key: `w-${baseKey}-${i}`,
           style: {
-            letterSpacing: TRACKING_TIGHT,
-            marginLeft: leading ? '0.25em' : 0,
-            marginRight: trailing ? '0.25em' : 0,
+            letterSpacing: '-0.025em',
+            marginLeft: /^\s/.test(part) ? '0.25em' : 0,
+            marginRight: /\s$/.test(part) ? '0.25em' : 0,
           },
         },
         word
@@ -341,44 +294,27 @@ function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number
 async function renderInlineCode(
   code: string,
   lang: string | undefined,
-  theme: OgTheme,
   index: number,
-  trailingSpace = false
-): Promise<React.ReactNode> {
-  const codeStyle = {
-    display: 'flex',
-    alignItems: 'baseline',
-    color: theme.codeForeground,
-    background: theme.codeBackground,
-    borderRadius: 5,
-    padding: '0.03em 0.22em',
-    fontFamily: 'Cascadia Code',
-    fontSize: '0.88em',
-    letterSpacing: TRACKING_TIGHT,
-    marginRight: trailingSpace ? '0.25em' : 0,
-    whiteSpace: 'pre',
-  }
+  trailingSpace: boolean
+): Promise<ReactNode> {
+  const key = `code-${index}`
+  const style: CSSProperties = { ...CODE_PILL, marginRight: trailingSpace ? '0.25em' : 0 }
 
-  if (!lang) {
-    return React.createElement('span', { key: `code-${index}`, style: codeStyle }, code)
-  }
+  if (!lang) return h('span', { key, style }, code)
 
-  const highlighted = await codeToTokens(code, {
-    lang: lang as BundledLanguage,
-    theme: lightTheme,
-  })
+  const highlighted = await codeToTokens(code, { lang: lang as BundledLanguage, theme: lightTheme })
 
-  return React.createElement(
+  return h(
     'span',
-    { key: `code-${index}`, style: codeStyle },
-    highlighted.tokens.flat().map((token, tokenIndex) =>
-      React.createElement(
+    { key, style },
+    ...highlighted.tokens.flat().map((token, i) =>
+      h(
         'span',
         {
-          key: `token-${tokenIndex}`,
+          key: `t-${i}`,
           style: {
-            color: token.color ?? theme.codeForeground,
-            letterSpacing: TRACKING_TIGHT,
+            color: token.color ?? THEME.codeForeground,
+            letterSpacing: '-0.025em',
             whiteSpace: 'pre',
           },
         },
@@ -386,18 +322,6 @@ async function renderInlineCode(
       )
     )
   )
-}
-
-function resolveTheme() {
-  return {
-    background: '#ffffff',
-    foreground: '#171717',
-    muted: '#737373',
-    subtle: '#737373',
-    border: '#ececec',
-    codeForeground: '#171717',
-    codeBackground: '#f0f0f0',
-  }
 }
 
 function titleSize(title: string): number {
@@ -409,22 +333,17 @@ function titleSize(title: string): number {
 
 function breadcrumbParts(id: string): string[] {
   if (id === 'index') return ['Docs']
-
   const parts = id
     .replace(/\/index$/, '')
     .split('/')
     .filter(Boolean)
-
   if (parts.length === 0) return ['Docs']
-
-  return parts.slice(0, 2).map((_, index) => breadcrumbLabel(parts, index))
+  return parts.slice(0, 2).map((_, i) => breadcrumbLabel(parts, i))
 }
 
 function breadcrumbLabel(parts: string[], index: number): string {
   const part = parts[index]
-
   if (part === 'v1' || part === 'v2') return part
-
   const parentPath = parts.slice(0, index).join('/')
   const currentPath = parts.slice(0, index + 1).join('/')
   return (
@@ -439,6 +358,5 @@ function metaFor(dirPath: string): MetaFile {
 
 function sentenceCase(input: string): string {
   const text = input.split('-').filter(Boolean).join(' ')
-
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
