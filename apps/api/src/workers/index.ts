@@ -119,47 +119,40 @@ export const startDynamicScoresWorker = (log: pino.Logger) => {
   )
 }
 
-export const forceLeaderboardUpdate = (redis?: TypedRedis): void => {
+const notifyLeaderboard = (
+  message: unknown,
+  redis: TypedRedis | undefined,
+  channel: string,
+  payload: string
+): void => {
   try {
-    leaderboardSupervisor?.worker?.postMessage({ type: 'force-update' })
+    leaderboardSupervisor?.worker?.postMessage(message)
   } catch (err) {
-    logger.error({ err }, 'failed to post leaderboard force-update message')
+    logger.error({ err, channel }, 'failed to post leaderboard worker message')
   }
-
-  if (redis) {
-    redis.publish(LEADERBOARD_FORCE_UPDATE_CHANNEL, '1').catch(err => {
-      logger.error({ err }, 'failed to publish leaderboard force-update')
-    })
-  }
+  redis?.publish(channel, payload).catch(err => {
+    logger.error({ err, channel }, 'failed to publish leaderboard message')
+  })
 }
+
+export const forceLeaderboardUpdate = (redis?: TypedRedis): void =>
+  notifyLeaderboard(
+    { type: 'force-update' },
+    redis,
+    LEADERBOARD_FORCE_UPDATE_CHANNEL,
+    '1'
+  )
 
 export const requestChallengeRecompute = (
   redis: TypedRedis | undefined,
   challengeId: string
-): void => {
-  try {
-    leaderboardSupervisor?.worker?.postMessage({
-      type: 'recompute-challenge',
-      challengeId,
-    })
-  } catch (err) {
-    logger.error(
-      { err, challengeId },
-      'failed to post challenge-recompute message'
-    )
-  }
-
-  if (redis) {
-    redis
-      .publish(LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL, challengeId)
-      .catch(err => {
-        logger.error(
-          { err, challengeId },
-          'failed to publish challenge-recompute'
-        )
-      })
-  }
-}
+): void =>
+  notifyLeaderboard(
+    { type: 'recompute-challenge', challengeId },
+    redis,
+    LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
+    challengeId
+  )
 
 export const stopWorkers = (): void => {
   leaderboardSupervisor?.stop()

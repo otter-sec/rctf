@@ -10,8 +10,10 @@ challsGroup.route(SubmitDynamicScoresRouteV2, async ({ res, ctx, body }) => {
   const result = await upsertDynamicSolves(
     ctx.var.db,
     challenge.id,
-    body.scores.map(s => ({ userId: s.userId, points: s.points })),
-    { mode }
+    body.scores,
+    {
+      mode,
+    }
   )
 
   forceLeaderboardUpdate(ctx.var.redis)

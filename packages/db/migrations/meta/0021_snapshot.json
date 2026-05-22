@@ -1,5 +1,5 @@
 {
-  "id": "97bb007b-eb06-4b51-945e-a5fbb7c9a4aa",
+  "id": "fd40b623-ab2c-45bd-9f97-ecf557d908b8",
   "prevId": "bb35654a-c60b-4e80-bb12-6fcd2aa251c7",
   "version": "7",
   "dialect": "postgresql",
@@ -377,7 +377,7 @@
           "name": "userid",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "points_delta": {
           "name": "points_delta",
@@ -461,6 +461,36 @@
           "concurrently": false,
           "method": "btree",
           "with": {}
+        },
+        "score_events_challengeid_event_at_id_index": {
+          "name": "score_events_challengeid_event_at_id_index",
+          "columns": [
+            {
+              "expression": "challengeid",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
+            },
+            {
+              "expression": "event_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "timestamptz_ops"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
         }
       },
       "foreignKeys": {
@@ -470,7 +500,7 @@
           "tableTo": "users",
           "columnsFrom": ["userid"],
           "columnsTo": ["id"],
-          "onDelete": "cascade",
+          "onDelete": "set null",
           "onUpdate": "cascade"
         },
         "score_events_challengeid_fkey": {
@@ -845,10 +875,16 @@
               "asc": true,
               "nulls": "last",
               "opclass": "timestamptz_ops"
+            },
+            {
+              "expression": "id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last",
+              "opclass": "text_ops"
             }
           ],
           "isUnique": false,
-          "where": "points > 0",
           "concurrently": false,
           "method": "btree",
           "with": {}

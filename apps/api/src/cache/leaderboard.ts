@@ -1,6 +1,6 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
-import { and, asc, eq, gt, or, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray, or, sql } from 'drizzle-orm'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -165,32 +165,49 @@ type ScoreEventGraphCursor = {
   id: string
 }
 
-const buildGraphFromScoreEvents = (
-  rows: ScoreEventGraphRow[]
-): { lastSample: number; userPoints: Map<string, string[]> } => {
+type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
+
+const lastPackedScore = (packed: string | null): number => {
+  if (!packed) {
+    return 0
+  }
+  const parts = packed.split(',')
+  const score = Number.parseInt(parts[parts.length - 1] ?? '0')
+  return Number.isFinite(score) ? score : 0
+}
+
+const foldScoreEvents = (
+  rows: ScoreEventGraphRow[],
+  seed?: Map<string, string | null>
+): GraphFold => {
   const scores = new Map<string, number>()
   const userPoints = new Map<string, string[]>()
   let lastSample = Date.now()
+
+  const ensureUser = (id: string): { score: number; points: string[] } => {
+    let points = userPoints.get(id)
+    if (!points) {
+      const packed = seed?.get(id) ?? null
+      points = packed ? packed.split(',') : []
+      userPoints.set(id, points)
+      scores.set(id, lastPackedScore(packed))
+    }
+    return { score: scores.get(id) ?? 0, points }
+  }
 
   for (const row of rows) {
     if (!row.userid) {
       continue
     }
-
     const eventAt = new Date(row.eventAt).valueOf()
     if (!Number.isFinite(eventAt)) {
       continue
     }
 
     lastSample = Math.max(lastSample, eventAt)
-    const nextScore = (scores.get(row.userid) ?? 0) + row.pointsDelta
+    const { score, points } = ensureUser(row.userid)
+    const nextScore = score + row.pointsDelta
     scores.set(row.userid, nextScore)
-
-    let points = userPoints.get(row.userid)
-    if (!points) {
-      points = []
-      userPoints.set(row.userid, points)
-    }
 
     const lastPointTime = points.length >= 2 ? points[points.length - 2] : null
     if (lastPointTime === eventAt.toString()) {
@@ -203,9 +220,7 @@ const buildGraphFromScoreEvents = (
   return { lastSample, userPoints }
 }
 
-const buildGraphFromSamples = (
-  data: CalculatedLeaderboard
-): { lastSample: number; userPoints: Map<string, string[]> } => {
+const buildGraphFromSamples = (data: CalculatedLeaderboard): GraphFold => {
   const lastSample =
     data.samples.length > 0
       ? data.samples[data.samples.length - 1]!.time
@@ -228,43 +243,43 @@ const buildGraphFromSamples = (
 
 const setGraphSnapshot = async (
   redis: TypedRedis,
-  lastSample: number,
-  userPoints: Map<string, string[]>
+  { lastSample, userPoints }: GraphFold
 ): Promise<void> => {
   const argv: string[] = [lastSample.toString()]
   for (const [id, points] of userPoints) {
     argv.push(id, points.join(','))
   }
-
   await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
 }
 
-const serializeGraphCursor = (cursor: ScoreEventGraphCursor | null): string =>
-  cursor ? JSON.stringify(cursor) : ''
+const serializeGraphCursor = (c: ScoreEventGraphCursor | null): string =>
+  c ? JSON.stringify(c) : ''
 
 const parseGraphCursor = (raw: string | null): ScoreEventGraphCursor | null => {
   if (!raw) {
     return null
   }
-
   try {
-    const parsed = JSON.parse(raw)
-    if (typeof parsed?.eventAt === 'string' && typeof parsed?.id === 'string') {
-      return parsed
-    }
+    const p = JSON.parse(raw)
+    return typeof p?.eventAt === 'string' && typeof p?.id === 'string'
+      ? p
+      : null
   } catch {
     return null
   }
-
-  return null
 }
 
-const graphCursorFromRows = (
-  rows: ScoreEventGraphRow[]
-): ScoreEventGraphCursor | null => {
-  const row = rows[rows.length - 1]
-  return row ? { eventAt: row.eventAt, id: row.id } : null
-}
+const commitGraphMeta = (
+  redis: TypedRedis,
+  fingerprint: string,
+  cursor: ScoreEventGraphCursor | null,
+  source: typeof graphSourceEvents | typeof graphSourceSamples
+): Promise<unknown> =>
+  Promise.all([
+    redis.set(keyGraphFingerprint, fingerprint),
+    redis.set(keyGraphCursor, serializeGraphCursor(cursor)),
+    redis.set(keyGraphSource, source),
+  ])
 
 const buildGraphFingerprint = (
   userIds: string[],
@@ -301,14 +316,8 @@ const getScoreEventGraphRows = async (
     .from(scoreEvents)
     .where(
       and(
-        sql`${scoreEvents.userid} IN (${sql.join(
-          userIds.map(id => sql`${id}`),
-          sql`, `
-        )})`,
-        sql`${scoreEvents.challengeid} IN (${sql.join(
-          challengeIds.map(id => sql`${id}`),
-          sql`, `
-        )})`,
+        inArray(scoreEvents.userid, userIds),
+        inArray(scoreEvents.challengeid, challengeIds),
         cursorClause
       )
     )
@@ -323,67 +332,10 @@ const hsetGraphData = async (
   for (const [id, points] of userPoints) {
     args.push(id, points.join(','))
   }
-
   const chunkSize = 7996
   for (let i = 0; i < args.length; i += chunkSize) {
     await redis.hset(keyGraphData, ...args.slice(i, i + chunkSize))
   }
-}
-
-const lastPackedScore = (packedPoints: string | null): number => {
-  if (!packedPoints) {
-    return 0
-  }
-
-  const parts = packedPoints.split(',')
-  const score = Number.parseInt(parts[parts.length - 1] ?? '0')
-  return Number.isFinite(score) ? score : 0
-}
-
-const appendGraphRows = (
-  rows: ScoreEventGraphRow[],
-  existingPackedPoints: Map<string, string | null>
-): { lastSample: number; userPoints: Map<string, string[]> } => {
-  const scores = new Map<string, number>()
-  const userPoints = new Map<string, string[]>()
-  let lastSample = Date.now()
-
-  const ensureUser = (id: string): { score: number; points: string[] } => {
-    let points = userPoints.get(id)
-    if (!points) {
-      const packed = existingPackedPoints.get(id) ?? null
-      points = packed ? packed.split(',') : []
-      userPoints.set(id, points)
-      scores.set(id, lastPackedScore(packed))
-    }
-
-    return { score: scores.get(id) ?? 0, points }
-  }
-
-  for (const row of rows) {
-    if (!row.userid) {
-      continue
-    }
-
-    const eventAt = new Date(row.eventAt).valueOf()
-    if (!Number.isFinite(eventAt)) {
-      continue
-    }
-
-    lastSample = Math.max(lastSample, eventAt)
-    const { score, points } = ensureUser(row.userid)
-    const nextScore = score + row.pointsDelta
-    scores.set(row.userid, nextScore)
-
-    const lastPointTime = points.length >= 2 ? points[points.length - 2] : null
-    if (lastPointTime === eventAt.toString()) {
-      points[points.length - 1] = nextScore.toString()
-    } else {
-      points.push(eventAt.toString(), nextScore.toString())
-    }
-  }
-
-  return { lastSample, userPoints }
 }
 
 const cacheGraph = async (
@@ -394,17 +346,14 @@ const cacheGraph = async (
   const userIds = data.users.filter(u => u.hadAnySolve).map(u => u.id)
   const challengeIds = Array.from(data.challengeInfos.keys())
   const fingerprint = buildGraphFingerprint(userIds, challengeIds)
+
   if (userIds.length === 0 || challengeIds.length === 0) {
     await redis.rctfSetGraph(
       keyGraphUpdate,
       keyGraphData,
       Date.now().toString()
     )
-    await Promise.all([
-      redis.set(keyGraphFingerprint, fingerprint),
-      redis.set(keyGraphCursor, serializeGraphCursor(null)),
-      redis.set(keyGraphSource, graphSourceEvents),
-    ])
+    await commitGraphMeta(redis, fingerprint, null, graphSourceEvents)
     return
   }
 
@@ -415,13 +364,8 @@ const cacheGraph = async (
   ])
 
   if (cachedSource === graphSourceSamples) {
-    const { lastSample, userPoints } = buildGraphFromSamples(data)
-    await setGraphSnapshot(redis, lastSample, userPoints)
-    await Promise.all([
-      redis.set(keyGraphFingerprint, fingerprint),
-      redis.set(keyGraphCursor, serializeGraphCursor(null)),
-      redis.set(keyGraphSource, graphSourceSamples),
-    ])
+    await setGraphSnapshot(redis, buildGraphFromSamples(data))
+    await commitGraphMeta(redis, fingerprint, null, graphSourceSamples)
     return
   }
 
@@ -433,27 +377,19 @@ const cacheGraph = async (
     (cachedCursorRaw !== '' && parsedCursor === null)
   const cursor = needsFullRebuild ? null : parsedCursor
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds, cursor)
-  const nextCursor = graphCursorFromRows(rows) ?? cursor
+  const lastRow = rows[rows.length - 1]
+  const nextCursor = lastRow
+    ? { eventAt: lastRow.eventAt, id: lastRow.id }
+    : cursor
 
   if (needsFullRebuild) {
     if (rows.length === 0 && data.samples.length > 0) {
-      const { lastSample, userPoints } = buildGraphFromSamples(data)
-      await setGraphSnapshot(redis, lastSample, userPoints)
-      await Promise.all([
-        redis.set(keyGraphFingerprint, fingerprint),
-        redis.set(keyGraphCursor, serializeGraphCursor(null)),
-        redis.set(keyGraphSource, graphSourceSamples),
-      ])
+      await setGraphSnapshot(redis, buildGraphFromSamples(data))
+      await commitGraphMeta(redis, fingerprint, null, graphSourceSamples)
       return
     }
-
-    const { lastSample, userPoints } = buildGraphFromScoreEvents(rows)
-    await setGraphSnapshot(redis, lastSample, userPoints)
-    await Promise.all([
-      redis.set(keyGraphFingerprint, fingerprint),
-      redis.set(keyGraphCursor, serializeGraphCursor(nextCursor)),
-      redis.set(keyGraphSource, graphSourceEvents),
-    ])
+    await setGraphSnapshot(redis, foldScoreEvents(rows))
+    await commitGraphMeta(redis, fingerprint, nextCursor, graphSourceEvents)
     return
   }
 
@@ -466,11 +402,10 @@ const cacheGraph = async (
     new Set(rows.flatMap(row => (row.userid ? [row.userid] : [])))
   )
   const existingGraphData = await redis.hmget(keyGraphData, ...affectedUserIds)
-  const existingPackedPoints = new Map(
+  const seed = new Map(
     affectedUserIds.map((id, idx) => [id, existingGraphData[idx] ?? null])
   )
-
-  const { lastSample, userPoints } = appendGraphRows(rows, existingPackedPoints)
+  const { lastSample, userPoints } = foldScoreEvents(rows, seed)
 
   await hsetGraphData(redis, userPoints)
   await Promise.all([

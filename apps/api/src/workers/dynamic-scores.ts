@@ -30,12 +30,6 @@ const failures = new Map<string, number>()
 const sourceOf = (c: DynamicChallengeInfo): DynamicScoringSource =>
   (c.data.scoring as { source: DynamicScoringSource }).source
 
-const intervalMsOf = (c: DynamicChallengeInfo): number => {
-  const v = sourceOf(c).pollIntervalSeconds
-  const seconds = typeof v === 'number' ? v : DEFAULT_POLL_INTERVAL_S
-  return Math.max(MIN_POLL_INTERVAL_S, seconds) * 1000
-}
-
 const pollOnce = async (c: DynamicChallengeInfo): Promise<boolean> => {
   try {
     const res = await fetch(sourceOf(c).url!, {
@@ -101,7 +95,8 @@ const runLoop = async (id: string): Promise<void> => {
     return
   }
 
-  const intervalMs = intervalMsOf(c)
+  const pollSeconds = sourceOf(c).pollIntervalSeconds ?? DEFAULT_POLL_INTERVAL_S
+  const intervalMs = Math.max(MIN_POLL_INTERVAL_S, pollSeconds) * 1000
   const ok = await pollOnce(c)
   if (!pollable.some(x => x.id === id)) {
     stopLoop(id)
@@ -116,16 +111,12 @@ const runLoop = async (id: string): Promise<void> => {
 
   const f = (failures.get(id) ?? 0) + 1
   failures.set(id, f)
-  schedule(
-    id,
-    Math.min(MAX_BACKOFF_MS, intervalMs * Math.pow(2, Math.min(f, 6)))
-  )
+  schedule(id, Math.min(MAX_BACKOFF_MS, intervalMs * 2 ** Math.min(f, 6)))
 }
 
 const refresh = async (): Promise<void> => {
   try {
-    const all = await getDynamicChallenges(db)
-    pollable = all.filter(
+    pollable = (await getDynamicChallenges(db)).filter(
       ch =>
         ch.data.scoring?.kind === ChallengeScoringKind.DYNAMIC &&
         ch.data.scoring.source.transport === DynamicScoringTransport.POLL &&
@@ -139,7 +130,6 @@ const refresh = async (): Promise<void> => {
         stopLoop(id)
       }
     }
-
     for (const c of pollable) {
       if (!timers.has(c.id)) {
         schedule(c.id, 0)

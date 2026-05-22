@@ -3,7 +3,7 @@ import { createDatabase } from '@rctf/db'
 import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
 import { createCachedLeaderboardCalculator } from '../services/leaderboard'
-import { recomputeChallengePoints } from '../services/solve-points'
+import { applyDecayPointsForChallenge } from '../services/solve-points'
 import { createRedis } from '../util/redis'
 import {
   LEADERBOARD_FORCE_UPDATE_CHANNEL,
@@ -35,7 +35,7 @@ const flushRecomputes = async (): Promise<void> => {
   pendingRecomputes.clear()
   for (const challengeId of ids) {
     try {
-      await recomputeChallengePoints(db, challengeId, 'decay-recompute')
+      await applyDecayPointsForChallenge(db, challengeId)
     } catch (err) {
       logger.error({ err, challengeId }, 'challenge recompute failed')
     }

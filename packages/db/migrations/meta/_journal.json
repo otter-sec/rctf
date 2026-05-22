@@ -152,29 +152,8 @@
     {
       "idx": 21,
       "version": "7",
-      "when": 1779367922370,
-      "tag": "0021_add_solve_points_and_score_events",
-      "breakpoints": true
-    },
-    {
-      "idx": 22,
-      "version": "7",
-      "when": 1779389111880,
-      "tag": "0022_score_events_userid_tombstone",
-      "breakpoints": true
-    },
-    {
-      "idx": 23,
-      "version": "7",
-      "when": 1779455502793,
-      "tag": "0023_update_solves_points_updated_at_index",
-      "breakpoints": true
-    },
-    {
-      "idx": 24,
-      "version": "7",
-      "when": 1779457181054,
-      "tag": "0024_score_events_index",
+      "when": 1779459485799,
+      "tag": "0021_add_dynamic_scoring",
       "breakpoints": true
     }
   ]

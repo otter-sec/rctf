@@ -7,7 +7,7 @@ import {
   upsertChallenge,
 } from '../../../../services/challenges'
 import {
-  recomputeChallengePoints,
+  applyDecayPointsForChallenge,
   scoringConfigChanged,
 } from '../../../../services/solve-points'
 import {
@@ -94,12 +94,15 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   }
 
   if (scoringConfigChanged(before?.data, updated.data)) {
-    await recomputeChallengePoints(ctx.var.db, params.id, 'algo-change').catch(
-      err =>
-        ctx.var.logger.error(
-          { err, challengeId: params.id },
-          'failed to recompute points after challenge update'
-        )
+    await applyDecayPointsForChallenge(
+      ctx.var.db,
+      params.id,
+      'algo-change'
+    ).catch(err =>
+      ctx.var.logger.error(
+        { err, challengeId: params.id },
+        'failed to recompute points after challenge update'
+      )
     )
     requestChallengeRecompute(ctx.var.redis, params.id)
   }

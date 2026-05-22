@@ -4,7 +4,8 @@ import { challenges, scoreEvents, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
 import { ChallengeScoringKind } from '@rctf/types'
-import { and, asc, desc, eq, gt, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, inArray, or, sql } from 'drizzle-orm'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 import {
   leaderboardOrderSql,
   userIsPublicRankedSql,
@@ -49,20 +50,20 @@ const buildScoreContext = (
 const timingFingerprint = (timing: CompetitionTiming): string =>
   `${timing.startTime}:${timing.endTime}`
 
-type SolveCursor = {
-  createdat: string
-  id: string
+type Cursor = { time: string; id: string }
+
+const cursorAfter = (timeCol: PgColumn, idCol: PgColumn, c: Cursor | null) =>
+  c
+    ? or(gt(timeCol, c.time), and(eq(timeCol, c.time), gt(idCol, c.id)))
+    : undefined
+
+const compareCursor = (a: Cursor, b: Cursor): number => {
+  const t = new Date(a.time).valueOf() - new Date(b.time).valueOf()
+  return t !== 0 ? t : a.id.localeCompare(b.id)
 }
 
-type DynamicPointsCursor = {
-  pointsUpdatedAt: string
-  id: string
-}
-
-type DynamicScoreEventCursor = {
-  eventAt: string
-  id: string
-}
+const maxCursor = (a: Cursor | null, b: Cursor): Cursor =>
+  !a || compareCursor(b, a) > 0 ? b : a
 
 type LeaderboardRuntimeState = {
   providerIdentity: string
@@ -75,9 +76,9 @@ type LeaderboardRuntimeState = {
   lastSampleIsTrailing: boolean
   prevScoreMap: Map<string, number> | null
   processedSolveCount: number
-  lastSolveCursor: SolveCursor | null
-  lastDynamicPointsCursor: DynamicPointsCursor | null
-  lastDynamicScoreEventCursor: DynamicScoreEventCursor | null
+  lastSolveCursor: Cursor | null
+  lastDynamicPointsCursor: Cursor | null
+  lastDynamicScoreEventCursor: Cursor | null
   firstEverSolveTime: number | null
 }
 
@@ -186,28 +187,10 @@ const getSolveCount = async (db: DatabaseClient): Promise<number> => {
   return row?.count ?? 0
 }
 
-const getAllSolvesOrdered = async (db: DatabaseClient): Promise<SolveRow[]> => {
-  return await db
-    .select({
-      id: solves.id,
-      challengeid: solves.challengeid,
-      userid: solves.userid,
-      createdat: solves.createdat,
-      points: solves.points,
-      pointsUpdatedAt: solves.pointsUpdatedAt,
-    })
-    .from(solves)
-    .orderBy(asc(solves.createdat), asc(solves.id))
-}
-
 const getSolvesAfterCursor = async (
   db: DatabaseClient,
-  cursor: SolveCursor | null
+  cursor: Cursor | null
 ): Promise<SolveRow[]> => {
-  if (!cursor) {
-    return await getAllSolvesOrdered(db)
-  }
-
   return await db
     .select({
       id: solves.id,
@@ -218,12 +201,7 @@ const getSolvesAfterCursor = async (
       pointsUpdatedAt: solves.pointsUpdatedAt,
     })
     .from(solves)
-    .where(
-      or(
-        gt(solves.createdat, cursor.createdat),
-        and(eq(solves.createdat, cursor.createdat), gt(solves.id, cursor.id))
-      )
-    )
+    .where(cursorAfter(solves.createdat, solves.id, cursor))
     .orderBy(asc(solves.createdat), asc(solves.id))
 }
 
@@ -439,30 +417,6 @@ const applySolve = (
   return true
 }
 
-const compareDynamicPointsCursor = (
-  a: DynamicPointsCursor,
-  b: DynamicPointsCursor
-): number => {
-  const timeDiff =
-    new Date(a.pointsUpdatedAt).valueOf() -
-    new Date(b.pointsUpdatedAt).valueOf()
-  if (timeDiff !== 0) {
-    return timeDiff
-  }
-  return a.id.localeCompare(b.id)
-}
-
-const compareDynamicScoreEventCursor = (
-  a: DynamicScoreEventCursor,
-  b: DynamicScoreEventCursor
-): number => {
-  const timeDiff = new Date(a.eventAt).valueOf() - new Date(b.eventAt).valueOf()
-  if (timeDiff !== 0) {
-    return timeDiff
-  }
-  return a.id.localeCompare(b.id)
-}
-
 const getDynamicChallengeIds = (state: LeaderboardRuntimeState): string[] =>
   Array.from(state.challengeInfos.values())
     .filter(info => info.scoringKind === ChallengeScoringKind.DYNAMIC)
@@ -478,11 +432,7 @@ const updateDynamicPointsCursorFromRows = (
     if (challengeInfo?.scoringKind !== ChallengeScoringKind.DYNAMIC) {
       continue
     }
-
-    const rowCursor = { pointsUpdatedAt: row.pointsUpdatedAt, id: row.id }
-    if (!cursor || compareDynamicPointsCursor(rowCursor, cursor) > 0) {
-      cursor = rowCursor
-    }
+    cursor = maxCursor(cursor, { time: row.pointsUpdatedAt, id: row.id })
   }
   state.lastDynamicPointsCursor = cursor
 }
@@ -490,28 +440,20 @@ const updateDynamicPointsCursorFromRows = (
 const getLatestDynamicScoreEventCursor = async (
   db: DatabaseClient,
   dynamicIds: string[]
-): Promise<DynamicScoreEventCursor | null> => {
+): Promise<Cursor | null> => {
   if (dynamicIds.length === 0) {
     return null
   }
 
   const row = await db
-    .select({
-      id: scoreEvents.id,
-      eventAt: scoreEvents.eventAt,
-    })
+    .select({ id: scoreEvents.id, eventAt: scoreEvents.eventAt })
     .from(scoreEvents)
-    .where(
-      sql`${scoreEvents.challengeid} IN (${sql.join(
-        dynamicIds.map(id => sql`${id}`),
-        sql`, `
-      )})`
-    )
+    .where(inArray(scoreEvents.challengeid, dynamicIds))
     .orderBy(desc(scoreEvents.eventAt), desc(scoreEvents.id))
     .limit(1)
     .then(takeUnique)
 
-  return row ? { eventAt: row.eventAt, id: row.id } : null
+  return row ? { time: row.eventAt, id: row.id } : null
 }
 
 const processSolveBatch = (
@@ -523,7 +465,7 @@ const processSolveBatch = (
   changed: boolean
   hadUnappliedSolves: boolean
   consumedSolveCount: number
-  lastConsumedSolveCursor: SolveCursor | null
+  lastConsumedSolveCursor: Cursor | null
 } => {
   let solveIndex = 0
   let hadLeaderboardChanges = false
@@ -617,7 +559,7 @@ const processSolveBatch = (
     const start = Math.ceil(effectiveStart / graphSampleTime) * graphSampleTime
     const lastProcessedSolveTime =
       state.lastSolveCursor !== null
-        ? new Date(state.lastSolveCursor.createdat).valueOf()
+        ? new Date(state.lastSolveCursor.time).valueOf()
         : null
 
     const loopStart =
@@ -650,10 +592,7 @@ const processSolveBatch = (
     hadUnappliedSolves,
     consumedSolveCount: solveIndex,
     lastConsumedSolveCursor: lastConsumedSolve
-      ? {
-          createdat: lastConsumedSolve.createdat,
-          id: lastConsumedSolve.id,
-        }
+      ? { time: lastConsumedSolve.createdat, id: lastConsumedSolve.id }
       : null,
   }
 }
@@ -708,7 +647,7 @@ const rebuildRuntimeState = async (
     db,
     getDynamicChallengeIds(state)
   )
-  const allSolves = await getAllSolvesOrdered(db)
+  const allSolves = await getSolvesAfterCursor(db, null)
 
   const batchResult = processSolveBatch(state, allSolves, now, timing)
   state.processedSolveCount = batchResult.consumedSolveCount
@@ -903,17 +842,34 @@ const refreshDynamicContribs = async (
     return 'changed'
   }
 
-  const pointsCursor = state.lastDynamicPointsCursor
-  const pointsCursorClause = pointsCursor
-    ? or(
-        gt(solves.pointsUpdatedAt, pointsCursor.pointsUpdatedAt),
-        and(
-          eq(solves.pointsUpdatedAt, pointsCursor.pointsUpdatedAt),
-          gt(solves.id, pointsCursor.id)
-        )
-      )
-    : undefined
+  const inDynamics = inArray(solves.challengeid, dynamicIds)
+  let changed = false
+  let nextPointsCursor = state.lastDynamicPointsCursor
+  let nextEventCursor = state.lastDynamicScoreEventCursor
 
+  type PointRow = {
+    id: string
+    challengeid: string
+    userid: string
+    points: number
+    pointsUpdatedAt: string
+  }
+  const applyPointRow = (row: PointRow): 'continue' | 'rebuild' => {
+    nextPointsCursor = maxCursor(nextPointsCursor, {
+      time: row.pointsUpdatedAt,
+      id: row.id,
+    })
+    const r = applyDynamicSolvePoints(row)
+    if (r === 'rebuild') {
+      return 'rebuild'
+    }
+    if (r === 'changed') {
+      changed = true
+    }
+    return 'continue'
+  }
+
+  // phase 1: points cursor — pick up modifications to solves we already track
   const pointRows = await db
     .select({
       id: solves.id,
@@ -925,46 +881,19 @@ const refreshDynamicContribs = async (
     .from(solves)
     .where(
       and(
-        sql`${solves.challengeid} IN (${sql.join(
-          dynamicIds.map(id => sql`${id}`),
-          sql`, `
-        )})`,
-        pointsCursorClause
+        inDynamics,
+        cursorAfter(solves.pointsUpdatedAt, solves.id, nextPointsCursor)
       )
     )
     .orderBy(asc(solves.pointsUpdatedAt), asc(solves.id))
 
-  let changed = false
-  let nextPointsCursor = pointsCursor
   for (const row of pointRows) {
-    const rowCursor = { pointsUpdatedAt: row.pointsUpdatedAt, id: row.id }
-    if (
-      !nextPointsCursor ||
-      compareDynamicPointsCursor(rowCursor, nextPointsCursor) > 0
-    ) {
-      nextPointsCursor = rowCursor
-    }
-
-    const result = applyDynamicSolvePoints(row)
-    if (result === 'rebuild') {
+    if (applyPointRow(row) === 'rebuild') {
       return { changed: true, needsRebuild: true }
-    }
-    if (result === 'changed') {
-      changed = true
     }
   }
 
-  const eventCursor = state.lastDynamicScoreEventCursor
-  const eventCursorClause = eventCursor
-    ? or(
-        gt(scoreEvents.eventAt, eventCursor.eventAt),
-        and(
-          eq(scoreEvents.eventAt, eventCursor.eventAt),
-          gt(scoreEvents.id, eventCursor.id)
-        )
-      )
-    : undefined
-
+  // phase 2: event cursor — catch deletions/inserts that bypass the points cursor
   const eventRows = await db
     .select({
       id: scoreEvents.id,
@@ -975,33 +904,24 @@ const refreshDynamicContribs = async (
     .from(scoreEvents)
     .where(
       and(
-        sql`${scoreEvents.challengeid} IN (${sql.join(
-          dynamicIds.map(id => sql`${id}`),
-          sql`, `
-        )})`,
-        eventCursorClause
+        inArray(scoreEvents.challengeid, dynamicIds),
+        cursorAfter(scoreEvents.eventAt, scoreEvents.id, nextEventCursor)
       )
     )
     .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
 
-  let nextEventCursor = eventCursor
   const affectedPairs = new Map<
     string,
     { userId: string; challengeId: string }
   >()
   for (const row of eventRows) {
-    const rowCursor = { eventAt: row.eventAt, id: row.id }
-    if (
-      !nextEventCursor ||
-      compareDynamicScoreEventCursor(rowCursor, nextEventCursor) > 0
-    ) {
-      nextEventCursor = rowCursor
-    }
-
+    nextEventCursor = maxCursor(nextEventCursor, {
+      time: row.eventAt,
+      id: row.id,
+    })
     if (!row.userid) {
       continue
     }
-
     affectedPairs.set(pairKey(row.userid, row.challengeid), {
       userId: row.userid,
       challengeId: row.challengeid,
@@ -1010,7 +930,7 @@ const refreshDynamicContribs = async (
 
   if (affectedPairs.size > 0) {
     const affectedUserIds = Array.from(
-      new Set(Array.from(affectedPairs.values()).map(pair => pair.userId))
+      new Set(Array.from(affectedPairs.values()).map(p => p.userId))
     )
     const currentRows = await db
       .select({
@@ -1021,26 +941,14 @@ const refreshDynamicContribs = async (
         pointsUpdatedAt: solves.pointsUpdatedAt,
       })
       .from(solves)
-      .where(
-        and(
-          sql`${solves.challengeid} IN (${sql.join(
-            dynamicIds.map(id => sql`${id}`),
-            sql`, `
-          )})`,
-          sql`${solves.userid} IN (${sql.join(
-            affectedUserIds.map(id => sql`${id}`),
-            sql`, `
-          )})`
-        )
-      )
+      .where(and(inDynamics, inArray(solves.userid, affectedUserIds)))
 
     const currentByPair = new Map(
       currentRows.map(row => [pairKey(row.userid, row.challengeid), row])
     )
 
     for (const pair of affectedPairs.values()) {
-      const key = pairKey(pair.userId, pair.challengeId)
-      const row = currentByPair.get(key)
+      const row = currentByPair.get(pairKey(pair.userId, pair.challengeId))
       if (!row) {
         const userInfo = state.userInfos.get(pair.userId)
         if (
@@ -1052,21 +960,8 @@ const refreshDynamicContribs = async (
         }
         continue
       }
-
-      const rowCursor = { pointsUpdatedAt: row.pointsUpdatedAt, id: row.id }
-      if (
-        !nextPointsCursor ||
-        compareDynamicPointsCursor(rowCursor, nextPointsCursor) > 0
-      ) {
-        nextPointsCursor = rowCursor
-      }
-
-      const result = applyDynamicSolvePoints(row)
-      if (result === 'rebuild') {
+      if (applyPointRow(row) === 'rebuild') {
         return { changed: true, needsRebuild: true }
-      }
-      if (result === 'changed') {
-        changed = true
       }
     }
   }

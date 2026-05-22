@@ -32,7 +32,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
-import { emitBanReversalEvents, emitUnbanRestoreEvents } from './solve-points'
+import { emitBanScoreEvents } from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -593,6 +593,20 @@ export type AdminUserMutationResult =
   | { success: true }
   | { success: false; error: 'badUnknownUser' | 'badUserPrivileged' }
 
+const recomputeUserChallenges = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  userId: string
+): Promise<void> => {
+  const affected = await db
+    .selectDistinct({ challengeid: solves.challengeid })
+    .from(solves)
+    .where(eq(solves.userid, userId))
+  for (const { challengeid } of affected) {
+    requestChallengeRecompute(redis, challengeid)
+  }
+}
+
 export const updateAdminUser = async (
   db: DatabaseClient,
   redis: TypedRedis,
@@ -629,23 +643,8 @@ export const updateAdminUser = async (
     .where(eq(users.id, id))
 
   if (bannedChanged) {
-    if (willBeBanned) {
-      await emitBanReversalEvents(db, id)
-    } else {
-      await emitUnbanRestoreEvents(db, id)
-    }
-
-    const affectedChallenges = await db
-      .select({ challengeid: solves.challengeid })
-      .from(solves)
-      .where(eq(solves.userid, id))
-    const uniqueIds = Array.from(
-      new Set(affectedChallenges.map(c => c.challengeid))
-    )
-    // hand recompute to the leaderboard worker
-    for (const challengeId of uniqueIds) {
-      requestChallengeRecompute(redis, challengeId)
-    }
+    await emitBanScoreEvents(db, id, willBeBanned ? 'ban' : 'unban')
+    await recomputeUserChallenges(db, redis, id)
   }
 
   await invalidateUserCache(redis, id)
@@ -667,21 +666,9 @@ export const deleteAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  await emitBanReversalEvents(db, id)
-  const affectedChallenges = await db
-    .select({ challengeid: solves.challengeid })
-    .from(solves)
-    .where(eq(solves.userid, id))
-  const uniqueIds = Array.from(
-    new Set(affectedChallenges.map(c => c.challengeid))
-  )
-
+  await emitBanScoreEvents(db, id, 'ban')
+  await recomputeUserChallenges(db, redis, id)
   await db.delete(users).where(eq(users.id, id))
-
-  // hand recompute to the leaderboard worker
-  for (const challengeId of uniqueIds) {
-    requestChallengeRecompute(redis, challengeId)
-  }
 
   await invalidateUserCache(redis, id)
   forceLeaderboardUpdate(redis)
