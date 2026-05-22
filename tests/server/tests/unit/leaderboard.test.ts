@@ -255,16 +255,7 @@ describe('leaderboard cache', () => {
         ],
         challengeInfos,
 
-        samples: [
-          {
-            time: 1111,
-            userScores: [{ id: 'user1', score: 5 }],
-          },
-          {
-            time: 2222,
-            userScores: [{ id: 'user1', score: 10 }],
-          },
-        ],
+        samples: [],
       }
 
       await cacheLeaderboardAndGraph(db, redis, data)
@@ -351,6 +342,60 @@ describe('leaderboard cache', () => {
       expect(redis.store.get('graph-source')).toBe('samples')
     })
 
+    test('switches from sample fallback once score events appear', async () => {
+      const redis = createMockRedis()
+      const db = createMockDb([
+        [],
+        [
+          {
+            id: 'evt1',
+            userid: 'user1',
+            pointsDelta: 25,
+            eventAt: new Date(1699995000).toISOString(),
+          },
+        ],
+      ])
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 75,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [
+          {
+            time: 1699990000,
+            userScores: [{ id: 'user1', score: 50 }],
+          },
+          {
+            time: 1699995000,
+            userScores: [{ id: 'user1', score: 75 }],
+          },
+        ],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+      expect(redis.store.get('graph-source')).toBe('samples')
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.store.get('graph-source')).toBe('events')
+      expect(redis.rctfSetGraph).toHaveBeenLastCalledWith(
+        'graph-update',
+        'graph-data',
+        expect.any(String),
+        'user1',
+        '1699990000,50,1699995000,75'
+      )
+    })
+
     test('handles empty users list', async () => {
       const redis = createMockRedis()
       const db = createMockDb()
@@ -417,22 +462,7 @@ describe('leaderboard cache', () => {
         ],
         challengeInfos,
 
-        samples: [
-          {
-            time: 1699990000,
-            userScores: [
-              { id: 'user1', score: 30 },
-              { id: 'user2', score: 20 },
-            ],
-          },
-          {
-            time: 1699995000,
-            userScores: [
-              { id: 'user1', score: 70 },
-              { id: 'user2', score: 50 },
-            ],
-          },
-        ],
+        samples: [],
       }
 
       await cacheLeaderboardAndGraph(db, redis, data)
@@ -448,7 +478,7 @@ describe('leaderboard cache', () => {
       )
     })
 
-    test('appends new score events without resetting graph data', async () => {
+    test('rebuilds graph from all score events on each cache write', async () => {
       const redis = createMockRedis()
       const db = createMockDb([
         [
@@ -460,6 +490,12 @@ describe('leaderboard cache', () => {
           },
         ],
         [
+          {
+            id: 'evt1',
+            userid: 'user1',
+            pointsDelta: 50,
+            eventAt: new Date(1699990000).toISOString(),
+          },
           {
             id: 'evt2',
             userid: 'user1',
@@ -488,9 +524,11 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
-      expect(redis.hset).toHaveBeenCalledWith(
+      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(2)
+      expect(redis.rctfSetGraph).toHaveBeenLastCalledWith(
+        'graph-update',
         'graph-data',
+        expect.any(String),
         'user1',
         '1699990000,50,1699995000,75'
       )

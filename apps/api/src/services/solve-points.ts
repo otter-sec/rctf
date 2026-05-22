@@ -5,13 +5,13 @@ import type {
   ScoreEventSource,
   Solve,
 } from '@rctf/db'
-import { challenges, scoreEvents, solves, users } from '@rctf/db'
+import { scoreEvents, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
 import { ChallengeScoringKind } from '@rctf/types'
 import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import { scoreProvider } from '../providers'
-import { challengeIsPublicSql, getPrivateChallenge } from './challenges'
+import { getPrivateChallenge } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
 
 export const scoringKindOf = (data: {
@@ -311,18 +311,4 @@ export const emitBanScoreEvents = async (
   if (events.length > 0) {
     await db.insert(scoreEvents).values(events)
   }
-}
-
-// COALESCE because pre-dynamic-scoring rows have no scoring field at all
-const scoringKindIs = (kind: ChallengeScoringKind) =>
-  sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${kind}`
-
-export const getDecayChallengeIds = async (
-  db: DatabaseClient
-): Promise<string[]> => {
-  const rows = await db
-    .select({ id: challenges.id })
-    .from(challenges)
-    .where(and(challengeIsPublicSql, scoringKindIs(ChallengeScoringKind.DECAY)))
-  return rows.map(r => r.id)
 }

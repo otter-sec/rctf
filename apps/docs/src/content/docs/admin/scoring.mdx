@@ -127,8 +127,7 @@ The route accepts any IP - it does not require an authenticated rCTF user. Only 
 | --- | --- | --- |
 | `200` | `<green>goodDynamicScores</green>` | Body has `<red>inserted</red>`, `<red>updated</red>`, `<red>deleted</red>` counts. |
 | `400` | `<green>badBody</green>` | Payload didn't validate against the schema. |
-| `401` | `<green>badSignature</green>` | HMAC mismatch or timestamp outside the skew window. |
-| `404` | `<green>badChallenge</green>` | Unknown challenge ID, or the challenge isn't `<green>dynamic</green>`. |
+| `401` | `<green>badSignature</green>` | HMAC mismatch, timestamp outside the skew window, unknown challenge ID, or the challenge isn't `<green>dynamic</green>`. The endpoint deliberately doesn't distinguish these so it can't be probed for which challenges accept the feed. |
 
 #### Reference publisher
 

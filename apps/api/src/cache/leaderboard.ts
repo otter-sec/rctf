@@ -1,6 +1,6 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
-import { and, asc, eq, gt, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, inArray, sql } from 'drizzle-orm'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -160,11 +160,6 @@ type ScoreEventGraphRow = {
   eventAt: string
 }
 
-type ScoreEventGraphCursor = {
-  eventAt: string
-  id: string
-}
-
 type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
 
 const lastPackedScore = (packed: string | null): number =>
@@ -214,14 +209,23 @@ const foldScoreEvents = (
   return { lastSample, userPoints }
 }
 
-const buildGraphFromSamples = (data: CalculatedLeaderboard): GraphFold => {
+const buildGraphFromSamples = (
+  data: CalculatedLeaderboard,
+  beforeTime?: number
+): GraphFold => {
+  const samples =
+    beforeTime === undefined
+      ? data.samples
+      : data.samples.filter(sample => sample.time < beforeTime)
   const lastSample =
-    data.samples.length > 0
-      ? data.samples[data.samples.length - 1]!.time
-      : Date.now()
+    samples.length > 0
+      ? samples[samples.length - 1]!.time
+      : beforeTime === undefined
+        ? Date.now()
+        : 0
   const userPoints = new Map<string, string[]>()
 
-  for (const sample of data.samples) {
+  for (const sample of samples) {
     for (const { id, score } of sample.userScores) {
       let arr = userPoints.get(id)
       if (!arr) {
@@ -235,6 +239,32 @@ const buildGraphFromSamples = (data: CalculatedLeaderboard): GraphFold => {
   return { lastSample, userPoints }
 }
 
+const buildGraphFromEventsWithSampleBaseline = (
+  data: CalculatedLeaderboard,
+  rows: ScoreEventGraphRow[]
+): GraphFold => {
+  const firstEventTime = Math.min(
+    ...rows
+      .map(row => new Date(row.eventAt).valueOf())
+      .filter(time => Number.isFinite(time))
+  )
+  const baseline = buildGraphFromSamples(data, firstEventTime)
+  const seed = new Map(
+    Array.from(baseline.userPoints, ([id, points]) => [id, points.join(',')])
+  )
+  const folded = foldScoreEvents(rows, seed)
+  const userPoints = new Map(baseline.userPoints)
+
+  for (const [id, points] of folded.userPoints) {
+    userPoints.set(id, points)
+  }
+
+  return {
+    lastSample: Math.max(baseline.lastSample, folded.lastSample),
+    userPoints,
+  }
+}
+
 const setGraphSnapshot = async (
   redis: TypedRedis,
   { lastSample, userPoints }: GraphFold
@@ -246,29 +276,14 @@ const setGraphSnapshot = async (
   await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
 }
 
-const serializeGraphCursor = (c: ScoreEventGraphCursor | null): string =>
-  c ? JSON.stringify(c) : ''
-
-const parseGraphCursor = (raw: string | null): ScoreEventGraphCursor | null => {
-  try {
-    const p = raw ? JSON.parse(raw) : null
-    return typeof p?.eventAt === 'string' && typeof p?.id === 'string'
-      ? p
-      : null
-  } catch {
-    return null
-  }
-}
-
 const commitGraphMeta = (
   redis: TypedRedis,
   fingerprint: string,
-  cursor: ScoreEventGraphCursor | null,
   source: typeof graphSourceEvents | typeof graphSourceSamples
 ): Promise<unknown> =>
   Promise.all([
     redis.set(keyGraphFingerprint, fingerprint),
-    redis.set(keyGraphCursor, serializeGraphCursor(cursor)),
+    redis.set(keyGraphCursor, ''),
     redis.set(keyGraphSource, source),
   ])
 
@@ -284,19 +299,8 @@ const buildGraphFingerprint = (
 const getScoreEventGraphRows = async (
   db: DatabaseClient,
   userIds: string[],
-  challengeIds: string[],
-  cursor: ScoreEventGraphCursor | null
+  challengeIds: string[]
 ): Promise<ScoreEventGraphRow[]> => {
-  const cursorClause = cursor
-    ? or(
-        gt(scoreEvents.eventAt, cursor.eventAt),
-        and(
-          eq(scoreEvents.eventAt, cursor.eventAt),
-          gt(scoreEvents.id, cursor.id)
-        )
-      )
-    : undefined
-
   return await db
     .select({
       id: scoreEvents.id,
@@ -308,25 +312,10 @@ const getScoreEventGraphRows = async (
     .where(
       and(
         inArray(scoreEvents.userid, userIds),
-        inArray(scoreEvents.challengeid, challengeIds),
-        cursorClause
+        inArray(scoreEvents.challengeid, challengeIds)
       )
     )
     .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
-}
-
-const hsetGraphData = async (
-  redis: TypedRedis,
-  userPoints: Map<string, string[]>
-): Promise<void> => {
-  const args = Array.from(userPoints).flatMap(([id, points]) => [
-    id,
-    points.join(','),
-  ])
-  const chunkSize = 7996
-  for (let i = 0; i < args.length; i += chunkSize) {
-    await redis.hset(keyGraphData, ...args.slice(i, i + chunkSize))
-  }
 }
 
 const cacheGraph = async (
@@ -344,65 +333,28 @@ const cacheGraph = async (
       keyGraphData,
       Date.now().toString()
     )
-    await commitGraphMeta(redis, fingerprint, null, graphSourceEvents)
+    await commitGraphMeta(redis, fingerprint, graphSourceEvents)
     return
   }
 
-  const [cachedFingerprint, cachedCursorRaw, cachedSource] = await Promise.all([
-    redis.get(keyGraphFingerprint),
-    redis.get(keyGraphCursor),
-    redis.get(keyGraphSource),
-  ])
+  const rows = await getScoreEventGraphRows(db, userIds, challengeIds)
+  if (rows.length > 0) {
+    await setGraphSnapshot(
+      redis,
+      buildGraphFromEventsWithSampleBaseline(data, rows)
+    )
+    await commitGraphMeta(redis, fingerprint, graphSourceEvents)
+    return
+  }
 
-  if (cachedSource === graphSourceSamples) {
+  if (data.samples.length > 0) {
     await setGraphSnapshot(redis, buildGraphFromSamples(data))
-    await commitGraphMeta(redis, fingerprint, null, graphSourceSamples)
+    await commitGraphMeta(redis, fingerprint, graphSourceSamples)
     return
   }
 
-  const parsedCursor = parseGraphCursor(cachedCursorRaw)
-  const needsFullRebuild =
-    cachedFingerprint !== fingerprint ||
-    cachedSource !== graphSourceEvents ||
-    cachedCursorRaw === null ||
-    (cachedCursorRaw !== '' && parsedCursor === null)
-  const cursor = needsFullRebuild ? null : parsedCursor
-  const rows = await getScoreEventGraphRows(db, userIds, challengeIds, cursor)
-  const lastRow = rows[rows.length - 1]
-  const nextCursor = lastRow
-    ? { eventAt: lastRow.eventAt, id: lastRow.id }
-    : cursor
-
-  if (needsFullRebuild) {
-    if (rows.length === 0 && data.samples.length > 0) {
-      await setGraphSnapshot(redis, buildGraphFromSamples(data))
-      await commitGraphMeta(redis, fingerprint, null, graphSourceSamples)
-      return
-    }
-    await setGraphSnapshot(redis, foldScoreEvents(rows))
-    await commitGraphMeta(redis, fingerprint, nextCursor, graphSourceEvents)
-    return
-  }
-
-  if (rows.length === 0) {
-    await redis.set(keyGraphUpdate, Date.now().toString())
-    return
-  }
-
-  const affectedUserIds = Array.from(
-    new Set(rows.flatMap(row => (row.userid ? [row.userid] : [])))
-  )
-  const existingGraphData = await redis.hmget(keyGraphData, ...affectedUserIds)
-  const seed = new Map(
-    affectedUserIds.map((id, idx) => [id, existingGraphData[idx] ?? null])
-  )
-  const { lastSample, userPoints } = foldScoreEvents(rows, seed)
-
-  await hsetGraphData(redis, userPoints)
-  await Promise.all([
-    redis.set(keyGraphUpdate, lastSample.toString()),
-    redis.set(keyGraphCursor, serializeGraphCursor(nextCursor)),
-  ])
+  await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, Date.now().toString())
+  await commitGraphMeta(redis, fingerprint, graphSourceEvents)
 }
 
 interface GraphPoint {

@@ -1,7 +1,6 @@
 import { challenges } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import {
-  BadChallenge,
   BadSignature,
   ChallengeScoringKind,
   DynamicScoringTransport,
@@ -13,14 +12,10 @@ import type { AppEnv } from '../lib/app-env'
 import { timingSafeEqual } from '../util/timing-safe-equal'
 
 const MAX_SKEW_MS = 5 * 60 * 1000
-
-const respond = (
-  c: Context<AppEnv>,
-  err: typeof BadChallenge | typeof BadSignature
-) =>
+const reject = (c: Context<AppEnv>) =>
   c.json(
-    { kind: err.kind, message: err.message },
-    err.status as ContentfulStatusCode
+    { kind: BadSignature.kind, message: BadSignature.message },
+    BadSignature.status as ContentfulStatusCode
   )
 
 export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
@@ -29,7 +24,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
 ) => {
   const id = c.req.param('id')
   if (!id) {
-    return respond(c, BadChallenge)
+    return reject(c)
   }
 
   const challenge = await c.var.db
@@ -47,7 +42,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
     scoring.source?.transport !== DynamicScoringTransport.WEBHOOK ||
     !scoring.source?.secret
   ) {
-    return respond(c, BadChallenge)
+    return reject(c)
   }
 
   const timestampHeader = c.req.header('X-RCTF-Timestamp')
@@ -59,7 +54,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
     !Number.isInteger(timestamp) ||
     Math.abs(Date.now() - timestamp) > MAX_SKEW_MS
   ) {
-    return respond(c, BadSignature)
+    return reject(c)
   }
 
   // subsequent json() call parses from cache
@@ -68,7 +63,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
   hasher.update(`${timestamp}.${raw}`)
   const expected = `sha256=${hasher.digest('hex')}`
   if (!timingSafeEqual(signatureHeader, expected)) {
-    return respond(c, BadSignature)
+    return reject(c)
   }
 
   c.set('dynamicChallenge', challenge)

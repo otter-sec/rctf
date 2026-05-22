@@ -1,10 +1,10 @@
 import { config } from '@rctf/config'
 import type { DatabaseClient } from '@rctf/db'
-import { challenges, scoreEvents, solves, users } from '@rctf/db'
+import { challenges, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
 import { ChallengeScoringKind } from '@rctf/types'
-import { and, asc, desc, eq, gt, inArray, or, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray, or, sql } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import {
   leaderboardOrderSql,
@@ -55,14 +55,6 @@ const cursorAfter = (timeCol: PgColumn, idCol: PgColumn, c: Cursor | null) =>
     ? or(gt(timeCol, c.time), and(eq(timeCol, c.time), gt(idCol, c.id)))
     : undefined
 
-const compareCursor = (a: Cursor, b: Cursor): number => {
-  const t = new Date(a.time).valueOf() - new Date(b.time).valueOf()
-  return t !== 0 ? t : a.id.localeCompare(b.id)
-}
-
-const maxCursor = (a: Cursor | null, b: Cursor): Cursor =>
-  !a || compareCursor(b, a) > 0 ? b : a
-
 type LeaderboardRuntimeState = {
   providerIdentity: string
   timingFingerprint: string
@@ -75,8 +67,6 @@ type LeaderboardRuntimeState = {
   prevScoreMap: Map<string, number> | null
   processedSolveCount: number
   lastSolveCursor: Cursor | null
-  lastDynamicPointsCursor: Cursor | null
-  lastDynamicScoreEventCursor: Cursor | null
   firstEverSolveTime: number | null
 }
 
@@ -112,7 +102,6 @@ type SolveRow = {
   userid: string
   createdat: string
   points: number
-  pointsUpdatedAt: string
 }
 
 type LeaderboardRebuildSeed = {
@@ -223,7 +212,6 @@ const getSolvesAfterCursor = (
       userid: solves.userid,
       createdat: solves.createdat,
       points: solves.points,
-      pointsUpdatedAt: solves.pointsUpdatedAt,
     })
     .from(solves)
     .where(cursorAfter(solves.createdat, solves.id, cursor))
@@ -313,8 +301,6 @@ const createRuntimeState = (
     prevScoreMap: null,
     processedSolveCount: 0,
     lastSolveCursor: null,
-    lastDynamicPointsCursor: null,
-    lastDynamicScoreEventCursor: null,
     firstEverSolveTime: null,
   }
 
@@ -406,40 +392,6 @@ const getDynamicChallengeIds = (state: LeaderboardRuntimeState): string[] =>
   Array.from(state.challengeInfos.values())
     .filter(info => info.scoringKind === ChallengeScoringKind.DYNAMIC)
     .map(info => info.id)
-
-const updateDynamicPointsCursorFromRows = (
-  state: LeaderboardRuntimeState,
-  rows: SolveRow[]
-): void => {
-  let cursor = state.lastDynamicPointsCursor
-  for (const row of rows) {
-    const challengeInfo = state.challengeInfos.get(row.challengeid)
-    if (challengeInfo?.scoringKind !== ChallengeScoringKind.DYNAMIC) {
-      continue
-    }
-    cursor = maxCursor(cursor, { time: row.pointsUpdatedAt, id: row.id })
-  }
-  state.lastDynamicPointsCursor = cursor
-}
-
-const getLatestDynamicScoreEventCursor = async (
-  db: DatabaseClient,
-  dynamicIds: string[]
-): Promise<Cursor | null> => {
-  if (dynamicIds.length === 0) {
-    return null
-  }
-
-  const row = await db
-    .select({ id: scoreEvents.id, eventAt: scoreEvents.eventAt })
-    .from(scoreEvents)
-    .where(inArray(scoreEvents.challengeid, dynamicIds))
-    .orderBy(desc(scoreEvents.eventAt), desc(scoreEvents.id))
-    .limit(1)
-    .then(takeUnique)
-
-  return row ? { time: row.eventAt, id: row.id } : null
-}
 
 const processSolveBatch = (
   state: LeaderboardRuntimeState,
@@ -626,16 +578,11 @@ const rebuildRuntimeState = async (
   timing: CompetitionTiming
 ): Promise<LeaderboardRuntimeState> => {
   const state = createRuntimeState(seed, timing)
-  state.lastDynamicScoreEventCursor = await getLatestDynamicScoreEventCursor(
-    db,
-    getDynamicChallengeIds(state)
-  )
   const allSolves = await getSolvesAfterCursor(db, null)
 
   const batchResult = processSolveBatch(state, allSolves, now, timing)
   state.processedSolveCount = batchResult.consumedSolveCount
   state.lastSolveCursor = batchResult.lastConsumedSolveCursor
-  updateDynamicPointsCursorFromRows(state, allSolves)
 
   return state
 }
@@ -749,10 +696,6 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
     if (batchResult.lastConsumedSolveCursor) {
       state.lastSolveCursor = batchResult.lastConsumedSolveCursor
     }
-    updateDynamicPointsCursorFromRows(
-      state,
-      deltaSolves.slice(0, batchResult.consumedSolveCount)
-    )
 
     const dynamicRefresh = await refreshDynamicContribs(db, state, timing)
     if (dynamicRefresh.needsRebuild) {
@@ -781,29 +724,22 @@ const refreshDynamicContribs = async (
 
   const pairKey = (userId: string, challengeId: string) =>
     `${userId}|${challengeId}`
+  const dynamicIdSet = new Set(dynamicIds)
   const inDynamics = inArray(solves.challengeid, dynamicIds)
   const pointCols = {
     id: solves.id,
     challengeid: solves.challengeid,
     userid: solves.userid,
     points: solves.points,
-    pointsUpdatedAt: solves.pointsUpdatedAt,
   }
   let changed = false
-  let nextPointsCursor = state.lastDynamicPointsCursor
-  let nextEventCursor = state.lastDynamicScoreEventCursor
 
   const applyPointRow = (row: {
     id: string
     challengeid: string
     userid: string
     points: number
-    pointsUpdatedAt: string
   }): boolean => {
-    nextPointsCursor = maxCursor(nextPointsCursor, {
-      time: row.pointsUpdatedAt,
-      id: row.id,
-    })
     const userInfo = state.userInfos.get(row.userid)
     if (!userInfo || userInfo.banned) {
       return false
@@ -823,91 +759,33 @@ const refreshDynamicContribs = async (
     return false
   }
 
-  const pointRows = await db
-    .select(pointCols)
-    .from(solves)
-    .where(
-      and(
-        inDynamics,
-        cursorAfter(solves.pointsUpdatedAt, solves.id, nextPointsCursor)
-      )
-    )
-    .orderBy(asc(solves.pointsUpdatedAt), asc(solves.id))
+  const currentRows = await db.select(pointCols).from(solves).where(inDynamics)
 
-  for (const row of pointRows) {
+  const currentPairs = new Set<string>()
+  for (const row of currentRows) {
+    const userInfo = state.userInfos.get(row.userid)
+    if (userInfo && !userInfo.banned) {
+      currentPairs.add(pairKey(row.userid, row.challengeid))
+    }
     if (applyPointRow(row)) {
       return { changed: true, needsRebuild: true }
     }
   }
 
-  const eventRows = await db
-    .select({
-      id: scoreEvents.id,
-      challengeid: scoreEvents.challengeid,
-      userid: scoreEvents.userid,
-      eventAt: scoreEvents.eventAt,
-    })
-    .from(scoreEvents)
-    .where(
-      and(
-        inArray(scoreEvents.challengeid, dynamicIds),
-        cursorAfter(scoreEvents.eventAt, scoreEvents.id, nextEventCursor)
-      )
-    )
-    .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
-
-  const affectedPairs = new Map<
-    string,
-    { userId: string; challengeId: string }
-  >()
-  for (const row of eventRows) {
-    nextEventCursor = maxCursor(nextEventCursor, {
-      time: row.eventAt,
-      id: row.id,
-    })
-    if (!row.userid) {
+  for (const userInfo of state.userInfos.values()) {
+    if (userInfo.banned) {
       continue
     }
-    affectedPairs.set(pairKey(row.userid, row.challengeid), {
-      userId: row.userid,
-      challengeId: row.challengeid,
-    })
-  }
-
-  if (affectedPairs.size > 0) {
-    const affectedUserIds = Array.from(
-      new Set(Array.from(affectedPairs.values()).map(p => p.userId))
-    )
-    const currentRows = await db
-      .select(pointCols)
-      .from(solves)
-      .where(and(inDynamics, inArray(solves.userid, affectedUserIds)))
-
-    const currentByPair = new Map(
-      currentRows.map(row => [pairKey(row.userid, row.challengeid), row])
-    )
-
-    for (const pair of affectedPairs.values()) {
-      const row = currentByPair.get(pairKey(pair.userId, pair.challengeId))
-      if (!row) {
-        const userInfo = state.userInfos.get(pair.userId)
-        if (
-          userInfo &&
-          !userInfo.banned &&
-          userInfo.solveContribs.has(pair.challengeId)
-        ) {
-          return { changed: true, needsRebuild: true }
-        }
-        continue
-      }
-      if (applyPointRow(row)) {
+    for (const challengeId of userInfo.solveContribs.keys()) {
+      if (
+        dynamicIdSet.has(challengeId) &&
+        !currentPairs.has(pairKey(userInfo.id, challengeId))
+      ) {
         return { changed: true, needsRebuild: true }
       }
     }
   }
 
-  state.lastDynamicPointsCursor = nextPointsCursor
-  state.lastDynamicScoreEventCursor = nextEventCursor
   if (changed) {
     recomputeScores(state, timing)
   }

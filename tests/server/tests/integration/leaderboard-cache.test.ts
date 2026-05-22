@@ -203,7 +203,7 @@ describe('cached leaderboard calculator', () => {
     expect(second.calculated.users).toHaveLength(2)
   })
 
-  test('refreshes dynamic point updates without full rebuild', async () => {
+  test('refreshes dynamic point updates without relying on timestamp cursor order', async () => {
     const db = getDb()
     const user = await insertUser()
     const challenge = await insertChallenge({
@@ -232,7 +232,7 @@ describe('cached leaderboard calculator', () => {
 
     await db
       .update(solves)
-      .set({ points: 25, pointsUpdatedAt: isoAt(T1) })
+      .set({ points: 25, pointsUpdatedAt: isoAt(T0 - 1000) })
       .where(eq(solves.id, solve.id))
 
     const second = await calc(db)

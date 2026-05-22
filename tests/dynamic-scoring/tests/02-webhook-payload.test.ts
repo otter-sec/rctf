@@ -45,11 +45,11 @@ describe('webhook payload validation', () => {
     await cleanupUser(admin)
   })
 
-  test('non-dynamic (decay) challenge -> badChallenge', async () => {
+  test('non-dynamic (decay) challenge -> badSignature', async () => {
     const res = await signAndPushScores(decayChallengeId, SECRET, {
       scores: [],
     })
-    expect(res.status).toBe(404)
-    expect((res.body as { kind?: string }).kind).toBe('badChallenge')
+    expect(res.status).toBe(401)
+    expect((res.body as { kind?: string }).kind).toBe('badSignature')
   })
 })
