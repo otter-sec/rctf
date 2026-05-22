@@ -103,15 +103,16 @@ const runLoop = async (id: string): Promise<void> => {
     return
   }
 
+  const f = ok ? 0 : (failures.get(id) ?? 0) + 1
   if (ok) {
     failures.delete(id)
-    schedule(id, intervalMs)
-    return
+  } else {
+    failures.set(id, f)
   }
-
-  const f = (failures.get(id) ?? 0) + 1
-  failures.set(id, f)
-  schedule(id, Math.min(MAX_BACKOFF_MS, intervalMs * 2 ** Math.min(f, 6)))
+  schedule(
+    id,
+    ok ? intervalMs : Math.min(MAX_BACKOFF_MS, intervalMs * 2 ** Math.min(f, 6))
+  )
 }
 
 const refresh = async (): Promise<void> => {

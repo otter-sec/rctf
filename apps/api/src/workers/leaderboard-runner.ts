@@ -48,11 +48,11 @@ export const createLeaderboardTickRunner = ({
   const runTick = async (forceCache: boolean): Promise<void> => {
     const currentTime = now()
     const result = await calculateCachedLeaderboard(db)
-
-    let shouldCache = forceCache || result.changed || pendingCacheWrite
-    if (!shouldCache) {
-      shouldCache = currentTime - lastUpdatedAt > periodicCacheIntervalMs
-    }
+    const shouldCache =
+      forceCache ||
+      result.changed ||
+      pendingCacheWrite ||
+      currentTime - lastUpdatedAt > periodicCacheIntervalMs
 
     if (shouldCache) {
       pendingCacheWrite = true

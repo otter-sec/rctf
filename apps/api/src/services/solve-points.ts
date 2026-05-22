@@ -1,4 +1,10 @@
-import type { ChallengeData, DatabaseClient, DatabaseTx } from '@rctf/db'
+import type {
+  ChallengeData,
+  DatabaseClient,
+  DatabaseTx,
+  ScoreEventSource,
+  Solve,
+} from '@rctf/db'
 import { challenges, scoreEvents, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
@@ -38,6 +44,33 @@ const buildDecayScoreContext = (
 })
 
 export type RecomputeSource = 'decay-recompute' | 'algo-change' | 'flag'
+
+type NewScoreEvent = {
+  id: string
+  challengeid: string
+  userid: string
+  pointsDelta: number
+  source: ScoreEventSource
+}
+
+const lockChallenge = (tx: DatabaseTx, challengeId: string) =>
+  tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
+  )
+
+export const scoreEvent = (
+  challengeid: string,
+  userid: string,
+  pointsDelta: number,
+  source: ScoreEventSource
+): NewScoreEvent => ({
+  id: crypto.randomUUID(),
+  challengeid,
+  userid,
+  pointsDelta,
+  source,
+})
+
 const recomputeDecayWithinTx = async (
   tx: DatabaseTx,
   challengeId: string,
@@ -115,15 +148,13 @@ const recomputeDecayWithinTx = async (
           changedRows.map(row => row.id)
         )
       ),
-    tx.insert(scoreEvents).values(
-      changedRows.map(row => ({
-        id: crypto.randomUUID(),
-        challengeid: challengeId,
-        userid: row.userid,
-        pointsDelta: newPoints - row.points,
-        source,
-      }))
-    ),
+    tx
+      .insert(scoreEvents)
+      .values(
+        changedRows.map(row =>
+          scoreEvent(challengeId, row.userid, newPoints - row.points, source)
+        )
+      ),
   ])
 
   return { updatedCount: changedRows.length, newPoints }
@@ -136,9 +167,7 @@ export const applyDecayPointsForChallenge = async (
 ): Promise<{ updatedCount: number; newPoints: number }> => {
   const timing = await getCompetitionTiming(db)
   return await db.transaction(async tx => {
-    await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
-    )
+    await lockChallenge(tx, challengeId)
     return recomputeDecayWithinTx(tx, challengeId, source, timing)
   })
 }
@@ -152,9 +181,7 @@ export const upsertDynamicSolves = async (
   opts: { mode: DynamicScoresMode } = { mode: DynamicScoresMode.REPLACEMENT }
 ): Promise<{ inserted: number; updated: number; deleted: number }> => {
   return await db.transaction(async tx => {
-    await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
-    )
+    await lockChallenge(tx, challengeId)
 
     const existing = await tx
       .select({
@@ -173,24 +200,12 @@ export const upsertDynamicSolves = async (
     const byUser = new Map(existing.map(r => [r.userid, r]))
     const requestedIds = new Set(dedupedEntries.map(e => e.userId))
 
-    const events: Array<{
-      id: string
-      challengeid: string
-      userid: string
-      pointsDelta: number
-      source: 'feed'
-    }> = []
-    const inserts: Array<{
-      id: string
-      challengeid: string
-      userid: string
-      createdat: string
-      source: 'feed'
-      points: number
-      pointsUpdatedAt: string
-    }> = []
-    const updates: Array<{ id: string; points: number }> = []
+    const events: NewScoreEvent[] = []
+    const inserts: Solve[] = []
+    const updates: Array<Pick<Solve, 'id' | 'points'>> = []
     const deletes: string[] = []
+    const addEvent = (userid: string, delta: number) =>
+      events.push(scoreEvent(challengeId, userid, delta, 'feed'))
 
     const now = new Date().toISOString()
 
@@ -210,13 +225,7 @@ export const upsertDynamicSolves = async (
           points: entry.points,
           pointsUpdatedAt: now,
         })
-        events.push({
-          id: crypto.randomUUID(),
-          challengeid: challengeId,
-          userid: entry.userId,
-          pointsDelta: entry.points,
-          source: 'feed',
-        })
+        addEvent(entry.userId, entry.points)
         continue
       }
 
@@ -227,24 +236,12 @@ export const upsertDynamicSolves = async (
       // negative scores are staying
       if (entry.points === 0) {
         deletes.push(prior.id)
-        events.push({
-          id: crypto.randomUUID(),
-          challengeid: challengeId,
-          userid: entry.userId,
-          pointsDelta: -prior.points,
-          source: 'feed',
-        })
+        addEvent(entry.userId, -prior.points)
         continue
       }
 
       updates.push({ id: prior.id, points: entry.points })
-      events.push({
-        id: crypto.randomUUID(),
-        challengeid: challengeId,
-        userid: entry.userId,
-        pointsDelta: entry.points - prior.points,
-        source: 'feed',
-      })
+      addEvent(entry.userId, entry.points - prior.points)
     }
 
     if (opts.mode === DynamicScoresMode.REPLACEMENT) {
@@ -253,13 +250,7 @@ export const upsertDynamicSolves = async (
           continue
         }
         deletes.push(row.id)
-        events.push({
-          id: crypto.randomUUID(),
-          challengeid: challengeId,
-          userid: row.userid,
-          pointsDelta: -row.points,
-          source: 'feed',
-        })
+        addEvent(row.userid, -row.points)
       }
     }
 
@@ -328,13 +319,7 @@ export const emitBanScoreEvents = async (
 
   const events = userSolves
     .filter(s => s.points !== 0)
-    .map(s => ({
-      id: crypto.randomUUID(),
-      challengeid: s.challengeid,
-      userid: userId,
-      pointsDelta: sign * s.points,
-      source: 'ban' as const,
-    }))
+    .map(s => scoreEvent(s.challengeid, userId, sign * s.points, 'ban'))
   if (events.length > 0) {
     await db.insert(scoreEvents).values(events)
   }

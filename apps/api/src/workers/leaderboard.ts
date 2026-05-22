@@ -33,13 +33,13 @@ let recomputeTimer: ReturnType<typeof setTimeout> | undefined
 const flushRecomputes = async (): Promise<void> => {
   const ids = Array.from(pendingRecomputes)
   pendingRecomputes.clear()
-  for (const challengeId of ids) {
-    try {
-      await applyDecayPointsForChallenge(db, challengeId)
-    } catch (err) {
-      logger.error({ err, challengeId }, 'challenge recompute failed')
-    }
-  }
+  await Promise.all(
+    ids.map(challengeId =>
+      applyDecayPointsForChallenge(db, challengeId).catch(err =>
+        logger.error({ err, challengeId }, 'challenge recompute failed')
+      )
+    )
+  )
   if (ids.length > 0) {
     await tick({ forceCache: true })
   }

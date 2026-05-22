@@ -167,14 +167,8 @@ type ScoreEventGraphCursor = {
 
 type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
 
-const lastPackedScore = (packed: string | null): number => {
-  if (!packed) {
-    return 0
-  }
-  const parts = packed.split(',')
-  const score = Number.parseInt(parts[parts.length - 1] ?? '0')
-  return Number.isFinite(score) ? score : 0
-}
+const lastPackedScore = (packed: string | null): number =>
+  Number.parseInt(packed?.split(',').pop() ?? '0') || 0
 
 const foldScoreEvents = (
   rows: ScoreEventGraphRow[],
@@ -245,10 +239,10 @@ const setGraphSnapshot = async (
   redis: TypedRedis,
   { lastSample, userPoints }: GraphFold
 ): Promise<void> => {
-  const argv: string[] = [lastSample.toString()]
-  for (const [id, points] of userPoints) {
-    argv.push(id, points.join(','))
-  }
+  const argv = [
+    lastSample.toString(),
+    ...Array.from(userPoints).flatMap(([id, points]) => [id, points.join(',')]),
+  ]
   await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
 }
 
@@ -256,11 +250,8 @@ const serializeGraphCursor = (c: ScoreEventGraphCursor | null): string =>
   c ? JSON.stringify(c) : ''
 
 const parseGraphCursor = (raw: string | null): ScoreEventGraphCursor | null => {
-  if (!raw) {
-    return null
-  }
   try {
-    const p = JSON.parse(raw)
+    const p = raw ? JSON.parse(raw) : null
     return typeof p?.eventAt === 'string' && typeof p?.id === 'string'
       ? p
       : null
@@ -328,10 +319,10 @@ const hsetGraphData = async (
   redis: TypedRedis,
   userPoints: Map<string, string[]>
 ): Promise<void> => {
-  const args: string[] = []
-  for (const [id, points] of userPoints) {
-    args.push(id, points.join(','))
-  }
+  const args = Array.from(userPoints).flatMap(([id, points]) => [
+    id,
+    points.join(','),
+  ])
   const chunkSize = 7996
   for (let i = 0; i < args.length; i += chunkSize) {
     await redis.hset(keyGraphData, ...args.slice(i, i + chunkSize))
@@ -465,6 +456,26 @@ const buildGraphEntry = (
   points: parseGraphPoints(lastUpdate, entry.score, packedPoints),
 })
 
+const getGraphEntries = async (
+  redis: TypedRedis,
+  entries: Array<GraphSourceEntry>
+): Promise<Array<GraphEntry>> => {
+  if (entries.length === 0) {
+    return []
+  }
+
+  const [lastUpdateRaw, graphData] = await Promise.all([
+    redis.get(keyGraphUpdate),
+    redis.hmget(keyGraphData, ...entries.map(entry => entry.id)) as Promise<
+      Array<string | null>
+    >,
+  ])
+  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
+  return entries.map((entry, idx) =>
+    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
+  )
+}
+
 export const userIsRankedSql = sql`${users.globalRank} IS NOT NULL`
 export const userIsPublicRankedSql = sql`${userIsRankedSql} AND ${users.banned} = false`
 export const leaderboardOrderSql = sql`${users.globalRank} ASC`
@@ -491,43 +502,13 @@ export const getGraph = async (
     .limit(limit)
     .offset(offset)
 
-  if (topUsers.length === 0) {
-    return []
-  }
-
-  const [lastUpdateRaw, graphData] = await Promise.all([
-    redis.get(keyGraphUpdate),
-    redis.hmget(keyGraphData, ...topUsers.map(u => u.id)) as Promise<
-      Array<string | null>
-    >,
-  ])
-
-  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
-  return topUsers.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
-  )
+  return getGraphEntries(redis, topUsers)
 }
 
 export const getGraphForEntries = async (
   redis: TypedRedis,
   leaderboard: Array<GraphSourceEntry>
-): Promise<Array<GraphEntry>> => {
-  if (leaderboard.length === 0) {
-    return []
-  }
-
-  const [lastUpdateRaw, graphData] = await Promise.all([
-    redis.get(keyGraphUpdate),
-    redis.hmget(keyGraphData, ...leaderboard.map(entry => entry.id)) as Promise<
-      Array<string | null>
-    >,
-  ])
-
-  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
-  return leaderboard.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
-  )
-}
+): Promise<Array<GraphEntry>> => getGraphEntries(redis, leaderboard)
 
 export const cacheLeaderboardAndGraph = async (
   db: DatabaseClient,

@@ -31,7 +31,7 @@ import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
-import { scoringKindOf } from './solve-points'
+import { scoreEvent, scoringKindOf } from './solve-points'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
@@ -732,17 +732,13 @@ export const deleteSolve = async (
       )
       .returning()
 
-    const eventsToInsert = removed
+    const events = removed
       .filter(s => (s.points ?? 0) !== 0)
-      .map(s => ({
-        id: crypto.randomUUID(),
-        challengeid: params.challengeId,
-        userid: params.userId,
-        pointsDelta: -(s.points ?? 0),
-        source: 'delete' as const,
-      }))
-    if (eventsToInsert.length > 0) {
-      await tx.insert(scoreEvents).values(eventsToInsert)
+      .map(s =>
+        scoreEvent(params.challengeId, params.userId, -s.points, 'delete')
+      )
+    if (events.length > 0) {
+      await tx.insert(scoreEvents).values(events)
     }
 
     return removed
