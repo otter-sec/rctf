@@ -3,6 +3,8 @@ import type { Context } from 'hono'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 
+export type DynamicChallengeContext = Pick<Challenge, 'id' | 'data'>
+
 export type AppEnv = {
   Variables: {
     pg: PostgresClient
@@ -10,7 +12,7 @@ export type AppEnv = {
     logger: PinoLogger
     redis: TypedRedis
     ip: string
-    dynamicChallenge?: Challenge
+    dynamicChallenge?: DynamicChallengeContext
   }
 }
 export type ApiContext = Context<AppEnv>

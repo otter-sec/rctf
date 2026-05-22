@@ -93,7 +93,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
     throw err
   }
 
-  if (scoringConfigChanged(before?.data, updated.data)) {
+  if (before && scoringConfigChanged(before.data, updated.data)) {
     await applyDecayPointsForChallenge(
       ctx.var.db,
       params.id,

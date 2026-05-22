@@ -300,6 +300,22 @@ export const emitBanScoreEvents = async (
   direction: 'ban' | 'unban'
 ): Promise<void> => {
   const sign = direction === 'ban' ? -1 : 1
+  await emitUserSolveScoreEvents(db, userId, sign, 'ban')
+}
+
+export const emitUserDeletionScoreEvents = async (
+  db: DatabaseClient,
+  userId: string
+): Promise<void> => {
+  await emitUserSolveScoreEvents(db, userId, -1, 'delete')
+}
+
+const emitUserSolveScoreEvents = async (
+  db: DatabaseClient,
+  userId: string,
+  sign: -1 | 1,
+  source: ScoreEventSource
+): Promise<void> => {
   const userSolves = await db
     .select({ challengeid: solves.challengeid, points: solves.points })
     .from(solves)
@@ -307,7 +323,7 @@ export const emitBanScoreEvents = async (
 
   const events = userSolves
     .filter(s => s.points !== 0)
-    .map(s => scoreEvent(s.challengeid, userId, sign * s.points, 'ban'))
+    .map(s => scoreEvent(s.challengeid, userId, sign * s.points, source))
   if (events.length > 0) {
     await db.insert(scoreEvents).values(events)
   }

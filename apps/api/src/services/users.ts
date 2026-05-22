@@ -32,7 +32,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
-import { emitBanScoreEvents } from './solve-points'
+import { emitBanScoreEvents, emitUserDeletionScoreEvents } from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -666,7 +666,7 @@ export const deleteAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  await emitBanScoreEvents(db, id, 'ban')
+  await emitUserDeletionScoreEvents(db, id)
   await recomputeUserChallenges(db, redis, id)
   await db.delete(users).where(eq(users.id, id))
 
