@@ -326,17 +326,3 @@ export const getDecayChallengeIds = async (
     .where(and(challengeIsPublicSql, scoringKindIs(ChallengeScoringKind.DECAY)))
   return rows.map(r => r.id)
 }
-
-export type DynamicChallengeInfo = {
-  id: string
-  data: ChallengeData
-}
-
-export const getDynamicChallenges = async (
-  db: DatabaseClient
-): Promise<DynamicChallengeInfo[]> => {
-  return await db
-    .select({ id: challenges.id, data: challenges.data })
-    .from(challenges)
-    .where(scoringKindIs(ChallengeScoringKind.DYNAMIC))
-}

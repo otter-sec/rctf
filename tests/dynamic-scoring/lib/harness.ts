@@ -36,8 +36,6 @@ const getDockerOpts = (): Docker.DockerOptions => {
 export const docker = new Docker(getDockerOpts())
 export const PROJECT = 'dynamic-scoring'
 export const RCTF_BASE_URL = 'http://127.0.0.1:8090'
-export const MOCK_BASE_URL = 'http://127.0.0.1:8091'
-export const MOCK_INTERNAL_URL = 'http://mock-backend:80'
 
 export const db: Sql = postgres({
   host: '127.0.0.1',
@@ -74,11 +72,6 @@ export const api = <T = unknown>(
   path: string,
   init?: ReqInit
 ): Promise<ApiResponse<T>> => req<T>(RCTF_BASE_URL, path, init)
-
-export const mock = <T = unknown>(
-  path: string,
-  init?: ReqInit
-): Promise<ApiResponse<T>> => req<T>(MOCK_BASE_URL, path, init)
 
 const withBearer = (init: ReqInit | undefined, token: string): ReqInit => ({
   ...(init ?? {}),
@@ -181,9 +174,7 @@ export const createDecayChallenge = async (
 }
 
 export type DynamicSourceConfig = {
-  transport: 'webhook' | 'poll'
-  url?: string
-  pollIntervalSeconds?: number
+  transport: 'webhook'
   secret: string
 }
 
@@ -235,40 +226,6 @@ export const signAndPushScores = async (
       'X-RCTF-Signature': sig,
     },
   })
-}
-
-export const setMockScores = async (
-  challengeId: string,
-  payload: ScorePayload
-): Promise<void> => {
-  const res = await mock(`/control/${challengeId}`, {
-    method: 'PUT',
-    body: payload,
-  })
-  if (res.status !== 200) {
-    throw new Error(
-      `mock setMockScores failed (${res.status}): ${JSON.stringify(res.body)}`
-    )
-  }
-}
-
-export const clearMockScores = async (): Promise<void> => {
-  const res = await mock('/control', { method: 'DELETE' })
-  if (res.status !== 200) {
-    throw new Error(`mock clear failed: ${JSON.stringify(res.body)}`)
-  }
-}
-
-export const stageMockFailure = async (
-  challengeId: string,
-  status = 503
-): Promise<void> => {
-  const res = await mock(`/control/${challengeId}/fail?status=${status}`, {
-    method: 'POST',
-  })
-  if (res.status !== 200) {
-    throw new Error(`mock fail-stage failed: ${JSON.stringify(res.body)}`)
-  }
 }
 
 export type LeaderboardEntry = {

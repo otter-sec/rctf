@@ -1,6 +1,11 @@
 import { challenges } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
-import { BadChallenge, BadSignature, ChallengeScoringKind } from '@rctf/types'
+import {
+  BadChallenge,
+  BadSignature,
+  ChallengeScoringKind,
+  DynamicScoringTransport,
+} from '@rctf/types'
 import { eq } from 'drizzle-orm'
 import type { Context, MiddlewareHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
@@ -39,6 +44,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
     !challenge ||
     !scoring ||
     scoring.kind !== ChallengeScoringKind.DYNAMIC ||
+    scoring.source?.transport !== DynamicScoringTransport.WEBHOOK ||
     !scoring.source?.secret
   ) {
     return respond(c, BadChallenge)

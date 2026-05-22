@@ -33,7 +33,7 @@ Editing `<red>points.min</red>` or `<red>points.max</red>` on a decay challenge 
 
 The points for a dynamic challenge are dictated by an **external scoring source** that publishes per-team values over time. Every team can have a different score on the same challenge, and the scores can move up or down as the source publishes updates. King-of-the-hill, attack-defense, and any scoring that lives outside rCTF fit this shape.
 
-```json title="Challenge data - dynamic (webhook)"
+```json title="Challenge data - dynamic"
 {
   "scoring": {
     "kind": "dynamic",
@@ -45,26 +45,10 @@ The points for a dynamic challenge are dictated by an **external scoring source*
 }
 ```
 
-```json title="Challenge data - dynamic (poll)"
-{
-  "scoring": {
-    "kind": "dynamic",
-    "source": {
-      "transport": "poll",
-      "url": "https://my-koth.example.com/rctf-scores",
-      "pollIntervalSeconds": 30,
-      "secret": "<shared-secret>"
-    }
-  }
-}
-```
-
 | Field | Required when | Purpose |
 | --- | --- | --- |
-| `<red>scoring.source.transport</red>` | Always | `<green>webhook</green>` (push) or `<green>poll</green>` (pull). |
+| `<red>scoring.source.transport</red>` | Always | Must be `<green>webhook</green>`. |
 | `<red>scoring.source.secret</red>` | Always | Shared HMAC secret used for webhook auth. |
-| `<red>scoring.source.url</red>` | `<green>transport: poll</green>` | HTTPS endpoint rCTF polls for the current scoreboard. |
-| `<red>scoring.source.pollIntervalSeconds</red>` | `<green>transport: poll</green>` | Seconds between polls. Floor is `<green>5</green>`, default `<green>30</green>`. |
 
 <Callout variant="warning" title="Flag submissions are rejected">
   Dynamic challenges ignore flag submissions - the external source owns the scoreboard. Leave the
@@ -73,19 +57,14 @@ The points for a dynamic challenge are dictated by an **external scoring source*
 
 ## Dynamic scoring guide
 
-Dynamic challenges talk to rCTF in one of two directions:
-
-- **Webhook** (push): your scoring backend POSTs the current per-team scores to rCTF whenever they change.
-- **Polling** (pull): rCTF periodically `GET`s an endpoint on your scoring backend and reads the scores from the response.
-
-Both transports share the same payload shape and the same `<red>upsertDynamicSolves</red>` persistence path, so a challenge that supports both can be reconfigured without code changes.
+Dynamic challenges talk to rCTF through a webhook: your scoring backend POSTs the current per-team scores to rCTF whenever they change.
 
 <Callout variant="warning" title="Stop the feed when the event ends">
   Unlike flag submissions, the dynamic-scores endpoint has no built-in event-timing gate. The
-  scoring backend can push, and rCTF can poll, both before start and after end. Cutting deliveries
-  off cleanly at end is still the operator's responsibility: every late delivery (post-end as well
-  as post-freeze) does land in the tally, so a backend that keeps publishing will keep moving the
-  scoreboard around after the CTF is supposed to be over.
+  scoring backend can push both before start and after end. Cutting deliveries off cleanly at end is
+  still the operator's responsibility: every late delivery (post-end as well as post-freeze) does
+  land in the tally, so a backend that keeps publishing will keep moving the scoreboard around after
+  the CTF is supposed to be over.
 </Callout>
 
 ### Team identifiers
@@ -100,7 +79,7 @@ Score entries for unknown team IDs are silently dropped. The challenge backend w
 
 ### Payload shape
 
-Both transports use the same JSON body:
+The webhook uses this JSON body:
 
 ```json title="Payload"
 {
@@ -119,7 +98,7 @@ Both transports use the same JSON body:
 
 Each entry is an absolute setter for that team and challenge. Teams omitted from the payload keep their existing rCTF-side score.
 
-### Webhook (push)
+### Webhook
 
 Your backend POSTs to `<route>/api/v2/challs/:id/scores</route>` whenever a team's score changes. rCTF persists the per-team values, emits the corresponding score-event rows so the historical graph stays correct, and wakes the leaderboard worker on the next pub/sub tick.
 
@@ -191,42 +170,6 @@ export async function publishScores(scores: ScoreEntry[]) {
   rCTF reads the raw request bytes for HMAC verification and only parses JSON after the signature
   matches. Sign the exact bytes you send. Adding whitespace, sorting keys, or letting a middleware
   re-serialize the body between signing and sending will break the signature.
-</Callout>
-
-### Polling (pull)
-
-When the dynamic backend can't reach rCTF directly, configure the challenge with `<green>transport: poll</green>` and an HTTPS URL. The dynamic-scores worker (see [Scaling - Instance types](/installation/scaling/#instance-types)) GETs that URL every `<red>pollIntervalSeconds</red>` and feeds the response through the same `<red>upsertDynamicSolves</red>` path the webhook uses.
-
-#### Endpoint
-
-```http
-GET /rctf-scores HTTP/1.1
-Host: my-koth.example.com
-Accept: application/json
-User-Agent: rctf-dynamic-scores/1.0
-```
-
-Return the same payload shape the webhook accepts. Each score is an absolute setter, and omitted teams keep their existing rCTF-side score.
-
-```json title="Poll response"
-{
-  "scores": [
-    { "userId": "11111111-2222-3333-4444-555555555555", "points": 1280 },
-    { "userId": "66666666-7777-8888-9999-000000000000", "points": 940 }
-  ]
-}
-```
-
-#### Reliability
-
-- Requests time out after fifteen seconds.
-- Non-2xx responses, network errors, and malformed payloads start an exponential backoff (up to five minutes) for that challenge alone. The other dynamic challenges keep polling on their own schedules.
-- The worker re-reads the challenge list every few seconds, so adding a new dynamic challenge or changing its URL is picked up without a restart.
-
-<Callout variant="note" title="Polling does not use HMAC">
-  The polling transport doesn't sign requests. Protect the endpoint with IP allowlisting, a static
-  bearer in your reverse proxy, or mTLS - the same protections you'd use for any internal scrape
-  target.
 </Callout>
 
 ## How scores reach the leaderboard

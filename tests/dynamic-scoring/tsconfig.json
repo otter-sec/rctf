@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["tests/**/*", "lib/**/*", "setup.ts", "mock-backend/**/*"]
+  "include": ["tests/**/*", "lib/**/*", "setup.ts"]
 }

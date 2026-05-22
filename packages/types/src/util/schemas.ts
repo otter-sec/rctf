@@ -44,13 +44,10 @@ export enum ChallengeScoringKind {
 
 export enum DynamicScoringTransport {
   WEBHOOK = 'webhook',
-  POLL = 'poll',
 }
 
 export const DynamicScoringSourceSchema = z.object({
-  transport: z.enum(DynamicScoringTransport),
-  url: z.optional(z.string()),
-  pollIntervalSeconds: z.optional(z.int()),
+  transport: z.literal(DynamicScoringTransport.WEBHOOK),
   secret: z.string(),
 })
 

@@ -54,8 +54,6 @@ export interface AdminBotConfig {
 
 export interface DynamicScoringSource {
   transport: DynamicScoringTransport
-  url?: string
-  pollIntervalSeconds?: number
   secret: string
 }
 

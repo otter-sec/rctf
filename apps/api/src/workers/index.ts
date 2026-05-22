@@ -101,20 +101,12 @@ const supervise = (
 }
 
 let leaderboardSupervisor: Supervised | undefined
-let dynamicScoresSupervisor: Supervised | undefined
-
-const startWorker = (log: pino.Logger, file: string, name: string) =>
-  supervise(log, `./${file}${workerExt}`, name)
 
 export const startLeaderboardWorker = (log: pino.Logger) => {
-  leaderboardSupervisor = startWorker(log, 'leaderboard', 'leaderboard-worker')
-}
-
-export const startDynamicScoresWorker = (log: pino.Logger) => {
-  dynamicScoresSupervisor = startWorker(
+  leaderboardSupervisor = supervise(
     log,
-    'dynamic-scores',
-    'dynamic-scores-worker'
+    `./leaderboard${workerExt}`,
+    'leaderboard-worker'
   )
 }
 
@@ -155,5 +147,4 @@ export const requestChallengeRecompute = (
 
 export const stopWorkers = (): void => {
   leaderboardSupervisor?.stop()
-  dynamicScoresSupervisor?.stop()
 }

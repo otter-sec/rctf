@@ -16,7 +16,7 @@ import {
 } from './providers'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
-import { startDynamicScoresWorker, startLeaderboardWorker } from './workers'
+import { startLeaderboardWorker } from './workers'
 
 const logger = pino({
   level:
@@ -115,7 +115,6 @@ const main = async () => {
 
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(logger)
-    startDynamicScoresWorker(logger)
   }
 
   if (config.instanceType === 'frontend' || config.instanceType === 'all') {

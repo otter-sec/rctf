@@ -1,4 +1,4 @@
-import { docker, MOCK_BASE_URL, PROJECT, RCTF_BASE_URL } from './lib/harness'
+import { docker, PROJECT, RCTF_BASE_URL } from './lib/harness'
 
 const restartContainers = async (): Promise<void> => {
   console.log('Getting containers...')
@@ -34,15 +34,12 @@ const restartContainers = async (): Promise<void> => {
   await Bun.sleep(5000)
 
   for (let i = 0; i < 60; i++) {
-    const checks = await Promise.all([
-      fetch(`${RCTF_BASE_URL}/api/v1/integrations/client/config`)
-        .then(r => r.ok)
-        .catch(() => false),
-      fetch(`${MOCK_BASE_URL}/health`)
-        .then(r => r.ok)
-        .catch(() => false),
-    ])
-    if (checks.every(Boolean)) {
+    const ready = await fetch(
+      `${RCTF_BASE_URL}/api/v1/integrations/client/config`
+    )
+      .then(r => r.ok)
+      .catch(() => false)
+    if (ready) {
       console.log('All services are ready')
       return
     }

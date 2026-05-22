@@ -11,7 +11,7 @@ rCTF is intentionally lightweight. A single-node deployment of the bundled conta
 
 ## Resource expectations
 
-The API process is a single Bun runtime, and the frontend is a static SvelteKit build served by nginx. The leaderboard worker and the dynamic-scores poll worker run as Bun `Worker` threads inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
+The API process is a single Bun runtime, and the frontend is a static SvelteKit build served by nginx. The leaderboard worker runs as a Bun `Worker` thread inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
 
 In practice the platform barely touches the box it runs on. [DiceCTF 2026 Quals](https://2026.ctf.dicega.ng/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **1.6 cores**, as shown below.
 
@@ -40,18 +40,17 @@ A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is wha
 
 The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs.
 
-| Value | API server | Leaderboard worker thread | Dynamic-scores poll worker |
-| --- | --- | --- | --- |
-| `<green>all</green>` (default) | Yes | Yes | Yes |
-| `<green>frontend</green>` | Yes | No | No |
-| `<green>leaderboard</green>` | No | Yes | Yes |
+| Value                          | API server | Leaderboard worker thread |
+| ------------------------------ | ---------- | ------------------------- |
+| `<green>all</green>` (default) | Yes        | Yes                       |
+| `<green>frontend</green>`      | Yes        | No                        |
+| `<green>leaderboard</green>`   | No         | Yes                       |
 
 The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
 
 ```ts title="apps/api/src/index.ts"
 if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
   startLeaderboardWorker(logger)
-  startDynamicScoresWorker(logger)
 }
 
 if (config.instanceType === 'frontend' || config.instanceType === 'all') {
@@ -64,14 +63,12 @@ if (config.instanceType === 'frontend' || config.instanceType === 'all') {
 instanceType: frontend # or 'leaderboard' or 'all'
 ```
 
-The dynamic-scores worker polls challenges that use the `<green>poll</green>` transport (see [Scoring](/admin/scoring/#polling)). It shares a process with the leaderboard worker so the two scale together.
-
 ## Horizontal scaling
 
 To scale beyond a single container:
 
 - Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads/{:dir}` mount. Switching to the S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval){:ts}` and writes results to a shared Redis cache. There's no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks inside the same process are guarded by an in-process `<red>running</red>` flag, which doesn't coordinate across processes. The dynamic-scores poll worker has the same constraint: running two instances would double-poll every dynamic-scoring endpoint.
+- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval){:ts}` and writes results to a shared Redis cache. There's no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks inside the same process are guarded by an in-process `<red>running</red>` flag, which doesn't coordinate across processes.
 
 <Callout variant='warning' title='Only one leaderboard worker at a time'>
   This includes `<green>all</green>`, which already runs a leaderboard worker. If you split into
