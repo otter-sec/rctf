@@ -49,7 +49,6 @@ describe('webhook leaderboard propagation', () => {
         { userId: bob.id, points: 1000 },
         { userId: carol.id, points: 250 },
       ],
-      mode: 'replacement',
     })
     expect(res.status).toBe(200)
     const data = (res.body as { data?: { inserted?: number } }).data
@@ -70,12 +69,12 @@ describe('webhook leaderboard propagation', () => {
       scores: [
         { userId: alice.id, points: 42 },
         { userId: bob.id, points: 84 },
+        { userId: carol.id, points: 0 },
       ],
-      mode: 'replacement',
     })
     await awaitYourScore(alice, challengeId, s => s === 42)
     await awaitYourScore(bob, challengeId, s => s === 84)
-    // carol no longer has a score for this challenge (replacement dropped her)
+    // zero clears carol's score for this challenge
     await awaitYourScore(carol, challengeId, s => s === undefined)
   })
 
@@ -85,7 +84,6 @@ describe('webhook leaderboard propagation', () => {
         { userId: alice.id, points: 7 },
         { userId: '00000000-0000-0000-0000-000000000000', points: 9999 },
       ],
-      mode: 'cumulative',
     })
     expect(res.status).toBe(200)
     const data = (

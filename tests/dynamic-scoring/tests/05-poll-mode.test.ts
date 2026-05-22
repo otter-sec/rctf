@@ -61,7 +61,6 @@ describe('poll mode', () => {
         { userId: alice.id, points: 333 },
         { userId: bob.id, points: 111 },
       ],
-      mode: 'replacement',
     })
 
     await awaitLeaderboard(
@@ -75,7 +74,6 @@ describe('poll mode', () => {
   test('changes propagate on subsequent polls', async () => {
     await setMockScores(challengeId, {
       scores: [{ userId: alice.id, points: 10 }],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       e => e.find(x => x.id === alice.id)?.score === 10,
@@ -84,7 +82,6 @@ describe('poll mode', () => {
 
     await setMockScores(challengeId, {
       scores: [{ userId: alice.id, points: 777 }],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       e => e.find(x => x.id === alice.id)?.score === 777,
@@ -98,7 +95,6 @@ describe('poll mode', () => {
 
     await setMockScores(challengeId, {
       scores: [{ userId: alice.id, points: 12 }],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       e => e.find(x => x.id === alice.id)?.score === 12,

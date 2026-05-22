@@ -62,11 +62,6 @@ export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
   }),
 ])
 
-export enum DynamicScoresMode {
-  CUMULATIVE = 'cumulative',
-  REPLACEMENT = 'replacement',
-}
-
 // solves.points is a PG `integer` (32-bit signed)
 const INT32_MIN = -2_147_483_648
 const INT32_MAX = 2_147_483_647
@@ -77,7 +72,6 @@ export const DynamicScoresPayloadSchema = z.object({
       points: z.int().check(z.gte(INT32_MIN)).check(z.lte(INT32_MAX)),
     })
   ),
-  mode: z.optional(z.enum(DynamicScoresMode)),
 })
 
 export const EndpointSchema = z.object({

@@ -38,7 +38,6 @@ describe('ban + cleanup behavior', () => {
         { userId: alice.id, points: 400 },
         { userId: bob.id, points: 600 },
       ],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       e =>

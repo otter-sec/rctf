@@ -2,7 +2,6 @@ import { config } from '@rctf/config'
 import { createDatabase, type DynamicScoringSource } from '@rctf/db'
 import {
   ChallengeScoringKind,
-  DynamicScoresMode,
   DynamicScoresPayloadSchema,
   DynamicScoringTransport,
 } from '@rctf/types'
@@ -56,9 +55,7 @@ const pollOnce = async (c: DynamicChallengeInfo): Promise<boolean> => {
       return false
     }
 
-    const r = await upsertDynamicSolves(db, c.id, parsed.data.scores, {
-      mode: parsed.data.mode ?? DynamicScoresMode.REPLACEMENT,
-    })
+    const r = await upsertDynamicSolves(db, c.id, parsed.data.scores)
 
     if (r.inserted + r.updated + r.deleted > 0) {
       forceLeaderboardUpdate(redis)

@@ -59,7 +59,6 @@ describe('mixed decay + dynamic scoring', () => {
 
     await signAndPushScores(dynamicId, SECRET, {
       scores: [{ userId: alice.id, points: 250 }],
-      mode: 'replacement',
     })
 
     await awaitLeaderboard(e => {

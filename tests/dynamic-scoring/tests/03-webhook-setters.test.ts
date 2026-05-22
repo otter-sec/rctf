@@ -11,9 +11,9 @@ import {
   type TestUser,
 } from '../lib/harness'
 
-const SECRET = 'modes-secret'
+const SECRET = 'setters-secret'
 
-describe('webhook modes (replacement vs cumulative)', () => {
+describe('webhook score setters', () => {
   let admin: TestUser
   let userA: TestUser
   let userB: TestUser
@@ -24,7 +24,7 @@ describe('webhook modes (replacement vs cumulative)', () => {
     await makeAdmin(admin)
     userA = await registerUser(testId('alice'))
     userB = await registerUser(testId('bob'))
-    challengeId = testId('chall-mode')
+    challengeId = testId('chall-setter')
     await createDynamicChallenge(admin, challengeId, {
       transport: 'webhook',
       secret: SECRET,
@@ -38,14 +38,12 @@ describe('webhook modes (replacement vs cumulative)', () => {
     await cleanupUser(admin)
   })
 
-  test('replacement: missing user gets zeroed', async () => {
-    // seed both with non-zero scores
+  test('sets listed users and leaves omitted users unchanged', async () => {
     let res = await signAndPushScores(challengeId, SECRET, {
       scores: [
         { userId: userA.id, points: 100 },
         { userId: userB.id, points: 200 },
       ],
-      mode: 'replacement',
     })
     expect(res.status).toBe(200)
 
@@ -55,27 +53,24 @@ describe('webhook modes (replacement vs cumulative)', () => {
         entries.find(e => e.id === userB.id)?.score === 200
     )
 
-    // now send a replacement that only includes userA → userB should be dropped
     res = await signAndPushScores(challengeId, SECRET, {
       scores: [{ userId: userA.id, points: 150 }],
-      mode: 'replacement',
     })
     expect(res.status).toBe(200)
 
     await awaitLeaderboard(
       entries =>
         entries.find(e => e.id === userA.id)?.score === 150 &&
-        entries.find(e => e.id === userB.id) === undefined
+        entries.find(e => e.id === userB.id)?.score === 200
     )
   })
 
-  test('cumulative: omitted user keeps their score', async () => {
+  test('zero clears a listed user score', async () => {
     await signAndPushScores(challengeId, SECRET, {
       scores: [
         { userId: userA.id, points: 50 },
         { userId: userB.id, points: 75 },
       ],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       entries =>
@@ -83,26 +78,23 @@ describe('webhook modes (replacement vs cumulative)', () => {
         entries.find(e => e.id === userB.id)?.score === 75
     )
 
-    // cumulative update touching only userA → userB unchanged
     await signAndPushScores(challengeId, SECRET, {
-      scores: [{ userId: userA.id, points: 999 }],
-      mode: 'cumulative',
+      scores: [{ userId: userB.id, points: 0 }],
     })
 
     await awaitLeaderboard(
       entries =>
-        entries.find(e => e.id === userA.id)?.score === 999 &&
-        entries.find(e => e.id === userB.id)?.score === 75
+        entries.find(e => e.id === userA.id)?.score === 50 &&
+        entries.find(e => e.id === userB.id) === undefined
     )
   })
 
-  test('default mode (omitted) behaves as replacement', async () => {
+  test('updates are absolute score setters', async () => {
     await signAndPushScores(challengeId, SECRET, {
       scores: [
         { userId: userA.id, points: 11 },
         { userId: userB.id, points: 22 },
       ],
-      mode: 'replacement',
     })
     await awaitLeaderboard(
       entries =>
@@ -110,7 +102,6 @@ describe('webhook modes (replacement vs cumulative)', () => {
         entries.find(e => e.id === userB.id)?.score === 22
     )
 
-    // omit mode entirely → server default is replacement (DynamicScoresMode.REPLACEMENT)
     await signAndPushScores(challengeId, SECRET, {
       scores: [{ userId: userA.id, points: 33 }],
     })
@@ -118,7 +109,7 @@ describe('webhook modes (replacement vs cumulative)', () => {
     await awaitLeaderboard(
       entries =>
         entries.find(e => e.id === userA.id)?.score === 33 &&
-        entries.find(e => e.id === userB.id) === undefined
+        entries.find(e => e.id === userB.id)?.score === 22
     )
   })
 })

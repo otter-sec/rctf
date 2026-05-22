@@ -8,7 +8,7 @@ import type {
 import { challenges, scoreEvents, solves, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
-import { ChallengeScoringKind, DynamicScoresMode } from '@rctf/types'
+import { ChallengeScoringKind } from '@rctf/types'
 import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import { scoreProvider } from '../providers'
 import { challengeIsPublicSql, getPrivateChallenge } from './challenges'
@@ -177,8 +177,7 @@ type DynamicScoreEntry = { userId: string; points: number }
 export const upsertDynamicSolves = async (
   db: DatabaseClient,
   challengeId: string,
-  entries: DynamicScoreEntry[],
-  opts: { mode: DynamicScoresMode } = { mode: DynamicScoresMode.REPLACEMENT }
+  entries: DynamicScoreEntry[]
 ): Promise<{ inserted: number; updated: number; deleted: number }> => {
   return await db.transaction(async tx => {
     await lockChallenge(tx, challengeId)
@@ -198,7 +197,6 @@ export const upsertDynamicSolves = async (
     )
 
     const byUser = new Map(existing.map(r => [r.userid, r]))
-    const requestedIds = new Set(dedupedEntries.map(e => e.userId))
 
     const events: NewScoreEvent[] = []
     const inserts: Solve[] = []
@@ -242,16 +240,6 @@ export const upsertDynamicSolves = async (
 
       updates.push({ id: prior.id, points: entry.points })
       addEvent(entry.userId, entry.points - prior.points)
-    }
-
-    if (opts.mode === DynamicScoresMode.REPLACEMENT) {
-      for (const row of existing) {
-        if (requestedIds.has(row.userid)) {
-          continue
-        }
-        deletes.push(row.id)
-        addEvent(row.userid, -row.points)
-      }
     }
 
     // silently drop inserts whose userid doesn't exist - otherwise

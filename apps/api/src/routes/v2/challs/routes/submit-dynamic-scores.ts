@@ -1,19 +1,15 @@
-import { DynamicScoresMode, SubmitDynamicScoresRouteV2 } from '@rctf/types'
+import { SubmitDynamicScoresRouteV2 } from '@rctf/types'
 import { upsertDynamicSolves } from '../../../../services/solve-points'
 import { forceLeaderboardUpdate } from '../../../../workers'
 import challsGroup from '../group'
 
 challsGroup.route(SubmitDynamicScoresRouteV2, async ({ res, ctx, body }) => {
   const challenge = ctx.var.dynamicChallenge!
-  const mode = body.mode ?? DynamicScoresMode.REPLACEMENT
 
   const result = await upsertDynamicSolves(
     ctx.var.db,
     challenge.id,
-    body.scores,
-    {
-      mode,
-    }
+    body.scores
   )
 
   forceLeaderboardUpdate(ctx.var.redis)

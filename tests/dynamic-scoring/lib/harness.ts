@@ -213,7 +213,6 @@ export const createDynamicChallenge = async (
 export type ScoreEntry = { userId: string; points: number }
 export type ScorePayload = {
   scores: ScoreEntry[]
-  mode?: 'replacement' | 'cumulative'
 }
 
 export const signAndPushScores = async (

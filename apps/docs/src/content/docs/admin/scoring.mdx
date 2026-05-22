@@ -107,8 +107,7 @@ Both transports use the same JSON body:
   "scores": [
     { "userId": "11111111-2222-3333-4444-555555555555", "points": 1280 },
     { "userId": "66666666-7777-8888-9999-000000000000", "points": 940 }
-  ],
-  "mode": "replacement"
+  ]
 }
 ```
 
@@ -116,12 +115,9 @@ Both transports use the same JSON body:
 | --- | --- | --- | --- |
 | `<red>scores</red>` | `array{:ts}` | Yes | Per-team score entries. |
 | `<red>scores[].userId</red>` | `string{:ts}` | Yes | rCTF team UUID. |
-| `<red>scores[].points</red>` | `int{:ts}` | Yes | Signed integer. `<green>0</green>` and negative values are accepted. |
-| `<red>mode</red>` | `string{:ts}` | No | `<green>replacement</green>` (default) or `<green>cumulative</green>`. |
+| `<red>scores[].points</red>` | `int{:ts}` | Yes | Signed integer. `<green>0</green>` clears that team's score for the challenge; negative values are accepted. |
 
-`<green>replacement</green>` (the default) upserts the listed teams and **zeroes out (deletes) every other team's score** for that challenge. Use it when your snapshot represents the complete current scoreboard.
-
-`<green>cumulative</green>` upserts only the teams listed in `<red>scores</red>`. Teams omitted from the payload keep their existing rCTF-side score for the challenge. Use it when you're sending incremental deltas.
+Each entry is an absolute setter for that team and challenge. Teams omitted from the payload keep their existing rCTF-side score.
 
 ### Webhook (push)
 
@@ -136,7 +132,7 @@ Content-Type: application/json
 X-RCTF-Timestamp: <unix-milliseconds>
 X-RCTF-Signature: sha256=<hex>
 
-{"scores":[{"userId":"…","points":1280}],"mode":"replacement"}
+{"scores":[{"userId":"…","points":1280}]}
 ```
 
 | Header | Description |
@@ -166,11 +162,8 @@ const SECRET = process.env.RCTF_DYNAMIC_SECRET!
 
 type ScoreEntry = { userId: string; points: number }
 
-export async function publishScores(
-  scores: ScoreEntry[],
-  mode: 'cumulative' | 'replacement' = 'replacement'
-) {
-  const body = JSON.stringify({ scores, mode })
+export async function publishScores(scores: ScoreEntry[]) {
+  const body = JSON.stringify({ scores })
   const timestamp = Date.now().toString()
   const signature =
     'sha256=' + createHmac('sha256', SECRET).update(`${timestamp}.${body}`).digest('hex')
@@ -213,7 +206,7 @@ Accept: application/json
 User-Agent: rctf-dynamic-scores/1.0
 ```
 
-Return the same payload shape the webhook accepts. As with the webhook, the default mode is `<green>replacement</green>` - the worker treats each GET as a fresh snapshot of the entire scoreboard. Set `<red>mode</red>: <green>cumulative</green>` in the response body if you'd rather send deltas.
+Return the same payload shape the webhook accepts. Each score is an absolute setter, and omitted teams keep their existing rCTF-side score.
 
 ```json title="Poll response"
 {

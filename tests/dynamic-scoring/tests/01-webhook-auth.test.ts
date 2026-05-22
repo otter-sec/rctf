@@ -36,7 +36,6 @@ describe('webhook auth', () => {
   test('valid signature -> goodDynamicScores', async () => {
     const res = await signAndPushScores(challengeId, SECRET, {
       scores: [],
-      mode: 'cumulative',
     })
     expect(res.status).toBe(200)
     expect((res.body as { kind?: string }).kind).toBe('goodDynamicScores')
