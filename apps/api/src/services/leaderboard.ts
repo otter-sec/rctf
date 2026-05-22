@@ -763,21 +763,6 @@ export const createCachedLeaderboardCalculator = (redis?: TypedRedis) => {
   }
 }
 
-const dropDynamicContrib = (
-  state: LeaderboardRuntimeState,
-  userInfo: ExtendedUserInfo,
-  challengeId: string
-): void => {
-  userInfo.solveContribs.delete(challengeId)
-  userInfo.solvedChallengeIds = userInfo.solvedChallengeIds.filter(
-    id => id !== challengeId
-  )
-  const challengeInfo = state.challengeInfos.get(challengeId)
-  if (challengeInfo && challengeInfo.solves > 0) {
-    challengeInfo.solves--
-  }
-}
-
 type RefreshResult = { changed: boolean; needsRebuild: boolean }
 
 const refreshDynamicContribs = async (
@@ -830,9 +815,7 @@ const refreshDynamicContribs = async (
       }
 
       if (dbPoints === undefined) {
-        dropDynamicContrib(state, userInfo, challengeId)
-        changed = true
-        continue
+        return { changed: true, needsRebuild: true }
       }
 
       if (memPoints === undefined) {
