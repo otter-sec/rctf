@@ -48,6 +48,12 @@ export const scoreEvents = pgTable(
       'btree',
       table.challengeid.asc().op('text_ops')
     ),
+    index('score_events_challengeid_event_at_id_index').using(
+      'btree',
+      table.challengeid.asc().op('text_ops'),
+      table.eventAt.asc().op('timestamptz_ops'),
+      table.id.asc().op('text_ops')
+    ),
     foreignKey({
       columns: [table.userid],
       foreignColumns: [users.id],

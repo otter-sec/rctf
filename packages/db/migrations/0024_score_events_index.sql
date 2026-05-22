@@ -1,0 +1,1 @@
+CREATE INDEX "score_events_challengeid_event_at_id_index" ON "score_events" USING btree ("challengeid" text_ops,"event_at" timestamptz_ops,"id" text_ops);

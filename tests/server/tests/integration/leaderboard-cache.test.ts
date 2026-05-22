@@ -1,7 +1,9 @@
 import { config } from '@rctf/config'
 import {
   challenges,
+  ChallengeScoringKind,
   createDatabase,
+  DynamicScoringTransport,
   settings,
   solves,
   users,
@@ -87,6 +89,8 @@ const insertSolve = async (params: {
   challengeId: string
   userId: string
   createdAt?: string
+  points?: number
+  pointsUpdatedAt?: string
 }) => {
   const db = getDb()
   const id = crypto.randomUUID()
@@ -96,6 +100,10 @@ const insertSolve = async (params: {
     challengeid: params.challengeId,
     userid: params.userId,
     createdat: params.createdAt ?? new Date().toISOString(),
+    ...(params.points !== undefined ? { points: params.points } : {}),
+    ...(params.pointsUpdatedAt !== undefined
+      ? { pointsUpdatedAt: params.pointsUpdatedAt }
+      : {}),
   })
 
   cleanups.push(async () => {
@@ -193,6 +201,49 @@ describe('cached leaderboard calculator', () => {
     expect(second.changed).toBe(true)
     expect(second.calculated.challengeInfos.get(challenge.id)?.solves).toBe(2)
     expect(second.calculated.users).toHaveLength(2)
+  })
+
+  test('refreshes dynamic point updates without full rebuild', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const challenge = await insertChallenge({
+      flag: '',
+      scoring: {
+        kind: ChallengeScoringKind.DYNAMIC,
+        source: {
+          transport: DynamicScoringTransport.WEBHOOK,
+          secret: crypto.randomUUID(),
+        },
+      },
+    })
+
+    const solve = await insertSolve({
+      challengeId: challenge.id,
+      userId: user.id,
+      createdAt: isoAt(T0),
+      points: 10,
+      pointsUpdatedAt: isoAt(T0),
+    })
+
+    const calc = createCachedLeaderboardCalculator()
+    const first = await calc(db)
+    expect(first.recomputedFromScratch).toBe(true)
+    expect(first.calculated.users.find(u => u.id === user.id)?.score).toBe(10)
+
+    await db
+      .update(solves)
+      .set({ points: 25, pointsUpdatedAt: isoAt(T1) })
+      .where(eq(solves.id, solve.id))
+
+    const second = await calc(db)
+    expect(second.recomputedFromScratch).toBe(false)
+    expect(second.changed).toBe(true)
+    expect(second.calculated.users.find(u => u.id === user.id)?.score).toBe(25)
+
+    const third = await calc(db)
+    expect(third.recomputedFromScratch).toBe(false)
+    expect(third.changed).toBe(false)
+    expect(third.calculated.users.find(u => u.id === user.id)?.score).toBe(25)
   })
 
   test('rebuilds from scratch when provider identity changes', async () => {

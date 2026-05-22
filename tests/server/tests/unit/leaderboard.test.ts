@@ -26,7 +26,37 @@ const createMockRedis = () => {
       const hash = hashStore.get(key)
       return hash?.get(field) ?? null
     }),
-    rctfSetGraph: mock(async (..._args: string[]) => {}),
+    hset: mock(async (key: string, ...args: string[]) => {
+      let hash = hashStore.get(key)
+      if (!hash) {
+        hash = new Map()
+        hashStore.set(key, hash)
+      }
+      for (let i = 0; i < args.length; i += 2) {
+        hash.set(args[i]!, args[i + 1]!)
+      }
+      return args.length / 2
+    }),
+    rctfSetGraph: mock(
+      async (
+        updateKey: string,
+        dataKey: string,
+        lastSample: string,
+        ...args: string[]
+      ) => {
+        store.set(updateKey, lastSample)
+        hashStore.delete(dataKey)
+        if (args.length === 0) {
+          return
+        }
+
+        const hash = new Map<string, string>()
+        for (let i = 0; i < args.length; i += 2) {
+          hash.set(args[i]!, args[i + 1]!)
+        }
+        hashStore.set(dataKey, hash)
+      }
+    ),
     rctfRateLimit: mock(
       async (_key: string, _limit: string, _ttlMs: string) => 0
     ),
@@ -36,7 +66,44 @@ const createMockRedis = () => {
   }
 }
 
-const createMockDb = () => {
+const createMockDb = (
+  scoreEventRows:
+    | Array<{
+        id: string
+        userid: string | null
+        pointsDelta: number
+        eventAt: string
+      }>
+    | Array<
+        Array<{
+          id: string
+          userid: string | null
+          pointsDelta: number
+          eventAt: string
+        }>
+      > = []
+) => {
+  const scoreEventQueue = Array.isArray(scoreEventRows[0])
+    ? [
+        ...(scoreEventRows as Array<
+          Array<{
+            id: string
+            userid: string | null
+            pointsDelta: number
+            eventAt: string
+          }>
+        >),
+      ]
+    : null
+  const getScoreEventRows = () =>
+    scoreEventQueue
+      ? (scoreEventQueue.shift() ?? [])
+      : (scoreEventRows as Array<{
+          id: string
+          userid: string | null
+          pointsDelta: number
+          eventAt: string
+        }>)
   const executedQueries: any[] = []
   const txMock = {
     execute: mock(async (query: any) => {
@@ -55,6 +122,13 @@ const createMockDb = () => {
 
   return {
     executedQueries,
+    select: mock((_selection: any) => ({
+      from: mock((_table: any) => ({
+        where: mock((_condition: any) => ({
+          orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
+        })),
+      })),
+    })),
     transaction: mock(async (fn: (tx: any) => Promise<void>) => {
       await fn(txMock)
     }),
@@ -62,6 +136,19 @@ const createMockDb = () => {
 }
 
 describe('leaderboard cache', () => {
+  const challengeInfos: CalculatedLeaderboard['challengeInfos'] = new Map([
+    [
+      'challenge1',
+      {
+        score: 100,
+        solves: 1,
+        name: 'Challenge One',
+        category: 'misc',
+        sortWeight: null,
+      },
+    ],
+  ])
+
   describe('getGraphForEntries', () => {
     test('returns graph entries for the provided users and preserves order', async () => {
       const redis = createMockRedis()
@@ -138,9 +225,22 @@ describe('leaderboard cache', () => {
   })
 
   describe('cacheLeaderboardAndGraph', () => {
-    test('caches graph data when samples exist', async () => {
+    test('caches graph data from score events', async () => {
       const redis = createMockRedis()
-      const db = createMockDb()
+      const db = createMockDb([
+        {
+          id: 'evt1',
+          userid: 'user1',
+          pointsDelta: 50,
+          eventAt: new Date(1699990000).toISOString(),
+        },
+        {
+          id: 'evt2',
+          userid: 'user1',
+          pointsDelta: 50,
+          eventAt: new Date(1699995000).toISOString(),
+        },
+      ])
       const data: CalculatedLeaderboard = {
         users: [
           {
@@ -153,7 +253,79 @@ describe('leaderboard cache', () => {
             lastTiebreakEligibleSolve: 1699995000,
           },
         ],
-        challengeInfos: new Map(),
+        challengeInfos,
+
+        samples: [
+          {
+            time: 1111,
+            userScores: [{ id: 'user1', score: 5 }],
+          },
+          {
+            time: 2222,
+            userScores: [{ id: 'user1', score: 10 }],
+          },
+        ],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.rctfSetGraph).toHaveBeenCalled()
+      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+        'graph-update',
+        'graph-data',
+        expect.any(String),
+        'user1',
+        '1699990000,50,1699995000,100'
+      )
+      expect(db.transaction).toHaveBeenCalled()
+    })
+
+    test('clears cached graph when no score events exist', async () => {
+      const redis = createMockRedis()
+      const db = createMockDb()
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 100,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+        'graph-update',
+        'graph-data',
+        expect.any(String)
+      )
+      expect(db.transaction).toHaveBeenCalled()
+    })
+
+    test('falls back to sample graph when score events are not backfilled', async () => {
+      const redis = createMockRedis()
+      const db = createMockDb()
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 100,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
 
         samples: [
           {
@@ -169,34 +341,14 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalled()
-      expect(db.transaction).toHaveBeenCalled()
-    })
-
-    test('does not cache graph when no samples', async () => {
-      const redis = createMockRedis()
-      const db = createMockDb()
-      const data: CalculatedLeaderboard = {
-        users: [
-          {
-            id: 'user1',
-            name: 'User One',
-            division: 'open',
-            score: 100,
-            hadAnySolve: true,
-            lastSolve: 1699995000,
-            lastTiebreakEligibleSolve: undefined,
-          },
-        ],
-        challengeInfos: new Map(),
-
-        samples: [],
-      }
-
-      await cacheLeaderboardAndGraph(db, redis, data)
-
-      expect(redis.rctfSetGraph).not.toHaveBeenCalled()
-      expect(db.transaction).toHaveBeenCalled()
+      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+        'graph-update',
+        'graph-data',
+        '1699995000',
+        'user1',
+        '1699990000,50,1699995000,100'
+      )
+      expect(redis.store.get('graph-source')).toBe('samples')
     })
 
     test('handles empty users list', async () => {
@@ -204,7 +356,7 @@ describe('leaderboard cache', () => {
       const db = createMockDb()
       const data: CalculatedLeaderboard = {
         users: [],
-        challengeInfos: new Map(),
+        challengeInfos,
 
         samples: [],
       }
@@ -214,12 +366,56 @@ describe('leaderboard cache', () => {
       expect(db.transaction).toHaveBeenCalled()
     })
 
-    test('aggregates graph points per user across samples', async () => {
+    test('aggregates graph points per user across score events', async () => {
       const redis = createMockRedis()
-      const db = createMockDb()
+      const db = createMockDb([
+        {
+          id: 'evt1',
+          userid: 'user1',
+          pointsDelta: 30,
+          eventAt: new Date(1699990000).toISOString(),
+        },
+        {
+          id: 'evt2',
+          userid: 'user2',
+          pointsDelta: 20,
+          eventAt: new Date(1699990000).toISOString(),
+        },
+        {
+          id: 'evt3',
+          userid: 'user1',
+          pointsDelta: 40,
+          eventAt: new Date(1699995000).toISOString(),
+        },
+        {
+          id: 'evt4',
+          userid: 'user2',
+          pointsDelta: 30,
+          eventAt: new Date(1699995000).toISOString(),
+        },
+      ])
       const data: CalculatedLeaderboard = {
-        users: [],
-        challengeInfos: new Map(),
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 70,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+          {
+            id: 'user2',
+            name: 'User Two',
+            division: 'open',
+            score: 50,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
 
         samples: [
           {
@@ -241,7 +437,63 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalled()
+      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+        'graph-update',
+        'graph-data',
+        expect.any(String),
+        'user1',
+        '1699990000,30,1699995000,70',
+        'user2',
+        '1699990000,20,1699995000,50'
+      )
+    })
+
+    test('appends new score events without resetting graph data', async () => {
+      const redis = createMockRedis()
+      const db = createMockDb([
+        [
+          {
+            id: 'evt1',
+            userid: 'user1',
+            pointsDelta: 50,
+            eventAt: new Date(1699990000).toISOString(),
+          },
+        ],
+        [
+          {
+            id: 'evt2',
+            userid: 'user1',
+            pointsDelta: 25,
+            eventAt: new Date(1699995000).toISOString(),
+          },
+        ],
+      ])
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 75,
+            hadAnySolve: true,
+            lastSolve: 1699995000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
+      expect(redis.hset).toHaveBeenCalledWith(
+        'graph-data',
+        'user1',
+        '1699990000,50,1699995000,75'
+      )
     })
   })
 })

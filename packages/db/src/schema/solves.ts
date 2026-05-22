@@ -1,4 +1,3 @@
-import { sql } from 'drizzle-orm'
 import {
   foreignKey,
   index,
@@ -47,9 +46,11 @@ export const solves = pgTable(
       table.userid.asc().nullsLast().op('text_ops'),
       table.challengeid.asc().nullsLast().op('text_ops')
     ),
-    index('solves_points_updated_at_index')
-      .using('btree', table.pointsUpdatedAt.asc().op('timestamptz_ops'))
-      .where(sql`points > 0`),
+    index('solves_points_updated_at_index').using(
+      'btree',
+      table.pointsUpdatedAt.asc().op('timestamptz_ops'),
+      table.id.asc().op('text_ops')
+    ),
     foreignKey({
       columns: [table.userid],
       foreignColumns: [users.id],
