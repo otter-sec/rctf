@@ -11,7 +11,7 @@
 
 rCTF is a platform for hosting cybersecurity [capture-the-flag](<https://en.wikipedia.org/wiki/Capture_the_flag_(cybersecurity)>) competitions.
 
-rCTF is designed for indestructible performance and uniform composition. The platform is intentionally minimal at its core, ships as a single bundled deployment, and exposes every major integration as a swappable provider behind one configuration contract. Organizers start with what their event needs and add what they want through configuration, rather than modification.
+At its core, rCTF is designed for (1) indestructible performance and (2) uniform composition. The platform is intentionally minimal, ships as a single bundled deployment, and exposes every major integration as a swapable provider behind one configuration contract. Organizers start with what their event needs and add what they want through configuration, rather than modification.
 
 To get started with rCTF, visit the [documentation](https://rctf.osec.io). If you need help with rCTF, [start a discussion](https://github.com/otter-sec/rctf/discussions).
 
@@ -153,7 +153,7 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    bun dev
    ```
 
-For frontend work, run `bun dev:mock` to migrate, seed deterministic mock teams/challenges/solves, and start the dev server. Use `bun dev:seed` to reseed without restarting.
+   For frontend work, run `bun dev:mock` to seed the database with a reproducible set of mock teams, challenges, and solves.
 
 [Docs]: https://rctf.osec.io
 [Docs Badge]: https://img.shields.io/badge/docs-rctf.osec.io-ca3c41?style=flat-square
