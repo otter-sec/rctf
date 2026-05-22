@@ -10,14 +10,23 @@ import {
   type ChallengeData,
   type EditableSettings,
 } from '@rctf/db'
-import type { ScoreContext } from '@rctf/scoring/base'
+import type { ScoreContext, ScoreProvider } from '@rctf/scoring/base'
 import ClassicProvider from '@rctf/scoring/classic'
-import { afterEach, describe, expect, test } from 'bun:test'
+import JammyProvider from '@rctf/scoring/jammy'
+import LegacyProvider from '@rctf/scoring/legacy'
+import { afterEach, describe, expect, mock, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
+import type { PinoLogger } from 'hono-pino'
+import type { TypedRedis } from '../../../../apps/api/src/cache/scripts'
+import { scoreProvider } from '../../../../apps/api/src/providers'
 import {
   calculateLeaderboard,
   createCachedLeaderboardCalculator,
 } from '../../../../apps/api/src/services/leaderboard'
+import {
+  applyChallengeConfigChange,
+  applyDecayPointsForAllChallenges,
+} from '../../../../apps/api/src/services/solve-points'
 
 const getDb = () => createDatabase(config.database.sql).db
 
@@ -136,6 +145,28 @@ const classicScore = (solvesCount: number, min: number, max: number) =>
     eventEndTime: 0,
     firstSolveTime: solvesCount > 0 ? 0 : null,
   } satisfies ScoreContext)
+
+const replaceScoreProvider = (provider: ScoreProvider) => {
+  const { revision, requiredFields, calculate } = scoreProvider
+  Object.assign(scoreProvider, {
+    revision: provider.revision,
+    requiredFields: provider.requiredFields,
+    calculate: provider.calculate.bind(provider),
+  })
+  cleanups.push(async () => {
+    Object.assign(scoreProvider, { revision, requiredFields, calculate })
+  })
+}
+
+const getSolvePoints = async (solveId: string): Promise<number> => {
+  const db = getDb()
+  const row = await db
+    .select({ points: solves.points })
+    .from(solves)
+    .where(eq(solves.id, solveId))
+    .limit(1)
+  return row[0]!.points
+}
 
 const T0 = config.startTime + 1_800_000 * 2
 const T1 = T0 + 1000
@@ -671,6 +702,99 @@ describe('score calculation correctness', () => {
       classicScore(1, 50, 1000)
     )
     expect(result.users[0]?.score).toBe(classicScore(1, 50, 1000))
+  })
+})
+
+describe('persistent decay point recomputes', () => {
+  test('all-challenge recompute updates unrelated challenges when maxSolves changes', async () => {
+    replaceScoreProvider(new LegacyProvider({}))
+    const db = getDb()
+    const userA = await insertUser()
+    const userB = await insertUser()
+    const userC = await insertUser()
+    const chWithMaxSolves = await insertChallenge()
+    const chAffectedByMaxSolves = await insertChallenge()
+
+    await insertSolve({
+      challengeId: chWithMaxSolves.id,
+      userId: userA.id,
+      createdAt: isoAt(T0),
+    })
+    await insertSolve({
+      challengeId: chWithMaxSolves.id,
+      userId: userB.id,
+      createdAt: isoAt(T1),
+    })
+    const affectedSolve = await insertSolve({
+      challengeId: chAffectedByMaxSolves.id,
+      userId: userA.id,
+      createdAt: isoAt(T2),
+    })
+
+    await applyDecayPointsForAllChallenges(db)
+    const before = await getSolvePoints(affectedSolve.id)
+
+    await insertSolve({
+      challengeId: chWithMaxSolves.id,
+      userId: userC.id,
+      createdAt: isoAt(T3),
+    })
+    await applyDecayPointsForAllChallenges(db, 'flag')
+
+    expect(await getSolvePoints(affectedSolve.id)).not.toBe(before)
+  })
+
+  test('applyChallengeConfigChange reprices existing solves when points change', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const challenge = await insertChallenge({ points: { min: 50, max: 500 } })
+    const solve = await insertSolve({
+      challengeId: challenge.id,
+      userId: user.id,
+    })
+
+    await applyDecayPointsForAllChallenges(db)
+    const before = await getSolvePoints(solve.id)
+    expect(before).toBe(classicScore(1, 50, 500))
+
+    await db
+      .update(challenges)
+      .set({ data: { ...challenge.data, points: { min: 50, max: 1000 } } })
+      .where(eq(challenges.id, challenge.id))
+
+    const publish = mock(async () => 0 as 0 | 1)
+    const redis = { publish } as unknown as TypedRedis
+    const logger = { error: mock(() => {}) } as unknown as PinoLogger
+
+    await applyChallengeConfigChange(db, redis, logger, challenge.id)
+
+    expect(await getSolvePoints(solve.id)).toBe(classicScore(1, 50, 1000))
+    expect(publish).toHaveBeenCalled()
+  })
+
+  test('all-challenge recompute refreshes persisted points after timing changes', async () => {
+    replaceScoreProvider(new JammyProvider({}))
+    const db = getDb()
+    const base = config.startTime + 86_400_000
+    const user = await insertUser()
+    const challenge = await insertChallenge()
+    const solve = await insertSolve({
+      challengeId: challenge.id,
+      userId: user.id,
+      createdAt: isoAt(base + 5_000),
+    })
+
+    await setSettingsOverride({ startTime: base, endTime: base + 10_000 })
+    await applyDecayPointsForAllChallenges(db)
+    const before = await getSolvePoints(solve.id)
+
+    await setSettingsOverride({
+      startTime: base + 1_000,
+      endTime: base + 10_000,
+    })
+    await applyDecayPointsForAllChallenges(db, 'algo-change')
+
+    expect(await getSolvePoints(solve.id)).not.toBe(before)
   })
 })
 

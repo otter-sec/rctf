@@ -2,13 +2,20 @@ import { config } from '@rctf/config'
 import { createDatabase } from '@rctf/db'
 import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
+import { getMaxSolveCount } from '../services/challenges'
 import { createCachedLeaderboardCalculator } from '../services/leaderboard'
-import { applyDecayPointsForChallenge } from '../services/solve-points'
+import {
+  applyDecayPointsForAllChallenges,
+  applyDecayPointsForChallenge,
+  recomputeSourceCanChangeMaxSolves,
+} from '../services/solve-points'
 import { createRedis } from '../util/redis'
 import {
   LEADERBOARD_FORCE_UPDATE_CHANNEL,
   LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
+  type DecayRecomputeRequest,
 } from './index'
+import { createRecomputeQueue } from './leaderboard-recompute'
 import { createLeaderboardTickRunner } from './leaderboard-runner'
 
 const logger = pino().child({ module: 'leaderboard-worker' })
@@ -27,36 +34,25 @@ const RECOMPUTE_DEBOUNCE_MS = Math.max(
   500,
   Math.min(config.leaderboard.updateInterval, 5000)
 )
-const pendingRecomputes = new Set<string>()
-let recomputeTimer: ReturnType<typeof setTimeout> | undefined
 
-const flushRecomputes = async (): Promise<void> => {
-  const ids = Array.from(pendingRecomputes)
-  pendingRecomputes.clear()
-  await Promise.all(
-    ids.map(challengeId =>
-      applyDecayPointsForChallenge(db, challengeId).catch(err =>
-        logger.error({ err, challengeId }, 'challenge recompute failed')
-      )
-    )
-  )
-  if (ids.length > 0) {
-    await tick({ forceCache: true })
-  }
-}
+const shouldTrackMaxSolves = recomputeSourceCanChangeMaxSolves('flag')
+const getTrackedMaxSolves = shouldTrackMaxSolves
+  ? () => getMaxSolveCount(db)
+  : undefined
+const initialMaxSolves = getTrackedMaxSolves
+  ? await getTrackedMaxSolves()
+  : undefined
 
-const scheduleRecompute = (challengeId: string): void => {
-  pendingRecomputes.add(challengeId)
-  if (recomputeTimer) {
-    return
-  }
-  recomputeTimer = setTimeout(() => {
-    recomputeTimer = undefined
-    flushRecomputes().catch(err =>
-      logger.error({ err }, 'flushRecomputes failed')
-    )
-  }, RECOMPUTE_DEBOUNCE_MS)
-}
+const queue = createRecomputeQueue({
+  debounceMs: RECOMPUTE_DEBOUNCE_MS,
+  applyForChallenge: (id, source, maxSolves) =>
+    applyDecayPointsForChallenge(db, id, source, maxSolves),
+  applyForAll: source => applyDecayPointsForAllChallenges(db, source),
+  getMaxSolves: getTrackedMaxSolves,
+  initialMaxSolves,
+  onFlushed: () => tick({ forceCache: true }),
+  logger,
+})
 
 const subscriber = await createRedis({ lua: false })
 await subscriber.subscribe(
@@ -69,7 +65,7 @@ subscriber.on('message', (channel, message) => {
     case LEADERBOARD_FORCE_UPDATE_CHANNEL:
       return tick({ forceCache: true })
     case LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL:
-      return scheduleRecompute(message)
+      return queue.schedule(JSON.parse(message))
   }
 })
 
@@ -82,7 +78,7 @@ onmessage = (ev: any) => {
     tick({ forceCache: true })
     return
   }
-  if (ev?.data?.type === 'recompute-challenge') {
-    scheduleRecompute(ev.data.challengeId)
+  if (ev?.data?.type === 'recompute-decay') {
+    queue.schedule(ev.data as DecayRecomputeRequest)
   }
 }

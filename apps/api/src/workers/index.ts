@@ -1,5 +1,6 @@
 import pino from 'pino'
 import type { TypedRedis } from '../cache/scripts'
+import type { RecomputeSource } from '../services/solve-points'
 
 const workerExt = process.env.WORKER_EXTENSION ?? '.ts'
 const logger = pino().child({ module: 'workers' })
@@ -126,6 +127,21 @@ const notifyLeaderboard = (
   })
 }
 
+export type DecayRecomputeRequest =
+  | { scope: 'all'; source?: RecomputeSource }
+  | { scope: 'challenge'; challengeId: string; source?: RecomputeSource }
+
+const publishRecompute = (
+  redis: TypedRedis | undefined,
+  request: DecayRecomputeRequest
+): void =>
+  notifyLeaderboard(
+    { type: 'recompute-decay', ...request },
+    redis,
+    LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
+    JSON.stringify(request)
+  )
+
 export const forceLeaderboardUpdate = (redis?: TypedRedis): void =>
   notifyLeaderboard(
     { type: 'force-update' },
@@ -136,14 +152,14 @@ export const forceLeaderboardUpdate = (redis?: TypedRedis): void =>
 
 export const requestChallengeRecompute = (
   redis: TypedRedis | undefined,
-  challengeId: string
-): void =>
-  notifyLeaderboard(
-    { type: 'recompute-challenge', challengeId },
-    redis,
-    LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
-    challengeId
-  )
+  challengeId: string,
+  source: RecomputeSource = 'decay-recompute'
+): void => publishRecompute(redis, { scope: 'challenge', challengeId, source })
+
+export const requestAllChallengesRecompute = (
+  redis: TypedRedis | undefined,
+  source: RecomputeSource = 'decay-recompute'
+): void => publishRecompute(redis, { scope: 'all', source })
 
 export const stopWorkers = (): void => {
   leaderboardSupervisor?.stop()

@@ -31,7 +31,6 @@ import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
-import { scoreEvent, scoringKindOf } from './solve-points'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
@@ -211,6 +210,67 @@ export const getChallenge = async (
     .then(takeUnique)
 }
 
+export const lockChallenge = (tx: DatabaseTx, challengeId: string) =>
+  tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
+  )
+
+export const scoringKindOf = (data: {
+  scoring?: { kind: ChallengeScoringKind } | null
+}): ChallengeScoringKind => data.scoring?.kind ?? ChallengeScoringKind.DECAY
+
+export type DecayChallenge = Pick<Challenge, 'id' | 'data'>
+const isDecayKind = sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${ChallengeScoringKind.DECAY}`
+
+export const getDecayChallenge = (
+  tx: DatabaseTx,
+  challengeId: string
+): Promise<DecayChallenge | undefined> =>
+  tx
+    .select({ id: challenges.id, data: challenges.data })
+    .from(challenges)
+    .where(and(eq(challenges.id, challengeId), isDecayKind))
+    .limit(1)
+    .then(takeUnique)
+
+export const getDecayChallenges = (tx: DatabaseTx): Promise<DecayChallenge[]> =>
+  tx
+    .select({ id: challenges.id, data: challenges.data })
+    .from(challenges)
+    .where(isDecayKind)
+    .orderBy(asc(challenges.id))
+
+export const countNonBannedSolvesForChallenge = async (
+  db: DatabaseClient | DatabaseTx,
+  challengeId: string
+): Promise<number> => {
+  const row = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(solves)
+    .innerJoin(users, eq(users.id, solves.userid))
+    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
+    .then(takeUnique)
+  return row?.count ?? 0
+}
+
+export const getMaxSolveCount = async (
+  db: DatabaseClient | DatabaseTx
+): Promise<number> => {
+  const perChallenge = db
+    .select({ count: sql<number>`COUNT(*)::int`.as('count') })
+    .from(solves)
+    .innerJoin(users, eq(users.id, solves.userid))
+    .where(eq(users.banned, false))
+    .groupBy(solves.challengeid)
+    .as('per_challenge')
+
+  const row = await db
+    .select({ max: sql<number>`COALESCE(MAX(${perChallenge.count}), 0)::int` })
+    .from(perChallenge)
+    .then(takeUnique)
+  return row?.max ?? 0
+}
+
 export const createSolveAndGetBloodNumber = async (
   db: DatabaseClient,
   params: {
@@ -226,21 +286,12 @@ export const createSolveAndGetBloodNumber = async (
   // the leaderboard worker picks up the recompute request and reprices
   // every solver of this challenge on its next tick
   return await db.transaction(async tx => {
-    await tx.execute(
-      sql`SELECT pg_advisory_xact_lock(hashtextextended(${params.challengeId}, 0))`
-    )
+    await lockChallenge(tx, params.challengeId)
 
-    const result = await tx
-      .execute<{ solve_count: number }>(
-        sql`
-        SELECT COUNT(*)::int AS solve_count
-        FROM solves
-        INNER JOIN "users" ON "users".id = solves.userid
-        WHERE solves.challengeid = ${params.challengeId}
-          AND "users".banned = false
-      `
-      )
-      .then(takeUnique)
+    const priorSolveCount = await countNonBannedSolvesForChallenge(
+      tx,
+      params.challengeId
+    )
 
     await tx.insert(solves).values({
       id: solveId,
@@ -264,7 +315,7 @@ export const createSolveAndGetBloodNumber = async (
       createdAt: new Date().toISOString(),
     })
 
-    return result!.solve_count + 1
+    return priorSolveCount + 1
   })
 }
 
@@ -709,7 +760,7 @@ export const submitFlag = async (
       })
   }
 
-  requestChallengeRecompute(redis, params.challengeId)
+  requestChallengeRecompute(redis, params.challengeId, 'flag')
   forceLeaderboardUpdate(redis)
   return res.goodFlag()
 }
@@ -734,9 +785,13 @@ export const deleteSolve = async (
 
     const events = removed
       .filter(s => (s.points ?? 0) !== 0)
-      .map(s =>
-        scoreEvent(params.challengeId, params.userId, -s.points, 'delete')
-      )
+      .map(s => ({
+        id: crypto.randomUUID(),
+        challengeid: params.challengeId,
+        userid: params.userId,
+        pointsDelta: -s.points,
+        source: 'delete' as const,
+      }))
     if (events.length > 0) {
       await tx.insert(scoreEvents).values(events)
     }

@@ -9,6 +9,7 @@ import {
   GoodChallengeSolves,
   GoodChallengeSolvesV2,
   GoodChallengeUpdate,
+  GoodChallengeUpdateV2,
   GoodFlag,
   GoodLeaderboard,
   Permissions,
@@ -16,6 +17,7 @@ import {
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import type { Hono } from 'hono'
+import { applyDecayPointsForAllChallenges } from '../../../../apps/api/src/services/solve-points'
 import { getApp, request } from '../../app'
 import {
   expectResponse,
@@ -100,6 +102,139 @@ describe('challenges service', () => {
         await db.delete(solves).where(eq(solves.challengeid, challengeId))
         await db.delete(challenges).where(eq(challenges.id, challengeId))
       })
+    })
+  })
+
+  describe('update-challenge scoring-config change', () => {
+    const getSolvePoints = async (
+      db: ReturnType<typeof createDatabase>['db'],
+      solveId: string
+    ): Promise<number> => {
+      const [row] = await db
+        .select({ points: solves.points })
+        .from(solves)
+        .where(eq(solves.id, solveId))
+        .limit(1)
+      return row!.points
+    }
+
+    test('v1 PUT reprices existing solves when points config changes', async () => {
+      const adminPerms = Permissions.challsRead | Permissions.challsWrite
+      const { user: admin, cleanup: adminCleanup } =
+        await generateRealTestUser(adminPerms)
+      const { user: solver, cleanup: solverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(adminCleanup, solverCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      const solveId = crypto.randomUUID()
+      await db.insert(solves).values({
+        id: solveId,
+        challengeid: challenge.id,
+        userid: solver.id,
+        createdat: new Date().toISOString(),
+      })
+
+      await applyDecayPointsForAllChallenges(db)
+      const before = await getSolvePoints(db, solveId)
+
+      const authToken = await generateAuthToken(admin.id)
+      const res = await request(app, `/api/v1/admin/challs/${challenge.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          data: { points: { min: 100, max: 1000 } },
+        }),
+      })
+      await expectResponse(res, GoodChallengeUpdate)
+
+      const after = await getSolvePoints(db, solveId)
+      expect(after).not.toBe(before)
+    })
+
+    test('v2 PUT reprices existing solves when points config changes', async () => {
+      const adminPerms = Permissions.challsRead | Permissions.challsWrite
+      const { user: admin, cleanup: adminCleanup } =
+        await generateRealTestUser(adminPerms)
+      const { user: solver, cleanup: solverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(adminCleanup, solverCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      const solveId = crypto.randomUUID()
+      await db.insert(solves).values({
+        id: solveId,
+        challengeid: challenge.id,
+        userid: solver.id,
+        createdat: new Date().toISOString(),
+      })
+
+      await applyDecayPointsForAllChallenges(db)
+      const before = await getSolvePoints(db, solveId)
+
+      const authToken = await generateAuthToken(admin.id)
+      const res = await request(app, `/api/v2/admin/challs/${challenge.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          data: { points: { min: 100, max: 1000 } },
+        }),
+      })
+      await expectResponse(res, GoodChallengeUpdateV2)
+
+      const after = await getSolvePoints(db, solveId)
+      expect(after).not.toBe(before)
+    })
+
+    test('v2 PUT leaves solves untouched when only metadata changes', async () => {
+      const adminPerms = Permissions.challsRead | Permissions.challsWrite
+      const { user: admin, cleanup: adminCleanup } =
+        await generateRealTestUser(adminPerms)
+      const { user: solver, cleanup: solverCleanup } =
+        await generateRealTestUser()
+      createdUserCleanups.push(adminCleanup, solverCleanup)
+
+      const { challenge, cleanup: challengeCleanup } = await generateChallenge()
+      createdChallengeCleanups.push(challengeCleanup)
+
+      const db = createDatabase(config.database.sql).db
+      const solveId = crypto.randomUUID()
+      await db.insert(solves).values({
+        id: solveId,
+        challengeid: challenge.id,
+        userid: solver.id,
+        createdat: new Date().toISOString(),
+      })
+
+      await applyDecayPointsForAllChallenges(db)
+      const before = await getSolvePoints(db, solveId)
+
+      const authToken = await generateAuthToken(admin.id)
+      const res = await request(app, `/api/v2/admin/challs/${challenge.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          data: { description: 'unrelated metadata edit' },
+        }),
+      })
+      await expectResponse(res, GoodChallengeUpdateV2)
+
+      expect(await getSolvePoints(db, solveId)).toBe(before)
     })
   })
 

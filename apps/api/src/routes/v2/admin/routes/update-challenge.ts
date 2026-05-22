@@ -7,13 +7,10 @@ import {
   upsertChallenge,
 } from '../../../../services/challenges'
 import {
-  applyDecayPointsForChallenge,
+  applyChallengeConfigChange,
   scoringConfigChanged,
 } from '../../../../services/solve-points'
-import {
-  forceLeaderboardUpdate,
-  requestChallengeRecompute,
-} from '../../../../workers'
+import { forceLeaderboardUpdate } from '../../../../workers'
 import adminGroup from '../group'
 
 const sha256Hex = (data: string): string => {
@@ -94,17 +91,12 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   }
 
   if (before && scoringConfigChanged(before.data, updated.data)) {
-    await applyDecayPointsForChallenge(
+    await applyChallengeConfigChange(
       ctx.var.db,
-      params.id,
-      'algo-change'
-    ).catch(err =>
-      ctx.var.logger.error(
-        { err, challengeId: params.id },
-        'failed to recompute points after challenge update'
-      )
+      ctx.var.redis,
+      ctx.var.logger,
+      params.id
     )
-    requestChallengeRecompute(ctx.var.redis, params.id)
   }
 
   forceLeaderboardUpdate(ctx.var.redis)

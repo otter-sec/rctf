@@ -32,7 +32,11 @@ import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
-import { emitBanScoreEvents, emitUserDeletionScoreEvents } from './solve-points'
+import {
+  emitBanScoreEvents,
+  emitUserDeletionScoreEvents,
+  type RecomputeSource,
+} from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -596,14 +600,15 @@ export type AdminUserMutationResult =
 const recomputeUserChallenges = async (
   db: DatabaseClient,
   redis: TypedRedis,
-  userId: string
+  userId: string,
+  source: RecomputeSource
 ): Promise<void> => {
   const affected = await db
     .selectDistinct({ challengeid: solves.challengeid })
     .from(solves)
     .where(eq(solves.userid, userId))
   for (const { challengeid } of affected) {
-    requestChallengeRecompute(redis, challengeid)
+    requestChallengeRecompute(redis, challengeid, source)
   }
 }
 
@@ -644,7 +649,7 @@ export const updateAdminUser = async (
 
   if (bannedChanged) {
     await emitBanScoreEvents(db, id, willBeBanned ? 'ban' : 'unban')
-    await recomputeUserChallenges(db, redis, id)
+    await recomputeUserChallenges(db, redis, id, 'ban')
   }
 
   await invalidateUserCache(redis, id)
@@ -667,7 +672,7 @@ export const deleteAdminUser = async (
   }
 
   await emitUserDeletionScoreEvents(db, id)
-  await recomputeUserChallenges(db, redis, id)
+  await recomputeUserChallenges(db, redis, id, 'delete')
   await db.delete(users).where(eq(users.id, id))
 
   await invalidateUserCache(redis, id)

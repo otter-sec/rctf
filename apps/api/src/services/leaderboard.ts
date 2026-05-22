@@ -16,9 +16,12 @@ import {
 } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
-import { challengeIsPublicSql, getSolvesAndUserInfo } from './challenges'
+import {
+  challengeIsPublicSql,
+  getSolvesAndUserInfo,
+  scoringKindOf,
+} from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
-import { scoringKindOf } from './solve-points'
 import { userNameSearchFilter } from './users'
 
 const numberOfBloods = 3

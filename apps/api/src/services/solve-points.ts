@@ -6,17 +6,20 @@ import type {
   Solve,
 } from '@rctf/db'
 import { scoreEvents, solves, users } from '@rctf/db'
-import { takeUnique } from '@rctf/db/util'
 import type { ScoreContext } from '@rctf/scoring/base'
-import { ChallengeScoringKind } from '@rctf/types'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { asc, eq, inArray, sql } from 'drizzle-orm'
+import type { PinoLogger } from 'hono-pino'
+import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
-import { getPrivateChallenge } from './challenges'
+import { requestChallengeRecompute } from '../workers'
+import {
+  getDecayChallenge,
+  getDecayChallenges,
+  getMaxSolveCount,
+  lockChallenge,
+  type DecayChallenge,
+} from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
-
-export const scoringKindOf = (data: {
-  scoring?: { kind: ChallengeScoringKind } | null
-}): ChallengeScoringKind => data.scoring?.kind ?? ChallengeScoringKind.DECAY
 
 export const scoringConfigChanged = (
   before: ChallengeData | undefined,
@@ -43,7 +46,17 @@ const buildDecayScoreContext = (
   firstSolveTime,
 })
 
-export type RecomputeSource = 'decay-recompute' | 'algo-change' | 'flag'
+export type RecomputeSource =
+  | 'decay-recompute'
+  | 'algo-change'
+  | 'flag'
+  | 'ban'
+  | 'delete'
+
+export const recomputeSourceCanChangeMaxSolves = (
+  source: RecomputeSource
+): boolean =>
+  source !== 'algo-change' && scoreProvider.requiredFields.includes('maxSolves')
 
 type NewScoreEvent = {
   id: string
@@ -53,12 +66,7 @@ type NewScoreEvent = {
   source: ScoreEventSource
 }
 
-const lockChallenge = (tx: DatabaseTx, challengeId: string) =>
-  tx.execute(
-    sql`SELECT pg_advisory_xact_lock(hashtextextended(${challengeId}, 0))`
-  )
-
-export const scoreEvent = (
+const scoreEvent = (
   challengeid: string,
   userid: string,
   pointsDelta: number,
@@ -71,91 +79,67 @@ export const scoreEvent = (
   source,
 })
 
+const requiresMaxSolves = (): boolean =>
+  scoreProvider.requiredFields.includes('maxSolves')
+
 const recomputeDecayWithinTx = async (
   tx: DatabaseTx,
-  challengeId: string,
+  challenge: DecayChallenge,
   source: RecomputeSource,
-  timing: CompetitionTiming
+  timing: CompetitionTiming,
+  maxSolves: number
 ): Promise<{ updatedCount: number; newPoints: number }> => {
-  const challenge = await getPrivateChallenge(tx, challengeId)
-  if (!challenge) {
-    return { updatedCount: 0, newPoints: 0 }
-  }
-
-  const kind = challenge.data.scoring?.kind ?? ChallengeScoringKind.DECAY
-  if (kind !== ChallengeScoringKind.DECAY) {
-    return { updatedCount: 0, newPoints: 0 }
-  }
-
-  const existingRows = await tx
+  const rows = await tx
     .select({
       id: solves.id,
       userid: solves.userid,
       createdat: solves.createdat,
       points: solves.points,
+      banned: users.banned,
     })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
-    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
+    .where(eq(solves.challengeid, challenge.id))
     .orderBy(asc(solves.createdat))
 
-  const firstSolveTime =
-    existingRows.length > 0
-      ? new Date(existingRows[0]!.createdat).valueOf()
-      : null
-
-  const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
-    ? ((
-        await tx
-          .select({
-            max: sql<number>`COALESCE(MAX(c.solve_count), 0)::int`,
-          })
-          .from(
-            sql`(
-              SELECT s.challengeid, COUNT(*)::int AS solve_count
-              FROM ${solves} s
-              INNER JOIN ${users} u ON u.id = s.userid
-              WHERE u.banned = false
-              GROUP BY s.challengeid
-            ) c`
-          )
-          .then(takeUnique)
-      )?.max ?? 0)
-    : 0
+  const activeRows = rows.filter(row => !row.banned)
+  const firstSolveTime = activeRows[0]
+    ? new Date(activeRows[0].createdat).valueOf()
+    : null
 
   const newPoints = scoreProvider.calculate(
     buildDecayScoreContext(
       challenge.data,
-      existingRows.length,
+      activeRows.length,
       maxSolves,
       firstSolveTime,
       timing
     )
   )
 
-  const changedRows = existingRows.filter(row => row.points !== newPoints)
+  const changedRows = rows.filter(row => row.points !== newPoints)
   if (changedRows.length === 0) {
     return { updatedCount: 0, newPoints }
   }
 
-  await Promise.all([
-    tx
-      .update(solves)
-      .set({ points: newPoints, pointsUpdatedAt: sql`NOW()` })
-      .where(
-        inArray(
-          solves.id,
-          changedRows.map(row => row.id)
-        )
-      ),
-    tx
-      .insert(scoreEvents)
-      .values(
-        changedRows.map(row =>
-          scoreEvent(challengeId, row.userid, newPoints - row.points, source)
-        )
-      ),
-  ])
+  await tx
+    .update(solves)
+    .set({ points: newPoints, pointsUpdatedAt: sql`NOW()` })
+    .where(
+      inArray(
+        solves.id,
+        changedRows.map(row => row.id)
+      )
+    )
+
+  const events = changedRows
+    .filter(row => !row.banned)
+    .map(row =>
+      scoreEvent(challenge.id, row.userid, newPoints - row.points, source)
+    )
+  if (events.length > 0) {
+    await tx.insert(scoreEvents).values(events)
+  }
 
   return { updatedCount: changedRows.length, newPoints }
 }
@@ -163,12 +147,64 @@ const recomputeDecayWithinTx = async (
 export const applyDecayPointsForChallenge = async (
   db: DatabaseClient,
   challengeId: string,
-  source: RecomputeSource = 'decay-recompute'
+  source: RecomputeSource = 'decay-recompute',
+  maxSolvesOverride?: number
 ): Promise<{ updatedCount: number; newPoints: number }> => {
   const timing = await getCompetitionTiming(db)
   return await db.transaction(async tx => {
     await lockChallenge(tx, challengeId)
-    return recomputeDecayWithinTx(tx, challengeId, source, timing)
+    const challenge = await getDecayChallenge(tx, challengeId)
+    if (!challenge) {
+      return { updatedCount: 0, newPoints: 0 }
+    }
+    const maxSolves =
+      maxSolvesOverride ??
+      (requiresMaxSolves() ? await getMaxSolveCount(tx) : 0)
+    return recomputeDecayWithinTx(tx, challenge, source, timing, maxSolves)
+  })
+}
+
+export const applyChallengeConfigChange = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  log: PinoLogger,
+  challengeId: string
+): Promise<void> => {
+  await applyDecayPointsForChallenge(db, challengeId, 'algo-change').catch(
+    err =>
+      log.error(
+        { err, challengeId },
+        'failed to recompute points after challenge config change'
+      )
+  )
+  requestChallengeRecompute(redis, challengeId, 'algo-change')
+}
+
+export const applyDecayPointsForAllChallenges = async (
+  db: DatabaseClient,
+  source: RecomputeSource = 'decay-recompute'
+): Promise<{ updatedCount: number; challengeCount: number }> => {
+  const timing = await getCompetitionTiming(db)
+  return await db.transaction(async tx => {
+    const decayChallenges = await getDecayChallenges(tx)
+    for (const challenge of decayChallenges) {
+      await lockChallenge(tx, challenge.id)
+    }
+
+    const maxSolves = requiresMaxSolves() ? await getMaxSolveCount(tx) : 0
+    let updatedCount = 0
+    for (const challenge of decayChallenges) {
+      const { updatedCount: count } = await recomputeDecayWithinTx(
+        tx,
+        challenge,
+        source,
+        timing,
+        maxSolves
+      )
+      updatedCount += count
+    }
+
+    return { updatedCount, challengeCount: decayChallenges.length }
   })
 }
 
