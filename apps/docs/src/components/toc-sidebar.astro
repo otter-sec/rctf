@@ -2,7 +2,7 @@
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { renderDescription } from '@/lib/render-description'
 import { renderTocHeading } from '@/lib/toc-heading'
-import { cn, getHeadingMargin } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 
 interface Props {
@@ -59,7 +59,9 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
           {visible.map(heading => (
             <li
               data-toc-item={heading.slug}
-              class={cn('text-foreground/60 text-sm', getHeadingMargin(heading.depth))}
+              data-toc-depth
+              style={`--toc-depth: ${heading.depth}`}
+              class="text-foreground/60 text-sm"
             >
               <a
                 href={`#${heading.slug}`}

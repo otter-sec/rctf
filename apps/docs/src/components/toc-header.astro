@@ -2,7 +2,6 @@
 import Icon from '@/components/icon.astro'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { renderTocHeading } from '@/lib/toc-heading'
-import { cn, getHeadingMargin } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 
 type Props = {
@@ -75,11 +74,9 @@ const visible = headings.filter(h => h.depth >= minDepth && h.depth <= maxDepth)
             <ul class="flex list-none flex-col gap-y-2 px-4 pb-4" id="mobile-table-of-contents">
               {visible.map(heading => (
                 <li
-                  class={cn(
-                    'px-4 pl-6 text-sm',
-                    getHeadingMargin(heading.depth),
-                    'text-foreground/60'
-                  )}
+                  data-toc-depth
+                  style={`--toc-depth: ${heading.depth}`}
+                  class="text-foreground/60 px-4 pl-6 text-sm"
                 >
                   <a
                     href={`#${heading.slug}`}

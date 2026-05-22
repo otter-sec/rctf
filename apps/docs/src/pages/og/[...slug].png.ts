@@ -1,9 +1,11 @@
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
+import { parseCodeAnnotations, stripCodeAnnotationTags } from '@/lib/code-annotations'
 import { docSlugFromId, getAllDocs, type Doc } from '@/lib/docs'
-import { darkTheme, lightTheme } from '@/lib/shiki-themes'
+import { lightTheme } from '@/lib/shiki-themes'
 import type { MetaFile } from '@/types'
 import { ImageResponse } from '@vercel/og'
+import type { ElementContent } from 'hast'
 import React from 'react'
 import { codeToTokens } from 'shiki'
 import type { BundledLanguage } from 'shiki'
@@ -19,9 +21,19 @@ const cascadiaCodeRegular = readFile(
   resolve(process.cwd(), 'src/assets/fonts/CascadiaCode-Regular.ttf')
 )
 const wordmarkLight = readFile(resolve(process.cwd(), 'src/assets/wordmark-light.svg'), 'utf8')
-const wordmarkDark = readFile(resolve(process.cwd(), 'src/assets/wordmark-dark.svg'), 'utf8')
 const INLINE_CODE_PATTERN = /`([^`]+?)(?:\{:([a-z0-9]+)\})?`/g
 const TRACKING_TIGHT = '-0.025em'
+
+// Mirrors --inline-tone-* in apps/docs/src/styles/global.css (light theme).
+const TONE_HEX: Record<string, string> = {
+  red: '#be2f2c',
+  green: '#566d35',
+  orange: '#a64930',
+  yellow: '#806000',
+  blue: '#4c6690',
+  magenta: '#9039c9',
+  cyan: '#256f74',
+}
 
 const metaModules = {
   ...(import.meta.glob('/src/content/docs/_meta.ts', {
@@ -47,12 +59,12 @@ interface Props {
 
 export async function GET({ props }: { props: Props }) {
   const { doc } = props
-  const theme = resolveTheme(doc.id)
+  const theme = resolveTheme()
   const [title, description, wordmark, outfitRegularData, outfitMediumData, cascadiaCodeData] =
     await Promise.all([
       renderInlineText(doc.data.title, theme),
       doc.data.description ? renderInlineText(doc.data.description, theme) : null,
-      svgDataUrl(theme.dark ? wordmarkDark : wordmarkLight),
+      svgDataUrl(wordmarkLight),
       outfitRegular,
       outfitMedium,
       cascadiaCodeRegular,
@@ -91,9 +103,10 @@ export async function GET({ props }: { props: Props }) {
           src: wordmark,
           alt: 'rCTF',
           style: {
-            width: 164,
-            height: 33,
-            objectFit: 'contain',
+            // SVG viewBox is 1020x308; preserve aspect ratio so the logo
+            // hugs the top-left padding instead of being centered in a wider box.
+            width: 220,
+            height: 66,
           },
         }),
         React.createElement(
@@ -200,7 +213,7 @@ async function renderInlineText(
   theme: OgTheme
 ): Promise<{ plain: string; nodes: React.ReactNode[] }> {
   const nodes: React.ReactNode[] = []
-  const plain = text.replace(INLINE_CODE_PATTERN, (_, code) => code)
+  const plain = stripCodeAnnotationTags(text.replace(INLINE_CODE_PATTERN, (_, code) => code))
   const re = new RegExp(INLINE_CODE_PATTERN.source, 'g')
   let lastIndex = 0
   let index = 0
@@ -209,7 +222,7 @@ async function renderInlineText(
   while ((match = re.exec(text)) !== null) {
     const [full, code, lang] = match
     if (match.index > lastIndex) {
-      pushTextNodes(nodes, text.slice(lastIndex, match.index), index++)
+      pushAnnotatedTextNodes(nodes, text.slice(lastIndex, match.index), index++, theme)
     }
 
     nodes.push(
@@ -225,19 +238,88 @@ async function renderInlineText(
   }
 
   if (lastIndex < text.length) {
-    pushTextNodes(nodes, text.slice(lastIndex), index++)
+    pushAnnotatedTextNodes(nodes, text.slice(lastIndex), index++, theme)
   }
 
   return { plain, nodes }
 }
 
-function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number): void {
-  const parts = text.match(/\S+\s*/g) ?? []
-  parts.forEach((part, index) => {
-    const word = part.trimEnd()
-    const trailingSpace = word.length < part.length
+function pushAnnotatedTextNodes(
+  nodes: React.ReactNode[],
+  text: string,
+  baseIndex: number,
+  theme: OgTheme
+): void {
+  const annotated = parseCodeAnnotations(text)
+  if (!annotated) {
+    pushTextNodes(nodes, text, baseIndex)
+    return
+  }
+  pushHastNodes(nodes, annotated, theme, `ann-${baseIndex}`, true)
+}
 
+function pushHastNodes(
+  out: React.ReactNode[],
+  hastNodes: ElementContent[],
+  theme: OgTheme,
+  keyPrefix: string,
+  topLevel: boolean
+): void {
+  hastNodes.forEach((node, i) => {
+    const key = `${keyPrefix}-${i}`
+    if (node.type === 'text') {
+      // Top-level text is laid out as a flex item next to pills; satori
+      // collapses its leading whitespace, so route through pushTextNodes
+      // which encodes whitespace as margins. Inside a pill (whiteSpace:
+      // pre) the raw string preserves spaces.
+      if (topLevel) pushTextNodes(out, node.value, key)
+      else out.push(node.value)
+      return
+    }
+    if (node.type !== 'element') return
+
+    const classes = Array.isArray(node.properties?.className)
+      ? (node.properties.className as string[])
+      : []
+    const tones = classes.filter(c => c.startsWith('is-')).map(c => c.slice(3))
+
+    const style: React.CSSProperties = { letterSpacing: TRACKING_TIGHT }
+
+    const colorTone = tones.find(t => TONE_HEX[t])
+    if (colorTone) style.color = TONE_HEX[colorTone]
+    else if (tones.includes('black')) style.color = theme.muted
+    else if (tones.includes('white')) style.color = theme.foreground
+
+    if (tones.includes('dim') || tones.includes('dimmed')) style.opacity = 0.5
+
+    if (classes.includes('code-route') || classes.includes('code-response')) {
+      Object.assign(style, {
+        display: 'flex',
+        alignItems: 'baseline',
+        background: theme.codeBackground,
+        color: style.color ?? theme.codeForeground,
+        borderRadius: 5,
+        padding: '0.03em 0.22em',
+        fontFamily: 'Cascadia Code',
+        fontSize: '0.88em',
+        whiteSpace: 'pre',
+      })
+    }
+
+    const children: React.ReactNode[] = []
+    pushHastNodes(children, node.children as ElementContent[], theme, key, false)
+
+    out.push(React.createElement('span', { key, style }, ...children))
+  })
+}
+
+function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number | string): void {
+  const parts = text.match(/\s*\S+\s*/g) ?? []
+  parts.forEach((part, index) => {
+    const word = part.trim()
     if (!word) return
+    const leading = /^\s/.test(part)
+    const trailing = /\s$/.test(part)
 
     nodes.push(
       React.createElement(
@@ -246,7 +328,8 @@ function pushTextNodes(nodes: React.ReactNode[], text: string, baseIndex: number
           key: `text-${baseIndex}-${index}`,
           style: {
             letterSpacing: TRACKING_TIGHT,
-            marginRight: trailingSpace ? '0.25em' : 0,
+            marginLeft: leading ? '0.25em' : 0,
+            marginRight: trailing ? '0.25em' : 0,
           },
         },
         word
@@ -282,7 +365,7 @@ async function renderInlineCode(
 
   const highlighted = await codeToTokens(code, {
     lang: lang as BundledLanguage,
-    theme: theme.dark ? darkTheme : lightTheme,
+    theme: lightTheme,
   })
 
   return React.createElement(
@@ -305,31 +388,15 @@ async function renderInlineCode(
   )
 }
 
-function resolveTheme(id: string) {
-  const dark = id === 'v1' || id.startsWith('v1/')
-
-  if (dark) {
-    return {
-      dark,
-      background: '#191928',
-      foreground: '#ced7f3',
-      muted: '#a6adc8',
-      subtle: '#a6adc8',
-      border: '#303142',
-      codeForeground: '#ced7f3',
-      codeBackground: '#252535',
-    }
-  }
-
+function resolveTheme() {
   return {
-    dark,
-    background: '#f1f1f7',
-    foreground: '#4b5169',
-    muted: '#6f7487',
-    subtle: '#6f7487',
-    border: '#dcddeb',
-    codeForeground: '#4b5169',
-    codeBackground: '#e7e7f1',
+    background: '#ffffff',
+    foreground: '#171717',
+    muted: '#737373',
+    subtle: '#737373',
+    border: '#ececec',
+    codeForeground: '#171717',
+    codeBackground: '#f0f0f0',
   }
 }
 

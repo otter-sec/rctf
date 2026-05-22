@@ -15,6 +15,10 @@
 
 <svelte:head>
   <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content={data.clientConfig.ctfName} />
   <title>{data.clientConfig.ctfName}</title>
 
   <meta name="mobile-web-app-capable" content="yes" />

@@ -49,3 +49,7 @@
 [data-toc-text] [data-long-pill='true'] {
   @apply wrap-anywhere;
 }
+
+[data-toc-depth] {
+  margin-inline-start: calc(max(var(--toc-depth, 2) - 2, 0) * 1rem);
+}

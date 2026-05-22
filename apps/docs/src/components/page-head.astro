@@ -19,7 +19,7 @@ const {
 } = Astro.props
 const pageTitle = title === SITE.title ? SITE.title : `${title} | ${SITE.title}`
 const canonical = new URL(canonicalHref ?? Astro.url.pathname, Astro.site)
-const image = new URL(imageProp ?? withBase('/static/1200x630.png'), Astro.site)
+const image = new URL(imageProp ?? withBase('/static/twitter-card.png'), Astro.site)
 ---
 
 <title>{pageTitle}</title>
