@@ -79,7 +79,10 @@ export const getFullUser = async (
         id: item.solve.challengeid,
         createdAt: new Date(item.solve.createdat).getTime(),
         solves: challScore?.solveCount ?? null,
-        points: challScore?.score ?? null,
+        points:
+          item.solve.source === 'feed'
+            ? (item.solve.points ?? null)
+            : (challScore?.score ?? null),
         bloodIndex: item.bloodIndex,
       }
     }),

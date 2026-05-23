@@ -1,7 +1,6 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
-import { and, asc, inArray, sql } from 'drizzle-orm'
-import { cursorAfter, type RowCursor } from '../lib/db-filters'
+import { and, asc, gte, inArray, sql } from 'drizzle-orm'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -161,6 +160,11 @@ type ScoreEventGraphRow = {
   eventAt: string
 }
 
+type ScoreEventGraphCursor = {
+  time: string
+  ids: string[]
+}
+
 type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
 
 const lastPackedScore = (packed: string | null): number =>
@@ -281,7 +285,7 @@ const commitGraphMeta = (
   redis: TypedRedis,
   fingerprint: string,
   source: typeof graphSourceEvents | typeof graphSourceSamples,
-  cursor: RowCursor | null
+  cursor: ScoreEventGraphCursor | null
 ): Promise<unknown> =>
   Promise.all([
     redis.set(keyGraphFingerprint, fingerprint),
@@ -298,13 +302,37 @@ const buildGraphFingerprint = (
     challenges: [...challengeIds].sort(),
   })
 
+const buildGraphCursor = (
+  rows: ScoreEventGraphRow[],
+  previous?: ScoreEventGraphCursor
+): ScoreEventGraphCursor | null => {
+  const lastRow = rows[rows.length - 1]
+  if (!lastRow) {
+    return previous ?? null
+  }
+
+  const ids = new Set<string>()
+  if (previous?.time === lastRow.eventAt) {
+    for (const id of previous.ids) {
+      ids.add(id)
+    }
+  }
+  for (const row of rows) {
+    if (row.eventAt === lastRow.eventAt) {
+      ids.add(row.id)
+    }
+  }
+
+  return { time: lastRow.eventAt, ids: [...ids].sort() }
+}
+
 const getScoreEventGraphRows = async (
   db: DatabaseClient,
   userIds: string[],
   challengeIds: string[],
-  cursor: RowCursor | null = null
+  cursor: ScoreEventGraphCursor | null = null
 ): Promise<ScoreEventGraphRow[]> => {
-  return await db
+  const rows = await db
     .select({
       id: scoreEvents.id,
       userid: scoreEvents.userid,
@@ -316,10 +344,19 @@ const getScoreEventGraphRows = async (
       and(
         inArray(scoreEvents.userid, userIds),
         inArray(scoreEvents.challengeid, challengeIds),
-        cursorAfter(scoreEvents.eventAt, scoreEvents.id, cursor)
+        cursor ? gte(scoreEvents.eventAt, cursor.time) : undefined
       )
     )
     .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
+
+  if (!cursor) {
+    return rows
+  }
+
+  const processedAtCursor = new Set(cursor.ids)
+  return rows.filter(
+    row => row.eventAt !== cursor.time || !processedAtCursor.has(row.id)
+  )
 }
 
 const loadGraphSeed = async (
@@ -347,7 +384,7 @@ const cacheGraphIncremental = async (
   userIds: string[],
   challengeIds: string[],
   fingerprint: string,
-  cursor: RowCursor
+  cursor: ScoreEventGraphCursor
 ): Promise<void> => {
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds, cursor)
   if (rows.length === 0) {
@@ -358,8 +395,7 @@ const cacheGraphIncremental = async (
 
   const seed = await loadGraphSeed(redis, rows)
   const fold = foldScoreEvents(rows, seed)
-  const lastRow = rows[rows.length - 1]!
-  const nextCursor = JSON.stringify({ time: lastRow.eventAt, id: lastRow.id })
+  const nextCursor = buildGraphCursor(rows, cursor)!
 
   await redis.rctfMergeGraph(
     keyGraphUpdate,
@@ -369,7 +405,7 @@ const cacheGraphIncremental = async (
     keyGraphSource,
     fold.lastSample.toString(),
     fingerprint,
-    nextCursor,
+    JSON.stringify(nextCursor),
     graphSourceEvents,
     ...packGraphUpdates(fold.userPoints)
   )
@@ -410,22 +446,23 @@ const cacheGraph = async (
       userIds,
       challengeIds,
       fingerprint,
-      JSON.parse(cachedCursorRaw) as RowCursor
+      JSON.parse(cachedCursorRaw) as ScoreEventGraphCursor
     )
     return
   }
 
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds)
   if (rows.length > 0) {
-    const lastRow = rows[rows.length - 1]!
     await setGraphSnapshot(
       redis,
       buildGraphFromEventsWithSampleBaseline(data, rows)
     )
-    await commitGraphMeta(redis, fingerprint, graphSourceEvents, {
-      time: lastRow.eventAt,
-      id: lastRow.id,
-    })
+    await commitGraphMeta(
+      redis,
+      fingerprint,
+      graphSourceEvents,
+      buildGraphCursor(rows)
+    )
     return
   }
 

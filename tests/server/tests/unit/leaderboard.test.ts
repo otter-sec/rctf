@@ -561,7 +561,7 @@ describe('leaderboard cache', () => {
         JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
         JSON.stringify({
           time: new Date(1699995000).toISOString(),
-          id: 'evt2',
+          ids: ['evt2'],
         }),
         'events',
         'user1',
@@ -571,8 +571,64 @@ describe('leaderboard cache', () => {
         '1699990000,50,1699995000,75'
       )
       expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
-        id: 'evt2',
         time: new Date(1699995000).toISOString(),
+        ids: ['evt2'],
+      })
+    })
+
+    test('dedupes replayed cursor-timestamp events while accepting new lower-id events', async () => {
+      const redis = createMockRedis()
+      const eventTime = new Date(1699990000).toISOString()
+      const db = createMockDb([
+        [
+          {
+            id: 'evt-z',
+            userid: 'user1',
+            pointsDelta: 50,
+            eventAt: eventTime,
+          },
+        ],
+        [
+          {
+            id: 'evt-a',
+            userid: 'user1',
+            pointsDelta: 25,
+            eventAt: eventTime,
+          },
+          {
+            id: 'evt-z',
+            userid: 'user1',
+            pointsDelta: 50,
+            eventAt: eventTime,
+          },
+        ],
+      ])
+      const data: CalculatedLeaderboard = {
+        users: [
+          {
+            id: 'user1',
+            name: 'User One',
+            division: 'open',
+            score: 75,
+            hadAnySolve: true,
+            lastSolve: 1699990000,
+            lastTiebreakEligibleSolve: undefined,
+          },
+        ],
+        challengeInfos,
+
+        samples: [],
+      }
+
+      await cacheLeaderboardAndGraph(db, redis, data)
+      await cacheLeaderboardAndGraph(db, redis, data)
+
+      expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+        '1699990000,75'
+      )
+      expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
+        time: eventTime,
+        ids: ['evt-a', 'evt-z'],
       })
     })
   })

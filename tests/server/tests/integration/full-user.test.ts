@@ -1,5 +1,13 @@
 import { config } from '@rctf/config'
-import { createDatabase, users } from '@rctf/db'
+import {
+  challenges,
+  ChallengeScoringKind,
+  createDatabase,
+  DynamicScoringTransport,
+  solves,
+  users,
+  type ChallengeData,
+} from '@rctf/db'
 import {
   BadUnknownUser,
   GoodFlag,
@@ -211,6 +219,61 @@ describe('full-user service', () => {
         expect(solve.id).toBe(challenge.id)
       } finally {
         await challengeCleanup()
+        await userCleanup()
+      }
+    })
+
+    test('returns dynamic feed points for profile solves', async () => {
+      const { user, cleanup: userCleanup } = await generateRealTestUser()
+      const db = getDb()
+      const challengeId = crypto.randomUUID()
+      const solveId = crypto.randomUUID()
+      const dynamicPoints = 375
+      const data: ChallengeData = {
+        name: crypto.randomUUID(),
+        description: '',
+        category: 'dynamic',
+        author: 'test',
+        files: [],
+        flag: '',
+        tiebreakEligible: true,
+        points: { min: 0, max: 0 },
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: 'profile-test-secret',
+          },
+        },
+      }
+
+      try {
+        await db.insert(challenges).values({ id: challengeId, data })
+        await db.insert(solves).values({
+          id: solveId,
+          challengeid: challengeId,
+          userid: user.id,
+          createdat: new Date().toISOString(),
+          source: 'feed',
+          points: dynamicPoints,
+          pointsUpdatedAt: new Date().toISOString(),
+        })
+
+        const authToken = await generateAuthToken(user.id)
+        const profileRes = await request(app, '/api/v1/users/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        })
+
+        const body = await expectResponse(profileRes, GoodUserSelfData)
+        const solve = body.data.solves.find(
+          (item: { id: string }) => item.id === challengeId
+        )
+        expect(solve?.points).toBe(dynamicPoints)
+      } finally {
+        await db.delete(challenges).where(eq(challenges.id, challengeId))
         await userCleanup()
       }
     })
