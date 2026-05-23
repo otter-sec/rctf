@@ -1,13 +1,13 @@
 ---
 title: Scoring
-description: Challenge scoring kinds in rCTF - decay and dynamic - plus a guide for publishing scores to dynamic challenges.
+description: Challenge scoring kinds in rCTF (decay and dynamic), plus a guide for publishing scores to dynamic challenges.
 ---
 
 import Callout from '@/components/callout.astro'
 
-Every challenge in rCTF picks one of two **scoring kinds**. The kind controls how points are produced and how they reach the leaderboard. The default is `<green>decay</green>`, which is the scoring most CTFs expect.
+Every challenge in rCTF picks one of two scoring kinds. The kind controls how points are produced and how they reach the leaderboard. The default is `<green>decay</green>`, which is what most CTFs expect.
 
-You set the scoring kind from the admin challenge editor (under `<route>/admin/challs</route>`) or directly via the [admin challenge update API](/api/admin/challenge-update/). The platform refuses to switch a challenge's scoring kind while solves exist for it - wipe the solves first, or pick the kind when you create the challenge.
+You set the scoring kind from the admin challenge editor (under `<route>/admin/challs</route>`) or directly via the [admin challenge update API](/api/admin/challenge-update/). The platform refuses to switch a challenge's scoring kind while solves exist. Wipe the solves first, or pick the kind when you create the challenge.
 
 ## Challenge types
 
@@ -24,7 +24,7 @@ The default. Every solver receives the same point value, and that value decrease
 
 Editing `<red>points.min</red>` or `<red>points.max</red>` on a decay challenge immediately re-prices every existing solver. Switching the scoring algorithm globally also re-prices every decay challenge on the next worker tick.
 
-Scoring providers that consume `<red>maxSolves</red>` (the largest non-banned solver count across the event) only see decay challenges - dynamic-feed solver counts are excluded so a high-volume dynamic challenge can't skew the decay normalization across unrelated decay challenges.
+Scoring providers that read `<red>maxSolves</red>` (the largest non-banned solver count across the event) only see decay challenges. Dynamic-feed solver counts are excluded, so a high-volume dynamic challenge won't skew the decay normalization across unrelated decay challenges.
 
 <Callout variant="note" title="Default behavior">
   Existing challenges that don't set `<red>scoring</red>` at all are treated as decay. Upgrading
@@ -33,7 +33,7 @@ Scoring providers that consume `<red>maxSolves</red>` (the largest non-banned so
 
 ### Dynamic
 
-The points for a dynamic challenge are dictated by an **external scoring source** that publishes per-team values over time. Every team can have a different score on the same challenge, and the scores can move up or down as the source publishes updates. King-of-the-hill, attack-defense, and any scoring that lives outside rCTF fit this shape.
+The points for a dynamic challenge come from an external scoring source that publishes per-team values over time. Every team can have a different score on the same challenge, and the scores can move up or down as the source publishes updates. King-of-the-hill, attack-defense, and any scoring that runs outside rCTF fit this shape.
 
 ```json title="Challenge data - dynamic"
 {
@@ -53,31 +53,31 @@ The points for a dynamic challenge are dictated by an **external scoring source*
 | `<red>scoring.source.secret</red>` | Always | Shared HMAC secret used for webhook auth. |
 
 <Callout variant="warning" title="Flag submissions are rejected">
-  Dynamic challenges ignore flag submissions - the external source owns the scoreboard. Leave the
+  Dynamic challenges ignore flag submissions. The external source owns the scoreboard. Leave the
   challenge's `<red>flag</red>` field empty so the public challenge listing hides the submit form.
 </Callout>
 
 ## Dynamic scoring guide
 
-Dynamic challenges talk to rCTF through a webhook: your scoring backend POSTs the current per-team scores to rCTF whenever they change.
+Dynamic challenges talk to rCTF through a webhook. Your scoring backend POSTs the current per-team scores whenever they change.
 
 <Callout variant="warning" title="Stop the feed when the event ends">
   Unlike flag submissions, the dynamic-scores endpoint has no built-in event-timing gate. The
   scoring backend can push both before start and after end. Cutting deliveries off cleanly at end is
-  still the operator's responsibility: every late delivery (post-end as well as post-freeze) does
-  land in the tally, so a backend that keeps publishing will keep moving the scoreboard around after
-  the CTF is supposed to be over.
+  still the operator's responsibility. Every late delivery (post-end as well as post-freeze) lands
+  in the tally, so a backend that keeps publishing will keep moving the scoreboard around after the
+  CTF is supposed to be over.
 </Callout>
 
 ### Team identifiers
 
-Every entry in the score list references an rCTF **team ID** - the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. The usual options:
+Every entry in the score list references an rCTF team ID, the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. A few patterns tend to work.
 
 - Have admins paste each team's rCTF ID into the dynamic service's onboarding flow.
 - Generate the dynamic-service registration token using the rCTF [team token endpoint](/api/admin/team-token/) and tag the resulting session with the team ID.
 - Use the per-team [instancer](/integrations/instancer/) hook to provision a dynamic-service identity tied to the team ID at instance creation time.
 
-Score entries for unknown team IDs are silently dropped. The challenge backend won't be told which team IDs failed to land - log on your side and reconcile if it matters.
+Score entries for unknown team IDs are silently dropped. The challenge backend won't tell you which team IDs failed to land, so log on your side and reconcile if it matters.
 
 ### Payload shape
 
@@ -96,7 +96,7 @@ The webhook uses this JSON body:
 | --- | --- | --- | --- |
 | `<red>scores</red>` | `array{:ts}` | Yes | Per-team score entries. |
 | `<red>scores[].userId</red>` | `string{:ts}` | Yes | rCTF team UUID. |
-| `<red>scores[].points</red>` | `int{:ts}` | Yes | Signed integer. `<green>0</green>` clears that team's score for the challenge; negative values are accepted. |
+| `<red>scores[].points</red>` | `int{:ts}` | Yes | Signed integer. `<green>0</green>` clears that team's score for the challenge. Negative values are accepted. |
 
 Each entry is an absolute setter for that team and challenge. Teams omitted from the payload keep their existing rCTF-side score.
 
@@ -121,7 +121,7 @@ X-RCTF-Signature: sha256=<hex>
 | `<red>X-RCTF-Timestamp</red>` | Unix milliseconds at signing time. Requests outside a five-minute skew window are rejected. |
 | `<red>X-RCTF-Signature</red>` | `<green>sha256=</green>` followed by the lowercase hex HMAC-SHA256 of `<green>${timestamp}.${raw_body}</green>` using the challenge's `<red>secret</red>`. |
 
-The route accepts any IP - it does not require an authenticated rCTF user. Only the HMAC and the timestamp window stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
+The route accepts any IP and doesn't require an authenticated rCTF user. Only the HMAC and the timestamp window stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
 
 #### Responses
 
@@ -170,16 +170,16 @@ export async function publishScores(scores: ScoreEntry[]) {
 <Callout variant="warning" title="Sign the raw body, not the parsed body">
   rCTF reads the raw request bytes for HMAC verification and only parses JSON after the signature
   matches. Sign the exact bytes you send. Adding whitespace, sorting keys, or letting a middleware
-  re-serialize the body between signing and sending will break the signature.
+  re-serialize the body between signing and sending will cause verification to fail.
 </Callout>
 
 ## How scores reach the leaderboard
 
 For every challenge kind, the per-team points are stored in `solves.points{:sql}` and an immutable row goes into `score_events{:sql}` with the delta and a source tag (`<green>flag</green>`, `<green>decay-recompute</green>`, `<green>feed</green>`, `<green>ban</green>`, `<green>delete</green>`, or `<green>algo-change</green>`).
 
-- The **leaderboard worker** sums each team's `solves.points{:sql}` to produce ranks. Decay recomputes are debounced through Redis pub/sub so a burst of solves only re-prices the challenge once.
-- The **leaderboard graph** replays `score_events{:sql}` chronologically so historical points reflect what the team had at that point in time, not what they have now.
-- **Banning** a team emits reversing events for every solve they had, and unbanning restores them. The leaderboard worker re-runs decay for every affected challenge.
-- **Deleting a solve** emits a single reversing event.
+- The leaderboard worker sums each team's `solves.points{:sql}` to produce ranks. Decay recomputes are debounced through Redis pub/sub so a burst of solves only re-prices the challenge once.
+- The leaderboard graph replays `score_events{:sql}` chronologically so historical points reflect what the team had at that point in time, not what they have now.
+- Banning a team emits reversing events for every solve they had, and unbanning restores them. The leaderboard worker re-runs decay for every affected challenge.
+- Deleting a solve emits a single reversing event.
 
-You don't need to interact with `score_events{:sql}` directly - it's an internal audit log. The shape is documented above so the leaderboard's behavior is predictable when you're debugging discrepancies between the `<route>/scores</route>` page and the `<route>/scores/:id</route>` graph.
+You don't need to interact with `score_events{:sql}` directly. It's an internal audit log. The shape is documented above so the leaderboard's behavior is predictable when you're debugging discrepancies between the `<route>/scores</route>` page and the `<route>/scores/:id</route>` graph.
