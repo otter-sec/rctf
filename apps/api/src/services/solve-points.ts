@@ -7,7 +7,7 @@ import type {
 } from '@rctf/db'
 import { scoreEvents, solves, users } from '@rctf/db'
 import type { ScoreContext } from '@rctf/scoring/base'
-import { asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { scoreProvider } from '../providers'
@@ -218,6 +218,24 @@ export const upsertDynamicSolves = async (
   return await db.transaction(async tx => {
     await lockChallenge(tx, challengeId)
 
+    // last write wins
+    const dedupedEntries = Array.from(
+      new Map(entries.map(e => [e.userId, e])).values()
+    )
+
+    // drop entries for users that don't exist or are banned
+    const involvedUserIds = dedupedEntries.map(e => e.userId)
+    const eligibleUserIds =
+      involvedUserIds.length === 0
+        ? new Set<string>()
+        : await tx
+            .select({ id: users.id })
+            .from(users)
+            .where(
+              and(inArray(users.id, involvedUserIds), eq(users.banned, false))
+            )
+            .then(rows => new Set(rows.map(r => r.id)))
+
     const existing = await tx
       .select({
         id: solves.id,
@@ -226,11 +244,6 @@ export const upsertDynamicSolves = async (
       })
       .from(solves)
       .where(eq(solves.challengeid, challengeId))
-
-    // last write wins
-    const dedupedEntries = Array.from(
-      new Map(entries.map(e => [e.userId, e])).values()
-    )
 
     const byUser = new Map(existing.map(r => [r.userid, r]))
 
@@ -244,6 +257,10 @@ export const upsertDynamicSolves = async (
     const now = new Date().toISOString()
 
     for (const entry of dedupedEntries) {
+      if (!eligibleUserIds.has(entry.userId)) {
+        continue
+      }
+
       const prior = byUser.get(entry.userId)
       if (!prior) {
         if (entry.points === 0) {
@@ -278,33 +295,9 @@ export const upsertDynamicSolves = async (
       addEvent(entry.userId, entry.points - prior.points)
     }
 
-    // silently drop inserts whose userid doesn't exist - otherwise
-    // the FK would roll the whole tx back
-    let validInserts = inserts
-    let droppedUserIds = new Set<string>()
-    if (inserts.length > 0) {
-      const existingUserIds = await tx
-        .select({ id: users.id })
-        .from(users)
-        .where(
-          inArray(
-            users.id,
-            inserts.map(i => i.userid)
-          )
-        )
-        .then(rows => new Set(rows.map(r => r.id)))
-      validInserts = inserts.filter(i => existingUserIds.has(i.userid))
-      droppedUserIds = new Set(
-        inserts.filter(i => !existingUserIds.has(i.userid)).map(i => i.userid)
-      )
-    }
-    const finalEvents = droppedUserIds.size
-      ? events.filter(e => !droppedUserIds.has(e.userid))
-      : events
-
     await Promise.all(
       [
-        validInserts.length > 0 && tx.insert(solves).values(validInserts),
+        inserts.length > 0 && tx.insert(solves).values(inserts),
         updates.length > 0 &&
           tx.execute(sql`
             UPDATE solves SET
@@ -318,12 +311,12 @@ export const upsertDynamicSolves = async (
           `),
         deletes.length > 0 &&
           tx.delete(solves).where(inArray(solves.id, deletes)),
-        finalEvents.length > 0 && tx.insert(scoreEvents).values(finalEvents),
+        events.length > 0 && tx.insert(scoreEvents).values(events),
       ].filter(Boolean)
     )
 
     return {
-      inserted: validInserts.length,
+      inserted: inserts.length,
       updated: updates.length,
       deleted: deletes.length,
     }
@@ -331,7 +324,7 @@ export const upsertDynamicSolves = async (
 }
 
 export const emitBanScoreEvents = async (
-  db: DatabaseClient,
+  db: DatabaseClient | DatabaseTx,
   userId: string,
   direction: 'ban' | 'unban'
 ): Promise<void> => {
@@ -340,14 +333,14 @@ export const emitBanScoreEvents = async (
 }
 
 export const emitUserDeletionScoreEvents = async (
-  db: DatabaseClient,
+  db: DatabaseClient | DatabaseTx,
   userId: string
 ): Promise<void> => {
   await emitUserSolveScoreEvents(db, userId, -1, 'delete')
 }
 
 const emitUserSolveScoreEvents = async (
-  db: DatabaseClient,
+  db: DatabaseClient | DatabaseTx,
   userId: string,
   sign: -1 | 1,
   source: ScoreEventSource

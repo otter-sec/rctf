@@ -24,6 +24,8 @@ The default. Every solver receives the same point value, and that value decrease
 
 Editing `<red>points.min</red>` or `<red>points.max</red>` on a decay challenge immediately re-prices every existing solver. Switching the scoring algorithm globally also re-prices every decay challenge on the next worker tick.
 
+Scoring providers that consume `<red>maxSolves</red>` (the largest non-banned solver count across the event) only see decay challenges - dynamic-feed solver counts are excluded so a high-volume dynamic challenge can't skew the decay normalization across unrelated decay challenges.
+
 <Callout variant="note" title="Default behavior">
   Existing challenges that don't set `<red>scoring</red>` at all are treated as decay. Upgrading
   from an earlier rCTF version doesn't require touching any data.

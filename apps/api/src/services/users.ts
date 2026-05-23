@@ -1,4 +1,4 @@
-import type { DatabaseClient, User } from '@rctf/db'
+import type { DatabaseClient, DatabaseTx, User } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
@@ -32,6 +32,7 @@ import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
+import { isDecayKind } from './challenges'
 import {
   emitBanScoreEvents,
   emitUserDeletionScoreEvents,
@@ -597,18 +598,25 @@ export type AdminUserMutationResult =
   | { success: true }
   | { success: false; error: 'badUnknownUser' | 'badUserPrivileged' }
 
-const recomputeUserChallenges = async (
-  db: DatabaseClient,
-  redis: TypedRedis,
-  userId: string,
-  source: RecomputeSource
-): Promise<void> => {
-  const affected = await db
+// enqueue recomputes only for decay challenges
+const getAffectedDecayChallengeIds = (
+  db: DatabaseClient | DatabaseTx,
+  userId: string
+): Promise<string[]> =>
+  db
     .selectDistinct({ challengeid: solves.challengeid })
     .from(solves)
-    .where(eq(solves.userid, userId))
-  for (const { challengeid } of affected) {
-    requestChallengeRecompute(redis, challengeid, source)
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(and(eq(solves.userid, userId), isDecayKind))
+    .then(rows => rows.map(r => r.challengeid))
+
+const publishChallengeRecomputes = (
+  redis: TypedRedis,
+  challengeIds: string[],
+  source: RecomputeSource
+): void => {
+  for (const challengeId of challengeIds) {
+    requestChallengeRecompute(redis, challengeId, source)
   }
 }
 
@@ -631,26 +639,32 @@ export const updateAdminUser = async (
   const willBeBanned = data.banned ?? wasBanned
   const bannedChanged = wasBanned !== willBeBanned
 
-  await db
-    .update(users)
-    .set({
-      banned: willBeBanned,
-      ...(willBeBanned
-        ? {
-            score: 0,
-            globalRank: null,
-            divisionRank: null,
-            lastSolveAt: null,
-            lastTiebreakSolveAt: null,
-          }
-        : {}),
-    })
-    .where(eq(users.id, id))
+  const affectedDecayIds = await db.transaction(async tx => {
+    await tx
+      .update(users)
+      .set({
+        banned: willBeBanned,
+        ...(willBeBanned
+          ? {
+              score: 0,
+              globalRank: null,
+              divisionRank: null,
+              lastSolveAt: null,
+              lastTiebreakSolveAt: null,
+            }
+          : {}),
+      })
+      .where(eq(users.id, id))
 
-  if (bannedChanged) {
-    await emitBanScoreEvents(db, id, willBeBanned ? 'ban' : 'unban')
-    await recomputeUserChallenges(db, redis, id, 'ban')
-  }
+    if (!bannedChanged) {
+      return [] as string[]
+    }
+
+    await emitBanScoreEvents(tx, id, willBeBanned ? 'ban' : 'unban')
+    return await getAffectedDecayChallengeIds(tx, id)
+  })
+
+  publishChallengeRecomputes(redis, affectedDecayIds, 'ban')
 
   await invalidateUserCache(redis, id)
   forceLeaderboardUpdate(redis)
@@ -671,9 +685,15 @@ export const deleteAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  await emitUserDeletionScoreEvents(db, id)
-  await recomputeUserChallenges(db, redis, id, 'delete')
-  await db.delete(users).where(eq(users.id, id))
+  // collect challengeids before the cascade delete wipes the solves rows
+  const affectedDecayIds = await db.transaction(async tx => {
+    await emitUserDeletionScoreEvents(tx, id)
+    const ids = await getAffectedDecayChallengeIds(tx, id)
+    await tx.delete(users).where(eq(users.id, id))
+    return ids
+  })
+
+  publishChallengeRecomputes(redis, affectedDecayIds, 'delete')
 
   await invalidateUserCache(redis, id)
   forceLeaderboardUpdate(redis)

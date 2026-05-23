@@ -220,7 +220,7 @@ export const scoringKindOf = (data: {
 }): ChallengeScoringKind => data.scoring?.kind ?? ChallengeScoringKind.DECAY
 
 export type DecayChallenge = Pick<Challenge, 'id' | 'data'>
-const isDecayKind = sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${ChallengeScoringKind.DECAY}`
+export const isDecayKind = sql`COALESCE(${challenges.data} -> 'scoring' ->> 'kind', ${ChallengeScoringKind.DECAY}) = ${ChallengeScoringKind.DECAY}`
 
 export const getDecayChallenge = (
   tx: DatabaseTx,
@@ -256,11 +256,13 @@ export const countNonBannedSolvesForChallenge = async (
 export const getMaxSolveCount = async (
   db: DatabaseClient | DatabaseTx
 ): Promise<number> => {
+  // dynamic challenges are excluded
   const perChallenge = db
     .select({ count: sql<number>`COUNT(*)::int`.as('count') })
     .from(solves)
     .innerJoin(users, eq(users.id, solves.userid))
-    .where(eq(users.banned, false))
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(and(eq(users.banned, false), isDecayKind))
     .groupBy(solves.challengeid)
     .as('per_challenge')
 
