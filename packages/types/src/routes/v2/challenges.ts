@@ -5,9 +5,12 @@ import {
   BadBody,
   BadChallenge,
   BadNotStarted,
+  BadSignature,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
+  GoodDynamicScores,
 } from '../../responses'
+import { DynamicScoresPayloadSchema } from '../../util/schemas'
 
 export const GetChallengesRouteV2 = defineRoute({
   path: '/v2/challs',
@@ -15,8 +18,26 @@ export const GetChallengesRouteV2 = defineRoute({
   goodResponses: [GoodChallengesV2],
   badResponses: [BadNotStarted],
   authRequired: false,
+  optionalAuth: true,
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
+
+// intentionally has neither onlyWhenStarted nor onlyWhenNotFinished: a
+// dynamic scoring backend must be able to seed scores before the event
+// starts, and the leaderboard worker will drain any post-end deliveries into
+// the final tally too
+export const SubmitDynamicScoresRouteV2 = defineRoute({
+  path: '/v2/challs/:id/scores',
+  method: 'POST',
+  goodResponses: [GoodDynamicScores],
+  badResponses: [BadSignature, BadBody],
+  authRequired: false,
+  serviceAuth: 'dynamicChallenge',
+  params: z.object({
+    id: z.string().check(z.describe('Challenge ID.')),
+  }),
+  body: DynamicScoresPayloadSchema,
 })
 
 export const GetChallengeSolvesRouteV2 = defineRoute({

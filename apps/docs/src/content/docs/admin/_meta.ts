@@ -4,9 +4,11 @@ export default {
   label: 'Administration',
   items: {
     challenges: { label: 'Challenges', order: 1 },
-    teams: { label: 'Teams', order: 2 },
-    submissions: { label: 'Submissions', order: 3 },
-    uploading: { label: 'Uploading', order: 4 },
-    markdown: { label: 'Markdown', order: 5, badge: 'new' },
+    scoring: { label: 'Scoring', order: 2, badge: 'new' },
+    teams: { label: 'Teams', order: 3 },
+    submissions: { label: 'Submissions', order: 4 },
+    uploading: { label: 'Uploading', order: 5 },
+    markdown: { label: 'Markdown', order: 6, badge: 'new' },
+    'ext-auth': { label: 'External apps', order: 7, badge: 'new' },
   },
 } satisfies MetaFile

@@ -1,4 +1,4 @@
-import type { DatabaseClient, User } from '@rctf/db'
+import type { DatabaseClient, DatabaseTx, User } from '@rctf/db'
 import { challenges, solves, users } from '@rctf/db'
 import { getErrorConstraint, takeUnique } from '@rctf/db/util'
 import type {
@@ -25,13 +25,19 @@ import {
   GoodRegisterV2,
   SortOrder,
 } from '@rctf/types'
-import { and, asc, count, desc, eq, or, sql, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ne, or, sql, type SQL } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
-import { forceLeaderboardUpdate } from '../workers'
+import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
+import { isDecayKind } from './challenges'
+import {
+  emitBanScoreEvents,
+  emitUserDeletionScoreEvents,
+  type RecomputeSource,
+} from './solve-points'
 
 type CreateUserResponseHelpers = ResponseHelpers<
   [
@@ -207,7 +213,7 @@ export const updateUserInternal = async (
   }
 
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true, user: updated! }
 }
 
@@ -592,6 +598,28 @@ export type AdminUserMutationResult =
   | { success: true }
   | { success: false; error: 'badUnknownUser' | 'badUserPrivileged' }
 
+// enqueue recomputes only for decay challenges
+const getAffectedDecayChallengeIds = (
+  db: DatabaseClient | DatabaseTx,
+  userId: string
+): Promise<string[]> =>
+  db
+    .selectDistinct({ challengeid: solves.challengeid })
+    .from(solves)
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(and(eq(solves.userid, userId), isDecayKind))
+    .then(rows => rows.map(r => r.challengeid))
+
+const publishChallengeRecomputes = (
+  redis: TypedRedis,
+  challengeIds: string[],
+  source: RecomputeSource
+): void => {
+  for (const challengeId of challengeIds) {
+    requestChallengeRecompute(redis, challengeId, source)
+  }
+}
+
 export const updateAdminUser = async (
   db: DatabaseClient,
   redis: TypedRedis,
@@ -607,24 +635,38 @@ export const updateAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  await db
-    .update(users)
-    .set({
-      banned: data.banned ?? targetUser.banned ?? false,
-      ...(data.banned
-        ? {
-            score: 0,
-            globalRank: null,
-            divisionRank: null,
-            lastSolveAt: null,
-            lastTiebreakSolveAt: null,
-          }
-        : {}),
-    })
-    .where(eq(users.id, id))
+  const willBeBanned = data.banned ?? targetUser.banned ?? false
+
+  const affectedDecayIds = await db.transaction(async tx => {
+    const updated = await tx
+      .update(users)
+      .set({
+        banned: willBeBanned,
+        ...(willBeBanned
+          ? {
+              score: 0,
+              globalRank: null,
+              divisionRank: null,
+              lastSolveAt: null,
+              lastTiebreakSolveAt: null,
+            }
+          : {}),
+      })
+      .where(and(eq(users.id, id), ne(users.banned, willBeBanned)))
+      .returning({ id: users.id })
+
+    if (updated.length === 0) {
+      return [] as string[]
+    }
+
+    await emitBanScoreEvents(tx, id, willBeBanned ? 'ban' : 'unban')
+    return await getAffectedDecayChallengeIds(tx, id)
+  })
+
+  publishChallengeRecomputes(redis, affectedDecayIds, 'ban')
 
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true }
 }
 
@@ -642,8 +684,17 @@ export const deleteAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  await db.delete(users).where(eq(users.id, id))
+  // collect challengeids before the cascade delete wipes the solves rows
+  const affectedDecayIds = await db.transaction(async tx => {
+    await emitUserDeletionScoreEvents(tx, id)
+    const ids = await getAffectedDecayChallengeIds(tx, id)
+    await tx.delete(users).where(eq(users.id, id))
+    return ids
+  })
+
+  publishChallengeRecomputes(redis, affectedDecayIds, 'delete')
+
   await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate()
+  forceLeaderboardUpdate(redis)
   return { success: true }
 }

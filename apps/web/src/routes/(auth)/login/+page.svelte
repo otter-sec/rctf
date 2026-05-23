@@ -37,7 +37,8 @@
     setToken(authToken)
     toast.success('Logged in successfully!')
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-    goto('/')
+    const next = page.url.searchParams.get('next')
+    goto(next && next.startsWith('/') && !next.startsWith('//') ? next : '/')
   }
 
   function handleTokenLogin(token: string) {

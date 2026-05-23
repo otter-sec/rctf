@@ -1,6 +1,9 @@
 import { DeleteChallengeSolveRouteV2 } from '@rctf/types'
 import { deleteSolve } from '../../../../services/challenges'
-import { forceLeaderboardUpdate } from '../../../../workers'
+import {
+  forceLeaderboardUpdate,
+  requestChallengeRecompute,
+} from '../../../../workers'
 import adminGroup from '../group'
 
 adminGroup.route(DeleteChallengeSolveRouteV2, async ({ res, ctx, params }) => {
@@ -10,6 +13,7 @@ adminGroup.route(DeleteChallengeSolveRouteV2, async ({ res, ctx, params }) => {
     return res.badUnknownSolve()
   }
 
-  forceLeaderboardUpdate()
+  requestChallengeRecompute(ctx.var.redis, params.challengeId, 'delete')
+  forceLeaderboardUpdate(ctx.var.redis)
   return res.goodChallengeSolveDelete()
 })

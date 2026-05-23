@@ -81,10 +81,12 @@ The bundled container's `<green>all</green>` mode is plenty for most events.
 </Callout>
 
 <Callout variant='note' title='Forced leaderboard updates in split mode'>
-  In split `<green>frontend</green>` + `<green>leaderboard</green>` deployments, API mutations
-  can't directly wake the separate leaderboard worker. The worker still refreshes from PostgreSQL
-  and Redis on `<red>leaderboard.updateInterval</red>`, but immediate `forceLeaderboardUpdate(){:ts}`
-  messages only work when the worker is in the same Bun process, such as `<green>all</green>` mode.
+  API mutations on `<green>frontend</green>` containers wake the separate `<green>leaderboard</green>`
+  worker through Redis pub/sub on the `leaderboard:force-update{:sh}` and
+  `leaderboard:recompute-challenge{:sh}` channels. The same hooks fire from the dynamic-scoring
+  webhook so a `<green>frontend</green>`-only API instance can receive an external score push and
+  still trigger an immediate leaderboard recompute on the worker instance. As long as both
+  processes share the same Redis, forced updates land within the worker's next tick.
 </Callout>
 
 ## Deployment templates

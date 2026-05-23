@@ -37,6 +37,40 @@ export const ChallengePointsSchema = z.object({
   max: z.int(),
 })
 
+export enum ChallengeScoringKind {
+  DECAY = 'decay',
+  DYNAMIC = 'dynamic',
+}
+
+export enum DynamicScoringTransport {
+  WEBHOOK = 'webhook',
+}
+
+export const DynamicScoringSourceSchema = z.object({
+  transport: z.literal(DynamicScoringTransport.WEBHOOK),
+  secret: z.string(),
+})
+
+export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal(ChallengeScoringKind.DECAY) }),
+  z.object({
+    kind: z.literal(ChallengeScoringKind.DYNAMIC),
+    source: DynamicScoringSourceSchema,
+  }),
+])
+
+// solves.points is a PG `integer` (32-bit signed)
+const INT32_MIN = -2_147_483_648
+const INT32_MAX = 2_147_483_647
+export const DynamicScoresPayloadSchema = z.object({
+  scores: z.array(
+    z.object({
+      userId: z.string(),
+      points: z.int().check(z.gte(INT32_MIN)).check(z.lte(INT32_MAX)),
+    })
+  ),
+})
+
 export const EndpointSchema = z.object({
   kind: z.enum(ExposeKind),
   host: z.string(),

@@ -3,12 +3,20 @@ import type {
   AdminChallengeDetail,
   InstancerConfig,
 } from '@rctf/types'
+import { ChallengeScoringKind, DynamicScoringTransport } from '@rctf/types'
 import { assign, setup } from 'xstate'
 
 export interface AdminBotConfig {
   enabled: boolean
   code: string
 }
+
+export type ScoringConfig =
+  | { kind: ChallengeScoringKind.DECAY }
+  | {
+      kind: ChallengeScoringKind.DYNAMIC
+      source: { transport: DynamicScoringTransport.WEBHOOK; secret: string }
+    }
 
 export interface FormData {
   name: string
@@ -25,6 +33,7 @@ export interface FormData {
   adminBotConfig: AdminBotConfig
   hidden: boolean
   releaseTime: number | null
+  scoring: ScoringConfig
 }
 
 export interface EditorContext {
@@ -53,6 +62,7 @@ type EditorEvent =
   | { type: 'UPDATE_FILES'; files: FormData['files'] }
   | { type: 'UPDATE_INSTANCER'; instancerConfig: InstancerConfig | null }
   | { type: 'UPDATE_ADMIN_BOT'; adminBotConfig: AdminBotConfig }
+  | { type: 'UPDATE_SCORING'; scoring: ScoringConfig }
 
 const emptyForm: FormData = {
   name: '',
@@ -69,6 +79,22 @@ const emptyForm: FormData = {
   adminBotConfig: { enabled: false, code: '' },
   hidden: false,
   releaseTime: null,
+  scoring: { kind: ChallengeScoringKind.DECAY },
+}
+
+const scoringFromServer = (
+  scoring: AdminChallenge['scoring'] | undefined
+): ScoringConfig => {
+  if (!scoring || scoring.kind === ChallengeScoringKind.DECAY) {
+    return { kind: ChallengeScoringKind.DECAY }
+  }
+  return {
+    kind: ChallengeScoringKind.DYNAMIC,
+    source: {
+      transport: DynamicScoringTransport.WEBHOOK,
+      secret: scoring.source.secret,
+    },
+  }
 }
 
 const adminBotConfigFromServer = (
@@ -91,6 +117,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   adminBotConfig: adminBotConfigFromServer(c.adminBotConfig),
   hidden: c.hidden ?? false,
   releaseTime: c.releaseTime ?? null,
+  scoring: scoringFromServer(c.scoring),
 })
 
 const fromDetail = (d: AdminChallengeDetail): FormData => ({
@@ -108,6 +135,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   adminBotConfig: adminBotConfigFromServer(d.adminBotConfig),
   hidden: d.hidden ?? false,
   releaseTime: d.releaseTime ?? null,
+  scoring: scoringFromServer(d.scoring),
 })
 
 const isDirty = (form: FormData, original: FormData | null): boolean => {
@@ -177,6 +205,10 @@ export const editorMachine = setup({
         form: { ...context.form, adminBotConfig: event.adminBotConfig },
       }
     }),
+    updateScoring: assign(({ context, event }) => {
+      if (event.type !== 'UPDATE_SCORING') return {}
+      return { form: { ...context.form, scoring: event.scoring } }
+    }),
     resetForm: assign(({ context }) => ({
       form: context.originalForm ? { ...context.originalForm } : emptyForm,
     })),
@@ -221,6 +253,7 @@ export const editorMachine = setup({
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
+        UPDATE_SCORING: { actions: 'updateScoring' },
         CANCEL: [
           { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'viewing', actions: 'resetForm' },
@@ -243,6 +276,7 @@ export const editorMachine = setup({
         UPDATE_FILES: { actions: 'updateFiles' },
         UPDATE_INSTANCER: { actions: 'updateInstancer' },
         UPDATE_ADMIN_BOT: { actions: 'updateAdminBot' },
+        UPDATE_SCORING: { actions: 'updateScoring' },
         CANCEL: [
           { guard: 'dirty', target: 'confirmDiscard' },
           { target: 'idle', actions: 'reset' },

@@ -1,10 +1,15 @@
 import type { DatabaseClient } from '@rctf/db'
-import { challenges, users } from '@rctf/db'
-import { sql } from 'drizzle-orm'
+import { challenges, scoreEvents, users } from '@rctf/db'
+import { and, asc, gte, inArray, sql } from 'drizzle-orm'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
 const keyGraphData = 'graph-data'
+const keyGraphCursor = 'graph-cursor'
+const keyGraphFingerprint = 'graph-fingerprint'
+const keyGraphSource = 'graph-source'
+const graphSourceEvents = 'events'
+const graphSourceSamples = 'samples'
 
 export type InternalChallengeInfo = {
   id: string
@@ -148,18 +153,84 @@ const cacheLeaderboard = async (
   })
 }
 
-const cacheGraph = async (
-  redis: TypedRedis,
-  data: CalculatedLeaderboard
-): Promise<void> => {
-  if (data.samples.length === 0) {
-    return
+type ScoreEventGraphRow = {
+  id: string
+  userid: string | null
+  pointsDelta: number
+  eventAt: string
+}
+
+type ScoreEventGraphCursor = {
+  time: string
+  ids: string[]
+}
+
+type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
+
+const lastPackedScore = (packed: string | null): number =>
+  Number.parseInt(packed?.split(',').pop() ?? '0') || 0
+
+const foldScoreEvents = (
+  rows: ScoreEventGraphRow[],
+  seed?: Map<string, string | null>
+): GraphFold => {
+  const scores = new Map<string, number>()
+  const userPoints = new Map<string, string[]>()
+  let lastSample = Date.now()
+
+  const ensureUser = (id: string): { score: number; points: string[] } => {
+    let points = userPoints.get(id)
+    if (!points) {
+      const packed = seed?.get(id) ?? null
+      points = packed ? packed.split(',') : []
+      userPoints.set(id, points)
+      scores.set(id, lastPackedScore(packed))
+    }
+    return { score: scores.get(id) ?? 0, points }
   }
 
-  const lastSample = data.samples[data.samples.length - 1]!.time
+  for (const row of rows) {
+    if (!row.userid) {
+      continue
+    }
+    const eventAt = new Date(row.eventAt).valueOf()
+    if (!Number.isFinite(eventAt)) {
+      continue
+    }
+
+    lastSample = Math.max(lastSample, eventAt)
+    const { score, points } = ensureUser(row.userid)
+    const nextScore = score + row.pointsDelta
+    scores.set(row.userid, nextScore)
+
+    const lastPointTime = points.length >= 2 ? points[points.length - 2] : null
+    if (lastPointTime === eventAt.toString()) {
+      points[points.length - 1] = nextScore.toString()
+    } else {
+      points.push(eventAt.toString(), nextScore.toString())
+    }
+  }
+
+  return { lastSample, userPoints }
+}
+
+const buildGraphFromSamples = (
+  data: CalculatedLeaderboard,
+  beforeTime?: number
+): GraphFold => {
+  const samples =
+    beforeTime === undefined
+      ? data.samples
+      : data.samples.filter(sample => sample.time < beforeTime)
+  const lastSample =
+    samples.length > 0
+      ? samples[samples.length - 1]!.time
+      : beforeTime === undefined
+        ? Date.now()
+        : 0
   const userPoints = new Map<string, string[]>()
 
-  for (const sample of data.samples) {
+  for (const sample of samples) {
     for (const { id, score } of sample.userScores) {
       let arr = userPoints.get(id)
       if (!arr) {
@@ -170,12 +241,249 @@ const cacheGraph = async (
     }
   }
 
-  const argv: string[] = [lastSample.toString()]
-  for (const [id, points] of userPoints) {
-    argv.push(id, points.join(','))
+  return { lastSample, userPoints }
+}
+
+const buildGraphFromEventsWithSampleBaseline = (
+  data: CalculatedLeaderboard,
+  rows: ScoreEventGraphRow[]
+): GraphFold => {
+  const firstEventTime = Math.min(
+    ...rows
+      .map(row => new Date(row.eventAt).valueOf())
+      .filter(time => Number.isFinite(time))
+  )
+  const baseline = buildGraphFromSamples(data, firstEventTime)
+  const seed = new Map(
+    Array.from(baseline.userPoints, ([id, points]) => [id, points.join(',')])
+  )
+  const folded = foldScoreEvents(rows, seed)
+  const userPoints = new Map(baseline.userPoints)
+
+  for (const [id, points] of folded.userPoints) {
+    userPoints.set(id, points)
   }
 
-  await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
+  return {
+    lastSample: Math.max(baseline.lastSample, folded.lastSample),
+    userPoints,
+  }
+}
+
+const replaceGraphAtomic = (
+  redis: TypedRedis,
+  fold: GraphFold,
+  fingerprint: string,
+  cursor: ScoreEventGraphCursor | null,
+  source: typeof graphSourceEvents | typeof graphSourceSamples
+): Promise<void> =>
+  redis.rctfReplaceGraph(
+    keyGraphUpdate,
+    keyGraphData,
+    keyGraphFingerprint,
+    keyGraphCursor,
+    keyGraphSource,
+    fold.lastSample.toString(),
+    fingerprint,
+    cursor ? JSON.stringify(cursor) : '',
+    source,
+    ...packGraphUpdates(fold.userPoints)
+  )
+
+const buildGraphFingerprint = (
+  userIds: string[],
+  challengeIds: string[]
+): string =>
+  JSON.stringify({
+    users: [...userIds].sort(),
+    challenges: [...challengeIds].sort(),
+  })
+
+const buildGraphCursor = (
+  rows: ScoreEventGraphRow[],
+  previous?: ScoreEventGraphCursor
+): ScoreEventGraphCursor | null => {
+  const lastRow = rows[rows.length - 1]
+  if (!lastRow) {
+    return previous ?? null
+  }
+
+  const ids = new Set<string>()
+  if (previous?.time === lastRow.eventAt) {
+    for (const id of previous.ids) {
+      ids.add(id)
+    }
+  }
+  for (const row of rows) {
+    if (row.eventAt === lastRow.eventAt) {
+      ids.add(row.id)
+    }
+  }
+
+  return { time: lastRow.eventAt, ids: [...ids].sort() }
+}
+
+const getScoreEventGraphRows = async (
+  db: DatabaseClient,
+  userIds: string[],
+  challengeIds: string[],
+  cursor: ScoreEventGraphCursor | null = null
+): Promise<ScoreEventGraphRow[]> => {
+  const rows = await db
+    .select({
+      id: scoreEvents.id,
+      userid: scoreEvents.userid,
+      pointsDelta: scoreEvents.pointsDelta,
+      eventAt: scoreEvents.eventAt,
+    })
+    .from(scoreEvents)
+    .where(
+      and(
+        inArray(scoreEvents.userid, userIds),
+        inArray(scoreEvents.challengeid, challengeIds),
+        cursor ? gte(scoreEvents.eventAt, cursor.time) : undefined
+      )
+    )
+    .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
+
+  if (!cursor) {
+    return rows
+  }
+
+  const processedAtCursor = new Set(cursor.ids)
+  return rows.filter(
+    row => row.eventAt !== cursor.time || !processedAtCursor.has(row.id)
+  )
+}
+
+const loadGraphSeed = async (
+  redis: TypedRedis,
+  rows: ScoreEventGraphRow[]
+): Promise<Map<string, string | null>> => {
+  const userIds = Array.from(
+    new Set(rows.flatMap(row => (row.userid ? [row.userid] : [])))
+  )
+  if (userIds.length === 0) {
+    return new Map()
+  }
+  const packed = await redis.hmget(keyGraphData, ...userIds)
+  return new Map(userIds.map((id, idx) => [id, packed[idx] ?? null]))
+}
+
+const packGraphUpdates = (
+  userPoints: ReadonlyMap<string, string[]>
+): string[] =>
+  Array.from(userPoints).flatMap(([id, points]) => [id, points.join(',')])
+
+const cacheGraphIncremental = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  userIds: string[],
+  challengeIds: string[],
+  fingerprint: string,
+  cursor: ScoreEventGraphCursor
+): Promise<void> => {
+  const rows = await getScoreEventGraphRows(db, userIds, challengeIds, cursor)
+  if (rows.length === 0) {
+    // no new events since the cursor: bump freshness only, cursor/fingerprint/source stay valid
+    await redis.set(keyGraphUpdate, Date.now().toString())
+    return
+  }
+
+  const seed = await loadGraphSeed(redis, rows)
+  const fold = foldScoreEvents(rows, seed)
+  const nextCursor = buildGraphCursor(rows, cursor)!
+
+  await redis.rctfMergeGraph(
+    keyGraphUpdate,
+    keyGraphData,
+    keyGraphFingerprint,
+    keyGraphCursor,
+    keyGraphSource,
+    fold.lastSample.toString(),
+    fingerprint,
+    JSON.stringify(nextCursor),
+    graphSourceEvents,
+    ...packGraphUpdates(fold.userPoints)
+  )
+}
+
+const emptyFold = (): GraphFold => ({
+  lastSample: Date.now(),
+  userPoints: new Map(),
+})
+
+const cacheGraph = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  data: CalculatedLeaderboard
+): Promise<void> => {
+  const userIds = data.users.filter(u => u.hadAnySolve).map(u => u.id)
+  const challengeIds = Array.from(data.challengeInfos.keys())
+  const fingerprint = buildGraphFingerprint(userIds, challengeIds)
+
+  if (userIds.length === 0 || challengeIds.length === 0) {
+    await replaceGraphAtomic(
+      redis,
+      emptyFold(),
+      fingerprint,
+      null,
+      graphSourceEvents
+    )
+    return
+  }
+
+  const [cachedFingerprint, cachedSource, cachedCursorRaw] = await Promise.all([
+    redis.get(keyGraphFingerprint),
+    redis.get(keyGraphSource),
+    redis.get(keyGraphCursor),
+  ])
+  if (
+    cachedFingerprint === fingerprint &&
+    cachedSource === graphSourceEvents &&
+    cachedCursorRaw
+  ) {
+    await cacheGraphIncremental(
+      db,
+      redis,
+      userIds,
+      challengeIds,
+      fingerprint,
+      JSON.parse(cachedCursorRaw) as ScoreEventGraphCursor
+    )
+    return
+  }
+
+  const rows = await getScoreEventGraphRows(db, userIds, challengeIds)
+  if (rows.length > 0) {
+    await replaceGraphAtomic(
+      redis,
+      buildGraphFromEventsWithSampleBaseline(data, rows),
+      fingerprint,
+      buildGraphCursor(rows),
+      graphSourceEvents
+    )
+    return
+  }
+
+  if (data.samples.length > 0) {
+    await replaceGraphAtomic(
+      redis,
+      buildGraphFromSamples(data),
+      fingerprint,
+      null,
+      graphSourceSamples
+    )
+    return
+  }
+
+  await replaceGraphAtomic(
+    redis,
+    emptyFold(),
+    fingerprint,
+    null,
+    graphSourceEvents
+  )
 }
 
 interface GraphPoint {
@@ -229,6 +537,26 @@ const buildGraphEntry = (
   points: parseGraphPoints(lastUpdate, entry.score, packedPoints),
 })
 
+const getGraphEntries = async (
+  redis: TypedRedis,
+  entries: Array<GraphSourceEntry>
+): Promise<Array<GraphEntry>> => {
+  if (entries.length === 0) {
+    return []
+  }
+
+  const [lastUpdateRaw, graphData] = await Promise.all([
+    redis.get(keyGraphUpdate),
+    redis.hmget(keyGraphData, ...entries.map(entry => entry.id)) as Promise<
+      Array<string | null>
+    >,
+  ])
+  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
+  return entries.map((entry, idx) =>
+    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
+  )
+}
+
 export const userIsRankedSql = sql`${users.globalRank} IS NOT NULL`
 export const userIsPublicRankedSql = sql`${userIsRankedSql} AND ${users.banned} = false`
 export const leaderboardOrderSql = sql`${users.globalRank} ASC`
@@ -255,48 +583,18 @@ export const getGraph = async (
     .limit(limit)
     .offset(offset)
 
-  if (topUsers.length === 0) {
-    return []
-  }
-
-  const [lastUpdateRaw, graphData] = await Promise.all([
-    redis.get(keyGraphUpdate),
-    redis.hmget(keyGraphData, ...topUsers.map(u => u.id)) as Promise<
-      Array<string | null>
-    >,
-  ])
-
-  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
-  return topUsers.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
-  )
+  return getGraphEntries(redis, topUsers)
 }
 
 export const getGraphForEntries = async (
   redis: TypedRedis,
   leaderboard: Array<GraphSourceEntry>
-): Promise<Array<GraphEntry>> => {
-  if (leaderboard.length === 0) {
-    return []
-  }
-
-  const [lastUpdateRaw, graphData] = await Promise.all([
-    redis.get(keyGraphUpdate),
-    redis.hmget(keyGraphData, ...leaderboard.map(entry => entry.id)) as Promise<
-      Array<string | null>
-    >,
-  ])
-
-  const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
-  return leaderboard.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
-  )
-}
+): Promise<Array<GraphEntry>> => getGraphEntries(redis, leaderboard)
 
 export const cacheLeaderboardAndGraph = async (
   db: DatabaseClient,
   redis: TypedRedis,
   data: CalculatedLeaderboard
 ): Promise<void> => {
-  await Promise.all([cacheLeaderboard(db, data), cacheGraph(redis, data)])
+  await Promise.all([cacheLeaderboard(db, data), cacheGraph(db, redis, data)])
 }

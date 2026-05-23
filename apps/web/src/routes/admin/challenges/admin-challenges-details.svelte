@@ -1,7 +1,9 @@
 <script lang="ts">
   import {
     BadAdminBotConfig,
+    BadBody,
     BadInstancerConfig,
+    ChallengeScoringKind,
     GoodChallengeDelete,
     GoodChallengeUpdateV2,
     Permissions,
@@ -112,6 +114,7 @@
           adminBotConfig: form.adminBotConfig.enabled ? { code: form.adminBotConfig.code } : null,
           hidden: form.hidden,
           releaseTime: form.releaseTime,
+          scoring: form.scoring,
         },
       },
       {
@@ -143,6 +146,10 @@
                 adminBotConfig: response.data.adminBotConfig,
                 hidden: form.hidden,
                 releaseTime: form.releaseTime,
+                scoring:
+                  form.scoring.kind === ChallengeScoringKind.DECAY
+                    ? { kind: ChallengeScoringKind.DECAY }
+                    : form.scoring,
               },
             })
           } else if (response.kind === BadAdminBotConfig.kind) {
@@ -150,6 +157,9 @@
             send({ type: 'SAVE_ERROR' })
           } else if (response.kind === BadInstancerConfig.kind) {
             toast.error(`Instancer config error: ${response.data.error}`)
+            send({ type: 'SAVE_ERROR' })
+          } else if (response.kind === BadBody.kind) {
+            toast.error(response.data.reason)
             send({ type: 'SAVE_ERROR' })
           } else {
             showApiError(response)
@@ -316,6 +326,8 @@
           onHiddenChange={v => updateField('hidden', v)}
           onReleaseTimeChange={v => updateField('releaseTime', v)}
           releaseTime={form.releaseTime}
+          scoring={form.scoring}
+          onScoringChange={scoring => send({ type: 'UPDATE_SCORING', scoring })}
         >
           {#snippet actions()}
             {#if isEditMode}

@@ -1,13 +1,16 @@
 import {
   foreignKey,
   index,
+  integer,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   unique,
 } from 'drizzle-orm/pg-core'
 import { users } from './users'
+
+export const solveSourceValues = ['flag', 'feed'] as const
+export type SolveSource = (typeof solveSourceValues)[number]
 
 export const solves = pgTable(
   'solves',
@@ -17,6 +20,14 @@ export const solves = pgTable(
     userid: text().notNull(),
     createdat: timestamp({ withTimezone: true, mode: 'string' }).notNull(),
     submissionip: text(),
+    points: integer().notNull().default(0),
+    pointsUpdatedAt: timestamp('points_updated_at', {
+      withTimezone: true,
+      mode: 'string',
+    })
+      .defaultNow()
+      .notNull(),
+    source: text().$type<SolveSource>().notNull().default('flag'),
   },
   table => [
     index().using(
@@ -34,6 +45,11 @@ export const solves = pgTable(
       'btree',
       table.userid.asc().nullsLast().op('text_ops'),
       table.challengeid.asc().nullsLast().op('text_ops')
+    ),
+    index('solves_points_updated_at_index').using(
+      'btree',
+      table.pointsUpdatedAt.asc().op('timestamptz_ops'),
+      table.id.asc().op('text_ops')
     ),
     foreignKey({
       columns: [table.userid],

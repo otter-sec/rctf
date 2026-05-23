@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { InstancerConfig } from '@rctf/types'
+  import { ChallengeScoringKind, DynamicScoringTransport } from '@rctf/types'
   import {
     Button,
     Field,
@@ -20,7 +21,7 @@
     IconRobot,
     IconTrophyFilled,
   } from '$lib/icons'
-  import type { AdminBotConfig } from '$lib/machines'
+  import type { AdminBotConfig, ScoringConfig } from '$lib/machines'
   import { useClientConfig } from '$lib/query'
   import { cn } from '$lib/utils'
   import type { Snippet } from 'svelte'
@@ -65,6 +66,8 @@
     onHiddenChange: (v: boolean) => void
     onReleaseTimeChange: (v: number | null) => void
     releaseTime: number | null
+    scoring: ScoringConfig
+    onScoringChange: (v: ScoringConfig) => void
   }
 
   let {
@@ -103,7 +106,37 @@
     onHiddenChange,
     onReleaseTimeChange,
     releaseTime,
+    scoring,
+    onScoringChange,
   }: Props = $props()
+
+  const isDynamic = $derived(scoring.kind === ChallengeScoringKind.DYNAMIC)
+  const dynamicSecret = $derived(
+    scoring.kind === ChallengeScoringKind.DYNAMIC ? scoring.source.secret : ''
+  )
+  const kindChangeLocked = $derived(totalSolves > 0)
+
+  function changeScoringKind(kind: ChallengeScoringKind) {
+    if (kind === ChallengeScoringKind.DYNAMIC) {
+      onScoringChange({
+        kind: ChallengeScoringKind.DYNAMIC,
+        source: {
+          transport: DynamicScoringTransport.WEBHOOK,
+          secret: dynamicSecret || crypto.randomUUID(),
+        },
+      })
+    } else {
+      onScoringChange({ kind: ChallengeScoringKind.DECAY })
+    }
+  }
+
+  function changeDynamicSecret(secret: string) {
+    if (scoring.kind !== ChallengeScoringKind.DYNAMIC) return
+    onScoringChange({
+      kind: ChallengeScoringKind.DYNAMIC,
+      source: { transport: DynamicScoringTransport.WEBHOOK, secret },
+    })
+  }
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
@@ -363,27 +396,93 @@
     <Tabs.Content value="scoring" class="min-h-0 flex-1">
       <ScrollArea class="h-full px-4 pt-4 @lg/form:px-8" fadeSize={64} fadeColor="background-l2">
         <div class={cn('flex flex-col gap-4 p-1 pb-4', isDisabled && 'opacity-60')}>
-          <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
+          <Field.Field>
+            <Field.Label class="flex items-center">
+              Scoring kind
+              {#if kindChangeLocked}
+                <Field.Hint>(locked: challenge has solves)</Field.Hint>
+              {/if}
+            </Field.Label>
+            <Tooltip.Root disabled={!kindChangeLocked || isDisabled}>
+              <Tooltip.Trigger class="block w-full">
+                <Select.Root
+                  type="single"
+                  value={scoring.kind}
+                  onValueChange={v => changeScoringKind(v as ChallengeScoringKind)}
+                  disabled={isDisabled || kindChangeLocked}
+                >
+                  <Select.Trigger class="w-full">
+                    {scoring.kind === ChallengeScoringKind.DYNAMIC ? 'Dynamic' : 'Decay'}
+                  </Select.Trigger>
+                  <Select.Content>
+                    <Select.Item value={ChallengeScoringKind.DECAY} label="Decay">
+                      Decay (points scale from max to min as solves accumulate)
+                    </Select.Item>
+                    <Select.Item value={ChallengeScoringKind.DYNAMIC} label="Dynamic">
+                      Dynamic (points pushed via webhook by an external service)
+                    </Select.Item>
+                  </Select.Content>
+                </Select.Root>
+              </Tooltip.Trigger>
+              <Tooltip.Content>Delete all solves before changing the scoring kind.</Tooltip.Content>
+            </Tooltip.Root>
+          </Field.Field>
+
+          {#if isDynamic}
             <Field.Field>
-              <Field.Label>Minimum points <Field.Hint>(at max solves)</Field.Hint></Field.Label>
+              <Field.Label class="flex items-center">
+                Webhook secret
+                <Field.Hint
+                  >(shared secret for the {DynamicScoringTransport.WEBHOOK} transport)</Field.Hint
+                >
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  class="ml-auto"
+                  onclick={() => changeDynamicSecret(crypto.randomUUID())}
+                  disabled={isDisabled}
+                >
+                  Regenerate
+                </Button>
+              </Field.Label>
+              <Input
+                type="text"
+                class="font-mono"
+                required
+                value={dynamicSecret}
+                oninput={e => changeDynamicSecret(e.currentTarget.value)}
+                disabled={isDisabled}
+              />
+            </Field.Field>
+          {/if}
+
+          <div class={cn('grid grid-cols-1 gap-4 @sm/form:grid-cols-2', isDynamic && 'opacity-50')}>
+            <Field.Field>
+              <Field.Label>
+                Minimum points
+                <Field.Hint>{isDynamic ? '(unused for dynamic)' : '(at max solves)'}</Field.Hint>
+              </Field.Label>
               <Input
                 type="number"
                 min={0}
                 required
                 value={pointsMin}
                 onchange={e => onPointsMinChange(+e.currentTarget.value)}
-                disabled={isDisabled}
+                disabled={isDisabled || isDynamic}
               />
             </Field.Field>
             <Field.Field>
-              <Field.Label>Maximum points <Field.Hint>(at zero solves)</Field.Hint></Field.Label>
+              <Field.Label>
+                Maximum points
+                <Field.Hint>{isDynamic ? '(unused for dynamic)' : '(at zero solves)'}</Field.Hint>
+              </Field.Label>
               <Input
                 type="number"
                 min={0}
                 required
                 value={pointsMax}
                 onchange={e => onPointsMaxChange(+e.currentTarget.value)}
-                disabled={isDisabled}
+                disabled={isDisabled || isDynamic}
               />
             </Field.Field>
           </div>

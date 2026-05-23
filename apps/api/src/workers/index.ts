@@ -1,33 +1,166 @@
 import pino from 'pino'
+import type { TypedRedis } from '../cache/scripts'
+import type { RecomputeSource } from '../services/solve-points'
 
 const workerExt = process.env.WORKER_EXTENSION ?? '.ts'
-let leaderboardWorker: Worker | undefined
+const logger = pino().child({ module: 'workers' })
 
-const startWorker = (logger: pino.Logger, fileName: string, name: string) => {
-  const workerUrl = new URL(fileName, import.meta.url).href
+export const LEADERBOARD_FORCE_UPDATE_CHANNEL = 'leaderboard:force-update'
+export const LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL =
+  'leaderboard:recompute-challenge'
 
-  const w = new Worker(workerUrl, { type: 'module', name })
-  w.addEventListener('error', event => {
-    logger.error({ workerUrl, error: event.message }, `${name} worker error`)
-  })
+const RESTART_BACKOFF_BASE_MS = 500
+const RESTART_BACKOFF_MAX_MS = 30_000
+const RESTART_BACKOFF_RESET_MS = 30_000
 
-  logger.info({ workerUrl }, `started ${name} worker`)
-  return w
+type Supervised = {
+  get worker(): Worker | undefined
+  stop(): void
 }
 
-export const startLeaderboardWorker = (logger: pino.Logger) => {
-  leaderboardWorker = startWorker(
-    logger,
+const supervise = (
+  log: pino.Logger,
+  fileName: string,
+  name: string
+): Supervised => {
+  const workerUrl = new URL(fileName, import.meta.url).href
+  let current: Worker | undefined
+  let stopped = false
+  let attempts = 0
+  let stableTimer: ReturnType<typeof setTimeout> | undefined
+
+  const spawn = (): void => {
+    if (stopped) {
+      return
+    }
+
+    const w = new Worker(workerUrl, { type: 'module', name })
+    let closeHandled = false
+
+    if (stableTimer) {
+      clearTimeout(stableTimer)
+    }
+    stableTimer = setTimeout(() => {
+      attempts = 0
+      stableTimer = undefined
+    }, RESTART_BACKOFF_RESET_MS)
+
+    const scheduleRestart = (cause: string, detail: unknown): void => {
+      if (closeHandled || stopped) {
+        return
+      }
+      closeHandled = true
+      if (stableTimer) {
+        clearTimeout(stableTimer)
+        stableTimer = undefined
+      }
+      const delay = Math.min(
+        RESTART_BACKOFF_MAX_MS,
+        RESTART_BACKOFF_BASE_MS * Math.pow(2, attempts)
+      )
+      attempts++
+      log.warn(
+        { workerUrl, name, cause, detail, delay, attempts },
+        `${name} worker stopped; respawning`
+      )
+      setTimeout(spawn, delay)
+    }
+
+    w.addEventListener('error', event => {
+      log.error({ workerUrl, error: event.message }, `${name} worker error`)
+      try {
+        w.terminate()
+      } catch {}
+      scheduleRestart('error', event.message)
+    })
+
+    w.addEventListener('close', () => {
+      scheduleRestart('close', null)
+    })
+
+    current = w
+    log.info({ workerUrl }, `started ${name} worker`)
+  }
+
+  spawn()
+
+  return {
+    get worker() {
+      return current
+    },
+    stop() {
+      stopped = true
+      if (stableTimer) {
+        clearTimeout(stableTimer)
+        stableTimer = undefined
+      }
+      try {
+        current?.terminate()
+      } catch {}
+    },
+  }
+}
+
+let leaderboardSupervisor: Supervised | undefined
+
+export const startLeaderboardWorker = (log: pino.Logger) => {
+  leaderboardSupervisor = supervise(
+    log,
     `./leaderboard${workerExt}`,
     'leaderboard-worker'
   )
 }
 
-export const forceLeaderboardUpdate = (): void => {
+const notifyLeaderboard = (
+  message: unknown,
+  redis: TypedRedis | undefined,
+  channel: string,
+  payload: string
+): void => {
   try {
-    // TODO(es3n1n): route this through Redis so frontend-only instances can wake a separate leaderboard worker.
-    leaderboardWorker?.postMessage({ type: 'force-update' })
-  } catch (error) {
-    console.error('Error forcing leaderboard update', error)
+    leaderboardSupervisor?.worker?.postMessage(message)
+  } catch (err) {
+    logger.error({ err, channel }, 'failed to post leaderboard worker message')
   }
+  redis?.publish(channel, payload).catch(err => {
+    logger.error({ err, channel }, 'failed to publish leaderboard message')
+  })
+}
+
+export type DecayRecomputeRequest =
+  | { scope: 'all'; source?: RecomputeSource }
+  | { scope: 'challenge'; challengeId: string; source?: RecomputeSource }
+
+const publishRecompute = (
+  redis: TypedRedis | undefined,
+  request: DecayRecomputeRequest
+): void =>
+  notifyLeaderboard(
+    { type: 'recompute-decay', ...request },
+    redis,
+    LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
+    JSON.stringify(request)
+  )
+
+export const forceLeaderboardUpdate = (redis?: TypedRedis): void =>
+  notifyLeaderboard(
+    { type: 'force-update' },
+    redis,
+    LEADERBOARD_FORCE_UPDATE_CHANNEL,
+    '1'
+  )
+
+export const requestChallengeRecompute = (
+  redis: TypedRedis | undefined,
+  challengeId: string,
+  source: RecomputeSource = 'decay-recompute'
+): void => publishRecompute(redis, { scope: 'challenge', challengeId, source })
+
+export const requestAllChallengesRecompute = (
+  redis: TypedRedis | undefined,
+  source: RecomputeSource = 'decay-recompute'
+): void => publishRecompute(redis, { scope: 'all', source })
+
+export const stopWorkers = (): void => {
+  leaderboardSupervisor?.stop()
 }

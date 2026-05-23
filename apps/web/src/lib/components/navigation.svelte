@@ -21,6 +21,7 @@
     IconFlag3Filled,
     IconGavel,
     IconHomeFilled,
+    IconKeyFilled,
     IconLogin,
     IconLogout,
     IconSettingsFilled,
@@ -165,6 +166,13 @@
               >
                 <IconTableFilled class="size-5" />
                 Submissions
+              </DropdownMenu.Item>
+              <DropdownMenu.Item
+                class="data-highlighted:bg-background-l5"
+                onclick={() => goto('/admin/extAuth')}
+              >
+                <IconKeyFilled class="size-5" />
+                External apps
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 class="data-highlighted:bg-background-l5"

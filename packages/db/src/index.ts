@@ -8,6 +8,9 @@ import * as schema from './schema'
 export * from './schema'
 
 export type DatabaseClient = PostgresJsDatabase<typeof schema>
+export type DatabaseTx = Parameters<
+  Parameters<DatabaseClient['transaction']>[0]
+>[0]
 export type PostgresClient = ReturnType<typeof postgres>
 export type { InferSelectModel, InferInsertModel }
 
@@ -22,6 +25,8 @@ export type PendingUserVerification = InferInsertModel<
   typeof schema.pendingUserVerifications
 >
 export type Submission = InferInsertModel<typeof schema.submissions>
+export type ScoreEvent = InferInsertModel<typeof schema.scoreEvents>
+export type ExtAuthClient = InferInsertModel<typeof schema.extAuthClients>
 
 export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   let client: PostgresClient

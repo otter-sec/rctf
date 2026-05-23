@@ -1,0 +1,31 @@
+ctfName: rCTF Dynamic Scoring Tests
+meta:
+  description: 'Dynamic scoring test instance'
+  imageUrl: 'https://example.com'
+homeContent: 'Test instance'
+
+origin: http://127.0.0.1:8090
+divisions:
+  open: Open
+tokenKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+startTime: 0
+endTime: 99999999999999
+userMembers: true
+
+leaderboard:
+  updateInterval: 500
+  graphSampleTime: 1000
+
+scoreProvider:
+  name: scores/classic
+
+database:
+  sql:
+    host: postgres
+    user: rctf
+    password: rctf
+    database: rctf
+  redis:
+    host: redis
+    password: rctf
+  migrate: before
