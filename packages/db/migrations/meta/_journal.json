@@ -155,6 +155,13 @@
       "when": 1779459485799,
       "tag": "0021_add_dynamic_scoring",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1779501658303,
+      "tag": "0022_add_ext_auth_clients",
+      "breakpoints": true
     }
   ]
 }

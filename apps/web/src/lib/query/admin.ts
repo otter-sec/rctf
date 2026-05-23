@@ -1,6 +1,8 @@
 import {
   CompleteAdminUserVerificationRouteV2,
+  CreateExtAuthClientRouteV2,
   DeleteAdminUserRouteV2,
+  DeleteExtAuthClientRouteV2,
   FilterAdminSubmissionsRouteV2,
   FilterAdminUsersRouteV2,
   GetAdminBotStatusRouteV2,
@@ -13,12 +15,14 @@ import {
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
+  GoodAdminExtAuthClients,
   GoodAdminSettings,
   GoodAdminSubmissions,
   GoodAdminUsersV2,
   GoodAdminUserV2,
   GoodAdminUserVerificationsV2,
   GoodInstancerSchema,
+  ListExtAuthClientsRouteV2,
   ResendAdminUserVerificationRouteV2,
   UpdateAdminSettingsRouteV2,
   UpdateAdminUserRouteV2,
@@ -281,4 +285,30 @@ export function useCompleteAdminUserVerificationMutation() {
 
 export function useResendAdminUserVerificationMutation() {
   return createApiMutation(ResendAdminUserVerificationRouteV2)
+}
+
+export const adminExtAuthClientsQueryOptions = queryOptions({
+  queryKey: ['admin', 'ext-auth', 'clients'] as const,
+  queryFn: async () => {
+    const response = await apiRequest(ListExtAuthClientsRouteV2)
+    if (response.kind === GoodAdminExtAuthClients.kind) {
+      return response.data
+    }
+    throw new ApiError(response.kind, response.message)
+  },
+})
+
+export function useAdminExtAuthClients() {
+  return createQuery(() => ({
+    ...adminExtAuthClientsQueryOptions,
+    enabled: browser,
+  }))
+}
+
+export function useCreateExtAuthClientMutation() {
+  return createApiMutation(CreateExtAuthClientRouteV2)
+}
+
+export function useDeleteExtAuthClientMutation() {
+  return createApiMutation(DeleteExtAuthClientRouteV2)
 }
