@@ -1,0 +1,24 @@
+---
+title: '<route>GET</route> Get client metadata'
+description: '<route>GET /api/v2/ext-auth/clients/:id</route>'
+---
+
+import { BadExtAuthRequest, GetExtAuthClientRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample
+    def={GetExtAuthClientRouteV2}
+    params={{ id: '11111111-2222-3333-4444-555555555555' }}
+    extra={[BadExtAuthRequest]}
+  />
+</RouteAside>
+
+<RouteMetaFromDef def={GetExtAuthClientRouteV2} />
+
+Public lookup for the consent page. The page calls this route with the `client_id` from the query string to render the app name and verify the redirect URI before showing the consent prompt. The endpoint never returns the client secret.
+
+Unknown ids return `<response>400 badExtAuthRequest</response>` - the same response used for every other failure mode in the [External auth](/api/ext-auth/) flow.
+
+<RequestBody def={GetExtAuthClientRouteV2} source="params" title="Path parameters" />
+
+<ResponseBody def={GetExtAuthClientRouteV2} response="goodExtAuthClient" title="Response fields" />

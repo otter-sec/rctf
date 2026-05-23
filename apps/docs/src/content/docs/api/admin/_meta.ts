@@ -32,5 +32,8 @@ export default {
     'admin-bot-complete': { order: 25 },
     'admin-bot-fail': { order: 26 },
     'admin-bot-queue-depth': { order: 27 },
+    'ext-auth-list': { order: 28 },
+    'ext-auth-create': { order: 29 },
+    'ext-auth-delete': { order: 30 },
   },
 } satisfies MetaFile

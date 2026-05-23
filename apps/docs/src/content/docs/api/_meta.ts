@@ -10,6 +10,7 @@ export default {
     users: { label: 'Users', order: 13 },
     admin: { label: 'Admin', order: 14 },
     integrations: { label: 'Integrations', order: 15, badge: 'new' },
-    responses: { label: 'Responses', order: 16, badge: 'new' },
+    'ext-auth': { label: 'External auth', order: 16, badge: 'new' },
+    responses: { label: 'Responses', order: 17, badge: 'new' },
   },
 } satisfies MetaFile

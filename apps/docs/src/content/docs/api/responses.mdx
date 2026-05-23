@@ -88,6 +88,8 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>400 badInstancerState</response>` | `{ error: string }{:ts}` | The admin bot route needs a running instance, but one was not available. |
 | `<response>400 badAdminBotConfig</response>` | `{ error: string }{:ts}` | The admin bot provider did not accept the challenge source. |
 | `<response>404 badUnknownVerification</response>` | No data | The pending user verification was not found. |
+| `<response>401 badSignature</response>` | No data | The dynamic-scoring webhook signature, timestamp, or challenge target was rejected. The endpoint deliberately doesn't distinguish causes. |
+| `<response>400 badExtAuthRequest</response>` | No data | An [external-auth](/api/ext-auth/) call was rejected. The same response is used for unknown client, wrong secret, wrong/expired/reused code, and mismatched redirect URI so the endpoint can't be probed. |
 
 ## Success response data
 
@@ -151,6 +153,13 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>200 goodAdminBotChallengeSource</response>` | `{ sourceCode: string, configRevision: string }{:ts}` |
 | `<response>200 goodAdminBotJobUpdate</response>` | `{ ok: boolean }{:ts}` |
 | `<response>200 goodAdminBotQueueDepth</response>` | `{ depth: number }{:ts}` |
+| `<response>200 goodDynamicScores</response>` | `{ inserted: number, updated: number, deleted: number }{:ts}` |
+| `<response>200 goodExtAuthClient</response>` | `{ id: string, name: string, redirectUri: string }{:ts}` |
+| `<response>200 goodExtAuthAuthorize</response>` | `{ redirectTo: string }{:ts}` |
+| `<response>200 goodExtAuthToken</response>` | `{ accessToken: string, tokenType: "bearer" }{:ts}` |
+| `<response>200 goodAdminExtAuthClients</response>` | `{ id, name, redirectUri, createdAt, createdBy }[]{:ts}` |
+| `<response>200 goodAdminExtAuthClientCreate</response>` | `{ id, name, redirectUri, createdAt, createdBy, secret }{:ts}` (secret shown once) |
+| `<response>200 goodAdminExtAuthClientDelete</response>` | No data. |
 
 ## Shared objects
 

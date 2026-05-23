@@ -1,0 +1,22 @@
+---
+title: '<route>GET</route> List external-auth clients'
+description: '<route>GET /api/v2/admin/ext-auth/clients</route>'
+---
+
+import { ListExtAuthClientsRouteV2 } from '@rctf/types'
+
+<RouteAside>
+  <RouteExample def={ListExtAuthClientsRouteV2} />
+</RouteAside>
+
+<RouteMetaFromDef def={ListExtAuthClientsRouteV2} />
+
+Returns every registered external-auth client. Client secrets are never returned by this route - they are shown exactly once at creation time by [Create external-auth client](/api/admin/ext-auth-create/) and cannot be retrieved afterward.
+
+The end-user side of the external-auth flow lives at [External auth](/api/ext-auth/), and the operator walkthrough lives at [External apps](/admin/ext-auth/).
+
+<ResponseBody
+  def={ListExtAuthClientsRouteV2}
+  response="goodAdminExtAuthClients"
+  title="Response fields"
+/>

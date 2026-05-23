@@ -74,8 +74,7 @@ Dynamic challenges talk to rCTF through a webhook. Your scoring backend POSTs th
 Every entry in the score list references an rCTF team ID, the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. A few patterns tend to work.
 
 - Have admins paste each team's rCTF ID into the dynamic service's onboarding flow.
-- Generate the dynamic-service registration token using the rCTF [team token endpoint](/api/admin/team-token/) and tag the resulting session with the team ID.
-- Use the per-team [instancer](/integrations/instancer/) hook to provision a dynamic-service identity tied to the team ID at instance creation time.
+- Wire a "Sign in with rCTF" button on the dynamic service through [External apps](/admin/ext-auth/) and read the team ID from `<route>/api/v1/users/me</route>` once the user lands back authorized. This is usually the lowest-friction option when teams self-onboard.
 
 Score entries for unknown team IDs are silently dropped. The challenge backend won't tell you which team IDs failed to land, so log on your side and reconcile if it matters.
 
