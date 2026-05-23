@@ -117,7 +117,7 @@ const recomputeDecayWithinTx = async (
     )
   )
 
-  const changedRows = rows.filter(row => row.points !== newPoints)
+  const changedRows = activeRows.filter(row => row.points !== newPoints)
   if (changedRows.length === 0) {
     return { updatedCount: 0, newPoints }
   }
@@ -132,11 +132,9 @@ const recomputeDecayWithinTx = async (
       )
     )
 
-  const events = changedRows
-    .filter(row => !row.banned)
-    .map(row =>
-      scoreEvent(challenge.id, row.userid, newPoints - row.points, source)
-    )
+  const events = changedRows.map(row =>
+    scoreEvent(challenge.id, row.userid, newPoints - row.points, source)
+  )
   if (events.length > 0) {
     await tx.insert(scoreEvents).values(events)
   }

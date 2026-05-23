@@ -775,6 +775,13 @@ export const deleteSolve = async (
   }
 ): Promise<Solve[]> => {
   return await db.transaction(async tx => {
+    const targetUser = await tx
+      .select({ banned: users.banned })
+      .from(users)
+      .where(eq(users.id, params.userId))
+      .limit(1)
+      .then(takeUnique)
+
     const removed = await tx
       .delete(solves)
       .where(
@@ -785,17 +792,19 @@ export const deleteSolve = async (
       )
       .returning()
 
-    const events = removed
-      .filter(s => (s.points ?? 0) !== 0)
-      .map(s => ({
-        id: crypto.randomUUID(),
-        challengeid: params.challengeId,
-        userid: params.userId,
-        pointsDelta: -s.points,
-        source: 'delete' as const,
-      }))
-    if (events.length > 0) {
-      await tx.insert(scoreEvents).values(events)
+    if (targetUser?.banned === false) {
+      const events = removed
+        .filter(s => (s.points ?? 0) !== 0)
+        .map(s => ({
+          id: crypto.randomUUID(),
+          challengeid: params.challengeId,
+          userid: params.userId,
+          pointsDelta: -s.points,
+          source: 'delete' as const,
+        }))
+      if (events.length > 0) {
+        await tx.insert(scoreEvents).values(events)
+      }
     }
 
     return removed

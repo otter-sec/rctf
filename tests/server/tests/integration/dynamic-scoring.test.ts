@@ -13,10 +13,14 @@ import { beforeAll, beforeEach, describe, expect, test } from 'bun:test'
 import { and, eq } from 'drizzle-orm'
 import RedisMock from 'ioredis-mock'
 import {
+  deleteSolve,
   getMaxSolveCount,
   upsertChallenge,
 } from '../../../../apps/api/src/services/challenges'
-import { upsertDynamicSolves } from '../../../../apps/api/src/services/solve-points'
+import {
+  applyDecayPointsForChallenge,
+  upsertDynamicSolves,
+} from '../../../../apps/api/src/services/solve-points'
 import {
   deleteAdminUser,
   updateAdminUser,
@@ -282,6 +286,64 @@ describe('feed-during-ban invariant', () => {
     expect(await sumScoreEvents(user.id, c1)).toBe(100)
     expect(await sumScoreEvents(user.id, c2)).toBe(250)
   })
+
+  test('decay recompute skips banned solves so unban restores original points', async () => {
+    const db = getDb()
+    const redis = await createRedis()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDecayChallenge({
+      points: { min: 100, max: 500 },
+    })
+
+    await db.insert(solves).values({
+      id: crypto.randomUUID(),
+      challengeid: challengeId,
+      userid: user.id,
+      createdat: new Date(config.startTime + 1000).toISOString(),
+      points: 0,
+    })
+
+    await applyDecayPointsForChallenge(db, challengeId, 'flag')
+    const originalPoints = await getSolvePoints(user.id, challengeId)
+    expect(originalPoints).toBeGreaterThan(0)
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(originalPoints)
+
+    await updateAdminUser(db, redis, user.id, { banned: true })
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
+
+    const [challenge] = await db
+      .select({ data: challenges.data })
+      .from(challenges)
+      .where(eq(challenges.id, challengeId))
+      .limit(1)
+    await db
+      .update(challenges)
+      .set({
+        data: {
+          ...challenge!.data,
+          points: { min: 100, max: 1000 },
+        },
+      })
+      .where(eq(challenges.id, challengeId))
+
+    const bannedRecompute = await applyDecayPointsForChallenge(
+      db,
+      challengeId,
+      'algo-change'
+    )
+    expect(bannedRecompute.updatedCount).toBe(0)
+    expect(await getSolvePoints(user.id, challengeId)).toBe(originalPoints)
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
+
+    await updateAdminUser(db, redis, user.id, { banned: false })
+    expect(await getSolvePoints(user.id, challengeId)).toBe(originalPoints)
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(originalPoints)
+
+    await applyDecayPointsForChallenge(db, challengeId, 'algo-change')
+    const updatedPoints = await getSolvePoints(user.id, challengeId)
+    expect(updatedPoints).not.toBe(originalPoints)
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(updatedPoints)
+  })
 })
 
 describe('recompute pub/sub filtering', () => {
@@ -432,6 +494,45 @@ describe('admin transaction atomicity', () => {
         and(eq(scoreEvents.userid, user.id), eq(scoreEvents.source, 'ban'))
       )
     expect(banEvents).toHaveLength(0)
+  })
+
+  test('deleting a banned user solve does not double-reverse score_events', async () => {
+    const db = getDb()
+    const redis = await createRedis()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 100 },
+    ])
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(100)
+
+    await updateAdminUser(db, redis, user.id, { banned: true })
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
+
+    const removed = await deleteSolve(db, {
+      challengeId,
+      userId: user.id,
+    })
+
+    expect(removed).toHaveLength(1)
+    expect(await getSolvePoints(user.id, challengeId)).toBeNull()
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
+
+    const deleteEvents = await db
+      .select({ id: scoreEvents.id })
+      .from(scoreEvents)
+      .where(
+        and(
+          eq(scoreEvents.userid, user.id),
+          eq(scoreEvents.challengeid, challengeId),
+          eq(scoreEvents.source, 'delete')
+        )
+      )
+    expect(deleteEvents).toHaveLength(0)
+
+    await updateAdminUser(db, redis, user.id, { banned: false })
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
   })
 
   test('delete emits negative events for every solve and removes the user', async () => {
