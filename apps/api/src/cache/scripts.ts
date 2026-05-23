@@ -3,6 +3,7 @@ import type Redis from 'ioredis'
 
 export type TypedRedis = Redis & {
   rctfSetGraph: (...args: string[]) => Promise<void>
+  rctfMergeGraph: (...args: string[]) => Promise<void>
   rctfRateLimit: (key: string, limit: string, ttlMs: string) => Promise<number>
 }
 
@@ -15,6 +16,10 @@ export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
 
   redis.defineCommand('rctfSetGraph', {
     numberOfKeys: 2,
+    lua: await loadLuaScript('set-graph.lua'),
+  })
+  redis.defineCommand('rctfMergeGraph', {
+    numberOfKeys: 5,
     lua: await loadLuaScript('set-graph.lua'),
   })
   redis.defineCommand('rctfRateLimit', {

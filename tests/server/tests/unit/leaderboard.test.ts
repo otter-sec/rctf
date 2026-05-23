@@ -57,6 +57,33 @@ const createMockRedis = () => {
         hashStore.set(dataKey, hash)
       }
     ),
+    rctfMergeGraph: mock(
+      async (
+        updateKey: string,
+        dataKey: string,
+        fingerprintKey: string,
+        cursorKey: string,
+        sourceKey: string,
+        lastSample: string,
+        fingerprint: string,
+        cursor: string,
+        source: string,
+        ...args: string[]
+      ) => {
+        let hash = hashStore.get(dataKey)
+        if (!hash) {
+          hash = new Map()
+          hashStore.set(dataKey, hash)
+        }
+        for (let i = 0; i < args.length; i += 2) {
+          hash.set(args[i]!, args[i + 1]!)
+        }
+        store.set(updateKey, lastSample)
+        store.set(fingerprintKey, fingerprint)
+        store.set(cursorKey, cursor)
+        store.set(sourceKey, source)
+      }
+    ),
     rctfRateLimit: mock(
       async (_key: string, _limit: string, _ttlMs: string) => 0
     ),
@@ -478,7 +505,7 @@ describe('leaderboard cache', () => {
       )
     })
 
-    test('rebuilds graph from all score events on each cache write', async () => {
+    test('updates graph incrementally from the score event cursor', async () => {
       const redis = createMockRedis()
       const db = createMockDb([
         [
@@ -490,12 +517,6 @@ describe('leaderboard cache', () => {
           },
         ],
         [
-          {
-            id: 'evt1',
-            userid: 'user1',
-            pointsDelta: 50,
-            eventAt: new Date(1699990000).toISOString(),
-          },
           {
             id: 'evt2',
             userid: 'user1',
@@ -522,16 +543,37 @@ describe('leaderboard cache', () => {
       }
 
       await cacheLeaderboardAndGraph(db, redis, data)
+      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
+      expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+        '1699990000,50'
+      )
+
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(2)
-      expect(redis.rctfSetGraph).toHaveBeenLastCalledWith(
+      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
+      expect(redis.rctfMergeGraph).toHaveBeenLastCalledWith(
         'graph-update',
         'graph-data',
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
         expect.any(String),
+        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          time: new Date(1699995000).toISOString(),
+          id: 'evt2',
+        }),
+        'events',
         'user1',
         '1699990000,50,1699995000,75'
       )
+      expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+        '1699990000,50,1699995000,75'
+      )
+      expect(JSON.parse(redis.store.get('graph-cursor') ?? '{}')).toEqual({
+        id: 'evt2',
+        time: new Date(1699995000).toISOString(),
+      })
     })
   })
 })

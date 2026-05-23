@@ -234,7 +234,7 @@ describe('cached leaderboard calculator', () => {
     expect(second.calculated.users).toHaveLength(2)
   })
 
-  test('refreshes dynamic point updates without relying on timestamp cursor order', async () => {
+  test('refreshes dynamic point updates from pointsUpdatedAt cursor', async () => {
     const db = getDb()
     const user = await insertUser()
     const challenge = await insertChallenge({
@@ -263,7 +263,7 @@ describe('cached leaderboard calculator', () => {
 
     await db
       .update(solves)
-      .set({ points: 25, pointsUpdatedAt: isoAt(T0 - 1000) })
+      .set({ points: 25, pointsUpdatedAt: isoAt(T1) })
       .where(eq(solves.id, solve.id))
 
     const second = await calc(db)
@@ -275,6 +275,54 @@ describe('cached leaderboard calculator', () => {
     expect(third.recomputedFromScratch).toBe(false)
     expect(third.changed).toBe(false)
     expect(third.calculated.users.find(u => u.id === user.id)?.score).toBe(25)
+  })
+
+  test('does not skip dynamic point updates when a newer solve arrives in the same tick', async () => {
+    const db = getDb()
+    const existingUser = await insertUser('existing-dynamic')
+    const newUser = await insertUser('new-dynamic')
+    const challenge = await insertChallenge({
+      flag: '',
+      scoring: {
+        kind: ChallengeScoringKind.DYNAMIC,
+        source: {
+          transport: DynamicScoringTransport.WEBHOOK,
+          secret: crypto.randomUUID(),
+        },
+      },
+    })
+
+    const existingSolve = await insertSolve({
+      challengeId: challenge.id,
+      userId: existingUser.id,
+      createdAt: isoAt(T0),
+      points: 10,
+      pointsUpdatedAt: isoAt(T0),
+    })
+
+    const calc = createCachedLeaderboardCalculator()
+    await calc(db)
+
+    await db
+      .update(solves)
+      .set({ points: 25, pointsUpdatedAt: isoAt(T1) })
+      .where(eq(solves.id, existingSolve.id))
+    await insertSolve({
+      challengeId: challenge.id,
+      userId: newUser.id,
+      createdAt: isoAt(T2),
+      points: 7,
+      pointsUpdatedAt: isoAt(T2),
+    })
+
+    const second = await calc(db)
+    expect(second.recomputedFromScratch).toBe(false)
+    expect(
+      second.calculated.users.find(u => u.id === existingUser.id)?.score
+    ).toBe(25)
+    expect(second.calculated.users.find(u => u.id === newUser.id)?.score).toBe(
+      7
+    )
   })
 
   test('rebuilds from scratch when provider identity changes', async () => {
