@@ -25,7 +25,7 @@ import {
   GoodRegisterV2,
   SortOrder,
 } from '@rctf/types'
-import { and, asc, count, desc, eq, or, sql, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, ne, or, sql, type SQL } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
@@ -635,12 +635,10 @@ export const updateAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  const wasBanned = targetUser.banned ?? false
-  const willBeBanned = data.banned ?? wasBanned
-  const bannedChanged = wasBanned !== willBeBanned
+  const willBeBanned = data.banned ?? targetUser.banned ?? false
 
   const affectedDecayIds = await db.transaction(async tx => {
-    await tx
+    const updated = await tx
       .update(users)
       .set({
         banned: willBeBanned,
@@ -654,9 +652,10 @@ export const updateAdminUser = async (
             }
           : {}),
       })
-      .where(eq(users.id, id))
+      .where(and(eq(users.id, id), ne(users.banned, willBeBanned)))
+      .returning({ id: users.id })
 
-    if (!bannedChanged) {
+    if (updated.length === 0) {
       return [] as string[]
     }
 

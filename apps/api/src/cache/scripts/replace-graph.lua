@@ -8,15 +8,15 @@
 -- ARGV:
 -- 1: lastSample (timestamp)
 -- 2: fingerprint
--- 3: cursor
+-- 3: cursor (may be empty string)
 -- 4: source
--- 5..N: pairs of [userId, "t1,s1,t2,s2,..."] for users changed by the delta
+-- 5..N: pairs of [userId, "t1,s1,t2,s2,..."]; empty when the snapshot has no users
 
 local function hsetPairs(dataKey, startIndex)
   local args = {}
   for i = startIndex, #ARGV, 2 do
-    args[#args + 1] = ARGV[i]     -- userId
-    args[#args + 1] = ARGV[i + 1] -- packed points
+    args[#args + 1] = ARGV[i]
+    args[#args + 1] = ARGV[i + 1]
   end
 
   local size = 7996
@@ -31,6 +31,7 @@ local function hsetPairs(dataKey, startIndex)
   end
 end
 
+redis.call('DEL', KEYS[2])
 hsetPairs(KEYS[2], 5)
 redis.call('SET', KEYS[1], ARGV[1])
 redis.call('SET', KEYS[3], ARGV[2])

@@ -270,28 +270,25 @@ const buildGraphFromEventsWithSampleBaseline = (
   }
 }
 
-const setGraphSnapshot = async (
+const replaceGraphAtomic = (
   redis: TypedRedis,
-  { lastSample, userPoints }: GraphFold
-): Promise<void> => {
-  const argv = [
-    lastSample.toString(),
-    ...Array.from(userPoints).flatMap(([id, points]) => [id, points.join(',')]),
-  ]
-  await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, ...argv)
-}
-
-const commitGraphMeta = (
-  redis: TypedRedis,
+  fold: GraphFold,
   fingerprint: string,
-  source: typeof graphSourceEvents | typeof graphSourceSamples,
-  cursor: ScoreEventGraphCursor | null
-): Promise<unknown> =>
-  Promise.all([
-    redis.set(keyGraphFingerprint, fingerprint),
-    redis.set(keyGraphCursor, cursor ? JSON.stringify(cursor) : ''),
-    redis.set(keyGraphSource, source),
-  ])
+  cursor: ScoreEventGraphCursor | null,
+  source: typeof graphSourceEvents | typeof graphSourceSamples
+): Promise<void> =>
+  redis.rctfReplaceGraph(
+    keyGraphUpdate,
+    keyGraphData,
+    keyGraphFingerprint,
+    keyGraphCursor,
+    keyGraphSource,
+    fold.lastSample.toString(),
+    fingerprint,
+    cursor ? JSON.stringify(cursor) : '',
+    source,
+    ...packGraphUpdates(fold.userPoints)
+  )
 
 const buildGraphFingerprint = (
   userIds: string[],
@@ -411,6 +408,11 @@ const cacheGraphIncremental = async (
   )
 }
 
+const emptyFold = (): GraphFold => ({
+  lastSample: Date.now(),
+  userPoints: new Map(),
+})
+
 const cacheGraph = async (
   db: DatabaseClient,
   redis: TypedRedis,
@@ -421,12 +423,13 @@ const cacheGraph = async (
   const fingerprint = buildGraphFingerprint(userIds, challengeIds)
 
   if (userIds.length === 0 || challengeIds.length === 0) {
-    await redis.rctfSetGraph(
-      keyGraphUpdate,
-      keyGraphData,
-      Date.now().toString()
+    await replaceGraphAtomic(
+      redis,
+      emptyFold(),
+      fingerprint,
+      null,
+      graphSourceEvents
     )
-    await commitGraphMeta(redis, fingerprint, graphSourceEvents, null)
     return
   }
 
@@ -453,27 +456,34 @@ const cacheGraph = async (
 
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds)
   if (rows.length > 0) {
-    await setGraphSnapshot(
+    await replaceGraphAtomic(
       redis,
-      buildGraphFromEventsWithSampleBaseline(data, rows)
-    )
-    await commitGraphMeta(
-      redis,
+      buildGraphFromEventsWithSampleBaseline(data, rows),
       fingerprint,
-      graphSourceEvents,
-      buildGraphCursor(rows)
+      buildGraphCursor(rows),
+      graphSourceEvents
     )
     return
   }
 
   if (data.samples.length > 0) {
-    await setGraphSnapshot(redis, buildGraphFromSamples(data))
-    await commitGraphMeta(redis, fingerprint, graphSourceSamples, null)
+    await replaceGraphAtomic(
+      redis,
+      buildGraphFromSamples(data),
+      fingerprint,
+      null,
+      graphSourceSamples
+    )
     return
   }
 
-  await redis.rctfSetGraph(keyGraphUpdate, keyGraphData, Date.now().toString())
-  await commitGraphMeta(redis, fingerprint, graphSourceEvents, null)
+  await replaceGraphAtomic(
+    redis,
+    emptyFold(),
+    fingerprint,
+    null,
+    graphSourceEvents
+  )
 }
 
 interface GraphPoint {

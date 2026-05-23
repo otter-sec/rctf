@@ -37,26 +37,6 @@ const createMockRedis = () => {
       }
       return args.length / 2
     }),
-    rctfSetGraph: mock(
-      async (
-        updateKey: string,
-        dataKey: string,
-        lastSample: string,
-        ...args: string[]
-      ) => {
-        store.set(updateKey, lastSample)
-        hashStore.delete(dataKey)
-        if (args.length === 0) {
-          return
-        }
-
-        const hash = new Map<string, string>()
-        for (let i = 0; i < args.length; i += 2) {
-          hash.set(args[i]!, args[i + 1]!)
-        }
-        hashStore.set(dataKey, hash)
-      }
-    ),
     rctfMergeGraph: mock(
       async (
         updateKey: string,
@@ -77,6 +57,33 @@ const createMockRedis = () => {
         }
         for (let i = 0; i < args.length; i += 2) {
           hash.set(args[i]!, args[i + 1]!)
+        }
+        store.set(updateKey, lastSample)
+        store.set(fingerprintKey, fingerprint)
+        store.set(cursorKey, cursor)
+        store.set(sourceKey, source)
+      }
+    ),
+    rctfReplaceGraph: mock(
+      async (
+        updateKey: string,
+        dataKey: string,
+        fingerprintKey: string,
+        cursorKey: string,
+        sourceKey: string,
+        lastSample: string,
+        fingerprint: string,
+        cursor: string,
+        source: string,
+        ...args: string[]
+      ) => {
+        hashStore.delete(dataKey)
+        if (args.length > 0) {
+          const hash = new Map<string, string>()
+          for (let i = 0; i < args.length; i += 2) {
+            hash.set(args[i]!, args[i + 1]!)
+          }
+          hashStore.set(dataKey, hash)
         }
         store.set(updateKey, lastSample)
         store.set(fingerprintKey, fingerprint)
@@ -287,11 +294,20 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalled()
-      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+      expect(redis.rctfReplaceGraph).toHaveBeenCalled()
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledWith(
         'graph-update',
         'graph-data',
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
         expect.any(String),
+        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          time: new Date(1699995000).toISOString(),
+          ids: ['evt2'],
+        }),
+        'events',
         'user1',
         '1699990000,50,1699995000,100'
       )
@@ -320,10 +336,16 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledWith(
         'graph-update',
         'graph-data',
-        expect.any(String)
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
+        expect.any(String),
+        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        '',
+        'events'
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -359,10 +381,16 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledWith(
         'graph-update',
         'graph-data',
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
         '1699995000',
+        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        '',
+        'samples',
         'user1',
         '1699990000,50,1699995000,100'
       )
@@ -414,10 +442,19 @@ describe('leaderboard cache', () => {
       await cacheLeaderboardAndGraph(db, redis, data)
 
       expect(redis.store.get('graph-source')).toBe('events')
-      expect(redis.rctfSetGraph).toHaveBeenLastCalledWith(
+      expect(redis.rctfReplaceGraph).toHaveBeenLastCalledWith(
         'graph-update',
         'graph-data',
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
         expect.any(String),
+        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          time: new Date(1699995000).toISOString(),
+          ids: ['evt1'],
+        }),
+        'events',
         'user1',
         '1699990000,50,1699995000,75'
       )
@@ -494,10 +531,22 @@ describe('leaderboard cache', () => {
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledWith(
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledWith(
         'graph-update',
         'graph-data',
+        'graph-fingerprint',
+        'graph-cursor',
+        'graph-source',
         expect.any(String),
+        JSON.stringify({
+          users: ['user1', 'user2'],
+          challenges: ['challenge1'],
+        }),
+        JSON.stringify({
+          time: new Date(1699995000).toISOString(),
+          ids: ['evt3', 'evt4'],
+        }),
+        'events',
         'user1',
         '1699990000,30,1699995000,70',
         'user2',
@@ -543,14 +592,14 @@ describe('leaderboard cache', () => {
       }
 
       await cacheLeaderboardAndGraph(db, redis, data)
-      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledTimes(1)
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
         '1699990000,50'
       )
 
       await cacheLeaderboardAndGraph(db, redis, data)
 
-      expect(redis.rctfSetGraph).toHaveBeenCalledTimes(1)
+      expect(redis.rctfReplaceGraph).toHaveBeenCalledTimes(1)
       expect(redis.rctfMergeGraph).toHaveBeenLastCalledWith(
         'graph-update',
         'graph-data',

@@ -234,6 +234,7 @@ export const upsertDynamicSolves = async (
             .where(
               and(inArray(users.id, involvedUserIds), eq(users.banned, false))
             )
+            .for('share')
             .then(rows => new Set(rows.map(r => r.id)))
 
     const existing = await tx
