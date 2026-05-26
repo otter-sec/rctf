@@ -82,7 +82,6 @@
   }
 
   const startTime = $derived(clientConfig?.startTime ?? 0)
-  const endTime = $derived(clientConfig?.endTime ?? Number.MAX_SAFE_INTEGER)
 
   const processedData = $derived.by(() => {
     const rawGraph = graphData ?? []
@@ -168,15 +167,8 @@
 
   const { flatPoints, teamMeta } = $derived(processedData)
 
-  const xDomain = $derived.by<[number, number] | undefined>(() => {
-    if (!clientConfig || flatPoints.length === 0) return undefined
-    return [startTime, endTime]
-  })
-
-  const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
-
-  const useMinutesFormat = $derived.by(() => {
-    if (flatPoints.length === 0) return false
+  const timeBounds = $derived.by(() => {
+    if (flatPoints.length === 0) return null
     // NOTE(es3n1n): doing Math.max(...items) on 8k items is causing issues on chromium,
     //  hence why we're doing this manually
     let minTime = Infinity
@@ -185,8 +177,20 @@
       if (p.time < minTime) minTime = p.time
       if (p.time > maxTime) maxTime = p.time
     }
+    return { minTime, maxTime }
+  })
+
+  const xDomain = $derived.by<[number, number] | undefined>(() => {
+    if (!clientConfig || !timeBounds) return undefined
+    return [startTime, Math.max(timeBounds.maxTime, startTime)]
+  })
+
+  const dataByTeam = $derived(flatGroup(flatPoints, d => d.teamId))
+
+  const useMinutesFormat = $derived.by(() => {
+    if (!timeBounds) return false
     const minRangeForHoursOnly = (X_AXIS_DIVISIONS + 1) * 60 * 60 * 1000
-    return maxTime - minTime < minRangeForHoursOnly
+    return timeBounds.maxTime - timeBounds.minTime < minRangeForHoursOnly
   })
 
   const solveHighlightPoint = $derived.by(() => {

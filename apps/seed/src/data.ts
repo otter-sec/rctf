@@ -7,7 +7,13 @@ import type {
   User,
   UserMember,
 } from '@rctf/db'
-import { Permissions, SubmissionKind, SubmissionResult } from '@rctf/types'
+import {
+  ChallengeScoringKind,
+  DynamicScoringTransport,
+  Permissions,
+  SubmissionKind,
+  SubmissionResult,
+} from '@rctf/types'
 
 export type SeedData = {
   admin: User
@@ -23,7 +29,8 @@ export type SeedData = {
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 export const SEED_TEAM_COUNT = 250
-export const SEED_CHALLENGE_COUNT = 18
+const SEED_GENERATED_CHALLENGE_COUNT = 18
+export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 1
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
 export const SEED_CHALLENGE_CATEGORIES = [
@@ -80,6 +87,9 @@ const slug = (value: string) =>
 
 const titleCase = (value: string) =>
   value.replace(/\b[a-z]/g, letter => letter.toUpperCase())
+
+const isGeneratedFlagChallenge = (challenge: Challenge) =>
+  challenge.data.scoring?.kind !== ChallengeScoringKind.DYNAMIC
 
 const allPermissions = Object.values(Permissions)
   .filter((value): value is number => typeof value === 'number')
@@ -143,36 +153,69 @@ function buildMembers(config: ServerConfig, teams: User[]): UserMember[] {
 function buildChallenges(): Challenge[] {
   const categoryCounts = new Map<string, number>()
 
-  return Array.from({ length: SEED_CHALLENGE_COUNT }, (_, index) => {
-    const category = randomItem(SEED_CHALLENGE_CATEGORIES)
-    const categoryOrdinal = (categoryCounts.get(category) ?? 0) + 1
-    categoryCounts.set(category, categoryOrdinal)
+  const generatedChallenges = Array.from(
+    { length: SEED_GENERATED_CHALLENGE_COUNT },
+    (_, index) => {
+      const category = randomItem(SEED_CHALLENGE_CATEGORIES)
+      const categoryOrdinal = (categoryCounts.get(category) ?? 0) + 1
+      categoryCounts.set(category, categoryOrdinal)
 
-    const categorySlug = slug(category)
-    const challengeOrdinal = index + 1
-    const id = `seed-${categorySlug}-${categoryOrdinal}`
-    const name = `${titleCase(category)} ${categoryOrdinal}`
+      const categorySlug = slug(category)
+      const challengeOrdinal = index + 1
+      const id = `seed-${categorySlug}-${categoryOrdinal}`
+      const name = `${titleCase(category)} ${categoryOrdinal}`
 
-    return {
-      id,
+      return {
+        id,
+        data: {
+          name,
+          description: `Generated ${category} challenge ${categoryOrdinal}.`,
+          category,
+          author: 'seed',
+          files: [],
+          points: {
+            min: 50 + (index % 4) * 25,
+            max: 500,
+          },
+          flag: `rctf{${id.replaceAll('-', '_')}}`,
+          tiebreakEligible: true,
+          sortWeight: challengeOrdinal * 10,
+          hidden: false,
+          releaseTime: null,
+        },
+      }
+    }
+  )
+
+  return [
+    ...generatedChallenges,
+    {
+      id: 'seed-koth',
       data: {
-        name,
-        description: `Generated ${category} challenge ${categoryOrdinal}.`,
-        category,
+        name: 'King of the Hill',
+        description: 'Seed KOTH challenge for testing dynamic score display.',
+        category: 'koth',
         author: 'seed',
         files: [],
         points: {
-          min: 50 + (index % 4) * 25,
+          min: 0,
           max: 500,
         },
-        flag: `rctf{${id.replaceAll('-', '_')}}`,
+        flag: '',
         tiebreakEligible: true,
-        sortWeight: challengeOrdinal * 10,
+        sortWeight: SEED_CHALLENGE_COUNT * 10,
         hidden: false,
         releaseTime: null,
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: 'seed-koth-webhook-secret',
+          },
+        },
       },
-    }
-  })
+    },
+  ]
 }
 
 function buildSeedTiming(config: ServerConfig): SeedTiming {
@@ -341,7 +384,8 @@ export function buildSeedData(config: ServerConfig): SeedData {
   const admin = buildAdmin()
   const teams = buildTeams(config, SEED_TEAM_COUNT)
   const challenges = buildChallenges()
-  const solves = buildSolves(timing, teams, challenges)
+  const generatedFlagChallenges = challenges.filter(isGeneratedFlagChallenge)
+  const solves = buildSolves(timing, teams, generatedFlagChallenges)
 
   return {
     admin,
@@ -350,7 +394,12 @@ export function buildSeedData(config: ServerConfig): SeedData {
     members: buildMembers(config, teams),
     challenges,
     solves,
-    submissions: buildSubmissions(timing, teams, challenges, solves),
+    submissions: buildSubmissions(
+      timing,
+      teams,
+      generatedFlagChallenges,
+      solves
+    ),
     settings: buildSettings(config, timing),
   }
 }
