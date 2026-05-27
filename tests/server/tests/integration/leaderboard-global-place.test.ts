@@ -189,10 +189,8 @@ describe('getLeaderboardWithTotal globalPlace', () => {
     expect(divResult.leaderboard[0]!.divisionPlace).toBe(1)
     expect(divResult.leaderboard[1]!.divisionPlace).toBe(2)
 
-    for (const entry of divResult.leaderboard) {
-      expect(entry.globalPlace).not.toBe(1)
-      expect(entry.globalPlace).toBeGreaterThanOrEqual(2)
-    }
+    expect(divResult.leaderboard[0]!.globalPlace).toBe(2)
+    expect(divResult.leaderboard[1]!.globalPlace).toBe(3)
   })
 
   test('globalPlace is correct with offset for global leaderboard', async () => {
@@ -369,7 +367,7 @@ describe('zero-score teams with valid solves', () => {
 
     const result = await getLeaderboardWithTotal(db, 10, 0)
     expect(result.leaderboard.find(e => e.id === user.id)).toBeDefined()
-    expect(result.total).toBeGreaterThanOrEqual(1)
+    expect(result.total).toBe(1)
   })
 
   test('team that solved a zero-point challenge appears in search results', async () => {
@@ -480,7 +478,7 @@ describe('challenge score/solve_count caching', () => {
       .where(eq(challenges.id, ch.id))
 
     expect(dbChall[0]!.solveCount).toBe(2)
-    expect(dbChall[0]!.score).toBeGreaterThan(0)
+    expect(dbChall[0]!.score).toBe(481)
   })
 
   test('stale challenge score/solve_count is reset when challenge is hidden', async () => {
@@ -500,7 +498,7 @@ describe('challenge score/solve_count caching', () => {
       .from(challenges)
       .where(eq(challenges.id, ch.id))
     expect(before[0]!.solveCount).toBe(1)
-    expect(before[0]!.score).toBeGreaterThan(0)
+    expect(before[0]!.score).toBe(500)
 
     await db
       .update(challenges)
@@ -552,7 +550,8 @@ describe('challenge score/solve_count caching', () => {
       .from(challenges)
       .where(eq(challenges.id, ch.id))
     expect(round2[0]!.solveCount).toBe(2)
-    expect(round2[0]!.score).toBeLessThanOrEqual(scoreAfterOneSolve)
+    expect(scoreAfterOneSolve).toBe(500)
+    expect(round2[0]!.score).toBe(481)
   })
 })
 
@@ -574,7 +573,7 @@ describe('cacheLeaderboard transaction correctness', () => {
       .from(users)
       .where(eq(users.id, user.id))
     expect(before[0]!.globalRank).not.toBeNull()
-    expect(before[0]!.score).toBeGreaterThan(0)
+    expect(before[0]!.score).toBe(500)
 
     await db.delete(solves).where(eq(solves.id, solve.id))
     const result = await calculateLeaderboard(db)
@@ -633,7 +632,7 @@ describe('cacheLeaderboard transaction correctness', () => {
       .from(users)
       .where(eq(users.id, userKeep.id))
     expect(afterKeep[0]!.globalRank).toBe(1)
-    expect(afterKeep[0]!.score).toBeGreaterThan(0)
+    expect(afterKeep[0]!.score).toBe(500)
 
     const afterLose = await db
       .select({
@@ -688,7 +687,7 @@ describe('cacheLeaderboard transaction correctness', () => {
       .from(users)
       .where(eq(users.id, user.id))
 
-    expect(row[0]!.score).toBeGreaterThan(0)
+    expect(row[0]!.score).toBe(500)
     expect(row[0]!.globalRank).toBe(1)
     expect(row[0]!.divisionRank).toBe(1)
     expect(row[0]!.lastSolveAt).not.toBeNull()
@@ -730,9 +729,10 @@ describe('CTFtime leaderboard query', () => {
         sql`${users.score} DESC, ${users.lastTiebreakSolveAt} ASC NULLS LAST, ${users.lastSolveAt} ASC NULLS LAST`
       )
 
-    expect(leaderboard.length).toBeGreaterThanOrEqual(2)
+    expect(leaderboard.length).toBe(2)
     expect(leaderboard[0]!.name).toBe(user1.name)
-    expect(leaderboard[0]!.score).toBeGreaterThan(leaderboard[1]!.score!)
+    expect(leaderboard[0]!.score).toBe(981)
+    expect(leaderboard[1]!.score).toBe(481)
     const standings = leaderboard.map((item, index) => ({
       pos: index + 1,
       team: item.name,
@@ -740,7 +740,7 @@ describe('CTFtime leaderboard query', () => {
     }))
     expect(standings[0]!.pos).toBe(1)
     expect(standings[1]!.pos).toBe(2)
-    expect(standings[0]!.score).toBeGreaterThan(0)
+    expect(standings[0]!.score).toBe(981)
   })
 
   test('excludes unranked users', async () => {
@@ -788,7 +788,7 @@ describe('getFullUser reads fresh ranks from DB', () => {
     }
 
     const fullUser = await getFullUser(db, staleSnapshot as any)
-    expect(fullUser.score).toBeGreaterThan(0)
+    expect(fullUser.score).toBe(500)
     expect(fullUser.globalPlace).toBe(1)
     expect(fullUser.divisionPlace).toBe(1)
   })

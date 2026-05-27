@@ -186,7 +186,7 @@ describe('banned user exclusion (regression)', () => {
           s.activeId,
           s.bannedId,
         ])
-        expect(data.solves.get(s.activeId)?.length ?? 0).toBeGreaterThan(0)
+        expect(data.solves.get(s.activeId)?.length ?? 0).toBe(1)
         expect(data.solves.get(s.bannedId) ?? []).toHaveLength(0)
         expect(data.userInfo.has(s.activeId)).toBe(true)
         expect(data.userInfo.has(s.bannedId)).toBe(false)

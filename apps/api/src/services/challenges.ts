@@ -25,7 +25,7 @@ import {
   SubmissionResult,
 } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm'
-import type { PgColumn } from 'drizzle-orm/pg-core'
+import { alias, type PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -770,26 +770,26 @@ async function getLatestDynamicPointDeltas(
   userIds: string[],
   challengeIds: string[]
 ): Promise<Map<string, Map<string, number>>> {
-  if (userIds.length === 0 || challengeIds.length === 0) return new Map()
+  if (userIds.length === 0 || challengeIds.length === 0) {
+    return new Map()
+  }
 
-  const latestDynamicEvents = db.$with('latest_dynamic_events').as(
-    db
-      .select({
-        challengeId: scoreEvents.challengeid,
-        eventAt: sql<string>`max(${scoreEvents.eventAt})`.as('latest_event_at'),
-      })
-      .from(scoreEvents)
-      .where(
-        and(
-          inArray(scoreEvents.challengeid, challengeIds),
-          eq(scoreEvents.source, 'feed')
-        )
+  // resolve the latest feed tick per challenge with a per-challenge LIMIT 1
+  const latestFeedEvent = alias(scoreEvents, 'latest_feed_event')
+  const latestTick = db
+    .select({ eventAt: latestFeedEvent.eventAt })
+    .from(latestFeedEvent)
+    .where(
+      and(
+        eq(latestFeedEvent.challengeid, challenges.id),
+        eq(latestFeedEvent.source, 'feed')
       )
-      .groupBy(scoreEvents.challengeid)
-  )
+    )
+    .orderBy(desc(latestFeedEvent.eventAt))
+    .limit(1)
+    .as('latest_tick')
 
   const rows = await db
-    .with(latestDynamicEvents)
     .select({
       challengeId: scoreEvents.challengeid,
       userId: scoreEvents.userid,
@@ -797,23 +797,30 @@ async function getLatestDynamicPointDeltas(
         'point_delta'
       ),
     })
-    .from(scoreEvents)
+    .from(challenges)
+    .crossJoinLateral(latestTick)
     .innerJoin(
-      latestDynamicEvents,
+      scoreEvents,
       and(
-        eq(scoreEvents.challengeid, latestDynamicEvents.challengeId),
-        eq(scoreEvents.eventAt, latestDynamicEvents.eventAt)
+        eq(scoreEvents.challengeid, challenges.id),
+        eq(scoreEvents.eventAt, latestTick.eventAt),
+        eq(scoreEvents.source, 'feed')
       )
     )
     .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
     .where(
-      and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
+      and(
+        inArray(challenges.id, challengeIds),
+        inArray(scoreEvents.userid, userIds)
+      )
     )
     .groupBy(scoreEvents.challengeid, scoreEvents.userid)
 
   const pointDeltas = new Map<string, Map<string, number>>()
   for (const row of rows) {
-    if (!row.userId) continue
+    if (!row.userId) {
+      continue
+    }
     const teamDeltas = pointDeltas.get(row.userId) ?? new Map<string, number>()
     teamDeltas.set(row.challengeId, row.pointDelta)
     pointDeltas.set(row.userId, teamDeltas)

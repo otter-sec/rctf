@@ -121,7 +121,7 @@ describe('full-user service', () => {
         const body = await expectResponse(profileRes, GoodUserSelfData)
         expect(body.data.name).toBe(user.name)
         expect(Array.isArray(body.data.solves)).toBe(true)
-        expect(body.data.solves.length).toBeGreaterThan(0)
+        expect(body.data.solves.length).toBe(1)
 
         // Verify solve data structure (covers lines 50-55)
         const solve = body.data.solves[0]
@@ -212,7 +212,7 @@ describe('full-user service', () => {
         const body = await expectResponse(userRes, GoodUserData)
         expect(body.data.name).toBe(user.name)
         expect(Array.isArray(body.data.solves)).toBe(true)
-        expect(body.data.solves.length).toBeGreaterThan(0)
+        expect(body.data.solves.length).toBe(1)
 
         // Verify solve contains challenge info
         const solve = body.data.solves[0]

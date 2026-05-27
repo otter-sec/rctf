@@ -156,13 +156,17 @@ const createMockDb = (
 
   return {
     executedQueries,
-    select: mock((_selection: any) => ({
-      from: mock((_table: any) => ({
-        where: mock((_condition: any) => ({
-          orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
+    select: mock((_selection: any) => {
+      const whereNode = mock((_condition: any) => ({
+        orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
+      }))
+      return {
+        from: mock((_table: any) => ({
+          innerJoin: mock((..._join: any[]) => ({ where: whereNode })),
+          where: whereNode,
         })),
-      })),
-    })),
+      }
+    }),
     transaction: mock(async (fn: (tx: any) => Promise<void>) => {
       await fn(txMock)
     }),

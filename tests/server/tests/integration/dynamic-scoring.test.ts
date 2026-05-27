@@ -305,7 +305,7 @@ describe('feed-during-ban invariant', () => {
 
     await applyDecayPointsForChallenge(db, challengeId, 'flag')
     const originalPoints = await getSolvePoints(user.id, challengeId)
-    expect(originalPoints).toBeGreaterThan(0)
+    expect(originalPoints).toBe(500)
     expect(await sumScoreEvents(user.id, challengeId)).toBe(originalPoints)
 
     await updateAdminUser(db, redis, user.id, { banned: true })

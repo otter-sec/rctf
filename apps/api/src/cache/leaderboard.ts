@@ -1,6 +1,7 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { challengeIsPublicSql } from '../services/challenges'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -588,6 +589,10 @@ const getDynamicGraphPoints = async (
       eventAt: scoreEvents.eventAt,
     })
     .from(scoreEvents)
+    .innerJoin(
+      challenges,
+      and(eq(challenges.id, scoreEvents.challengeid), challengeIsPublicSql)
+    )
     .where(
       and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
     )

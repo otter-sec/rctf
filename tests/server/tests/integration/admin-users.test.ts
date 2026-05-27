@@ -190,7 +190,7 @@ describe('admin users', () => {
       .where(eq(users.id, solver.user.id))
     expect(beforeBan?.banned).toBe(false)
     expect(beforeBan?.globalRank).not.toBeNull()
-    expect(beforeBan?.score).toBeGreaterThan(0)
+    expect(beforeBan?.score).toBe(500)
     const originalScore = beforeBan!.score
     const originalGlobalRank = beforeBan!.globalRank
     const originalDivisionRank = beforeBan!.divisionRank
