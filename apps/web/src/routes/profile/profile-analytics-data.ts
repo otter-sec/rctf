@@ -25,12 +25,9 @@ export type CategoryStat = {
   label: string
   fullLabel: string
   icon: CategoryConfig['icon']
-  color: string
   style: string
   category: string
-  total: number
   staticTotal: number
-  dynamicTotal: number
   solved: number
   pointsTotal: number
   staticPointsTotal: number
@@ -44,11 +41,9 @@ export type CategoryBarSegment = {
   value: number
   start: number
   end: number
-  categoryKey?: string
-  categoryIcon?: CategoryConfig['icon']
-  style?: string
   detail?: string
   hatched?: boolean
+  muted?: boolean
 }
 
 export type CategoryBarDatum = {
@@ -193,12 +188,10 @@ export function buildCategoryStats({
 
   for (const challenge of challenges) {
     const stat = getOrCreateCategoryStat(stats, challenge.category)
-    stat.total += 1
 
     if (isDynamicChallenge(challenge)) {
       const score = dynamicScoreByChallenge.get(challenge.id)
       const points = score?.points ?? 0
-      stat.dynamicTotal += 1
       stat.pointsTotal += points
       stat.pointsEarned += points
       stat.dynamicPointsEarned += points
@@ -215,7 +208,6 @@ export function buildCategoryStats({
     // When a solve points at a challenge missing from the current snapshot
     // (deleted/hidden), count it toward the total too so the bar isn't >100%.
     if (challenges.length === 0 || !challengeIds.has(solve.id)) {
-      stat.total += 1
       stat.staticTotal += 1
       stat.pointsTotal += solve.points ?? 0
       stat.staticPointsTotal += solve.points ?? 0
@@ -243,19 +235,6 @@ export function getProfileCategoryDisplay(
   }
 }
 
-export function buildCategoryCompletionData(
-  stats: CategoryStat[]
-): CategoryBarDatum[] {
-  return buildCategoryBarData(stats, stat => ({
-    value: stat.dynamicTotal > 0 ? stat.total : stat.solved,
-    max: stat.total,
-    detail: formatCompletionDetail(stat),
-    segments: buildCompletionSegments(stat),
-    fullClear: hasStaticFullClear(stat),
-    fullClearValue: stat.staticTotal,
-  }))
-}
-
 export function buildCategoryPointsData(
   stats: CategoryStat[],
   solves: ProfileSolve[] = [],
@@ -263,17 +242,13 @@ export function buildCategoryPointsData(
   dynamicScores: ProfileDynamicScore[] = []
 ): CategoryBarDatum[] {
   const segmentsByCategory = buildPointSegments(
-    stats,
     solves,
     challenges,
     dynamicScores
   )
 
   return buildCategoryBarData(stats, stat => ({
-    value:
-      stat.dynamicPointsEarned > 0
-        ? stat.staticPointsTotal + stat.dynamicPointsEarned
-        : stat.pointsEarned,
+    value: stat.pointsTotal,
     max: stat.pointsTotal,
     detail: formatPointsDetail(stat),
     segments: segmentsByCategory.get(stat.key),
@@ -455,58 +430,26 @@ function buildCategoryBarData(
   })
 }
 
-function buildCompletionSegments(
-  stat: CategoryStat
-): CategoryBarSegment[] | undefined {
-  if (stat.dynamicTotal === 0) return undefined
-
-  const segments: CategoryBarSegment[] = []
-  if (stat.solved > 0) {
-    segments.push({
-      key: 'static-solved',
-      label: 'Solved static challenges',
-      value: stat.solved,
-      start: 0,
-      end: stat.solved,
-      detail: `${stat.solved}/${stat.staticTotal} solved`,
-    })
-  }
-
-  segments.push({
-    key: 'dynamic',
-    label: 'Dynamic challenges',
-    value: stat.dynamicTotal,
-    start: stat.staticTotal,
-    end: stat.total,
-    detail: formatDynamicChallengeCount(stat.dynamicTotal),
-    hatched: true,
-  })
-
-  return segments
-}
-
 function buildPointSegments(
-  stats: CategoryStat[],
   solves: ProfileSolve[],
   challenges: ChallengeInfo[],
   dynamicScores: ProfileDynamicScore[]
 ): Map<string, CategoryBarSegment[]> {
   type PendingSegment = Omit<CategoryBarSegment, 'start' | 'end'>
 
-  const staticSegments = new Map<string, PendingSegment[]>()
+  const solvedSegments = new Map<string, PendingSegment[]>()
   const dynamicSegments = new Map<string, PendingSegment[]>()
-  const staticTotalByCategory = new Map(
-    stats.map(stat => [stat.key, stat.staticPointsTotal])
-  )
+  const unsolvedSegments = new Map<string, PendingSegment[]>()
+  const solvedIds = new Set(solves.map(solve => solve.id))
 
   for (const solve of solves) {
     const value = solve.points ?? 0
     if (value <= 0) continue
 
     const categoryKey = getCategoryKeyOrAlias(solve.category)
-    const list = staticSegments.get(categoryKey) ?? []
+    const list = solvedSegments.get(categoryKey) ?? []
     list.push({ key: solve.id, label: solve.name, value })
-    staticSegments.set(categoryKey, list)
+    solvedSegments.set(categoryKey, list)
   }
 
   const dynamicScoreByChallenge = new Map(
@@ -530,17 +473,34 @@ function buildPointSegments(
     dynamicSegments.set(categoryKey, list)
   }
 
+  for (const challenge of challenges) {
+    if (isDynamicChallenge(challenge) || solvedIds.has(challenge.id)) continue
+    if (challenge.points <= 0) continue
+
+    const categoryKey = getCategoryKeyOrAlias(challenge.category)
+    const list = unsolvedSegments.get(categoryKey) ?? []
+    list.push({
+      key: challenge.id,
+      label: challenge.name,
+      value: challenge.points,
+      detail: `${challenge.points.toLocaleString()} pts`,
+      muted: true,
+    })
+    unsolvedSegments.set(categoryKey, list)
+  }
+
   const result = new Map<string, CategoryBarSegment[]>()
   const categoryKeys = new Set([
-    ...staticSegments.keys(),
+    ...solvedSegments.keys(),
     ...dynamicSegments.keys(),
+    ...unsolvedSegments.keys(),
   ])
 
   for (const categoryKey of categoryKeys) {
     const list: CategoryBarSegment[] = []
     let total = 0
 
-    for (const segment of (staticSegments.get(categoryKey) ?? []).toSorted(
+    for (const segment of (solvedSegments.get(categoryKey) ?? []).toSorted(
       comparePendingSegments
     )) {
       const start = total
@@ -548,9 +508,15 @@ function buildPointSegments(
       list.push({ ...segment, start, end: total })
     }
 
-    total = Math.max(total, staticTotalByCategory.get(categoryKey) ?? total)
-
     for (const segment of (dynamicSegments.get(categoryKey) ?? []).toSorted(
+      comparePendingSegments
+    )) {
+      const start = total
+      total += segment.value
+      list.push({ ...segment, start, end: total })
+    }
+
+    for (const segment of (unsolvedSegments.get(categoryKey) ?? []).toSorted(
       comparePendingSegments
     )) {
       const start = total
@@ -580,11 +546,13 @@ function getOrCreateCategoryStat(
   if (existing) return existing
 
   const stat = {
-    ...categoryDisplay,
+    key: categoryDisplay.key,
+    label: categoryDisplay.label,
+    fullLabel: categoryDisplay.fullLabel,
+    icon: categoryDisplay.icon,
+    style: categoryDisplay.style,
     category,
-    total: 0,
     staticTotal: 0,
-    dynamicTotal: 0,
     solved: 0,
     pointsTotal: 0,
     staticPointsTotal: 0,
@@ -601,22 +569,6 @@ function compareCategoryStats(a: CategoryStat, b: CategoryStat): number {
 
 function hasStaticFullClear(stat: CategoryStat): boolean {
   return stat.staticTotal > 0 && stat.solved >= stat.staticTotal
-}
-
-function formatCompletionDetail(stat: CategoryStat): string {
-  if (stat.dynamicTotal === 0) {
-    return `${stat.solved}/${stat.total} solved`
-  }
-
-  if (stat.staticTotal === 0) {
-    return formatDynamicChallengeCount(stat.dynamicTotal)
-  }
-
-  return `${stat.solved}/${stat.staticTotal} static solved + ${stat.dynamicTotal} dynamic`
-}
-
-function formatDynamicChallengeCount(count: number): string {
-  return `${count} dynamic challenge${count === 1 ? '' : 's'}`
 }
 
 function formatPointsDetail(stat: CategoryStat): string {

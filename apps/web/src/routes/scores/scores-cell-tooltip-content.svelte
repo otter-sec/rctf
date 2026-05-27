@@ -17,10 +17,10 @@
     return '0 pts'
   }
 
-  function dynamicPointDeltaTrend(delta: number | undefined): string | undefined {
+  function dynamicPointDeltaTrend(delta: number | undefined): string {
     if (delta && delta > 0) return 'positive'
     if (delta && delta < 0) return 'negative'
-    return undefined
+    return 'neutral'
   }
 </script>
 
@@ -67,6 +67,11 @@
 
     span[data-delta='negative'] {
       color: var(--foreground-destructive);
+    }
+
+    span[data-delta='neutral'] {
+      color: var(--foreground-l5);
+      opacity: 0.55;
     }
   }
 </style>

@@ -4,7 +4,6 @@
   import {
     buildActivityDomain,
     buildCadenceData,
-    buildCategoryCompletionData,
     buildCategoryPointsData,
     buildCategoryStats,
     buildDifficultyData,
@@ -32,9 +31,7 @@
   let { user, clientConfig, challenges, graphData, class: className = '' }: Props = $props()
 
   const sortedSolves = $derived(sortProfileSolves(user.solves))
-  const staticChallenges = $derived(
-    challenges.filter(challenge => !isDynamicChallenge(challenge))
-  )
+  const staticChallenges = $derived(challenges.filter(challenge => !isDynamicChallenge(challenge)))
   const categoryStats = $derived(
     buildCategoryStats({
       challenges,
@@ -42,14 +39,8 @@
       solves: sortedSolves,
     })
   )
-  const categoryCompletionData = $derived(buildCategoryCompletionData(categoryStats))
   const categoryPointsData = $derived(
-    buildCategoryPointsData(
-      categoryStats,
-      sortedSolves,
-      challenges,
-      user.dynamicScores
-    )
+    buildCategoryPointsData(categoryStats, sortedSolves, challenges, user.dynamicScores)
   )
   const difficultyData = $derived(
     buildDifficultyData({ challenges: staticChallenges, solves: sortedSolves })
@@ -82,20 +73,8 @@
     {/if}
   </ProfileAnalyticsSection>
 
-  <ProfileAnalyticsSection title="Category completion">
-    <ProfileCategoryChart
-      data={categoryCompletionData}
-      stats={categoryStats}
-      emptyMessage="No category data."
-    />
-  </ProfileAnalyticsSection>
-
   <ProfileAnalyticsSection title="Points by category">
-    <ProfileCategoryChart
-      data={categoryPointsData}
-      stats={categoryStats}
-      emptyMessage="No points data."
-    />
+    <ProfileCategoryChart data={categoryPointsData} emptyMessage="No points data." />
   </ProfileAnalyticsSection>
 
   <ProfileAnalyticsSection title="Solve timeline">

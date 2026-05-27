@@ -6,8 +6,8 @@
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import {
     getProfileCategoryDisplay,
-    type ProfileDynamicScore,
     type ProfileCategoryDisplay,
+    type ProfileDynamicScore,
     type ProfileSolve,
   } from './profile-analytics-data'
   import { axisTicks, compactNumber, integerTicks, tickTextAnchor } from './profile-chart-utils'
@@ -26,8 +26,6 @@
     key: string
     time: number
     score: number
-    staticScore: number
-    totalScore: number
     color: string
   }
 
@@ -55,7 +53,7 @@
   type Scale = (value: number) => number
 
   const domainPadding = 30 * 60 * 1000
-  const totalLineColor = 'var(--foreground-l1)'
+  const totalLineColor = 'var(--foreground-l2)'
   const staticLineColor = 'var(--foreground-l3)'
   const dynamicLineColor = 'var(--foreground-l5)'
 
@@ -114,22 +112,14 @@
     return null
   }
 
-  function buildDynamicPoints(
-    points: ScoreLinePoint[],
-    totalPoints: ScoreLinePoint[]
-  ): DynamicScorePoint[] {
-    return points.map(point => {
-      const totalScore = scoreAt(point.time, totalPoints)
-      return {
-        kind: 'dynamic',
-        key: `dynamic-${point.time}`,
-        time: point.time,
-        score: point.score,
-        staticScore: Math.max(totalScore - point.score, 0),
-        totalScore,
-        color: dynamicLineColor,
-      }
-    })
+  function buildDynamicPoints(points: ScoreLinePoint[]): DynamicScorePoint[] {
+    return points.map(point => ({
+      kind: 'dynamic',
+      key: `dynamic-${point.time}`,
+      time: point.time,
+      score: point.score,
+      color: dynamicLineColor,
+    }))
   }
 
   interface Props {
@@ -168,9 +158,7 @@
       .toReversed()
       .map(point => ({ time: point.time, score: point.score }))
   )
-  const currentDynamicScore = $derived(
-    dynamicScores.reduce((sum, score) => sum + score.points, 0)
-  )
+  const currentDynamicScore = $derived(dynamicScores.reduce((sum, score) => sum + score.points, 0))
   const dynamicLinePoints = $derived<ScoreLinePoint[]>(
     !splitDynamicScore
       ? []
@@ -184,18 +172,13 @@
           : []
   )
   const dynamicPoints = $derived<DynamicScorePoint[]>(
-    splitDynamicScore
-      ? buildDynamicPoints(dynamicLinePoints, sampledLinePoints)
-      : []
+    splitDynamicScore ? buildDynamicPoints(dynamicLinePoints) : []
   )
   const staticLinePoints = $derived<ScoreLinePoint[]>(
     splitDynamicScore
       ? sampledPoints.map(point => ({
           time: point.time,
-          score: Math.max(
-            point.score - scoreAt(point.time, dynamicLinePoints),
-            0
-          ),
+          score: Math.max(point.score - scoreAt(point.time, dynamicLinePoints), 0),
         }))
       : []
   )
@@ -234,9 +217,7 @@
   const solveLinePoints = $derived<ScoreLinePoint[]>(
     solvePoints.map(point => ({ time: point.time, score: point.score }))
   )
-  const hasStaticLine = $derived(
-    splitDynamicScore && staticLinePoints.length > 1
-  )
+  const hasStaticLine = $derived(splitDynamicScore && staticLinePoints.length > 1)
   const hasDynamicLine = $derived(
     splitDynamicScore &&
       dynamicLinePoints.length > 1 &&
@@ -257,13 +238,11 @@
     chartTimeDomain(domainPoints, clientConfig.startTime, clientConfig.endTime)
   )
   const yMax = $derived(chartScoreMax(domainPoints))
-  const chartPoints = $derived<ScorePoint[]>(
-    [
-      ...sampledPoints,
-      ...(hasDynamicLine ? dynamicPoints : []),
-      ...solvePoints,
-    ]
-  )
+  const chartPoints = $derived<ScorePoint[]>([
+    ...sampledPoints,
+    ...(hasDynamicLine ? dynamicPoints : []),
+    ...solvePoints,
+  ])
 
   const useMinutesFormat = $derived.by(() => {
     if (domainPoints.length === 0) return false
@@ -393,22 +372,14 @@
                 <div>{formatRelativeHoursMinutes(data.time, clientConfig.startTime)}</div>
                 <div class="text-[10px]">{formatLocalTime(data.time)}</div>
               </div>
-              <div class="grid grid-cols-2 gap-x-3 gap-y-1">
-                <div class="text-foreground-l4 text-[10px]">Dynamic</div>
-                <div class="text-foreground-l1 text-right tabular-nums">
-                  {data.score.toLocaleString()} pts
-                </div>
-                <div class="text-foreground-l4 text-[10px]">Flag solves</div>
-                <div class="text-foreground-l1 text-right tabular-nums">
-                  {data.staticScore.toLocaleString()} pts
-                </div>
-                <div class="text-foreground-l4 text-[10px]">Total</div>
-                <div class="text-foreground-l1 text-right tabular-nums">
-                  {data.totalScore.toLocaleString()} pts
-                </div>
+              <div class="text-foreground-l4 text-[10px]">Dynamic</div>
+              <div class="text-foreground-l1 tabular-nums">
+                {data.score.toLocaleString()} pts
               </div>
             </div>
           {:else}
+            {@const dynamicScore = splitDynamicScore ? scoreAt(data.time, dynamicLinePoints) : 0}
+            {@const staticScore = Math.max(data.score - dynamicScore, 0)}
             <div
               class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
             >
@@ -416,10 +387,27 @@
                 <div>{formatRelativeHoursMinutes(data.time, clientConfig.startTime)}</div>
                 <div class="text-[10px]">{formatLocalTime(data.time)}</div>
               </div>
-              <div class="text-foreground-l4 text-[10px]">Total score</div>
-              <div class="text-foreground-l1 tabular-nums">
-                {data.score.toLocaleString()} pts
-              </div>
+              {#if splitDynamicScore && hasDynamicLine}
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1">
+                  <div class="text-foreground-l4 text-[10px]">Dynamic</div>
+                  <div class="text-foreground-l1 text-right tabular-nums">
+                    {dynamicScore.toLocaleString()} pts
+                  </div>
+                  <div class="text-foreground-l4 text-[10px]">Static</div>
+                  <div class="text-foreground-l1 text-right tabular-nums">
+                    {staticScore.toLocaleString()} pts
+                  </div>
+                  <div class="text-foreground-l4 text-[10px]">Total</div>
+                  <div class="text-foreground-l1 text-right tabular-nums">
+                    {data.score.toLocaleString()} pts
+                  </div>
+                </div>
+              {:else}
+                <div class="text-foreground-l4 text-[10px]">Total score</div>
+                <div class="text-foreground-l1 tabular-nums">
+                  {data.score.toLocaleString()} pts
+                </div>
+              {/if}
             </div>
           {/if}
         {/snippet}
