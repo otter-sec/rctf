@@ -9,6 +9,11 @@ import {
   getCategoryKeyOrAlias,
   getScoreboardCategoryOrder,
 } from '$lib/utils/categories'
+import {
+  SCORE_CELL_WIDTH_PX,
+  SCORE_DYNAMIC_CELL_WIDTH_PX,
+  SCORE_ROW_GAP_PX,
+} from './scores-layout-constants'
 import type {
   CategoryGroup,
   ChallengeInfo,
@@ -25,6 +30,7 @@ interface ChallengeSource {
   category: string
   points: number
   solves: number
+  scoringKind?: 'decay' | 'dynamic'
   firstSolvers?: { id: string }[]
 }
 
@@ -47,11 +53,47 @@ export function getChallengesByCategory(
     .map(([id, info]) => ({
       id,
       ...info,
+      scoringKind: info.scoringKind ?? 'decay',
       order: getScoreboardCategoryOrder(info.category),
       config: getCategoryConfig(info.category),
     }))
     .filter(challenge => getCategoryKeyOrAlias(challenge.category) !== 'sanity')
     .sort(compareChallengesByCategory)
+}
+
+export function isDynamicChallenge(challenge: {
+  scoringKind?: 'decay' | 'dynamic'
+}): boolean {
+  return challenge.scoringKind === 'dynamic'
+}
+
+export function getChallengeCellWidth(challenge: {
+  scoringKind?: 'decay' | 'dynamic'
+}): number {
+  return isDynamicChallenge(challenge)
+    ? SCORE_DYNAMIC_CELL_WIDTH_PX
+    : SCORE_CELL_WIDTH_PX
+}
+
+export function getFixedCellsWidth(cellCount: number): number {
+  return cellCount * (SCORE_CELL_WIDTH_PX + SCORE_ROW_GAP_PX)
+}
+
+export function getChallengeCellsWidth(
+  challenges: readonly { scoringKind?: 'decay' | 'dynamic' }[]
+): number {
+  let width = 0
+  for (const challenge of challenges) {
+    width += getChallengeCellWidth(challenge) + SCORE_ROW_GAP_PX
+  }
+  return width
+}
+
+export function getChallengeCellsInnerWidth(
+  challenges: readonly { scoringKind?: 'decay' | 'dynamic' }[]
+): number {
+  const width = getChallengeCellsWidth(challenges)
+  return width === 0 ? 0 : width - SCORE_ROW_GAP_PX
 }
 
 export function getChallengesBySolves(
@@ -83,9 +125,14 @@ export function getCategoryGroups(
 
 export function getFocusedEntries(
   entries: ScoreEntry[],
-  focusedChallengeId: string | null
+  focusedChallengeId: string | null,
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }> = {}
 ): ScoreEntry[] {
   if (!focusedChallengeId) return entries
+
+  if (isDynamicChallenge(challengesData[focusedChallengeId] ?? {})) {
+    return entries
+  }
 
   const matched: { entry: ScoreEntry; solveTime: number }[] = []
   for (const entry of entries) {
@@ -99,6 +146,8 @@ export function getFocusedEntries(
 export interface SolvesAndTimesByTeam {
   solvesByTeam: Map<string, Set<string>>
   solveTimesByTeam: Map<string, Map<string, number>>
+  challengePointsByTeam: Map<string, Map<string, number>>
+  challengePointDeltasByTeam: Map<string, Map<string, number>>
 }
 
 export function getSolvesAndTimesByTeam(
@@ -106,17 +155,32 @@ export function getSolvesAndTimesByTeam(
 ): SolvesAndTimesByTeam {
   const solvesByTeam = new Map<string, Set<string>>()
   const solveTimesByTeam = new Map<string, Map<string, number>>()
+  const challengePointsByTeam = new Map<string, Map<string, number>>()
+  const challengePointDeltasByTeam = new Map<string, Map<string, number>>()
   for (const entry of entries) {
     const ids = new Set<string>()
     const times = new Map<string, number>()
+    const points = new Map<string, number>()
+    const pointDeltas = new Map<string, number>()
     for (const solve of entry.solves) {
       ids.add(solve.id)
       times.set(solve.id, solve.solveTime)
     }
+    for (const score of entry.dynamicScores) {
+      points.set(score.id, score.points)
+      pointDeltas.set(score.id, score.pointDelta)
+    }
     solvesByTeam.set(entry.id, ids)
     solveTimesByTeam.set(entry.id, times)
+    challengePointsByTeam.set(entry.id, points)
+    challengePointDeltasByTeam.set(entry.id, pointDeltas)
   }
-  return { solvesByTeam, solveTimesByTeam }
+  return {
+    solvesByTeam,
+    solveTimesByTeam,
+    challengePointsByTeam,
+    challengePointDeltasByTeam,
+  }
 }
 
 export function getOriginalRankByTeam(
@@ -139,10 +203,13 @@ export function getCategoryStatsForSolves(
   solves: Set<string> | null,
   group: CategoryGroup
 ) {
+  const challenges = group.challenges.filter(
+    challenge => !isDynamicChallenge(challenge)
+  )
   const solved = solves
-    ? group.challenges.filter(challenge => solves.has(challenge.id)).length
+    ? challenges.filter(challenge => solves.has(challenge.id)).length
     : 0
-  const total = group.challenges.length
+  const total = challenges.length
   return {
     solved,
     total,
@@ -272,6 +339,15 @@ interface ScreenshotTeamSource {
   solveCount: number
 }
 
+export function getVisibleSolveCount(
+  solves: readonly { id: string }[],
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>
+): number {
+  return solves.filter(
+    solve => !isDynamicChallenge(challengesData[solve.id] ?? {})
+  ).length
+}
+
 function buildScreenshotEntry(
   source: ScreenshotTeamSource,
   rank: number,
@@ -297,12 +373,16 @@ function buildScreenshotEntry(
 export function getScreenshotTeams(
   entries: ScoreEntry[],
   currentUser: CurrentUserScoreData | null | undefined,
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>,
   teamColorMap: Map<string, string>,
   sparklineDataByTeam: Map<string, ScoreGraphPoint[]>
 ): ScreenshotTeamEntry[] {
   return entries.map((entry, index) =>
     buildScreenshotEntry(
-      { ...entry, solveCount: entry.solves.length },
+      {
+        ...entry,
+        solveCount: getVisibleSolveCount(entry.solves, challengesData),
+      },
       index + 1,
       currentUser?.id === entry.id,
       teamColorMap.get(entry.id),
@@ -313,11 +393,15 @@ export function getScreenshotTeams(
 
 export function getScreenshotSelfTeam(
   currentUser: CurrentUserScoreData | null | undefined,
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>,
   sparklineDataByTeam: Map<string, ScoreGraphPoint[]>
 ): ScreenshotTeamEntry | null {
   if (!currentUser?.globalPlace) return null
   return buildScreenshotEntry(
-    { ...currentUser, solveCount: currentUser.solves.length },
+    {
+      ...currentUser,
+      solveCount: getVisibleSolveCount(currentUser.solves, challengesData),
+    },
     currentUser.globalPlace,
     true,
     SELF_COLOR,

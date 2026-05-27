@@ -2,7 +2,11 @@ import type { DatabaseClient, User } from '@rctf/db'
 import { challenges, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { eq, inArray } from 'drizzle-orm'
-import { getUserChallengeSolves } from './challenges'
+import {
+  getDynamicScoresForUsers,
+  getPublicDynamicChallengeIds,
+  getUserChallengeSolves,
+} from './challenges'
 import { getUser } from './users'
 
 export type SolveData = {
@@ -15,6 +19,12 @@ export type SolveData = {
   bloodIndex: number | null
 }
 
+export type DynamicScoreData = {
+  id: string
+  points: number
+  pointDelta: number
+}
+
 export type FullUser = Omit<User, 'email' | 'ctftimeId'> & {
   email: string | null
   ctftimeId: string | null
@@ -22,13 +32,14 @@ export type FullUser = Omit<User, 'email' | 'ctftimeId'> & {
   globalPlace: number | null
   divisionPlace: number | null
   solves: SolveData[]
+  dynamicScores: DynamicScoreData[]
 }
 
 export const getFullUser = async (
   db: DatabaseClient,
   user: User
 ): Promise<FullUser> => {
-  const [solves, freshRanks] = await Promise.all([
+  const [solves, freshRanks, dynamicChallengeIds] = await Promise.all([
     getUserChallengeSolves(db, user.id),
     db
       .select({
@@ -39,6 +50,7 @@ export const getFullUser = async (
       .from(users)
       .where(eq(users.id, user.id))
       .then(takeUnique),
+    getPublicDynamicChallengeIds(db),
   ])
 
   const challengeIds = solves.map(item => item.solve.challengeid)
@@ -46,6 +58,11 @@ export const getFullUser = async (
     string,
     { score: number; solveCount: number }
   >()
+  const dynamicScores = await getDynamicScoresForUsers(
+    db,
+    [user.id],
+    dynamicChallengeIds
+  )
 
   if (challengeIds.length > 0) {
     const challRows = await db
@@ -72,6 +89,7 @@ export const getFullUser = async (
     score: freshRanks?.score ?? 0,
     globalPlace: freshRanks?.globalRank ?? null,
     divisionPlace: freshRanks?.divisionRank ?? null,
+    dynamicScores: dynamicScores.get(user.id) ?? [],
     solves: solves.map(item => {
       const challScore = challengeScores.get(item.solve.challengeid)
       return {
@@ -79,10 +97,7 @@ export const getFullUser = async (
         id: item.solve.challengeid,
         createdAt: new Date(item.solve.createdat).getTime(),
         solves: challScore?.solveCount ?? null,
-        points:
-          item.solve.source === 'feed'
-            ? (item.solve.points ?? null)
-            : (challScore?.score ?? null),
+        points: challScore?.score ?? null,
         bloodIndex: item.bloodIndex,
       }
     }),

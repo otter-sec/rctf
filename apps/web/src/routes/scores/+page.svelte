@@ -4,6 +4,11 @@
   import { createHoverTooltip } from '$lib/utils'
   import { getCategoryConfig } from '$lib/utils/categories'
   import ScoresCellTooltipContent from './scores-cell-tooltip-content.svelte'
+  import {
+    getChallengeCellsWidth,
+    getFixedCellsWidth,
+    isDynamicChallenge,
+  } from './scores-data-helpers'
   import { createScoresDataModel, createScoresGraphDataModel } from './scores-data-model.svelte'
   import ScoresLeaderboardBody from './scores-leaderboard-body.svelte'
   import ScoresLeaderboardFrame from './scores-leaderboard-frame.svelte'
@@ -31,8 +36,10 @@
     currentUser: () => scoreData.currentUser,
     showTop3Context: () => routeState.showTop3Context,
     showSelfContext: () => routeState.showSelfContext,
-    cellCount: () =>
-      routeState.viewMode === 'categories' ? scoreData.categoryGroups.length : challenges.length,
+    contentCellsWidth: () =>
+      routeState.viewMode === 'categories'
+        ? getFixedCellsWidth(scoreData.categoryGroups.length)
+        : getChallengeCellsWidth(challenges),
     allGraphData: () => scoreData.allGraphData,
     teamRanks: () => scoreData.teamRanks,
     hasNextPage: () => scoreData.leaderboardQuery.hasNextPage,
@@ -46,6 +53,7 @@
     entries: () => scoreData.entries,
     allGraphData: () => scoreData.allGraphData,
     currentUser: () => scoreData.currentUser,
+    challengesData: () => scoreData.challengesData,
     teamColorMap: () => scoreData.teamColorMap,
   })
 
@@ -54,7 +62,7 @@
 
   const tooltipGraphState = $derived.by(() => {
     const data = cellTooltip.open ? cellTooltip.payload : null
-    if (!data || (isChallengeTooltipData(data) && !data.solved)) {
+    if (!data || (isChallengeTooltipData(data) && !data.isDynamic && !data.solved)) {
       return {
         hoveredTeamId: null,
         solveHighlight: null,
@@ -84,6 +92,14 @@
       name: challenge.name,
       icon: config.icon,
       color: config.color,
+    }
+  })
+
+  $effect(() => {
+    const id = routeState.focusedChallengeId
+    const challenge = id ? scoreData.challengesData[id] : null
+    if (challenge && isDynamicChallenge(challenge)) {
+      routeState.setFocusedChallenge(null)
     }
   })
   const renderEpoch = $derived(Math.max(scoreData.dataEpoch, viewportState.themeRenderEpoch))

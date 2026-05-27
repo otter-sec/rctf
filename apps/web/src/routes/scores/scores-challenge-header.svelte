@@ -3,6 +3,12 @@
   import { IconX } from '$lib/icons'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { mergeProps } from 'bits-ui'
+  import {
+    getChallengeCellsInnerWidth,
+    getChallengeCellWidth,
+    isDynamicChallenge,
+  } from './scores-data-helpers'
+  import { SCORE_CELL_WIDTH_PX } from './scores-layout-constants'
   import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
 
   interface Props {
@@ -48,7 +54,28 @@
   })
 
   function challengeSubtitle(challenge: ChallengeInfo) {
+    if (isDynamicChallenge(challenge)) return 'Dynamic scoring'
     return `${challenge.points} pts \u00b7 ${challenge.solves} solve${challenge.solves !== 1 ? 's' : ''}`
+  }
+
+  function fixedCategoryPoints(group: CategoryGroup) {
+    return group.challenges.reduce(
+      (sum, challenge) => sum + (isDynamicChallenge(challenge) ? 0 : challenge.points),
+      0
+    )
+  }
+
+  function dynamicChallengeCount(group: CategoryGroup) {
+    return group.challenges.filter(isDynamicChallenge).length
+  }
+
+  function categorySubtitle(group: CategoryGroup, fixedPoints: number, dynamicCount: number) {
+    const challengeCount = group.challenges.length
+    const challengeText = `${challengeCount} challenge${challengeCount !== 1 ? 's' : ''}`
+    if (dynamicCount === 0) return `${challengeText} \u00b7 ${fixedPoints} pts`
+    const dynamicText = `${dynamicCount} dynamic`
+    if (fixedPoints === 0) return `${challengeText} \u00b7 ${dynamicText}`
+    return `${challengeText} \u00b7 ${fixedPoints} pts + ${dynamicText}`
   }
 </script>
 
@@ -59,23 +86,31 @@
 )}
   {@const isFocused = !isCategory && focusedChallengeId === (item as ChallengeInfo).id}
   {@const isDimmed = !isCategory && focusedChallengeId !== null && !isFocused}
+  {@const slotWidth = isCategory
+    ? SCORE_CELL_WIDTH_PX
+    : getChallengeCellWidth(item as ChallengeInfo)}
   <header-name-slot
     dimmed={isDimmed || undefined}
-    style="{getCategoryStyle(item.config.color)} z-index: {stackIndex};"
+    style="{getCategoryStyle(item.config.color)} z-index: {stackIndex}; width: {slotWidth}px;"
   >
     {#if !isCategory}
       {@const challenge = item as ChallengeInfo}
+      {@const challengeIsDynamic = isDynamicChallenge(challenge)}
       <Tooltip.Trigger tether={tooltipTether} payload={{ title: challenge.name }}>
         {#snippet child({ props })}
-          {@const buttonProps = mergeProps(props, {
-            onclick: () => onChallengeFocus(challenge.id),
-          })}
-          <button {...buttonProps} type="button" data-focused={isFocused ? '' : undefined}>
-            <span>{challenge.name}</span>
-            {#if isFocused}
-              <IconX class="focus-icon" />
-            {/if}
-          </button>
+          {#if challengeIsDynamic}
+            <span {...props} data-challenge-name>{challenge.name}</span>
+          {:else}
+            {@const buttonProps = mergeProps(props, {
+              onclick: () => onChallengeFocus(challenge.id),
+            })}
+            <button {...buttonProps} type="button" data-focused={isFocused ? '' : undefined}>
+              <span>{challenge.name}</span>
+              {#if isFocused}
+                <IconX class="focus-icon" />
+              {/if}
+            </button>
+          {/if}
         {/snippet}
       </Tooltip.Trigger>
     {:else}
@@ -112,8 +147,16 @@
   {/if}
 {/snippet}
 
-{#snippet pointsBadge(points: number, tooltipContent?: HeaderTooltipPayload)}
-  {#if tooltipContent}
+{#snippet pointsBadge(
+  points: number,
+  tooltipContent?: HeaderTooltipPayload,
+  dynamic: boolean = false
+)}
+  {#if dynamic}
+    <span class="points-trigger" data-static-points>
+      <span data-points-badge data-dynamic>n/a</span>
+    </span>
+  {:else if tooltipContent}
     <Tooltip.Trigger
       tether={tooltipTether}
       payload={tooltipContent}
@@ -123,7 +166,9 @@
       <span data-points-badge>{points}</span>
     </Tooltip.Trigger>
   {:else}
-    <span data-points-badge>{points}</span>
+    <span class="points-trigger" data-static-points>
+      <span data-points-badge>{points}</span>
+    </span>
   {/if}
 {/snippet}
 
@@ -142,14 +187,22 @@
     {#if viewMode === 'categories'}
       <category-row>
         {#each categoryGroups as group (group.category)}
-          {@const totalPoints = group.challenges.reduce((s, c) => s + c.points, 0)}
-          <category-block style={getCategoryStyle(group.config.color)}>
+          {@const totalPoints = fixedCategoryPoints(group)}
+          {@const dynamicCount = dynamicChallengeCount(group)}
+          {@const showDynamicBadge = totalPoints === 0 && dynamicCount > 0}
+          <category-block
+            style="{getCategoryStyle(group.config.color)} width: {SCORE_CELL_WIDTH_PX}px;"
+          >
             <category-points>
-              {@render pointsBadge(totalPoints, {
-                title: group.config.name,
-                subtitle: `${group.challenges.length} challenge${group.challenges.length !== 1 ? 's' : ''} \u00b7 ${totalPoints} pts`,
-                capitalizeTitle: true,
-              })}
+              {@render pointsBadge(
+                totalPoints,
+                {
+                  title: group.config.name,
+                  subtitle: categorySubtitle(group, totalPoints, dynamicCount),
+                  capitalizeTitle: true,
+                },
+                showDynamicBadge
+              )}
             </category-points>
             <category-footer>
               {@render categoryIcon(group)}
@@ -164,20 +217,33 @@
         {@const groupIsDimmed = focusedChallengeId !== null && !groupHasFocused}
         <category-block
           dimmed={groupIsDimmed || undefined}
-          style={getCategoryStyle(group.config.color)}
+          style="{getCategoryStyle(group.config.color)} width: {getChallengeCellsInnerWidth(
+            group.challenges
+          )}px;"
         >
           <category-points challenge>
             {#each group.challenges as challenge (challenge.id)}
               {@const isDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id}
-              <challenge-point dimmed={(isDimmed && !groupIsDimmed) || undefined}>
-                {@render pointsBadge(challenge.points, {
-                  title: challenge.name,
-                  subtitle: challengeSubtitle(challenge),
-                })}
+              {@const isDynamic = isDynamicChallenge(challenge)}
+              <challenge-point
+                dimmed={(isDimmed && !groupIsDimmed) || undefined}
+                style:width={`${getChallengeCellWidth(challenge)}px`}
+              >
+                {@render pointsBadge(
+                  challenge.points,
+                  {
+                    title: challenge.name,
+                    subtitle: challengeSubtitle(challenge),
+                  },
+                  isDynamic
+                )}
               </challenge-point>
             {/each}
           </category-points>
-          <category-footer labeled style:--score-category-span={group.challenges.length}>
+          <category-footer
+            labeled
+            style:--score-category-width={`${getChallengeCellsInnerWidth(group.challenges)}px`}
+          >
             {@render categoryIcon(group, true)}
           </category-footer>
         </category-block>
@@ -186,15 +252,22 @@
       {#each challenges as challenge (challenge.id)}
         {@const isFocused = focusedChallengeId === challenge.id}
         {@const isDimmed = focusedChallengeId !== null && !isFocused}
+        {@const isDynamic = isDynamicChallenge(challenge)}
         <category-block
           dimmed={isDimmed || undefined}
-          style={getCategoryStyle(challenge.config.color)}
+          style="{getCategoryStyle(challenge.config.color)} width: {getChallengeCellWidth(
+            challenge
+          )}px;"
         >
           <category-points>
-            {@render pointsBadge(challenge.points, {
-              title: challenge.name,
-              subtitle: challengeSubtitle(challenge),
-            })}
+            {@render pointsBadge(
+              challenge.points,
+              {
+                title: challenge.name,
+                subtitle: challengeSubtitle(challenge),
+              },
+              isDynamic
+            )}
           </category-points>
           <category-footer>
             {@render categoryIcon({
@@ -245,7 +318,7 @@
     header-name-slot {
       display: block;
       position: relative;
-      width: 3rem;
+      width: var(--score-cell-width);
       overflow: visible;
 
       &[dimmed] {
@@ -253,6 +326,7 @@
       }
 
       button,
+      span[data-challenge-name],
       span[data-category-name] {
         position: absolute;
         inset-block-end: 0;
@@ -292,6 +366,7 @@
       }
 
       button span,
+      span[data-challenge-name],
       span[data-category-name] {
         overflow: hidden;
         text-overflow: ellipsis;
@@ -357,7 +432,7 @@
       padding-inline: calc(var(--spacing) * 2);
 
       &[labeled] {
-        max-inline-size: calc(var(--score-category-span, 1) * var(--score-cell-width));
+        max-inline-size: var(--score-category-width, var(--score-cell-width));
         gap: calc(var(--spacing) * 1);
         overflow: hidden;
       }
@@ -391,7 +466,7 @@
 
     :global(.points-trigger) {
       display: flex;
-      width: 3rem;
+      width: 100%;
       align-items: center;
       justify-content: center;
     }
@@ -403,11 +478,14 @@
       align-items: center;
       justify-content: center;
       border-radius: var(--radius-sm);
-      background: var(--category-background-l1);
       color: var(--category-foreground-l1);
       font-size: var(--text-sm);
       line-height: 1;
       opacity: 0.75;
+
+      &[data-dynamic] {
+        font-size: var(--text-xs);
+      }
     }
 
     :global(.focus-icon) {

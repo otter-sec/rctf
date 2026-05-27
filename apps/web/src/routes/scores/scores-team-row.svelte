@@ -10,6 +10,8 @@
     data: ScoresTeamRowData | null
     solves: Set<string> | null
     solveTimes: Map<string, number> | null
+    challengePoints: Map<string, number> | null
+    challengePointDeltas: Map<string, number> | null
     themeEpoch: number
     renderEpoch: number
     isSelf?: boolean
@@ -32,6 +34,8 @@
     data,
     solves,
     solveTimes,
+    challengePoints,
+    challengePointDeltas,
     themeEpoch,
     renderEpoch,
     isSelf = false,
@@ -178,6 +182,8 @@
         {renderEpoch}
         getSolves={cid => solves?.has(cid) ?? false}
         getSolveTime={cid => solveTimes?.get(cid)}
+        getChallengePoints={cid => challengePoints?.get(cid)}
+        getChallengePointDelta={cid => challengePointDeltas?.get(cid)}
         {getCategoryStats}
         {getBloodIndex}
         {onCellHover}

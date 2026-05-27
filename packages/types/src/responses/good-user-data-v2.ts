@@ -11,6 +11,12 @@ const SolveSchema = z.object({
   bloodIndex: z.nullable(z.int()),
 })
 
+const DynamicScoreSchema = z.object({
+  id: z.string(),
+  points: z.int(),
+  pointDelta: z.int(),
+})
+
 export const GoodUserDataV2 = response('goodUserData', {
   status: 200,
   message: 'The user data was successfully retrieved.',
@@ -22,6 +28,7 @@ export const GoodUserDataV2 = response('goodUserData', {
     globalPlace: z.nullable(z.int()),
     divisionPlace: z.nullable(z.int()),
     solves: z.array(SolveSchema),
+    dynamicScores: z.array(DynamicScoreSchema),
     avatarUrl: z.nullable(z.string()),
     countryCode: z.nullable(z.string()),
     statusText: z.nullable(z.string()),

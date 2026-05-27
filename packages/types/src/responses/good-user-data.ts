@@ -10,6 +10,12 @@ const SolveSchema = z.object({
   createdAt: z.int(),
 })
 
+const DynamicScoreSchema = z.object({
+  id: z.string(),
+  points: z.int(),
+  pointDelta: z.int(),
+})
+
 export const GoodUserData = response('goodUserData', {
   status: 200,
   message: 'The user data was successfully retrieved.',
@@ -21,5 +27,6 @@ export const GoodUserData = response('goodUserData', {
     globalPlace: z.nullable(z.int()),
     divisionPlace: z.nullable(z.int()),
     solves: z.array(SolveSchema),
+    dynamicScores: z.array(DynamicScoreSchema),
   }),
 })

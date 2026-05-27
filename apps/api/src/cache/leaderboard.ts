@@ -509,8 +509,11 @@ const parseGraphPoints = (
   packedPoints: string | null
 ): Array<GraphPoint> => {
   const points: Array<GraphPoint> = []
-  if (lastUpdate > 0) {
-    points.push({ time: lastUpdate, score: curScore })
+  if (lastUpdate > 0 || curScore > 0) {
+    points.push({
+      time: lastUpdate > 0 ? lastUpdate : Date.now(),
+      score: curScore,
+    })
   }
 
   if (packedPoints) {

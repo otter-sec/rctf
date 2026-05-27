@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { ChallengeScoringKind } from '../util/schemas'
 
 export const GoodLeaderboardChallengesV2 = response(
   'goodLeaderboardChallenges',
@@ -15,6 +16,7 @@ export const GoodLeaderboardChallengesV2 = response(
           solves: z.int(),
           points: z.int(),
           sortWeight: z.nullable(z.int()),
+          scoringKind: z.enum(ChallengeScoringKind),
           firstSolvers: z.array(
             z.object({
               id: z.string(),

@@ -247,15 +247,27 @@
         {#each dataByTeam as [teamId, points] (teamId)}
           {@const meta = teamMeta.get(teamId)!}
           {@const isDimmed = hoveredTeamId !== null && hoveredTeamId !== teamId && !meta.isSelf}
+          {@const strokeColor = isDimmed ? 'var(--foreground-l5)' : meta.color}
+          {@const strokeOpacity = isDimmed ? 0.15 : meta.isContext ? 0.3 : 1}
           <Spline
             data={points}
-            stroke={isDimmed ? 'var(--foreground-l5)' : meta.color}
-            style="stroke-width: {meta.isSelf ? 3 : 2}; opacity: {isDimmed
-              ? 0.15
-              : meta.isContext
-                ? 0.3
-                : 1}; transition: opacity 150ms ease, stroke 150ms ease; stroke-linecap: round; stroke-linejoin: round;"
+            stroke={strokeColor}
+            style="stroke-width: {meta.isSelf
+              ? 3
+              : 2}; opacity: {strokeOpacity}; transition: opacity 150ms ease, stroke 150ms ease; stroke-linecap: round; stroke-linejoin: round;"
           />
+          {#if points.length === 1}
+            {@const point = points[0]!}
+            <circle
+              cx={context.xScale(point.time)}
+              cy={context.yScale(point.score)}
+              r={meta.isSelf ? 4 : 3}
+              fill={strokeColor}
+              stroke="var(--background-l1)"
+              stroke-width={2}
+              style="opacity: {strokeOpacity}; transition: opacity 150ms ease, fill 150ms ease;"
+            />
+          {/if}
         {/each}
 
         {#if solveHighlightPoint}

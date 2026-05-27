@@ -7,6 +7,9 @@ export interface ChallengeTooltipData {
   points: number
   solved: boolean
   bloodIndex: number
+  isDynamic: boolean
+  teamPoints?: number
+  teamPointDelta?: number
   solveTime?: number
 }
 
@@ -35,6 +38,7 @@ export interface ChallengeInfo {
   category: string
   points: number
   solves: number
+  scoringKind: 'decay' | 'dynamic'
   order: number
   config: ReturnType<typeof getCategoryConfig>
 }
@@ -50,9 +54,16 @@ export interface ScoreSolve {
   solveTime: number
 }
 
+export interface DynamicScore {
+  id: string
+  points: number
+  pointDelta: number
+}
+
 export interface CurrentUserSolve {
   id: string
   createdAt: number
+  points: number | null
 }
 
 export interface ScoreEntry {
@@ -63,6 +74,7 @@ export interface ScoreEntry {
   statusText: string | null
   score: number
   solves: ScoreSolve[]
+  dynamicScores: DynamicScore[]
   globalPlace: number | null
   division: string
   divisionPlace: number | null
@@ -76,6 +88,7 @@ export interface CurrentUserScoreData {
   statusText: string | null
   score: number
   solves: CurrentUserSolve[]
+  dynamicScores: DynamicScore[]
   globalPlace: number | null
   division: string | null | undefined
   divisionPlace: number | null

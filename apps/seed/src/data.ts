@@ -1,12 +1,14 @@
 import type { ServerConfig } from '@rctf/config'
 import type {
   Challenge,
+  ScoreEvent,
   Settings,
   Solve,
   Submission,
   User,
   UserMember,
 } from '@rctf/db'
+import { scoreProvider } from '@rctf/api/src/providers'
 import {
   ChallengeScoringKind,
   DynamicScoringTransport,
@@ -22,6 +24,7 @@ export type SeedData = {
   members: UserMember[]
   challenges: Challenge[]
   solves: Solve[]
+  scoreEvents: ScoreEvent[]
   submissions: Submission[]
   settings: Settings
 }
@@ -30,7 +33,7 @@ const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 export const SEED_TEAM_COUNT = 250
 const SEED_GENERATED_CHALLENGE_COUNT = 18
-export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 1
+export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 2
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
 export const SEED_CHALLENGE_CATEGORIES = [
@@ -50,6 +53,12 @@ type SeedTiming = {
 
 const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
+const KOTH_1_CHALLENGE_ID = 'seed-koth-1'
+const KOTH_2_CHALLENGE_ID = 'seed-koth-2'
+const KOTH_TICK_INTERVAL = 15 * 60_000
+const KOTH_MAX_POINTS = 880
+const KOTH_PAYOUT_EXPONENT = 1.1
+const KOTH_SCORING_DEPTH = 0.55
 const solveEndOffset = 5 * 60_000
 
 const FAILED_FLAGS = [
@@ -190,10 +199,10 @@ function buildChallenges(): Challenge[] {
   return [
     ...generatedChallenges,
     {
-      id: 'seed-koth',
+      id: KOTH_1_CHALLENGE_ID,
       data: {
-        name: 'King of the Hill',
-        description: 'Seed KOTH challenge for testing dynamic score display.',
+        name: 'Koth 1',
+        description: 'Generated koth challenge 1.',
         category: 'koth',
         author: 'seed',
         files: [],
@@ -203,7 +212,7 @@ function buildChallenges(): Challenge[] {
         },
         flag: '',
         tiebreakEligible: true,
-        sortWeight: SEED_CHALLENGE_COUNT * 10,
+        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 1) * 10,
         hidden: false,
         releaseTime: null,
         scoring: {
@@ -211,6 +220,32 @@ function buildChallenges(): Challenge[] {
           source: {
             transport: DynamicScoringTransport.WEBHOOK,
             secret: 'seed-koth-webhook-secret',
+          },
+        },
+      },
+    },
+    {
+      id: KOTH_2_CHALLENGE_ID,
+      data: {
+        name: 'Koth 2',
+        description: 'Generated koth challenge 2 with performance penalties.',
+        category: 'koth',
+        author: 'seed',
+        files: [],
+        points: {
+          min: 0,
+          max: 500,
+        },
+        flag: '',
+        tiebreakEligible: true,
+        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 2) * 10,
+        hidden: false,
+        releaseTime: null,
+        scoring: {
+          kind: ChallengeScoringKind.DYNAMIC,
+          source: {
+            transport: DynamicScoringTransport.WEBHOOK,
+            secret: 'seed-koth-2-webhook-secret',
           },
         },
       },
@@ -286,6 +321,265 @@ function buildSolves(
   }
 
   return solves.sort((a, b) => a.createdat.localeCompare(b.createdat))
+}
+
+type KothScoreConfig = {
+  challengeId: string
+  allowPenalties?: boolean
+}
+
+type KothTickScoreContext = {
+  allowPenalties: boolean
+  basePoints: number
+  priorPoints: number
+  rank: number
+  tickCount: number
+  tickIndex: number
+}
+
+function calculateKothCurrentPoints(ctx: KothTickScoreContext): number {
+  if (ctx.basePoints === 0) {
+    return 0
+  }
+
+  const progress = (ctx.tickIndex + 1) / ctx.tickCount
+  const expectedPoints = Math.round(ctx.basePoints * progress)
+  const isPenaltyTick =
+    ctx.tickIndex === ctx.tickCount - 1 || ctx.tickIndex % 4 === 2
+  const shouldPenalize =
+    ctx.allowPenalties &&
+    ctx.tickIndex > 1 &&
+    isPenaltyTick &&
+    (ctx.rank + ctx.tickIndex) % 5 === 0 &&
+    ctx.priorPoints > 0
+
+  if (!shouldPenalize) {
+    return Math.max(ctx.priorPoints, expectedPoints)
+  }
+
+  const penaltyPoints = Math.max(1, Math.round(ctx.basePoints * 0.08))
+  return Math.max(0, ctx.priorPoints - penaltyPoints)
+}
+
+function buildKothScores(
+  timing: SeedTiming,
+  teams: User[],
+  config: KothScoreConfig
+): { solves: Solve[]; scoreEvents: ScoreEvent[] } {
+  const eligibleTeams = teams.filter(team => !team.banned)
+  if (eligibleTeams.length === 0) {
+    return { solves: [], scoreEvents: [] }
+  }
+
+  const solveLatest = timing.solveEarliest + timing.solveSpan
+  const tickStart = timing.startTime
+  const tickSpan = Math.max(1, solveLatest - tickStart)
+  const tickCount = Math.max(1, Math.floor(tickSpan / KOTH_TICK_INTERVAL))
+  const zeroScoreRank = Math.max(
+    1,
+    Math.floor(eligibleTeams.length * KOTH_SCORING_DEPTH)
+  )
+  const zeroScoreWeight = Math.pow(
+    zeroScoreRank + 1,
+    -KOTH_PAYOUT_EXPONENT
+  )
+  const maxScoreWeight = 1 - zeroScoreWeight
+  const rankedTeams = eligibleTeams.map((team, rank) => {
+    const scoreWeight =
+      Math.pow(rank + 1, -KOTH_PAYOUT_EXPONENT) - zeroScoreWeight
+
+    return {
+      rank,
+      team,
+      points: Math.max(
+        0,
+        Math.round((KOTH_MAX_POINTS * scoreWeight) / maxScoreWeight)
+      ),
+    }
+  })
+  const totals = new Map<string, number>()
+  const firstAwardAt = new Map<string, string>()
+  const lastAwardAt = new Map<string, string>()
+  const scoreEvents: ScoreEvent[] = []
+
+  for (let tickIndex = 0; tickIndex < tickCount; tickIndex++) {
+    const eventAt = new Date(
+      tickStart +
+        Math.min(tickSpan, (tickIndex + 1) * KOTH_TICK_INTERVAL)
+    ).toISOString()
+    const tickNumber = String(tickIndex + 1).padStart(2, '0')
+
+    for (const { rank, team, points } of rankedTeams) {
+      const priorPoints = totals.get(team.id) ?? 0
+      const currentPoints = calculateKothCurrentPoints({
+        allowPenalties: config.allowPenalties ?? false,
+        basePoints: points,
+        priorPoints,
+        rank,
+        tickCount,
+        tickIndex,
+      })
+      const pointsDelta = currentPoints - priorPoints
+      if (pointsDelta === 0) {
+        continue
+      }
+
+      totals.set(team.id, currentPoints)
+      if (currentPoints > 0) {
+        firstAwardAt.set(team.id, firstAwardAt.get(team.id) ?? eventAt)
+      }
+      lastAwardAt.set(team.id, eventAt)
+      scoreEvents.push({
+        id: `seed-score-${config.challengeId}-${tickNumber}-${team.id}`,
+        challengeid: config.challengeId,
+        userid: team.id,
+        pointsDelta,
+        eventAt,
+        source: 'feed',
+      })
+    }
+  }
+
+  return {
+    solves: Array.from(totals.entries())
+      .filter(([, points]) => points > 0)
+      .map(([userid, points]) => ({
+        id: `seed-solve-${userid}-${config.challengeId}`,
+        challengeid: config.challengeId,
+        userid,
+        createdat: firstAwardAt.get(userid)!,
+        submissionip: null,
+        points,
+        pointsUpdatedAt: lastAwardAt.get(userid)!,
+        source: 'feed' as const,
+      }))
+      .sort((a, b) => a.createdat.localeCompare(b.createdat)),
+    scoreEvents,
+  }
+}
+
+type FlagScoreState = {
+  challenge: Challenge
+  firstSolveTime: number | null
+  solves: Solve[]
+}
+
+type FlagScoreEventContext = {
+  currentPointsBySolve: Map<string, number>
+  eventAt: string
+  maxSolves: number
+  nextEventIndex: number
+  scoreEvents: ScoreEvent[]
+  timing: SeedTiming
+}
+
+const scoreProviderRequiresMaxSolves = () =>
+  scoreProvider.requiredFields.includes('maxSolves')
+
+function calculateFlagScore(
+  state: FlagScoreState,
+  timing: SeedTiming,
+  maxSolves: number
+): number {
+  return scoreProvider.calculate({
+    minPoints: state.challenge.data.points.min,
+    maxPoints: state.challenge.data.points.max,
+    solves: state.solves.length,
+    maxSolves,
+    eventStartTime: timing.startTime,
+    eventEndTime: timing.endTime,
+    firstSolveTime: state.firstSolveTime,
+  })
+}
+
+function applyFlagScoreState(
+  state: FlagScoreState,
+  ctx: FlagScoreEventContext
+) {
+  const newPoints = calculateFlagScore(state, ctx.timing, ctx.maxSolves)
+
+  for (const solve of state.solves) {
+    const priorPoints = ctx.currentPointsBySolve.get(solve.id) ?? 0
+    const pointsDelta = newPoints - priorPoints
+    if (pointsDelta === 0) {
+      continue
+    }
+
+    solve.points = newPoints
+    solve.pointsUpdatedAt = ctx.eventAt
+    ctx.currentPointsBySolve.set(solve.id, newPoints)
+    ctx.scoreEvents.push({
+      id: `seed-score-flag-${String(ctx.nextEventIndex++).padStart(5, '0')}`,
+      challengeid: solve.challengeid,
+      userid: solve.userid,
+      pointsDelta,
+      eventAt: ctx.eventAt,
+      source: 'flag',
+    })
+  }
+}
+
+function buildFlagScoreEvents(
+  timing: SeedTiming,
+  teams: User[],
+  challenges: Challenge[],
+  solves: Solve[]
+): ScoreEvent[] {
+  const activeTeamIds = new Set(
+    teams.filter(team => !team.banned).map(team => team.id)
+  )
+  const statesByChallenge = new Map<string, FlagScoreState>(
+    challenges.map(challenge => [
+      challenge.id,
+      { challenge, firstSolveTime: null, solves: [] },
+    ])
+  )
+  const orderedSolves = solves
+    .filter(
+      solve =>
+        activeTeamIds.has(solve.userid) &&
+        statesByChallenge.has(solve.challengeid)
+    )
+    .sort(
+      (a, b) =>
+        a.createdat.localeCompare(b.createdat) || a.id.localeCompare(b.id)
+    )
+
+  const ctx: FlagScoreEventContext = {
+    currentPointsBySolve: new Map(),
+    eventAt: '',
+    maxSolves: 0,
+    nextEventIndex: 1,
+    scoreEvents: [],
+    timing,
+  }
+  const requiresMaxSolves = scoreProviderRequiresMaxSolves()
+
+  for (const solve of orderedSolves) {
+    const state = statesByChallenge.get(solve.challengeid)!
+    state.solves.push(solve)
+    state.firstSolveTime ??= new Date(solve.createdat).valueOf()
+
+    const priorMaxSolves = ctx.maxSolves
+    ctx.maxSolves = requiresMaxSolves
+      ? Math.max(ctx.maxSolves, state.solves.length)
+      : 0
+    ctx.eventAt = solve.createdat
+
+    if (requiresMaxSolves && ctx.maxSolves !== priorMaxSolves) {
+      for (const nextState of statesByChallenge.values()) {
+        if (nextState.solves.length > 0) {
+          applyFlagScoreState(nextState, ctx)
+        }
+      }
+    } else {
+      applyFlagScoreState(state, ctx)
+    }
+  }
+
+  return ctx.scoreEvents.sort((a, b) =>
+    (a.eventAt ?? '').localeCompare(b.eventAt ?? '')
+  )
 }
 
 function buildSubmissions(
@@ -385,7 +679,28 @@ export function buildSeedData(config: ServerConfig): SeedData {
   const teams = buildTeams(config, SEED_TEAM_COUNT)
   const challenges = buildChallenges()
   const generatedFlagChallenges = challenges.filter(isGeneratedFlagChallenge)
-  const solves = buildSolves(timing, teams, generatedFlagChallenges)
+  const flagSolves = buildSolves(timing, teams, generatedFlagChallenges)
+  const kothScores = [
+    buildKothScores(timing, teams, { challengeId: KOTH_1_CHALLENGE_ID }),
+    buildKothScores(timing, teams, {
+      allowPenalties: true,
+      challengeId: KOTH_2_CHALLENGE_ID,
+    }),
+  ]
+  const flagScoreEvents = buildFlagScoreEvents(
+    timing,
+    teams,
+    generatedFlagChallenges,
+    flagSolves
+  )
+  const solves = [
+    ...flagSolves,
+    ...kothScores.flatMap(koth => koth.solves),
+  ].sort((a, b) => a.createdat.localeCompare(b.createdat))
+  const scoreEvents = [
+    ...flagScoreEvents,
+    ...kothScores.flatMap(koth => koth.scoreEvents),
+  ].sort((a, b) => (a.eventAt ?? '').localeCompare(b.eventAt ?? ''))
 
   return {
     admin,
@@ -394,11 +709,12 @@ export function buildSeedData(config: ServerConfig): SeedData {
     members: buildMembers(config, teams),
     challenges,
     solves,
+    scoreEvents,
     submissions: buildSubmissions(
       timing,
       teams,
       generatedFlagChallenges,
-      solves
+      flagSolves
     ),
     settings: buildSettings(config, timing),
   }

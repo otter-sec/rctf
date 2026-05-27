@@ -20,13 +20,15 @@
   const user = $derived(userQuery.data)
   const clientConfig = $derived(clientConfigQuery.data)
   const challenges = $derived(
-    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
-      id,
-      name: c.name,
-      category: c.category,
-      points: c.points,
-      solves: c.solves,
-    }))
+    Object.entries(challengesQuery.data ?? {})
+      .filter(([, c]) => c.scoringKind !== 'dynamic')
+      .map(([id, c]) => ({
+        id,
+        name: c.name,
+        category: c.category,
+        points: c.points,
+        solves: c.solves,
+      }))
   )
 
   const graphQuery = useUserGraph(

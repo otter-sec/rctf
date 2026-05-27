@@ -43,6 +43,7 @@ interface ScoresGraphDataConfig {
   entries: () => ScoreEntry[]
   allGraphData: () => ScoreGraphEntry[]
   currentUser: () => CurrentUserScoreData | null | undefined
+  challengesData: () => Record<string, { scoringKind?: 'decay' | 'dynamic' }>
   teamColorMap: () => Map<string, string>
 }
 
@@ -69,7 +70,7 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
   const currentUser = $derived(userQuery.data)
   const challengesData = $derived(challengesQuery.data ?? {})
   const entries = $derived(
-    getFocusedEntries(rawEntries, config.focusedChallengeId())
+    getFocusedEntries(rawEntries, config.focusedChallengeId(), challengesData)
   )
   const allGraphData = $derived(
     leaderboardQuery.data?.pages.flatMap(page => page.graph) ?? []
@@ -178,6 +179,12 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
     get solveTimesByTeam() {
       return solvesAndTimes.solveTimesByTeam
     },
+    get challengePointsByTeam() {
+      return solvesAndTimes.challengePointsByTeam
+    },
+    get challengePointDeltasByTeam() {
+      return solvesAndTimes.challengePointDeltasByTeam
+    },
     get teamRanks() {
       return teamRanks
     },
@@ -209,12 +216,17 @@ export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
     getScreenshotTeams(
       config.entries(),
       config.currentUser(),
+      config.challengesData(),
       config.teamColorMap(),
       sparklineDataByTeam
     )
   )
   const screenshotSelfTeam = $derived(
-    getScreenshotSelfTeam(config.currentUser(), sparklineDataByTeam)
+    getScreenshotSelfTeam(
+      config.currentUser(),
+      config.challengesData(),
+      sparklineDataByTeam
+    )
   )
 
   return {

@@ -5,9 +5,7 @@ import {
   getGraphVisibility,
 } from './scores-data-helpers'
 import {
-  SCORE_CELL_WIDTH_PX,
   SCORE_DIAGONAL_OVERFLOW_PX,
-  SCORE_ROW_GAP_PX,
   SCORE_ROW_HEIGHT_FULL_PX,
   SCORE_SCROLL_RESET_DELAY_MS,
   SCORE_SCROLL_THRESHOLD_PX,
@@ -33,7 +31,7 @@ interface ScoresViewportStateConfig {
   currentUser: () => CurrentUserScoreData | null | undefined
   showTop3Context: () => boolean
   showSelfContext: () => boolean
-  cellCount: () => number
+  contentCellsWidth: () => number
   allGraphData: () => ScoreGraphEntry[]
   teamRanks: () => Map<string, number>
   hasNextPage: () => boolean
@@ -108,8 +106,7 @@ export function createScoresViewportState(config: ScoresViewportStateConfig) {
   })
 
   const contentWidth = $derived(
-    config.cellCount() * (SCORE_CELL_WIDTH_PX + SCORE_ROW_GAP_PX) +
-      SCORE_DIAGONAL_OVERFLOW_PX
+    config.contentCellsWidth() + SCORE_DIAGONAL_OVERFLOW_PX
   )
   const graph = createScoresViewportGraphState({
     config,
