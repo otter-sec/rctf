@@ -623,9 +623,9 @@ const getDynamicGraphPoints = async (
 }
 
 const getGraphEntries = async (
+  db: DatabaseClient,
   redis: TypedRedis,
-  entries: Array<GraphSourceEntry>,
-  db?: DatabaseClient
+  entries: Array<GraphSourceEntry>
 ): Promise<Array<GraphEntry>> => {
   if (entries.length === 0) {
     return []
@@ -638,9 +638,12 @@ const getGraphEntries = async (
     >,
   ])
   const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
-  const dynamicPointsByUser = db
-    ? await getDynamicGraphPoints(db, redis, lastUpdate, entries)
-    : new Map<string, Array<GraphPoint>>()
+  const dynamicPointsByUser = await getDynamicGraphPoints(
+    db,
+    redis,
+    lastUpdate,
+    entries
+  )
 
   return entries.map((entry, idx) =>
     buildGraphEntry(
@@ -678,14 +681,14 @@ export const getGraph = async (
     .limit(limit)
     .offset(offset)
 
-  return getGraphEntries(redis, topUsers, db)
+  return getGraphEntries(db, redis, topUsers)
 }
 
 export const getGraphForEntries = async (
   db: DatabaseClient,
   redis: TypedRedis,
   leaderboard: Array<GraphSourceEntry>
-): Promise<Array<GraphEntry>> => getGraphEntries(redis, leaderboard, db)
+): Promise<Array<GraphEntry>> => getGraphEntries(db, redis, leaderboard)
 
 export const cacheLeaderboardAndGraph = async (
   db: DatabaseClient,
