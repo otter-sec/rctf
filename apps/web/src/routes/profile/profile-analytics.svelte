@@ -10,6 +10,7 @@
     buildDifficultyData,
     buildTimelineCategories,
     buildTimelineData,
+    isDynamicChallenge,
     sortProfileSolves,
     type ChallengeInfo,
   } from './profile-analytics-data'
@@ -31,10 +32,28 @@
   let { user, clientConfig, challenges, graphData, class: className = '' }: Props = $props()
 
   const sortedSolves = $derived(sortProfileSolves(user.solves))
-  const categoryStats = $derived(buildCategoryStats({ challenges, solves: sortedSolves }))
+  const staticChallenges = $derived(
+    challenges.filter(challenge => !isDynamicChallenge(challenge))
+  )
+  const categoryStats = $derived(
+    buildCategoryStats({
+      challenges,
+      dynamicScores: user.dynamicScores,
+      solves: sortedSolves,
+    })
+  )
   const categoryCompletionData = $derived(buildCategoryCompletionData(categoryStats))
-  const categoryPointsData = $derived(buildCategoryPointsData(categoryStats, sortedSolves))
-  const difficultyData = $derived(buildDifficultyData({ challenges, solves: sortedSolves }))
+  const categoryPointsData = $derived(
+    buildCategoryPointsData(
+      categoryStats,
+      sortedSolves,
+      challenges,
+      user.dynamicScores
+    )
+  )
+  const difficultyData = $derived(
+    buildDifficultyData({ challenges: staticChallenges, solves: sortedSolves })
+  )
   const activityDomain = $derived(buildActivityDomain({ clientConfig, solves: sortedSolves }))
   const cadenceData = $derived(
     buildCadenceData({
@@ -50,7 +69,14 @@
 <div class={cn('flex flex-col', className)}>
   <ProfileAnalyticsSection title="Score over time">
     {#if graphData && (graphData.points.length > 0 || sortedSolves.length > 0)}
-      <ProfileGraph class="h-44 w-full" {graphData} {clientConfig} solves={sortedSolves} />
+      <ProfileGraph
+        class="h-44 w-full"
+        {graphData}
+        {clientConfig}
+        solves={sortedSolves}
+        dynamicScores={user.dynamicScores}
+        splitDynamicScore
+      />
     {:else}
       <p class="text-foreground-l5 py-8 text-center text-sm">No score graph data.</p>
     {/if}

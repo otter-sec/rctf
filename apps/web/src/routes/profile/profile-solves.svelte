@@ -27,18 +27,16 @@
     getCategoryStyle,
     type BloodIndex,
   } from '$lib/utils'
-
-  interface ChallengeInfo {
-    id: string
-    name: string
-    category: string
-    points: number
-    solves: number
-  }
+  import {
+    isDynamicChallenge,
+    type ChallengeInfo,
+    type ProfileDynamicScore,
+  } from './profile-analytics-data'
 
   interface Props {
     challenges: ChallengeInfo[]
     solves: Solve[]
+    dynamicScores?: ProfileDynamicScore[]
     showUnsolved?: boolean
     scrollable?: boolean
     class?: string
@@ -47,6 +45,7 @@
   let {
     challenges,
     solves,
+    dynamicScores = [],
     showUnsolved = true,
     scrollable = false,
     class: className = '',
@@ -54,6 +53,9 @@
 
   const solvedIds = $derived(new Set(solves.map(s => s.id)))
   const solveMap = $derived(new Map(solves.map(s => [s.id, s])))
+  const dynamicScoreMap = $derived(
+    new Map(dynamicScores.map(score => [score.id, score]))
+  )
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
@@ -66,6 +68,7 @@
     points: number | null
     solves: number | null
     isSolved: boolean
+    isDynamic: boolean
     solvedAt?: number
     bloodIndex?: number | null
   }
@@ -82,16 +85,22 @@
 
   const allChallenges: DisplayChallenge[] = $derived.by(() => {
     if (showUnsolved && challenges.length > 0) {
-      return challenges.map(c => ({
-        id: c.id,
-        name: c.name,
-        category: c.category,
-        points: c.points,
-        solves: c.solves,
-        isSolved: solvedIds.has(c.id),
-        solvedAt: solveMap.get(c.id)?.createdAt,
-        bloodIndex: solveMap.get(c.id)?.bloodIndex,
-      }))
+      return challenges.map(c => {
+        const dynamic = isDynamicChallenge(c)
+        const solve = solveMap.get(c.id)
+
+        return {
+          id: c.id,
+          name: c.name,
+          category: c.category,
+          points: dynamic ? (dynamicScoreMap.get(c.id)?.points ?? 0) : c.points,
+          solves: dynamic ? null : c.solves,
+          isSolved: dynamic ? false : solvedIds.has(c.id),
+          isDynamic: dynamic,
+          solvedAt: dynamic ? undefined : solve?.createdAt,
+          bloodIndex: dynamic ? null : solve?.bloodIndex,
+        }
+      })
     }
     return solves.map(s => ({
       id: s.id,
@@ -100,6 +109,7 @@
       points: s.points,
       solves: s.solves,
       isSolved: true,
+      isDynamic: false,
       solvedAt: s.createdAt,
       bloodIndex: s.bloodIndex,
     }))
@@ -167,13 +177,26 @@
     })
   })
 
-  const stats = $derived({
-    pointsEarned: allChallenges
+  const stats = $derived.by(() => {
+    const staticChallenges = allChallenges.filter(c => !c.isDynamic)
+    const dynamicChallenges = allChallenges.filter(c => c.isDynamic)
+    const staticPointsEarned = staticChallenges
       .filter(c => c.isSolved)
-      .reduce((sum, c) => sum + (c.points ?? 0), 0),
-    pointsTotal: showUnsolved ? allChallenges.reduce((sum, c) => sum + (c.points ?? 0), 0) : null,
-    solved: allChallenges.filter(c => c.isSolved).length,
-    total: showUnsolved ? allChallenges.length : null,
+      .reduce((sum, c) => sum + (c.points ?? 0), 0)
+    const dynamicPointsEarned = dynamicChallenges.reduce(
+      (sum, c) => sum + (c.points ?? 0),
+      0
+    )
+
+    return {
+      pointsEarned: staticPointsEarned + dynamicPointsEarned,
+      pointsTotal:
+        showUnsolved && dynamicChallenges.length === 0
+          ? staticChallenges.reduce((sum, c) => sum + (c.points ?? 0), 0)
+          : null,
+      solved: staticChallenges.filter(c => c.isSolved).length,
+      total: showUnsolved ? staticChallenges.length : null,
+    }
   })
 
   let openCategories = $state<string[]>([])
@@ -333,7 +356,8 @@
       {#each groups as [category, entries] (category)}
         {@const config = getCategoryConfig(category)}
         {@const catStyle = getCategoryStyle(config.color)}
-        {@const categorySolved = entries.filter(c => c.isSolved).length}
+        {@const staticEntries = entries.filter(c => !c.isDynamic)}
+        {@const categorySolved = staticEntries.filter(c => c.isSolved).length}
         {@const categoryShort = getCategoryKeyOrAlias(category)}
         <Accordion.Item value={category} class="border-b-0" style={catStyle}>
           <Accordion.Trigger
@@ -345,8 +369,12 @@
               <div
                 class="flex items-baseline gap-1 text-base font-normal whitespace-nowrap tabular-nums"
               >
-                <span class="text-category-foreground-l0">{categorySolved}</span>
-                <span class="text-category-foreground-l1">/ {entries.length}</span>
+                {#if staticEntries.length > 0}
+                  <span class="text-category-foreground-l0">{categorySolved}</span>
+                  <span class="text-category-foreground-l1">/ {staticEntries.length}</span>
+                {:else}
+                  <span class="text-category-foreground-l0">{entries.length}</span>
+                {/if}
               </div>
             {/snippet}
             <div class="flex items-center">

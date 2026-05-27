@@ -13,6 +13,14 @@ export const GoodLeaderboardGraph = response('goodLeaderboardGraph', {
             score: z.int(),
           })
         ),
+        dynamicPoints: z.optional(
+          z.array(
+            z.object({
+              time: z.int(),
+              score: z.int(),
+            })
+          )
+        ),
         id: z.string(),
         name: z.string(),
       })

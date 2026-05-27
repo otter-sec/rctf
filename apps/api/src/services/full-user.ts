@@ -1,7 +1,7 @@
 import type { DatabaseClient, User } from '@rctf/db'
-import { challenges, users } from '@rctf/db'
+import { challenges, scoreEvents, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
-import { eq, inArray } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray } from 'drizzle-orm'
 import {
   getDynamicScoresForUsers,
   getPublicDynamicChallengeIds,
@@ -16,6 +16,7 @@ export type SolveData = {
   createdAt: number
   solves: number | null
   points: number | null
+  awardedPoints: number | null
   bloodIndex: number | null
 }
 
@@ -58,6 +59,7 @@ export const getFullUser = async (
     string,
     { score: number; solveCount: number }
   >()
+  const challengeAwardedPoints = new Map<string, number>()
   const dynamicScores = await getDynamicScoresForUsers(
     db,
     [user.id],
@@ -65,20 +67,43 @@ export const getFullUser = async (
   )
 
   if (challengeIds.length > 0) {
-    const challRows = await db
-      .select({
-        id: challenges.id,
-        score: challenges.score,
-        solveCount: challenges.solveCount,
-      })
-      .from(challenges)
-      .where(inArray(challenges.id, challengeIds))
+    const [challRows, awardedRows] = await Promise.all([
+      db
+        .select({
+          id: challenges.id,
+          score: challenges.score,
+          solveCount: challenges.solveCount,
+        })
+        .from(challenges)
+        .where(inArray(challenges.id, challengeIds)),
+      db
+        .select({
+          challengeId: scoreEvents.challengeid,
+          pointsDelta: scoreEvents.pointsDelta,
+        })
+        .from(scoreEvents)
+        .where(
+          and(
+            eq(scoreEvents.userid, user.id),
+            inArray(scoreEvents.challengeid, challengeIds),
+            eq(scoreEvents.source, 'flag'),
+            gt(scoreEvents.pointsDelta, 0)
+          )
+        )
+        .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id)),
+    ])
 
     for (const row of challRows) {
       challengeScores.set(row.id, {
         score: row.score,
         solveCount: row.solveCount,
       })
+    }
+
+    for (const row of awardedRows) {
+      if (!challengeAwardedPoints.has(row.challengeId)) {
+        challengeAwardedPoints.set(row.challengeId, row.pointsDelta)
+      }
     }
   }
 
@@ -98,6 +123,7 @@ export const getFullUser = async (
         createdAt: new Date(item.solve.createdat).getTime(),
         solves: challScore?.solveCount ?? null,
         points: challScore?.score ?? null,
+        awardedPoints: challengeAwardedPoints.get(item.solve.challengeid) ?? null,
         bloodIndex: item.bloodIndex,
       }
     }),

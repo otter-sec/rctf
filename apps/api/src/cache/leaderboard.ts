@@ -1,6 +1,6 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
-import { and, asc, gte, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -495,6 +495,7 @@ interface GraphEntry {
   id: string
   name: string
   points: Array<GraphPoint>
+  dynamicPoints: Array<GraphPoint>
 }
 
 type GraphSourceEntry = {
@@ -530,16 +531,56 @@ const parseGraphPoints = (
 const buildGraphEntry = (
   lastUpdate: number,
   entry: GraphSourceEntry,
-  packedPoints: string | null
+  packedPoints: string | null,
+  dynamicPoints: Array<GraphPoint> = []
 ): GraphEntry => ({
   id: entry.id,
   name: entry.name,
   points: parseGraphPoints(lastUpdate, entry.score, packedPoints),
+  dynamicPoints,
 })
+
+const getDynamicGraphPoints = async (
+  db: DatabaseClient,
+  lastUpdate: number,
+  entries: Array<GraphSourceEntry>
+): Promise<Map<string, Array<GraphPoint>>> => {
+  const userIds = entries.map(entry => entry.id)
+  if (userIds.length === 0) return new Map()
+
+  const rows = await db
+    .select({
+      id: scoreEvents.id,
+      userid: scoreEvents.userid,
+      pointsDelta: scoreEvents.pointsDelta,
+      eventAt: scoreEvents.eventAt,
+    })
+    .from(scoreEvents)
+    .where(
+      and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
+    )
+    .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
+
+  const fold = foldScoreEvents(rows)
+  const sampleTime = Math.max(lastUpdate, fold.lastSample)
+  const result = new Map<string, Array<GraphPoint>>()
+  for (const entry of entries) {
+    const packed = fold.userPoints.get(entry.id)?.join(',') ?? null
+    if (!packed) continue
+
+    result.set(
+      entry.id,
+      parseGraphPoints(sampleTime, lastPackedScore(packed), packed)
+    )
+  }
+
+  return result
+}
 
 const getGraphEntries = async (
   redis: TypedRedis,
-  entries: Array<GraphSourceEntry>
+  entries: Array<GraphSourceEntry>,
+  db?: DatabaseClient
 ): Promise<Array<GraphEntry>> => {
   if (entries.length === 0) {
     return []
@@ -552,8 +593,17 @@ const getGraphEntries = async (
     >,
   ])
   const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
+  const dynamicPointsByUser = db
+    ? await getDynamicGraphPoints(db, lastUpdate, entries)
+    : new Map<string, Array<GraphPoint>>()
+
   return entries.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
+    buildGraphEntry(
+      lastUpdate,
+      entry,
+      graphData[idx] ?? null,
+      dynamicPointsByUser.get(entry.id) ?? []
+    )
   )
 }
 
@@ -583,7 +633,7 @@ export const getGraph = async (
     .limit(limit)
     .offset(offset)
 
-  return getGraphEntries(redis, topUsers)
+  return getGraphEntries(redis, topUsers, db)
 }
 
 export const getGraphForEntries = async (

@@ -6,6 +6,7 @@
   import { Axis, ChartCore, Highlight, Svg, Text, Tooltip } from 'layerchart/svg'
   import {
     getProfileCategoryDisplay,
+    type ProfileDynamicScore,
     type ProfileCategoryDisplay,
     type ProfileSolve,
   } from './profile-analytics-data'
@@ -15,9 +16,18 @@
   type SampleScorePoint = {
     kind: 'sample'
     key: string
-    teamName: string
     time: number
     score: number
+    color: string
+  }
+
+  type DynamicScorePoint = {
+    kind: 'dynamic'
+    key: string
+    time: number
+    score: number
+    staticScore: number
+    totalScore: number
     color: string
   }
 
@@ -35,7 +45,7 @@
     style: string
   }
 
-  type ScorePoint = SampleScorePoint | SolveScorePoint
+  type ScorePoint = SampleScorePoint | DynamicScorePoint | SolveScorePoint
 
   type ScoreLinePoint = {
     time: number
@@ -45,18 +55,9 @@
   type Scale = (value: number) => number
 
   const domainPadding = 30 * 60 * 1000
-  const scoreLineColor = 'var(--foreground-l2)'
-
-  function buildStepPath(points: ScoreLinePoint[], xScale: Scale, yScale: Scale) {
-    const [first, ...rest] = points
-    if (!first) return ''
-
-    let path = `M ${xScale(first.time)} ${yScale(first.score)}`
-    for (const point of rest) {
-      path += ` H ${xScale(point.time)} V ${yScale(point.score)}`
-    }
-    return path
-  }
+  const totalLineColor = 'var(--foreground-l1)'
+  const staticLineColor = 'var(--foreground-l3)'
+  const dynamicLineColor = 'var(--foreground-l5)'
 
   function buildLinePath(points: ScoreLinePoint[], xScale: Scale, yScale: Scale) {
     const [first, ...rest] = points
@@ -96,32 +97,124 @@
     return maxScore
   }
 
+  function scoreAt(time: number, points: ScoreLinePoint[]): number {
+    let score = 0
+    for (const point of points) {
+      if (point.time > time) break
+      score = point.score
+    }
+    return score
+  }
+
+  function exactScoreAt(time: number, points: ScoreLinePoint[]): number | null {
+    for (const point of points) {
+      if (point.time === time) return point.score
+      if (point.time > time) break
+    }
+    return null
+  }
+
+  function buildDynamicPoints(
+    points: ScoreLinePoint[],
+    totalPoints: ScoreLinePoint[]
+  ): DynamicScorePoint[] {
+    return points.map(point => {
+      const totalScore = scoreAt(point.time, totalPoints)
+      return {
+        kind: 'dynamic',
+        key: `dynamic-${point.time}`,
+        time: point.time,
+        score: point.score,
+        staticScore: Math.max(totalScore - point.score, 0),
+        totalScore,
+        color: dynamicLineColor,
+      }
+    })
+  }
+
   interface Props {
     class?: string
     graphData: LeaderboardGraphEntry
     clientConfig: ClientConfig
     solves?: ProfileSolve[]
+    dynamicScores?: ProfileDynamicScore[]
+    splitDynamicScore?: boolean
   }
 
-  let { class: className = '', graphData, clientConfig, solves = [] }: Props = $props()
+  let {
+    class: className = '',
+    graphData,
+    clientConfig,
+    solves = [],
+    dynamicScores = [],
+    splitDynamicScore = false,
+  }: Props = $props()
 
   const sampledPoints = $derived<SampleScorePoint[]>(
     graphData.points.toReversed().map(p => ({
       kind: 'sample',
       key: `sample-${p.time}`,
-      teamName: graphData.name,
       time: p.time,
       score: p.score,
-      color: scoreLineColor,
+      color: totalLineColor,
     }))
   )
 
+  const sampledLinePoints = $derived<ScoreLinePoint[]>(
+    sampledPoints.map(point => ({ time: point.time, score: point.score }))
+  )
+  const dynamicHistoryLinePoints = $derived<ScoreLinePoint[]>(
+    (graphData.dynamicPoints ?? [])
+      .toReversed()
+      .map(point => ({ time: point.time, score: point.score }))
+  )
+  const currentDynamicScore = $derived(
+    dynamicScores.reduce((sum, score) => sum + score.points, 0)
+  )
+  const dynamicLinePoints = $derived<ScoreLinePoint[]>(
+    !splitDynamicScore
+      ? []
+      : dynamicHistoryLinePoints.length > 0
+        ? dynamicHistoryLinePoints
+        : currentDynamicScore > 0
+          ? sampledPoints.map(point => ({
+              time: point.time,
+              score: currentDynamicScore,
+            }))
+          : []
+  )
+  const dynamicPoints = $derived<DynamicScorePoint[]>(
+    splitDynamicScore
+      ? buildDynamicPoints(dynamicLinePoints, sampledLinePoints)
+      : []
+  )
+  const staticLinePoints = $derived<ScoreLinePoint[]>(
+    splitDynamicScore
+      ? sampledPoints.map(point => ({
+          time: point.time,
+          score: Math.max(
+            point.score - scoreAt(point.time, dynamicLinePoints),
+            0
+          ),
+        }))
+      : []
+  )
   const solvePoints = $derived.by<SolveScorePoint[]>(() => {
-    let score = 0
+    let runningScore = 0
+
     return solves.map(solve => {
-      const scoreBefore = score
-      score += solve.points ?? 0
+      const points = solve.awardedPoints ?? solve.points
       const category = getProfileCategoryDisplay(solve.category)
+      const exactScore = exactScoreAt(solve.createdAt, staticLinePoints)
+      const scoreBefore =
+        splitDynamicScore && staticLinePoints.length > 0
+          ? exactScore !== null && points !== null
+            ? Math.max(exactScore - points, 0)
+            : scoreAt(solve.createdAt, staticLinePoints)
+          : runningScore
+      const score = scoreBefore + (points ?? 0)
+
+      runningScore = score
 
       return {
         kind: 'solve',
@@ -132,39 +225,51 @@
         time: solve.createdAt,
         score,
         scoreBefore,
-        points: solve.points,
+        points,
         color: category.color,
         style: category.style,
       }
     })
   })
-
-  const chartPoints = $derived<ScorePoint[]>(solvePoints.length > 0 ? solvePoints : sampledPoints)
-  const sampledLinePoints = $derived<ScoreLinePoint[]>(
-    sampledPoints.map(point => ({ time: point.time, score: point.score }))
+  const solveLinePoints = $derived<ScoreLinePoint[]>(
+    solvePoints.map(point => ({ time: point.time, score: point.score }))
   )
-  const scoreLinePoints = $derived.by<ScoreLinePoint[]>(() => {
-    const [firstSolve] = solvePoints
-    if (!firstSolve) return sampledLinePoints
-
-    return [
-      { time: firstSolve.time, score: 0 },
-      ...solvePoints.map(point => ({ time: point.time, score: point.score })),
+  const hasStaticLine = $derived(
+    splitDynamicScore && staticLinePoints.length > 1
+  )
+  const hasDynamicLine = $derived(
+    splitDynamicScore &&
+      dynamicLinePoints.length > 1 &&
+      dynamicLinePoints.some(point => point.score > 0)
+  )
+  const hasSampledLine = $derived(sampledLinePoints.length > 1)
+  const domainPoints = $derived.by<ScoreLinePoint[]>(() => {
+    const points = [
+      ...(hasSampledLine ? sampledLinePoints : []),
+      ...(hasStaticLine ? staticLinePoints : []),
+      ...(hasDynamicLine ? dynamicLinePoints : []),
+      ...solveLinePoints,
     ]
+
+    return points.length > 0 ? points : sampledLinePoints
   })
-  const domainPoints = $derived(
-    solvePoints.length > 0 ? [...scoreLinePoints, ...sampledLinePoints] : scoreLinePoints
-  )
   const xDomain = $derived(
     chartTimeDomain(domainPoints, clientConfig.startTime, clientConfig.endTime)
   )
   const yMax = $derived(chartScoreMax(domainPoints))
+  const chartPoints = $derived<ScorePoint[]>(
+    [
+      ...sampledPoints,
+      ...(hasDynamicLine ? dynamicPoints : []),
+      ...solvePoints,
+    ]
+  )
 
   const useMinutesFormat = $derived.by(() => {
-    if (chartPoints.length === 0) return false
+    if (domainPoints.length === 0) return false
     let minTime = Infinity
     let maxTime = -Infinity
-    for (const point of chartPoints) {
+    for (const point of domainPoints) {
       if (point.time < minTime) minTime = point.time
       if (point.time > maxTime) maxTime = point.time
     }
@@ -212,28 +317,42 @@
           {/snippet}
         </Axis>
 
-        {#if solvePoints.length > 0 && sampledLinePoints.length > 1}
+        {#if hasDynamicLine}
           <path
-            d={buildLinePath(sampledLinePoints, context.xScale, context.yScale)}
+            d={buildLinePath(dynamicLinePoints, context.xScale, context.yScale)}
             fill="none"
-            stroke={scoreLineColor}
-            stroke-width={1.5}
+            stroke={dynamicLineColor}
+            stroke-width={1.75}
             stroke-linecap="round"
             stroke-linejoin="round"
-            stroke-opacity={0.22}
+            stroke-dasharray="4 4"
             class="pointer-events-none"
           />
         {/if}
 
-        <path
-          d={buildStepPath(scoreLinePoints, context.xScale, context.yScale)}
-          fill="none"
-          stroke={scoreLineColor}
-          stroke-width={2}
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          class="pointer-events-none"
-        />
+        {#if hasStaticLine}
+          <path
+            d={buildLinePath(staticLinePoints, context.xScale, context.yScale)}
+            fill="none"
+            stroke={staticLineColor}
+            stroke-width={1.75}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="pointer-events-none"
+          />
+        {/if}
+
+        {#if hasSampledLine}
+          <path
+            d={buildLinePath(sampledLinePoints, context.xScale, context.yScale)}
+            fill="none"
+            stroke={totalLineColor}
+            stroke-width={2.25}
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="pointer-events-none"
+          />
+        {/if}
 
         {#each solvePoints as point (point.key)}
           <circle
@@ -266,23 +385,40 @@
               points={data.points}
               score={data.score}
             />
-          {:else}
+          {:else if data.kind === 'dynamic'}
             <div
-              class="border-background-l5 bg-background-l3 z-50 min-w-56 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+              class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
             >
               <div class="text-foreground-l3 mb-1.5">
                 <div>{formatRelativeHoursMinutes(data.time, clientConfig.startTime)}</div>
                 <div class="text-[10px]">{formatLocalTime(data.time)}</div>
               </div>
-              <div class="flex items-center gap-2">
-                <div class="size-2.5 rounded-sm" style="background-color: {data.color}"></div>
-                <span class="max-w-48 truncate wrap-anywhere">{data.teamName}</span>
-              </div>
-              <div class="border-border/50 mt-2 border-t pt-2">
-                <div class="text-foreground-l4 text-[10px]">Total score</div>
-                <div class="text-foreground-l1 tabular-nums">
+              <div class="grid grid-cols-2 gap-x-3 gap-y-1">
+                <div class="text-foreground-l4 text-[10px]">Dynamic</div>
+                <div class="text-foreground-l1 text-right tabular-nums">
                   {data.score.toLocaleString()} pts
                 </div>
+                <div class="text-foreground-l4 text-[10px]">Flag solves</div>
+                <div class="text-foreground-l1 text-right tabular-nums">
+                  {data.staticScore.toLocaleString()} pts
+                </div>
+                <div class="text-foreground-l4 text-[10px]">Total</div>
+                <div class="text-foreground-l1 text-right tabular-nums">
+                  {data.totalScore.toLocaleString()} pts
+                </div>
+              </div>
+            </div>
+          {:else}
+            <div
+              class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
+            >
+              <div class="text-foreground-l3 mb-1.5">
+                <div>{formatRelativeHoursMinutes(data.time, clientConfig.startTime)}</div>
+                <div class="text-[10px]">{formatLocalTime(data.time)}</div>
+              </div>
+              <div class="text-foreground-l4 text-[10px]">Total score</div>
+              <div class="text-foreground-l1 tabular-nums">
+                {data.score.toLocaleString()} pts
               </div>
             </div>
           {/if}

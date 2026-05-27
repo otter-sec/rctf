@@ -35,7 +35,7 @@
   }
 
   function isFullClear(item: CategoryBarDatum): boolean {
-    return item.value >= item.max
+    return item.fullClear === true
   }
 
   function segmentTooltipData(
@@ -98,15 +98,41 @@
                   {@const x = context.xScale(segment.start)}
                   {@const key = segmentKey(item, segment)}
                   {@const active = activeSegmentKey === key}
+                  {@const hatchId = defId('segment-hatch', key, index)}
+                  {#if segment.hatched}
+                    <defs>
+                      <pattern
+                        id={hatchId}
+                        width="6"
+                        height="6"
+                        patternUnits="userSpaceOnUse"
+                        patternTransform="rotate(45)"
+                        style={segment.style ?? item.style}
+                      >
+                        <line
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="6"
+                          stroke="var(--category-foreground-l1)"
+                          stroke-opacity="0.45"
+                          stroke-width="2"
+                        />
+                      </pattern>
+                    </defs>
+                  {/if}
                   <rect
                     {x}
                     {y}
                     width={Math.max(0, context.xScale(segment.end) - x)}
                     height={barHeight}
-                    fill={active
-                      ? 'var(--category-foreground-l1)'
-                      : 'var(--category-background-l0)'}
-                    fill-opacity={active ? 0.25 : 1}
+                    style={segment.style ?? item.style}
+                    fill={segment.hatched
+                      ? `url(#${hatchId})`
+                      : active
+                        ? 'var(--category-foreground-l1)'
+                        : 'var(--category-background-l0)'}
+                    fill-opacity={active && !segment.hatched ? 0.25 : 1}
                     role="img"
                     aria-label={segment.label}
                     onpointerenter={event => {
@@ -128,6 +154,21 @@
                     {@const x = context.xScale(segment.end)}
                     <line
                       class="pointer-events-none"
+                      style={segment.style ?? item.style}
+                      x1={x}
+                      x2={x}
+                      y1={y}
+                      y2={y + barHeight}
+                      stroke="var(--category-foreground-l1)"
+                      stroke-opacity={0.45}
+                      stroke-width={1}
+                    />
+                  {/if}
+                  {#if segment.hatched && segment.start > 0}
+                    {@const x = context.xScale(segment.start)}
+                    <line
+                      class="pointer-events-none"
+                      style={segment.style ?? item.style}
                       x1={x}
                       x2={x}
                       y1={y}
@@ -166,7 +207,7 @@
               />
             {/if}
             {#if isFullClear(item)}
-              {@const x1 = context.xScale(item.value)}
+              {@const x1 = context.xScale(item.fullClearValue ?? item.value)}
               {@const barWidth = Math.max(0, x1 - x0)}
               {@const clearClipId = defId('clear-clip', item.key, index)}
               {@const clearGradientId = defId('clear-gradient', item.key, index)}
@@ -212,24 +253,27 @@
         </Svg>
         <Tooltip.Root anchor="top-right" motion="none" variant="none">
           {#snippet children({ data: item })}
-            {@const Icon = item.icon}
             <div
               class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
             >
               {#if item.segment}
-                <div class="flex items-center gap-2" style={item.style}>
+                {@const Icon = item.segment.categoryIcon ?? item.icon}
+                <div class="flex items-center gap-2" style={item.segment.style ?? item.style}>
                   <Icon class="text-category-foreground-l1 size-4 shrink-0" />
                   <div class="flex min-w-0 items-baseline gap-1 font-medium">
-                    <span class="text-category-foreground-l1 shrink-0">{item.label} /</span>
+                    <span class="text-category-foreground-l1 shrink-0">
+                      {item.segment.categoryKey ?? item.label} /
+                    </span>
                     <span class="text-category-foreground-l0 truncate">
                       {item.segment.label}
                     </span>
                   </div>
                 </div>
                 <div class="text-foreground-l3 mt-1 tabular-nums">
-                  {item.segment.value.toLocaleString()} pts
+                  {item.segment.detail ?? `${item.segment.value.toLocaleString()} pts`}
                 </div>
               {:else}
+                {@const Icon = item.icon}
                 <div class="flex items-center gap-2" style={item.style}>
                   <Icon class="text-category-foreground-l1 size-4 shrink-0" />
                   <span class="text-category-foreground-l1 font-medium">{item.tooltipLabel}</span>

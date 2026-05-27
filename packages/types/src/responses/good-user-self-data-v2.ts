@@ -5,6 +5,7 @@ const SolveSchema = z.object({
   category: z.string(),
   name: z.string(),
   points: z.nullable(z.int()),
+  awardedPoints: z.nullable(z.int()),
   solves: z.nullable(z.int()),
   id: z.string(),
   createdAt: z.int(),

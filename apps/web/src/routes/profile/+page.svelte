@@ -20,15 +20,14 @@
   const user = $derived(userQuery.data)
   const clientConfig = $derived(clientConfigQuery.data)
   const challenges = $derived(
-    Object.entries(challengesQuery.data ?? {})
-      .filter(([, c]) => c.scoringKind !== 'dynamic')
-      .map(([id, c]) => ({
-        id,
-        name: c.name,
-        category: c.category,
-        points: c.points,
-        solves: c.solves,
-      }))
+    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
+      id,
+      name: c.name,
+      category: c.category,
+      points: c.points,
+      solves: c.solves,
+      scoringKind: c.scoringKind,
+    }))
   )
 
   const graphQuery = useUserGraph(
@@ -67,7 +66,12 @@
         </div>
       {/if}
 
-      <ProfileSolves {challenges} solves={user.solves} showUnsolved={challenges.length > 0} />
+      <ProfileSolves
+        {challenges}
+        solves={user.solves}
+        dynamicScores={user.dynamicScores}
+        showUnsolved={challenges.length > 0}
+      />
     </div>
   </div>
 
@@ -89,6 +93,7 @@
         <ProfileSolves
           {challenges}
           solves={user.solves}
+          dynamicScores={user.dynamicScores}
           showUnsolved={challenges.length > 0}
           scrollable
           class="min-h-0 flex-1"

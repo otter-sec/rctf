@@ -15,15 +15,14 @@
   const clientConfig = $derived(clientConfigQuery.data)
   const challengesQuery = useLeaderboardChallenges()
   const challenges = $derived(
-    Object.entries(challengesQuery.data ?? {})
-      .filter(([, c]) => c.scoringKind !== 'dynamic')
-      .map(([id, c]) => ({
-        id,
-        name: c.name,
-        category: c.category,
-        points: c.points,
-        solves: c.solves,
-      }))
+    Object.entries(challengesQuery.data ?? {}).map(([id, c]) => ({
+      id,
+      name: c.name,
+      category: c.category,
+      points: c.points,
+      solves: c.solves,
+      scoringKind: c.scoringKind,
+    }))
   )
 
   const userQuery = useUserProfile(() => page.params.id!)
@@ -51,6 +50,7 @@
     <ProfileSolves
       {challenges}
       solves={user.solves}
+      dynamicScores={user.dynamicScores}
       showUnsolved={challenges.length > 0}
       scrollable
       class="min-h-0 flex-1"
