@@ -84,13 +84,9 @@
   })
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<score-sparkline
-  empty={data.length <= 1 || undefined}
-  onmouseenter={onHover}
-  onmouseleave={onUnhover}
->
-  {#if data.length > 1}
+{#if data.length > 1}
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <score-sparkline onmouseenter={onHover} onmouseleave={onUnhover}>
     <svg viewBox="0 0 {WIDTH} {HEIGHT}" preserveAspectRatio="none">
       <defs>
         <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
@@ -108,10 +104,12 @@
         vector-effect="non-scaling-stroke"
       />
     </svg>
-  {:else}
+  </score-sparkline>
+{:else}
+  <score-sparkline empty>
     <div></div>
-  {/if}
-</score-sparkline>
+  </score-sparkline>
+{/if}
 
 <style>
   score-sparkline {

@@ -469,7 +469,7 @@ function addViewportTeams(
   visibleTeamIds: Set<string>,
   contextTeamIds: Set<string>
 ) {
-  if (config.maxRank <= 10) {
+  if (config.minRank <= 0 || config.maxRank < config.minRank) {
     addRankRange(
       config.entries,
       1,
@@ -483,17 +483,13 @@ function addViewportTeams(
     for (let index = 0; index < Math.min(3, config.entries.length); index++) {
       const teamId = config.entries[index]!.id
       visibleTeamIds.add(teamId)
-      if (index + 1 < config.minRank) contextTeamIds.add(teamId)
+      if (index + 1 < config.minRank || index + 1 > config.maxRank) {
+        contextTeamIds.add(teamId)
+      }
     }
   }
 
-  const pinActive = config.showTop3Context && !config.focusedChallengeId
-  const windowSize = pinActive ? 7 : 10
-  const windowStart = Math.max(
-    pinActive ? 4 : 1,
-    config.maxRank - windowSize + 1
-  )
-  addRankRange(config.entries, windowStart, config.maxRank, visibleTeamIds)
+  addRankRange(config.entries, config.minRank, config.maxRank, visibleTeamIds)
 }
 
 function addRankRange(
