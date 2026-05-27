@@ -1,5 +1,6 @@
 import {
   DELTA_WINDOW,
+  PAGE_SIZE,
   SELF_COLOR,
   SPARKLINE_WINDOW,
 } from '$lib/constants/scores'
@@ -489,7 +490,12 @@ function addViewportTeams(
     }
   }
 
-  addRankRange(config.entries, config.minRank, config.maxRank, visibleTeamIds)
+  addRankRange(
+    config.entries,
+    config.minRank,
+    Math.min(config.maxRank, config.minRank + PAGE_SIZE - 1),
+    visibleTeamIds
+  )
 }
 
 function addRankRange(
