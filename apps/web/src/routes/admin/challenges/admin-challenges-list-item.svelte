@@ -1,6 +1,11 @@
 <script lang="ts">
-  import type { AdminChallenge } from '@rctf/types'
-  import { IconCloudComputingFilled, IconEyeClosed, IconRobot } from '$lib/icons'
+  import { ChallengeScoringKind, type AdminChallenge } from '@rctf/types'
+  import {
+    IconChartAreaLineFilled,
+    IconCloudComputingFilled,
+    IconEyeClosed,
+    IconRobot,
+  } from '$lib/icons'
   import { cn, getCategoryKeyOrAlias } from '$lib/utils'
 
   interface Props {
@@ -13,8 +18,9 @@
   let { challenge, category, isSelected, onSelect }: Props = $props()
 
   const { name, points, instancerConfig, adminBotConfig, hidden } = $derived(challenge)
+  const isDynamic = $derived(challenge.scoring?.kind === ChallengeScoringKind.DYNAMIC)
   const categoryShort = $derived(getCategoryKeyOrAlias(category))
-  const hasStatusIcon = $derived(hidden || !!instancerConfig || !!adminBotConfig)
+  const hasStatusIcon = $derived(hidden || !!instancerConfig || !!adminBotConfig || isDynamic)
   const pointLabel = $derived(
     points.min === points.max ? `${points.max}` : `${points.min}-${points.max}`
   )
@@ -40,6 +46,9 @@
           {#if hidden}
             <IconEyeClosed class="size-4 shrink-0" />
           {/if}
+          {#if isDynamic}
+            <IconChartAreaLineFilled class="size-4 shrink-0" />
+          {/if}
           {#if instancerConfig}
             <IconCloudComputingFilled class="size-4 shrink-0" />
           {/if}
@@ -48,10 +57,14 @@
           {/if}
         </div>
       {/if}
-      <span class="text-base whitespace-nowrap tabular-nums">
-        <span class="text-category-foreground-l0">{pointLabel}</span>
-        <span class="text-category-foreground-l1">pts</span>
-      </span>
+      {#if isDynamic}
+        <span class="text-category-foreground-l1 text-base whitespace-nowrap">Dynamic</span>
+      {:else}
+        <span class="text-base whitespace-nowrap tabular-nums">
+          <span class="text-category-foreground-l0">{pointLabel}</span>
+          <span class="text-category-foreground-l1">pts</span>
+        </span>
+      {/if}
     </div>
   </button>
 </li>

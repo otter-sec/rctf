@@ -1,3 +1,4 @@
+import { getVisibleSolveCount } from './scores-data-helpers'
 import type { CurrentUserScoreData, ScoreEntry, ScoreGraphPoint } from './types'
 
 export interface ScoresTeamRowData {
@@ -33,10 +34,12 @@ interface TeamRowDataConfig extends SharedRowConfig {
   focusedChallengeId: string | null
   originalRankByTeam: Map<string, number>
   currentUser: CurrentUserScoreData | null | undefined
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>
 }
 
 interface SelfTeamRowDataConfig extends SharedRowConfig {
   currentUser: CurrentUserScoreData
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>
 }
 
 interface RowSource {
@@ -55,7 +58,10 @@ interface RowSource {
 export function getTeamRowData(config: TeamRowDataConfig): ScoresTeamRowData {
   const { entry } = config
   return buildRowData(
-    { ...entry, solveCount: entry.solves.length },
+    {
+      ...entry,
+      solveCount: getVisibleSolveCount(entry.solves, config.challengesData),
+    },
     {
       rank: getDisplayRank(entry, config),
       isCurrentUser: config.currentUser?.id === entry.id,
@@ -69,7 +75,13 @@ export function getSelfTeamRowData(
 ): ScoresTeamRowData {
   const { currentUser } = config
   return buildRowData(
-    { ...currentUser, solveCount: currentUser.solves.length },
+    {
+      ...currentUser,
+      solveCount: getVisibleSolveCount(
+        currentUser.solves,
+        config.challengesData
+      ),
+    },
     {
       rank: currentUser.globalPlace ?? null,
       isCurrentUser: true,
@@ -86,6 +98,28 @@ export function getSelfSolveTimes(
   currentUser: CurrentUserScoreData
 ): Map<string, number> {
   return new Map(currentUser.solves.map(solve => [solve.id, solve.createdAt]))
+}
+
+export function getSelfChallengePoints(
+  currentUser: CurrentUserScoreData
+): Map<string, number> {
+  return new Map(
+    currentUser.dynamicScores.map((score): [string, number] => [
+      score.id,
+      score.points,
+    ])
+  )
+}
+
+export function getSelfChallengePointDeltas(
+  currentUser: CurrentUserScoreData
+): Map<string, number> {
+  return new Map(
+    currentUser.dynamicScores.map((score): [string, number] => [
+      score.id,
+      score.pointDelta,
+    ])
+  )
 }
 
 function buildRowData(

@@ -6,6 +6,8 @@
   import { SCORE_LOADING_ROW_COUNT, SCORE_ROW_HEIGHT_FULL_PX } from './scores-layout-constants'
   import type { createScoresRouteState } from './scores-route-state.svelte'
   import {
+    getSelfChallengePointDeltas,
+    getSelfChallengePoints,
     getSelfSolves,
     getSelfSolveTimes,
     getSelfTeamRowData,
@@ -72,6 +74,7 @@
       search: routeState.search,
       focusedChallengeId: routeState.focusedChallengeId,
       originalRankByTeam: scoreData.originalRankByTeam,
+      challengesData: scoreData.challengesData,
       rankDeltaByTeam: graphState.rankDeltaByTeam,
       sparklineDataByTeam: graphState.sparklineDataByTeam,
       currentUser: scoreData.currentUser,
@@ -84,6 +87,7 @@
   function getSelfRowData(currentUser: CurrentUserScoreData) {
     return getSelfTeamRowData({
       currentUser,
+      challengesData: scoreData.challengesData,
       rankDeltaByTeam: graphState.rankDeltaByTeam,
       sparklineDataByTeam: graphState.sparklineDataByTeam,
       teamColorMap: scoreData.teamColorMap,
@@ -103,6 +107,8 @@
       data={null}
       solves={null}
       solveTimes={null}
+      challengePoints={null}
+      challengePointDeltas={null}
       isLoading
       {...teamRowProps}
       getCategoryStats={getEmptyCategoryStats}
@@ -128,6 +134,8 @@
         {@const entry = scoreData.entries[row.index]!}
         {@const solves = scoreData.solvesByTeam.get(entry.id) ?? emptySolves}
         {@const solveTimes = scoreData.solveTimesByTeam.get(entry.id) ?? null}
+        {@const challengePoints = scoreData.challengePointsByTeam.get(entry.id) ?? null}
+        {@const challengePointDeltas = scoreData.challengePointDeltasByTeam.get(entry.id) ?? null}
 
         <virtual-row
           style:height={`${row.size}px`}
@@ -137,6 +145,8 @@
             data={getRowData(entry, row.index)}
             {solves}
             {solveTimes}
+            {challengePoints}
+            {challengePointDeltas}
             {...teamRowProps}
             getCategoryStats={group => scoreData.getCategoryStatsForSolves(solves, group)}
             getBloodIndex={challengeId => scoreData.getBloodIndex(challengeId, entry.id)}
@@ -155,6 +165,8 @@
   {@const currentUser = scoreData.currentUser}
   {@const selfSolves = getSelfSolves(currentUser)}
   {@const selfSolveTimes = getSelfSolveTimes(currentUser)}
+  {@const selfChallengePoints = getSelfChallengePoints(currentUser)}
+  {@const selfChallengePointDeltas = getSelfChallengePointDeltas(currentUser)}
   {@const isTop = viewportState.selfRowPosition === 'top'}
 
   <self-row
@@ -167,6 +179,8 @@
       data={getSelfRowData(currentUser)}
       solves={scoreData.isLoading ? null : selfSolves}
       solveTimes={scoreData.isLoading ? null : selfSolveTimes}
+      challengePoints={scoreData.isLoading ? null : selfChallengePoints}
+      challengePointDeltas={scoreData.isLoading ? null : selfChallengePointDeltas}
       isSelf
       isLoading={scoreData.isLoading}
       {...teamRowProps}

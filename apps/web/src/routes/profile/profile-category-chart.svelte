@@ -2,17 +2,16 @@
   import ChartContainer from '$lib/components/ui/chart/chart-container.svelte'
   import { IconCheck } from '$lib/icons'
   import { Axis, Bar, Bars, ChartCore, Svg, Tooltip } from 'layerchart/svg'
-  import type { CategoryBarDatum, CategoryBarSegment, CategoryStat } from './profile-analytics-data'
+  import type { CategoryBarDatum, CategoryBarSegment } from './profile-analytics-data'
   import { maxChartValue } from './profile-analytics-data'
   import { compactNumber, integerTicks } from './profile-chart-utils'
 
   interface Props {
     data: CategoryBarDatum[]
-    stats: CategoryStat[]
     emptyMessage: string
   }
 
-  let { data, stats, emptyMessage }: Props = $props()
+  let { data, emptyMessage }: Props = $props()
   let activeSegmentKey = $state<string | null>(null)
   const componentId = $props.id()
   const chartInstanceId = componentId.replace(/[^a-zA-Z0-9_-]/g, '-')
@@ -21,9 +20,9 @@
   const minChartHeightPx = 180
   const axisOverheadPx = 42
 
-  const height = $derived(Math.max(minChartHeightPx, stats.length * rowHeightPx + axisOverheadPx))
+  const height = $derived(Math.max(minChartHeightPx, data.length * rowHeightPx + axisOverheadPx))
   const max = $derived(maxChartValue(data, item => item.max))
-  const labels = $derived(stats.map(stat => stat.label))
+  const labels = $derived(data.map(item => item.label))
 
   function defId(role: string, key: string, index: number): string {
     const safeKey = key.replace(/[^a-zA-Z0-9_-]/g, '-')
@@ -35,7 +34,7 @@
   }
 
   function isFullClear(item: CategoryBarDatum): boolean {
-    return item.value >= item.max
+    return item.fullClear === true
   }
 
   function segmentTooltipData(
@@ -43,6 +42,18 @@
     segment: CategoryBarSegment
   ): CategoryBarDatum & { segment: CategoryBarSegment } {
     return { ...item, segment }
+  }
+
+  function nonMutedSegmentEnd(segments: CategoryBarSegment[]): number {
+    let end = 0
+    for (const segment of segments) {
+      if (!segment.muted && segment.end > end) end = segment.end
+    }
+    return end
+  }
+
+  function separatorTouchesMutedSegment(segments: CategoryBarSegment[], index: number): boolean {
+    return segments[index]?.muted === true || segments[index + 1]?.muted === true
   }
 </script>
 
@@ -82,31 +93,89 @@
             {@const barHeight = Math.max((context.yScale.bandwidth?.() ?? 0) - 4, 0)}
             {#if item.segments && item.segments.length > 0}
               {@const clipId = defId('segments', item.key, index)}
+              {@const itemWidth = Math.max(0, context.xScale(item.value) - x0)}
+              {@const earnedEnd = nonMutedSegmentEnd(item.segments)}
+              {@const earnedWidth = Math.max(0, context.xScale(earnedEnd) - x0)}
               <defs>
                 <clipPath id={clipId}>
-                  <rect
-                    x={x0}
-                    {y}
-                    width={Math.max(0, context.xScale(item.value) - x0)}
-                    height={barHeight}
-                    rx={4}
-                  />
+                  <rect x={x0} {y} width={itemWidth} height={barHeight} rx={4} />
                 </clipPath>
               </defs>
               <g style={item.style} clip-path={`url(#${clipId})`}>
                 {#each item.segments as segment (segment.key)}
                   {@const x = context.xScale(segment.start)}
+                  {@const width = Math.max(0, context.xScale(segment.end) - x)}
                   {@const key = segmentKey(item, segment)}
                   {@const active = activeSegmentKey === key}
+                  {@const hatchId = defId('segment-hatch', key, index)}
+                  {@const fill = segment.muted
+                    ? 'var(--background-l4)'
+                    : 'var(--category-background-l0)'}
+                  {@const activeFill = segment.muted
+                    ? 'var(--foreground-l5)'
+                    : 'var(--category-foreground-l1)'}
+                  {@const activeOpacity = segment.muted ? 0.12 : 0.25}
+                  {#if segment.hatched}
+                    <defs>
+                      <pattern
+                        id={hatchId}
+                        width="6"
+                        height="6"
+                        patternUnits="userSpaceOnUse"
+                        patternTransform="rotate(45)"
+                        style={item.style}
+                      >
+                        <line
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="6"
+                          stroke="var(--category-foreground-l1)"
+                          stroke-opacity="0.45"
+                          stroke-width="2"
+                        />
+                      </pattern>
+                    </defs>
+                  {/if}
                   <rect
                     {x}
                     {y}
-                    width={Math.max(0, context.xScale(segment.end) - x)}
+                    {width}
                     height={barHeight}
-                    fill={active
-                      ? 'var(--category-foreground-l1)'
-                      : 'var(--category-background-l0)'}
-                    fill-opacity={active ? 0.25 : 1}
+                    style={item.style}
+                    {fill}
+                    class="pointer-events-none"
+                  />
+                  {#if segment.hatched}
+                    <rect
+                      {x}
+                      {y}
+                      {width}
+                      height={barHeight}
+                      style={item.style}
+                      fill={`url(#${hatchId})`}
+                      class="pointer-events-none"
+                    />
+                  {/if}
+                  {#if active}
+                    <rect
+                      {x}
+                      {y}
+                      {width}
+                      height={barHeight}
+                      style={item.style}
+                      fill={activeFill}
+                      fill-opacity={activeOpacity}
+                      class="pointer-events-none"
+                    />
+                  {/if}
+                  <rect
+                    {x}
+                    {y}
+                    {width}
+                    height={barHeight}
+                    fill="transparent"
+                    pointer-events="all"
                     role="img"
                     aria-label={segment.label}
                     onpointerenter={event => {
@@ -123,11 +192,32 @@
                     }}
                   />
                 {/each}
-                {#each item.segments as segment (segment.key)}
+                {#each item.segments as segment, segmentIndex (segment.key)}
                   {#if segment.end < item.value}
                     {@const x = context.xScale(segment.end)}
+                    {@const neutralSeparator = separatorTouchesMutedSegment(
+                      item.segments,
+                      segmentIndex
+                    )}
                     <line
                       class="pointer-events-none"
+                      style={item.style}
+                      x1={x}
+                      x2={x}
+                      y1={y}
+                      y2={y + barHeight}
+                      stroke={neutralSeparator
+                        ? 'var(--foreground-l5)'
+                        : 'var(--category-foreground-l1)'}
+                      stroke-opacity={neutralSeparator ? 0.28 : 0.45}
+                      stroke-width={1}
+                    />
+                  {/if}
+                  {#if segment.hatched && segment.start > 0}
+                    {@const x = context.xScale(segment.start)}
+                    <line
+                      class="pointer-events-none"
+                      style={item.style}
                       x1={x}
                       x2={x}
                       y1={y}
@@ -139,18 +229,33 @@
                   {/if}
                 {/each}
               </g>
-              <Bar
-                data={item}
-                style={item.style}
+              <rect
+                x={x0}
+                {y}
+                width={itemWidth}
+                height={barHeight}
                 class="pointer-events-none"
                 fill="transparent"
-                stroke="var(--category-foreground-l1)"
-                strokeOpacity={0.75}
-                strokeWidth={1.5}
-                insets={{ top: 2, bottom: 2 }}
-                radius={4}
-                rounded="all"
+                stroke="var(--foreground-l5)"
+                stroke-opacity={0.22}
+                stroke-width={1.5}
+                rx={4}
               />
+              {#if earnedWidth > 0}
+                <rect
+                  x={x0}
+                  {y}
+                  width={earnedWidth}
+                  height={barHeight}
+                  class="pointer-events-none"
+                  style={item.style}
+                  fill="none"
+                  stroke="var(--category-foreground-l1)"
+                  stroke-opacity={0.75}
+                  stroke-width={1.5}
+                  rx={4}
+                />
+              {/if}
             {:else}
               <Bar
                 data={item}
@@ -166,7 +271,7 @@
               />
             {/if}
             {#if isFullClear(item)}
-              {@const x1 = context.xScale(item.value)}
+              {@const x1 = context.xScale(item.fullClearValue ?? item.value)}
               {@const barWidth = Math.max(0, x1 - x0)}
               {@const clearClipId = defId('clear-clip', item.key, index)}
               {@const clearGradientId = defId('clear-gradient', item.key, index)}
@@ -212,24 +317,27 @@
         </Svg>
         <Tooltip.Root anchor="top-right" motion="none" variant="none">
           {#snippet children({ data: item })}
-            {@const Icon = item.icon}
             <div
               class="border-background-l5 bg-background-l3 z-50 rounded-lg border-2 px-3 py-2 text-xs shadow-xl"
             >
               {#if item.segment}
+                {@const Icon = item.icon}
                 <div class="flex items-center gap-2" style={item.style}>
                   <Icon class="text-category-foreground-l1 size-4 shrink-0" />
                   <div class="flex min-w-0 items-baseline gap-1 font-medium">
-                    <span class="text-category-foreground-l1 shrink-0">{item.label} /</span>
+                    <span class="text-category-foreground-l1 shrink-0">
+                      {item.label} /
+                    </span>
                     <span class="text-category-foreground-l0 truncate">
                       {item.segment.label}
                     </span>
                   </div>
                 </div>
                 <div class="text-foreground-l3 mt-1 tabular-nums">
-                  {item.segment.value.toLocaleString()} pts
+                  {item.segment.detail ?? `${item.segment.value.toLocaleString()} pts`}
                 </div>
               {:else}
+                {@const Icon = item.icon}
                 <div class="flex items-center gap-2" style={item.style}>
                   <Icon class="text-category-foreground-l1 size-4 shrink-0" />
                   <span class="text-category-foreground-l1 font-medium">{item.tooltipLabel}</span>

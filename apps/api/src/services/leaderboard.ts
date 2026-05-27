@@ -18,7 +18,8 @@ import { cursorAfter, type RowCursor } from '../lib/db-filters'
 import { scoreProvider } from '../providers'
 import {
   challengeIsPublicSql,
-  getSolvesAndUserInfo,
+  getLeaderboardChallengeData,
+  nonBannedUserJoin,
   scoringKindOf,
 } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
@@ -746,11 +747,10 @@ const refreshDynamicContribs = async (
       pointsUpdatedAt: solves.pointsUpdatedAt,
     })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
     .where(
       and(
         inArray(solves.challengeid, dynamicIds),
-        eq(users.banned, false),
         cursorAfter(
           solves.pointsUpdatedAt,
           solves.id,
@@ -834,10 +834,11 @@ export const searchLeaderboard = async (
   }
 
   const userIds = matchingUsers.map(u => u.id)
-  const { solves: userSolves, userInfo } = await getSolvesAndUserInfo(
-    db,
-    userIds
-  )
+  const {
+    solves: userSolves,
+    dynamicScores,
+    userInfo,
+  } = await getLeaderboardChallengeData(db, userIds)
 
   return {
     total,
@@ -857,6 +858,7 @@ export const searchLeaderboard = async (
           id: solve.challengeId,
           solveTime: solve.solveTime,
         })),
+        dynamicScores: dynamicScores.get(entry.id) ?? [],
       }
     }),
   }
@@ -903,10 +905,13 @@ export const getLeaderboardWithTotal = async (
   const total = totalRow?.count ?? 0
 
   const teamIds = leaderboard.map(e => e.id)
-  const { solves: userSolves } =
+  const { solves: userSolves, dynamicScores } =
     teamIds.length > 0
-      ? await getSolvesAndUserInfo(db, teamIds)
-      : { solves: new Map<string, never[]>() }
+      ? await getLeaderboardChallengeData(db, teamIds)
+      : {
+          solves: new Map<string, never[]>(),
+          dynamicScores: new Map<string, never[]>(),
+        }
 
   return {
     total,
@@ -924,6 +929,7 @@ export const getLeaderboardWithTotal = async (
         id: solve.challengeId,
         solveTime: solve.solveTime,
       })),
+      dynamicScores: dynamicScores.get(entry.id) ?? [],
     })),
   }
 }

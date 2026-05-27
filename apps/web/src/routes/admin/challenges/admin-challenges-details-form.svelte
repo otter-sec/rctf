@@ -114,10 +114,12 @@
   const dynamicSecret = $derived(
     scoring.kind === ChallengeScoringKind.DYNAMIC ? scoring.source.secret : ''
   )
+  const flagRequired = $derived(!isDynamic)
   const kindChangeLocked = $derived(totalSolves > 0)
 
   function changeScoringKind(kind: ChallengeScoringKind) {
     if (kind === ChallengeScoringKind.DYNAMIC) {
+      onFlagChange('')
       onScoringChange({
         kind: ChallengeScoringKind.DYNAMIC,
         source: {
@@ -176,16 +178,26 @@
     category: category.trim() === '' ? 'Category is required' : null,
     author: author.trim() === '' ? 'Author is required' : null,
     description: description.trim() === '' ? 'Description is required' : null,
-    flag: flag.trim() === '' ? 'Flag is required' : null,
+    flag: flagRequired && flag.trim() === '' ? 'Flag is required' : null,
   })
 
+  const dynamicSecretError = $derived(
+    isDynamic && dynamicSecret.trim() === '' ? 'Webhook secret is required' : null
+  )
+
   const isFormValid = $derived(
-    !errors.name && !errors.category && !errors.author && !errors.description && !errors.flag
+    !errors.name &&
+      !errors.category &&
+      !errors.author &&
+      !errors.description &&
+      !errors.flag &&
+      !dynamicSecretError
   )
 
   const detailsTabHasErrors = $derived(
     !!errors.name || !!errors.category || !!errors.author || !!errors.description || !!errors.flag
   )
+  const scoringTabHasErrors = $derived(!!dynamicSecretError)
 
   $effect(() => {
     formValid = isFormValid
@@ -210,6 +222,9 @@
       <Tabs.Trigger value="scoring" class={tabClassMobile}>
         <IconFlagFilled class="size-4" />
         Scoring
+        {#if scoringTabHasErrors}
+          <IconAlertCircleFilled class="text-foreground-destructive size-3.5" />
+        {/if}
       </Tabs.Trigger>
       <Tabs.Trigger value="files" class={tabClassMobile}>
         <IconFileFilled class="size-4" />
@@ -250,6 +265,14 @@
       <Tabs.Trigger value="scoring" class={tabClassDesktop}>
         <IconFlagFilled class="size-4" />
         Scoring
+        {#if scoringTabHasErrors}
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <IconAlertCircleFilled class="text-foreground-destructive size-4" />
+            </Tooltip.Trigger>
+            <Tooltip.Content>This tab has invalid fields</Tooltip.Content>
+          </Tooltip.Root>
+        {/if}
       </Tabs.Trigger>
       <Tabs.Trigger value="files" class={tabClassDesktop}>
         <IconFileFilled class="size-4" />
@@ -372,18 +395,22 @@
           </Field.Field>
 
           <Field.Field data-invalid={touched.flag && errors.flag ? true : undefined}>
-            <Field.Label>Flag<span class="text-foreground-destructive -ms-1.5">*</span></Field.Label
-            >
+            <Field.Label>
+              Flag{#if flagRequired}<span class="text-foreground-destructive -ms-1.5">*</span>{/if}
+              {#if isDynamic}
+                <Field.Hint>(unused for dynamic)</Field.Hint>
+              {/if}
+            </Field.Label>
             <Input
               type="text"
               placeholder={clientConfig?.flagFormatPlaceholder ?? 'flag{...}'}
               class="font-mono"
-              required
-              value={flag}
+              required={flagRequired}
+              value={isDynamic ? '' : flag}
               oninput={e => onFlagChange(e.currentTarget.value)}
               onblur={() => (touched.flag = true)}
-              aria-invalid={touched.flag && !!errors.flag}
-              disabled={isDisabled}
+              aria-invalid={flagRequired && touched.flag && !!errors.flag}
+              disabled={isDisabled || isDynamic}
             />
             {#if touched.flag && errors.flag}
               <Field.Error>{errors.flag}</Field.Error>
@@ -429,7 +456,7 @@
           </Field.Field>
 
           {#if isDynamic}
-            <Field.Field>
+            <Field.Field data-invalid={dynamicSecretError ? true : undefined}>
               <Field.Label class="flex items-center">
                 Webhook secret
                 <Field.Hint
@@ -451,8 +478,12 @@
                 required
                 value={dynamicSecret}
                 oninput={e => changeDynamicSecret(e.currentTarget.value)}
+                aria-invalid={!!dynamicSecretError}
                 disabled={isDisabled}
               />
+              {#if dynamicSecretError}
+                <Field.Error>{dynamicSecretError}</Field.Error>
+              {/if}
             </Field.Field>
           {/if}
 

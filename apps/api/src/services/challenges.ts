@@ -24,7 +24,8 @@ import {
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
-import { and, asc, desc, eq, inArray, lte, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm'
+import { alias, type PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -60,14 +61,23 @@ const getSubmitterState = async (
     .then(takeUnique)
 }
 
-type LeaderboardSolve = { challengeId: string; solveTime: number }
-type UserDisplayInfo = {
+export type LeaderboardSolve = {
+  challengeId: string
+  solveTime: number
+}
+export type LeaderboardDynamicScore = {
+  id: string
+  points: number
+  pointDelta: number
+}
+export type UserDisplayInfo = {
   avatarUrl: string | null
   countryCode: string | null
   statusText: string | null
 }
-type SolvesAndUserInfo = {
+export type LeaderboardChallengeData = {
   solves: Map<string, LeaderboardSolve[]>
+  dynamicScores: Map<string, LeaderboardDynamicScore[]>
   userInfo: Map<string, UserDisplayInfo>
 }
 
@@ -88,6 +98,10 @@ type ChallengeSolvesWithPosition = {
   }[]
   solvePosition: number | null
 }
+
+export const userIsNotBanned = eq(users.banned, false)
+export const nonBannedUserJoin = (ownerId: PgColumn) =>
+  and(eq(users.id, ownerId), userIsNotBanned)
 
 const createRankedSolvesForChallenges = (
   db: DatabaseClient,
@@ -111,9 +125,12 @@ const createRankedSolvesForChallenges = (
           ),
       })
       .from(solves)
-      .innerJoin(users, eq(users.id, solves.userid))
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
       .where(
-        and(inArray(solves.challengeid, challengeIds), eq(users.banned, false))
+        and(
+          inArray(solves.challengeid, challengeIds),
+          eq(solves.source, 'flag')
+        )
       )
   )
 
@@ -247,8 +264,8 @@ export const countNonBannedSolvesForChallenge = async (
   const row = await db
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.challengeid, challengeId), eq(solves.source, 'flag')))
     .then(takeUnique)
   return row?.count ?? 0
 }
@@ -260,9 +277,9 @@ export const getMaxSolveCount = async (
   const perChallenge = db
     .select({ count: sql<number>`COUNT(*)::int`.as('count') })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(and(eq(users.banned, false), isDecayKind))
+    .where(isDecayKind)
     .groupBy(solves.challengeid)
     .as('per_challenge')
 
@@ -468,8 +485,8 @@ export const getChallengeSolves = async (
       userAvatarUrl: users.avatarUrl,
     })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(and(eq(solves.challengeid, challengeId), eq(users.banned, false)))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.challengeid, challengeId), eq(solves.source, 'flag')))
     .orderBy(asc(solves.createdat))
     .limit(limit)
     .offset(offset)
@@ -560,8 +577,8 @@ export const getUserChallengeSolves = async (
       challenges,
       and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
     )
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(and(eq(solves.userid, userId), eq(users.banned, false)))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.userid, userId), eq(solves.source, 'flag')))
     .orderBy(asc(solves.createdat))
 
   const challengeIds = Array.from(
@@ -592,58 +609,223 @@ export const getUserChallengeSolves = async (
   }))
 }
 
-export const getSolvesAndUserInfo = async (
+export const getLeaderboardChallengeData = async (
   db: DatabaseClient,
   userIds: string[]
-): Promise<SolvesAndUserInfo> => {
+): Promise<LeaderboardChallengeData> => {
   if (userIds.length === 0) {
     return {
       solves: new Map(),
+      dynamicScores: new Map(),
       userInfo: new Map(),
     }
   }
 
-  const rows = await db
-    .select({
-      challenge_id: solves.challengeid,
-      user_id: solves.userid,
-      avatar_url: users.avatarUrl,
-      country_code: users.countryCode,
-      status_text: users.statusText,
-      created_at: solves.createdat,
-    })
-    .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(
-      and(
-        inArray(solves.userid, userIds),
-        challengeIsPublicSql,
-        eq(users.banned, false)
+  const [solveRows, userRows, dynamicChallengeIds] = await Promise.all([
+    db
+      .select({
+        challenge_id: solves.challengeid,
+        user_id: solves.userid,
+        created_at: solves.createdat,
+      })
+      .from(solves)
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
+      .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+      .where(
+        and(
+          inArray(solves.userid, userIds),
+          challengeIsPublicSql,
+          eq(solves.source, 'flag')
+        )
       )
-    )
-    .orderBy(asc(solves.createdat))
+      .orderBy(asc(solves.createdat)),
+    db
+      .select({
+        id: users.id,
+        avatarUrl: users.avatarUrl,
+        countryCode: users.countryCode,
+        statusText: users.statusText,
+      })
+      .from(users)
+      .where(and(inArray(users.id, userIds), userIsNotBanned)),
+    getPublicDynamicChallengeIds(db),
+  ])
+  const dynamicScores = await getDynamicScoresForUsers(
+    db,
+    userIds,
+    dynamicChallengeIds
+  )
 
   const solvesMap = new Map<string, LeaderboardSolve[]>(
     userIds.map(id => [id, []])
   )
   const userInfo = new Map<string, UserDisplayInfo>()
 
-  for (const row of rows) {
-    if (!userInfo.has(row.user_id)) {
-      userInfo.set(row.user_id, {
-        avatarUrl: row.avatar_url,
-        countryCode: row.country_code,
-        statusText: row.status_text,
-      })
-    }
+  for (const row of userRows) {
+    userInfo.set(row.id, {
+      avatarUrl: row.avatarUrl,
+      countryCode: row.countryCode,
+      statusText: row.statusText,
+    })
+  }
+
+  for (const row of solveRows) {
     solvesMap.get(row.user_id)?.push({
       challengeId: row.challenge_id,
       solveTime: new Date(row.created_at).getTime(),
     })
   }
 
-  return { solves: solvesMap, userInfo }
+  return { solves: solvesMap, dynamicScores, userInfo }
+}
+
+export async function getPublicDynamicChallengeIds(
+  db: DatabaseClient
+): Promise<string[]> {
+  const rows = await db
+    .select({ id: challenges.id })
+    .from(challenges)
+    .where(
+      and(
+        challengeIsPublicSql,
+        eq(
+          sql<string>`${challenges.data} -> 'scoring' ->> 'kind'`,
+          ChallengeScoringKind.DYNAMIC
+        )
+      )
+    )
+
+  return rows.map(row => row.id)
+}
+
+export async function getDynamicScoresForUsers(
+  db: DatabaseClient,
+  userIds: string[],
+  challengeIds: string[]
+): Promise<Map<string, LeaderboardDynamicScore[]>> {
+  const scoreMap = new Map<string, Map<string, LeaderboardDynamicScore>>(
+    userIds.map((id): [string, Map<string, LeaderboardDynamicScore>] => [
+      id,
+      new Map(),
+    ])
+  )
+  if (userIds.length === 0 || challengeIds.length === 0) return new Map()
+
+  const [currentRows, pointDeltas] = await Promise.all([
+    db
+      .select({
+        challengeId: solves.challengeid,
+        userId: solves.userid,
+        points: solves.points,
+      })
+      .from(solves)
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
+      .innerJoin(
+        challenges,
+        and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
+      )
+      .where(
+        and(
+          inArray(solves.userid, userIds),
+          inArray(solves.challengeid, challengeIds),
+          eq(solves.source, 'feed')
+        )
+      ),
+    getLatestDynamicPointDeltas(db, userIds, challengeIds),
+  ])
+
+  const getScore = (userId: string, challengeId: string) => {
+    const teamScores = scoreMap.get(userId)
+    if (!teamScores) return null
+    const existing = teamScores.get(challengeId)
+    if (existing) return existing
+
+    const score = { id: challengeId, points: 0, pointDelta: 0 }
+    teamScores.set(challengeId, score)
+    return score
+  }
+
+  for (const row of currentRows) {
+    const score = getScore(row.userId, row.challengeId)
+    if (score) score.points = row.points
+  }
+
+  for (const [userId, deltas] of pointDeltas) {
+    for (const [challengeId, pointDelta] of deltas) {
+      const score = getScore(userId, challengeId)
+      if (score) score.pointDelta = pointDelta
+    }
+  }
+
+  return new Map(
+    Array.from(scoreMap, ([userId, scores]) => [
+      userId,
+      Array.from(scores.values()),
+    ])
+  )
+}
+
+async function getLatestDynamicPointDeltas(
+  db: DatabaseClient,
+  userIds: string[],
+  challengeIds: string[]
+): Promise<Map<string, Map<string, number>>> {
+  if (userIds.length === 0 || challengeIds.length === 0) {
+    return new Map()
+  }
+
+  // resolve the latest feed tick per challenge with a per-challenge LIMIT 1
+  const latestFeedEvent = alias(scoreEvents, 'latest_feed_event')
+  const latestTick = db
+    .select({ eventAt: latestFeedEvent.eventAt })
+    .from(latestFeedEvent)
+    .where(
+      and(
+        eq(latestFeedEvent.challengeid, challenges.id),
+        eq(latestFeedEvent.source, 'feed')
+      )
+    )
+    .orderBy(desc(latestFeedEvent.eventAt))
+    .limit(1)
+    .as('latest_tick')
+
+  const rows = await db
+    .select({
+      challengeId: scoreEvents.challengeid,
+      userId: scoreEvents.userid,
+      pointDelta: sql<number>`sum(${scoreEvents.pointsDelta})::int`.as(
+        'point_delta'
+      ),
+    })
+    .from(challenges)
+    .crossJoinLateral(latestTick)
+    .innerJoin(
+      scoreEvents,
+      and(
+        eq(scoreEvents.challengeid, challenges.id),
+        eq(scoreEvents.eventAt, latestTick.eventAt),
+        eq(scoreEvents.source, 'feed')
+      )
+    )
+    .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
+    .where(
+      and(
+        inArray(challenges.id, challengeIds),
+        inArray(scoreEvents.userid, userIds)
+      )
+    )
+    .groupBy(scoreEvents.challengeid, scoreEvents.userid)
+
+  const pointDeltas = new Map<string, Map<string, number>>()
+  for (const row of rows) {
+    if (!row.userId) {
+      continue
+    }
+    const teamDeltas = pointDeltas.get(row.userId) ?? new Map<string, number>()
+    teamDeltas.set(row.challengeId, row.pointDelta)
+    pointDeltas.set(row.userId, teamDeltas)
+  }
+  return pointDeltas
 }
 
 export const submitFlag = async (

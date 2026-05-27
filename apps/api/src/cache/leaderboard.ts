@@ -1,6 +1,7 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
-import { and, asc, gte, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { challengeIsPublicSql } from '../services/challenges'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -10,6 +11,8 @@ const keyGraphFingerprint = 'graph-fingerprint'
 const keyGraphSource = 'graph-source'
 const graphSourceEvents = 'events'
 const graphSourceSamples = 'samples'
+const keyDynamicGraph = 'dynamic-graph'
+const dynamicGraphCacheTtlSeconds = 60
 
 export type InternalChallengeInfo = {
   id: string
@@ -495,6 +498,7 @@ interface GraphEntry {
   id: string
   name: string
   points: Array<GraphPoint>
+  dynamicPoints: Array<GraphPoint>
 }
 
 type GraphSourceEntry = {
@@ -530,14 +534,96 @@ const parseGraphPoints = (
 const buildGraphEntry = (
   lastUpdate: number,
   entry: GraphSourceEntry,
-  packedPoints: string | null
+  packedPoints: string | null,
+  dynamicPoints: Array<GraphPoint> = []
 ): GraphEntry => ({
   id: entry.id,
   name: entry.name,
   points: parseGraphPoints(lastUpdate, entry.score, packedPoints),
+  dynamicPoints,
 })
 
+const dynamicGraphCacheKey = (
+  lastUpdate: number,
+  userIds: string[]
+): string => {
+  const digest = Bun.hash([...userIds].sort().join(',')).toString(36)
+  return `${keyDynamicGraph}:${lastUpdate}:${digest}`
+}
+
+const deserializeDynamicPoints = (
+  raw: string
+): Map<string, Array<GraphPoint>> | null => {
+  try {
+    return new Map(JSON.parse(raw) as Array<[string, Array<GraphPoint>]>)
+  } catch {
+    return null
+  }
+}
+
+const getDynamicGraphPoints = async (
+  db: DatabaseClient,
+  redis: TypedRedis,
+  lastUpdate: number,
+  entries: Array<GraphSourceEntry>
+): Promise<Map<string, Array<GraphPoint>>> => {
+  const userIds = entries.map(entry => entry.id)
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const cacheKey = dynamicGraphCacheKey(lastUpdate, userIds)
+  const cached = await redis.get(cacheKey)
+  if (cached !== null) {
+    const parsed = deserializeDynamicPoints(cached)
+    if (parsed) {
+      return parsed
+    }
+  }
+
+  const rows = await db
+    .select({
+      id: scoreEvents.id,
+      userid: scoreEvents.userid,
+      pointsDelta: scoreEvents.pointsDelta,
+      eventAt: scoreEvents.eventAt,
+    })
+    .from(scoreEvents)
+    .innerJoin(
+      challenges,
+      and(eq(challenges.id, scoreEvents.challengeid), challengeIsPublicSql)
+    )
+    .where(
+      and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
+    )
+    .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
+
+  const fold = foldScoreEvents(rows)
+  const sampleTime = Math.max(lastUpdate, fold.lastSample)
+  const result = new Map<string, Array<GraphPoint>>()
+  for (const entry of entries) {
+    const packed = fold.userPoints.get(entry.id)?.join(',') ?? null
+    if (!packed) {
+      continue
+    }
+
+    result.set(
+      entry.id,
+      parseGraphPoints(sampleTime, lastPackedScore(packed), packed)
+    )
+  }
+
+  await redis.set(
+    cacheKey,
+    JSON.stringify(Array.from(result.entries())),
+    'EX',
+    dynamicGraphCacheTtlSeconds
+  )
+  return result
+}
+
 const getGraphEntries = async (
+  db: DatabaseClient,
   redis: TypedRedis,
   entries: Array<GraphSourceEntry>
 ): Promise<Array<GraphEntry>> => {
@@ -552,8 +638,20 @@ const getGraphEntries = async (
     >,
   ])
   const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
+  const dynamicPointsByUser = await getDynamicGraphPoints(
+    db,
+    redis,
+    lastUpdate,
+    entries
+  )
+
   return entries.map((entry, idx) =>
-    buildGraphEntry(lastUpdate, entry, graphData[idx] ?? null)
+    buildGraphEntry(
+      lastUpdate,
+      entry,
+      graphData[idx] ?? null,
+      dynamicPointsByUser.get(entry.id) ?? []
+    )
   )
 }
 
@@ -583,13 +681,14 @@ export const getGraph = async (
     .limit(limit)
     .offset(offset)
 
-  return getGraphEntries(redis, topUsers)
+  return getGraphEntries(db, redis, topUsers)
 }
 
 export const getGraphForEntries = async (
+  db: DatabaseClient,
   redis: TypedRedis,
   leaderboard: Array<GraphSourceEntry>
-): Promise<Array<GraphEntry>> => getGraphEntries(redis, leaderboard)
+): Promise<Array<GraphEntry>> => getGraphEntries(db, redis, leaderboard)
 
 export const cacheLeaderboardAndGraph = async (
   db: DatabaseClient,

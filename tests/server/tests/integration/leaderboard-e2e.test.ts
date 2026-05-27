@@ -104,7 +104,7 @@ describe('submit flag → leaderboard e2e', () => {
     const entry = body.data.leaderboard.find((e: any) => e.id === user.id)
 
     expect(entry).toBeDefined()
-    expect(entry.score).toBeGreaterThan(0)
+    expect(entry.score).toBe(500)
     expect(entry.globalPlace).toBe(1)
     expect(entry.solves).toHaveLength(1)
     expect(entry.solves[0].id).toBe(challenge.challenge.id)
@@ -155,7 +155,8 @@ describe('submit flag → leaderboard e2e', () => {
 
     expect(globalA).toBeDefined()
     expect(globalB).toBeDefined()
-    expect(globalA.score).toBeGreaterThan(globalB.score)
+    expect(globalA.score).toBe(981)
+    expect(globalB.score).toBe(481)
     expect(globalA.globalPlace).toBe(1)
     expect(globalB.globalPlace).toBe(2)
     expect(globalA.solves).toHaveLength(2)
@@ -208,7 +209,8 @@ describe('submit flag → leaderboard e2e', () => {
     const round2 = await getLeaderboard(100, 0)
     const r2a = round2.data.leaderboard.find((e: any) => e.id === userA.id)
     const r2b = round2.data.leaderboard.find((e: any) => e.id === userB.id)
-    expect(r2b.score).toBeGreaterThan(r2a.score)
+    expect(r2b.score).toBe(981)
+    expect(r2a.score).toBe(481)
     expect(r2b.globalPlace).toBe(1)
     expect(r2a.globalPlace).toBe(2)
     expect(r2b.solves).toHaveLength(2)
@@ -432,7 +434,7 @@ describe('first bloods via leaderboard challenges endpoint', () => {
 
     const challData = body.data.challenges[ch.challenge.id]
     expect(challData.solves).toBe(1)
-    expect(challData.points).toBeGreaterThan(0)
+    expect(challData.points).toBe(500)
     expect(challData.name).toBe(ch.challenge.name)
     expect(challData.category).toBe(ch.challenge.category)
   })
@@ -513,10 +515,11 @@ describe('CTFtime leaderboard endpoint', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
 
-    expect(body.standings.length).toBeGreaterThanOrEqual(2)
+    expect(body.standings.length).toBe(2)
     expect(body.standings[0].pos).toBe(1)
     expect(body.standings[0].team).toBe(userA.name)
-    expect(body.standings[0].score).toBeGreaterThan(body.standings[1].score)
+    expect(body.standings[0].score).toBe(981)
+    expect(body.standings[1].score).toBe(481)
     expect(body.standings[1].pos).toBe(2)
     expect(body.standings[1].team).toBe(userB.name)
 

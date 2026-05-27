@@ -4,6 +4,7 @@
   import { countryCodeToFlagFilename, getInitials, getRankVariant } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
+  import { isDynamicChallenge } from './scores-data-helpers'
   import ScoresGraph from './scores-graph.svelte'
   import ScoresSparkline from './scores-sparkline.svelte'
   import type { CategoryGroup } from './types'
@@ -127,10 +128,9 @@
       const solves = solvesByTeam.get(team.id)
       const perCategory = new Map<string, CategoryStats>()
       for (const group of categoryGroups) {
-        const total = group.challenges.length
-        const solved = solves
-          ? group.challenges.reduce((n, c) => n + (solves.has(c.id) ? 1 : 0), 0)
-          : 0
+        const challenges = group.challenges.filter(challenge => !isDynamicChallenge(challenge))
+        const total = challenges.length
+        const solved = solves ? challenges.reduce((n, c) => n + (solves.has(c.id) ? 1 : 0), 0) : 0
         perCategory.set(group.category, {
           solved,
           total,
@@ -280,7 +280,17 @@
                   group.config.color
                 )}"
               >
-                {#if stats.solved === stats.total}
+                {#if stats.total === 0}
+                  <svg data-unsolved viewBox="0 0 24 24">
+                    <path
+                      fill="none"
+                      stroke="var(--foreground-l5)"
+                      stroke-linecap="round"
+                      stroke-width="2"
+                      d="M7 12h10"
+                    />
+                  </svg>
+                {:else if stats.solved === stats.total}
                   <svg viewBox="0 0 24 24">
                     <path
                       fill="var(--category-foreground-l1)"

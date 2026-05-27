@@ -94,6 +94,7 @@
     }
 
     const id = isCreating ? crypto.randomUUID() : challenge!.id
+    const flag = form.scoring.kind === ChallengeScoringKind.DYNAMIC ? '' : form.flag
 
     send({ type: 'SAVE' })
 
@@ -105,7 +106,7 @@
           category: form.category,
           author: form.author,
           description: form.description,
-          flag: form.flag,
+          flag,
           points: { min: form.pointsMin, max: form.pointsMax },
           tiebreakEligible: form.tiebreakEligible,
           sortWeight: form.sortWeight || undefined,
@@ -137,7 +138,7 @@
                 category: form.category,
                 author: form.author,
                 description: form.description,
-                flag: form.flag,
+                flag,
                 points: { min: form.pointsMin, max: form.pointsMax },
                 files: form.files,
                 tiebreakEligible: form.tiebreakEligible,

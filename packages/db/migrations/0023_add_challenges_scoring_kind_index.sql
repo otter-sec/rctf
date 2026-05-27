@@ -1,0 +1,1 @@
+CREATE INDEX "challenges_scoring_kind_index" ON "challenges" USING btree ((("data" -> 'scoring' ->> 'kind')));

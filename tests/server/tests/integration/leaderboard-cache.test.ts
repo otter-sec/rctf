@@ -994,7 +994,8 @@ describe('leaderboard ordering and tiebreaks', () => {
 
     expect(result.users[0]?.id).toBe(userA.id)
     expect(result.users[1]?.id).toBe(userB.id)
-    expect(result.users[0]!.score).toBeGreaterThan(result.users[1]!.score)
+    expect(result.users[0]!.score).toBe(981)
+    expect(result.users[1]!.score).toBe(481)
   })
 
   test('tiebreak by last tiebreak-eligible solve time', async () => {
@@ -1280,7 +1281,7 @@ describe('graph samples', () => {
 
     const result = await calculateLeaderboard(db)
 
-    expect(result.samples.length).toBeGreaterThan(0)
+    expect(result.samples.length).toBe(1)
 
     const lastSample = result.samples[result.samples.length - 1]!
     const userScore = lastSample.userScores.find(s => s.id === user.id)
@@ -1307,7 +1308,7 @@ describe('graph samples', () => {
         expect(userScore?.score).toBe(result.users[0]!.score)
       }
     }
-    expect(result.samples.length).toBeLessThanOrEqual(2)
+    expect(result.samples.length).toBe(1)
   })
 
   test('samples reflect score changes over time', async () => {
@@ -1332,7 +1333,7 @@ describe('graph samples', () => {
 
     const result = await calculateLeaderboard(db)
 
-    expect(result.samples.length).toBeGreaterThanOrEqual(2)
+    expect(result.samples.length).toBe(2)
 
     const firstSample = result.samples[0]!
     const lastSample = result.samples[result.samples.length - 1]!
@@ -1646,9 +1647,7 @@ describe('rebuild uses fresh snapshots (stale-snapshot regression)', () => {
     expect(second.calculated.challengeInfos.get(ch2.id)?.solves).toBe(1)
     const userEntry = second.calculated.users.find(u => u.id === user.id)
     expect(userEntry).toBeDefined()
-    expect(userEntry!.score).toBeGreaterThan(
-      second.calculated.challengeInfos.get(ch1.id)!.score
-    )
+    expect(userEntry!.score).toBe(1000)
   })
 
   test('consecutive rebuilds converge even when data keeps arriving', async () => {

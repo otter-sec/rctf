@@ -95,5 +95,9 @@ export const challenges = pgTable(
       'btree',
       sql`(COALESCE((${table.data} ->> 'hidden')::boolean, false))`
     ),
+    index('challenges_scoring_kind_index').using(
+      'btree',
+      sql`((${table.data} -> 'scoring' ->> 'kind'))`
+    ),
   ]
 )

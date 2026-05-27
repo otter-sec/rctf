@@ -23,7 +23,9 @@ import { GetLeaderboardRoute, GetLeaderboardRouteV2 } from '@rctf/types'
 
 Returns a page of the current standings from the leaderboard cache.
 
-For new clients, prefer V2. It includes avatar, country, status, solve, division rank, and global rank fields. V1 remains available for older clients and returns the original `id`, `name`, and `score` fields.
+For new clients, prefer V2. It includes avatar, country, status, solve, dynamic score, division rank, and global rank fields. V1 remains available for older clients and returns the original `id`, `name`, and `score` fields.
+
+V2 separates flag solves from external score-feed data. `solves{:ts}` contains actual challenge solves. `dynamicScores{:ts}` contains per-team points for dynamic challenges, plus the team's point delta from the latest scoring tick for that challenge.
 
 <Tabs items={['V2', 'V1']} sync="leaderboard-now-version">
   <Tab>

@@ -17,6 +17,7 @@ import {
   getDecayChallenges,
   getMaxSolveCount,
   lockChallenge,
+  userIsNotBanned,
   type DecayChallenge,
 } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
@@ -229,9 +230,7 @@ export const upsertDynamicSolves = async (
         : await tx
             .select({ id: users.id })
             .from(users)
-            .where(
-              and(inArray(users.id, involvedUserIds), eq(users.banned, false))
-            )
+            .where(and(inArray(users.id, involvedUserIds), userIsNotBanned))
             .for('share')
             .then(rows => new Set(rows.map(r => r.id)))
 

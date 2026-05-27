@@ -20,6 +20,13 @@ export const GoodLeaderboardWithGraph = response('goodLeaderboardWithGraph', {
             solveTime: z.int(),
           })
         ),
+        dynamicScores: z.array(
+          z.object({
+            id: z.string(),
+            points: z.int(),
+            pointDelta: z.int(),
+          })
+        ),
         division: z.string(),
         divisionPlace: z.int(),
         globalPlace: z.nullable(z.int()),
@@ -32,6 +39,14 @@ export const GoodLeaderboardWithGraph = response('goodLeaderboardWithGraph', {
             time: z.int(),
             score: z.int(),
           })
+        ),
+        dynamicPoints: z.optional(
+          z.array(
+            z.object({
+              time: z.int(),
+              score: z.int(),
+            })
+          )
         ),
         id: z.string(),
         name: z.string(),

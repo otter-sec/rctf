@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Button, Dialog, Markdown, ScrollArea, Section, Spinner } from '$lib/components'
-  import { IconAlertTriangleFilled, IconTrashFilled } from '$lib/icons'
+  import { IconTrashFilled } from '$lib/icons'
 
   interface Props {
     showUnsavedDialog: boolean
@@ -34,10 +34,7 @@
 <Dialog.Root open={showUnsavedDialog} onOpenChange={open => !open && onCancelDiscard()}>
   <Dialog.Content class="sm:max-w-md">
     <Dialog.Header>
-      <Dialog.Title class="flex items-center gap-2">
-        <IconAlertTriangleFilled class="text-foreground-warning size-5" />
-        Unsaved changes
-      </Dialog.Title>
+      <Dialog.Title class="flex items-center gap-2">Unsaved changes</Dialog.Title>
       <Dialog.Description>
         You have unsaved changes that will be lost. Are you sure you want to leave?
       </Dialog.Description>

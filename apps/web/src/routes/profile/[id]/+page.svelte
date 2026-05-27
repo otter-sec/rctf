@@ -21,6 +21,7 @@
       category: c.category,
       points: c.points,
       solves: c.solves,
+      scoringKind: c.scoringKind,
     }))
   )
 
@@ -49,6 +50,7 @@
     <ProfileSolves
       {challenges}
       solves={user.solves}
+      dynamicScores={user.dynamicScores}
       showUnsolved={challenges.length > 0}
       scrollable
       class="min-h-0 flex-1"

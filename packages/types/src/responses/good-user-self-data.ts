@@ -5,9 +5,16 @@ const SolveSchema = z.object({
   category: z.string(),
   name: z.string(),
   points: z.nullable(z.int()),
+  awardedPoints: z.nullable(z.int()),
   solves: z.nullable(z.int()),
   id: z.string(),
   createdAt: z.int(),
+})
+
+const DynamicScoreSchema = z.object({
+  id: z.string(),
+  points: z.int(),
+  pointDelta: z.int(),
 })
 
 export const GoodUserSelfData = response('goodUserSelfData', {
@@ -23,6 +30,7 @@ export const GoodUserSelfData = response('goodUserSelfData', {
     globalPlace: z.nullable(z.int()),
     divisionPlace: z.nullable(z.int()),
     solves: z.array(SolveSchema),
+    dynamicScores: z.array(DynamicScoreSchema),
     teamToken: z.string(),
     allowedDivisions: z.array(z.string()),
     perms: z.nullable(z.int()),

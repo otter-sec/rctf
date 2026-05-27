@@ -1,7 +1,10 @@
 import { challenges } from '@rctf/db'
 import { GetLeaderboardChallengesRouteV2 } from '@rctf/types'
 import { sql } from 'drizzle-orm'
-import { challengeIsPublicSql } from '../../../../services/challenges'
+import {
+  challengeIsPublicSql,
+  scoringKindOf,
+} from '../../../../services/challenges'
 import leaderboardGroup from '../group'
 
 leaderboardGroup.route(
@@ -21,6 +24,7 @@ leaderboardGroup.route(
               FROM solves
               INNER JOIN "users" ON "users".id = solves.userid
               WHERE solves.challengeid = challenges.id
+                AND solves.source = 'flag'
                 AND "users".banned = false
               ORDER BY solves.createdat ASC, solves.id ASC
               LIMIT 3
@@ -33,17 +37,21 @@ leaderboardGroup.route(
 
     return res.goodLeaderboardChallenges({
       challenges: Object.fromEntries(
-        rows.map(row => [
-          row.id,
-          {
-            name: row.data.name ?? '',
-            category: row.data.category ?? '',
-            points: row.score ?? 0,
-            solves: row.solveCount ?? 0,
-            sortWeight: row.data.sortWeight ?? null,
-            firstSolvers: (row.firstBloodIds ?? []).map(id => ({ id })),
-          },
-        ])
+        rows.map(row => {
+          const scoringKind = scoringKindOf(row.data)
+          return [
+            row.id,
+            {
+              name: row.data.name ?? '',
+              category: row.data.category ?? '',
+              points: row.score ?? 0,
+              solves: row.solveCount ?? 0,
+              sortWeight: row.data.sortWeight ?? null,
+              scoringKind,
+              firstSolvers: (row.firstBloodIds ?? []).map(id => ({ id })),
+            },
+          ]
+        })
       ),
     })
   }

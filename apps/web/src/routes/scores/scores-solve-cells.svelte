@@ -1,5 +1,11 @@
 <script lang="ts" module>
   import {
+    getChallengeCellsWidth,
+    getChallengeCellWidth,
+    getFixedCellsWidth,
+    isDynamicChallenge,
+  } from './scores-data-helpers'
+  import {
     SCORE_ROW_GAP_PX as CELL_GAP,
     SCORE_CELL_HEIGHT_PX as CELL_HEIGHT,
     SCORE_CELL_WIDTH_PX as CELL_WIDTH,
@@ -19,6 +25,10 @@
     stripe: string
     solved: string
     unsolved: string
+    score: string
+    scoreUnit: string
+    deltaPositive: string
+    deltaNegative: string
     gold: string
     silver: string
     bronze: string
@@ -31,6 +41,8 @@
     challenges: ChallengeInfo[]
     focusedChallengeId: string | null
     getSolves: (challengeId: string) => boolean
+    getChallengePoints: (challengeId: string) => number | undefined
+    getChallengePointDelta: (challengeId: string) => number | undefined
     getBloodIndex: (challengeId: string) => number
     palette: RenderPalette
   }
@@ -41,8 +53,17 @@
     palette: RenderPalette
   }
 
+  interface ChallengeCellLayout {
+    challenge: ChallengeInfo
+    x: number
+    width: number
+  }
+
   const ICON_RADIUS = 10
   const CAT_ICON_RADIUS = 14
+  const DYNAMIC_HIT_HEIGHT = 28
+  const DYNAMIC_DELTA_ICON_SIZE = 8
+  const DYNAMIC_DELTA_ICON_Y_OFFSET = -1
   // 20 * (x / 24) = 22 => x = 22 * 24 / 20 = 26.4
   const BLOOD_ICON_SIZE = 26.4
   const CATEGORY_ICON_SIZE = 28
@@ -52,6 +73,10 @@
     'M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34m-1.293 5.953a1 1 0 0 0-1.32-.083l-.094.083L11 12.585l-1.293-1.292l-.094-.083a1 1 0 0 0-1.403 1.403l.083.094l2 2l.094.083a1 1 0 0 0 1.226 0l.094-.083l4-4l.083-.094a1 1 0 0 0-.083-1.32'
   const DASHED_CIRCLE_PATH =
     'M8.56 3.69a9 9 0 0 0-2.92 1.95M3.69 8.56A9 9 0 0 0 3 12m.69 3.44a9 9 0 0 0 1.95 2.92m2.92 1.95A9 9 0 0 0 12 21m3.44-.69a9 9 0 0 0 2.92-1.95m1.95-2.92A9 9 0 0 0 21 12m-.69-3.44a9 9 0 0 0-1.95-2.92m-2.92-1.95A9 9 0 0 0 12 3'
+  const DELTA_UP_PATH =
+    'M12 1.67a2.91 2.91 0 0 0-2.492 1.403L1.398 16.61a2.914 2.914 0 0 0 2.484 4.385h16.225a2.914 2.914 0 0 0 2.503-4.371L14.494 3.078A2.92 2.92 0 0 0 12 1.67'
+  const DELTA_DOWN_PATH =
+    'M20.118 3H3.893A2.914 2.914 0 0 0 1.39 7.371L9.506 20.92a2.917 2.917 0 0 0 4.987.005l8.11-13.539A2.914 2.914 0 0 0 20.117 3z'
   const BLOOD_PATHS = [
     'M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m.994 5.886c-.083-.777-1.008-1.16-1.617-.67l-.084.077l-2 2l-.083.094a1 1 0 0 0 0 1.226l.083.094l.094.083a1 1 0 0 0 1.226 0l.094-.083l.293-.293V16l.007.117a1 1 0 0 0 1.986 0L13 16V8z',
     'M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2m1 5h-3l-.117.007a1 1 0 0 0 0 1.986L10 9h3v2h-2l-.15.005a2 2 0 0 0-1.844 1.838L9 13v2l.005.15a2 2 0 0 0 1.838 1.844L11 17h3l.117-.007a1 1 0 0 0 0-1.986L14 15h-3v-2h2l.15-.005a2 2 0 0 0 1.844-1.838L15 11V9l-.005-.15a2 2 0 0 0-1.838-1.844z',
@@ -135,6 +160,10 @@
       stripe: readCssColor('--foreground-l0', '#3f3f46'),
       solved: readCssColor('--foreground-success', '#047857'),
       unsolved: readCssColor('--foreground-l5', '#a1a1aa'),
+      score: readCssColor('--foreground-l1', '#52525b'),
+      scoreUnit: readCssColor('--foreground-l3', '#71717a'),
+      deltaPositive: readCssColor('--foreground-success', '#047857'),
+      deltaNegative: readCssColor('--foreground-destructive', '#b91c1c'),
       gold: readCssColor('--foreground-gold-l0', '#ca8a04'),
       silver: readCssColor('--foreground-silver-l0', '#64748b'),
       bronze: readCssColor('--foreground-bronze-l0', '#92400e'),
@@ -144,7 +173,86 @@
   }
 
   function wrapSvg(width: number, content: string): string {
-    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${content}</svg>`
+    const style = [
+      '<style>',
+      '.dynamic-points{font-family:Outfit,system-ui,sans-serif;',
+      'font-variant-numeric:tabular-nums;text-anchor:middle;dominant-baseline:middle}',
+      '.dynamic-points-value{font-size:16px;font-weight:400}',
+      '.dynamic-points-unit{font-size:16px;font-weight:400}',
+      '.dynamic-points-delta{font-size:11px;font-weight:400}',
+      '</style>',
+    ].join('')
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${CELL_HEIGHT}" viewBox="0 0 ${width} ${CELL_HEIGHT}" fill="none">${style}${content}</svg>`
+  }
+
+  function escapeSvgText(value: string): string {
+    return value.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+  }
+
+  function formatCellPoints(points: number): string {
+    return points.toLocaleString()
+  }
+
+  function formatCellPointDelta(delta: number): string {
+    const value = Math.abs(delta).toLocaleString()
+    return `${value} pts`
+  }
+
+  function pointDeltaColor(delta: number, palette: RenderPalette): string {
+    if (delta > 0) return palette.deltaPositive
+    if (delta < 0) return palette.deltaNegative
+    return palette.score
+  }
+
+  function estimateDeltaTextWidth(text: string): number {
+    return text.length * 5.5
+  }
+
+  function renderPointDelta(cx: number, y: number, delta: number, palette: RenderPalette): string {
+    const label = formatCellPointDelta(delta)
+    const color = pointDeltaColor(delta, palette)
+    if (delta === 0) {
+      return (
+        `<text class="dynamic-points dynamic-points-delta" x="${cx}" y="${y}" ` +
+        `fill="${color}">${escapeSvgText(label)}</text>`
+      )
+    }
+
+    const iconPath = delta > 0 ? DELTA_UP_PATH : DELTA_DOWN_PATH
+    const textWidth = estimateDeltaTextWidth(label)
+    const groupWidth = DYNAMIC_DELTA_ICON_SIZE + textWidth
+    const iconX = cx - groupWidth / 2
+    const textX = iconX + DYNAMIC_DELTA_ICON_SIZE + textWidth / 2
+    const iconY = y - DYNAMIC_DELTA_ICON_SIZE / 2 + DYNAMIC_DELTA_ICON_Y_OFFSET
+
+    return (
+      `<svg x="${iconX}" y="${iconY}" width="${DYNAMIC_DELTA_ICON_SIZE}" ` +
+      `height="${DYNAMIC_DELTA_ICON_SIZE}" viewBox="0 0 24 24">` +
+      `<path fill="${color}" d="${iconPath}"/></svg>` +
+      `<text class="dynamic-points dynamic-points-delta" x="${textX}" y="${y}" ` +
+      `fill="${color}">${escapeSvgText(label)}</text>`
+    )
+  }
+
+  function getChallengeCellLayouts(challenges: ChallengeInfo[]): ChallengeCellLayout[] {
+    const cells: ChallengeCellLayout[] = []
+    let x = 0
+    for (const challenge of challenges) {
+      const width = getChallengeCellWidth(challenge)
+      cells.push({ challenge, x, width })
+      x += width + CELL_GAP
+    }
+    return cells
+  }
+
+  function getChallengeCellAtX(
+    mouseX: number,
+    challenges: ChallengeInfo[]
+  ): ChallengeCellLayout | null {
+    for (const cell of getChallengeCellLayouts(challenges)) {
+      if (mouseX >= cell.x && mouseX <= cell.x + cell.width) return cell
+    }
+    return null
   }
 
   function buildChallengeStripSvg({
@@ -153,18 +261,21 @@
     challenges,
     focusedChallengeId,
     getSolves,
+    getChallengePoints,
+    getChallengePointDelta,
     getBloodIndex,
     palette,
   }: ChallengeStripOptions): RenderedStrip {
     const list = sortMode === 'categories' ? categoryGroups.flatMap(g => g.challenges) : challenges
-    const width = list.length * (CELL_WIDTH + CELL_GAP)
+    const cells = getChallengeCellLayouts(list)
+    const width = getChallengeCellsWidth(list)
     const parts: string[] = []
 
     if (sortMode === 'categories') {
       let bgX = 0
       for (let gi = 0; gi < categoryGroups.length; gi++) {
         const group = categoryGroups[gi]!
-        const groupWidth = group.challenges.length * (CELL_WIDTH + CELL_GAP)
+        const groupWidth = getChallengeCellsWidth(group.challenges)
         if (gi % 2 === 0) {
           parts.push(
             `<rect x="${bgX}" y="0" width="${groupWidth - CELL_GAP}" height="${CELL_HEIGHT}" fill="${palette.stripe}" opacity="0.03"/>`
@@ -173,26 +284,38 @@
         bgX += groupWidth
       }
     } else {
-      for (let i = 0; i < list.length; i++) {
+      for (let i = 0; i < cells.length; i++) {
         if (i % 2 === 0) {
-          const x = i * (CELL_WIDTH + CELL_GAP)
+          const { x, width: cellWidth } = cells[i]!
           parts.push(
-            `<rect x="${x}" y="0" width="${CELL_WIDTH}" height="${CELL_HEIGHT}" fill="${palette.stripe}" opacity="0.03"/>`
+            `<rect x="${x}" y="0" width="${cellWidth}" height="${CELL_HEIGHT}" fill="${palette.stripe}" opacity="0.03"/>`
           )
         }
       }
     }
 
-    for (let i = 0; i < list.length; i++) {
-      const challenge = list[i]!
-      const x = i * (CELL_WIDTH + CELL_GAP)
-      const cx = x + CELL_WIDTH / 2
+    for (const cell of cells) {
+      const { challenge, x, width: cellWidth } = cell
+      const cx = x + cellWidth / 2
       const cy = CELL_HEIGHT / 2
       const bloodIndex = getBloodIndex(challenge.id)
       const solved = getSolves(challenge.id)
       const isDimmed = focusedChallengeId !== null && focusedChallengeId !== challenge.id
       const open = isDimmed ? '<g opacity="0.25">' : ''
       const close = isDimmed ? '</g>' : ''
+
+      if (isDynamicChallenge(challenge)) {
+        const points = getChallengePoints(challenge.id) ?? 0
+        const pointDelta = getChallengePointDelta(challenge.id) ?? 0
+        parts.push(
+          `${open}<text class="dynamic-points" x="${cx}" y="${cy - 4}">` +
+            `<tspan class="dynamic-points-value" fill="${palette.score}">` +
+            `${escapeSvgText(formatCellPoints(points))}</tspan>` +
+            `<tspan class="dynamic-points-unit" fill="${palette.scoreUnit}"> pts</tspan>` +
+            `</text>${renderPointDelta(cx, cy + 14, pointDelta, palette)}${close}`
+        )
+        continue
+      }
 
       if (bloodIndex >= 0 && bloodIndex < BLOOD_PATHS.length) {
         const color =
@@ -243,6 +366,13 @@
       const iconX = x + (CELL_WIDTH - CATEGORY_ICON_SIZE) / 2
       const iconY = (CELL_HEIGHT - CATEGORY_ICON_SIZE) / 2
 
+      if (stats.total === 0) {
+        parts.push(
+          `<line x1="${x + CELL_WIDTH / 2 - 7}" y1="${CELL_HEIGHT / 2}" x2="${x + CELL_WIDTH / 2 + 7}" y2="${CELL_HEIGHT / 2}" stroke="${palette.unsolved}" stroke-opacity="0.35" stroke-width="2" stroke-linecap="round"/>`
+        )
+        continue
+      }
+
       if (stats.solved === stats.total) {
         parts.push(
           `<svg x="${iconX}" y="${iconY}" width="${CATEGORY_ICON_SIZE}" height="${CATEGORY_ICON_SIZE}" viewBox="0 0 24 24"><path fill="${colors.foreground}" d="${CHECK_PATH}"/></svg>`
@@ -284,6 +414,8 @@
     renderEpoch: number
     getSolves: (challengeId: string) => boolean
     getSolveTime: (challengeId: string) => number | undefined
+    getChallengePoints: (challengeId: string) => number | undefined
+    getChallengePointDelta: (challengeId: string) => number | undefined
     getCategoryStats: (group: CategoryGroup) => { solved: number; total: number; percent: number }
     getBloodIndex: (challengeId: string) => number
     onCellHover: (data: TooltipData | null, x: number, y: number) => void
@@ -302,6 +434,8 @@
     renderEpoch,
     getSolves,
     getSolveTime,
+    getChallengePoints,
+    getChallengePointDelta,
     getCategoryStats,
     getBloodIndex,
     onCellHover,
@@ -318,8 +452,9 @@
   }
 
   const imageWidth = $derived(
-    (viewMode === 'categories' ? categoryGroups.length : challenges.length) *
-      (CELL_WIDTH + CELL_GAP)
+    viewMode === 'categories'
+      ? getFixedCellsWidth(categoryGroups.length)
+      : getChallengeCellsWidth(challenges)
   )
 
   const challengeList = $derived(
@@ -334,7 +469,9 @@
   const stripLayoutKey = $derived.by(() => {
     const categoryLayout = categoryGroups
       .map(group => {
-        const challengeIds = group.challenges.map(challenge => challenge.id).join(',')
+        const challengeIds = group.challenges
+          .map(challenge => `${challenge.id}:${challenge.scoringKind}`)
+          .join(',')
         return `${group.category}:${group.config.color}:${challengeIds}`
       })
       .join('|')
@@ -347,7 +484,10 @@
       return `challenges:${focusedChallengeId ?? ''}:${categoryLayout}`
     }
 
-    return `challenges:${focusedChallengeId ?? ''}:${challenges.map(challenge => challenge.id).join(',')}`
+    const challengeIds = challenges
+      .map(challenge => `${challenge.id}:${challenge.scoringKind}`)
+      .join(',')
+    return `challenges:${focusedChallengeId ?? ''}:${challengeIds}`
   })
 
   const stripDataKey = $derived.by(() => {
@@ -364,6 +504,9 @@
 
     return challengeList
       .map(challenge => {
+        if (isDynamicChallenge(challenge)) {
+          return `d${getChallengePoints(challenge.id) ?? ''}:${getChallengePointDelta(challenge.id) ?? ''}`
+        }
         const bloodIndex = getBloodIndex(challenge.id)
         if (bloodIndex >= 0 && bloodIndex < BLOOD_PATHS.length) {
           return `b${bloodIndex}`
@@ -396,6 +539,8 @@
             challenges,
             focusedChallengeId,
             getSolves,
+            getChallengePoints,
+            getChallengePointDelta,
             getBloodIndex,
             palette,
           })
@@ -431,17 +576,44 @@
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const mouseX = e.clientX - rect.left
     const mouseY = e.clientY - rect.top
-    const cellIndex = Math.floor(mouseX / (CELL_WIDTH + CELL_GAP))
-    const challenge = challengeList[cellIndex]
-    if (!challenge) {
+    const cell = getChallengeCellAtX(mouseX, challengeList)
+    if (!cell) {
       clearCellHover()
       return
     }
 
-    const circleCenterX = cellIndex * (CELL_WIDTH + CELL_GAP) + CELL_WIDTH / 2
+    const { challenge } = cell
+    const circleCenterX = cell.x + cell.width / 2
     const circleCenterY = CELL_HEIGHT / 2
     const dx = mouseX - circleCenterX
     const dy = mouseY - circleCenterY
+
+    if (isDynamicChallenge(challenge)) {
+      if (Math.abs(dy) > DYNAMIC_HIT_HEIGHT / 2) {
+        clearCellHover()
+        return
+      }
+
+      const teamPoints = getChallengePoints(challenge.id) ?? 0
+      const teamPointDelta = getChallengePointDelta(challenge.id) ?? 0
+      setCellHover(
+        `challenge:${teamId}:${challenge.id}:dynamic:${teamPoints}:${teamPointDelta}`,
+        {
+          type: 'challenge',
+          teamId,
+          challengeName: challenge.name,
+          points: challenge.points,
+          solved: true,
+          bloodIndex: -1,
+          isDynamic: true,
+          teamPoints,
+          teamPointDelta,
+        },
+        rect.left + circleCenterX,
+        rect.top + circleCenterY - DYNAMIC_HIT_HEIGHT / 2
+      )
+      return
+    }
 
     if (dx * dx + dy * dy > ICON_RADIUS * ICON_RADIUS) {
       clearCellHover()
@@ -460,6 +632,7 @@
         points: challenge.points,
         solved,
         bloodIndex,
+        isDynamic: false,
         solveTime,
       },
       rect.left + circleCenterX,

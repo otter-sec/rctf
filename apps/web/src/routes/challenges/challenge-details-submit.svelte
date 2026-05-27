@@ -94,7 +94,7 @@
           autocomplete="off"
           autocorrect="off"
           spellcheck="false"
-          class="text-foreground-l3 h-full min-w-0 flex-1 rounded-lg border-transparent py-3.5 font-mono text-xl"
+          class="text-foreground-l3 h-full min-w-0 flex-1 rounded-lg border-transparent py-3.5 font-mono text-xl!"
           bind:value={form.data.flag}
           disabled={form.submitting}
           aria-invalid={!!form.errors._form || undefined}

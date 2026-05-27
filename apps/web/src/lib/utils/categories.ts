@@ -21,6 +21,7 @@ export type CategoryConfig = {
 }
 
 export const categoryOrder = [
+  'koth',
   'sanity',
   'pwn',
   'reverse',
@@ -30,11 +31,11 @@ export const categoryOrder = [
   'web',
   'misc',
   'ppc',
-  'koth',
   'osint',
 ]
 
 export const scoreboardCategoryOrder = [
+  'koth',
   'pwn',
   'reverse',
   'crypto',
@@ -43,7 +44,6 @@ export const scoreboardCategoryOrder = [
   'web',
   'misc',
   'ppc',
-  'koth',
   'osint',
   'sanity',
 ]
