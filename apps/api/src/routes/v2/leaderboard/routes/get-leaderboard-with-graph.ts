@@ -40,7 +40,11 @@ leaderboardGroup.route(
         offset,
         division
       )
-      const graph = await getGraphForEntries(ctx.var.redis, leaderboard)
+      const graph = await getGraphForEntries(
+        ctx.var.db,
+        ctx.var.redis,
+        leaderboard
+      )
       return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
     }
 
@@ -50,7 +54,11 @@ leaderboardGroup.route(
       offset,
       division
     )
-    const graph = await getGraphForEntries(ctx.var.redis, leaderboard)
+    const graph = await getGraphForEntries(
+      ctx.var.db,
+      ctx.var.redis,
+      leaderboard
+    )
 
     return res.goodLeaderboardWithGraph({ graph, total, leaderboard })
   }

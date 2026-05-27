@@ -104,9 +104,10 @@ export function getSelfChallengePoints(
   currentUser: CurrentUserScoreData
 ): Map<string, number> {
   return new Map(
-    currentUser.dynamicScores.map(
-      (score): [string, number] => [score.id, score.points]
-    )
+    currentUser.dynamicScores.map((score): [string, number] => [
+      score.id,
+      score.points,
+    ])
   )
 }
 
@@ -114,9 +115,10 @@ export function getSelfChallengePointDeltas(
   currentUser: CurrentUserScoreData
 ): Map<string, number> {
   return new Map(
-    currentUser.dynamicScores.map(
-      (score): [string, number] => [score.id, score.pointDelta]
-    )
+    currentUser.dynamicScores.map((score): [string, number] => [
+      score.id,
+      score.pointDelta,
+    ])
   )
 }
 

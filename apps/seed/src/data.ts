@@ -1,3 +1,4 @@
+import { scoreProvider } from '@rctf/api/src/providers'
 import type { ServerConfig } from '@rctf/config'
 import type {
   Challenge,
@@ -8,7 +9,6 @@ import type {
   User,
   UserMember,
 } from '@rctf/db'
-import { scoreProvider } from '@rctf/api/src/providers'
 import {
   ChallengeScoringKind,
   DynamicScoringTransport,
@@ -379,10 +379,7 @@ function buildKothScores(
     1,
     Math.floor(eligibleTeams.length * KOTH_SCORING_DEPTH)
   )
-  const zeroScoreWeight = Math.pow(
-    zeroScoreRank + 1,
-    -KOTH_PAYOUT_EXPONENT
-  )
+  const zeroScoreWeight = Math.pow(zeroScoreRank + 1, -KOTH_PAYOUT_EXPONENT)
   const maxScoreWeight = 1 - zeroScoreWeight
   const rankedTeams = eligibleTeams.map((team, rank) => {
     const scoreWeight =
@@ -404,8 +401,7 @@ function buildKothScores(
 
   for (let tickIndex = 0; tickIndex < tickCount; tickIndex++) {
     const eventAt = new Date(
-      tickStart +
-        Math.min(tickSpan, (tickIndex + 1) * KOTH_TICK_INTERVAL)
+      tickStart + Math.min(tickSpan, (tickIndex + 1) * KOTH_TICK_INTERVAL)
     ).toISOString()
     const tickNumber = String(tickIndex + 1).padStart(2, '0')
 

@@ -195,7 +195,7 @@ describe('leaderboard cache', () => {
         ])
       )
 
-      const result = await getGraphForEntries(redis, [
+      const result = await getGraphForEntries(createMockDb(), redis, [
         { id: 'user2', name: 'User Two', score: 60 },
         { id: 'user1', name: 'User One', score: 100 },
       ])
@@ -208,7 +208,7 @@ describe('leaderboard cache', () => {
 
     test('returns empty array when no entries', async () => {
       const redis = createMockRedis()
-      const result = await getGraphForEntries(redis, [])
+      const result = await getGraphForEntries(createMockDb(), redis, [])
       expect(result).toEqual([])
     })
 
@@ -217,7 +217,7 @@ describe('leaderboard cache', () => {
       redis.store.set('graph-update', '1700000000')
       redis.hashStore.set('graph-data', new Map())
 
-      const result = await getGraphForEntries(redis, [
+      const result = await getGraphForEntries(createMockDb(), redis, [
         { id: 'user1', name: 'User One', score: 100 },
       ])
 
@@ -231,7 +231,7 @@ describe('leaderboard cache', () => {
       redis.store.set('graph-update', '0')
       redis.hashStore.set('graph-data', new Map([['user1', '1699990000,50']]))
 
-      const result = await getGraphForEntries(redis, [
+      const result = await getGraphForEntries(createMockDb(), redis, [
         { id: 'user1', name: 'User One', score: 100 },
       ])
 
@@ -248,7 +248,7 @@ describe('leaderboard cache', () => {
         new Map([['user1', '1699980000,20,1699990000,50']])
       )
 
-      const result = await getGraphForEntries(redis, [
+      const result = await getGraphForEntries(createMockDb(), redis, [
         { id: 'user1', name: 'User One', score: 100 },
       ])
 

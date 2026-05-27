@@ -268,10 +268,15 @@ describe('full-user service', () => {
         })
 
         const body = await expectResponse(profileRes, GoodUserSelfData)
-        const solve = body.data.solves.find(
+        expect(
+          body.data.solves.some(
+            (item: { id: string }) => item.id === challengeId
+          )
+        ).toBe(false)
+        const dynamicScore = body.data.dynamicScores.find(
           (item: { id: string }) => item.id === challengeId
         )
-        expect(solve?.points).toBe(dynamicPoints)
+        expect(dynamicScore?.points).toBe(dynamicPoints)
       } finally {
         await db.delete(challenges).where(eq(challenges.id, challengeId))
         await userCleanup()

@@ -19,6 +19,7 @@ import { scoreProvider } from '../providers'
 import {
   challengeIsPublicSql,
   getLeaderboardChallengeData,
+  nonBannedUserJoin,
   scoringKindOf,
 } from './challenges'
 import { getCompetitionTiming, type CompetitionTiming } from './settings'
@@ -746,11 +747,10 @@ const refreshDynamicContribs = async (
       pointsUpdatedAt: solves.pointsUpdatedAt,
     })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
     .where(
       and(
         inArray(solves.challengeid, dynamicIds),
-        eq(users.banned, false),
         cursorAfter(
           solves.pointsUpdatedAt,
           solves.id,

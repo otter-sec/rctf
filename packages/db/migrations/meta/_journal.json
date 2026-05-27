@@ -162,6 +162,13 @@
       "when": 1779501658303,
       "tag": "0022_add_ext_auth_clients",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1779883019860,
+      "tag": "0023_add_challenges_scoring_kind_index",
+      "breakpoints": true
     }
   ]
 }

@@ -25,6 +25,7 @@ import {
   SubmissionResult,
 } from '@rctf/types'
 import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -98,6 +99,10 @@ type ChallengeSolvesWithPosition = {
   solvePosition: number | null
 }
 
+export const userIsNotBanned = eq(users.banned, false)
+export const nonBannedUserJoin = (ownerId: PgColumn) =>
+  and(eq(users.id, ownerId), userIsNotBanned)
+
 const createRankedSolvesForChallenges = (
   db: DatabaseClient,
   challengeIds: string[]
@@ -120,12 +125,11 @@ const createRankedSolvesForChallenges = (
           ),
       })
       .from(solves)
-      .innerJoin(users, eq(users.id, solves.userid))
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
       .where(
         and(
           inArray(solves.challengeid, challengeIds),
-          eq(solves.source, 'flag'),
-          eq(users.banned, false)
+          eq(solves.source, 'flag')
         )
       )
   )
@@ -260,14 +264,8 @@ export const countNonBannedSolvesForChallenge = async (
   const row = await db
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(
-      and(
-        eq(solves.challengeid, challengeId),
-        eq(solves.source, 'flag'),
-        eq(users.banned, false)
-      )
-    )
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.challengeid, challengeId), eq(solves.source, 'flag')))
     .then(takeUnique)
   return row?.count ?? 0
 }
@@ -279,9 +277,9 @@ export const getMaxSolveCount = async (
   const perChallenge = db
     .select({ count: sql<number>`COUNT(*)::int`.as('count') })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
     .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-    .where(and(eq(users.banned, false), isDecayKind))
+    .where(isDecayKind)
     .groupBy(solves.challengeid)
     .as('per_challenge')
 
@@ -487,14 +485,8 @@ export const getChallengeSolves = async (
       userAvatarUrl: users.avatarUrl,
     })
     .from(solves)
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(
-      and(
-        eq(solves.challengeid, challengeId),
-        eq(solves.source, 'flag'),
-        eq(users.banned, false)
-      )
-    )
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.challengeid, challengeId), eq(solves.source, 'flag')))
     .orderBy(asc(solves.createdat))
     .limit(limit)
     .offset(offset)
@@ -585,14 +577,8 @@ export const getUserChallengeSolves = async (
       challenges,
       and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
     )
-    .innerJoin(users, eq(users.id, solves.userid))
-    .where(
-      and(
-        eq(solves.userid, userId),
-        eq(solves.source, 'flag'),
-        eq(users.banned, false)
-      )
-    )
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .where(and(eq(solves.userid, userId), eq(solves.source, 'flag')))
     .orderBy(asc(solves.createdat))
 
   const challengeIds = Array.from(
@@ -643,14 +629,13 @@ export const getLeaderboardChallengeData = async (
         created_at: solves.createdat,
       })
       .from(solves)
-      .innerJoin(users, eq(users.id, solves.userid))
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
       .innerJoin(challenges, eq(challenges.id, solves.challengeid))
       .where(
         and(
           inArray(solves.userid, userIds),
           challengeIsPublicSql,
-          eq(solves.source, 'flag'),
-          eq(users.banned, false)
+          eq(solves.source, 'flag')
         )
       )
       .orderBy(asc(solves.createdat)),
@@ -662,7 +647,7 @@ export const getLeaderboardChallengeData = async (
         statusText: users.statusText,
       })
       .from(users)
-      .where(and(inArray(users.id, userIds), eq(users.banned, false))),
+      .where(and(inArray(users.id, userIds), userIsNotBanned)),
     getPublicDynamicChallengeIds(db),
   ])
   const dynamicScores = await getDynamicScoresForUsers(
@@ -734,7 +719,7 @@ export async function getDynamicScoresForUsers(
         points: solves.points,
       })
       .from(solves)
-      .innerJoin(users, eq(users.id, solves.userid))
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
       .innerJoin(
         challenges,
         and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
@@ -743,8 +728,7 @@ export async function getDynamicScoresForUsers(
         and(
           inArray(solves.userid, userIds),
           inArray(solves.challengeid, challengeIds),
-          eq(solves.source, 'feed'),
-          eq(users.banned, false)
+          eq(solves.source, 'feed')
         )
       ),
     getLatestDynamicPointDeltas(db, userIds, challengeIds),
@@ -792,9 +776,7 @@ async function getLatestDynamicPointDeltas(
     db
       .select({
         challengeId: scoreEvents.challengeid,
-        eventAt: sql<string>`max(${scoreEvents.eventAt})`.as(
-          'latest_event_at'
-        ),
+        eventAt: sql<string>`max(${scoreEvents.eventAt})`.as('latest_event_at'),
       })
       .from(scoreEvents)
       .where(
@@ -811,8 +793,9 @@ async function getLatestDynamicPointDeltas(
     .select({
       challengeId: scoreEvents.challengeid,
       userId: scoreEvents.userid,
-      pointDelta:
-        sql<number>`sum(${scoreEvents.pointsDelta})::int`.as('point_delta'),
+      pointDelta: sql<number>`sum(${scoreEvents.pointsDelta})::int`.as(
+        'point_delta'
+      ),
     })
     .from(scoreEvents)
     .innerJoin(
@@ -822,11 +805,9 @@ async function getLatestDynamicPointDeltas(
         eq(scoreEvents.eventAt, latestDynamicEvents.eventAt)
       )
     )
+    .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
     .where(
-      and(
-        inArray(scoreEvents.userid, userIds),
-        eq(scoreEvents.source, 'feed')
-      )
+      and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
     )
     .groupBy(scoreEvents.challengeid, scoreEvents.userid)
 

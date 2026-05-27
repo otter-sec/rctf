@@ -53,9 +53,7 @@
 
   const solvedIds = $derived(new Set(solves.map(s => s.id)))
   const solveMap = $derived(new Map(solves.map(s => [s.id, s])))
-  const dynamicScoreMap = $derived(
-    new Map(dynamicScores.map(score => [score.id, score]))
-  )
+  const dynamicScoreMap = $derived(new Map(dynamicScores.map(score => [score.id, score])))
 
   let searchQuery = $state('')
   let hideSolved = $state(false)
@@ -183,10 +181,7 @@
     const staticPointsEarned = staticChallenges
       .filter(c => c.isSolved)
       .reduce((sum, c) => sum + (c.points ?? 0), 0)
-    const dynamicPointsEarned = dynamicChallenges.reduce(
-      (sum, c) => sum + (c.points ?? 0),
-      0
-    )
+    const dynamicPointsEarned = dynamicChallenges.reduce((sum, c) => sum + (c.points ?? 0), 0)
 
     return {
       pointsEarned: staticPointsEarned + dynamicPointsEarned,

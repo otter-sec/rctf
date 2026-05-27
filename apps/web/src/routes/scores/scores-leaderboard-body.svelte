@@ -135,8 +135,7 @@
         {@const solves = scoreData.solvesByTeam.get(entry.id) ?? emptySolves}
         {@const solveTimes = scoreData.solveTimesByTeam.get(entry.id) ?? null}
         {@const challengePoints = scoreData.challengePointsByTeam.get(entry.id) ?? null}
-        {@const challengePointDeltas =
-          scoreData.challengePointDeltasByTeam.get(entry.id) ?? null}
+        {@const challengePointDeltas = scoreData.challengePointDeltasByTeam.get(entry.id) ?? null}
 
         <virtual-row
           style:height={`${row.size}px`}

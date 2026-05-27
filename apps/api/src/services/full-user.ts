@@ -123,7 +123,8 @@ export const getFullUser = async (
         createdAt: new Date(item.solve.createdat).getTime(),
         solves: challScore?.solveCount ?? null,
         points: challScore?.score ?? null,
-        awardedPoints: challengeAwardedPoints.get(item.solve.challengeid) ?? null,
+        awardedPoints:
+          challengeAwardedPoints.get(item.solve.challengeid) ?? null,
         bloodIndex: item.bloodIndex,
       }
     }),
