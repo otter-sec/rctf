@@ -1,7 +1,7 @@
 <script lang="ts">
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
-  import ChallengeDynamicDelta from './challenge-dynamic-delta.svelte'
+  import ChallengeDynamicDelta from './challenges-point-delta.svelte'
 
   interface Props {
     challenge: Challenge

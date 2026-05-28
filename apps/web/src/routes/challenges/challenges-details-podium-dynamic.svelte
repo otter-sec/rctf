@@ -3,7 +3,7 @@
   import { useChallengeScores, useCurrentUser } from '$lib/query'
   import type { RankVariant } from '$lib/utils'
   import { getTimeOrdinal } from '$lib/utils'
-  import ChallengePodiumGrid, { type PodiumItem } from './challenge-podium-grid.svelte'
+  import ChallengePodiumGrid, { type PodiumItem } from './challenges-details-podium-grid.svelte'
 
   interface Props {
     challenge: Challenge

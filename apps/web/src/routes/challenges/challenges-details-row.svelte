@@ -5,7 +5,7 @@
   import { cn, getInitials, getRankStyles } from '$lib/utils'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
-  import ChallengeRankDelta from './challenge-rank-delta.svelte'
+  import ChallengeRankDelta from './challenges-details-rank-delta.svelte'
 
   interface Props {
     variant?: RankVariant

@@ -11,8 +11,8 @@
     useInfiniteVirtualScroll,
   } from '$lib/utils'
   import { toast } from 'svelte-sonner'
-  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
-  import ChallengeDetailsSolvesSelf from './challenge-details-solves-self.svelte'
+  import ChallengeDetailsSolvesRow from './challenges-details-row.svelte'
+  import ChallengeDetailsSolvesSelf from './challenges-details-solves-self.svelte'
 
   const ROW_HEIGHT = 68
 

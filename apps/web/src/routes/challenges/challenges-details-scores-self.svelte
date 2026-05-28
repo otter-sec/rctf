@@ -2,8 +2,8 @@
   import type { Challenge } from '@rctf/types'
   import { useChallengeScores, useClientConfig, useCurrentUser } from '$lib/query'
   import { getRankVariant } from '$lib/utils'
-  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
-  import ChallengeDynamicDelta from './challenge-dynamic-delta.svelte'
+  import ChallengeDetailsSolvesRow from './challenges-details-row.svelte'
+  import ChallengeDynamicDelta from './challenges-point-delta.svelte'
 
   interface Props {
     challenge: Challenge

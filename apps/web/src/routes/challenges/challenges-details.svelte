@@ -7,13 +7,13 @@
     IconFlagFilled,
     IconTrophyFilled,
   } from '$lib/icons'
-  import ChallengeDetailsHeader from './challenge-details-header.svelte'
-  import ChallengeDetailsOverview from './challenge-details-overview.svelte'
-  import ChallengeDetailsPodiumDynamic from './challenge-details-podium-dynamic.svelte'
-  import ChallengeDetailsPodium from './challenge-details-podium.svelte'
-  import ChallengeDetailsScores from './challenge-details-scores.svelte'
-  import ChallengeDetailsSolves from './challenge-details-solves.svelte'
-  import ChallengeDetailsSubmit from './challenge-details-submit.svelte'
+  import ChallengeDetailsHeader from './challenges-details-header.svelte'
+  import ChallengeDetailsOverview from './challenges-details-overview.svelte'
+  import ChallengeDetailsPodiumDynamic from './challenges-details-podium-dynamic.svelte'
+  import ChallengeDetailsPodium from './challenges-details-podium.svelte'
+  import ChallengeDetailsScores from './challenges-details-scores.svelte'
+  import ChallengeDetailsSolves from './challenges-details-solves.svelte'
+  import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
 
   interface Props {
     challenge: Challenge | null

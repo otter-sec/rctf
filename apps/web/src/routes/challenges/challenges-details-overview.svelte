@@ -3,8 +3,8 @@
   import { Markdown, ScrollArea } from '$lib/components'
   import { IconDownload, IconFileFilled } from '$lib/icons'
   import { formatFileSize } from '$lib/utils'
-  import ChallengeDetailsAdminbot from './challenge-details-adminbot.svelte'
-  import ChallengeDetailsInstancer from './challenge-details-instancer.svelte'
+  import ChallengeDetailsAdminbot from './challenges-details-overview-adminbot.svelte'
+  import ChallengeDetailsInstancer from './challenges-details-overview-instancer.svelte'
 
   interface Props {
     challenge: Challenge

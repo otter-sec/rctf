@@ -10,11 +10,11 @@
   } from '$lib/query'
   import { getRankColorForPosition, getRankVariant, useInfiniteVirtualScroll } from '$lib/utils'
   import { toast } from 'svelte-sonner'
-  import ChallengeDetailsScoresSelf from './challenge-details-scores-self.svelte'
-  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
-  import ChallengeDynamicDelta from './challenge-dynamic-delta.svelte'
-  import ChallengeDynamicGraphControls from './challenge-dynamic-graph-controls.svelte'
-  import ChallengeDynamicGraph from './challenge-dynamic-graph.svelte'
+  import ChallengeDetailsScoresSelf from './challenges-details-scores-self.svelte'
+  import ChallengeDetailsSolvesRow from './challenges-details-row.svelte'
+  import ChallengeDynamicDelta from './challenges-point-delta.svelte'
+  import ChallengeDynamicGraphControls from './challenges-details-scores-graph-controls.svelte'
+  import ChallengeDynamicGraph from './challenges-details-scores-graph.svelte'
 
   const ROW_HEIGHT = 68
 

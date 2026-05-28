@@ -2,7 +2,7 @@
   import type { Challenge, Solve as UserSolve } from '@rctf/types'
   import { useChallengeSolves, useClientConfig, useCurrentUser } from '$lib/query'
   import { formatLocalTime, formatRelativeToFirstBlood, getRankVariant } from '$lib/utils'
-  import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
+  import ChallengeDetailsSolvesRow from './challenges-details-row.svelte'
 
   interface Props {
     challenge: Challenge

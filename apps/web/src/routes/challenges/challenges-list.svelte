@@ -3,8 +3,8 @@
   import { Accordion, EmptyState, ScrollArea } from '$lib/components'
   import { IconZoomQuestionFilled } from '$lib/icons'
   import { getCategoryConfig, getCategoryOrder, getCategoryStyle } from '$lib/utils'
-  import ChallengeListHeader from './challenge-list-header.svelte'
-  import ChallengeListItem from './challenge-list-item.svelte'
+  import ChallengeListHeader from './challenges-list-header.svelte'
+  import ChallengeListItem from './challenges-list-item.svelte'
 
   interface Props {
     challenges: Challenge[]

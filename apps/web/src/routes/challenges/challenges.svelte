@@ -6,8 +6,8 @@
   import { IconFlag3Filled } from '$lib/icons'
   import { queryKeys, useChallenges, useCurrentUser } from '$lib/query'
   import { tick } from 'svelte'
-  import ChallengeDetails from './challenge-details.svelte'
-  import ChallengeList from './challenge-list.svelte'
+  import ChallengeDetails from './challenges-details.svelte'
+  import ChallengeList from './challenges-list.svelte'
 
   const queryClient = useQueryClient()
   const challengesQuery = useChallenges()

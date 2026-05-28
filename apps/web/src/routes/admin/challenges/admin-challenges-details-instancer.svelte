@@ -14,7 +14,7 @@
   import { useInstancerSchema } from '$lib/query'
   import { cn } from '$lib/utils'
   import * as yaml from 'yaml'
-  import ChallengeDetailsInstancer from '../../challenges/challenge-details-instancer.svelte'
+  import ChallengeDetailsInstancer from '../../challenges/challenges-details-overview-instancer.svelte'
 
   interface Props {
     config: InstancerConfig | null
