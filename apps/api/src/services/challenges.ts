@@ -579,6 +579,212 @@ export const getChallengeSolvesWithPosition = async (
   }
 }
 
+export type DynamicScoreRow = {
+  userId: string
+  userName: string
+  userAvatarUrl: string | null
+  userCountryCode: string | null
+  userStatusText: string | null
+  points: number
+  pointDelta: number
+  globalPlace: number
+  division: string
+  divisionPlace: number
+}
+
+type ChallengeScoresWithPosition = {
+  challengeExists: boolean
+  scores: DynamicScoreRow[]
+  total: number
+  myPosition: number | null
+}
+
+// The dynamic counterpart to getChallengeSolvesWithPosition: teams ranked by
+// their current points on a dynamic challenge (DESC), each with the signed
+// delta from the latest feed tick. Ranks off solves.points (the value the
+// leaderboard agrees on) so zeroed teams — whose solve row was deleted — drop
+// out automatically.
+export const getChallengeScoresWithPosition = async (
+  db: DatabaseClient,
+  challengeId: string,
+  userId: string | null,
+  limit: number,
+  offset: number
+): Promise<ChallengeScoresWithPosition> => {
+  const challenge = await getChallenge(db, challengeId)
+  if (!challenge) {
+    return {
+      challengeExists: false,
+      scores: [],
+      total: 0,
+      myPosition: null,
+    }
+  }
+
+  const ranked = db.$with('ranked').as(
+    db
+      .select({
+        userId: solves.userid,
+        userName: users.name,
+        userAvatarUrl: users.avatarUrl,
+        userCountryCode: users.countryCode,
+        userStatusText: users.statusText,
+        userDivision: users.division,
+        userGlobalRank: users.globalRank,
+        userDivisionRank: users.divisionRank,
+        points: solves.points,
+        // signed movement from this team's most recent feed event
+        pointDelta: sql<number>`COALESCE((
+          SELECT points_delta FROM score_events
+          WHERE challengeid = ${challengeId}
+            AND userid = ${solves.userid}
+            AND source = 'feed'
+          ORDER BY event_at DESC, id DESC
+          LIMIT 1
+        ), 0)::int`.as('point_delta'),
+        position:
+          sql<number>`row_number() over (order by ${solves.points} desc, ${solves.pointsUpdatedAt} asc, ${solves.userid} asc)::int`.as(
+            'position'
+          ),
+      })
+      .from(solves)
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
+      .where(
+        and(eq(solves.challengeid, challengeId), eq(solves.source, 'feed'))
+      )
+  )
+
+  const rows = await db
+    .with(ranked)
+    .select({
+      userId: ranked.userId,
+      userName: ranked.userName,
+      userAvatarUrl: ranked.userAvatarUrl,
+      userCountryCode: ranked.userCountryCode,
+      userStatusText: ranked.userStatusText,
+      userDivision: ranked.userDivision,
+      userGlobalRank: ranked.userGlobalRank,
+      userDivisionRank: ranked.userDivisionRank,
+      points: ranked.points,
+      pointDelta: ranked.pointDelta,
+      myPosition: sql<number | null>`(
+        SELECT position FROM ranked WHERE userid = ${userId}
+      )`.as('my_position'),
+      total: sql<number>`(count(*) over ())::int`.as('total'),
+    })
+    .from(ranked)
+    .orderBy(asc(ranked.position))
+    .limit(limit)
+    .offset(offset)
+
+  if (rows.length === 0) {
+    return {
+      challengeExists: true,
+      scores: [],
+      total: 0,
+      myPosition: null,
+    }
+  }
+
+  return {
+    challengeExists: true,
+    total: rows[0]!.total,
+    myPosition: rows[0]!.myPosition,
+    scores: rows.map(r => ({
+      userId: r.userId,
+      userName: r.userName,
+      userAvatarUrl: r.userAvatarUrl,
+      userCountryCode: r.userCountryCode,
+      userStatusText: r.userStatusText,
+      points: r.points,
+      pointDelta: r.pointDelta,
+      globalPlace: r.userGlobalRank ?? 0,
+      division: r.userDivision,
+      divisionPlace: r.userDivisionRank ?? 0,
+    })),
+  }
+}
+
+export type ChallengeGraphEntry = {
+  id: string
+  name: string
+  points: { time: number; score: number }[]
+}
+
+// Per-challenge score history for the given teams, by replaying their feed
+// score_events chronologically. The source='feed' filter and the non-banned
+// join must stay together: feed-only cumulative sums are correct precisely
+// because banned/deleted corrections (source 'ban'/'delete') are excluded by
+// the join, never by the sum.
+export const getChallengeScoresGraph = async (
+  db: DatabaseClient,
+  challengeId: string,
+  userIds: string[]
+): Promise<ChallengeGraphEntry[]> => {
+  if (userIds.length === 0) {
+    return []
+  }
+
+  const [eventRows, userRows] = await Promise.all([
+    db
+      .select({
+        userId: scoreEvents.userid,
+        pointsDelta: scoreEvents.pointsDelta,
+        eventAt: scoreEvents.eventAt,
+      })
+      .from(scoreEvents)
+      .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
+      .where(
+        and(
+          eq(scoreEvents.challengeid, challengeId),
+          eq(scoreEvents.source, 'feed'),
+          inArray(scoreEvents.userid, userIds)
+        )
+      )
+      .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id)),
+    db
+      .select({ id: users.id, name: users.name })
+      .from(users)
+      .where(inArray(users.id, userIds)),
+  ])
+
+  const nameById = new Map(userRows.map(row => [row.id, row.name]))
+  const seriesByUser = new Map<string, { time: number; score: number }[]>()
+  const runningScore = new Map<string, number>()
+
+  for (const row of eventRows) {
+    if (!row.userId) {
+      continue
+    }
+    const score = (runningScore.get(row.userId) ?? 0) + row.pointsDelta
+    runningScore.set(row.userId, score)
+    const series = seriesByUser.get(row.userId) ?? []
+    series.push({ time: new Date(row.eventAt).getTime(), score })
+    seriesByUser.set(row.userId, series)
+  }
+
+  // extend every line to a shared "now" so trailing flat segments are visible
+  const now = Date.now()
+  const result: ChallengeGraphEntry[] = []
+  for (const userId of userIds) {
+    const series = seriesByUser.get(userId)
+    if (!series || series.length === 0) {
+      continue
+    }
+    const last = series[series.length - 1]!
+    if (last.time < now) {
+      series.push({ time: now, score: last.score })
+    }
+    result.push({
+      id: userId,
+      name: nameById.get(userId) ?? '',
+      points: series,
+    })
+  }
+
+  return result
+}
+
 export const getUserChallengeSolves = async (
   db: DatabaseClient,
   userId: string

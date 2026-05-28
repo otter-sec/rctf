@@ -6,6 +6,7 @@ import {
   BadChallenge,
   BadNotStarted,
   BadSignature,
+  GoodChallengeScoresV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
   GoodDynamicScores,
@@ -44,6 +45,34 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   path: '/v2/challs/:id/solves',
   method: 'GET',
   goodResponses: [GoodChallengeSolvesV2],
+  badResponses: [BadNotStarted, BadChallenge, BadBody],
+  optionalAuth: true,
+  params: z.object({
+    id: z.string().check(z.describe('Challenge ID.')),
+  }),
+  query: z.object({
+    // NOTE: Has max limits that are loaded from config
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(z.describe('Integer `>= 1`. Maximum enforced by config.')),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Integer `>= 0`.')),
+  }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
+
+// the GET counterpart to the dynamic-scores webhook: the per-team scoreboard
+// and score history for a single dynamic challenge. shares the path with the
+// POST webhook above (routed by method). intentionally no serviceAuth here, so
+// it stays a public optional-auth read like the solves listing.
+export const GetChallengeScoresRouteV2 = defineRoute({
+  path: '/v2/challs/:id/scores',
+  method: 'GET',
+  goodResponses: [GoodChallengeScoresV2],
   badResponses: [BadNotStarted, BadChallenge, BadBody],
   optionalAuth: true,
   params: z.object({
