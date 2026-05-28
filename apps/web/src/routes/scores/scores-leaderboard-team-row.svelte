@@ -1,10 +1,10 @@
 <script lang="ts">
   import { countryCodeToFlagFilename, getInitials, getRankVariant } from '$lib/utils'
-  import ScoresDeltaIndicator from './scores-delta-indicator.svelte'
-  import ScoresSolveCells from './scores-solve-cells.svelte'
-  import ScoresSparkline from './scores-sparkline.svelte'
-  import type { ScoresTeamRowData } from './scores-team-row-data'
-  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
+  import ScoresDeltaIndicator from './scores-leaderboard-team-row-delta-indicator.svelte'
+  import ScoresSolveCells from './scores-leaderboard-team-row-solve-cells.svelte'
+  import ScoresSparkline from './scores-leaderboard-team-row-sparkline.svelte'
+  import type { ScoresTeamRowData } from './scores-leaderboard-team-row-data'
+  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './scores-shared-types'
 
   interface Props {
     data: ScoresTeamRowData | null

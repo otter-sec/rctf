@@ -1,6 +1,6 @@
 <script lang="ts">
   import { formatLocalTime } from '$lib/utils/time'
-  import type { TooltipData } from './types'
+  import type { TooltipData } from './scores-shared-types'
 
   const BLOOD_LABELS = ['First blood!', 'Second blood!', 'Third blood!']
 

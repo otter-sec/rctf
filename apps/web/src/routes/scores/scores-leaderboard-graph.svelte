@@ -11,7 +11,7 @@
   import { formatLocalTime, formatRelativeHours, formatRelativeHoursMinutes } from '$lib/utils/time'
   import { flatGroup } from 'd3-array'
   import { Axis, ChartCore, Highlight, Spline, Svg, Text, Tooltip } from 'layerchart/svg'
-  import { SCORE_GRAPH_AXIS_PADDING_PX } from './scores-layout-constants'
+  import { SCORE_GRAPH_AXIS_PADDING_PX } from './scores-leaderboard-layout-constants'
 
   function generateAxisTicks(scale: { domain: () => number[] }, divisions: number): number[] {
     const [min, max] = scale.domain()

@@ -7,9 +7,9 @@
     getChallengeCellsInnerWidth,
     getChallengeCellWidth,
     isDynamicChallenge,
-  } from './scores-data-helpers'
-  import { SCORE_CELL_WIDTH_PX } from './scores-layout-constants'
-  import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './types'
+  } from './scores-leaderboard-data-transforms'
+  import { SCORE_CELL_WIDTH_PX } from './scores-leaderboard-layout-constants'
+  import type { CategoryGroup, ChallengeInfo, SortMode, ViewMode } from './scores-shared-types'
 
   interface Props {
     viewMode: ViewMode
