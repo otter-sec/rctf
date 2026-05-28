@@ -65,10 +65,6 @@ export const GetChallengeSolvesRouteV2 = defineRoute({
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
 })
 
-// the GET counterpart to the dynamic-scores webhook: the per-team scoreboard
-// and score history for a single dynamic challenge. shares the path with the
-// POST webhook above (routed by method). intentionally no serviceAuth here, so
-// it stays a public optional-auth read like the solves listing.
 export const GetChallengeScoresRouteV2 = defineRoute({
   path: '/v2/challs/:id/scores',
   method: 'GET',

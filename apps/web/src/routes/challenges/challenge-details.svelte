@@ -27,8 +27,6 @@
 
   const isDynamic = $derived(challenge?.scoringKind === ChallengeScoringKind.DYNAMIC)
 
-  // coerce a stale tab selection that doesn't apply to the current challenge
-  // (e.g. carrying "solves" over to a dynamic challenge, or vice versa)
   const tab = $derived.by(() => {
     if (selectedTab === 'solves' && !challenge?.hasFlag) return 'details'
     if (selectedTab === 'scores' && !isDynamic) return 'details'

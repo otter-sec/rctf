@@ -58,9 +58,6 @@
     scroll.state.isFetching = solvesQuery.isFetchingNextPage
   })
 
-  // live viewport scroll position + height (the virtual-scroll hook only emits
-  // metrics on scroll, not on resize/measure, so read it whenever the
-  // virtualizer recomputes)
   let viewportWindow = $state<{ scrollTop: number; clientHeight: number } | null>(null)
   $effect(() => {
     void scroll.virtualItems
@@ -70,27 +67,19 @@
       : null
   })
 
-  // pin the self row to the top when the user's solve is above the viewport, to
-  // the bottom when it's below, and hide it when it's fully in view (mirrors
-  // /scores). derived from viewportWindow, so it's a pure derivation.
   const selfRowPosition = $derived.by((): 'top' | 'bottom' | null => {
     const metrics = viewportWindow
     if (!currentUser || !currentUserSolve || !metrics) return null
-    // solved, but the row hasn't been paged in yet — it's below the loaded range
     if (userSolveIndex === -1) return 'bottom'
     const viewportTop = metrics.scrollTop
     const viewportBottom = metrics.scrollTop + metrics.clientHeight
     const itemTop = userSolveIndex * ROW_HEIGHT
     const itemBottom = itemTop + ROW_HEIGHT
-    // fully in view → no pin; top edge above → pin top; otherwise pin bottom
     if (itemTop >= viewportTop && itemBottom <= viewportBottom) return null
     if (itemTop < viewportTop) return 'top'
     return 'bottom'
   })
 
-  // start the scroll fade flush with the pinned self row's edge (its own height,
-  // h-16 = 64px — not the 68px virtual slot) so the bg blends seamlessly into
-  // the fade instead of leaving a sliver of the next row showing
   const PINNED_ROW_HEIGHT_PX = 64
   const fadeOffsets = $derived(
     selfRowPosition === 'top'

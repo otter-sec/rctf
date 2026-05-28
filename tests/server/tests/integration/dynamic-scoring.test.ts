@@ -259,13 +259,14 @@ describe('getChallenges dynamic participant display', () => {
     expect(challenge?.myScore).toBe(125)
     expect(challenge?.myPointDelta).toBe(-175)
 
+    // zeroing removes the solve, so the team is off the board entirely
     await upsertDynamicSolves(db, challengeId, [{ userId: user.id, points: 0 }])
 
     challenge = (await getChallenges(db, user.id)).find(
       item => item.id === challengeId
     )
-    expect(challenge?.myScore).toBe(0)
-    expect(challenge?.myPointDelta).toBe(-125)
+    expect(challenge?.myScore).toBeUndefined()
+    expect(challenge?.myPointDelta).toBeUndefined()
   })
 })
 
@@ -299,7 +300,6 @@ describe('getChallengeScoresWithPosition', () => {
       alice.id,
     ])
     expect(result.scores.map(s => s.points)).toEqual([500, 300, 100])
-    // first feed tick: each team's latest delta equals its inserted points
     expect(result.scores.map(s => s.pointDelta)).toEqual([500, 300, 100])
     expect(result.myPosition).toBe(2)
   })
@@ -328,6 +328,35 @@ describe('getChallengeScoresWithPosition', () => {
     expect(result.myPosition).toBe(1)
   })
 
+  test('pointDelta is 0 for a team that did not move in the latest tick', async () => {
+    const db = getDb()
+    const { user: mover } = await generateRealTestUser()
+    const { user: idle } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    // first tick: both teams score
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: mover.id, points: 100 },
+      { userId: idle.id, points: 300 },
+    ])
+    // later tick: only mover updates, so idle didn't move in the latest tick
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: mover.id, points: 250 },
+    ])
+
+    const result = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      idle.id,
+      100,
+      0
+    )
+    const moverRow = result.scores.find(s => s.userId === mover.id)
+    const idleRow = result.scores.find(s => s.userId === idle.id)
+    expect(moverRow?.pointDelta).toBe(150)
+    expect(idleRow?.pointDelta).toBe(0)
+  })
+
   test('excludes banned and zeroed teams from the ranking and total', async () => {
     const db = getDb()
     const { user: active } = await generateRealTestUser()
@@ -340,7 +369,6 @@ describe('getChallengeScoresWithPosition', () => {
       { userId: banned.id, points: 600 },
       { userId: zeroed.id, points: 200 },
     ])
-    // zeroing deletes the solve row, so the team drops out of the ranking
     await upsertDynamicSolves(db, challengeId, [
       { userId: zeroed.id, points: 0 },
     ])
@@ -426,7 +454,6 @@ describe('getChallengeScoresGraph', () => {
     expect(graph[0]?.id).toBe(user.id)
 
     const scores = graph[0]!.points.map(p => p.score)
-    // cumulative feed replay (+100, +150, -75), then a trailing "now" sample
     expect(scores.slice(0, 3)).toEqual([100, 250, 175])
     expect(scores.at(-1)).toBe(175)
     expect(scores.length).toBeGreaterThanOrEqual(3)

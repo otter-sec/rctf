@@ -6,11 +6,8 @@
     variant: RankVariant
     name: string
     avatarUrl: string | null
-    // secondary line: a solve time for decay, a points string for dynamic
     detail: string
-    // current user's slot — drives which slots stay visible as the panel narrows
     isSelf?: boolean
-    // dashed "unsolved" / "no score" styling
     isPlaceholder?: boolean
   }
 </script>

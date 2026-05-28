@@ -7,9 +7,6 @@
   import { flatGroup } from 'd3-array'
   import { Axis, ChartCore, Highlight, Spline, Svg, Text, Tooltip } from 'layerchart/svg'
 
-  // reserve enough room below the plot for the x-axis tick labels so they don't
-  // sit flush against (or bleed past) the container bottom, where the scroll
-  // area's top fade would paint over them
   const AXIS_PADDING_PX = 24
 
   type GraphEntry = {
@@ -19,12 +16,8 @@
   }
 
   interface Props {
-    // the (windowed) set of teams to draw
     graphData: GraphEntry[]
-    // stable per-team line color keyed by team id (by global rank), so colors
-    // don't shift as teams scroll in and out of the windowed set
     teamColors?: Record<string, string>
-    // teams drawn as dimmed context (e.g. the pinned top 3 once scrolled past)
     contextTeamIds?: Record<string, true>
     hoveredTeamId?: string | null
   }
@@ -166,8 +159,7 @@
     width: 100%;
     height: 100%;
     box-sizing: border-box;
-    /* ChartContainer ships `aspect-video`; pin to the parent height instead so
-       the chart can never lay out taller than its box and spill over the list */
+    /* override ChartContainer's aspect-video so it can't outgrow its box */
     aspect-ratio: auto;
   }
 

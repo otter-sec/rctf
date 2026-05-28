@@ -32,7 +32,6 @@ challsGroup.route(
       return res.badChallenge()
     }
 
-    // history only for the teams on this page; the client accumulates pages
     const graph = await getChallengeScoresGraph(
       ctx.var.db,
       params.id,

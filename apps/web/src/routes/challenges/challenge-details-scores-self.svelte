@@ -7,9 +7,10 @@
 
   interface Props {
     challenge: Challenge
+    rankDelta?: number
   }
 
-  let { challenge }: Props = $props()
+  let { challenge, rankDelta }: Props = $props()
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
@@ -36,6 +37,7 @@
   <ChallengeDetailsSolvesRow
     {variant}
     rankLabel={myPosition}
+    {rankDelta}
     name={currentUser.name}
     userId={currentUser.id}
     avatarUrl={currentUser.avatarUrl}

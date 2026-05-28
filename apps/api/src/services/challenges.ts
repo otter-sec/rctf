@@ -599,11 +599,6 @@ type ChallengeScoresWithPosition = {
   myPosition: number | null
 }
 
-// The dynamic counterpart to getChallengeSolvesWithPosition: teams ranked by
-// their current points on a dynamic challenge (DESC), each with the signed
-// delta from the latest feed tick. Ranks off solves.points (the value the
-// leaderboard agrees on) so zeroed teams — whose solve row was deleted — drop
-// out automatically.
 export const getChallengeScoresWithPosition = async (
   db: DatabaseClient,
   challengeId: string,
@@ -633,14 +628,15 @@ export const getChallengeScoresWithPosition = async (
         userGlobalRank: users.globalRank,
         userDivisionRank: users.divisionRank,
         points: solves.points,
-        // signed movement from this team's most recent feed event
         pointDelta: sql<number>`COALESCE((
-          SELECT points_delta FROM score_events
+          SELECT SUM(points_delta) FROM score_events
           WHERE challengeid = ${challengeId}
             AND userid = ${solves.userid}
             AND source = 'feed'
-          ORDER BY event_at DESC, id DESC
-          LIMIT 1
+            AND event_at = (
+              SELECT MAX(event_at) FROM score_events
+              WHERE challengeid = ${challengeId} AND source = 'feed'
+            )
         ), 0)::int`.as('point_delta'),
         position:
           sql<number>`row_number() over (order by ${solves.points} desc, ${solves.pointsUpdatedAt} asc, ${solves.userid} asc)::int`.as(
@@ -711,11 +707,9 @@ export type ChallengeGraphEntry = {
   points: { time: number; score: number }[]
 }
 
-// Per-challenge score history for the given teams, by replaying their feed
-// score_events chronologically. The source='feed' filter and the non-banned
-// join must stay together: feed-only cumulative sums are correct precisely
-// because banned/deleted corrections (source 'ban'/'delete') are excluded by
-// the join, never by the sum.
+// The source='feed' filter and the non-banned join must stay paired: feed-only
+// cumulative sums are correct only because ban/delete corrections are excluded
+// by the join, not by the sum.
 export const getChallengeScoresGraph = async (
   db: DatabaseClient,
   challengeId: string,
@@ -763,7 +757,6 @@ export const getChallengeScoresGraph = async (
     seriesByUser.set(row.userId, series)
   }
 
-  // extend every line to a shared "now" so trailing flat segments are visible
   const now = Date.now()
   const result: ChallengeGraphEntry[] = []
   for (const userId of userIds) {
@@ -958,26 +951,24 @@ export async function getDynamicScoresForUsers(
     getLatestDynamicPointDeltas(db, userIds, challengeIds),
   ])
 
-  const getScore = (userId: string, challengeId: string) => {
-    const teamScores = scoreMap.get(userId)
-    if (!teamScores) return null
-    const existing = teamScores.get(challengeId)
-    if (existing) return existing
-
-    const score = { id: challengeId, points: 0, pointDelta: 0 }
-    teamScores.set(challengeId, score)
-    return score
-  }
-
+  // a team only has a score on a challenge if it has a current solve; a team
+  // whose solve was zeroed/removed is off the board even though its removal
+  // delta may be the latest event, so entries come from solves and deltas only
+  // annotate teams that already have one.
   for (const row of currentRows) {
-    const score = getScore(row.userId, row.challengeId)
-    if (score) score.points = row.points
+    scoreMap.get(row.userId)?.set(row.challengeId, {
+      id: row.challengeId,
+      points: row.points,
+      pointDelta: 0,
+    })
   }
 
   for (const [userId, deltas] of pointDeltas) {
+    const teamScores = scoreMap.get(userId)
+    if (!teamScores) continue
     for (const [challengeId, pointDelta] of deltas) {
-      const score = getScore(userId, challengeId)
-      if (score) score.pointDelta = pointDelta
+      const existing = teamScores.get(challengeId)
+      if (existing) existing.pointDelta = pointDelta
     }
   }
 

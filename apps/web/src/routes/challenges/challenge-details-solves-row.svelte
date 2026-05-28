@@ -5,10 +5,12 @@
   import { cn, getInitials, getRankStyles } from '$lib/utils'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
+  import ChallengeRankDelta from './challenge-rank-delta.svelte'
 
   interface Props {
     variant?: RankVariant
     rankLabel?: string | number
+    rankDelta?: number
     name: string
     userId?: string
     avatarUrl?: string | null
@@ -28,6 +30,7 @@
   let {
     variant,
     rankLabel,
+    rankDelta,
     name,
     userId,
     avatarUrl,
@@ -75,14 +78,14 @@
   ></div>
 
   {#if rankLabel !== undefined}
-    <span
-      class={cn(
-        'min-w-10 shrink-0 text-center text-base tabular-nums sm:min-w-12 sm:text-xl',
-        styles.fgL0
-      )}
-    >
-      {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
-    </span>
+    <div class="flex min-w-10 shrink-0 flex-col items-center gap-0.5 sm:min-w-12">
+      <span class={cn('text-base tabular-nums sm:text-xl', styles.fgL0)}>
+        {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
+      </span>
+      {#if rankDelta}
+        <ChallengeRankDelta delta={rankDelta} />
+      {/if}
+    </div>
   {/if}
 
   <Avatar.Root class="size-10 shrink-0 rounded-lg sm:size-12">
