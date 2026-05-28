@@ -12,20 +12,21 @@
   } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from './challenge-details-solves-row.svelte'
+  import ChallengeDetailsSolvesSelf from './challenge-details-solves-self.svelte'
 
   const ROW_HEIGHT = 68
 
   interface Props {
     challenge: Challenge
-    userVisibleInList?: boolean
   }
 
-  let { challenge, userVisibleInList = $bindable(false) }: Props = $props()
+  let { challenge }: Props = $props()
 
   const userQuery = useCurrentUser()
   const clientConfigQuery = useClientConfig()
 
   const currentUser = $derived(userQuery.data)
+  const currentUserSolve = $derived(currentUser?.solves.find(s => s.id === challenge.id))
   const clientConfig = $derived(clientConfigQuery.data)
   const ctfStartTime = $derived(clientConfig?.startTime ?? 0)
   const totalCount = $derived(challenge.solves ?? 0)
@@ -57,26 +58,47 @@
     scroll.state.isFetching = solvesQuery.isFetchingNextPage
   })
 
+  // live viewport scroll position + height (the virtual-scroll hook only emits
+  // metrics on scroll, not on resize/measure, so read it whenever the
+  // virtualizer recomputes)
+  let viewportWindow = $state<{ scrollTop: number; clientHeight: number } | null>(null)
   $effect(() => {
-    if (userSolveIndex === -1) {
-      userVisibleInList = false
-      return
-    }
-
-    const viewport = scroll.state.viewportRef
-    if (!viewport) {
-      userVisibleInList = false
-      return
-    }
-
     void scroll.virtualItems
-    const viewportTop = viewport.scrollTop
-    const viewportBottom = viewportTop + viewport.clientHeight
+    const viewport = scroll.state.viewportRef
+    viewportWindow = viewport
+      ? { scrollTop: viewport.scrollTop, clientHeight: viewport.clientHeight }
+      : null
+  })
+
+  // pin the self row to the top when the user's solve is above the viewport, to
+  // the bottom when it's below, and hide it when it's fully in view (mirrors
+  // /scores). derived from viewportWindow, so it's a pure derivation.
+  const selfRowPosition = $derived.by((): 'top' | 'bottom' | null => {
+    const metrics = viewportWindow
+    if (!currentUser || !currentUserSolve || !metrics) return null
+    // solved, but the row hasn't been paged in yet — it's below the loaded range
+    if (userSolveIndex === -1) return 'bottom'
+    const viewportTop = metrics.scrollTop
+    const viewportBottom = metrics.scrollTop + metrics.clientHeight
     const itemTop = userSolveIndex * ROW_HEIGHT
     const itemBottom = itemTop + ROW_HEIGHT
-
-    userVisibleInList = itemTop < viewportBottom && itemBottom > viewportTop
+    // fully in view → no pin; top edge above → pin top; otherwise pin bottom
+    if (itemTop >= viewportTop && itemBottom <= viewportBottom) return null
+    if (itemTop < viewportTop) return 'top'
+    return 'bottom'
   })
+
+  // start the scroll fade flush with the pinned self row's edge (its own height,
+  // h-16 = 64px — not the 68px virtual slot) so the bg blends seamlessly into
+  // the fade instead of leaving a sliver of the next row showing
+  const PINNED_ROW_HEIGHT_PX = 64
+  const fadeOffsets = $derived(
+    selfRowPosition === 'top'
+      ? { top: PINNED_ROW_HEIGHT_PX }
+      : selfRowPosition === 'bottom'
+        ? { bottom: PINNED_ROW_HEIGHT_PX }
+        : {}
+  )
 
   $effect(() => {
     if (solvesQuery.isError) {
@@ -86,55 +108,71 @@
 </script>
 
 <div class="flex h-full flex-col">
-  <ScrollArea
-    bind:viewportRef={scroll.state.viewportRef}
-    class="min-h-0 flex-1"
-    fadeSize={64}
-    fadeColor="background-l2"
-    viewportTabIndex={-1}
-  >
-    {#if solvesQuery.isPending}
-      <div class="flex items-center justify-center py-8">
-        <Spinner class="size-6" />
-      </div>
-    {:else if totalCount === 0}
-      <EmptyState
-        icon={IconTrophyFilled}
-        title="No solves yet"
-        subtitle="Be the first to solve this challenge!"
-        class="h-full"
-      />
-    {:else}
-      <VirtualList
-        virtualItems={scroll.virtualItems}
-        totalSize={scroll.totalSize}
-        items={allSolves}
-        hasNextPage={solvesQuery.hasNextPage}
-        class="mx-5 mt-4"
+  <div class="relative mt-4 min-h-0 flex-1">
+    <ScrollArea
+      bind:viewportRef={scroll.state.viewportRef}
+      class="h-full"
+      fadeSize={64}
+      fadeColor="background-l2"
+      {fadeOffsets}
+      viewportTabIndex={-1}
+    >
+      {#if solvesQuery.isPending}
+        <div class="flex items-center justify-center py-8">
+          <Spinner class="size-6" />
+        </div>
+      {:else if totalCount === 0}
+        <EmptyState
+          icon={IconTrophyFilled}
+          title="No solves yet"
+          subtitle="Be the first to solve this challenge!"
+          class="h-full"
+        />
+      {:else}
+        <VirtualList
+          virtualItems={scroll.virtualItems}
+          totalSize={scroll.totalSize}
+          items={allSolves}
+          hasNextPage={solvesQuery.hasNextPage}
+          class="mx-5"
+        >
+          {#snippet children({ item, index })}
+            {@const solve = item}
+            {@const solvePosition = index + 1}
+            {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
+            {@const variant = getRankVariant(solvePosition, isCurrentUser)}
+            <ChallengeDetailsSolvesRow
+              {variant}
+              rankLabel={solvePosition}
+              name={solve.userName}
+              userId={solve.userId}
+              avatarUrl={solve.userAvatarUrl}
+              countryCode={solve.userCountryCode}
+              globalPlace={solve.globalPlace}
+              divisionId={showDivision ? solve.division : undefined}
+              divisionPlace={showDivision ? solve.divisionPlace : undefined}
+              {isCurrentUser}
+              primaryValue={solvePosition === 1
+                ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
+                : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
+              secondaryValue={formatLocalTime(solve.createdAt)}
+            />
+          {/snippet}
+        </VirtualList>
+      {/if}
+    </ScrollArea>
+    {#if selfRowPosition === 'top'}
+      <div
+        class="bg-background-l2 pointer-events-none absolute inset-x-0 top-0 z-20 px-5 [&_a]:pointer-events-auto"
       >
-        {#snippet children({ item, index })}
-          {@const solve = item}
-          {@const solvePosition = index + 1}
-          {@const isCurrentUser = !!(currentUser && solve.userId === currentUser.id)}
-          {@const variant = getRankVariant(solvePosition, isCurrentUser)}
-          <ChallengeDetailsSolvesRow
-            {variant}
-            rankLabel={solvePosition}
-            name={solve.userName}
-            userId={solve.userId}
-            avatarUrl={solve.userAvatarUrl}
-            countryCode={solve.userCountryCode}
-            globalPlace={solve.globalPlace}
-            divisionId={showDivision ? solve.division : undefined}
-            divisionPlace={showDivision ? solve.divisionPlace : undefined}
-            {isCurrentUser}
-            primaryValue={solvePosition === 1
-              ? formatFirstBloodTime(solve.createdAt, ctfStartTime)
-              : formatRelativeToFirstBlood(solve.createdAt, firstBloodTime)}
-            secondaryValue={formatLocalTime(solve.createdAt)}
-          />
-        {/snippet}
-      </VirtualList>
+        <ChallengeDetailsSolvesSelf {challenge} />
+      </div>
+    {:else if selfRowPosition === 'bottom'}
+      <div
+        class="bg-background-l2 pointer-events-none absolute inset-x-0 bottom-0 z-20 px-5 [&_a]:pointer-events-auto"
+      >
+        <ChallengeDetailsSolvesSelf {challenge} />
+      </div>
     {/if}
-  </ScrollArea>
+  </div>
 </div>

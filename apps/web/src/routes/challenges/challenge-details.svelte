@@ -1,11 +1,17 @@
 <script lang="ts">
-  import type { Challenge } from '@rctf/types'
+  import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import { EmptyState, Tabs } from '$lib/components'
-  import { IconFileInfoFilled, IconFlagFilled, IconTrophyFilled } from '$lib/icons'
+  import {
+    IconChartAreaLineFilled,
+    IconFileInfoFilled,
+    IconFlagFilled,
+    IconTrophyFilled,
+  } from '$lib/icons'
   import ChallengeDetailsHeader from './challenge-details-header.svelte'
   import ChallengeDetailsOverview from './challenge-details-overview.svelte'
+  import ChallengeDetailsPodiumDynamic from './challenge-details-podium-dynamic.svelte'
   import ChallengeDetailsPodium from './challenge-details-podium.svelte'
-  import ChallengeDetailsSolvesSelf from './challenge-details-solves-self.svelte'
+  import ChallengeDetailsScores from './challenge-details-scores.svelte'
   import ChallengeDetailsSolves from './challenge-details-solves.svelte'
   import ChallengeDetailsSubmit from './challenge-details-submit.svelte'
 
@@ -17,8 +23,17 @@
 
   let { challenge, isSolved, onSolve }: Props = $props()
 
-  let tab = $state('details')
-  let userVisible = $state(false)
+  let selectedTab = $state('details')
+
+  const isDynamic = $derived(challenge?.scoringKind === ChallengeScoringKind.DYNAMIC)
+
+  // coerce a stale tab selection that doesn't apply to the current challenge
+  // (e.g. carrying "solves" over to a dynamic challenge, or vice versa)
+  const tab = $derived.by(() => {
+    if (selectedTab === 'solves' && !challenge?.hasFlag) return 'details'
+    if (selectedTab === 'scores' && !isDynamic) return 'details'
+    return selectedTab
+  })
 </script>
 
 {#if challenge}
@@ -26,7 +41,11 @@
     <div class="@container/details flex h-full flex-col">
       <ChallengeDetailsHeader {challenge} {isSolved} />
 
-      <Tabs.Root bind:value={tab} class="flex min-h-0 flex-1 flex-col">
+      <Tabs.Root
+        value={tab}
+        onValueChange={value => (selectedTab = value)}
+        class="flex min-h-0 flex-1 flex-col"
+      >
         <div class="px-5">
           <Tabs.List class="h-auto w-fit gap-0 rounded-none bg-transparent p-0">
             <Tabs.Trigger
@@ -43,6 +62,14 @@
               >
                 <IconTrophyFilled class="size-4" />
                 Solves{challenge.solves !== null ? ` (${challenge.solves})` : ''}
+              </Tabs.Trigger>
+            {:else if isDynamic}
+              <Tabs.Trigger
+                value="scores"
+                class="data-[state=active]:bg-background-l2 rounded-t-lg rounded-b-none px-4 py-1 data-[state=active]:shadow-none"
+              >
+                <IconChartAreaLineFilled class="size-4" />
+                Scores{challenge.solves !== null ? ` (${challenge.solves})` : ''}
               </Tabs.Trigger>
             {/if}
           </Tabs.List>
@@ -62,7 +89,16 @@
               {#snippet child({ props })}
                 {@const { role: _role, tabindex: _tabindex, ...panelProps } = props}
                 <div {...panelProps} role="tabpanel" tabindex={-1}>
-                  <ChallengeDetailsSolves {challenge} bind:userVisibleInList={userVisible} />
+                  <ChallengeDetailsSolves {challenge} />
+                </div>
+              {/snippet}
+            </Tabs.Content>
+          {:else if isDynamic}
+            <Tabs.Content value="scores" class="h-full">
+              {#snippet child({ props })}
+                {@const { role: _role, tabindex: _tabindex, ...panelProps } = props}
+                <div {...panelProps} role="tabpanel" tabindex={-1}>
+                  <ChallengeDetailsScores {challenge} />
                 </div>
               {/snippet}
             </Tabs.Content>
@@ -71,13 +107,15 @@
       </Tabs.Root>
 
       {#if challenge.hasFlag}
-        <div class="bg-background-l2 flex flex-col gap-2 px-5 py-4">
+        <div class="bg-background-l2 flex flex-col gap-2 px-5 pt-2 pb-4">
           {#if tab === 'details'}
             <ChallengeDetailsPodium {challenge} {isSolved} />
-          {:else if tab === 'solves' && !userVisible}
-            <ChallengeDetailsSolvesSelf {challenge} />
           {/if}
           <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
+        </div>
+      {:else if isDynamic && tab === 'details'}
+        <div class="bg-background-l2 flex flex-col gap-2 px-5 pt-2 pb-4">
+          <ChallengeDetailsPodiumDynamic {challenge} />
         </div>
       {/if}
     </div>
