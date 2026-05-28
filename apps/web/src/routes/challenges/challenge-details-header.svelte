@@ -1,6 +1,7 @@
 <script lang="ts">
-  import type { Challenge } from '@rctf/types'
+  import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import { getCategoryConfig, getCategoryStyle } from '$lib/utils'
+  import ChallengeDynamicDelta from './challenge-dynamic-delta.svelte'
 
   interface Props {
     challenge: Challenge
@@ -12,6 +13,10 @@
   const config = $derived(getCategoryConfig(challenge.category))
   const categoryStyle = $derived(getCategoryStyle(config.color))
   const otherTags = $derived((challenge as Challenge & { tags?: string[] }).tags ?? [])
+  const isDynamic = $derived(challenge.scoringKind === ChallengeScoringKind.DYNAMIC)
+  const displayPoints = $derived(isDynamic ? (challenge.yourScore ?? 0) : (challenge.points ?? 0))
+  const displayPointDelta = $derived(challenge.yourPointDelta ?? 0)
+  const showsScore = $derived(challenge.hasFlag || isDynamic)
 </script>
 
 <div class="flex flex-col px-9 py-4 sm:py-6">
@@ -31,7 +36,7 @@
             <config.icon class="size-3 shrink-0 sm:size-3.5" />
             {config.name}
           </span>
-          {#each otherTags as tag}
+          {#each otherTags as tag (tag)}
             <span class="bg-background-l2 shrink-0 rounded px-1.5 py-0.5 text-xs sm:text-sm"
               >{tag}</span
             >
@@ -39,16 +44,23 @@
         </div>
       </div>
     </div>
-    {#if challenge.hasFlag}
+    {#if showsScore}
       <div class="flex shrink-0 flex-col items-end">
         <h2 class="text-right text-xl whitespace-nowrap tabular-nums sm:text-2xl">
-          {challenge.points?.toLocaleString() ?? '0'} pts
+          {displayPoints.toLocaleString()} pts
         </h2>
-        <p
-          class="text-foreground-l3 text-right text-sm whitespace-nowrap tabular-nums sm:text-base"
-        >
-          {challenge.solves?.toLocaleString() ?? '0'} solves
-        </p>
+        {#if isDynamic}
+          <ChallengeDynamicDelta
+            delta={displayPointDelta}
+            class="justify-end text-sm sm:text-base"
+          />
+        {:else}
+          <p
+            class="text-foreground-l3 text-right text-sm whitespace-nowrap tabular-nums sm:text-base"
+          >
+            {challenge.solves?.toLocaleString() ?? '0'} solves
+          </p>
+        {/if}
       </div>
     {/if}
   </div>

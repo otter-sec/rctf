@@ -178,7 +178,10 @@ const challengeDefaultOrder = [
   desc(challenges.id),
 ] as const
 
-export type ChallengeWithMyScore = Challenge & { myScore?: number }
+export type ChallengeWithMyScore = Challenge & {
+  myScore?: number
+  myPointDelta?: number
+}
 
 export const getChallenges = async (
   db: DatabaseClient,
@@ -209,9 +212,24 @@ export const getChallenges = async (
     .where(challengeIsPublicSql)
     .orderBy(...challengeDefaultOrder)
 
+  const dynamicChallengeIds = rows
+    .filter(row => scoringKindOf(row.data) === ChallengeScoringKind.DYNAMIC)
+    .map(row => row.id)
+  const dynamicScores =
+    dynamicChallengeIds.length > 0
+      ? ((
+          await getDynamicScoresForUsers(db, [userId], dynamicChallengeIds)
+        ).get(userId) ?? [])
+      : []
+  const dynamicScoreByChallenge = new Map(
+    dynamicScores.map(score => [score.id, score])
+  )
+
   return rows.map(({ myScore, ...rest }) => ({
     ...rest,
-    myScore: myScore ?? undefined,
+    myScore:
+      dynamicScoreByChallenge.get(rest.id)?.points ?? myScore ?? undefined,
+    myPointDelta: dynamicScoreByChallenge.get(rest.id)?.pointDelta,
   }))
 }
 

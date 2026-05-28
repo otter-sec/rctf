@@ -1,7 +1,8 @@
 <script lang="ts">
-  import type { Challenge } from '@rctf/types'
+  import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import { IconAwardFilled, IconCheck } from '$lib/icons'
   import { cn, getBloodStyles, type BloodIndex } from '$lib/utils'
+  import ChallengeDynamicDelta from './challenge-dynamic-delta.svelte'
 
   interface Props {
     challenge: Challenge
@@ -14,8 +15,12 @@
 
   let { challenge, category, isSolved, bloodIndex, isSelected, onSelect }: Props = $props()
 
+  const isDynamic = $derived(challenge.scoringKind === ChallengeScoringKind.DYNAMIC)
   const isBlood = $derived(bloodIndex !== null)
   const bloodStyles = $derived(bloodIndex !== null ? getBloodStyles(bloodIndex) : null)
+  const displayPoints = $derived(isDynamic ? (challenge.yourScore ?? 0) : (challenge.points ?? 0))
+  const displayPointDelta = $derived(challenge.yourPointDelta ?? 0)
+  const showsScore = $derived(challenge.hasFlag || isDynamic)
 </script>
 
 <li id="chall-{challenge.id}">
@@ -52,17 +57,19 @@
         {challenge.author}
       </span>
     </div>
-    {#if challenge.hasFlag}
+    {#if showsScore}
       <div
         class="z-1 flex shrink-0 flex-row items-baseline gap-2 @sm/list:flex-col @sm/list:items-end @sm/list:gap-0"
       >
-        {#if challenge.points !== null}
+        {#if isDynamic || challenge.points !== null}
           <div class="text-xl whitespace-nowrap tabular-nums">
-            <span class="text-category-foreground-l0">{challenge.points}</span>
+            <span class="text-category-foreground-l0">{displayPoints.toLocaleString()}</span>
             <span class="text-category-foreground-l1">pts</span>
           </div>
         {/if}
-        {#if challenge.solves !== null}
+        {#if isDynamic}
+          <ChallengeDynamicDelta delta={displayPointDelta} class="text-base" />
+        {:else if challenge.solves !== null}
           <span
             class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
           >

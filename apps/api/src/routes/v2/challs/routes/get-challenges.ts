@@ -26,6 +26,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx, user }) => {
       hasFlag: Boolean(item.data.flag),
       scoringKind: item.data.scoring?.kind ?? ChallengeScoringKind.DECAY,
       yourScore: item.myScore,
+      yourPointDelta: item.myPointDelta,
     }))
   )
 })

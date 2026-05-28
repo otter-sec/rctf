@@ -14,6 +14,7 @@ import { and, eq } from 'drizzle-orm'
 import RedisMock from 'ioredis-mock'
 import {
   deleteSolve,
+  getChallenges,
   getMaxSolveCount,
   upsertChallenge,
 } from '../../../../apps/api/src/services/challenges'
@@ -227,6 +228,42 @@ describe('upsertDynamicSolves: banned-user filtering', () => {
     expect(await getSolvePoints(ghost, challengeId)).toBeNull()
     expect(await countScoreEvents(alice.id, challengeId)).toBe(1)
     expect(await countScoreEvents(bannedBob.id, challengeId)).toBe(0)
+  })
+})
+
+describe('getChallenges dynamic participant display', () => {
+  test('returns current score and latest point delta for a dynamic challenge', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 300 },
+    ])
+
+    let challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBe(300)
+    expect(challenge?.myPointDelta).toBe(300)
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 125 },
+    ])
+
+    challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBe(125)
+    expect(challenge?.myPointDelta).toBe(-175)
+
+    await upsertDynamicSolves(db, challengeId, [{ userId: user.id, points: 0 }])
+
+    challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBe(0)
+    expect(challenge?.myPointDelta).toBe(-125)
   })
 })
 

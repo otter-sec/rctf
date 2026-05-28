@@ -70,6 +70,13 @@ export const GoodChallengesV2 = response('goodChallengesV2', {
             "Caller's current points for this challenge. Present when the user has a solve (or feed entry) for it."
           )
         ),
+      yourPointDelta: z
+        .optional(z.int())
+        .check(
+          z.describe(
+            "Caller's latest dynamic point delta for this challenge. Present for dynamic challenges when the caller had an entry in the latest feed tick."
+          )
+        ),
     })
   ),
 })
