@@ -768,7 +768,7 @@ export const getChallengeScoresGraph = async (
       userName: series.userName,
       points: sql<Array<{ time: number; score: number }>>`JSONB_AGG(
         JSONB_BUILD_OBJECT('time', ${series.eventAtMs}, 'score', ${series.cumulative})
-        ORDER BY ${series.eventAtMs}, ${series.cumulative}
+        ORDER BY ${series.rn}
       )`,
     })
     .from(series)
