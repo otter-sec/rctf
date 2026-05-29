@@ -12,7 +12,6 @@
     IconCopy,
     IconFlag3Filled,
     IconHomeFilled,
-    IconKeyFilled,
     IconLogin,
     IconLogout,
     IconMenu2,
@@ -115,13 +114,6 @@
       activePath: '/admin/submissions',
       label: 'Submissions',
       icon: IconTableFilled,
-      show: isAdmin,
-    },
-    {
-      href: '/admin/external-auth',
-      activePath: '/admin/external-auth',
-      label: 'External apps',
-      icon: IconKeyFilled,
       show: isAdmin,
     },
     {

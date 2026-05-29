@@ -1,5 +1,7 @@
 <script lang="ts">
   import {
+    GoodAdminExternalAuthClientCreate,
+    GoodAdminExternalAuthClientDelete,
     GoodAdminSettingsUpdate,
     GoodFilesUploadV2,
     UpdateAdminSettingsRouteV2,
@@ -11,6 +13,7 @@
   import {
     Button,
     Card,
+    Dialog,
     Field,
     Input,
     Markdown,
@@ -20,11 +23,14 @@
     Tabs,
     Textarea,
   } from '$lib/components'
-  import { IconCloudUpload, IconPlus, IconTrashFilled, IconX } from '$lib/icons'
+  import { IconCloudUpload, IconCopy, IconPlus, IconTrashFilled, IconX } from '$lib/icons'
   import {
     queryKeys,
+    useAdminExternalAuthClients,
     useAdminSettings,
     useClientConfig,
+    useCreateExternalAuthClientMutation,
+    useDeleteExternalAuthClientMutation,
     useUpdateSettingsMutation,
     useUploadFilesMutation,
   } from '$lib/query'
@@ -209,6 +215,109 @@
   function removeSponsor(index: number) {
     sponsors = sponsors.filter((_, i) => i !== index)
     markOverridden('sponsors')
+  }
+
+  // External apps (OAuth clients) are server-managed: create/delete hit the API directly
+  // and are not part of the settings "Save changes" patch.
+  const externalAuthQuery = useAdminExternalAuthClients()
+  const externalAuthClients = $derived(externalAuthQuery.data ?? [])
+  const createAppMutation = useCreateExternalAuthClientMutation()
+  const deleteAppMutation = useDeleteExternalAuthClientMutation()
+
+  let selectedAppId = $state<string | null>(null)
+  let creatingApp = $state(false)
+  let appName = $state('')
+  let appRedirectUri = $state('')
+  // The one-time secret to reveal in a dialog right after an app is created.
+  let secretDialog = $state<{ name: string; secret: string } | null>(null)
+  // The app pending deletion, confirmed in a dialog.
+  let deleteCandidate = $state<{ id: string; name: string } | null>(null)
+
+  const activeApp = $derived.by(() => {
+    if (creatingApp) return null
+    const byId = selectedAppId ? externalAuthClients.find(c => c.id === selectedAppId) : undefined
+    return byId ?? externalAuthClients[0] ?? null
+  })
+
+  const invalidateApps = () =>
+    queryClient.invalidateQueries({ queryKey: queryKeys.adminExternalAuthClients })
+
+  function selectApp(id: string) {
+    selectedAppId = id
+    creatingApp = false
+  }
+
+  function startCreateApp() {
+    selectedAppId = null
+    creatingApp = true
+    appName = ''
+    appRedirectUri = ''
+  }
+
+  function submitCreateApp(e: SubmitEvent) {
+    e.preventDefault()
+    const name = appName.trim()
+    const redirectUri = appRedirectUri.trim()
+    if (!name || !redirectUri) {
+      toast.error('Name and redirect URI are required.')
+      return
+    }
+    createAppMutation.mutate(
+      { name, redirectUri },
+      {
+        onSuccess: res => {
+          if (res.kind === GoodAdminExternalAuthClientCreate.kind) {
+            const { secret, ...client } = res.data
+            // Show the new app immediately, then reconcile with the server.
+            queryClient.setQueryData(
+              queryKeys.adminExternalAuthClients,
+              (old: typeof externalAuthClients | undefined) => [...(old ?? []), client]
+            )
+            invalidateApps()
+            selectedAppId = client.id
+            creatingApp = false
+            appName = ''
+            appRedirectUri = ''
+            secretDialog = { name: client.name, secret }
+          } else {
+            showApiError(res)
+          }
+        },
+      }
+    )
+  }
+
+  function confirmDeleteApp() {
+    const candidate = deleteCandidate
+    if (!candidate) return
+    deleteAppMutation.mutate(
+      { id: candidate.id },
+      {
+        onSuccess: res => {
+          if (res.kind === GoodAdminExternalAuthClientDelete.kind) {
+            toast.success('App deleted.')
+            if (selectedAppId === candidate.id) selectedAppId = null
+            deleteCandidate = null
+            invalidateApps()
+          } else {
+            showApiError(res)
+          }
+        },
+      }
+    )
+  }
+
+  function copyText(text: string, message: string) {
+    navigator.clipboard.writeText(text)
+    toast.success(message)
+  }
+
+  function formatAppDate(timestamp: string) {
+    return new Date(timestamp).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
   }
 
   const isSaving = $derived(mutation.isPending)
@@ -656,6 +765,149 @@
           </div>
         </Section.Content>
       </Section.Root>
+
+      <Section.Root class="bg-background-l1">
+        <Section.Header>External apps</Section.Header>
+        <Section.Content class="@container/panel p-0">
+          <div class="flex min-h-48 flex-col @md/panel:flex-row">
+            <div
+              class="flex w-full shrink-0 flex-col border-b-2 @md/panel:w-44 @md/panel:border-r-2 @md/panel:border-b-0"
+            >
+              <div
+                class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
+              >
+                {#if externalAuthQuery.isLoading}
+                  <div class="flex w-full justify-center p-4"><Spinner class="size-4" /></div>
+                {:else if externalAuthClients.length === 0}
+                  <p class="text-foreground-l4 px-2 py-1.5 text-sm">No apps</p>
+                {:else}
+                  {#each externalAuthClients as client (client.id)}
+                    {@const active = !creatingApp && activeApp?.id === client.id}
+                    <div
+                      class={cn(
+                        'group flex max-w-full cursor-pointer items-center gap-1 rounded-md px-2 py-1.5 text-sm @md/panel:w-full @md/panel:gap-2',
+                        active
+                          ? 'bg-background-l4 text-foreground-l0'
+                          : 'text-foreground-l4 hover:bg-background-l3 hover:text-foreground-l0'
+                      )}
+                      role="button"
+                      tabindex="0"
+                      onclick={() => selectApp(client.id)}
+                      onkeydown={e =>
+                        (e.key === 'Enter' || e.key === ' ') &&
+                        (e.preventDefault(), selectApp(client.id))}
+                    >
+                      <span class="truncate @md/panel:min-w-0 @md/panel:flex-1">
+                        {client.name || 'Untitled app'}
+                      </span>
+                      <button
+                        type="button"
+                        class={cn(
+                          'hover:bg-background-destructive hover:text-foreground-destructive shrink-0 rounded p-0.5',
+                          active
+                            ? 'opacity-100'
+                            : 'opacity-0 group-hover:opacity-100 @max-md/panel:opacity-100'
+                        )}
+                        aria-label="Delete {client.name || 'app'}"
+                        onclick={e => (
+                          e.stopPropagation(),
+                          (deleteCandidate = { id: client.id, name: client.name })
+                        )}
+                      >
+                        <IconX class="size-3" />
+                      </button>
+                    </div>
+                  {/each}
+                {/if}
+              </div>
+              <div class="shrink-0 border-t-2 p-2">
+                <Button size="sm" class="w-full" onclick={startCreateApp}>
+                  <IconPlus class="size-4" />
+                  Add
+                </Button>
+              </div>
+            </div>
+            <div class="min-w-0 flex-1 p-4">
+              {#if creatingApp}
+                <form onsubmit={submitCreateApp} class="flex flex-col gap-3">
+                  <Field.Hint>
+                    The issued token grants full account access to the signing-in user. Only
+                    register services you trust.
+                  </Field.Hint>
+                  <Field.Field>
+                    <Field.Label for="external-app-name">App name</Field.Label>
+                    <Input
+                      id="external-app-name"
+                      bind:value={appName}
+                      placeholder="My Scoring Backend"
+                      required
+                      maxlength={100}
+                    />
+                  </Field.Field>
+                  <Field.Field>
+                    <Field.Label for="external-app-redirect">Redirect URI</Field.Label>
+                    <Input
+                      id="external-app-redirect"
+                      bind:value={appRedirectUri}
+                      placeholder="https://example.com/callback"
+                      required
+                      maxlength={1024}
+                    />
+                    <Field.Hint>Must match byte-for-byte at /authorize and /token.</Field.Hint>
+                  </Field.Field>
+                  <div class="flex justify-end gap-2">
+                    <Button type="button" variant="ghost" onclick={() => (creatingApp = false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createAppMutation.isPending}>
+                      {#if createAppMutation.isPending}<Spinner class="size-4" />{/if}
+                      Register
+                    </Button>
+                  </div>
+                </form>
+              {:else if activeApp}
+                {@const client = activeApp}
+                <div class="flex flex-col gap-4">
+                  <div class="flex flex-col">
+                    <span class="truncate">{client.name || 'Untitled app'}</span>
+                    <span class="text-foreground-l4 text-sm">
+                      Registered {formatAppDate(client.createdAt)}
+                    </span>
+                  </div>
+
+                  <Field.Field>
+                    <Field.Label>Client ID</Field.Label>
+                    <button
+                      type="button"
+                      onclick={() => copyText(client.id, 'Client ID copied.')}
+                      title="Click to copy"
+                      class="group bg-background-l2 hover:bg-background-l3 flex items-center justify-between gap-2 rounded-md px-2 py-2 text-left transition-colors"
+                    >
+                      <code class="truncate font-mono text-sm">{client.id}</code>
+                      <IconCopy
+                        class="text-foreground-l4 group-hover:text-foreground-l1 size-4 shrink-0 transition-colors"
+                      />
+                    </button>
+                  </Field.Field>
+
+                  <Field.Field>
+                    <Field.Label>Redirect URI</Field.Label>
+                    <code
+                      class="bg-background-l2 block rounded-md px-2 py-2 font-mono text-sm break-all"
+                    >
+                      {client.redirectUri}
+                    </code>
+                  </Field.Field>
+                </div>
+              {:else}
+                <div class="text-foreground-l4 flex h-full items-center justify-center text-sm">
+                  Add an app to get started
+                </div>
+              {/if}
+            </div>
+          </div>
+        </Section.Content>
+      </Section.Root>
     </div>
   </ScrollArea>
 
@@ -669,6 +921,61 @@
       </Button>
     </div>
   </div>
+
+  <Dialog.Root open={!!secretDialog} onOpenChange={open => !open && (secretDialog = null)}>
+    <Dialog.Content class="sm:max-w-lg">
+      <Dialog.Header>
+        <Dialog.Title>App registered</Dialog.Title>
+        <Dialog.Description>
+          Copy the secret for "{secretDialog?.name}" now. It is shown only once and cannot be
+          retrieved later. If you lose it, delete the app and register a new one.
+        </Dialog.Description>
+      </Dialog.Header>
+      {#if secretDialog}
+        <div class="flex items-center gap-2">
+          <code
+            class="bg-background-l2 min-w-0 flex-1 truncate rounded-md border-2 p-2 font-mono text-sm"
+          >
+            {secretDialog.secret}
+          </code>
+          <Button
+            variant="outline"
+            class="shrink-0 border-2"
+            onclick={() => copyText(secretDialog!.secret, 'Secret copied.')}
+          >
+            <IconCopy class="size-4" />
+            Copy
+          </Button>
+        </div>
+      {/if}
+      <Dialog.Footer>
+        <Button onclick={() => (secretDialog = null)}>I have copied the secret</Button>
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog.Root>
+
+  <Dialog.Root open={!!deleteCandidate} onOpenChange={open => !open && (deleteCandidate = null)}>
+    <Dialog.Content class="sm:max-w-md">
+      <Dialog.Header>
+        <Dialog.Title>Delete external app</Dialog.Title>
+        <Dialog.Description>
+          Delete "{deleteCandidate?.name}"? Existing access tokens issued through this app stay
+          valid (they are regular rCTF auth tokens), but no new sign-ins will succeed.
+        </Dialog.Description>
+      </Dialog.Header>
+      <Dialog.Footer class="gap-2">
+        <Button variant="ghost" onclick={() => (deleteCandidate = null)}>Cancel</Button>
+        <Button
+          variant="destructive"
+          onclick={confirmDeleteApp}
+          disabled={deleteAppMutation.isPending}
+        >
+          {#if deleteAppMutation.isPending}<Spinner class="size-4" />{/if}
+          Delete app
+        </Button>
+      </Dialog.Footer>
+    </Dialog.Content>
+  </Dialog.Root>
 {:else if isPending}
   <div class="flex flex-1 items-center justify-center">
     <Spinner class="size-4" />
