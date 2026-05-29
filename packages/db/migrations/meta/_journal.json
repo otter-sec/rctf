@@ -169,6 +169,13 @@
       "when": 1779883019860,
       "tag": "0023_add_challenges_scoring_kind_index",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1780088894914,
+      "tag": "0024_add_feed_latest_tick_index",
+      "breakpoints": true
     }
   ]
 }

@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import {
   foreignKey,
   index,
@@ -56,6 +57,13 @@ export const scoreEvents = pgTable(
       table.eventAt.asc().op('timestamptz_ops'),
       table.id.asc().op('text_ops')
     ),
+    index('score_events_feed_latest_tick_idx')
+      .using(
+        'btree',
+        table.challengeid.asc().op('text_ops'),
+        table.eventAt.desc().op('timestamptz_ops')
+      )
+      .where(sql`source = 'feed'`),
     foreignKey({
       columns: [table.userid],
       foreignColumns: [users.id],

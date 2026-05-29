@@ -1,0 +1,1 @@
+CREATE INDEX "score_events_feed_latest_tick_idx" ON "score_events" USING btree ("challengeid" text_ops,"event_at" timestamptz_ops) WHERE source = 'feed';
