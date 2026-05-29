@@ -303,29 +303,21 @@ export function buildActivityDomain({
   }
 
   const duration = Math.max(
-    lastSolve.createdAt - firstSolve.createdAt,
+    lastSolve.createdAt - clientConfig.startTime,
     msPerHour
   )
   const bucketSize = chooseCadenceBucketSize(duration)
-  const start = Math.max(
-    clientConfig.startTime,
+  // Always anchor the axis at the CTF start (t=0) and end at the latest solve
+  // (not the CTF end time), so a late finish is visible from the chart's extent
+  // rather than only from the axis ticks.
+  const start = clientConfig.startTime
+  const end = Math.max(
+    start + bucketSize,
     alignTimeToCtfStart(
-      firstSolve.createdAt,
+      lastSolve.createdAt + bucketSize,
       bucketSize,
       clientConfig.startTime,
-      'floor'
-    )
-  )
-  const end = Math.min(
-    clientConfig.endTime,
-    Math.max(
-      start + bucketSize,
-      alignTimeToCtfStart(
-        lastSolve.createdAt + bucketSize,
-        bucketSize,
-        clientConfig.startTime,
-        'ceil'
-      )
+      'ceil'
     )
   )
 
