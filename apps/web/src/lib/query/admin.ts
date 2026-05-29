@@ -25,6 +25,7 @@ import {
   ListExtAuthClientsRouteV2,
   ResendAdminUserVerificationRouteV2,
   UpdateAdminSettingsRouteV2,
+  UpdateAdminUserAvatarRouteV2,
   UpdateAdminUserRouteV2,
   UpdateChallengeRouteV2,
   UploadFilesRouteV2,
@@ -273,6 +274,10 @@ export function useUpdateSettingsMutation() {
 
 export function useUpdateAdminUserMutation() {
   return createApiMutation(UpdateAdminUserRouteV2)
+}
+
+export function useUpdateAdminUserAvatarMutation() {
+  return createApiMutation(UpdateAdminUserAvatarRouteV2)
 }
 
 export function useDeleteAdminUserMutation() {
