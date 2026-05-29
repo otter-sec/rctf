@@ -9,7 +9,7 @@ import {
   BadBody,
   BadChallenge,
   BadEndpoint,
-  BadExtAuthRequest,
+  BadExternalAuthRequest,
   BadInstancerConfig,
   BadKnownEmail,
   BadKnownName,
@@ -28,9 +28,9 @@ import {
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
-  GoodAdminExtAuthClientCreate,
-  GoodAdminExtAuthClientDelete,
-  GoodAdminExtAuthClients,
+  GoodAdminExternalAuthClientCreate,
+  GoodAdminExternalAuthClientDelete,
+  GoodAdminExternalAuthClients,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
   GoodAdminSubmissions,
@@ -515,33 +515,33 @@ export const UpdateAdminSettingsRouteV2 = defineRoute({
   permissions: Permissions.settingsWrite,
 })
 
-export const ListExtAuthClientsRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients',
+export const ListExternalAuthClientsRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients',
   method: 'GET',
-  goodResponses: [GoodAdminExtAuthClients],
+  goodResponses: [GoodAdminExternalAuthClients],
   badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
 })
 
-export const CreateExtAuthClientRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients',
+export const CreateExternalAuthClientRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients',
   method: 'POST',
   body: z.object({
     name: z.string().check(z.minLength(1)).check(z.maxLength(100)),
     redirectUri: z.string().check(z.minLength(1)).check(z.maxLength(1024)),
   }),
-  goodResponses: [GoodAdminExtAuthClientCreate],
+  goodResponses: [GoodAdminExternalAuthClientCreate],
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
 })
 
-export const DeleteExtAuthClientRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients/:id',
+export const DeleteExternalAuthClientRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients/:id',
   method: 'DELETE',
-  goodResponses: [GoodAdminExtAuthClientDelete],
-  badResponses: [BadExtAuthRequest, BadPerms, BadToken],
+  goodResponses: [GoodAdminExternalAuthClientDelete],
+  badResponses: [BadExternalAuthRequest, BadPerms, BadToken],
   authRequired: true,
   params: z.object({ id: z.string() }),
   permissions: Permissions.usersWrite,

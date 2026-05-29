@@ -1,11 +1,11 @@
 import type { DatabaseClient } from '@rctf/db'
-import { extAuthClients } from '@rctf/db'
+import { externalAuthClients } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { asc, eq } from 'drizzle-orm'
 import type { TypedRedis } from '../cache/scripts'
 
 const CODE_TTL_MS = 60_000
-const codeKey = (code: string) => `ext-auth:code:${code}`
+const codeKey = (code: string) => `external-auth:code:${code}`
 
 const randomB64Url = (bytes: number): string =>
   Buffer.from(crypto.getRandomValues(new Uint8Array(bytes)))
@@ -14,26 +14,26 @@ const randomB64Url = (bytes: number): string =>
     .replace(/\//g, '_')
     .replace(/=+$/, '')
 
-export type ExtAuthClientPublic = {
+export type ExternalAuthClientPublic = {
   id: string
   name: string
   redirectUri: string
 }
 
-export type ExtAuthClientAdmin = ExtAuthClientPublic & {
+export type ExternalAuthClientAdmin = ExternalAuthClientPublic & {
   createdAt: string
   createdBy: string | null
 }
 
-export const createExtAuthClient = async (
+export const createExternalAuthClient = async (
   db: DatabaseClient,
   params: { name: string; redirectUri: string; createdBy: string }
-): Promise<{ client: ExtAuthClientAdmin; secret: string }> => {
+): Promise<{ client: ExternalAuthClientAdmin; secret: string }> => {
   const id = crypto.randomUUID()
   const secret = randomB64Url(32)
   const secretHash = await Bun.password.hash(secret)
   const [row] = await db
-    .insert(extAuthClients)
+    .insert(externalAuthClients)
     .values({
       id,
       name: params.name,
@@ -54,32 +54,32 @@ export const createExtAuthClient = async (
   }
 }
 
-export const getExtAuthClientPublic = async (
+export const getExternalAuthClientPublic = async (
   db: DatabaseClient,
   id: string
-): Promise<ExtAuthClientPublic | undefined> => {
+): Promise<ExternalAuthClientPublic | undefined> => {
   const row = await db
     .select({
-      id: extAuthClients.id,
-      name: extAuthClients.name,
-      redirectUri: extAuthClients.redirectUri,
+      id: externalAuthClients.id,
+      name: externalAuthClients.name,
+      redirectUri: externalAuthClients.redirectUri,
     })
-    .from(extAuthClients)
-    .where(eq(extAuthClients.id, id))
+    .from(externalAuthClients)
+    .where(eq(externalAuthClients.id, id))
     .limit(1)
     .then(takeUnique)
   return row
 }
 
-export const verifyExtAuthClientSecret = async (
+export const verifyExternalAuthClientSecret = async (
   db: DatabaseClient,
   id: string,
   secret: string
 ): Promise<boolean> => {
   const row = await db
-    .select({ secretHash: extAuthClients.secretHash })
-    .from(extAuthClients)
-    .where(eq(extAuthClients.id, id))
+    .select({ secretHash: externalAuthClients.secretHash })
+    .from(externalAuthClients)
+    .where(eq(externalAuthClients.id, id))
     .limit(1)
     .then(takeUnique)
   if (!row) {
@@ -88,19 +88,19 @@ export const verifyExtAuthClientSecret = async (
   return await Bun.password.verify(secret, row.secretHash)
 }
 
-export const listExtAuthClients = async (
+export const listExternalAuthClients = async (
   db: DatabaseClient
-): Promise<ExtAuthClientAdmin[]> => {
+): Promise<ExternalAuthClientAdmin[]> => {
   const rows = await db
     .select({
-      id: extAuthClients.id,
-      name: extAuthClients.name,
-      redirectUri: extAuthClients.redirectUri,
-      createdAt: extAuthClients.createdAt,
-      createdBy: extAuthClients.createdBy,
+      id: externalAuthClients.id,
+      name: externalAuthClients.name,
+      redirectUri: externalAuthClients.redirectUri,
+      createdAt: externalAuthClients.createdAt,
+      createdBy: externalAuthClients.createdBy,
     })
-    .from(extAuthClients)
-    .orderBy(asc(extAuthClients.createdAt))
+    .from(externalAuthClients)
+    .orderBy(asc(externalAuthClients.createdAt))
   return rows.map(r => ({
     id: r.id,
     name: r.name,
@@ -110,41 +110,41 @@ export const listExtAuthClients = async (
   }))
 }
 
-export const deleteExtAuthClient = async (
+export const deleteExternalAuthClient = async (
   db: DatabaseClient,
   id: string
 ): Promise<boolean> => {
   const deleted = await db
-    .delete(extAuthClients)
-    .where(eq(extAuthClients.id, id))
-    .returning({ id: extAuthClients.id })
+    .delete(externalAuthClients)
+    .where(eq(externalAuthClients.id, id))
+    .returning({ id: externalAuthClients.id })
   return deleted.length > 0
 }
 
-export type ExtAuthCodePayload = {
+export type ExternalAuthCodePayload = {
   userId: string
   clientId: string
 }
 
-export const issueExtAuthCode = async (
+export const issueExternalAuthCode = async (
   redis: TypedRedis,
-  payload: ExtAuthCodePayload
+  payload: ExternalAuthCodePayload
 ): Promise<string> => {
   const code = randomB64Url(32)
   await redis.set(codeKey(code), JSON.stringify(payload), 'PX', CODE_TTL_MS)
   return code
 }
 
-export const consumeExtAuthCode = async (
+export const consumeExternalAuthCode = async (
   redis: TypedRedis,
   code: string
-): Promise<ExtAuthCodePayload | undefined> => {
+): Promise<ExternalAuthCodePayload | undefined> => {
   const raw = await redis.getdel(codeKey(code))
   if (!raw) {
     return undefined
   }
   try {
-    return JSON.parse(raw) as ExtAuthCodePayload
+    return JSON.parse(raw) as ExternalAuthCodePayload
   } catch {
     return undefined
   }

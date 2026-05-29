@@ -170,25 +170,25 @@ description: Challenge management, uploads, teams, verifications, submissions, s
     <RouteListItem
       title="List external-auth clients"
       method="GET"
-      path="/api/v2/admin/ext-auth/clients"
-      href="/api/admin/ext-auth-list/"
+      path="/api/v2/admin/external-auth/clients"
+      href="/api/admin/external-auth-list/"
     />
     <RouteListItem
       title="Create external-auth client"
       method="POST"
-      path="/api/v2/admin/ext-auth/clients"
-      href="/api/admin/ext-auth-create/"
+      path="/api/v2/admin/external-auth/clients"
+      href="/api/admin/external-auth-create/"
     />
     <RouteListItem
       title="Delete external-auth client"
       method="DELETE"
-      path="/api/v2/admin/ext-auth/clients/:id"
-      href="/api/admin/ext-auth-delete/"
+      path="/api/v2/admin/external-auth/clients/:id"
+      href="/api/admin/external-auth-delete/"
     />
   </RouteList>
 </RouteAside>
 
-These admin API pages cover challenge data, uploads, teams, pending email verifications, submission audit rows, runtime settings, admin bot service work, and external-auth client registration. Most user facing admin routes need a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token instead. The end-user side of the external-auth flow lives under [External auth](/api/ext-auth/).
+These admin API pages cover challenge data, uploads, teams, pending email verifications, submission audit rows, runtime settings, admin bot service work, and external-auth client registration. Most user facing admin routes need a user auth token with the listed permission bits. Admin bot service routes use the shared admin bot bearer token instead. The end-user side of the external-auth flow lives under [External auth](/api/external-auth/).
 
 Permissions, captcha actions, and rate limit conventions are documented in the [API overview](/api/).
 

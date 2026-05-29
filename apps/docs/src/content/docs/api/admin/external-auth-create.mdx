@@ -1,14 +1,14 @@
 ---
 title: '<route>POST</route> Create external-auth client'
-description: '<route>POST /api/v2/admin/ext-auth/clients</route>'
+description: '<route>POST /api/v2/admin/external-auth/clients</route>'
 ---
 
 import Callout from '@/components/callout.astro'
-import { BadBody, BadJson, CreateExtAuthClientRouteV2 } from '@rctf/types'
+import { BadBody, BadJson, CreateExternalAuthClientRouteV2 } from '@rctf/types'
 
 <RouteAside>
   <RouteExample
-    def={CreateExtAuthClientRouteV2}
+    def={CreateExternalAuthClientRouteV2}
     body={{
       name: 'Dynamic scoring backend',
       redirectUri: 'https://my-service.example.com/auth/rctf/callback',
@@ -17,7 +17,7 @@ import { BadBody, BadJson, CreateExtAuthClientRouteV2 } from '@rctf/types'
   />
 </RouteAside>
 
-<RouteMetaFromDef def={CreateExtAuthClientRouteV2} />
+<RouteMetaFromDef def={CreateExternalAuthClientRouteV2} />
 
 Registers a new external-auth client. rCTF generates a UUID `<red>id</red>` and a 32-byte base64url `<red>secret</red>`. The redirect URI is stored exactly as supplied and is matched byte-for-byte at authorize time - no wildcards, no path normalization.
 
@@ -27,10 +27,10 @@ Registers a new external-auth client. rCTF generates a UUID `<red>id</red>` and 
   re-created.
 </Callout>
 
-<RequestBody def={CreateExtAuthClientRouteV2} title="Request body" />
+<RequestBody def={CreateExternalAuthClientRouteV2} title="Request body" />
 
 <ResponseBody
-  def={CreateExtAuthClientRouteV2}
-  response="goodAdminExtAuthClientCreate"
+  def={CreateExternalAuthClientRouteV2}
+  response="goodAdminExternalAuthClientCreate"
   title="Response fields"
 />
