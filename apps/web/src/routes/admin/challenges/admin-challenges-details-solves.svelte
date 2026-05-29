@@ -20,7 +20,7 @@
     useInfiniteVirtualScroll,
   } from '$lib/utils'
   import { toast } from 'svelte-sonner'
-  import ChallengeDetailsSolvesRow from '../../challenges/challenge-details-solves-row.svelte'
+  import ChallengeDetailsSolvesRow from '../../challenges/challenges-details-row.svelte'
 
   const ROW_HEIGHT = 68
 

@@ -14,6 +14,9 @@ adminGroup.route(UpdateAdminUserRouteV2, async ({ res, ctx, params, body }) => {
     if (result.error === 'badUserPrivileged') {
       return res.badUserPrivileged()
     }
+    if (result.error === 'badKnownName') {
+      return res.badKnownName()
+    }
     return res.badUnknownUser()
   }
 

@@ -2,10 +2,12 @@
   import type { Solve } from '@rctf/types'
   import {
     Accordion,
+    Button,
     CollapseToggleButton,
     EmptyState,
     ScrollArea,
     SearchInput,
+    Spinner,
     Tooltip,
   } from '$lib/components'
   import {
@@ -15,11 +17,14 @@
     IconCoinFilled,
     IconEyeClosed,
     IconEyeFilled,
+    IconFilter,
     IconFlagFilled,
+    IconTrashFilled,
     IconZoomQuestionFilled,
   } from '$lib/icons'
   import {
     cn,
+    formatCtfOffset,
     getBloodStyles,
     getCategoryConfig,
     getCategoryKeyOrAlias,
@@ -40,6 +45,10 @@
     showUnsolved?: boolean
     scrollable?: boolean
     class?: string
+    ctfStartTime?: number | null
+    onRevoke?: (id: string, name: string) => void
+    onViewSubmissions?: (id: string) => void
+    revokingId?: string | null
   }
 
   let {
@@ -49,6 +58,10 @@
     showUnsolved = true,
     scrollable = false,
     class: className = '',
+    ctfStartTime = null,
+    onRevoke,
+    onViewSubmissions,
+    revokingId = null,
   }: Props = $props()
 
   const solvedIds = $derived(new Set(solves.map(s => s.id)))
@@ -234,6 +247,8 @@
     scrollable && 'h-full min-h-0 overflow-hidden',
     className
   )}
+  style:--points-col="3ch"
+  style:--solve-col="9ch"
 >
   <div class="bg-background-l1 flex shrink-0 flex-col gap-2 py-2">
     <div class="flex justify-between px-9">
@@ -339,6 +354,38 @@
   {/if}
 </div>
 
+{#snippet rowActions(challenge: DisplayChallenge)}
+  {#if challenge.isSolved && (onRevoke || onViewSubmissions)}
+    <div class="flex items-center gap-2">
+      {#if onRevoke}
+        <Button
+          variant="destructive"
+          size="sm"
+          onclick={() => onRevoke?.(challenge.id, challenge.name)}
+          disabled={revokingId === challenge.id}
+        >
+          {#if revokingId === challenge.id}
+            <Spinner class="size-4" />
+          {:else}
+            <IconTrashFilled class="size-4" />
+          {/if}
+          Revoke
+        </Button>
+      {/if}
+      {#if onViewSubmissions}
+        <Button
+          variant="secondary"
+          size="icon-sm"
+          onclick={() => onViewSubmissions?.(challenge.id)}
+          aria-label="View submissions for {challenge.name}"
+        >
+          <IconFilter class="size-4" />
+        </Button>
+      {/if}
+    </div>
+  {/if}
+{/snippet}
+
 {#snippet challengeList()}
   {#if displayChallenges.length === 0}
     <EmptyState
@@ -420,17 +467,22 @@
                     <span class="text-category-foreground-l1">{categoryShort} /</span>
                     <span class="text-category-foreground-l0 truncate">{challenge.name}</span>
                   </div>
-                  <div class="z-1 flex shrink-0 items-center justify-end gap-4">
+                  <div class="z-1 flex shrink-0 items-center justify-end gap-2">
+                    {@render rowActions(challenge)}
                     {#if challenge.solvedAt}
                       <span
-                        class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
+                        class="text-category-foreground-l1 min-w-(--solve-col) text-right text-base whitespace-nowrap tabular-nums opacity-75"
                       >
-                        {formatSolveTime(challenge.solvedAt)}
+                        {formatCtfOffset(challenge.solvedAt, ctfStartTime) ||
+                          formatSolveTime(challenge.solvedAt)}
                       </span>
                     {/if}
                     {#if challenge.points !== null}
                       <span class="text-base whitespace-nowrap tabular-nums">
-                        <span class="text-category-foreground-l0">{challenge.points}</span>
+                        <span
+                          class="text-category-foreground-l0 inline-block min-w-(--points-col) text-right"
+                          >{challenge.points}</span
+                        >
                         <span class="text-category-foreground-l1">pts</span>
                       </span>
                     {/if}
@@ -479,16 +531,21 @@
             <span class="text-category-foreground-l0 truncate">{challenge.name}</span>
           </div>
           <div class="z-1 flex shrink-0 items-center gap-4">
+            {@render rowActions(challenge)}
             {#if challenge.solvedAt}
               <span
-                class="text-category-foreground-l1 text-base whitespace-nowrap tabular-nums opacity-75"
+                class="text-category-foreground-l1 min-w-(--solve-col) text-right text-base whitespace-nowrap tabular-nums opacity-75"
               >
-                {formatSolveTime(challenge.solvedAt)}
+                {formatCtfOffset(challenge.solvedAt, ctfStartTime) ||
+                  formatSolveTime(challenge.solvedAt)}
               </span>
             {/if}
             {#if challenge.points !== null}
               <span class="text-base whitespace-nowrap tabular-nums">
-                <span class="text-category-foreground-l0">{challenge.points}</span>
+                <span
+                  class="text-category-foreground-l0 inline-block min-w-(--points-col) text-right"
+                  >{challenge.points}</span
+                >
                 <span class="text-category-foreground-l1">pts</span>
               </span>
             {/if}

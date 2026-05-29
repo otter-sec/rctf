@@ -2,7 +2,7 @@ import {
   adminBotStatusQueryOptions,
   adminChallengeQueryOptions,
   adminChallengesQueryOptions,
-  adminExtAuthClientsQueryOptions,
+  adminExternalAuthClientsQueryOptions,
   adminSettingsQueryOptions,
   adminSubmissionsQueryOptions,
   adminUserQueryOptions,
@@ -11,6 +11,7 @@ import {
   type AdminSubmissionsQueryParams,
 } from './admin'
 import {
+  challengeScoresQueryOptions,
   challengeSolvesQueryOptions,
   challengesQueryOptions,
 } from './challenges'
@@ -61,10 +62,12 @@ export const queryKeys = {
     selfUserGraphQueryOptions(globalPlace).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
+  challengeScores: (id: string, params: { limit: number; offset: number }) =>
+    challengeScoresQueryOptions(id, params).queryKey,
   members: membersQueryOptions.queryKey,
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
-  adminExtAuthClients: adminExtAuthClientsQueryOptions.queryKey,
+  adminExternalAuthClients: adminExternalAuthClientsQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
   adminSubmissions: (
     params: { limit: number; offset: number } & AdminSubmissionsQueryParams

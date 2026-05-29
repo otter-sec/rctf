@@ -1,15 +1,20 @@
+import { ALL_REGIONS } from '@rctf/util'
 import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
   BadAdminBotConfig,
+  BadAvatarFile,
+  BadAvatarFileSize,
   BadBody,
   BadChallenge,
   BadEndpoint,
-  BadExtAuthRequest,
+  BadExternalAuthRequest,
   BadInstancerConfig,
   BadKnownEmail,
   BadKnownName,
+  BadModerationNotPassed,
+  BadName,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
@@ -23,9 +28,9 @@ import {
   GoodAdminBotStatus,
   GoodAdminChallengesV2,
   GoodAdminChallengeV2,
-  GoodAdminExtAuthClientCreate,
-  GoodAdminExtAuthClientDelete,
-  GoodAdminExtAuthClients,
+  GoodAdminExternalAuthClientCreate,
+  GoodAdminExternalAuthClientDelete,
+  GoodAdminExternalAuthClients,
   GoodAdminSettings,
   GoodAdminSettingsUpdate,
   GoodAdminSubmissions,
@@ -36,6 +41,7 @@ import {
   GoodAdminUserVerificationCompleteV2,
   GoodAdminUserVerificationResendV2,
   GoodAdminUserVerificationsV2,
+  GoodAvatarUpdated,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -49,6 +55,7 @@ import {
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   ChallengeScoringSchema,
+  FileFieldSchema,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
   searchFilter,
@@ -60,6 +67,7 @@ import {
   SubmissionTeamStatus,
   UploadFileName,
   UploadSha256,
+  UserName,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -199,11 +207,17 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   body: z.object({
     data: z.object({
       banned: z.optional(z.boolean()),
+      name: z.optional(UserName),
+      division: z.optional(z.string()),
+      countryCode: z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
+      statusText: z.optional(z.nullable(z.string().check(z.maxLength(60)))),
     }),
   }),
   goodResponses: [GoodAdminUserUpdateV2],
   badResponses: [
     BadBody,
+    BadKnownName,
+    BadName,
     BadPerms,
     BadToken,
     BadUnknownUser,
@@ -212,6 +226,29 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   authRequired: true,
   params: AdminUserParams,
   permissions: Permissions.usersWrite,
+})
+
+export const UpdateAdminUserAvatarRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id/avatar',
+  method: 'PATCH',
+  body: z.object({
+    avatar: z.optional(FileFieldSchema),
+  }),
+  goodResponses: [GoodAvatarUpdated],
+  badResponses: [
+    BadAvatarFile,
+    BadAvatarFileSize,
+    BadBody,
+    BadModerationNotPassed,
+    BadPerms,
+    BadToken,
+    BadUnknownUser,
+    BadUserPrivileged,
+  ],
+  authRequired: true,
+  params: AdminUserParams,
+  permissions: Permissions.usersWrite,
+  bodyFormat: 'form-data',
 })
 
 export const DeleteAdminUserRouteV2 = defineRoute({
@@ -478,33 +515,33 @@ export const UpdateAdminSettingsRouteV2 = defineRoute({
   permissions: Permissions.settingsWrite,
 })
 
-export const ListExtAuthClientsRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients',
+export const ListExternalAuthClientsRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients',
   method: 'GET',
-  goodResponses: [GoodAdminExtAuthClients],
+  goodResponses: [GoodAdminExternalAuthClients],
   badResponses: [BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
 })
 
-export const CreateExtAuthClientRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients',
+export const CreateExternalAuthClientRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients',
   method: 'POST',
   body: z.object({
     name: z.string().check(z.minLength(1)).check(z.maxLength(100)),
     redirectUri: z.string().check(z.minLength(1)).check(z.maxLength(1024)),
   }),
-  goodResponses: [GoodAdminExtAuthClientCreate],
+  goodResponses: [GoodAdminExternalAuthClientCreate],
   badResponses: [BadBody, BadPerms, BadToken],
   authRequired: true,
   permissions: Permissions.usersWrite,
 })
 
-export const DeleteExtAuthClientRouteV2 = defineRoute({
-  path: '/v2/admin/ext-auth/clients/:id',
+export const DeleteExternalAuthClientRouteV2 = defineRoute({
+  path: '/v2/admin/external-auth/clients/:id',
   method: 'DELETE',
-  goodResponses: [GoodAdminExtAuthClientDelete],
-  badResponses: [BadExtAuthRequest, BadPerms, BadToken],
+  goodResponses: [GoodAdminExternalAuthClientDelete],
+  badResponses: [BadExternalAuthRequest, BadPerms, BadToken],
   authRequired: true,
   params: z.object({ id: z.string() }),
   permissions: Permissions.usersWrite,

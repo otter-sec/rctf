@@ -54,6 +54,7 @@
       showUnsolved={challenges.length > 0}
       scrollable
       class="min-h-0 flex-1"
+      ctfStartTime={clientConfig?.startTime}
     />
   {/if}
 {/snippet}
@@ -72,61 +73,63 @@
   {/if}
 {/snippet}
 
-{#if user && clientConfig}
-  <div
-    class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
-  >
-    <div class="bg-background-l1 z-10 shrink-0 pt-2">
-      <ProfileHeader {user} {clientConfig} />
-    </div>
-
-    <Tabs.Root value="challenges" class="min-h-0 flex-1">
-      <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
-        <Tabs.List class="grid h-10 w-full grid-cols-2">
-          <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
-          <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
-        </Tabs.List>
-      </div>
-
-      <Tabs.Content value="challenges" class="min-h-0">
-        {@render solvesPanel()}
-      </Tabs.Content>
-
-      <Tabs.Content value="analytics" class="min-h-0">
-        {@render analyticsPanel()}
-      </Tabs.Content>
-    </Tabs.Root>
-  </div>
-
-  <div
-    class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-400 grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
-  >
-    <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
+<div class="flex flex-1 flex-col px-4 md:px-9">
+  {#if user && clientConfig}
+    <div
+      class="bg-background-l1 mx-auto flex h-[calc(100dvh-72px)] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl lg:hidden"
+    >
       <div class="bg-background-l1 z-10 shrink-0 pt-2">
         <ProfileHeader {user} {clientConfig} />
       </div>
 
-      {@render solvesPanel()}
+      <Tabs.Root value="challenges" class="min-h-0 flex-1">
+        <div class="bg-background-l1 z-10 shrink-0 px-4 pb-2">
+          <Tabs.List class="grid h-10 w-full grid-cols-2">
+            <Tabs.Trigger value="challenges">Challenges</Tabs.Trigger>
+            <Tabs.Trigger value="analytics">Analytics</Tabs.Trigger>
+          </Tabs.List>
+        </div>
+
+        <Tabs.Content value="challenges" class="min-h-0">
+          {@render solvesPanel()}
+        </Tabs.Content>
+
+        <Tabs.Content value="analytics" class="min-h-0">
+          {@render analyticsPanel()}
+        </Tabs.Content>
+      </Tabs.Root>
     </div>
 
-    <div class="bg-background-l1 min-h-0 overflow-hidden rounded-t-3xl">
-      {@render analyticsPanel()}
+    <div
+      class="mx-auto hidden h-[calc(100dvh-72px)] w-full max-w-400 grid-cols-[minmax(0,1fr)_minmax(520px,1fr)] gap-4 lg:grid"
+    >
+      <div class="bg-background-l1 flex min-h-0 flex-col overflow-hidden rounded-t-3xl">
+        <div class="bg-background-l1 z-10 shrink-0 pt-2">
+          <ProfileHeader {user} {clientConfig} />
+        </div>
+
+        {@render solvesPanel()}
+      </div>
+
+      <div class="bg-background-l1 min-h-0 overflow-hidden rounded-t-3xl">
+        {@render analyticsPanel()}
+      </div>
     </div>
-  </div>
-{:else if isPending}
-  <div class="flex flex-1 items-center justify-center">
-    <Spinner class="size-4" />
-  </div>
-{:else}
-  <Card.Root>
-    <Card.Header>
-      <Card.Title class="text-xl font-medium">Profile not found</Card.Title>
-    </Card.Header>
-    <Card.Content class="flex flex-col gap-4">
-      <p class="text-foreground-l3">
-        {error ?? 'The requested profile could not be found.'}
-      </p>
-      <Button href="/scores">View leaderboard</Button>
-    </Card.Content>
-  </Card.Root>
-{/if}
+  {:else if isPending}
+    <div class="flex flex-1 items-center justify-center">
+      <Spinner class="size-4" />
+    </div>
+  {:else}
+    <Card.Root>
+      <Card.Header>
+        <Card.Title class="text-xl font-medium">Profile not found</Card.Title>
+      </Card.Header>
+      <Card.Content class="flex flex-col gap-4">
+        <p class="text-foreground-l3">
+          {error ?? 'The requested profile could not be found.'}
+        </p>
+        <Button href="/scores">View leaderboard</Button>
+      </Card.Content>
+    </Card.Root>
+  {/if}
+</div>

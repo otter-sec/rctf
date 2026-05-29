@@ -14,6 +14,9 @@ import { and, eq } from 'drizzle-orm'
 import RedisMock from 'ioredis-mock'
 import {
   deleteSolve,
+  getChallenges,
+  getChallengeScoresGraph,
+  getChallengeScoresWithPosition,
   getMaxSolveCount,
   upsertChallenge,
 } from '../../../../apps/api/src/services/challenges'
@@ -227,6 +230,283 @@ describe('upsertDynamicSolves: banned-user filtering', () => {
     expect(await getSolvePoints(ghost, challengeId)).toBeNull()
     expect(await countScoreEvents(alice.id, challengeId)).toBe(1)
     expect(await countScoreEvents(bannedBob.id, challengeId)).toBe(0)
+  })
+})
+
+describe('getChallenges dynamic participant display', () => {
+  test('returns current score and latest point delta for a dynamic challenge', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 300 },
+    ])
+
+    let challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBe(300)
+    expect(challenge?.myPointDelta).toBe(300)
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 125 },
+    ])
+
+    challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBe(125)
+    expect(challenge?.myPointDelta).toBe(-175)
+
+    // zeroing removes the solve, so the team is off the board entirely
+    await upsertDynamicSolves(db, challengeId, [{ userId: user.id, points: 0 }])
+
+    challenge = (await getChallenges(db, user.id)).find(
+      item => item.id === challengeId
+    )
+    expect(challenge?.myScore).toBeUndefined()
+    expect(challenge?.myPointDelta).toBeUndefined()
+  })
+})
+
+describe('getChallengeScoresWithPosition', () => {
+  test('ranks teams by points desc with latest delta, total, and myPosition', async () => {
+    const db = getDb()
+    const { user: alice } = await generateRealTestUser()
+    const { user: bob } = await generateRealTestUser()
+    const { user: carol } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: alice.id, points: 100 },
+      { userId: bob.id, points: 500 },
+      { userId: carol.id, points: 300 },
+    ])
+
+    const result = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      carol.id,
+      100,
+      0
+    )
+
+    expect(result.challengeExists).toBe(true)
+    expect(result.total).toBe(3)
+    expect(result.scores.map(s => s.userId)).toEqual([
+      bob.id,
+      carol.id,
+      alice.id,
+    ])
+    expect(result.scores.map(s => s.points)).toEqual([500, 300, 100])
+    expect(result.scores.map(s => s.pointDelta)).toEqual([500, 300, 100])
+    expect(result.myPosition).toBe(2)
+  })
+
+  test('pointDelta reflects only the latest feed tick', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 300 },
+    ])
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 125 },
+    ])
+
+    const result = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      user.id,
+      100,
+      0
+    )
+    expect(result.scores[0]?.points).toBe(125)
+    expect(result.scores[0]?.pointDelta).toBe(-175)
+    expect(result.myPosition).toBe(1)
+  })
+
+  test('pointDelta is 0 for a team that did not move in the latest tick', async () => {
+    const db = getDb()
+    const { user: mover } = await generateRealTestUser()
+    const { user: idle } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    // first tick: both teams score
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: mover.id, points: 100 },
+      { userId: idle.id, points: 300 },
+    ])
+    // later tick: only mover updates, so idle didn't move in the latest tick
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: mover.id, points: 250 },
+    ])
+
+    const result = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      idle.id,
+      100,
+      0
+    )
+    const moverRow = result.scores.find(s => s.userId === mover.id)
+    const idleRow = result.scores.find(s => s.userId === idle.id)
+    expect(moverRow?.pointDelta).toBe(150)
+    expect(idleRow?.pointDelta).toBe(0)
+  })
+
+  test('excludes banned and zeroed teams from the ranking and total', async () => {
+    const db = getDb()
+    const { user: active } = await generateRealTestUser()
+    const { user: banned } = await generateRealTestUser()
+    const { user: zeroed } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: active.id, points: 400 },
+      { userId: banned.id, points: 600 },
+      { userId: zeroed.id, points: 200 },
+    ])
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: zeroed.id, points: 0 },
+    ])
+    await db.update(users).set({ banned: true }).where(eq(users.id, banned.id))
+
+    const result = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      null,
+      100,
+      0
+    )
+    expect(result.total).toBe(1)
+    expect(result.scores.map(s => s.userId)).toEqual([active.id])
+    expect(result.myPosition).toBeNull()
+  })
+
+  test('paginates with a stable total', async () => {
+    const db = getDb()
+    const challengeId = await createDynamicChallenge()
+    const entries: { userId: string; points: number }[] = []
+    for (let i = 0; i < 5; i++) {
+      const { user } = await generateRealTestUser()
+      entries.push({ userId: user.id, points: (i + 1) * 100 })
+    }
+    await upsertDynamicSolves(db, challengeId, entries)
+
+    const page1 = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      null,
+      2,
+      0
+    )
+    expect(page1.total).toBe(5)
+    expect(page1.scores.map(s => s.points)).toEqual([500, 400])
+
+    const page2 = await getChallengeScoresWithPosition(
+      db,
+      challengeId,
+      null,
+      2,
+      2
+    )
+    expect(page2.total).toBe(5)
+    expect(page2.scores.map(s => s.points)).toEqual([300, 200])
+  })
+
+  test('returns challengeExists false for an unknown challenge', async () => {
+    const db = getDb()
+    const result = await getChallengeScoresWithPosition(
+      db,
+      crypto.randomUUID(),
+      null,
+      100,
+      0
+    )
+    expect(result.challengeExists).toBe(false)
+    expect(result.scores).toEqual([])
+    expect(result.total).toBe(0)
+    expect(result.myPosition).toBeNull()
+  })
+})
+
+describe('getChallengeScoresGraph', () => {
+  test('builds a cumulative series with a trailing sample', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 100 },
+    ])
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 250 },
+    ])
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 175 },
+    ])
+
+    const graph = await getChallengeScoresGraph(db, challengeId, [user.id])
+    expect(graph).toHaveLength(1)
+    expect(graph[0]?.id).toBe(user.id)
+
+    const scores = graph[0]!.points.map(p => p.score)
+    expect(scores.slice(0, 3)).toEqual([100, 250, 175])
+    expect(scores.at(-1)).toBe(175)
+    expect(scores.length).toBeGreaterThanOrEqual(3)
+    expect(scores.length).toBeLessThanOrEqual(4)
+
+    const times = graph[0]!.points.map(p => p.time)
+    expect(times).toEqual([...times].sort((a, b) => a - b))
+  })
+
+  test('excludes banned teams even when requested', async () => {
+    const db = getDb()
+    const { user: active } = await generateRealTestUser()
+    const { user: banned } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: active.id, points: 300 },
+      { userId: banned.id, points: 400 },
+    ])
+    await db.update(users).set({ banned: true }).where(eq(users.id, banned.id))
+
+    const graph = await getChallengeScoresGraph(db, challengeId, [
+      active.id,
+      banned.id,
+    ])
+    expect(graph.map(g => g.id)).toEqual([active.id])
+  })
+
+  test('returns an empty array when no users are requested', async () => {
+    const db = getDb()
+    const challengeId = await createDynamicChallenge()
+    expect(await getChallengeScoresGraph(db, challengeId, [])).toEqual([])
+  })
+
+  test('does not double-count after admin solve deletion + re-score', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 300 },
+    ])
+    await deleteSolve(db, { userId: user.id, challengeId })
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 500 },
+    ])
+
+    const graph = await getChallengeScoresGraph(db, challengeId, [user.id])
+    expect(graph).toHaveLength(1)
+    const scores = graph[0]!.points.map(p => p.score)
+    // 300 (feed), 0 (delete correction), 500 (re-feed), trailing 500 sample.
+    expect(scores.slice(0, 3)).toEqual([300, 0, 500])
+    expect(scores.at(-1)).toBe(500)
   })
 })
 
