@@ -6,13 +6,13 @@
   import { Button, Dialog, Section, Spinner } from '$lib/components'
   import { IconFilter, IconKeyFilled, IconLogin, IconMoodX, IconTrashFilled } from '$lib/icons'
   import {
-    queryKeys,
     useCreateUserTokenMutation,
     useDeleteAdminUserMutation,
     useUpdateAdminUserMutation,
   } from '$lib/query'
   import { toast } from 'svelte-sonner'
   import type { AdminTeamDetails } from '../../teams/teams-model'
+  import { invalidateAdminTeamQueries } from './admin-profile-queries'
 
   interface Props {
     id: string
@@ -34,13 +34,8 @@
   const updating = $derived(updateMutation.isPending)
   const deleting = $derived(deleteMutation.isPending)
 
-  function refresh() {
-    queryClient.invalidateQueries({ queryKey: queryKeys.adminUser(id) })
-    queryClient.invalidateQueries({ queryKey: queryKeys.userById(id) })
-    queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-    queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-    queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
-  }
+  const refresh = () =>
+    invalidateAdminTeamQueries(queryClient, { teamId: id, affectsScoring: true })
 
   function toggleBan(banned: boolean) {
     updateMutation.mutate(
@@ -75,9 +70,7 @@
         onSuccess: response => {
           if (response.kind === GoodAdminUserDeleteV2.kind) {
             toast.success(`${team.name} deleted`)
-            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-            queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-            queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+            invalidateAdminTeamQueries(queryClient, { affectsScoring: true })
             goto('/admin/teams')
           } else {
             showApiError(response)

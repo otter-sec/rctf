@@ -4,10 +4,11 @@
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
   import { Button, Field, FlagPicker, Input, Section, Select, Spinner } from '$lib/components'
-  import { queryKeys, useUpdateAdminUserMutation } from '$lib/query'
+  import { useUpdateAdminUserMutation } from '$lib/query'
   import { untrack } from 'svelte'
   import { toast } from 'svelte-sonner'
   import type { AdminTeamDetails } from '../../teams/teams-model'
+  import { invalidateAdminTeamQueries } from './admin-profile-queries'
 
   interface Props {
     id: string
@@ -51,10 +52,7 @@
         onSuccess: response => {
           if (response.kind === GoodAdminUserUpdateV2.kind) {
             toast.success('Profile updated!')
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminUser(id) })
-            queryClient.invalidateQueries({ queryKey: queryKeys.userById(id) })
-            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-            queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+            invalidateAdminTeamQueries(queryClient, { teamId: id, affectsListing: true })
           } else {
             showApiError(response)
           }

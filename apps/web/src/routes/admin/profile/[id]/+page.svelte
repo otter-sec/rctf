@@ -6,7 +6,6 @@
   import { showApiError } from '$lib/api'
   import { Button, Card, ScrollArea, Spinner, Tabs } from '$lib/components'
   import {
-    queryKeys,
     useAdminUser,
     useClientConfig,
     useCurrentUser,
@@ -24,6 +23,7 @@
   import AdminProfileActions from './admin-profile-actions.svelte'
   import AdminProfileAvatar from './admin-profile-avatar.svelte'
   import AdminProfileEdit from './admin-profile-edit.svelte'
+  import { invalidateAdminTeamQueries } from './admin-profile-queries'
 
   const id = $derived(page.params.id!)
 
@@ -72,11 +72,7 @@
         onSuccess: response => {
           if (response.kind === GoodChallengeSolveDeleteV2.kind) {
             toast.success(`Solve revoked for ${challengeName}`)
-            queryClient.invalidateQueries({ queryKey: queryKeys.adminUser(id) })
-            queryClient.invalidateQueries({ queryKey: queryKeys.userById(id) })
-            queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
-            queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
-            queryClient.invalidateQueries({ queryKey: queryKeys.leaderboardChallenges })
+            invalidateAdminTeamQueries(queryClient, { teamId: id, affectsScoring: true })
           } else {
             showApiError(response)
           }
