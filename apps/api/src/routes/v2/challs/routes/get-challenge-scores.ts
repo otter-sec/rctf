@@ -32,10 +32,16 @@ challsGroup.route(
       return res.badChallenge()
     }
 
+    // always include the caller's series when they have a score
+    const graphUserIds = scores.map(score => score.userId)
+    if (user?.id && myPosition !== null && !graphUserIds.includes(user.id)) {
+      graphUserIds.push(user.id)
+    }
+
     const graph = await getChallengeScoresGraph(
       ctx.var.db,
       params.id,
-      scores.map(score => score.userId)
+      graphUserIds
     )
 
     return res.goodChallengeScores({ total, myPosition, scores, graph })

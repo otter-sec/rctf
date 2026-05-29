@@ -2,12 +2,7 @@
   import type { Challenge } from '@rctf/types'
   import { EmptyState, ScrollArea, Spinner, VirtualList } from '$lib/components'
   import { IconChartAreaLineFilled } from '$lib/icons'
-  import {
-    useChallengeScores,
-    useClientConfig,
-    useCurrentUser,
-    useInfiniteChallengeScores,
-  } from '$lib/query'
+  import { useClientConfig, useCurrentUser, useInfiniteChallengeScores } from '$lib/query'
   import { getRankColorForPosition, getRankVariant, useInfiniteVirtualScroll } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import ChallengeDetailsSolvesRow from './challenges-details-row.svelte'
@@ -36,7 +31,19 @@
   const scoresQuery = useInfiniteChallengeScores(() => challenge.id)
 
   const allScores = $derived(scoresQuery.data?.pages.flatMap(page => page.scores) ?? [])
-  const allGraphData = $derived(scoresQuery.data?.pages.flatMap(page => page.graph) ?? [])
+  const allGraphData = $derived.by(() => {
+    const seen = new Set<string>()
+    const result: NonNullable<typeof scoresQuery.data>['pages'][number]['graph'] = []
+    for (const page of scoresQuery.data?.pages ?? []) {
+      for (const entry of page.graph) {
+        if (!seen.has(entry.id)) {
+          seen.add(entry.id)
+          result.push(entry)
+        }
+      }
+    }
+    return result
+  })
   const total = $derived(scoresQuery.data?.pages[0]?.total ?? challenge.solves ?? 0)
 
   const userScoreIndex = $derived(
@@ -94,17 +101,6 @@
     })
     return colors
   })
-
-  const selfNeedsFetch = $derived(
-    showSelfContext && !!currentUser && !!myPosition && userScoreIndex === -1
-  )
-  const selfGraphQuery = useChallengeScores(
-    () => challenge.id,
-    () => ({ limit: 1, offset: selfNeedsFetch ? (myPosition ?? 1) - 1 : 0 })
-  )
-  const selfGraphEntry = $derived(
-    selfNeedsFetch ? (selfGraphQuery.data?.graph.find(g => g.id === currentUser?.id) ?? null) : null
-  )
 
   const GRAPH_CONTEXT_COUNT = 3
   const GRAPH_FALLBACK_COUNT = 10
@@ -165,18 +161,7 @@
     }
   })
 
-  const visibleGraphData = $derived.by(() => {
-    const entries = allGraphData.filter(team => stableVisibility.visible[team.id])
-    if (
-      selfGraphEntry &&
-      currentUser &&
-      stableVisibility.visible[currentUser.id] &&
-      !entries.some(team => team.id === currentUser.id)
-    ) {
-      entries.push(selfGraphEntry)
-    }
-    return entries
-  })
+  const visibleGraphData = $derived(allGraphData.filter(team => stableVisibility.visible[team.id]))
   const contextTeamIds = $derived(stableVisibility.context)
 
   $effect(() => {

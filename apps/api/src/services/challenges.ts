@@ -46,6 +46,8 @@ import { rateLimitFlag } from './rate-limit'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
+const MAX_GRAPH_POINTS_PER_USER = 500
+
 type SubmitResponseHelpers = ResponseHelpers<
   [
     typeof BadChallenge,
@@ -649,7 +651,7 @@ export const getChallengeScoresWithPosition = async (
     eq(solves.source, 'feed')
   )
 
-  const [pageRows, totalRow, myPositionRow] = await Promise.all([
+  const [pageRows, totalRow] = await Promise.all([
     db
       .with(ranked)
       .select({
@@ -663,6 +665,11 @@ export const getChallengeScoresWithPosition = async (
         divisionRank: ranked.divisionRank,
         points: ranked.points,
         position: ranked.position,
+        myPosition: sql<
+          number | null
+        >`(SELECT position FROM ranked WHERE userid = ${userId})`.as(
+          'my_position'
+        ),
       })
       .from(ranked)
       .orderBy(asc(ranked.position))
@@ -674,18 +681,10 @@ export const getChallengeScoresWithPosition = async (
       .innerJoin(users, nonBannedUserJoin(solves.userid))
       .where(challengeFeedFilter)
       .then(takeUnique),
-    userId
-      ? db
-          .with(ranked)
-          .select({ position: ranked.position })
-          .from(ranked)
-          .where(eq(ranked.userId, userId))
-          .then(takeUnique)
-      : Promise.resolve(undefined),
   ])
 
   const total = totalRow?.value ?? 0
-  const myPosition = myPositionRow?.position ?? null
+  const myPosition = pageRows[0]?.myPosition ?? null
 
   if (pageRows.length === 0) {
     return { challengeExists: true, scores: [], total, myPosition }
@@ -744,6 +743,13 @@ export const getChallengeScoresGraph = async (
           sql<number>`SUM(${scoreEvents.pointsDelta}) OVER (PARTITION BY ${scoreEvents.userid} ORDER BY ${scoreEvents.eventAt}, ${scoreEvents.id})::int`.as(
             'cumulative'
           ),
+        rn: sql<number>`row_number() OVER (PARTITION BY ${scoreEvents.userid} ORDER BY ${scoreEvents.eventAt}, ${scoreEvents.id})::int`.as(
+          'rn'
+        ),
+        total:
+          sql<number>`count(*) OVER (PARTITION BY ${scoreEvents.userid})::int`.as(
+            'total'
+          ),
       })
       .from(scoreEvents)
       .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
@@ -766,6 +772,11 @@ export const getChallengeScoresGraph = async (
       )`,
     })
     .from(series)
+    // keep the first and last point plus a uniform stride sample so the
+    // per-user series is bounded regardless of how many feed ticks fire
+    .where(
+      sql`${series.rn} = 1 OR ${series.rn} = ${series.total} OR ${series.rn} % GREATEST(1, CEIL(${series.total}::float / ${MAX_GRAPH_POINTS_PER_USER}))::int = 0`
+    )
     .groupBy(series.userId, series.userName)
 
   const rowByUserId = new Map<string, (typeof rows)[number]>()
@@ -782,11 +793,11 @@ export const getChallengeScoresGraph = async (
     if (!row || row.points.length === 0) {
       continue
     }
-    const points = row.points
-    const last = points[points.length - 1]!
-    if (last.time < now) {
-      points.push({ time: now, score: last.score })
-    }
+    const last = row.points[row.points.length - 1]!
+    const points =
+      last.time < now
+        ? [...row.points, { time: now, score: last.score }]
+        : row.points
     result.push({ id: userId, name: row.userName, points })
   }
   return result

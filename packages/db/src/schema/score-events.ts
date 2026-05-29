@@ -9,6 +9,8 @@ import {
 import { challenges } from './challenges'
 import { users } from './users'
 
+// 'feed' should be emitted exclusively by the dynamic scoring upsert,
+// otherwise some of the optimizations might fall apart
 export const scoreEventSourceValues = [
   'flag',
   'decay-recompute',

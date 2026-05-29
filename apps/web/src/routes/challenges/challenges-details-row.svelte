@@ -5,7 +5,7 @@
   import { cn, getInitials, getRankStyles } from '$lib/utils'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { Snippet } from 'svelte'
-  import ChallengeRankDelta from './challenges-details-rank-delta.svelte'
+  import ChallengePointDelta from './challenges-point-delta.svelte'
 
   interface Props {
     variant?: RankVariant
@@ -83,7 +83,7 @@
         {typeof rankLabel === 'number' ? `#${rankLabel}` : rankLabel}
       </span>
       {#if rankDelta}
-        <ChallengeRankDelta delta={rankDelta} />
+        <ChallengePointDelta delta={rankDelta} variant="rank" />
       {/if}
     </div>
   {/if}

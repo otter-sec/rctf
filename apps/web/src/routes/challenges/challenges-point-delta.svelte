@@ -2,31 +2,44 @@
   import { IconTriangleFilled, IconTriangleInvertedFilled } from '$lib/icons'
   import { cn } from '$lib/utils'
 
+  type Variant = 'points' | 'rank'
+
   interface Props {
     delta: number | undefined | null
+    variant?: Variant
     class?: string
   }
 
-  let { delta, class: className }: Props = $props()
+  let { delta, variant = 'points', class: className }: Props = $props()
 
   const trend = $derived(
     delta && delta > 0 ? 'positive' : delta && delta < 0 ? 'negative' : 'neutral'
   )
   const value = $derived(Math.abs(delta ?? 0).toLocaleString())
+  const isRank = $derived(variant === 'rank')
 </script>
 
-<span
-  class={cn('inline-flex items-center gap-1 whitespace-nowrap tabular-nums', className)}
-  data-trend={trend}
->
-  {#if trend === 'positive'}
-    <IconTriangleFilled class="icon" />
-  {:else if trend === 'negative'}
-    <IconTriangleInvertedFilled class="icon" />
-  {/if}
-  <span data-value>{value} pts</span>
-  <span data-label>last update</span>
-</span>
+{#if !isRank || trend !== 'neutral'}
+  <span
+    class={cn(
+      'inline-flex items-center whitespace-nowrap tabular-nums',
+      isRank ? 'gap-0.5 text-xs leading-none' : 'gap-1',
+      className
+    )}
+    data-trend={trend}
+    data-variant={variant}
+  >
+    {#if trend === 'positive'}
+      <IconTriangleFilled class="icon" />
+    {:else if trend === 'negative'}
+      <IconTriangleInvertedFilled class="icon" />
+    {/if}
+    <span data-value>{value}{isRank ? '' : ' pts'}</span>
+    {#if !isRank}
+      <span data-label>last update</span>
+    {/if}
+  </span>
+{/if}
 
 <style>
   span[data-trend='positive'] [data-value] {
@@ -58,5 +71,10 @@
     width: 0.625rem;
     height: 0.625rem;
     flex-shrink: 0;
+  }
+
+  span[data-variant='rank'] :global(.icon) {
+    width: 0.5rem;
+    height: 0.5rem;
   }
 </style>

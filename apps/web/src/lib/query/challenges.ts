@@ -141,7 +141,7 @@ export function useInfiniteChallengeScores(
         return nextOffset < lastPage.total ? nextOffset : undefined
       },
       placeholderData: keepPreviousData,
-      refetchInterval: 30 * 1000,
+      staleTime: 30 * 1000,
     }
   })
 }
