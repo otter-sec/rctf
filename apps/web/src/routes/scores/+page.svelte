@@ -5,17 +5,20 @@
   import { getCategoryConfig } from '$lib/utils/categories'
   import ScoresCellTooltipContent from './scores-leaderboard-cell-tooltip-content.svelte'
   import {
+    createScoresDataModel,
+    createScoresGraphDataModel,
+  } from './scores-leaderboard-data-model.svelte'
+  import {
     getChallengeCellsWidth,
     getFixedCellsWidth,
     isDynamicChallenge,
   } from './scores-leaderboard-data-transforms'
-  import { createScoresDataModel, createScoresGraphDataModel } from './scores-leaderboard-data-model.svelte'
+  import { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import ScoresLeaderboardBody from './scores-leaderboard-virtual-list.svelte'
   import ScoresLeaderboardFrame from './scores-leaderboard.svelte'
+  import ScoresToolbar from './scores-page-toolbar.svelte'
   import { createScoresRouteState } from './scores-page-url-state.svelte'
   import ScoresScreenshotModal from './scores-screenshot-export-modal.svelte'
-  import ScoresToolbar from './scores-page-toolbar.svelte'
-  import { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import { isChallengeTooltipData, type TooltipData } from './scores-shared-types'
 
   const routeState = createScoresRouteState()

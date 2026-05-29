@@ -3,8 +3,11 @@
     createScoresDataModel,
     createScoresGraphDataModel,
   } from './scores-leaderboard-data-model.svelte'
-  import { SCORE_LOADING_ROW_COUNT, SCORE_ROW_HEIGHT_FULL_PX } from './scores-leaderboard-layout-constants'
-  import type { createScoresRouteState } from './scores-page-url-state.svelte'
+  import {
+    SCORE_LOADING_ROW_COUNT,
+    SCORE_ROW_HEIGHT_FULL_PX,
+  } from './scores-leaderboard-layout-constants'
+  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import {
     getSelfChallengePointDeltas,
     getSelfChallengePoints,
@@ -14,7 +17,7 @@
     getTeamRowData,
   } from './scores-leaderboard-team-row-data'
   import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
-  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
+  import type { createScoresRouteState } from './scores-page-url-state.svelte'
   import type {
     CategoryGroup,
     ChallengeInfo,

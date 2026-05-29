@@ -4,11 +4,11 @@
   import type { Attachment } from 'svelte/attachments'
   import ScoresChallengeHeader from './scores-leaderboard-challenge-header.svelte'
   import type { createScoresDataModel } from './scores-leaderboard-data-model.svelte'
-  import ScoresFades from './scores-leaderboard-scroll-fades.svelte'
   import ScoresGraphControls from './scores-leaderboard-graph-controls.svelte'
   import ScoresGraph from './scores-leaderboard-graph.svelte'
-  import type { createScoresRouteState } from './scores-page-url-state.svelte'
+  import ScoresFades from './scores-leaderboard-scroll-fades.svelte'
   import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
+  import type { createScoresRouteState } from './scores-page-url-state.svelte'
   import type { ChallengeInfo, ScoreGraphEntry } from './scores-shared-types'
 
   type ScoreData = ReturnType<typeof createScoresDataModel>

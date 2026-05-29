@@ -10,7 +10,13 @@
     SCORE_CELL_HEIGHT_PX as CELL_HEIGHT,
     SCORE_CELL_WIDTH_PX as CELL_WIDTH,
   } from './scores-leaderboard-layout-constants'
-  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './scores-shared-types'
+  import type {
+    CategoryGroup,
+    ChallengeInfo,
+    SortMode,
+    TooltipData,
+    ViewMode,
+  } from './scores-shared-types'
 
   interface RenderedStrip {
     svg: string
