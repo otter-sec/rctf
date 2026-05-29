@@ -9,7 +9,7 @@
     IconTrashFilled,
     IconUserCog,
   } from '$lib/icons'
-  import { cn, formatLocalTime, formatRelativeHoursMinutes, getInitials } from '$lib/utils'
+  import { cn, formatCtfOffset, formatLocalTime, getInitials } from '$lib/utils'
   import type { Tooltip as TooltipPrimitive } from 'bits-ui'
   import TeamActionTooltipButton from './team-action-tooltip-button.svelte'
   import TeamStatusDot from './team-status-dot.svelte'
@@ -75,11 +75,6 @@
     onResendVerification,
     actionTooltipTether,
   }: Props = $props()
-
-  function formatCtfOffset(timestamp: number) {
-    if (clientConfig?.startTime === null || clientConfig?.startTime === undefined) return ''
-    return `T${formatRelativeHoursMinutes(timestamp, clientConfig.startTime)}`
-  }
 </script>
 
 {#snippet statusText(status: TeamDisplayStatus)}
@@ -141,7 +136,7 @@
 
 {#snippet timeCell(row: TeamRow)}
   {@const timestamp = rowTime(row)}
-  {@const ctfOffset = formatCtfOffset(timestamp)}
+  {@const ctfOffset = formatCtfOffset(timestamp, clientConfig?.startTime)}
   {@const label = `${row.kind === 'registered' ? 'Registered' : 'Expires'} UTC ${new Date(
     timestamp
   ).toISOString()}`}
@@ -194,7 +189,7 @@
         {/if}
         <TeamActionTooltipButton
           tether={actionTooltipTether}
-          label="Copy new token"
+          label="Copy login token"
           disabled={isCopying}
           loading={isCopying}
           onclick={() => onCopyToken(team)}
