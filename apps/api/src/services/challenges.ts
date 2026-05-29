@@ -24,8 +24,19 @@ import {
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
-import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm'
-import { alias, type PgColumn } from 'drizzle-orm/pg-core'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  inArray,
+  lte,
+  max,
+  sql,
+  sum,
+} from 'drizzle-orm'
+import type { PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
 import { verifyDefaultFlag } from '../providers/flags'
@@ -202,34 +213,27 @@ export const getChallenges = async (
       .orderBy(...challengeDefaultOrder)
   }
 
-  const rows = await db
-    .select({ ...baseSelect, myScore: solves.points })
-    .from(challenges)
-    .leftJoin(
-      solves,
-      and(eq(solves.challengeid, challenges.id), eq(solves.userid, userId))
-    )
-    .where(challengeIsPublicSql)
-    .orderBy(...challengeDefaultOrder)
+  const [rows, dynamicScoresByUser] = await Promise.all([
+    db
+      .select({ ...baseSelect, myScore: solves.points })
+      .from(challenges)
+      .leftJoin(
+        solves,
+        and(eq(solves.challengeid, challenges.id), eq(solves.userid, userId))
+      )
+      .where(challengeIsPublicSql)
+      .orderBy(...challengeDefaultOrder),
+    getDynamicScoresForUsers(db, [userId]),
+  ])
 
-  const dynamicChallengeIds = rows
-    .filter(row => scoringKindOf(row.data) === ChallengeScoringKind.DYNAMIC)
-    .map(row => row.id)
-  const dynamicScores =
-    dynamicChallengeIds.length > 0
-      ? ((
-          await getDynamicScoresForUsers(db, [userId], dynamicChallengeIds)
-        ).get(userId) ?? [])
-      : []
-  const dynamicScoreByChallenge = new Map(
-    dynamicScores.map(score => [score.id, score])
+  const deltaByChallenge = new Map(
+    (dynamicScoresByUser.get(userId) ?? []).map(s => [s.id, s.pointDelta])
   )
 
   return rows.map(({ myScore, ...rest }) => ({
     ...rest,
-    myScore:
-      dynamicScoreByChallenge.get(rest.id)?.points ?? myScore ?? undefined,
-    myPointDelta: dynamicScoreByChallenge.get(rest.id)?.pointDelta,
+    myScore: myScore ?? undefined,
+    myPointDelta: deltaByChallenge.get(rest.id),
   }))
 }
 
@@ -624,20 +628,10 @@ export const getChallengeScoresWithPosition = async (
         userAvatarUrl: users.avatarUrl,
         userCountryCode: users.countryCode,
         userStatusText: users.statusText,
-        userDivision: users.division,
-        userGlobalRank: users.globalRank,
-        userDivisionRank: users.divisionRank,
+        division: users.division,
+        globalRank: users.globalRank,
+        divisionRank: users.divisionRank,
         points: solves.points,
-        pointDelta: sql<number>`COALESCE((
-          SELECT SUM(points_delta) FROM score_events
-          WHERE challengeid = ${challengeId}
-            AND userid = ${solves.userid}
-            AND source = 'feed'
-            AND event_at = (
-              SELECT MAX(event_at) FROM score_events
-              WHERE challengeid = ${challengeId} AND source = 'feed'
-            )
-        ), 0)::int`.as('point_delta'),
         position:
           sql<number>`row_number() over (order by ${solves.points} desc, ${solves.pointsUpdatedAt} asc, ${solves.userid} asc)::int`.as(
             'position'
@@ -650,53 +644,74 @@ export const getChallengeScoresWithPosition = async (
       )
   )
 
-  const rows = await db
-    .with(ranked)
-    .select({
-      userId: ranked.userId,
-      userName: ranked.userName,
-      userAvatarUrl: ranked.userAvatarUrl,
-      userCountryCode: ranked.userCountryCode,
-      userStatusText: ranked.userStatusText,
-      userDivision: ranked.userDivision,
-      userGlobalRank: ranked.userGlobalRank,
-      userDivisionRank: ranked.userDivisionRank,
-      points: ranked.points,
-      pointDelta: ranked.pointDelta,
-      myPosition: sql<number | null>`(
-        SELECT position FROM ranked WHERE userid = ${userId}
-      )`.as('my_position'),
-      total: sql<number>`(count(*) over ())::int`.as('total'),
-    })
-    .from(ranked)
-    .orderBy(asc(ranked.position))
-    .limit(limit)
-    .offset(offset)
+  const challengeFeedFilter = and(
+    eq(solves.challengeid, challengeId),
+    eq(solves.source, 'feed')
+  )
 
-  if (rows.length === 0) {
-    return {
-      challengeExists: true,
-      scores: [],
-      total: 0,
-      myPosition: null,
-    }
+  const [pageRows, totalRow, myPositionRow] = await Promise.all([
+    db
+      .with(ranked)
+      .select({
+        userId: ranked.userId,
+        userName: ranked.userName,
+        userAvatarUrl: ranked.userAvatarUrl,
+        userCountryCode: ranked.userCountryCode,
+        userStatusText: ranked.userStatusText,
+        division: ranked.division,
+        globalRank: ranked.globalRank,
+        divisionRank: ranked.divisionRank,
+        points: ranked.points,
+        position: ranked.position,
+      })
+      .from(ranked)
+      .orderBy(asc(ranked.position))
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ value: count() })
+      .from(solves)
+      .innerJoin(users, nonBannedUserJoin(solves.userid))
+      .where(challengeFeedFilter)
+      .then(takeUnique),
+    userId
+      ? db
+          .with(ranked)
+          .select({ position: ranked.position })
+          .from(ranked)
+          .where(eq(ranked.userId, userId))
+          .then(takeUnique)
+      : Promise.resolve(undefined),
+  ])
+
+  const total = totalRow?.value ?? 0
+  const myPosition = myPositionRow?.position ?? null
+
+  if (pageRows.length === 0) {
+    return { challengeExists: true, scores: [], total, myPosition }
   }
+
+  const deltas = await getLatestDynamicPointDeltasForChallenge(
+    db,
+    challengeId,
+    pageRows.map(r => r.userId)
+  )
 
   return {
     challengeExists: true,
-    total: rows[0]!.total,
-    myPosition: rows[0]!.myPosition,
-    scores: rows.map(r => ({
+    total,
+    myPosition,
+    scores: pageRows.map(r => ({
       userId: r.userId,
       userName: r.userName,
       userAvatarUrl: r.userAvatarUrl,
       userCountryCode: r.userCountryCode,
       userStatusText: r.userStatusText,
       points: r.points,
-      pointDelta: r.pointDelta,
-      globalPlace: r.userGlobalRank ?? 0,
-      division: r.userDivision,
-      divisionPlace: r.userDivisionRank ?? 0,
+      pointDelta: deltas.get(r.userId) ?? 0,
+      globalPlace: r.globalRank ?? 0,
+      division: r.division,
+      divisionPlace: r.divisionRank ?? 0,
     })),
   }
 }
@@ -707,9 +722,6 @@ export type ChallengeGraphEntry = {
   points: { time: number; score: number }[]
 }
 
-// The source='feed' filter and the non-banned join must stay paired: feed-only
-// cumulative sums are correct only because ban/delete corrections are excluded
-// by the join, not by the sum.
 export const getChallengeScoresGraph = async (
   db: DatabaseClient,
   challengeId: string,
@@ -719,62 +731,64 @@ export const getChallengeScoresGraph = async (
     return []
   }
 
-  const [eventRows, userRows] = await Promise.all([
+  const series = db.$with('series').as(
     db
       .select({
         userId: scoreEvents.userid,
-        pointsDelta: scoreEvents.pointsDelta,
-        eventAt: scoreEvents.eventAt,
+        userName: users.name,
+        eventAtMs:
+          sql<number>`(EXTRACT(EPOCH FROM ${scoreEvents.eventAt}) * 1000)::bigint`.as(
+            'event_at_ms'
+          ),
+        cumulative:
+          sql<number>`SUM(${scoreEvents.pointsDelta}) OVER (PARTITION BY ${scoreEvents.userid} ORDER BY ${scoreEvents.eventAt}, ${scoreEvents.id})::int`.as(
+            'cumulative'
+          ),
       })
       .from(scoreEvents)
       .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
       .where(
         and(
           eq(scoreEvents.challengeid, challengeId),
-          eq(scoreEvents.source, 'feed'),
           inArray(scoreEvents.userid, userIds)
         )
       )
-      .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id)),
-    db
-      .select({ id: users.id, name: users.name })
-      .from(users)
-      .where(inArray(users.id, userIds)),
-  ])
+  )
 
-  const nameById = new Map(userRows.map(row => [row.id, row.name]))
-  const seriesByUser = new Map<string, { time: number; score: number }[]>()
-  const runningScore = new Map<string, number>()
+  const rows = await db
+    .with(series)
+    .select({
+      userId: series.userId,
+      userName: series.userName,
+      points: sql<Array<{ time: number; score: number }>>`JSONB_AGG(
+        JSONB_BUILD_OBJECT('time', ${series.eventAtMs}, 'score', ${series.cumulative})
+        ORDER BY ${series.eventAtMs}, ${series.cumulative}
+      )`,
+    })
+    .from(series)
+    .groupBy(series.userId, series.userName)
 
-  for (const row of eventRows) {
-    if (!row.userId) {
-      continue
+  const rowByUserId = new Map<string, (typeof rows)[number]>()
+  for (const row of rows) {
+    if (row.userId) {
+      rowByUserId.set(row.userId, row)
     }
-    const score = (runningScore.get(row.userId) ?? 0) + row.pointsDelta
-    runningScore.set(row.userId, score)
-    const series = seriesByUser.get(row.userId) ?? []
-    series.push({ time: new Date(row.eventAt).getTime(), score })
-    seriesByUser.set(row.userId, series)
   }
 
   const now = Date.now()
   const result: ChallengeGraphEntry[] = []
   for (const userId of userIds) {
-    const series = seriesByUser.get(userId)
-    if (!series || series.length === 0) {
+    const row = rowByUserId.get(userId)
+    if (!row || row.points.length === 0) {
       continue
     }
-    const last = series[series.length - 1]!
+    const points = row.points
+    const last = points[points.length - 1]!
     if (last.time < now) {
-      series.push({ time: now, score: last.score })
+      points.push({ time: now, score: last.score })
     }
-    result.push({
-      id: userId,
-      name: nameById.get(userId) ?? '',
-      points: series,
-    })
+    result.push({ id: userId, name: row.userName, points })
   }
-
   return result
 }
 
@@ -838,12 +852,12 @@ export const getLeaderboardChallengeData = async (
     }
   }
 
-  const [solveRows, userRows, dynamicChallengeIds] = await Promise.all([
+  const [solveRows, userRows, dynamicScores] = await Promise.all([
     db
       .select({
-        challenge_id: solves.challengeid,
-        user_id: solves.userid,
-        created_at: solves.createdat,
+        challengeId: solves.challengeid,
+        userId: solves.userid,
+        createdAt: solves.createdat,
       })
       .from(solves)
       .innerJoin(users, nonBannedUserJoin(solves.userid))
@@ -865,17 +879,10 @@ export const getLeaderboardChallengeData = async (
       })
       .from(users)
       .where(and(inArray(users.id, userIds), userIsNotBanned)),
-    getPublicDynamicChallengeIds(db),
+    getDynamicScoresForUsers(db, userIds),
   ])
-  const dynamicScores = await getDynamicScoresForUsers(
-    db,
-    userIds,
-    dynamicChallengeIds
-  )
 
-  const solvesMap = new Map<string, LeaderboardSolve[]>(
-    userIds.map(id => [id, []])
-  )
+  const solvesMap = new Map<string, LeaderboardSolve[]>()
   const userInfo = new Map<string, UserDisplayInfo>()
 
   for (const row of userRows) {
@@ -887,46 +894,24 @@ export const getLeaderboardChallengeData = async (
   }
 
   for (const row of solveRows) {
-    solvesMap.get(row.user_id)?.push({
-      challengeId: row.challenge_id,
-      solveTime: new Date(row.created_at).getTime(),
+    const arr = solvesMap.get(row.userId) ?? []
+    arr.push({
+      challengeId: row.challengeId,
+      solveTime: new Date(row.createdAt).getTime(),
     })
+    solvesMap.set(row.userId, arr)
   }
 
   return { solves: solvesMap, dynamicScores, userInfo }
 }
 
-export async function getPublicDynamicChallengeIds(
-  db: DatabaseClient
-): Promise<string[]> {
-  const rows = await db
-    .select({ id: challenges.id })
-    .from(challenges)
-    .where(
-      and(
-        challengeIsPublicSql,
-        eq(
-          sql<string>`${challenges.data} -> 'scoring' ->> 'kind'`,
-          ChallengeScoringKind.DYNAMIC
-        )
-      )
-    )
-
-  return rows.map(row => row.id)
-}
-
-export async function getDynamicScoresForUsers(
+export const getDynamicScoresForUsers = async (
   db: DatabaseClient,
-  userIds: string[],
-  challengeIds: string[]
-): Promise<Map<string, LeaderboardDynamicScore[]>> {
-  const scoreMap = new Map<string, Map<string, LeaderboardDynamicScore>>(
-    userIds.map((id): [string, Map<string, LeaderboardDynamicScore>] => [
-      id,
-      new Map(),
-    ])
-  )
-  if (userIds.length === 0 || challengeIds.length === 0) return new Map()
+  userIds: string[]
+): Promise<Map<string, LeaderboardDynamicScore[]>> => {
+  if (userIds.length === 0) {
+    return new Map()
+  }
 
   const [currentRows, pointDeltas] = await Promise.all([
     db
@@ -941,22 +926,18 @@ export async function getDynamicScoresForUsers(
         challenges,
         and(eq(challenges.id, solves.challengeid), challengeIsPublicSql)
       )
-      .where(
-        and(
-          inArray(solves.userid, userIds),
-          inArray(solves.challengeid, challengeIds),
-          eq(solves.source, 'feed')
-        )
-      ),
-    getLatestDynamicPointDeltas(db, userIds, challengeIds),
+      .where(and(inArray(solves.userid, userIds), eq(solves.source, 'feed'))),
+    getLatestDynamicPointDeltas(db, userIds),
   ])
 
-  // a team only has a score on a challenge if it has a current solve; a team
-  // whose solve was zeroed/removed is off the board even though its removal
-  // delta may be the latest event, so entries come from solves and deltas only
-  // annotate teams that already have one.
+  const scoreMap = new Map<string, Map<string, LeaderboardDynamicScore>>()
   for (const row of currentRows) {
-    scoreMap.get(row.userId)?.set(row.challengeId, {
+    let teamScores = scoreMap.get(row.userId)
+    if (!teamScores) {
+      teamScores = new Map()
+      scoreMap.set(row.userId, teamScores)
+    }
+    teamScores.set(row.challengeId, {
       id: row.challengeId,
       points: row.points,
       pointDelta: 0,
@@ -965,10 +946,14 @@ export async function getDynamicScoresForUsers(
 
   for (const [userId, deltas] of pointDeltas) {
     const teamScores = scoreMap.get(userId)
-    if (!teamScores) continue
+    if (!teamScores) {
+      continue
+    }
     for (const [challengeId, pointDelta] of deltas) {
       const existing = teamScores.get(challengeId)
-      if (existing) existing.pointDelta = pointDelta
+      if (existing) {
+        existing.pointDelta = pointDelta
+      }
     }
   }
 
@@ -980,54 +965,47 @@ export async function getDynamicScoresForUsers(
   )
 }
 
-async function getLatestDynamicPointDeltas(
+const getLatestDynamicPointDeltas = async (
   db: DatabaseClient,
-  userIds: string[],
-  challengeIds: string[]
-): Promise<Map<string, Map<string, number>>> {
-  if (userIds.length === 0 || challengeIds.length === 0) {
+  userIds: string[]
+): Promise<Map<string, Map<string, number>>> => {
+  if (userIds.length === 0) {
     return new Map()
   }
 
-  // resolve the latest feed tick per challenge with a per-challenge LIMIT 1
-  const latestFeedEvent = alias(scoreEvents, 'latest_feed_event')
-  const latestTick = db
-    .select({ eventAt: latestFeedEvent.eventAt })
-    .from(latestFeedEvent)
-    .where(
-      and(
-        eq(latestFeedEvent.challengeid, challenges.id),
-        eq(latestFeedEvent.source, 'feed')
-      )
-    )
-    .orderBy(desc(latestFeedEvent.eventAt))
-    .limit(1)
-    .as('latest_tick')
+  const latestTick = db.$with('latest_tick').as(
+    db
+      .select({
+        challengeId: sql<string>`${scoreEvents.challengeid}`.as('tick_cid'),
+        eventAt: max(scoreEvents.eventAt).as('tick_at'),
+      })
+      .from(scoreEvents)
+      .where(eq(scoreEvents.source, 'feed'))
+      .groupBy(scoreEvents.challengeid)
+  )
 
   const rows = await db
+    .with(latestTick)
     .select({
       challengeId: scoreEvents.challengeid,
       userId: scoreEvents.userid,
-      pointDelta: sql<number>`sum(${scoreEvents.pointsDelta})::int`.as(
-        'point_delta'
-      ),
+      pointDelta: sum(scoreEvents.pointsDelta).mapWith(Number),
     })
-    .from(challenges)
-    .crossJoinLateral(latestTick)
+    .from(scoreEvents)
     .innerJoin(
-      scoreEvents,
+      latestTick,
       and(
-        eq(scoreEvents.challengeid, challenges.id),
-        eq(scoreEvents.eventAt, latestTick.eventAt),
-        eq(scoreEvents.source, 'feed')
+        eq(latestTick.challengeId, scoreEvents.challengeid),
+        eq(latestTick.eventAt, scoreEvents.eventAt)
       )
+    )
+    .innerJoin(
+      challenges,
+      and(eq(challenges.id, scoreEvents.challengeid), challengeIsPublicSql)
     )
     .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
     .where(
-      and(
-        inArray(challenges.id, challengeIds),
-        inArray(scoreEvents.userid, userIds)
-      )
+      and(eq(scoreEvents.source, 'feed'), inArray(scoreEvents.userid, userIds))
     )
     .groupBy(scoreEvents.challengeid, scoreEvents.userid)
 
@@ -1041,6 +1019,54 @@ async function getLatestDynamicPointDeltas(
     pointDeltas.set(row.userId, teamDeltas)
   }
   return pointDeltas
+}
+
+const getLatestDynamicPointDeltasForChallenge = async (
+  db: DatabaseClient,
+  challengeId: string,
+  userIds: string[]
+): Promise<Map<string, number>> => {
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const latestTick = db.$with('latest_tick').as(
+    db
+      .select({ eventAt: max(scoreEvents.eventAt).as('tick_at') })
+      .from(scoreEvents)
+      .where(
+        and(
+          eq(scoreEvents.challengeid, challengeId),
+          eq(scoreEvents.source, 'feed')
+        )
+      )
+  )
+
+  const rows = await db
+    .with(latestTick)
+    .select({
+      userId: scoreEvents.userid,
+      pointDelta: sum(scoreEvents.pointsDelta).mapWith(Number),
+    })
+    .from(scoreEvents)
+    .innerJoin(latestTick, eq(latestTick.eventAt, scoreEvents.eventAt))
+    .innerJoin(users, nonBannedUserJoin(scoreEvents.userid))
+    .where(
+      and(
+        eq(scoreEvents.challengeid, challengeId),
+        eq(scoreEvents.source, 'feed'),
+        inArray(scoreEvents.userid, userIds)
+      )
+    )
+    .groupBy(scoreEvents.userid)
+
+  const result = new Map<string, number>()
+  for (const row of rows) {
+    if (row.userId) {
+      result.set(row.userId, row.pointDelta)
+    }
+  }
+  return result
 }
 
 export const submitFlag = async (

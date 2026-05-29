@@ -200,11 +200,10 @@ describe('banned user exclusion (regression)', () => {
     test('getDynamicScoresForUsers excludes banned current points and deltas', async () => {
       const s = await setupScenario('dynamic')
       try {
-        const scores = await getDynamicScoresForUsers(
-          getDb(),
-          [s.activeId, s.bannedId],
-          [s.challengeId]
-        )
+        const scores = await getDynamicScoresForUsers(getDb(), [
+          s.activeId,
+          s.bannedId,
+        ])
 
         const activeScore = scores
           .get(s.activeId)

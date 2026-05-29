@@ -2,11 +2,7 @@ import type { DatabaseClient, User } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import { and, asc, eq, gt, inArray } from 'drizzle-orm'
-import {
-  getDynamicScoresForUsers,
-  getPublicDynamicChallengeIds,
-  getUserChallengeSolves,
-} from './challenges'
+import { getDynamicScoresForUsers, getUserChallengeSolves } from './challenges'
 import { getUser } from './users'
 
 export type SolveData = {
@@ -40,7 +36,7 @@ export const getFullUser = async (
   db: DatabaseClient,
   user: User
 ): Promise<FullUser> => {
-  const [solves, freshRanks, dynamicChallengeIds] = await Promise.all([
+  const [solves, freshRanks, dynamicScoresByUser] = await Promise.all([
     getUserChallengeSolves(db, user.id),
     db
       .select({
@@ -51,7 +47,7 @@ export const getFullUser = async (
       .from(users)
       .where(eq(users.id, user.id))
       .then(takeUnique),
-    getPublicDynamicChallengeIds(db),
+    getDynamicScoresForUsers(db, [user.id]),
   ])
 
   const challengeIds = solves.map(item => item.solve.challengeid)
@@ -60,11 +56,6 @@ export const getFullUser = async (
     { score: number; solveCount: number }
   >()
   const challengeAwardedPoints = new Map<string, number>()
-  const dynamicScores = await getDynamicScoresForUsers(
-    db,
-    [user.id],
-    dynamicChallengeIds
-  )
 
   if (challengeIds.length > 0) {
     const [challRows, awardedRows] = await Promise.all([
@@ -114,7 +105,7 @@ export const getFullUser = async (
     score: freshRanks?.score ?? 0,
     globalPlace: freshRanks?.globalRank ?? null,
     divisionPlace: freshRanks?.divisionRank ?? null,
-    dynamicScores: dynamicScores.get(user.id) ?? [],
+    dynamicScores: dynamicScoresByUser.get(user.id) ?? [],
     solves: solves.map(item => {
       const challScore = challengeScores.get(item.solve.challengeid)
       return {

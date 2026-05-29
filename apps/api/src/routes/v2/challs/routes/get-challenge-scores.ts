@@ -11,7 +11,7 @@ challsGroup.route(
   async ({ res, ctx, params, query, user }) => {
     // NOTE: Handling manually because the values are loaded from config
     if (
-      query.limit > config.leaderboard.maxLimit ||
+      query.limit > config.leaderboard.graphMaxTeams ||
       query.offset > config.leaderboard.maxOffset
     ) {
       return res.badBody({

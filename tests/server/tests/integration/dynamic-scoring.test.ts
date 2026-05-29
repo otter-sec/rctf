@@ -487,6 +487,27 @@ describe('getChallengeScoresGraph', () => {
     const challengeId = await createDynamicChallenge()
     expect(await getChallengeScoresGraph(db, challengeId, [])).toEqual([])
   })
+
+  test('does not double-count after admin solve deletion + re-score', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 300 },
+    ])
+    await deleteSolve(db, { userId: user.id, challengeId })
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 500 },
+    ])
+
+    const graph = await getChallengeScoresGraph(db, challengeId, [user.id])
+    expect(graph).toHaveLength(1)
+    const scores = graph[0]!.points.map(p => p.score)
+    // 300 (feed), 0 (delete correction), 500 (re-feed), trailing 500 sample.
+    expect(scores.slice(0, 3)).toEqual([300, 0, 500])
+    expect(scores.at(-1)).toBe(500)
+  })
 })
 
 describe('feed-during-ban invariant', () => {
