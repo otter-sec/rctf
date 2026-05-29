@@ -176,6 +176,13 @@
       "when": 1780088894914,
       "tag": "0024_add_feed_latest_tick_index",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1780089958889,
+      "tag": "0025_rename_external_auth_clients",
+      "breakpoints": true
     }
   ]
 }
