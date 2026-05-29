@@ -49,7 +49,10 @@ const createClient = async (overrides?: {
       redirectUri: overrides?.redirectUri ?? 'https://example.test/cb',
     }),
   })
-  const body = (await expectResponse(res, GoodAdminExternalAuthClientCreate)) as {
+  const body = (await expectResponse(
+    res,
+    GoodAdminExternalAuthClientCreate
+  )) as {
     data: {
       id: string
       name: string
@@ -122,7 +125,10 @@ describe('external-auth happy path', () => {
       redirectUri: client.redirectUri,
       state: 'abc-123',
     })
-    const authBody = (await expectResponse(authRes, GoodExternalAuthAuthorize)) as {
+    const authBody = (await expectResponse(
+      authRes,
+      GoodExternalAuthAuthorize
+    )) as {
       data: { redirectTo: string }
     }
     const url = new URL(authBody.data.redirectTo)
@@ -135,7 +141,10 @@ describe('external-auth happy path', () => {
       clientSecret: secret,
       code,
     })
-    const tokenBody = (await expectResponse(tokenRes, GoodExternalAuthToken)) as {
+    const tokenBody = (await expectResponse(
+      tokenRes,
+      GoodExternalAuthToken
+    )) as {
       data: { accessToken: string; tokenType: 'bearer' }
     }
     expect(tokenBody.data.tokenType).toBe('bearer')

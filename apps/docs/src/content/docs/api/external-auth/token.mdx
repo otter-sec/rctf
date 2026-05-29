@@ -33,6 +33,10 @@ The code is consumed atomically: the first call deletes it from Redis, so a repl
 
 <RequestBody def={ExternalAuthTokenRouteV2} title="Request body" />
 
-<ResponseBody def={ExternalAuthTokenRouteV2} response="goodExternalAuthToken" title="Response fields" />
+<ResponseBody
+  def={ExternalAuthTokenRouteV2}
+  response="goodExternalAuthToken"
+  title="Response fields"
+/>
 
 The returned `<red>accessToken</red>` is a regular rCTF auth token with no expiry - the same kind of token issued at login. Use it in `Authorization: Bearer <accessToken>` against any rCTF endpoint. There is no per-app token registry: deleting the client through the admin routes prevents future code exchanges but does not revoke tokens that were already minted.

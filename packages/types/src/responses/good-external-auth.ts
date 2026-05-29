@@ -28,19 +28,22 @@ export const GoodExternalAuthToken = response('goodExternalAuthToken', {
   }),
 })
 
-export const GoodAdminExternalAuthClients = response('goodAdminExternalAuthClients', {
-  status: 200,
-  message: 'External-auth clients listed.',
-  data: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      redirectUri: z.string(),
-      createdAt: z.string(),
-      createdBy: z.nullable(z.string()),
-    })
-  ),
-})
+export const GoodAdminExternalAuthClients = response(
+  'goodAdminExternalAuthClients',
+  {
+    status: 200,
+    message: 'External-auth clients listed.',
+    data: z.array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        redirectUri: z.string(),
+        createdAt: z.string(),
+        createdBy: z.nullable(z.string()),
+      })
+    ),
+  }
+)
 
 export const GoodAdminExternalAuthClientCreate = response(
   'goodAdminExternalAuthClientCreate',
