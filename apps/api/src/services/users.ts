@@ -596,7 +596,10 @@ export const getAdminUserWithSolves = async (
 
 export type AdminUserMutationResult =
   | { success: true }
-  | { success: false; error: 'badUnknownUser' | 'badUserPrivileged' }
+  | {
+      success: false
+      error: 'badUnknownUser' | 'badUserPrivileged' | 'badKnownName'
+    }
 
 // enqueue recomputes only for decay challenges
 const getAffectedDecayChallengeIds = (
@@ -624,7 +627,13 @@ export const updateAdminUser = async (
   db: DatabaseClient,
   redis: TypedRedis,
   id: string,
-  data: { banned?: boolean }
+  data: {
+    banned?: boolean
+    name?: string
+    division?: string
+    countryCode?: string | null
+    statusText?: string | null
+  }
 ): Promise<AdminUserMutationResult> => {
   const targetUser = await getUser(db, id)
   if (!targetUser) {
@@ -635,38 +644,65 @@ export const updateAdminUser = async (
     return { success: false, error: 'badUserPrivileged' }
   }
 
-  const willBeBanned = data.banned ?? targetUser.banned ?? false
+  const hasProfileUpdate =
+    data.name !== undefined ||
+    data.division !== undefined ||
+    data.countryCode !== undefined ||
+    data.statusText !== undefined
 
-  const affectedDecayIds = await db.transaction(async tx => {
-    const updated = await tx
-      .update(users)
-      .set({
-        banned: willBeBanned,
-        ...(willBeBanned
-          ? {
-              score: 0,
-              globalRank: null,
-              divisionRank: null,
-              lastSolveAt: null,
-              lastTiebreakSolveAt: null,
-            }
-          : {}),
-      })
-      .where(and(eq(users.id, id), ne(users.banned, willBeBanned)))
-      .returning({ id: users.id })
-
-    if (updated.length === 0) {
-      return [] as string[]
+  if (hasProfileUpdate) {
+    // Admins override the division ACL that divisionAllowed() enforces on
+    // self-service updates, so we set the fields directly.
+    const result = await updateUserInternal(db, redis, id, {
+      name: data.name ?? targetUser.name,
+      division: data.division ?? targetUser.division,
+      countryCode:
+        data.countryCode !== undefined
+          ? data.countryCode
+          : targetUser.countryCode,
+      statusText:
+        data.statusText !== undefined ? data.statusText : targetUser.statusText,
+    })
+    if (!result.success) {
+      return { success: false, error: 'badKnownName' }
     }
+  }
 
-    await emitBanScoreEvents(tx, id, willBeBanned ? 'ban' : 'unban')
-    return await getAffectedDecayChallengeIds(tx, id)
-  })
+  if (data.banned !== undefined) {
+    const willBeBanned = data.banned
 
-  publishChallengeRecomputes(redis, affectedDecayIds, 'ban')
+    const affectedDecayIds = await db.transaction(async tx => {
+      const updated = await tx
+        .update(users)
+        .set({
+          banned: willBeBanned,
+          ...(willBeBanned
+            ? {
+                score: 0,
+                globalRank: null,
+                divisionRank: null,
+                lastSolveAt: null,
+                lastTiebreakSolveAt: null,
+              }
+            : {}),
+        })
+        .where(and(eq(users.id, id), ne(users.banned, willBeBanned)))
+        .returning({ id: users.id })
 
-  await invalidateUserCache(redis, id)
-  forceLeaderboardUpdate(redis)
+      if (updated.length === 0) {
+        return [] as string[]
+      }
+
+      await emitBanScoreEvents(tx, id, willBeBanned ? 'ban' : 'unban')
+      return await getAffectedDecayChallengeIds(tx, id)
+    })
+
+    publishChallengeRecomputes(redis, affectedDecayIds, 'ban')
+
+    await invalidateUserCache(redis, id)
+    forceLeaderboardUpdate(redis)
+  }
+
   return { success: true }
 }
 

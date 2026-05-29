@@ -1,8 +1,11 @@
+import { ALL_REGIONS } from '@rctf/util'
 import { z } from 'zod/mini'
 import { Permissions } from '../../enums/permissions'
 import { defineRoute } from '../../internal'
 import {
   BadAdminBotConfig,
+  BadAvatarFile,
+  BadAvatarFileSize,
   BadBody,
   BadChallenge,
   BadEndpoint,
@@ -10,6 +13,8 @@ import {
   BadInstancerConfig,
   BadKnownEmail,
   BadKnownName,
+  BadModerationNotPassed,
+  BadName,
   BadPerms,
   BadToken,
   BadUnknownSolveV2,
@@ -36,6 +41,7 @@ import {
   GoodAdminUserVerificationCompleteV2,
   GoodAdminUserVerificationResendV2,
   GoodAdminUserVerificationsV2,
+  GoodAvatarUpdated,
   GoodChallengeSolveDeleteV2,
   GoodChallengeUpdateV2,
   GoodCreateUserTokenV2,
@@ -49,6 +55,7 @@ import {
   ChallengeFileSchemaV2,
   ChallengePointsSchema,
   ChallengeScoringSchema,
+  FileFieldSchema,
   MultipleFileFieldSchema,
   PartialInstancerConfigSchema,
   searchFilter,
@@ -60,6 +67,7 @@ import {
   SubmissionTeamStatus,
   UploadFileName,
   UploadSha256,
+  UserName,
 } from '../../util'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
@@ -199,11 +207,17 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   body: z.object({
     data: z.object({
       banned: z.optional(z.boolean()),
+      name: z.optional(UserName),
+      division: z.optional(z.string()),
+      countryCode: z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
+      statusText: z.optional(z.nullable(z.string().check(z.maxLength(60)))),
     }),
   }),
   goodResponses: [GoodAdminUserUpdateV2],
   badResponses: [
     BadBody,
+    BadKnownName,
+    BadName,
     BadPerms,
     BadToken,
     BadUnknownUser,
@@ -212,6 +226,29 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   authRequired: true,
   params: AdminUserParams,
   permissions: Permissions.usersWrite,
+})
+
+export const UpdateAdminUserAvatarRouteV2 = defineRoute({
+  path: '/v2/admin/users/:id/avatar',
+  method: 'PATCH',
+  body: z.object({
+    avatar: z.optional(FileFieldSchema),
+  }),
+  goodResponses: [GoodAvatarUpdated],
+  badResponses: [
+    BadAvatarFile,
+    BadAvatarFileSize,
+    BadBody,
+    BadModerationNotPassed,
+    BadPerms,
+    BadToken,
+    BadUnknownUser,
+    BadUserPrivileged,
+  ],
+  authRequired: true,
+  params: AdminUserParams,
+  permissions: Permissions.usersWrite,
+  bodyFormat: 'form-data',
 })
 
 export const DeleteAdminUserRouteV2 = defineRoute({

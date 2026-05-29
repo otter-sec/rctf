@@ -24,6 +24,7 @@ import './routes/query-uploads'
 import './routes/resend-admin-user-verification'
 import './routes/update-admin-settings'
 import './routes/update-admin-user'
+import './routes/update-admin-user-avatar'
 import './routes/update-challenge'
 import './routes/upload-files'
 
