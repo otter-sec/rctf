@@ -9,6 +9,6 @@ export default {
     submissions: { label: 'Submissions', order: 4 },
     uploading: { label: 'Uploading', order: 5 },
     markdown: { label: 'Markdown', order: 6, badge: 'new' },
-    'ext-auth': { label: 'External apps', order: 7, badge: 'new' },
+    'external-auth': { label: 'External apps', order: 7, badge: 'new' },
   },
 } satisfies MetaFile

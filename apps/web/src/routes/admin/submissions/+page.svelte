@@ -1,9 +1,11 @@
 <script lang="ts">
   import { SubmissionSortBy, SubmissionSortOrder } from '@rctf/types'
+  import { page } from '$app/state'
   import { Card, EmptyState, ScrollArea, Spinner, Tooltip } from '$lib/components'
   import { IconClockFilled, IconTableFilled } from '$lib/icons'
   import {
     useAdminChallenges,
+    useAdminUser,
     useClientConfig,
     useInfiniteAdminSubmissions,
     useInfiniteAdminUsers,
@@ -48,8 +50,43 @@
   let expandedSubmissionId = $state<string | null>(null)
   let tableHeaderRef = $state<HTMLElement | null>(null)
   let listScrollMargin = $state(0)
+  let tableViewportWidth = $state(0)
   const rowTooltip = createHoverTooltip<string>()
   const rowTooltipHandlers = createDataAttrTooltipHandlers(rowTooltip.hover)
+
+  // Deep-link: /admin/submissions?team=<id>&challenge=<id> pre-filters submissions.
+  const deepLinkTeamId = $derived(page.url.searchParams.get('team'))
+  const deepLinkChallengeId = $derived(page.url.searchParams.get('challenge'))
+  const deepLinkTeamQuery = useAdminUser(() => deepLinkTeamId)
+  let appliedDeepLink = $state<string | null>(null)
+
+  $effect(() => {
+    const teamId = deepLinkTeamId
+    const challengeId = deepLinkChallengeId
+    if (!teamId && !challengeId) return
+
+    const key = `${teamId ?? ''}:${challengeId ?? ''}`
+    if (appliedDeepLink === key) return
+
+    const team = teamId ? deepLinkTeamQuery.data : null
+    const challenge = challengeId
+      ? (challengesQuery.data ?? []).find(c => c.id === challengeId)
+      : null
+    if (teamId && !team) return
+    if (challengeId && !challenge) return
+
+    appliedDeepLink = key
+    if (team) {
+      filters.team.mode = 'include'
+      filters.team.selected = [{ id: team.id, name: team.name, avatarUrl: team.avatarUrl }]
+    }
+    if (challenge) {
+      filters.challenge.mode = 'include'
+      filters.challenge.selected = [
+        { id: challenge.id, name: challenge.name, category: challenge.category },
+      ]
+    }
+  })
 
   const trimmedRootFilterSearch = $derived(rootFilterSearch.trim())
   const normalizedRootFilterSearch = $derived(normalizeSearchText(trimmedRootFilterSearch))
@@ -189,6 +226,7 @@
       : -1
   )
   const visibleRowCount = $derived(allSubmissions.length + (expandedSubmissionIndex === -1 ? 0 : 1))
+  const pinnedToolbarWidth = $derived(tableViewportWidth ? `${tableViewportWidth}px` : '100%')
   const scroll = useInfiniteVirtualScroll({
     rowHeight: ROW_HEIGHT,
     overscan: 6,
@@ -215,6 +253,22 @@
     })
     resizeObserver.observe(header)
     listScrollMargin = Math.round(header.getBoundingClientRect().height)
+
+    return () => resizeObserver.disconnect()
+  })
+
+  $effect(() => {
+    const viewport = scroll.state.viewportRef
+    if (!viewport) {
+      tableViewportWidth = 0
+      return
+    }
+
+    const resizeObserver = new ResizeObserver(entries => {
+      tableViewportWidth = Math.round(entries[0]?.contentRect.width ?? 0)
+    })
+    resizeObserver.observe(viewport)
+    tableViewportWidth = Math.round(viewport.getBoundingClientRect().width)
 
     return () => resizeObserver.disconnect()
   })
@@ -352,12 +406,13 @@
     scrollbarYClasses="z-40"
     scrollbarYStyles={`margin-top: ${listScrollMargin}px; height: calc(100% - ${listScrollMargin}px);`}
   >
-    <div class="min-h-full w-full min-w-364 text-sm">
+    <div class="min-h-full w-full min-w-296 text-sm">
       <div class="flex min-h-full flex-col">
         <div bind:this={tableHeaderRef} class="bg-background-l1 sticky top-0 z-50">
           <SubmissionsFilterBar
             bind:filters
             bind:rootFilterSearch
+            {pinnedToolbarWidth}
             valueFamilies={valueFilterFamilies}
             timeFamily={timeFilterFamily}
             rootValueFamilyMatches={rootValueFilterFamilyMatches}

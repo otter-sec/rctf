@@ -21,6 +21,7 @@
     hasFilters: boolean
     timeRangeSummary: string
     timeRangeError?: string
+    pinnedToolbarWidth: string
   }
 
   let {
@@ -38,10 +39,14 @@
     hasFilters,
     timeRangeSummary,
     timeRangeError,
+    pinnedToolbarWidth,
   }: Props = $props()
 </script>
 
-<div class="relative z-20 flex min-w-0 items-center gap-1.5 overflow-visible border-b-2 px-3 py-2">
+<div
+  class="bg-background-l1 sticky left-0 z-20 flex min-w-0 items-center gap-1.5 overflow-visible border-b-2 px-3 py-2"
+  style:width={pinnedToolbarWidth}
+>
   <div class="md:hidden">
     <SubmissionsMobileFilterDrawer
       bind:filters

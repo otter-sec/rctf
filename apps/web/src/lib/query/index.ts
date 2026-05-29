@@ -2,7 +2,7 @@ import {
   adminBotStatusQueryOptions,
   adminChallengeQueryOptions,
   adminChallengesQueryOptions,
-  adminExtAuthClientsQueryOptions,
+  adminExternalAuthClientsQueryOptions,
   adminSettingsQueryOptions,
   adminSubmissionsQueryOptions,
   adminUserQueryOptions,
@@ -67,7 +67,7 @@ export const queryKeys = {
   members: membersQueryOptions.queryKey,
   instancerSchema: instancerSchemaQueryOptions.queryKey,
   adminBotStatus: adminBotStatusQueryOptions.queryKey,
-  adminExtAuthClients: adminExtAuthClientsQueryOptions.queryKey,
+  adminExternalAuthClients: adminExternalAuthClientsQueryOptions.queryKey,
   adminSettings: adminSettingsQueryOptions.queryKey,
   adminSubmissions: (
     params: { limit: number; offset: number } & AdminSubmissionsQueryParams

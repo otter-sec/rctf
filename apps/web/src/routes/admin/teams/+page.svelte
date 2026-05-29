@@ -5,24 +5,22 @@
     GoodAdminUserUpdateV2,
     GoodAdminUserVerificationCompleteV2,
     GoodAdminUserVerificationResendV2,
-    GoodChallengeSolveDeleteV2,
     GoodCreateUserTokenV2,
     Permissions,
     SortOrder,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
+  import { goto } from '$app/navigation'
   import { showApiError } from '$lib/api'
   import { Card, Spinner } from '$lib/components'
   import {
     queryKeys,
-    useAdminUser,
     useAdminUserVerifications,
     useClientConfig,
     useCompleteAdminUserVerificationMutation,
     useCreateUserTokenMutation,
     useCurrentUser,
     useDeleteAdminUserMutation,
-    useDeleteChallengeSolveMutation,
     useInfiniteAdminUsers,
     useResendAdminUserVerificationMutation,
     useUpdateAdminUserMutation,
@@ -30,7 +28,6 @@
   import { hasPermissions } from '$lib/utils'
   import { toast } from 'svelte-sonner'
   import TeamConfirmDialogs from './team-confirm-dialogs.svelte'
-  import TeamManageDialog from './team-manage-dialog.svelte'
   import {
     createTeamFilters,
     PAGE_SIZE,
@@ -39,7 +36,6 @@
     sortTeamRows,
     teamFilterParams,
     type AdminTeam,
-    type AdminTeamDetails,
     type PendingTeamRow,
     type PendingVerification,
     type RegisteredTeamRow,
@@ -58,7 +54,6 @@
   const userQuery = useCurrentUser()
   const user = $derived(userQuery.data)
   const hasWritePerms = $derived(hasPermissions(user, Permissions.usersWrite))
-  const hasSolveWritePerms = $derived(hasPermissions(user, Permissions.challsSolveWrite))
   const hasTeamDetailsPerms = $derived(
     hasWritePerms && hasPermissions(user, Permissions.challsRead)
   )
@@ -125,25 +120,20 @@
   const createTokenMutation = useCreateUserTokenMutation()
   const updateUserMutation = useUpdateAdminUserMutation()
   const deleteUserMutation = useDeleteAdminUserMutation()
-  const deleteSolveMutation = useDeleteChallengeSolveMutation()
   const completeVerificationMutation = useCompleteAdminUserVerificationMutation()
   const resendVerificationMutation = useResendAdminUserVerificationMutation()
 
   let copyingTeamId = $state<string | null>(null)
   let updatingTeamId = $state<string | null>(null)
   let deletingTeamId = $state<string | null>(null)
-  let revokingSolveKey = $state<string | null>(null)
   let completingVerificationId = $state<string | null>(null)
   let resendingVerificationId = $state<string | null>(null)
-  let selectedTeamId = $state<string | null>(null)
   let banDialogTeam = $state<{
     id: string
     name: string
     banned: boolean
   } | null>(null)
   let deleteDialogTeam = $state<{ id: string; name: string } | null>(null)
-  const selectedTeamQuery = useAdminUser(() => selectedTeamId)
-  const selectedTeam = $derived(selectedTeamQuery.data as AdminTeamDetails | undefined)
 
   function refreshTeamQueries(teamId?: string) {
     queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
@@ -170,7 +160,7 @@
           if (response.kind === GoodCreateUserTokenV2.kind) {
             try {
               await navigator.clipboard.writeText(response.data.token)
-              toast.success(`Token copied for ${team.name}`)
+              toast.success(`Login token copied for ${team.name}`)
             } catch {
               toast.error('Failed to copy token')
             }
@@ -188,17 +178,10 @@
   }
 
   function openManageTeam(teamId: string) {
-    selectedTeamId = teamId
-  }
-
-  function closeManageTeam() {
-    selectedTeamId = null
+    goto(`/admin/profile/${teamId}`)
   }
 
   function openBanDialog(team: { id: string; name: string; banned: boolean }) {
-    if (selectedTeamId === team.id) {
-      closeManageTeam()
-    }
     banDialogTeam = team
   }
 
@@ -252,9 +235,6 @@
   }
 
   function openDeleteDialog(team: { id: string; name: string }) {
-    if (selectedTeamId === team.id) {
-      closeManageTeam()
-    }
     deleteDialogTeam = team
   }
 
@@ -274,7 +254,6 @@
           if (response.kind === GoodAdminUserDeleteV2.kind) {
             toast.success(`${team.name} deleted`)
             refreshTeamQueries(team.id)
-            if (selectedTeamId === team.id) closeManageTeam()
             closeDeleteDialog()
           } else {
             showApiError(response)
@@ -284,32 +263,6 @@
         onError: err => {
           toast.error(err.message)
           deletingTeamId = null
-        },
-      }
-    )
-  }
-
-  function handleRevokeSolve(solve: { challengeId: string; challengeName: string }) {
-    if (!selectedTeam) return
-
-    const teamId = selectedTeam.id
-    const key = `${teamId}:${solve.challengeId}`
-    revokingSolveKey = key
-    deleteSolveMutation.mutate(
-      { challengeId: solve.challengeId, userId: teamId },
-      {
-        onSuccess: response => {
-          if (response.kind === GoodChallengeSolveDeleteV2.kind) {
-            toast.success(`Solve revoked for ${solve.challengeName}`)
-            refreshTeamQueries(teamId)
-          } else {
-            showApiError(response)
-          }
-          revokingSolveKey = null
-        },
-        onError: err => {
-          toast.error(err.message)
-          revokingSolveKey = null
         },
       }
     )
@@ -436,22 +389,6 @@
     {/if}
   </div>
 </div>
-
-<TeamManageDialog
-  open={selectedTeamId !== null}
-  {selectedTeam}
-  isPending={selectedTeamQuery.isPending}
-  errorMessage={selectedTeamQuery.error?.message}
-  {hasWritePerms}
-  {hasSolveWritePerms}
-  {updatingTeamId}
-  {deletingTeamId}
-  {revokingSolveKey}
-  onClose={closeManageTeam}
-  onBanAction={handleBanAction}
-  onDeleteTeam={openDeleteDialog}
-  onRevokeSolve={handleRevokeSolve}
-/>
 
 <TeamConfirmDialogs
   {banDialogTeam}
