@@ -8,7 +8,6 @@ import {
   SCORE_DIAGONAL_OVERFLOW_PX,
   SCORE_ROW_HEIGHT_FULL_PX,
   SCORE_SCROLL_RESET_DELAY_MS,
-  SCORE_SCROLL_THRESHOLD_PX,
   SCORE_VIRTUAL_OVERSCAN,
 } from './scores-layout-constants'
 import type {
@@ -439,15 +438,18 @@ function readScrollMetrics(viewport: HTMLElement): ScrollMetrics {
 }
 
 function getFadeVisibility(metrics: ScrollMetrics) {
+  // Start edges use a strict 0 so any scroll shows a fade; end edges keep 1px
+  // of slop so the fade still clears at the extreme on fractional-DPI displays.
+  const endTolerance = 1
   return {
-    top: metrics.scrollTop > SCORE_SCROLL_THRESHOLD_PX,
+    top: metrics.scrollTop > 0,
     bottom:
       metrics.scrollTop + metrics.clientHeight <
-      metrics.scrollHeight - SCORE_SCROLL_THRESHOLD_PX,
-    left: metrics.scrollLeft > SCORE_SCROLL_THRESHOLD_PX,
+      metrics.scrollHeight - endTolerance,
+    left: metrics.scrollLeft > 0,
     right:
       metrics.scrollLeft + metrics.clientWidth <
-      metrics.scrollWidth - SCORE_SCROLL_THRESHOLD_PX,
+      metrics.scrollWidth - endTolerance,
   }
 }
 

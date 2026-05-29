@@ -68,18 +68,20 @@
     if (!viewport) return
 
     const { scrollTop, scrollHeight, clientHeight, scrollLeft, scrollWidth, clientWidth } = viewport
-    const threshold = 10
+    // Start edges use a strict 0 so any scroll shows a fade; end edges keep 1px
+    // of slop so the fade still clears at the extreme on fractional-DPI displays.
+    const endTolerance = 1
 
     if (hasVertical) {
-      const nextTopFade = scrollTop > threshold
-      const nextBottomFade = scrollTop + clientHeight < scrollHeight - threshold
+      const nextTopFade = scrollTop > 0
+      const nextBottomFade = scrollTop + clientHeight < scrollHeight - endTolerance
       if (showTopFade !== nextTopFade) showTopFade = nextTopFade
       if (showBottomFade !== nextBottomFade) showBottomFade = nextBottomFade
     }
 
     if (hasHorizontal) {
-      const nextLeftFade = scrollLeft > threshold
-      const nextRightFade = scrollLeft + clientWidth < scrollWidth - threshold
+      const nextLeftFade = scrollLeft > 0
+      const nextRightFade = scrollLeft + clientWidth < scrollWidth - endTolerance
       if (showLeftFade !== nextLeftFade) showLeftFade = nextLeftFade
       if (showRightFade !== nextRightFade) showRightFade = nextRightFade
     }
@@ -100,8 +102,13 @@
     updateFades()
 
     viewport.addEventListener('scroll', scheduleUpdateFades, { passive: true })
+    // Observe both the viewport and its content: the viewport box stays fixed
+    // while async content fills the list after mount, so only the content's
+    // resize reveals overflow that should turn the fades on.
     const resizeObserver = new ResizeObserver(updateFades)
     resizeObserver.observe(viewport)
+    const content = viewport.firstElementChild
+    if (content) resizeObserver.observe(content)
 
     return () => {
       viewport.removeEventListener('scroll', scheduleUpdateFades)
@@ -141,7 +148,7 @@
   {#if hasVertical && fadeSize > 0}
     <div
       class={cn(
-        'pointer-events-none absolute z-10 transition-opacity',
+        'pointer-events-none absolute z-10',
         showTopFade ? 'opacity-100' : 'opacity-0'
       )}
       style="
@@ -156,7 +163,7 @@
 
     <div
       class={cn(
-        'pointer-events-none absolute z-10 transition-opacity',
+        'pointer-events-none absolute z-10',
         showBottomFade ? 'opacity-100' : 'opacity-0'
       )}
       style="
@@ -173,7 +180,7 @@
   {#if hasHorizontal && fadeSize > 0}
     <div
       class={cn(
-        'pointer-events-none absolute z-10 transition-opacity',
+        'pointer-events-none absolute z-10',
         showLeftFade ? 'opacity-100' : 'opacity-0'
       )}
       style="
@@ -188,7 +195,7 @@
 
     <div
       class={cn(
-        'pointer-events-none absolute z-10 transition-opacity',
+        'pointer-events-none absolute z-10',
         showRightFade ? 'opacity-100' : 'opacity-0'
       )}
       style="

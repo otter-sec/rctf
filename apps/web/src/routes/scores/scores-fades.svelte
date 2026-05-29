@@ -64,7 +64,6 @@
     position: absolute;
     z-index: 40;
     opacity: 0;
-    transition: opacity 150ms;
 
     &[show] {
       opacity: 1;
