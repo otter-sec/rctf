@@ -153,7 +153,7 @@
 >
   <div
     class={cn(
-      'grid h-full cursor-pointer grid-cols-[2.75rem_16rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] overflow-hidden',
+      'grid h-full cursor-pointer grid-cols-[2.75rem_16rem_14rem_minmax(11rem,1fr)_11rem_9rem_10rem] overflow-hidden',
       isExpanded
         ? 'bg-background-l3'
         : index % 2 === 0

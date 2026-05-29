@@ -36,7 +36,7 @@
 {/snippet}
 
 <div
-  class="bg-background-l3 text-foreground-l3 relative z-10 grid grid-cols-[2.75rem_16rem_20rem_minmax(16rem,1fr)_11rem_9rem_10rem] border-b-2 text-base"
+  class="bg-background-l3 text-foreground-l3 relative z-10 grid grid-cols-[2.75rem_16rem_14rem_minmax(11rem,1fr)_11rem_9rem_10rem] border-b-2 text-base"
 >
   <div></div>
   <div class="font-normal">
