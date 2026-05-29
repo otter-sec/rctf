@@ -147,10 +147,7 @@
 
   {#if hasVertical && fadeSize > 0}
     <div
-      class={cn(
-        'pointer-events-none absolute z-10',
-        showTopFade ? 'opacity-100' : 'opacity-0'
-      )}
+      class={cn('pointer-events-none absolute z-10', showTopFade ? 'opacity-100' : 'opacity-0')}
       style="
         top: {topOffset};
         left: {leftOffset};
@@ -162,10 +159,7 @@
     ></div>
 
     <div
-      class={cn(
-        'pointer-events-none absolute z-10',
-        showBottomFade ? 'opacity-100' : 'opacity-0'
-      )}
+      class={cn('pointer-events-none absolute z-10', showBottomFade ? 'opacity-100' : 'opacity-0')}
       style="
         bottom: {bottomOffset};
         left: {leftOffset};
@@ -179,10 +173,7 @@
 
   {#if hasHorizontal && fadeSize > 0}
     <div
-      class={cn(
-        'pointer-events-none absolute z-10',
-        showLeftFade ? 'opacity-100' : 'opacity-0'
-      )}
+      class={cn('pointer-events-none absolute z-10', showLeftFade ? 'opacity-100' : 'opacity-0')}
       style="
         left: {leftOffset};
         top: {topOffset};
@@ -194,10 +185,7 @@
     ></div>
 
     <div
-      class={cn(
-        'pointer-events-none absolute z-10',
-        showRightFade ? 'opacity-100' : 'opacity-0'
-      )}
+      class={cn('pointer-events-none absolute z-10', showRightFade ? 'opacity-100' : 'opacity-0')}
       style="
         right: {rightOffset};
         top: {topOffset};
