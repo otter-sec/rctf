@@ -4,13 +4,19 @@
     getChallengeCellWidth,
     getFixedCellsWidth,
     isDynamicChallenge,
-  } from './scores-data-helpers'
+  } from './scores-leaderboard-data-transforms'
   import {
     SCORE_ROW_GAP_PX as CELL_GAP,
     SCORE_CELL_HEIGHT_PX as CELL_HEIGHT,
     SCORE_CELL_WIDTH_PX as CELL_WIDTH,
-  } from './scores-layout-constants'
-  import type { CategoryGroup, ChallengeInfo, SortMode, TooltipData, ViewMode } from './types'
+  } from './scores-leaderboard-layout-constants'
+  import type {
+    CategoryGroup,
+    ChallengeInfo,
+    SortMode,
+    TooltipData,
+    ViewMode,
+  } from './scores-shared-types'
 
   interface RenderedStrip {
     svg: string

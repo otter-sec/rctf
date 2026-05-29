@@ -14,7 +14,7 @@ import {
   SCORE_CELL_WIDTH_PX,
   SCORE_DYNAMIC_CELL_WIDTH_PX,
   SCORE_ROW_GAP_PX,
-} from './scores-layout-constants'
+} from './scores-leaderboard-layout-constants'
 import type {
   CategoryGroup,
   ChallengeInfo,
@@ -24,7 +24,7 @@ import type {
   ScoreGraphEntry,
   ScoreGraphPoint,
   ScreenshotTeamEntry,
-} from './types'
+} from './scores-shared-types'
 
 interface ChallengeSource {
   name: string

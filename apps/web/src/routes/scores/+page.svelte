@@ -3,20 +3,23 @@
   import { IconChartAreaLineFilled, IconFlagFilled } from '$lib/icons'
   import { createHoverTooltip } from '$lib/utils'
   import { getCategoryConfig } from '$lib/utils/categories'
-  import ScoresCellTooltipContent from './scores-cell-tooltip-content.svelte'
+  import ScoresCellTooltipContent from './scores-leaderboard-cell-tooltip-content.svelte'
+  import {
+    createScoresDataModel,
+    createScoresGraphDataModel,
+  } from './scores-leaderboard-data-model.svelte'
   import {
     getChallengeCellsWidth,
     getFixedCellsWidth,
     isDynamicChallenge,
-  } from './scores-data-helpers'
-  import { createScoresDataModel, createScoresGraphDataModel } from './scores-data-model.svelte'
-  import ScoresLeaderboardBody from './scores-leaderboard-body.svelte'
-  import ScoresLeaderboardFrame from './scores-leaderboard-frame.svelte'
-  import { createScoresRouteState } from './scores-route-state.svelte'
-  import ScoresScreenshotModal from './scores-screenshot-modal.svelte'
-  import ScoresToolbar from './scores-toolbar.svelte'
-  import { createScoresViewportState } from './scores-viewport-state.svelte'
-  import { isChallengeTooltipData, type TooltipData } from './types'
+  } from './scores-leaderboard-data-transforms'
+  import { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
+  import ScoresLeaderboardBody from './scores-leaderboard-virtual-list.svelte'
+  import ScoresLeaderboardFrame from './scores-leaderboard.svelte'
+  import ScoresToolbar from './scores-page-toolbar.svelte'
+  import { createScoresRouteState } from './scores-page-url-state.svelte'
+  import ScoresScreenshotModal from './scores-screenshot-export-modal.svelte'
+  import { isChallengeTooltipData, type TooltipData } from './scores-shared-types'
 
   const routeState = createScoresRouteState()
   const scoreData = createScoresDataModel({

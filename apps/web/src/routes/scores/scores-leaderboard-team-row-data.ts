@@ -1,5 +1,9 @@
-import { getVisibleSolveCount } from './scores-data-helpers'
-import type { CurrentUserScoreData, ScoreEntry, ScoreGraphPoint } from './types'
+import { getVisibleSolveCount } from './scores-leaderboard-data-transforms'
+import type {
+  CurrentUserScoreData,
+  ScoreEntry,
+  ScoreGraphPoint,
+} from './scores-shared-types'
 
 export interface ScoresTeamRowData {
   id: string

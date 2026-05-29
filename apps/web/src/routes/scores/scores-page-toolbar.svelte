@@ -16,8 +16,8 @@
   import { getCategoryStyle } from '$lib/utils/categories'
   import { mergeProps } from 'bits-ui'
   import { onMount } from 'svelte'
-  import ScoresSearchBox from './scores-search-box.svelte'
-  import type { SortMode, ViewMode } from './types'
+  import ScoresSearchBox from './scores-page-toolbar-search-box.svelte'
+  import type { SortMode, ViewMode } from './scores-shared-types'
 
   interface Props {
     viewMode: ViewMode

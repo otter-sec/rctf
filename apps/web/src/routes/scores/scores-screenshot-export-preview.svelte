@@ -4,10 +4,10 @@
   import { countryCodeToFlagFilename, getInitials, getRankVariant } from '$lib/utils'
   import { getCategoryStyle } from '$lib/utils/categories'
   import { format, formatDuration, intervalToDuration } from 'date-fns'
-  import { isDynamicChallenge } from './scores-data-helpers'
-  import ScoresGraph from './scores-graph.svelte'
-  import ScoresSparkline from './scores-sparkline.svelte'
-  import type { CategoryGroup } from './types'
+  import { isDynamicChallenge } from './scores-leaderboard-data-transforms'
+  import ScoresGraph from './scores-leaderboard-graph.svelte'
+  import ScoresSparkline from './scores-leaderboard-team-row-sparkline.svelte'
+  import type { CategoryGroup } from './scores-shared-types'
 
   interface TeamEntry {
     id: string

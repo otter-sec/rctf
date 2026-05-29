@@ -2,9 +2,12 @@
   import type {
     createScoresDataModel,
     createScoresGraphDataModel,
-  } from './scores-data-model.svelte'
-  import { SCORE_LOADING_ROW_COUNT, SCORE_ROW_HEIGHT_FULL_PX } from './scores-layout-constants'
-  import type { createScoresRouteState } from './scores-route-state.svelte'
+  } from './scores-leaderboard-data-model.svelte'
+  import {
+    SCORE_LOADING_ROW_COUNT,
+    SCORE_ROW_HEIGHT_FULL_PX,
+  } from './scores-leaderboard-layout-constants'
+  import type { createScoresViewportState } from './scores-leaderboard-scroll-state.svelte'
   import {
     getSelfChallengePointDeltas,
     getSelfChallengePoints,
@@ -12,16 +15,16 @@
     getSelfSolveTimes,
     getSelfTeamRowData,
     getTeamRowData,
-  } from './scores-team-row-data'
-  import ScoresTeamRow from './scores-team-row.svelte'
-  import type { createScoresViewportState } from './scores-viewport-state.svelte'
+  } from './scores-leaderboard-team-row-data'
+  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
+  import type { createScoresRouteState } from './scores-page-url-state.svelte'
   import type {
     CategoryGroup,
     ChallengeInfo,
     CurrentUserScoreData,
     ScoreEntry,
     TooltipData,
-  } from './types'
+  } from './scores-shared-types'
 
   type ScoreData = ReturnType<typeof createScoresDataModel>
   type GraphState = ReturnType<typeof createScoresGraphDataModel>
