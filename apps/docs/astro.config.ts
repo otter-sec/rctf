@@ -12,6 +12,7 @@ import rehypeExternalLinks from 'rehype-external-links'
 import rehypeKatex from 'rehype-katex'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
+import { disableRocketLoader } from './src/integrations/disable-rocket-loader'
 import { expressiveCodeOptions } from './src/lib/expressive-code-config'
 import { rehypeCodeAnnotations } from './src/lib/rehype-code-annotations'
 import { rehypeCodePathHints, rehypeCodePathIcons } from './src/lib/rehype-code-paths'
@@ -24,7 +25,7 @@ import { resolveSiteUrl } from './src/lib/site-url'
 export default defineConfig({
   site: resolveSiteUrl(),
   trailingSlash: 'always',
-  integrations: [mdx(), react(), sitemap(), pagefind()],
+  integrations: [mdx(), react(), sitemap(), pagefind(), disableRocketLoader()],
   vite: {
     plugins: [tailwindcss()],
   },
