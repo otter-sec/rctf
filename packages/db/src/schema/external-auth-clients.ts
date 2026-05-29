@@ -1,8 +1,8 @@
 import { foreignKey, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
-export const extAuthClients = pgTable(
-  'ext_auth_clients',
+export const externalAuthClients = pgTable(
+  'external_auth_clients',
   {
     id: text().primaryKey().notNull(),
     name: text().notNull(),
@@ -17,7 +17,7 @@ export const extAuthClients = pgTable(
     foreignKey({
       columns: [table.createdBy],
       foreignColumns: [users.id],
-      name: 'ext_auth_clients_created_by_fkey',
+      name: 'external_auth_clients_created_by_fkey',
     })
       .onUpdate('cascade')
       .onDelete('set null'),

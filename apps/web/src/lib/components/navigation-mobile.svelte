@@ -118,8 +118,8 @@
       show: isAdmin,
     },
     {
-      href: '/admin/extAuth',
-      activePath: '/admin/extAuth',
+      href: '/admin/external-auth',
+      activePath: '/admin/external-auth',
       label: 'External apps',
       icon: IconKeyFilled,
       show: isAdmin,

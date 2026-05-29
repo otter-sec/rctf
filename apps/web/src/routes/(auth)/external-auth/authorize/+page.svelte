@@ -1,9 +1,9 @@
 <script lang="ts">
   import {
-    AuthorizeExtAuthRouteV2,
-    GetExtAuthClientRouteV2,
-    GoodExtAuthAuthorize,
-    GoodExtAuthClient,
+    AuthorizeExternalAuthRouteV2,
+    GetExternalAuthClientRouteV2,
+    GoodExternalAuthAuthorize,
+    GoodExternalAuthClient,
   } from '@rctf/types'
   import { goto } from '$app/navigation'
   import { page } from '$app/state'
@@ -45,8 +45,8 @@
       return
     }
     try {
-      const res = await apiRequest(GetExtAuthClientRouteV2, { id: clientId })
-      if (res.kind !== GoodExtAuthClient.kind) {
+      const res = await apiRequest(GetExternalAuthClientRouteV2, { id: clientId })
+      if (res.kind !== GoodExternalAuthClient.kind) {
         loadError = 'This integration is not recognized.'
         return
       }
@@ -74,12 +74,12 @@
     if (!client || approving) return
     approving = true
     try {
-      const res = await apiRequest(AuthorizeExtAuthRouteV2, {
+      const res = await apiRequest(AuthorizeExternalAuthRouteV2, {
         clientId: client.id,
         redirectUri: client.redirectUri,
         ...(stateParam ? { state: stateParam } : {}),
       })
-      if (res.kind === GoodExtAuthAuthorize.kind) {
+      if (res.kind === GoodExternalAuthAuthorize.kind) {
         window.location.href = res.data.redirectTo
         return
       }

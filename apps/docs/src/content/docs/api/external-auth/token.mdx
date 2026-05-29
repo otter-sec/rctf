@@ -1,24 +1,24 @@
 ---
 title: '<route>POST</route> Exchange code for token'
-description: '<route>POST /api/v2/ext-auth/token</route>'
+description: '<route>POST /api/v2/external-auth/token</route>'
 ---
 
 import Callout from '@/components/callout.astro'
-import { BadBody, BadExtAuthRequest, BadJson, ExtAuthTokenRouteV2 } from '@rctf/types'
+import { BadBody, BadExternalAuthRequest, BadJson, ExternalAuthTokenRouteV2 } from '@rctf/types'
 
 <RouteAside>
   <RouteExample
-    def={ExtAuthTokenRouteV2}
+    def={ExternalAuthTokenRouteV2}
     body={{
       clientId: '11111111-2222-3333-4444-555555555555',
       clientSecret: '<32-byte base64url secret>',
       code: '<single-use code from /authorize>',
     }}
-    extra={[BadJson, BadBody, BadExtAuthRequest]}
+    extra={[BadJson, BadBody, BadExternalAuthRequest]}
   />
 </RouteAside>
 
-<RouteMetaFromDef def={ExtAuthTokenRouteV2} />
+<RouteMetaFromDef def={ExternalAuthTokenRouteV2} />
 
 Server-to-server exchange. The external service's backend trades the single-use code from the browser redirect for a regular rCTF auth token. Call this from a trusted environment - the client secret must not be exposed to the browser.
 
@@ -26,13 +26,13 @@ The code is consumed atomically: the first call deletes it from Redis, so a repl
 
 <Callout variant="note" title="Failures all look identical">
   Unknown client, wrong secret, wrong code, expired code, reused code, and code/client mismatch all
-  return the same `<response>400 badExtAuthRequest</response>` body. Don't rely on the failure
+  return the same `<response>400 badExternalAuthRequest</response>` body. Don't rely on the failure
   reason to debug an integration - check timestamps, secret rotation, and the exact bytes you sent
   instead.
 </Callout>
 
-<RequestBody def={ExtAuthTokenRouteV2} title="Request body" />
+<RequestBody def={ExternalAuthTokenRouteV2} title="Request body" />
 
-<ResponseBody def={ExtAuthTokenRouteV2} response="goodExtAuthToken" title="Response fields" />
+<ResponseBody def={ExternalAuthTokenRouteV2} response="goodExternalAuthToken" title="Response fields" />
 
 The returned `<red>accessToken</red>` is a regular rCTF auth token with no expiry - the same kind of token issued at login. Use it in `Authorization: Bearer <accessToken>` against any rCTF endpoint. There is no per-app token registry: deleting the client through the admin routes prevents future code exchanges but does not revoke tokens that were already minted.

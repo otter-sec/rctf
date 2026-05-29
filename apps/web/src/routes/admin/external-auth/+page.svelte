@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { GoodAdminExtAuthClientCreate, GoodAdminExtAuthClientDelete } from '@rctf/types'
+  import { GoodAdminExternalAuthClientCreate, GoodAdminExternalAuthClientDelete } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { showApiError } from '$lib/api'
   import {
@@ -16,16 +16,16 @@
   import { IconCopy, IconKeyFilled, IconTrashFilled } from '$lib/icons'
   import {
     queryKeys,
-    useAdminExtAuthClients,
-    useCreateExtAuthClientMutation,
-    useDeleteExtAuthClientMutation,
+    useAdminExternalAuthClients,
+    useCreateExternalAuthClientMutation,
+    useDeleteExternalAuthClientMutation,
   } from '$lib/query'
   import { toast } from 'svelte-sonner'
 
   const queryClient = useQueryClient()
-  const clientsQuery = useAdminExtAuthClients()
-  const createMutation = useCreateExtAuthClientMutation()
-  const deleteMutation = useDeleteExtAuthClientMutation()
+  const clientsQuery = useAdminExternalAuthClients()
+  const createMutation = useCreateExternalAuthClientMutation()
+  const deleteMutation = useDeleteExternalAuthClientMutation()
 
   const clients = $derived(clientsQuery.data ?? [])
 
@@ -41,7 +41,7 @@
   let deleteCandidate = $state<{ id: string; name: string } | null>(null)
 
   const invalidate = () =>
-    queryClient.invalidateQueries({ queryKey: queryKeys.adminExtAuthClients })
+    queryClient.invalidateQueries({ queryKey: queryKeys.adminExternalAuthClients })
 
   function handleCreateSubmit(e: SubmitEvent) {
     e.preventDefault()
@@ -55,7 +55,7 @@
       { name, redirectUri },
       {
         onSuccess: res => {
-          if (res.kind === GoodAdminExtAuthClientCreate.kind) {
+          if (res.kind === GoodAdminExternalAuthClientCreate.kind) {
             issuedSecret = {
               id: res.data.id,
               name: res.data.name,
@@ -92,7 +92,7 @@
       { id },
       {
         onSuccess: res => {
-          if (res.kind === GoodAdminExtAuthClientDelete.kind) {
+          if (res.kind === GoodAdminExternalAuthClientDelete.kind) {
             toast.success('Client deleted.')
             deleteCandidate = null
             invalidate()
@@ -195,9 +195,9 @@
     </Dialog.Header>
     <form onsubmit={handleCreateSubmit} class="flex flex-col gap-4">
       <Field.Field>
-        <Field.Label for="ext-auth-name">App name</Field.Label>
+        <Field.Label for="external-auth-name">App name</Field.Label>
         <Input
-          id="ext-auth-name"
+          id="external-auth-name"
           bind:value={formName}
           placeholder="My Scoring Backend"
           required
@@ -205,9 +205,9 @@
         />
       </Field.Field>
       <Field.Field>
-        <Field.Label for="ext-auth-redirect">Redirect URI</Field.Label>
+        <Field.Label for="external-auth-redirect">Redirect URI</Field.Label>
         <Input
-          id="ext-auth-redirect"
+          id="external-auth-redirect"
           bind:value={formRedirectUri}
           placeholder="https://example.com/callback"
           required

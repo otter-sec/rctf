@@ -169,7 +169,7 @@
               </DropdownMenu.Item>
               <DropdownMenu.Item
                 class="data-highlighted:bg-background-l5"
-                onclick={() => goto('/admin/extAuth')}
+                onclick={() => goto('/admin/external-auth')}
               >
                 <IconKeyFilled class="size-5" />
                 External apps

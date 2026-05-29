@@ -2,7 +2,7 @@ import { config } from '@rctf/config'
 import {
   challenges,
   createDatabase,
-  extAuthClients,
+  externalAuthClients,
   pendingUserVerifications,
   solves,
   submissions,
@@ -24,7 +24,7 @@ export const clearDatabase = async () => {
   await db.delete(submissions)
   await db.delete(solves)
   await db.delete(challenges)
-  await db.delete(extAuthClients)
+  await db.delete(externalAuthClients)
   await db.delete(users)
 }
 

@@ -17,7 +17,7 @@ External apps (scoring backends, instancers, dashboards, anything that lives nex
 
 ## Registering an app (admin)
 
-Admin-only. Open `<route>/admin/extAuth</route>`, click "Register new app", and provide:
+Admin-only. Open `<route>/admin/external-auth</route>`, click "Register new app", and provide:
 
 | Field | Purpose |
 | --- | --- |
@@ -26,42 +26,42 @@ Admin-only. Open `<route>/admin/extAuth</route>`, click "Register new app", and 
 
 rCTF generates a `<green>client_id</green>` (UUID) and a `<green>client_secret</green>` (32 random bytes, base64url-encoded). **The secret is shown exactly once.** Lose it and you have to delete the app and re-register.
 
-Deleting an app makes future `<route>/api/v2/ext-auth/token</route>` exchanges with that client fail. Existing access tokens (regular rCTF auth tokens) stay valid - rCTF has no per-app token registry.
+Deleting an app makes future `<route>/api/v2/external-auth/token</route>` exchanges with that client fail. Existing access tokens (regular rCTF auth tokens) stay valid - rCTF has no per-app token registry.
 
 ## Flow
 
 ```
-1. External app           →  Sends the user to <rctf>/extAuth/authorize?client_id=...&redirect_uri=...&state=...
+1. External app           →  Sends the user to <rctf>/external-auth/authorize?client_id=...&redirect_uri=...&state=...
 2. rCTF                   →  Asks the user to log in if they aren't already, then shows a consent
                               screen: "<App> wants to sign you in as <Team>"
 3. User clicks Authorize  →  rCTF mints a single-use code and redirects the browser to
                               <redirect_uri>?code=...&state=...
-4. External app           →  POSTs to <rctf>/api/v2/ext-auth/token with
+4. External app           →  POSTs to <rctf>/api/v2/external-auth/token with
                               {clientId, clientSecret, code} and receives
                               {accessToken, tokenType: "bearer"}
 5. External app           →  Uses the access token in Authorization: Bearer <accessToken>
                               against any rCTF endpoint; GET /api/v1/users/me identifies the team
 ```
 
-The `code` is single-use. It lives in Redis for 60 seconds, and the first /token call atomically deletes it - any second exchange fails. The `redirect_uri` is bound to the registered URI for the client and checked byte-for-byte at /authorize; the /token call only needs the secret and the code. Mismatches on any field (client id, secret, code) all return the same generic `badExtAuthRequest` so the endpoint can't be probed.
+The `code` is single-use. It lives in Redis for 60 seconds, and the first /token call atomically deletes it - any second exchange fails. The `redirect_uri` is bound to the registered URI for the client and checked byte-for-byte at /authorize; the /token call only needs the secret and the code. Mismatches on any field (client id, secret, code) all return the same generic `badExternalAuthRequest` so the endpoint can't be probed.
 
 ## Endpoints
 
-### GET `/api/v2/ext-auth/clients/:id`
+### GET `/api/v2/external-auth/clients/:id`
 
-Public. Returns `<green>goodExtAuthClient</green>` with `<red>{id, name, redirectUri}</red>`, used by the consent page to look up app metadata. Returns `<green>badExtAuthRequest</green>` (HTTP 400) for unknown ids.
+Public. Returns `<green>goodExternalAuthClient</green>` with `<red>{id, name, redirectUri}</red>`, used by the consent page to look up app metadata. Returns `<green>badExternalAuthRequest</green>` (HTTP 400) for unknown ids.
 
-### POST `/api/v2/ext-auth/authorize`
+### POST `/api/v2/external-auth/authorize`
 
-Authenticated (requires the user's session token in `Authorization: Bearer`). Body: `<red>{clientId, redirectUri, state?}</red>`. The `redirectUri` must match what the client was registered with. Returns `<green>goodExtAuthAuthorize</green>` with `<red>{redirectTo}</red>` - a fully-built URL containing `code` and (if provided) `state`.
+Authenticated (requires the user's session token in `Authorization: Bearer`). Body: `<red>{clientId, redirectUri, state?}</red>`. The `redirectUri` must match what the client was registered with. Returns `<green>goodExternalAuthAuthorize</green>` with `<red>{redirectTo}</red>` - a fully-built URL containing `code` and (if provided) `state`.
 
-### POST `/api/v2/ext-auth/token`
+### POST `/api/v2/external-auth/token`
 
-Public. Body: `<red>{clientId, clientSecret, code}</red>`. Mismatch on any field returns `<green>badExtAuthRequest</green>` (HTTP 400). On success, returns `<green>goodExtAuthToken</green>` with `<red>{accessToken, tokenType: "bearer"}</red>`.
+Public. Body: `<red>{clientId, clientSecret, code}</red>`. Mismatch on any field returns `<green>badExternalAuthRequest</green>` (HTTP 400). On success, returns `<green>goodExternalAuthToken</green>` with `<red>{accessToken, tokenType: "bearer"}</red>`.
 
 <Callout variant="note" title="Failure responses don't distinguish causes">
   Unknown client, wrong secret, and wrong/expired/reused code all return the same `
-  <green>badExtAuthRequest</green>` body.
+  <green>badExternalAuthRequest</green>` body.
 </Callout>
 
 ## Reference client (TypeScript)
@@ -79,12 +79,12 @@ export function buildSignInUrl(state: string): string {
     redirect_uri: REDIRECT_URI,
     state,
   })
-  return `${RCTF_BASE_URL}/extAuth/authorize?${params}`
+  return `${RCTF_BASE_URL}/external-auth/authorize?${params}`
 }
 
 // 2. When the user comes back, exchange the code
 export async function exchangeCode(code: string): Promise<{ accessToken: string }> {
-  const res = await fetch(`${RCTF_BASE_URL}/api/v2/ext-auth/token`, {
+  const res = await fetch(`${RCTF_BASE_URL}/api/v2/external-auth/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -97,7 +97,7 @@ export async function exchangeCode(code: string): Promise<{ accessToken: string 
     kind: string
     data: { accessToken: string; tokenType: 'bearer' }
   }
-  if (body.kind !== 'goodExtAuthToken') {
+  if (body.kind !== 'goodExternalAuthToken') {
     throw new Error(`rCTF rejected token exchange: ${JSON.stringify(body)}`)
   }
   return { accessToken: body.data.accessToken }
