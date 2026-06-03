@@ -1,0 +1,9 @@
+* @es3n1n
+
+/apps/admin-bot/ @es3n1n @trixter-osec
+/apps/docs/ @es3n1n @jktrn
+/apps/k8s-controller/ @es3n1n @trixter-osec
+/apps/web/ @es3n1n @jktrn
+
+/deploy/k8s-controller/ @es3n1n @trixter-osec
+/deploy/terraform/instancer/ @es3n1n @trixter-osec
