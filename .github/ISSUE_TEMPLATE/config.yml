@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and support
+    url: https://github.com/otter-sec/rctf/discussions
+    about: Ask for help with running or configuring rCTF.
+  - name: Security vulnerabilities
+    url: https://github.com/otter-sec/rctf-new/security/policy
+    about: Email rctf@osec.io instead of opening a public issue.
+  - name: Documentation
+    url: https://rctf.osec.io
+    about: How to install rCTF and run an event.

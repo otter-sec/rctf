@@ -1,0 +1,31 @@
+# only opens PRs for security advisories, which are enabled in the repo settings
+version: 2
+updates:
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+    groups:
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: gomod
+    directory: /apps/k8s-controller
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0
+
+  - package-ecosystem: uv
+    directory: /apps/docker-instancer
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 0

@@ -1,0 +1,61 @@
+name: Bug report
+description: Something in rCTF doesn't work the way it should
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        If this is a security vulnerability, stop here and email [rctf@osec.io](mailto:rctf@osec.io) instead of filing an issue. See the [security policy](https://github.com/otter-sec/rctf-new/security/policy).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What went wrong, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Configure ...
+        2. Open ...
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Release tag, container image tag, or commit hash.
+      placeholder: v1.0.0 or main
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected component
+      multiple: true
+      options:
+        - API
+        - Web frontend
+        - Admin bot
+        - Docker instancer
+        - Kubernetes instancer
+        - Deployment
+        - Documentation
+        - Other / not sure
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: How is it deployed?
+      options:
+        - Bundled container (compose.yml)
+        - Development (bun dev)
+        - Other
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: API logs, browser console output, or worker logs. The field renders as a code block, so you can paste raw output.
+      render: shell

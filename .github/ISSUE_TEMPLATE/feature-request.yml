@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest something rCTF should do
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before suggesting, check [things we will not implement](https://github.com/otter-sec/rctf-new/blob/main/apps/docs/src/content/docs/meta/things-we-will-not-implement.mdx) and search existing issues.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What were you trying to do when rCTF got in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work? Rough ideas are fine.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Workarounds or alternatives
+      description: What do you do today instead, if anything?
