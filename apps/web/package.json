@@ -41,7 +41,7 @@
     "mode-watcher": "1.1.0",
     "paneforge": "1.0.2",
     "prettier-plugin-tailwindcss": "0.7.2",
-    "svelte": "5.55.5",
+    "svelte": "5.55.7",
     "svelte-check": "4.4.5",
     "svelte-sonner": "1.1.0",
     "tailwind-merge": "3.5.0",
