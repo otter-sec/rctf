@@ -327,6 +327,7 @@ const defaultService = {
   image: 'traefik/whoami:latest',
   environment: { tiny: 'instancer' },
   networks: [],
+  network_mode: 'none' as const,
   dns: [],
   dns_opt: [],
   dns_search: [],

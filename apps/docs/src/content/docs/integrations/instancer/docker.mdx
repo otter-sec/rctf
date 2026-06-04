@@ -171,3 +171,7 @@ Each service supports these field groups:
 Explicit services default to a read-only root filesystem, `<green>no-new-privileges</green>`, dropped Linux capabilities, `6m` memory, `1.0` CPU, `1024` PIDs, and `nofile` soft and hard limits of `1024`.
 
 Services may only reference networks declared under `<red>config.networks</red>`. Named volume mounts may only reference volumes declared under `<red>config.volumes</red>`. Absolute and relative bind-style mount sources aren't checked against the volume map.
+
+### Network isolation
+
+Challenge workloads are untrusted, so a container is never attached to Docker's shared default bridge unless you ask for it. A service with no `<red>networks</red>`, no `<red>expose</red>`, and no `<red>network_mode</red>` runs detached (`<red>network_mode: none</red>`) rather than on the default bridge. That's what the default config does. When a challenge's services need to talk to each other, declare an internal user-defined network (`<red>internal: true</red>`, as in the example above) and list it under each service's `<red>networks</red>`. That network keeps them off the host and the internet while still connecting them. Set a service's `<red>network_mode</red>` to `<red>bridge</red>` only when you want it on the host's default bridge.
