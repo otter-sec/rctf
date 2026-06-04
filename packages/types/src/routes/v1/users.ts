@@ -2,6 +2,7 @@ import { z } from 'zod/mini'
 import { Permissions, ProtectedAction } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
+  BadBody,
   BadCtftimeNoExists,
   BadCtftimeToken,
   BadDivisionNotAllowed,
@@ -56,7 +57,6 @@ export const GetUserSelfRoute = defineRoute({
   authRequired: true,
 })
 
-// TODO(es3n1n): rctf v1 allows this only when not finished, do we want that?
 export const UpdateUserRoute = defineRoute({
   path: '/v1/users/me',
   method: 'PATCH',
@@ -66,10 +66,10 @@ export const UpdateUserRoute = defineRoute({
   }),
   goodResponses: [GoodUserUpdate],
   badResponses: [
-    BadEnded,
     BadName,
     BadRateLimit,
     BadDivisionNotAllowed,
+    BadBody,
     BadKnownName,
     BadToken,
   ],

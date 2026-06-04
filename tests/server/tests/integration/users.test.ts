@@ -1,6 +1,8 @@
 import { config } from '@rctf/config'
 import { createDatabase, users } from '@rctf/db'
 import {
+  BadBody,
+  BadDivisionChangeEnded,
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
@@ -12,6 +14,7 @@ import {
   GoodEmailRemoved,
   GoodEmailSet,
   GoodLogin,
+  GoodUserUpdateV2,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -587,6 +590,107 @@ describe('users service', () => {
       })
 
       await expectResponse(res, BadKnownEmail)
+    })
+  })
+
+  describe('updateUser - after competition end', () => {
+    test('v2 PATCH still allows name updates with an unchanged division', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+      const newName = crypto.randomUUID()
+
+      const oldTime = config.endTime
+      config.endTime = Date.now() - 1
+
+      try {
+        const res = await request(app, '/api/v2/users/me', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ name: newName, division: user.division }),
+        })
+
+        const body = await expectResponse(res, GoodUserUpdateV2)
+        expect(body.data.user.name).toBe(newName)
+      } finally {
+        config.endTime = oldTime
+      }
+    })
+
+    test('v1 PATCH fails with badBody and does not change division', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+      const newDivision = Object.keys(config.divisions)[1]!
+      expect(newDivision).not.toBe(user.division)
+
+      const oldTime = config.endTime
+      config.endTime = Date.now() - 1
+
+      try {
+        const res = await request(app, '/api/v1/users/me', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ division: newDivision }),
+        })
+
+        await expectResponse(res, BadBody)
+      } finally {
+        config.endTime = oldTime
+      }
+
+      const db = createDatabase(config.database.sql).db
+      const [stored] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+      expect(stored!.division).toBe(user.division)
+    })
+
+    test('v2 PATCH fails with badDivisionChangeEnded and does not change division', async () => {
+      const { user, cleanup } = await generateRealTestUser()
+      createdUserCleanups.push(cleanup)
+
+      const authToken = await generateAuthToken(user.id)
+      const newDivision = Object.keys(config.divisions)[1]!
+      expect(newDivision).not.toBe(user.division)
+
+      const oldTime = config.endTime
+      config.endTime = Date.now() - 1
+
+      try {
+        const res = await request(app, '/api/v2/users/me', {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            division: newDivision,
+            statusText: 'changed after end',
+          }),
+        })
+
+        await expectResponse(res, BadDivisionChangeEnded)
+      } finally {
+        config.endTime = oldTime
+      }
+
+      const db = createDatabase(config.database.sql).db
+      const [stored] = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, user.id))
+      expect(stored!.division).toBe(user.division)
+      expect(stored!.statusText).toBe(user.statusText)
     })
   })
 

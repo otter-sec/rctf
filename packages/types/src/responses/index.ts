@@ -46,6 +46,7 @@ export * from './good-flag'
 
 // users
 export * from './bad-ctftime-no-exists'
+export * from './bad-division-change-ended'
 export * from './bad-division-not-allowed'
 export * from './bad-avatar-file'
 export * from './bad-avatar-file-size'
