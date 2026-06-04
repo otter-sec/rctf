@@ -466,6 +466,13 @@ export const userNameSearchFilter = (search: string) => {
     OR
     ${users.name} % ${search}
     OR ${search} <% ${users.name}
+  )`
+}
+
+export const adminUserSearchFilter = (search: string) => {
+  const pattern = `%${escapeLikePattern(search.toLowerCase())}%`
+  return sql`(
+    ${userNameSearchFilter(search)}
     OR (
       ${users.email} IS NOT NULL
       AND lower(${users.email}) LIKE ${pattern} ESCAPE ${'\\'}
@@ -487,7 +494,7 @@ type AdminUsersQuery = RouteQuery<typeof GetAdminUsersRouteV2> &
 const buildUsersFilters = (params: AdminUsersQuery): SQL | undefined => {
   const search = params.search?.trim()
   return and(
-    search ? userNameSearchFilter(search) : undefined,
+    search ? adminUserSearchFilter(search) : undefined,
     ...setFilter(adminTeamStatusExpression, params.status),
     ...setFilter(sql`${users.division}`, params.division)
   )
