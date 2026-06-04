@@ -133,7 +133,7 @@ Named Kubernetes clusters that challenge `<red>kubernetes_manifests</red>` / `<r
 | `<red>use_default: true</red>` | Use `$KUBECONFIG` or `~/.kube/config{:file}` from the host (the default). |
 | `<red>incluster: true</red>` | Use the in-pod service-account credentials when Konata itself runs inside the cluster. |
 
-`<red>alias_to</red>` lets a challenge reference one cluster name while routing to another. The DiceCTF example uses this so per-challenge configs say `<red>cluster_name: main</red>`, while the operator swaps `main → prod` at the root level.
+`<red>alias_to</red>` lets a challenge reference one cluster name while routing to another. The DiceCTF example uses this so per-challenge configs say `<red>cluster_name: main</red>`, while the operator swaps `main => prod` at the root level.
 
 ### `registries`
 

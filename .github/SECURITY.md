@@ -31,7 +31,7 @@ Every admin permission, `challsRead` through `settingsWrite`, is equally trusted
 
 Three things still count even when the attacker is an admin:
 
-- Privilege escalation across permission bits, e.g. `challsRead` → `settingsWrite`. Anything with the same effect as a permission you don't hold counts too: deleting solves without `challsSolveWrite`, managing users or generating team tokens without `usersWrite`, editing runtime settings without `settingsWrite`.
+- Privilege escalation across permission bits, e.g. `challsRead` => `settingsWrite`. Anything with the same effect as a permission you don't hold counts too: deleting solves without `challsSolveWrite`, managing users or generating team tokens without `usersWrite`, editing runtime settings without `settingsWrite`.
 - Escalation from admin to operator: reading config-file secrets (`tokenKey`, database credentials, provider keys), forging tokens, or running code on the API process through any admin permission. The admin bot service and instancer workloads don't count here; they execute admin-supplied code by design.
 - XSS. Admins author markdown/HTML that players see (challenge descriptions, home content, settings), but the renderer is expected to keep script out of the page. Report XSS even when only an admin can place the payload.
 

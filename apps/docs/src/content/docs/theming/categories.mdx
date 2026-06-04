@@ -27,7 +27,7 @@ Each of the default categories uses a color specified in [Category colors](/them
 | `koth` | King of the Hill | <Swatch color="pink-400" label="pink" /> | <Icon name="chess-queen-filled" class="text-muted-foreground size-6" aria-hidden="true" /> |
 | `osint` | OSINT | <Swatch color="gray-400" label="gray" /> | <Icon name="eye-filled" class="text-muted-foreground size-6" aria-hidden="true" /> |
 
-A handful of category aliases (`binary` → `pwn`, `rev` → `reverse`, `cryptography` → `crypto`) make naming a bit more flexible.
+A handful of category aliases (`binary` => `pwn`, `rev` => `reverse`, `cryptography` => `crypto`) make naming a bit more flexible.
 
 <Callout variant="note" title="How category styling works">
 
@@ -130,6 +130,6 @@ The following utility functions help with category configuration:
 | Function | Purpose |
 | --- | --- |
 | `getCategoryConfig(category){:ts}` | Returns `{ name, icon, iconName, color }{:ts}` for a category key |
-| `getCategoryKeyOrAlias(category){:ts}` | Resolves aliases to canonical keys (`'rev'{:ts}` → `'reverse'{:ts}`) |
+| `getCategoryKeyOrAlias(category){:ts}` | Resolves aliases to canonical keys (`'rev'{:ts}` => `'reverse'{:ts}`) |
 | `getCategoryStyle(color){:ts}` | Generates inline CSS for category variable binding |
 | `getCategoryOrder(category){:ts}` | Returns sort index (`-1` if unlisted) |

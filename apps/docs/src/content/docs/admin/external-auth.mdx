@@ -30,18 +30,11 @@ Deleting an app makes future `<route>/api/v2/external-auth/token</route>` exchan
 
 ## Flow
 
-```
-1. External app           →  Sends the user to <rctf>/external-auth/authorize?client_id=...&redirect_uri=...&state=...
-2. rCTF                   →  Asks the user to log in if they aren't already, then shows a consent
-                              screen: "<App> wants to sign you in as <Team>"
-3. User clicks Authorize  →  rCTF mints a single-use code and redirects the browser to
-                              <redirect_uri>?code=...&state=...
-4. External app           →  POSTs to <rctf>/api/v2/external-auth/token with
-                              {clientId, clientSecret, code} and receives
-                              {accessToken, tokenType: "bearer"}
-5. External app           →  Uses the access token in Authorization: Bearer <accessToken>
-                              against any rCTF endpoint; GET /api/v1/users/me identifies the team
-```
+1. External app sends the user to `<rctf>/external-auth/authorize?client_id=...&redirect_uri=...&state=...`
+2. rCTF asks the user to log in if they aren't already, then shows a consent screen
+3. User clicks authorize and rCTF mints a single-use code and redirects the browser to `<redirect_uri>?code=...&state=...`
+4. External app POSTs to `<route>/api/v2/external-auth/token</route>`
+5. External app uses the access token in `Authorization: Bearer <accessToken>` against any rCTF endpoint
 
 The `code` is single-use. It lives in Redis for 60 seconds, and the first /token call atomically deletes it - any second exchange fails. The `redirect_uri` is bound to the registered URI for the client and checked byte-for-byte at /authorize; the /token call only needs the secret and the code. Mismatches on any field (client id, secret, code) all return the same generic `badExternalAuthRequest` so the endpoint can't be probed.
 

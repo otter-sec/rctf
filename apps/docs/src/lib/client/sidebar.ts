@@ -188,7 +188,7 @@ function handleOverviewLinkClick(event: MouseEvent): void {
   const target = event.target instanceof Element ? event.target : null
   if (!target) return
 
-  // Chevron toggle → let native <summary> toggle behaviour run.
+  // Chevron toggle 1> let native <summary> toggle behaviour run.
   if (target.closest('[data-sidebar-group-toggle]')) return
 
   const summary = target.closest<HTMLElement>('summary')

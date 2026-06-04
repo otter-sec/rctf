@@ -75,7 +75,7 @@ const getLeaderboard = async (
   return expectResponse(res, GoodLeaderboardV2)
 }
 
-describe('submit flag → leaderboard e2e', () => {
+describe('submit flag => leaderboard e2e', () => {
   const cleanups: Array<() => Promise<void>> = []
 
   beforeEach(clearDatabase)

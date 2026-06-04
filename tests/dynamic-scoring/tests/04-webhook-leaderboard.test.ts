@@ -89,7 +89,7 @@ describe('webhook leaderboard propagation', () => {
     const data = (
       res.body as { data?: { inserted?: number; updated?: number } }
     ).data
-    // alice already had a row → update; ghost user → dropped → no insert/update
+    // alice already had a row => update; ghost user => dropped => no insert/update
     expect((data?.inserted ?? 0) + (data?.updated ?? 0)).toBe(1)
   })
 })
