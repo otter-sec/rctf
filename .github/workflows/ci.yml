@@ -24,7 +24,6 @@ jobs:
       shared: ${{ steps.filter.outputs.shared }}
       admin-bot: ${{ steps.filter.outputs.admin-bot }}
       docker-instancer: ${{ steps.filter.outputs.docker-instancer }}
-      docs: ${{ steps.filter.outputs.docs }}
       k8s-controller: ${{ steps.filter.outputs.k8s-controller }}
       rctf: ${{ steps.filter.outputs.rctf }}
     steps:
@@ -49,10 +48,6 @@ jobs:
             docker-instancer:
               - 'apps/docker-instancer/**'
               - 'deploy/docker-instancer/Dockerfile'
-            docs:
-              - 'apps/docs/**'
-              - 'packages/**'
-              - 'deploy/docs/**'
             k8s-controller:
               - 'apps/k8s-controller/**'
               - 'deploy/k8s-controller/Dockerfile'
@@ -75,7 +70,6 @@ jobs:
         include:
           - { key: admin-bot,        suffix: /admin-bot,        dockerfile: deploy/admin-bot/Dockerfile }
           - { key: docker-instancer, suffix: /docker-instancer, dockerfile: deploy/docker-instancer/Dockerfile }
-          - { key: docs,             suffix: /docs,             dockerfile: deploy/docs/Dockerfile }
           - { key: k8s-controller,   suffix: /k8s-controller,   dockerfile: deploy/k8s-controller/Dockerfile }
           - { key: rctf,             suffix: '',                dockerfile: deploy/rctf/Dockerfile }
     uses: ./.github/workflows/_docker-build.yml

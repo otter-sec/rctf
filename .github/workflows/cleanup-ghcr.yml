@@ -50,7 +50,6 @@ jobs:
           - rctf-new
           - rctf-new/admin-bot
           - rctf-new/docker-instancer
-          - rctf-new/docs
           - rctf-new/k8s-controller
     steps:
       - name: Delete tags with no matching branch or git tag
