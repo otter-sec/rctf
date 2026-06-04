@@ -21,7 +21,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "ty>=0.0.1a7",
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
     "ruff>=0.14.7",
 ]
 
