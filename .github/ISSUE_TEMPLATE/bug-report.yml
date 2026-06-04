@@ -2,10 +2,6 @@ name: Bug report
 description: Something in rCTF doesn't work the way it should
 labels: [bug]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        If this is a security vulnerability, stop here and email [rctf@osec.io](mailto:rctf@osec.io) instead of filing an issue. See the [security policy](https://github.com/otter-sec/rctf-new/security/policy).
   - type: textarea
     id: what-happened
     attributes:

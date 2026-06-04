@@ -16,7 +16,7 @@ The [README](../README.md#development) walks through it: install [Bun](https://b
 
 Run the same checks CI runs:
 
-- `bun test` (no external services needed; tests run on PGlite and a Redis mock)
+- `bun run test` (no external services needed)
 - `bun run typecheck`
 - `bun run prettier:check` (or `bun run prettier` to fix formatting)
 
