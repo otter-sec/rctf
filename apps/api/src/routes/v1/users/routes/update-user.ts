@@ -21,12 +21,18 @@ usersGroup.route(UpdateUserRoute, async ({ ctx, user, res, body }) => {
     }
   }
 
-  const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user.id, {
+  const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user, {
     division: body.division ?? user.division,
     name: body.name ?? user.name,
   })
 
   if (!result.success) {
+    if (result.error === 'badDivisionChangeEnded') {
+      return res.badBody({
+        reason: 'Division cannot be changed after the CTF has ended',
+      })
+    }
+
     return res.badKnownName()
   }
 

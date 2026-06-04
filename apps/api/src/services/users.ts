@@ -33,6 +33,7 @@ import { setFilter } from '../lib/db-filters'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { isDecayKind } from './challenges'
+import { getCompetitionTiming } from './settings'
 import {
   emitBanScoreEvents,
   emitUserDeletionScoreEvents,
@@ -187,21 +188,32 @@ export const createUserV2 = async (
 
 export type UpdateUserResult =
   | { success: true; user: User }
-  | { success: false; error: 'badKnownName' }
+  | { success: false; error: 'badDivisionChangeEnded' | 'badKnownName' }
 
 export const updateUserInternal = async (
   db: DatabaseClient,
   redis: TypedRedis,
-  id: string,
-  user: Pick<User, 'division' | 'name' | 'countryCode' | 'statusText'>
+  user: Pick<User, 'id' | 'division'>,
+  updates: Pick<User, 'division' | 'name' | 'countryCode' | 'statusText'>,
+  opts: { bypassDivisionFreeze?: boolean } = {}
 ): Promise<UpdateUserResult> => {
+  // divisions affect final standings, so they are frozen once the
+  // competition ends
+  if (!opts.bypassDivisionFreeze && updates.division !== user.division) {
+    const { endTime } = await getCompetitionTiming(db, redis)
+
+    if (Date.now() >= endTime) {
+      return { success: false, error: 'badDivisionChangeEnded' }
+    }
+  }
+
   let updated
 
   try {
     updated = await db
       .update(users)
-      .set(user)
-      .where(eq(users.id, id))
+      .set(updates)
+      .where(eq(users.id, user.id))
       .returning()
       .then(takeUnique)
   } catch (error) {
@@ -212,7 +224,7 @@ export const updateUserInternal = async (
     throw error
   }
 
-  await invalidateUserCache(redis, id)
+  await invalidateUserCache(redis, user.id)
   forceLeaderboardUpdate(redis)
   return { success: true, user: updated! }
 }
@@ -651,18 +663,24 @@ export const updateAdminUser = async (
     data.statusText !== undefined
 
   if (hasProfileUpdate) {
-    // Admins override the division ACL that divisionAllowed() enforces on
-    // self-service updates, so we set the fields directly.
-    const result = await updateUserInternal(db, redis, id, {
-      name: data.name ?? targetUser.name,
-      division: data.division ?? targetUser.division,
-      countryCode:
-        data.countryCode !== undefined
-          ? data.countryCode
-          : targetUser.countryCode,
-      statusText:
-        data.statusText !== undefined ? data.statusText : targetUser.statusText,
-    })
+    const result = await updateUserInternal(
+      db,
+      redis,
+      targetUser,
+      {
+        name: data.name ?? targetUser.name,
+        division: data.division ?? targetUser.division,
+        countryCode:
+          data.countryCode !== undefined
+            ? data.countryCode
+            : targetUser.countryCode,
+        statusText:
+          data.statusText !== undefined
+            ? data.statusText
+            : targetUser.statusText,
+      },
+      { bypassDivisionFreeze: true }
+    )
     if (!result.success) {
       return { success: false, error: 'badKnownName' }
     }

@@ -20,7 +20,7 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
     }
   }
 
-  const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user.id, {
+  const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user, {
     division: body.division ?? user.division,
     name: body.name ?? user.name,
     countryCode:
@@ -30,6 +30,10 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
   })
 
   if (!result.success) {
+    if (result.error === 'badDivisionChangeEnded') {
+      return res.badDivisionChangeEnded()
+    }
+
     return res.badKnownName()
   }
 

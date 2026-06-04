@@ -291,6 +291,39 @@ describe('admin users', () => {
     ).toHaveLength(0)
   })
 
+  test('updates division even after the competition has ended', async () => {
+    const admin = await generateRealTestUser(Permissions.usersWrite)
+    const target = await generateRealTestUser()
+
+    const newDivision = Object.keys(config.divisions)[1]!
+    expect(newDivision).not.toBe(target.user.division)
+
+    const oldTime = config.endTime
+    config.endTime = Date.now() - 1
+
+    try {
+      const res = await request(app, `/api/v2/admin/users/${target.user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${await generateAuthToken(admin.user.id)}`,
+        },
+        body: JSON.stringify({ data: { division: newDivision } }),
+      })
+
+      await expectResponse(res, GoodAdminUserUpdateV2)
+    } finally {
+      config.endTime = oldTime
+    }
+
+    const db = getDb()
+    const [stored] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, target.user.id))
+    expect(stored!.division).toBe(newDivision)
+  })
+
   test('lists pending team email verifications', async () => {
     const admin = await generateRealTestUser(Permissions.usersWrite)
     const db = getDb()
