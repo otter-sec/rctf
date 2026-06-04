@@ -65,7 +65,7 @@ async def create_container(  # noqa: PLR0913
                 else None,
                 'Labels': merge(container.labels, labels),
                 'HostConfig': {
-                    'NetworkMode': container.network_mode or 'bridge',
+                    'NetworkMode': container.network_mode or ('bridge' if endpoints_config else 'none'),
                     'Mounts': volume_mounts or None,
                     'Dns': container.dns,
                     'DnsOptions': container.dns_opt,
