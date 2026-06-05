@@ -76,25 +76,19 @@ const cacheLeaderboard = async (
         return {
           id: user.id,
           score: user.score,
-          globalRank: idx + 1,
-          divisionRank: divRank,
-          lastSolveAt: user.lastSolve
+          global_rank: idx + 1,
+          division_rank: divRank,
+          last_solve_at: user.lastSolve
             ? new Date(user.lastSolve).toISOString()
             : null,
-          lastTiebreakSolveAt: user.lastTiebreakEligibleSolve
+          last_tiebreak_solve_at: user.lastTiebreakEligibleSolve
             ? new Date(user.lastTiebreakEligibleSolve).toISOString()
             : null,
         }
       })
 
-      const valuesList = sql.join(
-        userUpdates.map(
-          u =>
-            sql`(${u.id}, ${u.score}::int, ${u.globalRank}::int, ${u.divisionRank}::int, ${u.lastSolveAt}::timestamptz, ${u.lastTiebreakSolveAt}::timestamptz)`
-        ),
-        sql`, `
-      )
-
+      // a single jsonb parameter: a per-row VALUES list binds 6 parameters
+      // per user and overflows the postgres protocol limit of 65534
       await tx.execute(sql`
         UPDATE users SET
           score = COALESCE(resolved.score, 0),
@@ -111,9 +105,9 @@ const cacheLeaderboard = async (
             vals.last_solve_at,
             vals.last_tiebreak_solve_at
           FROM users u
-          LEFT JOIN (VALUES ${valuesList})
-            AS vals(id, score, global_rank, division_rank, last_solve_at, last_tiebreak_solve_at)
-            ON u.id = vals.id::text
+          LEFT JOIN jsonb_to_recordset(${JSON.stringify(userUpdates)}::jsonb)
+            AS vals(id text, score int, global_rank int, division_rank int, last_solve_at timestamptz, last_tiebreak_solve_at timestamptz)
+            ON u.id = vals.id
           WHERE u.global_rank IS NOT NULL OR vals.id IS NOT NULL
         ) resolved
         WHERE users.id = resolved.id
@@ -137,20 +131,18 @@ const cacheLeaderboard = async (
       .where(sql`${challenges.score} != 0 OR ${challenges.solveCount} != 0`)
 
     if (data.challengeInfos.size > 0) {
-      const challValuesList = sql.join(
-        Array.from(data.challengeInfos.entries()).map(
-          ([id, info]) => sql`(${id}, ${info.score}::int, ${info.solves}::int)`
-        ),
-        sql`, `
+      const challengeUpdates = Array.from(
+        data.challengeInfos.entries(),
+        ([id, info]) => ({ id, score: info.score, solve_count: info.solves })
       )
 
       await tx.execute(sql`
         UPDATE challenges SET
           score = v.score,
           solve_count = v.solve_count
-        FROM (VALUES ${challValuesList})
-          AS v(id, score, solve_count)
-        WHERE challenges.id = v.id::text
+        FROM jsonb_to_recordset(${JSON.stringify(challengeUpdates)}::jsonb)
+          AS v(id text, score int, solve_count int)
+        WHERE challenges.id = v.id
       `)
     }
   })
@@ -290,7 +282,7 @@ const replaceGraphAtomic = (
     fingerprint,
     cursor ? JSON.stringify(cursor) : '',
     source,
-    ...packGraphUpdates(fold.userPoints)
+    packGraphUpdates(fold.userPoints)
   )
 
 const buildGraphFingerprint = (
@@ -342,7 +334,7 @@ const getScoreEventGraphRows = async (
     .from(scoreEvents)
     .where(
       and(
-        inArray(scoreEvents.userid, userIds),
+        sql`${scoreEvents.userid} IN (SELECT jsonb_array_elements_text(${JSON.stringify(userIds)}::jsonb))`,
         inArray(scoreEvents.challengeid, challengeIds),
         cursor ? gte(scoreEvents.eventAt, cursor.time) : undefined
       )
@@ -369,7 +361,7 @@ const loadGraphSeed = async (
   if (userIds.length === 0) {
     return new Map()
   }
-  const packed = await redis.hmget(keyGraphData, ...userIds)
+  const packed = await redis.hmget(keyGraphData, userIds)
   return new Map(userIds.map((id, idx) => [id, packed[idx] ?? null]))
 }
 
@@ -407,7 +399,7 @@ const cacheGraphIncremental = async (
     fingerprint,
     JSON.stringify(nextCursor),
     graphSourceEvents,
-    ...packGraphUpdates(fold.userPoints)
+    packGraphUpdates(fold.userPoints)
   )
 }
 
@@ -633,9 +625,10 @@ const getGraphEntries = async (
 
   const [lastUpdateRaw, graphData] = await Promise.all([
     redis.get(keyGraphUpdate),
-    redis.hmget(keyGraphData, ...entries.map(entry => entry.id)) as Promise<
-      Array<string | null>
-    >,
+    redis.hmget(
+      keyGraphData,
+      entries.map(entry => entry.id)
+    ),
   ])
   const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
   const dynamicPointsByUser = await getDynamicGraphPoints(
