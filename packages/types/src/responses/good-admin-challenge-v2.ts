@@ -26,7 +26,7 @@ export const AdminChallengeSchemaV2 = z.object({
   scoring: z.nullish(ChallengeScoringSchema),
 })
 
-export const GoodAdminChallengeV2 = response('goodAdminChallenge', {
+export const GoodAdminChallengeV2 = response('goodAdminChallengeV2', {
   status: 200,
   message: 'The retrieval of the challenge as admin was successful.',
   data: AdminChallengeSchemaV2,

@@ -34,7 +34,7 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
     return res.badKnownName()
   }
 
-  return res.goodUserUpdate({
+  return res.goodUserUpdateV2({
     user: {
       name: result.user.name,
       email: result.user.email ?? null,

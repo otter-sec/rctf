@@ -7,7 +7,7 @@ usersGroup.route(GetUserRouteV2, async ({ ctx, res, params: { id } }) => {
   if (!fullUser) {
     return res.badUnknownUser()
   }
-  return res.goodUserData({
+  return res.goodUserDataV2({
     ...fullUser,
     avatarUrl: fullUser.avatarUrl ?? null,
     countryCode: fullUser.countryCode ?? null,

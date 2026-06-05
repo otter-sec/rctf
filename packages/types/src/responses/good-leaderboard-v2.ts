@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 
-export const GoodLeaderboardV2 = response('goodLeaderboard', {
+export const GoodLeaderboardV2 = response('goodLeaderboardV2', {
   status: 200,
   message: 'The leaderboard was retrieved.',
   data: z.object({

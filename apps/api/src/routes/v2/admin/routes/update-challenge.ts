@@ -100,7 +100,7 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   }
 
   forceLeaderboardUpdate(ctx.var.redis)
-  return res.goodChallengeUpdate({
+  return res.goodChallengeUpdateV2({
     id: updated.id,
     ...updated.data,
     files: updated.data.files.map(file => ({

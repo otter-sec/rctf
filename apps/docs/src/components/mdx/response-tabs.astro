@@ -14,10 +14,9 @@ interface ResponseDef {
 interface Props {
   def: any
   extra?: ResponseDef[]
-  examples?: Record<string, unknown>
 }
 
-const { def, extra = [], examples = {} } = Astro.props
+const { def, extra = [] } = Astro.props
 
 const responses: ResponseDef[] = []
 const seen = new Set<string>()
@@ -28,9 +27,6 @@ for (const resp of [...(def.goodResponses ?? []), ...(def.badResponses ?? []), .
 }
 
 function exampleData(resp: ResponseDef): unknown | undefined {
-  if (Object.prototype.hasOwnProperty.call(examples, resp.kind)) {
-    return dimPlaceholders(examples[resp.kind])
-  }
   return resp.dataSchema ? dimPlaceholders(generateExample(resp.dataSchema)) : undefined
 }
 

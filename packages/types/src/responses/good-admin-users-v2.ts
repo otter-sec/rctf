@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 
-export const GoodAdminUsersV2 = response('goodAdminUsers', {
+export const GoodAdminUsersV2 = response('goodAdminUsersV2', {
   status: 200,
   message: 'The users were retrieved.',
   data: z.object({

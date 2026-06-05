@@ -17,7 +17,6 @@ interface Props {
   query?: Record<string, unknown>
   params?: Record<string, unknown>
   extra?: ResponseDef[]
-  examples?: Record<string, unknown>
 }
 
 const {
@@ -28,9 +27,8 @@ const {
   query,
   params,
   extra = [],
-  examples = {},
 } = Astro.props
 ---
 
 <CurlExample def={def} baseUrl={baseUrl} pick={pick} body={body} query={query} params={params} />
-<ResponseTabs def={def} extra={extra} examples={examples} />
+<ResponseTabs def={def} extra={extra} />

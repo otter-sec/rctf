@@ -18,7 +18,7 @@ const DynamicScoreSchema = z.object({
   pointDelta: z.int(),
 })
 
-export const GoodUserSelfDataV2 = response('goodUserSelfData', {
+export const GoodUserSelfDataV2 = response('goodUserSelfDataV2', {
   status: 200,
   message: "The user's own data was successfully retrieved.",
   data: z.object({

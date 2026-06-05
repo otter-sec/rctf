@@ -86,7 +86,7 @@ export function generateInterceptorScript(): string {
       const sliced = filtered.slice(offset, offset + limit);
 
       return jsonResponse({
-        kind: 'goodLeaderboard',
+        kind: 'goodLeaderboardV2',
         message: 'The leaderboard was retrieved.',
         data: { total: total, leaderboard: sliced }
       });
@@ -132,7 +132,7 @@ export function generateInterceptorScript(): string {
       const sliced = dump.solves.slice(offset, offset + limit);
 
       return jsonResponse({
-        kind: 'goodChallengeSolves',
+        kind: 'goodChallengeSolvesV2',
         message: 'The challenges solves have been retrieved.',
         data: { solves: sliced, mySolvePosition: null }
       });

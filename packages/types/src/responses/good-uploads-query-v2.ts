@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 
-export const GoodUploadsQueryV2 = response('goodUploadsQuery', {
+export const GoodUploadsQueryV2 = response('goodUploadsQueryV2', {
   status: 200,
   message: 'The status of uploads was successfully queried.',
   data: z.array(

@@ -41,7 +41,7 @@ leaderboardGroup.route(
   async ({ ctx, res }) => {
     const rows = await preparedLeaderboardChallenges(ctx.var.db).execute()
 
-    return res.goodLeaderboardChallenges({
+    return res.goodLeaderboardChallengesV2({
       challenges: Object.fromEntries(
         rows.map(row => {
           const scoringKind = scoringKindOf(row.data)

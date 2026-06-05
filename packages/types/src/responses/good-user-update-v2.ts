@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
 
-export const GoodUserUpdateV2 = response('goodUserUpdate', {
+export const GoodUserUpdateV2 = response('goodUserUpdateV2', {
   status: 200,
   message: 'Your account was successfully updated.',
   data: z.object({

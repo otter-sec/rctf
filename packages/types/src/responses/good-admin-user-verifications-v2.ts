@@ -11,7 +11,7 @@ const AdminUserVerification = z.object({
 })
 
 export const GoodAdminUserVerificationsV2 = response(
-  'goodAdminUserVerifications',
+  'goodAdminUserVerificationsV2',
   {
     status: 200,
     message: 'The pending user verifications were retrieved.',

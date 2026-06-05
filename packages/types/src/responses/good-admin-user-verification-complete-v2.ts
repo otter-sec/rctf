@@ -2,7 +2,7 @@ import { z } from 'zod/mini'
 import { response } from '../internal'
 
 export const GoodAdminUserVerificationCompleteV2 = response(
-  'goodAdminUserVerificationComplete',
+  'goodAdminUserVerificationCompleteV2',
   {
     status: 200,
     message: 'The pending user verification was completed.',

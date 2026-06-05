@@ -20,5 +20,5 @@ adminGroup.route(UpdateAdminUserRouteV2, async ({ res, ctx, params, body }) => {
     return res.badUnknownUser()
   }
 
-  return res.goodAdminUserUpdate()
+  return res.goodAdminUserUpdateV2()
 })

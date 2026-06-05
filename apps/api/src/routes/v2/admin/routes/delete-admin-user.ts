@@ -12,5 +12,5 @@ adminGroup.route(DeleteAdminUserRouteV2, async ({ res, ctx, params }) => {
     return res.badUnknownUser()
   }
 
-  return res.goodAdminUserDelete()
+  return res.goodAdminUserDeleteV2()
 })

@@ -4,7 +4,7 @@ import adminGroup from '../group'
 
 adminGroup.route(GetAdminChallengesRouteV2, async ({ res, ctx }) => {
   const data = await getPrivateChallenges(ctx.var.db)
-  return res.goodAdminChallenges(
+  return res.goodAdminChallengesV2(
     data.map(item => ({
       id: item.id,
       ...item.data,

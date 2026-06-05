@@ -6,24 +6,7 @@ description: '<route>GET /api/v2/leaderboard/challs</route>'
 import { GetLeaderboardChallengesRouteV2 } from '@rctf/types'
 
 <RouteAside>
-  <RouteExample
-    def={GetLeaderboardChallengesRouteV2}
-    examples={{
-      goodLeaderboardChallenges: {
-        challenges: {
-          'challenge-id': {
-            name: 'web demo',
-            category: 'web',
-            solves: 12,
-            points: 443,
-            sortWeight: null,
-            scoringKind: 'decay',
-            firstSolvers: [{ id: 'team-id' }],
-          },
-        },
-      },
-    }}
-  />
+  <RouteExample def={GetLeaderboardChallengesRouteV2} />
 </RouteAside>
 
 <RouteMetaFromDef def={GetLeaderboardChallengesRouteV2} />
@@ -34,7 +17,7 @@ This route uses the same CTF start time gate as the standings routes. Its option
 
 <ResponseBody
   def={GetLeaderboardChallengesRouteV2}
-  response="goodLeaderboardChallenges"
+  response="goodLeaderboardChallengesV2"
   title="Response fields"
 />
 

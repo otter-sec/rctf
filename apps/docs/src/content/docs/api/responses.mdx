@@ -77,7 +77,7 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>404 badChallenge</response>` | No data | The challenge was not found or is not available to this route. |
 | `<response>400 badFlag</response>` | No data | The submitted flag was not accepted. |
 | `<response>409 badAlreadySolvedChallenge</response>` | No data | The team has already solved this challenge. |
-| `<response>404 badUnknownSolve</response>` | No data | The solve row was not found. |
+| `<response>404 badUnknownSolveV2</response>` | No data | The solve row was not found. |
 | `<response>400 badDataUri</response>` | No data | The V1 upload data URI could not be read. |
 | `<response>500 badFilesUpload</response>` | No data | The upload provider could not finish the upload. |
 | `<response>400 badAvatarFile</response>` | No data | The avatar file was not accepted as an image. |
@@ -107,39 +107,39 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>200 goodCtftimeAuthSet</response>` | No data. |
 | `<response>200 goodCtftimeRemoved</response>` | No data. |
 | `<response>200 goodCtftimeToken</response>` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }{:ts}` |
-| `<response>200 goodChallenges</response>` | Challenge array. Fields depend on API version. |
-| `<response>200 goodChallengeSolves</response>` | Solve list. Fields depend on API version. |
+| `<response>200 goodChallenges</response>` `<response>200 goodChallengesV2</response>` | Challenge array. Fields depend on API version. |
+| `<response>200 goodChallengeSolves</response>` `<response>200 goodChallengeSolvesV2</response>` | Solve list. Fields depend on API version. |
 | `<response>200 goodFlag</response>` | No data. |
-| `<response>200 goodLeaderboard</response>` | `{ total: number, leaderboard: LeaderboardEntry[] }{:ts}` |
+| `<response>200 goodLeaderboard</response>` `<response>200 goodLeaderboardV2</response>` | `{ total: number, leaderboard: LeaderboardEntry[] }{:ts}`. Entry fields depend on API version. |
 | `<response>200 goodLeaderboardWithGraph</response>` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }{:ts}` |
 | `<response>200 goodLeaderboardGraph</response>` | `{ graph: LeaderboardGraphEntry[] }{:ts}` |
-| `<response>200 goodLeaderboardChallenges</response>` | `{ challenges: Record<string, LeaderboardChallenge> }{:ts}` |
-| `<response>200 goodUserData</response>` | Public user profile. Fields depend on API version. |
-| `<response>200 goodUserSelfData</response>` | Authenticated user's own profile. Fields depend on API version. |
-| `<response>200 goodUserUpdate</response>` | `{ user: UserUpdateResult }{:ts}` |
+| `<response>200 goodLeaderboardChallengesV2</response>` | `{ challenges: Record<string, LeaderboardChallenge> }{:ts}` |
+| `<response>200 goodUserData</response>` `<response>200 goodUserDataV2</response>` | Public user profile. Fields depend on API version. |
+| `<response>200 goodUserSelfData</response>` `<response>200 goodUserSelfDataV2</response>` | Authenticated user's own profile. Fields depend on API version. |
+| `<response>200 goodUserUpdate</response>` `<response>200 goodUserUpdateV2</response>` | `{ user: UserUpdateResult }{:ts}` |
 | `<response>200 goodAvatarUpdated</response>` | `{ url: string \| null }{:ts}` |
 | `<response>200 goodMemberData</response>` | Team member array. |
 | `<response>200 goodMemberCreate</response>` | Team member object. |
 | `<response>200 goodMemberDelete</response>` | No data. |
-| `<response>200 goodAdminChallenges</response>` | Admin challenge array. Fields depend on API version. |
-| `<response>200 goodAdminChallenge</response>` | Admin challenge object. Fields depend on API version. |
-| `<response>200 goodChallengeUpdate</response>` | Updated admin challenge object. |
+| `<response>200 goodAdminChallenges</response>` `<response>200 goodAdminChallengesV2</response>` | Admin challenge array. Fields depend on API version. |
+| `<response>200 goodAdminChallenge</response>` `<response>200 goodAdminChallengeV2</response>` | Admin challenge object. Fields depend on API version. |
+| `<response>200 goodChallengeUpdate</response>` `<response>200 goodChallengeUpdateV2</response>` | Updated admin challenge object. |
 | `<response>200 goodChallengeDelete</response>` | No data. |
-| `<response>200 goodChallengeSolveDelete</response>` | No data. |
-| `<response>200 goodFilesUpload</response>` | Uploaded file array. Fields depend on API version. |
-| `<response>200 goodUploadsQuery</response>` | Upload query result array. Fields depend on API version. |
-| `<response>200 goodAdminUsers</response>` | `{ total: number, users: AdminUserListItem[] }{:ts}` |
-| `<response>200 goodAdminUser</response>` | Admin user detail with solves. |
-| `<response>200 goodAdminUserUpdate</response>` | No data. |
-| `<response>200 goodAdminUserDelete</response>` | No data. |
-| `<response>200 goodCreateUserToken</response>` | `{ token: string }{:ts}` |
-| `<response>200 goodAdminUserVerifications</response>` | `{ verifications: PendingUserVerification[] }{:ts}` |
-| `<response>200 goodAdminUserVerificationComplete</response>` | `{ userId: string }{:ts}` |
-| `<response>200 goodAdminUserVerificationResend</response>` | `{ id: string }{:ts}` |
+| `<response>200 goodChallengeSolveDeleteV2</response>` | No data. |
+| `<response>200 goodFilesUpload</response>` `<response>200 goodFilesUploadV2</response>` | Uploaded file array. Fields depend on API version. |
+| `<response>200 goodUploadsQuery</response>` `<response>200 goodUploadsQueryV2</response>` | Upload query result array. Fields depend on API version. |
+| `<response>200 goodAdminUsersV2</response>` | `{ total: number, users: AdminUserListItem[] }{:ts}` |
+| `<response>200 goodAdminUserV2</response>` | Admin user detail with solves. |
+| `<response>200 goodAdminUserUpdateV2</response>` | No data. |
+| `<response>200 goodAdminUserDeleteV2</response>` | No data. |
+| `<response>200 goodCreateUserTokenV2</response>` | `{ token: string }{:ts}` |
+| `<response>200 goodAdminUserVerificationsV2</response>` | `{ verifications: PendingUserVerification[] }{:ts}` |
+| `<response>200 goodAdminUserVerificationCompleteV2</response>` | `{ userId: string }{:ts}` |
+| `<response>200 goodAdminUserVerificationResendV2</response>` | `{ id: string }{:ts}` |
 | `<response>200 goodAdminSubmissions</response>` | `{ total: number, submissions: AdminSubmission[] }{:ts}` |
 | `<response>200 goodAdminSettings</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }{:ts}` |
 | `<response>200 goodAdminSettingsUpdate</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }{:ts}` |
-| `<response>200 goodClientConfig</response>` | Client config object. Fields depend on API version. |
+| `<response>200 goodClientConfig</response>` `<response>200 goodClientConfigV2</response>` | Client config object. Fields depend on API version. |
 | `<response>200 goodCtftimeLeaderboard</response>` | `{ standings: { pos: number, team: string, score: number }[] }{:ts}` |
 | `<response>200 goodInstanceStatus</response>` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }{:ts}` |
 | `<response>200 goodInstancerSchema</response>` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }{:ts}` |

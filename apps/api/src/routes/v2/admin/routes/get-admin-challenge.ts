@@ -8,7 +8,7 @@ adminGroup.route(GetAdminChallengeRouteV2, async ({ res, ctx, params }) => {
     return res.badChallenge()
   }
 
-  return res.goodAdminChallenge({
+  return res.goodAdminChallengeV2({
     id: data.id,
     ...data.data,
     files: data.data.files.map(file => ({

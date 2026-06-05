@@ -12,6 +12,7 @@ import {
   GoodChallengeUpdateV2,
   GoodFlag,
   GoodLeaderboard,
+  GoodLeaderboardV2,
   Permissions,
 } from '@rctf/types'
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
@@ -546,7 +547,7 @@ describe('challenges service', () => {
         }
       )
 
-      const body = await expectResponse(res, GoodLeaderboard)
+      const body = await expectResponse(res, GoodLeaderboardV2)
       expect(Array.isArray(body.data.leaderboard)).toBe(true)
     })
   })
@@ -635,7 +636,7 @@ describe('challenges service', () => {
       expect(remainingSolves.length).toBe(0)
     })
 
-    test('returns badUnknownSolve for non-existent solve', async () => {
+    test('returns badUnknownSolveV2 for non-existent solve', async () => {
       const adminPerms =
         Permissions.challsRead |
         Permissions.challsWrite |
