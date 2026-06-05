@@ -12,13 +12,9 @@ usersGroup.route(UpdateUserRoute, async ({ ctx, user, res, body }) => {
     return res.badDivisionNotAllowed()
   }
 
-  // Limit name updates to 1 per 10 minutes
-  if (body.name !== undefined) {
-    const timeLeft = await rateLimitUpdateProfile(ctx.var.redis, user.id)
-
-    if (timeLeft) {
-      return res.badRateLimit({ timeLeft })
-    }
+  const timeLeft = await rateLimitUpdateProfile(ctx.var.redis, user.id)
+  if (timeLeft) {
+    return res.badRateLimit({ timeLeft })
   }
 
   const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user, {

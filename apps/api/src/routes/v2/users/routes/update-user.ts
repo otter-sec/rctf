@@ -12,12 +12,9 @@ usersGroup.route(UpdateUserRouteV2, async ({ ctx, user, res, body }) => {
     return res.badDivisionNotAllowed()
   }
 
-  if (body.name !== undefined) {
-    const timeLeft = await rateLimitUpdateProfile(ctx.var.redis, user.id)
-
-    if (timeLeft) {
-      return res.badRateLimit({ timeLeft })
-    }
+  const timeLeft = await rateLimitUpdateProfile(ctx.var.redis, user.id)
+  if (timeLeft) {
+    return res.badRateLimit({ timeLeft })
   }
 
   const result = await updateUserInternal(ctx.var.db, ctx.var.redis, user, {
