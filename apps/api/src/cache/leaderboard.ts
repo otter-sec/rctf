@@ -13,6 +13,7 @@ const keyGraphSource = 'graph-source'
 const graphSourceEvents = 'events'
 const graphSourceSamples = 'samples'
 const keyDynamicGraph = 'dynamic-graph'
+const keyDynamicFeedVersion = 'dynamic-feed-version'
 const dynamicGraphCacheTtlSeconds = 60
 
 type GraphSource = typeof graphSourceEvents | typeof graphSourceSamples
@@ -453,12 +454,18 @@ const parseGraphPoints = (
   return points
 }
 
+export const bumpDynamicFeedVersion = async (
+  redis: TypedRedis
+): Promise<void> => {
+  await redis.incr(keyDynamicFeedVersion)
+}
+
 const dynamicGraphCacheKey = (
-  lastUpdate: number,
+  feedVersion: string,
   userIds: string[]
 ): string => {
   const digest = Bun.hash([...userIds].sort().join(',')).toString(36)
-  return `${keyDynamicGraph}:${lastUpdate}:${digest}`
+  return `${keyDynamicGraph}:${feedVersion}:${digest}`
 }
 
 const deserializeDynamicPoints = (
@@ -478,6 +485,7 @@ const getDynamicGraphPoints = async (
   db: DatabaseClient,
   redis: TypedRedis,
   lastUpdate: number,
+  feedVersion: string,
   entries: Array<GraphSourceEntry>
 ): Promise<Map<string, Array<GraphPoint>>> => {
   const userIds = entries.map(entry => entry.id)
@@ -485,7 +493,7 @@ const getDynamicGraphPoints = async (
     return new Map()
   }
 
-  const cacheKey = dynamicGraphCacheKey(lastUpdate, userIds)
+  const cacheKey = dynamicGraphCacheKey(feedVersion, userIds)
   const cached = deserializeDynamicPoints(await redis.get(cacheKey))
   if (cached) {
     return cached
@@ -542,8 +550,9 @@ export const getGraphForEntries = async (
     return []
   }
 
-  const [lastUpdateRaw, graphData] = await Promise.all([
+  const [lastUpdateRaw, feedVersion, graphData] = await Promise.all([
     redis.get(keyGraphUpdate),
+    redis.get(keyDynamicFeedVersion),
     redis.hmget(
       keyGraphData,
       entries.map(entry => entry.id)
@@ -554,6 +563,7 @@ export const getGraphForEntries = async (
     db,
     redis,
     lastUpdate,
+    feedVersion ?? '0',
     entries
   )
 

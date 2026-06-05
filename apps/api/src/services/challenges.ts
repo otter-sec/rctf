@@ -24,21 +24,12 @@ import {
   SubmissionKind,
   SubmissionResult,
 } from '@rctf/types'
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  inArray,
-  lte,
-  max,
-  sql,
-  sum,
-} from 'drizzle-orm'
+import { and, asc, count, desc, eq, inArray, max, sql, sum } from 'drizzle-orm'
 import type { PgColumn } from 'drizzle-orm/pg-core'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
+import { inJsonbArrayPlaceholder } from '../lib/db-bulk'
+import { preparedPerDb } from '../lib/prepared'
 import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
@@ -196,35 +187,48 @@ export type ChallengeWithMyScore = Challenge & {
   myPointDelta?: number
 }
 
+const challengesBaseSelection = {
+  id: challenges.id,
+  data: challenges.data,
+  score: challenges.score,
+  solveCount: challenges.solveCount,
+}
+
+const preparedPublicChallenges = preparedPerDb(db =>
+  db
+    .select(challengesBaseSelection)
+    .from(challenges)
+    .where(challengeIsPublicSql)
+    .orderBy(...challengeDefaultOrder)
+    .prepare('rctf_public_challenges')
+)
+
+const preparedPublicChallengesWithMyScore = preparedPerDb(db =>
+  db
+    .select({ ...challengesBaseSelection, myScore: solves.points })
+    .from(challenges)
+    .leftJoin(
+      solves,
+      and(
+        eq(solves.challengeid, challenges.id),
+        eq(solves.userid, sql.placeholder('userId'))
+      )
+    )
+    .where(challengeIsPublicSql)
+    .orderBy(...challengeDefaultOrder)
+    .prepare('rctf_public_challenges_my_score')
+)
+
 export const getChallenges = async (
   db: DatabaseClient,
   userId?: string
 ): Promise<ChallengeWithMyScore[]> => {
-  const baseSelect = {
-    id: challenges.id,
-    data: challenges.data,
-    score: challenges.score,
-    solveCount: challenges.solveCount,
-  }
-
   if (!userId) {
-    return await db
-      .select(baseSelect)
-      .from(challenges)
-      .where(challengeIsPublicSql)
-      .orderBy(...challengeDefaultOrder)
+    return await preparedPublicChallenges(db).execute()
   }
 
   const [rows, dynamicScoresByUser] = await Promise.all([
-    db
-      .select({ ...baseSelect, myScore: solves.points })
-      .from(challenges)
-      .leftJoin(
-        solves,
-        and(eq(solves.challengeid, challenges.id), eq(solves.userid, userId))
-      )
-      .where(challengeIsPublicSql)
-      .orderBy(...challengeDefaultOrder),
+    preparedPublicChallengesWithMyScore(db).execute({ userId }),
     getDynamicScoresForUsers(db, [userId]),
   ])
 
@@ -857,6 +861,47 @@ export const getUserChallengeSolves = async (
     .orderBy(asc(solves.createdat))
 }
 
+const preparedLeaderboardSolves = preparedPerDb(db =>
+  db
+    .select({
+      userId: solves.userid,
+      solves: sql<LeaderboardSolve[]>`JSONB_AGG(JSONB_BUILD_OBJECT(
+        'challengeId', ${solves.challengeid},
+        'solveTime', (EXTRACT(EPOCH FROM ${solves.createdat}) * 1000)::bigint
+      ) ORDER BY ${solves.createdat})`,
+    })
+    .from(solves)
+    .innerJoin(users, nonBannedUserJoin(solves.userid))
+    .innerJoin(challenges, eq(challenges.id, solves.challengeid))
+    .where(
+      and(
+        inJsonbArrayPlaceholder(solves.userid, sql.placeholder('userIds')),
+        challengeIsPublicSql,
+        eq(solves.source, 'flag')
+      )
+    )
+    .groupBy(solves.userid)
+    .prepare('rctf_leaderboard_solves')
+)
+
+const preparedLeaderboardUserInfo = preparedPerDb(db =>
+  db
+    .select({
+      id: users.id,
+      avatarUrl: users.avatarUrl,
+      countryCode: users.countryCode,
+      statusText: users.statusText,
+    })
+    .from(users)
+    .where(
+      and(
+        inJsonbArrayPlaceholder(users.id, sql.placeholder('userIds')),
+        userIsNotBanned
+      )
+    )
+    .prepare('rctf_leaderboard_user_info')
+)
+
 export const getLeaderboardChallengeData = async (
   db: DatabaseClient,
   userIds: string[]
@@ -869,35 +914,10 @@ export const getLeaderboardChallengeData = async (
     }
   }
 
+  const userIdsJson = JSON.stringify(userIds)
   const [solveRows, userRows, dynamicScores] = await Promise.all([
-    db
-      .select({
-        userId: solves.userid,
-        solves: sql<LeaderboardSolve[]>`JSONB_AGG(JSONB_BUILD_OBJECT(
-          'challengeId', ${solves.challengeid},
-          'solveTime', (EXTRACT(EPOCH FROM ${solves.createdat}) * 1000)::bigint
-        ) ORDER BY ${solves.createdat})`,
-      })
-      .from(solves)
-      .innerJoin(users, nonBannedUserJoin(solves.userid))
-      .innerJoin(challenges, eq(challenges.id, solves.challengeid))
-      .where(
-        and(
-          inArray(solves.userid, userIds),
-          challengeIsPublicSql,
-          eq(solves.source, 'flag')
-        )
-      )
-      .groupBy(solves.userid),
-    db
-      .select({
-        id: users.id,
-        avatarUrl: users.avatarUrl,
-        countryCode: users.countryCode,
-        statusText: users.statusText,
-      })
-      .from(users)
-      .where(and(inArray(users.id, userIds), userIsNotBanned)),
+    preparedLeaderboardSolves(db).execute({ userIds: userIdsJson }),
+    preparedLeaderboardUserInfo(db).execute({ userIds: userIdsJson }),
     getDynamicScoresForUsers(db, userIds),
   ])
 
@@ -919,14 +939,7 @@ export const getLeaderboardChallengeData = async (
   return { solves: solvesMap, dynamicScores, userInfo }
 }
 
-export const getDynamicScoresForUsers = async (
-  db: DatabaseClient,
-  userIds: string[]
-): Promise<Map<string, LeaderboardDynamicScore[]>> => {
-  if (userIds.length === 0) {
-    return new Map()
-  }
-
+const preparedDynamicScores = preparedPerDb(db => {
   const latestTick = db.$with('latest_tick').as(
     db
       .select({
@@ -960,13 +973,16 @@ export const getDynamicScoresForUsers = async (
       .where(
         and(
           eq(scoreEvents.source, 'feed'),
-          inArray(scoreEvents.userid, userIds)
+          inJsonbArrayPlaceholder(
+            scoreEvents.userid,
+            sql.placeholder('userIds')
+          )
         )
       )
       .groupBy(scoreEvents.challengeid, scoreEvents.userid)
   )
 
-  const rows = await db
+  return db
     .with(latestTick, deltas)
     .select({
       userId: solves.userid,
@@ -990,8 +1006,27 @@ export const getDynamicScoresForUsers = async (
         eq(deltas.userId, solves.userid)
       )
     )
-    .where(and(inArray(solves.userid, userIds), eq(solves.source, 'feed')))
+    .where(
+      and(
+        inJsonbArrayPlaceholder(solves.userid, sql.placeholder('userIds')),
+        eq(solves.source, 'feed')
+      )
+    )
     .groupBy(solves.userid)
+    .prepare('rctf_dynamic_scores')
+})
+
+export const getDynamicScoresForUsers = async (
+  db: DatabaseClient,
+  userIds: string[]
+): Promise<Map<string, LeaderboardDynamicScore[]>> => {
+  if (userIds.length === 0) {
+    return new Map()
+  }
+
+  const rows = await preparedDynamicScores(db).execute({
+    userIds: JSON.stringify(userIds),
+  })
 
   const result = new Map<string, LeaderboardDynamicScore[]>()
   for (const row of rows) {

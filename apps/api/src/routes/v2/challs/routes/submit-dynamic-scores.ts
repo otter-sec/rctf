@@ -1,4 +1,5 @@
 import { SubmitDynamicScoresRouteV2 } from '@rctf/types'
+import { bumpDynamicFeedVersion } from '../../../../cache/leaderboard'
 import { upsertDynamicSolves } from '../../../../services/solve-points'
 import { forceLeaderboardUpdate } from '../../../../workers'
 import challsGroup from '../group'
@@ -12,6 +13,7 @@ challsGroup.route(SubmitDynamicScoresRouteV2, async ({ res, ctx, body }) => {
     body.scores
   )
 
+  await bumpDynamicFeedVersion(ctx.var.redis)
   forceLeaderboardUpdate(ctx.var.redis)
   return res.goodDynamicScores({
     inserted: result.inserted,

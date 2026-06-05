@@ -30,6 +30,7 @@ import type { PgColumn } from 'drizzle-orm/pg-core'
 import { invalidateUserCache } from '../cache/auth-cache'
 import type { TypedRedis } from '../cache/scripts'
 import { setFilter } from '../lib/db-filters'
+import { preparedPerDb } from '../lib/prepared'
 import { createToken, TokenKind } from '../lib/tokens'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { isDecayKind } from './challenges'
@@ -374,16 +375,20 @@ export const updateUserAvatar = async (
   ])
 }
 
+const preparedGetUser = preparedPerDb(db =>
+  db
+    .select()
+    .from(users)
+    .where(eq(users.id, sql.placeholder('id')))
+    .limit(1)
+    .prepare('rctf_get_user_by_id')
+)
+
 export const getUser = async (
   db: DatabaseClient,
   id: string
 ): Promise<User | undefined> => {
-  return await db
-    .select()
-    .from(users)
-    .where(eq(users.id, id))
-    .limit(1)
-    .then(takeUnique)
+  return await preparedGetUser(db).execute({ id }).then(takeUnique)
 }
 
 export const getUserByNameOrEmail = async (
