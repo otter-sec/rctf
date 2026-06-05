@@ -18,7 +18,7 @@ const createMockRedis = () => {
       store.set(key, value)
       return 'OK'
     }),
-    hmget: mock(async (key: string, ...fields: string[]) => {
+    hmget: mock(async (key: string, fields: string[]) => {
       const hash = hashStore.get(key)
       return fields.map(f => hash?.get(f) ?? null)
     }),
@@ -48,15 +48,15 @@ const createMockRedis = () => {
         fingerprint: string,
         cursor: string,
         source: string,
-        ...args: string[]
+        packedUpdates: string[]
       ) => {
         let hash = hashStore.get(dataKey)
         if (!hash) {
           hash = new Map()
           hashStore.set(dataKey, hash)
         }
-        for (let i = 0; i < args.length; i += 2) {
-          hash.set(args[i]!, args[i + 1]!)
+        for (let i = 0; i < packedUpdates.length; i += 2) {
+          hash.set(packedUpdates[i]!, packedUpdates[i + 1]!)
         }
         store.set(updateKey, lastSample)
         store.set(fingerprintKey, fingerprint)
@@ -75,13 +75,13 @@ const createMockRedis = () => {
         fingerprint: string,
         cursor: string,
         source: string,
-        ...args: string[]
+        packedUpdates: string[]
       ) => {
         hashStore.delete(dataKey)
-        if (args.length > 0) {
+        if (packedUpdates.length > 0) {
           const hash = new Map<string, string>()
-          for (let i = 0; i < args.length; i += 2) {
-            hash.set(args[i]!, args[i + 1]!)
+          for (let i = 0; i < packedUpdates.length; i += 2) {
+            hash.set(packedUpdates[i]!, packedUpdates[i + 1]!)
           }
           hashStore.set(dataKey, hash)
         }
@@ -207,7 +207,7 @@ describe('leaderboard cache', () => {
       expect(result.map(entry => entry.id)).toEqual(['user2', 'user1'])
       expect(result[0]!.points[0]).toEqual({ time: 1700000000, score: 60 })
       expect(result[1]!.points[0]).toEqual({ time: 1700000000, score: 100 })
-      expect(redis.hmget).toHaveBeenCalledWith('graph-data', 'user2', 'user1')
+      expect(redis.hmget).toHaveBeenCalledWith('graph-data', ['user2', 'user1'])
     })
 
     test('returns empty array when no entries', async () => {
@@ -312,8 +312,7 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        'user1',
-        '1699990000,50,1699995000,100'
+        ['user1', '1699990000,50,1699995000,100']
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -349,7 +348,8 @@ describe('leaderboard cache', () => {
         expect.any(String),
         JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
         '',
-        'events'
+        'events',
+        []
       )
       expect(db.transaction).toHaveBeenCalled()
     })
@@ -395,8 +395,7 @@ describe('leaderboard cache', () => {
         JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
         '',
         'samples',
-        'user1',
-        '1699990000,50,1699995000,100'
+        ['user1', '1699990000,50,1699995000,100']
       )
       expect(redis.store.get('graph-source')).toBe('samples')
     })
@@ -459,8 +458,7 @@ describe('leaderboard cache', () => {
           ids: ['evt1'],
         }),
         'events',
-        'user1',
-        '1699990000,50,1699995000,75'
+        ['user1', '1699990000,50,1699995000,75']
       )
     })
 
@@ -551,10 +549,12 @@ describe('leaderboard cache', () => {
           ids: ['evt3', 'evt4'],
         }),
         'events',
-        'user1',
-        '1699990000,30,1699995000,70',
-        'user2',
-        '1699990000,20,1699995000,50'
+        [
+          'user1',
+          '1699990000,30,1699995000,70',
+          'user2',
+          '1699990000,20,1699995000,50',
+        ]
       )
     })
 
@@ -617,8 +617,7 @@ describe('leaderboard cache', () => {
           ids: ['evt2'],
         }),
         'events',
-        'user1',
-        '1699990000,50,1699995000,75'
+        ['user1', '1699990000,50,1699995000,75']
       )
       expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
         '1699990000,50,1699995000,75'

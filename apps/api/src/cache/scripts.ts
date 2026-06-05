@@ -1,10 +1,24 @@
 import path from 'node:path'
 import type Redis from 'ioredis'
 
+type GraphWriteCommand = (
+  updateKey: string,
+  dataKey: string,
+  fingerprintKey: string,
+  cursorKey: string,
+  sourceKey: string,
+  lastSample: string,
+  fingerprint: string,
+  cursor: string,
+  source: string,
+  packedUpdates: string[]
+) => Promise<void>
+
 export type TypedRedis = Redis & {
-  rctfMergeGraph: (...args: string[]) => Promise<void>
-  rctfReplaceGraph: (...args: string[]) => Promise<void>
+  rctfMergeGraph: GraphWriteCommand
+  rctfReplaceGraph: GraphWriteCommand
   rctfRateLimit: (key: string, limit: string, ttlMs: string) => Promise<number>
+  hmget(key: string, fields: string[]): Promise<(string | null)[]>
 }
 
 export const loadLuaCommands = async (redis: Redis): Promise<TypedRedis> => {
