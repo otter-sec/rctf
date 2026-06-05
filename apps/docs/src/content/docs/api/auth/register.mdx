@@ -26,11 +26,16 @@ import { BadBody, BadJson, RegisterRoute, RegisterRouteV2 } from '@rctf/types'
   </Tabs>
 </RouteAside>
 
-<RouteMetaFromDef def={RegisterRouteV2} />
+<RouteMetaFromDef
+  def={RegisterRouteV2}
+  rateLimit="Verification email buckets. Burst `20`, refill window `600000` ms per IP, plus burst `2`, refill window `3600000` ms per email. Only consumed when a verification email would be sent."
+/>
 
 Creates a team account. Most deployments ask the team to prove ownership of an email address before the account becomes usable, so a successful request often sends a verification email instead of returning tokens immediately.
 
 For new clients, prefer the V2 route. The V1 route remains available for clients that already use the original registration fields.
+
+Verification email delivery is rate limited independently of captcha. Each client IP has a burst of `20` requests with a refill window of `600000` ms, and each target email has a burst of `2` requests with a refill window of `3600000` ms. Requests over either budget return `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. Registrations that complete without a verification email, such as CTFtime registrations or deployments without an email provider, do not consume these buckets.
 
 <Tabs items={['V2', 'V1']} sync="register-version">
   <Tab>
