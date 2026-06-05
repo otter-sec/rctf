@@ -815,6 +815,29 @@ describe('admin transaction atomicity', () => {
     expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
   })
 
+  test('deleting a banned user does not double-reverse score_events', async () => {
+    const db = getDb()
+    const redis = await createRedis()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+
+    await upsertDynamicSolves(db, challengeId, [
+      { userId: user.id, points: 100 },
+    ])
+    await updateAdminUser(db, redis, user.id, { banned: true })
+    expect(await sumScoreEvents(user.id, challengeId)).toBe(0)
+
+    const result = await deleteAdminUser(db, redis, user.id)
+    expect(result.success).toBe(true)
+
+    const rows = await db
+      .select({ delta: scoreEvents.pointsDelta, source: scoreEvents.source })
+      .from(scoreEvents)
+      .where(eq(scoreEvents.challengeid, challengeId))
+    expect(rows.filter(r => r.source === 'delete')).toHaveLength(0)
+    expect(rows.reduce((acc, r) => acc + r.delta, 0)).toBe(0)
+  })
+
   test('delete emits negative events for every solve and removes the user', async () => {
     const db = getDb()
     const redis = await createRedis()

@@ -1177,11 +1177,16 @@ export const deleteSolve = async (
   }
 ): Promise<Solve[]> => {
   return await db.transaction(async tx => {
+    await lockChallenge(tx, params.challengeId)
+
+    // share-lock the user row so a concurrent ban can't sweep the same solves
+    // we are about to negate
     const targetUser = await tx
       .select({ banned: users.banned })
       .from(users)
       .where(eq(users.id, params.userId))
       .limit(1)
+      .for('share')
       .then(takeUnique)
 
     const removed = await tx
