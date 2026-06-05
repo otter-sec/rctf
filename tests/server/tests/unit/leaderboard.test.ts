@@ -408,7 +408,7 @@ describe('leaderboard cache', () => {
           {
             id: 'evt1',
             userid: 'user1',
-            pointsDelta: 25,
+            pointsDelta: 75,
             eventAt: new Date(1699995000).toISOString(),
           },
         ],
@@ -458,7 +458,7 @@ describe('leaderboard cache', () => {
           ids: ['evt1'],
         }),
         'events',
-        ['user1', '1699990000,50,1699995000,75']
+        ['user1', '1699995000,75']
       )
     })
 
