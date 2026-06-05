@@ -16,11 +16,16 @@ import { BadBody, BadJson, RecoverRoute, RecoverRouteV2 } from '@rctf/types'
   </Tabs>
 </RouteAside>
 
-<RouteMetaFromDef def={RecoverRouteV2} />
+<RouteMetaFromDef
+  def={RecoverRouteV2}
+  rateLimit="Recovery email buckets. Burst `5`, refill window `1500000` ms per IP, plus burst `2`, refill window `3600000` ms per email."
+/>
 
 Starts account recovery for a team that still has access to its email inbox. When the request is accepted, the server sends a recovery email containing a team token.
 
 The response does not reveal whether the email belongs to an account. Unknown emails still get the same `<response>200 goodVerifySent</response>` envelope, which keeps the recovery endpoint from becoming an account lookup tool.
+
+Recovery is rate limited independently of captcha so the endpoint cannot be used to flood an inbox with recovery emails. Each client IP has a burst of `5` requests with a refill window of `1500000` ms, and each target email has a burst of `2` requests with a refill window of `3600000` ms. Requests over either budget return `<response>429 badRateLimit</response>` with the remaining wait in `data.timeLeft`. Both buckets are consumed before the account lookup, so known and unknown emails are throttled identically.
 
 <Tabs items={['V2', 'V1']} sync="recover-version">
   <Tab>
@@ -48,4 +53,4 @@ When email delivery is configured and the request passes validation, the route r
   </Tab>
 </Tabs>
 
-If email delivery is not configured, recovery cannot be started because there is nowhere to send the token. Captcha and email validation are handled before any recovery email is queued.
+If email delivery is not configured, recovery cannot be started because there is nowhere to send the token. Captcha, email validation, and rate limits are handled before any recovery email is queued.

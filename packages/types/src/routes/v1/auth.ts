@@ -11,6 +11,7 @@ import {
   BadKnownEmail,
   BadKnownName,
   BadName,
+  BadRateLimit,
   BadRecaptchaCode,
   BadRegistrationsDisabled,
   BadToken,
@@ -72,6 +73,7 @@ export const RegisterRoute = defineRoute({
     BadRegistrationsDisabled,
     BadRecaptchaCode,
     BadEndpoint,
+    BadRateLimit,
   ],
   authRequired: false,
 })
@@ -115,7 +117,13 @@ export const RecoverRoute = defineRoute({
       .check(z.describe('Checked only when captcha protects `recover{:ts}`.')),
   }),
   goodResponses: [GoodVerifySent],
-  badResponses: [BadEndpoint, BadEmail, BadUnknownEmail, BadRecaptchaCode],
+  badResponses: [
+    BadEndpoint,
+    BadEmail,
+    BadUnknownEmail,
+    BadRecaptchaCode,
+    BadRateLimit,
+  ],
   authRequired: false,
 })
 

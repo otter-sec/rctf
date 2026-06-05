@@ -141,13 +141,19 @@ Captcha-protected routes only validate a challenge response when the configured 
 
 Rate-limited routes return `<response>429 badRateLimit</response>` with `data.timeLeft`, measured in milliseconds:
 
-| Action               | Scope              | Bucket                                |
-| -------------------- | ------------------ | ------------------------------------- |
-| Flag submission      | User and challenge | Burst `5`, refill window `25000` ms.  |
-| Profile name update  | User               | Burst `3`, refill window `180000` ms. |
-| Avatar upload        | User               | Burst `2`, refill window `120000` ms. |
-| Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.  |
-| Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.   |
+| Action               | Scope              | Bucket                                 |
+| -------------------- | ------------------ | -------------------------------------- |
+| Registration email   | IP address         | Burst `20`, refill window `600000` ms. |
+| Registration email   | Email address      | Burst `2`, refill window `3600000` ms. |
+| Account recovery     | IP address         | Burst `5`, refill window `1500000` ms. |
+| Account recovery     | Email address      | Burst `2`, refill window `3600000` ms. |
+| Flag submission      | User and challenge | Burst `5`, refill window `25000` ms.   |
+| Profile name update  | User               | Burst `3`, refill window `180000` ms.  |
+| Avatar upload        | User               | Burst `2`, refill window `120000` ms.  |
+| Admin bot submission | User and challenge | Burst `1`, refill window `10000` ms.   |
+| Leaderboard search   | IP address         | Burst `3`, refill window `3000` ms.    |
+
+The registration and recovery limits gate verification email delivery, and they apply whether or not the action is captcha protected. Registration only consumes its buckets when a verification email would be sent, and recovery consumes its buckets before the account lookup, so throttling cannot be used to probe whether an email is registered.
 
 ## Route sections
 

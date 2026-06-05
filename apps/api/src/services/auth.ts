@@ -7,6 +7,7 @@ import type {
   BadKnownCtftimeId,
   BadKnownEmail,
   BadKnownName,
+  BadRateLimit,
   BadRegistrationsDisabled,
   GoodRegister,
   GoodRegisterV2,
@@ -17,6 +18,12 @@ import type { TypedRedis } from '../cache/scripts'
 import { createToken, parseToken, TokenKind } from '../lib/tokens'
 import { allowedDivisions } from '../util/acl'
 import { sendVerificationEmail } from './emails'
+import {
+  rateLimitRecoverByEmail,
+  rateLimitRecoverByIp,
+  rateLimitRegisterByEmail,
+  rateLimitRegisterByIp,
+} from './rate-limit'
 import { createPendingRegistrationVerification } from './registration-verifications'
 import {
   createUser,
@@ -33,6 +40,7 @@ type RegisterResponseHelpers = ResponseHelpers<
     typeof BadKnownName,
     typeof BadKnownEmail,
     typeof BadKnownCtftimeId,
+    typeof BadRateLimit,
     typeof GoodVerifySent,
     typeof BadCtftimeToken,
     typeof GoodRegister,
@@ -47,14 +55,28 @@ type RegisterV2ResponseHelpers = ResponseHelpers<
     typeof BadKnownName,
     typeof BadKnownEmail,
     typeof BadKnownCtftimeId,
+    typeof BadRateLimit,
     typeof GoodVerifySent,
     typeof BadCtftimeToken,
     typeof GoodRegisterV2,
   ]
 >
 
+type RegisterCommonResponseHelpers = ResponseHelpers<
+  [
+    typeof BadRegistrationsDisabled,
+    typeof BadEndpoint,
+    typeof BadCompetitionNotAllowed,
+    typeof BadKnownName,
+    typeof BadKnownEmail,
+    typeof BadRateLimit,
+    typeof GoodVerifySent,
+    typeof BadCtftimeToken,
+  ]
+>
+
 type RecoverResponseHelpers = ResponseHelpers<
-  [typeof BadEndpoint, typeof GoodVerifySent]
+  [typeof BadEndpoint, typeof BadRateLimit, typeof GoodVerifySent]
 >
 
 type RegisterUserBody = {
@@ -70,19 +92,27 @@ type RegisterResult = ReturnType<
 type RegisterV2Result = ReturnType<
   RegisterV2ResponseHelpers[keyof RegisterV2ResponseHelpers]
 >
+type RegisterCommonResult = ReturnType<
+  RegisterCommonResponseHelpers[keyof RegisterCommonResponseHelpers]
+>
 
-export const registerUser = async (
-  res: RegisterResponseHelpers,
+type PrepareRegistrationResult =
+  | { hasResult: true; response: RegisterCommonResult }
+  | { hasResult: false; userToCreate: UserToCreate }
+
+const prepareRegistration = async (
+  res: RegisterCommonResponseHelpers,
   db: DatabaseClient,
   redis: TypedRedis,
-  body: RegisterUserBody
-): Promise<RegisterResult> => {
+  body: RegisterUserBody,
+  ip: string
+): Promise<PrepareRegistrationResult> => {
   if (!config.registrationsEnabled) {
-    return res.badRegistrationsDisabled()
+    return { hasResult: true, response: res.badRegistrationsDisabled() }
   }
 
   if (body.ctftimeToken && !config.ctftime) {
-    return res.badEndpoint()
+    return { hasResult: true, response: res.badEndpoint() }
   }
 
   // Will return the first division if email is not provided,
@@ -92,7 +122,7 @@ export const registerUser = async (
     defaultOnly: true,
   })[0]
   if (!division) {
-    return res.badCompetitionNotAllowed()
+    return { hasResult: true, response: res.badCompetitionNotAllowed() }
   }
 
   // Registration with email:
@@ -104,9 +134,25 @@ export const registerUser = async (
     })
     if (conflict) {
       if (conflict.name === body.name) {
-        return res.badKnownName()
+        return { hasResult: true, response: res.badKnownName() }
       }
-      return res.badKnownEmail()
+      return { hasResult: true, response: res.badKnownEmail() }
+    }
+
+    const ipTimeLeft = await rateLimitRegisterByIp(redis, ip)
+    if (ipTimeLeft) {
+      return {
+        hasResult: true,
+        response: res.badRateLimit({ timeLeft: ipTimeLeft }),
+      }
+    }
+
+    const emailTimeLeft = await rateLimitRegisterByEmail(redis, body.email)
+    if (emailTimeLeft) {
+      return {
+        hasResult: true,
+        response: res.badRateLimit({ timeLeft: emailTimeLeft }),
+      }
     }
 
     const verification = await createPendingRegistrationVerification(db, {
@@ -116,7 +162,7 @@ export const registerUser = async (
     })
 
     await sendVerificationEmail(body.email, 'register', verification.token)
-    return res.goodVerifySent()
+    return { hasResult: true, response: res.goodVerifySent() }
   }
 
   const userToCreate: UserToCreate = {
@@ -133,97 +179,67 @@ export const registerUser = async (
       body.ctftimeToken
     )
     if (!ctftimeToken) {
-      return res.badCtftimeToken()
+      return { hasResult: true, response: res.badCtftimeToken() }
     }
 
     userToCreate.ctftimeId = ctftimeToken.ctftimeId
   }
 
   // Registration without any verification, or if ctftime token was successfully resolved:
-  return await createUser(res, db, userToCreate)
+  return { hasResult: false, userToCreate }
+}
+
+export const registerUser = async (
+  res: RegisterResponseHelpers,
+  db: DatabaseClient,
+  redis: TypedRedis,
+  body: RegisterUserBody,
+  ip: string
+): Promise<RegisterResult> => {
+  const prepared = await prepareRegistration(res, db, redis, body, ip)
+  if (prepared.hasResult) {
+    return prepared.response
+  }
+
+  return await createUser(res, db, prepared.userToCreate)
 }
 
 export const registerUserV2 = async (
   res: RegisterV2ResponseHelpers,
   db: DatabaseClient,
   redis: TypedRedis,
-  body: RegisterUserBody
+  body: RegisterUserBody,
+  ip: string
 ): Promise<RegisterV2Result> => {
-  if (!config.registrationsEnabled) {
-    return res.badRegistrationsDisabled()
+  const prepared = await prepareRegistration(res, db, redis, body, ip)
+  if (prepared.hasResult) {
+    return prepared.response
   }
 
-  if (body.ctftimeToken && !config.ctftime) {
-    return res.badEndpoint()
-  }
-
-  // Will return the first division if email is not provided,
-  //  we are assuming ctftime auth is always disabled with email ACLs.
-  const division = allowedDivisions({
-    email: body.email,
-    defaultOnly: true,
-  })[0]
-  if (!division) {
-    return res.badCompetitionNotAllowed()
-  }
-
-  // Registration with email:
-  if (config.email && body.email) {
-    // Prior to sending the verification email we need to make sure there are no conflicts
-    const conflict = await getUserByNameOrEmail(db, {
-      name: body.name,
-      email: body.email,
-    })
-    if (conflict) {
-      if (conflict.name === body.name) {
-        return res.badKnownName()
-      }
-      return res.badKnownEmail()
-    }
-
-    const verification = await createPendingRegistrationVerification(db, {
-      email: body.email,
-      name: body.name,
-      division: division,
-    })
-
-    await sendVerificationEmail(body.email, 'register', verification.token)
-    return res.goodVerifySent()
-  }
-
-  const userToCreate: UserToCreate = {
-    division,
-    email: body.email,
-    name: body.name,
-    ctftimeId: null,
-  }
-
-  // Registration with ctftime
-  if (body.ctftimeToken) {
-    const ctftimeToken = await parseToken(
-      TokenKind.CtftimeAuth,
-      body.ctftimeToken
-    )
-    if (!ctftimeToken) {
-      return res.badCtftimeToken()
-    }
-
-    userToCreate.ctftimeId = ctftimeToken.ctftimeId
-  }
-
-  // Registration without any verification, or if ctftime token was successfully resolved:
-  return await createUserV2(res, db, userToCreate)
+  return await createUserV2(res, db, prepared.userToCreate)
 }
 
 export const recoverUser = async (
   res: RecoverResponseHelpers,
   db: DatabaseClient,
-  email: string
+  redis: TypedRedis,
+  email: string,
+  ip: string
 ): Promise<
   ReturnType<RecoverResponseHelpers[keyof RecoverResponseHelpers]>
 > => {
   if (!config.email) {
     return res.badEndpoint()
+  }
+
+  const ipTimeLeft = await rateLimitRecoverByIp(redis, ip)
+  if (ipTimeLeft) {
+    return res.badRateLimit({ timeLeft: ipTimeLeft })
+  }
+
+  const emailTimeLeft = await rateLimitRecoverByEmail(redis, email)
+  if (emailTimeLeft) {
+    return res.badRateLimit({ timeLeft: emailTimeLeft })
   }
 
   const user = await getUserByEmail(db, email)
