@@ -90,6 +90,8 @@ const recomputeDecayWithinTx = async (
   timing: CompetitionTiming,
   maxSolves: number
 ): Promise<{ updatedCount: number; newPoints: number }> => {
+  // share-lock the solver rows so a concurrent ban/unban/delete can't commit
+  // between this read and our score event inserts
   const rows = await tx
     .select({
       id: solves.id,
@@ -102,6 +104,7 @@ const recomputeDecayWithinTx = async (
     .innerJoin(users, eq(users.id, solves.userid))
     .where(eq(solves.challengeid, challenge.id))
     .orderBy(asc(solves.createdat))
+    .for('share', { of: users })
 
   const activeRows = rows.filter(row => !row.banned)
   const firstSolveTime = activeRows[0]

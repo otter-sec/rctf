@@ -747,7 +747,21 @@ export const deleteAdminUser = async (
 
   // collect challengeids before the cascade delete wipes the solves rows
   const affectedDecayIds = await db.transaction(async tx => {
-    await emitUserDeletionScoreEvents(tx, id)
+    const target = await tx
+      .select({ banned: users.banned })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1)
+      .for('update')
+      .then(takeUnique)
+    if (!target) {
+      return [] as string[]
+    }
+
+    // a banned user's score events already net to zero
+    if (!target.banned) {
+      await emitUserDeletionScoreEvents(tx, id)
+    }
     const ids = await getAffectedDecayChallengeIds(tx, id)
     await tx.delete(users).where(eq(users.id, id))
     return ids
