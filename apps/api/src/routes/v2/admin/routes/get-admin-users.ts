@@ -3,11 +3,11 @@ import { getAllUsersWithScores } from '../../../../services/users'
 import adminGroup from '../group'
 
 adminGroup.route(GetAdminUsersRouteV2, async ({ ctx, res, query }) => {
-  return res.goodAdminUsers(await getAllUsersWithScores(ctx.var.db, query))
+  return res.goodAdminUsersV2(await getAllUsersWithScores(ctx.var.db, query))
 })
 
 adminGroup.route(FilterAdminUsersRouteV2, async ({ ctx, res, query, body }) => {
-  return res.goodAdminUsers(
+  return res.goodAdminUsersV2(
     await getAllUsersWithScores(ctx.var.db, {
       ...query,
       ...body,

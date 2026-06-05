@@ -14,5 +14,5 @@ adminGroup.route(UploadFilesRouteV2, async ({ res, body }) => {
     })
   )
 
-  return res.goodFilesUpload(files)
+  return res.goodFilesUploadV2(files)
 })

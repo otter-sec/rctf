@@ -8,5 +8,5 @@ adminGroup.route(GetAdminUserRouteV2, async ({ res, ctx, params }) => {
     return res.badUnknownUser()
   }
 
-  return res.goodAdminUser(user)
+  return res.goodAdminUserV2(user)
 })

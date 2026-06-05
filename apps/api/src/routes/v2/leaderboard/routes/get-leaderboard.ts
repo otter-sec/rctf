@@ -31,12 +31,12 @@ leaderboardGroup.route(
         return res.badRateLimit({ timeLeft })
       }
 
-      return res.goodLeaderboard(
+      return res.goodLeaderboardV2(
         await searchLeaderboard(ctx.var.db, search, limit, offset, division)
       )
     }
 
-    return res.goodLeaderboard(
+    return res.goodLeaderboardV2(
       await getLeaderboardWithTotal(ctx.var.db, limit, offset, division)
     )
   }

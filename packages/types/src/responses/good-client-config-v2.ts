@@ -3,7 +3,7 @@ import { ProtectedAction } from '../enums'
 import { response } from '../internal'
 import { NumericString } from '../util'
 
-export const GoodClientConfigV2 = response('goodClientConfig', {
+export const GoodClientConfigV2 = response('goodClientConfigV2', {
   status: 200,
   message: 'The client config was retrieved.',
   data: z.object({

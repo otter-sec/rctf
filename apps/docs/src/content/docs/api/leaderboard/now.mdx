@@ -47,7 +47,11 @@ V2 separates flag solves from external score-feed data. `solves{:ts}` contains a
 
 <Tabs items={['V2', 'V1']} sync="leaderboard-now-version">
   <Tab>
-    <ResponseBody def={GetLeaderboardRouteV2} response="goodLeaderboard" title="Response fields" />
+    <ResponseBody
+      def={GetLeaderboardRouteV2}
+      response="goodLeaderboardV2"
+      title="Response fields"
+    />
   </Tab>
   <Tab>
     <ResponseBody def={GetLeaderboardRoute} response="goodLeaderboard" title="Response fields" />

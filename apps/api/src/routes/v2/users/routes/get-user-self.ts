@@ -14,7 +14,7 @@ usersGroup.route(GetUserSelfRouteV2, async ({ ctx, user, res }) => {
     defaultOnly: false,
   }) as string[]
 
-  return res.goodUserSelfData({
+  return res.goodUserSelfDataV2({
     ...fullUser,
     teamToken: teamToken,
     allowedDivisions: allowedDivs,

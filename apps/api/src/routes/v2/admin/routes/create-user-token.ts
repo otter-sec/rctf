@@ -13,7 +13,7 @@ adminGroup.route(CreateUserTokenRouteV2, async ({ res, ctx, params }) => {
     return res.badUserPrivileged()
   }
 
-  return res.goodCreateUserToken({
+  return res.goodCreateUserTokenV2({
     token: await createToken(TokenKind.Team, targetUser.id),
   })
 })

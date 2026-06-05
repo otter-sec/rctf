@@ -29,7 +29,7 @@ challsGroup.route(
       return res.badChallenge()
     }
 
-    return res.goodChallengeSolves({
+    return res.goodChallengeSolvesV2({
       solves: solves.map(solve => ({
         ...solve,
         createdAt: new Date(solve.createdAt).getTime(),

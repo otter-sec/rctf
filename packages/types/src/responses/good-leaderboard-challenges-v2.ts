@@ -3,7 +3,7 @@ import { response } from '../internal'
 import { ChallengeScoringKind } from '../util/schemas'
 
 export const GoodLeaderboardChallengesV2 = response(
-  'goodLeaderboardChallenges',
+  'goodLeaderboardChallengesV2',
   {
     status: 200,
     message: 'The leaderboard challenges were retrieved.',

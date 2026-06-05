@@ -44,6 +44,6 @@ challsGroup.route(
       graphUserIds
     )
 
-    return res.goodChallengeScores({ total, myPosition, scores, graph })
+    return res.goodChallengeScoresV2({ total, myPosition, scores, graph })
   }
 )

@@ -2,7 +2,7 @@ import { z } from 'zod/mini'
 import { response } from '../internal'
 import { example } from '../util/example'
 
-export const GoodChallengeSolvesV2 = response('goodChallengeSolves', {
+export const GoodChallengeSolvesV2 = response('goodChallengeSolvesV2', {
   status: 200,
   message: 'The challenges solves have been retrieved.',
   data: z.object({

@@ -3,7 +3,7 @@ import { uploadProvider } from '../../../../providers'
 import adminGroup from '../group'
 
 adminGroup.route(QueryUploadsRouteV2, async ({ body, res }) => {
-  return res.goodUploadsQuery(
+  return res.goodUploadsQueryV2(
     await Promise.all(
       body.uploads.map(async ({ sha256, name }) => {
         const info = await uploadProvider.getAttachmentInfo(sha256, name)

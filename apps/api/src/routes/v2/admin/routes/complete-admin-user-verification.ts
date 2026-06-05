@@ -17,6 +17,6 @@ adminGroup.route(
       return res.badUnknownVerification()
     }
 
-    return res.goodAdminUserVerificationComplete({ userId: result.userId })
+    return res.goodAdminUserVerificationCompleteV2({ userId: result.userId })
   }
 )

@@ -5,7 +5,7 @@ import adminGroup from '../group'
 adminGroup.route(GetAdminUserVerificationsRouteV2, async ({ res, ctx }) => {
   const verifications = await getPendingTeamVerifications(ctx.var.db)
 
-  return res.goodAdminUserVerifications({
+  return res.goodAdminUserVerificationsV2({
     verifications: verifications.map(verification => ({
       ...verification,
       createdAt: new Date(verification.createdAt).getTime(),
