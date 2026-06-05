@@ -7,9 +7,10 @@ import type {
 } from '@rctf/db'
 import { scoreEvents, solves, users } from '@rctf/db'
 import type { ScoreContext } from '@rctf/scoring/base'
-import { and, asc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import type { PinoLogger } from 'hono-pino'
 import type { TypedRedis } from '../cache/scripts'
+import { inJsonbArray, insertInChunks } from '../lib/db-bulk'
 import { scoreProvider } from '../providers'
 import { requestChallengeRecompute } from '../workers'
 import {
@@ -130,7 +131,7 @@ const recomputeDecayWithinTx = async (
     .update(solves)
     .set({ points: newPoints, pointsUpdatedAt: sql`NOW()` })
     .where(
-      inArray(
+      inJsonbArray(
         solves.id,
         changedRows.map(row => row.id)
       )
@@ -140,7 +141,7 @@ const recomputeDecayWithinTx = async (
     scoreEvent(challenge.id, row.userid, newPoints - row.points, source)
   )
   if (events.length > 0) {
-    await tx.insert(scoreEvents).values(events)
+    await insertInChunks(events, chunk => tx.insert(scoreEvents).values(chunk))
   }
 
   return { updatedCount: changedRows.length, newPoints }
@@ -233,7 +234,9 @@ export const upsertDynamicSolves = async (
         : await tx
             .select({ id: users.id })
             .from(users)
-            .where(and(inArray(users.id, involvedUserIds), userIsNotBanned))
+            .where(
+              and(inJsonbArray(users.id, involvedUserIds), userIsNotBanned)
+            )
             .for('share')
             .then(rows => new Set(rows.map(r => r.id)))
 
@@ -298,21 +301,21 @@ export const upsertDynamicSolves = async (
 
     await Promise.all(
       [
-        inserts.length > 0 && tx.insert(solves).values(inserts),
+        inserts.length > 0 &&
+          insertInChunks(inserts, chunk => tx.insert(solves).values(chunk)),
         updates.length > 0 &&
           tx.execute(sql`
             UPDATE solves SET
               points = v.points,
               points_updated_at = NOW()
-            FROM (VALUES ${sql.join(
-              updates.map(u => sql`(${u.id}, ${u.points}::int)`),
-              sql`, `
-            )}) AS v(id, points)
-            WHERE solves.id = v.id::text
+            FROM jsonb_to_recordset(${JSON.stringify(updates)}::jsonb)
+              AS v(id text, points int)
+            WHERE solves.id = v.id
           `),
         deletes.length > 0 &&
-          tx.delete(solves).where(inArray(solves.id, deletes)),
-        events.length > 0 && tx.insert(scoreEvents).values(events),
+          tx.delete(solves).where(inJsonbArray(solves.id, deletes)),
+        events.length > 0 &&
+          insertInChunks(events, chunk => tx.insert(scoreEvents).values(chunk)),
       ].filter(Boolean)
     )
 

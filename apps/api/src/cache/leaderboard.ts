@@ -1,6 +1,7 @@
 import type { DatabaseClient } from '@rctf/db'
 import { challenges, scoreEvents, users } from '@rctf/db'
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
+import { inJsonbArray } from '../lib/db-bulk'
 import { challengeIsPublicSql } from '../services/challenges'
 import type { TypedRedis } from './scripts'
 
@@ -243,11 +244,13 @@ const buildGraphFromEventsWithSampleBaseline = (
   data: CalculatedLeaderboard,
   rows: ScoreEventGraphRow[]
 ): GraphFold => {
-  const firstEventTime = Math.min(
-    ...rows
-      .map(row => new Date(row.eventAt).valueOf())
-      .filter(time => Number.isFinite(time))
-  )
+  let firstEventTime = Number.POSITIVE_INFINITY
+  for (const row of rows) {
+    const time = new Date(row.eventAt).valueOf()
+    if (Number.isFinite(time) && time < firstEventTime) {
+      firstEventTime = time
+    }
+  }
   const baseline = buildGraphFromSamples(data, firstEventTime)
   const seed = new Map(
     Array.from(baseline.userPoints, ([id, points]) => [id, points.join(',')])
@@ -334,7 +337,7 @@ const getScoreEventGraphRows = async (
     .from(scoreEvents)
     .where(
       and(
-        sql`${scoreEvents.userid} IN (SELECT jsonb_array_elements_text(${JSON.stringify(userIds)}::jsonb))`,
+        inJsonbArray(scoreEvents.userid, userIds),
         inArray(scoreEvents.challengeid, challengeIds),
         cursor ? gte(scoreEvents.eventAt, cursor.time) : undefined
       )
@@ -586,7 +589,10 @@ const getDynamicGraphPoints = async (
       and(eq(challenges.id, scoreEvents.challengeid), challengeIsPublicSql)
     )
     .where(
-      and(inArray(scoreEvents.userid, userIds), eq(scoreEvents.source, 'feed'))
+      and(
+        inJsonbArray(scoreEvents.userid, userIds),
+        eq(scoreEvents.source, 'feed')
+      )
     )
     .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
 
