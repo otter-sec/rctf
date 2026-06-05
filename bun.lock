@@ -21,7 +21,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@puppeteer/browsers": "2.13.0",
-        "hono": "4.12.18",
+        "hono": "4.12.23",
         "pino": "10.3.1",
         "puppeteer-core": "24.39.1",
       },
@@ -47,7 +47,7 @@
         "@rctf/util": "workspace:*",
         "data-uri-to-buffer": "6.0.2",
         "drizzle-orm": "0.45.2",
-        "hono": "4.12.18",
+        "hono": "4.12.23",
         "hono-pino": "0.10.3",
         "ioredis": "5.10.0",
         "mustache": "4.2.0",
@@ -254,7 +254,7 @@
     "tests/admin-bot": {
       "name": "admin-bot-tests",
       "dependencies": {
-        "hono": "4.12.18",
+        "hono": "4.12.23",
       },
       "devDependencies": {
         "@types/bun": "1.3.14",
@@ -266,7 +266,7 @@
     "tests/admin-bot-e2e": {
       "name": "admin-bot-e2e-tests",
       "dependencies": {
-        "hono": "4.12.18",
+        "hono": "4.12.23",
       },
       "devDependencies": {
         "@types/bun": "1.3.14",
@@ -1663,7 +1663,7 @@
 
     "hex-rgb": ["hex-rgb@4.3.0", "", {}, "sha512-Ox1pJVrDCyGHMG9CFg1tmrRUMRPRsAWYc/PinY0XzJU4K7y7vjNoLKIQ7BR5UJMCxNN8EM1MNDmHWA/B3aZUuw=="],
 
-    "hono": ["hono@4.12.18", "", {}, "sha512-RWzP96k/yv0PQfyXnWjs6zot20TqfpfsNXhOnev8d1InAxubW93L11/oNUc3tQqn2G0bSdAOBpX+2uDFHV7kdQ=="],
+    "hono": ["hono@4.12.23", "", {}, "sha512-eIaZ9qDgu7XV0pxOCrg7/WhnQ6Ivm22UcxhXx/A3dcbqbbYgBEkc6e/J/s7j2tS96zoB0S9VBdLwQNCWwUo4LA=="],
 
     "hono-pino": ["hono-pino@0.10.3", "", { "dependencies": { "defu": "^6.1.4" }, "peerDependencies": { "hono": ">=4.0.0", "pino": ">=7.1.0" } }, "sha512-n0RNPIFOoq25Fg8b4D5gus4sVqI0z+8I17ibl96+p43d07UnZ0EMM/It0qSgfc7UtaC+XP5FkFmRHwBp6owsNA=="],
 
