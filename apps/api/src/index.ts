@@ -2,7 +2,6 @@ import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
 import { Hono, type MiddlewareHandler } from 'hono'
 import { pinoLogger } from 'hono-pino'
-import { compress } from 'hono/compress'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
@@ -27,9 +26,6 @@ const logger = pino({
 const createApp = () => {
   const app = new Hono<AppEnv>()
 
-  if (process.env.NODE_ENV === 'production') {
-    app.use(compress())
-  }
   app.use(pinoLogger({ pino: logger }))
   app.use(appEnvMiddleware)
 
@@ -120,7 +116,8 @@ const main = async () => {
   if (config.instanceType === 'frontend' || config.instanceType === 'all') {
     const port = Number(process.env.PORT ?? 3000)
     logger.info(`Listening on :${port}`)
-    Bun.serve({ port, fetch: app.fetch })
+    // idleTimeout should be at least higher than nginx's
+    Bun.serve({ port, fetch: app.fetch, idleTimeout: 65 })
   }
 }
 

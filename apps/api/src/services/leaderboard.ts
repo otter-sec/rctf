@@ -15,6 +15,7 @@ import {
 } from '../cache/leaderboard'
 import type { TypedRedis } from '../cache/scripts'
 import { cursorAfter, type RowCursor } from '../lib/db-filters'
+import { preparedPerDb } from '../lib/prepared'
 import { scoreProvider } from '../providers'
 import {
   challengeIsPublicSql,
@@ -864,41 +865,69 @@ export const searchLeaderboard = async (
   }
 }
 
+const leaderboardEntrySelection = {
+  id: users.id,
+  name: users.name,
+  score: users.score,
+  division: users.division,
+  divisionRank: users.divisionRank,
+  globalRank: users.globalRank,
+  avatarUrl: users.avatarUrl,
+  countryCode: users.countryCode,
+  statusText: users.statusText,
+}
+
+const divisionWhereClause = and(
+  userIsPublicRankedSql,
+  eq(users.division, sql.placeholder('division'))
+)
+
+const preparedLeaderboardQueries = preparedPerDb(db => ({
+  count: db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(userIsPublicRankedSql)
+    .prepare('rctf_leaderboard_count'),
+  divisionCount: db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(users)
+    .where(divisionWhereClause)
+    .prepare('rctf_leaderboard_count_division'),
+  page: db
+    .select(leaderboardEntrySelection)
+    .from(users)
+    .where(userIsPublicRankedSql)
+    .orderBy(leaderboardOrderSql)
+    .limit(sql.placeholder('limit'))
+    .offset(sql.placeholder('offset'))
+    .prepare('rctf_leaderboard_page'),
+  divisionPage: db
+    .select(leaderboardEntrySelection)
+    .from(users)
+    .where(divisionWhereClause)
+    .orderBy(leaderboardOrderSql)
+    .limit(sql.placeholder('limit'))
+    .offset(sql.placeholder('offset'))
+    .prepare('rctf_leaderboard_page_division'),
+}))
+
 export const getLeaderboardWithTotal = async (
   db: DatabaseClient,
   limit: number,
   offset: number,
   division?: string
 ) => {
-  const whereClause = and(
-    userIsPublicRankedSql,
-    division ? eq(users.division, division) : undefined
-  )
+  const prepared = preparedLeaderboardQueries(db)
 
   const [totalRow, leaderboard] = await Promise.all([
-    db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(users)
-      .where(whereClause)
-      .then(takeUnique),
+    (division
+      ? prepared.divisionCount.execute({ division })
+      : prepared.count.execute()
+    ).then(takeUnique),
     limit > 0
-      ? db
-          .select({
-            id: users.id,
-            name: users.name,
-            score: users.score,
-            division: users.division,
-            divisionRank: users.divisionRank,
-            globalRank: users.globalRank,
-            avatarUrl: users.avatarUrl,
-            countryCode: users.countryCode,
-            statusText: users.statusText,
-          })
-          .from(users)
-          .where(whereClause)
-          .orderBy(leaderboardOrderSql)
-          .limit(limit)
-          .offset(offset)
+      ? division
+        ? prepared.divisionPage.execute({ division, limit, offset })
+        : prepared.page.execute({ limit, offset })
       : Promise.resolve([]),
   ])
 
