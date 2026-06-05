@@ -147,8 +147,8 @@ export enum AdminTeamStatus {
 
 export const searchFilter = <T extends z.core.SomeType>(t: T) =>
   z.object({
-    include: z.nullish(z.array(t)),
-    exclude: z.nullish(z.array(t)),
+    include: z.nullish(z.array(t).check(z.maxLength(1024))),
+    exclude: z.nullish(z.array(t).check(z.maxLength(1024))),
   })
 
 export enum SubmissionKind {
