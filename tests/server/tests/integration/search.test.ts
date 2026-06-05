@@ -224,6 +224,29 @@ describe('leaderboard search', () => {
     expect(body.data.total).toBe(0)
   })
 
+  test('search does not match against user emails', async () => {
+    const alphaTeam = testUsers.find(u => u.name === 'AlphaTeam')!
+    const res = await request(
+      app,
+      `/api/v2/leaderboard/now?limit=100&offset=0&search=${encodeURIComponent(alphaTeam.email)}`,
+      { method: 'GET' }
+    )
+    const body = await expectResponse(res, GoodLeaderboardV2)
+    expect(body.data.leaderboard).toHaveLength(0)
+    expect(body.data.total).toBe(0)
+  })
+
+  test('search does not match against email domains', async () => {
+    const res = await request(
+      app,
+      `/api/v2/leaderboard/now?limit=100&offset=0&search=${encodeURIComponent('@test.com')}`,
+      { method: 'GET' }
+    )
+    const body = await expectResponse(res, GoodLeaderboardV2)
+    expect(body.data.leaderboard).toHaveLength(0)
+    expect(body.data.total).toBe(0)
+  })
+
   test('with-graph search returns graph rows for the searched leaderboard order', async () => {
     const res = await request(
       app,
@@ -249,6 +272,19 @@ describe('leaderboard search', () => {
     )
     const body = await expectResponse(res, GoodLeaderboardWithGraph)
 
+    expect(body.data.leaderboard).toHaveLength(0)
+    expect(body.data.graph).toHaveLength(0)
+    expect(body.data.total).toBe(0)
+  })
+
+  test('with-graph search does not match against user emails', async () => {
+    const alphaTeam = testUsers.find(u => u.name === 'AlphaTeam')!
+    const res = await request(
+      app,
+      `/api/v2/leaderboard/with-graph?limit=100&offset=0&search=${encodeURIComponent(alphaTeam.email)}`,
+      { method: 'GET' }
+    )
+    const body = await expectResponse(res, GoodLeaderboardWithGraph)
     expect(body.data.leaderboard).toHaveLength(0)
     expect(body.data.graph).toHaveLength(0)
     expect(body.data.total).toBe(0)
@@ -443,6 +479,25 @@ describe('admin users search', () => {
     const body = await expectResponse(res, GoodAdminUsersV2)
     expect(body.data.users).toHaveLength(0)
     expect(body.data.total).toBe(0)
+  })
+
+  test('search matches against user emails', async () => {
+    const alphaTeam = testUsers.find(u => u.name === 'AlphaTeam')!
+    const res = await requestAdminUsers(
+      `?limit=100&offset=0&search=${encodeURIComponent(alphaTeam.email)}`
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    expect(body.data.users.map((u: any) => u.name)).toEqual(['AlphaTeam'])
+  })
+
+  test('search matches against email domains', async () => {
+    const res = await requestAdminUsers(
+      `?limit=100&offset=0&search=${encodeURIComponent('@test.com')}`
+    )
+    const body = await expectResponse(res, GoodAdminUsersV2)
+    const names = body.data.users.map((u: any) => u.name)
+    expect(names).toContain('AlphaTeam')
+    expect(names).toContain('Zeta')
   })
 
   test('total reflects filtered count', async () => {
