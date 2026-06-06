@@ -120,7 +120,7 @@ X-RCTF-Signature: sha256=<hex>
 | `<red>X-RCTF-Timestamp</red>` | Unix milliseconds at signing time. Requests outside a five-minute skew window are rejected. |
 | `<red>X-RCTF-Signature</red>` | `<green>sha256=</green>` followed by the lowercase hex HMAC-SHA256 of `<green>${timestamp}.${raw_body}</green>` using the challenge's `<red>secret</red>`. |
 
-The route accepts any IP and doesn't require an authenticated rCTF user. Only the HMAC and the timestamp window stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
+The route accepts any IP and doesn't require an authenticated rCTF user. Only the HMAC, the timestamp window, and the replay check stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
 
 #### Responses
 
@@ -129,6 +129,7 @@ The route accepts any IP and doesn't require an authenticated rCTF user. Only th
 | `200` | `<green>goodDynamicScores</green>` | Body has `<red>inserted</red>`, `<red>updated</red>`, `<red>deleted</red>` counts. |
 | `400` | `<green>badBody</green>` | Payload didn't validate against the schema. |
 | `401` | `<green>badSignature</green>` | HMAC mismatch, timestamp outside the skew window, unknown challenge ID, or the challenge isn't `<green>dynamic</green>`. The endpoint deliberately doesn't distinguish these so it can't be probed for which challenges accept the feed. |
+| `409` | `<green>badReplayedRequest</green>` | The same signed request was already accepted within the last ten minutes. On a retry that means the original delivery landed; treat it as success. |
 
 #### Reference publisher
 
@@ -170,6 +171,14 @@ export async function publishScores(scores: ScoreEntry[]) {
   rCTF reads the raw request bytes for HMAC verification and only parses JSON after the signature
   matches. Sign the exact bytes you send. Adding whitespace, sorting keys, or letting a middleware
   re-serialize the body between signing and sending will cause verification to fail.
+</Callout>
+
+<Callout variant="note" title="Retries are safe">
+  If a push times out or fails, send the exact same signed request again. rCTF only remembers
+  accepted deliveries (for about ten minutes, per challenge, keyed on the signature), so a failed
+  attempt never blocks the retry. A `409` `<green>badReplayedRequest</green>` on the retry means the
+  first attempt landed after all; count it as a success. Run retries one at a time, and sign every
+  new score update with a fresh timestamp instead of reusing an old signature.
 </Callout>
 
 ## How scores reach the leaderboard

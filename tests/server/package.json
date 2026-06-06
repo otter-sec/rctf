@@ -13,6 +13,7 @@
     "@rctf/types": "workspace:*",
     "@types/ioredis-mock": "8.2.7",
     "drizzle-orm": "0.45.2",
+    "hono": "4.12.23",
     "ioredis-mock": "8.13.1"
   },
   "devDependencies": {

@@ -16,6 +16,7 @@ const SECRET = 'webhook-auth-secret-do-not-leak'
 describe('webhook auth', () => {
   let admin: TestUser
   let challengeId: string
+  let sharedSecretChallengeId: string | undefined
 
   beforeAll(async () => {
     admin = await registerUser(testId('admin'))
@@ -30,6 +31,9 @@ describe('webhook auth', () => {
 
   afterAll(async () => {
     await cleanupChallenge(challengeId)
+    if (sharedSecretChallengeId) {
+      await cleanupChallenge(sharedSecretChallengeId)
+    }
     await cleanupUser(admin)
   })
 
@@ -79,5 +83,64 @@ describe('webhook auth', () => {
     })
     expect(res.status).toBe(401)
     expect((res.body as { kind?: string }).kind).toBe('badSignature')
+  })
+
+  test('replayed request -> badReplayedRequest', async () => {
+    const payload = { scores: [{ userId: crypto.randomUUID(), points: 1 }] }
+    const timestamp = Date.now()
+
+    const first = await signAndPushScores(challengeId, SECRET, payload, {
+      timestamp,
+    })
+    expect(first.status).toBe(200)
+
+    const second = await signAndPushScores(challengeId, SECRET, payload, {
+      timestamp,
+    })
+    expect(second.status).toBe(409)
+    expect((second.body as { kind?: string }).kind).toBe('badReplayedRequest')
+  })
+
+  test('same payload with a fresh timestamp -> goodDynamicScores', async () => {
+    const payload = { scores: [{ userId: crypto.randomUUID(), points: 1 }] }
+    const timestamp = Date.now()
+
+    const first = await signAndPushScores(challengeId, SECRET, payload, {
+      timestamp,
+    })
+    expect(first.status).toBe(200)
+
+    const second = await signAndPushScores(challengeId, SECRET, payload, {
+      timestamp: timestamp + 1,
+    })
+    expect(second.status).toBe(200)
+    expect((second.body as { kind?: string }).kind).toBe('goodDynamicScores')
+  })
+
+  test('shared secret broadcast to another challenge -> goodDynamicScores', async () => {
+    sharedSecretChallengeId = testId('chall-auth-shared')
+    const created = await createDynamicChallenge(
+      admin,
+      sharedSecretChallengeId,
+      { transport: 'webhook', secret: SECRET }
+    )
+    expect(created.status).toBe(200)
+
+    const payload = { scores: [{ userId: crypto.randomUUID(), points: 1 }] }
+    const timestamp = Date.now()
+
+    const first = await signAndPushScores(challengeId, SECRET, payload, {
+      timestamp,
+    })
+    expect(first.status).toBe(200)
+
+    const second = await signAndPushScores(
+      sharedSecretChallengeId,
+      SECRET,
+      payload,
+      { timestamp }
+    )
+    expect(second.status).toBe(200)
+    expect((second.body as { kind?: string }).kind).toBe('goodDynamicScores')
   })
 })
