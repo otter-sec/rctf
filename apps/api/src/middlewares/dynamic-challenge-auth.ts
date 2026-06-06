@@ -1,6 +1,7 @@
 import { challenges } from '@rctf/db'
 import { takeUnique } from '@rctf/db/util'
 import {
+  BadReplayedRequest,
   BadSignature,
   ChallengeScoringKind,
   DynamicScoringTransport,
@@ -8,14 +9,20 @@ import {
 import { eq } from 'drizzle-orm'
 import type { Context, MiddlewareHandler } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
+import {
+  clearWebhookSeen,
+  markWebhookSeen,
+  MAX_SKEW_MS,
+} from '../cache/webhook-dedup'
 import type { AppEnv } from '../lib/app-env'
 import { timingSafeEqual } from '../util/timing-safe-equal'
 
-const MAX_SKEW_MS = 5 * 60 * 1000
-const reject = (c: Context<AppEnv>) =>
+type RejectResponse = { kind: string; message: string; status: number }
+
+const reject = (c: Context<AppEnv>, response: RejectResponse = BadSignature) =>
   c.json(
-    { kind: BadSignature.kind, message: BadSignature.message },
-    BadSignature.status as ContentfulStatusCode
+    { kind: response.kind, message: response.message },
+    response.status as ContentfulStatusCode
   )
 
 export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
@@ -66,6 +73,23 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
     return reject(c)
   }
 
+  const fresh = await markWebhookSeen(c.var.redis, challenge.id, expected)
+  if (!fresh) {
+    return reject(c, BadReplayedRequest)
+  }
+
+  const clearSeen = () =>
+    clearWebhookSeen(c.var.redis, challenge.id, expected).catch(() => {})
+
   c.set('dynamicChallenge', challenge)
-  await next()
+  try {
+    await next()
+  } catch (err) {
+    await clearSeen()
+    throw err
+  }
+
+  if (c.res.status < 200 || c.res.status >= 300) {
+    await clearSeen()
+  }
 }

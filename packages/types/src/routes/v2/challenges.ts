@@ -5,6 +5,7 @@ import {
   BadBody,
   BadChallenge,
   BadNotStarted,
+  BadReplayedRequest,
   BadSignature,
   GoodChallengeScoresV2,
   GoodChallengeSolvesV2,
@@ -32,7 +33,7 @@ export const SubmitDynamicScoresRouteV2 = defineRoute({
   path: '/v2/challs/:id/scores',
   method: 'POST',
   goodResponses: [GoodDynamicScores],
-  badResponses: [BadSignature, BadBody],
+  badResponses: [BadSignature, BadBody, BadReplayedRequest],
   authRequired: false,
   serviceAuth: 'dynamicChallenge',
   params: z.object({

@@ -4,7 +4,13 @@ description: '<route>POST /api/v2/challs/:id/scores</route>'
 ---
 
 import Callout from '@/components/callout.astro'
-import { BadBody, BadJson, BadSignature, SubmitDynamicScoresRouteV2 } from '@rctf/types'
+import {
+  BadBody,
+  BadJson,
+  BadReplayedRequest,
+  BadSignature,
+  SubmitDynamicScoresRouteV2,
+} from '@rctf/types'
 
 <RouteAside>
   <RouteExample
@@ -16,7 +22,7 @@ import { BadBody, BadJson, BadSignature, SubmitDynamicScoresRouteV2 } from '@rct
         { userId: '66666666-7777-8888-9999-000000000000', points: 940 },
       ],
     }}
-    extra={[BadJson, BadBody, BadSignature]}
+    extra={[BadJson]}
   />
 </RouteAside>
 
@@ -40,6 +46,10 @@ Publishes per-team scores for a `dynamic` challenge. The endpoint is authenticat
 Sign the raw request bytes, not the re-serialized JSON. Any difference between the signed bytes and the bytes on the wire (whitespace, key ordering, middleware re-serialization) will fail verification.
 
 Unknown challenge IDs, non-dynamic challenges, mismatched signatures, and timestamps outside the skew window all return the same `<response>401 badSignature</response>` so the endpoint can't be probed for which challenges accept a feed.
+
+rCTF also refuses to apply the same delivery twice. Each accepted signature is remembered for ten minutes, and re-sending the same signed bytes to the same challenge within that window returns `<response>409 badReplayedRequest</response>`, so a captured request can't be replayed against the scoreboard.
+
+Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. The window is tracked per challenge, so one signed payload can still be broadcast to several challenges that share a secret.
 
 <RequestBody def={SubmitDynamicScoresRouteV2} source="params" title="Path parameters" />
 
