@@ -9,13 +9,17 @@ export const LEADERBOARD_FORCE_UPDATE_CHANNEL = 'leaderboard:force-update'
 export const LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL =
   'leaderboard:recompute-challenge'
 
+export const LEADER_LOCK_KEY = 8836914
+export const LEADER_POLL_INTERVAL_MS = 5_000
+
 const RESTART_BACKOFF_BASE_MS = 500
 const RESTART_BACKOFF_MAX_MS = 30_000
 const RESTART_BACKOFF_RESET_MS = 30_000
+const SHUTDOWN_GRACE_MS = 1000
 
 type Supervised = {
   get worker(): Worker | undefined
-  stop(): void
+  stop(): Promise<void>
 }
 
 const supervise = (
@@ -88,14 +92,29 @@ const supervise = (
     get worker() {
       return current
     },
-    stop() {
+    async stop() {
       stopped = true
       if (stableTimer) {
         clearTimeout(stableTimer)
         stableTimer = undefined
       }
+
+      const w = current
+      if (!w) {
+        return
+      }
+
       try {
-        current?.terminate()
+        w.postMessage({ type: 'shutdown' })
+      } catch {}
+
+      await new Promise<void>(resolve => {
+        const t = setTimeout(resolve, SHUTDOWN_GRACE_MS)
+        t.unref?.()
+      })
+
+      try {
+        w.terminate()
       } catch {}
     },
   }
@@ -161,6 +180,6 @@ export const requestAllChallengesRecompute = (
   source: RecomputeSource = 'decay-recompute'
 ): void => publishRecompute(redis, { scope: 'all', source })
 
-export const stopWorkers = (): void => {
-  leaderboardSupervisor?.stop()
+export const stopWorkers = async (): Promise<void> => {
+  await leaderboardSupervisor?.stop()
 }

@@ -30,7 +30,9 @@ export type ExternalAuthClient = InferInsertModel<
   typeof schema.externalAuthClients
 >
 
-export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
+export type SqlConfig = z.infer<typeof SqlDatabaseSchema>
+
+export const createDatabase = (params: SqlConfig) => {
   let client: PostgresClient
   if (typeof params === 'string') {
     client = postgres(params, { onnotice: () => {} })
@@ -51,3 +53,16 @@ export const createDatabase = (params: z.infer<typeof SqlDatabaseSchema>) => {
   const db: DatabaseClient = drizzle(client, { schema })
   return { client, db }
 }
+
+export const createSingleConnectionClient = (params: SqlConfig) =>
+  typeof params === 'string'
+    ? postgres(params, { max: 1, onnotice: () => {} })
+    : postgres({
+        host: params.host,
+        port: params.port,
+        user: params.user,
+        password: params.password,
+        database: params.database,
+        max: 1,
+        onnotice: () => {},
+      })

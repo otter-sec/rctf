@@ -35,6 +35,9 @@ The following environment variables are supported. They override values from con
 | `RCTF_ORIGIN{:sh}` | `string{:ts}` | CTF origin URL (e.g., `https://ctf.example.com`) |
 | `RCTF_TOKEN_KEY{:sh}` | `string{:ts}` | Base64-encoded 32-byte key for token encryption |
 | `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
+| `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit |
+| `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds |
+| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/providers/uploads/). |
 | `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
@@ -108,6 +111,8 @@ ctfName: My CTF # CTF display name (required)
 origin: https://ctf.example.com # Public origin URL (required)
 tokenKey: <base64-32-byte-key> # Token encryption key (required)
 instanceType: all # all | frontend | leaderboard
+shutdownTimeout: 30000 # Graceful-shutdown cap in ms
+idleTimeout: 65 # Idle connection timeout in seconds
 ```
 
 | Field | Type | Default | Description |
@@ -116,6 +121,8 @@ instanceType: all # all | frontend | leaderboard
 | `<red>origin</red>` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
 | `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
 | `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling/) before splitting roles. |
+| `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. See [Scaling](/installation/scaling/#graceful-shutdown). |
+| `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. |
 
 <Callout variant="warning">
 

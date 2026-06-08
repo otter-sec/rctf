@@ -211,7 +211,7 @@ if (config.instanceType === 'frontend' || config.instanceType === 'all') {
 }
 ```
 
-See [Scaling](/installation/scaling/) for the full mode table, the one-leaderboard-replica constraint, the forced-update limitation in split mode, and observed resource usage on real events.
+You don't have to split roles by hand to scale out: a Postgres session advisory lock (`pg_try_advisory_lock{:sh}`) lets you run any number of `<green>all</green>` replicas while exactly one computes the leaderboard at a time, and the rest stand by to take over if it dies. See [Scaling](/installation/scaling/) for more details.
 
 ## External dependencies
 

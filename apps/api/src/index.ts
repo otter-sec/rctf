@@ -6,7 +6,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
-import { appEnvMiddleware } from './middlewares/app-env'
+import { appEnvMiddleware, client, redis } from './middlewares/app-env'
 import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
 import {
   adminBotProvider,
@@ -15,7 +15,7 @@ import {
 } from './providers'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
-import { startLeaderboardWorker } from './workers'
+import { startLeaderboardWorker, stopWorkers } from './workers'
 
 const logger = pino({
   level:
@@ -23,11 +23,14 @@ const logger = pino({
     (process.env.NODE_ENV === 'production' ? 'info' : 'trace'),
 })
 
-const createApp = () => {
+const createApp = (healthOnly: boolean) => {
   const app = new Hono<AppEnv>()
 
-  app.use(pinoLogger({ pino: logger }))
-  app.use(appEnvMiddleware)
+  registerHealthRoutes(app)
+  if (!healthOnly) {
+    app.use(pinoLogger({ pino: logger }))
+    app.use(appEnvMiddleware)
+  }
 
   return app
 }
@@ -55,6 +58,29 @@ const registerApiRoutes = (
   }
 }
 
+export const registerHealthRoutes = (app: Hono<AppEnv>): void => {
+  app.get('/api/healthz', c => c.text('ok'))
+  app.get('/api/readyz', async c => {
+    const [dbOk, redisOk] = await Promise.all([
+      client`SELECT 1`.then(() => true).catch(() => false),
+      redis
+        .ping()
+        .then(pong => pong === 'PONG')
+        .catch(() => false),
+    ])
+
+    if (!dbOk) {
+      return c.text('unhealthy db', 503)
+    }
+
+    if (!redisOk) {
+      return c.text('unhealthy redis', 503)
+    }
+
+    return c.text('ok')
+  })
+}
+
 const registerErrorHandlers = (app: Hono<AppEnv>) => {
   app.notFound(c =>
     c.json(
@@ -73,7 +99,7 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
 }
 
 export const setupApp = async () => {
-  const app = createApp()
+  const app = createApp(false)
 
   const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
     return c.json(
@@ -107,18 +133,53 @@ const main = async () => {
     }
   }
 
-  const app = await setupApp()
-
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(logger)
   }
 
-  if (config.instanceType === 'frontend' || config.instanceType === 'all') {
-    const port = Number(process.env.PORT ?? 3000)
-    logger.info(`Listening on :${port}`)
-    // idleTimeout should be at least higher than nginx's
-    Bun.serve({ port, fetch: app.fetch, idleTimeout: 65 })
+  const app =
+    config.instanceType != 'leaderboard' ? await setupApp() : createApp(true)
+
+  const port = Number(process.env.PORT ?? 3000)
+  logger.info(`Listening on :${port}`)
+
+  const server = Bun.serve({
+    port,
+    fetch: app.fetch,
+    idleTimeout: config.idleTimeout,
+  })
+
+  let shuttingDown = false
+  const shutdown = async (signal: string): Promise<void> => {
+    if (shuttingDown) {
+      return
+    }
+    shuttingDown = true
+    logger.info({ signal }, 'shutting down')
+
+    const forceExit = setTimeout(() => {
+      logger.error('graceful shutdown timed out; forcing exit')
+      process.exit(1)
+    }, config.shutdownTimeout)
+    forceExit.unref?.()
+
+    try {
+      await server.stop()
+    } catch (err) {
+      logger.error({ err }, 'error stopping server')
+    }
+    try {
+      await stopWorkers()
+    } catch (err) {
+      logger.error({ err }, 'error stopping workers')
+    }
+
+    clearTimeout(forceExit)
+    process.exit(0)
   }
+
+  process.on('SIGTERM', () => void shutdown('SIGTERM'))
+  process.on('SIGINT', () => void shutdown('SIGINT'))
 }
 
 export default main

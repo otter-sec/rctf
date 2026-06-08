@@ -27,6 +27,8 @@ uploadProvider:
     awsRegion: us-east-1
 ```
 
+Uploads can also be configured entirely from the environment, which keeps credentials out of config files and suits containerized deployments. Set `RCTF_UPLOAD_PROVIDER{:sh}` to the provider name (for example `<green>uploads/s3</green>`), then supply its options through the per-provider variables listed below. Environment values take precedence over the config file.
+
 ## File handling
 
 - Files are stored by their SHA256 hash, so uploading the same file content twice doesn't create a duplicate.
