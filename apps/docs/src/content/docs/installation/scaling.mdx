@@ -40,24 +40,13 @@ A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is wha
 
 The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs.
 
-| Value                          | API server | Leaderboard worker thread |
-| ------------------------------ | ---------- | ------------------------- |
-| `<green>all</green>` (default) | Yes        | Yes                       |
-| `<green>frontend</green>`      | Yes        | No                        |
-| `<green>leaderboard</green>`   | No         | Yes                       |
+| Value                          | API server  | Leaderboard worker thread |
+| ------------------------------ | ----------- | ------------------------- |
+| `<green>all</green>` (default) | Yes         | Yes                       |
+| `<green>frontend</green>`      | Yes         | No                        |
+| `<green>leaderboard</green>`   | Health only | Yes                       |
 
-The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
-
-```ts title="apps/api/src/index.ts"
-if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
-  startLeaderboardWorker(logger)
-}
-
-if (config.instanceType === 'frontend' || config.instanceType === 'all') {
-  const port = Number(process.env.PORT ?? 3000)
-  Bun.serve({ port, fetch: app.fetch })
-}
-```
+Every type binds an HTTP server. `<green>leaderboard</green>` serves only the `/api/healthz{:sh}` and `/api/readyz{:sh}` probes, not the API routes, so an orchestrator can still health-check it.
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard' or 'all'
