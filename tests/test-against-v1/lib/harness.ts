@@ -243,11 +243,12 @@ export function assertSame(res: AllResponses, ignore: string[] = []) {
 export async function waitUntilSameWith(
   fetcher: () => Promise<AllResponses>,
   ignore: string[] = [],
-  timeout = 12_000
+  timeout = 12_000,
+  ready: (res: AllResponses) => boolean = () => true
 ): Promise<AllResponses> {
   const start = Date.now()
   let res = await fetcher()
-  while (Date.now() - start < timeout && !isSame(res, ignore)) {
+  while (Date.now() - start < timeout && !(isSame(res, ignore) && ready(res))) {
     await new Promise(resolve => setTimeout(resolve, 250))
     res = await fetcher()
   }
