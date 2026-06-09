@@ -28,7 +28,7 @@ If you want to know what actually changes (new tables, new columns, API differen
 
 ## Database migration
 
-Drizzle ORM handles schema changes and runs them automatically when `<red>database.migrate</red>` is `<green>before</green>` (the default in the bundled container). To run them by hand:
+Drizzle ORM handles schema changes and runs them automatically when `<red>database.migrate</red>` is set to `<green>before</green>`. The schema default is `<green>never</green>`, so enable it explicitly (the bundled deployment configures it). To run them by hand:
 
 ```console
 $ <red>bun</red> run db:migrate

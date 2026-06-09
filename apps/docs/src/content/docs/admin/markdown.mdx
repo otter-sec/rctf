@@ -13,10 +13,12 @@ The renderer is defined in `apps/web/src/lib/utils/markdown.ts{:file}` and hydra
 
 rCTF supports GitHub-style blockquote alerts. The opening line is a blockquote containing `[!TYPE]{:md}`, and any following blockquote lines form the alert body. The body is parsed as Markdown (except for `CONNECTION`, see below).
 
-```md title="Challenge description"
-> [!NOTE] The flag format is `rctf{...}`.
+```text title="Challenge description"
+> [!NOTE]
+> The flag format is `rctf{...}`.
 
-> [!WARNING] Brute-forcing the endpoint will result in a rate limit.
+> [!WARNING]
+> Brute-forcing the endpoint will result in a rate limit.
 ```
 
 Six alert types are recognized. Anything else (e.g. `> [!INFO]{:md}`) falls back to a plain blockquote.
@@ -42,10 +44,12 @@ The docs site renders alerts with its own component, which looks different from 
 
 `> [!CONNECTION]{:md}` is a real, distinct alert type and not just a styled `NOTE`. It's built for the **Remote** field of a challenge, which holds a single line containing a connection string or URL.
 
-```md title="Challenge description"
-> [!CONNECTION] `nc challs.example.com 1337`
+```text title="Challenge description"
+> [!CONNECTION]
+> `nc challs.example.com 1337`
 
-> [!CONNECTION] https://web-chall.example.com
+> [!CONNECTION]
+> https://web-chall.example.com
 ```
 
 Unlike the other alerts, the connection body is **not** parsed as Markdown. Wrapping backticks are stripped, and the content is rendered as either:
