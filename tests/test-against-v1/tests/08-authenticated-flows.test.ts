@@ -16,6 +16,8 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilSame,
+  waitUntilSameWith,
   type AllResponses,
   type TestUser,
 } from '../lib/harness'
@@ -304,13 +306,17 @@ describe('Authenticated Flows - User Profile Consistency', () => {
 
   test('user profiles return consistent data', async () => {
     for (const user of [userA, userB]) {
-      const res = await allAsCallback(
-        user,
-        instance => `/api/v1/users/${user.ids[instance.name]}`
+      const res = await waitUntilSameWith(
+        () =>
+          allAsCallback(
+            user,
+            instance => `/api/v1/users/${user.ids[instance.name]}`
+          ),
+        ['createdAt']
       )
       assertAllSuccess(res)
       assertAllKind(res, 'goodUserData')
-      assertSame(res, ['ctftimeId'])
+      assertSame(res, ['createdAt'])
     }
   })
 
@@ -335,9 +341,10 @@ describe('Authenticated Flows - User Profile Consistency', () => {
   })
 
   test('leaderboard order reflects solve counts', async () => {
-    await Bun.sleep(5000)
-
-    const res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=100&offset=0',
+      ['id']
+    )
 
     assertAllSuccess(res)
     assertSame(res, ['id'])
@@ -389,7 +396,14 @@ describe('Authenticated Flows - Pagination', () => {
   }, 30_000)
 
   test('pagination returns consistent results', async () => {
-    const [res1, res2] = await fetchLeaderboardPages()
+    const res1 = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=3&offset=0',
+      ['id']
+    )
+    const res2 = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=3&offset=3',
+      ['id']
+    )
 
     assertAllSuccess(res1)
     assertAllSuccess(res2)

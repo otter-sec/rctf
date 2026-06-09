@@ -199,42 +199,67 @@ export async function allUserProfile(user: TestUser): Promise<AllResponses> {
   )
 }
 
-export function assertSame(res: AllResponses, ignore: string[] = []) {
-  const normalize = (obj: unknown): unknown => {
-    if (obj === null || typeof obj !== 'object') {
-      return obj
-    }
-
-    if (Array.isArray(obj)) {
-      return obj.map(normalize)
-    }
-
-    const out: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
-      if (!ignore.includes(k)) {
-        out[k] = normalize(v)
-      }
-    }
-    return out
+const normalizeForCompare = (obj: unknown, ignore: string[]): unknown => {
+  if (obj === null || typeof obj !== 'object') {
+    return obj
   }
-  const customJsonStringify = (obj: unknown): string => {
-    if (typeof obj !== 'object' || obj === null) {
-      return JSON.stringify(obj)
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => normalizeForCompare(item, ignore))
+  }
+
+  const source = obj as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const k of Object.keys(source).sort()) {
+    if (!ignore.includes(k)) {
+      out[k] = normalizeForCompare(source[k], ignore)
     }
-    return JSON.stringify(obj, Object.keys(obj).sort())
+  }
+  return out
+}
+
+export function isSame(res: AllResponses, ignore: string[] = []): boolean {
+  const values = Object.values(res).map(v =>
+    JSON.stringify(normalizeForCompare(v, ignore))
+  )
+  return values.every(v => v === values[0])
+}
+
+export function assertSame(res: AllResponses, ignore: string[] = []) {
+  if (isSame(res, ignore)) {
+    return
   }
 
   const normalized = Object.fromEntries(
-    Object.entries(res).map(([k, v]) => [k, normalize(v)])
+    Object.entries(res).map(([k, v]) => [k, normalizeForCompare(v, ignore)])
   )
-  const values = Object.values(normalized).map(v => customJsonStringify(v))
-  if (!values.every(v => v === values[0])) {
-    throw new Error(
-      `Response mismatch:\n${Object.entries(normalized)
-        .map(([k, v]) => `${k}: ${customJsonStringify(v)}`)
-        .join('\n')}`
-    )
+  throw new Error(
+    `Response mismatch:\n${Object.entries(normalized)
+      .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
+      .join('\n')}`
+  )
+}
+
+export async function waitUntilSameWith(
+  fetcher: () => Promise<AllResponses>,
+  ignore: string[] = [],
+  timeout = 12_000
+): Promise<AllResponses> {
+  const start = Date.now()
+  let res = await fetcher()
+  while (Date.now() - start < timeout && !isSame(res, ignore)) {
+    await new Promise(resolve => setTimeout(resolve, 250))
+    res = await fetcher()
   }
+  return res
+}
+
+export async function waitUntilSame(
+  path: string,
+  ignore: string[] = [],
+  timeout = 12_000
+): Promise<AllResponses> {
+  return waitUntilSameWith(() => all(path), ignore, timeout)
 }
 
 export function assertSameKind(res: AllResponses) {

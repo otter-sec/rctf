@@ -40,8 +40,7 @@ describe('token', () => {
         email: 'email',
       })
 
-      // Mock Date.now to return time after expiry
-      Date.now = () => createdAt + config.loginTimeout * 1000 + 1500
+      Date.now = () => createdAt + config.loginTimeout + 1500
 
       const extracted = await parseToken(TokenKind.Verify, token)
       expect(extracted).toBeNull()

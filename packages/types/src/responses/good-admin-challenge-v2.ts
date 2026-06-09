@@ -24,6 +24,8 @@ export const AdminChallengeSchemaV2 = z.object({
   hidden: z.boolean(),
   releaseTime: z.nullish(z.number()),
   scoring: z.nullish(ChallengeScoringSchema),
+  // only the single-challenge detail endpoint populates this
+  solveCount: z.optional(z.int()),
 })
 
 export const GoodAdminChallengeV2 = response('goodAdminChallengeV2', {

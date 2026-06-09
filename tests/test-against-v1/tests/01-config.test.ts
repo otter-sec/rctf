@@ -12,12 +12,7 @@ describe('Integrations - Client Config', () => {
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodClientConfig')
-    assertSame(res, [
-      'globalSiteTag',
-      'defaultDivision',
-      'registrationsEnabled',
-      'ctftime',
-    ])
+    assertSame(res)
   })
 
   test('client config has required fields', async () => {

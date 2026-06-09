@@ -15,6 +15,12 @@ export enum InstanceStatus {
   ERRORED = 'errored',
 }
 
+export const omitWhenNull = <T extends z.core.SomeType>(inner: T) =>
+  z.pipe(
+    z.nullish(inner),
+    z.transform((v: z.output<T> | null | undefined) => v ?? undefined)
+  )
+
 export const ChallengeFileSchemaV1 = z.object({
   name: z.string(),
   url: z.string(),
@@ -74,15 +80,15 @@ export const DynamicScoresPayloadSchema = z.object({
 export const EndpointSchema = z.object({
   kind: z.enum(ExposeKind),
   host: z.string(),
-  port: z.int(),
+  port: z.int().check(z.gte(1), z.lte(65535)),
   title: z.optional(z.string()),
 })
 
 export const ExposeSchema = z.object({
   kind: z.enum(ExposeKind),
-  hostPrefix: z.string(),
+  hostPrefix: z.string().check(z.regex(/^[a-z0-9-]+$/), z.maxLength(63)),
   containerName: z.string(),
-  containerPort: z.int(),
+  containerPort: z.int().check(z.gte(1), z.lte(65535)),
   shouldDisplay: z.optional(z.boolean()),
   title: z.optional(z.string()),
 })

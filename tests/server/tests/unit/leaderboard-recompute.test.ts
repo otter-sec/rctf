@@ -230,4 +230,33 @@ describe('recompute queue enqueue/flush', () => {
     // unused
     void queue
   })
+
+  test('requeues a failed per-challenge recompute instead of dropping it', async () => {
+    requireNothing()
+    const onFlushed = mock(async () => {})
+    const logger = { error: mock(() => {}) }
+    let attempts = 0
+    const applyForChallenge = mock(async () => {
+      attempts++
+      if (attempts === 1) {
+        throw new Error('boom')
+      }
+    })
+    const q = createRecomputeQueue({
+      debounceMs: 0,
+      applyForChallenge,
+      applyForAll: mock(async () => {}),
+      onFlushed,
+      logger,
+    })
+
+    q.enqueue({ scope: 'challenge', challengeId: 'c1', source: 'flag' })
+    await q.flush()
+    expect(applyForChallenge).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalled()
+
+    await q.flush()
+    expect(applyForChallenge).toHaveBeenCalledTimes(2)
+    expect(applyForChallenge.mock.calls[1]?.[0]).toBe('c1')
+  })
 })

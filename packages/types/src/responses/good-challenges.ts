@@ -1,5 +1,6 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { omitWhenNull } from '../util'
 import { example } from '../util/example'
 
 export const GoodChallenges = response('goodChallenges', {
@@ -25,13 +26,11 @@ export const GoodChallenges = response('goodChallenges', {
           url: z.string().check(z.describe('Download URL.')),
         })
       ),
-      points: example(z.int(), 487).check(
-        z.describe('Current score after dynamic scoring.')
+      points: omitWhenNull(z.int()).check(z.describe('Current point value.')),
+      solves: omitWhenNull(z.int()).check(z.describe('Solve count.')),
+      sortWeight: omitWhenNull(z.number()).check(
+        z.describe('Manual sort weight.')
       ),
-      solves: example(z.int(), 12).check(z.describe('Current solve count.')),
-      sortWeight: z
-        .nullish(z.number())
-        .check(z.describe('Optional ordering weight.')),
     })
   ),
 })

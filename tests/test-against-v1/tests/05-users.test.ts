@@ -18,6 +18,7 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilSameWith,
   type TestUser,
 } from '../lib/harness'
 
@@ -33,13 +34,11 @@ describe('Users - Get User (Public)', () => {
   })
 
   test('GET /api/v1/users/:id returns same response for existing user', async () => {
-    // Each instance has different user IDs, so query each with its own ID
-    const res = await allUserProfile(user)
+    const res = await waitUntilSameWith(() => allUserProfile(user))
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodUserData')
-    // ctftimeId may differ between instances
-    assertSame(res, ['ctftimeId'])
+    assertSame(res)
   })
 
   test('GET /api/v1/users/:id returns badUnknownUser for non-existent user', async () => {
@@ -102,11 +101,14 @@ describe('Users - Get User Self Flow', () => {
   })
 
   test('GET /api/v1/users/me with valid auth returns user data', async () => {
-    const res = await allAs(user, '/api/v1/users/me')
+    const res = await waitUntilSameWith(
+      () => allAs(user, '/api/v1/users/me'),
+      ['id', 'teamToken']
+    )
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodUserSelfData')
-    assertSame(res, ['id', 'email', 'teamToken', 'ctftimeId'])
+    assertSame(res, ['id', 'teamToken'])
   })
 
   test('user self data includes name', async () => {
@@ -443,7 +445,10 @@ describe('Users - Profile With Solves', () => {
   })
 
   test('user profile includes solve', async () => {
-    const res = await allUserProfile(user)
+    const res = await waitUntilSameWith(
+      () => allUserProfile(user),
+      ['createdAt']
+    )
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodUserData')
@@ -499,11 +504,11 @@ describe('Users - Division Filtering', () => {
 
   test('all users in same division are retrievable', async () => {
     for (const u of users) {
-      const res = await allUserProfile(u)
+      const res = await waitUntilSameWith(() => allUserProfile(u))
 
       assertAllSuccess(res)
       assertAllKind(res, 'goodUserData')
-      assertSame(res, ['ctftimeId'])
+      assertSame(res)
 
       for (const r of Object.values(res)) {
         const body = r.body as { data: { division: string } }

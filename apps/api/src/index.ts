@@ -58,7 +58,7 @@ const registerApiRoutes = (
 const registerErrorHandlers = (app: Hono<AppEnv>) => {
   app.notFound(c =>
     c.json(
-      { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
+      { kind: BadEndpoint.kind, message: BadEndpoint.message },
       BadEndpoint.status as ContentfulStatusCode
     )
   )
@@ -66,7 +66,7 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
   app.onError((err, c) => {
     c.var.logger.error({ err })
     return c.json(
-      { kind: ErrorInternal.kind, message: ErrorInternal.message, data: null },
+      { kind: ErrorInternal.kind, message: ErrorInternal.message },
       ErrorInternal.status as ContentfulStatusCode
     )
   })
@@ -77,7 +77,7 @@ export const setupApp = async () => {
 
   const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
     return c.json(
-      { kind: BadEndpoint.kind, message: BadEndpoint.message, data: null },
+      { kind: BadEndpoint.kind, message: BadEndpoint.message },
       BadEndpoint.status as ContentfulStatusCode
     )
   }

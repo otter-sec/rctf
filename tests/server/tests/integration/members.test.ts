@@ -6,7 +6,14 @@ import {
   GoodMemberData,
   GoodMemberDelete,
 } from '@rctf/types'
-import { afterAll, beforeAll, describe, expect, test } from 'bun:test'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  test,
+} from 'bun:test'
 import type { Hono } from 'hono'
 import { getApp, request } from '../../app'
 import {
@@ -36,6 +43,10 @@ afterAll(async () => {
   for (const cleanup of createdUserCleanups) {
     await cleanup()
   }
+})
+
+afterEach(() => {
+  config.maxMembers = oldMaxMembers
 })
 
 describe('members service', () => {
