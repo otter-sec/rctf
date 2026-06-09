@@ -20,16 +20,21 @@ services:
       - ./conf/middlewares.yml:/etc/traefik/dynamic/middlewares.yml:ro
       - ./certs/:/certs/:ro
   cache:
-    image: bitnami/redis:latest
+    image: redis:8.2.2
     restart: unless-stopped
-    container_name: ti-cache
     networks:
       - tiny-network
     env_file:
       - .env
+    command: ['redis-server', '--requirepass', '${REDIS_PASSWORD}']
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --pass ${REDIS_PASSWORD} ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     volumes:
       - ./.data/redis:/data
-    command: /opt/bitnami/scripts/redis/run.sh --maxmemory 0
   tiny-instancer:
     build:
       context: ../..

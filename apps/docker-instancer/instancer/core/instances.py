@@ -1,6 +1,7 @@
 import asyncio
 import uuid
 from functools import cache
+from http import HTTPStatus
 
 from aiodocker import Docker, DockerError
 from aiodocker.containers import DockerContainer
@@ -9,7 +10,12 @@ from fastapi import HTTPException
 from instancer.core.cache import delete_instance_expiration, instance_lock, set_instance_expiration
 from instancer.core.config import config
 from instancer.core.instancer.const import ContainerLabels, get_common_labels
-from instancer.core.instancer.containers import cleanup_containers, create_container, get_containers, is_running
+from instancer.core.instancer.containers import (
+    cleanup_containers,
+    create_container,
+    get_containers,
+    instance_exists,
+)
 from instancer.core.instancer.networks import cleanup_networks, create_networks, create_routing_network
 from instancer.core.instancer.traefik import extract_exposes
 from instancer.core.instancer.volumes import cleanup_volumes, create_volumes
@@ -28,14 +34,50 @@ def get_docker() -> Docker:
     return Docker()
 
 
+def _split_image_ref(image: str) -> tuple[str, str | None]:
+    last_slash = image.rfind('/')
+    last_colon = image.rfind(':')
+    if last_colon > last_slash:
+        return image[:last_colon], image[last_colon + 1 :]
+    return image, None
+
+
+async def _ensure_image(docker: Docker, image: str) -> None:
+    try:
+        await docker.images.get(image)
+    except DockerError:
+        pass
+    else:
+        return
+
+    if '@' in image:
+        await docker.images.pull(image)
+        return
+
+    name, tag = _split_image_ref(image)
+    await docker.images.pull(name, tag=tag or 'latest')
+
+
+async def _show_containers(containers: list[DockerContainer]) -> list[dict]:
+    results = await asyncio.gather(*[c.show() for c in containers], return_exceptions=True)
+    details: list[dict] = []
+    for result in results:
+        if isinstance(result, DockerError) and result.status == HTTPStatus.NOT_FOUND:
+            continue
+        if isinstance(result, BaseException):
+            raise result
+        details.append(result)
+    return details
+
+
 async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTFInstanceDetails:
     async with instance_lock(form.challenge_integration_id, form.team_id) as acquired:
         if not acquired:
             raise NOT_ACQUIRED_ERROR
 
         docker = get_docker()
-        if await is_running(docker, form.challenge_integration_id, form.team_id):
-            raise HTTPException(status_code=400, detail='Instance is already running')
+        if await instance_exists(docker, form.challenge_integration_id, form.team_id):
+            raise HTTPException(status_code=400, detail='Instance already exists, stop it first')
 
         started_at = timestamp_milliseconds()
         expires_at = started_at + form.timeout_milliseconds
@@ -50,28 +92,27 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
         )
 
         exposes: dict[str, list[protocol.InstancerExpose]] = {}
-        for expose in form.expose:
-            if expose.container_name not in exposes:
-                exposes[expose.container_name] = []
-            exposes[expose.container_name].append(expose)
+        expose_indices: dict[str, list[int]] = {}
+        for index, expose in enumerate(form.expose):
+            exposes.setdefault(expose.container_name, []).append(expose)
+            expose_indices.setdefault(expose.container_name, []).append(index)
 
         created_containers: list[DockerContainer] = []
         networks_created: dict[str, str] = {}
+        routing_networks_created: list[str] = []
         volumes_created: dict[str, str] = {}
-        all_endpoints: list[protocol.RCTFInstanceDetails.Endpoint] = []
+        indexed_endpoints: list[tuple[int, protocol.RCTFInstanceDetails.Endpoint]] = []
 
         try:
             networks_created = await create_networks(docker, form.config.networks, common_labels)
             volumes_created = await create_volumes(docker, form.config.volumes, common_labels)
             for i, (svc_name, container) in enumerate(form.config.services.items()):
-                try:
-                    await docker.images.get(container.image)
-                except DockerError:
-                    await docker.images.pull(container.image)
+                await _ensure_image(docker, container.image)
 
                 routing_network: str | None = None
                 if exposes.get(svc_name):
                     routing_network = await create_routing_network(docker, instance_id, i, common_labels)
+                    routing_networks_created.append(routing_network)
 
                 created, endpoints = await create_container(
                     docker=docker,
@@ -83,14 +124,15 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
                     svc_name=svc_name,
                     container=container,
                     routing_network=routing_network,
+                    global_indices=expose_indices.get(svc_name, []),
                 )
                 created_containers.append(created)
-                all_endpoints.extend(endpoints)
+                indexed_endpoints.extend(zip(expose_indices.get(svc_name, []), endpoints, strict=True))
 
             await asyncio.gather(*[container.start() for container in created_containers])
         except Exception as err:
             await cleanup_containers(created_containers)
-            await cleanup_networks(docker, list(networks_created.values()))
+            await cleanup_networks(docker, list(networks_created.values()) + routing_networks_created)
             await cleanup_volumes(docker, list(volumes_created.values()))
 
             if isinstance(err, HTTPException):
@@ -101,6 +143,7 @@ async def start_instance(form: protocol.RCTFCreateInstanceForm) -> protocol.RCTF
             )
             raise HTTPException(status_code=500, detail='Failed to start instance') from err
 
+        all_endpoints = [endpoint for _, endpoint in sorted(indexed_endpoints, key=lambda item: item[0])]
         return protocol.RCTFInstanceDetails(
             status=protocol.InstanceStatus.STARTING,
             time_left_milliseconds=expires_at - timestamp_milliseconds(),
@@ -213,11 +256,10 @@ async def get_instance(challenge_name: str, team_id: str) -> protocol.RCTFInstan
 
     status = protocol.InstanceStatus.STOPPED
     expires_at: int | None = None
-    endpoints: list[protocol.RCTFInstanceDetails.Endpoint] = []
+    indexed_endpoints: list[tuple[int, protocol.RCTFInstanceDetails.Endpoint]] = []
 
-    if containers:
-        details = await asyncio.gather(*[container.show() for container in containers])
-
+    details = await _show_containers(containers)
+    if details:
         first_labels = details[0]['Config']['Labels']
         expires_at = await get_effective_expiration(first_labels)
 
@@ -225,10 +267,11 @@ async def get_instance(challenge_name: str, team_id: str) -> protocol.RCTFInstan
         for detail in details:
             labels = detail['Config']['Labels']
             statuses.append(_get_container_status(detail))
-            endpoints.extend(extract_exposes(labels))
+            indexed_endpoints.extend(extract_exposes(labels))
 
         status = _get_highest_status(statuses)
 
+    endpoints = [endpoint for _, endpoint in sorted(indexed_endpoints, key=lambda item: item[0])]
     return protocol.RCTFInstanceDetails(
         status=status,
         endpoints=endpoints if expires_at else None,
@@ -249,20 +292,22 @@ async def renew_instance(form: protocol.RCTFRenewInstanceForm) -> protocol.RCTFI
         now = timestamp_milliseconds()
         new_expires_at = now + form.timeout_milliseconds
 
-        details = await asyncio.gather(*[container.show() for container in containers])
+        details = await _show_containers(containers)
+        if not details:
+            raise HTTPException(status_code=404, detail='Instance not found')
 
         first_labels = details[0]['Config']['Labels']
         instance_id: str | None = first_labels.get(ContainerLabels.INSTANCE_ID)
         if not instance_id:
             raise HTTPException(status_code=500, detail='Instance ID not found in container labels')
 
-        endpoints: list[protocol.RCTFInstanceDetails.Endpoint] = []
+        indexed_endpoints: list[tuple[int, protocol.RCTFInstanceDetails.Endpoint]] = []
         statuses: list[protocol.InstanceStatus] = []
 
         for detail in details:
             labels = detail['Config']['Labels']
             statuses.append(_get_container_status(detail))
-            endpoints.extend(extract_exposes(labels))
+            indexed_endpoints.extend(extract_exposes(labels))
 
         await set_instance_expiration(instance_id, new_expires_at, now)
 
@@ -272,6 +317,7 @@ async def renew_instance(form: protocol.RCTFRenewInstanceForm) -> protocol.RCTFI
             f'{instance_id=} new_expires_at={new_expires_at}'
         )
 
+        endpoints = [endpoint for _, endpoint in sorted(indexed_endpoints, key=lambda item: item[0])]
         return protocol.RCTFInstanceDetails(
             status=status,
             time_left_milliseconds=new_expires_at - timestamp_milliseconds(),

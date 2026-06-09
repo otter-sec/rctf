@@ -19,6 +19,7 @@ def expose_ports(
     exposes: dict[str, list[protocol.InstancerExpose]],  # container: exposes
     instance_id: str,
     routing_network: str | None,
+    global_indices: list[int],
 ) -> tuple[list[str], list[protocol.RCTFInstanceDetails.Endpoint]]:
     to_expose = exposes.get(svc_name, [])
 
@@ -29,6 +30,7 @@ def expose_ports(
         exp.kind = protocol.ExposeKind.TCP_SSL
 
     labels[ContainerLabels.EXPOSED_KINDS] = SEPARATOR.join(k.kind for k in to_expose)
+    labels[ContainerLabels.EXPOSED_INDICES] = SEPARATOR.join(str(i) for i in global_indices)
     if not to_expose or not routing_network:
         labels[ContainerLabels.EXPOSED_HOSTNAMES] = ''
         return [], []
@@ -91,7 +93,7 @@ def expose_ports(
     return hosts, exposed
 
 
-def extract_exposes(labels: dict[str, str]) -> list[protocol.RCTFInstanceDetails.Endpoint]:
+def extract_exposes(labels: dict[str, str]) -> list[tuple[int, protocol.RCTFInstanceDetails.Endpoint]]:
     raw_exposed_kinds = labels.get(ContainerLabels.EXPOSED_KINDS, '')
     raw_exposed_hosts = labels.get(ContainerLabels.EXPOSED_HOSTNAMES, '')
     if not raw_exposed_kinds or not raw_exposed_hosts:
@@ -103,14 +105,22 @@ def extract_exposes(labels: dict[str, str]) -> list[protocol.RCTFInstanceDetails
         logger.warning(f'Exposed hosts and kinds count mismatch: {len(exposed_hosts)=} {len(exposed_kinds)=}')
         return []
 
-    result: list[protocol.RCTFInstanceDetails.Endpoint] = []
-    for kind, host in zip(exposed_kinds, exposed_hosts, strict=True):
+    raw_indices = labels.get(ContainerLabels.EXPOSED_INDICES, '')
+    indices = [int(i) for i in raw_indices.split(SEPARATOR)] if raw_indices else []
+    if len(indices) != len(exposed_hosts):
+        indices = list(range(len(exposed_hosts)))
+
+    result: list[tuple[int, protocol.RCTFInstanceDetails.Endpoint]] = []
+    for index, kind, host in zip(indices, exposed_kinds, exposed_hosts, strict=True):
         kind_mapped = protocol.ExposeKind(kind)
         result.append(
-            protocol.RCTFInstanceDetails.Endpoint(
-                kind=kind_mapped,
-                host=host,
-                port=KIND_TO_PORT[kind_mapped],
+            (
+                index,
+                protocol.RCTFInstanceDetails.Endpoint(
+                    kind=kind_mapped,
+                    host=host,
+                    port=KIND_TO_PORT[kind_mapped],
+                ),
             )
         )
 

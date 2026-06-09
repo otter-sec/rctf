@@ -40,7 +40,7 @@ class Healthcheck(BaseModel):
     interval: str = '30s'
     timeout: str = '10s'
     retries: int = 3
-    start_period: str = Field(default='0s', validation_alias='startPeriod')
+    start_period: str = '0s'
 
 
 class RestartPolicy(StrEnum):
@@ -54,8 +54,8 @@ class Service(BaseModel):
     image: str
     hostname: str | None = None
     environment: dict[str, str] = Field(default_factory=dict)
-    command: str | None = None
-    entrypoint: str | None = None
+    command: str | list[str] | None = None
+    entrypoint: str | list[str] | None = None
     working_dir: str | None = Field(default=None)
     user: str | None = None
     networks: list[str] = Field(default_factory=list)

@@ -147,15 +147,15 @@ async def instance_pruner() -> None:
     while True:
         now = timestamp_milliseconds()
         logger.info('Running instance pruner')
-        try:
-            await asyncio.gather(
-                _prune_instances(docker, now),
-                _prune_networks(docker, now),
-                _prune_volumes(docker, now),
-                return_exceptions=True,
-            )
-        except Exception as e:  # noqa: BLE001
-            logger.opt(exception=e).error('Encountered an error while pruning')
+        results = await asyncio.gather(
+            _prune_instances(docker, now),
+            _prune_networks(docker, now),
+            _prune_volumes(docker, now),
+            return_exceptions=True,
+        )
+        for result in results:
+            if isinstance(result, BaseException):
+                logger.opt(exception=result).error('Encountered an error while pruning')
         await asyncio.sleep(config.PRUNNER_INTERVAL_SECONDS)
 
 

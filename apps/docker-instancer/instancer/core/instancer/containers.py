@@ -1,4 +1,5 @@
 import asyncio
+import shlex
 
 from aiodocker import Docker, DockerError
 from aiodocker.containers import DockerContainer
@@ -17,6 +18,14 @@ def merge(left: dict[str, str], right: dict[str, str]) -> dict[str, str]:
     return left
 
 
+def sh(command: str | list[str] | None) -> list[str] | None:
+    if not command:
+        return None
+    if isinstance(command, list):
+        return command
+    return shlex.split(command)
+
+
 async def create_container(  # noqa: PLR0913
     docker: Docker,
     challenge_integration_id: str,
@@ -27,12 +36,13 @@ async def create_container(  # noqa: PLR0913
     svc_name: str,
     container: protocol.Service,
     routing_network: str | None,
+    global_indices: list[int],
 ) -> tuple[DockerContainer, list[protocol.RCTFInstanceDetails.Endpoint]]:
     labels = common_labels.copy()
     instance_id = common_labels[ContainerLabels.INSTANCE_ID]
     actual_svc_name = f'{config.PREFIX}-{challenge_integration_id}-{svc_name}-{instance_id}'
 
-    _, exposed = expose_ports(labels, svc_name, exposes, instance_id, routing_network)
+    _, exposed = expose_ports(labels, svc_name, exposes, instance_id, routing_network, global_indices)
 
     endpoints_config: dict[str, dict] = {networks_created[network]: {} for network in container.networks}
     volume_mounts = parse_volume_mounts(container.volumes, volumes_created)
@@ -44,10 +54,10 @@ async def create_container(  # noqa: PLR0913
         await docker.containers.create(
             config={
                 'Image': container.image,
-                'Hostname': container.hostname or svc_name,
+                'Hostname': container.hostname or svc_name.replace('_', '-'),
                 'Env': [f'{k}={v}' for k, v in container.environment.items()],
-                'Cmd': container.command.split() if container.command else None,
-                'Entrypoint': container.entrypoint,
+                'Cmd': sh(container.command),
+                'Entrypoint': sh(container.entrypoint),
                 'WorkingDir': container.working_dir,
                 'User': container.user,
                 'NetworkingConfig': {
@@ -124,8 +134,8 @@ async def get_containers(
         return []
 
 
-async def is_running(docker: Docker, challenge_name: str, team_id: str) -> bool:
-    return bool(await get_containers(docker, challenge_name, team_id, running_only=True, limit=1))
+async def instance_exists(docker: Docker, challenge_name: str, team_id: str) -> bool:
+    return bool(await get_containers(docker, challenge_name, team_id))
 
 
 async def cleanup_containers(containers: list[DockerContainer]) -> None:
