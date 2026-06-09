@@ -21,10 +21,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// This should match rCTF's ExposeKind schema.
+// +kubebuilder:validation:Enum=tcp;tcp-ssl;http;https
 type ExposeType string
 
-// This should match rCTF's ExposeKind schema.
-// +kubebuilder:validation:Enum=tcp,tcp-ssl,http,https
 const (
 	TCP     ExposeType = "tcp"
 	TCP_SSL ExposeType = "tcp-ssl"
@@ -47,6 +47,8 @@ type ChallengeInstanceExpose struct {
 	ContainerName string `json:"containerName"`
 
 	// +required
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=65535
 	ContainerPort uint16 `json:"containerPort"`
 
 	// +optional
