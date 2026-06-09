@@ -178,11 +178,10 @@ describe('Leaderboard - With Test Data', () => {
       40_000,
       r =>
         Object.values(r).every(inst => {
-          const entries = (
-            inst.body as {
-              data: { leaderboard: { name: string; score: number }[] }
-            }
-          ).data.leaderboard
+          const body = inst.body as {
+            data?: { leaderboard?: { name: string; score: number }[] }
+          }
+          const entries = body?.data?.leaderboard ?? []
           return solvers.every(s =>
             entries.some(e => e.name === s.name && e.score > 0)
           )
