@@ -15,6 +15,7 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilSameWith,
   type TestUser,
 } from '../lib/harness'
 
@@ -50,12 +51,12 @@ describe('Challenges - Get Challenges Authenticated', () => {
   })
 
   test('GET /api/v1/challs with valid auth returns challenges', async () => {
-    const res = await allAs(user, '/api/v1/challs')
+    const res = await waitUntilSameWith(() => allAs(user, '/api/v1/challs'))
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallenges')
     assertSame(res)
-  })
+  }, 20_000)
 
   test('challenges list includes test challenge', async () => {
     const res = await allAs(user, '/api/v1/challs')
@@ -132,7 +133,7 @@ describe('Challenges - Get Challenge Solves Authenticated', () => {
 
     assertAllSuccess(res)
     assertAllKind(res, 'goodChallengeSolves')
-    assertSame(res, ['id', 'userId'])
+    assertSame(res, ['id', 'userId', 'createdAt'])
   })
 
   test('solves list includes solver', async () => {

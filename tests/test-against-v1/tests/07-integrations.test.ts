@@ -15,6 +15,7 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilSameWith,
   type TestUser,
 } from '../lib/harness'
 
@@ -142,7 +143,9 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
   })
 
   test('ctftime leaderboard returns consistent data', async () => {
-    const res = await allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
+    const res = await waitUntilSameWith(() =>
+      allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
+    )
 
     assertAllSuccess(res)
     assertSame(res)

@@ -1,6 +1,10 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
-import { ChallengeFileSchemaV1, ChallengePointsSchemaV1 } from '../util'
+import {
+  ChallengeFileSchemaV1,
+  ChallengePointsSchemaV1,
+  omitWhenNull,
+} from '../util'
 
 export const AdminChallengeSchema = z.object({
   id: z.string(),
@@ -12,7 +16,7 @@ export const AdminChallengeSchema = z.object({
   points: ChallengePointsSchemaV1,
   flag: z.string(),
   tiebreakEligible: z.boolean(),
-  sortWeight: z.nullish(z.number()),
+  sortWeight: omitWhenNull(z.number()),
 })
 
 export const GoodAdminChallenge = response('goodAdminChallenge', {

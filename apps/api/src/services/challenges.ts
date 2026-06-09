@@ -870,7 +870,7 @@ export const getUserChallengeSolves = async (
     .innerJoin(users, nonBannedUserJoin(solves.userid))
     .leftJoin(ranked, eq(ranked.solveId, solves.id))
     .where(and(eq(solves.userid, userId), eq(solves.source, 'flag')))
-    .orderBy(asc(solves.createdat))
+    .orderBy(desc(solves.createdat))
 }
 
 const preparedLeaderboardSolves = preparedPerDb(db =>

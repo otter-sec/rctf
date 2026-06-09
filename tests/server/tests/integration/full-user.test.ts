@@ -13,6 +13,7 @@ import {
   GoodFlag,
   GoodUserData,
   GoodUserSelfData,
+  GoodUserSelfDataV2,
 } from '@rctf/types'
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
@@ -260,14 +261,14 @@ describe('full-user service', () => {
         })
 
         const authToken = await generateAuthToken(user.id)
-        const profileRes = await request(app, '/api/v1/users/me', {
+        const profileRes = await request(app, '/api/v2/users/me', {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${authToken}`,
           },
         })
 
-        const body = await expectResponse(profileRes, GoodUserSelfData)
+        const body = await expectResponse(profileRes, GoodUserSelfDataV2)
         expect(
           body.data.solves.some(
             (item: { id: string }) => item.id === challengeId

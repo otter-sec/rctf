@@ -15,6 +15,12 @@ export enum InstanceStatus {
   ERRORED = 'errored',
 }
 
+export const omitWhenNull = <T extends z.core.SomeType>(inner: T) =>
+  z.pipe(
+    z.nullish(inner),
+    z.transform((v: z.output<T> | null | undefined) => v ?? undefined)
+  )
+
 export const ChallengeFileSchemaV1 = z.object({
   name: z.string(),
   url: z.string(),

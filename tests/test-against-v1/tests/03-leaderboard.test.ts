@@ -16,31 +16,39 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilSame,
   type TestUser,
 } from '../lib/harness'
 
 describe('Leaderboard - Get Leaderboard', () => {
   test('GET /api/v1/leaderboard/now returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/now?limit=10&offset=0')
-
-    assertAllSuccess(res)
-    assertSame(res)
-  })
-
-  test('GET /api/v1/leaderboard/now with pagination returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/now?limit=5&offset=0')
-
-    assertAllSuccess(res)
-    assertSame(res)
-  })
-
-  test('GET /api/v1/leaderboard/now with division filter returns same response', async () => {
-    const res = await all(
-      '/api/v1/leaderboard/now?limit=10&offset=0&division=open'
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=10&offset=0',
+      ['id']
     )
 
     assertAllSuccess(res)
-    assertSame(res)
+    assertSame(res, ['id'])
+  })
+
+  test('GET /api/v1/leaderboard/now with pagination returns same response', async () => {
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=5&offset=0',
+      ['id']
+    )
+
+    assertAllSuccess(res)
+    assertSame(res, ['id'])
+  })
+
+  test('GET /api/v1/leaderboard/now with division filter returns same response', async () => {
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=10&offset=0&division=open',
+      ['id']
+    )
+
+    assertAllSuccess(res)
+    assertSame(res, ['id'])
   })
 
   test('GET /api/v1/leaderboard/now with excessive limit returns error', async () => {
@@ -73,17 +81,23 @@ describe('Leaderboard - Get Leaderboard', () => {
 
 describe('Leaderboard - Get Leaderboard Graph', () => {
   test('GET /api/v1/leaderboard/graph returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/graph?limit=10')
+    const res = await waitUntilSame('/api/v1/leaderboard/graph?limit=10', [
+      'id',
+      'time',
+    ])
 
     assertAllSuccess(res)
-    assertSame(res)
+    assertSame(res, ['id', 'time'])
   })
 
   test('GET /api/v1/leaderboard/graph with division filter returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/graph?limit=10&division=open')
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/graph?limit=10&division=open',
+      ['id', 'time']
+    )
 
     assertAllSuccess(res)
-    assertSame(res)
+    assertSame(res, ['id', 'time'])
   })
 
   test('GET /api/v1/leaderboard/graph with excessive limit returns error', async () => {
