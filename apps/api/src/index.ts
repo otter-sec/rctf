@@ -6,7 +6,7 @@ import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import pino from 'pino'
 import type { AppEnv } from './lib/app-env'
 import { runMigrationsOnStartup } from './lib/migrations'
-import { appEnvMiddleware, client, redis } from './middlewares/app-env'
+import { appEnvMiddleware } from './middlewares/app-env'
 import { dynamicChallengeAuthMiddleware } from './middlewares/dynamic-challenge-auth'
 import {
   adminBotProvider,
@@ -23,14 +23,12 @@ const logger = pino({
     (process.env.NODE_ENV === 'production' ? 'info' : 'trace'),
 })
 
-const createApp = (healthOnly: boolean) => {
+const createApp = () => {
   const app = new Hono<AppEnv>()
 
+  app.use(pinoLogger({ pino: logger }))
+  app.use(appEnvMiddleware)
   registerHealthRoutes(app)
-  if (!healthOnly) {
-    app.use(pinoLogger({ pino: logger }))
-    app.use(appEnvMiddleware)
-  }
 
   return app
 }
@@ -62,8 +60,8 @@ export const registerHealthRoutes = (app: Hono<AppEnv>): void => {
   app.get('/api/healthz', c => c.text('ok'))
   app.get('/api/readyz', async c => {
     const [dbOk, redisOk] = await Promise.all([
-      client`SELECT 1`.then(() => true).catch(() => false),
-      redis
+      c.var.pg`SELECT 1`.then(() => true).catch(() => false),
+      c.var.redis
         .ping()
         .then(pong => pong === 'PONG')
         .catch(() => false),
@@ -99,7 +97,7 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
 }
 
 export const setupApp = async () => {
-  const app = createApp(false)
+  const app = createApp()
 
   const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
     return c.json(
@@ -138,7 +136,7 @@ const main = async () => {
   }
 
   const app =
-    config.instanceType !== 'leaderboard' ? await setupApp() : createApp(true)
+    config.instanceType !== 'leaderboard' ? await setupApp() : createApp()
 
   const port = Number(process.env.PORT ?? 3000)
   logger.info(`Listening on :${port}`)

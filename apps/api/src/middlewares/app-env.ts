@@ -5,8 +5,8 @@ import type { AppEnv } from '../lib/app-env'
 import { getIp } from '../util/ip'
 import { createRedis } from '../util/redis'
 
-export const { client, db } = createDatabase(config.database.sql)
-export const redis = await createRedis()
+const { client, db } = createDatabase(config.database.sql)
+const redis = await createRedis()
 
 export const appEnvMiddleware: MiddlewareHandler<AppEnv> = async (c, next) => {
   c.set('db', db)
