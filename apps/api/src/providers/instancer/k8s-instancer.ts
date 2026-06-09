@@ -681,10 +681,10 @@ export default class K8sInstancerProvider implements InstancerProvider {
       }
 
       // TODO(es3n1n): logger
-      console.error('Failed to fetch instancer status', err)
+      console.error('Failed to extend instance', err)
       return {
         kind: 'instancerError',
-        message: 'Something went wrong while trying to fetch instancer status',
+        message: 'Something went wrong while trying to extend instance',
       }
     }
 
