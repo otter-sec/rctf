@@ -8,7 +8,8 @@ export function generateInterceptorScript(): string {
       return _cache[path];
     }
     _cache[path] = _fetch.call(window, path).then(function(r) {
-      if (!r.ok) {
+      const ct = r.headers.get('content-type') || '';
+      if (!r.ok || ct.indexOf('application/json') === -1) {
         return null;
       }
       return r.json();
@@ -180,7 +181,8 @@ export function generateInterceptorScript(): string {
 
     const staticPath = toStaticPath(url.pathname);
     return _fetch.call(this, staticPath).then(function(r) {
-      return r.ok
+      const ct = r.headers.get('content-type') || '';
+      return r.ok && ct.indexOf('application/json') !== -1
         ? new Response(r.body, { status: 200, headers: { 'Content-Type': 'application/json' } })
         : jsonResponse(
             { kind: 'badEndpoint', message: 'Not available in archive.', data: null },

@@ -58,7 +58,16 @@ async function writeGitHubPagesFiles(outputDir: string): Promise<void> {
 }
 
 async function writeCloudflareFiles(outputDir: string): Promise<void> {
-  await Bun.write(join(outputDir, '_redirects'), '/* /index.html 200\n')
+  await Bun.write(
+    join(outputDir, '_redirects'),
+    [
+      // cf pages doesn't honor a 404 status in _redirects rewrites
+      '/api-data/* /404.html 200',
+      '/uploads/* /404.html 200',
+      '/* /index.html 200',
+      '',
+    ].join('\n')
+  )
 
   await Bun.write(
     join(outputDir, '_headers'),
