@@ -58,8 +58,8 @@ export const queryKeys = {
     offset: number
     division: string
   }) => leaderboardWithGraphQueryOptions(params).queryKey,
-  selfUserGraph: (globalPlace: number | null) =>
-    selfUserGraphQueryOptions(globalPlace).queryKey,
+  selfUserGraph: (globalPlace: number | null, userId: string | null = null) =>
+    selfUserGraphQueryOptions(globalPlace, userId).queryKey,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
     challengeSolvesQueryOptions(id, params).queryKey,
   challengeScores: (id: string, params: { limit: number; offset: number }) =>

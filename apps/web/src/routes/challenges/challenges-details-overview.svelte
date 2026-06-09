@@ -11,6 +11,19 @@
   }
 
   let { challenge }: Props = $props()
+
+  function downloadAll() {
+    for (const file of challenge.files) {
+      const a = document.createElement('a')
+      a.href = file.url
+      a.download = file.name
+      a.target = '_blank'
+      a.rel = 'noopener noreferrer'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+    }
+  }
 </script>
 
 <ScrollArea class="h-full px-5 pt-4" fadeSize={64} fadeColor="background-l2" viewportTabIndex={0}>
@@ -50,7 +63,9 @@
             {#if challenge.files.length > 1}
               <div class="p-2">
                 <button
-                  class="bg-background-accent text-foreground-accent focus-visible:ring-ring/50 flex w-full items-center justify-center gap-1 rounded-md px-4 py-2 text-base font-normal outline-none hover:opacity-90 focus-visible:ring-[3px]"
+                  type="button"
+                  onclick={downloadAll}
+                  class="bg-background-accent text-foreground-accent focus-visible:ring-ring/50 flex w-full cursor-pointer items-center justify-center gap-1 rounded-md px-4 py-2 text-base font-normal outline-none hover:opacity-90 focus-visible:ring-[3px]"
                 >
                   <IconDownload class="size-5" />
                   Download all

@@ -83,9 +83,12 @@ export const leaderboardWithGraphQueryOptions = (params: {
     refetchInterval: 30 * 1000,
   })
 
-export const selfUserGraphQueryOptions = (globalPlace: number | null) =>
+export const selfUserGraphQueryOptions = (
+  globalPlace: number | null,
+  userId: string | null = null
+) =>
   queryOptions({
-    queryKey: ['leaderboard', 'graph', 'self', globalPlace] as const,
+    queryKey: ['leaderboard', 'graph', 'self', userId, globalPlace] as const,
     queryFn: async () => {
       if (globalPlace === null || globalPlace < 1) return null
       const response = await apiRequest(GetLeaderboardGraphRouteV2, {
@@ -93,7 +96,8 @@ export const selfUserGraphQueryOptions = (globalPlace: number | null) =>
         offset: globalPlace - 1,
       })
       if (response.kind === GoodLeaderboardGraph.kind) {
-        return response.data.graph[0] ?? null
+        const entry = response.data.graph[0] ?? null
+        return entry && (userId === null || entry.id === userId) ? entry : null
       }
       return null
     },
@@ -115,7 +119,8 @@ export const userGraphQueryOptions = (
         offset: globalPlace - 1,
       })
       if (response.kind === GoodLeaderboardGraph.kind) {
-        return response.data.graph[0] ?? null
+        const entry = response.data.graph[0] ?? null
+        return entry && entry.id === userId ? entry : null
       }
       return null
     },
@@ -195,8 +200,11 @@ export function useLeaderboardChallenges() {
   return createQuery(() => leaderboardChallengesQueryOptions)
 }
 
-export function useSelfUserGraph(globalPlace: () => number | null) {
-  return createQuery(() => selfUserGraphQueryOptions(globalPlace()))
+export function useSelfUserGraph(
+  globalPlace: () => number | null,
+  userId: () => string | null = () => null
+) {
+  return createQuery(() => selfUserGraphQueryOptions(globalPlace(), userId()))
 }
 
 export function useUserGraph(

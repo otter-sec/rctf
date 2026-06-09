@@ -8,7 +8,10 @@
   const user = $derived(userQuery.data)
   const globalPlace = $derived(user?.globalPlace ?? null)
 
-  const graphQuery = useSelfUserGraph(() => globalPlace)
+  const graphQuery = useSelfUserGraph(
+    () => globalPlace,
+    () => user?.id ?? null
+  )
   const graphData = $derived.by(() => {
     const points = graphQuery.data?.points ?? []
     let maxTime = 0

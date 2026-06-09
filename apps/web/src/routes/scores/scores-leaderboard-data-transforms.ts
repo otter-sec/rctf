@@ -384,7 +384,7 @@ export function getScreenshotTeams(
         ...entry,
         solveCount: getVisibleSolveCount(entry.solves, challengesData),
       },
-      index + 1,
+      entry.globalPlace ?? index + 1,
       currentUser?.id === entry.id,
       teamColorMap.get(entry.id),
       sparklineDataByTeam.get(entry.id)

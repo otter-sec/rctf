@@ -14,12 +14,14 @@
 
   $effect(() => {
     if (startTime <= 0) return
+    let invalidated = false
 
     const updateTimeLeft = () => {
       const remaining = startTime - Date.now()
       timeLeft = Math.max(0, remaining)
 
-      if (remaining <= 0) {
+      if (remaining <= 0 && !invalidated) {
+        invalidated = true
         queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
         queryClient.invalidateQueries({ queryKey: queryKeys.challenges })
         queryClient.invalidateQueries({ queryKey: queryKeys.clientConfig })

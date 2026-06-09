@@ -68,8 +68,9 @@
     return globalPlace >= startRank && globalPlace <= endRank
   })
 
-  const selfGraphQuery = useSelfUserGraph(() =>
-    showSelfContext && !selfIsOnCurrentPage ? globalPlace : null
+  const selfGraphQuery = useSelfUserGraph(
+    () => (showSelfContext && !selfIsOnCurrentPage ? globalPlace : null),
+    () => currentUser?.id ?? null
   )
 
   // NOTE(es3n1n): heavily relying on a fact that this will be cached
