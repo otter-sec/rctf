@@ -133,7 +133,12 @@ func (r *ChallengeInstanceReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	if !controllerutil.ContainsFinalizer(&instance, finalizer) {
 		controllerutil.AddFinalizer(&instance, finalizer)
 		if err := r.Update(ctx, &instance); err != nil {
-			log.Error(err, "Unable to update ChallengeInstance")
+			// don't proceed to create resources without the finalizer
+			// persisted server-side, otherwise the namespace (which has no
+			// owner reference) can leak if the CR is deleted before a later
+			// reconcile re-adds it
+			log.Error(err, "Unable to add finalizer to ChallengeInstance")
+			return ctrl.Result{}, err
 		}
 	}
 
@@ -262,7 +267,10 @@ func (r *ChallengeInstanceReconciler) EnsureNamespace(ctx context.Context, insta
 			},
 		},
 	}
-	if err := r.Create(ctx, &namespace); err != nil {
+	// AlreadyExists is expected: the existence check above reads the (lagging)
+	// informer cache while Create hits the live API, so a freshly-created
+	// namespace looks absent on the next fast reconcile
+	if err := r.Create(ctx, &namespace); err != nil && !apierrors.IsAlreadyExists(err) {
 		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
 			Type:    typeNamespaceDeployed,
 			Status:  metav1.ConditionFalse,
@@ -307,6 +315,7 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 	}
 
 	udp := corev1.ProtocolUDP
+	tcp := corev1.ProtocolTCP
 	dnsPort := intstr.FromInt32(int32(53))
 	for _, networkPolicy := range []networkingv1.NetworkPolicy{
 		// Restrict network traffic only to inside the instance's namespace (except for kube-dns)
@@ -365,6 +374,10 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 						Ports: []networkingv1.NetworkPolicyPort{
 							{
 								Protocol: &udp,
+								Port:     &dnsPort,
+							},
+							{
+								Protocol: &tcp,
 								Port:     &dnsPort,
 							},
 						},
@@ -455,7 +468,7 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 			return fmt.Errorf("setting controller reference for network policy %s failed: %w", networkPolicy.Name, err)
 		}
 
-		if err := r.Create(ctx, &networkPolicy); err != nil {
+		if err := r.Create(ctx, &networkPolicy); err != nil && !apierrors.IsAlreadyExists(err) {
 			return fmt.Errorf("creating network policy %s failed: %w", networkPolicy.Name, err)
 		}
 	}
@@ -558,7 +571,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 			return fmt.Errorf("setting controller reference for deployment %s failed: %w", pod.Name, err)
 		}
 
-		if err := r.Create(ctx, &deployment); err != nil {
+		if err := r.Create(ctx, &deployment); err != nil && !apierrors.IsAlreadyExists(err) {
 			return fmt.Errorf("creating deployment %s failed: %w", pod.Name, err)
 		}
 	}
@@ -648,7 +661,7 @@ func (r *ChallengeInstanceReconciler) EnsureServices(ctx context.Context, instan
 			return fmt.Errorf("setting controller reference for service %s failed: %w", pod.Name, err)
 		}
 
-		if err := r.Create(ctx, &service); err != nil {
+		if err := r.Create(ctx, &service); err != nil && !apierrors.IsAlreadyExists(err) {
 			return fmt.Errorf("creating service %s failed: %w", pod.Name, err)
 		}
 	}
@@ -682,6 +695,7 @@ func exposeTypeToPort(exposeType rctfinstancerv1.ExposeType) uint16 {
 
 func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfinstancerv1.ChallengeInstanceExpose, hostname string) []client.Object {
 	namespaceName := getNamespaceForInstance(*instance)
+	baseName := fmt.Sprintf("%s-%d", expose.ContainerName, expose.ContainerPort)
 
 	switch expose.Kind {
 	// TCP is not supported (for now)
@@ -690,7 +704,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.IngressRoute{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-http", expose.ContainerName),
+					Name:      fmt.Sprintf("%s-http", baseName),
 					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
@@ -724,7 +738,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.Middleware{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-redirect", expose.ContainerName),
+					Name:      fmt.Sprintf("%s-redirect", baseName),
 				},
 				Spec: v1alpha1.MiddlewareSpec{
 					RedirectScheme: &dynamic.RedirectScheme{
@@ -736,7 +750,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.IngressRoute{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-http-redirect", expose.ContainerName),
+					Name:      fmt.Sprintf("%s-http-redirect", baseName),
 					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
@@ -752,7 +766,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 							Priority: 5, // if there's HTTP on the same host prefix, we want that to have the priority over this
 							Middlewares: []v1alpha1.MiddlewareRef{
 								{
-									Name: fmt.Sprintf("%s-redirect", expose.ContainerName),
+									Name: fmt.Sprintf("%s-redirect", baseName),
 								},
 							},
 							Services: []v1alpha1.Service{
@@ -771,7 +785,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.IngressRoute{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-https", expose.ContainerName),
+					Name:      fmt.Sprintf("%s-https", baseName),
 					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
@@ -805,7 +819,7 @@ func exposeToObjects(instance *rctfinstancerv1.ChallengeInstance, expose rctfins
 			&v1alpha1.IngressRouteTCP{
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: namespaceName,
-					Name:      fmt.Sprintf("%s-tcp-ssl", expose.ContainerName),
+					Name:      fmt.Sprintf("%s-tcp-ssl", baseName),
 					Labels: map[string]string{
 						"app.kubernetes.io/managed-by": managedBy,
 						labelTeamId:                    instance.Spec.TeamId,
@@ -889,7 +903,7 @@ func (r *ChallengeInstanceReconciler) EnsureIngresses(ctx context.Context, insta
 				return fmt.Errorf("setting controller reference for object %s failed: %w", object.GetName(), err)
 			}
 
-			if err := r.Create(ctx, object); err != nil {
+			if err := r.Create(ctx, object); err != nil && !apierrors.IsAlreadyExists(err) {
 				return fmt.Errorf("creating object %s failed: %w", object.GetName(), err)
 			}
 		}

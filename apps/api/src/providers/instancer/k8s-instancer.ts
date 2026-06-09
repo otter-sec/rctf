@@ -651,24 +651,42 @@ export default class K8sInstancerProvider implements InstancerProvider {
   extendInstance = async (
     options: ExtendInstanceOptions
   ): Promise<instanceDetailsOrError> => {
-    await this.client.patchClusterCustomObject({
-      group,
-      version,
-      plural,
-      name: this.getResourceName(
-        options.teamId,
-        options.challengeIntegrationId
-      ),
-      body: [
-        {
-          op: 'replace',
-          path: '/spec/expiresAt',
-          value: new Date(
-            Date.now() + options.timeoutMilliseconds
-          ).toISOString(),
-        },
-      ],
-    })
+    try {
+      await this.client.patchClusterCustomObject({
+        group,
+        version,
+        plural,
+        name: this.getResourceName(
+          options.teamId,
+          options.challengeIntegrationId
+        ),
+        body: [
+          {
+            op: 'replace',
+            path: '/spec/expiresAt',
+            value: new Date(
+              Date.now() + options.timeoutMilliseconds
+            ).toISOString(),
+          },
+        ],
+      })
+    } catch (err: any) {
+      if (err.code === 404) {
+        return {
+          kind: 'instancerInstanceDetails',
+          timeLeftMilliseconds: 0,
+          endpoints: [],
+          status: InstanceStatus.STOPPED,
+        }
+      }
+
+      // TODO(es3n1n): logger
+      console.error('Failed to extend instance', err)
+      return {
+        kind: 'instancerError',
+        message: 'Something went wrong while trying to extend instance',
+      }
+    }
 
     return this.getInstance(options)
   }

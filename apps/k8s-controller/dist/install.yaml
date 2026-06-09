@@ -1,3 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+    control-plane: controller-manager
+  name: rctf-instancer-system
 ---
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
@@ -3958,3 +3966,368 @@ spec:
     storage: true
     subresources:
       status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-controller-manager
+  namespace: rctf-instancer-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-leader-election-role
+  namespace: rctf-instancer-system
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-challengeinstance-admin-role
+rules:
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances
+  verbs:
+  - '*'
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-challengeinstance-editor-role
+rules:
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-challengeinstance-viewer-role
+rules:
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances/status
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rctf-instancer-manager-role
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - networkpolicies
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rctf-instancer.osec.io
+  resources:
+  - challengeinstances/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - traefik.io
+  resources:
+  - ingressroutes
+  - ingressroutetcps
+  - middlewares
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rctf-instancer-metrics-auth-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: rctf-instancer-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-leader-election-rolebinding
+  namespace: rctf-instancer-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: rctf-instancer-leader-election-role
+subjects:
+- kind: ServiceAccount
+  name: rctf-instancer-controller-manager
+  namespace: rctf-instancer-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+  name: rctf-instancer-manager-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rctf-instancer-manager-role
+subjects:
+- kind: ServiceAccount
+  name: rctf-instancer-controller-manager
+  namespace: rctf-instancer-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: rctf-instancer-metrics-auth-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: rctf-instancer-metrics-auth-role
+subjects:
+- kind: ServiceAccount
+  name: rctf-instancer-controller-manager
+  namespace: rctf-instancer-system
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+    control-plane: controller-manager
+  name: rctf-instancer-controller-manager-metrics-service
+  namespace: rctf-instancer-system
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: 8443
+  selector:
+    app.kubernetes.io/name: rctf-instancer
+    control-plane: controller-manager
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/name: rctf-instancer
+    control-plane: controller-manager
+  name: rctf-instancer-controller-manager
+  namespace: rctf-instancer-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rctf-instancer
+      control-plane: controller-manager
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        app.kubernetes.io/name: rctf-instancer
+        control-plane: controller-manager
+    spec:
+      containers:
+      - args:
+        - --instancer-host=INSTANCER_HOST
+        - --metrics-bind-address=:8443
+        - --leader-elect
+        - --health-probe-bind-address=:8081
+        command:
+        - /manager
+        image: ghcr.io/otter-sec/rctf-new/k8s-controller:latest
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports: []
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 256Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts: []
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccountName: rctf-instancer-controller-manager
+      terminationGracePeriodSeconds: 10
+      volumes: []
