@@ -2,9 +2,8 @@ from contextlib import asynccontextmanager
 from http import HTTPStatus
 from typing import TYPE_CHECKING, Any
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Response
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import ORJSONResponse
 from starlette.exceptions import HTTPException
 
 from instancer.core.cache import redis
@@ -34,33 +33,29 @@ app = FastAPI(
     version='1.0.0',
     redoc_url=None,
     lifespan=lifespan,
-    default_response_class=ORJSONResponse,
 )
 app.include_router(instances_router)
 
 
-@app.exception_handler(HTTPException)
-async def http_exception_handler(_: Request, exc: HTTPException) -> ORJSONResponse:
-    return ORJSONResponse(
-        status_code=exc.status_code,
-        content=protocol.RCTFInstancerError(message=exc.detail).model_dump(mode='json'),
+def _error_response(status_code: int, message: str) -> Response:
+    return Response(
+        status_code=status_code,
+        content=protocol.RCTFInstancerError(message=message).model_dump_json(),
+        media_type='application/json',
     )
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_: Request, exc: HTTPException) -> Response:
+    return _error_response(exc.status_code, exc.detail)
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(_: Request, exc: RequestValidationError) -> ORJSONResponse:
-    return ORJSONResponse(
-        status_code=422,
-        content=protocol.RCTFInstancerError(
-            message=f'Validation error: {exc.errors()}',
-        ).model_dump(mode='json'),
-    )
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> Response:
+    return _error_response(422, f'Validation error: {exc.errors()}')
 
 
 @app.exception_handler(Exception)
-async def exception_handler(_: Request, exc: Exception) -> ORJSONResponse:
+async def exception_handler(_: Request, exc: Exception) -> Response:
     logger.opt(exception=exc).error('Unhandled error')
-    return ORJSONResponse(
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR.value,
-        content=protocol.RCTFInstancerError(message='Internal Server Error').model_dump(mode='json'),
-    )
+    return _error_response(HTTPStatus.INTERNAL_SERVER_ERROR.value, 'Internal Server Error')

@@ -1,9 +1,10 @@
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 from typing import TYPE_CHECKING
 
 from redis import asyncio as redis_lib
 from redis.asyncio.retry import Retry
 from redis.backoff import ExponentialBackoff
+from redis.exceptions import LockError
 
 from .config import config
 
@@ -34,7 +35,8 @@ async def instance_lock(challenge: str, team_id: str) -> AsyncGenerator[bool]:
         yield acquired
     finally:
         if acquired:
-            await lock.release()
+            with suppress(LockError):
+                await lock.release()
 
 
 def _expiration_key(instance_id: str) -> str:

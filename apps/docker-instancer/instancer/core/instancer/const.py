@@ -15,6 +15,7 @@ class ContainerLabels(StrEnum):
     # Set only in containers from `traefik.py`
     EXPOSED_KINDS = 'io.es3n1n.instancer.exposed_kinds'
     EXPOSED_HOSTNAMES = 'io.es3n1n.instancer.hostnames'
+    EXPOSED_INDICES = 'io.es3n1n.instancer.exposed_indices'
 
 
 def get_search_filters(challenge_name: str, team_id: str) -> dict[str, dict | list | str]:
