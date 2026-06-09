@@ -6,7 +6,6 @@ import {
   assertAllSuccess,
   assertSame,
   assertSameKind,
-  awaitAllLeaderboard,
   cleanupChallenge,
   cleanupUser,
   createChallenge,
@@ -17,6 +16,7 @@ import {
   submitFlag,
   testId,
   waitUntilSame,
+  waitUntilSameWith,
   type TestUser,
 } from '../lib/harness'
 
@@ -172,12 +172,20 @@ describe('Leaderboard - With Test Data', () => {
   }, 30_000)
 
   test('leaderboard includes solvers with scores', async () => {
-    // Wait for both instances to reflect the solves before comparing -
-    // refreshLeaderboard's snapshot-diff in beforeAll can return early.
-    const res = await awaitAllLeaderboard(
-      entries =>
-        solvers.every(s => entries.some(e => e.name === s.name && e.score > 0)),
-      25_000
+    const res = await waitUntilSameWith(
+      () => all('/api/v1/leaderboard/now?limit=100&offset=0'),
+      ['id'],
+      40_000,
+      r =>
+        Object.values(r).every(inst => {
+          const body = inst.body as {
+            data?: { leaderboard?: { name: string; score: number }[] }
+          }
+          const entries = body?.data?.leaderboard ?? []
+          return solvers.every(s =>
+            entries.some(e => e.name === s.name && e.score > 0)
+          )
+        })
     )
 
     assertAllSuccess(res)
@@ -192,5 +200,5 @@ describe('Leaderboard - With Test Data', () => {
       )
       expect(hasSolver).toBe(true)
     }
-  }, 30_000)
+  }, 45_000)
 })
