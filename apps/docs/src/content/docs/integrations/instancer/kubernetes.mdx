@@ -435,7 +435,7 @@ $ <red>make</red> run <yellow>ARGS</yellow>=<green>"-instancer-host instancer.te
 <Step title="Test with a sample ChallengeInstance">
 
 ```console
-$ <red>kubectl</red> apply <dim>-f</dim> config/sample/rctf-instancer_v1_challengeinstance.yaml
+$ <red>kubectl</red> apply <dim>-f</dim> config/samples/rctf-instancer_v1_challengeinstance.yaml
 ```
 
 The controller logs the reconciliation flow, and the sample's namespace, service, and `IngressRoute` should appear. Tear the cluster down with `$ <red>kind</red> delete cluster <dim>--name</dim> rctf` when you're done.

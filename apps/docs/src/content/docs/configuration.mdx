@@ -189,7 +189,7 @@ divisions:
 defaultDivision: open
 divisionACLs:
   - match: domain
-    value: edu
+    value: example.edu
     divisions: [student, open]
   - match: any
     value: ''
@@ -209,10 +209,10 @@ ACLs control which divisions a user can register for based on their email. Each 
 | Field | Description |
 | --- | --- |
 | `<red>match</red>` | Match type: `<green>domain</green>`, `<green>email</green>`, `<green>regex</green>`, or `<green>any</green>` |
-| `<red>value</red>` | Value to match against (domain suffix, exact email, regex pattern, or empty for `<green>any</green>`) |
+| `<red>value</red>` | Value to match against (full email domain - the part after `@`, e.g. `example.edu` - exact email, regex pattern, or empty for `<green>any</green>`) |
 | `<red>divisions</red>` | Array of division IDs this rule grants access to |
 
-ACL rules are evaluated in order. The first matching rule determines the user's allowed divisions.
+A user is granted the union of the divisions from **every** matching rule; order does not matter. The `<green>domain</green>` match is an exact full-domain match (`<green>example.edu</green>` matches `alice@example.edu`, not `alice@sub.example.edu`).
 
 <Callout variant="warning" title="Email provider required, disable CTFtime auth">
 

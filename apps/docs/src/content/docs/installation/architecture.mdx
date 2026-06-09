@@ -154,7 +154,7 @@ server {
 
 Notable behavior:
 
-- `<red>brotli_static</red>` and `<red>gzip_static</red>` serve the `.br` and `.gz` files the SvelteKit `<red>adapter-static</red>` precompresses (`<red>precompress</red>`: `<green>true</green>` in `apps/web/svelte.config.ts{:file}`). No on-the-fly compression is configured.
+- `<red>brotli_static</red>` and `<red>gzip_static</red>` serve the `.br` and `.gz` files the SvelteKit `<red>adapter-static</red>` precompresses (`<red>precompress</red>`: `<green>true</green>` in `apps/web/svelte.config.ts{:file}`). On-the-fly gzip is additionally enabled for proxied API responses.
 - `/_app/immutable/` is the SvelteKit hashed-asset directory and gets a one-day immutable cache.
 - The admin upload route has request buffering disabled and `<red>client_max_body_size</red>=<green>0</green>` so large uploads stream straight to the API.
 - `<route>/api</route>` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads/{:dir}` through its own static handler.

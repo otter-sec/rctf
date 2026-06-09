@@ -62,9 +62,9 @@ Each color has five variables defined in `app.css{:file}` for both light and dar
 <Steps>
 <Step title="Define the category">
 
-Add an entry to `categoryConfigs{:ts}` with a name, icon component, Iconify name (for exports), and color key:
+Add an entry to `categoryConfigs{:ts}` with a name, icon component, and color key:
 
-```ts title="lib/utils/categories.ts" ins={5-9}
+```ts title="lib/utils/categories.ts" ins={5-8}
 import { IconCpuFilled } from '$lib/icons'
 
 export const categoryConfigs: Record<string, CategoryConfig> = {
@@ -72,7 +72,6 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
   hardware: {
     name: 'Hardware',
     icon: IconCpuFilled,
-    iconName: 'tabler:cpu-filled',
     color: 'teal', // Use an existing color, or add a new one
   },
 }
@@ -81,14 +80,14 @@ export const categoryConfigs: Record<string, CategoryConfig> = {
 </Step>
 <Step title="Register the icon">
 
-In `lib/icons/index.ts{:file}`, export the icon:
+Icons are vendored as local Svelte components under `lib/icons/{:file}`. Add the component file (e.g. `lib/icons/icon-cpu-filled.svelte{:file}`) and export it from `lib/icons/index.ts{:file}`:
 
 ```ts title="lib/icons/index.ts" ins={3}
-export { default as IconAlertCircleFilled } from '@iconify-svelte/tabler/alert-circle-filled'
-export { default as IconCameraFilled } from '@iconify-svelte/tabler/camera-filled'
-export { default as IconCpuFilled } from '@iconify-svelte/tabler/cpu-filled'
-export { default as IconPhotoFilled } from '@iconify-svelte/tabler/photo-filled'
-export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert-triangle-filled'
+export { default as IconAlertCircleFilled } from './icon-alert-circle-filled.svelte'
+export { default as IconCameraFilled } from './icon-camera-filled.svelte'
+export { default as IconCpuFilled } from './icon-cpu-filled.svelte'
+export { default as IconPhotoFilled } from './icon-photo-filled.svelte'
+export { default as IconAlertTriangleFilled } from './icon-alert-triangle-filled.svelte'
 ```
 
 </Step>
@@ -96,8 +95,9 @@ export { default as IconAlertTriangleFilled } from '@iconify-svelte/tabler/alert
 
 Add your category to `categoryOrder{:ts}` to control its position in the challenge list:
 
-```ts title="lib/utils/categories.ts" ins={4}
+```ts title="lib/utils/categories.ts" ins={13}
 export const categoryOrder = [
+  'koth',
   'sanity',
   'pwn',
   'reverse',
@@ -107,13 +107,12 @@ export const categoryOrder = [
   'web',
   'misc',
   'ppc',
-  'koth',
   'osint',
   'hardware',
 ]
 ```
 
-Categories not in this list show up alphabetically after the listed ones.
+Categories not in this list show up alphabetically after the listed ones. A separate `scoreboardCategoryOrder{:ts}` controls column order on the scoreboard.
 
 </Step>
 <Step title="Add color variables (if using a new color)">
@@ -129,7 +128,7 @@ The following utility functions help with category configuration:
 
 | Function | Purpose |
 | --- | --- |
-| `getCategoryConfig(category){:ts}` | Returns `{ name, icon, iconName, color }{:ts}` for a category key |
+| `getCategoryConfig(category){:ts}` | Returns `{ name, icon, color }{:ts}` for a category key |
 | `getCategoryKeyOrAlias(category){:ts}` | Resolves aliases to canonical keys (`'rev'{:ts}` => `'reverse'{:ts}`) |
 | `getCategoryStyle(color){:ts}` | Generates inline CSS for category variable binding |
 | `getCategoryOrder(category){:ts}` | Returns sort index (`-1` if unlisted) |
