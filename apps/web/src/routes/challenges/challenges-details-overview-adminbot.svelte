@@ -212,19 +212,23 @@
   }
 
   async function downloadConfig() {
-    const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
-    if (res.kind !== 'goodAdminBotConfig') {
-      toast.error(res.message)
-      return
-    }
+    try {
+      const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
+      if (res.kind !== 'goodAdminBotConfig') {
+        toast.error(res.message)
+        return
+      }
 
-    const blob = new Blob([res.data.sourceCode], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `bot${res.data.fileExtension}`
-    a.click()
-    URL.revokeObjectURL(url)
+      const blob = new Blob([res.data.sourceCode], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `bot${res.data.fileExtension}`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      toast.error('Network error, please try again')
+    }
   }
 
   async function fetchHistory() {
@@ -238,6 +242,7 @@
     if (historyLogsJobId === jobId) {
       historyLogsJobId = null
       historyLogs = null
+      historyLogsLoading = false
       historyExpandedLines = new Set()
       return
     }
@@ -251,6 +256,10 @@
       id: challengeId,
       jobId,
     })
+    // a newer click may have switched the selected job while this was in flight
+    if (historyLogsJobId !== jobId) {
+      return
+    }
     if (res.kind === 'goodAdminBotJobLogs') {
       historyLogs = res.data.logs
     }

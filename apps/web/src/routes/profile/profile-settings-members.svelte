@@ -15,12 +15,16 @@
   const memberEmails = $derived(members.map(m => m.email))
 
   const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: queryKeys.members })
+  let tagInputKey = $state(0)
 
   const memberForm = useApiForm(CreateMemberRoute, {
     onSuccess: () => {
       toast.success('Team member added!')
       invalidateMembers()
       memberForm.reset()
+    },
+    onError: () => {
+      tagInputKey++
     },
   })
 
@@ -34,14 +38,17 @@
 
   async function deleteMember(id: string) {
     deleting = id
-    const res = await apiRequest(DeleteMemberRoute, { id })
-    if (res.kind === GoodMemberDelete.kind) {
-      toast.success('Team member removed!')
-      invalidateMembers()
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(DeleteMemberRoute, { id })
+      if (res.kind === GoodMemberDelete.kind) {
+        toast.success('Team member removed!')
+        invalidateMembers()
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      deleting = null
     }
-    deleting = null
   }
 
   function handleEmailsChange(newEmails: string[]) {
@@ -74,15 +81,17 @@
       </div>
     {:else}
       <Field.Field data-invalid={!!memberForm.errors._form || undefined}>
-        <TagInput
-          value={memberEmails}
-          onchange={handleEmailsChange}
-          validate={validateEmail}
-          class="[&>span]:font-sans"
-          disabled={memberForm.submitting || deleting !== null}
-          placeholder="Add more..."
-          emptyPlaceholder="teammate@example.com"
-        />
+        {#key tagInputKey}
+          <TagInput
+            value={memberEmails}
+            onchange={handleEmailsChange}
+            validate={validateEmail}
+            class="[&>span]:font-sans"
+            disabled={memberForm.submitting || deleting !== null}
+            placeholder="Add more..."
+            emptyPlaceholder="teammate@example.com"
+          />
+        {/key}
         {#if memberForm.errors._form}
           <Field.Error>{memberForm.errors._form}</Field.Error>
         {/if}

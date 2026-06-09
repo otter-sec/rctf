@@ -19,7 +19,14 @@
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
   const isArchived = $derived(clientConfig?.isArchived ?? false)
-  const isCtfEnded = $derived(clientConfig ? Date.now() > clientConfig.endTime : false)
+  let now = $state(Date.now())
+  $effect(() => {
+    const interval = setInterval(() => {
+      now = Date.now()
+    }, 1000)
+    return () => clearInterval(interval)
+  })
+  const isCtfEnded = $derived(clientConfig ? now > clientConfig.endTime : false)
 
   const form = useApiForm(SubmitFlagRoute, {
     onSuccess: response => {

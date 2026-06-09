@@ -1,6 +1,6 @@
 <script lang="ts">
   import { useClientConfig } from '$lib/query'
-  import { intervalToDuration } from 'date-fns'
+  import { intervalToDuration } from '$lib/utils'
   import { onDestroy } from 'svelte'
 
   const clientConfigQuery = useClientConfig()
@@ -28,15 +28,7 @@
     if (hasEnded) return '--:--:--'
 
     const diff = Math.max(0, targetTime - now)
-    const {
-      days = 0,
-      hours = 0,
-      minutes = 0,
-      seconds = 0,
-    } = intervalToDuration({
-      start: 0,
-      end: diff,
-    })
+    const { days, hours, minutes, seconds } = intervalToDuration(diff)
 
     const hh = hours.toString().padStart(2, '0')
     const mm = minutes.toString().padStart(2, '0')

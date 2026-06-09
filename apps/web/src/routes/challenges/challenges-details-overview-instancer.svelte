@@ -54,69 +54,81 @@
   }
 
   async function fetchStatus() {
-    const res = await apiRequest(GetInstanceStatusRouteV2, { id: challengeId })
-    if (res.kind === 'goodInstanceStatus') {
-      status = res.data.status
-      endpoints = res.data.endpoints ?? []
-      timeLeft = res.data.timeLeftMilliseconds
-      error = null
-    } else if (res.kind === 'badInstancerError') {
-      error = res.data.message
-    } else {
-      error = res.message
+    try {
+      const res = await apiRequest(GetInstanceStatusRouteV2, { id: challengeId })
+      if (res.kind === 'goodInstanceStatus') {
+        status = res.data.status
+        endpoints = res.data.endpoints ?? []
+        timeLeft = res.data.timeLeftMilliseconds
+        error = null
+      } else if (res.kind === 'badInstancerError') {
+        error = res.data.message
+      } else {
+        error = res.message
+      }
+    } finally {
+      loading = false
     }
-    loading = false
   }
 
   async function start() {
     actioning = true
-    const res = await apiRequest(CreateInstanceRouteV2, { id: challengeId })
-    if (res.kind === 'goodInstanceStatus') {
-      status = res.data.status
-      endpoints = res.data.endpoints ?? []
-      timeLeft = res.data.timeLeftMilliseconds
-      error = null
-      toast.success('Instance started')
-    } else if (res.kind === 'badInstancerError') {
-      toast.error(res.data.message)
-    } else {
-      toast.error(res.message)
+    try {
+      const res = await apiRequest(CreateInstanceRouteV2, { id: challengeId })
+      if (res.kind === 'goodInstanceStatus') {
+        status = res.data.status
+        endpoints = res.data.endpoints ?? []
+        timeLeft = res.data.timeLeftMilliseconds
+        error = null
+        toast.success('Instance started')
+      } else if (res.kind === 'badInstancerError') {
+        toast.error(res.data.message)
+      } else {
+        toast.error(res.message)
+      }
+    } finally {
+      actioning = false
     }
-    actioning = false
   }
 
   async function stop() {
     actioning = true
-    const res = await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
-    if (res.kind === 'goodInstanceStatus') {
-      status = res.data.status
-      endpoints = res.data.endpoints ?? []
-      timeLeft = res.data.timeLeftMilliseconds
-      error = null
-      toast.success('Instance stopped')
-    } else if (res.kind === 'badInstancerError') {
-      toast.error(res.data.message)
-    } else {
-      toast.error(res.message)
+    try {
+      const res = await apiRequest(DeleteInstanceRouteV2, { id: challengeId })
+      if (res.kind === 'goodInstanceStatus') {
+        status = res.data.status
+        endpoints = res.data.endpoints ?? []
+        timeLeft = res.data.timeLeftMilliseconds
+        error = null
+        toast.success('Instance stopped')
+      } else if (res.kind === 'badInstancerError') {
+        toast.error(res.data.message)
+      } else {
+        toast.error(res.message)
+      }
+    } finally {
+      actioning = false
     }
-    actioning = false
   }
 
   async function extend() {
     actioning = true
-    const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
-    if (res.kind === 'goodInstanceStatus') {
-      status = res.data.status
-      endpoints = res.data.endpoints ?? []
-      timeLeft = res.data.timeLeftMilliseconds
-      error = null
-      toast.success('Instance extended')
-    } else if (res.kind === 'badInstancerError') {
-      toast.error(res.data.message)
-    } else {
-      toast.error(res.message)
+    try {
+      const res = await apiRequest(ExtendInstanceRouteV2, { id: challengeId })
+      if (res.kind === 'goodInstanceStatus') {
+        status = res.data.status
+        endpoints = res.data.endpoints ?? []
+        timeLeft = res.data.timeLeftMilliseconds
+        error = null
+        toast.success('Instance extended')
+      } else if (res.kind === 'badInstancerError') {
+        toast.error(res.data.message)
+      } else {
+        toast.error(res.message)
+      }
+    } finally {
+      actioning = false
     }
-    actioning = false
   }
 
   onMount(() => {

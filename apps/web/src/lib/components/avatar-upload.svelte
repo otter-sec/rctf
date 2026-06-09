@@ -2,7 +2,7 @@
   import { Avatar, Button, Section, Spinner } from '$lib/components'
   import { IconCameraFilled, IconTrashFilled } from '$lib/icons'
   import { getInitials } from '$lib/utils'
-  import type { Snippet } from 'svelte'
+  import { onDestroy, type Snippet } from 'svelte'
   import { toast } from 'svelte-sonner'
 
   interface Props {
@@ -33,6 +33,12 @@
 
   const displayAvatarUrl = $derived(isRemoving ? null : (previewUrl ?? avatarUrl))
 
+  onDestroy(() => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
+  })
+
   async function handleFileSelect(e: Event) {
     const input = e.target as HTMLInputElement
     const file = input.files?.[0]
@@ -54,9 +60,13 @@
       return
     }
 
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl)
+    }
     previewUrl = URL.createObjectURL(file)
     const ok = await onUpload(file)
     if (!ok) {
+      URL.revokeObjectURL(previewUrl)
       previewUrl = null
     }
   }

@@ -119,15 +119,18 @@
 
   async function deleteEmail() {
     deletingEmail = true
-    const res = await apiRequest(DeleteEmailRoute, {})
-    if (res.kind === GoodEmailRemoved.kind) {
-      toast.success('Email removed!')
-      invalidateUser()
-      emailForm.setData({ email: '' })
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(DeleteEmailRoute, {})
+      if (res.kind === GoodEmailRemoved.kind) {
+        toast.success('Email removed!')
+        invalidateUser()
+        emailForm.setData({ email: '' })
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      deletingEmail = false
     }
-    deletingEmail = false
   }
 
   function submitEmail(e: Event) {
@@ -209,26 +212,32 @@
 
   async function setCtftime(ctftimeToken: string) {
     settingCtftime = true
-    const res = await apiRequest(SetCtftimeRoute, { ctftimeToken })
-    if (res.kind === GoodCtftimeAuthSet.kind) {
-      toast.success('CTFtime account linked!')
-      invalidateUser()
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(SetCtftimeRoute, { ctftimeToken })
+      if (res.kind === GoodCtftimeAuthSet.kind) {
+        toast.success('CTFtime account linked!')
+        invalidateUser()
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      settingCtftime = false
     }
-    settingCtftime = false
   }
 
   async function deleteCtftime() {
     deletingCtftime = true
-    const res = await apiRequest(DeleteCtftimeRoute, {})
-    if (res.kind === GoodCtftimeRemoved.kind) {
-      toast.success('CTFtime account unlinked!')
-      invalidateUser()
-    } else {
-      showApiError(res)
+    try {
+      const res = await apiRequest(DeleteCtftimeRoute, {})
+      if (res.kind === GoodCtftimeRemoved.kind) {
+        toast.success('CTFtime account unlinked!')
+        invalidateUser()
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      deletingCtftime = false
     }
-    deletingCtftime = false
   }
 
   onMount(() => {

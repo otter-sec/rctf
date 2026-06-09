@@ -196,10 +196,12 @@ export function createScoresDataModel(config: ScoresDataModelConfig) {
 }
 
 export function createScoresGraphDataModel(config: ScoresGraphDataConfig) {
-  const selfGraphQuery = useSelfUserGraph(() =>
-    config.showSelfRow() && config.currentUser()?.globalPlace
-      ? config.currentUser()!.globalPlace
-      : null
+  const selfGraphQuery = useSelfUserGraph(
+    () =>
+      config.showSelfRow() && config.currentUser()?.globalPlace
+        ? config.currentUser()!.globalPlace
+        : null,
+    () => config.currentUser()?.id ?? null
   )
 
   const sparklineDataByTeam = $derived(

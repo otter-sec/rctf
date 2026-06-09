@@ -194,8 +194,11 @@
       </Card.Content>
       <Card.Footer>
         <p class="text-foreground-l3 text-sm">
-          Changed your mind? <a href="/register" class="text-foreground-prose-link hover:underline"
-            >Register with email instead</a
+          Changed your mind? <button
+            type="button"
+            onclick={cancelCtftime}
+            class="text-foreground-prose-link cursor-pointer hover:underline"
+            >Register with email instead</button
           >.
         </p>
       </Card.Footer>

@@ -93,7 +93,10 @@
       return
     }
 
-    const id = isCreating ? crypto.randomUUID() : challenge!.id
+    // capture before SAVE: `send` leaves the `creating` state, so the async
+    // onSuccess below would otherwise always see isCreating as false
+    const wasCreating = isCreating
+    const id = wasCreating ? crypto.randomUUID() : challenge!.id
     const flag = form.scoring.kind === ChallengeScoringKind.DYNAMIC ? '' : form.flag
 
     send({ type: 'SAVE' })
@@ -121,7 +124,7 @@
       {
         onSuccess: response => {
           if (response.kind === GoodChallengeUpdateV2.kind) {
-            toast.success(isCreating ? 'Challenge created!' : 'Challenge saved!')
+            toast.success(wasCreating ? 'Challenge created!' : 'Challenge saved!')
             queryClient.invalidateQueries({
               queryKey: queryKeys.adminChallenges,
             })

@@ -1,15 +1,26 @@
-import { format, intervalToDuration } from 'date-fns'
+import { format } from 'date-fns'
+
+export type Duration = {
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+}
+
+// like date-fns', but it keeps the whole span in days instead of rolling 30+
+// days into a `months` field we never render
+export function intervalToDuration(ms: number): Duration {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000))
+  return {
+    days: Math.floor(totalSeconds / 86_400),
+    hours: Math.floor((totalSeconds % 86_400) / 3_600),
+    minutes: Math.floor((totalSeconds % 3_600) / 60),
+    seconds: totalSeconds % 60,
+  }
+}
 
 function formatTime(diff: number): string {
-  const {
-    days = 0,
-    hours = 0,
-    minutes = 0,
-    seconds = 0,
-  } = intervalToDuration({
-    start: 0,
-    end: diff,
-  })
+  const { days, hours, minutes, seconds } = intervalToDuration(diff)
 
   const parts: string[] = []
   if (days > 0) parts.push(`${days}d`)
@@ -63,9 +74,9 @@ export function formatRelativeHoursMinutes(
   timestamp: number,
   startTime: number
 ): string {
-  const totalMinutes = (timestamp - startTime) / 60_000
+  const totalMinutes = Math.round((timestamp - startTime) / 60_000)
   const hours = Math.floor(totalMinutes / 60)
-  const minutes = Math.round(totalMinutes % 60)
+  const minutes = totalMinutes % 60
 
   if (hours === 0 && minutes === 0) return '0h'
   if (minutes === 0) return `+${hours}h`
