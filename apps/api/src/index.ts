@@ -138,7 +138,7 @@ const main = async () => {
   }
 
   const app =
-    config.instanceType != 'leaderboard' ? await setupApp() : createApp(true)
+    config.instanceType !== 'leaderboard' ? await setupApp() : createApp(true)
 
   const port = Number(process.env.PORT ?? 3000)
   logger.info(`Listening on :${port}`)

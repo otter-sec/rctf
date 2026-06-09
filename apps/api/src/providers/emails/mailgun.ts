@@ -36,7 +36,7 @@ export default class MailgunProvider implements MailProvider {
         }),
       }
     )
-    if (resp.status != 200) {
+    if (resp.status !== 200) {
       throw new Error(`Mailgun error ${resp.status}: ${await resp.text()}`)
     }
   }
