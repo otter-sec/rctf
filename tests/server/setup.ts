@@ -89,6 +89,7 @@ mock.module('@rctf/db', () => {
     createDatabase: () => {
       return { client: pgliteClient, db: pgliteDb }
     },
+    createSingleConnectionClient: () => pgliteClient,
   }
 })
 
