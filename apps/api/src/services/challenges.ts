@@ -298,6 +298,18 @@ export const countNonBannedSolvesForChallenge = async (
   return row?.count ?? 0
 }
 
+export const getChallengeSolveCount = async (
+  db: DatabaseClient | DatabaseTx,
+  challengeId: string
+): Promise<number> => {
+  const row = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(solves)
+    .where(eq(solves.challengeid, challengeId))
+    .then(takeUnique)
+  return row?.count ?? 0
+}
+
 export const getMaxSolveCount = async (
   db: DatabaseClient | DatabaseTx
 ): Promise<number> => {

@@ -1,9 +1,15 @@
 import { GetAdminChallengeRouteV2 } from '@rctf/types'
-import { getPrivateChallenge } from '../../../../services/challenges'
+import {
+  getChallengeSolveCount,
+  getPrivateChallenge,
+} from '../../../../services/challenges'
 import adminGroup from '../group'
 
 adminGroup.route(GetAdminChallengeRouteV2, async ({ res, ctx, params }) => {
-  const data = await getPrivateChallenge(ctx.var.db, params.id)
+  const [data, solveCount] = await Promise.all([
+    getPrivateChallenge(ctx.var.db, params.id),
+    getChallengeSolveCount(ctx.var.db, params.id),
+  ])
   if (!data) {
     return res.badChallenge()
   }
@@ -19,5 +25,6 @@ adminGroup.route(GetAdminChallengeRouteV2, async ({ res, ctx, params }) => {
     instancerConfig: data.data.instancerConfig ?? null,
     adminBotConfig: data.data.adminBotConfig ?? null,
     hidden: data.data.hidden ?? false,
+    solveCount,
   })
 })

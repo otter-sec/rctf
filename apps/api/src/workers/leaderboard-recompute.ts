@@ -55,29 +55,47 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
     }
   }
 
-  const runAllScope = (source: RecomputeSource): Promise<unknown> =>
+  const runAllScope = (source: RecomputeSource): Promise<boolean> =>
     opts
       .applyForAll(source)
-      .catch(err =>
+      .then(() => true)
+      .catch(err => {
         opts.logger.error({ err }, 'all challenge recompute failed')
-      )
+        return false
+      })
 
   const runPerChallenge = (
     recomputes: ReadonlyMap<string, RecomputeSource>,
     maxSolves: number | undefined
-  ): Promise<unknown[]> =>
+  ): Promise<Array<[string, RecomputeSource]>> =>
     Promise.all(
       Array.from(recomputes, ([challengeId, source]) =>
         opts
           .applyForChallenge(challengeId, source, maxSolves)
-          .catch(err =>
+          .then(() => null)
+          .catch(err => {
             opts.logger.error(
               { err, challengeId },
               'challenge recompute failed'
             )
-          )
+            return [challengeId, source] as [string, RecomputeSource]
+          })
       )
+    ).then(results =>
+      results.filter((entry): entry is [string, RecomputeSource] => !!entry)
     )
+
+  const requeueChallenge = (
+    challengeId: string,
+    source: RecomputeSource
+  ): void => {
+    if (!pendingChallengeRecomputes.has(challengeId)) {
+      pendingChallengeRecomputes.set(challengeId, source)
+    }
+    if (recomputeSourceCanChangeMaxSolves(source)) {
+      pendingMaxSolvesSource ??= source
+    }
+  }
 
   const flush = async (): Promise<void> => {
     const challengeRecomputes = new Map(pendingChallengeRecomputes)
@@ -102,13 +120,22 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
     }
 
     if (allSource) {
-      await runAllScope(allSource)
+      const ok = await runAllScope(allSource)
       // if we entered all-scope without sampling above, refresh now
       if (currentMaxSolves === undefined) {
         await readMaxSolves()
       }
+      if (!ok) {
+        pendingAllSource ??= allSource
+      }
     } else {
-      await runPerChallenge(challengeRecomputes, currentMaxSolves)
+      const failed = await runPerChallenge(
+        challengeRecomputes,
+        currentMaxSolves
+      )
+      for (const [challengeId, source] of failed) {
+        requeueChallenge(challengeId, source)
+      }
     }
 
     await opts.onFlushed()

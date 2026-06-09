@@ -209,29 +209,24 @@ export function assertSame(res: AllResponses, ignore: string[] = []) {
       return obj.map(normalize)
     }
 
+    const source = obj as Record<string, unknown>
     const out: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(obj as Record<string, unknown>)) {
+    for (const k of Object.keys(source).sort()) {
       if (!ignore.includes(k)) {
-        out[k] = normalize(v)
+        out[k] = normalize(source[k])
       }
     }
     return out
-  }
-  const customJsonStringify = (obj: unknown): string => {
-    if (typeof obj !== 'object' || obj === null) {
-      return JSON.stringify(obj)
-    }
-    return JSON.stringify(obj, Object.keys(obj).sort())
   }
 
   const normalized = Object.fromEntries(
     Object.entries(res).map(([k, v]) => [k, normalize(v)])
   )
-  const values = Object.values(normalized).map(v => customJsonStringify(v))
+  const values = Object.values(normalized).map(v => JSON.stringify(v))
   if (!values.every(v => v === values[0])) {
     throw new Error(
       `Response mismatch:\n${Object.entries(normalized)
-        .map(([k, v]) => `${k}: ${customJsonStringify(v)}`)
+        .map(([k, v]) => `${k}: ${JSON.stringify(v)}`)
         .join('\n')}`
     )
   }

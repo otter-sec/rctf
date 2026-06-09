@@ -317,8 +317,8 @@ const recomputeScores = (
   const maxSolves = scoreProvider.requiredFields.includes('maxSolves')
     ? Math.max(
         0,
-        ...Array.from(state.challengeInfos.values()).map(
-          challenge => challenge.solves
+        ...Array.from(state.challengeInfos.values()).map(challenge =>
+          challenge.scoringKind === 'decay' ? challenge.solves : 0
         )
       )
     : 0
