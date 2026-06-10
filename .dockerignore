@@ -19,3 +19,4 @@ deploy/
 !deploy/docs/
 !deploy/docker-instancer/Dockerfile
 **/__pycache__/**
+apps/k8s-controller/bin/
