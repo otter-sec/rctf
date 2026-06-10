@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { withTimeout } from '@rctf/util'
 import { applyHooks } from '../browser/hooks'
 import { BrowserManager } from '../browser/manager'
 import type { ChallengeContext, JobMetadata } from '../types'
@@ -58,17 +59,14 @@ export const handleSubmission = async (
   output.info('admin-bot', 'running challenge handler')
 
   let handlerError: unknown = undefined
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
   try {
-    await Promise.race([
+    await withTimeout(
       challenge.config.handler(visitCtx),
-      new Promise<never>((_, reject) => {
-        timeoutId = setTimeout(
-          () => reject(new Error('timeout')),
-          challenge.config.timeoutMilliseconds
-        )
-      }),
-    ])
+      challenge.config.timeoutMilliseconds,
+      () => {
+        throw new Error('timeout')
+      }
+    )
   } catch (err) {
     handlerError = err
     if (err instanceof Error && err.message === 'timeout') {
@@ -77,7 +75,6 @@ export const handleSubmission = async (
       log.error({ err }, 'challenge failed')
     }
   } finally {
-    clearTimeout(timeoutId)
     try {
       await visitCtx.browserContext.close()
     } catch (err) {

@@ -42,6 +42,7 @@ jobs:
               - '.github/workflows/_test.yml'
               - '.github/actions/setup-bun-deps/action.yml'
             admin-bot:
+              - 'package.json'
               - 'apps/admin-bot/**'
               - 'packages/**'
               - 'deploy/admin-bot/**'

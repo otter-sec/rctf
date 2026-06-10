@@ -8,6 +8,7 @@ import {
   install,
   resolveBuildId,
 } from '@puppeteer/browsers'
+import { withTimeout } from '@rctf/util'
 import { launch, Browser as PuppeteerBrowser } from 'puppeteer-core'
 import {
   defaultChromeArguments,
@@ -221,26 +222,19 @@ export class BrowserManager {
       }
     }
 
-    let timeoutId: ReturnType<typeof setTimeout> | undefined
-    try {
-      return await Promise.race([
-        launch({
-          headless: true,
-          browser: version.browser,
-          args,
-          executablePath,
-          extraPrefsFirefox,
-          ...(options.puppeteerLaunchOptionsExtra ?? {}),
-        }),
-        new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(
-            () => reject(new Error('browser launch timed out')),
-            LAUNCH_TIMEOUT_MS
-          )
-        }),
-      ])
-    } finally {
-      clearTimeout(timeoutId)
-    }
+    return await withTimeout(
+      launch({
+        headless: true,
+        browser: version.browser,
+        args,
+        executablePath,
+        extraPrefsFirefox,
+        ...(options.puppeteerLaunchOptionsExtra ?? {}),
+      }),
+      LAUNCH_TIMEOUT_MS,
+      () => {
+        throw new Error('browser launch timed out')
+      }
+    )
   }
 }

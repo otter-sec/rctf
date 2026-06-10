@@ -1,10 +1,13 @@
 import type { Hono } from 'hono'
-import { setupApp } from '../../apps/api/src/index'
+import {
+  registerErrorHandlers,
+  setupFullApiApp,
+} from '../../apps/api/src/index'
 
-let appPromise: ReturnType<typeof setupApp> | null = null
+let appPromise: ReturnType<typeof setupFullApiApp> | null = null
 export const getApp = () => {
   if (!appPromise) {
-    appPromise = setupApp()
+    appPromise = setupFullApiApp().then(value => registerErrorHandlers(value))
   }
   return appPromise
 }

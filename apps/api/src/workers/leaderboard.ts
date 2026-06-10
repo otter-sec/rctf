@@ -39,7 +39,9 @@ const election = createLeaderElection({
   pollIntervalMs: LEADER_POLL_INTERVAL_MS,
   onAcquired: () => {
     logger.info('acquired leaderboard leadership')
-    return tick({ forceCache: true })
+    // drain decay recomputes dropped while there was no leader
+    queue.enqueue({ scope: 'all', source: 'decay-recompute' })
+    return queue.flush()
   },
   onLost: () => {
     logger.warn('lost leaderboard leadership')
@@ -74,6 +76,7 @@ const queue = createRecomputeQueue({
   applyForAll: source => applyDecayPointsForAllChallenges(db, source),
   getMaxSolves: getTrackedMaxSolves,
   initialMaxSolves,
+  shouldFlush: () => election.isLeader(),
   onFlushed: () => gatedTick({ forceCache: true }),
   logger,
 })
@@ -105,7 +108,11 @@ setInterval(gatedTick, config.leaderboard.updateInterval)
 // @ts-ignore TS2322
 onmessage = (ev: any) => {
   if (ev?.data?.type === 'shutdown') {
-    void election.stop()
+    void election.stop().finally(() => {
+      try {
+        postMessage({ type: 'shutdown-complete' })
+      } catch {}
+    })
     return
   }
   if (ev?.data?.type === 'force-update') {

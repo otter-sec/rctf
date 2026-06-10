@@ -54,9 +54,11 @@ export const createDatabase = (params: SqlConfig) => {
   return { client, db }
 }
 
+// holds session-scoped advisory locks, so the connection must never be
+// recycled
 export const createSingleConnectionClient = (params: SqlConfig) =>
   typeof params === 'string'
-    ? postgres(params, { max: 1, onnotice: () => {} })
+    ? postgres(params, { max: 1, max_lifetime: null, onnotice: () => {} })
     : postgres({
         host: params.host,
         port: params.port,
@@ -64,5 +66,7 @@ export const createSingleConnectionClient = (params: SqlConfig) =>
         password: params.password,
         database: params.database,
         max: 1,
+        max_lifetime: null,
+        connect_timeout: params.connectTimeout / 1000,
         onnotice: () => {},
       })

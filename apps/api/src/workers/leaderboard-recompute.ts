@@ -16,6 +16,7 @@ type RecomputeQueueOptions = {
   applyForAll: (source: RecomputeSource) => Promise<unknown>
   getMaxSolves?: () => Promise<number>
   initialMaxSolves?: number
+  shouldFlush?: () => boolean
   onFlushed: () => Promise<void> | void
   logger: Logger
 }
@@ -98,6 +99,10 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
   }
 
   const flush = async (): Promise<void> => {
+    if (opts.shouldFlush && !opts.shouldFlush()) {
+      return
+    }
+
     const challengeRecomputes = new Map(pendingChallengeRecomputes)
     let allSource = pendingAllSource
     const maxSolvesSource = pendingMaxSolvesSource

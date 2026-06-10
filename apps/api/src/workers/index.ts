@@ -108,9 +108,23 @@ const supervise = (
         w.postMessage({ type: 'shutdown' })
       } catch {}
 
+      // wait for the worker to confirm it released its locks, capped by the
+      // grace period so a hung worker can't stall shutdown
       await new Promise<void>(resolve => {
         const t = setTimeout(resolve, SHUTDOWN_GRACE_MS)
         t.unref?.()
+
+        const settle = (): void => {
+          clearTimeout(t)
+          resolve()
+        }
+
+        w.addEventListener('message', event => {
+          if (event.data?.type === 'shutdown-complete') {
+            settle()
+          }
+        })
+        w.addEventListener('close', settle)
       })
 
       try {

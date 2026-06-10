@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
+import { withTimeout } from '@rctf/util'
 import { Hono, type MiddlewareHandler } from 'hono'
 import { pinoLogger } from 'hono-pino'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
@@ -56,30 +57,35 @@ const registerApiRoutes = (
   }
 }
 
-export const registerHealthRoutes = (app: Hono<AppEnv>): void => {
+const registerHealthRoutes = (app: Hono<AppEnv>): void => {
   app.get('/api/healthz', c => c.text('ok'))
   app.get('/api/readyz', async c => {
     const [dbOk, redisOk] = await Promise.all([
-      c.var.pg`SELECT 1`.then(() => true).catch(() => false),
-      c.var.redis
-        .ping()
-        .then(pong => pong === 'PONG')
-        .catch(() => false),
+      withTimeout(
+        c.var.pg`SELECT 1`.then(() => true).catch(() => false),
+        2_000,
+        () => false
+      ),
+      withTimeout(
+        c.var.redis
+          .ping()
+          .then(pong => pong === 'PONG')
+          .catch(() => false),
+        2_000,
+        () => false
+      ),
     ])
 
-    if (!dbOk) {
-      return c.text('unhealthy db', 503)
-    }
-
-    if (!redisOk) {
-      return c.text('unhealthy redis', 503)
+    if (!dbOk || !redisOk) {
+      c.var.logger.warn({ dbOk, redisOk }, 'readiness check failed')
+      return c.text('unhealthy', 503)
     }
 
     return c.text('ok')
   })
 }
 
-const registerErrorHandlers = (app: Hono<AppEnv>) => {
+export const registerErrorHandlers = (app: Hono<AppEnv>): Hono<AppEnv> => {
   app.notFound(c =>
     c.json(
       { kind: BadEndpoint.kind, message: BadEndpoint.message },
@@ -94,9 +100,11 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
       ErrorInternal.status as ContentfulStatusCode
     )
   })
+
+  return app
 }
 
-export const setupApp = async () => {
+export const setupFullApiApp = async () => {
   const app = createApp()
 
   const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
@@ -118,7 +126,6 @@ export const setupApp = async () => {
   if (adminBotProvider) {
     await adminBotProvider.startupWebPart(app)
   }
-  registerErrorHandlers(app)
 
   return app
 }
@@ -135,8 +142,13 @@ const main = async () => {
     startLeaderboardWorker(logger)
   }
 
-  const app =
-    config.instanceType !== 'leaderboard' ? await setupApp() : createApp()
+  let app: Hono<AppEnv>
+  if (config.instanceType !== 'leaderboard') {
+    app = await setupFullApiApp()
+  } else {
+    app = createApp()
+  }
+  registerErrorHandlers(app)
 
   const port = Number(process.env.PORT ?? 3000)
   logger.info(`Listening on :${port}`)
@@ -161,19 +173,22 @@ const main = async () => {
     }, config.shutdownTimeout)
     forceExit.unref?.()
 
+    let dirty = false
     try {
       await server.stop()
     } catch (err) {
+      dirty = true
       logger.error({ err }, 'error stopping server')
     }
     try {
       await stopWorkers()
     } catch (err) {
+      dirty = true
       logger.error({ err }, 'error stopping workers')
     }
 
     clearTimeout(forceExit)
-    process.exit(0)
+    process.exit(dirty ? 1 : 0)
   }
 
   process.on('SIGTERM', () => void shutdown('SIGTERM'))

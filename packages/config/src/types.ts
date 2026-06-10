@@ -52,8 +52,8 @@ export const ServerConfigSchema = z.object({
   origin: z.string(),
   tokenKey: z.string(),
   instanceType: z._default(z.enum(['leaderboard', 'all', 'frontend']), 'all'),
-  shutdownTimeout: z._default(z.number(), 30_000),
-  idleTimeout: z._default(z.number(), 65),
+  shutdownTimeout: z._default(z.int().check(z.gte(0)), 30_000),
+  idleTimeout: z._default(z.int().check(z.gte(0), z.lte(255)), 65),
 
   // Database
   database: z.object({

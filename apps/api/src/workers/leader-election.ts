@@ -1,4 +1,8 @@
-import { createSingleConnectionClient, type SqlConfig } from '@rctf/db'
+import {
+  createSingleConnectionClient,
+  type PostgresClient,
+  type SqlConfig,
+} from '@rctf/db'
 
 type Logger = {
   info: (obj: unknown, msg?: string) => void
@@ -13,7 +17,10 @@ export type LeaderElectionOptions = {
   onAcquired?: () => void | Promise<void>
   onLost?: () => void | Promise<void>
   logger: Logger
+  client?: PostgresClient
 }
+
+const MAX_POLL_FAILURES = 3
 
 export type LeaderElection = {
   isLeader: () => boolean
@@ -24,11 +31,12 @@ export type LeaderElection = {
 export const createLeaderElection = (
   opts: LeaderElectionOptions
 ): LeaderElection => {
-  const lockSql = createSingleConnectionClient(opts.sql)
+  const lockSql = opts.client ?? createSingleConnectionClient(opts.sql)
   let leader = false
   let stopped = false
   let timer: ReturnType<typeof setTimeout> | undefined
   let leaderPid: number | null = null
+  let pollFailures = 0
 
   const setLeader = (next: boolean): void => {
     if (next === leader) {
@@ -59,7 +67,9 @@ export const createLeaderElection = (
 
     try {
       if (leader) {
-        // a changed pid means postgres-js silently reconnected and the lock was released
+        // a changed pid means postgres-js silently reconnected and the lock
+        // was released; another node may have acquired it before this check
+        // runs, so believed leadership can briefly overlap
         const [row] = await lockSql<{ pid: number }[]>`
           SELECT pg_backend_pid() AS pid
         `
@@ -71,6 +81,9 @@ export const createLeaderElection = (
       }
 
       if (!leader) {
+        // reentrant on purpose: after a tolerated poll failure the session
+        // may still hold the lock, and re-acquiring just bumps its hold
+        // count - stop() releases by closing the session, so it can't leak
         const [row] = await lockSql<{ locked: boolean; pid: number }[]>`
           SELECT pg_try_advisory_lock(${opts.lockKey}::bigint) AS locked,
                  pg_backend_pid() AS pid
@@ -81,11 +94,16 @@ export const createLeaderElection = (
           setLeader(true)
         }
       }
+
+      pollFailures = 0
     } catch (err) {
-      // assume the lock is no longer held
-      leaderPid = null
-      setLeader(false)
-      opts.logger.error({ err }, 'leader election poll failed')
+      pollFailures++
+      opts.logger.error({ err, pollFailures }, 'leader election poll failed')
+
+      if (leader && pollFailures >= MAX_POLL_FAILURES) {
+        leaderPid = null
+        setLeader(false)
+      }
     } finally {
       schedule()
     }

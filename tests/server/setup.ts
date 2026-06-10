@@ -83,13 +83,24 @@ const takeUnique = <T extends any[]>(values: T): T[number] | undefined => {
   return values[0]
 }
 
+const renderTemplate = (strings: TemplateStringsArray) =>
+  strings.reduce((acc, part, i) => (i === 0 ? part : `${acc}$${i}${part}`), '')
+
+const pgClientMock = Object.assign(
+  (strings: TemplateStringsArray, ...params: unknown[]) =>
+    pgliteClient
+      .query(renderTemplate(strings), params as any[])
+      .then(result => result.rows),
+  { end: async () => {} }
+)
+
 mock.module('@rctf/db', () => {
   return {
     ...schema,
     createDatabase: () => {
-      return { client: pgliteClient, db: pgliteDb }
+      return { client: pgClientMock, db: pgliteDb }
     },
-    createSingleConnectionClient: () => pgliteClient,
+    createSingleConnectionClient: () => pgClientMock,
   }
 })
 
