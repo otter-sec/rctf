@@ -1,16 +1,85 @@
-FROM --platform=$BUILDPLATFORM oven/bun:1.3.14-debian AS build
+FROM --platform=$BUILDPLATFORM oven/bun:1.3.14-debian AS build-base
 WORKDIR /app
 
-COPY apps/admin-bot/package.json ./
-RUN bun install --frozen-lockfile
-
-COPY tsconfig.json /tsconfig.json
-COPY apps/admin-bot/tsconfig.json ./
-COPY apps/admin-bot/src/ ./src/
-RUN bun run build
-
-FROM oven/bun:1.3.14-debian
+FROM oven/bun:1.3.14-debian AS runtime-base
 WORKDIR /app
+
+# TODO(es3n1n): deduplicate it once we settle on a sane shared Docker build pattern
+FROM build-base AS package-configs
+
+COPY package.json bun.lock ./
+COPY packages/config/package.json ./packages/config/
+COPY packages/db/package.json ./packages/db/
+COPY packages/scoring/package.json ./packages/scoring/
+COPY packages/types/package.json ./packages/types/
+COPY packages/util/package.json ./packages/util/
+COPY tests/server/package.json ./tests/server/
+COPY tests/admin-bot/package.json ./tests/admin-bot/
+COPY tests/admin-bot-e2e/package.json ./tests/admin-bot-e2e/
+COPY apps/admin-bot/package.json ./apps/admin-bot/
+COPY apps/api/package.json ./apps/api/
+COPY apps/docs/package.json ./apps/docs/
+COPY apps/export/package.json ./apps/export/
+COPY apps/seed/package.json ./apps/seed/
+COPY apps/web/package.json ./apps/web/
+
+FROM build-base AS deps
+
+COPY --from=package-configs /app/ ./
+RUN bun install \
+    --frozen-lockfile \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache \
+    --filter '!@rctf/api' \
+    --filter '!@rctf/config' \
+    --filter '!@rctf/db' \
+    --filter '!@rctf/docs' \
+    --filter '!@rctf/export' \
+    --filter '!@rctf/scoring' \
+    --filter '!@rctf/seed' \
+    --filter '!@rctf/types' \
+    --filter '!@rctf/web' \
+    --filter '!server-tests' \
+    --filter '!admin-bot-tests' \
+    --filter '!admin-bot-e2e-tests'
+
+FROM build-base AS build
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=package-configs /app/package.json /app/bun.lock ./
+
+COPY tsconfig.json ./
+COPY apps/admin-bot/package.json apps/admin-bot/tsconfig.json ./apps/admin-bot/
+COPY apps/admin-bot/src/ ./apps/admin-bot/src/
+COPY packages/util/package.json ./packages/util/
+COPY packages/util/src/ ./packages/util/src/
+
+RUN bun run --filter '@rctf/admin-bot' build
+
+FROM runtime-base AS prod-deps
+
+COPY --from=package-configs /app/ ./
+RUN bun install \
+    --production \
+    --frozen-lockfile \
+    --linker=hoisted \
+    --backend=copyfile \
+    --no-cache \
+    --filter '!@rctf/api' \
+    --filter '!@rctf/config' \
+    --filter '!@rctf/db' \
+    --filter '!@rctf/docs' \
+    --filter '!@rctf/export' \
+    --filter '!@rctf/scoring' \
+    --filter '!@rctf/seed' \
+    --filter '!@rctf/types' \
+    --filter '!@rctf/web' \
+    --filter '!server-tests' \
+    --filter '!admin-bot-tests' \
+    --filter '!admin-bot-e2e-tests'
+
+FROM runtime-base AS production
 
 RUN groupadd -r adminbot && useradd -r -g adminbot -m -s /usr/sbin/nologin adminbot
 
@@ -61,10 +130,13 @@ ENV XDG_CONFIG_HOME=/tmp/.config
 ENV XDG_RUNTIME_DIR=/tmp/.run
 RUN mkdir -p /data/browser-cache && chown -R adminbot:adminbot /data
 
-COPY apps/admin-bot/package.json ./
-RUN bun install --production
+COPY --from=prod-deps /app/node_modules ./node_modules
 
-COPY --from=build /app/dist ./dist/
+COPY --from=build /app/packages/util/package.json ./packages/util/package.json
+COPY --from=build /app/packages/util/src ./packages/util/src
+
+COPY --from=build /app/package.json ./
+COPY --from=build /app/apps/admin-bot/dist ./dist/
 
 USER adminbot
 EXPOSE 21337

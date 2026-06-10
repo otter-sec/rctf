@@ -31,7 +31,7 @@ export default class PostmarkProvider implements MailProvider {
       }),
     })
 
-    if (resp.status != 200) {
+    if (resp.status !== 200) {
       throw new Error(`Postmark error ${resp.status}: ${await resp.text()}`)
     }
   }

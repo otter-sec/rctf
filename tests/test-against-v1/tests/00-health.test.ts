@@ -7,6 +7,7 @@ import {
   docker,
   instances,
   PROJECT,
+  waitUntilSame,
 } from '../lib/harness'
 
 describe('Health Check', () => {
@@ -37,17 +38,23 @@ describe('Health Check', () => {
   })
 
   test('leaderboard endpoint returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/now?limit=10&offset=0')
+    const res = await waitUntilSame(
+      '/api/v1/leaderboard/now?limit=10&offset=0',
+      ['id']
+    )
 
     assertAllSuccess(res)
-    assertSame(res)
+    assertSame(res, ['id'])
   })
 
   test('leaderboard graph endpoint returns same response', async () => {
-    const res = await all('/api/v1/leaderboard/graph?limit=10')
+    const res = await waitUntilSame('/api/v1/leaderboard/graph?limit=10', [
+      'id',
+      'time',
+    ])
 
     assertAllSuccess(res)
-    assertSame(res)
+    assertSame(res, ['id', 'time'])
   })
 
   test('GET /api/v1/nonexistent returns badEndpoint', async () => {

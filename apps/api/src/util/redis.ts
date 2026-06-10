@@ -1,6 +1,9 @@
 import { config } from '@rctf/config'
 import { Redis } from 'ioredis'
+import { pino } from 'pino'
 import { loadLuaCommands, type TypedRedis } from '../cache/scripts'
+
+const logger = pino().child({ module: 'redis' })
 
 // Things we need from a redis library that bun doesn't have right now:
 // - https://github.com/oven-sh/bun/issues/21404
@@ -19,5 +22,6 @@ export async function createRedis(
           password: config.database.redis.password,
           db: config.database.redis.database,
         })
+  redis.on('error', err => logger.error({ err }, 'redis client error'))
   return opts.lua ? await loadLuaCommands(redis) : redis
 }

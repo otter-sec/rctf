@@ -231,6 +231,66 @@ describe('recompute queue enqueue/flush', () => {
     void queue
   })
 
+  test('shouldFlush=false parks pending work until a later flush', async () => {
+    requireNothing()
+    const onFlushed = mock(async () => {})
+    const logger = { error: mock(() => {}) }
+    const applyForChallenge = mock(
+      async (_id: string, _src: string, _maxSolves?: number) => {}
+    )
+    let gateOpen = false
+    const q = createRecomputeQueue({
+      debounceMs: 0,
+      applyForChallenge,
+      applyForAll: mock(async () => {}),
+      shouldFlush: () => gateOpen,
+      onFlushed,
+      logger,
+    })
+
+    q.enqueue({ scope: 'challenge', challengeId: 'c1', source: 'flag' })
+    await q.flush()
+
+    expect(applyForChallenge).not.toHaveBeenCalled()
+    expect(onFlushed).not.toHaveBeenCalled()
+
+    gateOpen = true
+    await q.flush()
+
+    expect(applyForChallenge).toHaveBeenCalledWith('c1', 'flag', undefined)
+    expect(onFlushed).toHaveBeenCalledTimes(1)
+  })
+
+  test('hasPending tracks queued and re-parked work', async () => {
+    requireNothing()
+    const logger = { error: mock(() => {}) }
+    let failures = 1
+    const applyForAll = mock(async () => {
+      if (failures > 0) {
+        failures--
+        throw new Error('boom')
+      }
+    })
+    const q = createRecomputeQueue({
+      debounceMs: 0,
+      applyForChallenge: mock(async () => {}),
+      applyForAll,
+      onFlushed: mock(async () => {}),
+      logger,
+    })
+
+    expect(q.hasPending()).toBe(false)
+    q.enqueue({ scope: 'all', source: 'algo-change' })
+    expect(q.hasPending()).toBe(true)
+
+    // a failed flush re-parks the all-scope entry
+    await q.flush()
+    expect(q.hasPending()).toBe(true)
+
+    await q.flush()
+    expect(q.hasPending()).toBe(false)
+  })
+
   test('requeues a failed per-challenge recompute instead of dropping it', async () => {
     requireNothing()
     const onFlushed = mock(async () => {})

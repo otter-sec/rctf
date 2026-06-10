@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import RedisMock from 'ioredis-mock'
 import { loadLuaCommands } from '../../apps/api/src/cache/scripts'
+import * as locks from '../../packages/db/src/locks'
 import * as schema from '../../packages/db/src/schema'
 
 const testConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')
@@ -83,12 +84,25 @@ const takeUnique = <T extends any[]>(values: T): T[number] | undefined => {
   return values[0]
 }
 
+const renderTemplate = (strings: TemplateStringsArray) =>
+  strings.reduce((acc, part, i) => (i === 0 ? part : `${acc}$${i}${part}`), '')
+
+const pgClientMock = Object.assign(
+  (strings: TemplateStringsArray, ...params: unknown[]) =>
+    pgliteClient
+      .query(renderTemplate(strings), params as any[])
+      .then(result => result.rows),
+  { end: async () => {} }
+)
+
 mock.module('@rctf/db', () => {
   return {
+    ...locks,
     ...schema,
     createDatabase: () => {
-      return { client: pgliteClient, db: pgliteDb }
+      return { client: pgClientMock, db: pgliteDb }
     },
+    createSingleConnectionClient: () => pgClientMock,
   }
 })
 

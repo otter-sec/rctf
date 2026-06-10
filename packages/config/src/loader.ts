@@ -108,6 +108,10 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['logoUrl', getString('RCTF_EMAIL_LOGO_URL')],
   ])
 
+  const uploadProvider = optionalObjectFrom([
+    ['name', getString('RCTF_UPLOAD_PROVIDER')],
+  ])
+
   const leaderboard = optionalObjectFrom([
     ['maxLimit', getInteger('RCTF_LEADERBOARD_MAX_LIMIT')],
     ['maxOffset', getInteger('RCTF_LEADERBOARD_MAX_OFFSET')],
@@ -125,6 +129,8 @@ export const loadEnvConfig = (): ConfigLayer => {
   return (optionalObjectFrom([
     ['database', database],
     ['instanceType', getString('RCTF_INSTANCE_TYPE')],
+    ['shutdownTimeout', getInteger('RCTF_SHUTDOWN_TIMEOUT')],
+    ['idleTimeout', getInteger('RCTF_IDLE_TIMEOUT')],
     ['tokenKey', getString('RCTF_TOKEN_KEY')],
     ['origin', getString('RCTF_ORIGIN')],
     ['ctftime', ctftime],
@@ -139,5 +145,6 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['endTime', getInteger('RCTF_END_TIME')],
     ['leaderboard', leaderboard],
     ['loginTimeout', getInteger('RCTF_LOGIN_TIMEOUT')],
+    ['uploadProvider', uploadProvider],
   ]) || {}) as ConfigLayer
 }

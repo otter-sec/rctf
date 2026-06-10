@@ -1,5 +1,6 @@
 import { config } from '@rctf/config'
 import { BadEndpoint, ErrorInternal } from '@rctf/types'
+import { withTimeout } from '@rctf/util'
 import { Hono, type MiddlewareHandler } from 'hono'
 import { pinoLogger } from 'hono-pino'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
@@ -15,7 +16,7 @@ import {
 } from './providers'
 import { routeModules } from './routes'
 import { analyticsScriptHandler } from './routes/v2/integrations/routes/get-analytics-script'
-import { startLeaderboardWorker } from './workers'
+import { startLeaderboardWorker, stopWorkers } from './workers'
 
 const logger = pino({
   level:
@@ -28,6 +29,8 @@ const createApp = () => {
 
   app.use(pinoLogger({ pino: logger }))
   app.use(appEnvMiddleware)
+  registerHealthRoutes(app)
+  registerErrorHandlers(app)
 
   return app
 }
@@ -55,7 +58,41 @@ const registerApiRoutes = (
   }
 }
 
-const registerErrorHandlers = (app: Hono<AppEnv>) => {
+const registerHealthRoutes = (app: Hono<AppEnv>): void => {
+  let dbProbe: Promise<boolean> | undefined
+  let redisProbe: Promise<boolean> | undefined
+
+  app.get('/api/healthz', c => c.text('ok'))
+  app.get('/api/readyz', async c => {
+    dbProbe ??= c.var.pg`SELECT 1`
+      .then(() => true)
+      .catch(() => false)
+      .finally(() => {
+        dbProbe = undefined
+      })
+    redisProbe ??= c.var.redis
+      .ping()
+      .then(pong => pong === 'PONG')
+      .catch(() => false)
+      .finally(() => {
+        redisProbe = undefined
+      })
+
+    const [dbOk, redisOk] = await Promise.all([
+      withTimeout(dbProbe, 2_000, () => false),
+      withTimeout(redisProbe, 2_000, () => false),
+    ])
+
+    if (!dbOk || !redisOk) {
+      c.var.logger.warn({ dbOk, redisOk }, 'readiness check failed')
+      return c.text('unhealthy', 503)
+    }
+
+    return c.text('ok')
+  })
+}
+
+const registerErrorHandlers = (app: Hono<AppEnv>): void => {
   app.notFound(c =>
     c.json(
       { kind: BadEndpoint.kind, message: BadEndpoint.message },
@@ -72,7 +109,7 @@ const registerErrorHandlers = (app: Hono<AppEnv>) => {
   })
 }
 
-export const setupApp = async () => {
+export const setupFullApiApp = async () => {
   const app = createApp()
 
   const badEndpointMiddleware: MiddlewareHandler = async (c, _) => {
@@ -94,7 +131,6 @@ export const setupApp = async () => {
   if (adminBotProvider) {
     await adminBotProvider.startupWebPart(app)
   }
-  registerErrorHandlers(app)
 
   return app
 }
@@ -107,18 +143,55 @@ const main = async () => {
     }
   }
 
-  const app = await setupApp()
-
   if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
     startLeaderboardWorker(logger)
   }
 
-  if (config.instanceType === 'frontend' || config.instanceType === 'all') {
-    const port = Number(process.env.PORT ?? 3000)
-    logger.info(`Listening on :${port}`)
-    // idleTimeout should be at least higher than nginx's
-    Bun.serve({ port, fetch: app.fetch, idleTimeout: 65 })
+  const app =
+    config.instanceType === 'leaderboard'
+      ? createApp()
+      : await setupFullApiApp()
+
+  const port = Number(process.env.PORT ?? 3000)
+  logger.info(`Listening on :${port}`)
+
+  const server = Bun.serve({
+    port,
+    fetch: app.fetch,
+    idleTimeout: config.idleTimeout,
+  })
+
+  let shuttingDown = false
+  const shutdown = async (signal: string): Promise<void> => {
+    if (shuttingDown) {
+      logger.error({ signal }, 'received second signal; exiting immediately')
+      process.exit(1)
+    }
+    shuttingDown = true
+    logger.info({ signal }, 'shutting down')
+
+    let forceExit: ReturnType<typeof setTimeout> | undefined
+    if (config.shutdownTimeout > 0) {
+      forceExit = setTimeout(() => {
+        logger.error('graceful shutdown timed out; forcing exit')
+        process.exit(1)
+      }, config.shutdownTimeout)
+      forceExit.unref?.()
+    }
+
+    const results = await Promise.allSettled([server.stop(), stopWorkers()])
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        logger.error({ err: result.reason }, 'shutdown step failed')
+      }
+    }
+
+    clearTimeout(forceExit)
+    process.exit(results.some(r => r.status === 'rejected') ? 1 : 0)
   }
+
+  process.on('SIGTERM', () => void shutdown('SIGTERM'))
+  process.on('SIGINT', () => void shutdown('SIGINT'))
 }
 
 export default main

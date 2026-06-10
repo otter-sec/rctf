@@ -40,24 +40,13 @@ A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is wha
 
 The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs.
 
-| Value                          | API server | Leaderboard worker thread |
-| ------------------------------ | ---------- | ------------------------- |
-| `<green>all</green>` (default) | Yes        | Yes                       |
-| `<green>frontend</green>`      | Yes        | No                        |
-| `<green>leaderboard</green>`   | No         | Yes                       |
+| Value                          | API server  | Leaderboard worker thread |
+| ------------------------------ | ----------- | ------------------------- |
+| `<green>all</green>` (default) | Yes         | Yes                       |
+| `<green>frontend</green>`      | Yes         | No                        |
+| `<green>leaderboard</green>`   | Health only | Yes                       |
 
-The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
-
-```ts title="apps/api/src/index.ts"
-if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
-  startLeaderboardWorker(logger)
-}
-
-if (config.instanceType === 'frontend' || config.instanceType === 'all') {
-  const port = Number(process.env.PORT ?? 3000)
-  Bun.serve({ port, fetch: app.fetch })
-}
-```
+Every type binds an HTTP server on `PORT{:sh}` (default `3000{:ts}`) - including `<green>leaderboard</green>`, which serves only the `/api/healthz{:sh}` and `/api/readyz{:sh}` probes, not the API routes, so an orchestrator can still health-check it.
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard' or 'all'
@@ -65,30 +54,47 @@ instanceType: frontend # or 'leaderboard' or 'all'
 
 ## Horizontal scaling
 
-To scale beyond a single container:
+To scale beyond a single container, run any number of `<green>all</green>` containers behind a load balancer. They share PostgreSQL and Redis, and a Postgres advisory lock coordinates the one piece of work that has to be a singleton (the leaderboard worker), so you don't have to split roles by hand.
 
-- Run any number of `<green>frontend</green>` containers behind a load balancer. They share PostgreSQL, Redis, and (with the local upload provider) a shared `/app/uploads/{:dir}` mount. Switching to the S3 or GCS upload provider removes that constraint.
-- Run **exactly one** `<green>leaderboard</green>` instance. The worker in `apps/api/src/workers/leaderboard.ts{:file}` schedules itself with `setInterval(tick, config.leaderboard.updateInterval){:ts}` and writes results to a shared Redis cache. There's no Redis lock or leader election around `<red>tick</red>`, so multiple `<green>leaderboard</green>` instances would race on `cacheLeaderboardAndGraph` and waste compute recalculating the same snapshot. Concurrent ticks inside the same process are guarded by an in-process `<red>running</red>` flag, which doesn't coordinate across processes.
-
-<Callout variant='warning' title='Only one leaderboard worker at a time'>
-  This includes `<green>all</green>`, which already runs a leaderboard worker. If you split into
-  `<green>frontend</green>` + `<green>leaderboard</green>`, every other container must be
-  `<green>frontend</green>`, never another `<green>all</green>` or a second
-  `<green>leaderboard</green>`.
-
-The bundled container's `<green>all</green>` mode is plenty for most events.
-
+<Callout variant="note" title="Splitting roles is optional">
+  Running several `all` replicas is the simplest setup. You can split into separate `frontend` and
+  `leaderboard` replicas to keep the worker's CPU away from request serving, but you don't need to
+  for correctness: the leader lock parks any extra leaderboard workers on standby instead of letting
+  them race.
 </Callout>
 
-<Callout variant='note' title='Forced leaderboard updates in split mode'>
-  API mutations on `<green>frontend</green>` containers wake the separate `<green>leaderboard</green>`
-  worker through Redis pub/sub on the `leaderboard:force-update{:sh}` and
-  `leaderboard:recompute-challenge{:sh}` channels. The same hooks fire from the dynamic-scoring
-  webhook so a `<green>frontend</green>`-only API instance can receive an external score push and
-  still trigger an immediate leaderboard recompute on the worker instance. As long as both
-  processes share the same Redis, forced updates land within the worker's next tick.
+<Callout variant="warning" title="No transaction-pooling proxies">
+  Point `<red>database.sql</red>` at Postgres directly or through a session-pooling proxy: leader
+  election and the migration lock take **session-scoped** advisory locks. Transaction-pooling setups
+  (PgBouncer in `transaction` mode, multiplexing proxies) route each statement to a different
+  backend, which strands the lock on a pooled server connection and silently halts leaderboard
+  updates.
 </Callout>
+
+<Callout variant='note' title='Forced leaderboard updates'>
+  API mutations and the dynamic-scoring webhook wake the active leaderboard worker through Redis
+  pub/sub on the `leaderboard:force-update{:sh}` and `leaderboard:recompute-challenge{:sh}` channels.
+  Only the current leader acts on them immediately; a worker that takes over first recomputes every
+  challenge, covering requests that landed while there was no leader. As long as every process
+  shares the same Redis, forced updates land within the worker's next tick regardless of which
+  replica received the request.
+</Callout>
+
+## Health checks
+
+The API exposes two unauthenticated endpoints for load balancers and orchestrator probes. The bundled nginx proxies them under `/api{:sh}`.
+
+| Endpoint | Purpose | Behavior |
+| --- | --- | --- |
+| `/api/healthz{:sh}` | Liveness | Returns `<green>200</green>` while the process is up. |
+| `/api/readyz{:sh}` | Readiness | Returns `<green>200</green>` when PostgreSQL and Redis are both reachable, and `<red>503</red>` otherwise. Use it to gate load-balancer traffic. |
+
+## Graceful shutdown
+
+On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting new connections, drains in-flight requests, and stops the leaderboard worker. Stopping the worker releases its advisory lock, so a standby takes over within its next poll (≤5s) instead of waiting for Postgres to notice the dropped session. A hard timeout (`<red>shutdownTimeout</red>`, default 30s) forces the process to exit if draining stalls, so give your orchestrator a termination grace period at least that long (the bundled container ships `stopwaitsecs=35{:sh}` in supervisord and `stop_grace_period: 45s{:yaml}` in `compose.yml{:file}`). A second signal skips the drain and exits immediately.
+
+If a leader dies **without** closing its connection (host crash, network partition), the lock stays held until Postgres reaps the dead session - by default that relies on OS TCP keepalives and can take a long time. For multi-node deployments, tighten `tcp_keepalives_idle{:sh}`/`tcp_keepalives_interval{:sh}`/`tcp_keepalives_count{:sh}` on Postgres so dead peers are noticed and a standby can take over promptly. (Avoid `idle_session_timeout{:sh}`: it also kills healthy idle sessions, including the one holding the migration lock.)
 
 ## Deployment templates
 
-There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml{:file}`, no Terraform module). It's on the roadmap and will land here when ready. For now, the bundled single-node `compose.yml{:file}` is the only supported template, and splitting into `<green>frontend</green>` + `<green>leaderboard</green>` containers is something you wire up yourself against your own orchestrator.
+There are no first-party deployment templates for horizontally scaled rCTF yet (no Helm chart, no multi-replica `compose.yml{:file}`, no Terraform module). It's on the roadmap and will land here when ready. For single-box events, the bundled `compose.yml{:file}` is still the simplest option.

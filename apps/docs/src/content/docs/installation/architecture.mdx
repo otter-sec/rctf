@@ -196,23 +196,6 @@ The list above is the entire allow-set the bundled build ships with. There is no
   The CSP omits `frame-ancestors` because it is ignored from `<meta>{:html}` tags. Click-jacking protection is enforced via the nginx `X-Frame-Options: DENY{:http}` header instead.
 </Callout>
 
-## Horizontal scaling with `instanceType{:ts}`
-
-The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE_TYPE{:sh}`) selects what an API process runs. The available modes are `<green>all</green>`, `<green>frontend</green>`, and `<green>leaderboard</green>`. The dispatch happens at startup in `apps/api/src/index.ts{:file}`:
-
-```ts title="apps/api/src/index.ts"
-if (config.instanceType === 'leaderboard' || config.instanceType === 'all') {
-  startLeaderboardWorker(logger)
-}
-
-if (config.instanceType === 'frontend' || config.instanceType === 'all') {
-  const port = Number(process.env.PORT ?? 3000)
-  Bun.serve({ port, fetch: app.fetch })
-}
-```
-
-See [Scaling](/installation/scaling/) for the full mode table, the one-leaderboard-replica constraint, the forced-update limitation in split mode, and observed resource usage on real events.
-
 ## External dependencies
 
 The container only contains the rCTF application, nginx, and supervisor. Everything else is external.

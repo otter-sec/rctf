@@ -47,7 +47,7 @@ export default class TelegramMessagesProvider implements MessageProvider {
       }
     )
 
-    if (resp.status != 200) {
+    if (resp.status !== 200) {
       throw new Error(`Telegram error ${resp.status}: ${await resp.text()}`)
     }
   }

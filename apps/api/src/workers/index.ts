@@ -1,3 +1,4 @@
+import { withTimeout } from '@rctf/util'
 import pino from 'pino'
 import type { TypedRedis } from '../cache/scripts'
 import type { RecomputeSource } from '../services/solve-points'
@@ -9,13 +10,16 @@ export const LEADERBOARD_FORCE_UPDATE_CHANNEL = 'leaderboard:force-update'
 export const LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL =
   'leaderboard:recompute-challenge'
 
+export const LEADER_POLL_INTERVAL_MS = 5_000
+
 const RESTART_BACKOFF_BASE_MS = 500
 const RESTART_BACKOFF_MAX_MS = 30_000
 const RESTART_BACKOFF_RESET_MS = 30_000
+const SHUTDOWN_GRACE_MS = 1000
 
 type Supervised = {
   get worker(): Worker | undefined
-  stop(): void
+  stop(): Promise<void>
 }
 
 const supervise = (
@@ -50,6 +54,9 @@ const supervise = (
         return
       }
       closeHandled = true
+      if (current === w) {
+        current = undefined
+      }
       if (stableTimer) {
         clearTimeout(stableTimer)
         stableTimer = undefined
@@ -88,14 +95,39 @@ const supervise = (
     get worker() {
       return current
     },
-    stop() {
+    async stop() {
       stopped = true
       if (stableTimer) {
         clearTimeout(stableTimer)
         stableTimer = undefined
       }
+
+      const w = current
+      if (!w) {
+        return
+      }
+
       try {
-        current?.terminate()
+        w.postMessage({ type: 'shutdown' })
+      } catch {
+        // postMessage only throws when the worker is already terminated
+        return
+      }
+
+      // wait for the worker to confirm it released its locks, capped by the
+      // grace period so a hung worker can't stall shutdown
+      const acked = new Promise<void>(resolve => {
+        w.addEventListener('message', event => {
+          if (event.data?.type === 'shutdown-complete') {
+            resolve()
+          }
+        })
+        w.addEventListener('close', () => resolve())
+      })
+      await withTimeout(acked, SHUTDOWN_GRACE_MS, () => undefined)
+
+      try {
+        w.terminate()
       } catch {}
     },
   }
@@ -161,6 +193,6 @@ export const requestAllChallengesRecompute = (
   source: RecomputeSource = 'decay-recompute'
 ): void => publishRecompute(redis, { scope: 'all', source })
 
-export const stopWorkers = (): void => {
-  leaderboardSupervisor?.stop()
+export const stopWorkers = async (): Promise<void> => {
+  await leaderboardSupervisor?.stop()
 }

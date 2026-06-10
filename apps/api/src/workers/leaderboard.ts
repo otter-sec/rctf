@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import { createDatabase } from '@rctf/db'
+import { ADVISORY_LOCK_KEYS, createDatabase } from '@rctf/db'
 import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
 import { getMaxSolveCount } from '../services/challenges'
@@ -11,10 +11,12 @@ import {
 } from '../services/solve-points'
 import { createRedis } from '../util/redis'
 import {
+  LEADER_POLL_INTERVAL_MS,
   LEADERBOARD_FORCE_UPDATE_CHANNEL,
   LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
   type DecayRecomputeRequest,
 } from './index'
+import { createLeaderElection } from './leader-election'
 import { createRecomputeQueue } from './leaderboard-recompute'
 import { createLeaderboardTickRunner } from './leaderboard-runner'
 
@@ -29,6 +31,34 @@ const tickRunner = createLeaderboardTickRunner({
   logger,
 })
 const tick = tickRunner.tick
+
+const election = createLeaderElection({
+  sql: config.database.sql,
+  lockKey: ADVISORY_LOCK_KEYS.leaderboardLeader,
+  pollIntervalMs: LEADER_POLL_INTERVAL_MS,
+  onAcquired: async () => {
+    logger.info('acquired leaderboard leadership')
+
+    queue.enqueue({ scope: 'all', source: 'decay-recompute' })
+    await queue.flush()
+
+    while (election.isLeader() && queue.hasPending()) {
+      await Bun.sleep(1_000)
+      await queue.flush()
+    }
+  },
+  onLost: () => {
+    logger.warn('lost leaderboard leadership')
+  },
+  logger,
+})
+
+const gatedTick = (opts?: { forceCache?: boolean }): Promise<void> | void => {
+  if (!election.isLeader()) {
+    return
+  }
+  return tick(opts)
+}
 
 const RECOMPUTE_DEBOUNCE_MS = Math.max(
   500,
@@ -50,9 +80,17 @@ const queue = createRecomputeQueue({
   applyForAll: source => applyDecayPointsForAllChallenges(db, source),
   getMaxSolves: getTrackedMaxSolves,
   initialMaxSolves,
-  onFlushed: () => tick({ forceCache: true }),
+  shouldFlush: () => election.isLeader(),
+  onFlushed: () => gatedTick({ forceCache: true }),
   logger,
 })
+
+const gatedSchedule = (request: DecayRecomputeRequest): void => {
+  if (!election.isLeader()) {
+    return
+  }
+  queue.schedule(request)
+}
 
 const subscriber = await createRedis({ lua: false })
 await subscriber.subscribe(
@@ -63,22 +101,31 @@ await subscriber.subscribe(
 subscriber.on('message', (channel, message) => {
   switch (channel) {
     case LEADERBOARD_FORCE_UPDATE_CHANNEL:
-      return tick({ forceCache: true })
+      return gatedTick({ forceCache: true })
     case LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL:
-      return queue.schedule(JSON.parse(message))
+      return gatedSchedule(JSON.parse(message))
   }
 })
 
-tick({ forceCache: true })
-setInterval(tick, config.leaderboard.updateInterval)
+setInterval(gatedTick, config.leaderboard.updateInterval)
 
 // @ts-ignore TS2322
 onmessage = (ev: any) => {
+  if (ev?.data?.type === 'shutdown') {
+    void election.stop().finally(() => {
+      try {
+        postMessage({ type: 'shutdown-complete' })
+      } catch {}
+    })
+    return
+  }
   if (ev?.data?.type === 'force-update') {
-    tick({ forceCache: true })
+    gatedTick({ forceCache: true })
     return
   }
   if (ev?.data?.type === 'recompute-decay') {
     queue.schedule(ev.data as DecayRecomputeRequest)
   }
 }
+
+election.start()

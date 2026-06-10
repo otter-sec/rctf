@@ -42,6 +42,8 @@ jobs:
               - '.github/workflows/_test.yml'
               - '.github/actions/setup-bun-deps/action.yml'
             admin-bot:
+              - 'package.json'
+              - 'bun.lock'
               - 'apps/admin-bot/**'
               - 'packages/**'
               - 'deploy/admin-bot/**'
@@ -53,6 +55,7 @@ jobs:
               - 'deploy/k8s-controller/Dockerfile'
             rctf:
               - 'package.json'
+              - 'bun.lock'
               - 'apps/api/**'
               - 'apps/web/**'
               - 'packages/**'

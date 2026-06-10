@@ -21,6 +21,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@puppeteer/browsers": "2.13.0",
+        "@rctf/util": "workspace:*",
         "hono": "4.12.23",
         "pino": "10.3.1",
         "puppeteer-core": "24.39.1",
@@ -283,6 +284,7 @@
         "@rctf/db": "workspace:*",
         "@rctf/scoring": "workspace:*",
         "@rctf/types": "workspace:*",
+        "@rctf/util": "workspace:*",
         "@types/ioredis-mock": "8.2.7",
         "drizzle-orm": "0.45.2",
         "hono": "4.12.23",
