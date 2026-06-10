@@ -5,6 +5,7 @@ import postgres from 'postgres'
 import { z } from 'zod/mini'
 import * as schema from './schema'
 
+export * from './locks'
 export * from './schema'
 
 export type DatabaseClient = PostgresJsDatabase<typeof schema>
@@ -58,7 +59,12 @@ export const createDatabase = (params: SqlConfig) => {
 // recycled
 export const createSingleConnectionClient = (params: SqlConfig) =>
   typeof params === 'string'
-    ? postgres(params, { max: 1, max_lifetime: null, onnotice: () => {} })
+    ? postgres(params, {
+        max: 1,
+        max_lifetime: null,
+        idle_timeout: 0,
+        onnotice: () => {},
+      })
     : postgres({
         host: params.host,
         port: params.port,
@@ -67,6 +73,7 @@ export const createSingleConnectionClient = (params: SqlConfig) =>
         database: params.database,
         max: 1,
         max_lifetime: null,
+        idle_timeout: 0,
         connect_timeout: params.connectTimeout / 1000,
         onnotice: () => {},
       })

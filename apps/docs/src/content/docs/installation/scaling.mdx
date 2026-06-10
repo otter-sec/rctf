@@ -46,7 +46,7 @@ The `<red>instanceType</red>` config option (environment variable `RCTF_INSTANCE
 | `<green>frontend</green>`      | Yes         | No                        |
 | `<green>leaderboard</green>`   | Health only | Yes                       |
 
-Every type binds an HTTP server. `<green>leaderboard</green>` serves only the `/api/healthz{:sh}` and `/api/readyz{:sh}` probes, not the API routes, so an orchestrator can still health-check it.
+Every type binds an HTTP server on `PORT{:sh}` (default `3000{:ts}`) - including `<green>leaderboard</green>`, which serves only the `/api/healthz{:sh}` and `/api/readyz{:sh}` probes, not the API routes, so an orchestrator can still health-check it.
 
 ```yaml title="rctf.d/02-scaling.yaml"
 instanceType: frontend # or 'leaderboard' or 'all'
@@ -63,12 +63,21 @@ To scale beyond a single container, run any number of `<green>all</green>` conta
   them race.
 </Callout>
 
+<Callout variant="warning" title="No transaction-pooling proxies">
+  Point `<red>database.sql</red>` at Postgres directly or through a session-pooling proxy: leader
+  election and the migration lock take **session-scoped** advisory locks. Transaction-pooling setups
+  (PgBouncer in `transaction` mode, multiplexing proxies) route each statement to a different
+  backend, which strands the lock on a pooled server connection and silently halts leaderboard
+  updates.
+</Callout>
+
 <Callout variant='note' title='Forced leaderboard updates'>
   API mutations and the dynamic-scoring webhook wake the active leaderboard worker through Redis
   pub/sub on the `leaderboard:force-update{:sh}` and `leaderboard:recompute-challenge{:sh}` channels.
-  Only the current leader acts on them; standby workers ignore them. As long as every process shares
-  the same Redis, forced updates land within the worker's next tick regardless of which replica
-  received the request.
+  Only the current leader acts on them immediately; a worker that takes over first recomputes every
+  challenge, covering requests that landed while there was no leader. As long as every process
+  shares the same Redis, forced updates land within the worker's next tick regardless of which
+  replica received the request.
 </Callout>
 
 ## Health checks
@@ -82,7 +91,9 @@ The API exposes two unauthenticated endpoints for load balancers and orchestrato
 
 ## Graceful shutdown
 
-On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting new connections, drains in-flight requests, and stops the leaderboard worker. Stopping the worker releases its advisory lock, so a standby takes over on its next poll instead of waiting for Postgres to notice the dropped session. A hard timeout (`<red>shutdownTimeout</red>`, default 30s) forces the process to exit if draining stalls, so give your orchestrator a termination grace period at least that long.
+On `SIGTERM{:sh}` or `SIGINT{:sh}`, the API stops accepting new connections, drains in-flight requests, and stops the leaderboard worker. Stopping the worker releases its advisory lock, so a standby takes over within its next poll (≤5s) instead of waiting for Postgres to notice the dropped session. A hard timeout (`<red>shutdownTimeout</red>`, default 30s) forces the process to exit if draining stalls, so give your orchestrator a termination grace period at least that long (the bundled container ships `stopwaitsecs=35{:sh}` in supervisord and `stop_grace_period: 45s{:yaml}` in `compose.yml{:file}`). A second signal skips the drain and exits immediately.
+
+If a leader dies **without** closing its connection (host crash, network partition), the lock stays held until Postgres reaps the dead session - by default that relies on OS TCP keepalives and can take a long time. For multi-node deployments, tighten `tcp_keepalives_idle{:sh}`/`tcp_keepalives_interval{:sh}`/`tcp_keepalives_count{:sh}` on Postgres so dead peers are noticed and a standby can take over promptly. (Avoid `idle_session_timeout{:sh}`: it also kills healthy idle sessions, including the one holding the migration lock.)
 
 ## Deployment templates
 

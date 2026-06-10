@@ -2,7 +2,7 @@ import type { PostgresClient } from '@rctf/db'
 import { describe, expect, mock, test } from 'bun:test'
 import { createLeaderElection } from '../../../../apps/api/src/workers/leader-election'
 
-type QueryHandler = (query: string) => unknown[]
+type QueryHandler = (query: string) => unknown[] | Promise<unknown[]>
 
 const createFakeLockClient = (handle: QueryHandler) => {
   const queries: string[] = []
@@ -208,6 +208,38 @@ describe('leader election', () => {
       true
     )
     expect(end).toHaveBeenCalledTimes(1)
+  })
+
+  test('a poll that wins the lock after stop() does not assume leadership', async () => {
+    let release: (() => void) | undefined
+    const gate = new Promise<void>(resolve => {
+      release = resolve
+    })
+    const { client, queries } = createFakeLockClient(query => {
+      if (query.includes('pg_try_advisory_lock')) {
+        return gate.then(() => [{ locked: true, pid: 1 }])
+      }
+      return [{ pid: 1 }]
+    })
+    const onAcquired = mock(() => {})
+    const election = createLeaderElection({
+      ...baseOptions,
+      onAcquired,
+      logger: createLogger(),
+      client,
+    })
+
+    election.start()
+    await waitFor(() => queries.length >= 1)
+
+    // stop while the try_lock query is still in flight, then let it win
+    const stopPromise = election.stop()
+    release!()
+    await stopPromise
+    await sleep(20)
+
+    expect(election.isLeader()).toBe(false)
+    expect(onAcquired).not.toHaveBeenCalled()
   })
 
   test('stop without leadership skips the unlock but closes the client', async () => {

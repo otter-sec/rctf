@@ -1,3 +1,4 @@
+import { withTimeout } from '@rctf/util'
 import pino from 'pino'
 import type { TypedRedis } from '../cache/scripts'
 import type { RecomputeSource } from '../services/solve-points'
@@ -9,7 +10,6 @@ export const LEADERBOARD_FORCE_UPDATE_CHANNEL = 'leaderboard:force-update'
 export const LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL =
   'leaderboard:recompute-challenge'
 
-export const LEADER_LOCK_KEY = 8836914
 export const LEADER_POLL_INTERVAL_MS = 5_000
 
 const RESTART_BACKOFF_BASE_MS = 500
@@ -54,6 +54,9 @@ const supervise = (
         return
       }
       closeHandled = true
+      if (current === w) {
+        current = undefined
+      }
       if (stableTimer) {
         clearTimeout(stableTimer)
         stableTimer = undefined
@@ -106,26 +109,22 @@ const supervise = (
 
       try {
         w.postMessage({ type: 'shutdown' })
-      } catch {}
+      } catch {
+        // postMessage only throws when the worker is already terminated
+        return
+      }
 
       // wait for the worker to confirm it released its locks, capped by the
       // grace period so a hung worker can't stall shutdown
-      await new Promise<void>(resolve => {
-        const t = setTimeout(resolve, SHUTDOWN_GRACE_MS)
-        t.unref?.()
-
-        const settle = (): void => {
-          clearTimeout(t)
-          resolve()
-        }
-
+      const acked = new Promise<void>(resolve => {
         w.addEventListener('message', event => {
           if (event.data?.type === 'shutdown-complete') {
-            settle()
+            resolve()
           }
         })
-        w.addEventListener('close', settle)
+        w.addEventListener('close', () => resolve())
       })
+      await withTimeout(acked, SHUTDOWN_GRACE_MS, () => undefined)
 
       try {
         w.terminate()

@@ -5,8 +5,6 @@ import {
 } from '@rctf/db'
 
 type Logger = {
-  info: (obj: unknown, msg?: string) => void
-  warn: (obj: unknown, msg?: string) => void
   error: (obj: unknown, msg?: string) => void
 }
 
@@ -73,6 +71,9 @@ export const createLeaderElection = (
         const [row] = await lockSql<{ pid: number }[]>`
           SELECT pg_backend_pid() AS pid
         `
+        if (stopped) {
+          return
+        }
 
         if (!row || row.pid !== leaderPid) {
           leaderPid = null
@@ -88,6 +89,11 @@ export const createLeaderElection = (
           SELECT pg_try_advisory_lock(${opts.lockKey}::bigint) AS locked,
                  pg_backend_pid() AS pid
         `
+        if (stopped) {
+          // stop() already ran while this query was in flight: don't assume
+          // leadership
+          return
+        }
 
         if (row?.locked) {
           leaderPid = row.pid

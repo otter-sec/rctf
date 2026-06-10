@@ -157,5 +157,8 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
     }, opts.debounceMs)
   }
 
-  return { schedule, enqueue, flush }
+  const hasPending = (): boolean =>
+    pendingChallengeRecomputes.size > 0 || pendingAllSource !== undefined
+
+  return { schedule, enqueue, flush, hasPending }
 }

@@ -30,6 +30,7 @@ const createApp = () => {
   app.use(pinoLogger({ pino: logger }))
   app.use(appEnvMiddleware)
   registerHealthRoutes(app)
+  registerErrorHandlers(app)
 
   return app
 }
@@ -58,22 +59,28 @@ const registerApiRoutes = (
 }
 
 const registerHealthRoutes = (app: Hono<AppEnv>): void => {
+  let dbProbe: Promise<boolean> | undefined
+  let redisProbe: Promise<boolean> | undefined
+
   app.get('/api/healthz', c => c.text('ok'))
   app.get('/api/readyz', async c => {
+    dbProbe ??= c.var.pg`SELECT 1`
+      .then(() => true)
+      .catch(() => false)
+      .finally(() => {
+        dbProbe = undefined
+      })
+    redisProbe ??= c.var.redis
+      .ping()
+      .then(pong => pong === 'PONG')
+      .catch(() => false)
+      .finally(() => {
+        redisProbe = undefined
+      })
+
     const [dbOk, redisOk] = await Promise.all([
-      withTimeout(
-        c.var.pg`SELECT 1`.then(() => true).catch(() => false),
-        2_000,
-        () => false
-      ),
-      withTimeout(
-        c.var.redis
-          .ping()
-          .then(pong => pong === 'PONG')
-          .catch(() => false),
-        2_000,
-        () => false
-      ),
+      withTimeout(dbProbe, 2_000, () => false),
+      withTimeout(redisProbe, 2_000, () => false),
     ])
 
     if (!dbOk || !redisOk) {
@@ -85,7 +92,7 @@ const registerHealthRoutes = (app: Hono<AppEnv>): void => {
   })
 }
 
-export const registerErrorHandlers = (app: Hono<AppEnv>): Hono<AppEnv> => {
+const registerErrorHandlers = (app: Hono<AppEnv>): void => {
   app.notFound(c =>
     c.json(
       { kind: BadEndpoint.kind, message: BadEndpoint.message },
@@ -100,8 +107,6 @@ export const registerErrorHandlers = (app: Hono<AppEnv>): Hono<AppEnv> => {
       ErrorInternal.status as ContentfulStatusCode
     )
   })
-
-  return app
 }
 
 export const setupFullApiApp = async () => {
@@ -142,13 +147,10 @@ const main = async () => {
     startLeaderboardWorker(logger)
   }
 
-  let app: Hono<AppEnv>
-  if (config.instanceType !== 'leaderboard') {
-    app = await setupFullApiApp()
-  } else {
-    app = createApp()
-  }
-  registerErrorHandlers(app)
+  const app =
+    config.instanceType === 'leaderboard'
+      ? createApp()
+      : await setupFullApiApp()
 
   const port = Number(process.env.PORT ?? 3000)
   logger.info(`Listening on :${port}`)
@@ -162,33 +164,30 @@ const main = async () => {
   let shuttingDown = false
   const shutdown = async (signal: string): Promise<void> => {
     if (shuttingDown) {
-      return
+      logger.error({ signal }, 'received second signal; exiting immediately')
+      process.exit(1)
     }
     shuttingDown = true
     logger.info({ signal }, 'shutting down')
 
-    const forceExit = setTimeout(() => {
-      logger.error('graceful shutdown timed out; forcing exit')
-      process.exit(1)
-    }, config.shutdownTimeout)
-    forceExit.unref?.()
-
-    let dirty = false
-    try {
-      await server.stop()
-    } catch (err) {
-      dirty = true
-      logger.error({ err }, 'error stopping server')
+    let forceExit: ReturnType<typeof setTimeout> | undefined
+    if (config.shutdownTimeout > 0) {
+      forceExit = setTimeout(() => {
+        logger.error('graceful shutdown timed out; forcing exit')
+        process.exit(1)
+      }, config.shutdownTimeout)
+      forceExit.unref?.()
     }
-    try {
-      await stopWorkers()
-    } catch (err) {
-      dirty = true
-      logger.error({ err }, 'error stopping workers')
+
+    const results = await Promise.allSettled([server.stop(), stopWorkers()])
+    for (const result of results) {
+      if (result.status === 'rejected') {
+        logger.error({ err: result.reason }, 'shutdown step failed')
+      }
     }
 
     clearTimeout(forceExit)
-    process.exit(dirty ? 1 : 0)
+    process.exit(results.some(r => r.status === 'rejected') ? 1 : 0)
   }
 
   process.on('SIGTERM', () => void shutdown('SIGTERM'))

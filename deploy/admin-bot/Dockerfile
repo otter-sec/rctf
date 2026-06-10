@@ -32,9 +32,13 @@ RUN bun install \
     --backend=copyfile \
     --no-cache \
     --filter '!@rctf/api' \
+    --filter '!@rctf/config' \
+    --filter '!@rctf/db' \
     --filter '!@rctf/docs' \
     --filter '!@rctf/export' \
+    --filter '!@rctf/scoring' \
     --filter '!@rctf/seed' \
+    --filter '!@rctf/types' \
     --filter '!@rctf/web' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
@@ -63,9 +67,13 @@ RUN bun install \
     --backend=copyfile \
     --no-cache \
     --filter '!@rctf/api' \
+    --filter '!@rctf/config' \
+    --filter '!@rctf/db' \
     --filter '!@rctf/docs' \
     --filter '!@rctf/export' \
+    --filter '!@rctf/scoring' \
     --filter '!@rctf/seed' \
+    --filter '!@rctf/types' \
     --filter '!@rctf/web' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \

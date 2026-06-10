@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import RedisMock from 'ioredis-mock'
 import { loadLuaCommands } from '../../apps/api/src/cache/scripts'
+import * as locks from '../../packages/db/src/locks'
 import * as schema from '../../packages/db/src/schema'
 
 const testConfigDir = path.resolve(import.meta.dir, 'data/rctf.d')
@@ -96,6 +97,7 @@ const pgClientMock = Object.assign(
 
 mock.module('@rctf/db', () => {
   return {
+    ...locks,
     ...schema,
     createDatabase: () => {
       return { client: pgClientMock, db: pgliteDb }

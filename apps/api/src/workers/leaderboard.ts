@@ -1,5 +1,5 @@
 import { config } from '@rctf/config'
-import { createDatabase } from '@rctf/db'
+import { ADVISORY_LOCK_KEYS, createDatabase } from '@rctf/db'
 import { pino } from 'pino'
 import { cacheLeaderboardAndGraph } from '../cache/leaderboard'
 import { getMaxSolveCount } from '../services/challenges'
@@ -11,7 +11,6 @@ import {
 } from '../services/solve-points'
 import { createRedis } from '../util/redis'
 import {
-  LEADER_LOCK_KEY,
   LEADER_POLL_INTERVAL_MS,
   LEADERBOARD_FORCE_UPDATE_CHANNEL,
   LEADERBOARD_RECOMPUTE_CHALLENGE_CHANNEL,
@@ -35,13 +34,18 @@ const tick = tickRunner.tick
 
 const election = createLeaderElection({
   sql: config.database.sql,
-  lockKey: LEADER_LOCK_KEY,
+  lockKey: ADVISORY_LOCK_KEYS.leaderboardLeader,
   pollIntervalMs: LEADER_POLL_INTERVAL_MS,
-  onAcquired: () => {
+  onAcquired: async () => {
     logger.info('acquired leaderboard leadership')
-    // drain decay recomputes dropped while there was no leader
+
     queue.enqueue({ scope: 'all', source: 'decay-recompute' })
-    return queue.flush()
+    await queue.flush()
+
+    while (election.isLeader() && queue.hasPending()) {
+      await Bun.sleep(1_000)
+      await queue.flush()
+    }
   },
   onLost: () => {
     logger.warn('lost leaderboard leadership')
@@ -120,7 +124,7 @@ onmessage = (ev: any) => {
     return
   }
   if (ev?.data?.type === 'recompute-decay') {
-    gatedSchedule(ev.data as DecayRecomputeRequest)
+    queue.schedule(ev.data as DecayRecomputeRequest)
   }
 }
 
