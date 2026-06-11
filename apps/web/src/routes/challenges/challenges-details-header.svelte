@@ -12,7 +12,7 @@
 
   const config = $derived(getCategoryConfig(challenge.category))
   const categoryStyle = $derived(getCategoryStyle(config.color))
-  const otherTags = $derived((challenge as Challenge & { tags?: string[] }).tags ?? [])
+  const otherTags = $derived(challenge.tags ?? [])
   const isDynamic = $derived(challenge.scoringKind === ChallengeScoringKind.DYNAMIC)
   const displayPoints = $derived(isDynamic ? (challenge.yourScore ?? 0) : (challenge.points ?? 0))
   const displayPointDelta = $derived(challenge.yourPointDelta ?? 0)

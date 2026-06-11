@@ -19,6 +19,7 @@ export const AdminChallengeSchemaV2 = z.object({
   flag: z.string(),
   tiebreakEligible: z.boolean(),
   sortWeight: z.nullish(z.number()),
+  tags: z.nullish(z.array(z.string())),
   instancerConfig: z.nullish(InstancerConfigSchema),
   adminBotConfig: z.nullish(AdminBotConfigSchema),
   hidden: z.boolean(),

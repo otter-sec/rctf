@@ -328,6 +328,7 @@ export const UpdateChallengeRouteV2 = defineRoute({
       tiebreakEligible: z.optional(z.boolean()),
       files: z.optional(z.array(ChallengeFileSchemaV2)),
       sortWeight: z.optional(z.number()),
+      tags: z.optional(z.array(z.string())),
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
       adminBotConfig: z.nullish(z.object({ code: z.string() })),
       hidden: z.optional(z.boolean()),

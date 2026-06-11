@@ -113,6 +113,7 @@
           points: { min: form.pointsMin, max: form.pointsMax },
           tiebreakEligible: form.tiebreakEligible,
           sortWeight: form.sortWeight || undefined,
+          tags: form.tags,
           files: form.files,
           instancerConfig: form.instancerConfig,
           adminBotConfig: form.adminBotConfig.enabled ? { code: form.adminBotConfig.code } : null,
@@ -146,6 +147,7 @@
                 files: form.files,
                 tiebreakEligible: form.tiebreakEligible,
                 sortWeight: form.sortWeight,
+                tags: form.tags,
                 instancerConfig: form.instancerConfig,
                 adminBotConfig: response.data.adminBotConfig,
                 hidden: form.hidden,
@@ -303,6 +305,7 @@
           pointsMax={form.pointsMax}
           tiebreakEligible={form.tiebreakEligible}
           sortWeight={form.sortWeight}
+          tags={form.tags}
           files={form.files}
           instancerConfig={form.instancerConfig}
           adminBotConfig={form.adminBotConfig}
@@ -327,6 +330,7 @@
           onPointsMaxChange={v => updateField('pointsMax', v)}
           onTiebreakEligibleChange={v => updateField('tiebreakEligible', v)}
           onSortWeightChange={v => updateField('sortWeight', v)}
+          onTagsChange={v => updateField('tags', v)}
           onHiddenChange={v => updateField('hidden', v)}
           onReleaseTimeChange={v => updateField('releaseTime', v)}
           releaseTime={form.releaseTime}
