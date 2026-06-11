@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 import type { Hono } from 'hono'
-import { serveStatic } from 'hono/bun'
 import type { AppEnv } from '../../lib/app-env'
 import { encodeKey, UploadProvider, type FileInfo } from './base'
 
@@ -31,20 +30,31 @@ export default class LocalProvider extends UploadProvider {
   }
 
   override async startupWebPart(app: Hono<AppEnv>): Promise<void> {
-    app.use(
-      '/uploads/*',
-      serveStatic({
-        root: this.uploadDirectory,
-        rewriteRequestPath: p => p.replace(/^\/uploads/, ''),
-        onFound: (_path, ctx) => {
-          ctx.res.headers.set(
-            'cache-control',
-            'public, max-age=31557600, immutable'
-          )
-          ctx.res.headers.set('content-disposition', 'attachment')
-        },
-      })
-    )
+    // hono's serveStatic decodes the path with decodeURI, which leaves
+    // reserved characters (& ; + ...) percent-encoded and breaks lookups for
+    // keys produced by encodeKey, so serve files with the exact inverse
+    app.get('/uploads/*', async (c, next) => {
+      let file: ReturnType<typeof Bun.file>
+      try {
+        const key = new URL(c.req.raw.url).pathname
+          .split('/')
+          .slice(2)
+          .map(decodeURIComponent)
+          .join('/')
+
+        file = Bun.file(this.resolveUploadPath(key))
+        if (!(await file.exists())) {
+          return next()
+        }
+      } catch {
+        return next()
+      }
+
+      c.header('content-type', file.type || 'application/octet-stream')
+      c.header('cache-control', 'public, max-age=31557600, immutable')
+      c.header('content-disposition', 'attachment')
+      return c.body(file.stream())
+    })
   }
 
   override uploadFile = async (data: Buffer, key: string): Promise<string> => {
