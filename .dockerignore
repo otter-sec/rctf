@@ -18,5 +18,6 @@ deploy/
 !deploy/rctf/
 !deploy/docs/
 !deploy/docker-instancer/Dockerfile
+!deploy/admin-bot/prewarm.sh
 **/__pycache__/**
 apps/k8s-controller/bin/
