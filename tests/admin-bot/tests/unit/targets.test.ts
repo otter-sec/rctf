@@ -14,7 +14,10 @@ const defaultConfig: HooksConfig = {
   showConsoleLogs: true,
   showBrowserErrors: true,
   showNavigation: true,
+  showDialogs: true,
+  autoDismissDialogs: false,
   limitTabsNumber: -1,
+  limitTabsNumberShowError: true,
 }
 
 const createPageTarget = (id: string, url: string = 'about:blank'): any => ({
@@ -85,6 +88,30 @@ describe('TargetTracker', () => {
     expect(closedCount).toBe(1)
     expect(parsed.some(line => line.line.includes('tab limit exceeded'))).toBe(
       true
+    )
+  })
+
+  test('closes browser silently when limitTabsNumberShowError is off', async () => {
+    const output = new BufferedOutputHandler()
+    let closedCount = 0
+    const browser = {
+      close: async () => {
+        closedCount++
+      },
+    } as any
+    const tracker = new TargetTracker(output, browser, {
+      ...defaultConfig,
+      limitTabsNumber: 1,
+      limitTabsNumberShowError: false,
+    })
+
+    await tracker.onTargetCreated(createPageTarget('tab-1', 'https://one.test'))
+    await tracker.onTargetCreated(createPageTarget('tab-2', 'https://two.test'))
+
+    const parsed = parseLogs(output)
+    expect(closedCount).toBe(1)
+    expect(parsed.some(line => line.line.includes('tab limit exceeded'))).toBe(
+      false
     )
   })
 

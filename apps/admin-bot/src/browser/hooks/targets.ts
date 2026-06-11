@@ -33,19 +33,22 @@ export class TargetTracker {
           this.config.limitTabsNumber >= 0 &&
           this.tabs.length > this.config.limitTabsNumber
         ) {
-          this.output.error(
-            'navigation',
-            `tab limit exceeded (${this.tabs.length} > ${this.config.limitTabsNumber}), closing browser`
-          )
+          if (this.config.limitTabsNumberShowError) {
+            this.output.error(
+              'navigation',
+              `tab limit exceeded (${this.tabs.length} > ${this.config.limitTabsNumber}), closing browser`
+            )
+          }
           await this.browser.close()
           return
         }
 
         const t = this.getTabInternalId(target)
-        const openUrl = target.url()
-        this.output.info('navigation', `tab created, url: ${openUrl}`, {
-          id: t,
-        })
+        if (this.config.showNavigation) {
+          this.output.info('navigation', `tab created, url: ${target.url()}`, {
+            id: t,
+          })
+        }
 
         // TODO(es3n1n): there's technically a race condition here, but i have no idea how to fix it.
         //  maybe we should just switch entirely to CDP, and use this impl as a fallback for firefox.
@@ -67,13 +70,15 @@ export class TargetTracker {
         try {
           const worker = await target.worker()
           if (!worker) {
-            this.output.warn(
-              'navigation',
-              'service worker created, but can not be accessed!',
-              {
-                id: serviceId,
-              }
-            )
+            if (this.config.showBrowserErrors) {
+              this.output.warn(
+                'navigation',
+                'service worker created, but can not be accessed!',
+                {
+                  id: serviceId,
+                }
+              )
+            }
             return
           }
 
@@ -82,13 +87,15 @@ export class TargetTracker {
             createConsoleCallback(this.output, this.config, serviceId)
           )
         } catch (err) {
-          this.output.error(
-            'navigation',
-            'failed to attach to service worker',
-            {
-              id: serviceId,
-            }
-          )
+          if (this.config.showBrowserErrors) {
+            this.output.error(
+              'navigation',
+              'failed to attach to service worker',
+              {
+                id: serviceId,
+              }
+            )
+          }
         }
         break
       case 'browser':
@@ -108,13 +115,15 @@ export class TargetTracker {
         }
 
         const id = `E${this.extensions++}`
-        this.output.info(
-          'navigation',
-          `extension page created, navigating to ${info.targetInfo.url}`,
-          {
-            id,
-          }
-        )
+        if (this.config.showNavigation) {
+          this.output.info(
+            'navigation',
+            `extension page created, navigating to ${info.targetInfo.url}`,
+            {
+              id,
+            }
+          )
+        }
         client.on(
           'Runtime.consoleAPICalled',
           createConsoleCallback(this.output, this.config, id)

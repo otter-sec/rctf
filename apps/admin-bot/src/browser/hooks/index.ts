@@ -13,8 +13,23 @@ export interface HooksConfig {
   showConsoleLogs: boolean
   showBrowserErrors: boolean
   showNavigation: boolean
+  showDialogs: boolean
+  autoDismissDialogs: boolean
   limitTabsNumber: number
+  limitTabsNumberShowError: boolean
 }
+
+export const resolveHooksConfig = (
+  config?: Partial<HooksConfig>
+): HooksConfig => ({
+  showConsoleLogs: config?.showConsoleLogs ?? false,
+  showBrowserErrors: config?.showBrowserErrors ?? false,
+  showNavigation: config?.showNavigation ?? false,
+  showDialogs: config?.showDialogs ?? false,
+  autoDismissDialogs: config?.autoDismissDialogs ?? false,
+  limitTabsNumber: config?.limitTabsNumber ?? -1,
+  limitTabsNumberShowError: config?.limitTabsNumberShowError ?? false,
+})
 
 export const applyHooks = async (
   output: OutputHandler,

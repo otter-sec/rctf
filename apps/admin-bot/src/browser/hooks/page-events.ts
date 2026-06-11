@@ -32,11 +32,18 @@ export const hookPageEvents = (
     })
   })
 
-  page.on('dialog', dialog => {
-    output.info('dialog', `${dialog.type()}: ${dialog.message()}`, {
-      id,
+  if (config.showDialogs || config.autoDismissDialogs) {
+    page.on('dialog', dialog => {
+      if (config.showDialogs) {
+        output.info('dialog', `${dialog.type()}: ${dialog.message()}`, {
+          id,
+        })
+      }
+      if (config.autoDismissDialogs) {
+        void dialog.dismiss().catch(() => {})
+      }
     })
-  })
+  }
 
   page.on('pageerror', error => {
     if (!config.showBrowserErrors || !(error instanceof Error)) {

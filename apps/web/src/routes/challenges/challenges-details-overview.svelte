@@ -88,7 +88,9 @@
       {/if}
 
       {#if challenge.adminBotInputs}
-        <div class="flex flex-col overflow-hidden rounded-lg border-2">
+        <div
+          class="flex flex-col overflow-hidden rounded-lg border-2 @xl/details:odd:last:col-span-full"
+        >
           <div class="bg-background-l3 text-foreground-l3 px-4 py-1.5 text-base">Admin bot</div>
           <ChallengeDetailsAdminbot challengeId={challenge.id} inputs={challenge.adminBotInputs} />
         </div>
