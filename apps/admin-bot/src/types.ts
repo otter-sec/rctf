@@ -1,6 +1,6 @@
 import type { Logger } from 'pino'
 import type { BrowserContext } from 'puppeteer-core'
-import type { HooksConfig } from './browser/hooks'
+import { resolveHooksConfig, type HooksConfig } from './browser/hooks'
 import type { OutputHandler } from './core/output'
 import type { RegexRule, RestrictedDomainsConfig } from './core/pac'
 
@@ -44,17 +44,24 @@ export interface ChallengeConfig {
   puppeteerLaunchOptionsExtra?: Record<string, unknown>
   extraPrefsFirefox?: Record<string, unknown>
 
-  hooksConfig: HooksConfig
+  hooksConfig?: Partial<HooksConfig>
   restrictDomains?: RestrictedDomainsConfig
 
   requireInstancerInstancesRunning?: boolean
 }
 
+export type ResolvedChallengeConfig = Omit<ChallengeConfig, 'hooksConfig'> & {
+  hooksConfig: HooksConfig
+}
+
 export class Challenge {
-  public readonly config: ChallengeConfig
+  public readonly config: ResolvedChallengeConfig
 
   constructor(config: ChallengeConfig) {
-    this.config = config
+    this.config = {
+      ...config,
+      hooksConfig: resolveHooksConfig(config.hooksConfig),
+    }
     this.validate()
   }
 

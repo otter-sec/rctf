@@ -231,6 +231,16 @@
     }
   }
 
+  function downloadLogs(raw: string, jobId: string) {
+    const blob = new Blob([raw], { type: 'application/jsonl' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `admin-bot-${jobId}.jsonl`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function fetchHistory() {
     const res = await apiRequest(GetAdminBotJobHistoryRouteV2, { id: challengeId })
     if (res.kind === 'goodAdminBotJobHistory') {
@@ -297,62 +307,78 @@
   })
 </script>
 
-{#snippet logViewer(entries: LogEntry[], expanded: Set<number>, toggle: (i: number) => void)}
-  <ScrollArea
-    class="bg-background-l2 mb-3 max-h-64 rounded-md"
-    orientation="both"
-    fadeColor="background-l2"
-  >
-    <div class="w-max min-w-full font-mono text-xs">
-      {#each entries as entry, i}
-        {@const isExpanded = expanded.has(i)}
-        {@const expandable = hasExtra(entry)}
-        <button
-          type="button"
-          class="flex w-full items-start gap-0 text-left transition-colors
-            {expandable ? 'hover:bg-background-l3 cursor-pointer' : 'cursor-default'}
-            {i > 0 ? 'border-background-l4 border-t' : ''}"
-          aria-expanded={expandable ? isExpanded : undefined}
-          onclick={() => expandable && toggle(i)}
-          disabled={!expandable}
-        >
-          <span class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center py-1.5">
-            {#if expandable}
-              <IconChevronRight
-                class="size-3 transition-transform {isExpanded ? 'rotate-90' : ''}"
-              />
-            {/if}
-          </span>
-          <span class="text-foreground-l4 shrink-0 py-1.5 pr-2 tabular-nums"
-            >{formatTime(entry.time)}</span
+{#snippet logViewer(
+  entries: LogEntry[],
+  raw: string,
+  jobId: string,
+  expanded: Set<number>,
+  toggle: (i: number) => void
+)}
+  <div class="bg-background-l2 mb-3 flex flex-col overflow-hidden rounded-md">
+    <ScrollArea viewportClass="max-h-64" fadeColor="background-l2">
+      <div class="font-mono text-xs">
+        {#each entries as entry, i}
+          {@const isExpanded = expanded.has(i)}
+          {@const expandable = hasExtra(entry)}
+          <button
+            type="button"
+            class="flex w-full items-start gap-0 text-left transition-colors
+              {expandable ? 'hover:bg-background-l3 cursor-pointer' : 'cursor-default'}
+              {i > 0 ? 'border-background-l4 border-t' : ''}"
+            aria-expanded={expandable ? isExpanded : undefined}
+            onclick={() => expandable && toggle(i)}
+            disabled={!expandable}
           >
-          <span
-            class="shrink-0 py-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
-              entry.level
-            ] ?? 'text-foreground-l3'}"
-            style="font-size: 0.6rem; line-height: 1rem;"
-            >{entry.level.charAt(0).toUpperCase()}</span
-          >
-          <span class="flex-1 py-1.5 pr-3">
-            <span class="text-foreground-accent">[{entry.prefix}]</span>
-            <span class={levelColors[entry.level] ?? 'text-foreground-l3'}>{entry.line}</span>
-          </span>
-        </button>
-        {#if isExpanded}
-          <div class="border-background-l4 bg-background-l3 border-t py-1.5 pr-3 pl-8">
-            {#each Object.entries(entry.extra) as [key, value]}
-              <div class="flex gap-2 py-0.5">
-                <span class="text-foreground-l4 shrink-0">{key}:</span>
-                <span class="text-foreground-l3 break-all"
-                  >{typeof value === 'string' ? value : JSON.stringify(value)}</span
-                >
-              </div>
-            {/each}
-          </div>
-        {/if}
-      {/each}
+            <span class="text-foreground-l4 flex w-6 shrink-0 items-center justify-center py-1.5">
+              {#if expandable}
+                <IconChevronRight
+                  class="size-3 transition-transform {isExpanded ? 'rotate-90' : ''}"
+                />
+              {/if}
+            </span>
+            <span class="text-foreground-l4 shrink-0 py-1.5 pr-2 tabular-nums"
+              >{formatTime(entry.time)}</span
+            >
+            <span
+              class="shrink-0 py-1.5 pr-2 font-semibold tracking-wider uppercase {levelColors[
+                entry.level
+              ] ?? 'text-foreground-l3'}"
+              style="font-size: 0.6rem; line-height: 1rem;"
+              >{entry.level.charAt(0).toUpperCase()}</span
+            >
+            <span class="min-w-0 flex-1 py-1.5 pr-3 wrap-anywhere">
+              <span class="text-foreground-accent">[{entry.prefix}]</span>
+              <span class="whitespace-pre-wrap {levelColors[entry.level] ?? 'text-foreground-l3'}"
+                >{entry.line}</span
+              >
+            </span>
+          </button>
+          {#if isExpanded}
+            <div class="border-background-l4 bg-background-l3 border-t py-1.5 pr-3 pl-8">
+              {#each Object.entries(entry.extra) as [key, value]}
+                <div class="flex gap-2 py-0.5">
+                  <span class="text-foreground-l4 shrink-0">{key}:</span>
+                  <span class="text-foreground-l3 break-all"
+                    >{typeof value === 'string' ? value : JSON.stringify(value)}</span
+                  >
+                </div>
+              {/each}
+            </div>
+          {/if}
+        {/each}
+      </div>
+    </ScrollArea>
+    <div class="border-background-l4 flex justify-end border-t">
+      <button
+        type="button"
+        class="text-foreground-l4 hover:text-foreground-l2 flex cursor-pointer items-center gap-1 px-3 py-1.5 text-xs transition-colors"
+        onclick={() => downloadLogs(raw, jobId)}
+      >
+        <IconDownload class="size-3.5" />
+        Download logs
+      </button>
     </div>
-  </ScrollArea>
+  </div>
 {/snippet}
 
 {#snippet jobStatusIcon(status: AdminBotJobStatus)}
@@ -421,7 +447,7 @@
       </div>
 
       {#if job.logs && logsOpen}
-        {@render logViewer(logEntries, expandedLines, toggleLine)}
+        {@render logViewer(logEntries, job.logs, job.id, expandedLines, toggleLine)}
       {/if}
     {/if}
 
@@ -472,7 +498,13 @@
                     <IconLoader class="text-foreground-l4 size-4 animate-spin" />
                   </div>
                 {:else if historyLogs}
-                  {@render logViewer(historyLogEntries, historyExpandedLines, toggleHistoryLine)}
+                  {@render logViewer(
+                    historyLogEntries,
+                    historyLogs,
+                    historyJob.id,
+                    historyExpandedLines,
+                    toggleHistoryLine
+                  )}
                 {/if}
               {/if}
             </div>

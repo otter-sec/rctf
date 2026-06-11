@@ -54,3 +54,35 @@ describe('Challenge constructor', () => {
     expect(challenge.config.inputs).toEqual({})
   })
 })
+
+describe('hooksConfig resolution', () => {
+  test('defaults to everything disabled when hooksConfig is omitted', () => {
+    const { hooksConfig: _hooksConfig, ...rest } = minimalConfig()
+    const challenge = new Challenge(rest)
+    expect(challenge.config.hooksConfig).toEqual({
+      showConsoleLogs: false,
+      showBrowserErrors: false,
+      showNavigation: false,
+      showDialogs: false,
+      autoDismissDialogs: false,
+      limitTabsNumber: -1,
+      limitTabsNumberShowError: false,
+    })
+  })
+
+  test('fills missing fields when hooksConfig is partial', () => {
+    const challenge = new Challenge({
+      ...minimalConfig(),
+      hooksConfig: { showConsoleLogs: true, limitTabsNumber: 2 },
+    })
+    expect(challenge.config.hooksConfig).toEqual({
+      showConsoleLogs: true,
+      showBrowserErrors: false,
+      showNavigation: false,
+      showDialogs: false,
+      autoDismissDialogs: false,
+      limitTabsNumber: 2,
+      limitTabsNumberShowError: false,
+    })
+  })
+})

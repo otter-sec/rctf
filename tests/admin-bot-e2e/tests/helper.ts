@@ -40,7 +40,10 @@ export const challengeSource = (opts: {
     showConsoleLogs?: boolean
     showBrowserErrors?: boolean
     showNavigation?: boolean
+    showDialogs?: boolean
+    autoDismissDialogs?: boolean
     limitTabsNumber?: number
+    limitTabsNumberShowError?: boolean
   }
   browser?: 'chrome' | 'firefox'
   browserArguments?: string[]
@@ -66,7 +69,10 @@ export const challengeSource = (opts: {
     showConsoleLogs: hooksConfig.showConsoleLogs ?? true,
     showBrowserErrors: hooksConfig.showBrowserErrors ?? true,
     showNavigation: hooksConfig.showNavigation ?? true,
+    showDialogs: hooksConfig.showDialogs ?? true,
+    autoDismissDialogs: hooksConfig.autoDismissDialogs ?? false,
     limitTabsNumber: hooksConfig.limitTabsNumber ?? -1,
+    limitTabsNumberShowError: hooksConfig.limitTabsNumberShowError ?? true,
   }
 
   return `

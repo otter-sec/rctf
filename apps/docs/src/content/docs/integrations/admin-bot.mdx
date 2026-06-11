@@ -177,11 +177,15 @@ export const challenge = new Challenge({
     await page.close()
   },
 
+  // optional, everything defaults to off and no tab limit:
   hooksConfig: {
     showConsoleLogs: true,
     showBrowserErrors: true,
     showNavigation: true,
+    showDialogs: true,
+    autoDismissDialogs: true,
     limitTabsNumber: -1, // no limit
+    limitTabsNumberShowError: true,
   },
 
   // optional:
@@ -242,7 +246,7 @@ The `Challenge{:ts}` constructor accepts these fields:
 | `timeoutMilliseconds{:ts}` | Yes | Maximum time the handler may run. The worker fails the job on timeout. |
 | `inputs{:ts}` | Yes | Map of participant input names to regex rules. Input names may be up to `256{:ts}` characters, and submitted values may be up to `1024{:ts}` characters. |
 | `handler{:ts}` | Yes | Async function that receives a `ChallengeContext{:ts}` and drives the browser session. |
-| `hooksConfig{:ts}` | Yes | Browser event logging and tab limit configuration. |
+| `hooksConfig{:ts}` | No | What the browser hooks log, and the tab limit. You can skip fields or the whole object; everything defaults to off. |
 | `browser{:ts}` | No | Browser engine. The supported values are `chrome{:ts}` and `firefox{:ts}`. The default is `chrome{:ts}`. |
 | `browserVersion{:ts}` | No | Browser build passed to `@puppeteer/browsers`. The default is `stable{:ts}`. |
 | `browserArguments{:ts}` | No | Launch arguments. When set, this replaces the default Chrome arguments. |
@@ -284,11 +288,19 @@ Stored logs are newline-delimited JSON. The API accepts up to `1048576{:ts}` cha
 | Field | Behavior |
 | --- | --- |
 | `showConsoleLogs{:ts}` | Captures page, service worker, and extension console messages when supported by the browser. |
-| `showBrowserErrors{:ts}` | Captures page errors and failed network requests. |
-| `showNavigation{:ts}` | Captures tab creation, main-frame navigation, service worker creation, and tab close events. |
+| `showBrowserErrors{:ts}` | Captures page errors, failed network requests, and service worker attach failures. |
+| `showNavigation{:ts}` | Captures tab creation, main-frame navigation, extension page creation, service worker creation, and tab close events. |
+| `showDialogs{:ts}` | Captures the type and message of `alert{:ts}`, `confirm{:ts}`, `prompt{:ts}`, and `beforeunload{:ts}` dialogs. |
+| `autoDismissDialogs{:ts}` | Dismisses (cancels) JavaScript dialogs so an unhandled `alert(){:ts}` or `confirm(){:ts}` can't block the page. Yields to a dialog your handler already accepted or dismissed. |
 | `limitTabsNumber{:ts}` | Closes the browser when too many page targets are opened. Use `-1{:ts}` for no limit and `0{:ts}` to prevent page tabs. |
+| `limitTabsNumberShowError{:ts}` | Writes the `tab limit exceeded` error to participant logs when the limit trips. Leave it off if that message would hand participants a side channel, since it confirms their payload opened tabs. |
 
-Chrome supports extension page logging and service worker console logging. Firefox doesn't support those two hook surfaces in the current worker.
+Every boolean here defaults to `false{:ts}` and `limitTabsNumber{:ts}` defaults to `-1{:ts}`, so an omitted `hooksConfig{:ts}` means no automatic logging and no tab limit.
+
+<Callout variant="warning" title="Firefox hook coverage">
+  Firefox doesn't support extension page logging and service worker console logging in the current
+  worker.
+</Callout>
 
 ## Domain restrictions
 
