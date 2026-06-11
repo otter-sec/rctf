@@ -96,35 +96,52 @@ export const processJob = async (
   }
 }
 
+export interface PollerHandle {
+  shutdown: () => Promise<void>
+}
+
 export const startPoller = (
   challenges: ChallengeLoader,
   browserManager: BrowserManager,
   platform: PlatformClient
-): void => {
-  let processing = false
+): PollerHandle => {
+  let current: Promise<void> | null = null
+  let stopped = false
 
   // NOTE(es3n1n): Do we want to speed this up a bit by having concurrency?
-  const poll = async () => {
-    if (processing) {
+  const poll = () => {
+    if (current || stopped) {
       return
     }
 
-    processing = true
-    try {
-      const job = await platform.pullJob()
-      if (!job) {
-        return
-      }
+    current = (async () => {
+      try {
+        const job = await platform.pullJob()
+        if (!job) {
+          return
+        }
 
-      await processJob(challenges, browserManager, platform, job)
-    } catch (err) {
-      logger.error({ err }, 'polling error')
-    } finally {
-      processing = false
-    }
+        await processJob(challenges, browserManager, platform, job)
+      } catch (err) {
+        logger.error({ err }, 'polling error')
+      } finally {
+        current = null
+      }
+    })()
   }
 
   logger.info({ intervalMs: POLL_INTERVAL_MS }, 'starting job poller')
-  setInterval(poll, POLL_INTERVAL_MS)
+  const interval = setInterval(poll, POLL_INTERVAL_MS)
   poll()
+
+  return {
+    shutdown: async () => {
+      stopped = true
+      clearInterval(interval)
+      if (current) {
+        logger.info('waiting for in-flight job to finish')
+        await current
+      }
+    },
+  }
 }

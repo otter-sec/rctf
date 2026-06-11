@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { bearerAuth } from 'hono/bearer-auth'
 import { validator } from 'hono/validator'
-import { BrowserManager, type BrowserVersion } from './browser/manager'
+import { BrowserManager } from './browser/manager'
 import { ChallengeLoader } from './core/loader'
 import { createLogger } from './core/logger'
 import { PlatformClient } from './core/platform'
@@ -75,9 +75,24 @@ const main = async () => {
   logger.info(
     `Listening on :${port} with rctf @ ${RCTF_BASE_URL} and ${RCTF_SECRET_KEY.length}-length secret key`
   )
-  Bun.serve({ port, fetch: app.fetch })
 
-  startPoller(challenges, browserManager, platform)
+  const server = Bun.serve({ port, fetch: app.fetch })
+  const poller = startPoller(challenges, browserManager, platform)
+
+  let shuttingDown = false
+  const shutdown = async (signal: string) => {
+    if (shuttingDown) {
+      return
+    }
+    shuttingDown = true
+
+    logger.info({ signal }, 'shutting down once the in-flight job finishes')
+    await poller.shutdown()
+    await server.stop()
+    process.exit(0)
+  }
+  process.on('SIGTERM', () => void shutdown('SIGTERM'))
+  process.on('SIGINT', () => void shutdown('SIGINT'))
 }
 
 export default main
