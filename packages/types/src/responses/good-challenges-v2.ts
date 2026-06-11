@@ -34,6 +34,9 @@ export const GoodChallengesV2 = response('goodChallengesV2', {
       sortWeight: z
         .nullable(z.number())
         .check(z.describe('Optional ordering weight.')),
+      tags: z
+        .nullable(z.array(z.string()))
+        .check(z.describe('Challenge tags shown to players.')),
       instancerLifetime: z
         .nullable(z.number())
         .check(

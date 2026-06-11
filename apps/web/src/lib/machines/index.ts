@@ -28,6 +28,7 @@ export interface FormData {
   pointsMax: number
   tiebreakEligible: boolean
   sortWeight: number
+  tags: string[]
   files: { name: string; url: string; size: number | null }[]
   instancerConfig: InstancerConfig | null
   adminBotConfig: AdminBotConfig
@@ -74,6 +75,7 @@ const emptyForm: FormData = {
   pointsMax: 500,
   tiebreakEligible: true,
   sortWeight: 0,
+  tags: [],
   files: [],
   instancerConfig: null,
   adminBotConfig: { enabled: false, code: '' },
@@ -112,6 +114,7 @@ const fromChallenge = (c: AdminChallenge): FormData => ({
   pointsMax: c.points.max,
   tiebreakEligible: c.tiebreakEligible,
   sortWeight: c.sortWeight ?? 0,
+  tags: c.tags ? [...c.tags] : [],
   files: c.files ? [...c.files] : [],
   instancerConfig: c.instancerConfig ?? null,
   adminBotConfig: adminBotConfigFromServer(c.adminBotConfig),
@@ -130,6 +133,7 @@ const fromDetail = (d: AdminChallengeDetail): FormData => ({
   pointsMax: d.points.max,
   tiebreakEligible: d.tiebreakEligible,
   sortWeight: d.sortWeight ?? 0,
+  tags: d.tags ? [...d.tags] : [],
   files: d.files ? [...d.files] : [],
   instancerConfig: d.instancerConfig ?? null,
   adminBotConfig: adminBotConfigFromServer(d.adminBotConfig),
@@ -147,6 +151,7 @@ const isDirty = (form: FormData, original: FormData | null): boolean => {
       form.description ||
       form.flag ||
       form.files.length ||
+      form.tags.length ||
       form.adminBotConfig.enabled ||
       form.adminBotConfig.code ||
       form.instancerConfig !== null

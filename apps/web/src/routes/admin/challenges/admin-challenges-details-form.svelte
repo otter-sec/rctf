@@ -40,6 +40,7 @@
     pointsMax: number
     tiebreakEligible: boolean
     sortWeight: number
+    tags: string[]
     files: { name: string; url: string; size: number | null }[]
     instancerConfig: InstancerConfig | null
     adminBotConfig: AdminBotConfig
@@ -63,6 +64,7 @@
     onPointsMaxChange: (v: number) => void
     onTiebreakEligibleChange: (v: boolean) => void
     onSortWeightChange: (v: number) => void
+    onTagsChange: (v: string[]) => void
     onHiddenChange: (v: boolean) => void
     onReleaseTimeChange: (v: number | null) => void
     releaseTime: number | null
@@ -80,6 +82,7 @@
     pointsMax,
     tiebreakEligible,
     sortWeight,
+    tags,
     files,
     instancerConfig,
     adminBotConfig,
@@ -103,6 +106,7 @@
     onPointsMaxChange,
     onTiebreakEligibleChange,
     onSortWeightChange,
+    onTagsChange,
     onHiddenChange,
     onReleaseTimeChange,
     releaseTime,
@@ -362,6 +366,25 @@
             {#if touched.author && errors.author}
               <Field.Error>{errors.author}</Field.Error>
             {/if}
+          </Field.Field>
+
+          <Field.Field>
+            <Field.Label>Tags <Field.Hint>(comma-separated)</Field.Hint></Field.Label>
+            <Input
+              type="text"
+              placeholder="web, easy, jwt"
+              value={tags.join(', ')}
+              onchange={e =>
+                onTagsChange([
+                  ...new Set(
+                    e.currentTarget.value
+                      .split(',')
+                      .map(t => t.trim())
+                      .filter(t => t.length > 0)
+                  ),
+                ])}
+              disabled={isDisabled}
+            />
           </Field.Field>
 
           <Field.Field data-invalid={touched.description && errors.description ? true : undefined}>

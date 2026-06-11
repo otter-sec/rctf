@@ -71,6 +71,7 @@ export interface ChallengeData {
   flag: string
   tiebreakEligible: boolean
   sortWeight?: number
+  tags?: string[]
   instancerConfig?: InstancerConfig
   adminBotConfig?: AdminBotConfig
   hidden?: boolean
