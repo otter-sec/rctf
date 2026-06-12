@@ -30,7 +30,7 @@ Python 3.12 or newer is required. The `$ <red>kona</red>` binary exposes two com
 
 ## Repository layout
 
-Konata assumes a directory tree with one root config at `kona.yml{:file}` and one config per challenge somewhere underneath. The challenge folder structure itself is arbitrary. Konata walks up to `<red>discovery.challenge_folder_depth</red>` levels deep (default `3{:ts}`), looking for files named `kona.yml{:file}` or `kona.yaml{:file}`.
+Konata assumes a directory tree with one root config at `kona.yml{:file}` and one config per challenge somewhere underneath. The challenge folder structure itself is arbitrary. Konata walks up to `<red>discovery.challenge_folder_depth</red>` levels deep (default `3{:ts}`), looking for files named `kona.yml{:file}`, `kona.yaml{:file}`, or `kona.toml{:file}`. TOML configs use the same schema, so everything below applies to them too.
 
 A typical layout (taken from the DiceCTF Quals 2026 deployment repository):
 
@@ -180,9 +180,13 @@ Top-level discovery options.
 
 `<green>tar_gz</green>` (default) or `<green>zip</green>`. Picks the archive format Konata uses when bundling attachment files for upload.
 
+### `attachment_wrap_dir`
+
+When `true{:ts}` (the default), every archive Konata builds during `sync` puts its contents under a single top-level folder named after the archive, so `pwn_garden.tar.gz{:file}` extracts into `pwn_garden/{:dir}` instead of dumping files into whatever directory the player happens to be in. Set it to `false{:ts}` to keep entries at the archive root. Pre-compressed attachments are uploaded as-is either way.
+
 ## Per-challenge config
 
-Each challenge directory has a `kona.yml{:file}` (or `kona.yaml{:file}`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The simplest static challenge needs nothing but a category, name, author, description, and flag:
+Each challenge directory has a `kona.yml{:file}` (or `kona.yaml{:file}` / `kona.toml{:file}`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The simplest static challenge needs nothing but a category, name, author, description, and flag:
 
 ```yaml title="sanity/survey/kona.yml"
 challenges:
@@ -213,6 +217,7 @@ discovery:
 | `<red>name</red>` | Challenge name. Becomes the slug under which Konata syncs it. |
 | `<red>author</red>` | Rendered into the default description template. |
 | `<red>description</red>` | Markdown description. Trimmed of leading/trailing whitespace before rendering. |
+| `<red>tags</red>` | Tag strings shown to players on the challenge page. |
 | `<red>override_id</red>` | Replaces the default `<red><category>_<name></red>` challenge ID. Useful when renaming a challenge without breaking already-recorded solves. |
 | `<red>attachments</red>` | File list or full `<red>AttachmentConfig</red>`. See below. |
 | `<red>scoring</red>` | Initial / minimum point values plus per-platform overrides (`<red>scoring.rctf.eligible_for_tiebreaks</red>`, `<red>scoring.ctfd.decay</red>`, ...). |
@@ -221,6 +226,7 @@ discovery:
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
 | `<red>sort_weight</red>` | Numeric sort hint passed through to rCTF. |
 | `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer/)) |
+| `<red>admin_bot</red>` | Admin bot handler source for web challenges (see [Admin bot](#admin-bot)). |
 
 ### Attachments
 
@@ -252,6 +258,7 @@ attachments:
       str: 'dice{dummy_flag}'
   pre_compressed:
     - dist/handout.tar.gz
+  archive_name: garden
 ```
 
 | Field | Purpose |
@@ -260,6 +267,10 @@ attachments:
 | `<red>exclude</red>` | Globs filtered out of the resolved file list before archiving. |
 | `<red>additional</red>` | Synthetic files injected into the archive. Each entry specifies `<red>path</red>` plus exactly one of `<red>str</red>` or `<red>base64</red>`. A typical use is shipping a dummy flag file so the build still works. |
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
+| `<red>archive_name</red>` | Base name of the generated archive (and of the folder it extracts into). Defaults to the challenge ID. Characters that can't appear in a Windows filename are replaced with `_`. |
+| `<red>strip_components</red>` | Leading path components dropped from `<red>files</red>` entries inside the archive, like `tar <dim>--strip-components</dim>`. With `1{:ts}`, `dist/bzImage{:file}` is stored as `bzImage{:file}`. If stripping would eat the whole path, the entry keeps its filename. |
+
+Resolution is strict: a `<red>files</red>` entry that doesn't exist, a glob that matches nothing, or a `<red>pre_compressed</red>` path with no archive behind it fails the sync. Konata won't quietly ship an incomplete handout.
 
 ### Flags
 
@@ -300,6 +311,48 @@ endpoints:
     port: 1337
 ```
 
+### Admin bot
+
+Web challenges that use the [rCTF admin bot](/integrations/admin-bot/) can ship their handler source in the same sync. `<red>admin_bot</red>` takes exactly one of:
+
+| Field             | Purpose                                                |
+| ----------------- | ------------------------------------------------------ |
+| `<red>code</red>` | Inline TypeScript source.                              |
+| `<red>file</red>` | Source file path, relative to the challenge directory. |
+
+The source is rendered with Jinja like everything else (`<red>challenge</red>`, `<red>config</red>`, and `<red>images</red>` are in scope), plus a `re_escape` filter for splicing values into regex patterns:
+
+```yaml title="web/safebox/kona.yml"
+challenges:
+  - category: web
+    name: safebox
+    # ...
+    admin_bot:
+      code: |
+        import { Challenge, type ChallengeContext } from 'types'
+
+        export const challenge = new Challenge({
+          timeoutMilliseconds: 30_000,
+          inputs: {
+            url: { pattern: '^https://{{ challenge.name }}\\.{{ config.domains["kctf"] | re_escape }}/' },
+          },
+          handler: async (ctx: ChallengeContext) => {
+            const page = await ctx.browserContext.newPage()
+            await page.goto(ctx.input.url!)
+            await page.close()
+          },
+        })
+```
+
+Anything longer than a few lines reads better as a separate file:
+
+```yaml
+admin_bot:
+  file: admin-bot.ts
+```
+
+Both forms go through the template pass. If the handler itself needs a literal `{{` or `{%` (client-side template injection payloads, for example), wrap that part in `{% raw %}` / `{% endraw %}` so Jinja leaves it alone.
+
 ### Deployment
 
 `<red>deployment</red>` declares what Konata should build and what manifests to apply on top of the challenge sync. Both blocks are optional, so a static challenge with just a flag and an attachment skips deployment entirely.
@@ -334,6 +387,8 @@ deployment:
 | `<red>build_args</red>` | Build-time `<dim>--build-arg</dim>` values. |
 | `<red>no_cache</red>` | Forces a clean build when `true{:ts}`. |
 | `<red>exports</red>` | Multi-stage build exports. Copies the contents of `<red>src</red>` in a named stage out to `<red>dst</red>` on the host. Used for shipping handouts that fall out of the build. |
+
+Builds run through `$ <red>docker</red> buildx build <dim>--pull</dim>`, so BuildKit-only Dockerfile syntax (cache mounts, heredocs) works fine, and `<red>exports</red>` come straight out of the build via `<dim>--output type=local</dim>`. The `docker` CLI with the buildx plugin has to be on `PATH` wherever Konata runs.
 
 Image references inside Kubernetes manifests can interpolate `{{ images[challenge.name] }}` to pull in the fully-resolved `registry/name:tag` for the current challenge.
 
@@ -454,7 +509,7 @@ $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 
 | Flag | Behavior |
 | --- | --- |
-| `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Required. |
+| `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Defaults to the current directory. |
 | `<dim>--only</dim> <name>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
 | `<dim>--challenge-path</dim> <path>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
 
