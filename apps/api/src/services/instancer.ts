@@ -129,23 +129,31 @@ export const filterInstanceEndpoints = (
 
   // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
   instanceStatus.endpoints = instanceStatus.endpoints
-    .map((endpoint, i) => {
+    .reduce<z.output<typeof EndpointSchema>[]>((acc, endpoint) => {
       // provider-defined endpoints bypass the challenge expose config
       if (endpoint.bypassExpose) {
-        return endpoint
+        acc.push(endpoint)
+        return acc
       }
 
-      const exposeConfig = expose?.[i]
-      if (!exposeConfig?.shouldDisplay) {
-        return undefined
+      const exposeIndex = acc.reduce(
+        (n, e) => (e.bypassExpose ? n : n + 1),
+        0
+      )
+      // Count only non-bypass endpoints seen so far to find the matching expose entry
+      const nonBypassSoFar = instanceStatus.endpoints!
+        .slice(0, instanceStatus.endpoints!.indexOf(endpoint))
+        .filter(e => !e.bypassExpose).length
+      const exposeConfig = expose?.[nonBypassSoFar]
+      if (exposeConfig?.shouldDisplay) {
+        acc.push({
+          ...endpoint,
+          title: exposeConfig.title,
+        })
       }
 
-      return {
-        ...endpoint,
-        title: exposeConfig.title,
-      }
-    })
-    .filter(endpoint => Boolean(endpoint)) as z.output<typeof EndpointSchema>[]
+      return acc
+    }, [])
 
   return instanceStatus
 }
