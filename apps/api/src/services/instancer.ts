@@ -15,6 +15,7 @@ import {
 } from '../providers'
 import {
   type instanceDetailsOrError,
+  type InstancerActionDefinition,
   type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
@@ -44,6 +45,11 @@ export const resolveInstancerCapabilities = (
   getInstancerProvider(resolveInstancerName(instancerConfig))?.capabilities ??
   DEFAULT_INSTANCER_CAPABILITIES
 
+export const resolveInstancerActions = (
+  instancerConfig?: { instancer?: string } | null
+): InstancerActionDefinition[] =>
+  getInstancerProvider(resolveInstancerName(instancerConfig))?.actions ?? []
+
 type InstancerResponseHelpers = ResponseHelpers<
   [
     typeof GoodInstanceStatus,
@@ -53,8 +59,12 @@ type InstancerResponseHelpers = ResponseHelpers<
   ]
 >
 
+type InstancerChallengeErrors = ResponseHelpers<
+  [typeof BadInstancerError, typeof BadEndpoint, typeof BadChallenge]
+>
+
 export const getInstancerChallenge = async (
-  res: InstancerResponseHelpers,
+  res: InstancerChallengeErrors,
   db: DatabaseClient,
   challengeId: string
 ): Promise<
@@ -67,7 +77,7 @@ export const getInstancerChallenge = async (
       challenge?: undefined
       provider?: undefined
       error: ReturnType<
-        InstancerResponseHelpers[keyof InstancerResponseHelpers]
+        InstancerChallengeErrors[keyof InstancerChallengeErrors]
       >
     }
 > => {
@@ -128,32 +138,28 @@ export const filterInstanceEndpoints = (
   const expose = challenge.data.instancerConfig?.expose
 
   // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
-  instanceStatus.endpoints = instanceStatus.endpoints
-    .reduce<z.output<typeof EndpointSchema>[]>((acc, endpoint) => {
-      // provider-defined endpoints bypass the challenge expose config
-      if (endpoint.bypassExpose) {
-        acc.push(endpoint)
-        return acc
-      }
-
-      const exposeIndex = acc.reduce(
-        (n, e) => (e.bypassExpose ? n : n + 1),
-        0
-      )
-      // Count only non-bypass endpoints seen so far to find the matching expose entry
-      const nonBypassSoFar = instanceStatus.endpoints!
-        .slice(0, instanceStatus.endpoints!.indexOf(endpoint))
-        .filter(e => !e.bypassExpose).length
-      const exposeConfig = expose?.[nonBypassSoFar]
-      if (exposeConfig?.shouldDisplay) {
-        acc.push({
-          ...endpoint,
-          title: exposeConfig.title,
-        })
-      }
-
+  // TODO(es3n1n): this is really really really bad, we should rewrite this
+  instanceStatus.endpoints = instanceStatus.endpoints.reduce<
+    z.output<typeof EndpointSchema>[]
+  >((acc, endpoint) => {
+    if (endpoint.bypassExpose) {
+      acc.push(endpoint)
       return acc
-    }, [])
+    }
+
+    const nonBypassSoFar = instanceStatus
+      .endpoints!.slice(0, instanceStatus.endpoints!.indexOf(endpoint))
+      .filter(e => !e.bypassExpose).length
+    const exposeConfig = expose?.[nonBypassSoFar]
+    if (exposeConfig?.shouldDisplay) {
+      acc.push({
+        ...endpoint,
+        title: exposeConfig.title,
+      })
+    }
+
+    return acc
+  }, [])
 
   return instanceStatus
 }

@@ -34,11 +34,27 @@ export type instanceDetailsOrError =
   | z.output<typeof instanceDetailsSchema>
   | z.output<typeof instancerErrorSchema>
 
+export const instancerActionResultSchema = z.object({
+  kind: z.literal('instancerActionResult'),
+  message: z.optional(z.string()),
+  submitFlag: z.optional(z.string()),
+})
+
+export type instancerActionOutcome =
+  | z.output<typeof instancerActionResultSchema>
+  | z.output<typeof instancerErrorSchema>
+
 export type ProviderConfig = Record<string, unknown>
 
 export interface InstancerCapabilities {
   canStop: boolean
   canExtend: boolean
+}
+
+export interface InstancerActionDefinition {
+  id: string
+  label: string
+  rateLimit?: { burst: number; intervalMilliseconds: number }
 }
 
 export interface InstancerProvider {
@@ -63,4 +79,10 @@ export interface InstancerProvider {
   extendInstance: (
     options: ExtendInstanceOptions
   ) => Promise<instanceDetailsOrError>
+
+  readonly actions?: InstancerActionDefinition[]
+  runAction?: (
+    actionId: string,
+    options: InstanceQueryOptions
+  ) => Promise<instancerActionOutcome>
 }

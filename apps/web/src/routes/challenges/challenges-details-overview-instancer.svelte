@@ -1,18 +1,26 @@
 <script lang="ts">
   import {
+    BadAlreadySolvedChallenge,
+    BadInstancerError,
+    BadRateLimit,
     CreateInstanceRouteV2,
     DeleteInstanceRouteV2,
     ExposeKind,
     ExtendInstanceRouteV2,
     GetInstanceStatusRouteV2,
+    GoodFlag,
+    GoodInstancerActionResult,
     InstanceStatus,
     ProtectedAction,
+    RunInstanceActionRouteV2,
+    SubmitFlagRoute,
   } from '@rctf/types'
-  import { apiRequest, isAuthenticated } from '$lib/api'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
   import { Button, Progress } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader, IconLogin } from '$lib/icons'
-  import { useClientConfig } from '$lib/query'
+  import { queryKeys, useClientConfig } from '$lib/query'
   import { formatCountdown } from '$lib/utils'
   import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
@@ -22,13 +30,21 @@
     instanceLifetime: number
     extendable: boolean
     stoppable?: boolean
+    actions?: { id: string; label: string }[]
   }
 
-  let { challengeId, instanceLifetime, extendable, stoppable = true }: Props = $props()
+  let {
+    challengeId,
+    instanceLifetime,
+    extendable,
+    stoppable = true,
+    actions = [],
+  }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
   const isArchived = $derived(clientConfig?.isArchived ?? false)
+  const queryClient = useQueryClient()
 
   let status = $state(InstanceStatus.STOPPED)
   let endpoints = $state<
@@ -84,10 +100,8 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance started')
-      } else if (res.kind === 'badInstancerError') {
-        toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -104,10 +118,8 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance stopped')
-      } else if (res.kind === 'badInstancerError') {
-        toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -124,10 +136,53 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance extended')
-      } else if (res.kind === 'badInstancerError') {
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      actioning = false
+    }
+  }
+
+  function refreshSolvedState() {
+    queryClient.refetchQueries({ queryKey: queryKeys.challenges })
+    queryClient.refetchQueries({ queryKey: queryKeys.userSelf })
+    queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+  }
+
+  async function submitResolvedFlag(flag: string) {
+    toast.info(`${flag}`, { duration: 15_000 })
+
+    const res = await apiRequest(SubmitFlagRoute, { id: challengeId, flag })
+    if (res.kind === GoodFlag.kind) {
+      toast.success('Flag correct!')
+      refreshSolvedState()
+    } else if (res.kind === BadAlreadySolvedChallenge.kind) {
+      toast.info('You already solved this challenge')
+      refreshSolvedState()
+    } else {
+      showApiError(res)
+    }
+  }
+
+  async function runAction(actionId: string) {
+    actioning = true
+    try {
+      const res = await apiRequest(RunInstanceActionRouteV2, {
+        id: challengeId,
+        action: actionId,
+      })
+      if (res.kind === GoodInstancerActionResult.kind) {
+        if (res.data.message) {
+          toast.success(res.data.message)
+        }
+        if (res.data.submitFlag) {
+          await submitResolvedFlag(res.data.submitFlag)
+        }
+      } else if (res.kind === BadInstancerError.kind) {
         toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -244,8 +299,19 @@
           </div>
         {/if}
 
-        {#if extendable || stoppable}
+        {#if actions.length > 0 || extendable || stoppable}
           <div class="flex gap-2">
+            {#each actions as action (action.id)}
+              <Button
+                variant="secondary"
+                onclick={() => runAction(action.id)}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                {action.label}
+              </Button>
+            {/each}
             {#if extendable}
               <Button
                 variant="secondary"

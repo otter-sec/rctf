@@ -58,6 +58,11 @@ export const GoodChallengesV2 = response('goodChallengesV2', {
             '`false{:ts}` when the instancer does not support stopping an instance.'
           )
         ),
+      instancerActions: z
+        .array(z.object({ id: z.string(), label: z.string() }))
+        .check(
+          z.describe('Provider-defined instancer actions shown as buttons.')
+        ),
       adminBotInputs: example(
         z.nullish(
           z.record(

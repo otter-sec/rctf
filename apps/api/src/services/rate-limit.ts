@@ -37,6 +37,22 @@ export const rateLimitAdminBot = (
   challengeId: string
 ) => rateLimit(redis, `rl:ADMIN_BOT:${userId}:${challengeId}`, 1, 10_000)
 
+// configurable per action; per user per challenge per action
+export const rateLimitInstancerAction = (
+  redis: TypedRedis,
+  userId: string,
+  challengeId: string,
+  actionId: string,
+  limit: number,
+  ttlMilliseconds: number
+) =>
+  rateLimit(
+    redis,
+    `rl:INSTANCER_ACTION:${challengeId}:${userId}:${actionId}`,
+    limit,
+    ttlMilliseconds
+  )
+
 // burst 3, 1 per 1s per IP
 export const rateLimitSearch = (redis: TypedRedis, ip: string) =>
   rateLimit(redis, `rl:SEARCH:${ip}`, 3, 3000)

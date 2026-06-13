@@ -1,7 +1,10 @@
 import { ChallengeScoringKind, GetChallengesRouteV2 } from '@rctf/types'
 import { instancerEnabled } from '../../../../providers'
 import { getChallenges } from '../../../../services/challenges'
-import { resolveInstancerCapabilities } from '../../../../services/instancer'
+import {
+  resolveInstancerActions,
+  resolveInstancerCapabilities,
+} from '../../../../services/instancer'
 import challsGroup from '../group'
 
 challsGroup.route(GetChallengesRouteV2, async ({ res, ctx, user }) => {
@@ -33,6 +36,9 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx, user }) => {
           instancerConfig?.extendable !== false &&
           (capabilities?.canExtend ?? true),
         instancerStoppable: capabilities?.canStop ?? true,
+        instancerActions: instancerConfig
+          ? resolveInstancerActions(instancerConfig)
+          : [],
         adminBotInputs: item.data.adminBotConfig?.inputs ?? null,
         hasFlag: Boolean(item.data.flag),
         scoringKind: item.data.scoring?.kind ?? ChallengeScoringKind.DECAY,

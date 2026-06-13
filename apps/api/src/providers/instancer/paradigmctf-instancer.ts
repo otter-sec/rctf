@@ -6,6 +6,7 @@ import {
   type ExtendInstanceOptions,
   type instanceDetailsOrError,
   type InstanceQueryOptions,
+  type instancerActionOutcome,
   type InstancerProvider,
   type ProviderConfig,
 } from './base'
@@ -32,8 +33,8 @@ const stoppedDetails = (): instanceDetailsOrError => ({
   endpoints: [],
 })
 
-const misconfigured = (): instanceDetailsOrError => ({
-  kind: 'instancerError',
+const misconfigured = () => ({
+  kind: 'instancerError' as const,
   message: 'Instancer is missing a valid apiUrl in the challenge config',
 })
 
@@ -47,6 +48,13 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
       ),
   })
   readonly capabilities = { canStop: true, canExtend: false }
+  readonly actions = [
+    {
+      id: 'get-flag',
+      label: 'Get flag',
+      rateLimit: { burst: 3, intervalMilliseconds: 30_000 },
+    },
+  ]
 
   constructor(_options: unknown) {}
 
@@ -194,4 +202,48 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     kind: 'instancerError',
     message: 'This instancer does not support extending instances',
   })
+
+  runAction = async (
+    actionId: string,
+    options: InstanceQueryOptions
+  ): Promise<instancerActionOutcome> => {
+    if (actionId !== 'get-flag') {
+      return { kind: 'instancerError', message: 'Unknown action' }
+    }
+
+    const apiUrl = this.resolveApiUrl(options.config)
+    if (!apiUrl) {
+      return misconfigured()
+    }
+
+    const result = await this.request(
+      apiUrl,
+      `/v1/pwn/flag?team_id=${encodeURIComponent(options.teamId)}`,
+      { method: 'GET' }
+    )
+    if (!result) {
+      return {
+        kind: 'instancerError',
+        message: 'Failed to reach the instancer',
+      }
+    }
+
+    if (result.status === 200) {
+      const flag = (result.body as { flag?: unknown } | undefined)?.flag
+      if (typeof flag !== 'string') {
+        return {
+          kind: 'instancerError',
+          message: 'Received an invalid response from the instancer',
+        }
+      }
+      return { kind: 'instancerActionResult', submitFlag: flag }
+    }
+
+    const detail = (result.body as { detail?: unknown } | undefined)?.detail
+    return {
+      kind: 'instancerError',
+      message:
+        typeof detail === 'string' ? detail : 'Could not retrieve the flag',
+    }
+  }
 }
