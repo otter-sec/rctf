@@ -19,6 +19,12 @@ integrationsGroup.route(
       return error
     }
 
+    if (!provider.capabilities.canStop) {
+      return res.badInstancerError({
+        message: 'Stopping is disabled for this instancer',
+      })
+    }
+
     const instanceStatus = await provider.deleteInstance({
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),

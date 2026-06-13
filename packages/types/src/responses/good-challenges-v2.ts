@@ -48,7 +48,14 @@ export const GoodChallengesV2 = response('goodChallengesV2', {
         .boolean()
         .check(
           z.describe(
-            '`false{:ts}` only when challenge config explicitly disables extension.'
+            '`false{:ts}` when the challenge disables extension or the instancer does not support it.'
+          )
+        ),
+      instancerStoppable: z
+        .boolean()
+        .check(
+          z.describe(
+            '`false{:ts}` when the instancer does not support stopping an instance.'
           )
         ),
       adminBotInputs: example(

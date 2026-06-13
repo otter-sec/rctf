@@ -21,9 +21,10 @@
     challengeId: string
     instanceLifetime: number
     extendable: boolean
+    stoppable?: boolean
   }
 
-  let { challengeId, instanceLifetime, extendable }: Props = $props()
+  let { challengeId, instanceLifetime, extendable, stoppable = true }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
@@ -239,28 +240,32 @@
           </div>
         {/if}
 
-        <div class="flex gap-2">
-          {#if extendable}
-            <Button
-              variant="secondary"
-              onclick={extend}
-              disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
-              class="flex-1"
-            >
-              {#if actioning}<IconLoader class="animate-spin" />{/if}
-              Extend
-            </Button>
-          {/if}
-          <Button
-            variant="destructive"
-            onclick={stop}
-            disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
-            class="flex-1"
-          >
-            {#if actioning}<IconLoader class="animate-spin" />{/if}
-            Stop
-          </Button>
-        </div>
+        {#if extendable || stoppable}
+          <div class="flex gap-2">
+            {#if extendable}
+              <Button
+                variant="secondary"
+                onclick={extend}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                Extend
+              </Button>
+            {/if}
+            {#if stoppable}
+              <Button
+                variant="destructive"
+                onclick={stop}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                Stop
+              </Button>
+            {/if}
+          </div>
+        {/if}
         <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} class="mt-2" />
       </div>
     {/if}

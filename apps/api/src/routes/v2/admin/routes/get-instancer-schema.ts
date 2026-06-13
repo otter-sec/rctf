@@ -18,6 +18,8 @@ adminGroup.route(GetInstancerSchemaRouteV2, async ({ res }) => {
       name,
       schema: z.toJSONSchema(provider.configSchema),
       defaults: provider.getDefaults(),
+      canStop: provider.capabilities.canStop,
+      canExtend: provider.capabilities.canExtend,
     })),
   })
 })

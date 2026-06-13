@@ -501,7 +501,8 @@
           <ChallengeDetailsInstancer
             {challengeId}
             instanceLifetime={config.timeoutMilliseconds}
-            extendable={config.extendable ?? true}
+            extendable={(config.extendable ?? true) && (selectedInstancer?.canExtend ?? true)}
+            stoppable={selectedInstancer?.canStop ?? true}
           />
         </Section.Content>
       </Section.Root>

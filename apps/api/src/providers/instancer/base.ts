@@ -35,8 +35,14 @@ export type instanceDetailsOrError =
 
 export type ProviderConfig = Record<string, unknown>
 
+export interface InstancerCapabilities {
+  canStop: boolean
+  canExtend: boolean
+}
+
 export interface InstancerProvider {
   readonly configSchema: z.ZodMiniType<ProviderConfig, unknown>
+  readonly capabilities: InstancerCapabilities
 
   getDefaults: () => ProviderConfig
 

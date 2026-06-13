@@ -19,6 +19,12 @@ integrationsGroup.route(
       return error
     }
 
+    if (!provider.capabilities.canExtend) {
+      return res.badInstancerError({
+        message: 'Extending is disabled for this instancer',
+      })
+    }
+
     if (challenge.data.instancerConfig!.extendable === false) {
       return res.badInstancerError({
         message: 'Extending is disabled for this challenge',

@@ -12,6 +12,8 @@ export const GoodInstancerSchema = response('goodInstancerSchema', {
         name: z.string(),
         schema: JsonSchemaSchema,
         defaults: z.record(z.string(), z.unknown()),
+        canStop: z.boolean(),
+        canExtend: z.boolean(),
       })
     ),
   }),

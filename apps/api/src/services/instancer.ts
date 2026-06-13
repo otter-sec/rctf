@@ -15,6 +15,7 @@ import {
 } from '../providers'
 import {
   type instanceDetailsOrError,
+  type InstancerCapabilities,
   type InstancerProvider,
 } from '../providers/instancer/base'
 import { getChallenge } from './challenges'
@@ -27,6 +28,17 @@ export const getInstancerProvider = (
   name: string | undefined
 ): InstancerProvider | undefined =>
   name === undefined ? undefined : instancers[name]
+
+const DEFAULT_INSTANCER_CAPABILITIES: InstancerCapabilities = {
+  canStop: true,
+  canExtend: true,
+}
+
+export const resolveInstancerCapabilities = (
+  instancerConfig?: { instancer?: string } | null
+): InstancerCapabilities =>
+  getInstancerProvider(resolveInstancerName(instancerConfig))?.capabilities ??
+  DEFAULT_INSTANCER_CAPABILITIES
 
 type InstancerResponseHelpers = ResponseHelpers<
   [
