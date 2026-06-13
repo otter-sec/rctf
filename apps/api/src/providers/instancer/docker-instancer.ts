@@ -440,6 +440,7 @@ export default class TinyInstancerProvider implements InstancerProvider {
   private readonly apiUrl: string
 
   readonly configSchema = tinyInstancerConfigSchema
+  readonly capabilities = { canStop: true, canExtend: true }
 
   constructor(_options: unknown) {
     const options = {

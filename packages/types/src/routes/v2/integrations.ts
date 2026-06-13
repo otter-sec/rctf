@@ -18,6 +18,7 @@ import {
   GoodAdminBotJobStatus,
   GoodAdminBotJobSubmitted,
   GoodClientConfigV2,
+  GoodInstancerActionResult,
   GoodInstanceStatus,
 } from '../../responses'
 
@@ -105,6 +106,27 @@ export const ExtendInstanceRouteV2 = defineRoute({
   rejectBanned: true,
   params: z.object({
     id: z.string(),
+  }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsRead,
+})
+
+export const RunInstanceActionRouteV2 = defineRoute({
+  path: '/v2/integrations/challs/:id/instance/actions/:action',
+  method: 'POST',
+  goodResponses: [GoodInstancerActionResult],
+  badResponses: [
+    BadInstancerError,
+    BadEndpoint,
+    BadChallenge,
+    BadRateLimit,
+    BadPerms,
+  ],
+  authRequired: true,
+  rejectBanned: true,
+  params: z.object({
+    id: z.string(),
+    action: z.string(),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

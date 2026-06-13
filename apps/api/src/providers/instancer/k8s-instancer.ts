@@ -413,6 +413,7 @@ export default class K8sInstancerProvider implements InstancerProvider {
   private readonly client: CustomObjectsApi
 
   readonly configSchema = k8sInstancerConfigSchema
+  readonly capabilities = { canStop: true, canExtend: true }
 
   constructor(_options: unknown) {
     const options = {

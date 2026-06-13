@@ -85,11 +85,13 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    #   clientId: 2288
    #   clientSecret: secret
 
-   # instancerProvider:
-   #   name: 'instancer/docker-instancer'
-   #   options:
-   #     authToken: 'changeme!'
-   #     apiUrl: 'http://tiny-instancer:1337'
+   # instancers:
+   #   docker:
+   #     name: 'instancer/docker-instancer'
+   #     options:
+   #       authToken: 'changeme!'
+   #       apiUrl: 'http://tiny-instancer:1337'
+   # defaultInstancer: docker
 
    # captcha:
    #   provider:

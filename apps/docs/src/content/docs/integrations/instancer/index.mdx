@@ -26,14 +26,14 @@ This page covers the parts that are the same for both providers, namely the arch
 The instancer path has three layers:
 
 <Steps>
-<Step title="Select a provider">
+<Step title="Define instancers">
 
-The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/{:dir}`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
+The rCTF API loads named instancers from `<red>instancers</red>` in `rctf.d/{:dir}`, and `<red>defaultInstancer</red>` sets the one challenges use unless they name another. Each instancer validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
 
 </Step>
 <Step title="Configure a challenge">
 
-Each instanced challenge stores `<red>instancerConfig</red>` in challenge data. The common fields cover the stable challenge integration ID, timeout, exposed endpoints, and provider-specific config.
+Each instanced challenge stores `<red>instancerConfig</red>` in challenge data. The common fields cover the stable challenge integration ID, the chosen instancer, timeout, exposed endpoints, and provider-specific config.
 
 </Step>
 <Step title="Run participant instances">
@@ -45,25 +45,27 @@ Participants create, extend, inspect, and delete their instance from the challen
 
 ## Provider configuration
 
-The `<red>instancerProvider</red>` config selects one provider in `rctf.d/{:dir}`:
+Define one or more named instancers under `<red>instancers</red>` in `rctf.d/{:dir}`, then point `<red>defaultInstancer</red>` at the name challenges use unless they pick another. Each entry selects a provider:
 
-<Tabs items={['Docker', 'Kubernetes']}>
+<Tabs items={['Docker', 'Kubernetes', 'Paradigmctf.py']}>
 <Tab>
 
 `<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://tiny-instancer:1337
-    authToken: <shared-secret>
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://tiny-instancer:1337
+      authToken: <shared-secret>
+defaultInstancer: docker
 ```
 
 | Field or variable | Purpose |
 | --- | --- |
-| `<red>instancerProvider.options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
-| `<red>instancerProvider.options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
+| `<red>instancers.docker.options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
+| `<red>instancers.docker.options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
 | `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 
@@ -75,22 +77,24 @@ See [Docker instancer](/integrations/instancer/docker/) for the deployment walkt
 `<green>instancer/k8s-instancer</green>` creates cluster-scoped `ChallengeInstance` custom resources:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/k8s-instancer
-  options:
-    apiUrl: https://k8s.example.com
-    authToken: <service-account-token>
-    caCertificate: |
-      -----BEGIN CERTIFICATE-----
-      ...
-      -----END CERTIFICATE-----
+instancers:
+  k8s:
+    name: instancer/k8s-instancer
+    options:
+      apiUrl: https://k8s.example.com
+      authToken: <service-account-token>
+      caCertificate: |
+        -----BEGIN CERTIFICATE-----
+        ...
+        -----END CERTIFICATE-----
+defaultInstancer: k8s
 ```
 
 | Field or variable | Purpose |
 | --- | --- |
-| `<red>instancerProvider.options.apiUrl</red>` | Kubernetes API server URL. |
-| `<red>instancerProvider.options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
-| `<red>instancerProvider.options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
+| `<red>instancers.k8s.options.apiUrl</red>` | Kubernetes API server URL. |
+| `<red>instancers.k8s.options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
+| `<red>instancers.k8s.options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
 | `K8S_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `K8S_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `<red>caCertificate</red>`. |
@@ -98,15 +102,43 @@ instancerProvider:
 See [Kubernetes instancer](/integrations/instancer/kubernetes/) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
 
 </Tab>
+<Tab>
+
+`<green>instancer/paradigmctf-instancer</green>` talks to a custom [paradigmctf-py](https://github.com/es3n1n/paradigmctf-py) server running in API mode, for EVM-style blockchain challenges. Define it once with no options:
+
+```yaml title="rctf.d/instancer.yaml"
+instancers:
+  paradigm:
+    name: instancer/paradigmctf-instancer
+defaultInstancer: paradigm
+```
+
+The connection details live on the challenge instead of the provider, so a single entry serves every paradigm challenge. Each challenge sets its own API URL in `<red>config.apiUrl</red>`, and because the provider returns the per-team RPC endpoints, player private key, and deployed contract addresses as RAW results, `<red>expose</red>` stays empty:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  instancer: paradigm
+  timeoutMilliseconds: 900000
+  config:
+    apiUrl: http://my-evm-chall:1337
+  expose: []
+```
+
+| Field                      | Purpose                                                     |
+| -------------------------- | ----------------------------------------------------------- |
+| `<red>config.apiUrl</red>` | Base URL of the challenge's paradigmctf-py API-mode server. |
+
+</Tab>
 </Tabs>
 
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata/) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
+Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>instancer</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same for every provider. `<red>instancer</red>` names which configured instancer serves the challenge, and only the inner `<red>config</red>` body changes shape to match it. This block is also what [Konata](/integrations/konata/) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
   challengeIntegrationId: web-demo
+  instancer: docker # optional; defaults to defaultInstancer
   timeoutMilliseconds: 600000
   extendable: true
   config:
@@ -123,6 +155,7 @@ instancerConfig:
 | Field | Purpose |
 | --- | --- |
 | `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. Don't change it after launch. |
+| `<red>instancer</red>` | Name of the instancer that serves this challenge. Defaults to `<red>defaultInstancer</red>` when omitted. |
 | `<red>timeoutMilliseconds</red>` | Instance lifetime for create and extend operations. |
 | `<red>extendable</red>` | Lets participants extend their instance when set to `true{:ts}`. |
 | `<red>config</red>` | Provider-specific service or pod configuration. See [Docker](/integrations/instancer/docker/#docker-challenge-config) or [Kubernetes](/integrations/instancer/kubernetes/#kubernetes-challenge-config) for the schema. |
@@ -150,6 +183,8 @@ Endpoint support is provider-specific:
 | `<green>tcp</green>` | Rewritten to `<green>tcp-ssl</green>` because Traefik needs SNI routing. | Returned as `unsupported-by-instancer` with port `0{:ts}`. Kubernetes configs should use `<green>tcp-ssl</green>`. |
 | `<green>tcp-ssl</green>` | Traefik TCP router with TLS and HostSNI on the configured TCP port. The default is `1337{:ts}`. | Traefik `IngressRouteTCP` with TLS and HostSNI on port `1337{:ts}`. |
 
+`<green>raw</green>` results are produced by providers for connection info that has no host or port. rCTF shows the text with a copy button.
+
 ## Lifecycle and API behavior
 
 Participant lifecycle routes are under `<route>/api/v2/integrations/challs/:id/instance</route>`:
@@ -174,13 +209,13 @@ captcha:
 
 ## Provider schema and the admin UI
 
-The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
+The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>instancer</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape works for every instancer. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the instancer named by the challenge validates it against its own schema.
 
-The response comes from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
+The schema endpoint returns one entry per configured instancer, each with its JSON Schema and defaults, plus the name of the default instancer. The schemas come from the providers themselves at request time, so they match what each instancer will validate against. External tooling can fetch them to check challenge configs before pushing them.
 
 ### Dynamic admin UI
 
-The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Swapping the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
+The admin challenge editor fetches that endpoint and renders form fields directly from the JSON Schema of the selected instancer. When more than one instancer is configured, the editor shows an instancer picker, and choosing a different one swaps the form to that instancer's fields without a frontend rebuild, since every field, type, and validation rule comes from the provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
 
 <Callout variant="note" title="Challenge repository tooling">
   [Konata](/integrations/konata/) is a CTF challenge management tool with rCTF support, including

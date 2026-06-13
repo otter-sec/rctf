@@ -287,18 +287,21 @@ uploadProvider:
     awsRegion: us-east-1
 scoreProvider:
   name: scores/classic
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://localhost:8000
-    authToken: secret
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://localhost:8000
+      authToken: secret
+defaultInstancer: docker
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
 | `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
-| `<red>instancerProvider</red>` | `object{:ts}` | - | Challenge instancer provider (optional) |
+| `<red>instancers</red>` | `object{:ts}` | - | Named challenge instancer providers (optional) |
+| `<red>defaultInstancer</red>` | `string{:ts}` | - | Instancer challenges use unless they set their own (optional) |
 
 See the [Providers](/providers/) section for detailed configuration of each provider.
 

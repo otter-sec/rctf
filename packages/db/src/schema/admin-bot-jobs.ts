@@ -18,6 +18,7 @@ export interface InstancerInstance {
   host: string
   port: number
   title?: string
+  text?: string
 }
 
 export const adminBotJobStatusEnum = pgEnum('admin_bot_job_status', [

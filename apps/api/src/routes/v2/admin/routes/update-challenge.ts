@@ -1,11 +1,15 @@
 import type { AdminBotConfig } from '@rctf/db'
 import { UpdateChallengeRouteV2 } from '@rctf/types'
-import { adminBotProvider, instancerProvider } from '../../../../providers'
+import { adminBotProvider, instancerEnabled } from '../../../../providers'
 import {
   ChallengeKindChangeBlockedError,
   getPrivateChallenge,
   upsertChallenge,
 } from '../../../../services/challenges'
+import {
+  getInstancerProvider,
+  resolveInstancerName,
+} from '../../../../services/instancer'
 import {
   applyChallengeConfigChange,
   scoringConfigChanged,
@@ -20,15 +24,28 @@ const sha256Hex = (data: string): string => {
 }
 
 adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
+  const before = await getPrivateChallenge(ctx.var.db, params.id)
+
   // Validate instancer config if provided
   if (body.data.instancerConfig) {
-    if (!instancerProvider) {
+    if (!instancerEnabled) {
       return res.badInstancerConfig({
         error: 'Instancer is not enabled',
       })
     }
 
-    const configResult = instancerProvider.configSchema.safeParse(
+    const name = resolveInstancerName(
+      body.data.instancerConfig,
+      before?.data.instancerConfig
+    )
+    const provider = getInstancerProvider(name)
+    if (!provider) {
+      return res.badInstancerConfig({
+        error: `Unknown instancer: ${name ?? '(none)'}`,
+      })
+    }
+
+    const configResult = provider.configSchema.safeParse(
       body.data.instancerConfig.config
     )
 
@@ -68,8 +85,6 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   } else if (body.data.adminBotConfig === null) {
     resolvedAdminBotConfig = null
   }
-
-  const before = await getPrivateChallenge(ctx.var.db, params.id)
 
   let updated
   try {

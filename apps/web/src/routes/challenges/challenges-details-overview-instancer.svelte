@@ -1,18 +1,26 @@
 <script lang="ts">
   import {
+    BadAlreadySolvedChallenge,
+    BadInstancerError,
+    BadRateLimit,
     CreateInstanceRouteV2,
     DeleteInstanceRouteV2,
     ExposeKind,
     ExtendInstanceRouteV2,
     GetInstanceStatusRouteV2,
+    GoodFlag,
+    GoodInstancerActionResult,
     InstanceStatus,
     ProtectedAction,
+    RunInstanceActionRouteV2,
+    SubmitFlagRoute,
   } from '@rctf/types'
-  import { apiRequest, isAuthenticated } from '$lib/api'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { apiRequest, isAuthenticated, showApiError } from '$lib/api'
   import { Button, Progress } from '$lib/components'
   import CaptchaNotice from '$lib/components/captcha-notice.svelte'
   import { IconCopy, IconLoader, IconLogin } from '$lib/icons'
-  import { useClientConfig } from '$lib/query'
+  import { queryKeys, useClientConfig } from '$lib/query'
   import { formatCountdown } from '$lib/utils'
   import { onMount } from 'svelte'
   import { toast } from 'svelte-sonner'
@@ -21,16 +29,27 @@
     challengeId: string
     instanceLifetime: number
     extendable: boolean
+    stoppable?: boolean
+    actions?: { id: string; label: string }[]
   }
 
-  let { challengeId, instanceLifetime, extendable }: Props = $props()
+  let {
+    challengeId,
+    instanceLifetime,
+    extendable,
+    stoppable = true,
+    actions = [],
+  }: Props = $props()
 
   const clientConfigQuery = useClientConfig()
   const clientConfig = $derived(clientConfigQuery.data)
   const isArchived = $derived(clientConfig?.isArchived ?? false)
+  const queryClient = useQueryClient()
 
   let status = $state(InstanceStatus.STOPPED)
-  let endpoints = $state<{ kind: ExposeKind; host: string; port: number; title?: string }[]>([])
+  let endpoints = $state<
+    { kind: ExposeKind; host: string; port: number; title?: string; text?: string }[]
+  >([])
   let timeLeft = $state<number | null>(null)
   let loading = $state(true)
   let actioning = $state(false)
@@ -81,10 +100,8 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance started')
-      } else if (res.kind === 'badInstancerError') {
-        toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -101,10 +118,8 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance stopped')
-      } else if (res.kind === 'badInstancerError') {
-        toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -121,10 +136,53 @@
         timeLeft = res.data.timeLeftMilliseconds
         error = null
         toast.success('Instance extended')
-      } else if (res.kind === 'badInstancerError') {
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      actioning = false
+    }
+  }
+
+  function refreshSolvedState() {
+    queryClient.refetchQueries({ queryKey: queryKeys.challenges })
+    queryClient.refetchQueries({ queryKey: queryKeys.userSelf })
+    queryClient.invalidateQueries({ queryKey: queryKeys.fullLeaderboard })
+  }
+
+  async function submitResolvedFlag(flag: string) {
+    toast.info(`${flag}`, { duration: 15_000 })
+
+    const res = await apiRequest(SubmitFlagRoute, { id: challengeId, flag })
+    if (res.kind === GoodFlag.kind) {
+      toast.success('Flag correct!')
+      refreshSolvedState()
+    } else if (res.kind === BadAlreadySolvedChallenge.kind) {
+      toast.info('You already solved this challenge')
+      refreshSolvedState()
+    } else {
+      showApiError(res)
+    }
+  }
+
+  async function runAction(actionId: string) {
+    actioning = true
+    try {
+      const res = await apiRequest(RunInstanceActionRouteV2, {
+        id: challengeId,
+        action: actionId,
+      })
+      if (res.kind === GoodInstancerActionResult.kind) {
+        if (res.data.message) {
+          toast.success(res.data.message)
+        }
+        if (res.data.submitFlag) {
+          await submitResolvedFlag(res.data.submitFlag)
+        }
+      } else if (res.kind === BadInstancerError.kind) {
         toast.error(res.data.message)
       } else {
-        toast.error(res.message)
+        showApiError(res)
       }
     } finally {
       actioning = false
@@ -203,14 +261,16 @@
           </div>
         {/if}
 
-        {#each endpoints as { kind, host, port, title }, i}
-          {@const url = formatEndpoint(kind, host, port)}
+        {#each endpoints as { kind, host, port, title, text }, i}
+          {@const value = kind === ExposeKind.RAW ? (text ?? '') : formatEndpoint(kind, host, port)}
           {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
           {@const pending = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           <div class="space-y-1" class:opacity-50={pending}>
             <div class="text-foreground-l3 flex justify-between text-sm">
               <span>{label}</span>
-              <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
+              {#if kind !== ExposeKind.RAW}
+                <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
+              {/if}
             </div>
             <div
               class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
@@ -219,10 +279,10 @@
               <span
                 class="truncate font-mono text-sm"
                 class:text-foreground-accent={!pending}
-                class:text-foreground-l4={pending}>{url}</span
+                class:text-foreground-l4={pending}>{value}</span
               >
               {#if !pending}
-                <button type="button" onclick={() => copy(url)}>
+                <button type="button" onclick={() => copy(value)}>
                   <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
                 </button>
               {/if}
@@ -239,28 +299,43 @@
           </div>
         {/if}
 
-        <div class="flex gap-2">
-          {#if extendable}
-            <Button
-              variant="secondary"
-              onclick={extend}
-              disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
-              class="flex-1"
-            >
-              {#if actioning}<IconLoader class="animate-spin" />{/if}
-              Extend
-            </Button>
-          {/if}
-          <Button
-            variant="destructive"
-            onclick={stop}
-            disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
-            class="flex-1"
-          >
-            {#if actioning}<IconLoader class="animate-spin" />{/if}
-            Stop
-          </Button>
-        </div>
+        {#if actions.length > 0 || extendable || stoppable}
+          <div class="flex gap-2">
+            {#each actions as action (action.id)}
+              <Button
+                variant="secondary"
+                onclick={() => runAction(action.id)}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                {action.label}
+              </Button>
+            {/each}
+            {#if extendable}
+              <Button
+                variant="secondary"
+                onclick={extend}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                Extend
+              </Button>
+            {/if}
+            {#if stoppable}
+              <Button
+                variant="destructive"
+                onclick={stop}
+                disabled={actioning || [InstanceStatus.STOPPING].includes(status)}
+                class="flex-1"
+              >
+                {#if actioning}<IconLoader class="animate-spin" />{/if}
+                Stop
+              </Button>
+            {/if}
+          </div>
+        {/if}
         <CaptchaNotice config={clientConfig} action={ProtectedAction.InstancerStart} class="mt-2" />
       </div>
     {/if}

@@ -69,21 +69,25 @@ $ <red>docker</red> compose <dim>-f</dim> deploy/docker-instancer/compose.yml up
 The same token belongs in rCTF:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://tiny-instancer:1337
-    authToken: <shared-secret>
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://tiny-instancer:1337
+      authToken: <shared-secret>
+defaultInstancer: docker
 ```
 
 When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL is:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://127.0.0.1:12237
-    authToken: <shared-secret>
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://127.0.0.1:12237
+      authToken: <shared-secret>
+defaultInstancer: docker
 ```
 
 The Traefik TLS config expects these files:

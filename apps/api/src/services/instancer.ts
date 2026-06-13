@@ -1,4 +1,3 @@
-import { config } from '@rctf/config'
 import type { Challenge, DatabaseClient } from '@rctf/db'
 import type {
   BadChallenge,
@@ -9,8 +8,47 @@ import type {
   ResponseHelpers,
 } from '@rctf/types'
 import { z } from 'zod/mini'
-import { type instanceDetailsOrError } from '../providers/instancer/base'
+import {
+  defaultInstancerName,
+  instancerEnabled,
+  instancers,
+} from '../providers'
+import {
+  type instanceDetailsOrError,
+  type InstancerActionDefinition,
+  type InstancerCapabilities,
+  type InstancerProvider,
+} from '../providers/instancer/base'
 import { getChallenge } from './challenges'
+
+export const resolveInstancerName = (
+  instancerConfig?: { instancer?: string } | null,
+  fallbackConfig?: { instancer?: string } | null
+): string | undefined =>
+  instancerConfig?.instancer ??
+  fallbackConfig?.instancer ??
+  defaultInstancerName
+
+export const getInstancerProvider = (
+  name: string | undefined
+): InstancerProvider | undefined =>
+  name === undefined ? undefined : instancers[name]
+
+const DEFAULT_INSTANCER_CAPABILITIES: InstancerCapabilities = {
+  canStop: true,
+  canExtend: true,
+}
+
+export const resolveInstancerCapabilities = (
+  instancerConfig?: { instancer?: string } | null
+): InstancerCapabilities =>
+  getInstancerProvider(resolveInstancerName(instancerConfig))?.capabilities ??
+  DEFAULT_INSTANCER_CAPABILITIES
+
+export const resolveInstancerActions = (
+  instancerConfig?: { instancer?: string } | null
+): InstancerActionDefinition[] =>
+  getInstancerProvider(resolveInstancerName(instancerConfig))?.actions ?? []
 
 type InstancerResponseHelpers = ResponseHelpers<
   [
@@ -21,23 +59,29 @@ type InstancerResponseHelpers = ResponseHelpers<
   ]
 >
 
+type InstancerChallengeErrors = ResponseHelpers<
+  [typeof BadInstancerError, typeof BadEndpoint, typeof BadChallenge]
+>
+
 export const getInstancerChallenge = async (
-  res: InstancerResponseHelpers,
+  res: InstancerChallengeErrors,
   db: DatabaseClient,
   challengeId: string
 ): Promise<
   | {
       challenge: Challenge
+      provider: InstancerProvider
       error?: undefined
     }
   | {
       challenge?: undefined
+      provider?: undefined
       error: ReturnType<
-        InstancerResponseHelpers[keyof InstancerResponseHelpers]
+        InstancerChallengeErrors[keyof InstancerChallengeErrors]
       >
     }
 > => {
-  if (!config.instancerProvider) {
+  if (!instancerEnabled) {
     return { error: res.badEndpoint() }
   }
 
@@ -54,7 +98,17 @@ export const getInstancerChallenge = async (
     }
   }
 
-  return { challenge }
+  const name = resolveInstancerName(challenge.data.instancerConfig)
+  const provider = getInstancerProvider(name)
+  if (!provider) {
+    return {
+      error: res.badInstancerError({
+        message: `Instancer "${name ?? 'default'}" is not available`,
+      }),
+    }
+  }
+
+  return { challenge, provider }
 }
 
 export const returnInstanceStatusOrError = async (
@@ -77,27 +131,35 @@ export const filterInstanceEndpoints = (
     return instanceStatus
   }
 
-  if (!instanceStatus.endpoints || !challenge.data.instancerConfig?.expose) {
+  if (!instanceStatus.endpoints) {
     return instanceStatus
   }
 
-  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
-  instanceStatus.endpoints =
-    (instanceStatus.endpoints
-      .map((endpoint, i) => {
-        const exposeConfig = challenge.data.instancerConfig?.expose?.[i]
-        if (!exposeConfig?.shouldDisplay) {
-          return undefined
-        }
+  const expose = challenge.data.instancerConfig?.expose
 
-        return {
-          ...endpoint,
-          title: exposeConfig.title,
-        }
+  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
+  // TODO(es3n1n): this is really really really bad, we should rewrite this
+  instanceStatus.endpoints = instanceStatus.endpoints.reduce<
+    z.output<typeof EndpointSchema>[]
+  >((acc, endpoint) => {
+    if (endpoint.bypassExpose) {
+      acc.push(endpoint)
+      return acc
+    }
+
+    const nonBypassSoFar = instanceStatus
+      .endpoints!.slice(0, instanceStatus.endpoints!.indexOf(endpoint))
+      .filter(e => !e.bypassExpose).length
+    const exposeConfig = expose?.[nonBypassSoFar]
+    if (exposeConfig?.shouldDisplay) {
+      acc.push({
+        ...endpoint,
+        title: exposeConfig.title,
       })
-      .filter(endpoint => Boolean(endpoint)) as z.output<
-      typeof EndpointSchema
-    >[]) ?? null
+    }
+
+    return acc
+  }, [])
 
   return instanceStatus
 }

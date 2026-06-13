@@ -1,6 +1,6 @@
 import { config } from '@rctf/config'
 import { GetClientConfigRouteV2, ProtectedAction } from '@rctf/types'
-import { captchaProvider } from '../../../../providers'
+import { captchaProvider, instancerEnabled } from '../../../../providers'
 import { getResolvedSettings } from '../../../../services/settings'
 import integrationsGroup from '../group'
 
@@ -38,7 +38,7 @@ integrationsGroup.route(GetClientConfigRouteV2, async ({ res, ctx }) => {
     analytics: getAnalyticsConfig(),
     registrationsEnabled: config.registrationsEnabled ?? null,
     ctftime: config.ctftime ?? null,
-    instancerEnabled: Boolean(config.instancerProvider),
+    instancerEnabled,
     isArchived: false,
     captcha: captchaProvider
       ? {

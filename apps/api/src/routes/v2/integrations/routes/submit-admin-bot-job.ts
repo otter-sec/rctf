@@ -5,9 +5,13 @@ import {
   SubmissionResult,
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
-import { adminBotProvider, instancerProvider } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
+import {
+  getInstancerProvider,
+  resolveInstancerName,
+} from '../../../../services/instancer'
 import { rateLimitAdminBot } from '../../../../services/rate-limit'
 import { createSubmission } from '../../../../services/submissions'
 import { inferChallengeIntegrationId } from '../../../../util/instancer'
@@ -119,6 +123,12 @@ integrationsGroup.route(
       })
     }
 
+    const instancerProvider = challenge.data.instancerConfig
+      ? getInstancerProvider(
+          resolveInstancerName(challenge.data.instancerConfig)
+        )
+      : undefined
+
     let instancerInstances: InstancerInstance[] = []
     if (
       adminBotConfig.requireInstancerInstancesRunning &&
@@ -128,6 +138,7 @@ integrationsGroup.route(
       const instanceStatus = await instancerProvider.getInstance({
         teamId: user.id,
         challengeIntegrationId: inferChallengeIntegrationId(challenge),
+        config: challenge.data.instancerConfig.config,
       })
 
       if (
@@ -170,12 +181,10 @@ integrationsGroup.route(
         })
       }
 
-      instancerInstances = instanceStatus.endpoints.map(instance => {
-        return {
-          ...instance,
-          type: instance.kind,
-        }
-      })
+      instancerInstances = instanceStatus.endpoints.map(instance => ({
+        type: instance.kind,
+        ...instance,
+      }))
     }
 
     const job = await createJob(ctx.var.db, {

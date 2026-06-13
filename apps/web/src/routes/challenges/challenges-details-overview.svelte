@@ -83,6 +83,8 @@
             challengeId={challenge.id}
             instanceLifetime={challenge.instancerLifetime}
             extendable={challenge.instancerExtendable}
+            stoppable={challenge.instancerStoppable}
+            actions={challenge.instancerActions}
           />
         </div>
       {/if}

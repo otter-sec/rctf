@@ -1,5 +1,4 @@
 import { DeleteInstanceRouteV2 } from '@rctf/types'
-import { instancerProvider } from '../../../../providers'
 import {
   filterInstanceEndpoints,
   getInstancerChallenge,
@@ -11,7 +10,7 @@ import integrationsGroup from '../group'
 integrationsGroup.route(
   DeleteInstanceRouteV2,
   async ({ ctx, res, params, user }) => {
-    const { challenge, error } = await getInstancerChallenge(
+    const { challenge, provider, error } = await getInstancerChallenge(
       res,
       ctx.var.db,
       params.id
@@ -20,9 +19,16 @@ integrationsGroup.route(
       return error
     }
 
-    const instanceStatus = await instancerProvider!.deleteInstance({
+    if (!provider.capabilities.canStop) {
+      return res.badInstancerError({
+        message: 'Stopping is disabled for this instancer',
+      })
+    }
+
+    const instanceStatus = await provider.deleteInstance({
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),
+      config: challenge.data.instancerConfig!.config,
     })
 
     return await returnInstanceStatusOrError(

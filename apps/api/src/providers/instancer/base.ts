@@ -1,5 +1,5 @@
 import type { InstancerConfig } from '@rctf/db'
-import { EndpointSchema, InstanceStatus } from '@rctf/types'
+import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
 
 export { InstanceStatus }
@@ -11,17 +11,27 @@ export interface CreateInstanceOptions extends InstancerConfig {
 export interface InstanceQueryOptions {
   teamId: string
   challengeIntegrationId: string
+  config: Record<string, unknown>
 }
 
 export interface ExtendInstanceOptions extends InstanceQueryOptions {
   timeoutMilliseconds: number
 }
 
+const instancerEndpointSchema = z.object({
+  kind: z.enum(ExposeKind),
+  host: z.string(),
+  port: z.int().check(z.gte(0), z.lte(65535)),
+  title: z.optional(z.string()),
+  text: z.optional(z.string()),
+  bypassExpose: z.optional(z.boolean()),
+})
+
 export const instanceDetailsSchema = z.object({
   kind: z.literal('instancerInstanceDetails'),
   status: z.enum(InstanceStatus),
   timeLeftMilliseconds: z.nullable(z.int()),
-  endpoints: z.nullable(z.array(EndpointSchema)),
+  endpoints: z.nullable(z.array(instancerEndpointSchema)),
 })
 
 export const instancerErrorSchema = z.object({
@@ -33,10 +43,32 @@ export type instanceDetailsOrError =
   | z.output<typeof instanceDetailsSchema>
   | z.output<typeof instancerErrorSchema>
 
+export const instancerActionResultSchema = z.object({
+  kind: z.literal('instancerActionResult'),
+  message: z.optional(z.string()),
+  submitFlag: z.optional(z.string()),
+})
+
+export type instancerActionOutcome =
+  | z.output<typeof instancerActionResultSchema>
+  | z.output<typeof instancerErrorSchema>
+
 export type ProviderConfig = Record<string, unknown>
+
+export interface InstancerCapabilities {
+  canStop: boolean
+  canExtend: boolean
+}
+
+export interface InstancerActionDefinition {
+  id: string
+  label: string
+  rateLimit?: { burst: number; intervalMilliseconds: number }
+}
 
 export interface InstancerProvider {
   readonly configSchema: z.ZodMiniType<ProviderConfig, unknown>
+  readonly capabilities: InstancerCapabilities
 
   getDefaults: () => ProviderConfig
 
@@ -56,4 +88,10 @@ export interface InstancerProvider {
   extendInstance: (
     options: ExtendInstanceOptions
   ) => Promise<instanceDetailsOrError>
+
+  readonly actions?: InstancerActionDefinition[]
+  runAction?: (
+    actionId: string,
+    options: InstanceQueryOptions
+  ) => Promise<instancerActionOutcome>
 }
