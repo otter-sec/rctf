@@ -1,5 +1,5 @@
 import type { InstancerConfig } from '@rctf/db'
-import { EndpointSchema, InstanceStatus } from '@rctf/types'
+import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
 
 export { InstanceStatus }
@@ -18,11 +18,20 @@ export interface ExtendInstanceOptions extends InstanceQueryOptions {
   timeoutMilliseconds: number
 }
 
+const instancerEndpointSchema = z.object({
+  kind: z.enum(ExposeKind),
+  host: z.string(),
+  port: z.int().check(z.gte(0), z.lte(65535)),
+  title: z.optional(z.string()),
+  text: z.optional(z.string()),
+  bypassExpose: z.optional(z.boolean()),
+})
+
 export const instanceDetailsSchema = z.object({
   kind: z.literal('instancerInstanceDetails'),
   status: z.enum(InstanceStatus),
   timeLeftMilliseconds: z.nullable(z.int()),
-  endpoints: z.nullable(z.array(EndpointSchema)),
+  endpoints: z.nullable(z.array(instancerEndpointSchema)),
 })
 
 export const instancerErrorSchema = z.object({

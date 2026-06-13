@@ -84,7 +84,6 @@ export const EndpointSchema = z.object({
   port: z.int().check(z.gte(0), z.lte(65535)),
   title: z.optional(z.string()),
   text: z.optional(z.string()),
-  bypassExpose: z.optional(z.boolean()),
 })
 
 export const ExposeSchema = z.object({
