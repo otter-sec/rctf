@@ -397,7 +397,7 @@
                     >
                       <Select.Trigger class="w-full">{selectedExpose.kind}</Select.Trigger>
                       <Select.Content>
-                        {#each Object.values(ExposeKind) as kind}
+                        {#each Object.values(ExposeKind).filter(k => k !== ExposeKind.RAW) as kind}
                           <Select.Item value={kind} label={kind}>{kind}</Select.Item>
                         {/each}
                       </Select.Content>

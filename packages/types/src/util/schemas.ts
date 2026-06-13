@@ -5,6 +5,7 @@ export enum ExposeKind {
   TCP_SSL = 'tcp-ssl',
   HTTP = 'http',
   HTTPS = 'https',
+  RAW = 'raw',
 }
 
 export enum InstanceStatus {
@@ -80,8 +81,10 @@ export const DynamicScoresPayloadSchema = z.object({
 export const EndpointSchema = z.object({
   kind: z.enum(ExposeKind),
   host: z.string(),
-  port: z.int().check(z.gte(1), z.lte(65535)),
+  port: z.int().check(z.gte(0), z.lte(65535)),
   title: z.optional(z.string()),
+  text: z.optional(z.string()),
+  bypassExpose: z.optional(z.boolean()),
 })
 
 export const ExposeSchema = z.object({

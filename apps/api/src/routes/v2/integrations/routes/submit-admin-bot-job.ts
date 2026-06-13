@@ -138,6 +138,7 @@ integrationsGroup.route(
       const instanceStatus = await instancerProvider.getInstance({
         teamId: user.id,
         challengeIntegrationId: inferChallengeIntegrationId(challenge),
+        config: challenge.data.instancerConfig.config,
       })
 
       if (
@@ -180,12 +181,10 @@ integrationsGroup.route(
         })
       }
 
-      instancerInstances = instanceStatus.endpoints.map(instance => {
-        return {
-          ...instance,
-          type: instance.kind,
-        }
-      })
+      instancerInstances = instanceStatus.endpoints.map(instance => ({
+        type: instance.kind,
+        ...instance,
+      }))
     }
 
     const job = await createJob(ctx.var.db, {

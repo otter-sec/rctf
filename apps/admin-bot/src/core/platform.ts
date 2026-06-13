@@ -7,6 +7,7 @@ interface InstancerInstance {
   host: string
   port: number
   title?: string
+  text?: string
 }
 
 export interface PulledJob {

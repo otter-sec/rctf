@@ -24,6 +24,8 @@ const sha256Hex = (data: string): string => {
 }
 
 adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
+  const before = await getPrivateChallenge(ctx.var.db, params.id)
+
   // Validate instancer config if provided
   if (body.data.instancerConfig) {
     if (!instancerEnabled) {
@@ -32,7 +34,10 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
       })
     }
 
-    const name = resolveInstancerName(body.data.instancerConfig)
+    const name = resolveInstancerName(
+      body.data.instancerConfig,
+      before?.data.instancerConfig
+    )
     const provider = getInstancerProvider(name)
     if (!provider) {
       return res.badInstancerConfig({
@@ -80,8 +85,6 @@ adminGroup.route(UpdateChallengeRouteV2, async ({ res, ctx, params, body }) => {
   } else if (body.data.adminBotConfig === null) {
     resolvedAdminBotConfig = null
   }
-
-  const before = await getPrivateChallenge(ctx.var.db, params.id)
 
   let updated
   try {

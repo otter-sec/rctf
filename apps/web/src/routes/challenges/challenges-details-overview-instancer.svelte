@@ -31,7 +31,9 @@
   const isArchived = $derived(clientConfig?.isArchived ?? false)
 
   let status = $state(InstanceStatus.STOPPED)
-  let endpoints = $state<{ kind: ExposeKind; host: string; port: number; title?: string }[]>([])
+  let endpoints = $state<
+    { kind: ExposeKind; host: string; port: number; title?: string; text?: string }[]
+  >([])
   let timeLeft = $state<number | null>(null)
   let loading = $state(true)
   let actioning = $state(false)
@@ -204,14 +206,16 @@
           </div>
         {/if}
 
-        {#each endpoints as { kind, host, port, title }, i}
-          {@const url = formatEndpoint(kind, host, port)}
+        {#each endpoints as { kind, host, port, title, text }, i}
+          {@const value = kind === ExposeKind.RAW ? (text ?? '') : formatEndpoint(kind, host, port)}
           {@const label = title ?? (endpoints.length > 1 ? `Endpoint ${i + 1}` : 'Endpoint')}
           {@const pending = [InstanceStatus.STARTING, InstanceStatus.STOPPING].includes(status)}
           <div class="space-y-1" class:opacity-50={pending}>
             <div class="text-foreground-l3 flex justify-between text-sm">
               <span>{label}</span>
-              <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
+              {#if kind !== ExposeKind.RAW}
+                <span>{kind === ExposeKind.TCP_SSL ? 'TCP+SSL' : kind}</span>
+              {/if}
             </div>
             <div
               class="group bg-background-l4 flex w-full items-center justify-between gap-2 rounded-md px-3 py-2"
@@ -220,10 +224,10 @@
               <span
                 class="truncate font-mono text-sm"
                 class:text-foreground-accent={!pending}
-                class:text-foreground-l4={pending}>{url}</span
+                class:text-foreground-l4={pending}>{value}</span
               >
               {#if !pending}
-                <button type="button" onclick={() => copy(url)}>
+                <button type="button" onclick={() => copy(value)}>
                   <IconCopy class="text-foreground-l4 hover:text-foreground-l2 size-4 shrink-0" />
                 </button>
               {/if}

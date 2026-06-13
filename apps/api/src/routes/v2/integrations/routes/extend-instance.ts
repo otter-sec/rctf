@@ -35,6 +35,7 @@ integrationsGroup.route(
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),
       timeoutMilliseconds: challenge.data.instancerConfig!.timeoutMilliseconds,
+      config: challenge.data.instancerConfig!.config,
     })
 
     return await returnInstanceStatusOrError(

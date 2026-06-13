@@ -47,7 +47,7 @@ Participants create, extend, inspect, and delete their instance from the challen
 
 Define one or more named instancers under `<red>instancers</red>` in `rctf.d/{:dir}`, then point `<red>defaultInstancer</red>` at the name challenges use unless they pick another. Each entry selects a provider:
 
-<Tabs items={['Docker', 'Kubernetes']}>
+<Tabs items={['Docker', 'Kubernetes', 'Paradigmctf.py']}>
 <Tab>
 
 `<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API:
@@ -100,6 +100,33 @@ defaultInstancer: k8s
 | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `<red>caCertificate</red>`. |
 
 See [Kubernetes instancer](/integrations/instancer/kubernetes/) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
+
+</Tab>
+<Tab>
+
+`<green>instancer/paradigmctf-instancer</green>` talks to a custom [paradigmctf-py](https://github.com/es3n1n/paradigmctf-py) server running in API mode, for EVM-style blockchain challenges. Define it once with no options:
+
+```yaml title="rctf.d/instancer.yaml"
+instancers:
+  paradigm:
+    name: instancer/paradigmctf-instancer
+defaultInstancer: paradigm
+```
+
+The connection details live on the challenge instead of the provider, so a single entry serves every paradigm challenge. Each challenge sets its own API URL in `<red>config.apiUrl</red>`, and because the provider returns the per-team RPC endpoints, player private key, and deployed contract addresses as RAW results, `<red>expose</red>` stays empty:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  instancer: paradigm
+  timeoutMilliseconds: 900000
+  config:
+    apiUrl: http://my-evm-chall:1337
+  expose: []
+```
+
+| Field                      | Purpose                                                     |
+| -------------------------- | ----------------------------------------------------------- |
+| `<red>config.apiUrl</red>` | Base URL of the challenge's paradigmctf-py API-mode server. |
 
 </Tab>
 </Tabs>
@@ -155,6 +182,8 @@ Endpoint support is provider-specific:
 | `<green>https</green>` | Traefik HTTPS router on the configured HTTPS port. The default is `443{:ts}`. | Traefik `IngressRoute` on the `websecure` entrypoint plus an HTTP redirect route. The public port is `443{:ts}`. |
 | `<green>tcp</green>` | Rewritten to `<green>tcp-ssl</green>` because Traefik needs SNI routing. | Returned as `unsupported-by-instancer` with port `0{:ts}`. Kubernetes configs should use `<green>tcp-ssl</green>`. |
 | `<green>tcp-ssl</green>` | Traefik TCP router with TLS and HostSNI on the configured TCP port. The default is `1337{:ts}`. | Traefik `IngressRouteTCP` with TLS and HostSNI on port `1337{:ts}`. |
+
+`<green>raw</green>` results are produced by providers for connection info that has no host or port. rCTF shows the text with a copy button.
 
 ## Lifecycle and API behavior
 

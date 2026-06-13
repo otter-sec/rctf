@@ -22,6 +22,7 @@ integrationsGroup.route(
     let instanceStatus = await provider.getInstance({
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),
+      config: challenge.data.instancerConfig!.config,
     })
 
     return await returnInstanceStatusOrError(

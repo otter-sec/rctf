@@ -11,6 +11,7 @@ export interface CreateInstanceOptions extends InstancerConfig {
 export interface InstanceQueryOptions {
   teamId: string
   challengeIntegrationId: string
+  config: Record<string, unknown>
 }
 
 export interface ExtendInstanceOptions extends InstanceQueryOptions {

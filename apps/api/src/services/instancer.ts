@@ -21,8 +21,12 @@ import {
 import { getChallenge } from './challenges'
 
 export const resolveInstancerName = (
-  instancerConfig?: { instancer?: string } | null
-): string | undefined => instancerConfig?.instancer ?? defaultInstancerName
+  instancerConfig?: { instancer?: string } | null,
+  fallbackConfig?: { instancer?: string } | null
+): string | undefined =>
+  instancerConfig?.instancer ??
+  fallbackConfig?.instancer ??
+  defaultInstancerName
 
 export const getInstancerProvider = (
   name: string | undefined
@@ -117,27 +121,31 @@ export const filterInstanceEndpoints = (
     return instanceStatus
   }
 
-  if (!instanceStatus.endpoints || !challenge.data.instancerConfig?.expose) {
+  if (!instanceStatus.endpoints) {
     return instanceStatus
   }
 
-  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
-  instanceStatus.endpoints =
-    (instanceStatus.endpoints
-      .map((endpoint, i) => {
-        const exposeConfig = challenge.data.instancerConfig?.expose?.[i]
-        if (!exposeConfig?.shouldDisplay) {
-          return undefined
-        }
+  const expose = challenge.data.instancerConfig?.expose
 
-        return {
-          ...endpoint,
-          title: exposeConfig.title,
-        }
-      })
-      .filter(endpoint => Boolean(endpoint)) as z.output<
-      typeof EndpointSchema
-    >[]) ?? null
+  // NOTE(es3n1n): Providers are guaranteed to return endpoints in the same order as the expose config
+  instanceStatus.endpoints = instanceStatus.endpoints
+    .map((endpoint, i) => {
+      // provider-defined endpoints bypass the challenge expose config
+      if (endpoint.bypassExpose) {
+        return endpoint
+      }
+
+      const exposeConfig = expose?.[i]
+      if (!exposeConfig?.shouldDisplay) {
+        return undefined
+      }
+
+      return {
+        ...endpoint,
+        title: exposeConfig.title,
+      }
+    })
+    .filter(endpoint => Boolean(endpoint)) as z.output<typeof EndpointSchema>[]
 
   return instanceStatus
 }
