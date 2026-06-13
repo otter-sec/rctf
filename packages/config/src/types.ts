@@ -107,7 +107,8 @@ export const ServerConfigSchema = z.object({
   scoreProvider: z.prefault(ProviderConfigSchema, {
     name: 'scores/classic',
   }),
-  instancerProvider: z.optional(ProviderConfigSchema),
+  instancers: z.optional(z.record(z.string(), ProviderConfigSchema)),
+  defaultInstancer: z.optional(z.string()),
   adminBot: z.optional(
     z.object({
       provider: ProviderConfigSchema,

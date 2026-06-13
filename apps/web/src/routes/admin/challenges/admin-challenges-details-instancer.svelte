@@ -40,6 +40,15 @@
       (schemaQuery.isSuccess && !schemaData ? 'Instancer not configured' : null)
   )
 
+  const instancerList = $derived(schemaData?.instancers ?? [])
+  const hasMultipleInstancers = $derived(instancerList.length > 1)
+  const selectedInstancerName = $derived(
+    config?.instancer ?? schemaData?.defaultInstancer ?? instancerList[0]?.name
+  )
+  const selectedInstancer = $derived(
+    instancerList.find(i => i.name === selectedInstancerName) ?? instancerList[0]
+  )
+
   let advancedMode = $state(false)
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
@@ -108,7 +117,8 @@
   function defaultConfig(): InstancerConfig {
     return {
       challengeIntegrationId: '',
-      config: schemaData?.defaults ?? {},
+      instancer: hasMultipleInstancers ? selectedInstancerName : undefined,
+      config: selectedInstancer?.defaults ?? {},
       expose: [
         {
           kind: ExposeKind.HTTPS,
@@ -124,6 +134,17 @@
 
   function handleConfigChange(newConfig: Record<string, unknown>) {
     update(c => ({ ...c, config: newConfig }))
+  }
+
+  function handleInstancerChange(name: string) {
+    const target = instancerList.find(i => i.name === name)
+    const schemaChanged =
+      JSON.stringify(target?.schema) !== JSON.stringify(selectedInstancer?.schema)
+    update(c => ({
+      ...c,
+      instancer: name,
+      config: schemaChanged ? (target?.defaults ?? {}) : c.config,
+    }))
   }
 
   function addExpose() {
@@ -189,6 +210,26 @@
       </Field.Field>
 
       {#if config}
+        {#if hasMultipleInstancers}
+          <Field.Field>
+            <Field.Label>Instancer</Field.Label>
+            <Select.Root
+              type="single"
+              value={selectedInstancerName ?? ''}
+              onValueChange={handleInstancerChange}
+              disabled={isDisabled}
+            >
+              <Select.Trigger class="w-full">{selectedInstancerName ?? ''}</Select.Trigger>
+              <Select.Content>
+                {#each instancerList as inst (inst.name)}
+                  <Select.Item value={inst.name} label={inst.name}>
+                    {inst.name}{inst.name === schemaData?.defaultInstancer ? ' (default)' : ''}
+                  </Select.Item>
+                {/each}
+              </Select.Content>
+            </Select.Root>
+          </Field.Field>
+        {/if}
         <div class="grid grid-cols-1 gap-4 @sm/form:grid-cols-2">
           <Field.Field>
             <Field.Label>Integration ID</Field.Label>
@@ -268,9 +309,9 @@
           </div>
         {:else if schemaError}
           <p class="text-foreground-l4 text-sm">{schemaError}</p>
-        {:else if schemaData}
+        {:else if selectedInstancer}
           <SchemaForm
-            schema={schemaData.schema}
+            schema={selectedInstancer.schema}
             value={config.config}
             onChange={handleConfigChange}
             disabled={isDisabled}

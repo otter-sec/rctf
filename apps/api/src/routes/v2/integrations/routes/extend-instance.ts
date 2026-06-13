@@ -1,5 +1,4 @@
 import { ExtendInstanceRouteV2 } from '@rctf/types'
-import { instancerProvider } from '../../../../providers'
 import {
   filterInstanceEndpoints,
   getInstancerChallenge,
@@ -11,7 +10,7 @@ import integrationsGroup from '../group'
 integrationsGroup.route(
   ExtendInstanceRouteV2,
   async ({ ctx, res, params, user }) => {
-    const { challenge, error } = await getInstancerChallenge(
+    const { challenge, provider, error } = await getInstancerChallenge(
       res,
       ctx.var.db,
       params.id
@@ -26,7 +25,7 @@ integrationsGroup.route(
       })
     }
 
-    const instanceStatus = await instancerProvider!.extendInstance({
+    const instanceStatus = await provider.extendInstance({
       teamId: user.id,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),
       timeoutMilliseconds: challenge.data.instancerConfig!.timeoutMilliseconds,

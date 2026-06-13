@@ -1,5 +1,5 @@
-import { config } from '@rctf/config'
 import { ChallengeScoringKind, GetChallengesRouteV2 } from '@rctf/types'
+import { instancerEnabled } from '../../../../providers'
 import { getChallenges } from '../../../../services/challenges'
 import challsGroup from '../group'
 
@@ -19,7 +19,7 @@ challsGroup.route(GetChallengesRouteV2, async ({ res, ctx, user }) => {
       solves: item.solveCount ?? 0,
       sortWeight: item.data.sortWeight ?? null,
       tags: item.data.tags ?? null,
-      instancerLifetime: Boolean(config.instancerProvider)
+      instancerLifetime: instancerEnabled
         ? (item.data.instancerConfig?.timeoutMilliseconds ?? null)
         : null,
       instancerExtendable: item.data.instancerConfig?.extendable !== false,

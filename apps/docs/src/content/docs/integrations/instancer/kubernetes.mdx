@@ -170,9 +170,9 @@ Three Terraform outputs map directly to provider options:
 
 | Terraform output | rCTF option | Environment override |
 | --- | --- | --- |
-| `<red>rctf_instancer_api_url</red>` | `<red>instancerProvider.options.apiUrl</red>` | `K8S_INSTANCER_API_URL{:sh}` |
-| `<red>rctf_instancer_auth_token</red>` | `<red>instancerProvider.options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
-| `<red>rctf_instancer_ca_certificate</red>` | `<red>instancerProvider.options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
+| `<red>rctf_instancer_api_url</red>` | `<red>instancers.k8s.options.apiUrl</red>` | `K8S_INSTANCER_API_URL{:sh}` |
+| `<red>rctf_instancer_auth_token</red>` | `<red>instancers.k8s.options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
+| `<red>rctf_instancer_ca_certificate</red>` | `<red>instancers.k8s.options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
 
 Render them into rCTF's `rctf.d/{:dir}`:
 
@@ -183,15 +183,17 @@ $ <red>terraform</red> output <dim>-raw</dim> rctf_instancer_ca_certificate
 ```
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/k8s-instancer
-  options:
-    apiUrl: https://203.0.113.10
-    authToken: <rctf_instancer_auth_token>
-    caCertificate: |
-      -----BEGIN CERTIFICATE-----
-      ...
-      -----END CERTIFICATE-----
+instancers:
+  k8s:
+    name: instancer/k8s-instancer
+    options:
+      apiUrl: https://203.0.113.10
+      authToken: <rctf_instancer_auth_token>
+      caCertificate: |
+        -----BEGIN CERTIFICATE-----
+        ...
+        -----END CERTIFICATE-----
+defaultInstancer: k8s
 ```
 
 `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host.

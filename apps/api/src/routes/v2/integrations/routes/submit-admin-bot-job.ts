@@ -5,9 +5,13 @@ import {
   SubmissionResult,
   SubmitAdminBotJobRouteV2,
 } from '@rctf/types'
-import { adminBotProvider, instancerProvider } from '../../../../providers'
+import { adminBotProvider } from '../../../../providers'
 import { createJob, hasActiveJob } from '../../../../services/admin-bot-jobs'
 import { getChallenge } from '../../../../services/challenges'
+import {
+  getInstancerProvider,
+  resolveInstancerName,
+} from '../../../../services/instancer'
 import { rateLimitAdminBot } from '../../../../services/rate-limit'
 import { createSubmission } from '../../../../services/submissions'
 import { inferChallengeIntegrationId } from '../../../../util/instancer'
@@ -118,6 +122,12 @@ integrationsGroup.route(
         error: 'You already have an active admin bot job for this challenge',
       })
     }
+
+    const instancerProvider = challenge.data.instancerConfig
+      ? getInstancerProvider(
+          resolveInstancerName(challenge.data.instancerConfig)
+        )
+      : undefined
 
     let instancerInstances: InstancerInstance[] = []
     if (

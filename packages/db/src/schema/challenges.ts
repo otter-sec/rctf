@@ -33,6 +33,7 @@ export interface InstancerExpose {
 // NOTE(es3n1n): `config` is provider-specific
 export interface InstancerConfig {
   challengeIntegrationId: string
+  instancer?: string
   config: Record<string, unknown>
   expose: InstancerExpose[]
   timeoutMilliseconds: number

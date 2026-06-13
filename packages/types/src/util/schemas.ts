@@ -96,6 +96,7 @@ export const ExposeSchema = z.object({
 // NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
   challengeIntegrationId: z.string(),
+  instancer: z.optional(z.string()),
   config: z.record(z.string(), z.any()),
   expose: z.array(ExposeSchema),
   timeoutMilliseconds: z.int(),
@@ -104,6 +105,7 @@ export const InstancerConfigSchema = z.object({
 
 export const PartialInstancerConfigSchema = z.object({
   challengeIntegrationId: z.optional(z.string()),
+  instancer: z.optional(z.string()),
   config: z.optional(z.record(z.string(), z.any())),
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: z.optional(z.int()),

@@ -1,4 +1,3 @@
-import { config } from '@rctf/config'
 import type { Challenge, DatabaseClient } from '@rctf/db'
 import type {
   BadChallenge,
@@ -9,8 +8,25 @@ import type {
   ResponseHelpers,
 } from '@rctf/types'
 import { z } from 'zod/mini'
-import { type instanceDetailsOrError } from '../providers/instancer/base'
+import {
+  defaultInstancerName,
+  instancerEnabled,
+  instancers,
+} from '../providers'
+import {
+  type instanceDetailsOrError,
+  type InstancerProvider,
+} from '../providers/instancer/base'
 import { getChallenge } from './challenges'
+
+export const resolveInstancerName = (
+  instancerConfig?: { instancer?: string } | null
+): string | undefined => instancerConfig?.instancer ?? defaultInstancerName
+
+export const getInstancerProvider = (
+  name: string | undefined
+): InstancerProvider | undefined =>
+  name === undefined ? undefined : instancers[name]
 
 type InstancerResponseHelpers = ResponseHelpers<
   [
@@ -28,16 +44,18 @@ export const getInstancerChallenge = async (
 ): Promise<
   | {
       challenge: Challenge
+      provider: InstancerProvider
       error?: undefined
     }
   | {
       challenge?: undefined
+      provider?: undefined
       error: ReturnType<
         InstancerResponseHelpers[keyof InstancerResponseHelpers]
       >
     }
 > => {
-  if (!config.instancerProvider) {
+  if (!instancerEnabled) {
     return { error: res.badEndpoint() }
   }
 
@@ -54,7 +72,17 @@ export const getInstancerChallenge = async (
     }
   }
 
-  return { challenge }
+  const name = resolveInstancerName(challenge.data.instancerConfig)
+  const provider = getInstancerProvider(name)
+  if (!provider) {
+    return {
+      error: res.badInstancerError({
+        message: `Instancer "${name ?? 'default'}" is not available`,
+      }),
+    }
+  }
+
+  return { challenge, provider }
 }
 
 export const returnInstanceStatusOrError = async (

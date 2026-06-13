@@ -6,6 +6,8 @@ import { analyticsProviders } from './analytics'
 import { captchaProviders } from './captcha'
 import { emailProviders } from './emails'
 import { instancerProviders } from './instancer'
+import type { InstancerProvider } from './instancer/base'
+import { resolveInstancerConfigs } from './instancer/resolve'
 import { messagesProviders } from './messages'
 import { moderationProviders } from './moderation'
 import { uploadProviders } from './uploads'
@@ -42,10 +44,16 @@ export const uploadProvider = loadProvider(
 
 export const scoreProvider = loadProvider(scoreProviders, config.scoreProvider)!
 
-export const instancerProvider = loadProvider(
-  instancerProviders,
-  config.instancerProvider
+const resolvedInstancers = resolveInstancerConfigs(config)
+export const instancers: Record<string, InstancerProvider> = Object.fromEntries(
+  Object.entries(resolvedInstancers.configs).map(([name, providerConfig]) => [
+    name,
+    loadProvider(instancerProviders, providerConfig)!,
+  ])
 )
+
+export const defaultInstancerName = resolvedInstancers.defaultName
+export const instancerEnabled = Object.keys(instancers).length > 0
 
 export const captchaProvider = (() => {
   if (config.captcha?.provider) {
