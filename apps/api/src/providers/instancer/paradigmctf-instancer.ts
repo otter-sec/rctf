@@ -159,7 +159,7 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     const result = await this.request(apiUrl, '/v1/instance', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ team_id: options.teamId }),
+      body: JSON.stringify({ team_id: options.user.id }),
     })
     return this.toDetailsOrError(result, false)
   }
