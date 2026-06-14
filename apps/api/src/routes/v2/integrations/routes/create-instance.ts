@@ -20,7 +20,7 @@ integrationsGroup.route(
     }
 
     const instanceStatus = await provider.createInstance({
-      teamId: user.id,
+      user,
       ...challenge.data.instancerConfig!,
       challengeIntegrationId: inferChallengeIntegrationId(challenge),
     })

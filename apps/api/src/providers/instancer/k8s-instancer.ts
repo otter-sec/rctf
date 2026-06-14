@@ -520,14 +520,14 @@ export default class K8sInstancerProvider implements InstancerProvider {
           kind: 'ChallengeInstance',
           metadata: {
             name: this.getResourceName(
-              options.teamId,
+              options.user.id,
               options.challengeIntegrationId
             ),
           },
           spec: {
             ...options.config,
             expose: options.expose,
-            teamId: options.teamId,
+            teamId: options.user.id,
             challengeId: options.challengeIntegrationId,
             expiresAt: new Date(
               Date.now() + options.timeoutMilliseconds
@@ -545,7 +545,11 @@ export default class K8sInstancerProvider implements InstancerProvider {
       }
     }
 
-    return this.getInstance(options)
+    return this.getInstance({
+      teamId: options.user.id,
+      challengeIntegrationId: options.challengeIntegrationId,
+      config: options.config,
+    })
   }
 
   deleteInstance = async (

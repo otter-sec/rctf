@@ -1,11 +1,11 @@
-import type { InstancerConfig } from '@rctf/db'
+import type { InstancerConfig, User } from '@rctf/db'
 import { ExposeKind, InstanceStatus } from '@rctf/types'
 import { z } from 'zod/mini'
 
 export { InstanceStatus }
 
 export interface CreateInstanceOptions extends InstancerConfig {
-  teamId: string
+  user: User
 }
 
 export interface InstanceQueryOptions {

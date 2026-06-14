@@ -488,10 +488,12 @@ export default class TinyInstancerProvider implements InstancerProvider {
   createInstance = async (
     options: CreateInstanceOptions
   ): Promise<instanceDetailsOrError> => {
+    const { user, ...rest } = options
     return this.apiRequest('v1/instances/', 'PUT', {
       kind: 'instancerCreateInstanceForm',
       rctfAuthToken: this.authToken,
-      ...options,
+      teamId: user.id,
+      ...rest,
     })
   }
 
