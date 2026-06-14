@@ -63,7 +63,6 @@ spec:
                   - hostPrefix
                   - kind
                   type: object
-                minItems: 1
                 type: array
                 x-kubernetes-list-type: atomic
               pods:
@@ -71,6 +70,10 @@ spec:
                   properties:
                     egress:
                       type: boolean
+                    labels:
+                      additionalProperties:
+                        type: string
+                      type: object
                     name:
                       type: string
                     ports:
@@ -3881,7 +3884,6 @@ spec:
             required:
             - challengeId
             - expiresAt
-            - expose
             - pods
             - teamId
             type: object

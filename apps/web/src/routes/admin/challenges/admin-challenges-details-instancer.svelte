@@ -65,13 +65,15 @@
     }
   })
 
+  const exposeList = $derived(config?.expose ?? [])
+
   $effect(() => {
-    if (config && selectedExposeIndex >= config.expose.length) {
-      selectedExposeIndex = Math.max(0, config.expose.length - 1)
+    if (config && selectedExposeIndex >= exposeList.length) {
+      selectedExposeIndex = Math.max(0, exposeList.length - 1)
     }
   })
 
-  const selectedExpose = $derived(config?.expose[selectedExposeIndex])
+  const selectedExpose = $derived(exposeList[selectedExposeIndex])
 
   function enterAdvancedMode() {
     if (config?.config) {
@@ -151,7 +153,7 @@
     update(c => ({
       ...c,
       expose: [
-        ...c.expose,
+        ...(c.expose ?? []),
         {
           kind: ExposeKind.HTTPS,
           hostPrefix: 'test-challenge',
@@ -162,18 +164,21 @@
       ],
     }))
     if (config) {
-      selectedExposeIndex = config.expose.length
+      selectedExposeIndex = exposeList.length
     }
   }
 
   function removeExpose(i: number) {
-    update(c => ({ ...c, expose: c.expose.filter((_, j) => j !== i) }))
+    update(c => ({ ...c, expose: (c.expose ?? []).filter((_, j) => j !== i) }))
   }
 
-  function updateExpose(i: number, partial: Partial<InstancerConfig['expose'][number]>) {
+  function updateExpose(
+    i: number,
+    partial: Partial<NonNullable<InstancerConfig['expose']>[number]>
+  ) {
     update(c => ({
       ...c,
-      expose: c.expose.map((e, j) => (j === i ? { ...e, ...partial } : e)),
+      expose: (c.expose ?? []).map((e, j) => (j === i ? { ...e, ...partial } : e)),
     }))
   }
 </script>
@@ -332,10 +337,10 @@
               <div
                 class="flex flex-row flex-wrap gap-1 overflow-hidden p-2 @md/panel:flex-col @md/panel:gap-0.5"
               >
-                {#if config.expose.length === 0}
+                {#if exposeList.length === 0}
                   <p class="text-foreground-l4 px-2 py-1.5 text-sm">No ports</p>
                 {:else}
-                  {#each config.expose as exp, i (i)}
+                  {#each exposeList as exp, i (i)}
                     {@const active = selectedExposeIndex === i}
                     <div
                       class={cn(

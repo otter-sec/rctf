@@ -100,7 +100,7 @@ export const InstancerConfigSchema = z.object({
   challengeIntegrationId: z.string(),
   instancer: z.optional(z.string()),
   config: z.record(z.string(), z.any()),
-  expose: z.array(ExposeSchema),
+  expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: z.int(),
   extendable: z.optional(z.boolean()),
 })

@@ -72,6 +72,9 @@ type ChallengeInstancePod struct {
 
 	// +optional
 	Egress bool `json:"egress"`
+
+	// +optional
+	Labels map[string]string `json:"labels"`
 }
 
 // ChallengeInstanceSpec defines the desired state of ChallengeInstance
@@ -92,9 +95,8 @@ type ChallengeInstanceSpec struct {
 	// +kubebuilder:validation:MinItems=1
 	Pods []ChallengeInstancePod `json:"pods"`
 
-	// +required
+	// +optional
 	// +listType=atomic
-	// +kubebuilder:validation:MinItems=1
 	Expose []ChallengeInstanceExpose `json:"expose"`
 }
 
