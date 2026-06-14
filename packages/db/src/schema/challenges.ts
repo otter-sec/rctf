@@ -35,7 +35,7 @@ export interface InstancerConfig {
   challengeIntegrationId: string
   instancer?: string
   config: Record<string, unknown>
-  expose: InstancerExpose[]
+  expose?: InstancerExpose[]
   timeoutMilliseconds: number
   extendable?: boolean
 }

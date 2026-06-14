@@ -19,6 +19,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 	"time"
 
@@ -529,6 +530,14 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 			break
 		}
 
+		podLabels := map[string]string{}
+		maps.Copy(podLabels, pod.Labels)
+		podLabels[labelTeamId] = instance.Spec.TeamId
+		podLabels[labelChallengeId] = instance.Spec.ChallengeId
+		podLabels[labelPod] = pod.Name
+		podLabels[labelEgress] = egress
+		podLabels[labelExposed] = exposed
+
 		var replicas int32 = 1
 		deployment = v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
@@ -554,13 +563,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 							// otherwise it blocks on orphaned pods mid-namespace-deletion.
 							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
 						},
-						Labels: map[string]string{
-							labelTeamId:      instance.Spec.TeamId,
-							labelChallengeId: instance.Spec.ChallengeId,
-							labelPod:         pod.Name,
-							labelEgress:      egress,
-							labelExposed:     exposed,
-						},
+						Labels: podLabels,
 					},
 					Spec: pod.Spec,
 				},
