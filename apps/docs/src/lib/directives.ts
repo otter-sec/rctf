@@ -150,7 +150,7 @@ function treeList(list: List): ElementContent {
 
 const fileStem = (fileURL?: URL): string => {
   const segments = (fileURL?.pathname ?? "").split("/").filter(Boolean)
-  const file = (segments.pop() ?? "").replace(/\.mdx?$/, "")
+  const file = (segments.pop() ?? "").replace(/\.md$/, "")
   const stem = file && file !== "index" ? file : (segments.pop() ?? "doc")
   return stem.replace(/[^a-zA-Z0-9-]/g, "-").replace(/^-+/, "")
 }
@@ -231,7 +231,7 @@ export function contentDirectives() {
             (child) =>
               child.type === "containerDirective" &&
               (child as unknown as DirectiveNode).name === "tab",
-          )
+          ) as typeof node[]
           if (tabs.length === 0) return
 
           const prefix = `${fileStem(ctx.fileURL)}-tabs-${tabGroups++}`
@@ -276,10 +276,6 @@ export function contentDirectives() {
           return
         }
 
-        case "tab":
-          // Handled by the parent `tabs` visitor; standalone tabs fall
-          // through to the unhandled-directives warning.
-          return
       }
     },
     leafDirective(node, ctx) {
