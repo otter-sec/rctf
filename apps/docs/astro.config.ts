@@ -6,23 +6,21 @@ import {
   inlineExpressiveCode,
 } from "./src/lib/expressive-code"
 import { temmlMath } from "./src/lib/math"
+import { apiReferenceDirectives } from "./src/lib/api-reference"
 import { calloutDirective } from "./src/lib/callout"
 import { contentDirectives } from "./src/lib/directives"
 import { externalLinks } from "./src/lib/external-links"
 import { headingAnchors } from "./src/lib/heading-anchors"
 import { headingNamespace } from "./src/lib/heading-namespace"
+import { normalizeTabPanels } from "./src/lib/normalize-tab-panels"
 import { unhandledDirectives } from "./src/lib/unhandled-directives"
 
 export default defineConfig({
-  site: "https://astro-erudite.vercel.app",
+  site: "https://rctf.osec.io",
   prefetch: { prefetchAll: true },
   integrations: [
     sitemap({
       filter: (page) =>
-        !/\/blog\/[^/]+\/[^/]+\/?$/.test(page) &&
-        !/\/authors\/[^/]+\/?$/.test(page) &&
-        !page.includes("/tags/") &&
-        !page.includes("/fixtures/") &&
         !/\.(md|txt|xml)\/?$/.test(page),
     }),
   ],
@@ -31,6 +29,7 @@ export default defineConfig({
     processor: satteri({
       features: { directive: true, math: true },
       mdastPlugins: [
+        apiReferenceDirectives,
         calloutDirective,
         contentDirectives,
         inlineExpressiveCode,
@@ -38,6 +37,7 @@ export default defineConfig({
         unhandledDirectives,
       ],
       hastPlugins: [
+        normalizeTabPanels,
         externalLinks,
         blockExpressiveCode,
         headingNamespace,

@@ -1,0 +1,37 @@
+---
+title: "PATCH Extend an instance"
+description: "PATCH /api/v2/integrations/challs/:id/instance"
+order: 5
+---
+
+:::aside
+
+::::route-example{def="ExtendInstanceRouteV2" extra="BadJson,BadBody"}
+
+```json body
+{
+  "captchaCode": "optional-captcha-code"
+}
+```
+
+```json params
+{
+  "id": "challenge-id"
+}
+```
+
+::::
+
+:::
+
+::route-meta{def="ExtendInstanceRouteV2"}
+
+This route asks the instancer provider to extend the authenticated team's running instance. The returned status includes the updated remaining time when the provider reports one.
+
+Captcha is checked only when the deployment protects `instancerExtend{:ts}`.
+
+::request-body{def="ExtendInstanceRouteV2" source="params" title="Path parameters"}
+
+::request-body{def="ExtendInstanceRouteV2" title="Request body"}
+
+::response-body{def="ExtendInstanceRouteV2" response="goodInstanceStatus" title="Response fields"}

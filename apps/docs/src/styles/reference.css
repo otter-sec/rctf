@@ -44,3 +44,35 @@
     }
   }
 }
+
+prose-content dl[data-route-meta] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: var(--space-s) var(--space-m);
+  margin-block: var(--space-m);
+  padding-block: var(--space-s);
+  border-block: 1.5px solid var(--border);
+
+  div {
+    min-inline-size: 0;
+  }
+
+  dt {
+    font-size: var(--step--1);
+    line-height: 1;
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
+
+  dd {
+    margin-block-start: var(--space-2xs);
+    color: var(--prose-foreground);
+    font-size: var(--step--1);
+    line-height: calc(var(--leading-offset) + 1em);
+    overflow-wrap: anywhere;
+
+    &[data-empty] {
+      color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+    }
+  }
+}
