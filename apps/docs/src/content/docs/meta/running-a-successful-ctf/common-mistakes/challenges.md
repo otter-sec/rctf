@@ -1,0 +1,138 @@
+---
+title: Challenges
+description: Recurring challenge-authoring and deployment mistakes. General guidance that applies across categories, plus category-specific notes for pwn, crypto, and rev.
+order: 2
+---
+
+These are the failure modes that come up when authoring and shipping challenges. The first section applies to every category. The later sections cover what tends to go wrong in pwn, crypto, and rev specifically.
+
+## All categories
+
+### Hinting at the solution in the name
+
+Challenge titles that telegraph the technique aren't fun. A pwn challenge called `Orange Juice` whose intended solve is House of Orange just rewards trivia. Solvers who miss the reference feel cheated, and the ones who catch it feel like they got handed the answer.
+
+If the challenge needs a hint, put it in the description and make it explicit. `Our heart is bleeding...` only helps solvers who already recognized Heartbleed without the hint. A direct mention of [Heartbleed](https://www.heartbleed.com/) is what the description is for.
+
+### Non-self-contained challenges
+
+Read the flag from `os.environ` (or the equivalent) with a placeholder default, not from a sibling module. `from FLAG import secret{:py}` leaves solvers wondering what else the import target does at load time, and it breaks the moment that target moves.
+
+```python
+# Discouraged
+from FLAG import secret
+
+# Preferred
+FLAG = os.environ.get("FLAG", "flag{fake}")
+```
+
+### Multi-stage challenges
+
+Two unrelated challenges glued together is rarely fun. The first stage gates the second, so a stuck solver has no idea whether they're on the right track for either half. One challenge, one core idea. If two ideas really do belong together, ship them as two challenges with a shared tag instead of welding them.
+
+### Revenge challenges with unencrypted source
+
+If you're shipping a fixed version of a previously-broken challenge, encrypt the source archive. Diffing the patched source against the original makes the intended-vs-unintended path obvious and devalues the work of solvers who found the original solve.
+
+Use the original challenge's flag as the archive password. That gates access to people who actually solved the original, which is the audience that earned the diff in the first place. Don't put the password in the challenge description.
+
+:::warning[Avoid ZipCrypt]
+ZipCrypt is broken and most archive tools can walk past it without a real password. Use AES-encrypted zip or a `.7z` with AES-256.
+:::
+
+### Forgetting to link the prerequisite challenge
+
+If your challenge builds on a previous one (same target, follow-up exploitation, extended scenario), link to it in the description. Otherwise solvers either miss the connection entirely or end up doing OSINT to find what they need.
+
+### Fake flags and intentional rabbit holes
+
+Intentional fake flags and red herrings aren't fun. If a solver finds a string that looks like a flag, the platform should accept it. Decoy artifacts that look like the path forward but lead nowhere just burn solver time without teaching anything.
+
+### Shared remote without per-connection sandboxing
+
+A shared remote where the intended solution grants code execution (most pwn and misc challenges) should isolate each connection. Without per-connection sandboxing, one solver can alter the binary, drop a backdoor in `/tmp/{:dir}`, exhaust process or file-descriptor tables, or kill the shared process. Later connections then interact with corrupted state.
+
+The risky pattern is a pwn or RCE challenge served as one long-lived process. Each TCP connection should fork into its own sandbox with a read-only root filesystem, no network, dropped capabilities, and CPU, memory, and time limits. Double-check that kCTF challenges still have `nsjail` enabled.
+
+[pwn.red/jail](https://github.com/redpwn/jail) is a small base image that forks per connection inside nsjail with reasonable defaults, and it usually takes only a couple of Dockerfile lines to adopt. kCTF challenges already ship nsjail when created with `$ <red>kctf</red> chal create`. For custom services, raw [nsjail](https://github.com/google/nsjail) is still a good fit when `<dim>--max_cpus</dim>`, `<dim>--rlimit_as</dim>`, `<dim>--time_limit</dim>`, and `<dim>--disable_proc</dim>` are tuned for the challenge.
+
+See the [shared-remote callout in Deploying challenges](/docs/meta/running-a-successful-ctf/deployment#shared-remote) for the deployment walkthrough.
+
+### Distributing malware samples or forensics artifacts unprotected
+
+Forensics, reverse engineering, and malware-analysis challenges sometimes distribute binaries that antivirus vendors flag quickly. If a file gets flagged at the bucket or CDN layer, participants have to bypass several browser and endpoint warnings before they can download the challenge.
+
+The highest-risk version is a sample shipped as a plain `.exe`, `.dll`, or unencrypted archive. Endpoint products across participating teams can report the file within minutes, and a CDN or storage provider may pull or blacklist it.
+
+Ship suspicious binaries inside a password-protected archive, and put the password in the challenge description. Use a non-dictionary password rather than common values like `infected`, `malware`, `password`, or the event year. AV engines, SmartScreen, Defender, and CrowdStrike try those values automatically.
+
+## Pwn
+
+### Not pinning the base image
+
+Pin the Docker base image by digest. If you reference `ubuntu:22.04` and the upstream tag moves, an `apt upgrade` or layer rebuild can swap libc out from under your exploit. Don't run `apt upgrade` inside the challenge container at all. Bake in only the libc the exploit targets.
+
+```dockerfile
+# Discouraged
+FROM ubuntu:22.04
+RUN apt-get update && apt-get -y upgrade && apt-get install -y ...
+
+# Preferred
+FROM ubuntu:22.04@sha256:abc123...
+RUN apt-get update && apt-get install -y --no-install-recommends ...
+```
+
+### Undocumented kernel and VM configuration
+
+`mmap`, ASLR layout, and a handful of other low-level primitives behave differently across kernel versions and VMM configurations. If the challenge is sensitive to any of that, document the exact kernel version and the relevant VM config in the description so participants can reproduce it locally.
+
+### Brute-forceable shared remote
+
+If the intended solve can be cheesed with a 24-bit (or smaller) brute force, the first team with a connection-spam script wins, not the first team that understood the bug. Add a per-IP rate limit, gate connections behind a proof-of-work (kCTF or pwn.red/jail), or just raise the entropy until brute force stops being viable.
+
+### Reading huge inputs with raw `read(2)`
+
+Reading large inputs with raw `read(2)` makes the challenge sensitive to network latency. A solver on a slow link can fail to deliver the full payload before the harness moves on, even though their exploit is correct. The failure looks like a flaky remote rather than a delivery issue, so solvers waste hours chasing the wrong hypothesis.
+
+Prefer `scanf` with explicit width specifiers, or write a tiny input loop that keeps reading until the requested length arrives.
+
+### Shipping a binary without source
+
+Ship the source where you can. Asking solvers to reverse a glibc-heavy or C++ binary that isn't a rev challenge taxes them without teaching anything that fits the category.
+
+## Crypto
+
+### Not asserting the flag format
+
+If the solution relies on a flag-format property (known prefix, fixed length, byte range), assert it in the challenge source instead of leaving it implicit.
+
+To stop the assertion from acting as a tell about which solutions depend on it, add the same assertion to every crypto challenge.
+
+### Magic numbers without justification
+
+A `0xdeadbeef`-shaped prime sitting in the challenge source is a magnet for solver attention. They'll spend hours assuming the value is part of the trick. If a constant has to be specific, derive it from `SHA-256` of the flag (or another transparent process) and put that derivation in the source.
+
+If the constant has a property that matters, like smoothness or twist-security, just say so in a comment. The rule of thumb: solvers should know everything except the secret.
+
+### Common cheese to watch for
+
+Pick parameters that put the challenge out of reach of off-the-shelf tooling. Two failure modes keep recurring:
+
+- A 512-bit `N` factors on a workstation in minutes with [CADO-NFS](https://cado-nfs.gitlabpages.inria.fr/).
+- A 256-bit DLP in a generic group falls to Pollard rho, and falls faster in any subgroup of smooth order.
+
+If the challenge needs small parameters for pedagogical reasons, gate the flag on understanding the structure rather than on the raw secret value.
+
+## Rev
+
+### Byte-by-byte flag comparison
+
+Byte-by-byte flag comparison can be cheesed with instruction counting or timing against the binary. Any flag check that exits early on the first wrong byte has the same problem: the intended solve becomes irrelevant because the side channel hands out the flag prefix one byte at a time.
+
+Avoid early returns in the flag check, or batch the comparison so timing and instruction counts don't leak the prefix. Constant-time string comparison applies here for the same reason it applies in production crypto code.
+
+### Not asserting the flag format
+
+If the solution relies on a flag-format property (known prefix, fixed length, byte range), assert it in the challenge source instead of leaving it implicit.
+
+To stop the assertion from acting as a tell about which solutions depend on it, add the same assertion to every rev challenge.

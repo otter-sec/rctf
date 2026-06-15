@@ -1,0 +1,25 @@
+---
+import AuthorCard from "@/components/AuthorCard.astro"
+import MetaPage from "@/components/MetaPage.astro"
+import Layout from "@/layouts/Layout.astro"
+import { getCollection } from "astro:content"
+
+const authors = (await getCollection("authors")).sort((a, b) =>
+  a.data.name.localeCompare(b.data.name),
+)
+---
+
+<Layout>
+  <MetaPage slot="head" title="Authors" />
+  <ul>
+    {authors.map((author) => <AuthorCard author={author} />)}
+  </ul>
+</Layout>
+
+<style>
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-m);
+  }
+</style>

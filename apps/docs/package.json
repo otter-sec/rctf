@@ -1,0 +1,35 @@
+{
+  "name": "astro-erudite",
+  "type": "module",
+  "version": "2.0.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview",
+    "astro": "astro",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "^0.3.0",
+    "@astrojs/rss": "^4.0.18",
+    "@astrojs/sitemap": "^3.7.3",
+    "@expressive-code/plugin-collapsible-sections": "^0.42.0",
+    "@expressive-code/plugin-line-numbers": "^0.42.0",
+    "astro": "^6.4.2",
+    "github-slugger": "^2.0.0",
+    "hast-util-select": "^6.0.4",
+    "hast-util-to-html": "^9.0.5",
+    "hastscript": "^9.0.1",
+    "satteri-expressive-code": "^0.1.11",
+    "temml": "^0.13.3"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "mdast-util-to-hast": "^13.2.1",
+    "pagefind": "^1.5.2"
+  }
+}

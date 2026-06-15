@@ -1,0 +1,208 @@
+---
+import MetaPage from "@/components/MetaPage.astro"
+import PostActions from "@/components/PostActions.astro"
+import ScrollToTop from "@/components/ScrollToTop.astro"
+import SeriesReader from "@/components/SeriesReader.astro"
+import TableOfContents from "@/components/TableOfContents.astro"
+import { DOCS } from "@/consts"
+import Layout from "@/layouts/Layout.astro"
+import { enrichHeadings, pageTitle } from "@/lib/content"
+import {
+  buildDocsTree,
+  docsHref,
+  docsMdHref,
+  flattenDocsTree,
+  getDocs,
+  getScrollChain,
+  type DocsEntry,
+} from "@/lib/docs"
+import { gitLastUpdated } from "@/lib/git"
+import { formatDate } from "@/lib/utils"
+import { render } from "astro:content"
+
+export async function getStaticPaths() {
+  const docs = await getDocs()
+  return docs.map((entry) => ({
+    params: { slug: entry.id === "index" ? undefined : entry.id },
+    props: { entry },
+  }))
+}
+
+type Props = { entry: DocsEntry }
+
+const { entry } = Astro.props
+const docs = await getDocs()
+const tree = buildDocsTree(docs)
+const flat = flattenDocsTree(docs, tree)
+
+const chain = getScrollChain(docs, entry) ?? [entry]
+const isChain = chain.length > 1
+const reference = isChain && chain[0].data.aside === true
+const sectionId = (id: string) => id.split("/").pop()
+
+const rendered = await Promise.all(
+  chain.map(async (chained) => ({
+    entry: chained,
+    ...(await render(chained)),
+  })),
+)
+
+const tocSections = rendered.map(({ entry: chained, headings }, i) => ({
+  id: i === 0 ? undefined : sectionId(chained.id),
+  label: chained.data.title,
+  open: chained.id === entry.id,
+  headings: enrichHeadings(
+    headings.filter(
+      ({ depth, text }) => depth >= 2 && depth <= 4 && text.trim(),
+    ),
+    chained.rendered?.html,
+  ),
+}))
+const hasToc =
+  tocSections.length > 1 ||
+  tocSections.some(({ headings }) => headings.length > 0)
+
+const first = flat.findIndex((doc) => doc.href === docsHref(chain[0].id))
+const last = flat.findIndex(
+  (doc) => doc.href === docsHref(chain[chain.length - 1].id),
+)
+const prev = flat[first - 1]
+const next = flat[last + 1]
+
+const lastUpdatedOf = (chained: DocsEntry) =>
+  chained.data.lastUpdated ??
+  (DOCS.lastUpdated && chained.filePath
+    ? gitLastUpdated(chained.filePath)
+    : null)
+const editUrlOf = (chained: DocsEntry) =>
+  chained.data.editUrl === false
+    ? null
+    : (chained.data.editUrl ??
+      (chained.filePath ? `${DOCS.editUrlBase}${chained.filePath}` : null))
+---
+
+<Layout tree={tree} wide={reference}>
+  <MetaPage
+    slot="head"
+    title={entry.data.title}
+    description={entry.data.description}
+    canonical={isChain && entry.id !== chain[0].id
+      ? docsHref(chain[0].id)
+      : undefined}
+  />
+  {hasToc && !reference && (
+      <TableOfContents
+        slot="toc"
+        title={chain[0].data.title}
+        sections={tocSections}
+      />
+    )}
+  <PostActions slot="actions" prev={prev} next={next} />
+  <ScrollToTop floating />
+  {rendered.map(({ entry: chained, Content }, i) => {
+      const editUrl = editUrlOf(chained)
+      const lastUpdated = lastUpdatedOf(chained)
+      const mdHref = docsMdHref(chained.id)
+      return (
+        <article
+          id={i === 0 ? undefined : sectionId(chained.id)}
+          data-url={docsHref(chained.id)}
+          data-title={pageTitle(chained.data.title)}
+          data-embedded={i > 0 || undefined}
+          data-reference={reference || undefined}
+          data-pagefind-body={chained.id === entry.id ? "" : undefined}
+        >
+          <header>
+            <h1>{chained.data.title}</h1>
+            {chained.data.description && <p>{chained.data.description}</p>}
+          </header>
+          <page-meta data-pagefind-ignore>
+            <page-meta-links>
+              {editUrl && <a href={editUrl}>Edit this page</a>}
+              <a href={mdHref}>View Markdown</a>
+              <button type="button" data-copy-page data-href={mdHref}>
+                Copy Markdown
+              </button>
+            </page-meta-links>
+            {lastUpdated && (
+              <time datetime={lastUpdated.toISOString()}>
+                Last updated {formatDate(lastUpdated)}
+              </time>
+            )}
+          </page-meta>
+          <prose-content>
+            <Content />
+          </prose-content>
+        </article>
+      )
+    })}
+  {isChain && <SeriesReader />}
+</Layout>
+
+<style>
+  article[data-embedded] {
+    margin-block-start: var(--space-xl);
+    padding-block-start: var(--space-xl);
+    border-block-start: 2px solid var(--border);
+    scroll-margin-block-start: calc(-2px - 0.2 * var(--step-3));
+  }
+
+  header {
+    margin-block-end: var(--space-s);
+
+    h1 {
+      font-size: var(--step-3);
+      line-height: calc(var(--leading-offset) + 1em);
+      font-weight: var(--font-weight-medium);
+    }
+
+    > p {
+      margin-block-start: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+  }
+
+  page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    margin-block-end: var(--space-m);
+    padding-block-end: var(--space-s);
+    border-block-end: 2px solid var(--border);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+
+    page-meta-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    a,
+    button {
+      color: var(--foreground);
+    }
+
+    a {
+      --underline: var(--muted-foreground);
+    }
+
+    button {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: var(--muted-foreground);
+      text-decoration-thickness: max(1px, 0.0625em);
+      text-decoration-skip-ink: none;
+      text-underline-position: under;
+      text-underline-offset: -0.06em;
+
+      &:hover {
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+</style>

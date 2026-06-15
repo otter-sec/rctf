@@ -1,0 +1,45 @@
+---
+import MetaPage from "@/components/MetaPage.astro"
+import Layout from "@/layouts/Layout.astro"
+import { getTags } from "@/lib/content"
+
+const tags = await getTags()
+---
+
+<Layout crumbs={[{ label: "Tags", href: "/tags" }]}>
+  <MetaPage slot="head" title="Tags" noindex />
+  <ul>
+    {[...tags].map(([tag, posts]) => (
+        <li>
+          <a href={`/tags/${tag}`}>#{tag}<tag-count>{posts.length}</tag-count></a>
+        </li>
+      ))}
+  </ul>
+</Layout>
+
+<style>
+  ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+
+    a {
+      display: inline-block;
+      padding-inline: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+      background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+      border-radius: var(--radius-full);
+      text-decoration-line: none;
+
+      &:hover {
+        color: var(--foreground);
+      }
+
+      tag-count {
+        margin-inline-start: var(--space-3xs);
+        opacity: 0.6;
+      }
+    }
+  }
+</style>
