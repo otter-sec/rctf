@@ -1,0 +1,86 @@
+:root {
+  /* https://utopia.fyi/type/calculator?c=328,16,1.125,1215,18,1.2,3,1,&s=0.75|0.5|0.25,1.5|2|3|4|6,s-l|s-m&g=s,m,2xl,12 */
+  --step--1: clamp(0.8889rem, 0.8709rem + 0.0877vw, 0.9375rem);
+  --step-0: clamp(1rem, 0.9538rem + 0.2255vw, 1.125rem);
+  --step-1: clamp(1.125rem, 1.0418rem + 0.4059vw, 1.35rem);
+  --step-2: clamp(1.2656rem, 1.1346rem + 0.6392vw, 1.62rem);
+  --step-3: clamp(1.4238rem, 1.2315rem + 0.9383vw, 1.944rem);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 450;
+
+  --tracking-tight: -0.015em;
+  --leading-offset: 0.65rem;
+
+  --prose-foreground: color-mix(in oklab, var(--foreground) 80%, transparent);
+  --prose-marker:     color-mix(in oklab, var(--foreground) 30%, transparent);
+
+  --measure: 40rem;
+}
+
+*,
+::before,
+::after,
+::backdrop,
+::file-selector-button {
+  letter-spacing: var(--tracking-tight);
+}
+
+body {
+  font-family: var(--font-sans);
+  text-wrap: pretty;
+}
+
+:where(h1, h2, h3, h4, h5, h6) {
+  text-wrap: balance;
+}
+
+a {
+  text-decoration: underline;
+  text-decoration-color: var(--underline, transparent);
+  text-decoration-thickness: max(1px, 0.0625em);
+  text-decoration-skip-ink: none;
+  text-underline-position: under;
+  text-underline-offset: -0.06em;
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+}
+
+prose-content {
+  display: block;
+  font-size: var(--step-0);
+  line-height: calc(var(--leading-offset) + 1em);
+  color: var(--foreground);
+  text-wrap: pretty;
+  overflow-wrap: break-word;
+
+  :where(
+      p,
+      ul,
+      ol,
+      blockquote,
+      pre,
+      table,
+      figure,
+      hr,
+      details,
+      math-display,
+      .expressive-code
+    ) {
+    margin-block: 0 1em;
+  }
+
+  > :first-child {
+    margin-block-start: 0;
+  }
+
+  > :last-child {
+    margin-block-end: 0;
+  }
+
+  :is(p, li) {
+    color: var(--prose-foreground);
+  }
+}

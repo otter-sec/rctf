@@ -1,0 +1,101 @@
+---
+import ChevronIcon from "@/assets/icons/callouts/alt-arrow-down.svg"
+import type { DocsTreeNode } from "@/lib/docs"
+import { normalizePath } from "@/lib/utils"
+
+type Props = { nodes: DocsTreeNode[] }
+
+const { nodes } = Astro.props
+const pathname = normalizePath(Astro.url.pathname)
+
+const isCurrent = (href?: string) => href !== undefined && pathname === href
+const containsCurrent = (node: DocsTreeNode): boolean =>
+  node.type === "page"
+    ? isCurrent(node.href)
+    : isCurrent(node.href) || node.children.some(containsCurrent)
+---
+
+<ul>
+  {nodes.map((node) =>
+      node.type === "page" ? (
+        <li>
+          <a
+            href={node.href}
+            aria-current={isCurrent(node.href) ? "page" : undefined}
+          >
+            {node.label}
+          </a>
+        </li>
+      ) : (
+        <li>
+          <details open={containsCurrent(node) || undefined}>
+            <summary>
+              {node.href ? (
+                <a
+                  href={node.href}
+                  aria-current={isCurrent(node.href) ? "page" : undefined}
+                >
+                  {node.label}
+                </a>
+              ) : (
+                <span>{node.label}</span>
+              )}
+              <ChevronIcon aria-hidden="true" />
+            </summary>
+            <Astro.self nodes={node.children} />
+          </details>
+        </li>
+      ),
+    )}
+</ul>
+
+<style>
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    margin-inline-start: var(--space-xs);
+  }
+
+  a,
+  summary > span {
+    color: var(--muted-foreground);
+  }
+
+  a:hover,
+  a[aria-current="page"] {
+    color: var(--foreground);
+  }
+
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    svg {
+      flex-shrink: 0;
+      margin-inline-start: auto;
+      inline-size: 1em;
+      block-size: 1em;
+      color: var(--muted-foreground);
+    }
+
+    &:hover svg {
+      color: var(--foreground);
+    }
+  }
+
+  details[open] > summary svg {
+    rotate: 180deg;
+  }
+
+  details > ul {
+    margin-block-start: var(--space-3xs);
+  }
+</style>
