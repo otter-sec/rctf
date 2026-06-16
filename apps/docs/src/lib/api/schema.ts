@@ -166,19 +166,64 @@ function isRequired(field: ZodSchema): boolean {
   return !safeParse(field, undefined).success
 }
 
-/** Flatten a request object schema into one row per top-level field. */
+/**
+ * Flatten a request schema into field rows, descending into nested objects (and
+ * arrays of objects) so the fields inside an envelope such as `data` surface
+ * with dotted paths, mirroring `walkResponseSchema`. A described object yields a
+ * group row before its children; an undescribed one is replaced by its children.
+ */
 export function walkObjectSchema(
   schema: ZodSchema | undefined | null,
+  prefix = "",
 ): FieldInfo[] {
-  const def = defOf(schema)
-  if (!def || def.type !== "object") return []
-  return Object.entries(def.shape).map(([name, field]) => ({
-    name,
-    schema: field,
-    typeLabel: typeLabel(unwrap(field)),
-    required: isRequired(field),
-    description: describe(field),
-  }))
+  const base = schema ? unwrap(schema) : null
+  const def = defOf(base)
+  if (!def) return []
+
+  if (def.type === "array") {
+    const elementBase = unwrap(def.element)
+    if (defOf(elementBase)?.type === "object") {
+      return walkObjectSchema(def.element, prefix ? `${prefix}[]` : "")
+    }
+    return []
+  }
+
+  if (def.type !== "object") return []
+
+  return Object.entries(def.shape).flatMap(([name, field]) => {
+    const path = prefix ? `${prefix}.${name}` : name
+    const required = isRequired(field)
+    const description = describe(field)
+    const fieldBase = unwrap(field)
+    const fieldDef = defOf(fieldBase)
+    const arrayElement =
+      fieldDef && fieldDef.type === "array" ? fieldDef.element : null
+    const elementIsObject =
+      arrayElement !== null && defOf(unwrap(arrayElement))?.type === "object"
+
+    if (fieldDef?.type === "object" || elementIsObject) {
+      const children = walkObjectSchema(field, path)
+      const row: FieldInfo = {
+        name: path,
+        schema: field,
+        typeLabel: elementIsObject ? "object[]" : "object",
+        required,
+        description,
+      }
+      if (description) return [row, ...children]
+      return children.length > 0 ? children : [row]
+    }
+
+    return [
+      {
+        name: path,
+        schema: field,
+        typeLabel: typeLabel(fieldBase),
+        required,
+        description,
+      },
+    ]
+  })
 }
 
 /** Flatten a response schema into dotted-path rows, descending into objects. */
