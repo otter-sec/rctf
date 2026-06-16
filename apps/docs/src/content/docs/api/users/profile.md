@@ -1,6 +1,6 @@
 ---
-title: "GET Public profile"
-description: "GET /api/[v2,v1]/users/:id"
+title: "<route>GET</route> Public profile"
+description: "<route>GET /api/[v2,v1]/users/:id</route>"
 order: 1
 ---
 

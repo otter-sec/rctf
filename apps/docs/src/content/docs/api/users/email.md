@@ -1,6 +1,6 @@
 ---
-title: "PUT Set email auth"
-description: "PUT /api/[v2,v1]/users/me/auth/email"
+title: "<route>PUT</route> Set email auth"
+description: "<route>PUT /api/[v2,v1]/users/me/auth/email</route>"
 order: 5
 ---
 

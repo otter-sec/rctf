@@ -20,6 +20,12 @@ const TONE_TAGS = [
 const ROUTE_TAG = "route"
 const RESPONSE_TAG = "response"
 
+export const CODE_ANNOTATION_TAGS = [
+  ROUTE_TAG,
+  RESPONSE_TAG,
+  ...TONE_TAGS,
+] as const
+
 const TONE_ALIASES = new Map<string, string>([
   ["gray", "black"],
   ["grey", "black"],
@@ -41,7 +47,7 @@ const TONE_COLORS = new Map<string, string>([
 const tagRegex = (tags: readonly string[]) =>
   new RegExp(`<\\/?(${tags.join("|")})>`, "g")
 
-const CODE_ANNOTATION_TAG_RE = tagRegex([ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS])
+const CODE_ANNOTATION_TAG_RE = tagRegex(CODE_ANNOTATION_TAGS)
 const CODE_TONE_TAG_RE = tagRegex(TONE_TAGS)
 
 const METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"]

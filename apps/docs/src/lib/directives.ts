@@ -1,10 +1,11 @@
-import type { ElementContent } from "hast"
+import type { ElementContent, Root } from "hast"
 import { toHtml } from "hast-util-to-html"
 import { h } from "hastscript"
 import type { List, ListItem, Paragraph, PhrasingContent } from "mdast"
 import type {} from "mdast-util-to-hast"
 import { defineMdastPlugin } from "satteri"
 import { loadIcon } from "./icons"
+import { inlineCodeNode } from "./rich-text"
 
 const icons: Record<string, string> = {
   folder: loadIcon("code/folder"),
@@ -12,13 +13,6 @@ const icons: Record<string, string> = {
 }
 
 const raw = (value: string): ElementContent => ({ type: "raw", value })
-
-const escapeHtml = (value: string) =>
-  value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
 
 type DirectiveNode = {
   name: string
@@ -57,6 +51,41 @@ function inlineToHast(nodes: PhrasingContent[]): ElementContent[] {
         return [{ type: "text", value: mdastText(node) }]
     }
   })
+}
+
+async function richInlineToHast(
+  nodes: PhrasingContent[],
+): Promise<ElementContent[]> {
+  const out: ElementContent[] = []
+  for (const node of nodes) {
+    switch (node.type) {
+      case "text":
+        out.push({ type: "text", value: node.value })
+        break
+      case "inlineCode":
+        out.push(await inlineCodeNode(node.value))
+        break
+      case "emphasis":
+        out.push(h("em", await richInlineToHast(node.children)))
+        break
+      case "strong":
+        out.push(h("strong", await richInlineToHast(node.children)))
+        break
+      default:
+        out.push({ type: "text", value: mdastText(node) })
+    }
+  }
+  return out
+}
+
+async function directiveLabelHtml(label: Paragraph): Promise<string> {
+  return toHtml(
+    {
+      type: "root",
+      children: await richInlineToHast(label.children),
+    } satisfies Root,
+    { allowDangerousHtml: true },
+  )
 }
 
 type TreeEntry = {
@@ -159,7 +188,7 @@ export function contentDirectives() {
   let tabGroups = 0
   return defineMdastPlugin({
     name: "content-directives",
-    containerDirective(node, ctx) {
+    async containerDirective(node, ctx) {
       switch (node.name) {
         case "steps": {
           ctx.setProperty(node, "data", { hName: "step-list" })
@@ -235,16 +264,20 @@ export function contentDirectives() {
           if (tabs.length === 0) return
 
           const prefix = `${fileStem(ctx.fileURL)}-tabs-${tabGroups++}`
-          const buttons = tabs
-            .map((tab, i) => {
+          const labels = await Promise.all(
+            tabs.map(async (tab, i) => {
               const label = directiveLabel(tab as unknown as DirectiveNode)
-              const text = label ? mdastText(label) : `Tab ${i + 1}`
+              return label ? await directiveLabelHtml(label) : `Tab ${i + 1}`
+            }),
+          )
+          const buttons = labels
+            .map((label, i) => {
               return [
                 `<button role="tab" id="${prefix}-tab-${i}"`,
                 ` aria-controls="${prefix}-panel-${i}"`,
                 ` aria-selected="${i === 0}"`,
                 i === 0 ? "" : ' tabindex="-1"',
-                `>${escapeHtml(text)}</button>`,
+                `>${label}</button>`,
               ].join("")
             })
             .join("")
@@ -268,10 +301,18 @@ export function contentDirectives() {
             })
           })
 
+          const flag = (name: string) => {
+            const value = node.attributes?.[name]
+            return value === "" || value === "true" || value === null
+          }
           const sync = node.attributes?.sync
+          const codeTabs = flag("code") || flag("codeTabs")
           ctx.setProperty(node, "data", {
             hName: "tab-group",
-            hProperties: sync ? { dataSync: sync } : {},
+            hProperties: {
+              ...(sync ? { dataSync: sync } : {}),
+              ...(codeTabs ? { dataCodeTabs: "" } : {}),
+            },
           })
           return
         }

@@ -1,6 +1,6 @@
 ---
-title: "POST Submit dynamic scores"
-description: "POST /api/v2/challs/:id/scores"
+title: "<route>POST</route> Submit dynamic scores"
+description: "<route>POST /api/v2/challs/:id/scores</route>"
 order: 4
 ---
 

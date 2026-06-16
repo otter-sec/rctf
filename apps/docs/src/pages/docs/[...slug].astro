@@ -1,5 +1,6 @@
 ---
 import MetaPage from "@/components/MetaPage.astro"
+import InlineText from "@/components/InlineText.astro"
 import PostActions from "@/components/PostActions.astro"
 import ScrollToTop from "@/components/ScrollToTop.astro"
 import SeriesReader from "@/components/SeriesReader.astro"
@@ -113,8 +114,10 @@ const editUrlOf = (chained: DocsEntry) =>
           data-pagefind-body={chained.id === entry.id ? "" : undefined}
         >
           <header>
-            <h1>{chained.data.title}</h1>
-            {chained.data.description && <p>{chained.data.description}</p>}
+            <h1><InlineText value={chained.data.title} /></h1>
+            {chained.data.description && (
+              <p><InlineText value={chained.data.description} /></p>
+            )}
           </header>
           <page-meta data-pagefind-ignore>
             <page-meta-links>

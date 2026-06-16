@@ -1,6 +1,6 @@
 ---
-title: "POST CTFtime callback"
-description: "POST /api/v1/integrations/ctftime/callback"
+title: "<route>POST</route> CTFtime callback"
+description: "<route>POST /api/v1/integrations/ctftime/callback</route>"
 order: 12
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "POST Filter submissions"
-description: "POST /api/v2/admin/submissions"
+title: "<route>POST</route> Filter submissions"
+description: "<route>POST /api/v2/admin/submissions</route>"
 order: 18
 ---
 

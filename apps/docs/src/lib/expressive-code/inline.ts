@@ -23,6 +23,14 @@ type Annotation =
   | { kind: "scope"; code: string; scope: string }
   | { kind: "path"; code: string; path: "folder" | "file" }
 
+export type RenderedInlineCode = {
+  value: string
+  copy?: string
+  command: boolean
+  properties: Properties
+  children: ElementContent[]
+}
+
 function parseAnnotation(value: string): Annotation | null {
   const match = ANNOTATION.exec(value)
   if (!match) return null
@@ -89,41 +97,57 @@ function resolveScopeColor(theme: ExpressiveCodeTheme, scope: string): string {
   return best?.fg ?? theme.fg
 }
 
+export async function renderInlineCodeValue(
+  value: string,
+): Promise<RenderedInlineCode | null> {
+  const annotation = parseAnnotation(value)
+  let code = annotation?.code ?? value
+  const command = code.startsWith("$ ") && code.length > 2
+  if (command) code = code.slice(2)
+  const tones = parseCodeAnnotations(code)
+
+  if (!annotation && !command && !tones) return null
+
+  const properties: Properties = {}
+  let children: ElementContent[]
+
+  if (tones) {
+    children = tones
+  } else if (annotation?.kind === "path") {
+    children = pathChildren(code, annotation.path)
+    properties.dataCodePath = annotation.path
+  } else if (annotation?.kind === "lang") {
+    const { ec } = await ecRenderer
+    children = await highlightLanguage(ec, code, annotation.lang)
+    properties.dataEc = ""
+    properties.dataLanguage = annotation.lang
+  } else if (annotation?.kind === "scope") {
+    const { ec } = await ecRenderer
+    children = highlightScope(ec, code, annotation.scope)
+    properties.dataEc = ""
+  } else {
+    children = [{ type: "text", value: code }]
+  }
+
+  const plain = tones ? stripCodeAnnotationTags(code) : code
+  return {
+    value: plain,
+    copy: command ? stripCodeAnnotationTags(code) : undefined,
+    command,
+    properties,
+    children,
+  }
+}
+
 export const inlineExpressiveCode = defineMdastPlugin({
   name: "inline-expressive-code",
   async inlineCode(node, ctx) {
-    const annotation = parseAnnotation(node.value)
-    let code = annotation?.code ?? node.value
-    const command = code.startsWith("$ ") && code.length > 2
-    if (command) code = code.slice(2)
-    const tones = parseCodeAnnotations(code)
-
-    if (!annotation && !command && !tones) return
-
     try {
-      const properties: Properties = {}
-      let children: ElementContent[]
+      const rendered = await renderInlineCodeValue(node.value)
+      if (!rendered) return
 
-      if (tones) {
-        children = tones
-      } else if (annotation?.kind === "path") {
-        children = pathChildren(code, annotation.path)
-        properties.dataCodePath = annotation.path
-      } else if (annotation?.kind === "lang") {
-        const { ec } = await ecRenderer
-        children = await highlightLanguage(ec, code, annotation.lang)
-        properties.dataEc = ""
-        properties.dataLanguage = annotation.lang
-      } else if (annotation?.kind === "scope") {
-        const { ec } = await ecRenderer
-        children = highlightScope(ec, code, annotation.scope)
-        properties.dataEc = ""
-      } else {
-        children = [{ type: "text", value: code }]
-      }
-
-      if (command) {
-        const copy = stripCodeAnnotationTags(code)
+      if (rendered.command) {
+        const copy = rendered.copy ?? rendered.value
         ctx.setProperty(node, "value", copy)
         ctx.setProperty(node, "data", {
           hName: "copy-command",
@@ -135,24 +159,20 @@ export const inlineExpressiveCode = defineMdastPlugin({
             ariaLabel: `Copy command: ${copy}`,
           },
           hChildren: [
-            h("code", properties, [
+            h("code", rendered.properties, [
               h("span", { className: ["shell-prompt"], ariaHidden: "true" }),
-              ...children,
+              ...rendered.children,
             ]),
           ],
         })
         return
       }
 
-      ctx.setProperty(
-        node,
-        "value",
-        tones ? stripCodeAnnotationTags(code) : code,
-      )
+      ctx.setProperty(node, "value", rendered.value)
       ctx.setProperty(node, "data", {
         hName: "code",
-        hProperties: properties,
-        hChildren: children,
+        hProperties: rendered.properties,
+        hChildren: rendered.children,
       })
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)

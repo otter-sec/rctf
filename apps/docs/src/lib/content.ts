@@ -1,7 +1,9 @@
 import { SITE } from "@/consts"
 import type { MarkdownHeading } from "astro"
+import { plainInlineText } from "./rich-text"
 
-export const pageTitle = (title: string) => `${title} | ${SITE.title}`
+export const pageTitle = (title: string) =>
+  `${plainInlineText(title)} | ${SITE.title}`
 
 export type TocHeading = MarkdownHeading & { html?: string }
 

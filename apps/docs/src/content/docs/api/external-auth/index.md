@@ -7,14 +7,12 @@ aside: true
 ---
 
 :::aside
-  
 
-::route-list-item{title="Get client metadata" method="GET" path="/api/v2/external-auth/clients/:id" href="/docs/api/external-auth/get-client/"}
-
-::route-list-item{title="Authorize" method="POST" path="/api/v2/external-auth/authorize" href="/docs/api/external-auth/authorize/"}
-
-::route-list-item{title="Exchange code for token" method="POST" path="/api/v2/external-auth/token" href="/docs/api/external-auth/token/"}
-  
+| Route | Endpoint |
+| --- | --- |
+| [Get client metadata](/docs/api/external-auth/get-client/) | `<route>GET /api/v2/external-auth/clients/:id</route>` |
+| [Authorize](/docs/api/external-auth/authorize/) | `<route>POST /api/v2/external-auth/authorize</route>` |
+| [Exchange code for token](/docs/api/external-auth/token/) | `<route>POST /api/v2/external-auth/token</route>` |
 
 :::
 

@@ -7,16 +7,13 @@ aside: true
 ---
 
 :::aside
-  
 
-::route-list-item{title="Challenge list" method="GET" path="/api/[v2,v1]/challs" href="/docs/api/challenges/list/"}
-
-::route-list-item{title="Challenge solves" method="GET" path="/api/[v2,v1]/challs/:id/solves" href="/docs/api/challenges/solves/"}
-
-::route-list-item{title="Submit a flag" method="POST" path="/api/v1/challs/:id/submit" href="/docs/api/challenges/submit/"}
-
-::route-list-item{title="Submit dynamic scores" method="POST" path="/api/v2/challs/:id/scores" href="/docs/api/challenges/submit-dynamic-scores/"}
-  
+| Route | Endpoint |
+| --- | --- |
+| [Challenge list](/docs/api/challenges/list/) | `<route>GET /api/[v2,v1]/challs</route>` |
+| [Challenge solves](/docs/api/challenges/solves/) | `<route>GET /api/[v2,v1]/challs/:id/solves</route>` |
+| [Submit a flag](/docs/api/challenges/submit/) | `<route>POST /api/v1/challs/:id/submit</route>` |
+| [Submit dynamic scores](/docs/api/challenges/submit-dynamic-scores/) | `<route>POST /api/v2/challs/:id/scores</route>` |
 
 :::
 

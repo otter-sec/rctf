@@ -1,6 +1,6 @@
 ---
-title: "PUT Set CTFtime auth"
-description: "PUT /api/v1/users/me/auth/ctftime"
+title: "<route>PUT</route> Set CTFtime auth"
+description: "<route>PUT /api/v1/users/me/auth/ctftime</route>"
 order: 7
 ---
 

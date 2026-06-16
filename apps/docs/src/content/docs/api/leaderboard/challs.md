@@ -1,6 +1,6 @@
 ---
-title: "GET Leaderboard challenges"
-description: "GET /api/v2/leaderboard/challs"
+title: "<route>GET</route> Leaderboard challenges"
+description: "<route>GET /api/v2/leaderboard/challs</route>"
 order: 4
 ---
 

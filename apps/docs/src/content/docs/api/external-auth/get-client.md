@@ -1,6 +1,6 @@
 ---
-title: "GET Get client metadata"
-description: "GET /api/v2/external-auth/clients/:id"
+title: "<route>GET</route> Get client metadata"
+description: "<route>GET /api/v2/external-auth/clients/:id</route>"
 order: 1
 ---
 

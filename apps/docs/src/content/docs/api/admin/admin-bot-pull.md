@@ -1,6 +1,6 @@
 ---
-title: "POST Pull admin bot job"
-description: "POST /api/v2/admin/admin-bot/jobs/pull"
+title: "<route>POST</route> Pull admin bot job"
+description: "<route>POST /api/v2/admin/admin-bot/jobs/pull</route>"
 order: 23
 ---
 

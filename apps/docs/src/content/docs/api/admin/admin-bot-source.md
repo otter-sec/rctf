@@ -1,6 +1,6 @@
 ---
-title: "GET Admin bot source"
-description: "GET /api/v2/admin/admin-bot/challenges/:id/source"
+title: "<route>GET</route> Admin bot source"
+description: "<route>GET /api/v2/admin/admin-bot/challenges/:id/source</route>"
 order: 24
 ---
 

@@ -369,7 +369,7 @@ function curlMarkdown(
     add(`  <dim>--json</dim> '${bodyIndented}'`)
   }
 
-  return `\`\`\`sh title="Request"\n${lines.join("\n")}\n\`\`\``
+  return `\`\`\`json title="Request" frame="terminal" showLineNumbers=false\n${lines.join("\n")}\n\`\`\``
 }
 
 function exampleData(resp: ResponseDef): unknown | undefined {
@@ -398,7 +398,7 @@ function responseExamplesMarkdown(def: RouteDef, extra: ResponseDef[]): string {
     return [
       `:::tab[${label}]`,
       "",
-      `\`\`\`json title="${label}"`,
+      "```json",
       JSON.stringify(body, null, 2),
       "```",
       "",
@@ -406,7 +406,7 @@ function responseExamplesMarkdown(def: RouteDef, extra: ResponseDef[]): string {
     ].join("\n")
   })
 
-  return ["::::tabs", "", ...tabs.flatMap((tab) => [tab, ""]), "::::"].join("\n")
+  return ["::::tabs{code=true}", "", ...tabs.flatMap((tab) => [tab, ""]), "::::"].join("\n")
 }
 
 function routeExampleMarkdown(
@@ -430,14 +430,6 @@ function routeExampleMarkdown(
   ]
     .filter(Boolean)
     .join("\n\n")
-}
-
-function routeListItemMarkdown(attrs: Attrs | null | undefined): string {
-  const title = attr(attrs, "title") ?? "Route"
-  const method = (attr(attrs, "method") ?? "GET").toUpperCase()
-  const path = attr(attrs, "path") ?? "/api"
-  const href = attr(attrs, "href") ?? "#"
-  return `- [${title}](${href}) - \`${`<route>${method} ${path}</route>`}\``
 }
 
 export const apiReferenceDirectives = defineMdastPlugin({
@@ -516,8 +508,6 @@ export const apiReferenceDirectives = defineMdastPlugin({
             ),
           }
         }
-        case "route-list-item":
-          return { raw: routeListItemMarkdown(node.attributes) }
       }
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error)

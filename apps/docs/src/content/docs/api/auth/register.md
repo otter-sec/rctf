@@ -1,6 +1,6 @@
 ---
-title: "POST Register a team"
-description: "POST /api/[v2,v1]/auth/register"
+title: "<route>POST</route> Register a team"
+description: "<route>POST /api/[v2,v1]/auth/register</route>"
 order: 1
 ---
 

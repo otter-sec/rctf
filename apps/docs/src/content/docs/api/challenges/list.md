@@ -1,6 +1,6 @@
 ---
-title: "GET Challenge list"
-description: "GET /api/[v2,v1]/challs"
+title: "<route>GET</route> Challenge list"
+description: "<route>GET /api/[v2,v1]/challs</route>"
 order: 1
 ---
 

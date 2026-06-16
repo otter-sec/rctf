@@ -1,6 +1,6 @@
 ---
-title: "POST Recover an account"
-description: "POST /api/[v2,v1]/auth/recover"
+title: "<route>POST</route> Recover an account"
+description: "<route>POST /api/[v2,v1]/auth/recover</route>"
 order: 3
 ---
 

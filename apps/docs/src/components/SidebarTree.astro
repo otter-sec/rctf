@@ -1,5 +1,6 @@
 ---
 import ChevronIcon from "@/assets/icons/callouts/alt-arrow-down.svg"
+import InlineText from "@/components/InlineText.astro"
 import type { DocsTreeNode } from "@/lib/docs"
 import { normalizePath } from "@/lib/utils"
 
@@ -23,7 +24,7 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
             href={node.href}
             aria-current={isCurrent(node.href) ? "page" : undefined}
           >
-            {node.label}
+            <InlineText value={node.label} />
           </a>
         </li>
       ) : (
@@ -35,10 +36,10 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
                   href={node.href}
                   aria-current={isCurrent(node.href) ? "page" : undefined}
                 >
-                  {node.label}
+                  <InlineText value={node.label} />
                 </a>
               ) : (
-                <span>{node.label}</span>
+                <span><InlineText value={node.label} /></span>
               )}
               <ChevronIcon aria-hidden="true" />
             </summary>
