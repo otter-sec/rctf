@@ -167,6 +167,25 @@ function isRequired(field: ZodSchema): boolean {
 }
 
 /**
+ * One row per top-level field, without descending. Used to build example bodies,
+ * where keys must stay flat (the nested structure is produced by
+ * `generateExample` from each field's schema, not from dotted paths).
+ */
+export function walkObjectShape(
+  schema: ZodSchema | undefined | null,
+): FieldInfo[] {
+  const def = defOf(schema ? unwrap(schema) : null)
+  if (!def || def.type !== "object") return []
+  return Object.entries(def.shape).map(([name, field]) => ({
+    name,
+    schema: field,
+    typeLabel: typeLabel(unwrap(field)),
+    required: isRequired(field),
+    description: describe(field),
+  }))
+}
+
+/**
  * Flatten a request schema into field rows, descending into nested objects (and
  * arrays of objects) so the fields inside an envelope such as `data` surface
  * with dotted paths, mirroring `walkResponseSchema`. A described object yields a
