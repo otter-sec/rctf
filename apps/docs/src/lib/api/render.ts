@@ -60,13 +60,14 @@ async function fieldEntry(
   description: string | undefined,
   required: boolean,
 ): Promise<ElementContent> {
-  const term: ElementContent[] = [await inlineCodeNode(name)]
-  if (required) term.push(requiredMark())
-  term.push(
+  const nameParts: ElementContent[] = [await inlineCodeNode(name)]
+  if (required) nameParts.push(requiredMark())
+  const term: ElementContent[] = [
+    h("span", { dataFieldName: "" }, nameParts),
     h("span", { dataFieldType: "" }, [
       await inlineCodeNode(tsAnnotated(typeLabel)),
     ]),
-  )
+  ]
 
   const children: ElementContent[] = [h("dt", term)]
   if (description) {

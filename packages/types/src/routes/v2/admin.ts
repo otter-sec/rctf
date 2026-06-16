@@ -257,23 +257,25 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   path: '/v2/admin/users/:id',
   method: 'PUT',
   body: z.object({
-    data: z.object({
-      banned: example(z.optional(z.boolean()), false).check(
-        z.describe('Whether the team is banned.')
-      ),
-      name: z.optional(UserName),
-      division: example(z.optional(z.string()), 'open').check(
-        z.describe("Team's division.")
-      ),
-      countryCode: example(
-        z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
-        'US'
-      ).check(z.describe('ISO 3166-1 alpha-2 country code, or `null`.')),
-      statusText: example(
-        z.optional(z.nullable(z.string().check(z.maxLength(60)))),
-        'Qualified'
-      ).check(z.describe('Free-form status badge, or `null`.')),
-    }),
+    data: z
+      .object({
+        banned: example(z.optional(z.boolean()), false).check(
+          z.describe('Whether the team is banned.')
+        ),
+        name: z.optional(UserName),
+        division: example(z.optional(z.string()), 'open').check(
+          z.describe("Team's division.")
+        ),
+        countryCode: example(
+          z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
+          'US'
+        ).check(z.describe('ISO 3166-1 alpha-2 country code, or `null`.')),
+        statusText: example(
+          z.optional(z.nullable(z.string().check(z.maxLength(60)))),
+          'Qualified'
+        ).check(z.describe('Free-form status badge, or `null`.')),
+      })
+      .check(z.describe('Team fields to update.')),
   }),
   goodResponses: [GoodAdminUserUpdateV2],
   badResponses: [
@@ -382,50 +384,54 @@ export const UpdateChallengeRouteV2 = defineRoute({
   path: '/v2/admin/challs/:id',
   method: 'PUT',
   body: z.object({
-    data: z.object({
-      author: example(z.optional(z.string()), 'es3n1n').check(
-        z.describe('Challenge author.')
-      ),
-      category: example(z.optional(z.string()), 'rev').check(
-        z.describe('Challenge category.')
-      ),
-      description: example(
-        z.optional(z.string()),
-        'A gentle introduction.'
-      ).check(z.describe('Challenge description in Markdown.')),
-      flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
-        z.describe('The challenge flag.')
-      ),
-      name: example(z.optional(z.string()), 'baby-rev').check(
-        z.describe('Challenge name.')
-      ),
-      points: z.optional(ChallengePointsSchema),
-      tiebreakEligible: example(z.optional(z.boolean()), true).check(
-        z.describe('Whether solves count toward tiebreak ordering.')
-      ),
-      files: z.optional(z.array(ChallengeFileSchemaV2)),
-      sortWeight: example(z.optional(z.number()), 0).check(
-        z.describe('Manual ordering weight.')
-      ),
-      tags: example(z.optional(z.array(z.string())), ['beginner']).check(
-        z.describe('Free-form tags.')
-      ),
-      instancerConfig: z.nullish(PartialInstancerConfigSchema),
-      adminBotConfig: z.nullish(
-        z.object({
-          code: example(z.string(), 'admin-bot').check(
-            z.describe('Admin-bot config code to attach.')
-          ),
-        })
-      ),
-      hidden: example(z.optional(z.boolean()), false).check(
-        z.describe('Whether the challenge is hidden from players.')
-      ),
-      releaseTime: example(z.optional(z.nullable(z.int())), null).check(
-        z.describe('Scheduled release time as a Unix ms timestamp, or `null`.')
-      ),
-      scoring: z.optional(ChallengeScoringSchema),
-    }),
+    data: z
+      .object({
+        author: example(z.optional(z.string()), 'es3n1n').check(
+          z.describe('Challenge author.')
+        ),
+        category: example(z.optional(z.string()), 'rev').check(
+          z.describe('Challenge category.')
+        ),
+        description: example(
+          z.optional(z.string()),
+          'A gentle introduction.'
+        ).check(z.describe('Challenge description in Markdown.')),
+        flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
+          z.describe('The challenge flag.')
+        ),
+        name: example(z.optional(z.string()), 'baby-rev').check(
+          z.describe('Challenge name.')
+        ),
+        points: z.optional(ChallengePointsSchema),
+        tiebreakEligible: example(z.optional(z.boolean()), true).check(
+          z.describe('Whether solves count toward tiebreak ordering.')
+        ),
+        files: z.optional(z.array(ChallengeFileSchemaV2)),
+        sortWeight: example(z.optional(z.number()), 0).check(
+          z.describe('Manual ordering weight.')
+        ),
+        tags: example(z.optional(z.array(z.string())), ['beginner']).check(
+          z.describe('Free-form tags.')
+        ),
+        instancerConfig: z.nullish(PartialInstancerConfigSchema),
+        adminBotConfig: z.nullish(
+          z.object({
+            code: example(z.string(), 'admin-bot').check(
+              z.describe('Admin-bot config code to attach.')
+            ),
+          })
+        ),
+        hidden: example(z.optional(z.boolean()), false).check(
+          z.describe('Whether the challenge is hidden from players.')
+        ),
+        releaseTime: example(z.optional(z.nullable(z.int())), null).check(
+          z.describe(
+            'Scheduled release time as a Unix ms timestamp, or `null`.'
+          )
+        ),
+        scoring: z.optional(ChallengeScoringSchema),
+      })
+      .check(z.describe('Challenge fields to update.')),
   }),
   goodResponses: [GoodChallengeUpdateV2],
   badResponses: [
@@ -576,61 +582,65 @@ export const GetAdminSettingsRouteV2 = defineRoute({
 })
 
 const AdminSettingsUpdateBody = z.object({
-  data: z.object({
-    ctfName: example(z.nullish(z.string()), 'rCTF').check(
-      z.describe('Public CTF name.')
-    ),
-    homeContent: example(z.nullish(z.string()), '# Welcome').check(
-      z.describe('Home page content in Markdown.')
-    ),
-    startTime: example(z.nullish(z.int()), 1710000000000).check(
-      z.describe('CTF start time as a Unix ms timestamp.')
-    ),
-    endTime: example(z.nullish(z.int()), 1710864000000).check(
-      z.describe('CTF end time as a Unix ms timestamp.')
-    ),
-    sponsors: z.nullish(
-      z.array(
+  data: z
+    .object({
+      ctfName: example(z.nullish(z.string()), 'rCTF').check(
+        z.describe('Public CTF name.')
+      ),
+      homeContent: example(z.nullish(z.string()), '# Welcome').check(
+        z.describe('Home page content in Markdown.')
+      ),
+      startTime: example(z.nullish(z.int()), 1710000000000).check(
+        z.describe('CTF start time as a Unix ms timestamp.')
+      ),
+      endTime: example(z.nullish(z.int()), 1710864000000).check(
+        z.describe('CTF end time as a Unix ms timestamp.')
+      ),
+      sponsors: z.nullish(
+        z.array(
+          z.object({
+            name: example(z.string(), 'osec').check(
+              z.describe('Sponsor name.')
+            ),
+            icon: example(
+              z.string(),
+              'https://rctf.osec.io/sponsors/osec.png'
+            ).check(z.describe('Sponsor icon URL.')),
+            description: example(z.string(), 'Security research.').check(
+              z.describe('Sponsor description.')
+            ),
+            url: example(z.optional(z.string()), 'https://osec.io').check(
+              z.describe('Sponsor link URL.')
+            ),
+          })
+        )
+      ),
+      meta: z.nullish(
         z.object({
-          name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
-          icon: example(
-            z.string(),
-            'https://rctf.osec.io/sponsors/osec.png'
-          ).check(z.describe('Sponsor icon URL.')),
-          description: example(z.string(), 'Security research.').check(
-            z.describe('Sponsor description.')
-          ),
-          url: example(z.optional(z.string()), 'https://osec.io').check(
-            z.describe('Sponsor link URL.')
-          ),
+          description: example(
+            z.optional(z.string()),
+            'A jeopardy-style CTF.'
+          ).check(z.describe('Site meta description.')),
+          imageUrl: example(
+            z.optional(z.string()),
+            'https://rctf.osec.io/preview.png'
+          ).check(z.describe('Social preview image URL.')),
         })
-      )
-    ),
-    meta: z.nullish(
-      z.object({
-        description: example(
-          z.optional(z.string()),
-          'A jeopardy-style CTF.'
-        ).check(z.describe('Site meta description.')),
-        imageUrl: example(
-          z.optional(z.string()),
-          'https://rctf.osec.io/preview.png'
-        ).check(z.describe('Social preview image URL.')),
-      })
-    ),
-    faviconUrl: example(
-      z.nullish(z.string()),
-      'https://rctf.osec.io/favicon.ico'
-    ).check(z.describe('Favicon URL.')),
-    logoLightUrl: example(
-      z.nullish(z.string()),
-      'https://rctf.osec.io/logo-light.png'
-    ).check(z.describe('Light-theme logo URL.')),
-    logoDarkUrl: example(
-      z.nullish(z.string()),
-      'https://rctf.osec.io/logo-dark.png'
-    ).check(z.describe('Dark-theme logo URL.')),
-  }),
+      ),
+      faviconUrl: example(
+        z.nullish(z.string()),
+        'https://rctf.osec.io/favicon.ico'
+      ).check(z.describe('Favicon URL.')),
+      logoLightUrl: example(
+        z.nullish(z.string()),
+        'https://rctf.osec.io/logo-light.png'
+      ).check(z.describe('Light-theme logo URL.')),
+      logoDarkUrl: example(
+        z.nullish(z.string()),
+        'https://rctf.osec.io/logo-dark.png'
+      ).check(z.describe('Dark-theme logo URL.')),
+    })
+    .check(z.describe('Settings fields to update.')),
 })
 
 export const UpdateAdminSettingsRouteV2 = defineRoute({
