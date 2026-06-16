@@ -22,8 +22,11 @@ import {
 /** A pre-rendered HTML fragment embedded into the hast tree verbatim. */
 const raw = (value: string): ElementContent => ({ type: "raw", value })
 
-/** Inline-code markup carrying a TypeScript highlight hint. */
-const inlineCodeMarkup = (value: string): string => `\`${value}{:ts}\``
+/** A TypeScript-annotated value for `inlineCodeNode` (no surrounding backticks). */
+const tsAnnotated = (value: string): string => `${value}{:ts}`
+
+/** Backtick-delimited inline-code markdown for `renderInlineText`. */
+const inlineCodeMarkup = (value: string): string => `\`${tsAnnotated(value)}\``
 
 /** Tone tag colours per HTTP method, mirroring the inline rich-text palette. */
 const METHOD_TONE = new Map<string, string>([
@@ -68,7 +71,7 @@ export async function requestTableHtml(fields: FieldInfo[]): Promise<string> {
     rows.push(
       h("tr", [
         h("td", name),
-        h("td", [await inlineCodeNode(inlineCodeMarkup(field.typeLabel))]),
+        h("td", [await inlineCodeNode(tsAnnotated(field.typeLabel))]),
         h("td", field.required ? "Yes" : "No"),
         await descriptionCell(field.description),
       ]),
@@ -86,7 +89,7 @@ export async function responseTableHtml(
     rows.push(
       h("tr", [
         h("td", [await inlineCodeNode(field.path)]),
-        h("td", [await inlineCodeNode(inlineCodeMarkup(field.typeLabel))]),
+        h("td", [await inlineCodeNode(tsAnnotated(field.typeLabel))]),
         await descriptionCell(field.description),
       ]),
     )
