@@ -6,7 +6,7 @@ import {
   inlineExpressiveCode,
 } from "./src/lib/expressive-code"
 import { temmlMath } from "./src/lib/math"
-import { apiReferenceDirectives } from "./src/lib/api-reference"
+import { apiReferenceDirectives } from "./src/lib/api/directives"
 import { calloutDirective } from "./src/lib/callout"
 import { contentDirectives } from "./src/lib/directives"
 import { externalLinks } from "./src/lib/external-links"
