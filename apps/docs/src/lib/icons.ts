@@ -1,11 +1,7 @@
 import { readFileSync } from "node:fs"
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
+import { join } from "node:path"
 
-const ICONS_DIR = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "../assets/icons",
-)
+const ICONS_DIR = join(process.cwd(), "src/assets/icons")
 
 export const loadIcon = (path: string) =>
   readFileSync(join(ICONS_DIR, `${path}.svg`), "utf8")

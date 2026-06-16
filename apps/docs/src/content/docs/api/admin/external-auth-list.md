@@ -1,6 +1,6 @@
 ---
-title: "GET List external-auth clients"
-description: "GET /api/v2/admin/external-auth/clients"
+title: "<route>GET</route> List external-auth clients"
+description: "<route>GET /api/v2/admin/external-auth/clients</route>"
 order: 28
 ---
 

@@ -7,16 +7,13 @@ aside: true
 ---
 
 :::aside
-  
 
-::route-list-item{title="Current standings" method="GET" path="/api/[v2,v1]/leaderboard/now" href="/docs/api/leaderboard/now/"}
-
-::route-list-item{title="Standings with graph" method="GET" path="/api/v2/leaderboard/with-graph" href="/docs/api/leaderboard/with-graph/"}
-
-::route-list-item{title="Score graph" method="GET" path="/api/[v2,v1]/leaderboard/graph" href="/docs/api/leaderboard/graph/"}
-
-::route-list-item{title="Leaderboard challenges" method="GET" path="/api/v2/leaderboard/challs" href="/docs/api/leaderboard/challs/"}
-  
+| Route | Endpoint |
+| --- | --- |
+| [Current standings](/docs/api/leaderboard/now/) | `<route>GET /api/[v2,v1]/leaderboard/now</route>` |
+| [Standings with graph](/docs/api/leaderboard/with-graph/) | `<route>GET /api/v2/leaderboard/with-graph</route>` |
+| [Score graph](/docs/api/leaderboard/graph/) | `<route>GET /api/[v2,v1]/leaderboard/graph</route>` |
+| [Leaderboard challenges](/docs/api/leaderboard/challs/) | `<route>GET /api/v2/leaderboard/challs</route>` |
 
 :::
 

@@ -38,6 +38,32 @@ code[data-code-path] svg {
   opacity: 0.6;
 }
 
+copy-command {
+  cursor: pointer;
+
+  .shell-prompt {
+    margin-inline-end: 1ch;
+    color: var(--muted-foreground);
+    font-weight: var(--font-weight-medium);
+
+    &::before {
+      content: "$";
+    }
+  }
+
+  &:hover code {
+    background-color: color-mix(in oklab, var(--muted) 90%, transparent);
+  }
+
+  &[data-copied] .shell-prompt {
+    color: var(--tone-green);
+
+    &::before {
+      content: "✓";
+    }
+  }
+}
+
 prose-content {
   a {
     --underline: var(--muted-foreground);
@@ -65,31 +91,5 @@ prose-content {
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: inset 0 -1px 0 var(--border);
-  }
-
-  copy-command {
-    cursor: pointer;
-
-    .shell-prompt {
-      margin-inline-end: 1ch;
-      color: var(--muted-foreground);
-      font-weight: var(--font-weight-medium);
-
-      &::before {
-        content: "$";
-      }
-    }
-
-    &:hover code {
-      background-color: color-mix(in oklab, var(--muted) 90%, transparent);
-    }
-
-    &[data-copied] .shell-prompt {
-      color: var(--tone-green);
-
-      &::before {
-        content: "✓";
-      }
-    }
   }
 }

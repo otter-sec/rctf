@@ -1,6 +1,6 @@
 ---
-title: "GET Admin bot job logs"
-description: "GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs"
+title: "<route>GET</route> Admin bot job logs"
+description: "<route>GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>"
 order: 11
 ---
 

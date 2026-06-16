@@ -1,5 +1,6 @@
 import { SITE } from "@/consts"
 import { buildDocsTree, docsHref, flattenDocsTree, getDocs } from "@/lib/docs"
+import { plainInlineText } from "@/lib/rich-text"
 import type { APIRoute } from "astro"
 
 export const GET: APIRoute = async ({ site }) => {
@@ -13,7 +14,7 @@ export const GET: APIRoute = async ({ site }) => {
     if (!entry) return []
     return [
       [
-        `# ${doc.title}`,
+        `# ${plainInlineText(doc.title)}`,
         `URL: ${new URL(doc.href, base)}`,
         "",
         (entry.body ?? "").trim(),

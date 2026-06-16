@@ -1,6 +1,6 @@
 ---
-title: "PUT Create or update challenge"
-description: "PUT /api/[v2,v1]/admin/challs/:id"
+title: "<route>PUT</route> Create or update challenge"
+description: "<route>PUT /api/[v2,v1]/admin/challs/:id</route>"
 order: 3
 ---
 

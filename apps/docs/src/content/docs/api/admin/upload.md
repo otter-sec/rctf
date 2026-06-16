@@ -1,6 +1,6 @@
 ---
-title: "POST Upload files"
-description: "POST /api/[v2,v1]/admin/upload"
+title: "<route>POST</route> Upload files"
+description: "<route>POST /api/[v2,v1]/admin/upload</route>"
 order: 6
 ---
 

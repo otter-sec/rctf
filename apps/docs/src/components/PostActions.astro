@@ -2,11 +2,14 @@
 import ArrowLeft from "@/assets/icons/arrow-left.svg"
 import ArrowRight from "@/assets/icons/arrow-right.svg"
 import ScrollToTop from "@/components/ScrollToTop.astro"
+import { plainInlineText } from "@/lib/rich-text"
 
 type Link = { href: string; title: string }
 type Props = { prev?: Link; next?: Link }
 
 const { prev, next } = Astro.props
+const prevTitle = prev && plainInlineText(prev.title)
+const nextTitle = next && plainInlineText(next.title)
 ---
 
 <post-actions>
@@ -14,9 +17,9 @@ const { prev, next } = Astro.props
     href={prev?.href}
     data-icon-button
     data-dir="prev"
-    aria-label={prev && `Previous: ${prev.title}`}
+    aria-label={prevTitle && `Previous: ${prevTitle}`}
     aria-hidden={!prev || undefined}
-    title={prev?.title}
+    title={prevTitle}
   >
     <ArrowLeft />
   </a>
@@ -24,9 +27,9 @@ const { prev, next } = Astro.props
     href={next?.href}
     data-icon-button
     data-dir="next"
-    aria-label={next && `Next: ${next.title}`}
+    aria-label={nextTitle && `Next: ${nextTitle}`}
     aria-hidden={!next || undefined}
-    title={next?.title}
+    title={nextTitle}
   >
     <ArrowRight />
   </a>

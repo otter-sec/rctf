@@ -1,6 +1,6 @@
 ---
-title: "GET Instance status"
-description: "GET /api/v2/integrations/challs/:id/instance"
+title: "<route>GET</route> Instance status"
+description: "<route>GET /api/v2/integrations/challs/:id/instance</route>"
 order: 3
 ---
 

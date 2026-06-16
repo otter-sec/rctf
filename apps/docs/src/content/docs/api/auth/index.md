@@ -7,20 +7,15 @@ aside: true
 ---
 
 :::aside
-  
 
-::route-list-item{title="Register a team" method="POST" path="/api/[v2,v1]/auth/register" href="/docs/api/auth/register/"}
-
-::route-list-item{title="Verify a token" method="POST" path="/api/[v2,v1]/auth/verify" href="/docs/api/auth/verify/"}
-
-::route-list-item{title="Recover an account" method="POST" path="/api/[v2,v1]/auth/recover" href="/docs/api/auth/recover/"}
-
-::route-list-item{title="Preview a verification token" method="GET" path="/api/v2/auth/verify-info" href="/docs/api/auth/verify-info/"}
-
-::route-list-item{title="Log in" method="POST" path="/api/v1/auth/login" href="/docs/api/auth/login/"}
-
-::route-list-item{title="Test an auth token" method="GET" path="/api/v1/auth/test" href="/docs/api/auth/test/"}
-  
+| Route | Endpoint |
+| --- | --- |
+| [Register a team](/docs/api/auth/register/) | `<route>POST /api/[v2,v1]/auth/register</route>` |
+| [Verify a token](/docs/api/auth/verify/) | `<route>POST /api/[v2,v1]/auth/verify</route>` |
+| [Recover an account](/docs/api/auth/recover/) | `<route>POST /api/[v2,v1]/auth/recover</route>` |
+| [Preview a verification token](/docs/api/auth/verify-info/) | `<route>GET /api/v2/auth/verify-info</route>` |
+| [Log in](/docs/api/auth/login/) | `<route>POST /api/v1/auth/login</route>` |
+| [Test an auth token](/docs/api/auth/test/) | `<route>GET /api/v1/auth/test</route>` |
 
 :::
 

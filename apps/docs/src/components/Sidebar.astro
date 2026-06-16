@@ -2,6 +2,7 @@
 import ListIcon from "@/assets/icons/list.svg"
 import SearchIcon from "@/assets/icons/search.svg"
 import Logo from "@/assets/logo.svg"
+import InlineText from "@/components/InlineText.astro"
 import SidebarTree from "@/components/SidebarTree.astro"
 import ThemeToggle from "@/components/ThemeToggle.astro"
 import { NAVIGATION, SITE } from "@/consts"
@@ -33,7 +34,7 @@ const section = NAVIGATION.find(
               href={item.href}
               aria-current={pathname === item.href ? "page" : undefined}
             >
-              {item.label}
+              <InlineText value={item.label} />
             </a>
             {item === section && tree && (
               <sidebar-tree>
@@ -53,7 +54,7 @@ const section = NAVIGATION.find(
                           i === crumbs.length - 1 ? "page" : undefined
                         }
                       >
-                        {crumb.label}
+                        <InlineText value={crumb.label} />
                       </a>
                     </li>
                   ))}
@@ -68,7 +69,7 @@ const section = NAVIGATION.find(
                 href={crumb.href}
                 aria-current={i === crumbs.length - 1 ? "page" : undefined}
               >
-                {crumb.label}
+                <InlineText value={crumb.label} />
               </a>
             </li>
           ))}

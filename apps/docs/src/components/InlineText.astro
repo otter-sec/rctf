@@ -1,0 +1,12 @@
+---
+import { renderInlineText } from "@/lib/rich-text"
+
+type Props = {
+  value: string
+}
+
+const { value } = Astro.props
+const { html } = await renderInlineText(value)
+---
+
+<Fragment set:html={html} />

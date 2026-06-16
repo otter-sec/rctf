@@ -1,6 +1,6 @@
 ---
-title: "GET Admin challenge detail"
-description: "GET /api/[v2,v1]/admin/challs/:id"
+title: "<route>GET</route> Admin challenge detail"
+description: "<route>GET /api/[v2,v1]/admin/challs/:id</route>"
 order: 2
 ---
 

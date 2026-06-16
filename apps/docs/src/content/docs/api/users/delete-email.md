@@ -1,6 +1,6 @@
 ---
-title: "DELETE Remove email auth"
-description: "DELETE /api/v1/users/me/auth/email"
+title: "<route>DELETE</route> Remove email auth"
+description: "<route>DELETE /api/v1/users/me/auth/email</route>"
 order: 6
 ---
 

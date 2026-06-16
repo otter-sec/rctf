@@ -1,6 +1,6 @@
 ---
-title: "GET Analytics script"
-description: "GET /api/v2/integrations/analytics/script"
+title: "<route>GET</route> Analytics script"
+description: "<route>GET /api/v2/integrations/analytics/script</route>"
 order: 2
 ---
 

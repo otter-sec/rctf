@@ -1,6 +1,6 @@
 ---
-title: "DELETE Delete external-auth client"
-description: "DELETE /api/v2/admin/external-auth/clients/:id"
+title: "<route>DELETE</route> Delete external-auth client"
+description: "<route>DELETE /api/v2/admin/external-auth/clients/:id</route>"
 order: 30
 ---
 

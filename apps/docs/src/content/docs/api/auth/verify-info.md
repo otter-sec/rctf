@@ -1,6 +1,6 @@
 ---
-title: "GET Preview a verification token"
-description: "GET /api/v2/auth/verify-info"
+title: "<route>GET</route> Preview a verification token"
+description: "<route>GET /api/v2/auth/verify-info</route>"
 order: 4
 ---
 

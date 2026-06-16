@@ -7,34 +7,22 @@ aside: true
 ---
 
 :::aside
-  
 
-::route-list-item{title="Client config" method="GET" path="/api/[v2,v1]/integrations/client/config" href="/docs/api/integrations/client-config/"}
-
-::route-list-item{title="Analytics script" method="GET" path="/api/v2/integrations/analytics/script" href="/docs/api/integrations/analytics-script/"}
-
-::route-list-item{title="Instance status" method="GET" path="/api/v2/integrations/challs/:id/instance" href="/docs/api/integrations/instance-status/"}
-
-::route-list-item{title="Start an instance" method="PUT" path="/api/v2/integrations/challs/:id/instance" href="/docs/api/integrations/instance-start/"}
-
-::route-list-item{title="Extend an instance" method="PATCH" path="/api/v2/integrations/challs/:id/instance" href="/docs/api/integrations/instance-extend/"}
-
-::route-list-item{title="Stop an instance" method="DELETE" path="/api/v2/integrations/challs/:id/instance" href="/docs/api/integrations/instance-stop/"}
-
-::route-list-item{title="Admin bot config" method="GET" path="/api/v2/integrations/challs/:id/admin-bot/config" href="/docs/api/integrations/admin-bot-config/"}
-
-::route-list-item{title="Submit admin bot job" method="POST" path="/api/v2/integrations/challs/:id/admin-bot" href="/docs/api/integrations/admin-bot-submit/"}
-
-::route-list-item{title="Admin bot job status" method="GET" path="/api/v2/integrations/challs/:id/admin-bot/status" href="/docs/api/integrations/admin-bot-status/"}
-
-::route-list-item{title="Admin bot job history" method="GET" path="/api/v2/integrations/challs/:id/admin-bot/history" href="/docs/api/integrations/admin-bot-history/"}
-
-::route-list-item{title="Admin bot job logs" method="GET" path="/api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs" href="/docs/api/integrations/admin-bot-logs/"}
-
-::route-list-item{title="CTFtime callback" method="POST" path="/api/v1/integrations/ctftime/callback" href="/docs/api/integrations/ctftime-callback/"}
-
-::route-list-item{title="CTFtime leaderboard" method="GET" path="/api/v1/integrations/ctftime/leaderboard" href="/docs/api/integrations/ctftime-leaderboard/"}
-  
+| Route | Endpoint |
+| --- | --- |
+| [Client config](/docs/api/integrations/client-config/) | `<route>GET /api/[v2,v1]/integrations/client/config</route>` |
+| [Analytics script](/docs/api/integrations/analytics-script/) | `<route>GET /api/v2/integrations/analytics/script</route>` |
+| [Instance status](/docs/api/integrations/instance-status/) | `<route>GET /api/v2/integrations/challs/:id/instance</route>` |
+| [Start an instance](/docs/api/integrations/instance-start/) | `<route>PUT /api/v2/integrations/challs/:id/instance</route>` |
+| [Extend an instance](/docs/api/integrations/instance-extend/) | `<route>PATCH /api/v2/integrations/challs/:id/instance</route>` |
+| [Stop an instance](/docs/api/integrations/instance-stop/) | `<route>DELETE /api/v2/integrations/challs/:id/instance</route>` |
+| [Admin bot config](/docs/api/integrations/admin-bot-config/) | `<route>GET /api/v2/integrations/challs/:id/admin-bot/config</route>` |
+| [Submit admin bot job](/docs/api/integrations/admin-bot-submit/) | `<route>POST /api/v2/integrations/challs/:id/admin-bot</route>` |
+| [Admin bot job status](/docs/api/integrations/admin-bot-status/) | `<route>GET /api/v2/integrations/challs/:id/admin-bot/status</route>` |
+| [Admin bot job history](/docs/api/integrations/admin-bot-history/) | `<route>GET /api/v2/integrations/challs/:id/admin-bot/history</route>` |
+| [Admin bot job logs](/docs/api/integrations/admin-bot-logs/) | `<route>GET /api/v2/integrations/challs/:id/admin-bot/jobs/:jobId/logs</route>` |
+| [CTFtime callback](/docs/api/integrations/ctftime-callback/) | `<route>POST /api/v1/integrations/ctftime/callback</route>` |
+| [CTFtime leaderboard](/docs/api/integrations/ctftime-leaderboard/) | `<route>GET /api/v1/integrations/ctftime/leaderboard</route>` |
 
 :::
 

@@ -1,6 +1,6 @@
 ---
-title: "DELETE Stop an instance"
-description: "DELETE /api/v2/integrations/challs/:id/instance"
+title: "<route>DELETE</route> Stop an instance"
+description: "<route>DELETE /api/v2/integrations/challs/:id/instance</route>"
 order: 6
 ---
 

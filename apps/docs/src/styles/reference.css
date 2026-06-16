@@ -49,9 +49,9 @@ prose-content dl[data-route-meta] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
   gap: var(--space-s) var(--space-m);
-  margin-block: var(--space-m);
-  padding-block: var(--space-s);
-  border-block: 1.5px solid var(--border);
+  margin-block-end: var(--space-m);
+  padding-block-end: var(--space-s);
+  border-block-end: 2px solid var(--border);
 
   div {
     min-inline-size: 0;

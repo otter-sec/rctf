@@ -1,6 +1,6 @@
 ---
-title: "PATCH Extend an instance"
-description: "PATCH /api/v2/integrations/challs/:id/instance"
+title: "<route>PATCH</route> Extend an instance"
+description: "<route>PATCH /api/v2/integrations/challs/:id/instance</route>"
 order: 5
 ---
 

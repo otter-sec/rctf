@@ -1,6 +1,6 @@
 ---
-title: "GET Pending verifications"
-description: "GET /api/v2/admin/user-verifications"
+title: "<route>GET</route> Pending verifications"
+description: "<route>GET /api/v2/admin/user-verifications</route>"
 order: 14
 ---
 

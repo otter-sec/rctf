@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from "astro:content"
+import { plainInlineText } from "./rich-text"
 
 export type DocsEntry = CollectionEntry<"docs">
 
@@ -29,7 +30,8 @@ const humanize = (segment: string) => {
 }
 
 const byOrder = (a: DocsTreeNode, b: DocsTreeNode) =>
-  a.order - b.order || a.label.localeCompare(b.label)
+  a.order - b.order ||
+  plainInlineText(a.label).localeCompare(plainInlineText(b.label))
 
 export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
   const root: DocsTreeNode[] = []
@@ -89,7 +91,7 @@ export function buildDocsTree(entries: DocsEntry[]): DocsTreeNode[] {
 
 const byEntryOrder = (a: DocsEntry, b: DocsEntry) =>
   (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
-  a.data.title.localeCompare(b.data.title)
+  plainInlineText(a.data.title).localeCompare(plainInlineText(b.data.title))
 
 /**
  * The continuous reading chain `entry` belongs to: a group index with

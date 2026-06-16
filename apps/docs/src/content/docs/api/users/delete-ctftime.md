@@ -1,6 +1,6 @@
 ---
-title: "DELETE Remove CTFtime auth"
-description: "DELETE /api/v1/users/me/auth/ctftime"
+title: "<route>DELETE</route> Remove CTFtime auth"
+description: "<route>DELETE /api/v1/users/me/auth/ctftime</route>"
 order: 8
 ---
 

@@ -6,6 +6,7 @@ import {
   flattenDocsTree,
   getDocs,
 } from "@/lib/docs"
+import { plainInlineText } from "@/lib/rich-text"
 import type { APIRoute } from "astro"
 
 export const GET: APIRoute = async ({ site }) => {
@@ -16,10 +17,13 @@ export const GET: APIRoute = async ({ site }) => {
 
   const lines = flat.map((doc) => {
     const entry = byHref.get(doc.href)
-    if (!entry) return `- [${doc.title}](${new URL(doc.href, base)})`
+    const title = plainInlineText(doc.title)
+    if (!entry) return `- [${title}](${new URL(doc.href, base)})`
     const url = new URL(docsMdHref(entry.id), base)
     const description = entry.data.description
-    return `- [${doc.title}](${url})${description ? `: ${description}` : ""}`
+      ? plainInlineText(entry.data.description)
+      : null
+    return `- [${title}](${url})${description ? `: ${description}` : ""}`
   })
 
   const text = [

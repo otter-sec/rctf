@@ -1,6 +1,6 @@
 ---
-title: "GET Client config"
-description: "GET /api/[v2,v1]/integrations/client/config"
+title: "<route>GET</route> Client config"
+description: "<route>GET /api/[v2,v1]/integrations/client/config</route>"
 order: 1
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "GET Team detail"
-description: "GET /api/v2/admin/users/:id"
+title: "<route>GET</route> Team detail"
+description: "<route>GET /api/v2/admin/users/:id</route>"
 order: 10
 ---
 

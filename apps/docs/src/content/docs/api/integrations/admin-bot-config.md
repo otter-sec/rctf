@@ -1,6 +1,6 @@
 ---
-title: "GET Admin bot config"
-description: "GET /api/v2/integrations/challs/:id/admin-bot/config"
+title: "<route>GET</route> Admin bot config"
+description: "<route>GET /api/v2/integrations/challs/:id/admin-bot/config</route>"
 order: 7
 ---
 

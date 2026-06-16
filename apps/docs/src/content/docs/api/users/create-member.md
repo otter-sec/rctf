@@ -1,6 +1,6 @@
 ---
-title: "POST Add a team member"
-description: "POST /api/v1/users/me/members"
+title: "<route>POST</route> Add a team member"
+description: "<route>POST /api/v1/users/me/members</route>"
 order: 10
 ---
 

@@ -1,6 +1,6 @@
 ---
-title: "POST Verify a token"
-description: "POST /api/[v2,v1]/auth/verify"
+title: "<route>POST</route> Verify a token"
+description: "<route>POST /api/[v2,v1]/auth/verify</route>"
 order: 2
 ---
 

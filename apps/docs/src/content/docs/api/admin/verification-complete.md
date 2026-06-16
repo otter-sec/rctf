@@ -1,6 +1,6 @@
 ---
-title: "POST Complete verification"
-description: "POST /api/v2/admin/user-verifications/:id/complete"
+title: "<route>POST</route> Complete verification"
+description: "<route>POST /api/v2/admin/user-verifications/:id/complete</route>"
 order: 15
 ---
 

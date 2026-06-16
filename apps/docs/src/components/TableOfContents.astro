@@ -1,5 +1,6 @@
 ---
 import ChevronIcon from "@/assets/icons/callouts/alt-arrow-down.svg"
+import InlineText from "@/components/InlineText.astro"
 import type { TocHeading } from "@/lib/content"
 
 type Section = {
@@ -14,14 +15,14 @@ const { title, sections } = Astro.props
 ---
 
 <nav aria-label="Table of contents">
-  <toc-title aria-hidden="true"><span>{title}</span></toc-title>
+  <toc-title aria-hidden="true"><span><InlineText value={title} /></span></toc-title>
   <label data-bar>
     <input type="checkbox" aria-label="Toggle table of contents">
     <svg viewBox="0 0 16 16" aria-hidden="true">
       <circle cx="8" cy="8" r="6.5" />
       <circle cx="8" cy="8" r="6.5" transform="rotate(-90 8 8)" />
     </svg>
-    <toc-current>{title}</toc-current>
+    <toc-current><InlineText value={title} /></toc-current>
     <ChevronIcon aria-hidden="true" />
   </label>
   <ul data-bar>
@@ -31,7 +32,7 @@ const { title, sections } = Astro.props
             {headings.length > 0 ? (
               <details open={open || undefined}>
                 <summary>
-                  <a href={`#${id}`}>{label}</a>
+                  <a href={`#${id}`}><InlineText value={label} /></a>
                   <ChevronIcon aria-hidden="true" />
                 </summary>
                 <ul>
@@ -45,7 +46,7 @@ const { title, sections } = Astro.props
                 </ul>
               </details>
             ) : (
-              <a href={`#${id}`}>{label}</a>
+              <a href={`#${id}`}><InlineText value={label} /></a>
             )}
           </li>
         ) : (
@@ -314,7 +315,7 @@ const { title, sections } = Astro.props
     const heading = document.querySelector("article > header h1")
     if (articles.length === 0 || !list || links.size === 0) return
 
-    const fallback = currentLabel?.textContent ?? ""
+    const fallback = currentLabel?.innerHTML ?? ""
 
     const groups = [
       ...nav.querySelectorAll<HTMLDetailsElement>("li[data-group] details"),
@@ -401,8 +402,8 @@ const { title, sections } = Astro.props
       firstActive?.setAttribute("aria-current", "location")
 
       if (currentLabel) {
-        const label = firstActive?.textContent?.trim() || fallback
-        if (currentLabel.textContent !== label) currentLabel.textContent = label
+        const label = firstActive?.innerHTML?.trim() || fallback
+        if (currentLabel.innerHTML !== label) currentLabel.innerHTML = label
       }
 
       for (const group of groups) {

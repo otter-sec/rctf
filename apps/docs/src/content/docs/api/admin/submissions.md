@@ -1,6 +1,6 @@
 ---
-title: "GET List submissions"
-description: "GET /api/v2/admin/submissions"
+title: "<route>GET</route> List submissions"
+description: "<route>GET /api/v2/admin/submissions</route>"
 order: 17
 ---
 

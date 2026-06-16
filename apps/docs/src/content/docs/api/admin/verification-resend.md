@@ -1,6 +1,6 @@
 ---
-title: "POST Resend verification"
-description: "POST /api/v2/admin/user-verifications/:id/resend"
+title: "<route>POST</route> Resend verification"
+description: "<route>POST /api/v2/admin/user-verifications/:id/resend</route>"
 order: 16
 ---
 
