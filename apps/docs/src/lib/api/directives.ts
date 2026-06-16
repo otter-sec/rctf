@@ -206,8 +206,22 @@ async function planResponseBody(
   }
 }
 
-const failureMessage = (name: string, error: unknown): string =>
-  `api-reference-directives: failed to render ${name}: ${error instanceof Error ? error.message : String(error)}`
+// Satteri's compile pipeline currently discards visitor diagnostics, so a
+// failed directive is warned via the console (matching `unhandled-directives`)
+// rather than `ctx.report`, which would be swallowed and leave the drop silent.
+// TODO: switch to `ctx.report` once the compile result exposes diagnostics
+// (bruits/satteri#59 has the plumbing; tracked in bruits/satteri#87).
+function warnDropped(
+  syntax: string,
+  name: string,
+  error: unknown,
+  fileURL: URL | undefined,
+): void {
+  const reason = error instanceof Error ? error.message : String(error)
+  console.warn(
+    `[markdown] api-reference directive ${syntax}${name} failed and was dropped from output: ${reason} (${fileURL?.pathname ?? "unknown file"})`,
+  )
+}
 
 /**
  * Generates rCTF API reference components from `@rctf/types` route and response
@@ -234,11 +248,7 @@ export function apiReferenceDirectives() {
             return buildCurlCode(node, node.children, undefined)
         }
       } catch (error) {
-        ctx.report({
-          message: failureMessage(node.name, error),
-          node,
-          severity: "error",
-        })
+        warnDropped(":::", node.name, error, ctx.fileURL)
         ctx.removeNode(node)
       }
     },
@@ -276,11 +286,7 @@ export function apiReferenceDirectives() {
             return buildCurlCode(node, [], undefined)
         }
       } catch (error) {
-        ctx.report({
-          message: failureMessage(node.name, error),
-          node,
-          severity: "error",
-        })
+        warnDropped("::", node.name, error, ctx.fileURL)
         ctx.removeNode(node)
       }
     },
