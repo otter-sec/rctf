@@ -38,6 +38,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.16",
+    "@types/hast": "3.0.4",
     "@types/mdast": "4.0.4",
     "mdast-util-to-hast": "13.2.1",
     "pagefind": "1.5.2"
