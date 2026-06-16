@@ -91,19 +91,67 @@ article[data-reference] {
     }
   }
 
-  /* Reference tables fill the prose column (at least full width) but keep
-     readable column widths: each column sits between a min and max inline size.
-     Below the desktop width the table scrolls horizontally as one block (the
-     theme's default) instead of squishing columns into unreadable wraps. */
-  prose-content table {
-    min-inline-size: 100%;
-    max-inline-size: none;
-    margin-inline: 0;
-  }
+  /* Generated request/response fields render as a definition list rather than a
+     table: the name and type sit on the lead line and the description flows
+     underneath, so a long type label (e.g. a 250-member enum union) wraps and
+     clamps instead of forcing a table column to overflow. */
+  prose-content dl[data-field-list] {
+    margin-block: var(--space-m) var(--space-l);
+    border-block: 2px solid var(--border);
 
-  prose-content :is(th, td) {
-    min-inline-size: 10rem;
-    max-inline-size: 22rem;
+    [data-field] {
+      padding-block: var(--space-s);
+
+      & + [data-field] {
+        border-block-start: 2px solid var(--border);
+      }
+    }
+
+    dt {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-s);
+      row-gap: var(--space-2xs);
+      min-inline-size: 0;
+    }
+
+    dd {
+      margin-block-start: var(--space-2xs);
+      color: var(--prose-foreground);
+      font-size: var(--step--1);
+      line-height: calc(var(--leading-offset) + 1em);
+      overflow-wrap: anywhere;
+    }
+
+    /* The field name and type read as plain monospace (no inline-code pill),
+       keeping syntax-highlight colours. */
+    code {
+      background: none;
+      padding: 0;
+    }
+
+    [data-required] {
+      color: var(--tone-red);
+      font-weight: var(--font-weight-medium);
+    }
+
+    /* The type label can be arbitrarily long (large enums); cap it at a few
+       lines with an ellipsis instead of letting it grow the row unbounded. */
+    [data-field-type] {
+      min-inline-size: 0;
+      font-size: var(--step--1);
+      opacity: 0.85;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      overflow: hidden;
+
+      code {
+        white-space: normal;
+      }
+    }
   }
 }
 
