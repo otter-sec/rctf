@@ -1,6 +1,6 @@
 import { exampleRegistry } from "@rctf/types"
 import type { z } from "zod/mini"
-import { globalRegistry } from "zod/mini"
+import { globalRegistry, safeParse } from "zod/mini"
 
 /** A Zod schema in its erased base form. */
 export type ZodSchema = z.core.$ZodType
@@ -161,6 +161,11 @@ function typeLabelExtended(schema: ZodSchema): string {
   }
 }
 
+/** A field is required when its schema rejects a missing (`undefined`) value. */
+function isRequired(field: ZodSchema): boolean {
+  return !safeParse(field, undefined).success
+}
+
 /** Flatten a request object schema into one row per top-level field. */
 export function walkObjectSchema(
   schema: ZodSchema | undefined | null,
@@ -171,7 +176,7 @@ export function walkObjectSchema(
     name,
     schema: field,
     typeLabel: typeLabel(unwrap(field)),
-    required: defOf(field)?.type !== "optional",
+    required: isRequired(field),
     description: describe(field),
   }))
 }
