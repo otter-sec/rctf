@@ -91,17 +91,19 @@ article[data-reference] {
     }
   }
 
-  /* Reference tables fill the prose column and wrap long cell content rather
-     than overflowing the viewport (mobile) or clipping the table (desktop). */
+  /* Reference tables fill the prose column (at least full width) but keep
+     readable column widths: each column sits between a min and max inline size.
+     Below the desktop width the table scrolls horizontally as one block (the
+     theme's default) instead of squishing columns into unreadable wraps. */
   prose-content table {
-    display: table;
-    inline-size: 100%;
-    max-inline-size: 100%;
+    min-inline-size: 100%;
+    max-inline-size: none;
     margin-inline: 0;
   }
 
   prose-content :is(th, td) {
-    overflow-wrap: anywhere;
+    min-inline-size: 10rem;
+    max-inline-size: 22rem;
   }
 }
 
