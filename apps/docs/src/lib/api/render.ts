@@ -39,62 +39,77 @@ const METHOD_TONE = new Map<string, string>([
   ["OPTIONS", "blue"],
 ])
 
-/** A `<td>` carrying author rich text, or an empty cell when absent. */
-async function descriptionCell(
+/** A required-field marker (`*`) carrying an accessible label. */
+function requiredMark(): ElementContent {
+  return h(
+    "span",
+    { dataRequired: "", title: "required", ariaLabel: "required" },
+    "*",
+  )
+}
+
+/**
+ * One field entry: the name (plus a required marker) and its type sit on the
+ * lead line, with the description underneath. Mirrors the route metadata `<dl>`
+ * pattern rather than a table so long type labels wrap and clamp gracefully
+ * instead of forcing a column to overflow.
+ */
+async function fieldEntry(
+  name: string,
+  typeLabel: string,
   description: string | undefined,
+  required: boolean,
 ): Promise<ElementContent> {
-  if (!description) return h("td")
-  const { html } = await renderInlineText(description)
-  return h("td", [raw(html)])
-}
-
-/** Serialize a `<table>` with the given headers and pre-built body rows. */
-function tableHtml(headers: string[], rows: ElementContent[]): string {
-  const tree = h("table", [
-    h("thead", [
-      h(
-        "tr",
-        headers.map((label) => h("th", label)),
-      ),
+  const term: ElementContent[] = [await inlineCodeNode(name)]
+  if (required) term.push(requiredMark())
+  term.push(
+    h("span", { dataFieldType: "" }, [
+      await inlineCodeNode(tsAnnotated(typeLabel)),
     ]),
-    h("tbody", rows),
-  ])
-  return toHtml(tree, { allowDangerousHtml: true })
+  )
+
+  const children: ElementContent[] = [h("dt", term)]
+  if (description) {
+    const { html } = await renderInlineText(description)
+    children.push(h("dd", [raw(html)]))
+  }
+  return h("div", { dataField: "" }, children)
 }
 
-/** Render a request object schema as a Field/Type/Required/Description table. */
-export async function requestTableHtml(fields: FieldInfo[]): Promise<string> {
-  const rows: ElementContent[] = []
+/** Serialize a generated `<dl data-field-list>` from a set of field entries. */
+function fieldListHtml(entries: ElementContent[]): string {
+  return toHtml(h("dl", { dataFieldList: "" }, entries), {
+    allowDangerousHtml: true,
+  })
+}
+
+/** Render a request object schema as a field list (name/type + description). */
+export async function requestFieldsHtml(fields: FieldInfo[]): Promise<string> {
+  const entries: ElementContent[] = []
   for (const field of fields) {
-    const name: ElementContent[] = [await inlineCodeNode(field.name)]
-    if (field.required) name.push({ type: "text", value: " *" })
-    rows.push(
-      h("tr", [
-        h("td", name),
-        h("td", [await inlineCodeNode(tsAnnotated(field.typeLabel))]),
-        h("td", field.required ? "Yes" : "No"),
-        await descriptionCell(field.description),
-      ]),
+    entries.push(
+      await fieldEntry(
+        field.name,
+        field.typeLabel,
+        field.description,
+        field.required,
+      ),
     )
   }
-  return tableHtml(["Field", "Type", "Required", "Description"], rows)
+  return fieldListHtml(entries)
 }
 
-/** Render a response schema as a Field/Type/Description table of dotted paths. */
-export async function responseTableHtml(
+/** Render a response schema as a field list of dotted paths + descriptions. */
+export async function responseFieldsHtml(
   fields: ResponseField[],
 ): Promise<string> {
-  const rows: ElementContent[] = []
+  const entries: ElementContent[] = []
   for (const field of fields) {
-    rows.push(
-      h("tr", [
-        h("td", [await inlineCodeNode(field.path)]),
-        h("td", [await inlineCodeNode(tsAnnotated(field.typeLabel))]),
-        await descriptionCell(field.description),
-      ]),
+    entries.push(
+      await fieldEntry(field.path, field.typeLabel, field.description, false),
     )
   }
-  return tableHtml(["Field", "Type", "Description"], rows)
+  return fieldListHtml(entries)
 }
 
 const ROUTE_META_EMPTY = new Set(["", "-", "none"])

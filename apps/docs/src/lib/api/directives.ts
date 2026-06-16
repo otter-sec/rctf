@@ -5,9 +5,9 @@ import { API_BASE_URL } from "./config"
 import {
   collectResponses,
   curlText,
-  requestTableHtml,
+  requestFieldsHtml,
   responseExampleJson,
-  responseTableHtml,
+  responseFieldsHtml,
   routeMetaHtml,
   titlePhrasing,
 } from "./render"
@@ -173,14 +173,14 @@ function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
   }
 }
 
-interface TablePlan {
+interface FieldsPlan {
   heading?: Heading
-  table: Html
+  list: Html
 }
 
 async function planRequestBody(
   node: Readonly<LeafDirective>,
-): Promise<TablePlan | null> {
+): Promise<FieldsPlan | null> {
   const def = resolveRoute(attr(node.attributes, "def"))
   const source = parseSource(attr(node.attributes, "source"))
   const schema: ZodSchema | undefined =
@@ -190,13 +190,13 @@ async function planRequestBody(
   const title = attr(node.attributes, "title")
   return {
     heading: title ? headingNode(title) : undefined,
-    table: htmlNode(await requestTableHtml(fields)),
+    list: htmlNode(await requestFieldsHtml(fields)),
   }
 }
 
 async function planResponseBody(
   node: Readonly<LeafDirective>,
-): Promise<TablePlan | null> {
+): Promise<FieldsPlan | null> {
   const def = resolveRoute(attr(node.attributes, "def"))
   const responseKind = attr(node.attributes, "response")
   const resp = [...def.goodResponses, ...def.badResponses].find(
@@ -207,7 +207,7 @@ async function planResponseBody(
   const title = attr(node.attributes, "title")
   return {
     heading: title ? headingNode(title) : undefined,
-    table: htmlNode(await responseTableHtml(fields)),
+    list: htmlNode(await responseFieldsHtml(fields)),
   }
 }
 
@@ -232,8 +232,9 @@ function warnDropped(
  * Generates rCTF API reference components from `@rctf/types` route and response
  * definitions. Each directive resolves a typed route/response and expands into
  * standard mdast nodes: curl examples and response payloads become Expressive
- * Code blocks, field listings become HTML tables, and route metadata becomes a
- * description list. Generated `tabs` are handed to the content-directive plugin.
+ * Code blocks, field listings become description lists, and route metadata
+ * becomes a description list. Generated `tabs` are handed to the
+ * content-directive plugin.
  */
 export function apiReferenceDirectives() {
   return defineMdastPlugin({
@@ -274,7 +275,7 @@ export function apiReferenceDirectives() {
                 : await planResponseBody(node)
             if (plan) {
               if (plan.heading) ctx.insertBefore(node, plan.heading)
-              ctx.insertBefore(node, plan.table)
+              ctx.insertBefore(node, plan.list)
             }
             ctx.removeNode(node)
             return
