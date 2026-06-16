@@ -47,10 +47,13 @@ article[data-reference] {
           margin-block: 0;
         }
 
-        /* The request example and the responses each fill at most half the
-           aside, so neither pushes the other out of view. Overflow scrolls
-           inside the section rather than moving the whole aside. */
-        .expressive-code:has(.frame.is-terminal) {
+        /* Tab strips and frame headers keep their natural height; only the code
+           body of each example is capped at half the aside, and it scrolls only
+           when the code is genuinely taller than the cap. This keeps the request
+           and response examples from crowding each other out without collapsing
+           the tab containers (which doubled their borders) or letting short code
+           overscroll. */
+        .frame pre {
           max-block-size: var(--aside-section);
           overflow-y: auto;
           overscroll-behavior: contain;
@@ -58,40 +61,6 @@ article[data-reference] {
 
           &::-webkit-scrollbar {
             display: none;
-          }
-        }
-
-        tab-group[data-code-tabs] {
-          display: flex;
-          flex-direction: column;
-          min-block-size: 0;
-          max-block-size: var(--aside-section);
-
-          /* The status list gives up height before the example body does, so
-             a route with many responses keeps a readable example instead of
-             collapsing it to a single line. */
-          > [role="tablist"] {
-            flex: 0 100 auto;
-            min-block-size: 0;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            scrollbar-width: none;
-
-            &::-webkit-scrollbar {
-              display: none;
-            }
-          }
-
-          > [role="tabpanel"] {
-            flex: 1 1 auto;
-            min-block-size: 0;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            scrollbar-width: none;
-
-            &::-webkit-scrollbar {
-              display: none;
-            }
           }
         }
       }
