@@ -213,9 +213,16 @@ export function walkResponseSchema(
   }
 
   if (def.type === "object") {
-    return Object.entries(def.shape).flatMap(([name, field]) =>
+    const rows = Object.entries(def.shape).flatMap(([name, field]) =>
       walkResponseSchema(field, prefix ? `${prefix}.${name}` : name),
     )
+    // Surface a nested object's own description (e.g. `overrides`, `defaults`),
+    // which would otherwise be dropped when descending into its fields.
+    const description = prefix ? describe(schema) : undefined
+    if (description) {
+      return [{ path: prefix, typeLabel: "object", description }, ...rows]
+    }
+    return rows
   }
 
   return [
