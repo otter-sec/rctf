@@ -15,7 +15,7 @@ import {
   type FieldInfo,
   generateExample,
   type ResponseField,
-  walkObjectSchema,
+  walkObjectShape,
   type ZodSchema,
 } from "./schema"
 
@@ -195,7 +195,7 @@ function buildObject(
   overrides: Record<string, ExampleValue> | undefined,
   filter?: string[],
 ): Record<string, ExampleValue> | undefined {
-  const fields = walkObjectSchema(schema)
+  const fields = walkObjectShape(schema)
   if (fields.length === 0) return undefined
 
   const out: Record<string, ExampleValue> = {}
