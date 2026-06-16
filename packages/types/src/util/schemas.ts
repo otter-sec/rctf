@@ -108,10 +108,10 @@ export const EndpointSchema = z.object({
   port: example(z.int(), 1337)
     .check(z.gte(0), z.lte(65535))
     .check(z.describe('Reachable port.')),
-  title: example(z.string(), 'nc').check(
+  title: example(z.optional(z.string()), 'nc').check(
     z.describe('Short label for the endpoint, when present.')
   ),
-  text: example(z.string(), 'nc baby-rev.rctf.osec.io 1337').check(
+  text: example(z.optional(z.string()), 'nc baby-rev.rctf.osec.io 1337').check(
     z.describe('Connection hint shown to players, when present.')
   ),
 })
@@ -129,10 +129,10 @@ export const ExposeSchema = z.object({
   containerPort: example(z.int(), 1337)
     .check(z.gte(1), z.lte(65535))
     .check(z.describe('Container port to expose.')),
-  shouldDisplay: example(z.boolean(), true).check(
+  shouldDisplay: example(z.optional(z.boolean()), true).check(
     z.describe('Whether to show the endpoint to players.')
   ),
-  title: example(z.string(), 'nc').check(
+  title: example(z.optional(z.string()), 'nc').check(
     z.describe('Short label for the endpoint, when present.')
   ),
 })
@@ -142,7 +142,7 @@ export const InstancerConfigSchema = z.object({
   challengeIntegrationId: example(z.string(), 'baby-rev').check(
     z.describe('Challenge integration ID this config belongs to.')
   ),
-  instancer: example(z.string(), 'kubernetes').check(
+  instancer: example(z.optional(z.string()), 'kubernetes').check(
     z.describe('Instancer to use, or the default when omitted.')
   ),
   config: z.record(z.string(), z.any()),
@@ -150,7 +150,7 @@ export const InstancerConfigSchema = z.object({
   timeoutMilliseconds: example(z.int(), 600000).check(
     z.describe('Instance lifetime in milliseconds.')
   ),
-  extendable: example(z.boolean(), true).check(
+  extendable: example(z.optional(z.boolean()), true).check(
     z.describe('Whether the instance lifetime can be extended.')
   ),
 })
@@ -176,7 +176,7 @@ export const RegexRuleSchema = z.object({
   pattern: example(z.string(), '^https?://.*$').check(
     z.describe('Regular expression source the input must match.')
   ),
-  flags: example(z.string(), 'i').check(
+  flags: example(z.optional(z.string()), 'i').check(
     z.describe('Regular expression flags, when present.')
   ),
 })
@@ -192,7 +192,10 @@ export const AdminBotConfigSchema = z.object({
   timeoutMilliseconds: example(z.int(), 30000).check(
     z.describe('Per-job timeout in milliseconds.')
   ),
-  requireInstancerInstancesRunning: example(z.boolean(), false).check(
+  requireInstancerInstancesRunning: example(
+    z.optional(z.boolean()),
+    false
+  ).check(
     z.describe('Whether a running instance is required to submit a job.')
   ),
 })

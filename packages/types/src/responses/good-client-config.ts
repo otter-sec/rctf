@@ -28,7 +28,7 @@ export const GoodClientConfig = response('goodClientConfig', {
         description: example(z.string(), 'Security research.').check(
           z.describe('Sponsor description.')
         ),
-        url: example(z.string(), 'https://osec.io').check(
+        url: example(z.optional(z.string()), 'https://osec.io').check(
           z.describe('Sponsor link, when present.')
         ),
       })
