@@ -44,53 +44,55 @@ export const UpdateChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'PUT',
   body: z.object({
-    data: z.object({
-      author: example(z.optional(z.string()), 'es3n1n').check(
-        z.describe('Challenge author.')
-      ),
-      category: example(z.optional(z.string()), 'rev').check(
-        z.describe('Challenge category.')
-      ),
-      description: example(
-        z.optional(z.string()),
-        'A gentle introduction.'
-      ).check(z.describe('Challenge description in Markdown.')),
-      flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
-        z.describe('The challenge flag.')
-      ),
-      name: example(z.optional(z.string()), 'baby-rev').check(
-        z.describe('Challenge name.')
-      ),
-      points: z.optional(
-        z.object({
-          max: example(z.int(), 500).check(
-            z.describe('Maximum (initial) point value.')
-          ),
-          min: example(z.int(), 100).check(
-            z.describe('Minimum (floor) point value.')
-          ),
-        })
-      ),
-      tiebreakEligible: example(z.optional(z.boolean()), true).check(
-        z.describe('Whether solves count toward tiebreak ordering.')
-      ),
-      files: z.optional(
-        z.array(
+    data: z
+      .object({
+        author: example(z.optional(z.string()), 'es3n1n').check(
+          z.describe('Challenge author.')
+        ),
+        category: example(z.optional(z.string()), 'rev').check(
+          z.describe('Challenge category.')
+        ),
+        description: example(
+          z.optional(z.string()),
+          'A gentle introduction.'
+        ).check(z.describe('Challenge description in Markdown.')),
+        flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
+          z.describe('The challenge flag.')
+        ),
+        name: example(z.optional(z.string()), 'baby-rev').check(
+          z.describe('Challenge name.')
+        ),
+        points: z.optional(
           z.object({
-            name: example(z.string(), 'chall.zip').check(
-              z.describe('File name.')
+            max: example(z.int(), 500).check(
+              z.describe('Maximum (initial) point value.')
             ),
-            url: example(
-              z.string(),
-              'https://rctf.osec.io/uploads/chall.zip'
-            ).check(z.describe('File download URL.')),
+            min: example(z.int(), 100).check(
+              z.describe('Minimum (floor) point value.')
+            ),
           })
-        )
-      ),
-      sortWeight: example(z.optional(z.number()), 0).check(
-        z.describe('Manual ordering weight.')
-      ),
-    }),
+        ),
+        tiebreakEligible: example(z.optional(z.boolean()), true).check(
+          z.describe('Whether solves count toward tiebreak ordering.')
+        ),
+        files: z.optional(
+          z.array(
+            z.object({
+              name: example(z.string(), 'chall.zip').check(
+                z.describe('File name.')
+              ),
+              url: example(
+                z.string(),
+                'https://rctf.osec.io/uploads/chall.zip'
+              ).check(z.describe('File download URL.')),
+            })
+          )
+        ),
+        sortWeight: example(z.optional(z.number()), 0).check(
+          z.describe('Manual ordering weight.')
+        ),
+      })
+      .check(z.describe('Challenge fields to update.')),
   }),
   goodResponses: [GoodChallengeUpdate],
   badResponses: [BadPerms, BadToken],

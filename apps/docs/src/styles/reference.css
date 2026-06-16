@@ -96,11 +96,11 @@ article[data-reference] {
      underneath, so a long type label (e.g. a 250-member enum union) wraps and
      clamps instead of forcing a table column to overflow. */
   prose-content dl[data-field-list] {
-    margin-block: var(--space-m) var(--space-l);
+    margin-block: var(--space-xs) var(--space-m);
     border-block: 2px solid var(--border);
 
     [data-field] {
-      padding-block: var(--space-s);
+      padding-block: var(--space-2xs);
 
       & + [data-field] {
         border-block-start: 2px solid var(--border);
@@ -112,12 +112,19 @@ article[data-reference] {
       flex-wrap: wrap;
       align-items: baseline;
       column-gap: var(--space-s);
-      row-gap: var(--space-2xs);
+      row-gap: var(--space-3xs);
       min-inline-size: 0;
     }
 
+    /* The name and its required marker stay welded together so the `*` hugs the
+       field name instead of riding the column gap out toward the type. */
+    [data-field-name] {
+      display: inline-flex;
+      align-items: baseline;
+    }
+
     dd {
-      margin-block-start: var(--space-2xs);
+      margin-block-start: var(--space-3xs);
       color: var(--prose-foreground);
       font-size: var(--step--1);
       line-height: calc(var(--leading-offset) + 1em);
@@ -132,6 +139,7 @@ article[data-reference] {
     }
 
     [data-required] {
+      margin-inline-start: 0.15em;
       color: var(--tone-red);
       font-weight: var(--font-weight-medium);
     }
@@ -152,6 +160,13 @@ article[data-reference] {
         white-space: normal;
       }
     }
+  }
+
+  /* When a directive heading ("Request body", "Response fields") sits directly
+     above the list, drop the list's top margin so its first rule hugs the
+     heading instead of leaving a wide gap. */
+  :where(h2, h3, h4, h5, h6) + dl[data-field-list] {
+    margin-block-start: 0;
   }
 }
 
