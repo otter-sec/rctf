@@ -6,7 +6,9 @@ export const GoodAdminSettingsUpdate = response('goodAdminSettingsUpdate', {
   status: 200,
   message: 'Settings successfully updated.',
   data: z.object({
-    overrides: AdminSettingsSchema,
-    defaults: AdminSettingsSchema,
+    overrides: AdminSettingsSchema.check(
+      z.describe('Operator-set values overriding the defaults.')
+    ),
+    defaults: AdminSettingsSchema.check(z.describe('Built-in default values.')),
   }),
 })

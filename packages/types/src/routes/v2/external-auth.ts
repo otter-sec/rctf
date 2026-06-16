@@ -28,9 +28,13 @@ export const AuthorizeExternalAuthRouteV2 = defineRoute({
   badResponses: [BadExternalAuthRequest, BadToken],
   authRequired: true,
   body: z.object({
-    clientId: z.string(),
-    redirectUri: z.string(),
-    state: z.optional(z.string()),
+    clientId: z.string().check(z.describe('Public client ID.')),
+    redirectUri: z
+      .string()
+      .check(z.describe('Redirect URI; must match the client registration.')),
+    state: z
+      .optional(z.string())
+      .check(z.describe('Opaque value echoed back on redirect.')),
   }),
 })
 
@@ -41,8 +45,12 @@ export const ExternalAuthTokenRouteV2 = defineRoute({
   badResponses: [BadExternalAuthRequest],
   authRequired: false,
   body: z.object({
-    clientId: z.string(),
-    clientSecret: z.string(),
-    code: z.string(),
+    clientId: z.string().check(z.describe('Public client ID.')),
+    clientSecret: z.string().check(z.describe('Client secret.')),
+    code: z
+      .string()
+      .check(
+        z.describe('Authorization code returned from the authorize step.')
+      ),
   }),
 })
