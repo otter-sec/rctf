@@ -145,7 +145,12 @@ function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
     const label: Paragraph = {
       type: "paragraph",
       data: labelData,
-      children: [{ type: "text", value: `${resp.status} ${resp.kind}` }],
+      children: [
+        {
+          type: "inlineCode",
+          value: `<response>${resp.status} ${resp.kind}</response>`,
+        },
+      ],
     }
     const code: Code = {
       type: "code",
