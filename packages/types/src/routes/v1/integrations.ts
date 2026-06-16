@@ -32,7 +32,9 @@ export const CtftimeCallbackRoute = defineRoute({
   path: '/v1/integrations/ctftime/callback',
   method: 'POST',
   body: z.object({
-    ctftimeCode: z.string(),
+    ctftimeCode: z
+      .string()
+      .check(z.describe('CTFtime OAuth authorization code.')),
   }),
   goodResponses: [GoodCtftimeToken],
   badResponses: [BadEndpoint, BadCtftimeCode],

@@ -1,35 +1,62 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { example } from '../util/example'
 
 export const AdminSettingsSchema = z.object({
-  ctfName: z.optional(z.string()),
-  homeContent: z.optional(z.string()),
-  startTime: z.optional(z.int()),
-  endTime: z.optional(z.int()),
+  ctfName: example(z.string(), 'rCTF').check(z.describe('Name of the CTF.')),
+  homeContent: example(z.string(), '# Welcome').check(
+    z.describe('Markdown content shown on the home page.')
+  ),
+  startTime: example(z.int(), 1710000000000).check(
+    z.describe('CTF start time as a Unix timestamp in milliseconds.')
+  ),
+  endTime: example(z.int(), 1710864000000).check(
+    z.describe('CTF end time as a Unix timestamp in milliseconds.')
+  ),
   sponsors: z.optional(
     z.array(
       z.object({
-        name: z.string(),
-        icon: z.string(),
-        description: z.string(),
-        url: z.optional(z.string()),
+        name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
+        icon: example(
+          z.string(),
+          'https://rctf.osec.io/sponsors/osec.png'
+        ).check(z.describe('Sponsor icon URL.')),
+        description: example(z.string(), 'Security research.').check(
+          z.describe('Sponsor description.')
+        ),
+        url: example(z.string(), 'https://osec.io').check(
+          z.describe('Sponsor link, when present.')
+        ),
       })
     )
   ),
   meta: z.optional(
     z.object({
-      description: z.optional(z.string()),
-      imageUrl: z.optional(z.string()),
+      description: example(z.string(), 'A jeopardy-style CTF.').check(
+        z.describe('Meta description used for link previews.')
+      ),
+      imageUrl: example(z.string(), 'https://rctf.osec.io/preview.png').check(
+        z.describe('Preview image URL.')
+      ),
     })
   ),
-  faviconUrl: z.optional(z.string()),
-  logoLightUrl: z.optional(z.string()),
-  logoDarkUrl: z.optional(z.string()),
+  faviconUrl: example(z.string(), 'https://rctf.osec.io/favicon.ico').check(
+    z.describe('Favicon URL.')
+  ),
+  logoLightUrl: example(
+    z.string(),
+    'https://rctf.osec.io/logo-light.png'
+  ).check(z.describe('Light-theme logo URL.')),
+  logoDarkUrl: example(z.string(), 'https://rctf.osec.io/logo-dark.png').check(
+    z.describe('Dark-theme logo URL.')
+  ),
 })
 
 const AdminSettingsResponseData = z.object({
-  overrides: AdminSettingsSchema,
-  defaults: AdminSettingsSchema,
+  overrides: AdminSettingsSchema.check(
+    z.describe('Operator-set values overriding the defaults.')
+  ),
+  defaults: AdminSettingsSchema.check(z.describe('Built-in default values.')),
 })
 
 export const GoodAdminSettings = response('goodAdminSettings', {

@@ -37,6 +37,10 @@ export const GoodLeaderboardChallengesV2 = response(
             firstSolvers: [{ id: 'team-id' }],
           },
         }
+      ).check(
+        z.describe(
+          'Per-challenge solve stats keyed by challenge ID, including current points and first solvers.'
+        )
       ),
     }),
   }

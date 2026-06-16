@@ -69,6 +69,7 @@ import {
   UploadSha256,
   UserName,
 } from '../../util'
+import { example } from '../../util/example'
 
 export const GetAdminChallengesRouteV2 = defineRoute({
   path: '/v2/admin/challs',
@@ -80,16 +81,34 @@ export const GetAdminChallengesRouteV2 = defineRoute({
 })
 
 const AdminUsersQuery = z.object({
-  limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
-  offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-  search: z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
-  sortBy: z.optional(z.enum(AdminTeamSortBy)),
-  sortOrder: z.optional(z.enum(SortOrder)),
+  limit: z
+    .pipe(z.coerce.number(), z.int())
+    .check(z.gte(1))
+    .check(z.lte(100))
+    .check(z.describe('Integer `1`-`100`. Page size.')),
+  offset: z
+    .pipe(z.coerce.number(), z.int())
+    .check(z.gte(0))
+    .check(z.describe('Integer `>= 0`. Page offset.')),
+  search: example(
+    z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
+    'otter'
+  ).check(z.describe('Free-text search over team name and email.')),
+  sortBy: example(z.optional(z.enum(AdminTeamSortBy)), 'score').check(
+    z.describe('Column to sort by.')
+  ),
+  sortOrder: example(z.optional(z.enum(SortOrder)), 'desc').check(
+    z.describe('Sort direction.')
+  ),
 })
 
 const AdminUsersFilterBody = z.object({
-  status: z.nullish(searchFilter(z.enum(AdminTeamStatus))),
-  division: z.nullish(searchFilter(z.string())),
+  status: z
+    .nullish(searchFilter(z.enum(AdminTeamStatus)))
+    .check(z.describe('Include/exclude filter on team status.')),
+  division: z
+    .nullish(searchFilter(z.string()))
+    .check(z.describe('Include/exclude filter on division.')),
 })
 
 export const GetAdminUsersRouteV2 = defineRoute({
@@ -126,29 +145,62 @@ const SubmissionDateString = z.pipe(
 )
 
 const AdminSubmissionsQuery = z.object({
-  limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)).check(z.lte(100)),
-  offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-  sortBy: z.optional(z.enum(SubmissionSortBy)),
-  sortOrder: z.optional(z.enum(SubmissionSortOrder)),
-  challengeSearch: z.optional(
-    z.string().check(z.minLength(1)).check(z.maxLength(100))
+  limit: z
+    .pipe(z.coerce.number(), z.int())
+    .check(z.gte(1))
+    .check(z.lte(100))
+    .check(z.describe('Integer `1`-`100`. Page size.')),
+  offset: z
+    .pipe(z.coerce.number(), z.int())
+    .check(z.gte(0))
+    .check(z.describe('Integer `>= 0`. Page offset.')),
+  sortBy: example(z.optional(z.enum(SubmissionSortBy)), 'createdAt').check(
+    z.describe('Column to sort by.')
   ),
-  teamSearch: z.optional(
-    z.string().check(z.minLength(1)).check(z.maxLength(100))
+  sortOrder: example(z.optional(z.enum(SubmissionSortOrder)), 'desc').check(
+    z.describe('Sort direction.')
   ),
+  challengeSearch: example(
+    z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
+    'baby'
+  ).check(z.describe('Free-text search over challenge name.')),
+  teamSearch: example(
+    z.optional(z.string().check(z.minLength(1)).check(z.maxLength(100))),
+    'otter'
+  ).check(z.describe('Free-text search over team name.')),
 })
 
 const AdminSubmissionsFilterBody = z
   .object({
-    challenge: z.nullish(searchFilter(z.string())),
-    team: z.nullish(searchFilter(z.string())),
-    kind: z.nullish(searchFilter(z.enum(SubmissionKind))),
-    result: z.nullish(searchFilter(z.enum(SubmissionResult))),
-    teamStatus: z.nullish(searchFilter(z.enum(SubmissionTeamStatus))),
-    category: z.nullish(searchFilter(z.string())),
-    division: z.nullish(searchFilter(z.string())),
-    createdAfter: z.optional(SubmissionDateString),
-    createdBefore: z.optional(SubmissionDateString),
+    challenge: z
+      .nullish(searchFilter(z.string()))
+      .check(z.describe('Include/exclude filter on challenge ID.')),
+    team: z
+      .nullish(searchFilter(z.string()))
+      .check(z.describe('Include/exclude filter on team ID.')),
+    kind: z
+      .nullish(searchFilter(z.enum(SubmissionKind)))
+      .check(z.describe('Include/exclude filter on submission kind.')),
+    result: z
+      .nullish(searchFilter(z.enum(SubmissionResult)))
+      .check(z.describe('Include/exclude filter on result.')),
+    teamStatus: z
+      .nullish(searchFilter(z.enum(SubmissionTeamStatus)))
+      .check(z.describe('Include/exclude filter on team ban status.')),
+    category: z
+      .nullish(searchFilter(z.string()))
+      .check(z.describe('Include/exclude filter on category.')),
+    division: z
+      .nullish(searchFilter(z.string()))
+      .check(z.describe('Include/exclude filter on division.')),
+    createdAfter: example(
+      z.optional(SubmissionDateString),
+      '2024-03-09T00:00:00.000Z'
+    ).check(z.describe('Only include submissions at or after this date.')),
+    createdBefore: example(
+      z.optional(SubmissionDateString),
+      '2024-03-10T00:00:00.000Z'
+    ).check(z.describe('Only include submissions at or before this date.')),
   })
   .check(
     z.superRefine((data, ctx) => {
@@ -188,7 +240,7 @@ export const FilterAdminSubmissionsRouteV2 = defineRoute({
 })
 
 const AdminUserParams = z.object({
-  id: z.string(),
+  id: z.string().check(z.describe('Team ID.')),
 })
 
 export const GetAdminUserRouteV2 = defineRoute({
@@ -206,11 +258,21 @@ export const UpdateAdminUserRouteV2 = defineRoute({
   method: 'PUT',
   body: z.object({
     data: z.object({
-      banned: z.optional(z.boolean()),
+      banned: example(z.optional(z.boolean()), false).check(
+        z.describe('Whether the team is banned.')
+      ),
       name: z.optional(UserName),
-      division: z.optional(z.string()),
-      countryCode: z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
-      statusText: z.optional(z.nullable(z.string().check(z.maxLength(60)))),
+      division: example(z.optional(z.string()), 'open').check(
+        z.describe("Team's division.")
+      ),
+      countryCode: example(
+        z.optional(z.nullable(z.enum(ALL_REGIONS.map(r => r.code)))),
+        'US'
+      ).check(z.describe('ISO 3166-1 alpha-2 country code, or `null`.')),
+      statusText: example(
+        z.optional(z.nullable(z.string().check(z.maxLength(60)))),
+        'Qualified'
+      ).check(z.describe('Free-form status badge, or `null`.')),
     }),
   }),
   goodResponses: [GoodAdminUserUpdateV2],
@@ -232,7 +294,9 @@ export const UpdateAdminUserAvatarRouteV2 = defineRoute({
   path: '/v2/admin/users/:id/avatar',
   method: 'PATCH',
   body: z.object({
-    avatar: z.optional(FileFieldSchema),
+    avatar: example(z.optional(FileFieldSchema), '<binary avatar image>').check(
+      z.describe('Replacement avatar image upload.')
+    ),
   }),
   goodResponses: [GoodAvatarUpdated],
   badResponses: [
@@ -262,7 +326,7 @@ export const DeleteAdminUserRouteV2 = defineRoute({
 })
 
 const AdminUserVerificationParams = z.object({
-  id: z.string(),
+  id: z.string().check(z.describe('Pending verification ID.')),
 })
 
 export const GetAdminUserVerificationsRouteV2 = defineRoute({
@@ -301,7 +365,7 @@ export const ResendAdminUserVerificationRouteV2 = defineRoute({
 })
 
 const AdminChallengeParams = z.object({
-  id: z.string(),
+  id: z.string().check(z.describe('Challenge ID.')),
 })
 
 export const GetAdminChallengeRouteV2 = defineRoute({
@@ -319,20 +383,47 @@ export const UpdateChallengeRouteV2 = defineRoute({
   method: 'PUT',
   body: z.object({
     data: z.object({
-      author: z.optional(z.string()),
-      category: z.optional(z.string()),
-      description: z.optional(z.string()),
-      flag: z.optional(z.string()),
-      name: z.optional(z.string()),
+      author: example(z.optional(z.string()), 'es3n1n').check(
+        z.describe('Challenge author.')
+      ),
+      category: example(z.optional(z.string()), 'rev').check(
+        z.describe('Challenge category.')
+      ),
+      description: example(
+        z.optional(z.string()),
+        'A gentle introduction.'
+      ).check(z.describe('Challenge description in Markdown.')),
+      flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
+        z.describe('The challenge flag.')
+      ),
+      name: example(z.optional(z.string()), 'baby-rev').check(
+        z.describe('Challenge name.')
+      ),
       points: z.optional(ChallengePointsSchema),
-      tiebreakEligible: z.optional(z.boolean()),
+      tiebreakEligible: example(z.optional(z.boolean()), true).check(
+        z.describe('Whether solves count toward tiebreak ordering.')
+      ),
       files: z.optional(z.array(ChallengeFileSchemaV2)),
-      sortWeight: z.optional(z.number()),
-      tags: z.optional(z.array(z.string())),
+      sortWeight: example(z.optional(z.number()), 0).check(
+        z.describe('Manual ordering weight.')
+      ),
+      tags: example(z.optional(z.array(z.string())), ['beginner']).check(
+        z.describe('Free-form tags.')
+      ),
       instancerConfig: z.nullish(PartialInstancerConfigSchema),
-      adminBotConfig: z.nullish(z.object({ code: z.string() })),
-      hidden: z.optional(z.boolean()),
-      releaseTime: z.optional(z.nullable(z.int())),
+      adminBotConfig: z.nullish(
+        z.object({
+          code: example(z.string(), 'admin-bot').check(
+            z.describe('Admin-bot config code to attach.')
+          ),
+        })
+      ),
+      hidden: example(z.optional(z.boolean()), false).check(
+        z.describe('Whether the challenge is hidden from players.')
+      ),
+      releaseTime: example(z.optional(z.nullable(z.int())), null).check(
+        z.describe('Scheduled release time as a Unix ms timestamp, or `null`.')
+      ),
       scoring: z.optional(ChallengeScoringSchema),
     }),
   }),
@@ -369,7 +460,7 @@ export const CreateUserTokenRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken, BadUnknownUser, BadUserPrivileged],
   authRequired: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Team ID.')),
   }),
   permissions: Permissions.usersWrite,
 })
@@ -381,8 +472,8 @@ export const DeleteChallengeSolveRouteV2 = defineRoute({
   badResponses: [BadPerms, BadToken, BadUnknownSolveV2],
   authRequired: true,
   params: z.object({
-    challengeId: z.string(),
-    userId: z.string(),
+    challengeId: z.string().check(z.describe('Challenge ID.')),
+    userId: z.string().check(z.describe('Team ID whose solve to delete.')),
   }),
   permissions: Permissions.challsSolveWrite,
 })
@@ -428,7 +519,7 @@ export const GetAdminBotChallengeSourceRouteV2 = defineRoute({
   goodResponses: [GoodAdminBotChallengeSource],
   badResponses: [BadEndpoint],
   serviceAuth: 'adminBot',
-  params: z.object({ id: z.string() }),
+  params: z.object({ id: z.string().check(z.describe('Challenge ID.')) }),
 })
 
 export const GetAdminBotQueueDepthRouteV2 = defineRoute({
@@ -449,24 +540,30 @@ export const CompleteAdminBotJobRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/jobs/:id/complete',
   method: 'POST',
   body: z.object({
-    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
+    logs: example(
+      z.optional(z.string().check(z.maxLength(1_048_576))),
+      'Done.'
+    ).check(z.describe('Captured job logs.')),
   }),
   goodResponses: [GoodAdminBotJobUpdate],
   badResponses: [BadEndpoint],
   serviceAuth: 'adminBot',
-  params: z.object({ id: z.string() }),
+  params: z.object({ id: z.string().check(z.describe('Admin-bot job ID.')) }),
 })
 
 export const FailAdminBotJobRouteV2 = defineRoute({
   path: '/v2/admin/admin-bot/jobs/:id/fail',
   method: 'POST',
   body: z.object({
-    logs: z.optional(z.string().check(z.maxLength(1_048_576))),
+    logs: example(
+      z.optional(z.string().check(z.maxLength(1_048_576))),
+      'Failed.'
+    ).check(z.describe('Captured job logs.')),
   }),
   goodResponses: [GoodAdminBotJobUpdate],
   badResponses: [BadEndpoint],
   serviceAuth: 'adminBot',
-  params: z.object({ id: z.string() }),
+  params: z.object({ id: z.string().check(z.describe('Admin-bot job ID.')) }),
 })
 
 export const GetAdminSettingsRouteV2 = defineRoute({
@@ -480,29 +577,59 @@ export const GetAdminSettingsRouteV2 = defineRoute({
 
 const AdminSettingsUpdateBody = z.object({
   data: z.object({
-    ctfName: z.nullish(z.string()),
-    homeContent: z.nullish(z.string()),
-    startTime: z.nullish(z.int()),
-    endTime: z.nullish(z.int()),
+    ctfName: example(z.nullish(z.string()), 'rCTF').check(
+      z.describe('Public CTF name.')
+    ),
+    homeContent: example(z.nullish(z.string()), '# Welcome').check(
+      z.describe('Home page content in Markdown.')
+    ),
+    startTime: example(z.nullish(z.int()), 1710000000000).check(
+      z.describe('CTF start time as a Unix ms timestamp.')
+    ),
+    endTime: example(z.nullish(z.int()), 1710864000000).check(
+      z.describe('CTF end time as a Unix ms timestamp.')
+    ),
     sponsors: z.nullish(
       z.array(
         z.object({
-          name: z.string(),
-          icon: z.string(),
-          description: z.string(),
-          url: z.optional(z.string()),
+          name: example(z.string(), 'osec').check(z.describe('Sponsor name.')),
+          icon: example(
+            z.string(),
+            'https://rctf.osec.io/sponsors/osec.png'
+          ).check(z.describe('Sponsor icon URL.')),
+          description: example(z.string(), 'Security research.').check(
+            z.describe('Sponsor description.')
+          ),
+          url: example(z.optional(z.string()), 'https://osec.io').check(
+            z.describe('Sponsor link URL.')
+          ),
         })
       )
     ),
     meta: z.nullish(
       z.object({
-        description: z.optional(z.string()),
-        imageUrl: z.optional(z.string()),
+        description: example(
+          z.optional(z.string()),
+          'A jeopardy-style CTF.'
+        ).check(z.describe('Site meta description.')),
+        imageUrl: example(
+          z.optional(z.string()),
+          'https://rctf.osec.io/preview.png'
+        ).check(z.describe('Social preview image URL.')),
       })
     ),
-    faviconUrl: z.nullish(z.string()),
-    logoLightUrl: z.nullish(z.string()),
-    logoDarkUrl: z.nullish(z.string()),
+    faviconUrl: example(
+      z.nullish(z.string()),
+      'https://rctf.osec.io/favicon.ico'
+    ).check(z.describe('Favicon URL.')),
+    logoLightUrl: example(
+      z.nullish(z.string()),
+      'https://rctf.osec.io/logo-light.png'
+    ).check(z.describe('Light-theme logo URL.')),
+    logoDarkUrl: example(
+      z.nullish(z.string()),
+      'https://rctf.osec.io/logo-dark.png'
+    ).check(z.describe('Dark-theme logo URL.')),
   }),
 })
 
@@ -529,8 +656,14 @@ export const CreateExternalAuthClientRouteV2 = defineRoute({
   path: '/v2/admin/external-auth/clients',
   method: 'POST',
   body: z.object({
-    name: z.string().check(z.minLength(1)).check(z.maxLength(100)),
-    redirectUri: z.string().check(z.minLength(1)).check(z.maxLength(1024)),
+    name: example(
+      z.string().check(z.minLength(1)).check(z.maxLength(100)),
+      'osec-dashboard'
+    ).check(z.describe('Display name for the OAuth client.')),
+    redirectUri: example(
+      z.string().check(z.minLength(1)).check(z.maxLength(1024)),
+      'https://app.osec.io/callback'
+    ).check(z.describe('Allowed OAuth redirect URI.')),
   }),
   goodResponses: [GoodAdminExternalAuthClientCreate],
   badResponses: [BadBody, BadPerms, BadToken],
@@ -544,6 +677,6 @@ export const DeleteExternalAuthClientRouteV2 = defineRoute({
   goodResponses: [GoodAdminExternalAuthClientDelete],
   badResponses: [BadExternalAuthRequest, BadPerms, BadToken],
   authRequired: true,
-  params: z.object({ id: z.string() }),
+  params: z.object({ id: z.string().check(z.describe('OAuth client ID.')) }),
   permissions: Permissions.usersWrite,
 })

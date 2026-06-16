@@ -1,12 +1,19 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { example } from '../util/example'
 
 export const GoodMemberCreate = response('goodMemberCreate', {
   status: 200,
   message: 'Team member successfully created.',
   data: z.object({
-    id: z.string(),
-    userid: z.string(),
-    email: z.string(),
+    id: example(z.string(), 'member-1a2b3c').check(
+      z.describe('Membership ID.')
+    ),
+    userid: example(z.string(), 'user-4d5e6f').check(
+      z.describe('User ID of the team member.')
+    ),
+    email: example(z.string(), 'member@osec.io').check(
+      z.describe('Member email address.')
+    ),
   }),
 })
