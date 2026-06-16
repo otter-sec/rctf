@@ -43,7 +43,7 @@ export const GetUserRoute = defineRoute({
   badResponses: [BadUnknownUser, BadNotStarted],
   authRequired: false,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Team ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -62,7 +62,9 @@ export const UpdateUserRoute = defineRoute({
   method: 'PATCH',
   body: z.object({
     name: z.optional(UserName),
-    division: z.optional(z.string()),
+    division: z.optional(
+      z.string().check(z.describe('Division to switch the team to.'))
+    ),
   }),
   goodResponses: [GoodUserUpdate],
   badResponses: [
@@ -111,7 +113,7 @@ export const DeleteMemberRoute = defineRoute({
   badResponses: [BadEnded, BadEndpoint, BadToken],
   authRequired: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Membership ID.')),
   }),
 })
 
@@ -121,7 +123,9 @@ export const SetEmailRoute = defineRoute({
   captchaAction: ProtectedAction.SetEmail,
   body: z.object({
     email: UserEmail,
-    recaptchaCode: z.optional(z.string()),
+    recaptchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects this route.')),
   }),
   goodResponses: [GoodEmailSet, GoodVerifySent],
   badResponses: [
@@ -153,7 +157,9 @@ export const SetCtftimeRoute = defineRoute({
   path: '/v1/users/me/auth/ctftime',
   method: 'PUT',
   body: z.object({
-    ctftimeToken: z.string(),
+    ctftimeToken: z
+      .string()
+      .check(z.describe('CTFtime OAuth token to link to the account.')),
   }),
   goodResponses: [GoodCtftimeAuthSet],
   badResponses: [

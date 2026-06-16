@@ -43,7 +43,7 @@ export const GetInstanceStatusRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -54,7 +54,9 @@ export const CreateInstanceRouteV2 = defineRoute({
   method: 'PUT',
   captchaAction: ProtectedAction.InstancerStart,
   body: z.object({
-    captchaCode: z.optional(z.string()),
+    captchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects this route.')),
   }),
   goodResponses: [GoodInstanceStatus],
   badResponses: [
@@ -67,7 +69,7 @@ export const CreateInstanceRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -81,7 +83,7 @@ export const DeleteInstanceRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -92,7 +94,9 @@ export const ExtendInstanceRouteV2 = defineRoute({
   method: 'PATCH',
   captchaAction: ProtectedAction.InstancerExtend,
   body: z.object({
-    captchaCode: z.optional(z.string()),
+    captchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects this route.')),
   }),
   goodResponses: [GoodInstanceStatus],
   badResponses: [
@@ -105,7 +109,7 @@ export const ExtendInstanceRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -125,8 +129,8 @@ export const RunInstanceActionRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
-    action: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
+    action: z.string().check(z.describe('Instancer action name.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -139,7 +143,7 @@ export const GetAdminBotConfigRouteV2 = defineRoute({
   badResponses: [BadEndpoint, BadChallenge, BadToken],
   authRequired: false,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -153,7 +157,7 @@ export const GetAdminBotJobStatusRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -167,7 +171,7 @@ export const GetAdminBotJobHistoryRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -181,8 +185,8 @@ export const GetAdminBotJobLogsRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
-    jobId: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
+    jobId: z.string().check(z.describe('Admin-bot job ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,
@@ -193,11 +197,17 @@ export const SubmitAdminBotJobRouteV2 = defineRoute({
   method: 'POST',
   captchaAction: ProtectedAction.AdminBotSubmit,
   body: z.object({
-    inputs: z.record(
-      z.string().check(z.maxLength(256)),
-      z.string().check(z.maxLength(1024))
-    ),
-    captchaCode: z.optional(z.string()),
+    inputs: z
+      .record(
+        z.string().check(z.maxLength(256)),
+        z.string().check(z.maxLength(1024))
+      )
+      .check(
+        z.describe('Admin-bot input values keyed by the config field name.')
+      ),
+    captchaCode: z
+      .optional(z.string())
+      .check(z.describe('Checked only when captcha protects this route.')),
   }),
   goodResponses: [GoodAdminBotJobSubmitted],
   badResponses: [
@@ -213,7 +223,7 @@ export const SubmitAdminBotJobRouteV2 = defineRoute({
   authRequired: true,
   rejectBanned: true,
   params: z.object({
-    id: z.string(),
+    id: z.string().check(z.describe('Challenge ID.')),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.challsRead,

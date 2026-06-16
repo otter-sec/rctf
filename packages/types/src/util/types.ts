@@ -1,6 +1,7 @@
 import { z } from 'zod/mini'
 import { BadEmail, BadName } from '../responses'
 import { normalizeEmail, normalizeName, validateEmail } from '../v1-validators'
+import { example } from './example'
 
 export const UserEmail = z
   .pipe(z.string(), z.transform(normalizeEmail))
@@ -39,17 +40,20 @@ export const NumericString = z.pipe(
 const UPLOAD_FILE_NAME_PATTERN = /^(?!\.{1,2}$)[^/\\\0:]{1,255}$/
 const SHA256_HEX_PATTERN = /^[a-f0-9]{64}$/i
 
-export const UploadFileName = z
-  .string()
+export const UploadFileName = example(z.string(), 'chall.zip')
   .check(
     z.minLength(1),
     z.maxLength(255),
     z.regex(UPLOAD_FILE_NAME_PATTERN, 'Invalid upload file name')
   )
+  .check(z.describe('Upload file name (1-255 chars, no path separators).'))
 
-export const UploadSha256 = z
-  .string()
+export const UploadSha256 = example(
+  z.string(),
+  'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+)
   .check(z.regex(SHA256_HEX_PATTERN, 'Expected SHA-256 hex digest'))
+  .check(z.describe('SHA-256 hex digest of the file contents.'))
 
 export interface FileField extends Blob {
   readonly name: string

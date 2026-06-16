@@ -1,35 +1,67 @@
 import { z } from 'zod/mini'
 import { response } from '../internal'
+import { example } from '../util/example'
 
 export const GoodLeaderboardV2 = response('goodLeaderboardV2', {
   status: 200,
   message: 'The leaderboard was retrieved.',
   data: z.object({
-    total: z.int(),
+    total: example(z.int(), 128).check(
+      z.describe('Total number of ranked teams in the division.')
+    ),
     leaderboard: z.array(
       z.object({
-        id: z.string(),
-        name: z.string(),
-        score: z.int(),
-        avatarUrl: z.nullable(z.string()),
-        countryCode: z.nullable(z.string()),
-        statusText: z.nullable(z.string()),
+        id: example(z.string(), 'team-1a2b3c').check(z.describe('Team ID.')),
+        name: example(z.string(), 'otter-sec').check(
+          z.describe('Team display name.')
+        ),
+        score: example(z.int(), 13370).check(z.describe('Total team score.')),
+        avatarUrl: example(
+          z.nullable(z.string()),
+          'https://rctf.osec.io/uploads/avatar.png'
+        ).check(z.describe('Team avatar URL, or `null` when unset.')),
+        countryCode: example(z.nullable(z.string()), 'US').check(
+          z.describe('ISO 3166-1 alpha-2 country code, or `null` when unset.')
+        ),
+        statusText: example(z.nullable(z.string()), 'Qualified').check(
+          z.describe('Free-form team status badge, or `null` when unset.')
+        ),
         solves: z.array(
           z.object({
-            id: z.string(),
-            solveTime: z.int(),
+            id: example(z.string(), 'baby-rev').check(
+              z.describe('Solved challenge ID.')
+            ),
+            solveTime: example(z.int(), 1710000000000).check(
+              z.describe('Solve time as a Unix timestamp in milliseconds.')
+            ),
           })
         ),
         dynamicScores: z.array(
           z.object({
-            id: z.string(),
-            points: z.int(),
-            pointDelta: z.int(),
+            id: example(z.string(), 'baby-rev').check(
+              z.describe('Dynamic challenge ID.')
+            ),
+            points: example(z.int(), 487).check(
+              z.describe("The team's current points for this challenge.")
+            ),
+            pointDelta: example(z.int(), -13).check(
+              z.describe(
+                "The team's point change from the latest scoring tick."
+              )
+            ),
           })
         ),
-        division: z.string(),
-        divisionPlace: z.int(),
-        globalPlace: z.nullable(z.int()),
+        division: example(z.string(), 'open').check(
+          z.describe('Division the team competes in.')
+        ),
+        divisionPlace: example(z.int(), 3).check(
+          z.describe("The team's rank within its division.")
+        ),
+        globalPlace: example(z.nullable(z.int()), 7).check(
+          z.describe(
+            "The team's overall rank, or `null` when outside the ranked set."
+          )
+        ),
       })
     ),
   }),
