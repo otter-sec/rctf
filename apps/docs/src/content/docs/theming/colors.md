@@ -53,6 +53,8 @@ All colors in rCTF are defined using [OKLCH](https://oklch.com). Colors are decl
 
 The foundation of rCTF's color system is an altered version of [shadcn/ui](https://ui.shadcn.com/docs/theming/)'s system. We add nested lightness layers 0 through 5, where layer `l0` represents the base (page background or primary text). Higher numbers progressively add emphasis (for backgrounds) or reduce prominence (for foregrounds).
 
+:::table{cols="auto auto auto auto auto"}
+
 | Layer | Background (light) | Background (dark) | Foreground (light) | Foreground (dark) |
 | --- | --- | --- | --- | --- |
 | `l0` | <color-swatch style="--c:oklch(98% 0 0)">oklch(98% 0 0)</color-swatch> | <color-swatch style="--c:oklch(15% 0 0)">oklch(15% 0 0)</color-swatch> | <color-swatch style="--c:oklch(37.1% 0 0)">neutral-700</color-swatch> | <color-swatch style="--c:oklch(98.5% 0 0)">neutral-50</color-swatch> |
@@ -62,11 +64,15 @@ The foundation of rCTF's color system is an altered version of [shadcn/ui](https
 | `l4` | <color-swatch style="--c:oklch(89% 0 0)">oklch(89% 0 0)</color-swatch> | <color-swatch style="--c:oklch(30% 0 0)">oklch(30% 0 0)</color-swatch> | <color-swatch style="--c:oklch(65% 0 0)">oklch(65% 0 0)</color-swatch> | <color-swatch style="--c:oklch(59.7% 0 0)">oklch(59.7% 0 0)</color-swatch> |
 | `l5` | <color-swatch style="--c:oklch(84% 0 0)">oklch(84% 0 0)</color-swatch> | <color-swatch style="--c:oklch(40% 0 0)">oklch(40% 0 0)</color-swatch> | <color-swatch style="--c:oklch(70% 0 0)">oklch(70% 0 0)</color-swatch> | <color-swatch style="--c:oklch(55.6% 0 0)">neutral-500</color-swatch> |
 
+:::
+
 These variables are mapped to Tailwind utilities via `@theme inline{:css}` in `app.css{:file}`, enabling classes like `bg-background-l1{:css}` and `text-foreground-l2{:css}` that we use throughout the application.
 
 ### Semantic colors
 
 Semantic colors are used to convey meaning.
+
+:::table{cols="auto auto auto wrap"}
 
 | Color | Light | Dark | Usage |
 | --- | --- | --- | --- |
@@ -74,9 +80,13 @@ Semantic colors are used to convey meaning.
 | `destructive` | <color-swatch style="--c:color-mix(in oklch, oklch(70.4% 0.191 22.216) 30%, transparent);--bg:oklch(98% 0 0)">red-400 @ 30%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(25.8% 0.092 26.042) 50%, transparent);--bg:oklch(15% 0 0)">red-950 @ 50%</color-swatch> | Error states, delete actions |
 | `success` | <color-swatch style="--c:color-mix(in oklch, oklch(76.8% 0.233 130.85) 10%, transparent);--bg:oklch(98% 0 0)">emerald-500 @ 10%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(40.5% 0.101 131.063) 10%, transparent);--bg:oklch(15% 0 0)">emerald-900 @ 10%</color-swatch> | Success states, solved challenges |
 
+:::
+
 ### Scoreboard colors
 
 Leaderboard colors are reserved for visualizing rankings on scoreboards and podiums, as well as for highlighting first, second, and third bloods. Gold, silver, and bronze semantically denote the top three placements (see [Wikipedia's "Hierarchy of precious substances"](https://en.wikipedia.org/wiki/Hierarchy_of_precious_substances)), while "self" highlights the current user's row. The "nth" color is applied to all other participants outside the top three, and is just mappings of our layered color system.
+
+:::table{cols="auto auto auto auto auto"}
 
 | Color | Background (light) | Background (dark) | Foreground (light) | Foreground (dark) |
 | --- | --- | --- | --- | --- |
@@ -86,9 +96,13 @@ Leaderboard colors are reserved for visualizing rankings on scoreboards and podi
 | `self` | <color-swatch style="--c:oklch(93% 0.02 160)">oklch(93% 0.02 160)</color-swatch> | <color-swatch style="--c:oklch(22% 0.015 163)">oklch(22% 0.015 163)</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(50.8% 0.118 165.612) 80%, transparent);--bg:oklch(98% 0 0)">emerald-700 @ 80%</color-swatch> | <color-swatch style="--c:oklch(76.5% 0.177 163.223)">emerald-400</color-swatch> |
 | `nth` | <color-swatch style="--c:oklch(89% 0 0)">background-l4</color-swatch> | <color-swatch style="--c:oklch(26% 0 0)">background-l3</color-swatch> | <color-swatch style="--c:oklch(43.9% 0 0)">foreground-l1</color-swatch> | <color-swatch style="--c:oklch(87% 0 0)">foreground-l2</color-swatch> |
 
+:::
+
 ### Graph colors
 
 Graph colors are exclusively used to color lines on graphs and sparklines.
+
+:::table{cols="auto auto auto"}
 
 | Color | Light | Dark |
 | --- | --- | --- |
@@ -103,9 +117,13 @@ Graph colors are exclusively used to color lines on graphs and sparklines.
 | `ninth` | <color-swatch style="--c:oklch(66.7% 0.295 322.15)">fuchsia-500</color-swatch> | <color-swatch style="--c:oklch(83.3% 0.145 321.434)">fuchsia-300</color-swatch> |
 | `tenth` | <color-swatch style="--c:oklch(65.6% 0.241 354.308)">pink-500</color-swatch> | <color-swatch style="--c:oklch(82.3% 0.12 346.018)">pink-300</color-swatch> |
 
+:::
+
 ### Prose colors
 
 Prose colors are used for text in prose content, such as descriptions of challenges and homepage content.
+
+:::table{cols="auto auto auto"}
 
 | Color | Light | Dark |
 | --- | --- | --- |
@@ -113,9 +131,13 @@ Prose colors are used for text in prose content, such as descriptions of challen
 | `prose-link` | <color-swatch style="--c:oklch(50% 0.134 242.749)">sky-700</color-swatch> | <color-swatch style="--c:oklch(82.8% 0.111 230.318)">sky-300</color-swatch> |
 | `prose-inline-code` | <color-swatch style="--c:oklch(43.9% 0 0)">foreground-l1</color-swatch> | <color-swatch style="--c:oklch(93.6% 0.032 17.717)">red-100</color-swatch> |
 
+:::
+
 ### Category colors
 
 Each challenge category is assigned an arbitrary color set from the following sets:
+
+:::table{cols="auto auto auto auto auto"}
 
 | Color | <span class="text-nowrap">`background-${color}-l0{:css}`</span> | <span class="text-nowrap">`background-${color}-l1{:css}`</span> | <span class="text-nowrap">`foreground-${color}-l0{:css}`</span> | <span class="text-nowrap">`foreground-${color}-l1{:css}`</span> |
 | --- | --- | --- | --- | --- |
@@ -129,3 +151,5 @@ Each challenge category is assigned an arbitrary color set from the following se
 | `fuchsia` | <color-swatch style="--c:color-mix(in oklch, oklch(74% 0.238 322.16) 15%, transparent);--bg:oklch(98% 0 0)">fuchsia-400 @ 15%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(74% 0.238 322.16) 5%, transparent);--bg:oklch(98% 0 0)">fuchsia-400 @ 5%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(40.1% 0.17 325.612) 90%, transparent);--bg:oklch(98% 0 0)">fuchsia-900 @ 90%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(40.1% 0.17 325.612) 80%, transparent);--bg:oklch(98% 0 0)">fuchsia-900 @ 80%</color-swatch> |
 | `pink` | <color-swatch style="--c:color-mix(in oklch, oklch(71.8% 0.202 349.761) 15%, transparent);--bg:oklch(98% 0 0)">pink-400 @ 15%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(71.8% 0.202 349.761) 5%, transparent);--bg:oklch(98% 0 0)">pink-400 @ 5%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(40.8% 0.153 2.432) 90%, transparent);--bg:oklch(98% 0 0)">pink-900 @ 90%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(40.8% 0.153 2.432) 80%, transparent);--bg:oklch(98% 0 0)">pink-900 @ 80%</color-swatch> |
 | `gray` | <color-swatch style="--c:color-mix(in oklch, oklch(70.7% 0.022 261.325) 15%, transparent);--bg:oklch(98% 0 0)">gray-400 @ 15%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(70.7% 0.022 261.325) 5%, transparent);--bg:oklch(98% 0 0)">gray-400 @ 5%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(21% 0.034 264.665) 90%, transparent);--bg:oklch(98% 0 0)">gray-900 @ 90%</color-swatch> | <color-swatch style="--c:color-mix(in oklch, oklch(21% 0.034 264.665) 80%, transparent);--bg:oklch(98% 0 0)">gray-900 @ 80%</color-swatch> |
+
+:::
