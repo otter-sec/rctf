@@ -1,15 +1,15 @@
 prose-content {
-  table {
-    --table-border: color-mix(
-      in oklab,
-      var(--muted-foreground) 30%,
-      transparent
-    );
-
+  table-scroll {
     display: block;
-    max-inline-size: fit-content;
-    margin-inline: auto;
+    max-inline-size: 100%;
     overflow-x: auto;
+  }
+
+  table {
+    --table-border: color-mix(in oklab, var(--muted-foreground) 30%, transparent);
+
+    inline-size: 100%;
+    margin-block: 0;
     font-size: var(--step--1);
 
     thead {
@@ -29,7 +29,22 @@ prose-content {
     }
 
     :is(th, td) {
-      max-width: 22rem;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: none;
+    }
+
+    :is(th, td)[data-col='nowrap'] {
+      white-space: nowrap;
+    }
+
+    :is(th, td)[data-col='wrap'] {
+      white-space: normal;
+      min-inline-size: 16rem;
+    }
+
+    :is(th, td)[data-col='fixed'] {
+      white-space: normal;
     }
 
     th {

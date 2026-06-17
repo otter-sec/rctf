@@ -28,9 +28,9 @@ When there is no data, the `data` property is left out:
 
 Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpected server errors return `<response>500 errorInternal</response>`.
 
-<div data-nowrap-tables="">
-
 ## Common errors
+
+:::table{cols="auto auto wrap"}
 
 | Response | Data | Meaning |
 | --- | --- | --- |
@@ -46,7 +46,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>429 badRateLimit</response>` | `{ timeLeft: number }{:ts}` | This rate limit needs more time before another request. |
 | `<response>500 errorInternal</response>` | No data | The server hit an unexpected error. |
 
+:::
+
 ## Auth and account errors
+
+:::table{cols="auto auto wrap"}
 
 | Response | Data | Meaning |
 | --- | --- | --- |
@@ -70,7 +74,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>409 badZeroAuth</response>` | No data | The change would remove the final auth method from the account. |
 | `<response>403 badUserPrivileged</response>` | No data | The target user has admin permissions, so this route does not modify it. |
 
+:::
+
 ## Challenge and integration errors
+
+:::table{cols="auto auto wrap"}
 
 | Response | Data | Meaning |
 | --- | --- | --- |
@@ -91,7 +99,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>401 badSignature</response>` | No data | The dynamic-scoring webhook signature, timestamp, or challenge target was rejected. The endpoint deliberately doesn't distinguish causes. |
 | `<response>400 badExternalAuthRequest</response>` | No data | An [external-auth](/docs/api/external-auth/) call was rejected. The same response is used for unknown client, wrong secret, wrong/expired/reused code, and mismatched redirect URI so the endpoint can't be probed. |
 
+:::
+
 ## Success response data
+
+:::table{cols="auto wrap"}
 
 | Response | Data |
 | --- | --- |
@@ -161,9 +173,13 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>200 goodAdminExternalAuthClientCreate</response>` | `{ id, name, redirectUri, createdAt, createdBy, secret }{:ts}` (secret shown once) |
 | `<response>200 goodAdminExternalAuthClientDelete</response>` | No data. |
 
+:::
+
 ## Shared objects
 
 ### `ChallengeFileV2`
+
+:::table{cols="auto auto"}
 
 | Field  | Type                  |
 | ------ | --------------------- |
@@ -171,7 +187,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `url`  | `string{:ts}`         |
 | `size` | `number \| null{:ts}` |
 
+:::
+
 ### `Endpoint`
+
+:::table{cols="auto auto"}
 
 | Field   | Type                                           |
 | ------- | ---------------------------------------------- |
@@ -180,7 +200,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `port`  | `number{:ts}`                                  |
 | `title` | `string \| undefined{:ts}`                     |
 
+:::
+
 ### `InstancerConfig`
+
+:::table{cols="auto auto"}
 
 | Field                    | Type                           |
 | ------------------------ | ------------------------------ |
@@ -190,7 +214,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `timeoutMilliseconds`    | `number{:ts}`                  |
 | `extendable`             | `boolean \| undefined{:ts}`    |
 
+:::
+
 ### `Expose`
+
+:::table{cols="auto auto"}
 
 | Field           | Type                                           |
 | --------------- | ---------------------------------------------- |
@@ -201,7 +229,11 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `shouldDisplay` | `boolean \| undefined{:ts}`                    |
 | `title`         | `string \| undefined{:ts}`                     |
 
+:::
+
 ### `AdminBotConfig`
+
+:::table{cols="auto auto"}
 
 | Field                              | Type                             |
 | ---------------------------------- | -------------------------------- |
@@ -211,14 +243,22 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `timeoutMilliseconds`              | `number{:ts}`                    |
 | `requireInstancerInstancesRunning` | `boolean \| undefined{:ts}`      |
 
+:::
+
 ### `RegexRule`
+
+:::table{cols="auto auto"}
 
 | Field     | Type                       |
 | --------- | -------------------------- |
 | `pattern` | `string{:ts}`              |
 | `flags`   | `string \| undefined{:ts}` |
 
+:::
+
 ## Enum values
+
+:::table{cols="auto wrap"}
 
 | Enum | Values |
 | --- | --- |
@@ -233,4 +273,4 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `SubmissionTeamStatus{:ts}` | `banned`, `not_banned` |
 | `ProtectedAction{:ts}` | `register`, `recover`, `setEmail`, `instancerStart`, `instancerExtend`, `avatarUpload`, `adminBotSubmit` |
 
-</div>
+:::
