@@ -61,6 +61,8 @@ Each challenge category in rCTF has its own color palette, icon, and display nam
 
 Each of the default categories uses a color specified in [Category colors](/docs/theming/colors/#category-colors).
 
+:::table{cols="auto auto auto auto"}
+
 | Category | Display name | Color | Icon |
 | --- | --- | --- | --- |
 | `sanity` | Sanity | <color-swatch style="--c:oklch(70.7% 0.022 261.325)">gray</color-swatch> | <cat-icon><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M17 3.34a10 10 0 1 1-14.995 8.984L2 12l.005-.324A10 10 0 0 1 17 3.34M15 13H9a1 1 0 0 0-1 1v.05a3.975 3.975 0 0 0 3.777 3.97l.227.005a4.026 4.026 0 0 0 3.99-3.79l.006-.206A1 1 0 0 0 15 13M9.01 8l-.127.007A1 1 0 0 0 9 10l.127-.007A1 1 0 0 0 9.01 8m6 0l-.127.007A1 1 0 0 0 15 10l.127-.007A1 1 0 0 0 15.01 8" /></svg></cat-icon> |
@@ -74,6 +76,8 @@ Each of the default categories uses a color specified in [Category colors](/docs
 | `ppc` | Professional Programming and Coding | <color-swatch style="--c:oklch(74% 0.238 322.16)">fuchsia</color-swatch> | <cat-icon><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M14 1a3 3 0 0 1 2.348 4.868l2 3.203Q18.665 9 19 9a3 3 0 1 1-2.347 1.132l-2-3.203a3 3 0 0 1-1.304 0l-2.001 3.203c.408.513.652 1.162.652 1.868s-.244 1.356-.653 1.868l2.002 3.203Q13.664 17 14 17a3 3 0 1 1-2.347 1.132L9.65 14.929a3 3 0 0 1-1.302 0l-2.002 3.203a3 3 0 1 1-1.696-1.06l2.002-3.204A3 3 0 0 1 9.65 9.07l2.002-3.202A3 3 0 0 1 14 1" /></svg></cat-icon> |
 | `koth` | King of the Hill | <color-swatch style="--c:oklch(71.8% 0.202 349.761)">pink</color-swatch> | <cat-icon><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a2 2 0 0 1 1.572 3.236l.793 1.983l1.702-1.702A2.003 2.003 0 0 1 18 3a2 2 0 0 1 .674 3.884l-1.69 9.295a1 1 0 0 1-.865.814L16 17H8a1 1 0 0 1-.956-.705l-.028-.116l-1.69-9.295a2 2 0 1 1 2.607-1.367l1.701 1.702l.794-1.983A2 2 0 0 1 12 2m6 16H6a1 1 0 0 0-1 1a2 2 0 0 0 2 2h10a2 2 0 0 0 1.987-1.768l.011-.174A1 1 0 0 0 18 18" /></svg></cat-icon> |
 | `osint` | OSINT | <color-swatch style="--c:oklch(70.7% 0.022 261.325)">gray</color-swatch> | <cat-icon><svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M12 4c4.29 0 7.863 2.429 10.665 7.154l.22.379l.045.1l.03.083l.014.055l.014.082l.011.1v.11l-.014.111a1 1 0 0 1-.026.11l-.039.108l-.036.075l-.016.03c-2.764 4.836-6.3 7.38-10.555 7.499L12 20c-4.396 0-8.037-2.549-10.868-7.504a1 1 0 0 1 0-.992C3.963 6.549 7.604 4 12 4m0 5a3 3 0 1 0 0 6a3 3 0 0 0 0-6" /></svg></cat-icon> |
+
+:::
 
 A handful of category aliases (`binary` => `pwn`, `rev` => `reverse`, `cryptography` => `crypto`) make naming a bit more flexible.
 
@@ -170,9 +174,13 @@ export const categoryOrder = [
 
 The following utility functions help with category configuration:
 
+:::table{cols="auto wrap"}
+
 | Function | Purpose |
 | --- | --- |
 | `getCategoryConfig(category){:ts}` | Returns `{ name, icon, color }{:ts}` for a category key |
 | `getCategoryKeyOrAlias(category){:ts}` | Resolves aliases to canonical keys (`'rev'{:ts}` => `'reverse'{:ts}`) |
 | `getCategoryStyle(color){:ts}` | Generates inline CSS for category variable binding |
 | `getCategoryOrder(category){:ts}` | Returns sort index (`-1` if unlisted) |
+
+:::

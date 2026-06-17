@@ -49,6 +49,8 @@ The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a por
 
 The following components are available in rCTF:
 
+:::table{cols="auto wrap"}
+
 | Category | Components |
 | --- | --- |
 | **Primitives** | `Button`, `Badge`, `Input`, `Textarea`, `Checkbox`, `Label`, `Separator`, `Progress`, `Spinner`, `Skeleton` |
@@ -58,6 +60,8 @@ The following components are available in rCTF:
 | **Forms** | `Field`, `InputGroup`, `Select`, `TagInput`\*, `SchemaForm`\* |
 | **Navigation** | `Command`, `Pagination`, `ButtonGroup` |
 | **App** | `Navigation`\*, `NavigationMobile`\*, `ThemeToggle`\*, `Markdown`\*, `FlagPicker`\*, `EmptyState`\*, `SearchInput`\* |
+
+:::
 
 \* These components are custom to rCTF and are not part of shadcn-svelte.
 
