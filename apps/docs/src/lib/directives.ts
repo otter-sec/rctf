@@ -14,6 +14,9 @@ const icons: Record<string, string> = {
 
 const raw = (value: string): ElementContent => ({ type: "raw", value })
 
+const escapeAttr = (value: string): string =>
+  value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+
 type DirectiveNode = {
   name: string
   attributes?: Record<string, string | null | undefined> | null
@@ -278,7 +281,7 @@ export function contentDirectives() {
                 `<button role="tab" id="${prefix}-tab-${i}"`,
                 ` aria-controls="${prefix}-panel-${i}"`,
                 ` aria-selected="${i === 0}"`,
-                syncId ? ` data-sync-id="${syncId}"` : "",
+                syncId ? ` data-sync-id="${escapeAttr(syncId)}"` : "",
                 i === 0 ? "" : ' tabindex="-1"',
                 `>${label}</button>`,
               ].join("")
