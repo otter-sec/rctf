@@ -59,7 +59,16 @@ export const GoodChallengesV2 = response('goodChallengesV2', {
           )
         ),
       instancerActions: z
-        .array(z.object({ id: z.string(), label: z.string() }))
+        .array(
+          z.object({
+            id: example(z.string(), 'restart').check(
+              z.describe('Stable action identifier sent back to the instancer.')
+            ),
+            label: example(z.string(), 'Restart').check(
+              z.describe('Button label shown to players.')
+            ),
+          })
+        )
         .check(
           z.describe('Provider-defined instancer actions shown as buttons.')
         ),

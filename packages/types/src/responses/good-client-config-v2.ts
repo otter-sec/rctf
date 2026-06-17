@@ -114,7 +114,15 @@ export const GoodClientConfigV2 = response('goodClientConfigV2', {
           }).check(z.describe('Public, client-safe captcha options.')),
           protectedEndpoints: example(
             z.record(z.enum(ProtectedAction), z.boolean()),
-            { register: true }
+            {
+              register: true,
+              recover: true,
+              setEmail: false,
+              instancerStart: false,
+              instancerExtend: false,
+              avatarUpload: false,
+              adminBotSubmit: false,
+            }
           ).check(z.describe('Which actions require a captcha.')),
         })
       )

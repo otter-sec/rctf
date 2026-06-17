@@ -413,14 +413,24 @@ export const UpdateChallengeRouteV2 = defineRoute({
         tags: example(z.optional(z.array(z.string())), ['beginner']).check(
           z.describe('Free-form tags.')
         ),
-        instancerConfig: z.nullish(PartialInstancerConfigSchema),
-        adminBotConfig: z.nullish(
-          z.object({
-            code: example(z.string(), 'admin-bot').check(
-              z.describe('Admin-bot config code to attach.')
-            ),
-          })
-        ),
+        instancerConfig: z
+          .nullish(PartialInstancerConfigSchema)
+          .check(
+            z.describe(
+              'On-demand instancer configuration, or `null` to remove it.'
+            )
+          ),
+        adminBotConfig: z
+          .nullish(
+            z.object({
+              code: example(z.string(), 'admin-bot').check(
+                z.describe('Admin-bot config code to attach.')
+              ),
+            })
+          )
+          .check(
+            z.describe('Admin-bot configuration, or `null` to remove it.')
+          ),
         hidden: example(z.optional(z.boolean()), false).check(
           z.describe('Whether the challenge is hidden from players.')
         ),
@@ -429,7 +439,9 @@ export const UpdateChallengeRouteV2 = defineRoute({
             'Scheduled release time as a Unix ms timestamp, or `null`.'
           )
         ),
-        scoring: z.optional(ChallengeScoringSchema),
+        scoring: z
+          .optional(ChallengeScoringSchema)
+          .check(z.describe('Scoring algorithm configuration.')),
       })
       .check(z.describe('Challenge fields to update.')),
   }),

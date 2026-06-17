@@ -86,7 +86,9 @@ export const FileFieldSchema = z
     })
   )
 
-export const MultipleFileFieldSchema = z.pipe(
-  z.transform((val: unknown) => (Array.isArray(val) ? val : [val])),
-  z.array(FileFieldSchema)
-)
+export const MultipleFileFieldSchema = z
+  .pipe(
+    z.transform((val: unknown) => (Array.isArray(val) ? val : [val])),
+    z.array(FileFieldSchema)
+  )
+  .check(z.describe('One or more files to upload (multipart form-data).'))
