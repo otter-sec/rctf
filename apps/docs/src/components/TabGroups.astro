@@ -10,6 +10,13 @@
     ...group.querySelectorAll<HTMLElement>(":scope > [role='tabpanel']"),
   ]
 
+  // The key a tab is matched by when syncing across groups. Generated response
+  // tabs carry an explicit `data-sync-id` (a version-stable id, so renamed
+  // equivalents like `goodUserSelfData`/`goodUserSelfDataV2` align); other tabs
+  // (e.g. the V2/V1 version tabs) fall back to their visible label.
+  const keyOf = (tab: HTMLElement) =>
+    tab.dataset.syncId ?? tab.textContent?.trim() ?? ""
+
   const activate = (
     group: HTMLElement,
     index: number,
@@ -28,15 +35,13 @@
 
     const sync = group.dataset.sync
     if (!propagate || !sync) return
-    const label = tabs[index].textContent?.trim() ?? ""
+    const key = keyOf(tabs[index])
     try {
-      localStorage.setItem(`tab-sync:${sync}`, label)
+      localStorage.setItem(`tab-sync:${sync}`, key)
     } catch {}
     for (const other of groups) {
       if (other === group || other.dataset.sync !== sync) continue
-      const match = tabsOf(other).findIndex(
-        (tab) => tab.textContent?.trim() === label,
-      )
+      const match = tabsOf(other).findIndex((tab) => keyOf(tab) === key)
       if (match >= 0) activate(other, match, { propagate: false })
     }
   }
@@ -76,9 +81,7 @@
       stored = localStorage.getItem(`tab-sync:${sync}`)
     } catch {}
     if (!stored) continue
-    const match = tabsOf(group).findIndex(
-      (tab) => tab.textContent?.trim() === stored,
-    )
+    const match = tabsOf(group).findIndex((tab) => keyOf(tab) === stored)
     if (match >= 0) activate(group, match, { propagate: false })
   }
 </script>
