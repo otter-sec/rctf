@@ -31,8 +31,20 @@ export const AdminChallengeSchemaV2 = z.object({
   tags: example(z.nullish(z.array(z.string())), ['beginner']).check(
     z.describe('Challenge tags, or `null` when unset.')
   ),
-  instancerConfig: z.nullish(InstancerConfigSchema),
-  adminBotConfig: z.nullish(AdminBotConfigSchema),
+  instancerConfig: z
+    .nullish(InstancerConfigSchema)
+    .check(
+      z.describe(
+        'On-demand instancer (deployment) configuration, or `null` when the challenge has none.'
+      )
+    ),
+  adminBotConfig: z
+    .nullish(AdminBotConfigSchema)
+    .check(
+      z.describe(
+        'Admin-bot configuration, or `null` when the challenge has no admin bot.'
+      )
+    ),
   hidden: example(z.boolean(), false).check(
     z.describe('Whether the challenge is hidden from players.')
   ),
@@ -41,8 +53,13 @@ export const AdminChallengeSchemaV2 = z.object({
       'Scheduled release time as a Unix timestamp in milliseconds, or `null`.'
     )
   ),
-  scoring: z.nullish(ChallengeScoringSchema),
-  // only the single-challenge detail endpoint populates this
+  scoring: z
+    .nullish(ChallengeScoringSchema)
+    .check(
+      z.describe(
+        'Scoring algorithm configuration, or `null` for the CTF default.'
+      )
+    ),
   solveCount: example(z.optional(z.int()), 12).check(
     z.describe('Total solves; only present on the single-challenge endpoint.')
   ),

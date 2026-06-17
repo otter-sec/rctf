@@ -105,8 +105,10 @@ export function typeLabel(schema: ZodSchema | undefined | null): string {
       return "bigint"
     case "date":
       return "Date"
-    case "array":
-      return `${typeLabel(def.element)}[]`
+    case "array": {
+      const element = typeLabel(def.element)
+      return element.includes(" | ") ? `(${element})[]` : `${element}[]`
+    }
     case "literal":
       return def.values.map(literalLabel).join(" | ")
     case "enum":
@@ -114,9 +116,11 @@ export function typeLabel(schema: ZodSchema | undefined | null): string {
         .map((value) => JSON.stringify(value))
         .join(" | ")
     case "union":
-      return def.options.map((option) => typeLabel(option)).join(" | ")
-    case "pipe":
-      return typeLabel(def.in)
+      return def.options.map((option) => objectShapeLabel(option)).join(" | ")
+    case "pipe": {
+      const inLabel = typeLabel(def.in)
+      return inLabel === "transform" ? typeLabel(def.out) : inLabel
+    }
     case "optional":
     case "nullable":
     case "default":
@@ -256,8 +260,13 @@ export function walkResponseSchema(
 
   const inner = innerOf(def)
   if (inner) {
-    const innerType = defOf(inner)?.type
-    if (innerType === "object" || innerType === "array") {
+    const innerDef = defOf(inner)
+    const innerElement =
+      innerDef && innerDef.type === "array" ? innerDef.element : null
+    if (
+      innerDef?.type === "object" ||
+      (innerElement !== null && defOf(unwrap(innerElement))?.type === "object")
+    ) {
       return walkResponseSchema(inner, prefix)
     }
   }
