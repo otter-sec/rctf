@@ -272,10 +272,13 @@ export function contentDirectives() {
           )
           const buttons = labels
             .map((label, i) => {
+              const syncId = (tabs[i] as unknown as DirectiveNode).attributes
+                ?.syncId
               return [
                 `<button role="tab" id="${prefix}-tab-${i}"`,
                 ` aria-controls="${prefix}-panel-${i}"`,
                 ` aria-selected="${i === 0}"`,
+                syncId ? ` data-sync-id="${syncId}"` : "",
                 i === 0 ? "" : ' tabindex="-1"',
                 `>${label}</button>`,
               ].join("")

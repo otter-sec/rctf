@@ -134,15 +134,57 @@ function buildCurlCode(
 
 /**
  * A sync key shared by a route's response tabs across API versions, so a
- * selected response (e.g. `badToken`) is preserved when switching versions.
- * Derived from the method and the version-stripped path, so `/v2/users/me` and
- * `/v1/users/me` share a key while unrelated routes — including others chained
- * onto the same page — do not. The tab sync matches by label, so responses that
- * were renamed or exist in only one version simply fall back to the active tab.
+ * selected response is preserved when switching versions. Derived from the
+ * method and the version-stripped path, so `/v2/users/me` and `/v1/users/me`
+ * share a key while unrelated routes — including others chained onto the same
+ * page — do not. Within a synced group, tabs match by {@link responseSyncId}.
  */
 function responseSyncKey(def: ResolvedRoute): string {
   const path = def.path.replace(/^\/v\d+(?=\/|$)/, "")
   return `api-responses:${def.method} ${path}`
+}
+
+/**
+ * Responses that were renamed across API versions but represent the same
+ * outcome, mapping each response `kind` to a shared canonical id. The response
+ * tab sync matches tabs by this id, so a selection follows you across a version
+ * switch even when the two versions name the response differently — e.g.
+ * picking `goodUserSelfData` under v1 keeps you on `goodUserSelfDataV2` under v2.
+ *
+ * This is an explicit, hand-verified list, not a heuristic — no fuzzy matching.
+ * Only genuinely-equivalent responses appear here; close-but-distinct ones are
+ * deliberately omitted so they stay independent (e.g. v2-only
+ * `badDivisionChangeEnded`, and `badDataUri`/`badRateLimit` which exist in just
+ * one version). Canonical ids are the current (v2) kinds; legacy kinds map onto
+ * them. Shared responses (e.g. `badToken`) already match by kind and need no
+ * entry here.
+ */
+const RESPONSE_SYNC_ALIASES: Readonly<Record<string, string>> = {
+  // `…V2` good responses share an id with their v1 originals.
+  goodAdminChallenge: "goodAdminChallengeV2",
+  goodAdminChallenges: "goodAdminChallengesV2",
+  goodChallenges: "goodChallengesV2",
+  goodChallengeSolves: "goodChallengeSolvesV2",
+  goodChallengeUpdate: "goodChallengeUpdateV2",
+  goodClientConfig: "goodClientConfigV2",
+  goodFilesUpload: "goodFilesUploadV2",
+  goodLeaderboard: "goodLeaderboardV2",
+  goodRegister: "goodRegisterV2",
+  goodUploadsQuery: "goodUploadsQueryV2",
+  goodUserData: "goodUserDataV2",
+  goodUserSelfData: "goodUserSelfDataV2",
+  goodUserUpdate: "goodUserUpdateV2",
+  // The v1 reCAPTCHA failure was renamed to the generic captcha failure in v2.
+  badRecaptchaCode: "badCaptcha",
+}
+
+/**
+ * The id used to match a response tab against its equivalents in other versions
+ * (see {@link RESPONSE_SYNC_ALIASES}). Defaults to the response `kind`, which
+ * already matches shared responses exactly.
+ */
+function responseSyncId(kind: string): string {
+  return RESPONSE_SYNC_ALIASES[kind] ?? kind
 }
 
 function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
@@ -174,7 +216,7 @@ function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
     return {
       type: "containerDirective",
       name: "tab",
-      attributes: {},
+      attributes: { syncId: responseSyncId(resp.kind) },
       children: [label, code],
     }
   })
