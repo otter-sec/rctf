@@ -11,7 +11,7 @@ import {
   routeMetaHtml,
   titlePhrasing,
 } from "./render"
-import { resolveResponse, resolveRoute } from "./registry"
+import { resolveResponse, type ResolvedRoute, resolveRoute } from "./registry"
 import {
   type ExampleValue,
   toExampleValue,
@@ -132,6 +132,19 @@ function buildCurlCode(
   }
 }
 
+/**
+ * A sync key shared by a route's response tabs across API versions, so a
+ * selected response (e.g. `badToken`) is preserved when switching versions.
+ * Derived from the method and the version-stripped path, so `/v2/users/me` and
+ * `/v1/users/me` share a key while unrelated routes — including others chained
+ * onto the same page — do not. The tab sync matches by label, so responses that
+ * were renamed or exist in only one version simply fall back to the active tab.
+ */
+function responseSyncKey(def: ResolvedRoute): string {
+  const path = def.path.replace(/^\/v\d+(?=\/|$)/, "")
+  return `api-responses:${def.method} ${path}`
+}
+
 function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
   const def = resolveRoute(attr(node.attributes, "def"))
   const extra = listAttr(attr(node.attributes, "extra")).map((name) =>
@@ -168,7 +181,7 @@ function buildResponseTabs(node: AnyDirective): ContainerDirective | undefined {
   return {
     type: "containerDirective",
     name: "tabs",
-    attributes: { code: "true" },
+    attributes: { code: "true", sync: responseSyncKey(def) },
     children: tabs,
   }
 }
