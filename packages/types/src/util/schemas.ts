@@ -145,7 +145,9 @@ export const InstancerConfigSchema = z.object({
   instancer: example(z.optional(z.string()), 'kubernetes').check(
     z.describe('Instancer to use, or the default when omitted.')
   ),
-  config: z.record(z.string(), z.any()),
+  config: z
+    .record(z.string(), z.any())
+    .check(z.describe('Provider-specific instancer configuration.')),
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: example(z.int(), 600000).check(
     z.describe('Instance lifetime in milliseconds.')
@@ -162,7 +164,9 @@ export const PartialInstancerConfigSchema = z.object({
   instancer: example(z.optional(z.string()), 'kubernetes').check(
     z.describe('Instancer to use, or the default when omitted.')
   ),
-  config: z.optional(z.record(z.string(), z.any())),
+  config: z
+    .optional(z.record(z.string(), z.any()))
+    .check(z.describe('Provider-specific instancer configuration.')),
   expose: z.optional(z.array(ExposeSchema)),
   timeoutMilliseconds: example(z.optional(z.int()), 600000).check(
     z.describe('Instance lifetime in milliseconds.')
@@ -230,8 +234,20 @@ export enum AdminTeamStatus {
 
 export const searchFilter = <T extends z.core.SomeType>(t: T) =>
   z.object({
-    include: z.nullish(z.array(t).check(z.maxLength(1024))),
-    exclude: z.nullish(z.array(t).check(z.maxLength(1024))),
+    include: z
+      .nullish(z.array(t).check(z.maxLength(1024)))
+      .check(
+        z.describe(
+          'Keep only rows matching one of these values; omitted or `null` applies no allowlist.'
+        )
+      ),
+    exclude: z
+      .nullish(z.array(t).check(z.maxLength(1024)))
+      .check(
+        z.describe(
+          'Drop rows matching any of these values; omitted or `null` applies no denylist.'
+        )
+      ),
   })
 
 export enum SubmissionKind {

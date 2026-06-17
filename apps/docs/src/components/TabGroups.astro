@@ -10,10 +10,6 @@
     ...group.querySelectorAll<HTMLElement>(":scope > [role='tabpanel']"),
   ]
 
-  // The key a tab is matched by when syncing across groups. Generated response
-  // tabs carry an explicit `data-sync-id` (a version-stable id, so renamed
-  // equivalents like `goodUserSelfData`/`goodUserSelfDataV2` align); other tabs
-  // (e.g. the V2/V1 version tabs) fall back to their visible label.
   const keyOf = (tab: HTMLElement) =>
     tab.dataset.syncId ?? tab.textContent?.trim() ?? ""
 
