@@ -40,16 +40,14 @@ const CHIP_SURFACE: CSSProperties = {
   display: "flex",
   alignItems: "baseline",
   flexWrap: "wrap",
-  padding: "0.08em 0.3em",
+  fontFamily: "IBM Plex Mono",
+  fontSize: "0.9em",
+  padding: "0.1em 0.3em",
   borderRadius: 6,
   background: THEME.codeBackground,
 }
 
-const CODE_CHIP: CSSProperties = {
-  ...CHIP_SURFACE,
-  fontFamily: "IBM Plex Mono",
-  fontSize: "0.9em",
-}
+const CODE_CHIP: CSSProperties = CHIP_SURFACE
 
 const ASSETS = resolve(process.cwd(), "src/assets")
 const wordmark = readFile(`${ASSETS}/wordmark-light.svg`, "utf8").then(
