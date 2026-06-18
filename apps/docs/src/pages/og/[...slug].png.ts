@@ -6,14 +6,32 @@ import {
 } from "@/lib/code-annotations"
 import { getDocs, type DocsEntry } from "@/lib/docs"
 import { plainInlineText } from "@/lib/rich-text"
-import { ImageResponse } from "@vercel/og"
 import type { ElementContent } from "hast"
-import {
-  createElement as h,
-  type CSSProperties,
-  type ReactElement,
-  type ReactNode,
-} from "react"
+import satori from "satori"
+import sharp from "sharp"
+
+type CSSProperties = Record<string, string | number | undefined>
+
+type VNode = VElement | string | null
+
+interface VElement {
+  type: string
+  props: Record<string, unknown>
+}
+
+function h(
+  type: string,
+  props: (Record<string, unknown> & { style?: CSSProperties }) | null,
+  ...children: VNode[]
+): VElement {
+  const kids = children.filter(
+    (child): child is VElement | string => child != null,
+  )
+  return {
+    type,
+    props: { ...props, children: kids.length === 1 ? kids[0] : kids },
+  }
+}
 
 const THEME = {
   background: "#fafafa",
@@ -50,9 +68,9 @@ const CHIP_SURFACE: CSSProperties = {
 const CODE_CHIP: CSSProperties = CHIP_SURFACE
 
 const ASSETS = resolve(process.cwd(), "src/assets")
-const wordmark = readFile(`${ASSETS}/wordmark-light.svg`, "utf8").then(
-  (svg) => `data:image/svg+xml;base64,${Buffer.from(svg).toString("base64")}`,
-)
+const wordmark = readFile(`${ASSETS}/wordmark-light.svg`)
+  .then((svg) => sharp(svg).resize({ width: 390 }).png().toBuffer())
+  .then((png) => `data:image/png;base64,${png.toString("base64")}`)
 const sansRegular = readFile(`${ASSETS}/fonts/IBMPlexSans-Regular.ttf`)
 const sansMedium = readFile(`${ASSETS}/fonts/IBMPlexSans-Medium.ttf`)
 const monoRegular = readFile(`${ASSETS}/fonts/IBMPlexMono-Regular.ttf`)
@@ -77,18 +95,28 @@ export async function GET({ props }: { props: { entry: DocsEntry } }) {
   const title = entry.data.title
   const description = entry.data.description ?? null
 
-  return new ImageResponse(
-    layout(breadcrumb(entry.id, docs), title, description, wordmarkSrc),
-    {
-      width: 1200,
-      height: 630,
-      fonts: [
-        { name: "IBM Plex Sans", data: regular, weight: 400, style: "normal" },
-        { name: "IBM Plex Sans", data: medium, weight: 500, style: "normal" },
-        { name: "IBM Plex Mono", data: mono, weight: 400, style: "normal" },
-      ],
+  const tree = layout(
+    breadcrumb(entry.id, docs),
+    title,
+    description,
+    wordmarkSrc,
+  ) as unknown as Parameters<typeof satori>[0]
+  const svg = await satori(tree, {
+    width: 1200,
+    height: 630,
+    fonts: [
+      { name: "IBM Plex Sans", data: regular, weight: 400, style: "normal" },
+      { name: "IBM Plex Sans", data: medium, weight: 500, style: "normal" },
+      { name: "IBM Plex Mono", data: mono, weight: 400, style: "normal" },
+    ],
+  })
+  const png = await sharp(Buffer.from(svg)).png().toBuffer()
+  return new Response(new Uint8Array(png), {
+    headers: {
+      "Content-Type": "image/png",
+      "Cache-Control": "public, max-age=31536000, immutable",
     },
-  )
+  })
 }
 
 function layout(
@@ -96,7 +124,7 @@ function layout(
   title: string,
   description: string | null,
   wordmarkSrc: string,
-): ReactElement {
+): VElement {
   return h(
     "div",
     {
@@ -124,7 +152,7 @@ function layout(
   )
 }
 
-function breadcrumbRow(crumbs: string[]): ReactNode {
+function breadcrumbRow(crumbs: string[]): VNode {
   return h(
     "div",
     {
@@ -146,7 +174,7 @@ function breadcrumbRow(crumbs: string[]): ReactNode {
   )
 }
 
-function titleRow(title: string): ReactNode {
+function titleRow(title: string): VNode {
   return h(
     "div",
     {
@@ -163,7 +191,7 @@ function titleRow(title: string): ReactNode {
   )
 }
 
-function descriptionRow(description: string): ReactNode {
+function descriptionRow(description: string): VNode {
   return h(
     "div",
     {
@@ -181,8 +209,8 @@ function descriptionRow(description: string): ReactNode {
   )
 }
 
-function richNodes(value: string, keyPrefix: string): ReactNode[] {
-  const out: ReactNode[] = []
+function richNodes(value: string, keyPrefix: string): VNode[] {
+  const out: VNode[] = []
   let last = 0
   let i = 0
 
@@ -203,17 +231,17 @@ function richNodes(value: string, keyPrefix: string): ReactNode[] {
   return out
 }
 
-function annotatedNodes(text: string, keyPrefix: string): ReactNode[] {
+function annotatedNodes(text: string, keyPrefix: string): VNode[] {
   const tree = parseCodeAnnotations(text)
   return tree ? hastToNodes(tree, keyPrefix) : [textSpan(text, keyPrefix)]
 }
 
-function textSpan(value: string, key: string): ReactNode {
+function textSpan(value: string, key: string): VNode {
   return h("span", { key, style: { whiteSpace: "pre-wrap" } }, value)
 }
 
-function hastToNodes(nodes: ElementContent[], keyPrefix: string): ReactNode[] {
-  return nodes.flatMap((node, i): ReactNode[] => {
+function hastToNodes(nodes: ElementContent[], keyPrefix: string): VNode[] {
+  return nodes.flatMap((node, i): VNode[] => {
     const key = `${keyPrefix}-${i}`
     if (node.type === "text") return [textSpan(node.value, key)]
     if (node.type !== "element") return []
@@ -251,7 +279,7 @@ function toneColor(classes: string[]): string | undefined {
   return undefined
 }
 
-function codeChip(value: string, key: string): ReactNode {
+function codeChip(value: string, key: string): VNode {
   const code = stripCodeAnnotationTags(value).replace(/^\$ /, "")
   return h("span", { key, style: CODE_CHIP }, code)
 }
