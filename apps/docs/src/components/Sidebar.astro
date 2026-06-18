@@ -130,7 +130,6 @@ const section = NAVIGATION.find(
       flex-shrink: 0;
     }
 
-    /* On the mobile bar, grow so the toggle cluster sits flush right. */
     @media (width < 64rem) {
       flex: 1;
     }
@@ -142,8 +141,6 @@ const section = NAVIGATION.find(
     }
   }
 
-  /* One nav, two presentations: a scrolling column on desktop, a drop-down
-     panel behind the menu toggle on mobile. */
   nav {
     @media (width >= 64rem) {
       flex: 1;

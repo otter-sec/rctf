@@ -92,10 +92,6 @@ const toneClassNames = (tag: string): string[] => [
   ...tag.split("+").map((tone) => `is-${normalizeTone(tone)}`),
 ]
 
-// The inline style only carries the tone value as a custom property; the
-// `.code-tone` rule in typography-inline.css consumes it. Contexts can then
-// restyle tones through the normal cascade, which a literal inline `color`
-// would lock out.
 export function toneProperties(tag: string): Element["properties"] {
   const color = tag
     .split("+")

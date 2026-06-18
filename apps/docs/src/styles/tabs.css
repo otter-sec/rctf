@@ -59,8 +59,6 @@ prose-content tab-group {
 					background: var(--muted);
 				}
 
-				/* Response tabs carry rich, response-toned labels; let the
-				   tone color through without the inline-code chip. */
 				code {
 					padding: 0;
 					background: none;

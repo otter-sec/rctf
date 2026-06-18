@@ -45,8 +45,6 @@ export const calloutDirective = defineMdastPlugin({
     const iconName = VARIANTS[node.name]
     if (!iconName) return
 
-    // Satteri materializes empty containers without `children`, despite its
-    // types declaring the field required.
     const first = node.children?.[0]
     const isLabel =
       first?.type === "paragraph" &&
@@ -57,8 +55,6 @@ export const calloutDirective = defineMdastPlugin({
     const chevron = icons["alt-arrow-down"]
 
     if (isLabel) {
-      // Turn the label paragraph itself into the <summary> so its inline
-      // markdown (emphasis, code, links) renders instead of being flattened.
       ctx.setProperty(first, "data", { hName: "summary" })
       ctx.prependChild(first, {
         type: "html",

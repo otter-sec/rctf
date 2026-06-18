@@ -5,10 +5,6 @@ order: 3
 ---
 
 <style>
-  /* A color swatch is a single styled custom element (no JS): the sample color
-     rides on the inline --c custom property, the optional backing on --bg (used
-     so translucent samples read against a fixed light/dark page), and the label
-     is the element's own text content. */
   color-swatch {
     display: inline-flex;
     align-items: center;
@@ -45,6 +41,7 @@ order: 3
     padding: 0.25em;
   }
 </style>
+
 The rCTF UI layer is built on [shadcn-svelte](https://shadcn-svelte.com/), a port of shadcn/ui for Svelte 5. Components live in `apps/web/src/lib/components/ui/{:dir}` and use [tailwind-variants](https://www.tailwind-variants.org/) for variant-based styling. Application-specific components (Navigation, Markdown, ThemeToggle) are in the parent `components/{:dir}` directory. Icons are vendored as local Svelte components in `apps/web/src/lib/icons/{:dir}` (Tabler Icons artwork).
 
 The following components are available in rCTF:

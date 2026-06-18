@@ -2,16 +2,11 @@ import { exampleRegistry } from "@rctf/types"
 import type { z } from "zod/mini"
 import { globalRegistry, safeParse } from "zod/mini"
 
-/** A Zod schema in its erased base form. */
 export type ZodSchema = z.core.$ZodType
-/** The discriminated union of concrete Zod schema internals. */
 type ZodConcrete = z.core.$ZodTypes
-/** The discriminated union of concrete schema definitions, keyed by `type`. */
 type ZodDef = ZodConcrete["_zod"]["def"]
-/** A primitive literal value a schema can carry. */
 type LiteralValue = string | number | bigint | boolean | null | undefined
 
-/** A single field row in a request-body table. */
 export interface FieldInfo {
   name: string
   schema: ZodSchema
@@ -20,14 +15,12 @@ export interface FieldInfo {
   description?: string
 }
 
-/** A single field row in a response-body table, addressed by dotted path. */
 export interface ResponseField {
   path: string
   typeLabel: string
   description?: string
 }
 
-/** A JSON-serializable example value. */
 export type ExampleValue =
   | string
   | number
@@ -36,13 +29,11 @@ export type ExampleValue =
   | ExampleValue[]
   | { [key: string]: ExampleValue }
 
-/** Read the concrete definition of a schema, or `null` when absent. */
 function defOf(schema: ZodSchema | undefined | null): ZodDef | null {
   if (!schema) return null
   return (schema as ZodConcrete)._zod.def
 }
 
-/** The wrapped inner schema for the unwrappable modifier types, else `null`. */
 function innerOf(def: ZodDef): ZodSchema | null {
   switch (def.type) {
     case "optional":
@@ -57,7 +48,6 @@ function innerOf(def: ZodDef): ZodSchema | null {
   }
 }
 
-/** Peel modifier wrappers (optional, nullable, default, …) to the core schema. */
 function unwrap(schema: ZodSchema): ZodSchema {
   let current: ZodSchema = schema
   for (;;) {
@@ -69,7 +59,6 @@ function unwrap(schema: ZodSchema): ZodSchema {
   }
 }
 
-/** The author-supplied description, peeling modifier wrappers as needed. */
 export function describe(
   schema: ZodSchema | undefined | null,
 ): string | undefined {
@@ -82,14 +71,12 @@ export function describe(
   return inner ? describe(inner) : undefined
 }
 
-/** Render a literal value the way it should appear in a type signature. */
 function literalLabel(value: LiteralValue): string {
   if (typeof value === "bigint") return value.toString()
   if (value === undefined) return "undefined"
   return JSON.stringify(value)
 }
 
-/** A concise type label for inline display (`string`, `number[]`, `"a" | "b"`). */
 export function typeLabel(schema: ZodSchema | undefined | null): string {
   const def = defOf(schema)
   if (!def) return "unknown"
@@ -133,7 +120,6 @@ export function typeLabel(schema: ZodSchema | undefined | null): string {
   }
 }
 
-/** A `{ field: type, … }` label for an object schema, else its plain label. */
 function objectShapeLabel(schema: ZodSchema): string {
   const def = defOf(schema)
   if (!def || def.type !== "object") return typeLabel(schema)
@@ -144,7 +130,6 @@ function objectShapeLabel(schema: ZodSchema): string {
   return `{ ${fields.join(", ")} }`
 }
 
-/** A type label that keeps nullability and expands records for response rows. */
 function typeLabelExtended(schema: ZodSchema): string {
   const def = defOf(schema)
   if (!def) return "unknown"
@@ -165,16 +150,10 @@ function typeLabelExtended(schema: ZodSchema): string {
   }
 }
 
-/** A field is required when its schema rejects a missing (`undefined`) value. */
 function isRequired(field: ZodSchema): boolean {
   return !safeParse(field, undefined).success
 }
 
-/**
- * One row per top-level field, without descending. Used to build example bodies,
- * where keys must stay flat (the nested structure is produced by
- * `generateExample` from each field's schema, not from dotted paths).
- */
 export function walkObjectShape(
   schema: ZodSchema | undefined | null,
 ): FieldInfo[] {
@@ -189,12 +168,6 @@ export function walkObjectShape(
   }))
 }
 
-/**
- * Flatten a request schema into field rows, descending into nested objects (and
- * arrays of objects) so the fields inside an envelope such as `data` surface
- * with dotted paths, mirroring `walkResponseSchema`. A described object yields a
- * group row before its children; an undescribed one is replaced by its children.
- */
 export function walkObjectSchema(
   schema: ZodSchema | undefined | null,
   prefix = "",
@@ -249,7 +222,6 @@ export function walkObjectSchema(
   })
 }
 
-/** Flatten a response schema into dotted-path rows, descending into objects. */
 export function walkResponseSchema(
   schema: ZodSchema | undefined | null,
   prefix = "",
@@ -289,8 +261,6 @@ export function walkResponseSchema(
     const rows = Object.entries(def.shape).flatMap(([name, field]) =>
       walkResponseSchema(field, prefix ? `${prefix}.${name}` : name),
     )
-    // Surface a nested object's own description (e.g. `overrides`, `defaults`),
-    // which would otherwise be dropped when descending into its fields.
     const description = prefix ? describe(schema) : undefined
     if (description) {
       return [{ path: prefix, typeLabel: "object", description }, ...rows]
@@ -307,12 +277,10 @@ export function walkResponseSchema(
   ]
 }
 
-/** Convert a camelCase field name to a kebab placeholder token. */
 function kebab(name: string): string {
   return name.replace(/([A-Z])/g, "-$1").toLowerCase()
 }
 
-/** Normalize an arbitrary registry/literal/JSON value into an `ExampleValue`. */
 export function toExampleValue(value: unknown): ExampleValue {
   if (value === null || value === undefined) return null
   if (
@@ -332,7 +300,6 @@ export function toExampleValue(value: unknown): ExampleValue {
   return String(value)
 }
 
-/** Build a representative example value for a schema, preferring registered examples. */
 export function generateExample(
   schema: ZodSchema | undefined | null,
   fieldName?: string,
@@ -390,7 +357,6 @@ export function generateExample(
   }
 }
 
-/** Wrap unstyled placeholder strings in `<dim>` tone tags for example rendering. */
 export function dimPlaceholders(value: ExampleValue): ExampleValue {
   if (typeof value === "string") {
     if (/<(dim|red|green)>/.test(value)) return value

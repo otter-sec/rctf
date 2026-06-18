@@ -5,10 +5,6 @@ order: 1
 ---
 
 <style>
-  /* A color swatch is a single styled custom element (no JS): the sample color
-     rides on the inline --c custom property, the optional backing on --bg (used
-     so translucent samples read against a fixed light/dark page), and the label
-     is the element's own text content. */
   color-swatch {
     display: inline-flex;
     align-items: center;
@@ -45,6 +41,7 @@ order: 1
     padding: 0.25em;
   }
 </style>
+
 All colors in rCTF are defined using [OKLCH](https://oklch.com). Colors are declared as CSS custom properties in `apps/web/src/app.css{:file}`, with `:root{:css}` containing light mode values and `[data-theme='dark']{:css}` providing dark mode overrides. The theme is toggled via the `data-theme` attribute on `<html>{:html}`, persisted to `localStorage`, and respects `prefers-color-scheme` on first load.
 
 ## Color reference

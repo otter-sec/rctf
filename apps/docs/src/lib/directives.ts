@@ -20,7 +20,6 @@ const escapeAttr = (value: string): string =>
 type DirectiveNode = {
   name: string
   attributes?: Record<string, string | null | undefined> | null
-  // Optional despite satteri's types: empty containers materialize without it.
   children?: Array<{ type: string; data?: unknown; children?: unknown[] }>
 }
 

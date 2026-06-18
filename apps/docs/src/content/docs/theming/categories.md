@@ -5,10 +5,6 @@ order: 2
 ---
 
 <style>
-  /* A color swatch is a single styled custom element (no JS): the sample color
-     rides on the inline --c custom property, the optional backing on --bg (used
-     so translucent samples read against a fixed light/dark page), and the label
-     is the element's own text content. */
   color-swatch {
     display: inline-flex;
     align-items: center;
@@ -55,6 +51,7 @@ order: 2
     height: 1.5em;
   }
 </style>
+
 Each challenge category in rCTF has its own color palette, icon, and display name configured in `apps/web/src/lib/utils/categories.ts{:file}`. The system uses dynamic CSS variable injection to apply category-specific colors to components. A category's color key (e.g., `red`) maps to CSS variables like `--category-foreground-l0{:css}`, which components reference through Tailwind classes such as `text-category-foreground-l0{:css}`.
 
 ## Default categories

@@ -137,9 +137,6 @@ function responseSyncKey(def: ResolvedRoute): string {
   return `api-responses:${def.method} ${path}`
 }
 
-// Renamed-but-equivalent responses mapped to a shared id so the tab sync keeps
-// them aligned across versions. Hand-maintained: only genuine renames belong
-// here, so version-specific responses stay distinct.
 const RESPONSE_SYNC_ALIASES: Readonly<Record<string, string>> = {
   goodAdminChallenge: "goodAdminChallengeV2",
   goodAdminChallenges: "goodAdminChallengesV2",
@@ -240,9 +237,6 @@ async function planResponseBody(
   }
 }
 
-// Satteri's compile pipeline currently discards visitor diagnostics, so a
-// failed directive is warned via the console (matching `unhandled-directives`)
-// rather than `ctx.report`, which would be swallowed and leave the drop silent.
 // TODO: switch to `ctx.report` once the compile result exposes diagnostics
 // (bruits/satteri#59 has the plumbing; tracked in bruits/satteri#87).
 function warnDropped(
@@ -257,14 +251,6 @@ function warnDropped(
   )
 }
 
-/**
- * Generates rCTF API reference components from `@rctf/types` route and response
- * definitions. Each directive resolves a typed route/response and expands into
- * standard mdast nodes: curl examples and response payloads become Expressive
- * Code blocks, field listings become description lists, and route metadata
- * becomes a description list. Generated `tabs` are handed to the
- * content-directive plugin.
- */
 export function apiReferenceDirectives() {
   return defineMdastPlugin({
     name: "api-reference-directives",

@@ -5,10 +5,6 @@ import { defineHastPlugin } from "satteri"
 const SUBPOST = /\/blog\/[^/]+\/(?!index\.md$)([^/]+)\.md$/
 const DOCS_PAGE = /\/src\/content\/docs\/.+\/(?!index\.md$)([^/]+)\.md$/
 
-// Whether a docs folder opted into the continuous reading chain via
-// `scroll: true` on its index.md. Read from disk because the plugin only
-// sees one file at a time; cached for the process (restart dev after
-// toggling the flag).
 const scrollDirs = new Map<string, boolean>()
 
 function isScrollDir(indexPath: string): boolean {

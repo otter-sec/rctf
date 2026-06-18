@@ -8,7 +8,6 @@ import {
 import { type Element, h, type Parents } from "satteri-expressive-code/hast"
 import { parseCodeToneRanges, toneProperties } from "../code-annotations"
 
-// Drop the syntax highlighter's colors so the tone wins.
 function stripElementSyntaxStyles(node: Element): Element {
   const {
     class: _class,
@@ -57,7 +56,6 @@ export function pluginCodeTones(): ExpressiveCodePlugin {
     name: "Code Tones",
     hooks: {
       preprocessCode: ({ codeBlock }) => {
-        // `tones=false` keeps tags literal, e.g. for documenting the syntax.
         if (codeBlock.metaOptions.getBoolean("tones") === false) return
         codeBlock.getLines().forEach((line, index) => {
           const parsed = parseCodeToneRanges(line.text)

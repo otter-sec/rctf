@@ -116,8 +116,6 @@
 
   const inBand = new Set<Element>()
 
-  // A short final article may never reach the observer band, so hitting
-  // the bottom of the page selects it explicitly.
   const atBottom = () => {
     const max = document.documentElement.scrollHeight - innerHeight
     return max > 0 && scrollY >= max - 2

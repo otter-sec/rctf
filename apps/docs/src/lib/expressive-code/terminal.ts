@@ -11,8 +11,6 @@ import {
   select,
   selectAll,
 } from "satteri-expressive-code/hast"
-// Circular with ./config (which registers these plugins); safe because the
-// binding is only read at render time, after both modules initialize.
 import { ecRenderer } from "./config"
 import { codeToneData } from "./tones"
 
@@ -191,9 +189,6 @@ export function pluginOutputSeparators(): ExpressiveCodePlugin {
           }
         })
 
-        // `cmd` and `output` meta options re-highlight each half of the
-        // block in its own language; lines with explicit tone tags keep
-        // their tones.
         const toned = codeToneData.getOrCreateFor(codeBlock).tonedLines
         const cmdLang = codeBlock.metaOptions.getString("cmd")
         const outLang = codeBlock.metaOptions.getString("output")
@@ -208,9 +203,6 @@ export function pluginOutputSeparators(): ExpressiveCodePlugin {
 
         const copyButton = select(".copy button", renderData.blockAst)
         if (copyButton) {
-          // hast names the `data-code` attribute `dataCode`; assigning the
-          // literal key would leave the frames plugin's full-code value in
-          // place and serialize both.
           copyButton.properties = {
             ...copyButton.properties,
             dataCode: commands.join("\u007F"),

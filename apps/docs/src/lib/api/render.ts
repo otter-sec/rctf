@@ -19,16 +19,10 @@ import {
   type ZodSchema,
 } from "./schema"
 
-/** A pre-rendered HTML fragment embedded into the hast tree verbatim. */
 const raw = (value: string): ElementContent => ({ type: "raw", value })
-
-/** A TypeScript-annotated value for `inlineCodeNode` (no surrounding backticks). */
 const tsAnnotated = (value: string): string => `${value}{:ts}`
-
-/** Backtick-delimited inline-code markdown for `renderInlineText`. */
 const inlineCodeMarkup = (value: string): string => `\`${tsAnnotated(value)}\``
 
-/** Tone tag colours per HTTP method, mirroring the inline rich-text palette. */
 const METHOD_TONE = new Map<string, string>([
   ["GET", "cyan"],
   ["POST", "green"],
@@ -39,7 +33,6 @@ const METHOD_TONE = new Map<string, string>([
   ["OPTIONS", "blue"],
 ])
 
-/** A required-field marker (`*`) carrying an accessible label. */
 function requiredMark(): ElementContent {
   return h(
     "span",
@@ -48,12 +41,6 @@ function requiredMark(): ElementContent {
   )
 }
 
-/**
- * One field entry: the name (plus a required marker) and its type sit on the
- * lead line, with the description underneath. Mirrors the route metadata `<dl>`
- * pattern rather than a table so long type labels wrap and clamp gracefully
- * instead of forcing a column to overflow.
- */
 async function fieldEntry(
   name: string,
   typeLabel: string,
@@ -77,14 +64,12 @@ async function fieldEntry(
   return h("div", { dataField: "" }, children)
 }
 
-/** Serialize a generated `<dl data-field-list>` from a set of field entries. */
 function fieldListHtml(entries: ElementContent[]): string {
   return toHtml(h("dl", { dataFieldList: "" }, entries), {
     allowDangerousHtml: true,
   })
 }
 
-/** Render a request object schema as a field list (name/type + description). */
 export async function requestFieldsHtml(fields: FieldInfo[]): Promise<string> {
   const entries: ElementContent[] = []
   for (const field of fields) {
@@ -100,7 +85,6 @@ export async function requestFieldsHtml(fields: FieldInfo[]): Promise<string> {
   return fieldListHtml(entries)
 }
 
-/** Render a response schema as a field list of dotted paths + descriptions. */
 export async function responseFieldsHtml(
   fields: ResponseField[],
 ): Promise<string> {
@@ -147,7 +131,6 @@ function derivePermissions(def: ResolvedRoute): string {
   return permissionLabels(def.permissions) || "-"
 }
 
-/** Render the route metadata definition list (`<dl data-route-meta>`). */
 export async function routeMetaHtml(
   def: ResolvedRoute,
   rateLimit: string | undefined,
@@ -184,12 +167,10 @@ export async function routeMetaHtml(
   })
 }
 
-/** Convert a camelCase path segment to a kebab placeholder token. */
 function kebab(name: string): string {
   return name.replace(/([A-Z])/g, "-$1").toLowerCase()
 }
 
-/** Build an example object for a schema, honouring author overrides and field picks. */
 function buildObject(
   schema: ZodSchema | undefined,
   overrides: Record<string, ExampleValue> | undefined,
@@ -209,7 +190,6 @@ function buildObject(
   return out
 }
 
-/** Substitute `:param` path segments with overrides or dimmed placeholders. */
 function substituteParams(
   path: string,
   params: Record<string, ExampleValue> | undefined,
@@ -222,7 +202,6 @@ function substituteParams(
   })
 }
 
-/** Build the tone-tagged curl invocation text for a route example. */
 export function curlText(
   def: ResolvedRoute,
   baseUrl: string,
@@ -292,7 +271,6 @@ export function curlText(
   return lines.join("\n")
 }
 
-/** Collect the responses to show as example tabs, de-duplicated by kind. */
 export function collectResponses(
   def: ResolvedRoute,
   extra: ResolvedResponse[],
@@ -307,7 +285,6 @@ export function collectResponses(
   return out
 }
 
-/** The pretty-printed JSON body shown for a single response example. */
 export function responseExampleJson(resp: ResolvedResponse): string {
   const body: { [key: string]: ExampleValue } = {
     kind: resp.kind,
@@ -320,7 +297,6 @@ export function responseExampleJson(resp: ResolvedResponse): string {
 
 const INLINE_CODE_SPLIT = /`([^`]+?)(?:\{:([A-Za-z0-9_.-]+)\})?`/g
 
-/** Parse an author title into mdast phrasing, preserving inline-code spans. */
 export function titlePhrasing(title: string): PhrasingContent[] {
   const nodes: PhrasingContent[] = []
   let lastIndex = 0

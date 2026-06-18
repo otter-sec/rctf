@@ -93,10 +93,6 @@ const byEntryOrder = (a: DocsEntry, b: DocsEntry) =>
   (a.data.order ?? Infinity) - (b.data.order ?? Infinity) ||
   plainInlineText(a.data.title).localeCompare(plainInlineText(b.data.title))
 
-/**
- * The continuous reading chain `entry` belongs to: a group index with
- * `scroll: true` followed by its direct child pages. `null` when paged.
- */
 export function getScrollChain(
   entries: DocsEntry[],
   entry: DocsEntry,

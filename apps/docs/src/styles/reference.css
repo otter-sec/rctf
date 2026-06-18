@@ -35,10 +35,6 @@ article[data-reference] {
         display: flex;
         flex-direction: column;
         gap: var(--aside-gap);
-        /* The flex chain below sizes the code bodies so everything fits without
-           scrolling; auto is only a safety valve for viewports too short to hold
-           the tab strips themselves, so content degrades to a scroll rather than
-           being clipped away. */
         overflow-y: auto;
         overscroll-behavior: contain;
         scrollbar-width: none;
@@ -51,16 +47,6 @@ article[data-reference] {
           margin-block: 0;
         }
 
-        /* The aside shrinks to its content (max-block-size, not block-size) so a
-           short example leaves no empty space. Every structural wrapper
-           (version/response tab groups, their active panels, the code frames)
-           is a pass-through flex column that never grows but may shrink to
-           nothing. The tab strips and frame headers take their natural height;
-           the code bodies take their content height capped at half the aside,
-           and only shrink below that (scrolling internally) when the whole
-           stack would otherwise overflow. So a section is at most half the
-           aside, never taller than it needs, and the aside itself only scrolls
-           on viewports too short to hold the tab strips. */
         :where(tab-group, [role="tabpanel"]:not([hidden]), .expressive-code, figure) {
           display: flex;
           flex-direction: column;
@@ -91,10 +77,6 @@ article[data-reference] {
     }
   }
 
-  /* Generated request/response fields render as a definition list rather than a
-     table: the name and type sit on the lead line and the description flows
-     underneath, so a long type label (e.g. a 250-member enum union) wraps and
-     clamps instead of forcing a table column to overflow. */
   prose-content dl[data-field-list] {
     margin-block: var(--space-xs) var(--space-m);
     border-block: 2px solid var(--border);
@@ -116,8 +98,6 @@ article[data-reference] {
       min-inline-size: 0;
     }
 
-    /* The name and its required marker stay welded together so the `*` hugs the
-       field name instead of riding the column gap out toward the type. */
     [data-field-name] {
       display: inline-flex;
       align-items: baseline;
@@ -131,8 +111,6 @@ article[data-reference] {
       overflow-wrap: anywhere;
     }
 
-    /* The field name and type read as plain monospace (no inline-code pill),
-       keeping syntax-highlight colours. */
     code {
       background: none;
       padding: 0;
@@ -144,8 +122,6 @@ article[data-reference] {
       font-weight: var(--font-weight-medium);
     }
 
-    /* The type label can be arbitrarily long (large enums); cap it at a few
-       lines with an ellipsis instead of letting it grow the row unbounded. */
     [data-field-type] {
       min-inline-size: 0;
       font-size: var(--step--1);
@@ -162,9 +138,6 @@ article[data-reference] {
     }
   }
 
-  /* When a directive heading ("Request body", "Response fields") sits directly
-     above the list, drop the list's top margin so its first rule hugs the
-     heading instead of leaving a wide gap. */
   :where(h2, h3, h4, h5, h6) + dl[data-field-list] {
     margin-block-start: 0;
   }

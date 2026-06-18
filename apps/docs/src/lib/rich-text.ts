@@ -57,10 +57,7 @@ export async function inlineCodeNode(value: string): Promise<ElementContent> {
           )
         : h("code", rendered.properties, rendered.children)
     }
-  } catch {
-    // Rich text is used for navigation and metadata-adjacent labels. If syntax
-    // highlighting fails, the page should still render valid escaped HTML.
-  }
+  } catch {}
 
   return h("code", plainCodeValue(value))
 }
