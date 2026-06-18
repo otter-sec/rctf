@@ -58,13 +58,13 @@ article[data-reference] {
           flex: 0 0 auto;
         }
 
-        :where(.expressive-code:has(.frame.is-terminal), .frame pre) {
+        .frame pre {
           flex: 0 0 auto;
-          max-block-size: var(--aside-section);
         }
 
-        .frame pre {
+        .frame:not(.is-terminal) pre {
           min-block-size: var(--aside-code-min);
+          max-block-size: var(--aside-section);
           overflow-y: auto;
           overscroll-behavior: contain;
           scrollbar-width: none;
