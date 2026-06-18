@@ -78,7 +78,20 @@ const { crumbs, tree, wide } = Astro.props
     padding-inline: var(--grid-gutter);
     padding-block-start: var(--page-offset-top);
 
-    @media (width < 64rem) {
+    /* Tablet: nav sidebar stays, TOC moves atop the content column. */
+    @media (width >= 48rem) and (width < 64rem) {
+      grid-template-columns:
+        max(calc(2 * var(--grid-column-width) + var(--grid-gutter)), 9rem)
+        minmax(0, 1fr);
+      grid-template-rows: auto 1fr;
+      grid-template-areas: "nav toc" "nav content";
+
+      &:not(:has(page-toc)) {
+        grid-template-areas: "nav content" "nav content";
+      }
+    }
+
+    @media (width < 48rem) {
       grid-template-columns: 1fr;
       grid-template-rows: auto 1fr;
       padding-block-start: 0;
@@ -88,7 +101,7 @@ const { crumbs, tree, wide } = Astro.props
   page-header {
     display: contents;
 
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       display: block;
       grid-column: 1 / -1;
       position: sticky;
@@ -105,6 +118,10 @@ const { crumbs, tree, wide } = Astro.props
     grid-column: 1 / 3;
     grid-row: 1;
 
+    @media (width >= 48rem) and (width < 64rem) {
+      grid-area: nav;
+    }
+
     @media screen and (width >= 64rem) {
       position: fixed;
       inset-block: var(--page-offset-top) var(--page-offset-bottom);
@@ -118,6 +135,13 @@ const { crumbs, tree, wide } = Astro.props
     min-width: 0;
     grid-column: 10 / 13;
     grid-row: 1;
+
+    @media (width >= 48rem) and (width < 64rem) {
+      grid-area: toc;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
 
     @media screen and (width >= 64rem) {
       position: fixed;
@@ -144,7 +168,11 @@ const { crumbs, tree, wide } = Astro.props
       margin-block-start: var(--space-xl);
     }
 
-    @media (width < 64rem) {
+    @media (width >= 48rem) and (width < 64rem) {
+      grid-area: content;
+    }
+
+    @media (width < 48rem) {
       grid-column: 1 / -1;
       grid-row: auto;
       inline-size: 100%;

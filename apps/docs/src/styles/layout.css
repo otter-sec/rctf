@@ -50,7 +50,7 @@ html {
   scrollbar-gutter: stable;
 
   @media (width < 64rem) {
-    --bar-nav-height: calc(2rem + 2 * var(--space-2xs) + 2px);
+    --bar-nav-height: 0px;
     --bar-toc-height: 0px;
     scroll-padding-block-start: calc(
       var(--bar-nav-height) +
@@ -61,5 +61,11 @@ html {
     &:has(page-toc) {
       --bar-toc-height: calc(1.5 * var(--step--1) + 2 * var(--space-2xs) + 2px);
     }
+  }
+
+  /* Only mobile stacks the nav into a sticky top bar; the tablet range keeps
+     the nav as a side rail, so it adds no vertical scroll offset there. */
+  @media (width < 48rem) {
+    --bar-nav-height: calc(2rem + 2 * var(--space-2xs) + 2px);
   }
 }

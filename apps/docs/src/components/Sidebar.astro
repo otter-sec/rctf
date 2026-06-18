@@ -103,7 +103,17 @@ const section = NAVIGATION.find(
     gap: var(--space-2xs);
     height: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
 
-    @media (width < 64rem) {
+    /* Stays a vertical sidebar from the tablet range up; cancel the [data-bar]
+       chrome it would otherwise inherit between 48rem and 64rem. */
+    @media (width >= 48rem) {
+      padding: 0;
+      background-color: transparent;
+      backdrop-filter: none;
+      border-block-end: none;
+      border-image: none;
+    }
+
+    @media (width < 48rem) {
       position: static;
       height: auto;
       flex-direction: row;
@@ -130,7 +140,7 @@ const section = NAVIGATION.find(
       flex-shrink: 0;
     }
 
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       flex: 1;
     }
 
@@ -142,7 +152,7 @@ const section = NAVIGATION.find(
   }
 
   nav {
-    @media (width >= 64rem) {
+    @media (width >= 48rem) {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
@@ -154,7 +164,7 @@ const section = NAVIGATION.find(
       }
     }
 
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       order: 1;
       flex-basis: 100%;
       display: none;
@@ -170,7 +180,7 @@ const section = NAVIGATION.find(
   }
 
   aside:has(.menu-toggle input:checked) nav {
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       display: block;
     }
   }
@@ -218,7 +228,7 @@ const section = NAVIGATION.find(
     flex-shrink: 0;
     margin-inline-start: -0.5rem;
 
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       margin-inline-start: 0;
       margin-inline-end: -0.5rem;
     }
@@ -227,7 +237,7 @@ const section = NAVIGATION.find(
   .menu-toggle {
     display: none;
 
-    @media (width < 64rem) {
+    @media (width < 48rem) {
       display: inline-flex;
 
       input {
