@@ -10,7 +10,6 @@ import { headingAnchors } from './src/lib/heading-anchors'
 import { headingNamespace } from './src/lib/heading-namespace'
 import { temmlMath } from './src/lib/math'
 import { normalizeTabPanels } from './src/lib/normalize-tab-panels'
-import { scrollFade } from './src/lib/scroll-fade'
 import { tableDirective, tableScroll } from './src/lib/tables'
 import { unhandledDirectives } from './src/lib/unhandled-directives'
 
@@ -39,7 +38,6 @@ export default defineConfig({
         normalizeTabPanels,
         externalLinks,
         blockExpressiveCode,
-        scrollFade,
         headingNamespace,
         headingAnchors,
         tableScroll,

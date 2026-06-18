@@ -2,46 +2,13 @@
    the scroll extremes, so end content stays crisp and no JS tracks scroll state. */
 [data-scroll-fade] {
   --scroll-fade-size: 1.5rem;
-  --scroll-fade-mask: linear-gradient(
+
+  padding-block: var(--scroll-fade-size);
+  mask-image: linear-gradient(
     to bottom,
     transparent 0,
     black var(--scroll-fade-size),
     black calc(100% - var(--scroll-fade-size)),
     transparent 100%
   );
-
-  padding-block: var(--scroll-fade-size);
-  mask-image: var(--scroll-fade-mask);
-}
-
-/* The border lives on the scrolling `pre`, so two edge layers union with the fade
-   to keep the ring opaque. Expressive Code's `all: revert` drops mask-image, hence
-   the re-assert from a custom property (which survives `all`). */
-.expressive-code pre[data-scroll-fade] {
-  --scroll-fade-size: var(--ec-codePadBlk);
-  --scroll-fade-edge: var(--ec-brdWd, 2px);
-  --scroll-fade-mask:
-    linear-gradient(
-      to bottom,
-      transparent 0,
-      black var(--scroll-fade-size),
-      black calc(100% - var(--scroll-fade-size)),
-      transparent 100%
-    ),
-    linear-gradient(
-      to right,
-      black var(--scroll-fade-edge),
-      transparent var(--scroll-fade-edge),
-      transparent calc(100% - var(--scroll-fade-edge)),
-      black calc(100% - var(--scroll-fade-edge))
-    ),
-    linear-gradient(
-      to bottom,
-      black var(--scroll-fade-edge),
-      transparent var(--scroll-fade-edge),
-      transparent calc(100% - var(--scroll-fade-edge)),
-      black calc(100% - var(--scroll-fade-edge))
-    );
-
-  mask-image: var(--scroll-fade-mask);
 }
