@@ -200,7 +200,7 @@ export function contentDirectives() {
         case "aside": {
           ctx.setProperty(node, "data", {
             hName: "aside",
-            hProperties: { dataAside: "" },
+            hProperties: { dataAside: "", dataScrollFade: "" },
           })
           return
         }

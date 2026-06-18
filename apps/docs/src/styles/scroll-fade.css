@@ -1,0 +1,25 @@
+/* Static gradient mask that fades a scroll container's block edges. Reserving a
+   matching band of padding parks the fade over empty space at the scroll extremes,
+   so the first/last content stays crisp and the effect self-manages without JS. */
+[data-scroll-fade] {
+  --scroll-fade-size: 1.5rem;
+  --scroll-fade-mask: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--scroll-fade-size),
+    black calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+
+  padding-block: var(--scroll-fade-size);
+  mask-image: var(--scroll-fade-mask);
+}
+
+/* Code blocks reserve their band via the code element's own padding. Expressive
+   Code's `all: revert` strips the mask, so re-assert it above that reset's
+   specificity (the gradient rides a custom property, which survives `all`). */
+.expressive-code pre[data-scroll-fade] {
+  --scroll-fade-size: var(--ec-codePadBlk);
+
+  mask-image: var(--scroll-fade-mask);
+}
