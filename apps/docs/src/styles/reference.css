@@ -25,6 +25,7 @@ article[data-reference] {
           100svh - var(--page-offset-top) - var(--page-offset-bottom)
         );
         --aside-section: calc((var(--aside-block-size) - var(--aside-gap)) / 2);
+        --aside-code-min: 9rem;
 
         grid-column: 2;
         grid-row: 1 / span 9999;
@@ -50,8 +51,7 @@ article[data-reference] {
         :where(tab-group, [role="tabpanel"]:not([hidden]), .expressive-code, figure) {
           display: flex;
           flex-direction: column;
-          min-block-size: 0;
-          flex: 0 1 auto;
+          flex: 0 0 auto;
         }
 
         :where([role="tablist"], figcaption) {
@@ -59,12 +59,12 @@ article[data-reference] {
         }
 
         :where(.expressive-code:has(.frame.is-terminal), .frame pre) {
-          flex: 0 1 auto;
-          min-block-size: 0;
+          flex: 0 0 auto;
           max-block-size: var(--aside-section);
         }
 
         .frame pre {
+          min-block-size: var(--aside-code-min);
           overflow-y: auto;
           overscroll-behavior: contain;
           scrollbar-width: none;
