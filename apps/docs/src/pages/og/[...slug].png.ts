@@ -74,6 +74,7 @@ const wordmark = readFile(`${ASSETS}/wordmark-light.svg`)
 const sansRegular = readFile(`${ASSETS}/fonts/IBMPlexSans-Regular.ttf`)
 const sansMedium = readFile(`${ASSETS}/fonts/IBMPlexSans-Medium.ttf`)
 const monoRegular = readFile(`${ASSETS}/fonts/IBMPlexMono-Regular.ttf`)
+const monoMedium = readFile(`${ASSETS}/fonts/IBMPlexMono-Medium.ttf`)
 
 export async function getStaticPaths() {
   const docs = await getDocs()
@@ -86,11 +87,12 @@ export async function getStaticPaths() {
 export async function GET({ props }: { props: { entry: DocsEntry } }) {
   const { entry } = props
   const docs = await getDocs()
-  const [wordmarkSrc, regular, medium, mono] = await Promise.all([
+  const [wordmarkSrc, regular, medium, mono, monoMed] = await Promise.all([
     wordmark,
     sansRegular,
     sansMedium,
     monoRegular,
+    monoMedium,
   ])
   const title = entry.data.title
   const description = entry.data.description ?? null
@@ -108,6 +110,7 @@ export async function GET({ props }: { props: { entry: DocsEntry } }) {
       { name: "IBM Plex Sans", data: regular, weight: 400, style: "normal" },
       { name: "IBM Plex Sans", data: medium, weight: 500, style: "normal" },
       { name: "IBM Plex Mono", data: mono, weight: 400, style: "normal" },
+      { name: "IBM Plex Mono", data: monoMed, weight: 500, style: "normal" },
     ],
   })
   const png = await sharp(Buffer.from(svg)).png().toBuffer()
