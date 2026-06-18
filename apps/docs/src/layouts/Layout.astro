@@ -118,8 +118,14 @@ const { crumbs, tree, wide } = Astro.props
     grid-column: 1 / 3;
     grid-row: 1;
 
+    /* Fixed like desktop so the page's overscroll never moves it; the grid keeps
+       the nav column reserved, so pulling it out of flow shifts nothing. */
     @media (width >= 48rem) and (width < 64rem) {
       grid-area: nav;
+      position: fixed;
+      inset-block: var(--page-offset-top) var(--page-offset-bottom);
+      inset-inline-start: var(--grid-edge);
+      width: max(calc(2 * var(--grid-column-width) + var(--grid-gutter)), 9rem);
     }
 
     @media screen and (width >= 64rem) {
