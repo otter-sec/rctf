@@ -113,6 +113,17 @@ const section = NAVIGATION.find(
       border-image: none;
     }
 
+    /* Only the desktop rail is fixed and needs to scroll within the viewport.
+       In the tablet range it flows with the page: it fills the column height as
+       a floor (keeping the toggle anchored at the bottom) but grows past it so a
+       long nav extends the page instead of scrolling inside itself. */
+    @media (width >= 48rem) and (width < 64rem) {
+      height: auto;
+      min-block-size: calc(
+        100svh - var(--page-offset-top) - var(--page-offset-bottom)
+      );
+    }
+
     @media (width < 48rem) {
       position: static;
       height: auto;
@@ -155,6 +166,10 @@ const section = NAVIGATION.find(
     @media (width >= 48rem) {
       flex: 1;
       min-height: 0;
+    }
+
+    /* Only the fixed desktop rail scrolls internally; the tablet rail grows. */
+    @media (width >= 64rem) {
       overflow-y: auto;
       overscroll-behavior: contain;
       scrollbar-width: none;
