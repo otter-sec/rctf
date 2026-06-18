@@ -141,6 +141,13 @@ const { crumbs, tree, wide } = Astro.props
       position: sticky;
       top: 0;
       z-index: 10;
+
+      /* The bar sits inside the content column here, not edge-to-edge, so drop
+         the mobile full-bleed gutter and inset border so it aligns with prose. */
+      :global([data-bar]) {
+        padding-inline: 0;
+        border-image: none;
+      }
     }
 
     @media screen and (width >= 64rem) {
