@@ -1,7 +1,7 @@
 ---
 import ListIcon from "@/assets/icons/list.svg"
 import SearchIcon from "@/assets/icons/search.svg"
-import Logo from "@/assets/logo.svg"
+import Wordmark from "@/assets/wordmark.svg"
 import InlineText from "@/components/InlineText.astro"
 import SidebarTree from "@/components/SidebarTree.astro"
 import ThemeToggle from "@/components/ThemeToggle.astro"
@@ -25,8 +25,7 @@ const section = NAVIGATION.find(
 
 <aside data-bar>
   <a href="/" aria-label={SITE.title} class="brand">
-    <Logo />
-    <span>{SITE.title}</span>
+    <Wordmark aria-hidden="true" />
   </a>
   <nav data-scroll-fade>
     <ul>
@@ -128,28 +127,15 @@ const section = NAVIGATION.find(
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
     width: fit-content;
     flex-shrink: 0;
-    font-weight: var(--font-weight-medium);
-    font-size: var(--step-0);
     color: var(--foreground);
     text-decoration-line: none;
 
     svg {
-      inline-size: 1.125rem;
-      block-size: 1.125rem;
+      block-size: 1.25rem;
+      inline-size: auto;
       flex-shrink: 0;
-    }
-
-    @media (width < 48rem) {
-      flex: 1;
-    }
-
-    @media (width < 26rem) {
-      span {
-        display: none;
-      }
     }
   }
 
