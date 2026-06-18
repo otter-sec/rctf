@@ -56,7 +56,7 @@ The risky pattern is a pwn or RCE challenge served as one long-lived process. Ea
 
 [pwn.red/jail](https://github.com/redpwn/jail) is a small base image that forks per connection inside nsjail with reasonable defaults, and it usually takes only a couple of Dockerfile lines to adopt. kCTF challenges already ship nsjail when created with `$ <red>kctf</red> chal create`. For custom services, raw [nsjail](https://github.com/google/nsjail) is still a good fit when `<dim>--max_cpus</dim>`, `<dim>--rlimit_as</dim>`, `<dim>--time_limit</dim>`, and `<dim>--disable_proc</dim>` are tuned for the challenge.
 
-See the [shared-remote callout in Deploying challenges](/docs/meta/running-a-successful-ctf/deployment#shared-remote) for the deployment walkthrough.
+See the [shared-remote callout in Deploying challenges](/meta/running-a-successful-ctf/deployment#shared-remote) for the deployment walkthrough.
 
 ### Distributing malware samples or forensics artifacts unprotected
 

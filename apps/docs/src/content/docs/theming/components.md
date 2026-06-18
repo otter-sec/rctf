@@ -125,7 +125,7 @@ export const buttonVariants = tv({
 
 5. **Convert color tokens**
 
-   Replace shadcn's color tokens with rCTF's [layered color system](/docs/theming/colors/). The mapping depends on context, so use these as guidelines rather than strict rules:
+   Replace shadcn's color tokens with rCTF's [layered color system](/theming/colors/). The mapping depends on context, so use these as guidelines rather than strict rules:
 
    | rCTF token | Example | Light | Dark | Context |
    | --- | --- | --- | --- | --- |

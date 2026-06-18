@@ -10,17 +10,17 @@ aside: true
 
 | Route | Endpoint |
 | --- | --- |
-| [Public profile](/docs/api/users/profile/) | `<route>GET /api/[v2,v1]/users/:id</route>` |
-| [Own profile](/docs/api/users/self/) | `<route>GET /api/[v2,v1]/users/me</route>` |
-| [Update profile](/docs/api/users/update/) | `<route>PATCH /api/[v2,v1]/users/me</route>` |
-| [Update avatar](/docs/api/users/avatar/) | `<route>PATCH /api/v2/users/me/avatar</route>` |
-| [Set email auth](/docs/api/users/email/) | `<route>PUT /api/[v2,v1]/users/me/auth/email</route>` |
-| [Remove email auth](/docs/api/users/delete-email/) | `<route>DELETE /api/v1/users/me/auth/email</route>` |
-| [Set CTFtime auth](/docs/api/users/ctftime/) | `<route>PUT /api/v1/users/me/auth/ctftime</route>` |
-| [Remove CTFtime auth](/docs/api/users/delete-ctftime/) | `<route>DELETE /api/v1/users/me/auth/ctftime</route>` |
-| [List team members](/docs/api/users/members/) | `<route>GET /api/v1/users/me/members</route>` |
-| [Add a team member](/docs/api/users/create-member/) | `<route>POST /api/v1/users/me/members</route>` |
-| [Remove a team member](/docs/api/users/delete-member/) | `<route>DELETE /api/v1/users/me/members/:id</route>` |
+| [Public profile](/api/users/profile/) | `<route>GET /api/[v2,v1]/users/:id</route>` |
+| [Own profile](/api/users/self/) | `<route>GET /api/[v2,v1]/users/me</route>` |
+| [Update profile](/api/users/update/) | `<route>PATCH /api/[v2,v1]/users/me</route>` |
+| [Update avatar](/api/users/avatar/) | `<route>PATCH /api/v2/users/me/avatar</route>` |
+| [Set email auth](/api/users/email/) | `<route>PUT /api/[v2,v1]/users/me/auth/email</route>` |
+| [Remove email auth](/api/users/delete-email/) | `<route>DELETE /api/v1/users/me/auth/email</route>` |
+| [Set CTFtime auth](/api/users/ctftime/) | `<route>PUT /api/v1/users/me/auth/ctftime</route>` |
+| [Remove CTFtime auth](/api/users/delete-ctftime/) | `<route>DELETE /api/v1/users/me/auth/ctftime</route>` |
+| [List team members](/api/users/members/) | `<route>GET /api/v1/users/me/members</route>` |
+| [Add a team member](/api/users/create-member/) | `<route>POST /api/v1/users/me/members</route>` |
+| [Remove a team member](/api/users/delete-member/) | `<route>DELETE /api/v1/users/me/members/:id</route>` |
 
 :::
 

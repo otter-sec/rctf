@@ -22,7 +22,7 @@ order: 12
 
 This route deletes a team account. Admin users are protected from deletion here.
 
-This operation removes the team rather than hiding it from standings. [Update team](/docs/api/admin/team-update/) is the better fit when the intent is to ban a team while keeping its record.
+This operation removes the team rather than hiding it from standings. [Update team](/api/admin/team-update/) is the better fit when the intent is to ban a team while keeping its record.
 
 ::request-body{def="DeleteAdminUserRouteV2" source="params" title="Path parameters"}
 

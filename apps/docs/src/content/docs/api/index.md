@@ -160,11 +160,11 @@ The registration and recovery limits gate verification email delivery, and they 
 
 | Section | Scope |
 | --- | --- |
-| [Authentication](/docs/api/auth/) | Registration, verification, recovery, login, and token validation across V2 and V1 route contracts. |
-| [Challenges](/docs/api/challenges/) | Public challenge listing, solves, v1 flag submission, and the dynamic-scoring webhook. |
-| [Leaderboard](/docs/api/leaderboard/) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
-| [Users](/docs/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
-| [Admin](/docs/api/admin/) | Challenge management, users, verification queue, submissions, uploads, settings, admin bot service routes, and external-auth clients. |
-| [Integrations](/docs/api/integrations/) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
-| [External auth](/docs/api/external-auth/) | "Sign in with rCTF" flow for external services - client lookup, consent, and token exchange. |
-| [Responses](/docs/api/responses/) | Shared response kinds, error payloads, and common object models. |
+| [Authentication](/api/auth/) | Registration, verification, recovery, login, and token validation across V2 and V1 route contracts. |
+| [Challenges](/api/challenges/) | Public challenge listing, solves, v1 flag submission, and the dynamic-scoring webhook. |
+| [Leaderboard](/api/leaderboard/) | Current standings, graph data, challenge leaderboard metadata, search, and pagination. |
+| [Users](/api/users/) | Public profiles, self profile, updates, avatar upload, email/CTFtime auth, and team members. |
+| [Admin](/api/admin/) | Challenge management, users, verification queue, submissions, uploads, settings, admin bot service routes, and external-auth clients. |
+| [Integrations](/api/integrations/) | Client config, analytics script proxy, CTFtime, instancers, and participant admin bot routes. |
+| [External auth](/api/external-auth/) | "Sign in with rCTF" flow for external services - client lookup, consent, and token exchange. |
+| [Responses](/api/responses/) | Shared response kinds, error payloads, and common object models. |

@@ -97,7 +97,7 @@ Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpe
 | `<response>400 badAdminBotConfig</response>` | `{ error: string }{:ts}` | The admin bot provider did not accept the challenge source. |
 | `<response>404 badUnknownVerification</response>` | No data | The pending user verification was not found. |
 | `<response>401 badSignature</response>` | No data | The dynamic-scoring webhook signature, timestamp, or challenge target was rejected. The endpoint deliberately doesn't distinguish causes. |
-| `<response>400 badExternalAuthRequest</response>` | No data | An [external-auth](/docs/api/external-auth/) call was rejected. The same response is used for unknown client, wrong secret, wrong/expired/reused code, and mismatched redirect URI so the endpoint can't be probed. |
+| `<response>400 badExternalAuthRequest</response>` | No data | An [external-auth](/api/external-auth/) call was rejected. The same response is used for unknown client, wrong secret, wrong/expired/reused code, and mismatched redirect URI so the endpoint can't be probed. |
 
 :::
 

@@ -10,15 +10,15 @@ aside: true
 
 | Route | Endpoint |
 | --- | --- |
-| [Get client metadata](/docs/api/external-auth/get-client/) | `<route>GET /api/v2/external-auth/clients/:id</route>` |
-| [Authorize](/docs/api/external-auth/authorize/) | `<route>POST /api/v2/external-auth/authorize</route>` |
-| [Exchange code for token](/docs/api/external-auth/token/) | `<route>POST /api/v2/external-auth/token</route>` |
+| [Get client metadata](/api/external-auth/get-client/) | `<route>GET /api/v2/external-auth/clients/:id</route>` |
+| [Authorize](/api/external-auth/authorize/) | `<route>POST /api/v2/external-auth/authorize</route>` |
+| [Exchange code for token](/api/external-auth/token/) | `<route>POST /api/v2/external-auth/token</route>` |
 
 :::
 
 These routes power the "Sign in with rCTF" flow for external services. The user-facing consent page lives at `<route>/external-auth/authorize</route>`; the API routes here are what that page (and the external service's backend) call.
 
-The admin-side routes for registering and revoking external-auth clients are documented in [Admin](/docs/api/admin/). The operator walkthrough lives at [External apps](/docs/admin/external-auth/).
+The admin-side routes for registering and revoking external-auth clients are documented in [Admin](/api/admin/). The operator walkthrough lives at [External apps](/admin/external-auth/).
 
 :::warning[Not OAuth2]
 

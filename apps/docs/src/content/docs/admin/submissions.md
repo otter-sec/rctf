@@ -26,4 +26,4 @@ Each solve record includes the submitter's IP. The admin panel also has a submis
 
 The first three teams to solve a challenge are tracked as "bloods", recorded as **first blood** at index 0, **second blood** at index 1, and **third blood** at index 2.
 
-Blood status comes from the solve timestamp. If a [blood bot](/docs/integrations/bloodbot) is configured, it announces these milestones automatically as they're hit.
+Blood status comes from the solve timestamp. If a [blood bot](/integrations/bloodbot) is configured, it announces these milestones automatically as they're hit.

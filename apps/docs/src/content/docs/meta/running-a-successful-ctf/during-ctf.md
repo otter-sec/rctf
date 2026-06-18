@@ -89,7 +89,7 @@ If challenge attachments need updates (e.g., typo fixes or missing files), updat
 
 ## Hint policy
 
-As covered in the [prerequisites section](/docs/meta/running-a-successful-ctf/prerequisites#hints), a strict no-hint policy is the default for fairness. That said, structured hint releases can be appropriate for unsolved challenges as the competition progresses. If you release hints, follow this procedure:
+As covered in the [prerequisites section](/meta/running-a-successful-ctf/prerequisites#hints), a strict no-hint policy is the default for fairness. That said, structured hint releases can be appropriate for unsolved challenges as the competition progresses. If you release hints, follow this procedure:
 
 1. Around the halfway point of the competition, ask interested participants to open support tickets describing their current progress on unsolved challenges.
 2. The challenge author reviews the submitted progress and decides whether a hint is warranted and what to provide.

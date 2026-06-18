@@ -46,7 +46,7 @@ For new clients, prefer the V2 route. It returns more registration data when a p
 | Team | `<response>200 goodVerify</response>` | Returns a fresh `authToken`. |
 | Verify | `<response>200 goodEmailSet</response>` | Updates the team email after checking division ACLs again. |
 
-For pending registrations, the response body matches the immediate success response from [register a team](/docs/api/auth/register/). Team tokens are recovery or login credentials, so the response returns a fresh `authToken`. Email change tokens do not return data after the email is updated.
+For pending registrations, the response body matches the immediate success response from [register a team](/api/auth/register/). Team tokens are recovery or login credentials, so the response returns a fresh `authToken`. Email change tokens do not return data after the email is updated.
 
 ::response-body{def="VerifyRouteV2" response="goodRegisterV2" title="Response fields"}
 

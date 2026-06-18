@@ -122,4 +122,4 @@ Enforce a strict no-hint policy. Giving hints to individual teams looks like fav
 
 If a participant asks about a particular challenge, organizers should only confirm that the challenge infrastructure and reference solution still work (usually by running the reference exploit). Don't disclose anything else about the challenge.
 
-If hints or clarifications become necessary, see the [hint policy section](/docs/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information.
+If hints or clarifications become necessary, see the [hint policy section](/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information.

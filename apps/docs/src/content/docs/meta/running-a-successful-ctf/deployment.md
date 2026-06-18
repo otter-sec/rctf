@@ -61,10 +61,10 @@ In an instanced remote setup, each competitor gets a dedicated instance. This is
 
 rCTF v2 ships first-party support for instanced challenges, so you don't need a third-party integration here. Pick whichever backend matches your operational comfort level:
 
-- **[Docker instancer](/docs/integrations/instancer/docker)** is a bundled Python FastAPI service that runs on a standalone Docker host alongside Traefik and Redis. It's lightweight and a good fit for small-to-medium events.
-- **[Kubernetes instancer](/docs/integrations/instancer/kubernetes)** is a Go operator that reconciles `ChallengeInstance` custom resources into per-team namespaces with network policies, Traefik routes, and ACME wildcard TLS. It comes with a Terraform module for GKE, and is the scalable option.
+- **[Docker instancer](/integrations/instancer/docker)** is a bundled Python FastAPI service that runs on a standalone Docker host alongside Traefik and Redis. It's lightweight and a good fit for small-to-medium events.
+- **[Kubernetes instancer](/integrations/instancer/kubernetes)** is a Go operator that reconciles `ChallengeInstance` custom resources into per-team namespaces with network policies, Traefik routes, and ACME wildcard TLS. It comes with a Terraform module for GKE, and is the scalable option.
 
-The shared `<red>instancerConfig</red>` schema, participant lifecycle, and admin UI are covered in the [instancer overview](/docs/integrations/instancer).
+The shared `<red>instancerConfig</red>` schema, participant lifecycle, and admin UI are covered in the [instancer overview](/integrations/instancer).
 
 If you'd rather stick with an existing setup, third-party integrations like [Klodd](https://klodd.tjcsec.club/) still work against rCTF, but the first-party instancer is the recommended path now.
 
@@ -74,16 +74,16 @@ Instances can be deployed before the CTF begins. Be careful when deploying chall
 
 ## Admin bot
 
-rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript handlers in a Puppeteer-driven Chrome/Firefox session. The handlers sit alongside the challenge, validate participant input, and stream structured per-job logs back to the platform. Configuration, the handler API, scaling notes, and deployment guidance are all on the [Admin bot](/docs/integrations/admin-bot) page.
+rCTF v2 ships a first-party admin bot integration that runs trusted TypeScript handlers in a Puppeteer-driven Chrome/Firefox session. The handlers sit alongside the challenge, validate participant input, and stream structured per-job logs back to the platform. Configuration, the handler API, scaling notes, and deployment guidance are all on the [Admin bot](/integrations/admin-bot) page.
 
 ## Keeping challenges in sync
 
 Updating a challenge is where most operational pain comes from. Touching the source code without updating the published attachment leaves teams solving against stale handouts. Rebuilding the Docker image but forgetting to roll the running deployment leaves the flag pointing at the old binary. Tweaking `<red>instancerConfig</red>` in the admin UI without bumping the image causes new instances to come up with mismatched assets. Each of these is easy to miss in the moment and hard to debug after the fact.
 
 :::tip[Use Konata + CI as the single source of truth]
-Commit every challenge's `kona.yml{:file}` alongside the source, and let [Konata](/docs/integrations/konata) drive deployment from CI on every push to `main`. With the [Konata GitHub Action](/docs/integrations/konata#ci-integration), one commit can rebuild and push the Docker image, re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the running deployment, all from the same source tree, in the right order.
+Commit every challenge's `kona.yml{:file}` alongside the source, and let [Konata](/integrations/konata) drive deployment from CI on every push to `main`. With the [Konata GitHub Action](/integrations/konata#ci-integration), one commit can rebuild and push the Docker image, re-render attachments, refresh metadata on rCTF, and (for k8s-instancer) trigger a rollout of the running deployment, all from the same source tree, in the right order.
 :::
 
-Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile{:file}` export, a `$ <red>make</red> handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/docs/integrations/konata#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
+Pair that with **generated attachments** rather than hand-copied files. If a challenge produces its handout from the build (a multi-stage `Dockerfile{:file}` export, a `$ <red>make</red> handout` target, a script), reference that path from `<red>attachments.files</red>` and let Konata's [deterministic compressor](/integrations/konata#kona-compress) re-archive it on every sync. Same inputs always produce the same archive bytes, so rCTF's content-hash dedup leaves attachments alone when nothing changed and uploads exactly once when something did. You stop shuttling tarballs into the right folder, and the published attachment is always the one that came out of the latest build.
 
 The DiceCTF Quals 2026 challenge repository is a working reference for this workflow end-to-end. It includes challenge sources, `kona.yml{:file}` files, and a [`deploy.yaml{:file}`](https://github.com/dicegang/dicectf-quals-2026-challenges/blob/main/.github/workflows/deploy.yaml) that ships every change through Konata.

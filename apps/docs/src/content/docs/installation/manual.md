@@ -77,7 +77,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
    The `<red>tokenKey</red>` must be a base64-encoded 32-byte random key used for AES-GCM token encryption. Generate one with `$ <red>openssl</red> rand <dim>-base64</dim> 32`.
    :::
 
-   You can also set configuration values through environment variables. See [Configuration](/docs/configuration) for the full reference.
+   You can also set configuration values through environment variables. See [Configuration](/configuration) for the full reference.
 
 3. **Run database migrations**
 
@@ -126,7 +126,7 @@ $ <yellow>NODE_ENV</yellow>=production <yellow>WORKER_EXTENSION</yellow>=.js <re
 
 ## Scaling
 
-The `<red>instanceType</red>` config option lets you split an rCTF process into `<green>frontend</green>`-only or `<green>leaderboard</green>`-only roles for horizontal scaling. See [Scaling](/docs/installation/scaling) for the full table, the one-leaderboard-replica constraint, and the forced-update limitation in split mode.
+The `<red>instanceType</red>` config option lets you split an rCTF process into `<green>frontend</green>`-only or `<green>leaderboard</green>`-only roles for horizontal scaling. See [Scaling](/installation/scaling) for the full table, the one-leaderboard-replica constraint, and the forced-update limitation in split mode.
 
 ## Running tests
 

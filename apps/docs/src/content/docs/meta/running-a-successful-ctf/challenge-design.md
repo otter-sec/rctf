@@ -8,7 +8,7 @@ Before you start authoring challenges, settle on the general format and scope of
 
 - The event should last for either 24 or 48 hours and be held on a weekend or Friday night.
 
-- Challenges should conform to [standard CTF categories](/docs/theming/categories#default-categories).
+- Challenges should conform to [standard CTF categories](/theming/categories#default-categories).
 
 - Each category should contain approximately 2-6 challenges, with a similar number of challenges across all categories.
 
@@ -38,7 +38,7 @@ Each challenge should include the following:
 | --- | --- | --- |
 | **Title** | A memorable name. The typical convention is to use [Kebab case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case/) for titles. Please be fun with the title rather than calling it `keygen` or `pwnme` or `warmup` or `crackme`. | Required |
 | **Description** | Context and necessary information for the challenge. Descriptions are often themed and playful. | Required |
-| **Hints** | Avoid actually using the "Hints" field, but rather use hints reactively during the CTF for unsolved challenges (e.g., after gauging progress at the 24-hour mark). See [Hint policy](/docs/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information. | Optional, uncommon |
+| **Hints** | Avoid actually using the "Hints" field, but rather use hints reactively during the CTF for unsolved challenges (e.g., after gauging progress at the 24-hour mark). See [Hint policy](/meta/running-a-successful-ctf/during-ctf#hint-policy) for more information. | Optional, uncommon |
 | **Category** | The primary category (the one most aligned with the challenge, for challenges that fit multiple categories). | Required |
 | **Author** | The challenge author. Meta challenges, such as survey or sanity checks, should be authored by "Team" or some other umbrella name. | Optional, common |
 | **Tags** | Additional categorizations. Tags are often used for bounties, challenges part of a series, or challenges that fit into multiple categories. | Optional, common |
@@ -91,7 +91,7 @@ CMD ["python", "app.py"]
 
 #### Using with rCTF instancer
 
-If you're using rCTF's [docker instancer integration](/docs/integrations/instancer), define the Docker Compose-like configuration in the challenge's `<red>instancerConfig</red>` field. The instancer handles container lifecycle, networking, and cleanup automatically.
+If you're using rCTF's [docker instancer integration](/integrations/instancer), define the Docker Compose-like configuration in the challenge's `<red>instancerConfig</red>` field. The instancer handles container lifecycle, networking, and cleanup automatically.
 
 ## Pre-event checklist
 

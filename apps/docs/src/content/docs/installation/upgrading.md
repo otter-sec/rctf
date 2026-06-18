@@ -151,4 +151,4 @@ v2 adds the following configuration sections:
 | `<red>proxy</red>`             | Reverse proxy and Cloudflare settings        |
 | `<red>maxAvatarSize</red>`     | Maximum avatar upload size (default 1 MB)    |
 
-See the [Configuration](/docs/configuration) reference for details on every option.
+See the [Configuration](/configuration) reference for details on every option.

@@ -14,6 +14,6 @@ order: 19
 
 This route shows runtime setting overrides and config defaults side by side. Runtime overrides come from the database. Defaults come from config files and environment variables.
 
-[Update settings](/docs/api/admin/settings-update/) can change or clear runtime overrides without restarting the server.
+[Update settings](/api/admin/settings-update/) can change or clear runtime overrides without restarting the server.
 
 ::response-body{def="GetAdminSettingsRouteV2" response="goodAdminSettings" title="Response fields"}

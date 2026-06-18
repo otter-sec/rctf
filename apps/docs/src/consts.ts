@@ -13,7 +13,7 @@ export const SITE = {
 } as const
 
 export const NAVIGATION = [
-  { href: "/docs", label: "Docs" },
+  { href: "/", label: "Docs" },
 ]
 
 export const DOCS = {

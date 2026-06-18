@@ -54,7 +54,7 @@ For shared-remote VPS or bare-VM challenges without Kubernetes `NetworkPolicy`, 
 
 From a test pod, run `$ <red>curl</red> http://169.254.169.254`. The request should fail. If the cluster is dual-stack, also test the IPv6 metadata address. On bare-metal clusters, this catches CNI configurations that silently ignore the intended policy.
 
-For rCTF Kubernetes instancer deployments, the [Kubernetes instancer](/docs/integrations/instancer/kubernetes#network-policies) ships a `NetworkPolicy` per instance namespace that excludes RFC1918, CGNAT, and link-local ranges by default. That covers IMDS on IPv4. The Terraform module also enables GKE `workload_metadata_concealment`. Opt into public egress with `egress: true{:yml}` on the pod rather than removing the policy.
+For rCTF Kubernetes instancer deployments, the [Kubernetes instancer](/integrations/instancer/kubernetes#network-policies) ships a `NetworkPolicy` per instance namespace that excludes RFC1918, CGNAT, and link-local ranges by default. That covers IMDS on IPv4. The Terraform module also enables GKE `workload_metadata_concealment`. Opt into public egress with `egress: true{:yml}` on the pod rather than removing the policy.
 
 The bundled GKE Terraform module provisions an IPv4-only cluster, so the IPv6 IMDS address `[fd00:ec2::254]` is unreachable from challenge pods because the cluster has no IPv6. If you switch the cluster to dual-stack, the shipped `NetworkPolicy` has no IPv6 allow rule and will implicitly deny IPv6 egress. That keeps IPv6 IMDS blocked, but challenges that need IPv6 internet egress will also fail until you add an explicit IPv6 `IPBlock` with matching `fd00::/8` and `fe80::/10` exceptions.
 
@@ -98,9 +98,9 @@ For nsjail services, use `<dim>--rlimit_nproc</dim>`, `<dim>--rlimit_nofile</dim
 
 Before release, test challenge services with intentionally abusive clients. Include `$ :(){ :|:& };:`, `$ <red>dd</red> if=/dev/zero of=/tmp/x`, `$ for i in $(<red>seq</red> 100000); do exec {fd}<>/dev/null; done`, and slow TCP connections where the challenge uses a shared remote.
 
-The [Docker instancer](/docs/integrations/instancer/docker#docker-challenge-config) defaults to `6m` memory, `1.0` CPU, `1024` PIDs, and `1024` nofile per service when not overridden. It also exposes `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>` for tuning. The GKE Terraform module sets kubelet `<red>podPidsLimit</red>` to `1024{:ts}` cluster-wide through `<red>gcp_instancer_pod_pids_limit</red>`, so a fork bomb inside a challenge pod hits that cap before the node `kernel.pid_max`.
+The [Docker instancer](/integrations/instancer/docker#docker-challenge-config) defaults to `6m` memory, `1.0` CPU, `1024` PIDs, and `1024` nofile per service when not overridden. It also exposes `<red>mem_limit</red>`, `<red>cpus</red>`, `<red>pids_limit</red>`, and `<red>ulimits</red>` for tuning. The GKE Terraform module sets kubelet `<red>podPidsLimit</red>` to `1024{:ts}` cluster-wide through `<red>gcp_instancer_pod_pids_limit</red>`, so a fork bomb inside a challenge pod hits that cap before the node `kernel.pid_max`.
 
-The Kubernetes side otherwise leaves several settings to the challenge author. Ephemeral-storage limits, `<red>readOnlyRootFilesystem</red>`, FD ulimits, and `<red>terminationGracePeriodSeconds</red>` are not defaulted. See the [per-pod safety checklist](/docs/integrations/instancer/kubernetes#per-pod-safety-checklist) on the Kubernetes instancer page for the full list of fields to set.
+The Kubernetes side otherwise leaves several settings to the challenge author. Ephemeral-storage limits, `<red>readOnlyRootFilesystem</red>`, FD ulimits, and `<red>terminationGracePeriodSeconds</red>` are not defaulted. See the [per-pod safety checklist](/integrations/instancer/kubernetes#per-pod-safety-checklist) on the Kubernetes instancer page for the full list of fields to set.
 
 When in doubt, treat every challenge image as already compromised. Assume participants can get code execution inside the challenge container, even when the intended solution isn't RCE.
 
@@ -138,4 +138,4 @@ The first few minutes after start pile up concurrent registrations, logins, chal
 
 Turn on captcha for sensitive unauthenticated actions, verify rate limits on sensitive platform paths, and configure trusted proxy IP ranges before the load test. The test should use the production proxy chain, not a local or staging shortcut.
 
-rCTF helps with this through the leaderboard worker and Redis cache, nginx brotli and gzip support, immutable cache headers, [Docker](/docs/integrations/instancer/docker) and [Kubernetes](/docs/integrations/instancer/kubernetes) instancers for per-team lifecycles, GKE module autoscaling, captcha integrations for [reCAPTCHA, hCaptcha, and Turnstile](/docs/providers/captcha), and default route rate limits.
+rCTF helps with this through the leaderboard worker and Redis cache, nginx brotli and gzip support, immutable cache headers, [Docker](/integrations/instancer/docker) and [Kubernetes](/integrations/instancer/kubernetes) instancers for per-team lifecycles, GKE module autoscaling, captcha integrations for [reCAPTCHA, hCaptcha, and Turnstile](/providers/captcha), and default route rate limits.

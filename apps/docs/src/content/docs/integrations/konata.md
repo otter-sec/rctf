@@ -209,7 +209,7 @@ discovery:
 | `<red>endpoints</red>` | Static endpoints (host/port) rendered into the description by the endpoints template. |
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
 | `<red>sort_weight</red>` | Numeric sort hint passed through to rCTF. |
-| `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/docs/integrations/instancer)) |
+| `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer)) |
 
 ### Attachments
 
@@ -372,7 +372,7 @@ deployment:
 
 ### Instanced challenges
 
-For challenges using the rCTF instancer, add `<red>instancer_config</red>`. The schema mirrors the [rCTF instancer config](/docs/integrations/instancer#challenge-configuration). The outer envelope is the same across providers, and only the inner `<red>config</red>` differs (Docker Compose-like for docker-instancer, `<red>pods[]</red>` for k8s-instancer). The whole Konata schema accepts both `snake_case` and `camelCase` keys.
+For challenges using the rCTF instancer, add `<red>instancer_config</red>`. The schema mirrors the [rCTF instancer config](/integrations/instancer#challenge-configuration). The outer envelope is the same across providers, and only the inner `<red>config</red>` differs (Docker Compose-like for docker-instancer, `<red>pods[]</red>` for k8s-instancer). The whole Konata schema accepts both `snake_case` and `camelCase` keys.
 
 ```yaml title="web/mirror-temple/kona.yml"
 challenges:

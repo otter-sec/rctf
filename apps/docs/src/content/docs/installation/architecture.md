@@ -8,7 +8,7 @@ rCTF ships as a single container managed by `supervisord`. Inside the container,
 
 The container expects to sit behind a reverse proxy, with PostgreSQL and Redis running as external services. The bundled `compose.yml{:file}` wires those dependencies together for a single-node deployment.
 
-For deployment steps, see [Installation](/docs/installation) and the [VPS setup walkthrough](/docs/meta/running-a-successful-ctf/setup). This page is a reference for the inner architecture.
+For deployment steps, see [Installation](/installation) and the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup). This page is a reference for the inner architecture.
 
 ## Container layout
 
@@ -196,10 +196,10 @@ The container only contains the rCTF application, nginx, and supervisor. Everyth
 
 Optional dependencies that the deployer must supply when the matching provider is enabled:
 
-- **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers. See [Uploads](/docs/providers/uploads).
+- **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers. See [Uploads](/providers/uploads).
 - **SES, SMTP, or another email provider** for the email integration.
 - **OpenAI** (or another moderation provider) for avatar moderation.
-- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances. See [Instancer](/docs/integrations/instancer).
+- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances. See [Instancer](/integrations/instancer).
 - **Captcha provider** (reCAPTCHA, hCaptcha, or Turnstile). The CSP already permits all three.
 
 The bundled `compose.yml{:file}` pins one PostgreSQL and one Redis container alongside `rctf`. The `rctf` service exposes `127.0.0.1:8080` and expects a reverse proxy (typically nginx or Caddy on the host) to terminate TLS and forward to it.

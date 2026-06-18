@@ -39,7 +39,7 @@ The `<red>protectedEndpoints</red>` array controls which actions require captcha
 Only the actions listed in `<red>protectedEndpoints</red>` will require captcha. Unlisted actions proceed without verification.
 
 :::note
-Captcha is not the only protection on email-sending endpoints. The `<green>register</green>` and `<green>recover</green>` actions are additionally [rate limited](/docs/api#rate-limits) per client IP and per target email, regardless of captcha configuration.
+Captcha is not the only protection on email-sending endpoints. The `<green>register</green>` and `<green>recover</green>` actions are additionally [rate limited](/api#rate-limits) per client IP and per target email, regardless of captcha configuration.
 :::
 
 ## Providers

@@ -25,7 +25,7 @@ divisions:
 defaultDivision: open
 ```
 
-You can restrict which divisions are available based on email with [division ACLs](/docs/configuration#division-acls).
+You can restrict which divisions are available based on email with [division ACLs](/configuration#division-acls).
 
 ## Team members
 

@@ -60,7 +60,7 @@ Verification email delivery is rate limited independently of captcha. Each clien
 
 #### Response
 
-If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/docs/api/auth/verify/) to finish registration.
+If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
 
 If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegisterV2</response>` with both tokens.
 
@@ -76,7 +76,7 @@ If no verification step is needed, the route creates the team immediately and re
 
 #### Response
 
-If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/docs/api/auth/verify/) to finish registration.
+If email verification is enabled, the route returns `<response>200 goodVerifySent</response>`. The team is not created yet. Submit the verification token to [verify a token](/api/auth/verify/) to finish registration.
 
 If no verification step is needed, the route creates the team immediately and returns `<response>200 goodRegister</response>` with an `authToken`.
 

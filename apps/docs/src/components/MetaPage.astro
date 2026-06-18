@@ -8,6 +8,7 @@ type Props = {
   description?: string
   noindex?: boolean
   canonical?: string
+  image?: string
 }
 
 const {
@@ -15,6 +16,7 @@ const {
   description = SITE.description,
   noindex = false,
   canonical: canonicalPath,
+  image,
 } = Astro.props
 
 const base = Astro.site ?? new URL(Astro.url.origin)
@@ -23,7 +25,7 @@ const plainDescription = plainInlineText(description)
 const ogTitle = plainTitle ?? SITE.title
 const fullTitle = plainTitle ? pageTitle(plainTitle) : SITE.title
 const canonical = new URL(canonicalPath ?? Astro.url.pathname, base)
-const ogImage = new URL(SITE.defaultPageImage, base)
+const ogImage = new URL(image ?? SITE.defaultPageImage, base)
 ---
 
 <title>{fullTitle}</title>

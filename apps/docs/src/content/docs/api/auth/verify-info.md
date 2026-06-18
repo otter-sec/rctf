@@ -24,4 +24,4 @@ A valid token returns `<response>200 goodVerifyInfo</response>` with enough deta
 
 ::response-body{def="GetVerifyInfoRouteV2" response="goodVerifyInfo" title="Response fields"}
 
-Previewing does not mark the token as used. The same token still has to be submitted to [verify a token](/docs/api/auth/verify/) to complete the action.
+Previewing does not mark the token as used. The same token still has to be submitted to [verify a token](/api/auth/verify/) to complete the action.

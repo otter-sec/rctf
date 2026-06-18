@@ -278,7 +278,7 @@ The controller itself runs with its own RBAC from `apps/k8s-controller/config/{:
 
 ## Example challenge config (Konata)
 
-A complete instanced challenge as it would live in a [Konata](/docs/integrations/konata) deployment repo. This is the `web/mirror-temple` config from the DiceCTF Quals 2026 challenge repository. Konata builds and pushes the image, then forwards `<red>instancer_config</red>` straight to rCTF, which hands it to the k8s-instancer provider.
+A complete instanced challenge as it would live in a [Konata](/integrations/konata) deployment repo. This is the `web/mirror-temple` config from the DiceCTF Quals 2026 challenge repository. Konata builds and pushes the image, then forwards `<red>instancer_config</red>` straight to rCTF, which hands it to the k8s-instancer provider.
 
 ```yaml title="web/mirror-temple/kona.yml"
 challenges:
@@ -358,7 +358,7 @@ Things worth pointing at in this example:
 - **`<red>{{ images[challenge.name] }}</red>`** resolves to the fully-qualified registry path Konata pushed to (`<red>registries.instancer-challenges</red>` + the image name + tag).
 - **`<red>flags.rctf.file: flag.txt</red>`** lets the flag live in a sibling file Konata reads at sync time, so the challenge directory stays self-contained.
 
-For the rest of the Konata schema, see [Konata](/docs/integrations/konata).
+For the rest of the Konata schema, see [Konata](/integrations/konata).
 
 ## Local development with Kind
 

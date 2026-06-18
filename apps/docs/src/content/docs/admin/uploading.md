@@ -4,7 +4,7 @@ description: Uploading challenge files in rCTF.
 order: 5
 ---
 
-Challenge file attachments are uploaded through the admin panel and stored via the configured [upload provider](/docs/providers/uploads).
+Challenge file attachments are uploaded through the admin panel and stored via the configured [upload provider](/providers/uploads).
 
 ## Uploading files
 

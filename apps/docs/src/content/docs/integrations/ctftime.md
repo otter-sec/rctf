@@ -60,4 +60,4 @@ After the CTF ends, you can export the leaderboard in CTFtime's format for score
 
 The platform provides a leaderboard export in CTFtime's JSON format, accessible to users with `<green>leaderboardRead</green>` permission.
 
-See [After the CTF](/docs/meta/running-a-successful-ctf/after-ctf) for the full scoreboard submission procedure.
+See [After the CTF](/meta/running-a-successful-ctf/after-ctf) for the full scoreboard submission procedure.

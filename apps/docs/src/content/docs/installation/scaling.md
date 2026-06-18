@@ -22,7 +22,7 @@ Memory metrics for the same window weren't retained. Expect a similarly modest f
 The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running rCTF v2, so if something unexpected blew up in CPU or memory during the CTF, we wanted enough runway to diagnose and patch without the platform tipping over in the meantime. A much smaller instance would have been plenty for the actual observed load. `CPX62` works, but don't treat it as a recommended baseline.
 :::
 
-A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is what the [VPS setup walkthrough](/docs/meta/running-a-successful-ctf/setup) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
+A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
 
 ## Instance types
 

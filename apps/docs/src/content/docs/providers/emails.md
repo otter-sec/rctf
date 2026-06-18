@@ -28,7 +28,7 @@ email:
 Without an email provider, registrations complete immediately without verification (no email goes out), users can't recover their accounts, and email-based division ACLs can't be enforced.
 :::
 
-Registration and recovery emails are [rate limited](/docs/api#rate-limits) per client IP and per destination address. This protects your sending quota and domain reputation from abuse, even when captcha is not configured for those actions. Make sure the [proxy settings](/docs/configuration#proxy) are correct so the real client IP reaches the rate limiter.
+Registration and recovery emails are [rate limited](/api#rate-limits) per client IP and per destination address. This protects your sending quota and domain reputation from abuse, even when captcha is not configured for those actions. Make sure the [proxy settings](/configuration#proxy) are correct so the real client IP reaches the rate limiter.
 
 ## Providers
 

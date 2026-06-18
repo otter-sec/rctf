@@ -56,7 +56,7 @@ Each challenge category in rCTF has its own color palette, icon, and display nam
 
 ## Default categories
 
-Each of the default categories uses a color specified in [Category colors](/docs/theming/colors/#category-colors).
+Each of the default categories uses a color specified in [Category colors](/theming/colors/#category-colors).
 
 :::table{cols="auto auto auto auto"}
 

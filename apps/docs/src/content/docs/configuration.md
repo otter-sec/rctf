@@ -35,7 +35,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
 | `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit; `0` disables the cap |
 | `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
-| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/docs/providers/uploads). |
+| `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/providers/uploads). |
 | `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
 ### Database
@@ -74,7 +74,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_FAVICON_URL{:sh}` | `string{:ts}` | Favicon URL |
 | `RCTF_META_DESCRIPTION{:sh}` | `string{:ts}` | Meta description |
 | `RCTF_IMAGE_URL{:sh}` | `string{:ts}` | Meta image URL |
-| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/docs/installation/upgrading#analytics-provider). |
+| `RCTF_GLOBAL_SITE_TAG{:sh}` | `string{:ts}` | Google Analytics tag. Deprecated and auto-converted to `<red>analytics.provider</red>` at startup. See [Upgrading from v1](/installation/upgrading#analytics-provider). |
 
 ### Email
 
@@ -117,8 +117,8 @@ idleTimeout: 65 # Idle connection timeout in seconds
 | `<red>ctfName</red>` | `string{:ts}` | - | Display name of your CTF |
 | `<red>origin</red>` | `string{:ts}` | - | Public URL of your CTF (no trailing slash) |
 | `<red>tokenKey</red>` | `string{:ts}` | - | Base64-encoded 32-byte key for AES-GCM token encryption |
-| `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/docs/installation/scaling) before splitting roles. |
-| `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. `0{:ts}` disables the force-exit cap. See [Scaling](/docs/installation/scaling#graceful-shutdown). |
+| `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling) before splitting roles. |
+| `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. `0{:ts}` disables the force-exit cap. See [Scaling](/installation/scaling#graceful-shutdown). |
 | `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Must be at most `255{:ts}` (Bun's limit) - larger values are rejected at startup; `0{:ts}` disables the timeout. |
 
 :::warning
@@ -266,7 +266,7 @@ captcha:
 
 Available captcha actions: `<green>register</green>`, `<green>recover</green>`, `<green>setEmail</green>`, `<green>instancerStart</green>`, `<green>instancerExtend</green>`, `<green>avatarUpload</green>`, `<green>adminBotSubmit</green>`.
 
-See [Captcha Providers](/docs/providers/captcha) for provider-specific configuration.
+See [Captcha Providers](/providers/captcha) for provider-specific configuration.
 
 ### Providers
 
@@ -293,7 +293,7 @@ instancerProvider:
 | `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
 | `<red>instancerProvider</red>` | `object{:ts}` | - | Challenge instancer provider (optional) |
 
-See the [Providers](/docs/providers) section for detailed configuration of each provider.
+See the [Providers](/providers) section for detailed configuration of each provider.
 
 ### Admin bot
 
@@ -328,7 +328,7 @@ email:
 | `<red>email.from</red>` | `string{:ts}` | - | Sender email address (required if email enabled) |
 | `<red>email.logoUrl</red>` | `string{:ts}` | - | Logo URL for email templates (optional) |
 
-See [Email Providers](/docs/providers/emails) for provider-specific options.
+See [Email Providers](/providers/emails) for provider-specific options.
 
 ### UI
 
@@ -419,7 +419,7 @@ avatarsModeration:
 | `<red>avatarsModeration.provider</red>` | `object{:ts}` | - | Moderation provider for avatar uploads |
 | `<red>avatarsModeration.allowOnInternalError</red>` | `boolean{:ts}` | `true{:ts}` | Allow avatar upload if moderation API fails |
 
-See [Moderation Providers](/docs/providers/moderation) for details.
+See [Moderation Providers](/providers/moderation) for details.
 
 ### Proxy
 
@@ -464,7 +464,7 @@ bloodBot:
 
 Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 
-See [Blood Bot](/docs/integrations/bloodbot) for more details.
+See [Blood Bot](/integrations/bloodbot) for more details.
 
 ## Complete example
 

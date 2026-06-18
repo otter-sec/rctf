@@ -10,12 +10,12 @@ aside: true
 
 | Route | Endpoint |
 | --- | --- |
-| [Register a team](/docs/api/auth/register/) | `<route>POST /api/[v2,v1]/auth/register</route>` |
-| [Verify a token](/docs/api/auth/verify/) | `<route>POST /api/[v2,v1]/auth/verify</route>` |
-| [Recover an account](/docs/api/auth/recover/) | `<route>POST /api/[v2,v1]/auth/recover</route>` |
-| [Preview a verification token](/docs/api/auth/verify-info/) | `<route>GET /api/v2/auth/verify-info</route>` |
-| [Log in](/docs/api/auth/login/) | `<route>POST /api/v1/auth/login</route>` |
-| [Test an auth token](/docs/api/auth/test/) | `<route>GET /api/v1/auth/test</route>` |
+| [Register a team](/api/auth/register/) | `<route>POST /api/[v2,v1]/auth/register</route>` |
+| [Verify a token](/api/auth/verify/) | `<route>POST /api/[v2,v1]/auth/verify</route>` |
+| [Recover an account](/api/auth/recover/) | `<route>POST /api/[v2,v1]/auth/recover</route>` |
+| [Preview a verification token](/api/auth/verify-info/) | `<route>GET /api/v2/auth/verify-info</route>` |
+| [Log in](/api/auth/login/) | `<route>POST /api/v1/auth/login</route>` |
+| [Test an auth token](/api/auth/test/) | `<route>GET /api/v1/auth/test</route>` |
 
 :::
 

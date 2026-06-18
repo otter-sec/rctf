@@ -23,7 +23,7 @@ order: 8
 
 This route shows teams for the admin panel. Query parameters control pagination, sorting, and name or email search.
 
-[Filter teams](/docs/api/admin/team-filter/) is available when a UI also needs status or division filters.
+[Filter teams](/api/admin/team-filter/) is available when a UI also needs status or division filters.
 
 ::request-body{def="GetAdminUsersRouteV2" source="query" title="Query parameters"}
 

@@ -6,7 +6,7 @@ order: 1
 
 The Docker instancer is a Python FastAPI service that manages Docker containers, networks, volumes, Redis instance locks, Redis expirations, and Traefik labels. It's the lightweight option for per-team challenge instances and is what the bundled Compose stack ships out of the box.
 
-For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/docs/integrations/instancer).
+For the participant lifecycle, the common `<red>instancerConfig</red>` fields, and endpoint-kind semantics, see [Instancer](/integrations/instancer).
 
 ## Deployment
 

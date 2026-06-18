@@ -42,7 +42,7 @@ Recovery is rate limited independently of captcha so the endpoint cannot be used
 
 #### Response
 
-When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. Submit the recovery token from the email to [verify a token](/docs/api/auth/verify/) to mint a fresh auth token.
+When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. Submit the recovery token from the email to [verify a token](/api/auth/verify/) to mint a fresh auth token.
 
 :::
 
@@ -54,7 +54,7 @@ When email delivery is configured and the request passes validation, the route r
 
 #### Response
 
-When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. The recovery token from the email can be exchanged for an auth token with [log in](/docs/api/auth/login/) or submitted to [verify a token](/docs/api/auth/verify/).
+When email delivery is configured and the request passes validation, the route returns `<response>200 goodVerifySent</response>`. The recovery token from the email can be exchanged for an auth token with [log in](/api/auth/login/) or submitted to [verify a token](/api/auth/verify/).
 
 :::
 

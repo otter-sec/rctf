@@ -6,7 +6,7 @@ order: 7
 
 These are issues that keep showing up in CTF retrospectives and event operations. The point isn't to make every organizer paranoid, but rather to surface the failure modes that matter early enough to handle them calmly.
 
-The notes are split across three pages. This page covers planning and onsite issues; the rest live in [Infrastructure](/docs/meta/running-a-successful-ctf/common-mistakes/infrastructure) and [Challenges](/docs/meta/running-a-successful-ctf/common-mistakes/challenges).
+The notes are split across three pages. This page covers planning and onsite issues; the rest live in [Infrastructure](/meta/running-a-successful-ctf/common-mistakes/infrastructure) and [Challenges](/meta/running-a-successful-ctf/common-mistakes/challenges).
 
 ## Planning
 

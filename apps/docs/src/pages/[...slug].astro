@@ -87,6 +87,7 @@ const editUrlOf = (chained: DocsEntry) =>
     slot="head"
     title={entry.data.title}
     description={entry.data.description}
+    image={`/og/${entry.id}.png`}
     canonical={isChain && entry.id !== chain[0].id
       ? docsHref(chain[0].id)
       : undefined}

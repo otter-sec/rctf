@@ -16,8 +16,8 @@ Treat challenge images as hostile. Set resource limits, keep containers or pods 
 
 This page covers the parts that are the same for both providers, namely the architecture, the common challenge fields, and the participant lifecycle. The provider-specific deployment guides live one level deeper:
 
-- [Docker instancer](/docs/integrations/instancer/docker) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
-- [Kubernetes instancer](/docs/integrations/instancer/kubernetes) is a Go operator driving GKE, Traefik, and Terraform.
+- [Docker instancer](/integrations/instancer/docker) is a bundled Python FastAPI service driving Docker, Traefik, and Redis.
+- [Kubernetes instancer](/integrations/instancer/kubernetes) is a Go operator driving GKE, Traefik, and Terraform.
 
 ## Architecture
 
@@ -60,7 +60,7 @@ instancerProvider:
 | `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 
-See [Docker instancer](/docs/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
+See [Docker instancer](/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
 :::
 :::tab[Kubernetes]
 `<green>instancer/k8s-instancer</green>` creates cluster-scoped `ChallengeInstance` custom resources:
@@ -86,13 +86,13 @@ instancerProvider:
 | `K8S_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `<red>caCertificate</red>`. |
 
-See [Kubernetes instancer](/docs/integrations/instancer/kubernetes) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
+See [Kubernetes instancer](/integrations/instancer/kubernetes) for the Terraform deployment walkthrough and Kubernetes-specific challenge schema.
 :::
 ::::
 
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/docs/integrations/konata) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
+Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
@@ -115,7 +115,7 @@ instancerConfig:
 | `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. Don't change it after launch. |
 | `<red>timeoutMilliseconds</red>` | Instance lifetime for create and extend operations. |
 | `<red>extendable</red>` | Lets participants extend their instance when set to `true{:ts}`. |
-| `<red>config</red>` | Provider-specific service or pod configuration. See [Docker](/docs/integrations/instancer/docker#docker-challenge-config) or [Kubernetes](/docs/integrations/instancer/kubernetes#kubernetes-challenge-config) for the schema. |
+| `<red>config</red>` | Provider-specific service or pod configuration. See [Docker](/integrations/instancer/docker#docker-challenge-config) or [Kubernetes](/integrations/instancer/kubernetes#kubernetes-challenge-config) for the schema. |
 | `<red>expose</red>` | Public endpoints rCTF should display or keep hidden for internal routing. |
 
 The `<red>expose</red>` entries map public endpoints to a service container or pod:
@@ -173,5 +173,5 @@ The response comes from the provider's own schema at request time, so it always 
 The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Swapping the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
 
 :::note[Challenge repository tooling]
-[Konata](/docs/integrations/konata) is a CTF challenge management tool with rCTF support, including challenge syncing, Docker image publishing, and Kubernetes manifest deployment. The archived [DiceCTF Quals 2026 challenges](https://github.com/dicegang/dicectf-quals-2026-challenges) repository is a useful reference for Konata-style challenge configuration.
+[Konata](/integrations/konata) is a CTF challenge management tool with rCTF support, including challenge syncing, Docker image publishing, and Kubernetes manifest deployment. The archived [DiceCTF Quals 2026 challenges](https://github.com/dicegang/dicectf-quals-2026-challenges) repository is a useful reference for Konata-style challenge configuration.
 :::

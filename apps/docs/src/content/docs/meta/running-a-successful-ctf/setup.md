@@ -50,12 +50,12 @@ All the examples will use `example.com` which refers to the domain name hosting 
 
 3. **Configure your instance**
 
-   The `/opt/rctf/rctf.d/{:dir}` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/docs/configuration). Consider configuring at least the following:
+   The `/opt/rctf/rctf.d/{:dir}` folder contains the configuration files where your instance can be customized, and you can find more instructions [here](/configuration). Consider configuring at least the following:
 
    - CTF name, description, image, origin, home content, start and end time
    - Email configuration if you want to verify emails (do note that certain providers have manual verification steps before you can send emails, so this should be done well in advance)
    - `<red>proxy.cloudflare</red>` if behind Cloudflare
-   - GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/docs/providers/uploads))
+   - GCS for storing challenges to decrease the load on the CTF platform (see instructions [here](/providers/uploads))
 
 4. **Restart rCTF after configuration changes**
 

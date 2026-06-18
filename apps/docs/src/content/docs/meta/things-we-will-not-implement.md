@@ -11,7 +11,7 @@ Some platform requests appear often enough that it is useful to document the pro
 
    This would award extra points to the first team that solves a challenge. First blood is useful recognition, but adding score weight to it often rewards timezone, team size, and start-time availability as much as technical skill. Teams that are awake at the opening minute, or teams with enough members to split across many challenges immediately, can gain an advantage that is only loosely related to problem solving.
 
-   Use [Blood bot](/docs/integrations/bloodbot) to recognize first solves without changing the scoring model.
+   Use [Blood bot](/integrations/bloodbot) to recognize first solves without changing the scoring model.
 
 2. **Leaderboard freeze**
 

@@ -10,7 +10,7 @@ Challenges are managed through the admin panel at `/admin/challs`. This page cov
 
 Challenges are created and updated through the admin panel. Each challenge has a unique ID. Updating a challenge triggers an automatic leaderboard recalculation to reflect any point changes.
 
-Each challenge also picks a **scoring kind** (decay or dynamic). See [Scoring](/docs/admin/scoring) for the full data model, including how to publish per-team scores to a dynamic challenge from an external service.
+Each challenge also picks a **scoring kind** (decay or dynamic). See [Scoring](/admin/scoring) for the full data model, including how to publish per-team scores to a dynamic challenge from an external service.
 
 ## Challenge visibility
 
@@ -23,7 +23,7 @@ Use these to prepare challenges ahead of time and release them on schedule.
 
 ## File attachments
 
-Challenge files are uploaded separately through the admin panel (see [Uploading](/docs/admin/uploading)) and then referenced in the challenge data. Each file has a display name, URL, and size.
+Challenge files are uploaded separately through the admin panel (see [Uploading](/admin/uploading)) and then referenced in the challenge data. Each file has a display name, URL, and size.
 
 ## Deleting challenges
 
@@ -37,5 +37,5 @@ Challenge deletion is irreversible and removes all solve records for that challe
 
 Challenges can optionally include extra configuration blocks:
 
-- **`<red>instancerConfig</red>`** holds the configuration for per-team instances. When set, it is validated against the instancer provider's schema. See [Instancer](/docs/integrations/instancer) for details.
-- **`<red>adminBotConfig</red>`** holds JavaScript code for admin bot testing. The code defines inputs (with regex validation) and a timeout. The admin bot provider validates the configuration when saving. See [Admin bot](/docs/integrations/admin-bot) for the handler API and the input schema.
+- **`<red>instancerConfig</red>`** holds the configuration for per-team instances. When set, it is validated against the instancer provider's schema. See [Instancer](/integrations/instancer) for details.
+- **`<red>adminBotConfig</red>`** holds JavaScript code for admin bot testing. The code defines inputs (with regex validation) and a timeout. The admin bot provider validates the configuration when saving. See [Admin bot](/integrations/admin-bot) for the handler API and the input schema.

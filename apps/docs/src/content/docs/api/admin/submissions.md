@@ -23,7 +23,7 @@ order: 17
 
 This route shows submission audit rows. The table records flag submissions and admin bot job submissions for review and abuse investigation.
 
-Query parameters control pagination, sorting, and lightweight challenge or team search. [Filter submissions](/docs/api/admin/submission-filter/) adds category, division, kind, result, team status, and time filters.
+Query parameters control pagination, sorting, and lightweight challenge or team search. [Filter submissions](/api/admin/submission-filter/) adds category, division, kind, result, team status, and time filters.
 
 ::request-body{def="GetAdminSubmissionsRouteV2" source="query" title="Query parameters"}
 

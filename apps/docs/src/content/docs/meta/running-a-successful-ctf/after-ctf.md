@@ -13,7 +13,7 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 :::steps
 1. **Update admin permissions**
 
-   The CTFtime export endpoint requires the `<red>leaderboardRead</red>` (`4{:ts}`) permission. If the admin account was already provisioned with full perms (`63{:ts}`) during initial setup, this step is a no-op. Otherwise see [Administration › Permissions](/docs/admin#permissions) for the full table and the exact SQL to run. The snippet for granting CTFtime-export-capable perms is:
+   The CTFtime export endpoint requires the `<red>leaderboardRead</red>` (`4{:ts}`) permission. If the admin account was already provisioned with full perms (`63{:ts}`) during initial setup, this step is a no-op. Otherwise see [Administration › Permissions](/admin#permissions) for the full table and the exact SQL to run. The snippet for granting CTFtime-export-capable perms is:
 
    ```sql
    UPDATE users SET perms = 7 WHERE email = '[...]';
@@ -49,7 +49,7 @@ Submitting the final scoreboard to CTFtime is what gives participating teams the
 
 ## Prize distribution
 
-For competitions with prizes, look up the winning teams in the admin panel's [teams view](/docs/admin/teams), which lists every team with its email and division, and supports name search and pagination. This is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
+For competitions with prizes, look up the winning teams in the admin panel's [teams view](/admin/teams), which lists every team with its email and division, and supports name search and pagination. This is more reliable than accepting claims via Discord, as team membership cannot be externally verified.
 
 For divisional prizes, filter the list by division in the same view.
 
@@ -78,9 +78,9 @@ Encouraging participants to publish writeups gives back to the broader CTF commu
 
 ## Archive the platform
 
-Before decommissioning anything, run an archive of the live instance. rCTF ships a [static export tool](/docs/archiving) that snapshots challenges, scoreboard, and team pages into a read-only site you can host on any static-file backend (S3, GitHub Pages, Netlify, plain nginx, and so on). Once the snapshot is up, participants can still browse the final standings and revisit challenge metadata long after the live platform is gone, which is the right time to also link writeups against permanent URLs.
+Before decommissioning anything, run an archive of the live instance. rCTF ships a [static export tool](/archiving) that snapshots challenges, scoreboard, and team pages into a read-only site you can host on any static-file backend (S3, GitHub Pages, Netlify, plain nginx, and so on). Once the snapshot is up, participants can still browse the final standings and revisit challenge metadata long after the live platform is gone, which is the right time to also link writeups against permanent URLs.
 
-See [Archiving](/docs/archiving) for the export commands and hosting tips. We recommend doing this **before** the teardown checklist below.
+See [Archiving](/archiving) for the export commands and hosting tips. We recommend doing this **before** the teardown checklist below.
 
 ## Infrastructure teardown
 
@@ -91,10 +91,10 @@ For infrastructure paid for by cloud-provider credits (e.g., Google Cloud), serv
 :::warning[Teardown checklist]
 Decommission the following resources so you don't get hit with unexpected costs:
 
-- Publish the static archive (see [Archiving](/docs/archiving)) before deleting anything else.
+- Publish the static archive (see [Archiving](/archiving)) before deleting anything else.
 - Take down the CTF platform, and back up the database and configuration before deletion to simplify setup for future events.
-- Remove challenge infrastructure: kCTF clusters and any VPS instances used for shared remotes, plus the [Docker instancer](/docs/integrations/instancer/docker) or [Kubernetes instancer](/docs/integrations/instancer/kubernetes) deployment (including the GKE cluster, Traefik, and the ACME wildcard secret).
-- Remove the [admin bot](/docs/integrations/admin-bot) worker(s) and any queue/scraper sidecars if you deployed an autoscaled fleet.
+- Remove challenge infrastructure: kCTF clusters and any VPS instances used for shared remotes, plus the [Docker instancer](/integrations/instancer/docker) or [Kubernetes instancer](/integrations/instancer/kubernetes) deployment (including the GKE cluster, Traefik, and the ACME wildcard secret).
+- Remove the [admin bot](/integrations/admin-bot) worker(s) and any queue/scraper sidecars if you deployed an autoscaled fleet.
 - For cloud services, delete static IP addresses, DNS records, load balancers, and any remaining storage buckets or artifacts (including the S3/GCS upload bucket if you migrated off the local provider).
 - Rotate or revoke any API keys, tokens, or credentials used during the event. This covers rCTF's `<red>tokenKey</red>`, the instancer `<red>authToken</red>`, the admin bot service token, captcha secrets, registry push credentials, and any deploy tokens (e.g. the Konata `<red>RCTF_TOKEN</red>`).
 :::

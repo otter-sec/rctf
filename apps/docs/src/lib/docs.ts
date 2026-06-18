@@ -15,10 +15,9 @@ export type DocsTreeNode =
 
 type DocsGroup = Extract<DocsTreeNode, { type: "group" }>
 
-export const docsHref = (id: string) =>
-  id === "index" ? "/docs" : `/docs/${id}`
+export const docsHref = (id: string) => (id === "index" ? "/" : `/${id}`)
 
-export const docsMdHref = (id: string) => `/docs/${id}.md`
+export const docsMdHref = (id: string) => `/${id}.md`
 
 export async function getDocs(): Promise<DocsEntry[]> {
   return getCollection("docs", ({ data }) => !data.draft)
@@ -128,7 +127,7 @@ export function flattenDocsTree(
 ): FlatDoc[] {
   const flat: FlatDoc[] = []
   const index = entries.find((entry) => entry.id === "index")
-  if (index) flat.push({ href: "/docs", title: index.data.title })
+  if (index) flat.push({ href: "/", title: index.data.title })
 
   const walk = (nodes: DocsTreeNode[]) => {
     for (const node of nodes) {

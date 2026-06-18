@@ -28,7 +28,7 @@ order: 2
 
 This route returns the authenticated team's profile, including private account fields. It is useful for account settings, profile screens, and client side session state.
 
-V2 includes the same public profile additions as [public profile](/docs/api/users/profile/). V1 returns the older profile fields and remains available for clients that already use it.
+V2 includes the same public profile additions as [public profile](/api/users/profile/). V1 returns the older profile fields and remains available for clients that already use it.
 
 ::::tabs{sync="users-self-version"}
 

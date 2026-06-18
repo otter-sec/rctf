@@ -20,7 +20,7 @@ order: 5
 
 ::route-meta{def="DeleteChallengeRoute"}
 
-This legacy V1 route removes a challenge and its solves. There is no V2 delete route. V2 admin clients remove solves directly and update challenge data through [create or update challenge](/docs/api/admin/challenge-update/).
+This legacy V1 route removes a challenge and its solves. There is no V2 delete route. V2 admin clients remove solves directly and update challenge data through [create or update challenge](/api/admin/challenge-update/).
 
 The leaderboard is recalculated after the challenge is removed.
 

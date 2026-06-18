@@ -10,10 +10,10 @@ aside: true
 
 | Route | Endpoint |
 | --- | --- |
-| [Current standings](/docs/api/leaderboard/now/) | `<route>GET /api/[v2,v1]/leaderboard/now</route>` |
-| [Standings with graph](/docs/api/leaderboard/with-graph/) | `<route>GET /api/v2/leaderboard/with-graph</route>` |
-| [Score graph](/docs/api/leaderboard/graph/) | `<route>GET /api/[v2,v1]/leaderboard/graph</route>` |
-| [Leaderboard challenges](/docs/api/leaderboard/challs/) | `<route>GET /api/v2/leaderboard/challs</route>` |
+| [Current standings](/api/leaderboard/now/) | `<route>GET /api/[v2,v1]/leaderboard/now</route>` |
+| [Standings with graph](/api/leaderboard/with-graph/) | `<route>GET /api/v2/leaderboard/with-graph</route>` |
+| [Score graph](/api/leaderboard/graph/) | `<route>GET /api/[v2,v1]/leaderboard/graph</route>` |
+| [Leaderboard challenges](/api/leaderboard/challs/) | `<route>GET /api/v2/leaderboard/challs</route>` |
 
 :::
 

@@ -68,4 +68,4 @@ Duplicate emails are not accepted. Email changes also need to keep the team insi
 
 #### Response
 
-Both success responses return no data. When the route returns `<response>200 goodVerifySent</response>`, the verification token can be submitted to [verify a token](/docs/api/auth/verify/).
+Both success responses return no data. When the route returns `<response>200 goodVerifySent</response>`, the verification token can be submitted to [verify a token](/api/auth/verify/).

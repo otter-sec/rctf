@@ -6,13 +6,13 @@ order: 2
 
 Every challenge in rCTF picks one of two scoring kinds. The kind controls how points are produced and how they reach the leaderboard. The default is `<green>decay</green>`, which is what most CTFs expect.
 
-You set the scoring kind from the admin challenge editor (under `<route>/admin/challs</route>`) or directly via the [admin challenge update API](/docs/api/admin/challenge-update). The platform refuses to switch a challenge's scoring kind while solves exist. Wipe the solves first, or pick the kind when you create the challenge.
+You set the scoring kind from the admin challenge editor (under `<route>/admin/challs</route>`) or directly via the [admin challenge update API](/api/admin/challenge-update). The platform refuses to switch a challenge's scoring kind while solves exist. Wipe the solves first, or pick the kind when you create the challenge.
 
 ## Challenge types
 
 ### Decay
 
-The default. Every solver receives the same point value, and that value decreases as more teams solve the challenge. The math is controlled by the global [scoring provider](/docs/providers/scores), which sees the challenge's `<red>points.min</red>` and `<red>points.max</red>` along with the current solve count.
+The default. Every solver receives the same point value, and that value decreases as more teams solve the challenge. The math is controlled by the global [scoring provider](/providers/scores), which sees the challenge's `<red>points.min</red>` and `<red>points.max</red>` along with the current solve count.
 
 ```json title="Challenge data - decay"
 {
@@ -67,7 +67,7 @@ Unlike flag submissions, the dynamic-scores endpoint has no built-in event-timin
 Every entry in the score list references an rCTF team ID, the same UUID that appears on the `<route>/users/:id</route>` page. The dynamic backend needs to know each team's ID somehow. A few patterns tend to work.
 
 - Have admins paste each team's rCTF ID into the dynamic service's onboarding flow.
-- Wire a "Sign in with rCTF" button on the dynamic service through [External apps](/docs/admin/external-auth) and read the team ID from `<route>/api/v1/users/me</route>` once the user lands back authorized. This is usually the lowest-friction option when teams self-onboard.
+- Wire a "Sign in with rCTF" button on the dynamic service through [External apps](/admin/external-auth) and read the team ID from `<route>/api/v1/users/me</route>` once the user lands back authorized. This is usually the lowest-friction option when teams self-onboard.
 
 Score entries for unknown team IDs are silently dropped. The challenge backend won't tell you which team IDs failed to land, so log on your side and reconcile if it matters.
 
