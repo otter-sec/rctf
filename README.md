@@ -62,14 +62,14 @@ rCTF requires [Bun v1.0+](https://bun.sh/).
    database:
      sql:
        host: 127.0.0.1
-       port: 55432
+       port: 5432
        # host: postgres
        user: rctf
        password: DO_NOT_USE_ME
        database: rctf
      redis:
        host: 127.0.0.1
-       port: 56379
+       port: 6379
        # host: redis
        password: DO_NOT_USE_ME
      migrate: before
