@@ -9,9 +9,9 @@ The [CTFtime](https://ctftime.org) integration adds OAuth-based authentication a
 ## Setup
 
 :::steps
-1. **Register an OAuth application**
+1. **Create a CTF**
 
-   Go to your team page on CTFtime and register a new OAuth application. You will receive a **client ID** (numeric) and a **client secret**.
+   You will receive a **client ID** (numeric) and a **client secret**.
 
    Set the callback URL to `https://your-ctf-domain.com/integrations/ctftime/callback`.
 

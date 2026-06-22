@@ -169,6 +169,10 @@ Top-level discovery options.
 
 `<green>tar_gz</green>` (default) or `<green>zip</green>`. Picks the archive format Konata uses when bundling attachment files for upload.
 
+### `attachment_wrap_dir`
+
+`true{:ts}` (default) or `false{:ts}`. When on, every archive entry is nested under a top-level `<red><archive_name or challenge_id>/</red>` directory, so unpacking the download drops files into one named folder instead of the current directory. Set it to `false{:ts}` to write entries at the archive root.
+
 ## Per-challenge config
 
 Each challenge directory has a `kona.yml{:file}` (or `kona.yaml{:file}`) that declares one or more challenges plus an optional `<red>deployment</red>` block. The simplest static challenge needs nothing but a category, name, author, description, and flag:
@@ -203,6 +207,7 @@ discovery:
 | `<red>author</red>` | Rendered into the default description template. |
 | `<red>description</red>` | Markdown description. Trimmed of leading/trailing whitespace before rendering. |
 | `<red>override_id</red>` | Replaces the default `<red><category>_<name></red>` challenge ID. Useful when renaming a challenge without breaking already-recorded solves. |
+| `<red>tags</red>` | Free-form label list synced to both rCTF and CTFd. |
 | `<red>attachments</red>` | File list or full `<red>AttachmentConfig</red>`. See below. |
 | `<red>scoring</red>` | Initial / minimum point values plus per-platform overrides (`<red>scoring.rctf.eligible_for_tiebreaks</red>`, `<red>scoring.ctfd.decay</red>`, ...). |
 | `<red>flags</red>` | Per-platform flags. `<red>flags.rctf</red>` is either a literal string or `<red>{ file: <path> }</red>` / `<red>{ str: <value> }</red>`. |
@@ -210,6 +215,7 @@ discovery:
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
 | `<red>sort_weight</red>` | Numeric sort hint passed through to rCTF. |
 | `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer)) |
+| `<red>admin_bot</red>` | Admin-bot challenge source for the rCTF [admin bot](/integrations/admin-bot). See [Admin bot](#admin-bot). |
 
 ### Attachments
 
@@ -249,6 +255,12 @@ attachments:
 | `<red>exclude</red>` | Globs filtered out of the resolved file list before archiving. |
 | `<red>additional</red>` | Synthetic files injected into the archive. Each entry specifies `<red>path</red>` plus exactly one of `<red>str</red>` or `<red>base64</red>`. A typical use is shipping a dummy flag file so the build still works. |
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
+| `<red>archive_name</red>` | Base name for the generated archive (and the wrap directory when `<red>attachment_wrap_dir</red>` is on). Defaults to the challenge ID. Characters illegal in filenames are replaced with `_`. |
+| `<red>strip_components</red>` | Number of leading path components to drop from each entry's archive path, like `$ <red>tar</red> <dim>--strip-components</dim>`. Defaults to `0{:ts}`. Use it to flatten a nested `dist/` or `handout/` prefix out of the downloaded archive. |
+
+:::note[Attachment matching is strict]
+A `<red>files</red>` glob that matches nothing, a named file that doesn't exist, or a missing `<red>pre_compressed</red>` archive now fails the sync instead of being silently skipped. Fix the path or drop the entry.
+:::
 
 ### Flags
 
@@ -390,6 +402,7 @@ challenges:
         file: flag.txt
     instancer_config:
       challenge_integration_id: '{{ challenge.name }}'
+      instancer: k8s
       timeout_milliseconds: 1800000
       extendable: true
       expose:
@@ -431,6 +444,41 @@ deployment:
 
 The instanced flow only needs pod definitions. The rCTF instancer's k8s-controller handles namespaces, services, network policies, and ingress at runtime, so no `<red>kubernetes_inline_manifests</red>` block is required.
 
+`<red>instancer_config.instancer</red>` names which configured rCTF instancer the challenge runs on, matching a key in rCTF's `<red>instancers</red>` map. Omit it to fall back to rCTF's `<red>defaultInstancer</red>`. See [Instancer](/integrations/instancer#provider-configuration) for the deployment-side setup.
+
+### Admin bot
+
+Web challenges that use the rCTF [admin bot](/integrations/admin-bot) declare their bot source under `<red>admin_bot</red>`. Konata uploads the source as the challenge's `<red>adminBotConfig</red>`, and rCTF parses it server-side to derive the bot's inputs, timeout, and revision, so nothing else needs configuring here.
+
+Provide exactly one of `<red>code</red>` (inline source) or `<red>file</red>` (path relative to the challenge directory):
+
+```yaml title="web/mirror-temple/kona.yml"
+challenges:
+  - category: web
+    name: mirror-temple
+    author: arcblroth
+    admin_bot:
+      file: bot/admin-bot.ts
+```
+
+```yaml
+# Inline form
+admin_bot:
+  code: |
+    export default async function (browser, url) {
+      // visit the participant-supplied URL as the "admin"
+    }
+```
+
+| Field | Purpose |
+| --- | --- |
+| `<red>code</red>` | Inline admin-bot source. Rendered as a Jinja2 template with the same `<red>challenge</red>`, `<red>config</red>`, `<red>images</red>`, and `<red>models</red>` context as descriptions and manifests. |
+| `<red>file</red>` | Path to a source file, read at sync time and resolved relative to the challenge directory. Mutually exclusive with `<red>code</red>`. |
+
+:::note[`re_escape` filter]
+Konata's Jinja2 environment exposes a `<red>re_escape</red>` filter (`{{ value | re_escape }}`) for safely embedding a templated value into a regex, which is handy in admin-bot source and endpoint templates.
+:::
+
 ## CLI
 
 ### `kona sync`
@@ -443,7 +491,7 @@ $ <red>kona</red> sync <dim>-d</dim> ./ctf-challenges
 
 | Flag | Behavior |
 | --- | --- |
-| `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Required. |
+| `<dim>-d</dim>`, `<dim>--deploy-directory</dim>` | Root of the deploy repo (the folder containing the root `kona.yml{:file}`). Defaults to the current directory (`.`). |
 | `<dim>--only</dim> <name>` | Repeatable. Restricts the run to specific challenge folder names. Discovery still walks the tree, and non-matching challenges are skipped. |
 | `<dim>--challenge-path</dim> <path>` | Repeatable. Direct paths to challenge directories, bypassing discovery entirely. The CI integration uses this to scope each matrix shard to one challenge. |
 

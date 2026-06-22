@@ -87,7 +87,6 @@ By default, the CTF platform is only accessible from the VPS itself. To expose i
 
    ```console
    $ <red>ufw</red> allow 22
-   <dim># source: https://github.com/Paul-Reed/cloudflare-ufw/blob/master/cloudflare-ufw.sh</dim>
    $ for cfip in `<red>curl</red> <dim>-sw</dim> '\n' https://www.cloudflare.com/ips-v{4,6}`; do <red>ufw</red> allow proto tcp from $cfip comment 'Cloudflare IP'; done
    $ <red>ufw</red> enable   <dim># answer `y` when prompted regarding enabling firewall</dim>
    ```

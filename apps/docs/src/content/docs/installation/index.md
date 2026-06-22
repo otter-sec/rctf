@@ -27,9 +27,3 @@ $ <red>cd</red> /opt/rctf && <red>docker</red> compose up <dim>-d</dim> <dim>--f
 Re-run that command after every config change.
 
 See [Configuration](/configuration) for the full reference of available options.
-
-## Next steps
-
-- [Manual installation](/installation/manual) for development or custom deployments
-- [Configuration](/configuration) for the full configuration reference
-- [Upgrading from v1](/installation/upgrading) if migrating from an older version

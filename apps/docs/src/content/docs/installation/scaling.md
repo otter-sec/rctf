@@ -8,14 +8,12 @@ rCTF is intentionally lightweight. A single-node deployment of the bundled conta
 
 ## Resource expectations
 
-The API process is a single Bun runtime, and the frontend is a static SvelteKit build served by nginx. The leaderboard worker runs as a Bun `Worker` thread inside the API process by default. PostgreSQL and Redis are external and follow their normal tuning.
-
 In practice the platform barely touches the box it runs on. [DiceCTF 2026 Quals](https://2026.ctf.dicega.ng/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **1.6 cores**, as shown below.
 
 ![DiceCTF 2026 Quals CPU usage graph, peaking around 150% (~1.5 cores) during the event window](./dicectf-2026-cpu.png)
 
 :::warning[RAM data lost]
-Memory metrics for the same window weren't retained. Expect a similarly modest footprint, since the API process is a single Bun runtime and the leaderboard worker is a Bun `Worker` thread, not a separate process.
+Memory metrics for the same window weren't retained. Expect a similarly modest footprint, though.
 :::
 
 :::note[Deliberately overprovisioned]
@@ -45,7 +43,7 @@ instanceType: frontend # or 'leaderboard' or 'all'
 To scale beyond a single container, run any number of `<green>all</green>` containers behind a load balancer. They share PostgreSQL and Redis, and a Postgres advisory lock coordinates the one piece of work that has to be a singleton (the leaderboard worker), so you don't have to split roles by hand.
 
 :::note[Splitting roles is optional]
-Running several `all` replicas is the simplest setup. You can split into separate `frontend` and `leaderboard` replicas to keep the worker's CPU away from request serving, but you don't need to for correctness: the leader lock parks any extra leaderboard workers on standby instead of letting them race.
+Running several `all` replicas is the simplest setup. You can split into separate `frontend` and `leaderboard` replicas to keep the worker's CPU away from request serving, but you don't need to.
 :::
 
 :::warning[No transaction-pooling proxies]
@@ -53,7 +51,7 @@ Point `<red>database.sql</red>` at Postgres directly or through a session-poolin
 :::
 
 :::note[Forced leaderboard updates]
-API mutations and the dynamic-scoring webhook wake the active leaderboard worker through Redis pub/sub on the `leaderboard:force-update{:sh}` and `leaderboard:recompute-challenge{:sh}` channels. Only the current leader acts on them immediately; a worker that takes over first recomputes every challenge, covering requests that landed while there was no leader. As long as every process shares the same Redis, forced updates land within the worker's next tick regardless of which replica received the request.
+API mutations and the dynamic-scoring webhook wake the active leaderboard worker through Redis pub/sub. Only the current leader acts on them immediately; a worker that takes over first recomputes every challenge, covering requests that landed while there was no leader. As long as every process shares the same Redis, forced updates land within the worker's next tick regardless of which replica received the request.
 :::
 
 ## Health checks

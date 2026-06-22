@@ -280,18 +280,31 @@ uploadProvider:
     awsRegion: us-east-1
 scoreProvider:
   name: scores/classic
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://localhost:8000
-    authToken: secret
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://localhost:8000
+      authToken: secret
+  k8s:
+    name: instancer/k8s-instancer
+    options:
+      apiUrl: https://k8s.example.com
+      authToken: <service-account-token>
+  k8s-arm:
+    name: instancer/k8s-instancer
+    options:
+      apiUrl: https://k8s-arm.example.com
+      authToken: <service-account-token>
+defaultInstancer: k8s
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>uploadProvider</red>` | `object{:ts}` | `{ name: "uploads/local" }{:ts}` | File upload provider |
 | `<red>scoreProvider</red>` | `object{:ts}` | `{ name: "scores/classic" }{:ts}` | Scoring algorithm provider |
-| `<red>instancerProvider</red>` | `object{:ts}` | - | Challenge instancer provider (optional) |
+| `<red>instancers</red>` | `object{:ts}` | - | Map of named challenge instancer providers (optional). Each key is an instancer name a challenge can target. |
+| `<red>defaultInstancer</red>` | `string{:ts}` | - | Name of the instancer used when a challenge doesn't pick one. Required when more than one instancer is defined; auto-selected when only one is. |
 
 See the [Providers](/providers) section for detailed configuration of each provider.
 

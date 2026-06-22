@@ -109,24 +109,17 @@ rCTF is a (mostly) Bun monorepo with the following layout:
 
 ## Production build
 
-Build both the API and frontend:
+For production deployments, use our prebuilt Docker images rather than running a source build by hand. The image bundles the API, the compiled leaderboard worker, and the static frontend, and it runs Drizzle migrations on boot:
 
-```console
-$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/api'</green> build   <dim># Builds API server bundle</dim>
-$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build   <dim># Builds static frontend</dim>
+```yaml
+image: ghcr.io/otter-sec/rctf-new:latest
 ```
 
-Start the API server:
-
-```console
-$ <yellow>NODE_ENV</yellow>=production <yellow>WORKER_EXTENSION</yellow>=.js <red>bun</red> run apps/api/dist/index.js
-```
-
-`<yellow>WORKER_EXTENSION</yellow>=.js` makes the API load the compiled leaderboard worker from `apps/api/dist/{:dir}`. The API server listens on the port specified by the `<yellow>PORT</yellow>` environment variable (default `3000{:ts}`). In production, the static frontend is typically served by Nginx or a similar reverse proxy.
+See [Quick start with Docker](/installation/) for the full Compose setup. The manual-from-source path above is meant for development; running `bun` directly in production means owning the build, worker wiring, and reverse proxy yourself, which the image already handles.
 
 ## Scaling
 
-The `<red>instanceType</red>` config option lets you split an rCTF process into `<green>frontend</green>`-only or `<green>leaderboard</green>`-only roles for horizontal scaling. See [Scaling](/installation/scaling) for the full table, the one-leaderboard-replica constraint, and the forced-update limitation in split mode.
+The `<red>instanceType</red>` config option lets you split an rCTF process into `<green>frontend</green>`-only or `<green>leaderboard</green>`-only roles for horizontal scaling. See [Scaling](/installation/scaling) for the full table.
 
 ## Running tests
 

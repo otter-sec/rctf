@@ -1,5 +1,5 @@
 ---
-title: Production architecture
+title: Architecture
 description: Reference for the bundled rCTF container, its build pipeline, in-container processes, and horizontal scaling model.
 order: 3
 ---
@@ -39,7 +39,7 @@ Paths inside the running container after the production stage finishes assembly:
       - default.conf Static + /api proxy
 :::
 
-The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}` because the provider resolves `<red>uploadDirectory</red>` from `process.cwd()`, which is `/app/{:dir}`.
+The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}`.
 
 ## Build stages
 
@@ -81,7 +81,7 @@ CMD ["supervisord", "-c", "/etc/supervisord.conf"]
 
 ## Process supervision
 
-`/etc/supervisord.conf{:file}` defines two long-running programs. Both inherit the container's PID 1 (`supervisord`), have `autorestart=true{:ini}`, and stream stdout/stderr to the container's stdout/stderr without rotation.
+`/etc/supervisord.conf{:file}` defines two long-running programs. Both stream stdout/stderr to the container's stdout/stderr without rotation.
 
 | Program | Command | Role |
 | --- | --- | --- |
@@ -140,14 +140,6 @@ server {
     }
 }
 ```
-
-Notable behavior:
-
-- `<red>brotli_static</red>` and `<red>gzip_static</red>` serve the `.br` and `.gz` files the SvelteKit `<red>adapter-static</red>` precompresses (`<red>precompress</red>`: `<green>true</green>` in `apps/web/svelte.config.ts{:file}`). On-the-fly gzip is additionally enabled for proxied API responses.
-- `/_app/immutable/` is the SvelteKit hashed-asset directory and gets a one-day immutable cache.
-- The admin upload route has request buffering disabled and `<red>client_max_body_size</red>=<green>0</green>` so large uploads stream straight to the API.
-- `<route>/api</route>` and `/uploads` proxy to the API on `127.0.0.1:3000`. When the local upload provider is in use, the API serves files from `/app/uploads/{:dir}` through its own static handler.
-- nginx adds `Referrer-Policy: no-referrer{:http}`, `X-Frame-Options: DENY{:http}`, and `X-Content-Type-Options: nosniff{:http}` on every response. CSP is **not** set here.
 
 ## Content Security Policy
 

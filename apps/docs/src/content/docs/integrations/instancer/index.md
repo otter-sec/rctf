@@ -26,7 +26,7 @@ The instancer path has three layers:
 :::steps
 1. **Select a provider**
 
-   The rCTF API loads `<red>instancerProvider</red>` from `rctf.d/{:dir}`. The provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
+   The rCTF API loads the `<red>instancers</red>` map from `rctf.d/{:dir}`. You can define more than one named instancer, and each challenge targets one by name (falling back to `<red>defaultInstancer</red>`). The chosen provider validates challenge configs and translates rCTF lifecycle calls into Docker or Kubernetes operations underneath.
 
 2. **Configure a challenge**
 
@@ -39,49 +39,59 @@ The instancer path has three layers:
 
 ## Provider configuration
 
-The `<red>instancerProvider</red>` config selects one provider in `rctf.d/{:dir}`:
+Instancers are defined under the `<red>instancers</red>` map in `rctf.d/{:dir}`. Each key is a name you choose; challenges target an instancer by that name. `<red>defaultInstancer</red>` picks the one used when a challenge doesn't name its own. It's required once more than one instancer is defined, and auto-selected when only one is:
+
+```yaml title="rctf.d/instancer.yaml"
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://tiny-instancer:1337
+      authToken: <shared-secret>
+  k8s:
+    name: instancer/k8s-instancer
+    options:
+      apiUrl: https://k8s.example.com
+      authToken: <service-account-token>
+      caCertificate: |
+        -----BEGIN CERTIFICATE-----
+        ...
+        -----END CERTIFICATE-----
+defaultInstancer: docker
+```
+
+A single-instancer deployment only needs one entry, and `<red>defaultInstancer</red>` can be omitted:
+
+```yaml title="rctf.d/instancer.yaml"
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://tiny-instancer:1337
+      authToken: <shared-secret>
+```
 
 ::::tabs
 :::tab[Docker]
-`<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API:
-
-```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://tiny-instancer:1337
-    authToken: <shared-secret>
-```
+`<green>instancer/docker-instancer</green>` calls into the bundled Docker instancer or any compatible tiny-instancer API.
 
 | Field or variable | Purpose |
 | --- | --- |
-| `<red>instancerProvider.options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
-| `<red>instancerProvider.options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
+| `<red>options.apiUrl</red>` | Base URL of the Docker instancer API from the rCTF API process. |
+| `<red>options.authToken</red>` | Shared token sent as `<red>rctfAuthToken</red>` in lifecycle requests. |
 | `DOCKER_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `DOCKER_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 
 See [Docker instancer](/integrations/instancer/docker) for the deployment walkthrough and Docker-specific challenge schema.
 :::
 :::tab[Kubernetes]
-`<green>instancer/k8s-instancer</green>` creates cluster-scoped `ChallengeInstance` custom resources:
-
-```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/k8s-instancer
-  options:
-    apiUrl: https://k8s.example.com
-    authToken: <service-account-token>
-    caCertificate: |
-      -----BEGIN CERTIFICATE-----
-      ...
-      -----END CERTIFICATE-----
-```
+`<green>instancer/k8s-instancer</green>` creates cluster-scoped `ChallengeInstance` custom resources.
 
 | Field or variable | Purpose |
 | --- | --- |
-| `<red>instancerProvider.options.apiUrl</red>` | Kubernetes API server URL. |
-| `<red>instancerProvider.options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
-| `<red>instancerProvider.options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
+| `<red>options.apiUrl</red>` | Kubernetes API server URL. |
+| `<red>options.authToken</red>` | Bearer token for a service account that can create, get, patch, and delete `ChallengeInstance` resources. |
+| `<red>options.caCertificate</red>` | Kubernetes API CA certificate. This is required by the provider. |
 | `K8S_INSTANCER_API_URL{:sh}` | Environment override for `<red>apiUrl</red>`. |
 | `K8S_INSTANCER_AUTH_TOKEN{:sh}` | Environment override for `<red>authToken</red>`. |
 | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` | Environment override for `<red>caCertificate</red>`. |
@@ -90,13 +100,18 @@ See [Kubernetes instancer](/integrations/instancer/kubernetes) for the Terraform
 :::
 ::::
 
+:::note[Environment overrides and multiple instancers]
+The `DOCKER_INSTANCER_*{:sh}` and `K8S_INSTANCER_*{:sh}` environment variables apply globally per provider type, so they're best suited to single-instancer deployments. When you run two instancers of the same type, set their `<red>options</red>` inline instead.
+:::
+
 ## Challenge configuration
 
-Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape. This block is also what [Konata](/integrations/konata) consumes. Konata accepts both snake_case and camelCase keys and posts the camelCase form rCTF expects on the wire.
+Each instanced challenge needs `<red>instancerConfig</red>`. The outer envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`) is the same regardless of which provider is active, and only the inner `<red>config</red>` body changes shape.
 
 ```yaml title="challenge.yaml"
 instancerConfig:
   challengeIntegrationId: web-demo
+  instancer: docker
   timeoutMilliseconds: 600000
   extendable: true
   config:
@@ -113,6 +128,7 @@ instancerConfig:
 | Field | Purpose |
 | --- | --- |
 | `<red>challengeIntegrationId</red>` | Stable ID used in Docker labels, Kubernetes resource names, and lifecycle requests. Don't change it after launch. |
+| `<red>instancer</red>` | Name of the instancer (a key in the `<red>instancers</red>` map) this challenge runs on. Omit to use `<red>defaultInstancer</red>`. The admin challenge editor exposes this as a dropdown of configured instancers. |
 | `<red>timeoutMilliseconds</red>` | Instance lifetime for create and extend operations. |
 | `<red>extendable</red>` | Lets participants extend their instance when set to `true{:ts}`. |
 | `<red>config</red>` | Provider-specific service or pod configuration. See [Docker](/integrations/instancer/docker#docker-challenge-config) or [Kubernetes](/integrations/instancer/kubernetes#kubernetes-challenge-config) for the schema. |
@@ -166,12 +182,8 @@ captcha:
 
 The `<red>instancerConfig</red>` envelope (`<red>challengeIntegrationId</red>`, `<red>timeoutMilliseconds</red>`, `<red>extendable</red>`, `<red>expose</red>`, `<red>config</red>`) is **provider-agnostic**. The same outer shape is accepted regardless of whether the active provider is `<green>instancer/docker-instancer</green>` or `<green>instancer/k8s-instancer</green>`. Only the inner `<red>config</red>` object is provider-specific (Docker Compose-like for docker, `<red>pods[]</red>` for Kubernetes), and the active provider validates it against its own schema.
 
-The response comes from the provider's own schema at request time, so it always matches what the provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
+The schema endpoint returns one entry per configured instancer (each with its own JSON Schema) plus the `<red>defaultInstancer</red>` name, so the response always matches what each provider will actually validate against. External tooling can fetch it to validate challenge configs before pushing them.
 
 ### Dynamic admin UI
 
-The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. Swapping the deployment between Docker and Kubernetes shows a different set of inputs without any frontend rebuild, since every field, type, and validation rule comes from the active provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.
-
-:::note[Challenge repository tooling]
-[Konata](/integrations/konata) is a CTF challenge management tool with rCTF support, including challenge syncing, Docker image publishing, and Kubernetes manifest deployment. The archived [DiceCTF Quals 2026 challenges](https://github.com/dicegang/dicectf-quals-2026-challenges) repository is a useful reference for Konata-style challenge configuration.
-:::
+The admin challenge editor fetches the same schema endpoint and renders the form fields directly from the returned JSON Schema. When multiple instancers are configured, an instancer dropdown lets you pick which one the challenge runs on (the `<red>defaultInstancer</red>` is marked as such), and the form re-renders from the selected instancer's schema without any frontend rebuild, since every field, type, and validation rule comes from that provider. An "advanced YAML" toggle exposes the raw `<red>config</red>` block for cases the schema-driven UI doesn't cover.

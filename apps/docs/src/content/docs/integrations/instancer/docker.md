@@ -64,32 +64,49 @@ $ <red>docker</red> compose <dim>-f</dim> deploy/docker-instancer/compose.yml up
 The same token belongs in rCTF:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://tiny-instancer:1337
-    authToken: <shared-secret>
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://tiny-instancer:1337
+      authToken: <shared-secret>
 ```
 
 When rCTF is outside the `rctf_network` Docker network, the host-mapped API URL is:
 
 ```yaml title="rctf.d/instancer.yaml"
-instancerProvider:
-  name: instancer/docker-instancer
-  options:
-    apiUrl: http://127.0.0.1:12237
-    authToken: <shared-secret>
+instancers:
+  docker:
+    name: instancer/docker-instancer
+    options:
+      apiUrl: http://127.0.0.1:12237
+      authToken: <shared-secret>
 ```
 
-The Traefik TLS config expects these files:
+Traefik terminates TLS for every `<green>https</green>` and `<green>tcp-ssl</green>` endpoint. Each instance is served at `<hostPrefix>-<uid>.<INSTANCES_HOST>`, so a single wildcard certificate for `*.<INSTANCES_HOST>` covers every per-team instance. The static config (`conf/tls.yml{:file}`) points Traefik at two files in the mounted `certs/{:dir}` directory:
 
 :::file-tree
 - deploy/
   - docker-instancer/
     - certs/
-      - fullchain.pem Certificate chain
+      - fullchain.pem Certificate + intermediate chain
       - privkey.pem Private key
 :::
+
+Instance hostnames are one label deep, so the single-level wildcard is enough; you don't need to enumerate `<hostPrefix>` values. Generate the cert with any ACME client that supports a DNS-01 challenge (wildcards can't use HTTP-01). With Certbot:
+
+```console
+$ <red>certbot</red> certonly <dim>--manual</dim> <dim>--preferred-challenges</dim> dns <dim>-d</dim> <green>'*.instancer.example.com'</green>
+```
+
+Copy the issued files into the mount, matching the names Traefik expects:
+
+```console
+$ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/fullchain.pem deploy/docker-instancer/certs/fullchain.pem
+$ <red>cp</red> /etc/letsencrypt/live/instancer.example.com/privkey.pem deploy/docker-instancer/certs/privkey.pem
+```
+
+Traefik loads these at startup and doesn't watch the file config (`watch: false{:yaml}`), so restart the Traefik container after renewing or replacing the certificate.
 
 ### Docker daemon address pool
 

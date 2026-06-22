@@ -96,10 +96,6 @@ Reading large inputs with raw `read(2)` makes the challenge sensitive to network
 
 Prefer `scanf` with explicit width specifiers, or write a tiny input loop that keeps reading until the requested length arrives.
 
-### Shipping a binary without source
-
-Ship the source where you can. Asking solvers to reverse a glibc-heavy or C++ binary that isn't a rev challenge taxes them without teaching anything that fits the category.
-
 ## Crypto
 
 ### Not asserting the flag format

@@ -19,8 +19,8 @@ A working deployment has three cooperating components:
 | Component | Source | Responsibility |
 | --- | --- | --- |
 | `<green>K8sInstancerProvider</green>` | `apps/api/src/providers/instancer/k8s-instancer.ts{:file}` | Translates rCTF lifecycle calls into create, get, patch, and delete operations on `ChallengeInstance` custom resources. |
-| `k8s-controller` | `apps/k8s-controller/{:dir}` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
-| Traefik | `deploy/terraform/instancer/modules/k8s/traefik.tf{:file}` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
+| `<green>k8s-controller</green>` | `apps/k8s-controller/{:dir}` | Go operator built with `controller-runtime` that watches `ChallengeInstance` and reconciles the cluster state. |
+| `<green>Traefik</green>` | `deploy/terraform/instancer/modules/k8s/traefik.tf{:file}` | Helm-installed ingress controller that terminates TLS and routes wildcard hostnames to per-instance services. |
 
 A participant request flows through these in order:
 
@@ -52,8 +52,7 @@ The Terraform example assumes GKE plus Cloudflare for DNS and ACME. GCP Cloud DN
 | --- | --- |
 | GCP project with billing enabled | Used for GKE, Artifact Registry, and optionally Cloud DNS. |
 | `$ <red>gcloud</red>` and `$ <red>kubectl</red>` | Needed for cluster auth. |
-| `$ <red>terraform</red>` 1.5+ | The example pins providers but not the Terraform CLI. |
-| `$ <red>kind</red>` (optional) | Only required for local controller development. |
+| `$ <red>terraform</red>` | The example pins providers but not the Terraform CLI. |
 | Domain plus DNS provider | One of Cloudflare or GCP Cloud DNS. Used for the ACME DNS-01 challenge and the wildcard `A` record. |
 | Let's Encrypt account email | Registered through the `acme_registration` resource. |
 
@@ -157,9 +156,9 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
 
    | Terraform output | rCTF option | Environment override |
    | --- | --- | --- |
-   | `<red>rctf_instancer_api_url</red>` | `<red>instancerProvider.options.apiUrl</red>` | `K8S_INSTANCER_API_URL{:sh}` |
-   | `<red>rctf_instancer_auth_token</red>` | `<red>instancerProvider.options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
-   | `<red>rctf_instancer_ca_certificate</red>` | `<red>instancerProvider.options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
+   | `<red>rctf_instancer_api_url</red>` | `<red>options.apiUrl</red>` | `K8S_INSTANCER_API_URL{:sh}` |
+   | `<red>rctf_instancer_auth_token</red>` | `<red>options.authToken</red>` | `K8S_INSTANCER_AUTH_TOKEN{:sh}` |
+   | `<red>rctf_instancer_ca_certificate</red>` | `<red>options.caCertificate</red>` | `K8S_INSTANCER_CA_CERTIFICATE{:sh}` |
 
    Render them into rCTF's `rctf.d/{:dir}`:
 
@@ -170,15 +169,16 @@ To use GCP Cloud DNS instead of Cloudflare, comment out the Cloudflare blocks in
    ```
 
    ```yaml title="rctf.d/instancer.yaml"
-   instancerProvider:
-     name: instancer/k8s-instancer
-     options:
-       apiUrl: https://203.0.113.10
-       authToken: <rctf_instancer_auth_token>
-       caCertificate: |
-         -----BEGIN CERTIFICATE-----
-         ...
-         -----END CERTIFICATE-----
+   instancers:
+     k8s:
+       name: instancer/k8s-instancer
+       options:
+         apiUrl: https://203.0.113.10
+         authToken: <rctf_instancer_auth_token>
+         caCertificate: |
+           -----BEGIN CERTIFICATE-----
+           ...
+           -----END CERTIFICATE-----
    ```
 
    `<red>caCertificate</red>` is required even when the API server certificate is already trusted by the host.
@@ -278,7 +278,7 @@ The controller itself runs with its own RBAC from `apps/k8s-controller/config/{:
 
 ## Example challenge config (Konata)
 
-A complete instanced challenge as it would live in a [Konata](/integrations/konata) deployment repo. This is the `web/mirror-temple` config from the DiceCTF Quals 2026 challenge repository. Konata builds and pushes the image, then forwards `<red>instancer_config</red>` straight to rCTF, which hands it to the k8s-instancer provider.
+A complete instanced challenge as it would live in a [Konata](/integrations/konata) deployment repo. This is the `web/mirror-temple` config from the DiceCTF Quals 2026 challenge repository.
 
 ```yaml title="web/mirror-temple/kona.yml"
 challenges:
@@ -360,70 +360,11 @@ Things worth pointing at in this example:
 
 For the rest of the Konata schema, see [Konata](/integrations/konata).
 
-## Local development with Kind
-
-For controller iteration, the README in `apps/k8s-controller/{:dir}` uses Kind. Routing inside the cluster needs `cloud-provider-kind` so that `LoadBalancer` services get an external IP.
-
-:::steps
-1. **Install Kind and the cloud provider shim**
-
-   ```console
-   $ <red>go</red> install sigs.k8s.io/cloud-provider-kind@latest
-   ```
-
-   Install Kind itself from [its quick-start guide](https://kind.sigs.k8s.io/docs/user/quick-start/).
-
-2. **Create the cluster**
-
-   ```console
-   $ <red>cd</red> apps/k8s-controller
-   $ <red>kind</red> create cluster <dim>--name</dim> rctf <dim>--config</dim> kind-config.yaml
-   ```
-
-   The bundled `kind-config.yaml{:file}` spins up one control plane and one worker node.
-
-3. **Run cloud-provider-kind**
-
-   Leave this running in a separate session for the duration of development:
-
-   ```console
-   $ <red>cloud-provider-kind</red>
-   ```
-
-4. **Apply the surrounding stack**
-
-   Point the Terraform example at the local Kind context. In `deploy/terraform/instancer/example/main.tf{:file}` switch from the GCP-backed `kubernetes`, `helm`, and `kubectl` providers to the commented-out `kind-rctf` blocks, then apply:
-
-   ```console
-   $ <red>cd</red> deploy/terraform/instancer/example
-   $ <red>terraform</red> apply
-   ```
-
-5. **Install the CRD and run the controller**
-
-   ```console
-   $ <red>cd</red> apps/k8s-controller
-   $ <red>make</red> install
-   $ <red>make</red> run <yellow>ARGS</yellow>=<green>"-instancer-host instancer.test"</green>
-   ```
-
-   `$ <red>make</red> install` applies the CRDs from `config/crd`, and `$ <red>make</red> run` runs the controller against the current `kubectl` context with `<dim>-instancer-host</dim>` setting the hostname suffix.
-
-6. **Test with a sample ChallengeInstance**
-
-   ```console
-   $ <red>kubectl</red> apply <dim>-f</dim> config/samples/rctf-instancer_v1_challengeinstance.yaml
-   ```
-
-   The controller logs the reconciliation flow, and the sample's namespace, service, and `IngressRoute` should appear. Tear the cluster down with `$ <red>kind</red> delete cluster <dim>--name</dim> rctf` when you're done.
-:::
-
 ## Troubleshooting
 
 | Symptom | Likely cause |
 | --- | --- |
 | `$ <red>terraform</red> apply` hangs on `acme_certificate` | DNS propagation for the DNS-01 record is slow. Verify the Cloudflare or Cloud DNS TXT record is visible from a public resolver. |
-| Controller pod `CrashLoopBackOff` after install | The image reference in `dist/install.yaml{:file}` can't be pulled. The default is `ghcr.io/otter-sec/rctf-new/k8s-controller`. Verify the node has registry access and the tag still exists. |
 | Instances stuck in `<green>starting</green>` | Inspect the `ChallengeInstance` status conditions with `$ <red>kubectl</red> get challengeinstance <dim>-A</dim> <dim>-o</dim> yaml`. The `<red>NamespaceDeployed</red>`, `<red>DeploymentsDeployed</red>`, and `<red>ServicesDeployed</red>` conditions narrow down the failing stage. |
 | 502 from the wildcard host | Traefik is reachable but the backing pod isn't ready. The `global-errors` middleware serves the Nginx 502 page until the deployment reports ready replicas. |
 | 404 on the wildcard host | The catch-all `<red>IngressRoute</red>` matched. Confirm an active `ChallengeInstance` exists for the hostname and that its `<red>IngressRoute</red>` has a higher priority than `1{:ts}`. |
