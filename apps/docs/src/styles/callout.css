@@ -1,8 +1,8 @@
 prose-content {
   [data-callout] {
-    --accent:         var(--muted-foreground);
+    --accent: var(--muted-foreground);
     --callout-border: var(--accent);
-    --callout-text:   light-dark(
+    --callout-text: light-dark(
       oklch(from var(--accent) 0.48 calc(c * 1.05) h),
       oklch(from var(--accent) 0.83 calc(c * 0.5) h)
     );
@@ -65,25 +65,67 @@ prose-content {
     }
   }
 
-  [data-callout="note"]        { --accent: #0090ff; }
-  [data-callout="tip"]         { --accent: #30a46c; }
-  [data-callout="warning"]     { --accent: #ffc53d; }
-  [data-callout="caution"]     { --accent: #e5484d; }
-  [data-callout="important"]   { --accent: #8e4ec6; }
-  [data-callout="definition"]  { --accent: #5b5bd6; }
-  [data-callout="notation"]    { --accent: #3e63dd; }
-  [data-callout="theorem"]     { --accent: #6e56cf; }
-  [data-callout="proposition"] { --accent: #ab4aba; }
-  [data-callout="lemma"]       { --accent: #d6409f; }
-  [data-callout="corollary"]   { --accent: #e93d82; }
-  [data-callout="axiom"]       { --accent: #e54666; }
-  [data-callout="conjecture"]  { --accent: #e54d2e; }
-  [data-callout="proof"]       { --accent: #00a2c7; }
-  [data-callout="recall"]      { --accent: #7ce2fe; }
-  [data-callout="remark"]      { --accent: #12a594; }
-  [data-callout="explanation"] { --accent: #29a383; }
-  [data-callout="intuition"]   { --accent: #ffe629; }
-  [data-callout="example"]     { --accent: #46a758; }
-  [data-callout="exercise"]    { --accent: #f76b15; }
-  [data-callout="solution"]    { --accent: #30a46c; }
+  [data-callout='note'] {
+    --accent: #0090ff;
+  }
+  [data-callout='tip'] {
+    --accent: #30a46c;
+  }
+  [data-callout='warning'] {
+    --accent: #ffc53d;
+  }
+  [data-callout='caution'] {
+    --accent: #e5484d;
+  }
+  [data-callout='important'] {
+    --accent: #8e4ec6;
+  }
+  [data-callout='definition'] {
+    --accent: #5b5bd6;
+  }
+  [data-callout='notation'] {
+    --accent: #3e63dd;
+  }
+  [data-callout='theorem'] {
+    --accent: #6e56cf;
+  }
+  [data-callout='proposition'] {
+    --accent: #ab4aba;
+  }
+  [data-callout='lemma'] {
+    --accent: #d6409f;
+  }
+  [data-callout='corollary'] {
+    --accent: #e93d82;
+  }
+  [data-callout='axiom'] {
+    --accent: #e54666;
+  }
+  [data-callout='conjecture'] {
+    --accent: #e54d2e;
+  }
+  [data-callout='proof'] {
+    --accent: #00a2c7;
+  }
+  [data-callout='recall'] {
+    --accent: #7ce2fe;
+  }
+  [data-callout='remark'] {
+    --accent: #12a594;
+  }
+  [data-callout='explanation'] {
+    --accent: #29a383;
+  }
+  [data-callout='intuition'] {
+    --accent: #ffe629;
+  }
+  [data-callout='example'] {
+    --accent: #46a758;
+  }
+  [data-callout='exercise'] {
+    --accent: #f76b15;
+  }
+  [data-callout='solution'] {
+    --accent: #30a46c;
+  }
 }

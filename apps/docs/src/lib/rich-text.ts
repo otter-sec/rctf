@@ -1,33 +1,30 @@
-import type { ElementContent, Root } from "hast"
-import { toHtml } from "hast-util-to-html"
-import { h } from "hastscript"
-import {
-  CODE_ANNOTATION_TAGS,
-  stripCodeAnnotationTags,
-} from "./code-annotations"
-import { renderInlineCodeValue } from "./expressive-code/inline"
+import type { ElementContent, Root } from 'hast'
+import { toHtml } from 'hast-util-to-html'
+import { h } from 'hastscript'
+import { CODE_ANNOTATION_TAGS, stripCodeAnnotationTags } from './code-annotations'
+import { renderInlineCodeValue } from './expressive-code/inline'
 
-const INLINE_CODE_PATTERN = "`([^`]+?)(?:\\{:([A-Za-z0-9_.-]+)\\})?`"
-const inlineCodeRe = () => new RegExp(INLINE_CODE_PATTERN, "g")
+const INLINE_CODE_PATTERN = '`([^`]+?)(?:\\{:([A-Za-z0-9_.-]+)\\})?`'
+const inlineCodeRe = () => new RegExp(INLINE_CODE_PATTERN, 'g')
 const INLINE_ANNOTATION_RE = /\{:[^}]+\}$/
 const annotationTagRe = () =>
-  new RegExp(`<(${CODE_ANNOTATION_TAGS.join("|")})>[\\s\\S]*?<\\/\\1>`, "g")
+  new RegExp(`<(${CODE_ANNOTATION_TAGS.join('|')})>[\\s\\S]*?<\\/\\1>`, 'g')
 
 const serialize = (children: ElementContent[]) =>
-  toHtml({ type: "root", children } satisfies Root, {
+  toHtml({ type: 'root', children } satisfies Root, {
     allowDangerousHtml: true,
   })
 
-const textHtml = (value: string) => serialize([{ type: "text", value }])
+const textHtml = (value: string) => serialize([{ type: 'text', value }])
 
 function plainCodeValue(value: string): string {
-  const code = stripCodeAnnotationTags(value.replace(INLINE_ANNOTATION_RE, ""))
-  return code.startsWith("$ ") && code.length > 2 ? code.slice(2) : code
+  const code = stripCodeAnnotationTags(value.replace(INLINE_ANNOTATION_RE, ''))
+  return code.startsWith('$ ') && code.length > 2 ? code.slice(2) : code
 }
 
 export function plainInlineText(value: string): string {
   return stripCodeAnnotationTags(
-    value.replace(inlineCodeRe(), (_, code: string) => plainCodeValue(code)),
+    value.replace(inlineCodeRe(), (_, code: string) => plainCodeValue(code))
   )
 }
 
@@ -37,29 +34,29 @@ export async function inlineCodeNode(value: string): Promise<ElementContent> {
     if (rendered) {
       return rendered.command
         ? h(
-            "copy-command",
+            'copy-command',
             {
-              role: "button",
+              role: 'button',
               tabIndex: 0,
               dataCopy: rendered.copy ?? rendered.value,
               title: `Copy: ${rendered.copy ?? rendered.value}`,
               ariaLabel: `Copy command: ${rendered.copy ?? rendered.value}`,
             },
             [
-              h("code", rendered.properties, [
-                h("span", {
-                  className: ["shell-prompt"],
-                  ariaHidden: "true",
+              h('code', rendered.properties, [
+                h('span', {
+                  className: ['shell-prompt'],
+                  ariaHidden: 'true',
                 }),
                 ...rendered.children,
               ]),
-            ],
+            ]
           )
-        : h("code", rendered.properties, rendered.children)
+        : h('code', rendered.properties, rendered.children)
     }
   } catch {}
 
-  return h("code", plainCodeValue(value))
+  return h('code', plainCodeValue(value))
 }
 
 async function inlineCodeHtml(value: string): Promise<string> {
@@ -79,7 +76,7 @@ async function renderTextSegment(value: string): Promise<string> {
   }
 
   if (lastIndex < value.length) parts.push(textHtml(value.slice(lastIndex)))
-  return parts.join("")
+  return parts.join('')
 }
 
 export async function renderInlineText(value: string): Promise<{ html: string }> {
@@ -101,6 +98,6 @@ export async function renderInlineText(value: string): Promise<{ html: string }>
   }
 
   return {
-    html: parts.join(""),
+    html: parts.join(''),
   }
 }

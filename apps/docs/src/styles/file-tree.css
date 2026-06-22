@@ -20,16 +20,12 @@ prose-content file-tree {
     padding-inline-start: 1.25rem;
 
     &::before {
-      content: "";
+      content: '';
       position: absolute;
       inset-block: 0;
       inset-inline-start: calc(0.5em - 1px);
       inline-size: 2px;
-      background-color: color-mix(
-        in oklab,
-        var(--muted-foreground) 40%,
-        transparent
-      );
+      background-color: color-mix(in oklab, var(--muted-foreground) 40%, transparent);
     }
   }
 

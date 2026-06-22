@@ -1,13 +1,13 @@
 ---
-import ListIcon from "@/assets/icons/list.svg"
-import SearchIcon from "@/assets/icons/search.svg"
-import Wordmark from "@/assets/wordmark.svg"
-import InlineText from "@/components/InlineText.astro"
-import SidebarTree from "@/components/SidebarTree.astro"
-import ThemeToggle from "@/components/ThemeToggle.astro"
-import { NAVIGATION, SITE } from "@/consts"
-import type { DocsTreeNode } from "@/lib/docs"
-import { normalizePath } from "@/lib/utils"
+import ListIcon from '@/assets/icons/list.svg'
+import SearchIcon from '@/assets/icons/search.svg'
+import Wordmark from '@/assets/wordmark.svg'
+import InlineText from '@/components/InlineText.astro'
+import SidebarTree from '@/components/SidebarTree.astro'
+import ThemeToggle from '@/components/ThemeToggle.astro'
+import { NAVIGATION, SITE } from '@/consts'
+import type { DocsTreeNode } from '@/lib/docs'
+import { normalizePath } from '@/lib/utils'
 
 type Props = {
   crumbs?: { label: string; href: string }[]
@@ -15,11 +15,9 @@ type Props = {
 }
 
 const { crumbs = [], tree } = Astro.props
-const pathname = normalizePath(Astro.url.pathname) || "/"
+const pathname = normalizePath(Astro.url.pathname) || '/'
 const section = NAVIGATION.find(
-  ({ href }) =>
-    pathname === href ||
-    pathname.startsWith(href === "/" ? "/" : `${href}/`),
+  ({ href }) => pathname === href || pathname.startsWith(href === '/' ? '/' : `${href}/`)
 )
 ---
 
@@ -29,12 +27,10 @@ const section = NAVIGATION.find(
   </a>
   <nav data-scroll-fade>
     <ul>
-      {NAVIGATION.map((item) => (
+      {
+        NAVIGATION.map(item => (
           <li>
-            <a
-              href={item.href}
-              aria-current={pathname === item.href ? "page" : undefined}
-            >
+            <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>
               <InlineText value={item.label} />
             </a>
             {item === section && tree && (
@@ -42,53 +38,43 @@ const section = NAVIGATION.find(
                 <SidebarTree nodes={tree} />
               </sidebar-tree>
             )}
-            {item === section &&
-              !tree &&
-              crumbs.length > 0 &&
-              pathname !== item.href && (
-                <ul>
-                  {crumbs.map((crumb, i) => (
-                    <li data-depth={i ? 1 : undefined}>
-                      <a
-                        href={crumb.href}
-                        aria-current={
-                          i === crumbs.length - 1 ? "page" : undefined
-                        }
-                      >
-                        <InlineText value={crumb.label} />
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              )}
+            {item === section && !tree && crumbs.length > 0 && pathname !== item.href && (
+              <ul>
+                {crumbs.map((crumb, i) => (
+                  <li data-depth={i ? 1 : undefined}>
+                    <a
+                      href={crumb.href}
+                      aria-current={i === crumbs.length - 1 ? 'page' : undefined}
+                    >
+                      <InlineText value={crumb.label} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
-        ))}
-      {!section &&
+        ))
+      }
+      {
+        !section &&
           crumbs.map((crumb, i) => (
             <li data-depth={i ? 1 : undefined}>
-              <a
-                href={crumb.href}
-                aria-current={i === crumbs.length - 1 ? "page" : undefined}
-              >
+              <a href={crumb.href} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>
                 <InlineText value={crumb.label} />
               </a>
             </li>
-          ))}
+          ))
+      }
     </ul>
   </nav>
   <sidebar-toggle>
-    <button
-      id="search-trigger"
-      data-icon-button
-      aria-label="Search"
-      title="Search (⌘K)"
-    >
+    <button id="search-trigger" data-icon-button aria-label="Search" title="Search (⌘K)">
       <SearchIcon aria-hidden="true" />
     </button>
     <ThemeToggle />
     <slot name="actions" />
     <label class="menu-toggle" data-icon-button>
-      <input type="checkbox" aria-label="Toggle navigation menu">
+      <input type="checkbox" aria-label="Toggle navigation menu" />
       <ListIcon aria-hidden="true" />
     </label>
   </sidebar-toggle>
@@ -183,12 +169,12 @@ const section = NAVIGATION.find(
       color: var(--muted-foreground);
 
       &:hover,
-      &[aria-current="page"] {
+      &[aria-current='page'] {
         color: var(--foreground);
       }
     }
 
-    li[data-depth="1"] > a {
+    li[data-depth='1'] > a {
       margin-inline-start: var(--space-xs);
     }
 
@@ -199,7 +185,7 @@ const section = NAVIGATION.find(
         margin-inline-start: var(--space-xs);
       }
 
-      > li[data-depth="1"] > a {
+      > li[data-depth='1'] > a {
         margin-inline-start: calc(2 * var(--space-xs));
       }
     }
@@ -247,9 +233,9 @@ const section = NAVIGATION.find(
 </style>
 
 <script>
-  const toggle = document.querySelector<HTMLInputElement>(".menu-toggle input")
-  document.querySelector("aside nav")?.addEventListener("click", (event) => {
-    if (toggle && (event.target as Element).closest?.("a")) {
+  const toggle = document.querySelector<HTMLInputElement>('.menu-toggle input')
+  document.querySelector('aside nav')?.addEventListener('click', event => {
+    if (toggle && (event.target as Element).closest?.('a')) {
       toggle.checked = false
     }
   })

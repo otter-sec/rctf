@@ -1,33 +1,32 @@
 ---
-import "@/styles/reset.css"
-import "@/styles/fonts.css"
-import "@/styles/color.css"
-import "@/styles/typography.css"
-import "@/styles/typography-headings.css"
-import "@/styles/typography-inline.css"
-import "@/styles/typography-lists.css"
-import "@/styles/typography-block.css"
-import "@/styles/typography-tables.css"
-import "@/styles/callout.css"
-import "@/styles/steps.css"
-import "@/styles/cards.css"
-import "@/styles/file-tree.css"
-import "@/styles/tabs.css"
-import "@/styles/layout.css"
-import "@/styles/reference.css"
-import "@/styles/scroll-fade.css"
-import "@/styles/icon-button.css"
-import "@/styles/bar.css"
-import "@/styles/shape.css"
-
-import CopyCommands from "@/components/CopyCommands.astro"
-import TabGroups from "@/components/TabGroups.astro"
-import Search from "@/components/Search.astro"
-import Footer from "@/components/Footer.astro"
-import MetaHead from "@/components/MetaHead.astro"
-import Sidebar from "@/components/Sidebar.astro"
-import { SITE } from "@/consts"
-import type { DocsTreeNode } from "@/lib/docs"
+import '@/styles/reset.css'
+import '@/styles/fonts.css'
+import '@/styles/color.css'
+import '@/styles/typography.css'
+import '@/styles/typography-headings.css'
+import '@/styles/typography-inline.css'
+import '@/styles/typography-lists.css'
+import '@/styles/typography-block.css'
+import '@/styles/typography-tables.css'
+import '@/styles/callout.css'
+import '@/styles/steps.css'
+import '@/styles/cards.css'
+import '@/styles/file-tree.css'
+import '@/styles/tabs.css'
+import '@/styles/layout.css'
+import '@/styles/reference.css'
+import '@/styles/scroll-fade.css'
+import '@/styles/icon-button.css'
+import '@/styles/bar.css'
+import '@/styles/shape.css'
+import CopyCommands from '@/components/CopyCommands.astro'
+import Footer from '@/components/Footer.astro'
+import MetaHead from '@/components/MetaHead.astro'
+import Search from '@/components/Search.astro'
+import Sidebar from '@/components/Sidebar.astro'
+import TabGroups from '@/components/TabGroups.astro'
+import { SITE } from '@/consts'
+import type { DocsTreeNode } from '@/lib/docs'
 
 type Props = {
   crumbs?: { label: string; href: string }[]
@@ -46,13 +45,15 @@ const { crumbs, tree, wide } = Astro.props
     <page-grid>
       <page-header>
         <page-nav>
-          <Sidebar crumbs={crumbs} tree={tree}
-            ><slot name="actions" slot="actions" /></Sidebar
-          >
+          <Sidebar crumbs={crumbs} tree={tree}><slot name="actions" slot="actions" /></Sidebar>
         </page-nav>
-        {Astro.slots.has("toc") && !wide && (
-            <page-toc><slot name="toc" /></page-toc>
-          )}
+        {
+          Astro.slots.has('toc') && !wide && (
+            <page-toc>
+              <slot name="toc" />
+            </page-toc>
+          )
+        }
       </page-header>
       <page-content data-wide={wide || undefined}>
         <main><slot /></main>
@@ -84,10 +85,10 @@ const { crumbs, tree, wide } = Astro.props
         max(calc(2 * var(--grid-column-width) + var(--grid-gutter)), 9rem)
         minmax(0, 1fr);
       grid-template-rows: auto 1fr;
-      grid-template-areas: "nav toc" "nav content";
+      grid-template-areas: 'nav toc' 'nav content';
 
       &:not(:has(page-toc)) {
-        grid-template-areas: "nav content" "nav content";
+        grid-template-areas: 'nav content' 'nav content';
       }
     }
 

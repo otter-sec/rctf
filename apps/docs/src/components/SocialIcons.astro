@@ -1,5 +1,5 @@
 ---
-import type { SvgComponent } from "astro/types"
+import type { SvgComponent } from 'astro/types'
 
 type Props = { links: { href: string; label: string; icon: SvgComponent }[] }
 
@@ -7,7 +7,8 @@ const { links } = Astro.props
 ---
 
 <ul>
-  {links.map(({ href, label, icon: Icon }) => (
+  {
+    links.map(({ href, label, icon: Icon }) => (
       <li>
         <a
           href={href}
@@ -20,7 +21,8 @@ const { links } = Astro.props
           <Icon aria-hidden="true" />
         </a>
       </li>
-    ))}
+    ))
+  }
 </ul>
 
 <style>

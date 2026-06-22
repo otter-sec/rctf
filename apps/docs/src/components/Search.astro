@@ -1,17 +1,12 @@
 ---
-import SearchIcon from "@/assets/icons/search.svg"
+import SearchIcon from '@/assets/icons/search.svg'
 ---
 
 <dialog id="search-dialog" aria-label="Search">
   <search>
     <form role="search">
       <SearchIcon aria-hidden="true" />
-      <input
-        type="search"
-        placeholder="Search…"
-        aria-label="Search query"
-        autocomplete="off"
-      >
+      <input type="search" placeholder="Search…" aria-label="Search query" autocomplete="off" />
     </form>
     <search-results>
       <p data-hint>Type to search.</p>
@@ -87,8 +82,7 @@ import SearchIcon from "@/assets/icons/search.svg"
       overscroll-behavior: contain;
 
       li + li {
-        border-block-start: 2px solid
-          color-mix(in oklab, var(--border) 50%, transparent);
+        border-block-start: 2px solid color-mix(in oklab, var(--border) 50%, transparent);
       }
 
       a {
@@ -113,11 +107,7 @@ import SearchIcon from "@/assets/icons/search.svg"
           color: var(--muted-foreground);
 
           :global(mark) {
-            background-color: color-mix(
-              in oklab,
-              var(--foreground) 15%,
-              transparent
-            );
+            background-color: color-mix(in oklab, var(--foreground) 15%, transparent);
             color: var(--foreground);
           }
         }
@@ -136,15 +126,13 @@ import SearchIcon from "@/assets/icons/search.svg"
   }
   type Pagefind = {
     init?: () => void
-    debouncedSearch: (
-      query: string,
-    ) => Promise<{ results: PagefindResult[] } | null>
+    debouncedSearch: (query: string) => Promise<{ results: PagefindResult[] } | null>
   }
 
-  const dialog = document.querySelector<HTMLDialogElement>("#search-dialog")
-  const input = dialog?.querySelector("input")
-  const list = dialog?.querySelector("ul")
-  const hint = dialog?.querySelector<HTMLElement>("[data-hint]")
+  const dialog = document.querySelector<HTMLDialogElement>('#search-dialog')
+  const input = dialog?.querySelector('input')
+  const list = dialog?.querySelector('ul')
+  const hint = dialog?.querySelector<HTMLElement>('[data-hint]')
 
   let pagefind: Pagefind | null | undefined
 
@@ -152,13 +140,13 @@ import SearchIcon from "@/assets/icons/search.svg"
     if (!hint || !list) return
     hint.textContent = text
     hint.hidden = !text
-    if (text) list.innerHTML = ""
+    if (text) list.innerHTML = ''
   }
 
   const load = async () => {
     if (pagefind !== undefined) return
     try {
-      const url = new URL("/pagefind/pagefind.js", location.origin).href
+      const url = new URL('/pagefind/pagefind.js', location.origin).href
       pagefind = (await import(/* @vite-ignore */ url)) as Pagefind
       pagefind.init?.()
     } catch {
@@ -166,30 +154,27 @@ import SearchIcon from "@/assets/icons/search.svg"
     }
   }
 
-  const escapeHtml = (value: string) =>
-    value.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+  const escapeHtml = (value: string) => value.replaceAll('&', '&amp;').replaceAll('<', '&lt;')
 
   const search = async (query: string) => {
-    if (!query.trim()) return setHint("Type to search.")
+    if (!query.trim()) return setHint('Type to search.')
     if (pagefind === undefined) await load()
     if (!pagefind) {
-      return setHint("No search index found. Build the site first.")
+      return setHint('No search index found. Build the site first.')
     }
     const response = await pagefind.debouncedSearch(query)
     if (!response || !list || !hint) return
-    const pages = await Promise.all(
-      response.results.slice(0, 8).map((result) => result.data()),
-    )
+    const pages = await Promise.all(response.results.slice(0, 8).map(result => result.data()))
     if (pages.length === 0) return setHint(`No results for “${query}”.`)
     hint.hidden = true
     list.innerHTML = pages
       .map(
-        (page) =>
+        page =>
           `<li><a href="${page.url}"><strong>${escapeHtml(
-            page.meta.title ?? page.url,
-          )}</strong><p>${page.excerpt}</p></a></li>`,
+            page.meta.title ?? page.url
+          )}</strong><p>${page.excerpt}</p></a></li>`
       )
-      .join("")
+      .join('')
   }
 
   const open = () => {
@@ -199,36 +184,35 @@ import SearchIcon from "@/assets/icons/search.svg"
     input?.select()
   }
 
-  document.addEventListener("click", (event) => {
+  document.addEventListener('click', event => {
     const target = event.target as Element
-    if (target.closest?.("#search-trigger")) open()
-    if (target.closest?.("#search-dialog a")) dialog?.close()
+    if (target.closest?.('#search-trigger')) open()
+    if (target.closest?.('#search-dialog a')) dialog?.close()
     if (event.target === dialog) dialog?.close()
   })
 
-  document.addEventListener("keydown", (event) => {
-    if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+  document.addEventListener('keydown', event => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
       event.preventDefault()
       if (dialog?.open) dialog.close()
       else open()
       return
     }
     if (!dialog?.open) return
-    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
-    const focusable = [
-      input,
-      ...(list?.querySelectorAll<HTMLAnchorElement>("a") ?? []),
-    ].filter((el): el is HTMLInputElement | HTMLAnchorElement => !!el)
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return
+    const focusable = [input, ...(list?.querySelectorAll<HTMLAnchorElement>('a') ?? [])].filter(
+      (el): el is HTMLInputElement | HTMLAnchorElement => !!el
+    )
     const current = focusable.indexOf(
-      document.activeElement as HTMLInputElement | HTMLAnchorElement,
+      document.activeElement as HTMLInputElement | HTMLAnchorElement
     )
     const next =
-      event.key === "ArrowDown"
+      event.key === 'ArrowDown'
         ? Math.min(current + 1, focusable.length - 1)
         : Math.max(current - 1, 0)
     focusable[next]?.focus()
     event.preventDefault()
   })
 
-  input?.addEventListener("input", () => search(input.value))
+  input?.addEventListener('input', () => search(input.value))
 </script>

@@ -1,8 +1,8 @@
 ---
-import ChevronIcon from "@/assets/icons/callouts/alt-arrow-down.svg"
-import InlineText from "@/components/InlineText.astro"
-import type { DocsTreeNode } from "@/lib/docs"
-import { normalizePath } from "@/lib/utils"
+import ChevronIcon from '@/assets/icons/callouts/alt-arrow-down.svg'
+import InlineText from '@/components/InlineText.astro'
+import type { DocsTreeNode } from '@/lib/docs'
+import { normalizePath } from '@/lib/utils'
 
 type Props = { nodes: DocsTreeNode[] }
 
@@ -11,19 +11,17 @@ const pathname = normalizePath(Astro.url.pathname)
 
 const isCurrent = (href?: string) => href !== undefined && pathname === href
 const containsCurrent = (node: DocsTreeNode): boolean =>
-  node.type === "page"
+  node.type === 'page'
     ? isCurrent(node.href)
     : isCurrent(node.href) || node.children.some(containsCurrent)
 ---
 
 <ul>
-  {nodes.map((node) =>
-      node.type === "page" ? (
+  {
+    nodes.map(node =>
+      node.type === 'page' ? (
         <li>
-          <a
-            href={node.href}
-            aria-current={isCurrent(node.href) ? "page" : undefined}
-          >
+          <a href={node.href} aria-current={isCurrent(node.href) ? 'page' : undefined}>
             <InlineText value={node.label} />
           </a>
         </li>
@@ -32,22 +30,22 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
           <details open={containsCurrent(node) || undefined}>
             <summary>
               {node.href ? (
-                <a
-                  href={node.href}
-                  aria-current={isCurrent(node.href) ? "page" : undefined}
-                >
+                <a href={node.href} aria-current={isCurrent(node.href) ? 'page' : undefined}>
                   <InlineText value={node.label} />
                 </a>
               ) : (
-                <span><InlineText value={node.label} /></span>
+                <span>
+                  <InlineText value={node.label} />
+                </span>
               )}
               <ChevronIcon aria-hidden="true" />
             </summary>
             <Astro.self nodes={node.children} />
           </details>
         </li>
-      ),
-    )}
+      )
+    )
+  }
 </ul>
 
 <style>
@@ -64,7 +62,7 @@ const containsCurrent = (node: DocsTreeNode): boolean =>
   }
 
   a:hover,
-  a[aria-current="page"] {
+  a[aria-current='page'] {
     color: var(--foreground);
   }
 

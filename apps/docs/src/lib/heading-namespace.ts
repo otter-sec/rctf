@@ -1,6 +1,6 @@
-import { readFileSync } from "node:fs"
-import GithubSlugger from "github-slugger"
-import { defineHastPlugin } from "satteri"
+import { readFileSync } from 'node:fs'
+import GithubSlugger from 'github-slugger'
+import { defineHastPlugin } from 'satteri'
 
 const SUBPOST = /\/blog\/[^/]+\/(?!index\.md$)([^/]+)\.md$/
 const DOCS_PAGE = /\/src\/content\/docs\/.+\/(?!index\.md$)([^/]+)\.md$/
@@ -13,9 +13,7 @@ function isScrollDir(indexPath: string): boolean {
 
   let scroll = false
   try {
-    const frontmatter = /^---\n([\s\S]*?)\n---/.exec(
-      readFileSync(indexPath, "utf8"),
-    )?.[1]
+    const frontmatter = /^---\n([\s\S]*?)\n---/.exec(readFileSync(indexPath, 'utf8'))?.[1]
     scroll = !!frontmatter && /^scroll:\s*true\s*$/m.test(frontmatter)
   } catch {}
 
@@ -29,24 +27,20 @@ function namespace(path: string): string | null {
 
   const docs = DOCS_PAGE.exec(path)
   if (!docs) return null
-  const indexPath = `${path.slice(0, path.lastIndexOf("/") + 1)}index.md`
+  const indexPath = `${path.slice(0, path.lastIndexOf('/') + 1)}index.md`
   return isScrollDir(indexPath) ? docs[1] : null
 }
 
 export function headingNamespace() {
   const slugger = new GithubSlugger()
   return defineHastPlugin({
-    name: "heading-namespace",
+    name: 'heading-namespace',
     element: {
-      filter: ["h1", "h2", "h3", "h4", "h5", "h6"],
+      filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
       visit(node, ctx) {
         const prefix = ctx.fileURL && namespace(ctx.fileURL.pathname)
         if (!prefix) return
-        ctx.setProperty(
-          node,
-          "id",
-          `${prefix}-${slugger.slug(ctx.textContent(node))}`,
-        )
+        ctx.setProperty(node, 'id', `${prefix}-${slugger.slug(ctx.textContent(node))}`)
       },
     },
   })

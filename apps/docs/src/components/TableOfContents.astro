@@ -1,7 +1,7 @@
 ---
-import ChevronIcon from "@/assets/icons/callouts/alt-arrow-down.svg"
-import InlineText from "@/components/InlineText.astro"
-import type { TocHeading } from "@/lib/content"
+import ChevronIcon from '@/assets/icons/callouts/alt-arrow-down.svg'
+import InlineText from '@/components/InlineText.astro'
+import type { TocHeading } from '@/lib/content'
 
 type Section = {
   id?: string
@@ -17,48 +17,50 @@ const { title, sections } = Astro.props
 <nav aria-label="Table of contents">
   <toc-title aria-hidden="true"><span><InlineText value={title} /></span></toc-title>
   <label data-bar>
-    <input type="checkbox" aria-label="Toggle table of contents">
+    <input type="checkbox" aria-label="Toggle table of contents" />
     <svg viewBox="0 0 16 16" aria-hidden="true">
-      <circle cx="8" cy="8" r="6.5" />
-      <circle cx="8" cy="8" r="6.5" transform="rotate(-90 8 8)" />
+      <circle cx="8" cy="8" r="6.5"></circle>
+      <circle cx="8" cy="8" r="6.5" transform="rotate(-90 8 8)"></circle>
     </svg>
     <toc-current><InlineText value={title} /></toc-current>
     <ChevronIcon aria-hidden="true" />
   </label>
   <ul data-bar>
-    {sections.map(({ id, label, open, headings }) =>
+    {
+      sections.map(({ id, label, open, headings }) =>
         id ? (
           <li data-group>
             {headings.length > 0 ? (
               <details open={open || undefined}>
                 <summary>
-                  <a href={`#${id}`}><InlineText value={label} /></a>
+                  <a href={`#${id}`}>
+                    <InlineText value={label} />
+                  </a>
                   <ChevronIcon aria-hidden="true" />
                 </summary>
                 <ul>
                   {headings.map(({ depth, slug, text, html }) => (
                     <li data-depth={depth}>
-                      <a href={`#${slug}`}>
-                        {html ? <Fragment set:html={html} /> : text}
-                      </a>
+                      <a href={`#${slug}`}>{html ? <Fragment set:html={html} /> : text}</a>
                     </li>
                   ))}
                 </ul>
               </details>
             ) : (
-              <a href={`#${id}`}><InlineText value={label} /></a>
+              <a href={`#${id}`}>
+                <InlineText value={label} />
+              </a>
             )}
           </li>
         ) : (
           headings.map(({ depth, slug, text, html }) => (
             <li data-depth={depth}>
-              <a href={`#${slug}`}>
-                {html ? <Fragment set:html={html} /> : text}
-              </a>
+              <a href={`#${slug}`}>{html ? <Fragment set:html={html} /> : text}</a>
             </li>
           ))
-        ),
-      )}
+        )
+      )
+    }
   </ul>
 </nav>
 
@@ -68,11 +70,7 @@ const { title, sections } = Astro.props
     top: var(--page-offset-top);
     display: flex;
     flex-direction: column;
-    max-height: calc(
-      100svh -
-      var(--page-offset-top) -
-      var(--page-offset-bottom)
-    );
+    max-height: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
     font-size: var(--step--1);
 
     @media (width < 64rem) {
@@ -133,10 +131,7 @@ const { title, sections } = Astro.props
 
             stroke: var(--muted-foreground);
             stroke-dasharray: var(--circumference);
-            stroke-dashoffset: calc(
-              var(--circumference) *
-              (1 - var(--progress, 0))
-            );
+            stroke-dashoffset: calc(var(--circumference) * (1 - var(--progress, 0)));
           }
         }
       }
@@ -264,74 +259,63 @@ const { title, sections } = Astro.props
     }
 
     li[data-depth] {
-      padding-inline-start: calc(
-        (var(--shift, 0) + var(--indent, 0)) *
-        var(--space-xs)
-      );
+      padding-inline-start: calc((var(--shift, 0) + var(--indent, 0)) * var(--space-xs));
     }
 
-    li[data-depth="3"] {
+    li[data-depth='3'] {
       --indent: 1;
     }
 
-    li[data-depth="4"] {
+    li[data-depth='4'] {
       --indent: 2;
     }
   }
 </style>
 
 <script>
-  import { hashId } from "@/lib/utils"
+  import { hashId } from '@/lib/utils'
 
   ;(() => {
-    const nav = document.querySelector<HTMLElement>("page-toc nav")
+    const nav = document.querySelector<HTMLElement>('page-toc nav')
     if (!nav) return
 
-    const ring = nav.querySelector<SVGElement>("label svg")
-    const mobile = matchMedia("(width < 64rem)")
+    const ring = nav.querySelector<SVGElement>('label svg')
+    const mobile = matchMedia('(width < 64rem)')
     const progress = () => {
       if (!ring || !mobile.matches) return
       const max = document.documentElement.scrollHeight - innerHeight
-      ring.style.setProperty(
-        "--progress",
-        String(max > 0 ? Math.min(scrollY / max, 1) : 0),
-      )
+      ring.style.setProperty('--progress', String(max > 0 ? Math.min(scrollY / max, 1) : 0))
     }
-    addEventListener("scroll", progress, { passive: true })
-    mobile.addEventListener("change", progress)
+    addEventListener('scroll', progress, { passive: true })
+    mobile.addEventListener('change', progress)
     progress()
 
     const links = new Map(
-      [...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map((a) => [
-        hashId(a.hash),
-        a,
-      ]),
+      [...nav.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map(a => [hashId(a.hash), a])
     )
-    const articles = document.querySelectorAll("main article")
-    const list = nav.querySelector(":scope > ul")
-    const title = nav.querySelector("toc-title")
-    const currentLabel = nav.querySelector("toc-current")
-    const toggle = nav.querySelector<HTMLInputElement>("input")
-    const heading = document.querySelector("article > header h1")
+    const articles = document.querySelectorAll('main article')
+    const list = nav.querySelector(':scope > ul')
+    const title = nav.querySelector('toc-title')
+    const currentLabel = nav.querySelector('toc-current')
+    const toggle = nav.querySelector<HTMLInputElement>('input')
+    const heading = document.querySelector('article > header h1')
     if (articles.length === 0 || !list || links.size === 0) return
 
-    const fallback = currentLabel?.innerHTML ?? ""
+    const fallback = currentLabel?.innerHTML ?? ''
 
-    const groups = [
-      ...nav.querySelectorAll<HTMLDetailsElement>("li[data-group] details"),
-    ].map((details) => ({
-      details,
-      active: details.open,
-      ids: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map(
-        (a) => hashId(a.hash),
-      ),
-    }))
+    const groups = [...nav.querySelectorAll<HTMLDetailsElement>('li[data-group] details')].map(
+      details => ({
+        details,
+        active: details.open,
+        ids: [...details.querySelectorAll<HTMLAnchorElement>("a[href^='#']")].map(a =>
+          hashId(a.hash)
+        ),
+      })
+    )
 
     const blockOf = new Map<Element, string>()
     for (const id of links.keys()) {
-      const block = document
-        .getElementById(id)
-        ?.closest("prose-content > *, article[data-url]")
+      const block = document.getElementById(id)?.closest('prose-content > *, article[data-url]')
       if (block && !blockOf.has(block)) blockOf.set(block, id)
     }
 
@@ -339,7 +323,7 @@ const { title, sections } = Astro.props
     for (const article of articles) {
       let current = blockOf.get(article)
       for (const child of article.children) {
-        if (child.tagName === "PROSE-CONTENT") {
+        if (child.tagName === 'PROSE-CONTENT') {
           for (const block of child.children) {
             current = blockOf.get(block) ?? current
             if (current) sectionOf.set(block, current)
@@ -352,36 +336,32 @@ const { title, sections } = Astro.props
     let prevActive = new Set<string>()
 
     const center = () => {
-      const run = [
-        ...list.querySelectorAll<HTMLAnchorElement>("a[data-active]"),
-      ]
+      const run = [...list.querySelectorAll<HTMLAnchorElement>('a[data-active]')]
       const first = run[0]
       const last = run[run.length - 1]
-      if (!first || !run.every((a) => a.checkVisibility())) return
+      if (!first || !run.every(a => a.checkVisibility())) return
       const area = list.getBoundingClientRect()
       const runCenter =
-        (first.getBoundingClientRect().top +
-          last.getBoundingClientRect().bottom) /
-        2
+        (first.getBoundingClientRect().top + last.getBoundingClientRect().bottom) / 2
       list.scrollTo({
         top: list.scrollTop + runCenter - (area.top + area.height / 2),
       })
     }
 
-    toggle?.addEventListener("change", () => {
+    toggle?.addEventListener('change', () => {
       if (toggle.checked) center()
     })
-    list.addEventListener("click", (event) => {
-      if (toggle && (event.target as Element).closest?.("a")) {
+    list.addEventListener('click', event => {
+      if (toggle && (event.target as Element).closest?.('a')) {
         toggle.checked = false
       }
     })
 
-    const observer = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         if (entry.target === heading) {
           const past = !entry.isIntersecting
-          title?.toggleAttribute("data-visible", past)
+          title?.toggleAttribute('data-visible', past)
         } else if (entry.isIntersecting) visible.add(entry.target)
         else visible.delete(entry.target)
       }
@@ -395,11 +375,11 @@ const { title, sections } = Astro.props
       let firstActive: HTMLAnchorElement | undefined
       for (const [id, link] of links) {
         const on = activeIds.has(id)
-        link.toggleAttribute("data-active", on)
-        link.removeAttribute("aria-current")
+        link.toggleAttribute('data-active', on)
+        link.removeAttribute('aria-current')
         if (on) firstActive ??= link
       }
-      firstActive?.setAttribute("aria-current", "location")
+      firstActive?.setAttribute('aria-current', 'location')
 
       if (currentLabel) {
         const label = firstActive?.innerHTML?.trim() || fallback
@@ -407,7 +387,7 @@ const { title, sections } = Astro.props
       }
 
       for (const group of groups) {
-        const active = group.ids.some((id) => activeIds.has(id))
+        const active = group.ids.some(id => activeIds.has(id))
         if (active !== group.active) {
           group.active = active
           if (active) group.details.open = true
@@ -429,7 +409,7 @@ const { title, sections } = Astro.props
     if (heading) {
       observer.observe(heading)
     } else {
-      title?.toggleAttribute("data-visible", true)
+      title?.toggleAttribute('data-visible', true)
     }
   })()
 </script>

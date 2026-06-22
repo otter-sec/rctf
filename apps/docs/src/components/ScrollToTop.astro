@@ -1,5 +1,5 @@
 ---
-import ArrowUp from "@/assets/icons/arrow-up.svg"
+import ArrowUp from '@/assets/icons/arrow-up.svg'
 
 type Props = { floating?: boolean }
 
@@ -50,20 +50,17 @@ const { floating } = Astro.props
 </style>
 
 <script>
-  const buttons = [
-    ...document.querySelectorAll<HTMLElement>("[data-scroll-top]"),
-  ]
+  const buttons = [...document.querySelectorAll<HTMLElement>('[data-scroll-top]')]
 
   const update = () => {
     const past = scrollY > innerHeight * 0.5
-    for (const button of buttons) button.toggleAttribute("data-visible", past)
+    for (const button of buttons) button.toggleAttribute('data-visible', past)
   }
 
-  addEventListener("scroll", update, { passive: true })
+  addEventListener('scroll', update, { passive: true })
   update()
 
-  document.addEventListener("click", (event) => {
-    if ((event.target as Element).closest("[data-scroll-top]"))
-      window.scrollTo({ top: 0 })
+  document.addEventListener('click', event => {
+    if ((event.target as Element).closest('[data-scroll-top]')) window.scrollTo({ top: 0 })
   })
 </script>

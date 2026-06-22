@@ -1,9 +1,8 @@
-import { SITE } from "@/consts"
-import type { MarkdownHeading } from "astro"
-import { plainInlineText } from "./rich-text"
+import { SITE } from '@/consts'
+import type { MarkdownHeading } from 'astro'
+import { plainInlineText } from './rich-text'
 
-export const pageTitle = (title: string) =>
-  `${plainInlineText(title)} | ${SITE.title}`
+export const pageTitle = (title: string) => `${plainInlineText(title)} | ${SITE.title}`
 
 export type TocHeading = MarkdownHeading & { html?: string }
 
@@ -13,14 +12,14 @@ const TOC_UNSUPPORTED_RE =
 
 export function enrichHeadings(
   headings: MarkdownHeading[],
-  html: string | undefined,
+  html: string | undefined
 ): TocHeading[] {
   if (!html) return headings
   const inner = new Map<string, string>()
   for (const [, , id, content] of html.matchAll(HEADING_RE)) {
-    inner.set(id, content.replace(TOC_UNSUPPORTED_RE, "").trim())
+    inner.set(id, content.replace(TOC_UNSUPPORTED_RE, '').trim())
   }
-  return headings.map((heading) => {
+  return headings.map(heading => {
     const html = inner.get(heading.slug)
     return html && html !== heading.text ? { ...heading, html } : heading
   })

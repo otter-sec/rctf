@@ -35,7 +35,7 @@ prose-content step-list {
       }
 
       &::after {
-        content: "";
+        content: '';
         position: absolute;
         inset-inline-start: calc(0.875rem - 1px);
         inset-block-start: calc(var(--step-circle-top) + 1.75rem + 0.25em);

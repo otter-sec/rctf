@@ -1,7 +1,7 @@
 ---
-import { SITE } from "@/consts"
-import { pageTitle } from "@/lib/content"
-import { plainInlineText } from "@/lib/rich-text"
+import { SITE } from '@/consts'
+import { pageTitle } from '@/lib/content'
+import { plainInlineText } from '@/lib/rich-text'
 
 type Props = {
   title?: string
@@ -29,21 +29,21 @@ const ogImage = new URL(image ?? SITE.defaultPageImage, base)
 ---
 
 <title>{fullTitle}</title>
-<meta name="description" content={plainDescription}>
-<link rel="canonical" href={canonical}>
+<meta name="description" content={plainDescription} />
+<link rel="canonical" href={canonical} />
 {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-<meta property="og:title" content={ogTitle}>
-<meta property="og:description" content={plainDescription}>
-<meta property="og:url" content={canonical}>
-<meta property="og:type" content="website">
-<meta property="og:site_name" content={SITE.title}>
-<meta property="og:locale" content={SITE.locale.replace("-", "_")}>
-<meta property="og:image" content={ogImage}>
-<meta property="og:image:alt" content={ogTitle}>
+<meta property="og:title" content={ogTitle} />
+<meta property="og:description" content={plainDescription} />
+<meta property="og:url" content={canonical} />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.title} />
+<meta property="og:locale" content={SITE.locale.replace('-', '_')} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={ogTitle} />
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content={ogTitle}>
-<meta name="twitter:description" content={plainDescription}>
-<meta name="twitter:image" content={ogImage}>
-<meta name="twitter:image:alt" content={ogTitle}>
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={ogTitle} />
+<meta name="twitter:description" content={plainDescription} />
+<meta name="twitter:image" content={ogImage} />
+<meta name="twitter:image:alt" content={ogTitle} />

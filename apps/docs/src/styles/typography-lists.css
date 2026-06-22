@@ -19,19 +19,19 @@ prose-content {
   ol {
     list-style-type: decimal;
 
-    &[type="A"] {
+    &[type='A'] {
       list-style-type: upper-alpha;
     }
 
-    &[type="a"] {
+    &[type='a'] {
       list-style-type: lower-alpha;
     }
 
-    &[type="I"] {
+    &[type='I'] {
       list-style-type: upper-roman;
     }
 
-    &[type="i"] {
+    &[type='i'] {
       list-style-type: lower-roman;
     }
   }
@@ -44,7 +44,9 @@ prose-content {
       color: var(--prose-marker);
     }
 
-    > blockquote, .expressive-code, file-tree {
+    > blockquote,
+    .expressive-code,
+    file-tree {
       margin-block-start: 1em;
     }
 
@@ -55,7 +57,7 @@ prose-content {
     &.task-list-item {
       padding-inline-start: 0;
 
-      input[type="checkbox"] {
+      input[type='checkbox'] {
         margin-inline-end: 0.5em;
         vertical-align: middle;
         accent-color: var(--foreground);

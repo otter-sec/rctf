@@ -1,21 +1,20 @@
-import type { ElementContent, Root } from "hast"
-import { toHtml } from "hast-util-to-html"
-import { h } from "hastscript"
-import type { List, ListItem, Paragraph, PhrasingContent } from "mdast"
-import type {} from "mdast-util-to-hast"
-import { defineMdastPlugin } from "satteri"
-import { loadIcon } from "./icons"
-import { inlineCodeNode } from "./rich-text"
+import type { ElementContent, Root } from 'hast'
+import { toHtml } from 'hast-util-to-html'
+import { h } from 'hastscript'
+import type { List, ListItem, Paragraph, PhrasingContent } from 'mdast'
+import type {} from 'mdast-util-to-hast'
+import { defineMdastPlugin } from 'satteri'
+import { loadIcon } from './icons'
+import { inlineCodeNode } from './rich-text'
 
 const icons: Record<string, string> = {
-  folder: loadIcon("code/folder"),
-  file: loadIcon("code/file"),
+  folder: loadIcon('code/folder'),
+  file: loadIcon('code/file'),
 }
 
-const raw = (value: string): ElementContent => ({ type: "raw", value })
+const raw = (value: string): ElementContent => ({ type: 'raw', value })
 
-const escapeAttr = (value: string): string =>
-  value.replace(/&/g, "&amp;").replace(/"/g, "&quot;")
+const escapeAttr = (value: string): string => value.replace(/&/g, '&amp;').replace(/"/g, '&quot;')
 
 type DirectiveNode = {
   name: string
@@ -26,55 +25,52 @@ type DirectiveNode = {
 const directiveLabel = (node: DirectiveNode): Paragraph | null => {
   const first = node.children?.[0]
   const isLabel =
-    first?.type === "paragraph" &&
-    (first.data as { directiveLabel?: boolean } | undefined)?.directiveLabel ===
-      true
+    first?.type === 'paragraph' &&
+    (first.data as { directiveLabel?: boolean } | undefined)?.directiveLabel === true
   return isLabel ? (first as unknown as Paragraph) : null
 }
 
 const mdastText = (node: unknown): string => {
   const n = node as { value?: string; children?: unknown[] }
-  if (typeof n.value === "string") return n.value
-  return (n.children ?? []).map(mdastText).join("")
+  if (typeof n.value === 'string') return n.value
+  return (n.children ?? []).map(mdastText).join('')
 }
 
 function inlineToHast(nodes: PhrasingContent[]): ElementContent[] {
   return nodes.flatMap((node): ElementContent[] => {
     switch (node.type) {
-      case "text":
-        return [{ type: "text", value: node.value }]
-      case "inlineCode":
-        return [h("code", node.value)]
-      case "emphasis":
-        return [h("em", inlineToHast(node.children))]
-      case "strong":
-        return [h("strong", inlineToHast(node.children))]
+      case 'text':
+        return [{ type: 'text', value: node.value }]
+      case 'inlineCode':
+        return [h('code', node.value)]
+      case 'emphasis':
+        return [h('em', inlineToHast(node.children))]
+      case 'strong':
+        return [h('strong', inlineToHast(node.children))]
       default:
-        return [{ type: "text", value: mdastText(node) }]
+        return [{ type: 'text', value: mdastText(node) }]
     }
   })
 }
 
-async function richInlineToHast(
-  nodes: PhrasingContent[],
-): Promise<ElementContent[]> {
+async function richInlineToHast(nodes: PhrasingContent[]): Promise<ElementContent[]> {
   const out: ElementContent[] = []
   for (const node of nodes) {
     switch (node.type) {
-      case "text":
-        out.push({ type: "text", value: node.value })
+      case 'text':
+        out.push({ type: 'text', value: node.value })
         break
-      case "inlineCode":
+      case 'inlineCode':
         out.push(await inlineCodeNode(node.value))
         break
-      case "emphasis":
-        out.push(h("em", await richInlineToHast(node.children)))
+      case 'emphasis':
+        out.push(h('em', await richInlineToHast(node.children)))
         break
-      case "strong":
-        out.push(h("strong", await richInlineToHast(node.children)))
+      case 'strong':
+        out.push(h('strong', await richInlineToHast(node.children)))
         break
       default:
-        out.push({ type: "text", value: mdastText(node) })
+        out.push({ type: 'text', value: mdastText(node) })
     }
   }
   return out
@@ -83,10 +79,10 @@ async function richInlineToHast(
 async function directiveLabelHtml(label: Paragraph): Promise<string> {
   return toHtml(
     {
-      type: "root",
+      type: 'root',
       children: await richInlineToHast(label.children),
     } satisfies Root,
-    { allowDangerousHtml: true },
+    { allowDangerousHtml: true }
   )
 }
 
@@ -101,27 +97,25 @@ type TreeEntry = {
 
 function parseTreeItem(item: ListItem): TreeEntry | null {
   const blocks = item.children ?? []
-  const paragraph = blocks.find((child) => child.type === "paragraph") as
-    | Paragraph
-    | undefined
-  const nested = (blocks.find((child) => child.type === "list") as List) ?? null
+  const paragraph = blocks.find(child => child.type === 'paragraph') as Paragraph | undefined
+  const nested = (blocks.find(child => child.type === 'list') as List) ?? null
   const inline = paragraph?.children ?? []
   const first = inline[0]
   if (!first) return null
 
-  let name = ""
+  let name = ''
   let highlighted = false
   let rest: PhrasingContent[] = inline.slice(1)
 
-  if (first.type === "strong" || first.type === "inlineCode") {
+  if (first.type === 'strong' || first.type === 'inlineCode') {
     name = mdastText(first).trim()
-    highlighted = first.type === "strong"
-  } else if (first.type === "text") {
+    highlighted = first.type === 'strong'
+  } else if (first.type === 'text') {
     const match = /^(\S+)([\s\S]*)$/.exec(first.value.trim())
     if (!match) return null
     name = match[1]
     if (match[2].trim()) {
-      rest = [{ type: "text", value: match[2] } as PhrasingContent, ...rest]
+      rest = [{ type: 'text', value: match[2] } as PhrasingContent, ...rest]
     }
   } else {
     return null
@@ -130,11 +124,9 @@ function parseTreeItem(item: ListItem): TreeEntry | null {
   return {
     name,
     highlighted,
-    placeholder: name === "..." || name === "…",
-    directory: name.endsWith("/") || nested !== null,
-    comment: inlineToHast(rest).filter(
-      (node) => !(node.type === "text" && !node.value.trim()),
-    ),
+    placeholder: name === '...' || name === '…',
+    directory: name.endsWith('/') || nested !== null,
+    comment: inlineToHast(rest).filter(node => !(node.type === 'text' && !node.value.trim())),
     children: nested,
   }
 }
@@ -145,124 +137,115 @@ function treeList(list: List): ElementContent {
     if (!entry) return []
 
     if (entry.placeholder) {
-      return [h("li", [h("span", { className: ["tree-placeholder"] }, "…")])]
+      return [h('li', [h('span', { className: ['tree-placeholder'] }, '…')])]
     }
 
     const row = [
-      raw(icons[entry.directory ? "folder" : "file"]),
+      raw(icons[entry.directory ? 'folder' : 'file']),
       h(
-        "span",
+        'span',
         {
-          className: entry.highlighted
-            ? ["tree-name", "is-highlighted"]
-            : ["tree-name"],
+          className: entry.highlighted ? ['tree-name', 'is-highlighted'] : ['tree-name'],
         },
-        entry.name,
+        entry.name
       ),
       ...(entry.comment.length > 0
-        ? [h("span", { className: ["tree-comment"] }, entry.comment)]
+        ? [h('span', { className: ['tree-comment'] }, entry.comment)]
         : []),
     ]
 
     if (entry.directory && entry.children) {
       return [
-        h("li", [
-          h("details", { open: true }, [
-            h("summary", row),
-            treeList(entry.children),
-          ]),
-        ]),
+        h('li', [h('details', { open: true }, [h('summary', row), treeList(entry.children)])]),
       ]
     }
-    return [h("li", [h("span", { className: ["tree-entry"] }, row)])]
+    return [h('li', [h('span', { className: ['tree-entry'] }, row)])]
   })
-  return h("ul", items)
+  return h('ul', items)
 }
 
 const fileStem = (fileURL?: URL): string => {
-  const segments = (fileURL?.pathname ?? "").split("/").filter(Boolean)
-  const file = (segments.pop() ?? "").replace(/\.md$/, "")
-  const stem = file && file !== "index" ? file : (segments.pop() ?? "doc")
-  return stem.replace(/[^a-zA-Z0-9-]/g, "-").replace(/^-+/, "")
+  const segments = (fileURL?.pathname ?? '').split('/').filter(Boolean)
+  const file = (segments.pop() ?? '').replace(/\.md$/, '')
+  const stem = file && file !== 'index' ? file : (segments.pop() ?? 'doc')
+  return stem.replace(/[^a-zA-Z0-9-]/g, '-').replace(/^-+/, '')
 }
 
 export function contentDirectives() {
   let tabGroups = 0
   return defineMdastPlugin({
-    name: "content-directives",
+    name: 'content-directives',
     async containerDirective(node, ctx) {
       switch (node.name) {
-        case "steps": {
-          ctx.setProperty(node, "data", { hName: "step-list" })
+        case 'steps': {
+          ctx.setProperty(node, 'data', { hName: 'step-list' })
           return
         }
 
-        case "aside": {
-          ctx.setProperty(node, "data", {
-            hName: "aside",
-            hProperties: { dataAside: "", dataScrollFade: "" },
+        case 'aside': {
+          ctx.setProperty(node, 'data', {
+            hName: 'aside',
+            hProperties: { dataAside: '', dataScrollFade: '' },
           })
           return
         }
 
-        case "details": {
-          const open = !!node.attributes && "open" in node.attributes
+        case 'details': {
+          const open = !!node.attributes && 'open' in node.attributes
           const label = directiveLabel(node as unknown as DirectiveNode)
           if (label) {
-            ctx.setProperty(label, "data", { hName: "summary" })
+            ctx.setProperty(label, 'data', { hName: 'summary' })
           } else {
             ctx.prependChild(node, {
-              type: "html",
-              value: "<summary>Details</summary>",
+              type: 'html',
+              value: '<summary>Details</summary>',
             })
           }
-          ctx.setProperty(node, "data", {
-            hName: "details",
+          ctx.setProperty(node, 'data', {
+            hName: 'details',
             hProperties: { open },
           })
           return
         }
 
-        case "card-grid": {
-          ctx.setProperty(node, "data", { hName: "card-grid" })
+        case 'card-grid': {
+          ctx.setProperty(node, 'data', { hName: 'card-grid' })
           return
         }
 
-        case "card": {
+        case 'card': {
           const href = node.attributes?.href
           const label = directiveLabel(node as unknown as DirectiveNode)
           if (label) {
-            ctx.setProperty(label, "data", {
-              hName: "p",
-              hProperties: { dataCardTitle: "" },
+            ctx.setProperty(label, 'data', {
+              hName: 'p',
+              hProperties: { dataCardTitle: '' },
             })
           }
-          ctx.setProperty(node, "data", {
-            hName: href ? "a" : "article",
-            hProperties: { dataCard: "", ...(href ? { href } : {}) },
+          ctx.setProperty(node, 'data', {
+            hName: href ? 'a' : 'article',
+            hProperties: { dataCard: '', ...(href ? { href } : {}) },
           })
           return
         }
 
-        case "file-tree": {
-          const list = node.children?.find((child) => child.type === "list") as
-            | List
-            | undefined
+        case 'file-tree': {
+          const list = node.children?.find(child => child.type === 'list') as List | undefined
           if (!list) return
           return {
-            type: "html",
-            value: toHtml(h("file-tree", [treeList(list)]), {
+            type: 'html',
+            value: toHtml(h('file-tree', [treeList(list)]), {
               allowDangerousHtml: true,
             }),
           }
         }
 
-        case "tabs": {
+        case 'tabs': {
           const tabs = (node.children ?? []).filter(
-            (child) =>
-              child.type === "containerDirective" &&
-              (child as unknown as DirectiveNode).name === "tab",
-          ) as typeof node[]
+            child =>
+              child.type === 'containerDirective' &&
+              (child as unknown as DirectiveNode).name === 'tab'
+          ) as (typeof node)[]
           if (tabs.length === 0) return
 
           const prefix = `${fileStem(ctx.fileURL)}-tabs-${tabGroups++}`
@@ -270,34 +253,33 @@ export function contentDirectives() {
             tabs.map(async (tab, i) => {
               const label = directiveLabel(tab as unknown as DirectiveNode)
               return label ? await directiveLabelHtml(label) : `Tab ${i + 1}`
-            }),
+            })
           )
           const buttons = labels
             .map((label, i) => {
-              const syncId = (tabs[i] as unknown as DirectiveNode).attributes
-                ?.syncId
+              const syncId = (tabs[i] as unknown as DirectiveNode).attributes?.syncId
               return [
                 `<button role="tab" id="${prefix}-tab-${i}"`,
                 ` aria-controls="${prefix}-panel-${i}"`,
                 ` aria-selected="${i === 0}"`,
-                syncId ? ` data-sync-id="${escapeAttr(syncId)}"` : "",
-                i === 0 ? "" : ' tabindex="-1"',
+                syncId ? ` data-sync-id="${escapeAttr(syncId)}"` : '',
+                i === 0 ? '' : ' tabindex="-1"',
                 `>${label}</button>`,
-              ].join("")
+              ].join('')
             })
-            .join("")
+            .join('')
 
           ctx.prependChild(node, {
-            type: "html",
+            type: 'html',
             value: `<div role="tablist">${buttons}</div>`,
           })
           tabs.forEach((tab, i) => {
             const label = directiveLabel(tab as unknown as DirectiveNode)
             if (label) ctx.removeNode(label)
-            ctx.setProperty(tab, "data", {
-              hName: "section",
+            ctx.setProperty(tab, 'data', {
+              hName: 'section',
               hProperties: {
-                role: "tabpanel",
+                role: 'tabpanel',
                 id: `${prefix}-panel-${i}`,
                 ariaLabelledby: `${prefix}-tab-${i}`,
                 tabIndex: 0,
@@ -308,30 +290,29 @@ export function contentDirectives() {
 
           const flag = (name: string) => {
             const value = node.attributes?.[name]
-            return value === "" || value === "true" || value === null
+            return value === '' || value === 'true' || value === null
           }
           const sync = node.attributes?.sync
-          const codeTabs = flag("code") || flag("codeTabs")
-          ctx.setProperty(node, "data", {
-            hName: "tab-group",
+          const codeTabs = flag('code') || flag('codeTabs')
+          ctx.setProperty(node, 'data', {
+            hName: 'tab-group',
             hProperties: {
               ...(sync ? { dataSync: sync } : {}),
-              ...(codeTabs ? { dataCodeTabs: "" } : {}),
+              ...(codeTabs ? { dataCodeTabs: '' } : {}),
             },
           })
           return
         }
-
       }
     },
     leafDirective(node, ctx) {
-      if (node.name !== "card") return
+      if (node.name !== 'card') return
       const href = node.attributes?.href
-      ctx.prependChild(node, { type: "html", value: "<p data-card-title>" })
-      ctx.appendChild(node, { type: "html", value: "</p>" })
-      ctx.setProperty(node, "data", {
-        hName: href ? "a" : "article",
-        hProperties: { dataCard: "", ...(href ? { href } : {}) },
+      ctx.prependChild(node, { type: 'html', value: '<p data-card-title>' })
+      ctx.appendChild(node, { type: 'html', value: '</p>' })
+      ctx.setProperty(node, 'data', {
+        hName: href ? 'a' : 'article',
+        hProperties: { dataCard: '', ...(href ? { href } : {}) },
       })
     },
   })

@@ -1,6 +1,6 @@
-import type { Data } from "mdast"
-import type {} from "mdast-util-to-hast"
-import { defineMdastPlugin } from "satteri"
+import type { Data } from 'mdast'
+import type {} from 'mdast-util-to-hast'
+import { defineMdastPlugin } from 'satteri'
 
 // TODO: switch to `ctx.report` once the compile result exposes diagnostics
 // (bruits/satteri#59, tracked in bruits/satteri#87).
@@ -8,19 +8,19 @@ const handled = (node: { data?: Data | undefined }) => !!node.data?.hName
 
 const warn = (syntax: string, name: string, fileURL: URL | undefined) => {
   console.warn(
-    `[markdown] unhandled directive ${syntax}${name} dropped from output (${fileURL?.pathname ?? "unknown file"})`,
+    `[markdown] unhandled directive ${syntax}${name} dropped from output (${fileURL?.pathname ?? 'unknown file'})`
   )
 }
 
 export const unhandledDirectives = defineMdastPlugin({
-  name: "unhandled-directives",
+  name: 'unhandled-directives',
   containerDirective(node, ctx) {
-    if (!handled(node)) warn(":::", node.name, ctx.fileURL)
+    if (!handled(node)) warn(':::', node.name, ctx.fileURL)
   },
   leafDirective(node, ctx) {
-    if (!handled(node)) warn("::", node.name, ctx.fileURL)
+    if (!handled(node)) warn('::', node.name, ctx.fileURL)
   },
   textDirective(node, ctx) {
-    if (!handled(node)) warn(":", node.name, ctx.fileURL)
+    if (!handled(node)) warn(':', node.name, ctx.fileURL)
   },
 })

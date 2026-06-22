@@ -1,36 +1,34 @@
 <script is:inline>
   ;(() => {
-    const type = performance.getEntriesByType("navigation")[0]?.type
-    if (type && type !== "navigate") return
+    const type = performance.getEntriesByType('navigation')[0]?.type
+    if (type && type !== 'navigate') return
     if (location.hash) return
-    let pathname = location.pathname.replace(/\/+$/, "")
+    let pathname = location.pathname.replace(/\/+$/, '')
     try {
       pathname = decodeURIComponent(pathname)
     } catch {}
     document
       .querySelector(`article[data-embedded][data-url="${pathname}"]`)
-      ?.scrollIntoView({ behavior: "instant" })
+      ?.scrollIntoView({ behavior: 'instant' })
   })()
 </script>
 
 <script>
-  import { hashId, normalizePath } from "@/lib/utils"
+  import { hashId, normalizePath } from '@/lib/utils'
 
-  const articles = [
-    ...document.querySelectorAll<HTMLElement>("article[data-url]"),
-  ]
+  const articles = [...document.querySelectorAll<HTMLElement>('article[data-url]')]
 
-  const list = document.querySelector("page-nav nav > ul > li > ul")
-  const parentLink = list?.querySelector("a")
+  const list = document.querySelector('page-nav nav > ul > li > ul')
+  const parentLink = list?.querySelector('a')
   let crumb = list?.querySelector<HTMLElement>('li[data-depth="1"]')
   if (list && !crumb) {
-    crumb = document.createElement("li")
-    crumb.dataset.depth = "1"
+    crumb = document.createElement('li')
+    crumb.dataset.depth = '1'
     crumb.hidden = true
-    crumb.append(document.createElement("a"))
+    crumb.append(document.createElement('a'))
     list.append(crumb)
   }
-  const crumbLink = crumb?.querySelector("a")
+  const crumbLink = crumb?.querySelector('a')
 
   const hashTarget = (hash: string) => {
     try {
@@ -41,11 +39,9 @@
   }
 
   const localTarget = (link: HTMLAnchorElement) => {
-    if (link.getAttribute("href")?.startsWith("#")) return hashTarget(link.hash)
+    if (link.getAttribute('href')?.startsWith('#')) return hashTarget(link.hash)
     if (link.origin !== location.origin || link.search) return null
-    const article = articles.find(
-      (article) => article.dataset.url === normalizePath(link.pathname),
-    )
+    const article = articles.find(article => article.dataset.url === normalizePath(link.pathname))
     if (!article) return null
     return link.hash ? (hashTarget(link.hash) ?? article) : article
   }
@@ -54,56 +50,44 @@
     if (!crumb || !crumbLink || !parentLink) return
     if (article === articles[0]) {
       crumb.hidden = true
-      crumbLink.removeAttribute("aria-current")
-      parentLink.setAttribute("aria-current", "page")
+      crumbLink.removeAttribute('aria-current')
+      parentLink.setAttribute('aria-current', 'page')
     } else {
       crumb.hidden = false
-      crumbLink.href = article.dataset.url ?? ""
-      crumbLink.textContent =
-        article.querySelector("header h1")?.textContent ?? ""
-      crumbLink.setAttribute("aria-current", "page")
-      parentLink.removeAttribute("aria-current")
+      crumbLink.href = article.dataset.url ?? ''
+      crumbLink.textContent = article.querySelector('header h1')?.textContent ?? ''
+      crumbLink.setAttribute('aria-current', 'page')
+      parentLink.removeAttribute('aria-current')
     }
   }
 
-  const treeLinks = [
-    ...document.querySelectorAll<HTMLAnchorElement>("sidebar-tree a[href]"),
-  ].map((link) => [normalizePath(link.pathname), link] as const)
+  const treeLinks = [...document.querySelectorAll<HTMLAnchorElement>('sidebar-tree a[href]')].map(
+    link => [normalizePath(link.pathname), link] as const
+  )
 
   const syncTree = (url: string) => {
     for (const [href, link] of treeLinks) {
-      if (href === url) link.setAttribute("aria-current", "page")
-      else link.removeAttribute("aria-current")
+      if (href === url) link.setAttribute('aria-current', 'page')
+      else link.removeAttribute('aria-current')
     }
   }
 
-  const sync = (article: HTMLElement, hash = "") => {
+  const sync = (article: HTMLElement, hash = '') => {
     const { url, title } = article.dataset
     if (!url) return
-    history.replaceState(history.state, "", url + hash)
+    history.replaceState(history.state, '', url + hash)
     if (title) document.title = title
     syncCrumb(article)
     if (treeLinks.length > 0) syncTree(url)
   }
 
-  document.addEventListener("click", (event) => {
-    if (
-      event.defaultPrevented ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    )
+  document.addEventListener('click', event => {
+    if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
       return
-    const link = (event.target as Element).closest?.("a[href]")
-    if (
-      !(link instanceof HTMLAnchorElement) ||
-      link.target ||
-      link.hasAttribute("download")
-    )
-      return
+    const link = (event.target as Element).closest?.('a[href]')
+    if (!(link instanceof HTMLAnchorElement) || link.target || link.hasAttribute('download')) return
     const target = localTarget(link)
-    const article = target?.closest<HTMLElement>("article[data-url]")
+    const article = target?.closest<HTMLElement>('article[data-url]')
     if (!target || !article) return
     event.preventDefault()
     if (target === articles[0]) {
@@ -111,7 +95,7 @@
     } else {
       target.scrollIntoView()
     }
-    sync(article, target === article ? "" : link.hash)
+    sync(article, target === article ? '' : link.hash)
   })
 
   const inBand = new Set<Element>()
@@ -124,22 +108,22 @@
   const update = () => {
     const current = atBottom()
       ? articles[articles.length - 1]
-      : articles.find((article) => inBand.has(article))
+      : articles.find(article => inBand.has(article))
     if (current && current.dataset.url !== normalizePath(location.pathname)) {
       sync(current)
     }
   }
 
   const observer = new IntersectionObserver(
-    (entries) => {
+    entries => {
       for (const entry of entries) {
         if (entry.isIntersecting) inBand.add(entry.target)
         else inBand.delete(entry.target)
       }
       update()
     },
-    { rootMargin: "-20% 0px -79% 0px" },
+    { rootMargin: '-20% 0px -79% 0px' }
   )
   for (const article of articles) observer.observe(article)
-  addEventListener("scroll", update, { passive: true })
+  addEventListener('scroll', update, { passive: true })
 </script>

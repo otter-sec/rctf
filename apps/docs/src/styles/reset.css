@@ -150,8 +150,7 @@ textarea,
   opacity: 1;
 }
 
-@supports (not (-webkit-appearance: -apple-pay-button)) or
-  (contain-intrinsic-size: 1px) {
+@supports (not (-webkit-appearance: -apple-pay-button)) or (contain-intrinsic-size: 1px) {
   ::placeholder {
     color: color-mix(in oklab, currentcolor 50%, transparent);
   }
@@ -199,7 +198,7 @@ textarea {
 }
 
 button,
-input:where([type="button"], [type="reset"], [type="submit"]),
+input:where([type='button'], [type='reset'], [type='submit']),
 ::file-selector-button {
   appearance: button;
 }
@@ -209,7 +208,7 @@ input:where([type="button"], [type="reset"], [type="submit"]),
   height: auto;
 }
 
-[hidden]:where(:not([hidden="until-found"])) {
+[hidden]:where(:not([hidden='until-found'])) {
   display: none !important;
 }
 

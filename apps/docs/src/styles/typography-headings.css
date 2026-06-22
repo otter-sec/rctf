@@ -19,7 +19,7 @@ prose-content {
       opacity: 0;
 
       &::before {
-        content: "#";
+        content: '#';
       }
 
       &:hover {

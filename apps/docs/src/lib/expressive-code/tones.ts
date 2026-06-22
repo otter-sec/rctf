@@ -1,12 +1,12 @@
 import {
-  type AnnotationRenderOptions,
   AttachedPluginData,
   definePlugin,
   ExpressiveCodeAnnotation,
+  type AnnotationRenderOptions,
   type ExpressiveCodePlugin,
-} from "satteri-expressive-code"
-import { type Element, h, type Parents } from "satteri-expressive-code/hast"
-import { parseCodeToneRanges, toneProperties } from "../code-annotations"
+} from 'satteri-expressive-code'
+import { h, type Element, type Parents } from 'satteri-expressive-code/hast'
+import { parseCodeToneRanges, toneProperties } from '../code-annotations'
 
 function stripElementSyntaxStyles(node: Element): Element {
   const {
@@ -18,31 +18,31 @@ function stripElementSyntaxStyles(node: Element): Element {
   return {
     ...node,
     properties,
-    children: node.children.map((child) =>
-      child.type === "element" ? stripElementSyntaxStyles(child) : child,
+    children: node.children.map(child =>
+      child.type === 'element' ? stripElementSyntaxStyles(child) : child
     ),
   }
 }
 
 class CodeToneAnnotation extends ExpressiveCodeAnnotation {
-  readonly name = "code-tone"
+  readonly name = 'code-tone'
   private readonly tone: string
 
   constructor(tone: string, start: number, end: number) {
     super({
       inlineRange: { columnStart: start, columnEnd: end },
-      renderPhase: "latest",
+      renderPhase: 'latest',
     })
     this.tone = tone
   }
 
   render({ nodesToTransform }: AnnotationRenderOptions): Parents[] {
-    return nodesToTransform.map((node) =>
+    return nodesToTransform.map(node =>
       h(
-        "span",
+        'span',
         toneProperties(this.tone),
-        node.type === "element" ? stripElementSyntaxStyles(node) : node,
-      ),
+        node.type === 'element' ? stripElementSyntaxStyles(node) : node
+      )
     )
   }
 }
@@ -53,10 +53,10 @@ export const codeToneData = new AttachedPluginData<{
 
 export function pluginCodeTones(): ExpressiveCodePlugin {
   return definePlugin({
-    name: "Code Tones",
+    name: 'Code Tones',
     hooks: {
       preprocessCode: ({ codeBlock }) => {
-        if (codeBlock.metaOptions.getBoolean("tones") === false) return
+        if (codeBlock.metaOptions.getBoolean('tones') === false) return
         codeBlock.getLines().forEach((line, index) => {
           const parsed = parseCodeToneRanges(line.text)
           if (!parsed) return
@@ -64,9 +64,7 @@ export function pluginCodeTones(): ExpressiveCodePlugin {
           codeToneData.getOrCreateFor(codeBlock).tonedLines.add(index)
           line.editText(0, line.text.length, parsed.text)
           for (const range of parsed.ranges) {
-            line.addAnnotation(
-              new CodeToneAnnotation(range.tone, range.start, range.end),
-            )
+            line.addAnnotation(new CodeToneAnnotation(range.tone, range.start, range.end))
           }
         })
       },
