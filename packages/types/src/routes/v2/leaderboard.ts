@@ -19,11 +19,27 @@ export const GetLeaderboardRouteV2 = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    division: z.optional(z.string()),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(
+        z.describe(
+          'Maximum number of entries to return. Capped by deployment config.'
+        )
+      ),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Number of leading entries to skip for pagination.')),
+    division: z.optional(
+      z.string().check(z.describe('Restrict results to a single division.'))
+    ),
     search: z.optional(
-      z.string().check(z.minLength(2)).check(z.maxLength(100))
+      z
+        .string()
+        .check(z.minLength(2))
+        .check(z.maxLength(100))
+        .check(z.describe('Filter teams by name substring (2-100 characters).'))
     ),
   }),
   onlyWhenStarted: true,
@@ -48,9 +64,21 @@ export const GetLeaderboardGraphRouteV2 = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    division: z.optional(z.string()),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(
+        z.describe(
+          'Maximum number of entries to return. Capped by deployment config.'
+        )
+      ),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Number of leading entries to skip for pagination.')),
+    division: z.optional(
+      z.string().check(z.describe('Restrict results to a single division.'))
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
@@ -64,11 +92,27 @@ export const GetLeaderboardWithGraphRoute = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    division: z.optional(z.string()),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(
+        z.describe(
+          'Maximum number of entries to return. Capped by deployment config.'
+        )
+      ),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Number of leading entries to skip for pagination.')),
+    division: z.optional(
+      z.string().check(z.describe('Restrict results to a single division.'))
+    ),
     search: z.optional(
-      z.string().check(z.minLength(2)).check(z.maxLength(100))
+      z
+        .string()
+        .check(z.minLength(2))
+        .check(z.maxLength(100))
+        .check(z.describe('Filter teams by name substring (2-100 characters).'))
     ),
   }),
   onlyWhenStarted: true,

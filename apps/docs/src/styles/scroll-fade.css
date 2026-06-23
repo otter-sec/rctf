@@ -1,0 +1,14 @@
+/* Mask the block edges; the matching padding parks each fade over empty space at
+   the scroll extremes, so end content stays crisp and no JS tracks scroll state. */
+[data-scroll-fade] {
+  --scroll-fade-size: 0.5rem;
+
+  padding-block: var(--scroll-fade-size);
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--scroll-fade-size),
+    black calc(100% - var(--scroll-fade-size)),
+    transparent 100%
+  );
+}

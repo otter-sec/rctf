@@ -1,0 +1,197 @@
+---
+title: Architecture
+description: Reference for the bundled rCTF container, its build pipeline, in-container processes, and horizontal scaling model.
+order: 3
+---
+
+rCTF ships as a single container managed by `supervisord`. Inside the container, the Hono API server runs as a Bun process that also spawns the leaderboard worker as a Bun `Worker` thread. Alongside it, an nginx instance serves the SvelteKit static build and proxies `/api` and `/uploads` to the API.
+
+The container expects to sit behind a reverse proxy, with PostgreSQL and Redis running as external services. The bundled `compose.yml{:file}` wires those dependencies together for a single-node deployment.
+
+For deployment steps, see [Installation](/installation) and the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup). This page is a reference for the inner architecture.
+
+## Container layout
+
+Paths inside the running container after the production stage finishes assembly:
+
+:::file-tree
+- app/
+  - apps/
+    - api/
+      - dist/ Bun-built API + leaderboard worker
+      - templates/ Email templates
+  - packages/
+    - config/ Loader sources
+    - db/
+      - src/
+      - migrations/ Drizzle SQL migrations
+    - scoring/
+    - types/
+    - util/
+  - node_modules/ Production-only deps
+  - static/ SvelteKit static build, served by nginx
+  - rctf.d/ Mounted config directory
+  - uploads/ Local upload provider data (when used)
+- etc/
+  - supervisord.conf Process definitions
+  - nginx/
+    - http.d/
+      - default.conf Static + /api proxy
+:::
+
+The `rctf.d/{:dir}` and `uploads/{:dir}` directories are mounted from the host by `compose.yml{:file}`. With the default local upload provider, files land under `/app/uploads/{:dir}`.
+
+## Build stages
+
+The Dockerfile is at `deploy/rctf/Dockerfile{:file}` and uses `oven/bun:1.3.14-alpine` as both the build and runtime base. The stages:
+
+| Stage | Base | Role |
+| --- | --- | --- |
+| `build-base` | `oven/bun:1.3.14-alpine` (BUILDPLATFORM) | Build-platform scratch for cross-compile-friendly steps. |
+| `runtime-base` | `oven/bun:1.3.14-alpine` (target platform) | Target-platform base reused by `prod-deps` and `production`. |
+| `package-configs` | `build-base` | Copies every workspace `package.json{:file}` plus `bun.lock{:file}` so dependency layers cache independently of source. |
+| `deps` | `build-base` | Full install (including devDependencies) for the API and web workspaces. Filters out `@rctf/admin-bot`, `@rctf/docs`, `@rctf/export`, `@rctf/seed`, and the test workspaces. |
+| `prod-deps` | `runtime-base` | Production-only install (`<dim>--production</dim>`) on the same filter set, used as `node_modules/{:dir}` in the final image. |
+| `build` | `build-base` | Runs `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/api'</green> build` then `$ <red>bun</red> run <dim>--filter</dim> <green>'@rctf/web'</green> build` against the full sources. |
+| `production` | `runtime-base` | Installs `supervisor`, `nginx`, and `nginx-mod-http-brotli`, then copies the API dist, prod node_modules, package sources, migrations, email templates, and the SvelteKit static output into `/app/{:dir}`. |
+
+```dockerfile title="deploy/rctf/Dockerfile"
+FROM oven/bun:1.3.14-alpine AS runtime-base
+WORKDIR /app
+
+# ...
+
+FROM runtime-base AS production
+
+RUN apk add --no-cache supervisor nginx nginx-mod-http-brotli
+COPY deploy/rctf/supervisord.conf /etc/supervisord.conf
+COPY deploy/rctf/nginx.conf /etc/nginx/http.d/default.conf
+
+COPY --from=build /app/apps/api/dist ./apps/api/dist
+COPY --from=prod-deps /app/node_modules ./node_modules
+# ...
+COPY --from=build /app/apps/web/build ./static
+
+ENV NODE_ENV=production
+ENV WORKER_EXTENSION=.js
+CMD ["supervisord", "-c", "/etc/supervisord.conf"]
+```
+
+`<yellow>WORKER_EXTENSION</yellow>` is set to `<green>.js</green>` so the API process resolves its compiled worker entry (`./leaderboard.js{:file}`) rather than the `.ts` source used in development.
+
+## Process supervision
+
+`/etc/supervisord.conf{:file}` defines two long-running programs. Both stream stdout/stderr to the container's stdout/stderr without rotation.
+
+| Program | Command | Role |
+| --- | --- | --- |
+| `api` | `$ <red>bun</red> run /app/apps/api/dist/index.js` | Hono server on `:3000`. Spawns the leaderboard worker as a Bun `Worker` when `<red>instanceType</red>` is `<green>all</green>` or `<green>leaderboard</green>`. |
+| `nginx` | `$ <red>nginx</red> <dim>-g</dim> <green>'daemon off;'</green>` | Serves `/app/static/{:dir}` and reverse-proxies `<route>/api</route>` and `/uploads` to `127.0.0.1:3000`. |
+
+```ini title="deploy/rctf/supervisord.conf"
+[program:api]
+command=/usr/local/bin/bun run /app/apps/api/dist/index.js
+autostart=true
+autorestart=true
+# ...
+
+[program:nginx]
+command=/usr/sbin/nginx -g 'daemon off;'
+autostart=true
+autorestart=true
+```
+
+If either process exits non-zero, `supervisord` restarts it. The leaderboard worker is not a separate supervised program. It is a thread inside the API process, so it restarts together with the API.
+
+:::note[Leaderboard updates without a worker thread]
+When `<red>instanceType</red>` is `<green>frontend</green>`, the API process does not start the worker. Another process running with `<green>leaderboard</green>` or `<green>all</green>` must be reachable on the same Redis instance for cached leaderboard reads to stay fresh.
+:::
+
+## Nginx
+
+The container's nginx is built from Alpine's `nginx` package together with `nginx-mod-http-brotli`. The site config at `deploy/rctf/nginx.conf{:file}` is copied to `/etc/nginx/http.d/default.conf{:file}`.
+
+```nginx title="deploy/rctf/nginx.conf"
+server {
+    listen 80 default_server;
+    root /app/static;
+    gzip_static on;
+    brotli_static on;
+
+    # ...
+
+    location ~ ^/api/v[12]/admin/upload$ {
+        proxy_pass http://127.0.0.1:3000;
+        client_max_body_size 0;
+        proxy_request_buffering off;
+    }
+
+    location ~ ^/(api|uploads) {
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    location /_app/immutable/ {
+        add_header Cache-Control "public, max-age=86400, immutable";
+        try_files $uri $uri/ /index.html;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+## Content Security Policy
+
+CSP is defined in `apps/web/svelte.config.ts{:file}` and applied by SvelteKit at build time. Because `apps/web/{:dir}` is built with `adapter-static`, SvelteKit injects the policy as a `<meta http-equiv="Content-Security-Policy">{:html}` tag in each rendered page, along with the auto-generated script hashes. nginx does not add a `Content-Security-Policy{:http}` header on its own.
+
+```ts title="apps/web/svelte.config.ts"
+csp: dev
+  ? undefined
+  : {
+      directives: {
+        'default-src': ['none'],
+        // ...
+      },
+    },
+```
+
+The directives:
+
+| Directive | Sources |
+| --- | --- |
+| `default-src` | `<green>'none'</green>` |
+| `script-src` | `<green>'self'</green>`, `https://www.google.com/recaptcha/`, `https://www.gstatic.com/recaptcha/`, `https://hcaptcha.com`, `https://*.hcaptcha.com`, `https://challenges.cloudflare.com` |
+| `style-src` | `<green>'self'</green>`, `<green>'unsafe-inline'</green>`, `https://hcaptcha.com`, `https://*.hcaptcha.com` |
+| `connect-src` | `<green>'self'</green>`, `data:`, `blob:`, `https://*.storage.googleapis.com/`, `https://*.amazonaws.com/`, `https://hcaptcha.com/`, `https://*.hcaptcha.com/`, `https://www.google.com/recaptcha/`, `https://www.google-analytics.com/`, `https://*.google-analytics.com/`, `https://*.analytics.google.com/`, `https://cloudflareinsights.com/` |
+| `font-src` | `<green>'self'</green>` |
+| `img-src` | `http:`, `https:`, `blob:`, `data:` |
+| `frame-src` | `https://www.youtube.com`, `https://youtube.com`, `https://www.youtube-nocookie.com`, `https://www.google.com/recaptcha/`, `https://recaptcha.google.com/recaptcha/`, `https://hcaptcha.com`, `https://*.hcaptcha.com`, `https://challenges.cloudflare.com` |
+| `base-uri` | `<green>'self'</green>` |
+| `form-action` | `<green>'self'</green>` |
+| `object-src` | `<green>'none'</green>` |
+
+The list above is the entire allow-set the bundled build ships with. There is no provider-aware logic that widens it at runtime, so captcha sources, analytics endpoints, and cloud storage origins are always present, regardless of whether the matching provider is enabled. Self-hosted analytics endpoints, custom S3-compatible object stores, or any other external origin that the frontend needs to reach require editing `apps/web/svelte.config.ts{:file}` and rebuilding.
+
+:::warning[frame-ancestors]
+The CSP omits `frame-ancestors` because it is ignored from `<meta>{:html}` tags. Click-jacking protection is enforced via the nginx `X-Frame-Options: DENY{:http}` header instead.
+:::
+
+## External dependencies
+
+The container only contains the rCTF application, nginx, and supervisor. Everything else is external.
+
+| Service | Version pinned in `compose.yml{:file}` | Required by |
+| --- | --- | --- |
+| PostgreSQL | `<green>postgres:18.0</green>` (any 15+) | Core data store. The `pg_trgm` extension is installed by migration `0015_add_trigram_search.sql{:file}` for team-name fuzzy search. |
+| Redis | `<green>redis:8.2.2</green>` (any 7+) | Cache for leaderboard snapshots, rate limiting, and provider locks. |
+
+Optional dependencies that the deployer must supply when the matching provider is enabled:
+
+- **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers. See [Uploads](/providers/uploads).
+- **SES, SMTP, or another email provider** for the email integration.
+- **OpenAI** (or another moderation provider) for avatar moderation.
+- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances. See [Instancer](/integrations/instancer).
+- **Captcha provider** (reCAPTCHA, hCaptcha, or Turnstile). The CSP already permits all three.
+
+The bundled `compose.yml{:file}` pins one PostgreSQL and one Redis container alongside `rctf`. The `rctf` service exposes `127.0.0.1:8080` and expects a reverse proxy (typically nginx or Caddy on the host) to terminate TLS and forward to it.

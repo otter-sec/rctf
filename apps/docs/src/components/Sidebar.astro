@@ -1,0 +1,242 @@
+---
+import ListIcon from '@/assets/icons/list.svg'
+import SearchIcon from '@/assets/icons/search.svg'
+import Wordmark from '@/assets/wordmark.svg'
+import InlineText from '@/components/InlineText.astro'
+import SidebarTree from '@/components/SidebarTree.astro'
+import ThemeToggle from '@/components/ThemeToggle.astro'
+import { NAVIGATION, SITE } from '@/consts'
+import type { DocsTreeNode } from '@/lib/docs'
+import { normalizePath } from '@/lib/utils'
+
+type Props = {
+  crumbs?: { label: string; href: string }[]
+  tree?: DocsTreeNode[]
+}
+
+const { crumbs = [], tree } = Astro.props
+const pathname = normalizePath(Astro.url.pathname) || '/'
+const section = NAVIGATION.find(
+  ({ href }) => pathname === href || pathname.startsWith(href === '/' ? '/' : `${href}/`)
+)
+---
+
+<aside data-bar>
+  <a href="/" aria-label={SITE.title} class="brand">
+    <Wordmark aria-hidden="true" />
+  </a>
+  <nav data-scroll-fade>
+    <ul>
+      {
+        NAVIGATION.map(item => (
+          <li>
+            <a href={item.href} aria-current={pathname === item.href ? 'page' : undefined}>
+              <InlineText value={item.label} />
+            </a>
+            {item === section && tree && (
+              <sidebar-tree>
+                <SidebarTree nodes={tree} />
+              </sidebar-tree>
+            )}
+            {item === section && !tree && crumbs.length > 0 && pathname !== item.href && (
+              <ul>
+                {crumbs.map((crumb, i) => (
+                  <li data-depth={i ? 1 : undefined}>
+                    <a
+                      href={crumb.href}
+                      aria-current={i === crumbs.length - 1 ? 'page' : undefined}
+                    >
+                      <InlineText value={crumb.label} />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </li>
+        ))
+      }
+      {
+        !section &&
+          crumbs.map((crumb, i) => (
+            <li data-depth={i ? 1 : undefined}>
+              <a href={crumb.href} aria-current={i === crumbs.length - 1 ? 'page' : undefined}>
+                <InlineText value={crumb.label} />
+              </a>
+            </li>
+          ))
+      }
+    </ul>
+  </nav>
+  <sidebar-toggle>
+    <button id="search-trigger" data-icon-button aria-label="Search" title="Search (⌘K)">
+      <SearchIcon aria-hidden="true" />
+    </button>
+    <ThemeToggle />
+    <slot name="actions" />
+    <label class="menu-toggle" data-icon-button>
+      <input type="checkbox" aria-label="Toggle navigation menu" />
+      <ListIcon aria-hidden="true" />
+    </label>
+  </sidebar-toggle>
+</aside>
+
+<style>
+  aside {
+    position: sticky;
+    top: var(--page-offset-top);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: var(--space-2xs);
+    height: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
+
+    /* Stays a vertical sidebar from the tablet range up; cancel the [data-bar]
+       chrome it would otherwise inherit between 48rem and 64rem. */
+    @media (width >= 48rem) {
+      padding: 0;
+      background-color: transparent;
+      backdrop-filter: none;
+      border-block-end: none;
+      border-image: none;
+    }
+
+    @media (width < 48rem) {
+      position: static;
+      height: auto;
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-2xs) var(--space-s);
+    }
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    width: fit-content;
+    flex-shrink: 0;
+    color: var(--foreground);
+    text-decoration-line: none;
+
+    svg {
+      block-size: 1.25rem;
+      inline-size: auto;
+      flex-shrink: 0;
+    }
+  }
+
+  nav {
+    @media (width >= 48rem) {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+
+    @media (width < 48rem) {
+      order: 1;
+      flex-basis: 100%;
+      display: none;
+      max-block-size: 50svh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: none;
+
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+  }
+
+  aside:has(.menu-toggle input:checked) nav {
+    @media (width < 48rem) {
+      display: block;
+    }
+  }
+
+  nav ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+
+    a {
+      display: block;
+      color: var(--muted-foreground);
+
+      &:hover,
+      &[aria-current='page'] {
+        color: var(--foreground);
+      }
+    }
+
+    li[data-depth='1'] > a {
+      margin-inline-start: var(--space-xs);
+    }
+
+    li > ul {
+      margin-block-start: var(--space-3xs);
+
+      > li > a {
+        margin-inline-start: var(--space-xs);
+      }
+
+      > li[data-depth='1'] > a {
+        margin-inline-start: calc(2 * var(--space-xs));
+      }
+    }
+  }
+
+  sidebar-tree {
+    display: block;
+    margin-block-start: var(--space-3xs);
+  }
+
+  sidebar-toggle {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-inline-start: -0.5rem;
+
+    @media (width < 48rem) {
+      margin-inline-start: 0;
+      margin-inline-end: -0.5rem;
+    }
+  }
+
+  .menu-toggle {
+    display: none;
+
+    @media (width < 48rem) {
+      display: inline-flex;
+
+      input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+    }
+  }
+
+  aside:has(.menu-toggle input:focus-visible) .menu-toggle {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+  }
+
+  aside:has(.menu-toggle input:checked) .menu-toggle {
+    background-color: color-mix(in oklab, var(--muted) 50%, transparent);
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLInputElement>('.menu-toggle input')
+  document.querySelector('aside nav')?.addEventListener('click', event => {
+    if (toggle && (event.target as Element).closest?.('a')) {
+      toggle.checked = false
+    }
+  })
+</script>

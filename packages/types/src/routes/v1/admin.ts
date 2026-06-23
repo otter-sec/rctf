@@ -15,9 +15,10 @@ import {
   GoodUploadsQuery,
 } from '../../responses'
 import { UploadFileName, UploadSha256 } from '../../util'
+import { example } from '../../util/example'
 
 const AdminChallengeParams = z.object({
-  id: z.string(),
+  id: z.string().check(z.describe('Challenge ID.')),
 })
 
 export const GetAdminChallengesRoute = defineRoute({
@@ -43,29 +44,55 @@ export const UpdateChallengeRoute = defineRoute({
   path: '/v1/admin/challs/:id',
   method: 'PUT',
   body: z.object({
-    data: z.object({
-      author: z.optional(z.string()),
-      category: z.optional(z.string()),
-      description: z.optional(z.string()),
-      flag: z.optional(z.string()),
-      name: z.optional(z.string()),
-      points: z.optional(
-        z.object({
-          max: z.int(),
-          min: z.int(),
-        })
-      ),
-      tiebreakEligible: z.optional(z.boolean()),
-      files: z.optional(
-        z.array(
+    data: z
+      .object({
+        author: example(z.optional(z.string()), 'es3n1n').check(
+          z.describe('Challenge author.')
+        ),
+        category: example(z.optional(z.string()), 'rev').check(
+          z.describe('Challenge category.')
+        ),
+        description: example(
+          z.optional(z.string()),
+          'A gentle introduction.'
+        ).check(z.describe('Challenge description in Markdown.')),
+        flag: example(z.optional(z.string()), 'rctf{baby_rev}').check(
+          z.describe('The challenge flag.')
+        ),
+        name: example(z.optional(z.string()), 'baby-rev').check(
+          z.describe('Challenge name.')
+        ),
+        points: z.optional(
           z.object({
-            name: z.string(),
-            url: z.string(),
+            max: example(z.int(), 500).check(
+              z.describe('Maximum (initial) point value.')
+            ),
+            min: example(z.int(), 100).check(
+              z.describe('Minimum (floor) point value.')
+            ),
           })
-        )
-      ),
-      sortWeight: z.optional(z.number()),
-    }),
+        ),
+        tiebreakEligible: example(z.optional(z.boolean()), true).check(
+          z.describe('Whether solves count toward tiebreak ordering.')
+        ),
+        files: z.optional(
+          z.array(
+            z.object({
+              name: example(z.string(), 'chall.zip').check(
+                z.describe('File name.')
+              ),
+              url: example(
+                z.string(),
+                'https://rctf.osec.io/uploads/chall.zip'
+              ).check(z.describe('File download URL.')),
+            })
+          )
+        ),
+        sortWeight: example(z.optional(z.number()), 0).check(
+          z.describe('Manual ordering weight.')
+        ),
+      })
+      .check(z.describe('Challenge fields to update.')),
   }),
   goodResponses: [GoodChallengeUpdate],
   badResponses: [BadPerms, BadToken],
@@ -91,7 +118,9 @@ export const UploadFilesRoute = defineRoute({
     files: z.array(
       z.object({
         name: UploadFileName,
-        data: z.string(),
+        data: example(z.string(), 'data:application/zip;base64,UEsDBA==').check(
+          z.describe('File contents as a base64 data URI.')
+        ),
       })
     ),
   }),
@@ -105,12 +134,14 @@ export const QueryUploadsRoute = defineRoute({
   path: '/v1/admin/upload/query',
   method: 'POST',
   body: z.object({
-    uploads: z.array(
-      z.object({
-        sha256: UploadSha256,
-        name: UploadFileName,
-      })
-    ),
+    uploads: z
+      .array(
+        z.object({
+          sha256: UploadSha256,
+          name: UploadFileName,
+        })
+      )
+      .check(z.describe('Files to look up by hash and name.')),
   }),
   goodResponses: [GoodUploadsQuery],
   badResponses: [BadBody, BadPerms, BadToken],

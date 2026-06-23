@@ -16,9 +16,21 @@ export const GetLeaderboardRoute = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limits that are loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    offset: z.pipe(z.coerce.number(), z.int()).check(z.gte(0)),
-    division: z.optional(z.string()),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(
+        z.describe(
+          'Maximum number of entries to return. Capped by deployment config.'
+        )
+      ),
+    offset: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(0))
+      .check(z.describe('Number of leading entries to skip for pagination.')),
+    division: z.optional(
+      z.string().check(z.describe('Restrict results to a single division.'))
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,
@@ -32,8 +44,17 @@ export const GetLeaderboardGraphRoute = defineRoute({
   authRequired: false,
   query: z.object({
     // NOTE: Has max limit that is loaded from config
-    limit: z.pipe(z.coerce.number(), z.int()).check(z.gte(1)),
-    division: z.optional(z.string()),
+    limit: z
+      .pipe(z.coerce.number(), z.int())
+      .check(z.gte(1))
+      .check(
+        z.describe(
+          'Maximum number of entries to return. Capped by deployment config.'
+        )
+      ),
+    division: z.optional(
+      z.string().check(z.describe('Restrict results to a single division.'))
+    ),
   }),
   onlyWhenStarted: true,
   onlyWhenStartedPermissionsBypass: Permissions.leaderboardRead,

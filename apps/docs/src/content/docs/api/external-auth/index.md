@@ -1,0 +1,48 @@
+---
+title: "External auth"
+description: "Public routes that let an external service sign users in with their rCTF account."
+order: 16
+scroll: true
+aside: true
+---
+
+:::aside
+
+| Route | Endpoint |
+| --- | --- |
+| [Get client metadata](/api/external-auth/get-client/) | `<route>GET /api/v2/external-auth/clients/:id</route>` |
+| [Authorize](/api/external-auth/authorize/) | `<route>POST /api/v2/external-auth/authorize</route>` |
+| [Exchange code for token](/api/external-auth/token/) | `<route>POST /api/v2/external-auth/token</route>` |
+
+:::
+
+These routes power the "Sign in with rCTF" flow for external services. The user-facing consent page lives at `<route>/external-auth/authorize</route>`; the API routes here are what that page (and the external service's backend) call.
+
+The admin-side routes for registering and revoking external-auth clients are documented in [Admin](/api/admin/). The operator walkthrough lives at [External apps](/admin/external-auth/).
+
+:::warning[Not OAuth2]
+
+The wire-level field names (`client_id`, `redirect_uri`, `code`, `state`) match what integrators
+  expect, but the flow is not OAuth2. There are no scopes, refresh tokens, PKCE, `id_token`/OIDC
+  discovery, token introspection, or revocation. The access token returned by `/token` is a regular
+  rCTF auth token - identical to one minted on login - and grants full account access to the
+  signing-in user.
+
+:::
+
+### Flow
+
+1. The external service sends the user to `<route>/external-auth/authorize?client_id=...&redirect_uri=...&state=...</route>`.
+2. The consent page calls `<route>GET /api/v2/external-auth/clients/:id</route>` to render the client name and verify the redirect URI.
+3. The user logs into rCTF if needed, then approves. The page calls `<route>POST /api/v2/external-auth/authorize</route>` with the user's session token and receives a `<red>redirectTo</red>` URL.
+4. The browser navigates to `<red>redirect_uri</red>?code=...&state=...`.
+5. The external service's backend exchanges the code through `<route>POST /api/v2/external-auth/token</route>` and receives `{accessToken, tokenType: "bearer"}{:ts}`.
+6. The service uses the access token in `Authorization: Bearer ...` against any rCTF endpoint - typically `<route>GET /api/v1/users/me</route>` to identify the team.
+
+### Failure model
+
+Every failure mode (unknown client, wrong secret, mismatched redirect URI, missing/expired/reused code, mismatched client on a code) returns the same `<response>400 badExternalAuthRequest</response>` body. The endpoint deliberately doesn't distinguish causes so callers can't probe it. The only authenticated route in the section is `<route>POST /api/v2/external-auth/authorize</route>`, which additionally returns `<response>401 badToken</response>` when the user session token is missing or invalid.
+
+### Code lifetime
+
+Authorization codes live in Redis for 60 seconds and are single-use - the first `<route>POST /api/v2/external-auth/token</route>` call atomically deletes the code, so a second exchange always fails. There is no per-app token registry: deleting a client through the admin routes blocks future token exchanges but does not revoke access tokens that were already issued.

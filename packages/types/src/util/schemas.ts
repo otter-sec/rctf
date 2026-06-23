@@ -1,4 +1,5 @@
 import { z } from 'zod/mini'
+import { example } from './example'
 
 export enum ExposeKind {
   TCP = 'tcp',
@@ -23,25 +24,35 @@ export const omitWhenNull = <T extends z.core.SomeType>(inner: T) =>
   )
 
 export const ChallengeFileSchemaV1 = z.object({
-  name: z.string(),
-  url: z.string(),
+  name: example(z.string(), 'chall.zip').check(z.describe('File name.')),
+  url: example(z.string(), 'https://rctf.osec.io/uploads/chall.zip').check(
+    z.describe('File download URL.')
+  ),
 })
 
 export const ChallengePointsSchemaV1 = z.object({
-  min: z.int(),
-  max: z.int(),
+  min: example(z.int(), 100).check(z.describe('Minimum (floor) point value.')),
+  max: example(z.int(), 500).check(
+    z.describe('Maximum (initial) point value.')
+  ),
 })
 
 export const ChallengeFileSchemaV2 = z.object({
-  name: z.string(),
-  url: z.string(),
+  name: example(z.string(), 'chall.zip').check(z.describe('File name.')),
+  url: example(z.string(), 'https://rctf.osec.io/uploads/chall.zip').check(
+    z.describe('File download URL.')
+  ),
   // NOTE(es3n1n): optional for backwards compat with old data
-  size: z.nullable(z.int()),
+  size: example(z.nullable(z.int()), 2048).check(
+    z.describe('File size in bytes, or `null` when unknown.')
+  ),
 })
 
 export const ChallengePointsSchema = z.object({
-  min: z.int(),
-  max: z.int(),
+  min: example(z.int(), 100).check(z.describe('Minimum (floor) point value.')),
+  max: example(z.int(), 500).check(
+    z.describe('Maximum (initial) point value.')
+  ),
 })
 
 export enum ChallengeScoringKind {
@@ -54,8 +65,12 @@ export enum DynamicScoringTransport {
 }
 
 export const DynamicScoringSourceSchema = z.object({
-  transport: z.literal(DynamicScoringTransport.WEBHOOK),
-  secret: z.string(),
+  transport: z
+    .literal(DynamicScoringTransport.WEBHOOK)
+    .check(z.describe('Transport used to push dynamic scores.')),
+  secret: example(z.string(), '<webhook-secret>').check(
+    z.describe('Shared secret authenticating webhook calls.')
+  ),
 })
 
 export const ChallengeScoringSchema = z.discriminatedUnion('kind', [
@@ -72,59 +87,121 @@ const INT32_MAX = 2_147_483_647
 export const DynamicScoresPayloadSchema = z.object({
   scores: z.array(
     z.object({
-      userId: z.string(),
-      points: z.int().check(z.gte(INT32_MIN)).check(z.lte(INT32_MAX)),
+      userId: example(z.string(), 'team-1a2b3c').check(
+        z.describe('Team ID the score applies to.')
+      ),
+      points: example(z.int(), 200)
+        .check(z.gte(INT32_MIN))
+        .check(z.lte(INT32_MAX))
+        .check(z.describe('Point value to assign (32-bit signed integer).')),
     })
   ),
 })
 
 export const EndpointSchema = z.object({
-  kind: z.enum(ExposeKind),
-  host: z.string(),
-  port: z.int().check(z.gte(0), z.lte(65535)),
-  title: z.optional(z.string()),
-  text: z.optional(z.string()),
+  kind: example(z.enum(ExposeKind), 'tcp').check(
+    z.describe('Exposure protocol.')
+  ),
+  host: example(z.string(), 'baby-rev.rctf.osec.io').check(
+    z.describe('Reachable host name.')
+  ),
+  port: example(z.int(), 1337)
+    .check(z.gte(0), z.lte(65535))
+    .check(z.describe('Reachable port.')),
+  title: example(z.optional(z.string()), 'nc').check(
+    z.describe('Short label for the endpoint, when present.')
+  ),
+  text: example(z.optional(z.string()), 'nc baby-rev.rctf.osec.io 1337').check(
+    z.describe('Connection hint shown to players, when present.')
+  ),
 })
 
 export const ExposeSchema = z.object({
-  kind: z.enum(ExposeKind),
-  hostPrefix: z.string().check(z.regex(/^[a-z0-9-]+$/), z.maxLength(63)),
-  containerName: z.string(),
-  containerPort: z.int().check(z.gte(1), z.lte(65535)),
-  shouldDisplay: z.optional(z.boolean()),
-  title: z.optional(z.string()),
+  kind: example(z.enum(ExposeKind), 'tcp').check(
+    z.describe('Exposure protocol.')
+  ),
+  hostPrefix: example(z.string(), 'baby-rev')
+    .check(z.regex(/^[a-z0-9-]+$/), z.maxLength(63))
+    .check(z.describe('Subdomain/host prefix for the exposed service.')),
+  containerName: example(z.string(), 'main').check(
+    z.describe('Container to expose.')
+  ),
+  containerPort: example(z.int(), 1337)
+    .check(z.gte(1), z.lte(65535))
+    .check(z.describe('Container port to expose.')),
+  shouldDisplay: example(z.optional(z.boolean()), true).check(
+    z.describe('Whether to show the endpoint to players.')
+  ),
+  title: example(z.optional(z.string()), 'nc').check(
+    z.describe('Short label for the endpoint, when present.')
+  ),
 })
 
 // NOTE(es3n1n): `config` is provider-specific
 export const InstancerConfigSchema = z.object({
-  challengeIntegrationId: z.string(),
-  instancer: z.optional(z.string()),
-  config: z.record(z.string(), z.any()),
+  challengeIntegrationId: example(z.string(), 'baby-rev').check(
+    z.describe('Challenge integration ID this config belongs to.')
+  ),
+  instancer: example(z.optional(z.string()), 'kubernetes').check(
+    z.describe('Instancer to use, or the default when omitted.')
+  ),
+  config: z
+    .record(z.string(), z.any())
+    .check(z.describe('Provider-specific instancer configuration.')),
   expose: z.optional(z.array(ExposeSchema)),
-  timeoutMilliseconds: z.int(),
-  extendable: z.optional(z.boolean()),
+  timeoutMilliseconds: example(z.int(), 600000).check(
+    z.describe('Instance lifetime in milliseconds.')
+  ),
+  extendable: example(z.optional(z.boolean()), true).check(
+    z.describe('Whether the instance lifetime can be extended.')
+  ),
 })
 
 export const PartialInstancerConfigSchema = z.object({
-  challengeIntegrationId: z.optional(z.string()),
-  instancer: z.optional(z.string()),
-  config: z.optional(z.record(z.string(), z.any())),
+  challengeIntegrationId: example(z.optional(z.string()), 'baby-rev').check(
+    z.describe('Challenge integration ID this config belongs to.')
+  ),
+  instancer: example(z.optional(z.string()), 'kubernetes').check(
+    z.describe('Instancer to use, or the default when omitted.')
+  ),
+  config: z
+    .optional(z.record(z.string(), z.any()))
+    .check(z.describe('Provider-specific instancer configuration.')),
   expose: z.optional(z.array(ExposeSchema)),
-  timeoutMilliseconds: z.optional(z.int()),
-  extendable: z.optional(z.boolean()),
+  timeoutMilliseconds: example(z.optional(z.int()), 600000).check(
+    z.describe('Instance lifetime in milliseconds.')
+  ),
+  extendable: example(z.optional(z.boolean()), true).check(
+    z.describe('Whether the instance lifetime can be extended.')
+  ),
 })
 
 export const RegexRuleSchema = z.object({
-  pattern: z.string(),
-  flags: z.optional(z.string()),
+  pattern: example(z.string(), '^https?://.*$').check(
+    z.describe('Regular expression source the input must match.')
+  ),
+  flags: example(z.optional(z.string()), 'i').check(
+    z.describe('Regular expression flags, when present.')
+  ),
 })
 
 export const AdminBotConfigSchema = z.object({
-  code: z.string(),
+  code: example(z.string(), 'admin-bot').check(
+    z.describe('Admin-bot code identifier.')
+  ),
   inputs: z.record(z.string(), RegexRuleSchema),
-  revision: z.string(),
-  timeoutMilliseconds: z.int(),
-  requireInstancerInstancesRunning: z.optional(z.boolean()),
+  revision: example(z.string(), 'v1').check(
+    z.describe('Config revision identifier.')
+  ),
+  timeoutMilliseconds: example(z.int(), 30000).check(
+    z.describe('Per-job timeout in milliseconds.')
+  ),
+  requireInstancerInstancesRunning: example(
+    z.optional(z.boolean()),
+    false
+  ).check(
+    z.describe('Whether a running instance is required to submit a job.')
+  ),
 })
 
 export enum AdminBotJobStatus {
@@ -157,8 +234,20 @@ export enum AdminTeamStatus {
 
 export const searchFilter = <T extends z.core.SomeType>(t: T) =>
   z.object({
-    include: z.nullish(z.array(t).check(z.maxLength(1024))),
-    exclude: z.nullish(z.array(t).check(z.maxLength(1024))),
+    include: z
+      .nullish(z.array(t).check(z.maxLength(1024)))
+      .check(
+        z.describe(
+          'Keep only rows matching one of these values; omitted or `null` applies no allowlist.'
+        )
+      ),
+    exclude: z
+      .nullish(z.array(t).check(z.maxLength(1024)))
+      .check(
+        z.describe(
+          'Drop rows matching any of these values; omitted or `null` applies no denylist.'
+        )
+      ),
   })
 
 export enum SubmissionKind {

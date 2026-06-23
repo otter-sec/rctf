@@ -1,0 +1,276 @@
+---
+title: "Responses"
+description: "Reference for rCTF response envelopes, common errors, response data, and shared API objects."
+---
+
+Response definitions are in `@rctf/types` under `packages/types/src/responses/{:dir}`. Each definition records the response `kind`, HTTP status, message, and optional `data` schema. Endpoint pages show the responses that matter most for each route, while this page gives a broader lookup table.
+
+## Envelope
+
+Most API responses use a small JSON wrapper. When a response includes data, it looks like this:
+
+```json
+{
+  "kind": "goodUserSelfData",
+  "message": "The user's own data was successfully retrieved.",
+  "data": {}
+}
+```
+
+When there is no data, the `data` property is left out:
+
+```json
+{
+  "kind": "goodToken",
+  "message": "The authorization token is valid."
+}
+```
+
+Unknown API routes usually return `<response>404 badEndpoint</response>`. Unexpected server errors return `<response>500 errorInternal</response>`.
+
+## Common errors
+
+:::table{cols="auto auto wrap"}
+
+| Response | Data | Meaning |
+| --- | --- | --- |
+| `<response>400 badJson</response>` | No data | The request body was not valid JSON. |
+| `<response>400 badBody</response>` | `{ reason: string }{:ts}` | Validation did not pass for body, query, path parameters, or form data. |
+| `<response>401 badToken</response>` | No data | The auth token was missing or could not be used. |
+| `<response>403 badPerms</response>` | No data | The authenticated team does not have the permission bits for this route. |
+| `<response>404 badEndpoint</response>` | No data | The route is not available, or the provider behind the route is not configured. |
+| `<response>401 badNotStarted</response>` | No data | The CTF has not started yet for this request. |
+| `<response>401 badEnded</response>` | No data | The CTF has ended for this action. |
+| `<response>403 badCaptcha</response>` | No data | V2 captcha validation did not pass. |
+| `<response>401 badRecaptchaCode</response>` | No data | V1 captcha validation did not pass. |
+| `<response>429 badRateLimit</response>` | `{ timeLeft: number }{:ts}` | This rate limit needs more time before another request. |
+| `<response>500 errorInternal</response>` | No data | The server hit an unexpected error. |
+
+:::
+
+## Auth and account errors
+
+:::table{cols="auto auto wrap"}
+
+| Response | Data | Meaning |
+| --- | --- | --- |
+| `<response>400 badEmail</response>` | No data | The email did not pass validation. |
+| `<response>400 badName</response>` | No data | The team name did not pass validation. |
+| `<response>409 badKnownEmail</response>` | No data | Another account already uses this email. |
+| `<response>409 badKnownName</response>` | No data | Another account already uses this team name. |
+| `<response>409 badKnownCtftimeId</response>` | No data | Another account already uses this CTFtime ID. |
+| `<response>404 badUnknownEmail</response>` | No data | No account is associated with this email. |
+| `<response>404 badUnknownUser</response>` | No data | No user exists for that ID. |
+| `<response>401 badTokenVerification</response>` | No data | The verify, team, or CTFtime auth token could not be verified. |
+| `<response>401 badCtftimeToken</response>` | No data | The CTFtime auth token could not be used. |
+| `<response>401 badCtftimeCode</response>` | No data | The CTFtime OAuth code could not be used. |
+| `<response>404 badCtftimeNoExists</response>` | No data | The current user does not have a linked CTFtime team. |
+| `<response>404 badEmailNoExists</response>` | No data | The current user does not have an email address. |
+| `<response>403 badEmailChangeDivision</response>` | No data | The new email would move the account outside its current division rules. |
+| `<response>403 badDivisionNotAllowed</response>` | No data | The account is not allowed to use the requested division. |
+| `<response>403 badCompetitionNotAllowed</response>` | No data | Registration rules do not allow this account. |
+| `<response>400 badRegistrationsDisabled</response>` | No data | Registrations are currently disabled. |
+| `<response>409 badTooManyMembers</response>` | No data | The team is already at `maxMembers`. |
+| `<response>409 badZeroAuth</response>` | No data | The change would remove the final auth method from the account. |
+| `<response>403 badUserPrivileged</response>` | No data | The target user has admin permissions, so this route does not modify it. |
+
+:::
+
+## Challenge and integration errors
+
+:::table{cols="auto auto wrap"}
+
+| Response | Data | Meaning |
+| --- | --- | --- |
+| `<response>404 badChallenge</response>` | No data | The challenge was not found or is not available to this route. |
+| `<response>400 badFlag</response>` | No data | The submitted flag was not accepted. |
+| `<response>409 badAlreadySolvedChallenge</response>` | No data | The team has already solved this challenge. |
+| `<response>404 badUnknownSolveV2</response>` | No data | The solve row was not found. |
+| `<response>400 badDataUri</response>` | No data | The V1 upload data URI could not be read. |
+| `<response>500 badFilesUpload</response>` | No data | The upload provider could not finish the upload. |
+| `<response>400 badAvatarFile</response>` | No data | The avatar file was not accepted as an image. |
+| `<response>400 badAvatarFileSize</response>` | `{ maxSize: number }{:ts}` | The avatar is larger than `maxAvatarSize`. |
+| `<response>400 badModerationNotPassed</response>` | No data | Avatar moderation did not approve the image. |
+| `<response>400 badInstancerConfig</response>` | `{ error: string }{:ts}` | The instancer provider did not accept the challenge config. |
+| `<response>400 badInstancerError</response>` | `{ message: string }{:ts}` | The instancer provider returned a lifecycle error. |
+| `<response>400 badInstancerState</response>` | `{ error: string }{:ts}` | The admin bot route needs a running instance, but one was not available. |
+| `<response>400 badAdminBotConfig</response>` | `{ error: string }{:ts}` | The admin bot provider did not accept the challenge source. |
+| `<response>404 badUnknownVerification</response>` | No data | The pending user verification was not found. |
+| `<response>401 badSignature</response>` | No data | The dynamic-scoring webhook signature, timestamp, or challenge target was rejected. The endpoint deliberately doesn't distinguish causes. |
+| `<response>400 badExternalAuthRequest</response>` | No data | An [external-auth](/api/external-auth/) call was rejected. The same response is used for unknown client, wrong secret, wrong/expired/reused code, and mismatched redirect URI so the endpoint can't be probed. |
+
+:::
+
+## Success response data
+
+:::table{cols="auto wrap"}
+
+| Response | Data |
+| --- | --- |
+| `<response>200 goodRegister</response>` | `{ authToken: string }{:ts}` |
+| `<response>200 goodRegisterV2</response>` | `{ authToken: string, teamToken: string }{:ts}` |
+| `<response>200 goodLogin</response>` | `{ authToken: string }{:ts}` |
+| `<response>200 goodVerify</response>` | `{ authToken: string }{:ts}` |
+| `<response>200 goodVerifyInfo</response>` | `{ kind: "register" \| "team" \| "update", email: string \| null, name?: string }{:ts}` |
+| `<response>200 goodToken</response>` | No data. |
+| `<response>200 goodVerifySent</response>` | No data. |
+| `<response>200 goodEmailSet</response>` | No data. |
+| `<response>200 goodEmailRemoved</response>` | No data. |
+| `<response>200 goodCtftimeAuthSet</response>` | No data. |
+| `<response>200 goodCtftimeRemoved</response>` | No data. |
+| `<response>200 goodCtftimeToken</response>` | `{ ctftimeToken: string, ctftimeName: string, ctftimeId: string }{:ts}` |
+| `<response>200 goodChallenges</response>` `<response>200 goodChallengesV2</response>` | Challenge array. Fields depend on API version. |
+| `<response>200 goodChallengeSolves</response>` `<response>200 goodChallengeSolvesV2</response>` | Solve list. Fields depend on API version. |
+| `<response>200 goodFlag</response>` | No data. |
+| `<response>200 goodLeaderboard</response>` `<response>200 goodLeaderboardV2</response>` | `{ total: number, leaderboard: LeaderboardEntry[] }{:ts}`. Entry fields depend on API version. |
+| `<response>200 goodLeaderboardWithGraph</response>` | `{ total: number, leaderboard: LeaderboardEntryV2[], graph: LeaderboardGraphEntry[] }{:ts}` |
+| `<response>200 goodLeaderboardGraph</response>` | `{ graph: LeaderboardGraphEntry[] }{:ts}` |
+| `<response>200 goodLeaderboardChallengesV2</response>` | `{ challenges: Record<string, LeaderboardChallenge> }{:ts}` |
+| `<response>200 goodUserData</response>` `<response>200 goodUserDataV2</response>` | Public user profile. Fields depend on API version. |
+| `<response>200 goodUserSelfData</response>` `<response>200 goodUserSelfDataV2</response>` | Authenticated user's own profile. Fields depend on API version. |
+| `<response>200 goodUserUpdate</response>` `<response>200 goodUserUpdateV2</response>` | `{ user: UserUpdateResult }{:ts}` |
+| `<response>200 goodAvatarUpdated</response>` | `{ url: string \| null }{:ts}` |
+| `<response>200 goodMemberData</response>` | Team member array. |
+| `<response>200 goodMemberCreate</response>` | Team member object. |
+| `<response>200 goodMemberDelete</response>` | No data. |
+| `<response>200 goodAdminChallenges</response>` `<response>200 goodAdminChallengesV2</response>` | Admin challenge array. Fields depend on API version. |
+| `<response>200 goodAdminChallenge</response>` `<response>200 goodAdminChallengeV2</response>` | Admin challenge object. Fields depend on API version. |
+| `<response>200 goodChallengeUpdate</response>` `<response>200 goodChallengeUpdateV2</response>` | Updated admin challenge object. |
+| `<response>200 goodChallengeDelete</response>` | No data. |
+| `<response>200 goodChallengeSolveDeleteV2</response>` | No data. |
+| `<response>200 goodFilesUpload</response>` `<response>200 goodFilesUploadV2</response>` | Uploaded file array. Fields depend on API version. |
+| `<response>200 goodUploadsQuery</response>` `<response>200 goodUploadsQueryV2</response>` | Upload query result array. Fields depend on API version. |
+| `<response>200 goodAdminUsersV2</response>` | `{ total: number, users: AdminUserListItem[] }{:ts}` |
+| `<response>200 goodAdminUserV2</response>` | Admin user detail with solves. |
+| `<response>200 goodAdminUserUpdateV2</response>` | No data. |
+| `<response>200 goodAdminUserDeleteV2</response>` | No data. |
+| `<response>200 goodCreateUserTokenV2</response>` | `{ token: string }{:ts}` |
+| `<response>200 goodAdminUserVerificationsV2</response>` | `{ verifications: PendingUserVerification[] }{:ts}` |
+| `<response>200 goodAdminUserVerificationCompleteV2</response>` | `{ userId: string }{:ts}` |
+| `<response>200 goodAdminUserVerificationResendV2</response>` | `{ id: string }{:ts}` |
+| `<response>200 goodAdminSubmissions</response>` | `{ total: number, submissions: AdminSubmission[] }{:ts}` |
+| `<response>200 goodAdminSettings</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }{:ts}` |
+| `<response>200 goodAdminSettingsUpdate</response>` | `{ overrides: AdminSettings, defaults: AdminSettings }{:ts}` |
+| `<response>200 goodClientConfig</response>` `<response>200 goodClientConfigV2</response>` | Client config object. Fields depend on API version. |
+| `<response>200 goodCtftimeLeaderboard</response>` | `{ standings: { pos: number, team: string, score: number }[] }{:ts}` |
+| `<response>200 goodInstanceStatus</response>` | `{ status: InstanceStatus, timeLeftMilliseconds: number \| null, endpoints: Endpoint[] \| null }{:ts}` |
+| `<response>200 goodInstancerSchema</response>` | `{ schema: Record<string, unknown>, defaults: Record<string, unknown> }{:ts}` |
+| `<response>200 goodAdminBotConfig</response>` | `{ sourceCode: string, fileExtension: string }{:ts}` |
+| `<response>200 goodAdminBotStatus</response>` | `{ enabled: boolean, configLanguage: string }{:ts}` |
+| `<response>200 goodAdminBotJobSubmitted</response>` | `{ jobId: string }{:ts}` |
+| `<response>200 goodAdminBotJobStatus</response>` | `{ job: AdminBotJobStatusResponse \| null }{:ts}` |
+| `<response>200 goodAdminBotJobHistory</response>` | `{ jobs: AdminBotJobHistoryItem[] }{:ts}` |
+| `<response>200 goodAdminBotJobLogs</response>` | `{ logs: string \| null }{:ts}` |
+| `<response>200 goodAdminBotJobPull</response>` | `{ job: PulledAdminBotJob \| null }{:ts}` |
+| `<response>200 goodAdminBotChallengeSource</response>` | `{ sourceCode: string, configRevision: string }{:ts}` |
+| `<response>200 goodAdminBotJobUpdate</response>` | `{ ok: boolean }{:ts}` |
+| `<response>200 goodAdminBotQueueDepth</response>` | `{ depth: number }{:ts}` |
+| `<response>200 goodDynamicScores</response>` | `{ inserted: number, updated: number, deleted: number }{:ts}` |
+| `<response>200 goodExternalAuthClient</response>` | `{ id: string, name: string, redirectUri: string }{:ts}` |
+| `<response>200 goodExternalAuthAuthorize</response>` | `{ redirectTo: string }{:ts}` |
+| `<response>200 goodExternalAuthToken</response>` | `{ accessToken: string, tokenType: "bearer" }{:ts}` |
+| `<response>200 goodAdminExternalAuthClients</response>` | `{ id, name, redirectUri, createdAt, createdBy }[]{:ts}` |
+| `<response>200 goodAdminExternalAuthClientCreate</response>` | `{ id, name, redirectUri, createdAt, createdBy, secret }{:ts}` (secret shown once) |
+| `<response>200 goodAdminExternalAuthClientDelete</response>` | No data. |
+
+:::
+
+## Shared objects
+
+### `ChallengeFileV2`
+
+:::table{cols="auto auto"}
+
+| Field  | Type                  |
+| ------ | --------------------- |
+| `name` | `string{:ts}`         |
+| `url`  | `string{:ts}`         |
+| `size` | `number \| null{:ts}` |
+
+:::
+
+### `Endpoint`
+
+:::table{cols="auto auto"}
+
+| Field   | Type                                           |
+| ------- | ---------------------------------------------- |
+| `kind`  | `"tcp" \| "tcp-ssl" \| "http" \| "https"{:ts}` |
+| `host`  | `string{:ts}`                                  |
+| `port`  | `number{:ts}`                                  |
+| `title` | `string \| undefined{:ts}`                     |
+
+:::
+
+### `InstancerConfig`
+
+:::table{cols="auto auto"}
+
+| Field                    | Type                           |
+| ------------------------ | ------------------------------ |
+| `challengeIntegrationId` | `string{:ts}`                  |
+| `config`                 | `Record<string, unknown>{:ts}` |
+| `expose`                 | `Expose[]{:ts}`                |
+| `timeoutMilliseconds`    | `number{:ts}`                  |
+| `extendable`             | `boolean \| undefined{:ts}`    |
+
+:::
+
+### `Expose`
+
+:::table{cols="auto auto"}
+
+| Field           | Type                                           |
+| --------------- | ---------------------------------------------- |
+| `kind`          | `"tcp" \| "tcp-ssl" \| "http" \| "https"{:ts}` |
+| `hostPrefix`    | `string{:ts}`                                  |
+| `containerName` | `string{:ts}`                                  |
+| `containerPort` | `number{:ts}`                                  |
+| `shouldDisplay` | `boolean \| undefined{:ts}`                    |
+| `title`         | `string \| undefined{:ts}`                     |
+
+:::
+
+### `AdminBotConfig`
+
+:::table{cols="auto auto"}
+
+| Field                              | Type                             |
+| ---------------------------------- | -------------------------------- |
+| `code`                             | `string{:ts}`                    |
+| `inputs`                           | `Record<string, RegexRule>{:ts}` |
+| `revision`                         | `string{:ts}`                    |
+| `timeoutMilliseconds`              | `number{:ts}`                    |
+| `requireInstancerInstancesRunning` | `boolean \| undefined{:ts}`      |
+
+:::
+
+### `RegexRule`
+
+:::table{cols="auto auto"}
+
+| Field     | Type                       |
+| --------- | -------------------------- |
+| `pattern` | `string{:ts}`              |
+| `flags`   | `string \| undefined{:ts}` |
+
+:::
+
+## Enum values
+
+:::table{cols="auto wrap"}
+
+| Enum | Values |
+| --- | --- |
+| `InstanceStatus{:ts}` | `stopped`, `running`, `starting`, `stopping`, `errored` |
+| `AdminBotJobStatus{:ts}` | `queued`, `running`, `completed`, `failed` |
+| `AdminTeamSortBy{:ts}` | `createdAt`, `team`, `email`, `division`, `score`, `solves`, `status` |
+| `SortOrder{:ts}` | `asc`, `desc` |
+| `AdminTeamStatus{:ts}` | `active`, `banned`, `admin` |
+| `SubmissionKind{:ts}` | `flag`, `admin_bot` |
+| `SubmissionSortBy{:ts}` | `createdAt`, `challenge`, `team`, `ip`, `kind`, `result` |
+| `SubmissionResult{:ts}` | `correct`, `incorrect`, `already_solved`, `queued`, `active_job`, `invalid_input`, `bad_instancer_state` |
+| `SubmissionTeamStatus{:ts}` | `banned`, `not_banned` |
+| `ProtectedAction{:ts}` | `register`, `recover`, `setEmail`, `instancerStart`, `instancerExtend`, `avatarUpload`, `adminBotSubmit` |
+
+:::

@@ -1,4 +1,4 @@
-import type { Element, ElementContent, Properties, Text } from 'hast'
+import type { Element, ElementContent, Text } from 'hast'
 
 const TONE_TAGS = [
   'black',
@@ -16,12 +16,13 @@ const TONE_TAGS = [
   'dim',
   'dimmed',
 ] as const
-type ToneTag = (typeof TONE_TAGS)[number]
 
 const ROUTE_TAG = 'route'
 const RESPONSE_TAG = 'response'
 
-const TONE_ALIASES = new Map<string, ToneTag>([
+export const CODE_ANNOTATION_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
+
+const TONE_ALIASES = new Map<string, string>([
   ['gray', 'black'],
   ['grey', 'black'],
   ['muted', 'black'],
@@ -29,26 +30,24 @@ const TONE_ALIASES = new Map<string, ToneTag>([
 
 const TONE_COLORS = new Map<string, string>([
   ['black', 'var(--muted-foreground)'],
-  ['red', 'var(--inline-tone-red)'],
-  ['green', 'var(--inline-tone-green)'],
-  ['orange', 'var(--inline-tone-orange)'],
-  ['yellow', 'var(--inline-tone-yellow)'],
-  ['blue', 'var(--inline-tone-blue)'],
-  ['magenta', 'var(--inline-tone-magenta)'],
-  ['cyan', 'var(--inline-tone-cyan)'],
+  ['red', 'var(--tone-red)'],
+  ['green', 'var(--tone-green)'],
+  ['orange', 'var(--tone-orange)'],
+  ['yellow', 'var(--tone-yellow)'],
+  ['blue', 'var(--tone-blue)'],
+  ['magenta', 'var(--tone-magenta)'],
+  ['cyan', 'var(--tone-cyan)'],
   ['white', 'color-mix(in oklab, var(--foreground) 88%, transparent)'],
 ])
 
 const tagRegex = (tags: readonly string[]) => new RegExp(`<\\/?(${tags.join('|')})>`, 'g')
-export const CODE_ANNOTATION_TAGS = [ROUTE_TAG, RESPONSE_TAG, ...TONE_TAGS] as const
 
 const CODE_ANNOTATION_TAG_RE = tagRegex(CODE_ANNOTATION_TAGS)
 const CODE_TONE_TAG_RE = tagRegex(TONE_TAGS)
 
-const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'] as const
-type Method = (typeof METHODS)[number]
+const METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']
 
-const METHOD_TONES = new Map<string, ToneTag>([
+const METHOD_TONES = new Map<string, string>([
   ['GET', 'cyan'],
   ['POST', 'green'],
   ['PUT', 'magenta'],
@@ -56,64 +55,53 @@ const METHOD_TONES = new Map<string, ToneTag>([
   ['DELETE', 'red'],
   ['HEAD', 'blue'],
   ['OPTIONS', 'blue'],
-] satisfies [Method, ToneTag][])
-
-export function methodToneTag(method: string): ToneTag {
-  return METHOD_TONES.get(method.toUpperCase()) ?? 'white'
-}
+])
 
 const METHOD_PATTERN = METHODS.join('|')
 const METHOD_GROUP_RE = new RegExp(`^(?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*$`)
 const ROUTE_RE = new RegExp(`^((?:${METHOD_PATTERN})(?:/(?:${METHOD_PATTERN}))*)\\s+(.+)$`)
 const RESPONSE_RE = /^([1-5](?:\d{2}|XX))(?:\s+(.+))?$/i
 
-export function textNode(value: string): Text {
-  return { type: 'text', value }
-}
+const textNode = (value: string): Text => ({ type: 'text', value })
 
-function spanNode(
-  className: string[],
-  children: ElementContent[],
-  properties: Properties = {}
-): Element {
+const spanNode = (className: string[], children: ElementContent[]): Element => ({
+  type: 'element',
+  tagName: 'span',
+  properties: { className },
+  children,
+})
+
+const normalizeTone = (tag: string) => TONE_ALIASES.get(tag) ?? tag
+
+const isDimTone = (tone: string) => tone === 'dim' || tone === 'dimmed'
+
+const toneClassNames = (tag: string): string[] => [
+  'code-tone',
+  ...tag.split('+').map(tone => `is-${normalizeTone(tone)}`),
+]
+
+export function toneProperties(tag: string): Element['properties'] {
+  const color = tag
+    .split('+')
+    .map(tone => TONE_COLORS.get(normalizeTone(tone)))
+    .find(Boolean)
   return {
-    type: 'element',
-    tagName: 'span',
-    properties: { ...properties, className },
-    children,
+    className: toneClassNames(tag),
+    ...(color ? { style: `--tone: ${color}` } : {}),
   }
 }
 
-function normalizeTone(tag: string): string {
-  return TONE_ALIASES.get(tag) ?? tag
-}
-
-export function toneClassNames(tag: string): string[] {
-  return ['code-tone', ...tag.split('+').map(tone => `is-${normalizeTone(tone)}`)]
-}
-
-export function toneStyle(tag: string): string | undefined {
-  const tones = tag.split('+').map(normalizeTone)
-  const declarations: string[] = []
-  const color = tones.map(tone => TONE_COLORS.get(tone)).find(Boolean)
-
-  if (color) declarations.push(`color: ${color}`)
-  if (tones.some(isDimTone)) declarations.push('opacity: 0.5')
-
-  return declarations.length > 0 ? declarations.join('; ') : undefined
-}
-
-function toneNode(tag: string, children: ElementContent[]): Element {
-  return spanNode(toneClassNames(tag), children)
-}
-
-function isDimTone(tone: string): boolean {
-  return tone === 'dim' || tone === 'dimmed'
-}
+const toneNode = (tag: string, children: ElementContent[]): Element => ({
+  type: 'element',
+  tagName: 'span',
+  properties: toneProperties(tag),
+  children,
+})
 
 function methodNodes(methods: string): ElementContent[] {
   return methods.split('/').flatMap((method, i) => {
-    const node = toneNode(methodToneTag(method), [textNode(method)])
+    const tone = METHOD_TONES.get(method.toUpperCase()) ?? 'white'
+    const node = toneNode(tone, [textNode(method)])
     return i === 0 ? [node] : [textNode('/'), node]
   })
 }
@@ -144,13 +132,13 @@ function routeChildren(value: string): ElementContent[] {
 
   const endpoint = route.match(ROUTE_RE)
   if (endpoint)
-    return [...methodNodes(endpoint[1]!), textNode(' '), ...routePathNodes(endpoint[2]!)]
+    return [...methodNodes(endpoint[1] ?? ''), textNode(' '), ...routePathNodes(endpoint[2] ?? '')]
 
   if (route.startsWith('/')) return routePathNodes(route)
   return [textNode(value)]
 }
 
-function responseTone(status: string): ToneTag {
+function responseTone(status: string): string {
   if (status.startsWith('2')) return 'green'
   if (status.startsWith('3')) return 'orange'
   if (status.startsWith('4') || status.startsWith('5')) return 'red'
@@ -160,9 +148,7 @@ function responseTone(status: string): ToneTag {
 function responseChildren(value: string): ElementContent[] {
   const response = value.trim()
   const match = response.match(RESPONSE_RE)
-  if (!match) return [textNode(value)]
-
-  const status = match[1]
+  const status = match?.[1]
   if (!status) return [textNode(value)]
 
   const kind = match[2]
@@ -174,21 +160,6 @@ function responseChildren(value: string): ElementContent[] {
       ...(kind ? [textNode(` ${kind}`)] : []),
     ]),
   ]
-}
-
-function isRouteText(value: string): boolean {
-  const route = value.trim()
-  return METHOD_GROUP_RE.test(route) || ROUTE_RE.test(route) || route.startsWith('/')
-}
-
-export function routeCodeNode(value: string): Element | null {
-  if (!isRouteText(value)) return null
-  return {
-    type: 'element',
-    tagName: 'code',
-    properties: { className: ['annotated-code', 'code-with-tones'] },
-    children: [spanNode(['code-route'], routeChildren(value))],
-  }
 }
 
 export function stripCodeAnnotationTags(value: string): string {
@@ -230,7 +201,7 @@ function parseTagTree(input: string, re: RegExp): ParsedTree | null {
 
   const pushText = (value: string): void => {
     if (!value) return
-    stack[stack.length - 1]!.children.push({ type: 'text', value })
+    stack[stack.length - 1]?.children.push({ type: 'text', value })
     text += value
   }
 
@@ -247,7 +218,7 @@ function parseTagTree(input: string, re: RegExp): ParsedTree | null {
     if (token.startsWith('</')) {
       const frame = stack.pop()
       if (!frame || frame.tag !== tag) return null
-      stack[stack.length - 1]!.children.push({
+      stack[stack.length - 1]?.children.push({
         type: 'tag',
         tag,
         start: frame.start,

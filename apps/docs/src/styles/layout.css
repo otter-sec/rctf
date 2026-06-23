@@ -1,0 +1,63 @@
+:root {
+  /* https://utopia.fyi/grid/calculator?c=320,16,1.125,1024,18,1.2,6,1,&s=0.75%7C0.5%7C0.25,1.5%7C2%7C3%7C4%7C6,s-l%7Cs-m&g=s,m,2xl,12 */
+  --space-3xs: clamp(0.25rem, 0.25rem + 0vw, 0.25rem);
+  --space-2xs: clamp(0.5rem, 0.4847rem + 0.0747vw, 0.5625rem);
+  --space-xs: clamp(0.6875rem, 0.657rem + 0.1494vw, 0.8125rem);
+  --space-s: clamp(0.9375rem, 0.907rem + 0.1494vw, 1.0625rem);
+  --space-m: clamp(1.4375rem, 1.3917rem + 0.224vw, 1.625rem);
+  --space-l: clamp(1.875rem, 1.8139rem + 0.2987vw, 2.125rem);
+  --space-xl: clamp(2.8125rem, 2.7209rem + 0.4481vw, 3.1875rem);
+  --space-2xl: clamp(3.75rem, 3.6279rem + 0.5975vw, 4.25rem);
+  --space-3xl: clamp(5.625rem, 5.4418rem + 0.8962vw, 6.375rem);
+
+  --space-3xs-2xs: clamp(0.25rem, 0.1737rem + 0.3734vw, 0.5625rem);
+  --space-2xs-xs: clamp(0.5rem, 0.4237rem + 0.3734vw, 0.8125rem);
+  --space-xs-s: clamp(0.6875rem, 0.5959rem + 0.4481vw, 1.0625rem);
+  --space-s-m: clamp(0.9375rem, 0.7696rem + 0.8215vw, 1.625rem);
+  --space-m-l: clamp(1.4375rem, 1.2696rem + 0.8215vw, 2.125rem);
+  --space-l-xl: clamp(1.875rem, 1.5545rem + 1.5683vw, 3.1875rem);
+  --space-xl-2xl: clamp(2.8125rem, 2.4614rem + 1.7177vw, 4.25rem);
+  --space-2xl-3xl: clamp(3.75rem, 3.1089rem + 3.1367vw, 6.375rem);
+
+  --grid-max-width: 104.13rem;
+  --grid-gutter: var(--space-s-l, clamp(0.9375rem, 0.6475rem + 1.419vw, 2.125rem));
+  --grid-columns: 12;
+  --grid-edge: max(var(--grid-gutter), (100% - var(--grid-max-width)) / 2 + var(--grid-gutter));
+  --grid-column-width: calc(
+    (min(100%, var(--grid-max-width)) - (var(--grid-columns) + 1) * var(--grid-gutter)) /
+      var(--grid-columns)
+  );
+  --bar-gutter: max(var(--grid-gutter), (100% - var(--measure)) / 2);
+  --bar-border-image: linear-gradient(
+      to right,
+      transparent 0 var(--bar-gutter),
+      var(--border) 0 calc(100% - var(--bar-gutter)),
+      transparent 0
+    )
+    1;
+
+  --page-offset-top: var(--space-xl);
+  --page-offset-bottom: var(--space-m);
+}
+
+html {
+  scrollbar-gutter: stable;
+
+  @media (width < 64rem) {
+    --bar-nav-height: 0px;
+    --bar-toc-height: 0px;
+    scroll-padding-block-start: calc(
+      var(--bar-nav-height) + var(--bar-toc-height) + var(--space-2xs)
+    );
+
+    &:has(page-toc) {
+      --bar-toc-height: calc(1.5 * var(--step--1) + 2 * var(--space-2xs) + 2px);
+    }
+  }
+
+  /* Only mobile stacks the nav into a sticky top bar; the tablet range keeps
+     the nav as a side rail, so it adds no vertical scroll offset there. */
+  @media (width < 48rem) {
+    --bar-nav-height: calc(2rem + 2 * var(--space-2xs) + 2px);
+  }
+}

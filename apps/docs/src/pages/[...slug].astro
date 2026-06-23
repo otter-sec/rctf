@@ -1,202 +1,205 @@
 ---
-import TOCSidebar from '@/components/toc-sidebar.astro'
-import DocLayout from '@/layouts/doc.astro'
+import InlineText from '@/components/InlineText.astro'
+import MetaPage from '@/components/MetaPage.astro'
+import PostActions from '@/components/PostActions.astro'
+import ScrollToTop from '@/components/ScrollToTop.astro'
+import SeriesReader from '@/components/SeriesReader.astro'
+import TableOfContents from '@/components/TableOfContents.astro'
+import { DOCS } from '@/consts'
+import Layout from '@/layouts/Layout.astro'
+import { enrichHeadings, pageTitle } from '@/lib/content'
 import {
-  docHref,
-  docLabel,
-  docSlugFromId,
-  getAllDocs,
-  getEditUrl,
-  resolveLastUpdated,
-  resolveTOC,
-  type Doc,
+  buildDocsTree,
+  docsHref,
+  docsMdHref,
+  flattenDocsTree,
+  getDocs,
+  getScrollChain,
+  type DocsEntry,
 } from '@/lib/docs'
-import { gitLastUpdated } from '@/lib/git-lastmod'
-import { mdxComponents } from '@/lib/mdx-components'
-import { renderDescription } from '@/lib/render-description'
-import { scrollGroupSectionId } from '@/lib/scroll-groups'
-import {
-  getIndexChildrenFromContext,
-  getPrevNextFromContext,
-  getScrollableGroupFromContext,
-  getScrollGroupPrevNextFromContext,
-  getSidebarTreeFromContext,
-  loadSidebarContext,
-} from '@/lib/sidebar'
-import { trimTrailingSlash } from '@/lib/utils'
-import type { MarkdownHeading } from 'astro'
+import { gitLastUpdated } from '@/lib/git'
+import { formatDate } from '@/lib/utils'
 import { render } from 'astro:content'
 
 export async function getStaticPaths() {
-  const docs = await getAllDocs()
-  return docs.map(doc => ({
-    params: { slug: docSlugFromId(doc.id) },
-    props: { doc },
+  const docs = await getDocs()
+  return docs.map(entry => ({
+    params: { slug: entry.id === 'index' ? undefined : entry.id },
+    props: { entry },
   }))
 }
 
-interface Props {
-  doc: Doc
-}
+type Props = { entry: DocsEntry }
 
-const { doc } = Astro.props
-const sidebarContext = await loadSidebarContext()
+const { entry } = Astro.props
+const docs = await getDocs()
+const tree = buildDocsTree(docs)
+const flat = flattenDocsTree(docs, tree)
 
-const href = docHref(doc.id)
-const isIndex = doc.id === 'index' || /\/index\.mdx?$/.test(doc.filePath ?? '')
-const scrollGroup = getScrollableGroupFromContext(sidebarContext, doc, href)
-const pages = scrollGroup?.pages ?? [{ doc, href, label: docLabel(doc) }]
+const chain = getScrollChain(docs, entry) ?? [entry]
+const isChain = chain.length > 1
+const reference = isChain && chain[0].data.aside === true
+const sectionId = (id: string) => id.split('/').pop()
 
-function docLastUpdated(doc: Doc): Date | null {
-  const frontmatterLastUpdated = resolveLastUpdated(doc)
-  return (
-    frontmatterLastUpdated ??
-    (doc.data.lastUpdated === false ? null : doc.filePath ? gitLastUpdated(doc.filePath) : null)
-  )
-}
-
-function latestDate(dates: Array<Date | null>): Date | null {
-  const sorted = dates
-    .filter((date): date is Date => date !== null)
-    .sort((a, b) => b.getTime() - a.getTime())
-  return sorted[0] ?? null
-}
-
-function isGroupOverviewPage(pageDoc: Doc): boolean {
-  if (!scrollGroup) return false
-  return pageDoc.id === scrollGroup.path || pageDoc.id === `${scrollGroup.path}/index`
-}
-
-const renderedPages = await Promise.all(
-  pages.map(async page => {
-    const isOverview = isGroupOverviewPage(page.doc)
-    const [rendered, renderedLabel, renderedDescription] = await Promise.all([
-      render(page.doc),
-      renderDescription(page.label),
-      // The page header already shows the overview's description; don't
-      // duplicate it inside the section.
-      isOverview || !page.doc.data.description
-        ? Promise.resolve(null)
-        : renderDescription(page.doc.data.description),
-    ])
-
-    return {
-      ...page,
-      ...rendered,
-      sectionId: scrollGroupSectionId(page.doc.id),
-      tocHeadings: rendered.headings.map(heading => ({
-        ...heading,
-        slug: `${scrollGroupSectionId(page.doc.id)}-${heading.slug}`,
-      })),
-      renderedLabel,
-      renderedDescription,
-      isCurrent: trimTrailingSlash(page.href) === trimTrailingSlash(href),
-    }
-  })
+const rendered = await Promise.all(
+  chain.map(async chained => ({
+    entry: chained,
+    ...(await render(chained)),
+  }))
 )
 
-const currentPage = renderedPages.find(page => page.isCurrent) ?? renderedPages[0]
-if (!currentPage) throw new Error(`Could not render docs page for ${doc.id}`)
+const tocSections = rendered.map(({ entry: chained, headings }, i) => ({
+  id: i === 0 ? undefined : sectionId(chained.id),
+  label: chained.data.title,
+  open: chained.id === entry.id,
+  headings: enrichHeadings(
+    headings.filter(({ depth, text }) => depth >= 2 && depth <= 4 && text.trim()),
+    chained.rendered?.html
+  ),
+}))
+const hasToc = tocSections.length > 1 || tocSections.some(({ headings }) => headings.length > 0)
 
-const Content = currentPage.Content
-const headings: MarkdownHeading[] = scrollGroup
-  ? renderedPages
-      .filter(page => !isGroupOverviewPage(page.doc))
-      .map(page => ({
-        depth: 2,
-        slug: page.sectionId,
-        text: page.label,
-      }))
-  : currentPage.headings
+const first = flat.findIndex(doc => doc.href === docsHref(chain[0].id))
+const last = flat.findIndex(doc => doc.href === docsHref(chain[chain.length - 1].id))
+const prev = flat[first - 1]
+const next = flat[last + 1]
 
-const sidebar = getSidebarTreeFromContext(sidebarContext, href)
-const prevNext = scrollGroup
-  ? getScrollGroupPrevNextFromContext(sidebarContext, scrollGroup)
-  : getPrevNextFromContext(sidebarContext, href)
-const indexChildren =
-  !scrollGroup && isIndex && doc.data.autoCards !== false
-    ? getIndexChildrenFromContext(sidebarContext, href)
-    : []
-
-const navDoc = scrollGroup?.pages[0].doc ?? doc
-let { prev, next } = prevNext
-if (navDoc.data.prev === false) prev = null
-if (navDoc.data.next === false) next = null
-const editUrl = getEditUrl(doc)
-
-const lastUpdated = scrollGroup
-  ? latestDate(scrollGroup.pages.map(page => docLastUpdated(page.doc)))
-  : docLastUpdated(doc)
-const toc = resolveTOC(scrollGroup?.pages[0]?.doc ?? doc)
+const lastUpdatedOf = (chained: DocsEntry) =>
+  chained.data.lastUpdated ??
+  (DOCS.lastUpdated && chained.filePath ? gitLastUpdated(chained.filePath) : null)
+const editUrlOf = (chained: DocsEntry) =>
+  chained.data.editUrl === false
+    ? null
+    : (chained.data.editUrl ?? (chained.filePath ? `${DOCS.editUrlBase}${chained.filePath}` : null))
 ---
 
-<DocLayout
-  doc={doc}
-  headings={headings}
-  sidebar={sidebar}
-  prev={prev}
-  next={next}
-  editUrl={editUrl}
-  lastUpdated={lastUpdated}
-  tocMinDepth={toc.minDepth}
-  tocMaxDepth={toc.maxDepth}
-  tocEnabled={toc.enabled}
-  indexChildren={indexChildren}
-  scrollGroup={scrollGroup}
->
+<Layout tree={tree} wide={reference}>
+  <MetaPage
+    slot="head"
+    title={entry.data.title}
+    description={entry.data.description}
+    image={`/og/${entry.id}.png`}
+    canonical={isChain && entry.id !== chain[0].id ? docsHref(chain[0].id) : undefined}
+  />
   {
-    scrollGroup ? (
-      renderedPages.map((page, index) => {
-        const PageContent = page.Content
-        const isOverview = isGroupOverviewPage(page.doc)
-
-        return (
-          <section
-            data-scroll-page-section
-            data-scroll-page-href={page.href}
-            data-scroll-page-target={isOverview ? 'post-title' : page.sectionId}
-            data-scroll-page-prefix={page.sectionId}
-            data-pagefind-ignore={page.isCurrent ? undefined : ''}
-            data-doc-content-grid
-            class:list={[
-              'grid grid-cols-1 gap-8 xl:grid-cols-[minmax(0,42rem)_minmax(14rem,16rem)]',
-              index > 0 && 'mt-24 border-t-2 pt-16',
-            ]}
-          >
-            <div class="prose max-w-none" data-mdx-aside-layout>
-              {!isOverview && (
-                <header class="not-prose mb-7">
-                  <h2
-                    id={page.sectionId}
-                    data-scroll-page-title
-                    class="text-foreground scroll-mt-32 text-2xl leading-tight font-medium text-balance sm:text-3xl xl:scroll-mt-[calc(var(--docs-announcement-offset,0)+4rem-4px)]"
-                    data-doc-title
-                    set:html={page.renderedLabel.html}
-                  />
-                  {page.renderedDescription && (
-                    <p
-                      class="text-muted-foreground mt-3 text-lg text-pretty"
-                      data-doc-description
-                      set:html={page.renderedDescription.html}
-                    />
-                  )}
-                </header>
-              )}
-              <PageContent components={mdxComponents} />
-            </div>
-            <TOCSidebar
-              headings={page.tocHeadings}
-              minDepth={toc.minDepth}
-              maxDepth={toc.maxDepth}
-              title={page.label}
-              titleTargetId={isOverview ? 'post-title' : page.sectionId}
-              pagefindIgnore
-            />
-          </section>
-        )
-      })
-    ) : (
-      <Content components={mdxComponents} />
+    hasToc && !reference && (
+      <TableOfContents slot="toc" title={chain[0].data.title} sections={tocSections} />
     )
   }
-</DocLayout>
+  <PostActions slot="actions" prev={prev} next={next} />
+  <ScrollToTop floating />
+  {
+    rendered.map(({ entry: chained, Content }, i) => {
+      const editUrl = editUrlOf(chained)
+      const lastUpdated = lastUpdatedOf(chained)
+      const mdHref = docsMdHref(chained.id)
+      return (
+        <article
+          id={i === 0 ? undefined : sectionId(chained.id)}
+          data-url={docsHref(chained.id)}
+          data-title={pageTitle(chained.data.title)}
+          data-embedded={i > 0 || undefined}
+          data-reference={reference || undefined}
+          data-pagefind-body={chained.id === entry.id ? '' : undefined}
+        >
+          <header>
+            <h1>
+              <InlineText value={chained.data.title} />
+            </h1>
+            {chained.data.description && (
+              <p>
+                <InlineText value={chained.data.description} />
+              </p>
+            )}
+          </header>
+          <page-meta data-pagefind-ignore>
+            <page-meta-links>
+              {editUrl && <a href={editUrl}>Edit this page</a>}
+              <a href={mdHref}>View Markdown</a>
+              <button type="button" data-copy-page data-href={mdHref}>
+                Copy Markdown
+              </button>
+            </page-meta-links>
+            {lastUpdated && (
+              <time datetime={lastUpdated.toISOString()}>
+                Last updated {formatDate(lastUpdated)}
+              </time>
+            )}
+          </page-meta>
+          <prose-content>
+            <Content />
+          </prose-content>
+        </article>
+      )
+    })
+  }
+  {isChain && <SeriesReader />}
+</Layout>
+
+<style>
+  article[data-embedded] {
+    margin-block-start: var(--space-xl);
+    padding-block-start: var(--space-xl);
+    border-block-start: 2px solid var(--border);
+    scroll-margin-block-start: calc(-2px - 0.2 * var(--step-3));
+  }
+
+  header {
+    margin-block-end: var(--space-s);
+
+    h1 {
+      font-size: var(--step-3);
+      line-height: calc(var(--leading-offset) + 1em);
+      font-weight: var(--font-weight-medium);
+    }
+
+    > p {
+      margin-block-start: var(--space-2xs);
+      font-size: var(--step--1);
+      color: var(--muted-foreground);
+    }
+  }
+
+  page-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-s);
+    margin-block-end: var(--space-m);
+    padding-block-end: var(--space-s);
+    border-block-end: 2px solid var(--border);
+    font-size: var(--step--1);
+    color: var(--muted-foreground);
+
+    page-meta-links {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    a,
+    button {
+      color: var(--foreground);
+    }
+
+    a {
+      --underline: var(--muted-foreground);
+    }
+
+    button {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: var(--muted-foreground);
+      text-decoration-thickness: max(1px, 0.0625em);
+      text-decoration-skip-ink: none;
+      text-underline-position: under;
+      text-underline-offset: -0.06em;
+
+      &:hover {
+        text-decoration-color: currentColor;
+      }
+    }
+  }
+</style>

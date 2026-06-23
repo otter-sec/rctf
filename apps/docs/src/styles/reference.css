@@ -1,0 +1,174 @@
+article[data-reference] {
+  @media (width >= 64rem) {
+    --aside-gap: var(--space-l);
+    --aside-width: min(26rem, 38%);
+    --prose-width: calc(100% - var(--aside-width) - var(--aside-gap));
+
+    > :where(header, page-meta),
+    > prose-content:not(:has(> [data-aside])) {
+      max-inline-size: var(--prose-width);
+    }
+
+    > prose-content:has(> [data-aside]) {
+      display: grid;
+      grid-template-columns: var(--prose-width) var(--aside-width);
+      column-gap: var(--aside-gap);
+      align-items: start;
+
+      > :not([data-aside]) {
+        grid-column: 1;
+        min-inline-size: 0;
+      }
+
+      > [data-aside] {
+        --aside-block-size: calc(100svh - var(--page-offset-top) - var(--page-offset-bottom));
+        --aside-section: calc((var(--aside-block-size) - var(--aside-gap)) / 2);
+        --aside-code-min: 9rem;
+
+        grid-column: 2;
+        grid-row: 1 / span 9999;
+        align-self: start;
+        position: sticky;
+        top: var(--page-offset-top);
+        max-block-size: var(--aside-block-size);
+        display: flex;
+        flex-direction: column;
+        gap: var(--aside-gap);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+
+        &::-webkit-scrollbar {
+          display: none;
+        }
+
+        > * {
+          margin-block: 0;
+        }
+
+        :where(tab-group, [role='tabpanel']:not([hidden]), .expressive-code, figure) {
+          display: flex;
+          flex-direction: column;
+          flex: 0 0 auto;
+        }
+
+        :where([role='tablist'], figcaption) {
+          flex: 0 0 auto;
+        }
+
+        .frame pre {
+          flex: 0 0 auto;
+        }
+
+        .frame:not(.is-terminal) pre {
+          min-block-size: var(--aside-code-min);
+          max-block-size: var(--aside-section);
+          overflow-y: auto;
+          overscroll-behavior: contain;
+          scrollbar-width: none;
+
+          &::-webkit-scrollbar {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+
+  prose-content dl[data-field-list] {
+    margin-block: var(--space-xs) var(--space-m);
+    border-block: 2px solid var(--border);
+
+    [data-field] {
+      padding-block: var(--space-2xs);
+
+      & + [data-field] {
+        border-block-start: 2px solid var(--border);
+      }
+    }
+
+    dt {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      column-gap: var(--space-s);
+      row-gap: var(--space-3xs);
+      min-inline-size: 0;
+    }
+
+    [data-field-name] {
+      display: inline-flex;
+      align-items: baseline;
+    }
+
+    dd {
+      margin-block-start: var(--space-3xs);
+      color: var(--prose-foreground);
+      font-size: var(--step--1);
+      line-height: calc(var(--leading-offset) + 1em);
+      overflow-wrap: anywhere;
+    }
+
+    code {
+      background: none;
+      padding: 0;
+    }
+
+    [data-required] {
+      margin-inline-start: 0.15em;
+      color: var(--tone-red);
+      font-weight: var(--font-weight-medium);
+    }
+
+    [data-field-type] {
+      min-inline-size: 0;
+      font-size: var(--step--1);
+      opacity: 0.85;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      overflow: hidden;
+
+      code {
+        white-space: normal;
+      }
+    }
+  }
+
+  :where(h2, h3, h4, h5, h6) + dl[data-field-list] {
+    margin-block-start: 0;
+  }
+}
+
+prose-content dl[data-route-meta] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(12rem, 100%), 1fr));
+  gap: var(--space-s) var(--space-m);
+  margin-block-end: var(--space-m);
+  padding-block-end: var(--space-s);
+  border-block-end: 2px solid var(--border);
+
+  div {
+    min-inline-size: 0;
+  }
+
+  dt {
+    font-size: var(--step--1);
+    line-height: 1;
+    font-weight: var(--font-weight-medium);
+    color: var(--foreground);
+  }
+
+  dd {
+    margin-block-start: var(--space-2xs);
+    color: var(--prose-foreground);
+    font-size: var(--step--1);
+    line-height: calc(var(--leading-offset) + 1em);
+    overflow-wrap: anywhere;
+
+    &[data-empty] {
+      color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
+    }
+  }
+}

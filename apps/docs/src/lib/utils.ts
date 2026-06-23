@@ -1,52 +1,22 @@
-import { SITE } from '@/consts'
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
-}
-
-export function formatDate(date: Date) {
-  return Intl.DateTimeFormat(SITE.locale, {
+export function formatDate(date: Date): string {
+  return new Intl.DateTimeFormat('en-US', {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
+    timeZone: 'UTC',
   }).format(date)
 }
 
-export function formatRelativeDate(date: Date, now: Date = new Date()): string {
-  const diffMs = now.getTime() - date.getTime()
-  const diffSec = Math.round(diffMs / 1000)
-  const diffMin = Math.round(diffSec / 60)
-  const diffHour = Math.round(diffMin / 60)
-  const diffDay = Math.round(diffHour / 24)
-  const diffMonth = Math.round(diffDay / 30)
-  const diffYear = Math.round(diffDay / 365)
+export const isSubpost = (id: string) => id.includes('/')
 
-  const rtf = new Intl.RelativeTimeFormat(SITE.locale, { numeric: 'auto' })
-  if (Math.abs(diffSec) < 60) return rtf.format(-diffSec, 'second')
-  if (Math.abs(diffMin) < 60) return rtf.format(-diffMin, 'minute')
-  if (Math.abs(diffHour) < 24) return rtf.format(-diffHour, 'hour')
-  if (Math.abs(diffDay) < 30) return rtf.format(-diffDay, 'day')
-  if (Math.abs(diffMonth) < 12) return rtf.format(-diffMonth, 'month')
-  return rtf.format(-diffYear, 'year')
+export const subpostSlug = (id: string) => id.split('/')[1]
+
+export const normalizePath = (pathname: string) => {
+  try {
+    return decodeURIComponent(pathname).replace(/\/+$/, '')
+  } catch {
+    return pathname.replace(/\/+$/, '')
+  }
 }
 
-export function trimTrailingSlash(path: string): string {
-  const pathname = path.split(/[?#]/, 1)[0] || '/'
-  if (pathname === '/') return pathname
-  return pathname.replace(/\/+$/, '')
-}
-
-export function isCurrentPath(href: string, pathname: string): boolean {
-  return trimTrailingSlash(href) === trimTrailingSlash(pathname)
-}
-
-export function titleCase(input: string): string {
-  return input
-    .replace(/[-_]+/g, ' ')
-    .split(' ')
-    .filter(Boolean)
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-    .join(' ')
-}
+export const hashId = (hash: string) => decodeURIComponent(hash.slice(1))
