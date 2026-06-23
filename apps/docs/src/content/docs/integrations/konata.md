@@ -257,6 +257,7 @@ attachments:
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
 | `<red>archive_name</red>` | Base name for the generated archive (and the wrap directory when `<red>attachment_wrap_dir</red>` is on). Defaults to the challenge ID. Characters illegal in filenames are replaced with `_`. |
 | `<red>strip_components</red>` | Number of leading path components to drop from each entry's archive path, like `$ <red>tar</red> <dim>--strip-components</dim>`. Defaults to `0{:ts}`. Use it to flatten a nested `dist/` or `handout/` prefix out of the downloaded archive. |
+| `<red>password</red>` | Encrypts the generated archive with AES-256 behind this password. Since `tar.gz` has no native encryption, setting a password forces the `<green>zip</green>` format regardless of `<red>attachment_format</red>`. Does not apply to `<red>pre_compressed</red>` archives, which are uploaded as-is. |
 
 :::note[Attachment matching is strict]
 A `<red>files</red>` glob that matches nothing, a named file that doesn't exist, or a missing `<red>pre_compressed</red>` archive now fails the sync instead of being silently skipped. Fix the path or drop the entry.
