@@ -46,6 +46,15 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
         z.regex(/^https?:\/\//, 'Must be an http(s) URL'),
         z.describe('Base URL of the paradigmctf-py API server')
       ),
+    apiToken: z.optional(
+      z
+        .string()
+        .check(
+          z.describe(
+            'Bearer token (API_AUTH_TOKEN) for the API launcher; leave empty if it runs unauthenticated'
+          )
+        )
+    ),
   })
   readonly capabilities = { canStop: true, canExtend: false }
   readonly actions = [
@@ -58,7 +67,7 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
 
   constructor(_options: unknown) {}
 
-  getDefaults = (): ProviderConfig => ({ apiUrl: '' })
+  getDefaults = (): ProviderConfig => ({ apiUrl: '', apiToken: '' })
 
   private resolveApiUrl(config: Record<string, unknown>): string | null {
     const apiUrl = config.apiUrl
@@ -66,6 +75,14 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
       return null
     }
     return apiUrl.replace(/\/$/, '')
+  }
+
+  private resolveApiToken(config: Record<string, unknown>): string | undefined {
+    const apiToken = config.apiToken
+    if (typeof apiToken !== 'string' || apiToken.length === 0) {
+      return undefined
+    }
+    return apiToken
   }
 
   private toDetails(instance: LaunchedInstance): instanceDetailsOrError {
@@ -103,10 +120,15 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
   private async request(
     apiUrl: string,
     path: string,
-    init: RequestInit
+    init: RequestInit,
+    apiToken?: string
   ): Promise<{ status: number; body: unknown } | null> {
     try {
-      const response = await fetch(`${apiUrl}${path}`, init)
+      const headers = new Headers(init.headers)
+      if (apiToken) {
+        headers.set('Authorization', `Bearer ${apiToken}`)
+      }
+      const response = await fetch(`${apiUrl}${path}`, { ...init, headers })
       const body = await response.json().catch(() => undefined)
       return { status: response.status, body }
     } catch (err) {
@@ -156,11 +178,16 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
       return misconfigured()
     }
 
-    const result = await this.request(apiUrl, '/v1/instance', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ team_id: options.user.id }),
-    })
+    const result = await this.request(
+      apiUrl,
+      '/v1/instance',
+      {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ team_id: options.user.id }),
+      },
+      this.resolveApiToken(options.config)
+    )
     return this.toDetailsOrError(result, false)
   }
 
@@ -175,7 +202,8 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     const result = await this.request(
       apiUrl,
       `/v1/instance?team_id=${encodeURIComponent(options.teamId)}`,
-      { method: 'GET' }
+      { method: 'GET' },
+      this.resolveApiToken(options.config)
     )
     return this.toDetailsOrError(result, true)
   }
@@ -191,7 +219,8 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     await this.request(
       apiUrl,
       `/v1/instance?team_id=${encodeURIComponent(options.teamId)}`,
-      { method: 'DELETE' }
+      { method: 'DELETE' },
+      this.resolveApiToken(options.config)
     )
     return stoppedDetails()
   }
@@ -219,7 +248,8 @@ export default class ParadigmctfInstancerProvider implements InstancerProvider {
     const result = await this.request(
       apiUrl,
       `/v1/pwn/flag?team_id=${encodeURIComponent(options.teamId)}`,
-      { method: 'GET' }
+      { method: 'GET' },
+      this.resolveApiToken(options.config)
     )
     if (!result) {
       return {
