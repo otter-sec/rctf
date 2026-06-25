@@ -12,6 +12,9 @@ resource "google_container_cluster" "cluster" {
     remove_default_node_pool = true
     initial_node_count = 1
 
+    networking_mode = "VPC_NATIVE"
+    datapath_provider = "ADVANCED_DATAPATH"
+
     maintenance_policy {
         recurring_window {
             # We need 48h window of total maintenance time per month, therefore do 12h per week
