@@ -37,8 +37,20 @@
     setToken(authToken)
     toast.success('Logged in successfully!')
     queryClient.invalidateQueries({ queryKey: queryKeys.userSelf })
-    const next = page.url.searchParams.get('next')
-    goto(next && next.startsWith('/') && !next.startsWith('//') ? next : '/')
+    goto(getRedirectPath(page.url.searchParams.get('next')))
+  }
+
+  // TODO: this should be moved to some util function and used in the other places like this
+  function getRedirectPath(next: string | null) {
+    if (!next?.startsWith('/')) return '/'
+
+    try {
+      const url = new URL(next, page.url.origin)
+      const redirectPath = `${url.pathname}${url.search}${url.hash}`
+      return url.origin === page.url.origin && !redirectPath.startsWith('//') ? redirectPath : '/'
+    } catch {
+      return '/'
+    }
   }
 
   function handleTokenLogin(token: string) {
