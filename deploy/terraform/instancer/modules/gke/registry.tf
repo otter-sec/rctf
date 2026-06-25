@@ -26,7 +26,7 @@ resource "google_artifact_registry_repository" "challenge_registry" {
 resource "google_artifact_registry_repository_iam_member" "gke_artifact_reader" {
     repository = google_artifact_registry_repository.challenge_registry.name
     location = google_artifact_registry_repository.challenge_registry.location
-    role = "roles/artifactregistry.writer"
+    role = "roles/artifactregistry.reader"
     member = "serviceAccount:${google_service_account.gke.email}"
 
     lifecycle {
