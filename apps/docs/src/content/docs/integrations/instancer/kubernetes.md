@@ -230,7 +230,7 @@ The controller creates three `NetworkPolicy` resources in every instance namespa
 The `<red>exposed</red>` label is applied automatically based on whether a pod is named by any `<red>expose[]</red>` entry. The `<red>egress</red>` label comes from the per-pod `egress: true{:yml}` flag in `<red>instancerConfig</red>`. Challenges that shouldn't reach the internet leave it `false{:yml}`.
 
 :::note[Cluster network plugin]
-Network policies only enforce isolation when the cluster's CNI supports them. GKE's default dataplane enforces them. On a bare-metal cluster, make sure the chosen CNI honors `NetworkPolicy`.
+Network policies only enforce isolation when the cluster's CNI supports them. The bundled GKE Terraform module enables GKE Dataplane V2, which enforces them. On a bare-metal cluster, make sure the chosen CNI honors `NetworkPolicy`.
 :::
 
 ## Per-pod safety checklist
