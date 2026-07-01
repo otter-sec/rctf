@@ -6,6 +6,8 @@
     GoodCtftimeAuthSet,
     GoodCtftimeRemoved,
     GoodEmailRemoved,
+    GoodEmailSet,
+    GoodVerifySent,
     ProtectedAction,
     SetCtftimeRoute,
     SetEmailRouteV2,
@@ -43,9 +45,13 @@
   })
 
   const emailForm = useApiForm(SetEmailRouteV2, {
-    onSuccess: () => {
-      toast.success('Email updated!')
-      invalidateUser()
+    onSuccess: response => {
+      if (response.kind === GoodEmailSet.kind) {
+        toast.success('Email updated!')
+        invalidateUser()
+      } else if (response.kind === GoodVerifySent.kind) {
+        toast.success('Verification email sent. Check your inbox to finish updating your email.')
+      }
     },
     onError: response => {
       showApiError(response)
