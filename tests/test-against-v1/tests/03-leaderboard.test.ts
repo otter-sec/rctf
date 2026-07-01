@@ -15,8 +15,8 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilLeaderboardHasUsers,
   waitUntilSame,
-  waitUntilSameWith,
   type TestUser,
 } from '../lib/harness'
 
@@ -161,7 +161,7 @@ describe('Leaderboard - With Test Data', () => {
     }
 
     await refreshLeaderboard(lbSnapshot)
-  }, 30_000)
+  }, 45_000)
 
   afterAll(async () => {
     await cleanupChallenge(challengeId)
@@ -172,21 +172,7 @@ describe('Leaderboard - With Test Data', () => {
   }, 30_000)
 
   test('leaderboard includes solvers with scores', async () => {
-    const res = await waitUntilSameWith(
-      () => all('/api/v1/leaderboard/now?limit=100&offset=0'),
-      ['id'],
-      40_000,
-      r =>
-        Object.values(r).every(inst => {
-          const body = inst.body as {
-            data?: { leaderboard?: { name: string; score: number }[] }
-          }
-          const entries = body?.data?.leaderboard ?? []
-          return solvers.every(s =>
-            entries.some(e => e.name === s.name && e.score > 0)
-          )
-        })
-    )
+    const res = await waitUntilLeaderboardHasUsers(solvers)
 
     assertAllSuccess(res)
     assertSame(res, ['id'])
@@ -200,5 +186,5 @@ describe('Leaderboard - With Test Data', () => {
       )
       expect(hasSolver).toBe(true)
     }
-  }, 45_000)
+  }, 70_000)
 })

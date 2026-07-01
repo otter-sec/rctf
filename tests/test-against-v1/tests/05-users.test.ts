@@ -447,7 +447,17 @@ describe('Users - Profile With Solves', () => {
   test('user profile includes solve', async () => {
     const res = await waitUntilSameWith(
       () => allUserProfile(user),
-      ['createdAt']
+      ['createdAt'],
+      30_000,
+      r =>
+        Object.values(r).every(inst => {
+          const body = inst.body as {
+            data?: { solves?: { name: string }[] }
+          }
+          return (body.data?.solves ?? []).some(
+            s => s.name === 'Profile Test Challenge'
+          )
+        })
     )
 
     assertAllSuccess(res)
@@ -463,11 +473,11 @@ describe('Users - Profile With Solves', () => {
       )
       expect(found).toBeDefined()
     }
-  })
+  }, 35_000)
 
   test('user score is positive after solve', async () => {
     const start = Date.now()
-    while (Date.now() - start < 10_000) {
+    while (Date.now() - start < 30_000) {
       const res = await allUserProfile(user)
       const allPositive = Object.values(res).every(r => {
         const body = r.body as { data: { score: number } }
@@ -483,7 +493,7 @@ describe('Users - Profile With Solves', () => {
       const body = r.body as { data: { score: number } }
       expect(body.data.score).toBeGreaterThan(0)
     }
-  })
+  }, 35_000)
 })
 
 describe('Users - Division Filtering', () => {

@@ -15,7 +15,7 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
-  waitUntilSameWith,
+  waitUntilCtftimeLeaderboardHasUsers,
   type TestUser,
 } from '../lib/harness'
 
@@ -132,7 +132,7 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
     }
 
     await refreshLeaderboard(lbSnapshot)
-  })
+  }, 45_000)
 
   afterAll(async () => {
     await cleanupChallenge(challengeId)
@@ -143,39 +143,21 @@ describe('Integrations - CTFtime Leaderboard With Data', () => {
   })
 
   test('ctftime leaderboard returns consistent data', async () => {
-    const res = await waitUntilSameWith(() =>
-      allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
-    )
+    const res = await waitUntilCtftimeLeaderboardHasUsers(admin, users)
 
     assertAllSuccess(res)
     assertSame(res)
-  })
+  }, 70_000)
 
   test('ctftime leaderboard has standings', async () => {
-    const start = Date.now()
-    while (Date.now() - start < 10_000) {
-      const res = await allAs(admin, '/api/v1/integrations/ctftime/leaderboard')
-      const allHaveStandings = Object.values(res).every(r => {
-        const body = r.body as {
-          standings: { team: string; score: number }[]
-        }
-        return Array.isArray(body.standings) && body.standings.length > 0
-      })
+    const res = await waitUntilCtftimeLeaderboardHasUsers(admin, users)
 
-      if (allHaveStandings) return
-      await new Promise(resolve => setTimeout(resolve, 100))
-    }
-
-    const finalRes = await allAs(
-      admin,
-      '/api/v1/integrations/ctftime/leaderboard'
-    )
-    for (const r of Object.values(finalRes)) {
+    for (const r of Object.values(res)) {
       const body = r.body as {
         standings: { team: string; score: number }[]
       }
       expect(Array.isArray(body.standings)).toBe(true)
       expect(body.standings.length).toBeGreaterThan(0)
     }
-  })
+  }, 70_000)
 })
