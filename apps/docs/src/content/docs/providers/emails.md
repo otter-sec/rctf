@@ -7,7 +7,7 @@ order: 2
 Email providers send verification and recovery emails. You need one configured if you want email-based registration, account recovery, or email changes to work.
 
 :::tip[What we use in practice]
-For events we run or help operate (including Malta CTF, idek CTF, and DiceCTF), we typically use [Postmark](https://postmarkapp.com/) for transactional delivery. The others are perfectly reasonable choices too. SMTP works with any provider you already have credentials for, SES is the cheapest at volume if you're already on AWS, and Mailgun is a fine alternative if you prefer it. Pick whichever fits your existing infrastructure.
+For events we run or help operate (including Malta CTF, idek CTF, DiceCTF, SekaiCTF), we typically use [Postmark](https://postmarkapp.com/) for transactional delivery. The others are perfectly reasonable choices too. SMTP works with any provider you already have credentials for, SES is the cheapest at volume if you're already on AWS, and Mailgun is a fine alternative if you prefer it. Pick whichever fits your existing infrastructure.
 :::
 
 ## Configuration
