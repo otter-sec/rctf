@@ -318,85 +318,94 @@ The controller itself runs with its own RBAC from `apps/k8s-controller/config/{:
 
 ## Example challenge config (Konata)
 
-A complete instanced challenge as it would live in a [Konata](/integrations/konata) deployment repo. This is the `web/mirror-temple` config from the DiceCTF Quals 2026 challenge repository.
+A complete instanced challenge as it would live in a [Konata](/integrations/konata) deployment repo. This is adapted from the `misc/pwnable-document-fabricator` config in the SekaiCTF 2026 challenge repository.
 
-```yaml title="web/mirror-temple/kona.yml"
+```yaml title="misc/pwnable-document-fabricator/kona.yaml"
 challenges:
-  - category: web
-    name: mirror-temple
-    author: arcblroth
+  - category: misc
+    name: pwnable document fabricator
+    releaseTime: '2026-06-28T08:00:00Z'
+    author: sy1vi3
     description: |
-      stare long enough at the void and the void stares back
+      yep it's another web challenge.
     attachments:
       files:
-        - 'Dockerfile'
-        - 'chall/src/'
+        - "challenge/"
+      exclude:
+        - "challenge/readflag.c"
+      additional:
+        - path: readflag.c
+          strContent: |
+            #include <stdio.h>
+            int main() { printf("SEKAI{dummy_flag}"); }
+      stripComponents: 1
     flags:
-      rctf:
-        file: flag.txt
-    instancer_config:
-      challenge_integration_id: '{{ challenge.name }}'
-      timeout_milliseconds: 1800000
-      extendable: true
+      rctf: SEKAI{example}
+    instancerConfig:
+      instancer: k8s
+      challengeIntegrationId: pwnable-doc
+      timeoutMilliseconds: 1800000
       expose:
         - kind: https
-          host_prefix: '{{ challenge.name }}'
-          container_name: app
-          container_port: 8080
+          hostPrefix: pwnable-doc
+          containerName: app
+          containerPort: 8080
       config:
         pods:
           - name: app
-            egress: true
+            egress: false
             ports:
               - protocol: TCP
-                name: http-service
                 port: 8080
             spec:
               restartPolicy: Always
               terminationGracePeriodSeconds: 0
               automountServiceAccountToken: false
+              enableServiceLinks: false
               containers:
                 - name: app
-                  image: '{{ images[challenge.name] }}'
+                  image: "{{ images['pwnable-doc'] }}"
                   ports:
                     - containerPort: 8080
+                  volumeMounts:
+                    - name: tmp
+                      mountPath: /tmp
                   resources:
-                    requests:
-                      cpu: '500m'
-                      memory: '500Mi'
-                    limits:
-                      cpu: '3'
-                      memory: '2Gi'
+                    requests: { cpu: 100m, memory: 128Mi }
+                    limits: { cpu: 500m, memory: 512Mi }
                   readinessProbe:
-                    tcpSocket:
-                      port: 8080
+                    tcpSocket: { port: 8080 }
                     initialDelaySeconds: 5
                     periodSeconds: 3
                   securityContext:
-                    runAsNonRoot: true
                     readOnlyRootFilesystem: true
                     allowPrivilegeEscalation: false
                     capabilities:
-                      drop:
-                        - ALL
+                      drop: ["ALL"]
+              volumes:
+                - name: tmp
+                  emptyDir:
+                    medium: Memory
+                    sizeLimit: 512Mi
 
 deployment:
   images:
-    - build_context: .
-      name: '{{ challenges[0].name }}'
+    - path: challenge
+      name: pwnable-doc
       tag: latest
-      registry_name: instancer-challenges
+      registryName: instancer-challenges
       platform: linux/amd64
 ```
 
 Things worth pointing at in this example:
 
-- **`egress: true{:yml}`** on the pod opts it into the `egress` `NetworkPolicy` so the challenge can reach the public internet. Drop it for challenges that should be sealed off.
+- **`egress: false{:yml}`** keeps the pod sealed off from public internet egress. Set it to `true{:yml}` only for challenges that need outbound access.
 - **Resource `<red>requests</red>` and `<red>limits</red>`** are mandatory in practice. The controller schedules the pod normally, so an unset limit lets a single instance starve the node. Size them to the per-team load you expect at peak.
 - **`<red>readinessProbe</red>`** keeps Traefik from routing to the pod before the app is up. Without it, the first request after creation often 502s while the container is still booting.
-- **`<red>securityContext</red>`** locks the container down (read-only root FS, dropped capabilities, no root). The k8s-instancer namespace is already isolated by the per-namespace `NetworkPolicy` set, but a tight pod-level context is the second layer.
-- **`<red>{{ images[challenge.name] }}</red>`** resolves to the fully-qualified registry path Konata pushed to (`<red>registries.instancer-challenges</red>` + the image name + tag).
-- **`<red>flags.rctf.file: flag.txt</red>`** lets the flag live in a sibling file Konata reads at sync time, so the challenge directory stays self-contained.
+- **`<red>readOnlyRootFilesystem</red>` plus the sized `<red>emptyDir</red>`** gives the app a bounded writable `/tmp/{:dir}` without letting it write into the image layer.
+- **`<red>securityContext</red>`** locks the container down with dropped capabilities and no privilege escalation.
+- **`<red>{{ images['pwnable-doc'] }}</red>`** resolves to the fully-qualified registry path Konata pushed to (`<red>registries.instancer-challenges</red>` + the image name + tag).
+- **The `additional` attachment entry** ships a dummy `readflag.c` while the real challenge flag is kept out of the handout.
 
 For the rest of the Konata schema, see [Konata](/integrations/konata).
 

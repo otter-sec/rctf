@@ -8,17 +8,9 @@ rCTF is intentionally lightweight. A single-node deployment of the bundled conta
 
 ## Resource expectations
 
-In practice the platform barely touches the box it runs on. [DiceCTF 2026 Quals](https://2026.ctf.dicega.ng/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **1.6 cores**, as shown below.
+In practice the platform barely touches the box it runs on. [SekaiCTF 2026](https://ctf.sekai.team/scores), a large and well-attended event, ran the whole platform as a single Docker container on one Hetzner `CPX62` instance (16 vCPU / 32 GiB RAM). Peak CPU across the whole machine (including the databases) sat around **2.6 cores**, as shown below.
 
-![DiceCTF 2026 Quals CPU usage graph, peaking around 150% (~1.5 cores) during the event window](./dicectf-2026-cpu.png)
-
-:::warning[RAM data lost]
-Memory metrics for the same window weren't retained. Expect a similarly modest footprint, though.
-:::
-
-:::note[Deliberately overprovisioned]
-The `CPX62` was definitely an overshoot. DiceCTF 2026 Quals was the first public event running rCTF v2, so if something unexpected blew up in CPU or memory during the CTF, we wanted enough runway to diagnose and patch without the platform tipping over in the meantime. A much smaller instance would have been plenty for the actual observed load. `CPX62` works, but don't treat it as a recommended baseline.
-:::
+![sekaictf-2026-cpu-usage](./sekaictf-2026-cpu-usage.png)
 
 A VPS with 2 CPU cores and 4 GiB RAM is a comfortable starting point, and is what the [VPS setup walkthrough](/meta/running-a-successful-ctf/setup) targets. PostgreSQL and Redis sit alongside in the bundled `compose.yml{:file}` and dominate steady-state memory more than the rCTF container itself.
 
