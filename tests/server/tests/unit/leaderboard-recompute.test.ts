@@ -59,6 +59,28 @@ const makeQueue = (
   }
 }
 
+const createDeferred = () => {
+  let resolve!: () => void
+  const promise = new Promise<void>(res => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
+
+const waitUntil = async (
+  predicate: () => boolean,
+  timeoutMs = 100
+): Promise<boolean> => {
+  const startedAt = Date.now()
+  while (Date.now() - startedAt < timeoutMs) {
+    if (predicate()) {
+      return true
+    }
+    await new Promise(resolve => setTimeout(resolve, 1))
+  }
+  return predicate()
+}
+
 describe('recompute queue enqueue/flush', () => {
   test('explicit all-scope dispatches applyForAll', async () => {
     requireNothing()
@@ -207,6 +229,49 @@ describe('recompute queue enqueue/flush', () => {
     expect(onFlushed).toHaveBeenCalledTimes(1)
   })
 
+  test('schedule during an active flush does not start a concurrent flush', async () => {
+    requireNothing()
+    const firstStarted = createDeferred()
+    const releaseFirst = createDeferred()
+    const calls: string[] = []
+    let active = 0
+    let maxActive = 0
+    const applyForChallenge = mock(async (id: string) => {
+      calls.push(id)
+      active++
+      maxActive = Math.max(maxActive, active)
+      try {
+        if (id === 'c1') {
+          firstStarted.resolve()
+          await releaseFirst.promise
+        }
+      } finally {
+        active--
+      }
+    })
+    const q = createRecomputeQueue({
+      debounceMs: 0,
+      applyForChallenge,
+      applyForAll: mock(async () => {}),
+      onFlushed: mock(async () => {}),
+      logger: { error: mock(() => {}) },
+    })
+
+    q.schedule({ scope: 'challenge', challengeId: 'c1', source: 'flag' })
+    await firstStarted.promise
+
+    q.schedule({ scope: 'challenge', challengeId: 'c2', source: 'flag' })
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    expect(calls).toEqual(['c1'])
+    expect(maxActive).toBe(1)
+
+    releaseFirst.resolve()
+    expect(await waitUntil(() => calls.length === 2)).toBe(true)
+    expect(calls).toEqual(['c1', 'c2'])
+    expect(maxActive).toBe(1)
+  })
+
   test('applyForAll errors are logged but do not throw', async () => {
     requireNothing()
     const { queue, logger, onFlushed } = makeQueue()
@@ -259,6 +324,34 @@ describe('recompute queue enqueue/flush', () => {
 
     expect(applyForChallenge).toHaveBeenCalledWith('c1', 'flag', undefined)
     expect(onFlushed).toHaveBeenCalledTimes(1)
+  })
+
+  test('scheduled shouldFlush=false parks pending work without a retry loop', async () => {
+    requireNothing()
+    const logger = { error: mock(() => {}) }
+    const applyForChallenge = mock(async () => {})
+    let shouldFlushCalls = 0
+    const q = createRecomputeQueue({
+      debounceMs: 0,
+      applyForChallenge,
+      applyForAll: mock(async () => {}),
+      shouldFlush: () => {
+        shouldFlushCalls++
+        return false
+      },
+      onFlushed: mock(async () => {}),
+      logger,
+    })
+
+    q.schedule({ scope: 'challenge', challengeId: 'c1', source: 'flag' })
+    expect(await waitUntil(() => shouldFlushCalls > 0)).toBe(true)
+
+    const callsAfterFirstTimer = shouldFlushCalls
+    await new Promise(resolve => setTimeout(resolve, 10))
+
+    expect(shouldFlushCalls).toBe(callsAfterFirstTimer)
+    expect(applyForChallenge).not.toHaveBeenCalled()
+    expect(q.hasPending()).toBe(true)
   })
 
   test('hasPending tracks queued and re-parked work', async () => {

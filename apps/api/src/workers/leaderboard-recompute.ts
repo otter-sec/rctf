@@ -27,6 +27,20 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
   let pendingMaxSolvesSource: RecomputeSource | undefined
   let knownMaxSolves = opts.initialMaxSolves
   let recomputeTimer: ReturnType<typeof setTimeout> | undefined
+  let runningFlush: Promise<void> | undefined
+
+  const hasPending = (): boolean =>
+    pendingChallengeRecomputes.size > 0 || pendingAllSource !== undefined
+
+  const scheduleRetry = (): void => {
+    if (recomputeTimer || runningFlush) {
+      return
+    }
+    recomputeTimer = setTimeout(() => {
+      recomputeTimer = undefined
+      flush().catch(err => opts.logger.error({ err }, 'flushRecomputes failed'))
+    }, opts.debounceMs)
+  }
 
   const enqueue = (request: DecayRecomputeRequest): void => {
     const source = request.source ?? 'decay-recompute'
@@ -65,26 +79,21 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
         return false
       })
 
-  const runPerChallenge = (
+  const runPerChallenge = async (
     recomputes: ReadonlyMap<string, RecomputeSource>,
     maxSolves: number | undefined
-  ): Promise<Array<[string, RecomputeSource]>> =>
-    Promise.all(
-      Array.from(recomputes, ([challengeId, source]) =>
-        opts
-          .applyForChallenge(challengeId, source, maxSolves)
-          .then(() => null)
-          .catch(err => {
-            opts.logger.error(
-              { err, challengeId },
-              'challenge recompute failed'
-            )
-            return [challengeId, source] as [string, RecomputeSource]
-          })
-      )
-    ).then(results =>
-      results.filter((entry): entry is [string, RecomputeSource] => !!entry)
-    )
+  ): Promise<Array<[string, RecomputeSource]>> => {
+    const failed: Array<[string, RecomputeSource]> = []
+    for (const [challengeId, source] of recomputes) {
+      try {
+        await opts.applyForChallenge(challengeId, source, maxSolves)
+      } catch (err) {
+        opts.logger.error({ err, challengeId }, 'challenge recompute failed')
+        failed.push([challengeId, source])
+      }
+    }
+    return failed
+  }
 
   const requeueChallenge = (
     challengeId: string,
@@ -98,11 +107,7 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
     }
   }
 
-  const flush = async (): Promise<void> => {
-    if (opts.shouldFlush && !opts.shouldFlush()) {
-      return
-    }
-
+  const flushOnce = async (): Promise<void> => {
     const challengeRecomputes = new Map(pendingChallengeRecomputes)
     let allSource = pendingAllSource
     const maxSolvesSource = pendingMaxSolvesSource
@@ -146,19 +151,28 @@ export const createRecomputeQueue = (opts: RecomputeQueueOptions) => {
     await opts.onFlushed()
   }
 
-  const schedule = (request: DecayRecomputeRequest): void => {
-    enqueue(request)
-    if (recomputeTimer) {
-      return
+  const flush = (): Promise<void> => {
+    if (runningFlush) {
+      return runningFlush
     }
-    recomputeTimer = setTimeout(() => {
-      recomputeTimer = undefined
-      flush().catch(err => opts.logger.error({ err }, 'flushRecomputes failed'))
-    }, opts.debounceMs)
+    if (opts.shouldFlush && !opts.shouldFlush()) {
+      return Promise.resolve()
+    }
+
+    const run = flushOnce()
+    runningFlush = run.finally(() => {
+      runningFlush = undefined
+      if (hasPending()) {
+        scheduleRetry()
+      }
+    })
+    return runningFlush
   }
 
-  const hasPending = (): boolean =>
-    pendingChallengeRecomputes.size > 0 || pendingAllSource !== undefined
+  const schedule = (request: DecayRecomputeRequest): void => {
+    enqueue(request)
+    scheduleRetry()
+  }
 
   return { schedule, enqueue, flush, hasPending }
 }
