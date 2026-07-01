@@ -71,7 +71,7 @@ const emptyForm: FormData = {
   author: '',
   description: '',
   flag: '',
-  pointsMin: 100,
+  pointsMin: 50,
   pointsMax: 500,
   tiebreakEligible: true,
   sortWeight: 0,
