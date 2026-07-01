@@ -167,7 +167,7 @@ Top-level discovery options.
 
 ### `attachment_format`
 
-`<green>tar_gz</green>` (default) or `<green>zip</green>`. Picks the archive format Konata uses when bundling attachment files for upload.
+`<green>tar_gz</green>` (default), `<green>zip</green>`, or `<green>7z</green>`. Picks the archive format Konata uses when bundling attachment files for upload. Password-protected generated archives always use `<green>7z</green>`, regardless of this setting.
 
 ### `attachment_wrap_dir`
 
@@ -213,9 +213,66 @@ discovery:
 | `<red>flags</red>` | Per-platform flags. `<red>flags.rctf</red>` is either a literal string or `<red>{ file: <path> }</red>` / `<red>{ str: <value> }</red>`. |
 | `<red>endpoints</red>` | Static endpoints (host/port) rendered into the description by the endpoints template. |
 | `<red>hidden</red>` | When `true{:ts}`, the challenge is uploaded but not released. |
+| `<red>release_time</red>` | Optional datetime for delayed release. |
 | `<red>sort_weight</red>` | Numeric sort hint passed through to rCTF. |
 | `<red>instancer_config</red>` | rCTF instancer config (see [Instancer](/integrations/instancer)) |
 | `<red>admin_bot</red>` | Admin-bot challenge source for the rCTF [admin bot](/integrations/admin-bot). See [Admin bot](#admin-bot). |
+
+### Release scheduling
+
+Use `<red>release_time</red>` when a challenge should be uploaded ahead of time but hidden from participants until a specific moment:
+
+```yaml
+challenges:
+  - category: crypto
+    name: timed-drop
+    author: es3n1n
+    release_time: 2026-02-07T18:00:00Z
+    flags:
+      rctf: rctf{example}
+```
+
+Konata accepts a datetime value and sends it to rCTF as `<red>releaseTime</red>` in Unix milliseconds. Prefer timezone-aware timestamps such as `<green>2026-02-07T18:00:00Z</green>`; naive datetimes are treated as UTC.
+
+### Scoring
+
+By default, Konata creates regular rCTF decay challenges and sets their point range from `<red>scoring.initial_value</red>` and `<red>scoring.minimum_value</red>`. The rCTF-specific block also controls tiebreak eligibility:
+
+```yaml
+scoring:
+  initial_value: 500
+  minimum_value: 50
+  rctf:
+    eligible_for_tiebreaks: true
+```
+
+For rCTF [dynamic scoring](/admin/scoring), set `<red>scoring.rctf.kind</red>` to `<green>dynamic</green>` and provide a webhook secret. The secret accepts the same `<red>secret</red>` / `<red>value</red>` shape used elsewhere in Konata:
+
+```yaml title="kona.yml"
+secrets:
+  kot_score_secret:
+    env: KOT_SCORE_SECRET
+```
+
+```yaml title="misc/king-of-the-table/kona.yml"
+challenges:
+  - category: misc
+    name: king-of-the-table
+    author: defund
+    flags:
+      rctf: dice{placeholder}
+    scoring:
+      initial_value: 500
+      minimum_value: 0
+      rctf:
+        kind: dynamic
+        dynamic:
+          transport: webhook
+          secret:
+            secret: kot_score_secret
+```
+
+`<red>transport</red>` currently defaults to `<green>webhook</green>`. The resolved secret becomes the rCTF dynamic-scoring webhook secret used to authenticate score submissions to `<route>POST /api/v2/challs/:id/scores</route>`; see [Submit dynamic scores](/api/challenges/submit-dynamic-scores) for the wire format.
 
 ### Attachments
 
@@ -257,7 +314,7 @@ attachments:
 | `<red>pre_compressed</red>` | Archives that are uploaded as-is instead of being repacked. The challenge page shows them under their original filenames. |
 | `<red>archive_name</red>` | Base name for the generated archive (and the wrap directory when `<red>attachment_wrap_dir</red>` is on). Defaults to the challenge ID. Characters illegal in filenames are replaced with `_`. |
 | `<red>strip_components</red>` | Number of leading path components to drop from each entry's archive path, like `$ <red>tar</red> <dim>--strip-components</dim>`. Defaults to `0{:ts}`. Use it to flatten a nested `dist/` or `handout/` prefix out of the downloaded archive. |
-| `<red>password</red>` | Encrypts the generated archive with AES-256 behind this password. Since `tar.gz` has no native encryption, setting a password forces the `<green>zip</green>` format regardless of `<red>attachment_format</red>`. Does not apply to `<red>pre_compressed</red>` archives, which are uploaded as-is. |
+| `<red>password</red>` | Encrypts the generated archive with AES-256 behind this password. Setting a password forces the `<green>7z</green>` format regardless of `<red>attachment_format</red>`. Does not apply to `<red>pre_compressed</red>` archives, which are uploaded as-is. |
 
 :::note[Attachment matching is strict]
 A `<red>files</red>` glob that matches nothing, a named file that doesn't exist, or a missing `<red>pre_compressed</red>` archive now fails the sync instead of being silently skipped. Fix the path or drop the entry.
@@ -502,15 +559,17 @@ Helper for producing an attachment archive from a folder or file. Useful when yo
 
 ```console
 $ <red>kona</red> compress ./challenge/dist <dim>--format</dim> zip <dim>--output</dim> handout.zip
+$ <red>kona</red> compress ./challenge/dist <dim>--password</dim> "$FLAG" <dim>--output</dim> handout.7z
 ```
 
 | Flag | Behavior |
 | --- | --- |
 | `path` (positional) | Source file or directory. |
-| `<dim>-f</dim>`, `<dim>--format</dim>` | `<green>tar_gz</green>` (default) or `<green>zip</green>`. |
-| `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<src>.{tar.gz,zip}` in the current directory. |
+| `<dim>-f</dim>`, `<dim>--format</dim>` | `<green>tar_gz</green>` (default), `<green>zip</green>`, or `<green>7z</green>`. |
+| `<dim>-o</dim>`, `<dim>--output</dim>` | Output path. Defaults to `<src>.{tar.gz,zip,7z}` in the current directory, based on the selected or forced archive format. |
+| `<dim>-p</dim>`, `<dim>--password</dim>` | Encrypts the archive. Passing a password forces `<green>7z</green>` output, even when `<dim>--format</dim>` is `<green>tar_gz</green>` or `<green>zip</green>`. |
 
-Both formats are **deterministic**. File mtimes are zeroed (fixed to `1980-01-01` for zip, `0` for tar.gz), uid/gid become `0`, uname/gname become `<green>kona</green>`, permissions are normalized to `0777`, the gzip header drops its own filename and mtime, and entries are sorted by archive path. Compressing the same set of files always produces a byte-identical archive (and therefore an identical hash), so attachment dedup and CI cache hits stay stable across machines, runs, and users. Konata applies the same normalization to attachments it builds internally during `sync`.
+Generated archives are **deterministic**. File mtimes are zeroed (fixed to `1980-01-01` for zip and 7z, `0` for tar.gz), uid/gid become `0`, uname/gname become `<green>kona</green>`, permissions are normalized to `0777`, the gzip header drops its own filename and mtime, and entries are sorted by archive path. Compressing the same set of files always produces a byte-identical archive (and therefore an identical hash), so attachment dedup and CI cache hits stay stable across machines, runs, and users. Konata applies the same normalization to attachments it builds internally during `sync`.
 
 ## CI integration
 
