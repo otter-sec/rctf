@@ -34,6 +34,7 @@ import { verifyDefaultFlag } from '../providers/flags'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import { rateLimitFlag } from './rate-limit'
+import { getCompetitionTiming } from './settings'
 import { createSubmission } from './submissions'
 import { getUser } from './users'
 
@@ -740,11 +741,14 @@ export type ChallengeGraphEntry = {
 export const getChallengeScoresGraph = async (
   db: DatabaseClient,
   challengeId: string,
-  userIds: string[]
+  userIds: string[],
+  redis?: TypedRedis
 ): Promise<ChallengeGraphEntry[]> => {
   if (userIds.length === 0) {
     return []
   }
+
+  const { endTime } = await getCompetitionTiming(db, redis)
 
   const series = db.$with('series').as(
     db
@@ -802,7 +806,7 @@ export const getChallengeScoresGraph = async (
     }
   }
 
-  const now = Date.now()
+  const now = Math.min(Date.now(), endTime)
   const result: ChallengeGraphEntry[] = []
   for (const userId of userIds) {
     const row = rowByUserId.get(userId)
