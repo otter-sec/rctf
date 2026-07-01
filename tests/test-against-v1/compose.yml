@@ -23,11 +23,11 @@ services:
     restart: always
     networks:
       rctf-new:
-        aliases: 
+        aliases:
           - redis
     command: ['redis-server', '--requirepass', 'rctf']
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli --pass rctf ping || exit 1"]
+      test: ['CMD-SHELL', 'redis-cli --pass rctf ping || exit 1']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -44,7 +44,7 @@ services:
       - POSTGRES_USER=rctf
       - POSTGRES_DB=rctf
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U rctf -d rctf"]
+      test: ['CMD-SHELL', 'pg_isready -U rctf -d rctf']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,7 +55,7 @@ services:
       - type: tmpfs
         target: /var/lib/postgresql
         tmpfs:
-          size: 1073741824  # 1gb
+          size: 1073741824 # 1gb
 
   # v1
   rctf-v1:
@@ -69,8 +69,10 @@ services:
       - ./rctf.d:/app/rctf.d
       - ./data/uploads:/app/uploads
     depends_on:
-      - redis-v1
-      - postgres-v1
+      redis-v1:
+        condition: service_healthy
+      postgres-v1:
+        condition: service_healthy
   redis-v1:
     image: redis:6.0.6
     restart: always
@@ -79,6 +81,12 @@ services:
       rctf-v1:
         aliases:
           - redis
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a rctf ping || exit 1']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
   postgres-v1:
     image: postgres:12.3
     restart: always
@@ -90,13 +98,19 @@ services:
       rctf-v1:
         aliases:
           - postgres
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U rctf -d rctf']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     ports:
       - '127.0.0.1:15432:5432'
     volumes:
       - type: tmpfs
         target: /var/lib/postgresql/data
         tmpfs:
-          size: 1073741824  # 1gb
+          size: 1073741824 # 1gb
 
 networks:
   rctf-new:

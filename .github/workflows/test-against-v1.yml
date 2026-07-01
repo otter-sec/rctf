@@ -32,7 +32,7 @@ jobs:
 
       - name: Start services
         working-directory: tests/test-against-v1
-        run: docker compose up --build -d
+        run: docker compose up --build --wait --wait-timeout 180 -d
 
       - name: Run tests
         run: bun run test:against-v1

@@ -16,6 +16,7 @@ import {
   snapshotLeaderboard,
   submitFlag,
   testId,
+  waitUntilLeaderboardHasUsers,
   waitUntilSame,
   waitUntilSameWith,
   type AllResponses,
@@ -312,13 +313,25 @@ describe('Authenticated Flows - User Profile Consistency', () => {
             user,
             instance => `/api/v1/users/${user.ids[instance.name]}`
           ),
-        ['createdAt']
+        ['createdAt'],
+        30_000,
+        r =>
+          Object.values(r).every(inst => {
+            const body = inst.body as {
+              data?: { solves?: unknown[]; score?: number }
+            }
+            const expectedSolves = user === userA ? 2 : 1
+            return (
+              (body.data?.solves?.length ?? 0) >= expectedSolves &&
+              (body.data?.score ?? 0) > 0
+            )
+          })
       )
       assertAllSuccess(res)
       assertAllKind(res, 'goodUserData')
       assertSame(res, ['createdAt'])
     }
-  })
+  }, 35_000)
 
   test('userA has more solves than userB', async () => {
     const resA = await allAsCallback(
@@ -341,10 +354,7 @@ describe('Authenticated Flows - User Profile Consistency', () => {
   })
 
   test('leaderboard order reflects solve counts', async () => {
-    const res = await waitUntilSame(
-      '/api/v1/leaderboard/now?limit=100&offset=0',
-      ['id']
-    )
+    const res = await waitUntilLeaderboardHasUsers([userA, userB])
 
     assertAllSuccess(res)
     assertSame(res, ['id'])
@@ -360,7 +370,7 @@ describe('Authenticated Flows - User Profile Consistency', () => {
 
       expect(scoreA).toBeGreaterThan(scoreB)
     }
-  })
+  }, 70_000)
 })
 
 describe('Authenticated Flows - Rate Limiting', () => {

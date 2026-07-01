@@ -28,9 +28,11 @@ function getDockerOpts(): Docker.DockerOptions {
     '/var/run/docker.sock',
     `${homedir()}/.docker/run/docker.sock`,
   ]) {
-    if (statSync(p).isSocket()) {
-      return { socketPath: p }
-    }
+    try {
+      if (statSync(p).isSocket()) {
+        return { socketPath: p }
+      }
+    } catch {}
   }
 
   throw new Error('Docker socket not found')
@@ -550,6 +552,68 @@ export async function awaitAllLeaderboard(
     res = await all('/api/v1/leaderboard/now?limit=100&offset=0')
   }
   return res
+}
+
+function leaderboardContainsUsers(
+  entries: { name?: string; score?: number }[],
+  users: TestUser[]
+): boolean {
+  return users.every(user =>
+    entries.some(entry => entry.name === user.name && (entry.score ?? 0) > 0)
+  )
+}
+
+export function allLeaderboardsContainUsers(
+  res: AllResponses,
+  users: TestUser[]
+): boolean {
+  return Object.values(res).every(r => {
+    const body = r.body as {
+      data?: { leaderboard?: { name?: string; score?: number }[] }
+    }
+    return leaderboardContainsUsers(body.data?.leaderboard ?? [], users)
+  })
+}
+
+export function allCtftimeStandingsContainUsers(
+  res: AllResponses,
+  users: TestUser[]
+): boolean {
+  return Object.values(res).every(r => {
+    const body = r.body as {
+      standings?: { team?: string; score?: number }[]
+    }
+    const entries = (body.standings ?? []).map(standing => ({
+      name: standing.team,
+      score: standing.score,
+    }))
+    return leaderboardContainsUsers(entries, users)
+  })
+}
+
+export async function waitUntilLeaderboardHasUsers(
+  users: TestUser[],
+  timeout = 60_000
+): Promise<AllResponses> {
+  return waitUntilSameWith(
+    () => all('/api/v1/leaderboard/now?limit=100&offset=0'),
+    ['id'],
+    timeout,
+    res => allLeaderboardsContainUsers(res, users)
+  )
+}
+
+export async function waitUntilCtftimeLeaderboardHasUsers(
+  admin: TestUser,
+  users: TestUser[],
+  timeout = 60_000
+): Promise<AllResponses> {
+  return waitUntilSameWith(
+    () => allAs(admin, '/api/v1/integrations/ctftime/leaderboard'),
+    [],
+    timeout,
+    res => allCtftimeStandingsContainUsers(res, users)
+  )
 }
 
 export function testId(prefix: string): string {
