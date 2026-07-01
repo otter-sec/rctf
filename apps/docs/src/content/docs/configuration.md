@@ -461,6 +461,11 @@ bloodBot:
         name: messages/discord
         options:
           url: https://discord.com/api/webhooks/...
+      bloodEmojis:
+        - '<:rank1:1008801500736266261>'
+        - '<:rank2:1008801501776449738>'
+        - '<:rank3:1008801503080874056>'
+      messageTemplate: '{{bloodEmoji}} {{bloodNumTitle}} solve for challenge "**{{challengeName}}**" goes to **{{teamName}}**!'
     - provider:
         name: messages/telegram
         options:
@@ -473,9 +478,10 @@ bloodBot:
 | `<red>bloodBot.bloodsCount</red>` | `number{:ts}` | `1{:ts}` | Number of blood tiers to announce (1-3) |
 | `<red>bloodBot.destinations</red>` | `array{:ts}` | - | At least one destination (required) |
 | `<red>bloodBot.destinations[].provider</red>` | `object{:ts}` | - | Messages provider config |
+| `<red>bloodBot.destinations[].bloodEmojis</red>` | `string[]{:ts}` | `[]{:ts}` | Optional blood emoji for this destination |
 | `<red>bloodBot.destinations[].messageTemplate</red>` | `string{:ts}` | - | Custom message template (optional) |
 
-Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodNumSentence}}`, `{{challengeCategory}}`, `{{challengeName}}`.
+Available template variables: `{{teamName}}`, `{{teamUrl}}`, `{{bloodEmoji}}`, `{{bloodNumber}}`, `{{bloodNumOrdinal}}`, `{{bloodNumSentence}}`, `{{bloodNumWord}}`, `{{bloodNumTitle}}`, `{{challengeCategory}}`, `{{challengeName}}`.
 
 See [Blood Bot](/integrations/bloodbot) for more details.
 
@@ -541,4 +547,9 @@ bloodBot:
         name: messages/discord
         options:
           url: https://discord.com/api/webhooks/123/abc
+      bloodEmojis:
+        - '<:rank1:1008801500736266261>'
+        - '<:rank2:1008801501776449738>'
+        - '<:rank3:1008801503080874056>'
+      messageTemplate: '{{bloodEmoji}} {{bloodNumTitle}} solve for challenge "**{{challengeName}}**" goes to **{{teamName}}**!'
 ```
