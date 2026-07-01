@@ -18,6 +18,7 @@ package controller
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"maps"
 	"strings"
@@ -57,6 +58,7 @@ const (
 	labelPod                    = "rctf.osec.io/pod"
 	labelEgress                 = "rctf.osec.io/egress"
 	labelExposed                = "rctf.osec.io/exposed"
+	annotationExposedHostnames  = "rctf.osec.io/exposed-hostnames"
 	managedBy                   = "rctf-instancer"
 	typeReady                   = "Ready"
 	typeNamespaceDeployed       = "NamespaceDeployed"
@@ -77,12 +79,71 @@ const (
 // +kubebuilder:rbac:groups=traefik.io,resources=ingressroutetcps,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=traefik.io,resources=middlewares,verbs=get;list;watch;create;update;patch;delete
 
+type exposedHostname struct {
+	Kind          rctfinstancerv1.ExposeType `json:"kind"`
+	HostPrefix    string                     `json:"hostPrefix"`
+	Host          string                     `json:"host"`
+	Port          uint16                     `json:"port"`
+	ContainerName string                     `json:"containerName"`
+	ContainerPort uint16                     `json:"containerPort"`
+	Title         *string                    `json:"title,omitempty"`
+}
+
 func getNamespaceForInstance(instance rctfinstancerv1.ChallengeInstance) string {
 	return fmt.Sprintf(
 		"inst-%s-%s",
 		strings.ToLower(instance.Spec.ChallengeId),
 		strings.ToLower(instance.Spec.TeamId),
 	)
+}
+
+func getInstanceUIDHostSuffix(instance *rctfinstancerv1.ChallengeInstance) string {
+	return strings.ReplaceAll(string(instance.UID), "-", "")[:12]
+}
+
+func getHostnameForExpose(instance *rctfinstancerv1.ChallengeInstance, expose rctfinstancerv1.ChallengeInstanceExpose, instancerHost string) string {
+	return fmt.Sprintf("%s-%s.%s", expose.HostPrefix, getInstanceUIDHostSuffix(instance), instancerHost)
+}
+
+func getEndpointForExpose(instance *rctfinstancerv1.ChallengeInstance, expose rctfinstancerv1.ChallengeInstanceExpose, instancerHost string) rctfinstancerv1.ChallengeInstanceStatusEndpoint {
+	if expose.Kind == rctfinstancerv1.TCP {
+		return rctfinstancerv1.ChallengeInstanceStatusEndpoint{
+			Kind:  expose.Kind,
+			Host:  "unsupported-by-instancer",
+			Port:  0,
+			Title: nil,
+		}
+	}
+
+	return rctfinstancerv1.ChallengeInstanceStatusEndpoint{
+		Kind:  expose.Kind,
+		Host:  getHostnameForExpose(instance, expose, instancerHost),
+		Port:  exposeTypeToPort(expose.Kind),
+		Title: expose.Title,
+	}
+}
+
+func getExposedHostnamesAnnotationValue(instance *rctfinstancerv1.ChallengeInstance, instancerHost string) (string, error) {
+	exposedHostnames := make([]exposedHostname, 0, len(instance.Spec.Expose))
+	for _, expose := range instance.Spec.Expose {
+		endpoint := getEndpointForExpose(instance, expose, instancerHost)
+		exposedHostnames = append(exposedHostnames, exposedHostname{
+			Kind:          endpoint.Kind,
+			HostPrefix:    expose.HostPrefix,
+			Host:          endpoint.Host,
+			Port:          endpoint.Port,
+			ContainerName: expose.ContainerName,
+			ContainerPort: expose.ContainerPort,
+			Title:         endpoint.Title,
+		})
+	}
+
+	value, err := json.Marshal(exposedHostnames)
+	if err != nil {
+		return "", fmt.Errorf("marshalling exposed hostnames failed: %w", err)
+	}
+
+	return string(value), nil
 }
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
@@ -490,6 +551,10 @@ func (r *ChallengeInstanceReconciler) EnsureNetworkPolicies(ctx context.Context,
 func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, instance *rctfinstancerv1.ChallengeInstance) error {
 	log := logf.FromContext(ctx)
 	namespaceName := getNamespaceForInstance(*instance)
+	exposedHostnames, err := getExposedHostnamesAnnotationValue(instance, r.InstancerHost)
+	if err != nil {
+		return err
+	}
 
 	if condition := meta.FindStatusCondition(instance.Status.Conditions, typeDeploymentsDeployed); condition == nil {
 		meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{
@@ -562,6 +627,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 							// Allow the cluster autoscaler to evict these pods during scale-down,
 							// otherwise it blocks on orphaned pods mid-namespace-deletion.
 							"cluster-autoscaler.kubernetes.io/safe-to-evict": "true",
+							annotationExposedHostnames:                       exposedHostnames,
 						},
 						Labels: podLabels,
 					},
@@ -872,25 +938,16 @@ func (r *ChallengeInstanceReconciler) EnsureIngresses(ctx context.Context, insta
 
 	instance.Status.Endpoints = nil // in case an operation fails, we don't want n duplicates
 	for _, expose := range instance.Spec.Expose {
+		endpoint := getEndpointForExpose(instance, expose, r.InstancerHost)
 		if expose.Kind == rctfinstancerv1.TCP {
 			// TODO: Log this? though we want to disallow this on the backend
 
 			// Right now, rCTF assumes we return expose -> endpoints mapped in the exact same order
-			instance.Status.Endpoints = append(instance.Status.Endpoints, rctfinstancerv1.ChallengeInstanceStatusEndpoint{
-				Kind:  expose.Kind,
-				Host:  "unsupported-by-instancer",
-				Port:  0,
-				Title: nil,
-			})
+			instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
 			continue
 		}
 
-		// Because the reconciliation can run multiple times, we want to generate this in a deterministic manner, but not so that
-		// a competitor could guess other people's instances
-		// TODO: investigate if these are truly random?
-		hostname := fmt.Sprintf("%s-%s.%s", expose.HostPrefix, strings.ReplaceAll(string(instance.UID), "-", "")[:12], r.InstancerHost)
-
-		objects := exposeToObjects(instance, expose, hostname)
+		objects := exposeToObjects(instance, expose, endpoint.Host)
 		for _, object := range objects {
 			err := r.Get(ctx, types.NamespacedName{Namespace: namespaceName, Name: object.GetName()}, object)
 			if err == nil {
@@ -911,12 +968,7 @@ func (r *ChallengeInstanceReconciler) EnsureIngresses(ctx context.Context, insta
 			}
 		}
 
-		instance.Status.Endpoints = append(instance.Status.Endpoints, rctfinstancerv1.ChallengeInstanceStatusEndpoint{
-			Kind:  expose.Kind,
-			Host:  hostname,
-			Port:  exposeTypeToPort(expose.Kind),
-			Title: expose.Title,
-		})
+		instance.Status.Endpoints = append(instance.Status.Endpoints, endpoint)
 	}
 
 	meta.SetStatusCondition(&instance.Status.Conditions, metav1.Condition{

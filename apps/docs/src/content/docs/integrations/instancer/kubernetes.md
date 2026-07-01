@@ -233,6 +233,46 @@ The `<red>exposed</red>` label is applied automatically based on whether a pod i
 Network policies only enforce isolation when the cluster's CNI supports them. The bundled GKE Terraform module enables GKE Dataplane V2, which enforces them. On a bare-metal cluster, make sure the chosen CNI honors `NetworkPolicy`.
 :::
 
+## Exposed hostnames inside pods
+
+The controller writes the resolved public endpoints onto every instance pod template as a JSON annotation named `<red>rctf.osec.io/exposed-hostnames</red>`. Challenge code can read that annotation through Kubernetes' downward API when it needs to know its own public callback URL, WebSocket URL, or peer-facing hostname.
+
+Each array entry follows the matching `<red>expose[]</red>` entry:
+
+```json title="rctf.osec.io/exposed-hostnames"
+[
+  {
+    "kind": "https",
+    "hostPrefix": "web-demo",
+    "host": "web-demo-7f3a2c1d9b80.instances.ctf.example.com",
+    "port": 443,
+    "containerName": "app",
+    "containerPort": 8080,
+    "title": "Challenge"
+  }
+]
+```
+
+Expose it to a container as an environment variable with `<red>fieldRef</red>`:
+
+```yaml title="challenge.yaml"
+instancerConfig:
+  config:
+    pods:
+      - name: app
+        spec:
+          containers:
+            - name: app
+              image: ghcr.io/example/web-demo:latest
+              env:
+                - name: RCTF_EXPOSED_HOSTNAMES
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['rctf.osec.io/exposed-hostnames']
+```
+
+`<red>RCTF_EXPOSED_HOSTNAMES</red>` is a JSON string. Hidden endpoints (`shouldDisplay: false{:yml}`) are included because they still exist for routing.
+
 ## Per-pod safety checklist
 
 Unlike Docker, Kubernetes' PodSpec doesn't have first-class fields for every resource cap, and the controller deploys what you give it verbatim. Set these on every pod you ship through `<red>instancerConfig.config.pods[]</red>`:

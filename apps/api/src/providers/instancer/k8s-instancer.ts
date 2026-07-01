@@ -243,6 +243,25 @@ const containerPortSchema = z.catchall(
   z.any()
 )
 
+// https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2537-L2545
+const objectFieldSelectorSchema = z.catchall(
+  z.object({
+    apiVersion: z.optional(z.string()).check(z.describe('API version')),
+    fieldPath: z.string().check(z.minLength(1), z.describe('Field path')),
+  }),
+  z.any()
+)
+
+// https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2486-L2508
+const envVarSourceSchema = z.catchall(
+  z.object({
+    fieldRef: z
+      .optional(objectFieldSelectorSchema)
+      .check(z.describe('Field ref')),
+  }),
+  z.any()
+)
+
 // https://github.com/kubernetes/api/blob/13152125c196531c20cae818abd3791701da6d80/core/v1/types.go#L2462-L2484
 const envVarSchema = z.catchall(
   z.object({
@@ -250,6 +269,7 @@ const envVarSchema = z.catchall(
     value: z
       .optional(z.string().check(z.minLength(1)))
       .check(z.describe('Value')),
+    valueFrom: z.optional(envVarSourceSchema).check(z.describe('Value from')),
   }),
   z.any()
 )
