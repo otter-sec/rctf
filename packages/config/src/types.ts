@@ -54,6 +54,10 @@ export const ServerConfigSchema = z.object({
   instanceType: z._default(z.enum(['leaderboard', 'all', 'frontend']), 'all'),
   shutdownTimeout: z._default(z.int().check(z.gte(0)), 30_000),
   idleTimeout: z._default(z.int().check(z.gte(0), z.lte(255)), 65),
+  maxRequestBodySize: z._default(
+    z.int().check(z.gte(1)),
+    1024 * 1024 * 1024 // 1gb
+  ),
 
   // Database
   database: z.object({

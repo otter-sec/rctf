@@ -131,6 +131,7 @@ export const loadEnvConfig = (): ConfigLayer => {
     ['instanceType', getString('RCTF_INSTANCE_TYPE')],
     ['shutdownTimeout', getInteger('RCTF_SHUTDOWN_TIMEOUT')],
     ['idleTimeout', getInteger('RCTF_IDLE_TIMEOUT')],
+    ['maxRequestBodySize', getInteger('RCTF_MAX_REQUEST_BODY_SIZE')],
     ['tokenKey', getString('RCTF_TOKEN_KEY')],
     ['origin', getString('RCTF_ORIGIN')],
     ['ctftime', ctftime],

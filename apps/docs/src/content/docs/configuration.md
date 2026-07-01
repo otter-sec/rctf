@@ -35,6 +35,7 @@ The following environment variables are supported. They override values from con
 | `RCTF_INSTANCE_TYPE{:sh}` | `string{:ts}` | `<green>all</green>`, `<green>frontend</green>`, or `<green>leaderboard</green>` |
 | `RCTF_SHUTDOWN_TIMEOUT{:sh}` | `integer{:ts}` | Graceful-shutdown cap in milliseconds before force-exit; `0` disables the cap |
 | `RCTF_IDLE_TIMEOUT{:sh}` | `integer{:ts}` | Idle connection timeout in seconds (0-255) |
+| `RCTF_MAX_REQUEST_BODY_SIZE{:sh}` | `integer{:ts}` | Maximum accepted request body size in bytes |
 | `RCTF_UPLOAD_PROVIDER{:sh}` | `string{:ts}` | `<green>uploads/local</green>`, `<green>uploads/s3</green>`, or `<green>uploads/gcs</green>`. Per-provider options have their own vars; see [Uploads](/providers/uploads). |
 | `RCTF_CONF_PATH{:sh}` | `string{:ts}` | Path to config directory (overrides search) |
 
@@ -110,6 +111,7 @@ tokenKey: <base64-32-byte-key> # Token encryption key (required)
 instanceType: all # all | frontend | leaderboard
 shutdownTimeout: 30000 # Graceful-shutdown cap in ms
 idleTimeout: 65 # Idle connection timeout in seconds
+maxRequestBodySize: 1073741824 # Maximum request body size in bytes
 ```
 
 | Field | Type | Default | Description |
@@ -120,6 +122,7 @@ idleTimeout: 65 # Idle connection timeout in seconds
 | `<red>instanceType</red>` | `string{:ts}` | `<green>all</green>` | Controls which components run: `<green>all</green>` (API + leaderboard worker), `<green>frontend</green>` (API only), `<green>leaderboard</green>` (worker only). See [Scaling](/installation/scaling) before splitting roles. |
 | `<red>shutdownTimeout</red>` | `number{:ts}` | `30000{:ts}` (30s) | Time in milliseconds to drain in-flight requests and stop the leaderboard worker on `SIGTERM{:sh}`/`SIGINT{:sh}` before the process force-exits. `0{:ts}` disables the force-exit cap. See [Scaling](/installation/scaling#graceful-shutdown). |
 | `<red>idleTimeout</red>` | `number{:ts}` | `65{:ts}` | How long in seconds an idle connection stays open before the server closes it. Set it higher than your reverse proxy's keep-alive timeout. Must be at most `255{:ts}` (Bun's limit) - larger values are rejected at startup; `0{:ts}` disables the timeout. |
+| `<red>maxRequestBodySize</red>` | `number{:ts}` | `1073741824{:ts}` (1 GiB) | Maximum request body size accepted by the Bun API server. This is the effective backend cap for upload routes when the bundled nginx config sets `<red>client_max_body_size</red>` to `<green>0</green>` for streaming uploads. |
 
 :::warning
 The `<red>tokenKey</red>` is critical for security. All authentication tokens are encrypted with this key. If it is lost or changed, all existing tokens become invalid and users will need to re-authenticate.

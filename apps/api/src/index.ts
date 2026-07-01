@@ -159,6 +159,7 @@ const main = async () => {
     port,
     fetch: app.fetch,
     idleTimeout: config.idleTimeout,
+    maxRequestBodySize: config.maxRequestBodySize,
   })
 
   let shuttingDown = false
