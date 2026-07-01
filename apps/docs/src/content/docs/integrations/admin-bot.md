@@ -6,12 +6,6 @@ order: 3
 
 The admin bot integration runs trusted TypeScript challenge handlers in a separate browser worker. It's meant for web challenges where a participant submits input and rCTF needs a controlled browser session to visit the challenge with challenge-specific state.
 
-:::warning[Not battle-tested under high load]
-Most of rCTF v2 has run large public events, but the admin bot hasn't been pushed under that kind of traffic yet. The implementation works and we expect it to hold up, but expect rougher edges than the rest of the platform. Load-test before relying on it for a high-volume event, and watch the queue depth and worker logs during the CTF.
-
-If you hit issues, please [open one on GitHub](https://github.com/otter-sec/rctf-new/issues). And if you _did_ run the admin bot through a public CTF without trouble, we'd love a PR fixing anything you had to patch locally, adding the missing documentation, or just deleting this note.
-:::
-
 :::warning[Trusted challenge code]
 Admin bot source is trusted operator code. rCTF bundles and evaluates it inside the admin bot service, and the released challenge source is reachable through the public challenge integration API. Store secrets in challenge data and read the flag from `ctx.job.flag{:ts}` at runtime.
 :::
@@ -343,8 +337,55 @@ Each worker process runs one job at a time. Multiple worker processes can poll t
 
 Admin bot jobs are bound by browser session throughput, not CPU. A worker spends most of its wall time waiting on Puppeteer (page loads, redirects, the configured timeout), so steady-state CPU stays low even when the queue is backing up. Autoscaling on CPU will react late and under-provision, so scale on **queue depth** instead.
 
-The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is built for exactly this. The usual setup is to scrape it (via an exporter or small sidecar) into Prometheus, set a target queue depth per replica (somewhere around 5 to 10), and let a KEDA `ScaledObject` or HPA `External` metric scale workers up and back down.
+The `<route>GET /api/v2/admin/admin-bot/queue-depth</route>` endpoint returns the number of queued jobs and is built for exactly this. The response is the normal rCTF envelope, so your tooling should read `data.depth{:yaml}`. A good first target is `2{:yaml}` to `5{:yaml}` queued jobs per replica, then tune it around your average job duration and browser resource usage.
 
-:::note[No production-ready manifests yet]
-We don't ship a Helm chart, Kustomize overlay, or Terraform module for an autoscaled admin bot fleet. The queue-depth endpoint exists, but wiring it to KEDA/HPA and a scrape job is left to the deployer for now. If you build one and want to upstream it, see the note at the top of this page.
-:::
+We are usually using [KEDA](https://keda.sh) for this. It can read this endpoint directly with its `metrics-api{:yaml}` scaler, so you do not need anything else.
+
+The scalable Kubernetes shape with it is:
+
+1. Run the admin bot image as a normal `Deployment{:yaml}`.
+2. Expose the worker with a `Service{:yaml}` and point `adminBot.provider.options.endpoint{:yaml}` at it, for example `http://adminbot.adminbot.svc.cluster.local:21337{:yaml}`.
+3. Add a KEDA `TriggerAuthentication{:yaml}` and `ScaledObject{:yaml}` that use the same secret to poll queue depth.
+
+The KEDA-specific pieces look like this:
+
+```yaml title="KEDA admin bot scaler"
+apiVersion: keda.sh/v1alpha1
+kind: TriggerAuthentication
+metadata:
+  name: adminbot-platform
+  namespace: adminbot
+spec:
+  secretTargetRef:
+    - parameter: token
+      name: adminbot-secrets
+      key: RCTF_SECRET_KEY
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: adminbot
+  namespace: adminbot
+spec:
+  scaleTargetRef:
+    name: adminbot
+  minReplicaCount: 1
+  maxReplicaCount: 20
+  pollingInterval: 10
+  triggers:
+    - type: metrics-api
+      metadata:
+        url: http://rctf-api.rctf.svc.cluster.local/api/v2/admin/admin-bot/queue-depth
+        valueLocation: data.depth
+        targetValue: "2"
+        authMode: bearer
+      authenticationRef:
+        name: adminbot-platform
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 300
+```
+
+Keep `minReplicaCount{:yaml}` at `1{:yaml}`. Setting it to `0{:yaml}` can still scale workers up for queued jobs, because KEDA polls rCTF directly, but the API's `/v1/test` config-validation call has no worker pod to hit while scaled down.

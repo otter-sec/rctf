@@ -93,7 +93,7 @@ export class PlatformClient {
     challengeId: string
   ): Promise<ChallengeSource | null> {
     const res = await fetch(
-      `${this.baseUrl}/api/v2/admin/admin-bot/challenges/${challengeId}/source`,
+      `${this.baseUrl}/api/v2/admin/admin-bot/challenges/${encodeURIComponent(challengeId)}/source`,
       {
         method: 'GET',
         headers: this.headers(),
