@@ -508,6 +508,72 @@ describe('getChallengeScoresGraph', () => {
     expect(scores.slice(0, 3)).toEqual([300, 0, 500])
     expect(scores.at(-1)).toBe(500)
   })
+
+  test('keeps late feed deliveries past the competition end at their true times', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+    const originalEndTime = config.endTime
+
+    config.endTime = Date.now() - 60_000
+    try {
+      await upsertDynamicSolves(db, challengeId, [
+        { userId: user.id, points: 100 },
+      ])
+      await upsertDynamicSolves(db, challengeId, [
+        { userId: user.id, points: 250 },
+      ])
+
+      const graph = await getChallengeScoresGraph(db, challengeId, [user.id])
+      expect(graph).toHaveLength(1)
+      const points = graph[0]!.points
+      expect(points).toHaveLength(2)
+      expect(points.every(p => p.time > config.endTime)).toBe(true)
+      expect(points.at(-1)?.time).toBeLessThanOrEqual(Date.now())
+      expect(points.map(p => p.score)).toEqual([100, 250])
+    } finally {
+      config.endTime = originalEndTime
+    }
+  })
+
+  test('does not append a trailing "now" sample past the competition end', async () => {
+    const db = getDb()
+    const { user } = await generateRealTestUser()
+    const challengeId = await createDynamicChallenge()
+    const originalEndTime = config.endTime
+    const endTime = Date.now() - 60_000
+
+    await db.insert(scoreEvents).values([
+      {
+        id: crypto.randomUUID(),
+        challengeid: challengeId,
+        userid: user.id,
+        pointsDelta: 100,
+        source: 'feed',
+        eventAt: new Date(endTime - 10_000).toISOString(),
+      },
+      {
+        id: crypto.randomUUID(),
+        challengeid: challengeId,
+        userid: user.id,
+        pointsDelta: -100,
+        source: 'delete',
+        eventAt: new Date(endTime + 30_000).toISOString(),
+      },
+    ])
+
+    config.endTime = endTime
+    try {
+      const graph = await getChallengeScoresGraph(db, challengeId, [user.id])
+      expect(graph).toHaveLength(1)
+      expect(graph[0]!.points).toEqual([
+        { time: endTime - 10_000, score: 100 },
+        { time: endTime + 30_000, score: 0 },
+      ])
+    } finally {
+      config.endTime = originalEndTime
+    }
+  })
 })
 
 describe('feed-during-ban invariant', () => {

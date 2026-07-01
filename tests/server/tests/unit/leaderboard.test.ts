@@ -1,3 +1,4 @@
+import { config } from '@rctf/config'
 import { describe, expect, mock, test } from 'bun:test'
 import {
   cacheLeaderboardAndGraph,
@@ -100,44 +101,25 @@ const createMockRedis = () => {
   }
 }
 
+type MockScoreEventRow = {
+  id: string
+  userid: string | null
+  pointsDelta: number
+  eventAt: string
+}
+
 const createMockDb = (
   scoreEventRows:
-    | Array<{
-        id: string
-        userid: string | null
-        pointsDelta: number
-        eventAt: string
-      }>
-    | Array<
-        Array<{
-          id: string
-          userid: string | null
-          pointsDelta: number
-          eventAt: string
-        }>
-      > = []
+    | Array<MockScoreEventRow>
+    | Array<Array<MockScoreEventRow>> = []
 ) => {
   const scoreEventQueue = Array.isArray(scoreEventRows[0])
-    ? [
-        ...(scoreEventRows as Array<
-          Array<{
-            id: string
-            userid: string | null
-            pointsDelta: number
-            eventAt: string
-          }>
-        >),
-      ]
+    ? [...(scoreEventRows as Array<Array<MockScoreEventRow>>)]
     : null
   const getScoreEventRows = () =>
     scoreEventQueue
       ? (scoreEventQueue.shift() ?? [])
-      : (scoreEventRows as Array<{
-          id: string
-          userid: string | null
-          pointsDelta: number
-          eventAt: string
-        }>)
+      : (scoreEventRows as Array<MockScoreEventRow>)
   const executedQueries: any[] = []
   const txMock = {
     execute: mock(async (query: any) => {
@@ -159,6 +141,8 @@ const createMockDb = (
     select: mock((_selection: any) => {
       const whereNode = mock((_condition: any) => ({
         orderBy: mock(async (..._order: any[]) => getScoreEventRows()),
+        then: (resolve: (rows: never[]) => unknown) =>
+          Promise.resolve(resolve([])),
       }))
       return {
         from: mock((_table: any) => ({
@@ -306,7 +290,11 @@ describe('leaderboard cache', () => {
         'graph-cursor',
         'graph-source',
         expect.any(String),
-        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          users: ['user1'],
+          challenges: ['challenge1'],
+          endTime: config.endTime,
+        }),
         JSON.stringify({
           time: new Date(1699995000).toISOString(),
           ids: ['evt2'],
@@ -346,7 +334,11 @@ describe('leaderboard cache', () => {
         'graph-cursor',
         'graph-source',
         expect.any(String),
-        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          users: ['user1'],
+          challenges: ['challenge1'],
+          endTime: config.endTime,
+        }),
         '',
         'events',
         []
@@ -392,7 +384,11 @@ describe('leaderboard cache', () => {
         'graph-cursor',
         'graph-source',
         '1699995000',
-        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          users: ['user1'],
+          challenges: ['challenge1'],
+          endTime: config.endTime,
+        }),
         '',
         'samples',
         ['user1', '1699990000,50,1699995000,100']
@@ -452,7 +448,11 @@ describe('leaderboard cache', () => {
         'graph-cursor',
         'graph-source',
         expect.any(String),
-        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          users: ['user1'],
+          challenges: ['challenge1'],
+          endTime: config.endTime,
+        }),
         JSON.stringify({
           time: new Date(1699995000).toISOString(),
           ids: ['evt1'],
@@ -543,6 +543,7 @@ describe('leaderboard cache', () => {
         JSON.stringify({
           users: ['user1', 'user2'],
           challenges: ['challenge1'],
+          endTime: config.endTime,
         }),
         JSON.stringify({
           time: new Date(1699995000).toISOString(),
@@ -611,7 +612,11 @@ describe('leaderboard cache', () => {
         'graph-cursor',
         'graph-source',
         expect.any(String),
-        JSON.stringify({ users: ['user1'], challenges: ['challenge1'] }),
+        JSON.stringify({
+          users: ['user1'],
+          challenges: ['challenge1'],
+          endTime: config.endTime,
+        }),
         JSON.stringify({
           time: new Date(1699995000).toISOString(),
           ids: ['evt2'],
@@ -682,6 +687,106 @@ describe('leaderboard cache', () => {
         time: eventTime,
         ids: ['evt-a', 'evt-z'],
       })
+    })
+  })
+
+  describe('graph time after competition end', () => {
+    const userData = (
+      score: number,
+      lastSolve: number
+    ): CalculatedLeaderboard => ({
+      users: [
+        {
+          id: 'user1',
+          name: 'User One',
+          division: 'open',
+          score,
+          hadAnySolve: true,
+          lastSolve,
+          lastTiebreakEligibleSolve: undefined,
+        },
+      ],
+      challengeInfos,
+      samples: [],
+    })
+
+    test('idle ticks stop the graph clock at endTime instead of "now"', async () => {
+      const originalEndTime = config.endTime
+      const endTime = 1700000000
+      config.endTime = endTime
+
+      try {
+        const redis = createMockRedis()
+        const db = createMockDb([
+          [
+            {
+              id: 'evt1',
+              userid: 'user1',
+              pointsDelta: 50,
+              eventAt: new Date(endTime - 10000).toISOString(),
+            },
+          ],
+          [],
+        ])
+        const data = userData(50, endTime - 10000)
+
+        await cacheLeaderboardAndGraph(db, redis, data)
+        expect(Number(redis.store.get('graph-update'))).toBe(endTime)
+
+        await cacheLeaderboardAndGraph(db, redis, data)
+        expect(Number(redis.store.get('graph-update'))).toBe(endTime)
+
+        const [entry] = await getGraphForEntries(db, redis, [
+          { id: 'user1', name: 'User One', score: 50 },
+        ])
+        expect(entry!.points[0]).toEqual({ time: endTime, score: 50 })
+      } finally {
+        config.endTime = originalEndTime
+      }
+    })
+
+    test('late deliveries keep their true times and idle ticks never regress them', async () => {
+      const originalEndTime = config.endTime
+      const endTime = 1700000000
+      config.endTime = endTime
+
+      try {
+        const redis = createMockRedis()
+        const db = createMockDb([
+          [
+            {
+              id: 'evt1',
+              userid: 'user1',
+              pointsDelta: 50,
+              eventAt: new Date(endTime - 10000).toISOString(),
+            },
+            {
+              id: 'evt2',
+              userid: 'user1',
+              pointsDelta: 25,
+              eventAt: new Date(endTime + 5000).toISOString(),
+            },
+          ],
+          [],
+        ])
+        const data = userData(75, endTime + 5000)
+
+        await cacheLeaderboardAndGraph(db, redis, data)
+        expect(redis.hashStore.get('graph-data')?.get('user1')).toBe(
+          `${endTime - 10000},50,${endTime + 5000},75`
+        )
+        expect(Number(redis.store.get('graph-update'))).toBe(endTime + 5000)
+
+        await cacheLeaderboardAndGraph(db, redis, data)
+        expect(Number(redis.store.get('graph-update'))).toBe(endTime + 5000)
+
+        const [entry] = await getGraphForEntries(db, redis, [
+          { id: 'user1', name: 'User One', score: 75 },
+        ])
+        expect(entry!.points[0]).toEqual({ time: endTime + 5000, score: 75 })
+      } finally {
+        config.endTime = originalEndTime
+      }
     })
   })
 })

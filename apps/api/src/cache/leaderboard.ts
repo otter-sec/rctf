@@ -3,6 +3,7 @@ import { challenges, scoreEvents, users } from '@rctf/db'
 import { and, asc, eq, gte, inArray, sql } from 'drizzle-orm'
 import { inJsonbArray } from '../lib/db-bulk'
 import { challengeIsPublicSql } from '../services/challenges'
+import { getCompetitionTiming } from '../services/settings'
 import type { TypedRedis } from './scripts'
 
 const keyGraphUpdate = 'graph-update'
@@ -153,17 +154,20 @@ type GraphFold = { lastSample: number; userPoints: Map<string, string[]> }
 const lastPointScore = (points: readonly string[]): number =>
   Number.parseInt(points[points.length - 1] ?? '0') || 0
 
-const emptyFold = (): GraphFold => ({
-  lastSample: Date.now(),
+const graphNow = (endTime: number): number => Math.min(Date.now(), endTime)
+
+const emptyFold = (endTime: number): GraphFold => ({
+  lastSample: graphNow(endTime),
   userPoints: new Map(),
 })
 
 const foldScoreEvents = (
   rows: ScoreEventGraphRow[],
+  endTime: number,
   seed?: ReadonlyMap<string, string[]>
 ): GraphFold => {
   const userPoints = new Map<string, string[]>(seed)
-  let lastSample = Date.now()
+  let lastSample = graphNow(endTime)
 
   for (const row of rows) {
     const eventAt = new Date(row.eventAt).valueOf()
@@ -189,7 +193,10 @@ const foldScoreEvents = (
   return { lastSample, userPoints }
 }
 
-const buildGraphFromSamples = (data: CalculatedLeaderboard): GraphFold => {
+const buildGraphFromSamples = (
+  data: CalculatedLeaderboard,
+  endTime: number
+): GraphFold => {
   const userPoints = new Map<string, string[]>()
 
   for (const sample of data.samples) {
@@ -204,18 +211,20 @@ const buildGraphFromSamples = (data: CalculatedLeaderboard): GraphFold => {
   }
 
   return {
-    lastSample: data.samples.at(-1)?.time ?? Date.now(),
+    lastSample: data.samples.at(-1)?.time ?? graphNow(endTime),
     userPoints,
   }
 }
 
 const buildGraphFingerprint = (
   userIds: string[],
-  challengeIds: string[]
+  challengeIds: string[],
+  endTime: number
 ): string =>
   JSON.stringify({
     users: [...userIds].sort(),
     challenges: [...challengeIds].sort(),
+    endTime,
   })
 
 const buildGraphCursor = (
@@ -346,12 +355,17 @@ const cacheGraphIncremental = async (
   userIds: string[],
   challengeIds: string[],
   fingerprint: string,
-  cursor: ScoreEventGraphCursor
+  cursor: ScoreEventGraphCursor,
+  endTime: number
 ): Promise<void> => {
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds, cursor)
   if (rows.length === 0) {
     // no new events since the cursor: bump freshness only, cursor/fingerprint/source stay valid
-    await redis.set(keyGraphUpdate, Date.now().toString())
+    const stored = Number.parseInt((await redis.get(keyGraphUpdate)) ?? '0')
+    await redis.set(
+      keyGraphUpdate,
+      Math.max(stored || 0, graphNow(endTime)).toString()
+    )
     return
   }
 
@@ -359,7 +373,7 @@ const cacheGraphIncremental = async (
   await writeGraph(
     redis,
     'rctfMergeGraph',
-    foldScoreEvents(rows, seed),
+    foldScoreEvents(rows, endTime, seed),
     fingerprint,
     buildGraphCursor(rows, cursor),
     graphSourceEvents
@@ -371,9 +385,10 @@ const cacheGraph = async (
   redis: TypedRedis,
   data: CalculatedLeaderboard
 ): Promise<void> => {
+  const { endTime } = await getCompetitionTiming(db, redis)
   const userIds = data.users.filter(u => u.hadAnySolve).map(u => u.id)
   const challengeIds = Array.from(data.challengeInfos.keys())
-  const fingerprint = buildGraphFingerprint(userIds, challengeIds)
+  const fingerprint = buildGraphFingerprint(userIds, challengeIds, endTime)
   const replaceGraph = (
     fold: GraphFold,
     cursor: ScoreEventGraphCursor | null,
@@ -382,7 +397,7 @@ const cacheGraph = async (
     writeGraph(redis, 'rctfReplaceGraph', fold, fingerprint, cursor, source)
 
   if (userIds.length === 0 || challengeIds.length === 0) {
-    return replaceGraph(emptyFold(), null, graphSourceEvents)
+    return replaceGraph(emptyFold(endTime), null, graphSourceEvents)
   }
 
   const cursor = await loadIncrementalCursor(redis, fingerprint)
@@ -393,22 +408,27 @@ const cacheGraph = async (
       userIds,
       challengeIds,
       fingerprint,
-      cursor
+      cursor,
+      endTime
     )
   }
 
   const rows = await getScoreEventGraphRows(db, userIds, challengeIds)
   if (rows.length > 0) {
     return replaceGraph(
-      foldScoreEvents(rows),
+      foldScoreEvents(rows, endTime),
       buildGraphCursor(rows),
       graphSourceEvents
     )
   }
   if (data.samples.length > 0) {
-    return replaceGraph(buildGraphFromSamples(data), null, graphSourceSamples)
+    return replaceGraph(
+      buildGraphFromSamples(data, endTime),
+      null,
+      graphSourceSamples
+    )
   }
-  return replaceGraph(emptyFold(), null, graphSourceEvents)
+  return replaceGraph(emptyFold(endTime), null, graphSourceEvents)
 }
 
 interface GraphPoint {
@@ -486,7 +506,8 @@ const getDynamicGraphPoints = async (
   redis: TypedRedis,
   lastUpdate: number,
   feedVersion: string,
-  entries: Array<GraphSourceEntry>
+  entries: Array<GraphSourceEntry>,
+  endTime: number
 ): Promise<Map<string, Array<GraphPoint>>> => {
   const userIds = entries.map(entry => entry.id)
   if (userIds.length === 0) {
@@ -519,7 +540,7 @@ const getDynamicGraphPoints = async (
     )
     .orderBy(asc(scoreEvents.eventAt), asc(scoreEvents.id))
 
-  const fold = foldScoreEvents(rows)
+  const fold = foldScoreEvents(rows, endTime)
   const sampleTime = Math.max(lastUpdate, fold.lastSample)
   const result = new Map<string, Array<GraphPoint>>()
   for (const entry of entries) {
@@ -550,13 +571,14 @@ export const getGraphForEntries = async (
     return []
   }
 
-  const [lastUpdateRaw, feedVersion, graphData] = await Promise.all([
+  const [lastUpdateRaw, feedVersion, graphData, timing] = await Promise.all([
     redis.get(keyGraphUpdate),
     redis.get(keyDynamicFeedVersion),
     redis.hmget(
       keyGraphData,
       entries.map(entry => entry.id)
     ),
+    getCompetitionTiming(db, redis),
   ])
   const lastUpdate = Number.parseInt(lastUpdateRaw ?? '0')
   const dynamicPointsByUser = await getDynamicGraphPoints(
@@ -564,7 +586,8 @@ export const getGraphForEntries = async (
     redis,
     lastUpdate,
     feedVersion ?? '0',
-    entries
+    entries,
+    timing.endTime
   )
 
   return entries.map((entry, idx) => ({

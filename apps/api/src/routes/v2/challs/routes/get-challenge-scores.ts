@@ -41,7 +41,8 @@ challsGroup.route(
     const graph = await getChallengeScoresGraph(
       ctx.var.db,
       params.id,
-      graphUserIds
+      graphUserIds,
+      ctx.var.redis
     )
 
     return res.goodChallengeScoresV2({ total, myPosition, scores, graph })
