@@ -8,6 +8,7 @@
     open?: boolean
     onOpenChange?: (open: boolean) => void
     title: string
+    titleHidden?: boolean
     description?: string
     presentation?: 'center' | 'sheet' | 'drawer'
     children: Snippet<[{ closeProps: Record<string, unknown> }]>
@@ -18,6 +19,7 @@
     open = $bindable(false),
     onOpenChange,
     title,
+    titleHidden = false,
     description,
     presentation = 'center',
     children,
@@ -49,7 +51,7 @@
     <div {...api.getBackdropProps()}></div>
     <div {...api.getPositionerProps()} data-presentation={presentation}>
       <div {...api.getContentProps()}>
-        <h2 {...api.getTitleProps()}>{title}</h2>
+        <h2 {...api.getTitleProps()} data-hidden={titleHidden ? '' : undefined}>{title}</h2>
         {#if description}
           <p {...api.getDescriptionProps()}>{description}</p>
         {/if}
@@ -86,6 +88,15 @@
 
   [data-part='title'] {
     font-size: var(--step-1);
+
+    &[data-hidden] {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   [data-part='description'] {
@@ -107,13 +118,13 @@
   }
 
   [data-presentation='sheet'] {
-    justify-content: flex-end;
+    justify-content: flex-start;
 
     [data-part='content'] {
       block-size: 100%;
       inline-size: min(20rem, 90vw);
       border-block: none;
-      border-inline-end: none;
+      border-inline-start: none;
     }
   }
 

@@ -1,10 +1,5 @@
-import {
-  BadNotStarted,
-  type AnyRouteDefinition,
-  type RouteResponse,
-} from '@rctf/types'
-import { createMutation, QueryClient } from '@tanstack/svelte-query'
-import { apiRequest, type InlineArgs } from '$lib/api'
+import { BadNotStarted } from '@rctf/types'
+import { QueryClient } from '@tanstack/svelte-query'
 
 export class ApiError extends Error {
   constructor(
@@ -30,13 +25,4 @@ export function createQueryClient() {
       },
     },
   })
-}
-
-export function createApiMutation<TRoute extends AnyRouteDefinition>(
-  route: TRoute
-) {
-  return createMutation(() => ({
-    mutationFn: (args: InlineArgs<TRoute>) =>
-      apiRequest(route, args) as Promise<RouteResponse<TRoute>>,
-  }))
 }
