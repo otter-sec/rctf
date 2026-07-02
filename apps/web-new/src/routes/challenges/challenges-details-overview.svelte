@@ -16,12 +16,14 @@
   import { downloadAll } from '$lib/utils/download'
   import { formatFileSize } from '$lib/utils/filesize'
   import { onDestroy } from 'svelte'
+  import ChallengeDetailsOverviewInstancer from './challenges-details-overview-instancer.svelte'
 
   interface Props {
     challenge: Challenge
+    onSolve: (challengeId: string) => void
   }
 
-  let { challenge }: Props = $props()
+  let { challenge, onSolve }: Props = $props()
 
   let downloading = $state(false)
   let cancelDownload: (() => void) | null = null
@@ -73,9 +75,15 @@
     {/if}
 
     {#if challenge.instancerLifetime != null}
-      <!-- U13: replace with the instancer panel (challengeId + instancer config props). -->
       <Section title="Instancer">
-        <instancer-slot>Instancer controls load here.</instancer-slot>
+        <ChallengeDetailsOverviewInstancer
+          challengeId={challenge.id}
+          instancerLifetime={challenge.instancerLifetime}
+          instancerExtendable={challenge.instancerExtendable}
+          instancerStoppable={challenge.instancerStoppable}
+          instancerActions={challenge.instancerActions}
+          {onSolve}
+        />
       </Section>
     {/if}
 
@@ -171,7 +179,6 @@
     font-size: var(--step--1);
   }
 
-  instancer-slot,
   admin-bot-slot {
     display: block;
     color: var(--foreground-l4);

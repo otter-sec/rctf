@@ -63,7 +63,7 @@
         {#snippet content({ value })}
           {#if value === activeTab && challenge}
             {#if value === 'details'}
-              <ChallengeDetailsOverview {challenge} />
+              <ChallengeDetailsOverview {challenge} {onSolve} />
             {:else if value === 'solves'}
               <ChallengeDetailsSolves {challenge} />
             {:else if value === 'scores'}

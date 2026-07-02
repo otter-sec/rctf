@@ -1,10 +1,13 @@
 import {
+  BadInstancerError,
   GetChallengeScoresRouteV2,
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
+  GetInstanceStatusRouteV2,
   GoodChallengeScoresV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
+  GoodInstanceStatus,
 } from '@rctf/types'
 import {
   createInfiniteQuery,
@@ -16,6 +19,7 @@ import {
 import { apiRequest } from '$lib/api'
 import { ApiError } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
+import { instancePollInterval } from '$lib/utils/instancer'
 
 const INFINITE_PAGE_SIZE = 100
 
@@ -201,6 +205,36 @@ export function useChallengeScoresInfinite(id: () => string | null) {
       staleTime: 30 * 1000,
     }
   })
+}
+
+export function challengeInstanceQueryOptions(
+  id: string | null,
+  enabled: boolean
+) {
+  return queryOptions({
+    queryKey: queryKeys.challengeInstance(id ?? ''),
+    queryFn: async () => {
+      const response = await apiRequest(GetInstanceStatusRouteV2, { id: id! })
+      if (response.kind === GoodInstanceStatus.kind) {
+        return response.data
+      }
+      const message =
+        response.kind === BadInstancerError.kind
+          ? response.data.message
+          : response.message
+      throw new ApiError(response.kind, message)
+    },
+    enabled: enabled && !!id,
+    // Adaptive: fast while transitioning, slow while steady, off when stopped.
+    refetchInterval: query => instancePollInterval(query.state.data?.status),
+  })
+}
+
+export function useChallengeInstance(
+  id: () => string | null,
+  enabled: () => boolean
+) {
+  return createQuery(() => challengeInstanceQueryOptions(id(), enabled()))
 }
 
 /**
