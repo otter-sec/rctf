@@ -31,13 +31,19 @@
     inline-size: var(--avatar-size, 2.5rem);
     block-size: var(--avatar-size, 2.5rem);
     overflow: hidden;
-    border-radius: var(--radius-md);
+    border-radius: var(--avatar-radius, var(--radius-lg));
   }
 
   [data-part='image'] {
     inline-size: 100%;
     block-size: 100%;
     object-fit: cover;
+  }
+
+  /* Zag hides the fallback with the `hidden` attribute once the image loads;
+     an unconditional `display: flex` would override it and squeeze the image. */
+  [data-part='fallback'][hidden] {
+    display: none;
   }
 
   [data-part='fallback'] {

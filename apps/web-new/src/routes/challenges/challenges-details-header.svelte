@@ -28,6 +28,7 @@
     <h2>{challenge.name}</h2>
     <header-meta>
       <span data-slot="author">by {challenge.author}</span>
+      <meta-separator aria-hidden="true">·</meta-separator>
       <chip-row>
         <category-chip data-category-color={config.color}>
           <config.icon data-slot="category-icon" />
@@ -53,38 +54,63 @@
 </details-header>
 
 <style>
+  /* Fixed 2.25rem inline padding is the detail pane's alignment rail: the tab
+     strip (1.25rem) + section padding (1rem) lines body text up with this. */
   details-header {
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: var(--space-m);
-    padding: var(--space-m) var(--space-l);
+    gap: 1rem;
+    padding: 1rem 2.25rem;
+
+    @media (width >= 40rem) {
+      padding-block: 1.5rem;
+    }
   }
 
   header-main {
     display: flex;
     flex: 1;
     flex-direction: column;
-    gap: var(--space-2xs);
+    gap: 0.25rem;
     min-inline-size: 0;
   }
 
   h2 {
     margin: 0;
     overflow: hidden;
-    font-size: var(--step-3);
-    font-weight: var(--font-weight-medium);
+    font-size: 1.25rem;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    @media (width >= 40rem) {
+      font-size: 1.5rem;
+    }
   }
 
   header-meta {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-2xs);
+    gap: 0.25rem 0.5rem;
     color: var(--foreground-l3);
-    font-size: var(--step--1);
+    font-size: 0.875rem;
+
+    @media (width >= 40rem) {
+      font-size: 1rem;
+    }
+  }
+
+  meta-separator {
+    display: none;
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--foreground-l5);
+    opacity: 0.5;
+
+    @media (width >= 40rem) {
+      display: inline;
+    }
   }
 
   [data-slot='author'] {
@@ -99,18 +125,29 @@
 
   category-chip {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
-    gap: var(--space-3xs);
-    padding: 0.125rem var(--space-2xs);
+    gap: 0.25rem;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
     color: var(--category-foreground-l1);
     white-space: nowrap;
     background: var(--category-background-l0);
-    border-radius: var(--radius-full);
+    border-radius: var(--radius-lg);
+
+    @media (width >= 40rem) {
+      padding-inline: 0.75rem;
+      font-size: 0.875rem;
+    }
   }
 
   category-chip :global([data-slot='category-icon']) {
     flex-shrink: 0;
-    font-size: 0.875rem;
+    font-size: 0.75rem;
+
+    @media (width >= 40rem) {
+      font-size: 0.875rem;
+    }
   }
 
   header-score {
@@ -123,12 +160,19 @@
   }
 
   [data-slot='points'] {
-    font-size: var(--step-3);
-    font-weight: var(--font-weight-medium);
+    font-size: 1.25rem;
+
+    @media (width >= 40rem) {
+      font-size: 1.5rem;
+    }
   }
 
   [data-slot='solves'] {
     color: var(--foreground-l3);
-    font-size: var(--step--1);
+    font-size: 0.875rem;
+
+    @media (width >= 40rem) {
+      font-size: 1rem;
+    }
   }
 </style>

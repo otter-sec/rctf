@@ -215,12 +215,14 @@
     background: var(--background-l1);
   }
 
+  /* 0.625rem start padding + 1rem icon + 0.625rem gap puts the name on the
+     2.25rem alignment rail. */
   challenges-list-group-header button {
     display: flex;
     align-items: center;
-    gap: var(--space-2xs);
+    gap: 0.625rem;
     inline-size: 100%;
-    padding: var(--space-2xs) var(--space-s);
+    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
     text-align: start;
     color: var(--category-foreground-l1);
     background: var(--category-background-l0);

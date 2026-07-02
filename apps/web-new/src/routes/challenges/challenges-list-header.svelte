@@ -47,7 +47,7 @@
     </span>
     <span data-part="solved">
       <strong>{solvedCount.toLocaleString()}</strong>
-      / {totalCount.toLocaleString()} solved
+      / {totalCount.toLocaleString()}
     </span>
   </list-stats>
 
@@ -66,50 +66,58 @@
       />
     </search-box>
 
-    <Tooltip label={hideSolved ? 'Show solved' : 'Hide solved'}>
-      {#snippet children({ props })}
-        <button
-          {...mergeProps(props, { onclick: onToggleHideSolved })}
-          type="button"
-          data-active={hideSolved || undefined}
-          aria-pressed={hideSolved}
-          aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
-        >
-          {#if hideSolved}
-            <IconEyeClosed />
-          {:else}
-            <IconEyeFilled />
-          {/if}
-        </button>
-      {/snippet}
-    </Tooltip>
+    <toggle-group>
+      <Tooltip label={hideSolved ? 'Show solved' : 'Hide solved'}>
+        {#snippet children({ props })}
+          <button
+            {...mergeProps(props, { onclick: onToggleHideSolved })}
+            type="button"
+            data-slot="hide-solved"
+            data-active={hideSolved || undefined}
+            aria-pressed={hideSolved}
+            aria-label={hideSolved ? 'Show solved challenges' : 'Hide solved challenges'}
+          >
+            {#if hideSolved}
+              <IconEyeClosed />
+            {:else}
+              <IconEyeFilled />
+            {/if}
+          </button>
+        {/snippet}
+      </Tooltip>
 
-    <Tooltip label={anyOpen ? 'Collapse all' : 'Expand all'}>
-      {#snippet children({ props })}
-        <button
-          {...mergeProps(props, { onclick: onToggleCollapse })}
-          type="button"
-          aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
-        >
-          <IconFold />
-        </button>
-      {/snippet}
-    </Tooltip>
+      <Tooltip label={anyOpen ? 'Collapse all' : 'Expand all'}>
+        {#snippet children({ props })}
+          <button
+            {...mergeProps(props, { onclick: onToggleCollapse })}
+            type="button"
+            data-slot="collapse"
+            data-active={!anyOpen || undefined}
+            aria-label={anyOpen ? 'Collapse all categories' : 'Expand all categories'}
+          >
+            <IconFold />
+          </button>
+        {/snippet}
+      </Tooltip>
+    </toggle-group>
   </list-controls>
 </challenges-list-header>
 
 <style>
+  /* 2.25rem stats rail / 1.25rem controls rail mirror the detail pane's
+     alignment paddings. */
   challenges-list-header {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
-    gap: var(--space-2xs);
-    padding: var(--space-2xs) var(--space-s);
+    gap: 0.5rem;
+    padding-block: 0.5rem;
   }
 
   list-stats {
     display: flex;
     justify-content: space-between;
-    padding-inline: var(--space-xs);
+    padding-inline: 2.25rem;
     color: var(--foreground-l5);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
@@ -123,7 +131,18 @@
   list-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-3xs);
+    gap: 0.25rem;
+    padding-inline: 1.25rem;
+  }
+
+  toggle-group {
+    display: flex;
+    gap: 0.25rem;
+    inline-size: 100%;
+
+    @container challenges-list (width >= 24rem) {
+      inline-size: auto;
+    }
   }
 
   search-box {
@@ -132,11 +151,15 @@
     align-items: center;
     gap: var(--space-2xs);
     min-inline-size: 0;
-    block-size: 2.25rem;
-    padding-inline: var(--space-xs);
+    block-size: 2.5rem;
+    padding-inline: 0.75rem;
     color: var(--foreground-l3);
     background: var(--background-l4);
-    border-radius: var(--radius-full);
+    border-radius: 20px;
+
+    @container challenges-list (width >= 24rem) {
+      border-radius: 20px var(--radius-sm) var(--radius-sm) 20px;
+    }
 
     &:focus-within {
       outline: 2px solid var(--ring);
@@ -164,15 +187,30 @@
 
   button {
     display: inline-flex;
-    flex-shrink: 0;
+    flex: 1;
     align-items: center;
     justify-content: center;
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
+    block-size: 2.5rem;
+    padding-inline: 1rem;
     color: var(--foreground-l1);
     background: var(--background-l4);
-    border-radius: var(--radius-full);
     cursor: pointer;
+
+    @container challenges-list (width >= 24rem) {
+      flex: initial;
+    }
+
+    &[data-slot='hide-solved'] {
+      border-radius: 20px var(--radius-sm) var(--radius-sm) 20px;
+
+      @container challenges-list (width >= 24rem) {
+        border-radius: var(--radius-sm);
+      }
+    }
+
+    &[data-slot='collapse'] {
+      border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
+    }
 
     :global(svg) {
       font-size: 1.25rem;
