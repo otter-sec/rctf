@@ -311,6 +311,24 @@
   --category-foreground-l1:       var(--foreground-gray-l1);
 }
 
+/* Chart series colours. Set data-series-role on an SVG group/element; descendants
+   read the inherited `color` via currentColor for stroke/fill. self + medals map
+   to their tokens; r1..r10 cycle the ten rank ramp colours. */
+[data-series-role='self']   { color: var(--foreground-self-l0); }
+[data-series-role='gold']   { color: var(--foreground-gold-l0); }
+[data-series-role='silver'] { color: var(--foreground-silver-l0); }
+[data-series-role='bronze'] { color: var(--foreground-bronze-l0); }
+[data-series-role='r1']     { color: var(--foreground-first); }
+[data-series-role='r2']     { color: var(--foreground-second); }
+[data-series-role='r3']     { color: var(--foreground-third); }
+[data-series-role='r4']     { color: var(--foreground-fourth); }
+[data-series-role='r5']     { color: var(--foreground-fifth); }
+[data-series-role='r6']     { color: var(--foreground-sixth); }
+[data-series-role='r7']     { color: var(--foreground-seventh); }
+[data-series-role='r8']     { color: var(--foreground-eighth); }
+[data-series-role='r9']     { color: var(--foreground-ninth); }
+[data-series-role='r10']    { color: var(--foreground-tenth); }
+
 :root[data-theme='light'] {
   color-scheme: light;
 }

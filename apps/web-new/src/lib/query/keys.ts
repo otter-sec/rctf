@@ -40,6 +40,18 @@ export const queryKeys = {
     ['challenges', id, 'solves', params] as const,
   challengeScores: (id: string, params: { limit: number; offset: number }) =>
     ['challenges', id, 'scores', params] as const,
+  challengeSolvesInfinite: (id: string) =>
+    ['challenges', id, 'solves', 'infinite'] as const,
+  challengeScoresInfinite: (id: string) =>
+    ['challenges', id, 'scores', 'infinite'] as const,
+  challenge: (id: string) => ['challenges', id] as const,
+  challengeInstance: (id: string) => ['challenges', id, 'instance'] as const,
+  challengeAdminBotStatus: (id: string) =>
+    ['challenges', id, 'admin-bot', 'status'] as const,
+  challengeAdminBotHistory: (id: string) =>
+    ['challenges', id, 'admin-bot', 'history'] as const,
+  challengeAdminBotJobLogs: (id: string, jobId: string) =>
+    ['challenges', id, 'admin-bot', 'jobs', jobId, 'logs'] as const,
   members: ['members'] as const,
   instancerSchema: ['admin', 'instancer', 'schema'] as const,
   adminBotStatus: ['admin', 'admin-bot', 'status'] as const,
