@@ -1,0 +1,98 @@
+<script lang="ts">
+  import '../styles/reset.css'
+  import '../styles/fonts.css'
+  import '../styles/color.css'
+  import '../styles/typography.css'
+  import '../styles/layout.css'
+  import '../styles/shape.css'
+  import '../styles/layers.css'
+  import '../styles/prose.css'
+  import { QueryClientProvider } from '@tanstack/svelte-query'
+  import favicon from '$lib/assets/favicon.svg'
+  import ThemeToggle from '$lib/components/theme-toggle.svelte'
+  import ToastHost from '$lib/ui/toast-host.svelte'
+  import { initAnalytics } from '$lib/utils/analytics'
+  import { onMount } from 'svelte'
+  import type { LayoutProps } from './$types'
+
+  const { data, children }: LayoutProps = $props()
+
+  onMount(() => {
+    initAnalytics(data.clientConfig)
+  })
+</script>
+
+<svelte:head>
+  <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content={data.clientConfig.ctfName} />
+  <title>{data.clientConfig.ctfName}</title>
+
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+  <meta name="description" content={data.clientConfig.meta.description} />
+
+  <meta name="theme-color" content="#111111" />
+  <link rel="canonical" href={data.clientConfig.origin} />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={data.clientConfig.ctfName} />
+  <meta property="og:description" content={data.clientConfig.meta.description} />
+  <meta property="og:image" content={data.clientConfig.meta.imageUrl} />
+  <meta property="og:url" content={data.clientConfig.origin} />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={data.clientConfig.ctfName} />
+  <meta name="twitter:description" content={data.clientConfig.meta.description} />
+  <meta name="twitter:image" content={data.clientConfig.meta.imageUrl} />
+  <meta name="twitter:url" content={data.clientConfig.origin} />
+</svelte:head>
+
+<QueryClientProvider client={data.queryClient}>
+  <app-shell>
+    <header>
+      <a href="/">{data.clientConfig.ctfName}</a>
+      <ThemeToggle />
+    </header>
+
+    <main>
+      {@render children()}
+    </main>
+  </app-shell>
+</QueryClientProvider>
+
+<ToastHost />
+
+<style>
+  app-shell {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    padding: var(--space-2xs) var(--space-s);
+    border-block-end: 1px solid var(--border);
+
+    a {
+      font-weight: var(--font-weight-medium);
+    }
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    inline-size: 100%;
+    max-inline-size: var(--page-max-width);
+    margin-inline: auto;
+    padding: var(--space-s);
+  }
+</style>
