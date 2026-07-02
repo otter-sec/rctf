@@ -250,7 +250,7 @@
   scores-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2xs);
+    gap: var(--space-3xs);
     padding: 0.75rem 1.25rem 1rem;
   }
 
@@ -299,12 +299,12 @@
 
   self-overlay[data-edge='top'] {
     inset-block-start: 0;
-    padding-block-end: var(--space-2xs);
+    padding-block-end: var(--space-3xs);
   }
 
   self-overlay[data-edge='bottom'] {
     inset-block-end: 0;
-    padding-block-start: var(--space-2xs);
+    padding-block-start: var(--space-3xs);
   }
 
   self-overlay :global(a) {

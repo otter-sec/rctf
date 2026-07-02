@@ -34,6 +34,10 @@
     challenge: Challenge | null
     isSolved: boolean
     onSolve: (challengeId: string) => void
+    // Lifted above the per-challenge remount so the active tab survives
+    // switching challenges.
+    tab: string
+    onTabChange: (tab: string) => void
   }
 
   const DESKTOP_MIN_WIDTH = 768
@@ -52,6 +56,7 @@
   const bloodIds = $derived(deriveBloodIds(selfSolves))
 
   let selectedId = $state<string | null>(null)
+  let detailsTab = $state('details')
   let deepLinkTarget = $state<string | null>(null)
   let innerWidth = $state(0)
   // Router readiness gates shallow routing (pushState throws before the first
@@ -186,6 +191,8 @@
     challenge: selectedChallenge,
     isSolved: selectedIsSolved,
     onSolve: handleSolve,
+    tab: detailsTab,
+    onTabChange: tab => (detailsTab = tab),
   })
 </script>
 
@@ -199,7 +206,7 @@
 
 {#snippet detailPane(props: ChallengeDetailProps)}
   <challenges-detail-slot>
-    <!-- Remount per challenge so tab/form/sub-query state resets on switch. -->
+    <!-- Remount per challenge so form/sub-query state resets on switch. -->
     {#key props.challenge?.id}
       <ChallengeDetails {...props} />
     {/key}

@@ -1,6 +1,7 @@
 <!--
   Detail pane for the selected challenge. challenges.svelte remounts this per
-  challenge via {#key challenge.id}, so `selectedTab` resets on every switch.
+  challenge via {#key challenge.id}; the active tab is lifted to the parent so
+  it persists across switches.
 
   Tab visibility: 'details' always; 'solves' for flag challenges; 'scores' for
   dynamic (KotH) challenges. Panels stay mounted inside the Tabs primitive, but
@@ -28,9 +29,11 @@
     challenge: Challenge | null
     isSolved: boolean
     onSolve: (challengeId: string) => void
+    tab: string
+    onTabChange: (tab: string) => void
   }
 
-  let { challenge, isSolved, onSolve }: Props = $props()
+  let { challenge, isSolved, onSolve, tab, onTabChange }: Props = $props()
 
   type TabItem = { value: string; label: string; count?: number; icon?: Component }
 
@@ -59,13 +62,9 @@
     return items
   })
 
-  let selectedTab = $state('details')
-
-  // Fall back to 'details' whenever the selection is not valid for this
-  // challenge (guards a stale pick if the tab set ever changes without remount).
-  const activeTab = $derived(
-    tabItems.some(item => item.value === selectedTab) ? selectedTab : 'details'
-  )
+  // Fall back to 'details' whenever the lifted selection is not valid for this
+  // challenge (e.g. 'scores' persisted from a dynamic challenge onto a flag one).
+  const activeTab = $derived(tabItems.some(item => item.value === tab) ? tab : 'details')
 </script>
 
 {#if challenge}
@@ -73,7 +72,7 @@
     <ChallengeDetailsHeader {challenge} {isSolved} />
 
     <details-tabs>
-      <Tabs value={activeTab} onValueChange={value => (selectedTab = value)} tabs={tabItems}>
+      <Tabs value={activeTab} onValueChange={onTabChange} tabs={tabItems}>
         {#snippet content({ value })}
           {#if value === activeTab && challenge}
             {#if value === 'details'}
