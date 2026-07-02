@@ -8,6 +8,7 @@
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import IconCheck from '$lib/icons/icon-check.svelte'
+  import ChallengePointDelta from './challenges-point-delta.svelte'
 
   type BloodTier = 'gold' | 'silver' | 'bronze'
 
@@ -57,9 +58,11 @@
         <span data-part="points">
           <strong>{displayPoints.toLocaleString()}</strong> pts
         </span>
-        <!-- U11: the dynamic point-delta chip replaces this solve count for
-             dynamic challenges; static challenges keep the count. -->
-        <span data-part="solves">{solvesLabel}</span>
+        {#if isDynamic}
+          <ChallengePointDelta delta={challenge.yourPointDelta ?? 0} />
+        {:else}
+          <span data-part="solves">{solvesLabel}</span>
+        {/if}
       </item-score>
     {/if}
   </button>
