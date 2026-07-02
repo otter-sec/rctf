@@ -15,6 +15,7 @@
   import Splitter from '$lib/ui/splitter.svelte'
   import { tick } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
+  import ChallengesList from './challenges-list.svelte'
   import { getDeepLinkId, resolveClose, type CloseSource } from './drawer-history'
 
   // Pass-down contract for U5/U6: swapping the placeholders below for the real
@@ -166,8 +167,7 @@
 
 {#snippet listPane(props: ChallengeListProps)}
   <challenges-list-slot>
-    <!-- U5 replaces this placeholder with <ChallengesList {...props} /> -->
-    <placeholder-note>Challenge list ({props.challenges.length})</placeholder-note>
+    <ChallengesList {...props} />
   </challenges-list-slot>
 {/snippet}
 
