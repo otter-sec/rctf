@@ -70,13 +70,3 @@
     </div>
   {/each}
 </div>
-
-<style>
-  [data-part='item'] {
-    border-block-end: 1px solid var(--border);
-
-    &:last-child {
-      border-block-end: none;
-    }
-  }
-</style>

@@ -292,7 +292,7 @@
     &::after {
       flex: 1;
       content: '';
-      border-block-start: 1px solid var(--border);
+      border-block-start: 2px solid var(--border);
     }
   }
 

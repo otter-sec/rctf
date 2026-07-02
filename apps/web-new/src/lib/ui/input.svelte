@@ -16,7 +16,7 @@
     padding-inline: var(--space-2xs);
     color: var(--foreground-l0);
     background: var(--background-l1);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius-md);
 
     &:focus-visible {

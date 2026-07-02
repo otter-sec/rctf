@@ -20,6 +20,11 @@
   --slate-11: light-dark(#60646c, #b0b4ba);
   --slate-a3: light-dark(#0000330f, #ddeaf814);
 
+  --gold-11:   light-dark(#71624b, #cbb99f);
+  --gold-a3:   light-dark(#75600018, #f8ecbb15);
+  --bronze-11: light-dark(#7d5e54, #d4b3a5);
+  --bronze-a3: light-dark(#92250015, #faceb817);
+
   --sky-4:   light-dark(#d1f0fa, #113555);
   --sky-5:   light-dark(#bee7f5, #154467);
   --sky-9:   light-dark(#7ce2fe, #7ce2fe);
@@ -118,15 +123,15 @@
   --background-success:           var(--jade-3);
   --foreground-success:           var(--jade-11);
 
-  --background-gold:      var(--yellow-a3);
-  --foreground-gold-l0:   var(--yellow-11);
-  --foreground-gold-l1:   color-mix(in oklab, var(--yellow-11) 70%, transparent);
+  --background-gold:      var(--gold-a3);
+  --foreground-gold-l0:   var(--gold-11);
+  --foreground-gold-l1:   color-mix(in oklab, var(--gold-11) 70%, transparent);
   --background-silver:    var(--slate-a3);
   --foreground-silver-l0: var(--slate-11);
   --foreground-silver-l1: color-mix(in oklab, var(--slate-11) 70%, transparent);
-  --background-bronze:    var(--orange-a3);
-  --foreground-bronze-l0: var(--orange-11);
-  --foreground-bronze-l1: color-mix(in oklab, var(--orange-11) 70%, transparent);
+  --background-bronze:    var(--bronze-a3);
+  --foreground-bronze-l0: var(--bronze-11);
+  --foreground-bronze-l1: color-mix(in oklab, var(--bronze-11) 70%, transparent);
   --background-self-l0:   var(--jade-3);
   --background-self-l1:   var(--jade-4);
   --foreground-self-l0:   var(--jade-11);

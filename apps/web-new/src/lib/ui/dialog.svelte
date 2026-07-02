@@ -96,7 +96,7 @@
     padding: var(--space-m);
     overflow-y: auto;
     background: var(--background-l1);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
   }
 
   [data-part='title'] {

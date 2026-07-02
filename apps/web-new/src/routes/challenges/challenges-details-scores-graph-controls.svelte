@@ -63,7 +63,7 @@
     font-size: 0.875rem;
     color: var(--foreground-l3);
     background: var(--background-l2);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius-md);
     cursor: pointer;
     transition:

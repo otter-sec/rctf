@@ -210,7 +210,8 @@
   challenges-list-group-header {
     position: sticky;
     inset-block-start: 0;
-    z-index: 1;
+    /* Above the rows' own z-index: 1 layers so nothing shows through. */
+    z-index: 2;
     display: block;
     background: var(--background-l1);
   }
