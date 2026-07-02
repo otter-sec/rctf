@@ -15,8 +15,8 @@
     min-block-size: 4.5rem;
     padding: var(--space-3xs) var(--space-2xs);
     color: var(--foreground-l0);
-    background: var(--background-l1);
-    border: 2px solid var(--border);
+    background: var(--background-l4);
+    border: 2px solid transparent;
     border-radius: var(--radius-md);
 
     &:focus-visible {
