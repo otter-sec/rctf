@@ -179,6 +179,8 @@
 </header>
 
 <style>
+  /* Fixed (not fluid) paddings: 0.75rem verticals keep the header at exactly
+     72px — the offset full-height pages subtract from 100dvh. */
   header {
     position: sticky;
     inset-block-start: 0;
@@ -186,10 +188,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-s);
-    padding: var(--space-2xs) var(--space-s);
+    padding: 0.75rem 1rem;
     background: var(--background-l0);
-    border-block-end: 1px solid var(--border);
+
+    @media (width >= 48rem) {
+      padding-inline: 2.25rem;
+    }
   }
 
   nav-start {
@@ -248,8 +252,8 @@
 
     display: flex;
     align-items: center;
-    gap: var(--space-2xs);
-    padding-inline-start: var(--space-2xs);
+    gap: 0.75rem;
+    padding-inline-start: 0.5rem;
     cursor: pointer;
     border-radius: var(--radius-lg);
 
@@ -268,6 +272,8 @@
     display: block;
     max-inline-size: 16rem;
     overflow: hidden;
+    font-size: 1.125rem;
+    line-height: 1.25;
     color: var(--foreground-l0);
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -287,6 +293,8 @@
 
   meta-separator {
     display: block;
+    font-size: 1.25rem;
+    line-height: 1;
     color: var(--foreground-l3);
   }
 
@@ -294,7 +302,7 @@
     display: block;
     max-inline-size: 8rem;
     overflow: hidden;
-    font-size: var(--step--1);
+    font-size: 1rem;
     color: var(--foreground-l3);
     text-overflow: ellipsis;
     white-space: nowrap;
