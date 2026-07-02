@@ -508,63 +508,63 @@
 
   --background-red-l0:       var(--red-a3);
   --background-red-l1:       var(--red-a2);
-  --background-red-l1-hover: var(--red-a4);
-  --foreground-red-l0:       var(--red-11);
-  --foreground-red-l1:       var(--red-a11);
+  --background-red-l1-hover: var(--red-a2);
+  --foreground-red-l0:       light-dark(var(--red-a11), var(--red-a12));
+  --foreground-red-l1:       light-dark(var(--red-a10), var(--red-a11));
 
   --background-orange-l0:       var(--orange-a3);
   --background-orange-l1:       var(--orange-a2);
-  --background-orange-l1-hover: var(--orange-a4);
-  --foreground-orange-l0:       var(--orange-11);
-  --foreground-orange-l1:       var(--orange-a11);
+  --background-orange-l1-hover: var(--orange-a2);
+  --foreground-orange-l0:       light-dark(var(--orange-a11), var(--orange-a12));
+  --foreground-orange-l1:       light-dark(var(--orange-a10), var(--orange-a11));
 
   --background-yellow-l0:       var(--yellow-a3);
   --background-yellow-l1:       var(--yellow-a2);
-  --background-yellow-l1-hover: var(--yellow-a4);
-  --foreground-yellow-l0:       var(--yellow-11);
-  --foreground-yellow-l1:       var(--yellow-a11);
+  --background-yellow-l1-hover: var(--yellow-a2);
+  --foreground-yellow-l0:       light-dark(var(--yellow-a11), var(--yellow-a12));
+  --foreground-yellow-l1:       light-dark(var(--yellow-a10), var(--yellow-a11));
 
   --background-green-l0:       var(--green-a3);
   --background-green-l1:       var(--green-a2);
-  --background-green-l1-hover: var(--green-a4);
-  --foreground-green-l0:       var(--green-11);
-  --foreground-green-l1:       var(--green-a11);
+  --background-green-l1-hover: var(--green-a2);
+  --foreground-green-l0:       light-dark(var(--green-a11), var(--green-a12));
+  --foreground-green-l1:       light-dark(var(--green-a10), var(--green-a11));
 
   --background-teal-l0:       var(--teal-a3);
   --background-teal-l1:       var(--teal-a2);
-  --background-teal-l1-hover: var(--teal-a4);
-  --foreground-teal-l0:       var(--teal-11);
-  --foreground-teal-l1:       var(--teal-a11);
+  --background-teal-l1-hover: var(--teal-a2);
+  --foreground-teal-l0:       light-dark(var(--teal-a11), var(--teal-a12));
+  --foreground-teal-l1:       light-dark(var(--teal-a10), var(--teal-a11));
 
   --background-blue-l0:       var(--sky-a3);
   --background-blue-l1:       var(--sky-a2);
-  --background-blue-l1-hover: var(--sky-a4);
-  --foreground-blue-l0:       var(--sky-11);
-  --foreground-blue-l1:       var(--sky-a11);
+  --background-blue-l1-hover: var(--sky-a2);
+  --foreground-blue-l0:       light-dark(var(--sky-a11), var(--sky-a12));
+  --foreground-blue-l1:       light-dark(var(--sky-a10), var(--sky-a11));
 
   --background-purple-l0:       var(--purple-a3);
   --background-purple-l1:       var(--purple-a2);
-  --background-purple-l1-hover: var(--purple-a4);
-  --foreground-purple-l0:       var(--purple-11);
-  --foreground-purple-l1:       var(--purple-a11);
+  --background-purple-l1-hover: var(--purple-a2);
+  --foreground-purple-l0:       light-dark(var(--purple-a11), var(--purple-a12));
+  --foreground-purple-l1:       light-dark(var(--purple-a10), var(--purple-a11));
 
   --background-pink-l0:       var(--pink-a3);
   --background-pink-l1:       var(--pink-a2);
-  --background-pink-l1-hover: var(--pink-a4);
-  --foreground-pink-l0:       var(--pink-11);
-  --foreground-pink-l1:       var(--pink-a11);
+  --background-pink-l1-hover: var(--pink-a2);
+  --foreground-pink-l0:       light-dark(var(--pink-a11), var(--pink-a12));
+  --foreground-pink-l1:       light-dark(var(--pink-a10), var(--pink-a11));
 
   --background-fuchsia-l0:       var(--plum-a3);
   --background-fuchsia-l1:       var(--plum-a2);
-  --background-fuchsia-l1-hover: var(--plum-a4);
-  --foreground-fuchsia-l0:       var(--plum-11);
-  --foreground-fuchsia-l1:       var(--plum-a11);
+  --background-fuchsia-l1-hover: var(--plum-a2);
+  --foreground-fuchsia-l0:       light-dark(var(--plum-a11), var(--plum-a12));
+  --foreground-fuchsia-l1:       light-dark(var(--plum-a10), var(--plum-a11));
 
   --background-gray-l0:       var(--gray-a3);
   --background-gray-l1:       var(--gray-a2);
-  --background-gray-l1-hover: var(--gray-a4);
-  --foreground-gray-l0:       var(--gray-11);
-  --foreground-gray-l1:       var(--gray-a11);
+  --background-gray-l1-hover: var(--gray-a2);
+  --foreground-gray-l0:       light-dark(var(--gray-a11), var(--gray-a12));
+  --foreground-gray-l1:       light-dark(var(--gray-a10), var(--gray-a11));
 
   --category-background-l0:       var(--background-gray-l0);
   --category-background-l1:       var(--background-gray-l1);
