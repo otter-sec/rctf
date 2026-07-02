@@ -119,7 +119,7 @@
     inset-inline-start: 0;
     inline-size: 9rem;
     pointer-events: none;
-    background: linear-gradient(to inline-end, var(--edge-soft), transparent);
+    background: linear-gradient(to right, var(--edge-soft), transparent);
   }
 
   button[data-selected] {
@@ -133,7 +133,7 @@
     inset-inline-end: 0;
     inline-size: 24rem;
     pointer-events: none;
-    background: linear-gradient(to inline-start, var(--category-background-l0), transparent);
+    background: linear-gradient(to left, var(--category-background-l0), transparent);
   }
 
   button :global(svg[data-indicator]) {

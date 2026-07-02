@@ -165,7 +165,7 @@
     max-inline-size: 100%;
     border-radius: inherit;
     background: linear-gradient(
-      to inline-end,
+      to right,
       color-mix(in oklab, var(--row-gradient) 15%, transparent),
       transparent
     );

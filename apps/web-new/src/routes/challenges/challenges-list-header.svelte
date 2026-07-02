@@ -112,6 +112,10 @@
     flex-direction: column;
     gap: 0.5rem;
     padding-block: 0.5rem;
+
+    @media (width < 48rem) {
+      padding-block-start: 1rem;
+    }
   }
 
   list-stats {
