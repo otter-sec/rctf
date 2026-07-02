@@ -74,9 +74,5 @@
     display: flex;
     flex-direction: column;
     flex: 1;
-    inline-size: 100%;
-    max-inline-size: var(--page-max-width);
-    margin-inline: auto;
-    padding: var(--space-s);
   }
 </style>
