@@ -215,6 +215,7 @@
       title={selectedChallenge?.name ?? 'Challenge details'}
       titleHidden
       presentation="drawer"
+      flush
     >
       <drawer-body>{@render detailPane(detailProps)}</drawer-body>
     </Dialog>
@@ -297,16 +298,8 @@
   }
 
   /* Portaled drawer content escapes this subtree, so size it via a global knob
-     scoped to the drawer presentation. Only the challenges drawer uses it. The
-     detail pane owns its padding (header/tabs rails), so the drawer shell adds
-     none of its own. */
+     scoped to the drawer presentation. Only the challenges drawer uses it. */
   :global([data-presentation='drawer']) {
     --dialog-drawer-max-size: 92dvh;
-  }
-
-  :global([data-presentation='drawer'] [data-part='content'][data-part='content']) {
-    gap: 0;
-    block-size: 100%;
-    padding: 0;
   }
 </style>
