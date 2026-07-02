@@ -20,6 +20,13 @@
   --space-2xl-3xl: clamp(4rem, 2.9831rem + 4.9605vw, 6.75rem);
 
   --page-max-width: 80rem;
+  --header-height: 3.5rem;
+}
+
+@media (width >= 48rem) {
+  :root {
+    --header-height: 4.5rem;
+  }
 }
 
 html {
