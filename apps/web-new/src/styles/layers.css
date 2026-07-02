@@ -1,0 +1,6 @@
+:root {
+  --layer-backdrop: 40;
+  --layer-dialog:   50;
+  --layer-popover:  60;
+  --layer-toast:    70;
+}

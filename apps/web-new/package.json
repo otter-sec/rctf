@@ -1,0 +1,36 @@
+{
+  "name": "@rctf/web-new",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "bunx --bun --no-orphans vite dev",
+    "build": "bunx --bun vite build",
+    "preview": "bunx --bun vite preview",
+    "prepare": "bunx --bun svelte-kit sync || echo ''",
+    "check": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsconfig ./tsconfig.json",
+    "check:watch": "bunx --bun svelte-kit sync && bunx --bun svelte-check --tsconfig ./tsconfig.json --watch",
+    "typecheck": "bun run check"
+  },
+  "dependencies": {
+    "@rctf/types": "workspace:*",
+    "@rctf/util": "workspace:*",
+    "@tanstack/svelte-query": "6.1.0",
+    "@zag-js/dialog": "1.41.2",
+    "@zag-js/svelte": "1.41.2",
+    "@zag-js/toast": "1.41.2",
+    "@zag-js/tooltip": "1.41.2",
+    "dompurify": "3.4.3",
+    "marked": "17.0.4",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-static": "3.0.10",
+    "@sveltejs/kit": "2.60.1",
+    "@sveltejs/vite-plugin-svelte": "7.1.2",
+    "svelte": "5.55.7",
+    "svelte-check": "4.4.5",
+    "typescript": "5.9.3",
+    "vite": "8.0.10"
+  }
+}
