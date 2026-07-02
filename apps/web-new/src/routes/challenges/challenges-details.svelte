@@ -14,6 +14,8 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import ChallengeDetailsHeader from './challenges-details-header.svelte'
   import ChallengeDetailsOverview from './challenges-details-overview.svelte'
+  import ChallengeDetailsPodiumDynamic from './challenges-details-podium-dynamic.svelte'
+  import ChallengeDetailsPodium from './challenges-details-podium.svelte'
   import ChallengeDetailsSolves from './challenges-details-solves.svelte'
   import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
 
@@ -75,15 +77,13 @@
     {#if challenge.hasFlag}
       <details-footer>
         {#if activeTab === 'details'}
-          <!-- U9: replace with the flag podium (challenge + isSolved props). -->
-          <podium-slot>Podium loads here.</podium-slot>
+          <ChallengeDetailsPodium {challenge} {isSolved} />
         {/if}
         <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
       </details-footer>
     {:else if isDynamic && activeTab === 'details'}
       <details-footer>
-        <!-- U9: replace with the dynamic podium (challenge prop). -->
-        <podium-slot data-variant="dynamic">Podium loads here.</podium-slot>
+        <ChallengeDetailsPodiumDynamic {challenge} />
       </details-footer>
     {/if}
   </challenge-details>
@@ -151,11 +151,5 @@
     gap: var(--space-s);
     padding: var(--space-s) var(--space-l) var(--space-l);
     border-block-start: 1px solid var(--border);
-  }
-
-  podium-slot {
-    display: block;
-    color: var(--foreground-l4);
-    font-size: var(--step--1);
   }
 </style>
