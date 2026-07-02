@@ -221,7 +221,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
-    padding: var(--space-s);
+    padding: 1rem 1.25rem;
   }
 
   row-slot {
@@ -251,9 +251,9 @@
     position: absolute;
     inset-inline: 0;
     z-index: 1;
-    padding-inline: var(--space-s);
+    padding-inline: 1.25rem;
     pointer-events: none;
-    background: var(--background-l1);
+    background: var(--background-l2);
   }
 
   self-overlay[data-edge='top'] {

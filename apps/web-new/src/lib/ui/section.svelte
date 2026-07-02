@@ -24,13 +24,13 @@
 
   section-header {
     display: block;
-    padding: var(--space-3xs) var(--space-s);
+    padding: 0.375rem 1rem;
     color: var(--foreground-l3);
     background: var(--background-l3);
   }
 
   section-content {
     display: block;
-    padding: var(--space-s);
+    padding: 0.5rem 1rem 1rem;
   }
 </style>

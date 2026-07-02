@@ -77,9 +77,9 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-3xs);
+    gap: 0.25rem;
     inline-size: 100%;
-    padding: var(--space-2xs) var(--space-s);
+    padding: 0.75rem 2.25rem;
     text-align: start;
     cursor: pointer;
     --edge-soft: color-mix(in srgb, var(--edge-color, transparent) 20%, transparent);
@@ -139,7 +139,7 @@
   button :global(svg[data-indicator]) {
     position: absolute;
     inset-block-start: 50%;
-    inset-inline-start: var(--space-3xs);
+    inset-inline-start: 0.5rem;
     translate: 0 -50%;
     font-size: 1.25rem;
     color: var(--edge-color);
@@ -157,7 +157,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: var(--step-1);
+    font-size: 1.25rem;
   }
 
   [data-part='category'] {
@@ -189,7 +189,7 @@
   }
 
   [data-part='points'] {
-    font-size: var(--step-1);
+    font-size: 1.25rem;
     color: var(--category-foreground-l1);
   }
 

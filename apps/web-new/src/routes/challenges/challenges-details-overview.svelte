@@ -100,18 +100,20 @@
 </overview-content>
 
 <style>
+  /* 1.25rem inline + the sections' 1rem content padding = the 2.25rem text
+     rail shared with the details header. */
   overview-content {
     container-type: inline-size;
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
-    padding: var(--space-s) var(--space-l) var(--space-l);
+    gap: 1rem;
+    padding: 1rem 1.25rem;
   }
 
   overview-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-s);
+    gap: 1rem;
   }
 
   /* A box left alone on its own row stretches to the full width. */
@@ -128,13 +130,13 @@
   files-box {
     display: flex;
     flex-direction: column;
-    gap: var(--space-s);
+    gap: var(--space-2xs);
   }
 
   file-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3xs);
+    gap: 0.25rem;
     max-block-size: 12rem;
     overflow-y: auto;
   }
@@ -142,15 +144,15 @@
   file-list a {
     display: flex;
     align-items: center;
-    gap: var(--space-s);
-    padding: var(--space-2xs) var(--space-s);
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem;
     color: inherit;
     text-decoration: none;
-    background: var(--background-l3);
+    background: var(--background-l4);
     border-radius: var(--radius-md);
 
     &:hover {
-      background: var(--background-l4);
+      background: var(--background-l5);
     }
 
     &:focus-visible {

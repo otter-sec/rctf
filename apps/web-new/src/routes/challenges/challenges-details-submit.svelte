@@ -146,7 +146,7 @@
 <style>
   challenge-submit {
     display: block;
-    --submit-block-size: 2.75rem;
+    --submit-block-size: 3rem;
   }
 
   form {
@@ -156,7 +156,7 @@
   submit-row {
     display: flex;
     align-items: stretch;
-    gap: var(--space-2xs);
+    gap: 0.5rem;
     block-size: var(--submit-block-size);
   }
 
@@ -164,13 +164,14 @@
     display: flex;
     flex: 1;
     align-items: center;
-    gap: var(--space-2xs);
+    gap: 0.75rem;
     min-inline-size: 0;
     block-size: var(--submit-block-size);
-    padding-inline: var(--space-s);
+    padding-inline: 0.75rem;
+    font-size: 1.25rem;
     color: var(--foreground-l3);
     background: var(--background-l4);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
 
     span {
       overflow: hidden;
@@ -180,8 +181,8 @@
 
     :global(svg) {
       flex-shrink: 0;
-      inline-size: 1.25rem;
-      block-size: 1.25rem;
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
     }
   }
 
@@ -196,6 +197,8 @@
     min-inline-size: 0;
     block-size: var(--submit-block-size);
     font-family: var(--font-mono);
+    font-size: 1.25rem;
+    border-radius: var(--radius-lg);
 
     &:disabled {
       cursor: not-allowed;
@@ -208,12 +211,12 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    inline-size: var(--submit-block-size);
+    padding-inline: 1rem;
     block-size: var(--submit-block-size);
-    color: var(--foreground-l1);
+    color: var(--foreground-l4);
     background: var(--background-l4);
     cursor: pointer;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
 
     &:hover:enabled {
       background: var(--background-l5);
@@ -230,14 +233,16 @@
     }
 
     :global(svg) {
-      inline-size: 1.25rem;
-      block-size: 1.25rem;
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
     }
   }
 
   /* Stretch the login button to the bar width and height. */
   challenge-submit :global(a[data-variant]) {
+    gap: 0.5rem;
     inline-size: 100%;
     block-size: var(--submit-block-size);
+    font-size: 1.25rem;
   }
 </style>

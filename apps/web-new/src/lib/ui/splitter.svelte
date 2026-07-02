@@ -57,7 +57,7 @@
   }
 
   [data-part='panel'] {
-    overflow: auto;
+    overflow: hidden;
   }
 
   [data-part='resize-trigger'] {

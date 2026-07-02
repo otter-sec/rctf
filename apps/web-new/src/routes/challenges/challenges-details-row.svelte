@@ -125,7 +125,7 @@
 
 <style>
   rank-row {
-    --avatar-size: 3rem;
+    --avatar-size: 2.5rem;
     --row-fg-l0: var(--foreground-nth-l0);
     --row-fg-l1: var(--foreground-nth-l1);
     --row-base: var(--background-l3);
@@ -134,11 +134,15 @@
     position: relative;
     isolation: isolate;
     display: flex;
-    gap: var(--space-2xs);
+    gap: 0.5rem;
     align-items: center;
     block-size: 4rem;
-    padding-inline: var(--space-s);
+    padding: 0.5rem 1rem;
     border-radius: var(--radius-lg);
+
+    @media (width >= 40rem) {
+      --avatar-size: 3rem;
+    }
   }
 
   /* Base fill sits behind content; the medal/self gradient washes over it. */
@@ -199,15 +203,23 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
-    gap: var(--space-3xs);
+    gap: 0.125rem;
     align-items: center;
-    min-inline-size: 3rem;
+    min-inline-size: 2.5rem;
+
+    @media (width >= 40rem) {
+      min-inline-size: 3rem;
+    }
   }
 
   rank-number {
-    font-size: var(--step-1);
+    font-size: 1rem;
     font-variant-numeric: tabular-nums;
     color: var(--row-fg-l0);
+
+    @media (width >= 40rem) {
+      font-size: 1.25rem;
+    }
   }
 
   row-identity {
@@ -220,10 +232,14 @@
 
   [data-part='name'] {
     overflow: hidden;
-    font-size: var(--step-1);
+    font-size: 1.125rem;
     color: var(--row-fg-l0);
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    @media (width >= 40rem) {
+      font-size: 1.25rem;
+    }
   }
 
   a[data-part='name'] {
@@ -236,11 +252,15 @@
 
   row-meta {
     display: flex;
-    gap: var(--space-3xs);
+    gap: 0.25rem;
     align-items: center;
     min-inline-size: 0;
-    font-size: var(--step--1);
+    font-size: 0.875rem;
     color: var(--row-fg-l1);
+
+    @media (width >= 40rem) {
+      font-size: 1rem;
+    }
   }
 
   [data-flag] {
@@ -251,6 +271,8 @@
 
   meta-dot {
     flex-shrink: 0;
+    font-size: 1.25rem;
+    line-height: 1;
   }
 
   [data-part='global'] {
@@ -273,15 +295,23 @@
   }
 
   [data-part='primary'] {
-    font-size: var(--step-1);
+    font-size: 1.125rem;
     font-variant-numeric: tabular-nums;
     color: var(--foreground-l1);
     white-space: nowrap;
+
+    @media (width >= 40rem) {
+      font-size: 1.25rem;
+    }
   }
 
   [data-part='secondary'] {
-    font-size: var(--step--1);
+    font-size: 0.875rem;
     color: var(--foreground-l3);
     white-space: nowrap;
+
+    @media (width >= 40rem) {
+      font-size: 1rem;
+    }
   }
 </style>

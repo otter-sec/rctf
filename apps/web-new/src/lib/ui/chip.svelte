@@ -13,13 +13,18 @@
 <style>
   ui-chip {
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     gap: var(--space-3xs);
-    padding: 0.125rem var(--space-2xs);
-    font-size: var(--step--1);
-    color: var(--foreground-l1);
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    color: inherit;
     white-space: nowrap;
-    background: var(--background-l4);
-    border-radius: var(--radius-full);
+    background: var(--background-l2);
+    border-radius: var(--radius-sm);
+
+    @media (width >= 40rem) {
+      font-size: 0.875rem;
+    }
   }
 </style>
