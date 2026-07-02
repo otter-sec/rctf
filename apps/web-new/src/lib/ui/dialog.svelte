@@ -11,6 +11,8 @@
     titleHidden?: boolean
     description?: string
     presentation?: 'center' | 'sheet' | 'drawer'
+    /** Remove the content shell's own gap/padding; the consumer owns spacing. */
+    flush?: boolean
     children: Snippet<[{ closeProps: Record<string, unknown> }]>
     trigger?: Snippet<[{ props: Record<string, unknown> }]>
   }
@@ -22,6 +24,7 @@
     titleHidden = false,
     description,
     presentation = 'center',
+    flush = false,
     children,
     trigger,
   }: Props = $props()
@@ -55,7 +58,11 @@
 {#if api.open}
   <Portal>
     <div {...api.getBackdropProps()}></div>
-    <div {...api.getPositionerProps()} data-presentation={presentation}>
+    <div
+      {...api.getPositionerProps()}
+      data-presentation={presentation}
+      data-flush={flush ? '' : undefined}
+    >
       <div {...api.getContentProps()}>
         <h2 {...api.getTitleProps()} data-hidden={titleHidden ? '' : undefined}>{title}</h2>
         {#if description}
@@ -132,6 +139,12 @@
       border-block: none;
       border-inline-start: none;
     }
+  }
+
+  [data-flush] [data-part='content'] {
+    gap: 0;
+    block-size: 100%;
+    padding: 0;
   }
 
   [data-presentation='drawer'] {
