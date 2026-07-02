@@ -32,8 +32,14 @@
     id,
     open,
     onOpenChange(details: { open: boolean }) {
-      open = details.open
-      onOpenChange?.(details.open)
+      if (onOpenChange) {
+        // Controlled: the consumer owns `open` (e.g. drives it from page.state).
+        // Self-mutating here would fight that control and flash the dialog.
+        onOpenChange(details.open)
+      } else {
+        // Uncontrolled / bind:open: manage our own visibility.
+        open = details.open
+      }
     },
   }))
   const api = $derived(dialog.connect(service, normalizeProps))
@@ -133,7 +139,7 @@
 
     [data-part='content'] {
       inline-size: 100%;
-      max-block-size: 85dvh;
+      max-block-size: var(--dialog-drawer-max-size, 85dvh);
       border-inline: none;
       border-block-end: none;
       border-radius: var(--radius-lg) var(--radius-lg) 0 0;
