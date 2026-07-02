@@ -16,6 +16,7 @@
   import ChallengeDetailsOverview from './challenges-details-overview.svelte'
   import ChallengeDetailsPodiumDynamic from './challenges-details-podium-dynamic.svelte'
   import ChallengeDetailsPodium from './challenges-details-podium.svelte'
+  import ChallengeDetailsScores from './challenges-details-scores.svelte'
   import ChallengeDetailsSolves from './challenges-details-solves.svelte'
   import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
 
@@ -66,8 +67,7 @@
             {:else if value === 'solves'}
               <ChallengeDetailsSolves {challenge} />
             {:else if value === 'scores'}
-              <!-- U11: replace with the scores tab (challenge prop). -->
-              <scores-tab-slot>Score feed loads here.</scores-tab-slot>
+              <ChallengeDetailsScores {challenge} />
             {/if}
           {/if}
         {/snippet}
@@ -135,13 +135,6 @@
     flex: 1;
     min-block-size: 0;
     overflow-y: auto;
-  }
-
-  scores-tab-slot {
-    display: block;
-    padding: var(--space-s) var(--space-l);
-    color: var(--foreground-l4);
-    font-size: var(--step--1);
   }
 
   details-footer {

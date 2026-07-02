@@ -7,6 +7,7 @@
   import { ChallengeScoringKind, type Challenge } from '@rctf/types'
   import Chip from '$lib/ui/chip.svelte'
   import { getCategoryConfig } from '$lib/utils/categories'
+  import ChallengePointDelta from './challenges-point-delta.svelte'
 
   interface Props {
     challenge: Challenge
@@ -43,8 +44,7 @@
     <header-score>
       <span data-slot="points">{displayPoints.toLocaleString()} pts</span>
       {#if isDynamic}
-        <!-- U11: the dynamic point-delta chip replaces this line for dynamic challenges. -->
-        <delta-slot></delta-slot>
+        <ChallengePointDelta delta={challenge.yourPointDelta ?? 0} />
       {:else}
         <span data-slot="solves">{challenge.solves.toLocaleString()} solves</span>
       {/if}
