@@ -5,21 +5,26 @@ export const toaster = zagToast.createStore({
   overlap: false,
 })
 
+type ToastOptions = {
+  /** How long the toast stays visible, in milliseconds. */
+  duration?: number
+}
+
 export const toast = {
-  success(msg: string): void {
-    toaster.success({ title: msg })
+  success(msg: string, options?: ToastOptions): void {
+    toaster.success({ title: msg, ...options })
   },
-  error(msg: string): void {
-    toaster.error({ title: msg })
+  error(msg: string, options?: ToastOptions): void {
+    toaster.error({ title: msg, ...options })
   },
-  info(msg: string): void {
-    toaster.info({ title: msg })
+  info(msg: string, options?: ToastOptions): void {
+    toaster.info({ title: msg, ...options })
   },
-  warning(msg: string): void {
-    toaster.warning({ title: msg })
+  warning(msg: string, options?: ToastOptions): void {
+    toaster.warning({ title: msg, ...options })
   },
-  loading(msg: string): void {
-    toaster.loading({ title: msg })
+  loading(msg: string, options?: ToastOptions): void {
+    toaster.loading({ title: msg, ...options })
   },
   dismiss(): void {
     toaster.dismiss()
