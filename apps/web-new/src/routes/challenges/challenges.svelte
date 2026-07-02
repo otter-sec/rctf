@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
-  import { pushState, replaceState } from '$app/navigation'
+  import { afterNavigate, pushState, replaceState } from '$app/navigation'
   import { page } from '$app/state'
   import {
     deriveBloodIds,
@@ -54,6 +54,11 @@
   let selectedId = $state<string | null>(null)
   let deepLinkTarget = $state<string | null>(null)
   let innerWidth = $state(0)
+  // Router readiness gates shallow routing (pushState throws before the first
+  // navigation settles). pendingDrawerId defers a cold deep-link's mobile drawer
+  // open until afterNavigate fires.
+  let routerReady = $state(false)
+  let pendingDrawerId = $state<string | null>(null)
 
   const isMobile = $derived(innerWidth > 0 && innerWidth < DESKTOP_MIN_WIDTH)
   const listMinSize = $derived(innerWidth < WIDE_MIN_WIDTH ? 40 : 20)
@@ -113,7 +118,17 @@
 
   // Deep-link latch: once, after challenges load and the form factor is known,
   // restore the ?challenge= selection, open the drawer on mobile, and scroll to
-  // the row (guarded — the placeholder list has no rows yet).
+  // the row. The row mounts a frame or two after the data lands (accordion
+  // content renders behind the machine), so retry briefly instead of once.
+  function scrollToRow(id: string, attempts = 60) {
+    const el = document.getElementById(`chall-${id}`)
+    if (el) {
+      el.scrollIntoView({ behavior: 'instant', block: 'center' })
+    } else if (attempts > 0) {
+      requestAnimationFrame(() => scrollToRow(id, attempts - 1))
+    }
+  }
+
   let latched = $state(false)
   $effect(() => {
     if (latched || challenges.length === 0 || innerWidth === 0) return
@@ -122,14 +137,24 @@
     if (id) {
       selectedId = id
       deepLinkTarget = id
-      if (isMobile) openDrawer(id)
-      void tick().then(() => {
-        document
-          .getElementById(`chall-${id}`)
-          ?.scrollIntoView({ behavior: 'instant', block: 'center' })
-      })
+      pendingDrawerId = isMobile ? id : null
+      void tick().then(() => scrollToRow(id))
     }
     latched = true
+  })
+
+  // Shallow routing (pushState) throws until SvelteKit's router has finished its
+  // first navigation, which on a cold deep-link load happens after the initial
+  // latch effect. afterNavigate fires once the router is ready; open the mobile
+  // deep-link drawer then. Runtime selections happen well after this, so they
+  // push directly.
+  afterNavigate(() => {
+    routerReady = true
+    if (pendingDrawerId && isMobile && page.state.challengeDrawer !== true) {
+      const id = pendingDrawerId
+      pendingDrawerId = null
+      openDrawer(id)
+    }
   })
 
   // Keep the drawer/selection consistent across the desktop/mobile boundary,
@@ -142,8 +167,9 @@
     if (!mobile) {
       // mobile → desktop: drop the drawer entry, keep the selection for the pane.
       if (page.state.challengeDrawer === true) closeDrawer('resize-to-desktop')
-    } else if (selectedId && page.state.challengeDrawer !== true) {
-      // desktop → mobile with a selection: re-open the drawer.
+    } else if (routerReady && selectedId && page.state.challengeDrawer !== true) {
+      // desktop → mobile with a selection: re-open the drawer. Before the router
+      // is ready the cold-load latch owns the initial mobile open (pendingDrawerId).
       openDrawer(selectedId)
     }
   })
