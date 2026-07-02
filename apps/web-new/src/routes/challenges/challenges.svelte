@@ -11,15 +11,15 @@
   } from '$lib/query/challenges'
   import { useCurrentUser } from '$lib/query/user'
   import Dialog from '$lib/ui/dialog.svelte'
-  import EmptyState from '$lib/ui/empty-state.svelte'
   import Splitter from '$lib/ui/splitter.svelte'
   import { tick } from 'svelte'
   import { SvelteSet } from 'svelte/reactivity'
+  import ChallengeDetails from './challenges-details.svelte'
   import ChallengesList from './challenges-list.svelte'
   import { getDeepLinkId, resolveClose, type CloseSource } from './drawer-history'
 
-  // Pass-down contract for U5/U6: swapping the placeholders below for the real
-  // list/detail components should be prop-passing only.
+  // Prop contract the list and detail panes are wired against; kept explicit so
+  // the two render sites (desktop panes, mobile drawer) stay in sync.
   type ChallengeListProps = {
     challenges: Challenge[]
     solvedIds: ReadonlySet<string>
@@ -173,15 +173,10 @@
 
 {#snippet detailPane(props: ChallengeDetailProps)}
   <challenges-detail-slot>
-    <!-- U6 replaces this placeholder with <ChallengeDetails {...props} /> -->
-    {#if props.challenge}
-      <placeholder-note>{props.challenge.name}</placeholder-note>
-    {:else}
-      <EmptyState
-        title="Select a challenge"
-        subtitle="Choose a challenge from the list to view details"
-      />
-    {/if}
+    <!-- Remount per challenge so tab/form/sub-query state resets on switch. -->
+    {#key props.challenge?.id}
+      <ChallengeDetails {...props} />
+    {/key}
   </challenges-detail-slot>
 {/snippet}
 
@@ -271,12 +266,6 @@
     flex-direction: column;
     min-block-size: 0;
     overflow: auto;
-  }
-
-  placeholder-note {
-    padding: var(--space-s);
-    color: var(--foreground-l4);
-    font-size: var(--step--1);
   }
 
   /* Portaled drawer content escapes this subtree, so size it via a global knob
