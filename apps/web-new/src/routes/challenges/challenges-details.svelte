@@ -14,6 +14,7 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import ChallengeDetailsHeader from './challenges-details-header.svelte'
   import ChallengeDetailsOverview from './challenges-details-overview.svelte'
+  import ChallengeDetailsSolves from './challenges-details-solves.svelte'
   import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
 
   interface Props {
@@ -61,8 +62,7 @@
             {#if value === 'details'}
               <ChallengeDetailsOverview {challenge} />
             {:else if value === 'solves'}
-              <!-- U8: replace with the solves tab (challenge prop). -->
-              <solves-tab-slot>Solve feed loads here.</solves-tab-slot>
+              <ChallengeDetailsSolves {challenge} />
             {:else if value === 'scores'}
               <!-- U11: replace with the scores tab (challenge prop). -->
               <scores-tab-slot>Score feed loads here.</scores-tab-slot>
@@ -137,7 +137,6 @@
     overflow-y: auto;
   }
 
-  solves-tab-slot,
   scores-tab-slot {
     display: block;
     padding: var(--space-s) var(--space-l);
