@@ -6,7 +6,7 @@ prose-content {
   text-wrap: pretty;
   overflow-wrap: break-word;
 
-  :where(p, ul, ol, blockquote, pre, table, figure, hr, details) {
+  :where(p, ul, ol, blockquote, pre, table, figure, hr, details, [data-alert]) {
     margin-block: 0 1em;
   }
 

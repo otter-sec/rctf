@@ -84,7 +84,6 @@
     --accent: var(--foreground-l1);
 
     display: block;
-    margin-block: var(--space-s);
 
     &:not([data-type='connection']) {
       border-inline-start: 4px solid var(--accent);
