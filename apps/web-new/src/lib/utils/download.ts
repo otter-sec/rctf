@@ -104,6 +104,28 @@ function navigateViaIframe(file: DownloadFile, reportError: () => void): void {
   window.setTimeout(() => iframe.remove(), IFRAME_GRACE_MS)
 }
 
+/**
+ * Trigger a client-side download of in-memory text as a file, via a temporary
+ * object URL and a synthetic anchor click. For content the app already holds
+ * (job logs, a bot script), not a remote URL — use `downloadAll` for those.
+ *
+ * @param fileName - The name to save the file as.
+ * @param contents - The file body.
+ * @param mimeType - The blob MIME type.
+ */
+export function downloadTextFile(
+  fileName: string,
+  contents: string,
+  mimeType: string
+): void {
+  const url = URL.createObjectURL(new Blob([contents], { type: mimeType }))
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = fileName
+  anchor.click()
+  URL.revokeObjectURL(url)
+}
+
 let domScheduler: DownloadScheduler | null = null
 
 /**

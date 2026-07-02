@@ -107,3 +107,12 @@ export function formatCountdown(ms: number): string {
   const secs = Math.floor((ms % 60_000) / 1000)
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
+
+// 24-hour HH:MM:SS in local time for admin-bot log line stamps. Built from Date
+// parts rather than Intl so it stays byte-stable and never rolls to a 12-hour
+// clock across engines/locales.
+export function formatClockTime(timestamp: number): string {
+  const date = new Date(timestamp)
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+}

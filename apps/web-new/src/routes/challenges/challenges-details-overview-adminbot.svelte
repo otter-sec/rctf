@@ -1,0 +1,589 @@
+<!--
+  Admin-bot panel (challenge details / overview). Shown when a challenge sets
+  adminBotInputs. The current job is a TanStack query keyed by challenge so its
+  3s poll (while queued/running, off otherwise) survives remounts; each status
+  update refreshes the job history alongside it. Submitting a job is a direct
+  apiRequest with local per-input $state (the inputs are a dynamic record, not a
+  fixed form), optimistically seeding a QUEUED job then refetching for the real
+  queue position. History log fetches are lazy and imperative, guarded by a
+  request token so a slow response for a since-switched job is discarded.
+-->
+<script lang="ts">
+  import {
+    AdminBotJobStatus,
+    BadAdminBotConfig,
+    BadInstancerState,
+    GetAdminBotConfigRouteV2,
+    GetAdminBotJobLogsRouteV2,
+    GoodAdminBotConfig,
+    GoodAdminBotJobLogs,
+    GoodAdminBotJobSubmitted,
+    ProtectedAction,
+    SubmitAdminBotJobRouteV2,
+  } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { apiRequest, showApiError } from '$lib/api'
+  import CaptchaNotice from '$lib/components/captcha-notice.svelte'
+  import IconAlertCircleFilled from '$lib/icons/icon-alert-circle-filled.svelte'
+  import IconChevronDown from '$lib/icons/icon-chevron-down.svelte'
+  import IconChevronRight from '$lib/icons/icon-chevron-right.svelte'
+  import IconCircleCheckFilled from '$lib/icons/icon-circle-check-filled.svelte'
+  import IconClockFilled from '$lib/icons/icon-clock-filled.svelte'
+  import IconDownload from '$lib/icons/icon-download.svelte'
+  import IconLogin from '$lib/icons/icon-login.svelte'
+  import IconSend from '$lib/icons/icon-send.svelte'
+  import { useAdminBotHistory, useAdminBotStatus } from '$lib/query/challenges'
+  import { useClientConfig } from '$lib/query/config'
+  import { queryKeys } from '$lib/query/keys'
+  import { useCurrentUser } from '$lib/query/user'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
+  import Field from '$lib/ui/field.svelte'
+  import Input from '$lib/ui/input.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import { parseAdminBotLogs, validateAdminBotInput } from '$lib/utils/admin-bot-logs'
+  import { downloadTextFile } from '$lib/utils/download'
+  import { formatLocalTime } from '$lib/utils/time'
+  import AdminBotLogViewer from './admin-bot-log-viewer.svelte'
+
+  interface Props {
+    challengeId: string
+    inputs: Record<string, { pattern: string; flags?: string }>
+  }
+
+  let { challengeId, inputs }: Props = $props()
+
+  const configQuery = useClientConfig()
+  const clientConfig = $derived(configQuery.data)
+
+  // Login-only gate off the userSelf query (null when signed out): the admin bot
+  // stays usable in archived/ended CTFs, unlike the flag bar (KTD-6).
+  const userQuery = useCurrentUser()
+  const isAuthenticated = $derived(userQuery.data != null)
+
+  const queryClient = useQueryClient()
+  const statusKey = $derived(queryKeys.challengeAdminBotStatus(challengeId))
+
+  const statusQuery = useAdminBotStatus(
+    () => challengeId,
+    () => isAuthenticated
+  )
+  const historyQuery = useAdminBotHistory(
+    () => challengeId,
+    () => isAuthenticated
+  )
+
+  const job = $derived(statusQuery.data ?? null)
+  const isJobActive = $derived(
+    job?.status === AdminBotJobStatus.QUEUED || job?.status === AdminBotJobStatus.RUNNING
+  )
+  const logEntries = $derived(job?.logs ? parseAdminBotLogs(job.logs) : [])
+
+  // History excludes the current job (the status query owns that one).
+  const history = $derived((historyQuery.data ?? []).filter(entry => entry.id !== job?.id))
+
+  const inputNames = $derived(Object.keys(inputs))
+
+  const view = $derived(!isAuthenticated ? 'login' : statusQuery.isLoading ? 'loading' : 'ready')
+
+  let values = $state<Record<string, string>>({})
+  let errors = $state<Record<string, string | undefined>>({})
+  let submitting = $state(false)
+  let logsOpen = $state(false)
+  let historyOpen = $state(false)
+
+  let openHistoryLogsJobId = $state<string | null>(null)
+  let historyLogs = $state<string | null>(null)
+  let historyLogsLoading = $state(false)
+  // Bumped on every history-log request; a slow response whose token no longer
+  // matches (the user switched jobs meanwhile) is discarded.
+  let historyLogsRequestId = 0
+  const historyLogEntries = $derived(historyLogs ? parseAdminBotLogs(historyLogs) : [])
+
+  // Mirror the old client: keep history fresh alongside the status poll by
+  // invalidating it whenever the status query produces a new result.
+  const statusUpdatedAt = $derived(statusQuery.dataUpdatedAt)
+  $effect(() => {
+    void statusUpdatedAt
+    if (!isAuthenticated) return
+    void queryClient.invalidateQueries({
+      queryKey: queryKeys.challengeAdminBotHistory(challengeId),
+      exact: true,
+    })
+  })
+
+  function validateField(name: string): string | undefined {
+    const rule = inputs[name]
+    if (!rule) return undefined
+    return validateAdminBotInput(values[name] ?? '', rule).error
+  }
+
+  function validateAll(): boolean {
+    let valid = true
+    for (const name of inputNames) {
+      const error = validateField(name)
+      errors[name] = error
+      if (error) valid = false
+    }
+    return valid
+  }
+
+  function revalidateIfShown(name: string) {
+    if (errors[name]) {
+      errors[name] = validateField(name)
+    }
+  }
+
+  function handleBlur(name: string) {
+    errors[name] = validateField(name)
+  }
+
+  async function submit() {
+    if (!validateAll()) return
+    submitting = true
+    try {
+      const res = await apiRequest(SubmitAdminBotJobRouteV2, {
+        id: challengeId,
+        inputs: Object.fromEntries(inputNames.map(name => [name, values[name] ?? ''])),
+      })
+      if (res.kind === GoodAdminBotJobSubmitted.kind) {
+        toast.success('Admin bot job submitted!')
+        errors = {}
+        logsOpen = false
+        // Optimistic QUEUED job, then refetch to get the real queue position.
+        queryClient.setQueryData(statusKey, {
+          id: res.data.jobId,
+          status: AdminBotJobStatus.QUEUED,
+          createdAt: new Date().toISOString(),
+          queuePosition: null,
+          logs: null,
+        })
+        void queryClient.invalidateQueries({ queryKey: statusKey, exact: true })
+      } else if (res.kind === BadAdminBotConfig.kind || res.kind === BadInstancerState.kind) {
+        toast.error(res.data.error)
+      } else {
+        showApiError(res)
+      }
+    } finally {
+      submitting = false
+    }
+  }
+
+  async function downloadConfig() {
+    const res = await apiRequest(GetAdminBotConfigRouteV2, { id: challengeId })
+    if (res.kind === GoodAdminBotConfig.kind) {
+      // Extension arrives dot-prefixed (e.g. '.ts'), so no separator is added.
+      downloadTextFile(`bot${res.data.fileExtension}`, res.data.sourceCode, 'text/plain')
+    } else {
+      showApiError(res)
+    }
+  }
+
+  async function viewHistoryLogs(jobId: string) {
+    if (openHistoryLogsJobId === jobId) {
+      openHistoryLogsJobId = null
+      historyLogs = null
+      historyLogsLoading = false
+      return
+    }
+    const requestId = ++historyLogsRequestId
+    openHistoryLogsJobId = jobId
+    historyLogs = null
+    historyLogsLoading = true
+    const res = await apiRequest(GetAdminBotJobLogsRouteV2, {
+      id: challengeId,
+      jobId,
+    })
+    // A newer click switched the selected job while this was in flight.
+    if (requestId !== historyLogsRequestId) return
+    if (res.kind === GoodAdminBotJobLogs.kind) {
+      historyLogs = res.data.logs
+    } else {
+      showApiError(res)
+    }
+    historyLogsLoading = false
+  }
+</script>
+
+{#snippet statusIcon(status: AdminBotJobStatus)}
+  <status-icon data-status={status}>
+    {#if status === AdminBotJobStatus.QUEUED}
+      <IconClockFilled />
+    {:else if status === AdminBotJobStatus.RUNNING}
+      <Spinner />
+    {:else if status === AdminBotJobStatus.COMPLETED}
+      <IconCircleCheckFilled />
+    {:else if status === AdminBotJobStatus.FAILED}
+      <IconAlertCircleFilled />
+    {/if}
+  </status-icon>
+{/snippet}
+
+<adminbot-panel data-view={view}>
+  {#if view === 'login'}
+    <adminbot-empty>
+      <adminbot-message>Login to use the admin bot.</adminbot-message>
+      <Button href="/login">
+        <IconLogin />
+        Login
+      </Button>
+    </adminbot-empty>
+  {:else if view === 'loading'}
+    <adminbot-loading><Spinner /></adminbot-loading>
+  {:else}
+    {#if job}
+      <job-card data-status={job.status}>
+        <job-status>
+          {@render statusIcon(job.status)}
+          {#if job.status === AdminBotJobStatus.QUEUED}
+            <span
+              >Job queued{job.queuePosition != null ? ` (position ${job.queuePosition})` : ''}</span
+            >
+          {:else if job.status === AdminBotJobStatus.RUNNING}
+            <span>Job running</span>
+          {:else if job.status === AdminBotJobStatus.COMPLETED}
+            <span>Job completed</span>
+          {:else if job.status === AdminBotJobStatus.FAILED}
+            <span>Job failed</span>
+          {/if}
+        </job-status>
+        {#if job.logs}
+          <button
+            type="button"
+            data-slot="logs-toggle"
+            aria-expanded={logsOpen}
+            onclick={() => (logsOpen = !logsOpen)}
+          >
+            Logs
+            <IconChevronDown data-open={logsOpen || undefined} />
+          </button>
+        {/if}
+      </job-card>
+
+      {#if job.logs && logsOpen}
+        <AdminBotLogViewer entries={logEntries} raw={job.logs} jobId={job.id} />
+      {/if}
+    {/if}
+
+    {#if history.length > 0}
+      <button
+        type="button"
+        data-slot="history-toggle"
+        aria-expanded={historyOpen}
+        onclick={() => (historyOpen = !historyOpen)}
+      >
+        <IconChevronRight data-open={historyOpen || undefined} />
+        <span>Previous jobs ({history.length})</span>
+      </button>
+
+      {#if historyOpen}
+        <history-list>
+          {#each history as historyJob (historyJob.id)}
+            <history-item>
+              <button
+                type="button"
+                aria-expanded={openHistoryLogsJobId === historyJob.id}
+                disabled={!historyJob.hasLogs}
+                onclick={() => historyJob.hasLogs && viewHistoryLogs(historyJob.id)}
+              >
+                {@render statusIcon(historyJob.status)}
+                <history-date>{formatLocalTime(Date.parse(historyJob.createdAt))}</history-date>
+                <history-status>{historyJob.status}</history-status>
+                {#if historyJob.hasLogs}
+                  <history-logs-hint>
+                    Logs
+                    <IconChevronDown
+                      data-open={openHistoryLogsJobId === historyJob.id || undefined}
+                    />
+                  </history-logs-hint>
+                {/if}
+              </button>
+
+              {#if openHistoryLogsJobId === historyJob.id}
+                {#if historyLogsLoading}
+                  <history-logs-loading><Spinner /></history-logs-loading>
+                {:else if historyLogs}
+                  <AdminBotLogViewer
+                    entries={historyLogEntries}
+                    raw={historyLogs}
+                    jobId={historyJob.id}
+                  />
+                {/if}
+              {/if}
+            </history-item>
+          {/each}
+        </history-list>
+      {/if}
+    {/if}
+
+    <form
+      onsubmit={event => {
+        event.preventDefault()
+        void submit()
+      }}
+    >
+      {#each inputNames as name (name)}
+        <Field label={name} error={errors[name]}>
+          {#snippet children({ id, describedBy })}
+            <Input
+              {id}
+              type="text"
+              data-mono
+              placeholder={inputs[name]?.pattern ?? name}
+              aria-describedby={describedBy}
+              aria-invalid={errors[name] ? true : undefined}
+              disabled={submitting || isJobActive}
+              bind:value={values[name]}
+              oninput={() => revalidateIfShown(name)}
+              onblur={() => handleBlur(name)}
+            />
+          {/snippet}
+        </Field>
+      {/each}
+
+      <form-actions>
+        <Button type="submit" disabled={submitting || isJobActive}>
+          {#if submitting}<Spinner />{:else}<IconSend />{/if}
+          Submit
+        </Button>
+        <Button type="button" variant="secondary" onclick={downloadConfig}>
+          <IconDownload />
+          Download config
+        </Button>
+        <CaptchaNotice config={clientConfig} action={ProtectedAction.AdminBotSubmit} />
+      </form-actions>
+    </form>
+  {/if}
+</adminbot-panel>
+
+<style>
+  adminbot-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+    block-size: 100%;
+  }
+
+  adminbot-empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+  }
+
+  adminbot-message {
+    color: var(--foreground-l3);
+    font-size: var(--step--1);
+    text-align: center;
+    text-wrap: balance;
+  }
+
+  adminbot-empty :global(a[data-variant]) {
+    inline-size: 100%;
+  }
+
+  adminbot-loading {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    color: var(--foreground-l4);
+    font-size: 1.25rem;
+  }
+
+  status-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--foreground-l3);
+  }
+
+  status-icon[data-status='completed'] {
+    color: var(--foreground-accent);
+  }
+
+  status-icon[data-status='failed'] {
+    color: var(--foreground-destructive);
+  }
+
+  job-card {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    padding: var(--space-2xs) var(--space-s);
+    background: var(--background-l4);
+    border-radius: var(--radius-md);
+    font-size: var(--step--1);
+  }
+
+  job-card[data-status='completed'] job-status {
+    color: var(--foreground-accent);
+  }
+
+  job-card[data-status='failed'] job-status {
+    color: var(--foreground-destructive);
+  }
+
+  job-status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    color: var(--foreground-l3);
+  }
+
+  [data-slot='logs-toggle'] {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    margin-inline-start: auto;
+    color: var(--foreground-l3);
+    font-size: var(--step--2);
+    cursor: pointer;
+    opacity: 0.75;
+
+    &:hover {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    :global(svg) {
+      inline-size: 0.85rem;
+      block-size: 0.85rem;
+      transition: rotate 0.15s ease;
+    }
+
+    :global(svg[data-open]) {
+      rotate: 180deg;
+    }
+  }
+
+  [data-slot='history-toggle'] {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    color: var(--foreground-l4);
+    font-size: var(--step--2);
+    cursor: pointer;
+
+    &:hover {
+      color: var(--foreground-l3);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+      border-radius: var(--radius-sm);
+    }
+
+    :global(svg) {
+      inline-size: 0.85rem;
+      block-size: 0.85rem;
+      transition: rotate 0.15s ease;
+    }
+
+    :global(svg[data-open]) {
+      rotate: 90deg;
+    }
+  }
+
+  history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+  }
+
+  history-item {
+    display: block;
+  }
+
+  history-item > button {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+    inline-size: 100%;
+    padding: var(--space-2xs) var(--space-s);
+    color: inherit;
+    text-align: start;
+    background: var(--background-l4);
+    border-radius: var(--radius-md);
+    font-size: var(--step--2);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--background-l5);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+    }
+  }
+
+  history-date {
+    color: var(--foreground-l3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  history-status {
+    color: var(--foreground-l4);
+    text-transform: capitalize;
+  }
+
+  history-logs-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    margin-inline-start: auto;
+    color: var(--foreground-l4);
+
+    :global(svg) {
+      inline-size: 0.75rem;
+      block-size: 0.75rem;
+      transition: rotate 0.15s ease;
+    }
+
+    :global(svg[data-open]) {
+      rotate: 180deg;
+    }
+  }
+
+  history-logs-loading {
+    display: flex;
+    justify-content: center;
+    padding: var(--space-s);
+    color: var(--foreground-l4);
+  }
+
+  form {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  form :global(input[data-mono]) {
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+  }
+
+  form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xs);
+    margin-block-start: auto;
+  }
+
+  form-actions :global(button[data-variant]) {
+    inline-size: 100%;
+  }
+</style>
