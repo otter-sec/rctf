@@ -68,11 +68,10 @@
     z-index: var(--layer-popover);
     display: flex;
     flex-direction: column;
-    gap: var(--space-3xs);
     min-inline-size: var(--menu-min-width, 12rem);
-    padding: var(--space-3xs);
+    padding: 0.25rem;
     background: var(--background-l1);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius-md);
 
     &:focus-visible {
@@ -84,7 +83,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
-    padding: var(--space-2xs);
+    padding: 0.375rem 0.5rem;
     color: var(--foreground-l1);
     text-decoration: none;
     cursor: pointer;

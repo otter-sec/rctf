@@ -107,7 +107,7 @@
 
     &[data-variant='outline'] {
       background: var(--background-l1);
-      border: 1px solid var(--border);
+      border: 2px solid var(--border);
 
       &:hover {
         background: var(--background-l2);

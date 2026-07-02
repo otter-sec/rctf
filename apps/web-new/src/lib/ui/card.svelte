@@ -31,7 +31,7 @@
     gap: var(--space-s);
     padding: var(--space-m);
     background: var(--background-l1);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius-lg);
   }
 

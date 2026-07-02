@@ -108,7 +108,7 @@
     display: block;
 
     & + & {
-      border-block-start: 1px solid var(--background-l4);
+      border-block-start: 2px solid var(--background-l4);
     }
   }
 
@@ -201,7 +201,7 @@
     gap: var(--space-3xs);
     padding: var(--space-3xs) var(--space-2xs) var(--space-3xs) 2rem;
     background: var(--background-l3);
-    border-block-start: 1px solid var(--background-l4);
+    border-block-start: 2px solid var(--background-l4);
   }
 
   extra-row {
@@ -222,7 +222,7 @@
   log-footer {
     display: flex;
     justify-content: flex-end;
-    border-block-start: 1px solid var(--background-l4);
+    border-block-start: 2px solid var(--background-l4);
   }
 
   log-footer button {

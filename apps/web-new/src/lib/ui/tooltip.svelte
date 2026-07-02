@@ -35,7 +35,7 @@
     font-size: var(--step--1);
     color: var(--foreground-l1);
     background: var(--background-l2);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: var(--radius-sm);
   }
 </style>
