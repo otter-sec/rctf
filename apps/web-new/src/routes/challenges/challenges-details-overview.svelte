@@ -16,6 +16,7 @@
   import { downloadAll } from '$lib/utils/download'
   import { formatFileSize } from '$lib/utils/filesize'
   import { onDestroy } from 'svelte'
+  import ChallengeDetailsOverviewAdminbot from './challenges-details-overview-adminbot.svelte'
   import ChallengeDetailsOverviewInstancer from './challenges-details-overview-instancer.svelte'
 
   interface Props {
@@ -88,9 +89,11 @@
     {/if}
 
     {#if challenge.adminBotInputs != null}
-      <!-- U14: replace with the admin-bot panel (challengeId + adminBotInputs props). -->
       <Section title="Admin bot">
-        <admin-bot-slot>Admin-bot form loads here.</admin-bot-slot>
+        <ChallengeDetailsOverviewAdminbot
+          challengeId={challenge.id}
+          inputs={challenge.adminBotInputs}
+        />
       </Section>
     {/if}
   </overview-grid>
@@ -176,12 +179,6 @@
 
   file-meta [data-slot='size'] {
     color: var(--foreground-l3);
-    font-size: var(--step--1);
-  }
-
-  admin-bot-slot {
-    display: block;
-    color: var(--foreground-l4);
     font-size: var(--step--1);
   }
 </style>

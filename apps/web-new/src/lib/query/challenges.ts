@@ -1,9 +1,14 @@
 import {
+  AdminBotJobStatus,
   BadInstancerError,
+  GetAdminBotJobHistoryRouteV2,
+  GetAdminBotJobStatusRouteV2,
   GetChallengeScoresRouteV2,
   GetChallengeSolvesRouteV2,
   GetChallengesRouteV2,
   GetInstanceStatusRouteV2,
+  GoodAdminBotJobHistory,
+  GoodAdminBotJobStatus,
   GoodChallengeScoresV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
@@ -235,6 +240,66 @@ export function useChallengeInstance(
   enabled: () => boolean
 ) {
   return createQuery(() => challengeInstanceQueryOptions(id(), enabled()))
+}
+
+export function adminBotStatusQueryOptions(
+  id: string | null,
+  enabled: boolean
+) {
+  return queryOptions({
+    queryKey: queryKeys.challengeAdminBotStatus(id ?? ''),
+    queryFn: async () => {
+      const response = await apiRequest(GetAdminBotJobStatusRouteV2, {
+        id: id!,
+      })
+      if (response.kind === GoodAdminBotJobStatus.kind) {
+        return response.data.job
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    enabled: enabled && !!id,
+    // Poll while a job is in flight; a settled (or absent) job is not polled.
+    refetchInterval: query => {
+      const status = query.state.data?.status
+      return status === AdminBotJobStatus.QUEUED ||
+        status === AdminBotJobStatus.RUNNING
+        ? 3000
+        : false
+    },
+  })
+}
+
+export function useAdminBotStatus(
+  id: () => string | null,
+  enabled: () => boolean
+) {
+  return createQuery(() => adminBotStatusQueryOptions(id(), enabled()))
+}
+
+export function adminBotHistoryQueryOptions(
+  id: string | null,
+  enabled: boolean
+) {
+  return queryOptions({
+    queryKey: queryKeys.challengeAdminBotHistory(id ?? ''),
+    queryFn: async () => {
+      const response = await apiRequest(GetAdminBotJobHistoryRouteV2, {
+        id: id!,
+      })
+      if (response.kind === GoodAdminBotJobHistory.kind) {
+        return response.data.jobs
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    enabled: enabled && !!id,
+  })
+}
+
+export function useAdminBotHistory(
+  id: () => string | null,
+  enabled: () => boolean
+) {
+  return createQuery(() => adminBotHistoryQueryOptions(id(), enabled()))
 }
 
 /**
