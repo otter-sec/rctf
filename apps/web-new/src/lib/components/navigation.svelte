@@ -179,8 +179,8 @@
 </header>
 
 <style>
-  /* Fixed (not fluid) paddings: 0.75rem verticals keep the header at exactly
-     72px — the offset full-height pages subtract from 100dvh. */
+  /* Fixed (not fluid) paddings so the header lands on --header-height, the
+     offset full-height pages subtract from 100dvh. */
   header {
     position: sticky;
     inset-block-start: 0;
@@ -188,6 +188,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    block-size: var(--header-height);
     padding: 0.75rem 1rem;
     background: var(--background-l0);
 

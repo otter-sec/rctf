@@ -240,11 +240,11 @@
 {/if}
 
 <style>
-  /* Lock the page to the space under the 72px header; the list and details
-     panes own their scrolling. */
+  /* Lock the page to the space under the header; the list and details panes
+     own their scrolling. */
   challenges-page {
     display: flex;
-    block-size: calc(100dvh - 72px);
+    block-size: calc(100dvh - var(--header-height));
     min-block-size: 0;
     --splitter-handle-size: 0.5rem;
   }
