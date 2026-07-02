@@ -239,11 +239,13 @@
 {/if}
 
 <style>
+  /* Lock the page to the space under the 72px header; the list and details
+     panes own their scrolling. */
   challenges-page {
     display: flex;
-    flex: 1;
+    block-size: calc(100dvh - 72px);
     min-block-size: 0;
-    --splitter-handle-size: var(--space-s);
+    --splitter-handle-size: 0.5rem;
   }
 
   challenges-page[data-form='mobile'] {
@@ -254,7 +256,7 @@
     display: flex;
     flex-direction: column;
     block-size: 100%;
-    overflow: auto;
+    overflow: hidden;
     background: var(--background-l1);
   }
 
@@ -295,8 +297,16 @@
   }
 
   /* Portaled drawer content escapes this subtree, so size it via a global knob
-     scoped to the drawer presentation. Only the challenges drawer uses it. */
+     scoped to the drawer presentation. Only the challenges drawer uses it. The
+     detail pane owns its padding (header/tabs rails), so the drawer shell adds
+     none of its own. */
   :global([data-presentation='drawer']) {
     --dialog-drawer-max-size: 92dvh;
+  }
+
+  :global([data-presentation='drawer'] [data-part='content'][data-part='content']) {
+    gap: 0;
+    block-size: 100%;
+    padding: 0;
   }
 </style>

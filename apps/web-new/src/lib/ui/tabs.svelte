@@ -11,9 +11,9 @@
 <script lang="ts">
   import { normalizeProps, useMachine } from '@zag-js/svelte'
   import * as tabs from '@zag-js/tabs'
-  import type { Snippet } from 'svelte'
+  import type { Component, Snippet } from 'svelte'
 
-  type Tab = { value: string; label: string; count?: number }
+  type Tab = { value: string; label: string; count?: number; icon?: Component }
 
   type Props = {
     value?: string | null
@@ -41,10 +41,10 @@
   <div {...api.getListProps()}>
     {#each items as tab (tab.value)}
       <button {...api.getTriggerProps({ value: tab.value })}>
-        {tab.label}
-        {#if tab.count !== undefined}
-          <tab-count>{tab.count}</tab-count>
+        {#if tab.icon}
+          <tab.icon data-slot="tab-icon" />
         {/if}
+        {tab.label}{#if tab.count !== undefined}<tab-count>({tab.count})</tab-count>{/if}
       </button>
     {/each}
   </div>
@@ -58,32 +58,33 @@
 <style>
   [data-part='list'] {
     display: flex;
-    gap: var(--space-s);
-    border-block-end: 1px solid var(--border);
   }
 
   [data-part='trigger'] {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2xs);
-    padding-block: var(--space-2xs);
+    gap: 0.375rem;
+    padding: 0.25rem 1rem;
     color: var(--foreground-l2);
     cursor: pointer;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 
     &[data-selected] {
       color: var(--foreground-l0);
-      box-shadow: inset 0 -2px 0 0 var(--foreground-accent);
+      background: var(--background-l2);
     }
   }
 
+  [data-part='trigger'] :global([data-slot='tab-icon']) {
+    flex-shrink: 0;
+    font-size: 1rem;
+  }
+
   tab-count {
-    font-size: var(--step--1);
-    color: var(--foreground-l3);
+    white-space: nowrap;
   }
 
   [data-part='content'] {
-    padding-block-start: var(--space-s);
-
     &:focus-visible {
       outline: none;
     }

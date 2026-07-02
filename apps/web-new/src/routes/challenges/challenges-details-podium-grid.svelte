@@ -54,7 +54,7 @@
   podium-track {
     display: grid;
     grid-template-columns: 1fr;
-    gap: var(--space-2xs);
+    gap: 0.5rem;
   }
 
   podium-slot {
@@ -62,13 +62,14 @@
     --slot-fg-l1: var(--foreground-nth-l1);
     --slot-bg: var(--background-nth);
     --avatar-size: 2.75rem;
+    --avatar-radius: var(--radius-md);
 
     display: flex;
-    gap: var(--space-2xs);
+    gap: 0.5rem;
     align-items: center;
     justify-content: space-between;
     block-size: 3.5rem;
-    padding: var(--space-3xs);
+    padding: 0.25rem;
     background: var(--slot-bg);
     border: 2px solid transparent;
     border-radius: var(--radius-lg);
@@ -113,15 +114,15 @@
 
   slot-ordinal {
     flex-shrink: 0;
-    padding-inline-start: var(--space-3xs);
-    font-size: var(--step-0);
+    padding-inline-start: 0.25rem;
+    font-size: 1rem;
     color: var(--slot-fg-l0);
     white-space: nowrap;
   }
 
   slot-body {
     display: flex;
-    gap: var(--space-2xs);
+    gap: 0.5rem;
     align-items: center;
     min-inline-size: 0;
   }
@@ -136,7 +137,7 @@
   slot-name {
     max-inline-size: 100%;
     overflow: hidden;
-    font-size: var(--step-0);
+    font-size: 1rem;
     color: var(--slot-fg-l0);
     text-align: end;
     text-overflow: ellipsis;
@@ -146,7 +147,7 @@
   slot-detail {
     max-inline-size: 100%;
     overflow: hidden;
-    font-size: var(--step--1);
+    font-size: 0.875rem;
     color: var(--slot-fg-l1);
     text-align: end;
     text-overflow: ellipsis;

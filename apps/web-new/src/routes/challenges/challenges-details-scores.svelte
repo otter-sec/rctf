@@ -231,7 +231,7 @@
   scores-graph {
     display: block;
     flex-shrink: 0;
-    padding: var(--space-s) var(--space-s) var(--space-2xs);
+    padding: 1rem 1.25rem 0;
   }
 
   scores-viewport {
@@ -251,7 +251,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
-    padding: var(--space-s);
+    padding: 0.75rem 1.25rem 1rem;
   }
 
   row-slot {
@@ -261,10 +261,14 @@
   }
 
   score-points {
-    font-size: var(--step-1);
+    font-size: 1.125rem;
     font-variant-numeric: tabular-nums;
     color: var(--foreground-l1);
     white-space: nowrap;
+
+    @media (width >= 40rem) {
+      font-size: 1.25rem;
+    }
   }
 
   scores-loading {
@@ -288,9 +292,9 @@
     position: absolute;
     inset-inline: 0;
     z-index: 1;
-    padding-inline: var(--space-s);
+    padding-inline: 1.25rem;
     pointer-events: none;
-    background: var(--background-l1);
+    background: var(--background-l2);
   }
 
   self-overlay[data-edge='top'] {
