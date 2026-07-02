@@ -22,6 +22,7 @@ COPY apps/docs/package.json ./apps/docs/
 COPY apps/export/package.json ./apps/export/
 COPY apps/seed/package.json ./apps/seed/
 COPY apps/web/package.json ./apps/web/
+COPY apps/web-new/package.json ./apps/web-new/
 
 FROM build-base AS deps
 
@@ -35,6 +36,7 @@ RUN bun install \
     --filter '!@rctf/docs' \
     --filter '!@rctf/export' \
     --filter '!@rctf/seed' \
+    --filter '!@rctf/web-new' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
@@ -51,6 +53,7 @@ RUN bun install \
     --filter '!@rctf/admin-bot' \
     --filter '!@rctf/docs' \
     --filter '!@rctf/export' \
+    --filter '!@rctf/web-new' \
     --filter '!server-tests' \
     --filter '!admin-bot-tests' \
     --filter '!admin-bot-e2e-tests'
