@@ -9,7 +9,7 @@
   import '../styles/prose.css'
   import { QueryClientProvider } from '@tanstack/svelte-query'
   import favicon from '$lib/assets/favicon.svg'
-  import ThemeToggle from '$lib/components/theme-toggle.svelte'
+  import Navigation from '$lib/components/navigation.svelte'
   import ToastHost from '$lib/ui/toast-host.svelte'
   import { initAnalytics } from '$lib/utils/analytics'
   import { onMount } from 'svelte'
@@ -53,10 +53,7 @@
 
 <QueryClientProvider client={data.queryClient}>
   <app-shell>
-    <header>
-      <a href="/">{data.clientConfig.ctfName}</a>
-      <ThemeToggle />
-    </header>
+    <Navigation />
 
     <main>
       {@render children()}
@@ -71,19 +68,6 @@
     display: flex;
     flex-direction: column;
     min-block-size: 100dvh;
-  }
-
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-s);
-    padding: var(--space-2xs) var(--space-s);
-    border-block-end: 1px solid var(--border);
-
-    a {
-      font-weight: var(--font-weight-medium);
-    }
   }
 
   main {

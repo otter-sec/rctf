@@ -23,16 +23,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
-    font-size: var(--step-1);
-    color: var(--foreground-l1);
+    padding: 0.75rem 1rem;
+    font-size: 1.5rem;
+    color: var(--foreground-l2);
     background: var(--background-l2);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-lg);
     cursor: pointer;
 
     &:hover {
-      background: var(--background-l4);
+      background: var(--background-l3);
     }
   }
 
