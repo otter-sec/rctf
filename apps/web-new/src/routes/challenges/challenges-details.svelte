@@ -14,6 +14,7 @@
   import Tabs from '$lib/ui/tabs.svelte'
   import ChallengeDetailsHeader from './challenges-details-header.svelte'
   import ChallengeDetailsOverview from './challenges-details-overview.svelte'
+  import ChallengeDetailsSubmit from './challenges-details-submit.svelte'
 
   interface Props {
     challenge: Challenge | null
@@ -77,8 +78,7 @@
           <!-- U9: replace with the flag podium (challenge + isSolved props). -->
           <podium-slot>Podium loads here.</podium-slot>
         {/if}
-        <!-- U7: replace with the flag submit bar (challenge + isSolved + onSolve props). -->
-        <submit-slot>Flag submission loads here.</submit-slot>
+        <ChallengeDetailsSubmit {challenge} {isSolved} {onSolve} />
       </details-footer>
     {:else if isDynamic && activeTab === 'details'}
       <details-footer>
@@ -154,8 +154,7 @@
     border-block-start: 1px solid var(--border);
   }
 
-  podium-slot,
-  submit-slot {
+  podium-slot {
     display: block;
     color: var(--foreground-l4);
     font-size: var(--step--1);
