@@ -12,6 +12,7 @@ import type {
 import {
   ChallengeScoringKind,
   DynamicScoringTransport,
+  ExposeKind,
   Permissions,
   SubmissionKind,
   SubmissionResult,
@@ -33,7 +34,8 @@ const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 export const SEED_TEAM_COUNT = 250
 const SEED_GENERATED_CHALLENGE_COUNT = 18
-export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 2
+// Generated flag challenges + 2 koth + instancer-playground + admin-bot-playground
+export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 4
 export const COUNTRIES = ['EU', 'FR', 'US', 'CA', 'HK'] as const
 export const STATUSES = ['hi', 'hello'] as const
 export const SEED_CHALLENGE_CATEGORIES = [
@@ -55,6 +57,8 @@ const ADMIN_NAME = 'Admin'
 const ADMIN_EMAIL = 'admin@seed.rctf.local'
 const KOTH_1_CHALLENGE_ID = 'seed-koth-1'
 const KOTH_2_CHALLENGE_ID = 'seed-koth-2'
+const INSTANCER_CHALLENGE_ID = 'instancer-playground'
+const ADMIN_BOT_CHALLENGE_ID = 'admin-bot-playground'
 const KOTH_TICK_INTERVAL = 15 * 60_000
 const KOTH_MAX_POINTS = 880
 const KOTH_PAYOUT_EXPONENT = 1.1
@@ -80,6 +84,36 @@ const WRONG_FLAGS = [
   'rctf{hello}',
   '',
 ] as const
+
+// Stored verbatim as AdminBotConfig.code; the admin-bot service loads this
+// source with its own `Challenge`/`ctx` runtime, so it is not type-checked here.
+const ADMIN_BOT_PLAYGROUND_CODE = `const { Challenge } = require('../types')
+
+export const challenge = new Challenge({
+  timeoutMilliseconds: 30000,
+  inputs: {
+    url: { pattern: '^https?://.+', flags: 'i' },
+  },
+  handler: async ctx => {
+    const page = await ctx.browserContext.newPage()
+    await page.setCookie({
+      name: 'flag',
+      value: ctx.job.flag,
+      url: ctx.input.url,
+    })
+    ctx.output.info('admin-bot', 'visiting ' + ctx.input.url)
+    await page.goto(ctx.input.url, { waitUntil: 'networkidle2', timeout: 15000 })
+    await new Promise(resolve => setTimeout(resolve, 5000))
+    await page.close()
+  },
+  hooksConfig: {
+    showConsoleLogs: false,
+    showBrowserErrors: false,
+    showNavigation: false,
+    limitTabsNumber: -1,
+  },
+})
+`
 
 const randomInt = (max: number) => Math.floor(Math.random() * max)
 const randomIp = () =>
@@ -247,6 +281,87 @@ function buildChallenges(): Challenge[] {
             transport: DynamicScoringTransport.WEBHOOK,
             secret: 'seed-koth-2-webhook-secret',
           },
+        },
+      },
+    },
+    {
+      id: INSTANCER_CHALLENGE_ID,
+      data: {
+        name: 'Instancer Playground',
+        description:
+          'On-demand instanced challenge for exercising the instancer panel.',
+        category: 'web',
+        author: 'seed',
+        files: [],
+        points: {
+          min: 100,
+          max: 500,
+        },
+        flag: 'rctf{instancer_playground}',
+        tiebreakEligible: true,
+        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 3) * 10,
+        hidden: false,
+        releaseTime: Date.now() - DAY,
+        instancerConfig: {
+          challengeIntegrationId: INSTANCER_CHALLENGE_ID,
+          instancer: 'docker',
+          config: {
+            services: {
+              app: {
+                image: 'traefik/whoami:latest',
+                environment: { CHALLENGE: INSTANCER_CHALLENGE_ID },
+              },
+            },
+          },
+          expose: [
+            {
+              kind: ExposeKind.HTTP,
+              hostPrefix: 'instancer-playground-web',
+              containerName: 'app',
+              containerPort: 80,
+              shouldDisplay: true,
+              title: 'Web',
+            },
+            {
+              kind: ExposeKind.TCP,
+              hostPrefix: 'instancer-playground-nc',
+              containerName: 'app',
+              containerPort: 1337,
+              shouldDisplay: true,
+              title: 'Netcat',
+            },
+          ],
+          timeoutMilliseconds: 600_000,
+          extendable: true,
+        },
+      },
+    },
+    {
+      id: ADMIN_BOT_CHALLENGE_ID,
+      data: {
+        name: 'Admin Bot Playground',
+        description:
+          'Standalone admin-bot challenge for exercising the admin-bot panel.',
+        category: 'web',
+        author: 'seed',
+        files: [],
+        points: {
+          min: 100,
+          max: 500,
+        },
+        flag: 'rctf{admin_bot_playground}',
+        tiebreakEligible: true,
+        sortWeight: (SEED_GENERATED_CHALLENGE_COUNT + 4) * 10,
+        hidden: false,
+        releaseTime: Date.now() - DAY,
+        adminBotConfig: {
+          code: ADMIN_BOT_PLAYGROUND_CODE,
+          inputs: {
+            url: { pattern: '^https?://.+', flags: 'i' },
+          },
+          revision: '1',
+          timeoutMilliseconds: 60_000,
+          requireInstancerInstancesRunning: false,
         },
       },
     },
