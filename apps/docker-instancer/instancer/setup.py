@@ -32,6 +32,8 @@ app = FastAPI(
     description='https://github.com/es3n1n/tiny-instancer',
     version='1.0.0',
     redoc_url=None,
+    docs_url=None,
+    openapi_url=None,
     lifespan=lifespan,
 )
 app.include_router(instances_router)
