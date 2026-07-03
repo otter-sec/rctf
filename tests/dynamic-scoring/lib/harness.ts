@@ -206,17 +206,25 @@ export type ScorePayload = {
   scores: ScoreEntry[]
 }
 
+export const signScores = (
+  secret: string,
+  timestamp: string,
+  challengeId: string,
+  body: string
+): string =>
+  `sha256=${createHmac('sha256', secret).update(`${timestamp}.${challengeId}.${body}`).digest('hex')}`
+
 export const signAndPushScores = async (
   challengeId: string,
   secret: string,
   payload: ScorePayload,
-  overrides?: { timestamp?: number; signature?: string }
+  overrides?: { timestamp?: number; signature?: string; signedFor?: string }
 ): Promise<ApiResponse> => {
   const body = JSON.stringify(payload)
   const ts = (overrides?.timestamp ?? Date.now()).toString()
   const sig =
     overrides?.signature ??
-    `sha256=${createHmac('sha256', secret).update(`${ts}.${body}`).digest('hex')}`
+    signScores(secret, ts, overrides?.signedFor ?? challengeId, body)
   return await api(`/api/v2/challs/${challengeId}/scores`, {
     method: 'POST',
     body,

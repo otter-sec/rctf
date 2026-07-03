@@ -67,7 +67,7 @@ export const dynamicChallengeAuthMiddleware: MiddlewareHandler<AppEnv> = async (
   // subsequent json() call parses from cache
   const raw = await c.req.text()
   const hasher = new Bun.CryptoHasher('sha256', scoring.source.secret)
-  hasher.update(`${timestamp}.${raw}`)
+  hasher.update(`${timestamp}.${challenge.id}.${raw}`)
   const expected = `sha256=${hasher.digest('hex')}`
   if (!timingSafeEqual(signatureHeader, expected)) {
     return reject(c)
