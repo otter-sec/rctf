@@ -36,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"k8s.io/utils/ptr"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -603,6 +604,15 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 		podLabels[labelEgress] = egress
 		podLabels[labelExposed] = exposed
 
+		// having secure defaults is nice
+		podSpec := pod.Spec
+		if podSpec.AutomountServiceAccountToken == nil {
+			podSpec.AutomountServiceAccountToken = ptr.To(false)
+		}
+		if podSpec.EnableServiceLinks == nil {
+			podSpec.EnableServiceLinks = ptr.To(false)
+		}
+
 		var replicas int32 = 1
 		deployment = v1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
@@ -631,7 +641,7 @@ func (r *ChallengeInstanceReconciler) EnsureDeployments(ctx context.Context, ins
 						},
 						Labels: podLabels,
 					},
-					Spec: pod.Spec,
+					Spec: podSpec,
 				},
 			},
 		}
