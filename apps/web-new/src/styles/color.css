@@ -451,11 +451,11 @@
   --purple-a12: light-dark(#250049df, #f1ddfffa);
 
   --background-l0: var(--gray-1);
-  --background-l1: var(--gray-2);
-  --background-l2: var(--gray-3);
-  --background-l3: var(--gray-4);
-  --background-l4: var(--gray-5);
-  --background-l5: var(--gray-6);
+  --background-l1: light-dark(var(--gray-3), var(--gray-2));
+  --background-l2: light-dark(var(--gray-4), var(--gray-3));
+  --background-l3: light-dark(var(--gray-5), var(--gray-4));
+  --background-l4: light-dark(var(--gray-6), var(--gray-5));
+  --background-l5: light-dark(var(--gray-7), var(--gray-6));
   --border:        var(--gray-6);
   --ring:          var(--gray-8);
   --foreground-l0: var(--gray-12);
@@ -463,7 +463,7 @@
   --foreground-l2: var(--gray-10);
   --foreground-l3: var(--gray-9);
   --foreground-l4: var(--gray-8);
-  --foreground-l5: var(--gray-7);
+  --foreground-l5: light-dark(var(--gray-8), var(--gray-7));
 
   --background-accent:            var(--sky-4);
   --background-accent-hover:      var(--sky-5);

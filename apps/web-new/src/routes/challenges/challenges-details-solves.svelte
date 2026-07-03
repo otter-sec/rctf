@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import { scrollFade } from '$lib/attachments/scroll-fade'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import { useChallengeSolvesInfinite, useChallengeSolvesSelf } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -135,7 +136,7 @@
     />
   {:else}
     <solves-viewport>
-      <solves-scroll {@attach captureScroll} tabindex="-1">
+      <solves-scroll {@attach captureScroll} {@attach scrollFade} tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}
             {@const rank = index + 1}

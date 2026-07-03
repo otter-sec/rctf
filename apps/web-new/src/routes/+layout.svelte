@@ -7,6 +7,7 @@
   import '../styles/shape.css'
   import '../styles/layers.css'
   import '../styles/prose.css'
+  import '../styles/scroll-fade.css'
   import { QueryClientProvider } from '@tanstack/svelte-query'
   import favicon from '$lib/assets/favicon.svg'
   import Navigation from '$lib/components/navigation.svelte'
