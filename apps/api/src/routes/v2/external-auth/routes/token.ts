@@ -9,17 +9,17 @@ import externalAuthGroup from '../group'
 externalAuthGroup.route(
   ExternalAuthTokenRouteV2,
   async ({ ctx, res, body }) => {
-    const payload = await consumeExternalAuthCode(ctx.var.redis, body.code)
-    if (!payload || payload.clientId !== body.clientId) {
-      return res.badExternalAuthRequest()
-    }
-
     const ok = await verifyExternalAuthClientSecret(
       ctx.var.db,
       body.clientId,
       body.clientSecret
     )
     if (!ok) {
+      return res.badExternalAuthRequest()
+    }
+
+    const payload = await consumeExternalAuthCode(ctx.var.redis, body.code)
+    if (!payload || payload.clientId !== body.clientId) {
       return res.badExternalAuthRequest()
     }
 
