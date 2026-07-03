@@ -442,13 +442,13 @@ See [Moderation Providers](/providers/moderation) for details.
 ```yaml
 proxy:
   cloudflare: true
-  trust: false
+  trust: loopback
 ```
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
 | `<red>proxy.cloudflare</red>` | `boolean{:ts}` | `false{:ts}` | Trust Cloudflare `CF-Connecting-IP` header for client IP |
-| `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `false{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges |
+| `<red>proxy.trust</red>` | `boolean{:ts}` \| `string{:ts}` \| `string[]{:ts}` \| `number{:ts}` | `'loopback'{:ts}` | Proxy trust setting for `X-Forwarded-For`. `true{:ts}` trusts all, a number trusts the first N hops, a string or array specifies trusted CIDR ranges or the named subnets `loopback{:ts}`, `linklocal{:ts}`, `uniquelocal{:ts}` |
 
 :::warning
 Set `<red>proxy.cloudflare</red>` to `true{:ts}` if your rCTF instance is behind Cloudflare. This ensures correct client IP extraction for rate limiting and logging. When using a different reverse proxy, configure `<red>proxy.trust</red>` instead.
