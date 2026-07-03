@@ -447,8 +447,7 @@ const processSolveBatch = (
         // dynamic challenges accept late deliveries
         const ch = state.challengeInfos.get(solve.challengeid)
         if (!ch || ch.scoringKind !== ChallengeScoringKind.DYNAMIC) {
-          hadUnappliedSolves = true
-          continue
+          break
         }
       }
 

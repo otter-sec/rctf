@@ -1589,6 +1589,74 @@ describe('edge cases', () => {
   })
 })
 
+describe('mid-tick solves are deferred, not dropped (future-timestamp regression)', () => {
+  test('solve stamped after the rebuild captured its timestamp is applied later', async () => {
+    const db = getDb()
+    const user = await insertUser()
+    const challenge = await insertChallenge()
+
+    await insertSolve({
+      challengeId: challenge.id,
+      userId: user.id,
+      createdAt: isoAt(T1),
+    })
+
+    const calc = createCachedLeaderboardCalculator()
+    const originalNow = Date.now
+    try {
+      Date.now = () => T0
+      const during = await calc(db)
+      expect(during.calculated.users).toHaveLength(0)
+
+      Date.now = () => T2
+      const after = await calc(db)
+      expect(after.recomputedFromScratch).toBe(false)
+      expect(after.calculated.users).toHaveLength(1)
+      expect(after.calculated.challengeInfos.get(challenge.id)?.solves).toBe(1)
+    } finally {
+      Date.now = originalNow
+    }
+  })
+
+  test('solve stamped after an incremental tick captured its timestamp is applied later', async () => {
+    const db = getDb()
+    const userA = await insertUser()
+    const userB = await insertUser()
+    const challenge = await insertChallenge()
+
+    await insertSolve({
+      challengeId: challenge.id,
+      userId: userA.id,
+      createdAt: isoAt(T0),
+    })
+
+    const calc = createCachedLeaderboardCalculator()
+    const originalNow = Date.now
+    try {
+      Date.now = () => T1
+      await calc(db)
+
+      await insertSolve({
+        challengeId: challenge.id,
+        userId: userB.id,
+        createdAt: isoAt(T3),
+      })
+
+      Date.now = () => T2
+      const during = await calc(db)
+      expect(during.calculated.users).toHaveLength(1)
+
+      Date.now = () => T4
+      const after = await calc(db)
+      expect(after.recomputedFromScratch).toBe(false)
+      expect(after.calculated.users).toHaveLength(2)
+      expect(after.calculated.challengeInfos.get(challenge.id)?.solves).toBe(2)
+    } finally {
+      Date.now = originalNow
+    }
+  })
+})
+
 describe('rebuild uses fresh snapshots (stale-snapshot regression)', () => {
   test('user created after initial snapshot is visible after rebuild', async () => {
     const db = getDb()
