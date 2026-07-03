@@ -111,7 +111,7 @@ X-RCTF-Signature: sha256=<hex>
 | Header | Description |
 | --- | --- |
 | `<red>X-RCTF-Timestamp</red>` | Unix milliseconds at signing time. Requests outside a five-minute skew window are rejected. |
-| `<red>X-RCTF-Signature</red>` | `<green>sha256=</green>` followed by the lowercase hex HMAC-SHA256 of `<green>${timestamp}.${raw_body}</green>` using the challenge's `<red>secret</red>`. |
+| `<red>X-RCTF-Signature</red>` | `<green>sha256=</green>` followed by the lowercase hex HMAC-SHA256 of `<green>${timestamp}.${challenge_id}.${raw_body}</green>` using the challenge's `<red>secret</red>`. The challenge ID is the `:id` path parameter, so a signature only works for the challenge it was signed for. |
 
 The route accepts any IP and doesn't require an authenticated rCTF user. Only the HMAC, the timestamp window, and the replay check stand between the open internet and `<red>upsertDynamicSolves</red>`, so the secret is the only thing protecting the scoreboard. Treat it like a password.
 
@@ -139,7 +139,8 @@ export async function publishScores(scores: ScoreEntry[]) {
   const body = JSON.stringify({ scores })
   const timestamp = Date.now().toString()
   const signature =
-    'sha256=' + createHmac('sha256', SECRET).update(`${timestamp}.${body}`).digest('hex')
+    'sha256=' +
+    createHmac('sha256', SECRET).update(`${timestamp}.${CHALLENGE_ID}.${body}`).digest('hex')
 
   const res = await fetch(`${RCTF_BASE_URL}/api/v2/challs/${CHALLENGE_ID}/scores`, {
     method: 'POST',
@@ -165,7 +166,7 @@ rCTF reads the raw request bytes for HMAC verification and only parses JSON afte
 :::
 
 :::note[Retries are safe]
-If a push times out or fails, send the exact same signed request again. rCTF only remembers accepted deliveries (for about ten minutes, per challenge, keyed on the signature), so a failed attempt never blocks the retry. A `409` `<green>badReplayedRequest</green>` on the retry means the first attempt landed after all; count it as a success. Run retries one at a time, and sign every new score update with a fresh timestamp instead of reusing an old signature.
+If a push times out or fails, send the exact same signed request again. rCTF only remembers accepted deliveries (for about ten minutes, keyed on the signature, which is bound to the challenge), so a failed attempt never blocks the retry. A `409` `<green>badReplayedRequest</green>` on the retry means the first attempt landed after all; count it as a success. Run retries one at a time, and sign every new score update with a fresh timestamp instead of reusing an old signature.
 :::
 
 ## How scores reach the leaderboard

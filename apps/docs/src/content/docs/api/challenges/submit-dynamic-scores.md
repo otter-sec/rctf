@@ -57,15 +57,15 @@ This route deliberately has neither `onlyWhenStarted` nor `onlyWhenNotFinished`.
 | Header | Value |
 | --- | --- |
 | `X-RCTF-Timestamp` | Unix milliseconds at signing time. Must be within a five-minute skew window of the server clock. |
-| `X-RCTF-Signature` | `sha256=` followed by the lowercase hex HMAC-SHA256 of `${timestamp}.${raw_body}` using the challenge's webhook `secret`. |
+| `X-RCTF-Signature` | `sha256=` followed by the lowercase hex HMAC-SHA256 of `${timestamp}.${challenge_id}.${raw_body}` using the challenge's webhook `secret`. |
 
-Sign the raw request bytes, not the re-serialized JSON. Any difference between the signed bytes and the bytes on the wire (whitespace, key ordering, middleware re-serialization) will fail verification.
+Sign the raw request bytes, not the re-serialized JSON. Any difference between the signed bytes and the bytes on the wire (whitespace, key ordering, middleware re-serialization) will fail verification. The challenge ID in the signed string is the `:id` path parameter, so a signature is only valid for the challenge it was produced for.
 
 Unknown challenge IDs, non-dynamic challenges, mismatched signatures, and timestamps outside the skew window all return the same `<response>401 badSignature</response>` so the endpoint can't be probed for which challenges accept a feed.
 
 rCTF also refuses to apply the same delivery twice. Each accepted signature is remembered for ten minutes, and re-sending the same signed bytes to the same challenge within that window returns `<response>409 badReplayedRequest</response>`, so a captured request can't be replayed against the scoreboard.
 
-Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. The window is tracked per challenge, so one signed payload can still be broadcast to several challenges that share a secret.
+Only accepted deliveries are remembered, which makes retries safe. If a push fails or the response gets lost, resend the identical signed request: either it goes through, or it comes back `<response>409 badReplayedRequest</response>` and you know the original attempt was accepted. Retry one attempt at a time, and sign a new request (fresh timestamp, fresh signature) whenever the scores themselves change. Because the challenge ID is part of the signed string, pushing the same payload to several challenges — even ones sharing a secret — means signing it once per challenge.
 
 ::request-body{def="SubmitDynamicScoresRouteV2" source="params" title="Path parameters"}
 

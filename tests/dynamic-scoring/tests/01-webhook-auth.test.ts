@@ -117,7 +117,7 @@ describe('webhook auth', () => {
     expect((second.body as { kind?: string }).kind).toBe('goodDynamicScores')
   })
 
-  test('shared secret broadcast to another challenge -> goodDynamicScores', async () => {
+  test('signature for another challenge with a shared secret -> badSignature', async () => {
     sharedSecretChallengeId = testId('chall-auth-shared')
     const created = await createDynamicChallenge(
       admin,
@@ -138,9 +138,9 @@ describe('webhook auth', () => {
       sharedSecretChallengeId,
       SECRET,
       payload,
-      { timestamp }
+      { timestamp, signedFor: challengeId }
     )
-    expect(second.status).toBe(200)
-    expect((second.body as { kind?: string }).kind).toBe('goodDynamicScores')
+    expect(second.status).toBe(401)
+    expect((second.body as { kind?: string }).kind).toBe('badSignature')
   })
 })

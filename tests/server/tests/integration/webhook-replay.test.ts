@@ -8,7 +8,12 @@ import {
   scoreEvents,
   type ChallengeData,
 } from '@rctf/db'
-import { BadBody, BadReplayedRequest, GoodDynamicScores } from '@rctf/types'
+import {
+  BadBody,
+  BadReplayedRequest,
+  BadSignature,
+  GoodDynamicScores,
+} from '@rctf/types'
 import { beforeEach, describe, expect, test } from 'bun:test'
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
@@ -52,10 +57,16 @@ const createDynamicChallenge = async (secret = SECRET): Promise<string> => {
   return id
 }
 
-const sign = (secret: string, timestamp: number, body: string) =>
-  `sha256=${createHmac('sha256', secret).update(`${timestamp}.${body}`).digest('hex')}`
+const sign = (
+  secret: string,
+  timestamp: number,
+  challengeId: string,
+  body: string
+) =>
+  `sha256=${createHmac('sha256', secret).update(`${timestamp}.${challengeId}.${body}`).digest('hex')}`
 
 const signedInit = (
+  challengeId: string,
   body: string,
   timestamp: number,
   secret = SECRET
@@ -65,16 +76,21 @@ const signedInit = (
   headers: {
     'Content-Type': 'application/json',
     'X-RCTF-Timestamp': timestamp.toString(),
-    'X-RCTF-Signature': sign(secret, timestamp, body),
+    'X-RCTF-Signature': sign(secret, timestamp, challengeId, body),
   },
 })
 
-const push = async (challengeId: string, body: string, timestamp: number) => {
+const push = async (
+  challengeId: string,
+  body: string,
+  timestamp: number,
+  signedFor = challengeId
+) => {
   const app = await getApp()
   return await request(
     app,
     `/api/v2/challs/${challengeId}/scores`,
-    signedInit(body, timestamp)
+    signedInit(signedFor, body, timestamp)
   )
 }
 
@@ -112,14 +128,17 @@ describe('webhook replay protection', () => {
     )
   })
 
-  test('one signed payload can be broadcast to challenges sharing a secret', async () => {
+  test('a signature for one challenge is rejected on another sharing a secret', async () => {
     const challengeA = await createDynamicChallenge()
     const challengeB = await createDynamicChallenge()
     const body = JSON.stringify({ scores: [] })
     const ts = Date.now()
 
     await expectResponse(await push(challengeA, body, ts), GoodDynamicScores)
-    await expectResponse(await push(challengeB, body, ts), GoodDynamicScores)
+    await expectResponse(
+      await push(challengeB, body, ts, challengeA),
+      BadSignature
+    )
   })
 
   test('a rejected (4xx) delivery does not consume the dedup slot', async () => {
@@ -157,13 +176,13 @@ describe('webhook replay protection', () => {
     const ts = Date.now()
     const path = `/challs/${challengeId}/scores`
 
-    const first = await app.request(path, signedInit(body, ts))
+    const first = await app.request(path, signedInit(challengeId, body, ts))
     expect(first.status).toBe(500)
 
-    const second = await app.request(path, signedInit(body, ts))
+    const second = await app.request(path, signedInit(challengeId, body, ts))
     expect(second.status).toBe(200)
 
-    const third = await app.request(path, signedInit(body, ts))
+    const third = await app.request(path, signedInit(challengeId, body, ts))
     await expectResponse(third, BadReplayedRequest)
     expect(calls).toBe(2)
   })
