@@ -15,7 +15,7 @@ import {
   type ProviderConfig,
 } from './base'
 
-const group = 'rctf-instancer.osec.io'
+const group = 'rctf.osec.io'
 const version = 'v1'
 const plural = 'challengeinstances'
 
@@ -461,25 +461,25 @@ export default class K8sInstancerProvider implements InstancerProvider {
     config.loadFromOptions({
       clusters: [
         {
-          name: 'rctf-instancer',
+          name: 'rctf',
           server: options.apiUrl,
           caData: options.caCertificate,
         },
       ],
       users: [
         {
-          name: 'rctf-instancer',
+          name: 'rctf',
           token: options.authToken,
         },
       ],
       contexts: [
         {
-          name: 'rctf-instancer',
-          cluster: 'rctf-instancer',
-          user: 'rctf-instancer',
+          name: 'rctf',
+          cluster: 'rctf',
+          user: 'rctf',
         },
       ],
-      currentContext: 'rctf-instancer',
+      currentContext: 'rctf',
     })
 
     this.client = config.makeApiClient(CustomObjectsApi)

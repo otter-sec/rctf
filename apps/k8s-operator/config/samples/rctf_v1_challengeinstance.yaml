@@ -1,0 +1,34 @@
+apiVersion: rctf.osec.io/v1
+kind: ChallengeInstance
+metadata:
+  labels:
+    app.kubernetes.io/name: rctf-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: challengeinstance-sample
+spec:
+  teamId: teamId
+  challengeId: challengeId
+  expiresAt: "2026-12-19T20:30:00Z"
+  pods:
+    - name: whoami
+      egress: true
+      ports:
+        - port: 80
+      spec:
+        automountServiceAccountToken: false
+        containers:
+          - name: whoami
+            image: traefik/whoami:latest
+            resources:
+              requests:
+                memory: 100Mi
+                cpu: 75m
+              limits:
+                memory: 250Mi
+                cpu: 100m
+  expose:
+    - kind: https
+      hostPrefix: whoami
+      containerName: whoami
+      containerPort: 80
+      title: challenge

@@ -191,7 +191,7 @@ Optional dependencies that the deployer must supply when the matching provider i
 - **S3 / GCS** for the `<green>uploads/s3</green>` or `<green>uploads/gcs</green>` upload providers. See [Uploads](/providers/uploads).
 - **SES, SMTP, or another email provider** for the email integration.
 - **OpenAI** (or another moderation provider) for avatar moderation.
-- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-controller for per-team challenge instances. See [Instancer](/integrations/instancer).
+- **Docker instancer** or a Kubernetes cluster running the rCTF k8s-operator for per-team challenge instances. See [Instancer](/integrations/instancer).
 - **Captcha provider** (reCAPTCHA, hCaptcha, or Turnstile). The CSP already permits all three.
 
 The bundled `compose.yml{:file}` pins one PostgreSQL and one Redis container alongside `rctf`. The `rctf` service exposes `127.0.0.1:8080` and expects a reverse proxy (typically nginx or Caddy on the host) to terminate TLS and forward to it.

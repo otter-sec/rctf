@@ -70,6 +70,7 @@ output "challenge_registry_url" {
 provider "kubernetes" {
     host = "https://${module.gke.endpoint}"
     cluster_ca_certificate = base64decode(module.gke.cluster_ca_certificate)
+    ignore_annotations = ["cloud\\.google\\.com\\/neg"]
 
     exec {
         api_version = "client.authentication.k8s.io/v1beta1"

@@ -55,7 +55,7 @@ Everything in this list assumes a player or unauthenticated attacker.
 - Bundled deployment material or documented walkthroughs that produce an insecure deployment when followed as written.
 - GitHub Actions or release configuration flaws that can affect published container images, package cleanup, build provenance, repository secrets, or any other part of the release process.
 
-The in-scope components are `apps/api`, `apps/web`, `apps/admin-bot`, `apps/docker-instancer`, `apps/k8s-controller`, and all `packages/*`. Also the bundled `compose.yml` plus everything under `deploy/`, meaning the production container build (Dockerfile, nginx, supervisord), the service compose files, the Traefik configs, and the Terraform modules and examples in `deploy/terraform/`.
+The in-scope components are `apps/api`, `apps/web`, `apps/admin-bot`, `apps/docker-instancer`, `apps/k8s-operator`, and all `packages/*`. Also the bundled `compose.yml` plus everything under `deploy/`, meaning the production container build (Dockerfile, nginx, supervisord), the service compose files, the Traefik configs, and the Terraform modules and examples in `deploy/terraform/`.
 
 Release-relevant GitHub Actions under `.github/workflows/` and `.github/actions/` are in scope too, and so is deployment or configuration guidance in the official docs, including installation walkthroughs, provider docs, the configuration reference, the upload, captcha, email, analytics, and instancer guides, and the VPS setup series.
 

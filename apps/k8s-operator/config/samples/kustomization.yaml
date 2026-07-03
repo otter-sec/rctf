@@ -1,0 +1,4 @@
+## Append samples of your project ##
+resources:
+- rctf_v1_challengeinstance.yaml
+# +kubebuilder:scaffold:manifestskustomizesamples

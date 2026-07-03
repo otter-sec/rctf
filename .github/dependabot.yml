@@ -19,7 +19,7 @@ updates:
     open-pull-requests-limit: 0
 
   - package-ecosystem: gomod
-    directory: /apps/k8s-controller
+    directory: /apps/k8s-operator
     schedule:
       interval: weekly
     open-pull-requests-limit: 0
