@@ -211,6 +211,7 @@ export class BrowserManager {
 
       if (version.browser === 'chrome') {
         args.push(`--proxy-pac-url=${pacDataUrl}`)
+        args.push('--proxy-bypass-list=<-loopback>')
       } else {
         extraPrefsFirefox = {
           ...extraPrefsFirefox,

@@ -82,77 +82,108 @@ const extractFetchResults = (
 const testUrl = (path: string): string =>
   `http://${TEST_HOST}:${serverPort}${path}`
 
-describe('PAC e2e [firefox] - localhost/loopback bypass regression', () => {
-  const { browserArgs, extraPrefsFirefox } = pacBrowserConfigs['firefox']
+const navHandler = (url: string): string => `
+    const page = await ctx.browserContext.newPage()
+    try {
+      const resp = await page.goto(${JSON.stringify(url)}, {
+        timeout: 8000,
+        waitUntil: 'domcontentloaded',
+      })
+      ctx.output.info('challenge', 'nav:ok:' + resp.status())
+    } catch (e) {
+      ctx.output.info('challenge', 'nav:err:' + e.message)
+    }
+    await page.close()`
+
+const navOutcome = (parsed: ParsedLog[]): string => {
+  const log = parsed.find(
+    l => typeof l.line === 'string' && l.line.startsWith('nav:')
+  )
+  return log ? (log.line as string) : ''
+}
+
+const hostRegex = (host: string): string => `^${host.replace(/\./g, '\\.')}$`
+describe('PAC e2e - loopback bypass regression', () => {
+  for (const browser of browsers) {
+    const { browserArgs, extraPrefsFirefox } = pacBrowserConfigs[browser]
+
+    describe(`[${browser}]`, () => {
+      beforeAll(async () => {
+        await browserManager.getBrowserPath({ browser, version: 'stable' })
+      }, 120_000)
+
+      for (const host of ['localhost', '127.0.0.1']) {
+        const url = () => `http://${host}:${serverPort}/loopback`
+
+        test(
+          `allows ${host} when host is permitted`,
+          async () => {
+            const result = await runChallenge({
+              source: challengeSource({
+                handler: navHandler(url()),
+                browser,
+                browserArguments: browserArgs,
+                extraPrefsFirefox,
+                restrictDomains: {
+                  host: { allowRegex: [r(hostRegex(host))] },
+                },
+              }),
+            })
+
+            expect(navOutcome(result.parsed)).toBe('nav:ok:200')
+          },
+          TEST_TIMEOUT
+        )
+
+        test(
+          `blocks ${host} when host is disallowed`,
+          async () => {
+            const result = await runChallenge({
+              source: challengeSource({
+                handler: navHandler(url()),
+                browser,
+                browserArguments: browserArgs,
+                extraPrefsFirefox,
+                restrictDomains: {
+                  host: { disallowRegex: [r(hostRegex(host))] },
+                },
+              }),
+            })
+
+            expect(navOutcome(result.parsed)).toStartWith('nav:err:')
+          },
+          TEST_TIMEOUT
+        )
+      }
+    })
+  }
+})
+
+describe('PAC e2e [chrome] - metadata SSRF', () => {
+  const METADATA_URL = 'http://169.254.169.254/latest/meta-data/'
 
   beforeAll(async () => {
     await browserManager.getBrowserPath({
-      browser: 'firefox',
+      browser: 'chrome',
       version: 'stable',
     })
   }, 120_000)
 
-  const makeLoopbackFetchHandler = (hosts: string[]): string => {
-    const urls = hosts.map(h => `http://${h}:${serverPort}/loopback-test`)
-    return `
-    const page = await ctx.browserContext.newPage()
-    await page.goto('about:blank')
-
-    const urls = ${JSON.stringify(urls)}
-    for (const url of urls) {
-      const result = await page.evaluate(async (fetchUrl) => {
-        try {
-          const res = await fetch(fetchUrl)
-          const body = await res.text()
-          return 'fetch:' + new URL(fetchUrl).pathname + ':' + res.status + ':' + body
-        } catch (e) {
-          return 'fetch:' + new URL(fetchUrl).pathname + ':error:' + e.message
-        }
-      }, url)
-      ctx.output.info('challenge', result)
-    }
-
-    await page.close()`
-  }
-
   test(
-    'disallowRegex blocks localhost in Firefox',
+    'routes disallowed link-local metadata through the proxy, not direct',
     async () => {
       const result = await runChallenge({
         source: challengeSource({
-          handler: makeLoopbackFetchHandler(['localhost']),
-          browser: 'firefox',
-          browserArguments: browserArgs,
-          extraPrefsFirefox,
+          handler: navHandler(METADATA_URL),
+          browser: 'chrome',
+          browserArguments: defaultChromeArguments,
           restrictDomains: {
-            host: { disallowRegex: [r('^localhost$')] },
+            host: { disallowRegex: [r(hostRegex('169.254.169.254'))] },
           },
         }),
       })
 
-      const fetches = extractFetchResults(result.parsed)
-      expect(fetches['/loopback-test']?.status).toBe('error')
-    },
-    TEST_TIMEOUT
-  )
-
-  test(
-    'disallowRegex blocks 127.0.0.1 in Firefox',
-    async () => {
-      const result = await runChallenge({
-        source: challengeSource({
-          handler: makeLoopbackFetchHandler(['127.0.0.1']),
-          browser: 'firefox',
-          browserArguments: browserArgs,
-          extraPrefsFirefox,
-          restrictDomains: {
-            host: { disallowRegex: [r('^127\\.0\\.0\\.1$')] },
-          },
-        }),
-      })
-
-      const fetches = extractFetchResults(result.parsed)
-      expect(fetches['/loopback-test']?.status).toBe('error')
+      expect(navOutcome(result.parsed)).toContain('ERR_PROXY_CONNECTION_FAILED')
     },
     TEST_TIMEOUT
   )
