@@ -24,7 +24,7 @@ jobs:
       shared: ${{ steps.filter.outputs.shared }}
       admin-bot: ${{ steps.filter.outputs.admin-bot }}
       docker-instancer: ${{ steps.filter.outputs.docker-instancer }}
-      k8s-controller: ${{ steps.filter.outputs.k8s-controller }}
+      k8s-operator: ${{ steps.filter.outputs.k8s-operator }}
       rctf: ${{ steps.filter.outputs.rctf }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -50,9 +50,9 @@ jobs:
             docker-instancer:
               - 'apps/docker-instancer/**'
               - 'deploy/docker-instancer/Dockerfile'
-            k8s-controller:
-              - 'apps/k8s-controller/**'
-              - 'deploy/k8s-controller/Dockerfile'
+            k8s-operator:
+              - 'apps/k8s-operator/**'
+              - 'deploy/k8s-operator/Dockerfile'
             rctf:
               - 'package.json'
               - 'bun.lock'
@@ -73,7 +73,7 @@ jobs:
         include:
           - { key: admin-bot,        suffix: /admin-bot,        dockerfile: deploy/admin-bot/Dockerfile }
           - { key: docker-instancer, suffix: /docker-instancer, dockerfile: deploy/docker-instancer/Dockerfile }
-          - { key: k8s-controller,   suffix: /k8s-controller,   dockerfile: deploy/k8s-controller/Dockerfile }
+          - { key: k8s-operator,     suffix: /k8s-operator,     dockerfile: deploy/k8s-operator/Dockerfile }
           - { key: rctf,             suffix: '',                dockerfile: deploy/rctf/Dockerfile }
     uses: ./.github/workflows/_docker-build.yml
     with:

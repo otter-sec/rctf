@@ -156,7 +156,7 @@ resource "kubernetes_deployment_v1" "error-pages" {
 
                     readiness_probe {
                         http_get {
-                            path = "/.rctf-instancer/health"
+                            path = "/.rctf-operator/health"
                             port = 80
                         }
                     }
@@ -219,7 +219,7 @@ resource "kubectl_manifest" "global-errors" {
                     port = 80
                 }
 
-                query = "/.rctf-instancer/{status}.html"
+                query = "/.rctf-operator/{status}.html"
             }
         }
     })

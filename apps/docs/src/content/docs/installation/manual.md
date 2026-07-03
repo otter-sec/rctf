@@ -21,7 +21,7 @@ rCTF is a (mostly) Bun monorepo with the following layout:
   - api/ Hono REST API server
   - web/ SvelteKit frontend (static build)
   - admin-bot/ Puppeteer-based admin bot service
-  - k8s-controller/ Kubernetes challenge instancer (Go)
+  - k8s-operator/ Kubernetes challenge instancer (Go)
   - docker-instancer/ Docker challenge instancer (Python)
   - docs/ Documentation site
   - export/ Instance archiver tool

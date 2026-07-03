@@ -551,7 +551,7 @@ deployment:
       platform: linux/amd64
 ```
 
-The instanced flow only needs pod definitions. The rCTF instancer's k8s-controller handles namespaces, services, network policies, and ingress at runtime, so no `<red>kubernetesInlineManifests</red>` block is required.
+The instanced flow only needs pod definitions. The rCTF instancer's k8s-operator handles namespaces, services, network policies, and ingress at runtime, so no `<red>kubernetesInlineManifests</red>` block is required.
 
 `<red>instancerConfig.instancer</red>` names which configured rCTF instancer the challenge runs on, matching a key in rCTF's `<red>instancers</red>` map. Omit it to fall back to rCTF's `<red>defaultInstancer</red>`. See [Instancer](/integrations/instancer#provider-configuration) for the deployment-side setup.
 
@@ -735,4 +735,4 @@ Notable bits:
 
 ## Real-world reference
 
-The [SekaiCTF 2026 challenges](https://github.com/project-sekai-ctf/sekaictf-2026) repository is the most complete current Konata + rCTF deployment reference. It covers static-hosted Kubernetes challenges, rCTF-instancer challenges, custom instancer providers, dynamic scoring, file-backed flags, dummy-flag injection via `<red>additional</red>` attachments, multi-cluster registries, and the change-detected CI matrix.
+The [SekaiCTF 2026 challenges](https://github.com/project-sekai-ctf/sekaictf-2026) repository is the most complete current Konata + rCTF deployment reference. It covers static-hosted Kubernetes challenges, k8s-instancer challenges, custom instancer providers, dynamic scoring, file-backed flags, dummy-flag injection via `<red>additional</red>` attachments, multi-cluster registries, and the change-detected CI matrix.

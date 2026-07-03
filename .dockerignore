@@ -20,4 +20,4 @@ deploy/
 !deploy/docker-instancer/Dockerfile
 !deploy/admin-bot/prewarm.sh
 **/__pycache__/**
-apps/k8s-controller/bin/
+apps/k8s-operator/bin/
