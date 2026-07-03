@@ -38,6 +38,6 @@ The own profile routes include private account fields as well, such as the team 
 
 ## Account updates
 
-Profile updates can change the team name and division. V2 can also update country or region code and status text. Name updates use a per user rate limit bucket.
+Profile updates can change the team name and division. V2 can also update country or region code and status text. Every profile update consumes from a per user rate limit bucket, regardless of which fields are present.
 
 Email auth may involve a verification email, depending on provider configuration. CTFtime auth and team member management are available through V1 routes.
