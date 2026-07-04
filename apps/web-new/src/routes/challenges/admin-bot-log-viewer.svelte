@@ -110,29 +110,42 @@
     & + & {
       border-block-start: 2px solid var(--background-l4);
     }
-  }
 
-  log-line button {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--space-3xs);
-    inline-size: 100%;
-    padding: var(--space-3xs) var(--space-2xs);
-    color: inherit;
-    text-align: start;
-    cursor: default;
+    button {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-3xs);
+      inline-size: 100%;
+      padding: var(--space-3xs) var(--space-2xs);
+      color: inherit;
+      text-align: start;
+      cursor: default;
 
-    &[data-expandable] {
-      cursor: pointer;
+      &[data-expandable] {
+        cursor: pointer;
 
-      &:hover {
-        background: var(--background-l3);
+        &:hover {
+          background: var(--background-l3);
+        }
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: -2px;
       }
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -2px;
+    &[data-level='info'] :is(log-level, log-text) {
+      color: var(--foreground-l3);
+    }
+
+    &[data-level='warn'] :is(log-level, log-text) {
+      color: var(--foreground-l2);
+    }
+
+    &[data-level='error'] :is(log-level, log-text),
+    &[data-level='fatal'] :is(log-level, log-text) {
+      color: var(--foreground-destructive);
     }
   }
 
@@ -180,21 +193,6 @@
     white-space: pre-wrap;
   }
 
-  /* Level color drives both the letter and the message text (prefix stays
-     accent); info is dim, warn a touch brighter, error/fatal destructive. */
-  log-line[data-level='info'] :is(log-level, log-text) {
-    color: var(--foreground-l3);
-  }
-
-  log-line[data-level='warn'] :is(log-level, log-text) {
-    color: var(--foreground-l2);
-  }
-
-  log-line[data-level='error'] :is(log-level, log-text),
-  log-line[data-level='fatal'] :is(log-level, log-text) {
-    color: var(--foreground-destructive);
-  }
-
   log-extra {
     display: flex;
     flex-direction: column;
@@ -223,29 +221,29 @@
     display: flex;
     justify-content: flex-end;
     border-block-start: 2px solid var(--background-l4);
-  }
 
-  log-footer button {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3xs);
-    padding: var(--space-3xs) var(--space-2xs);
-    color: var(--foreground-l4);
-    font-size: var(--step--2);
-    cursor: pointer;
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-3xs);
+      padding: var(--space-3xs) var(--space-2xs);
+      color: var(--foreground-l4);
+      font-size: var(--step--2);
+      cursor: pointer;
 
-    &:hover {
-      color: var(--foreground-l2);
-    }
+      &:hover {
+        color: var(--foreground-l2);
+      }
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -2px;
-    }
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: -2px;
+      }
 
-    :global(svg) {
-      inline-size: 0.85rem;
-      block-size: 0.85rem;
+      :global(svg) {
+        inline-size: 0.85rem;
+        block-size: 0.85rem;
+      }
     }
   }
 </style>

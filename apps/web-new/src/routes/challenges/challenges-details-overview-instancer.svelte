@@ -330,10 +330,10 @@
     font-size: var(--step--1);
     text-align: center;
     text-wrap: balance;
-  }
 
-  instancer-message[data-tone='error'] {
-    color: var(--foreground-destructive);
+    &[data-tone='error'] {
+      color: var(--foreground-destructive);
+    }
   }
 
   instancer-empty {
@@ -343,12 +343,12 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-s);
-  }
 
-  /* Stretch the call-to-action buttons across the empty-state column. */
-  instancer-empty :global(a[data-variant]),
-  instancer-empty :global(button[data-variant]) {
-    inline-size: 100%;
+    /* Stretch the call-to-action buttons across the empty-state column. */
+    :global(a[data-variant]),
+    :global(button[data-variant]) {
+      inline-size: 100%;
+    }
   }
 
   instancer-loading {
@@ -374,20 +374,24 @@
     gap: var(--space-2xs);
     color: var(--foreground-l3);
     font-size: var(--step--1);
-  }
 
-  instancer-status[data-tone='error'] {
-    color: var(--foreground-destructive);
+    &[data-tone='error'] {
+      color: var(--foreground-destructive);
+    }
   }
 
   instancer-endpoint {
     display: flex;
     flex-direction: column;
     gap: var(--space-3xs);
-  }
 
-  instancer-endpoint[data-dimmed] {
-    opacity: 0.5;
+    &[data-dimmed] {
+      opacity: 0.5;
+
+      endpoint-value code {
+        color: var(--foreground-l4);
+      }
+    }
   }
 
   endpoint-head {
@@ -405,39 +409,35 @@
     padding: var(--space-2xs) var(--space-s);
     background: var(--background-l4);
     border-radius: var(--radius-md);
-  }
 
-  endpoint-value code {
-    overflow: hidden;
-    color: var(--foreground-accent);
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  instancer-endpoint[data-dimmed] endpoint-value code {
-    color: var(--foreground-l4);
-  }
-
-  endpoint-value button {
-    display: inline-flex;
-    flex-shrink: 0;
-    color: var(--foreground-l4);
-    cursor: pointer;
-
-    &:hover {
-      color: var(--foreground-l2);
+    code {
+      overflow: hidden;
+      color: var(--foreground-accent);
+      font-family: var(--font-mono);
+      font-size: var(--step--1);
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
-    }
+    button {
+      display: inline-flex;
+      flex-shrink: 0;
+      color: var(--foreground-l4);
+      cursor: pointer;
 
-    :global(svg) {
-      inline-size: 1rem;
-      block-size: 1rem;
+      &:hover {
+        color: var(--foreground-l2);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
+
+      :global(svg) {
+        inline-size: 1rem;
+        block-size: 1rem;
+      }
     }
   }
 
@@ -447,21 +447,21 @@
     gap: var(--space-3xs);
     margin-block-start: auto;
     --progress-height: var(--space-3xs);
-  }
 
-  instancer-countdown span {
-    color: var(--foreground-l3);
-    font-size: var(--step--1);
-    text-align: center;
+    span {
+      color: var(--foreground-l3);
+      font-size: var(--step--1);
+      text-align: center;
+    }
   }
 
   instancer-actions {
     display: flex;
     gap: var(--space-2xs);
-  }
 
-  /* Share the row evenly across however many actions the challenge exposes. */
-  instancer-actions :global(button[data-variant]) {
-    flex: 1;
+    /* Share the row evenly across however many actions the challenge exposes. */
+    :global(button[data-variant]) {
+      flex: 1;
+    }
   }
 </style>

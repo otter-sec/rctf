@@ -114,16 +114,14 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: 1rem;
-  }
 
-  /* A box left alone on its own row stretches to the full width. */
-  overview-grid > :global(:last-child:nth-child(odd)) {
-    grid-column: 1 / -1;
-  }
-
-  @container (min-inline-size: 36rem) {
-    overview-grid {
+    @container (min-inline-size: 36rem) {
       grid-template-columns: 1fr 1fr;
+    }
+
+    /* A box left alone on its own row stretches to the full width. */
+    > :global(:last-child:nth-child(odd)) {
+      grid-column: 1 / -1;
     }
   }
 
@@ -139,48 +137,48 @@
     gap: 0.25rem;
     max-block-size: 12rem;
     overflow-y: auto;
-  }
 
-  file-list a {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem 0.75rem;
-    color: inherit;
-    text-decoration: none;
-    background: var(--background-l4);
-    border-radius: var(--radius-md);
+    a {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.5rem 0.75rem;
+      color: inherit;
+      text-decoration: none;
+      background: var(--background-l4);
+      border-radius: var(--radius-md);
 
-    &:hover {
-      background: var(--background-l5);
+      &:hover {
+        background: var(--background-l5);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
     }
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
+    :global([data-slot='icon']) {
+      flex-shrink: 0;
+      font-size: 1.25rem;
+      color: var(--foreground-l3);
     }
-  }
-
-  file-list :global([data-slot='icon']) {
-    flex-shrink: 0;
-    font-size: 1.25rem;
-    color: var(--foreground-l3);
   }
 
   file-meta {
     display: flex;
     flex-direction: column;
     min-inline-size: 0;
-  }
 
-  file-meta [data-slot='name'] {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+    [data-slot='name'] {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
 
-  file-meta [data-slot='size'] {
-    color: var(--foreground-l3);
-    font-size: var(--step--1);
+    [data-slot='size'] {
+      color: var(--foreground-l3);
+      font-size: var(--step--1);
+    }
   }
 </style>

@@ -147,6 +147,14 @@
   challenge-submit {
     display: block;
     --submit-block-size: 3rem;
+
+    /* Stretch the login button to the bar width and height. */
+    :global(a[data-variant]) {
+      gap: 0.5rem;
+      inline-size: 100%;
+      block-size: var(--submit-block-size);
+      font-size: 1.25rem;
+    }
   }
 
   form {
@@ -158,6 +166,21 @@
     align-items: stretch;
     gap: 0.5rem;
     block-size: var(--submit-block-size);
+
+    /* The flag input fills the row and reads as a terminal field. */
+    :global(input[data-flag-input]) {
+      flex: 1;
+      min-inline-size: 0;
+      block-size: var(--submit-block-size);
+      font-family: var(--font-mono);
+      font-size: 1.25rem;
+      border-radius: var(--radius-lg);
+
+      &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+    }
   }
 
   submit-notice {
@@ -173,6 +196,11 @@
     background: var(--background-l4);
     border-radius: var(--radius-lg);
 
+    &[data-tone='success'] {
+      color: var(--foreground-success);
+      background: var(--background-success);
+    }
+
     span {
       overflow: hidden;
       white-space: nowrap;
@@ -183,26 +211,6 @@
       flex-shrink: 0;
       inline-size: 1.5rem;
       block-size: 1.5rem;
-    }
-  }
-
-  submit-notice[data-tone='success'] {
-    color: var(--foreground-success);
-    background: var(--background-success);
-  }
-
-  /* The flag input fills the row and reads as a terminal field. */
-  submit-row :global(input[data-flag-input]) {
-    flex: 1;
-    min-inline-size: 0;
-    block-size: var(--submit-block-size);
-    font-family: var(--font-mono);
-    font-size: 1.25rem;
-    border-radius: var(--radius-lg);
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
     }
   }
 
@@ -236,13 +244,5 @@
       inline-size: 1.5rem;
       block-size: 1.5rem;
     }
-  }
-
-  /* Stretch the login button to the bar width and height. */
-  challenge-submit :global(a[data-variant]) {
-    gap: 0.5rem;
-    inline-size: 100%;
-    block-size: var(--submit-block-size);
-    font-size: 1.25rem;
   }
 </style>

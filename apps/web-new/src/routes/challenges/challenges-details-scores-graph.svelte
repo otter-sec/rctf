@@ -268,10 +268,10 @@
     inset-inline-end: var(--space-2xs);
     opacity: 0;
     transition: opacity 120ms ease;
-  }
 
-  graph-root:hover graph-controls-slot,
-  graph-root:focus-within graph-controls-slot {
-    opacity: 1;
+    graph-root:hover &,
+    graph-root:focus-within & {
+      opacity: 1;
+    }
   }
 </style>

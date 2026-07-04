@@ -143,60 +143,60 @@
     @media (width >= 40rem) {
       --avatar-size: 3rem;
     }
-  }
 
-  /* Base fill sits behind content; the medal/self gradient washes over it. */
-  rank-row::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: -2;
-    border-radius: inherit;
-    background: var(--row-base);
-  }
+    /* Base fill sits behind content; the medal/self gradient washes over it. */
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -2;
+      border-radius: inherit;
+      background: var(--row-base);
+    }
 
-  rank-row::after {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    z-index: -1;
-    inline-size: 24rem;
-    max-inline-size: 100%;
-    border-radius: inherit;
-    background: linear-gradient(
-      to right,
-      color-mix(in oklab, var(--row-gradient) 15%, transparent),
-      transparent
-    );
-  }
+    &::after {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: -1;
+      inline-size: 24rem;
+      max-inline-size: 100%;
+      border-radius: inherit;
+      background: linear-gradient(
+        to right,
+        color-mix(in oklab, var(--row-gradient) 15%, transparent),
+        transparent
+      );
+    }
 
-  rank-row[data-self] {
-    --row-base: var(--background-self-l1);
-  }
+    &[data-self] {
+      --row-base: var(--background-self-l1);
+    }
 
-  rank-row[data-variant='gold'] {
-    --row-fg-l0: var(--foreground-gold-l0);
-    --row-fg-l1: var(--foreground-gold-l1);
-    --row-gradient: var(--foreground-gold-l0);
-  }
+    &[data-variant='gold'] {
+      --row-fg-l0: var(--foreground-gold-l0);
+      --row-fg-l1: var(--foreground-gold-l1);
+      --row-gradient: var(--foreground-gold-l0);
+    }
 
-  rank-row[data-variant='silver'] {
-    --row-fg-l0: var(--foreground-silver-l0);
-    --row-fg-l1: var(--foreground-silver-l1);
-    --row-gradient: var(--foreground-silver-l0);
-  }
+    &[data-variant='silver'] {
+      --row-fg-l0: var(--foreground-silver-l0);
+      --row-fg-l1: var(--foreground-silver-l1);
+      --row-gradient: var(--foreground-silver-l0);
+    }
 
-  rank-row[data-variant='bronze'] {
-    --row-fg-l0: var(--foreground-bronze-l0);
-    --row-fg-l1: var(--foreground-bronze-l1);
-    --row-gradient: var(--foreground-bronze-l0);
-  }
+    &[data-variant='bronze'] {
+      --row-fg-l0: var(--foreground-bronze-l0);
+      --row-fg-l1: var(--foreground-bronze-l1);
+      --row-gradient: var(--foreground-bronze-l0);
+    }
 
-  rank-row[data-variant='self'] {
-    --row-fg-l0: var(--foreground-self-l0);
-    --row-fg-l1: var(--foreground-self-l1);
-    --row-gradient: var(--foreground-self-l0);
+    &[data-variant='self'] {
+      --row-fg-l0: var(--foreground-self-l0);
+      --row-fg-l1: var(--foreground-self-l1);
+      --row-gradient: var(--foreground-self-l0);
+    }
   }
 
   row-rank {

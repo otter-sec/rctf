@@ -73,11 +73,11 @@
       color: var(--foreground-l0);
       background: var(--background-l2);
     }
-  }
 
-  [data-part='trigger'] :global([data-slot='tab-icon']) {
-    flex-shrink: 0;
-    font-size: 1rem;
+    :global([data-slot='tab-icon']) {
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
   }
 
   tab-count {

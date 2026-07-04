@@ -371,6 +371,10 @@
     align-items: center;
     justify-content: center;
     gap: var(--space-s);
+
+    :global(a[data-variant]) {
+      inline-size: 100%;
+    }
   }
 
   adminbot-message {
@@ -378,10 +382,6 @@
     font-size: var(--step--1);
     text-align: center;
     text-wrap: balance;
-  }
-
-  adminbot-empty :global(a[data-variant]) {
-    inline-size: 100%;
   }
 
   adminbot-loading {
@@ -397,14 +397,14 @@
     display: inline-flex;
     flex-shrink: 0;
     color: var(--foreground-l3);
-  }
 
-  status-icon[data-status='completed'] {
-    color: var(--foreground-accent);
-  }
+    &[data-status='completed'] {
+      color: var(--foreground-accent);
+    }
 
-  status-icon[data-status='failed'] {
-    color: var(--foreground-destructive);
+    &[data-status='failed'] {
+      color: var(--foreground-destructive);
+    }
   }
 
   job-card {
@@ -415,14 +415,14 @@
     background: var(--background-l4);
     border-radius: var(--radius-md);
     font-size: var(--step--1);
-  }
 
-  job-card[data-status='completed'] job-status {
-    color: var(--foreground-accent);
-  }
+    &[data-status='completed'] job-status {
+      color: var(--foreground-accent);
+    }
 
-  job-card[data-status='failed'] job-status {
-    color: var(--foreground-destructive);
+    &[data-status='failed'] job-status {
+      color: var(--foreground-destructive);
+    }
   }
 
   job-status {
@@ -500,32 +500,32 @@
 
   history-item {
     display: block;
-  }
 
-  history-item > button {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2xs);
-    inline-size: 100%;
-    padding: var(--space-2xs) var(--space-s);
-    color: inherit;
-    text-align: start;
-    background: var(--background-l4);
-    border-radius: var(--radius-md);
-    font-size: var(--step--2);
-    cursor: pointer;
+    > button {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2xs);
+      inline-size: 100%;
+      padding: var(--space-2xs) var(--space-s);
+      color: inherit;
+      text-align: start;
+      background: var(--background-l4);
+      border-radius: var(--radius-md);
+      font-size: var(--step--2);
+      cursor: pointer;
 
-    &:hover:not(:disabled) {
-      background: var(--background-l5);
-    }
+      &:hover:not(:disabled) {
+        background: var(--background-l5);
+      }
 
-    &:disabled {
-      cursor: default;
-    }
+      &:disabled {
+        cursor: default;
+      }
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: 2px;
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+      }
     }
   }
 
@@ -569,11 +569,11 @@
     flex: 1;
     flex-direction: column;
     gap: var(--space-s);
-  }
 
-  form :global(input[data-mono]) {
-    font-family: var(--font-mono);
-    font-size: var(--step--1);
+    :global(input[data-mono]) {
+      font-family: var(--font-mono);
+      font-size: var(--step--1);
+    }
   }
 
   form-actions {
@@ -581,9 +581,9 @@
     flex-direction: column;
     gap: var(--space-2xs);
     margin-block-start: auto;
-  }
 
-  form-actions :global(button[data-variant]) {
-    inline-size: 100%;
+    :global(button[data-variant]) {
+      inline-size: 100%;
+    }
   }
 </style>

@@ -254,10 +254,15 @@
     block-size: calc(100dvh - var(--header-height));
     min-block-size: 0;
     --splitter-handle-size: 0.5rem;
-  }
 
-  challenges-page[data-form='mobile'] {
-    flex-direction: column;
+    &[data-form='mobile'] {
+      flex-direction: column;
+
+      pane-surface[data-side='list'] {
+        flex: 1;
+        min-block-size: 0;
+      }
+    }
   }
 
   pane-surface {
@@ -266,21 +271,16 @@
     block-size: 100%;
     overflow: hidden;
     background: var(--background-l1);
-  }
 
-  challenges-page[data-form='mobile'] pane-surface[data-side='list'] {
-    flex: 1;
-    min-block-size: 0;
-  }
+    &[data-side='list'] {
+      border-start-end-radius: var(--radius-3xl);
+      border-end-end-radius: var(--radius-3xl);
+    }
 
-  pane-surface[data-side='list'] {
-    border-start-end-radius: var(--radius-3xl);
-    border-end-end-radius: var(--radius-3xl);
-  }
-
-  pane-surface[data-side='detail'] {
-    border-start-start-radius: var(--radius-3xl);
-    border-end-start-radius: var(--radius-3xl);
+    &[data-side='detail'] {
+      border-start-start-radius: var(--radius-3xl);
+      border-end-start-radius: var(--radius-3xl);
+    }
   }
 
   challenges-list-slot,
@@ -307,6 +307,6 @@
   /* Portaled drawer content escapes this subtree, so size it via a global knob
      scoped to the drawer presentation. Only the challenges drawer uses it. */
   :global([data-presentation='drawer']) {
-    --dialog-drawer-max-size: 92dvh;
+    --dialog-drawer-max-size: 85dvh;
   }
 </style>

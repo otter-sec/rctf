@@ -295,19 +295,19 @@
     padding-inline: 1.25rem;
     pointer-events: none;
     background: var(--background-l2);
-  }
 
-  self-overlay[data-edge='top'] {
-    inset-block-start: 0;
-    padding-block-end: var(--space-3xs);
-  }
+    &[data-edge='top'] {
+      inset-block-start: 0;
+      padding-block-end: var(--space-3xs);
+    }
 
-  self-overlay[data-edge='bottom'] {
-    inset-block-end: 0;
-    padding-block-start: var(--space-3xs);
-  }
+    &[data-edge='bottom'] {
+      inset-block-end: 0;
+      padding-block-start: var(--space-3xs);
+    }
 
-  self-overlay :global(a) {
-    pointer-events: auto;
+    :global(a) {
+      pointer-events: auto;
+    }
   }
 </style>

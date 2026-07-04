@@ -93,56 +93,56 @@
       outline-offset: -2px;
       z-index: 1;
     }
-  }
 
-  button[data-solved] {
-    --edge-color: var(--foreground-success);
-  }
+    &[data-solved] {
+      --edge-color: var(--foreground-success);
+    }
 
-  button[data-blood='gold'] {
-    --edge-color: var(--foreground-gold-l0);
-  }
+    &[data-blood='gold'] {
+      --edge-color: var(--foreground-gold-l0);
+    }
 
-  button[data-blood='silver'] {
-    --edge-color: var(--foreground-silver-l0);
-  }
+    &[data-blood='silver'] {
+      --edge-color: var(--foreground-silver-l0);
+    }
 
-  button[data-blood='bronze'] {
-    --edge-color: var(--foreground-bronze-l0);
-  }
+    &[data-blood='bronze'] {
+      --edge-color: var(--foreground-bronze-l0);
+    }
 
-  button[data-solved]::before,
-  button[data-blood]::before {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    inline-size: 9rem;
-    pointer-events: none;
-    background: linear-gradient(to right, var(--edge-soft), transparent);
-  }
+    &[data-solved]::before,
+    &[data-blood]::before {
+      content: '';
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0;
+      inline-size: 9rem;
+      pointer-events: none;
+      background: linear-gradient(to right, var(--edge-soft), transparent);
+    }
 
-  button[data-selected] {
-    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
-  }
+    &[data-selected] {
+      box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--category-foreground-l1) 25%, transparent);
 
-  button[data-selected]::after {
-    content: '';
-    position: absolute;
-    inset-block: 0;
-    inset-inline-end: 0;
-    inline-size: 24rem;
-    pointer-events: none;
-    background: linear-gradient(to left, var(--category-background-l0), transparent);
-  }
+      &::after {
+        content: '';
+        position: absolute;
+        inset-block: 0;
+        inset-inline-end: 0;
+        inline-size: 24rem;
+        pointer-events: none;
+        background: linear-gradient(to left, var(--category-background-l0), transparent);
+      }
+    }
 
-  button :global(svg[data-indicator]) {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 0.5rem;
-    translate: 0 -50%;
-    font-size: 1.25rem;
-    color: var(--edge-color);
+    :global(svg[data-indicator]) {
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: 0.5rem;
+      translate: 0 -50%;
+      font-size: 1.25rem;
+      color: var(--edge-color);
+    }
   }
 
   item-main {
@@ -191,11 +191,11 @@
   [data-part='points'] {
     font-size: 1.25rem;
     color: var(--category-foreground-l1);
-  }
 
-  [data-part='points'] strong {
-    color: var(--category-foreground-l0);
-    font-weight: var(--font-weight-normal);
+    strong {
+      color: var(--category-foreground-l0);
+      font-weight: var(--font-weight-normal);
+    }
   }
 
   [data-part='solves'] {

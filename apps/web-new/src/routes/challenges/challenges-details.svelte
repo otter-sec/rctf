@@ -117,11 +117,11 @@
     inline-size: 100%;
     block-size: 100%;
     min-block-size: 0;
-  }
 
-  challenge-details[data-empty] {
-    align-items: center;
-    justify-content: center;
+    &[data-empty] {
+      align-items: center;
+      justify-content: center;
+    }
   }
 
   details-tabs {
@@ -129,28 +129,28 @@
     flex: 1;
     flex-direction: column;
     min-block-size: 0;
-  }
 
-  /* Make the consumed Tabs primitive fill this region: keep the strip fixed and
-     let the active panel be the scroll container. data-scope guards matter:
-     bare [data-part] would also hit every other Zag component rendered inside
-     the panels (avatar/tooltip roots share the part names). */
-  details-tabs > :global([data-scope='tabs'][data-part='root']) {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-block-size: 0;
-  }
+    /* Make the consumed Tabs primitive fill this region: keep the strip fixed and
+       let the active panel be the scroll container. data-scope guards matter:
+       bare [data-part] would also hit every other Zag component rendered inside
+       the panels (avatar/tooltip roots share the part names). */
+    > :global([data-scope='tabs'][data-part='root']) {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      min-block-size: 0;
+    }
 
-  details-tabs :global([data-scope='tabs'][data-part='list']) {
-    padding-inline: 1.25rem;
-  }
+    :global([data-scope='tabs'][data-part='list']) {
+      padding-inline: 1.25rem;
+    }
 
-  details-tabs :global([data-scope='tabs'][data-part='content']:not([hidden])) {
-    flex: 1;
-    min-block-size: 0;
-    overflow-y: auto;
-    background: var(--background-l2);
+    :global([data-scope='tabs'][data-part='content']:not([hidden])) {
+      flex: 1;
+      min-block-size: 0;
+      overflow-y: auto;
+      background: var(--background-l2);
+    }
   }
 
   details-footer {

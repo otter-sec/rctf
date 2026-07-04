@@ -73,43 +73,43 @@
     background: var(--slot-bg);
     border: 2px solid transparent;
     border-radius: var(--radius-lg);
-  }
 
-  podium-slot[data-variant='gold'] {
-    --slot-fg-l0: var(--foreground-gold-l0);
-    --slot-fg-l1: var(--foreground-gold-l1);
-    --slot-bg: var(--background-gold);
-  }
+    &[data-variant='gold'] {
+      --slot-fg-l0: var(--foreground-gold-l0);
+      --slot-fg-l1: var(--foreground-gold-l1);
+      --slot-bg: var(--background-gold);
+    }
 
-  podium-slot[data-variant='silver'] {
-    --slot-fg-l0: var(--foreground-silver-l0);
-    --slot-fg-l1: var(--foreground-silver-l1);
-    --slot-bg: var(--background-silver);
-  }
+    &[data-variant='silver'] {
+      --slot-fg-l0: var(--foreground-silver-l0);
+      --slot-fg-l1: var(--foreground-silver-l1);
+      --slot-bg: var(--background-silver);
+    }
 
-  podium-slot[data-variant='bronze'] {
-    --slot-fg-l0: var(--foreground-bronze-l0);
-    --slot-fg-l1: var(--foreground-bronze-l1);
-    --slot-bg: var(--background-bronze);
-  }
+    &[data-variant='bronze'] {
+      --slot-fg-l0: var(--foreground-bronze-l0);
+      --slot-fg-l1: var(--foreground-bronze-l1);
+      --slot-bg: var(--background-bronze);
+    }
 
-  podium-slot[data-variant='self'] {
-    --slot-fg-l0: var(--foreground-self-l0);
-    --slot-fg-l1: var(--foreground-self-l1);
-    --slot-bg: var(--background-self-l1);
-  }
+    &[data-variant='self'] {
+      --slot-fg-l0: var(--foreground-self-l0);
+      --slot-fg-l1: var(--foreground-self-l1);
+      --slot-bg: var(--background-self-l1);
+    }
 
-  /* Empty and placeholder slots read as unfilled: dashed outline, no fill. */
-  podium-slot[data-kind='empty'],
-  podium-slot[data-kind='placeholder'] {
-    background: transparent;
-    border-style: dashed;
-    border-color: var(--border);
-  }
+    /* Empty and placeholder slots read as unfilled: dashed outline, no fill. */
+    &[data-kind='empty'],
+    &[data-kind='placeholder'] {
+      background: transparent;
+      border-style: dashed;
+      border-color: var(--border);
+    }
 
-  podium-slot[data-kind='placeholder'] {
-    --slot-fg-l0: var(--foreground-l4);
-    --slot-fg-l1: color-mix(in oklab, var(--foreground-l5) 50%, transparent);
+    &[data-kind='placeholder'] {
+      --slot-fg-l0: var(--foreground-l4);
+      --slot-fg-l1: color-mix(in oklab, var(--foreground-l5) 50%, transparent);
+    }
   }
 
   slot-ordinal {

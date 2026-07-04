@@ -214,70 +214,70 @@
     z-index: 2;
     display: block;
     background: var(--background-l1);
-  }
 
-  /* 0.625rem start padding + 1rem icon + 0.625rem gap puts the name on the
-     2.25rem alignment rail. */
-  challenges-list-group-header button {
-    display: flex;
-    align-items: center;
-    gap: 0.625rem;
-    inline-size: 100%;
-    padding: 0.5rem 0.5rem 0.5rem 0.625rem;
-    text-align: start;
-    color: var(--category-foreground-l1);
-    background: var(--category-background-l0);
-    cursor: pointer;
+    /* 0.625rem start padding + 1rem icon + 0.625rem gap puts the name on the
+       2.25rem alignment rail. */
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      inline-size: 100%;
+      padding: 0.5rem 0.5rem 0.5rem 0.625rem;
+      text-align: start;
+      color: var(--category-foreground-l1);
+      background: var(--category-background-l0);
+      cursor: pointer;
 
-    &:focus-visible {
-      outline: 2px solid var(--ring);
-      outline-offset: -2px;
+      &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: -2px;
+      }
+
+      &[data-expanded] :global([data-slot='chevron']) {
+        rotate: 0deg;
+      }
     }
-  }
 
-  challenges-list-group-header :global([data-slot='icon']) {
-    flex-shrink: 0;
-    font-size: 1rem;
-  }
+    :global([data-slot='icon']) {
+      flex-shrink: 0;
+      font-size: 1rem;
+    }
 
-  challenges-list-group-header [data-slot='name'] {
-    font-size: var(--step-0);
-  }
+    [data-slot='name'] {
+      font-size: var(--step-0);
+    }
 
-  challenges-list-group-header [data-slot='count'] {
-    margin-inline-start: auto;
-    color: var(--category-foreground-l1);
-    white-space: nowrap;
-    font-variant-numeric: tabular-nums;
-  }
+    [data-slot='count'] {
+      margin-inline-start: auto;
+      color: var(--category-foreground-l1);
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
 
-  challenges-list-group-header [data-slot='count'] strong {
-    color: var(--category-foreground-l0);
-    font-weight: var(--font-weight-normal);
-  }
+      strong {
+        color: var(--category-foreground-l0);
+        font-weight: var(--font-weight-normal);
+      }
+    }
 
-  challenges-list-group-header :global([data-slot='chevron']) {
-    flex-shrink: 0;
-    font-size: 1rem;
-    color: var(--category-foreground-l1);
-    rotate: -90deg;
-    transition: rotate 150ms ease;
-  }
-
-  challenges-list-group-header button[data-expanded] :global([data-slot='chevron']) {
-    rotate: 0deg;
+    :global([data-slot='chevron']) {
+      flex-shrink: 0;
+      font-size: 1rem;
+      color: var(--category-foreground-l1);
+      rotate: -90deg;
+      transition: rotate 150ms ease;
+    }
   }
 
   challenges-list-group-body {
     display: block;
     background: var(--category-background-l1);
-  }
 
-  challenges-list-group-body ul {
-    display: flex;
-    flex-direction: column;
-    margin: 0;
-    padding: 0;
-    list-style: none;
+    ul {
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
   }
 </style>

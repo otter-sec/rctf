@@ -125,11 +125,11 @@
     color: var(--foreground-l5);
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
-  }
 
-  list-stats strong {
-    color: var(--foreground-l3);
-    font-weight: var(--font-weight-normal);
+    strong {
+      color: var(--foreground-l3);
+      font-weight: var(--font-weight-normal);
+    }
   }
 
   list-controls {

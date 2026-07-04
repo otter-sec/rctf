@@ -66,20 +66,20 @@
   page-status {
     font-size: var(--step-2);
     color: var(--foreground-l3);
-  }
 
-  page-status :global(ui-card) {
-    inline-size: 100%;
-    max-inline-size: 28rem;
-    font-size: var(--step-0);
-    color: var(--foreground-l1);
-  }
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+      font-size: var(--step-0);
+      color: var(--foreground-l1);
+    }
 
-  page-status p {
-    color: var(--foreground-l3);
-  }
+    p {
+      color: var(--foreground-l3);
+    }
 
-  page-status :global(a) {
-    inline-size: 100%;
+    :global(a) {
+      inline-size: 100%;
+    }
   }
 </style>

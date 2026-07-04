@@ -139,14 +139,14 @@
       padding-inline: 0.75rem;
       font-size: 0.875rem;
     }
-  }
 
-  category-chip :global([data-slot='category-icon']) {
-    flex-shrink: 0;
-    font-size: 0.75rem;
+    :global([data-slot='category-icon']) {
+      flex-shrink: 0;
+      font-size: 0.75rem;
 
-    @media (width >= 40rem) {
-      font-size: 0.875rem;
+      @media (width >= 40rem) {
+        font-size: 0.875rem;
+      }
     }
   }
 
