@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
+  import { CELL_KIND } from './scores-cell-tooltip'
   import type { ScoresData } from './scores-data.svelte'
   import {
     getChallengeCellWidth,
@@ -102,7 +103,7 @@
     {#each categoryCells as cell (cell.key)}
       <solve-cell
         data-tooltip-cell
-        data-kind="category"
+        data-kind={CELL_KIND.category}
         data-name={cell.name}
         data-solved={cell.solved}
         data-total={cell.total}
@@ -138,7 +139,7 @@
       {#if cell.dynamic}
         <solve-cell
           data-tooltip-cell
-          data-kind="challenge"
+          data-kind={CELL_KIND.challenge}
           data-dynamic
           data-name={cell.name}
           data-points={cell.points}
@@ -157,7 +158,7 @@
       {:else}
         <solve-cell
           data-tooltip-cell
-          data-kind="challenge"
+          data-kind={CELL_KIND.challenge}
           data-name={cell.name}
           data-points={cell.points}
           data-state={cell.solved ? 'solved' : 'unsolved'}

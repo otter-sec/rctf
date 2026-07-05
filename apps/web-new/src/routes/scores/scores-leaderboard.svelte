@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { captureElement } from '$lib/attachments/capture-element'
   import { scrollFade } from '$lib/attachments/scroll-fade'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
@@ -143,6 +144,14 @@
   // hovered state, so it reappears on settle if the pointer is still over a cell.
   const displayedTooltip = $derived(virtual.isScrolling ? null : activeTooltip)
 
+  // A poll or filter refetch can reorder rows under a stationary pointer; the
+  // cached tooltip/highlight snapshot would then describe a row that moved.
+  // Clear on data change — the next pointermove re-resolves from the fresh DOM.
+  $effect(() => {
+    void data.entries
+    clearHover()
+  })
+
   // Measured header height feeds the virtualizer scrollMargin; on mobile the
   // header collapses to display:none, so offsetHeight naturally reports 0.
   const measureHeader: Attachment<HTMLElement> = node => {
@@ -185,7 +194,7 @@
   let selfClip = $state<ViewportClip>(null)
 
   const selfIndex = $derived(
-    data.currentUserId ? data.entries.findIndex(entry => entry.id === data.currentUserId) : -1
+    data.currentUserId ? (data.teamRanks.get(data.currentUserId) ?? 0) - 1 : -1
   )
   const searchActive = $derived(!!urlState.search)
 
@@ -226,12 +235,7 @@
     }
   })
 
-  const captureScroll: Attachment<HTMLElement> = node => {
-    scrollRoot = node
-    return () => {
-      if (scrollRoot === node) scrollRoot = null
-    }
-  }
+  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   // Attached only to the virtualized row whose entry is the current user; tracks
   // which viewport edge it leaves by so the overlay pins to that edge.

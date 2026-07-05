@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { CELL_KIND } from './scores-cell-tooltip'
+  import { SCORE_CELL_WIDTH_PX } from './scores-constants'
   import {
     getChallengeCellsInnerWidth,
     getChallengeCellWidth,
@@ -56,7 +58,7 @@
     style:--slot-width={`${width}px`}
     style:z-index={stackIndex}
     data-tooltip-cell
-    data-kind={isCategory ? 'header-category' : 'header-challenge'}
+    data-kind={isCategory ? CELL_KIND.headerCategory : CELL_KIND.headerChallenge}
     data-name={isCategory ? item.group.config.name : item.challenge.name}
     data-points={isCategory ? fixedCategoryPoints(item.group) : item.challenge.points}
     data-count={isCategory ? item.group.challenges.length : undefined}
@@ -94,7 +96,7 @@
     {#each headerNameItems as item, index (item.type === 'category' ? `category:${item.group.category}` : `challenge:${item.challenge.id}`)}
       {@render nameLabel(
         item,
-        item.type === 'category' ? 48 : getChallengeCellWidth(item.challenge),
+        item.type === 'category' ? SCORE_CELL_WIDTH_PX : getChallengeCellWidth(item.challenge),
         headerNameItems.length - index
       )}
     {/each}
@@ -108,9 +110,9 @@
           {@const dynamicOnly = points === 0 && hasDynamicChallenge(group)}
           <category-block
             data-category-color={group.config.color}
-            style:--block-width="48px"
+            style:--block-width={`${SCORE_CELL_WIDTH_PX}px`}
             data-tooltip-cell
-            data-kind="header-category"
+            data-kind={CELL_KIND.headerCategory}
             data-name={group.config.name}
             data-count={group.challenges.length}
             data-points={points}
@@ -134,7 +136,7 @@
               <challenge-point
                 style:--point-width={`${getChallengeCellWidth(challenge)}px`}
                 data-tooltip-cell
-                data-kind="header-challenge"
+                data-kind={CELL_KIND.headerChallenge}
                 data-name={challenge.name}
                 data-points={challenge.points}
                 data-dynamic={isDynamicChallenge(challenge) ? '' : undefined}
@@ -155,7 +157,7 @@
           data-category-color={challenge.config.color}
           style:--block-width={`${getChallengeCellWidth(challenge)}px`}
           data-tooltip-cell
-          data-kind="header-challenge"
+          data-kind={CELL_KIND.headerChallenge}
           data-name={challenge.name}
           data-points={challenge.points}
           data-dynamic={isDynamicChallenge(challenge) ? '' : undefined}

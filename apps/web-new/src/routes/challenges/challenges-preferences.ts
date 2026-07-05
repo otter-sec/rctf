@@ -1,3 +1,5 @@
+import { isRecord } from '$lib/utils/is-record'
+
 const STORAGE_KEY = 'rctf:challenges:preferences'
 
 export interface ChallengesPreferences {
@@ -37,10 +39,6 @@ export function savePreferences(prefs: ChallengesPreferences) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
   } catch {}
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function isStringArray(value: unknown): value is string[] {

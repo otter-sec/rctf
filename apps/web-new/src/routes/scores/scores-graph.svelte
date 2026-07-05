@@ -19,6 +19,7 @@
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import type { LeaderboardGraphSeries } from '$lib/query/leaderboard'
   import GraphControls from './scores-graph-controls.svelte'
+  import { getRankTier } from './scores-transforms'
 
   interface Props {
     graphData: LeaderboardGraphSeries[]
@@ -55,17 +56,6 @@
   const PAD_BOTTOM = 24
   const PAD_LEFT = 8
 
-  function seriesRole(isSelf: boolean, rank: number, id: string): string {
-    if (isSelf) return 'self'
-    if (rank === 1) return 'gold'
-    if (rank === 2) return 'silver'
-    if (rank === 3) return 'bronze'
-    if (rank > 0) return `r${((rank - 1) % 10) + 1}`
-    let hash = 0
-    for (const ch of id) hash += ch.charCodeAt(0)
-    return `r${(hash % 10) + 1}`
-  }
-
   let width = $state(0)
   let height = $state(0)
   let hover = $state<{ x: number; y: number } | null>(null)
@@ -89,7 +79,7 @@
       out.push({
         id: entry.id,
         name: entry.name,
-        role: seriesRole(isSelf, rank, entry.id),
+        role: getRankTier(isSelf, rank, entry.id),
         rank,
         isSelf,
         isContext: contextTeamIds.has(entry.id),

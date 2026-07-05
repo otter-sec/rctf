@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import { captureElement } from '$lib/attachments/capture-element'
   import { scrollFade } from '$lib/attachments/scroll-fade'
   import { resolvePinnedEdge } from '$lib/components/pinned-self-row'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
@@ -76,12 +77,7 @@
     })
   )
 
-  const captureScroll: Attachment<HTMLElement> = node => {
-    scrollRoot = node
-    return () => {
-      if (scrollRoot === node) scrollRoot = null
-    }
-  }
+  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {

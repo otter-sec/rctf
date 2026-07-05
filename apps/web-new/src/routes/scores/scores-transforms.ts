@@ -257,9 +257,33 @@ export function getCategoryStatsForSolves(
   }
 }
 
+export type RankTier = 'self' | 'gold' | 'silver' | 'bronze' | `r${number}`
+
+export function getRankTier(
+  isSelf: boolean,
+  rank: number | null | undefined,
+  fallbackId: string
+): RankTier {
+  if (isSelf) return 'self'
+  if (rank !== null && rank !== undefined && rank > 0) {
+    if (rank === 1) return 'gold'
+    if (rank === 2) return 'silver'
+    if (rank === 3) return 'bronze'
+    return `r${((rank - 1) % RANK_COLORS.length) + 1}`
+  }
+  const hash = fallbackId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return `r${(hash % RANK_COLORS.length) + 1}`
+}
+
+const TIER_COLORS: Record<string, string> = {
+  self: SELF_COLOR,
+  gold: MEDAL_COLORS[0],
+  silver: MEDAL_COLORS[1],
+  bronze: MEDAL_COLORS[2],
+}
+
 export function getStableRankColor(id: string): string {
-  const hash = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
-  return RANK_COLORS[hash % RANK_COLORS.length]!
+  return tierColor(getRankTier(false, null, id))
 }
 
 export function getRankColorForPosition(
@@ -267,12 +291,11 @@ export function getRankColorForPosition(
   isCurrentUser: boolean,
   fallbackId: string
 ): string {
-  if (isCurrentUser) return SELF_COLOR
-  if (rank !== null && rank !== undefined && rank > 0) {
-    if (rank <= 3) return MEDAL_COLORS[rank - 1]!
-    return RANK_COLORS[(rank - 1) % RANK_COLORS.length]!
-  }
-  return getStableRankColor(fallbackId)
+  return tierColor(getRankTier(isCurrentUser, rank, fallbackId))
+}
+
+function tierColor(tier: RankTier): string {
+  return TIER_COLORS[tier] ?? RANK_COLORS[Number(tier.slice(1)) - 1]!
 }
 
 export function getTeamColorMap(

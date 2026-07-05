@@ -9,6 +9,7 @@
 -->
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
+  import { captureElement } from '$lib/attachments/capture-element'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import { useChallengeScores, useChallengeScoresInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -90,12 +91,7 @@
     return selfRowEdge
   })
 
-  const captureScroll: Attachment<HTMLElement> = node => {
-    scrollRoot = node
-    return () => {
-      if (scrollRoot === node) scrollRoot = null
-    }
-  }
+  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {

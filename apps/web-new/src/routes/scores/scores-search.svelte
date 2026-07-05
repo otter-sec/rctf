@@ -1,8 +1,8 @@
 <script lang="ts">
+  import { captureElement } from '$lib/attachments/capture-element'
   import IconSearch from '$lib/icons/icon-search.svelte'
   import IconX from '$lib/icons/icon-x.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import type { Attachment } from 'svelte/attachments'
 
   interface Props {
     value: string
@@ -14,12 +14,7 @@
   let { value, pending, oninput, onclear }: Props = $props()
 
   let inputEl = $state<HTMLInputElement | null>(null)
-  const captureInput: Attachment<HTMLInputElement> = node => {
-    inputEl = node
-    return () => {
-      if (inputEl === node) inputEl = null
-    }
-  }
+  const captureInput = captureElement<HTMLInputElement>(node => (inputEl = node))
 
   // Ctrl/Cmd+F focuses the team search instead of the browser find (R18).
   function handleWindowKeydown(event: KeyboardEvent) {

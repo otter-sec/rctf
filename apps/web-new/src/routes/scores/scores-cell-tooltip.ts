@@ -15,17 +15,28 @@ export interface CellTooltip {
 // resolver pure (dataset in, content out) lets it be unit-tested without a DOM.
 export type CellDataset = Partial<Record<string, string>>
 
+// The data-kind contract shared with scores-solve-cells and scores-header:
+// attribute writers and this resolver must agree on the same literal set.
+export const CELL_KIND = {
+  challenge: 'challenge',
+  category: 'category',
+  headerChallenge: 'header-challenge',
+  headerCategory: 'header-category',
+} as const
+
+export type CellKind = (typeof CELL_KIND)[keyof typeof CELL_KIND]
+
 const BLOOD_LABELS = ['First blood!', 'Second blood!', 'Third blood!'] as const
 
 export function resolveCellTooltip(dataset: CellDataset): CellTooltip | null {
   switch (dataset.kind) {
-    case 'challenge':
+    case CELL_KIND.challenge:
       return resolveChallengeCell(dataset)
-    case 'category':
+    case CELL_KIND.category:
       return resolveCategoryCell(dataset)
-    case 'header-challenge':
+    case CELL_KIND.headerChallenge:
       return resolveHeaderChallenge(dataset)
-    case 'header-category':
+    case CELL_KIND.headerCategory:
       return resolveHeaderCategory(dataset)
     default:
       return null

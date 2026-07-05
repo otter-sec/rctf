@@ -1,3 +1,4 @@
+import { isRecord } from '$lib/utils/is-record'
 import { isSortMode, isViewMode } from './scores-url-params'
 import type { SortMode, ViewMode } from './scores-url-params'
 
@@ -42,8 +43,4 @@ export function saveScoresPreferences(prefs: Partial<ScoresPreferences>) {
     const current = stored ? parseScoresPreferences(JSON.parse(stored)) : {}
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...current, ...prefs }))
   } catch {}
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
