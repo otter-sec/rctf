@@ -1,5 +1,6 @@
 <script lang="ts">
   import { scrollFade } from '$lib/attachments/scroll-fade'
+  import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
@@ -12,6 +13,7 @@
   } from './scores-constants'
   import type { ScoresData } from './scores-data.svelte'
   import ScoresHeader from './scores-header.svelte'
+  import ScoresSelfRow from './scores-self-row.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
   import {
@@ -117,6 +119,86 @@
     latched = result.latched
     if (result.shouldFetch) void data.fetchNextPage()
   })
+
+  // Self-row pinning (R11). The scroll container is captured so an
+  // IntersectionObserver on the real self row can use it as its root; the
+  // observed clip plus the self index feed the shared pinned-edge reducer.
+  let scrollRoot = $state<HTMLElement | null>(null)
+  // 'visible' while the real row is on screen; 'above'/'below' the edge it left
+  // by. Deliberately not reset on the observer's teardown: when a virtual row
+  // unmounts far off screen its last known edge is the correct one to keep.
+  let selfClip = $state<ViewportClip>(null)
+
+  const selfIndex = $derived(
+    data.currentUserId ? data.entries.findIndex(entry => entry.id === data.currentUserId) : -1
+  )
+  const searchActive = $derived(!!urlState.search)
+
+  const selfEdge = $derived(
+    resolvePinnedEdge({
+      hasSelf: !!data.currentUser && (data.isLoading || data.currentUser.globalPlace !== null),
+      selfIndex: selfIndex === -1 ? null : selfIndex,
+      viewportClip: selfClip,
+      searchActive,
+    })
+  )
+
+  // The overlay's row model: the loaded entry when self is on a loaded page,
+  // otherwise a row synthesized from the current-user query so the pin still
+  // renders while self sits beyond the loaded pages (or the first page is still
+  // loading). In the synthesized case the solve maps hold no entry for self, so
+  // the solve strip renders empty until the page carrying self arrives.
+  const selfRow = $derived.by((): { entry: LeaderboardEntry; index: number } | null => {
+    const user = data.currentUser
+    if (!user) return null
+    const loaded = data.entries[selfIndex]
+    if (selfIndex !== -1 && loaded) return { entry: loaded, index: selfIndex }
+    return {
+      entry: {
+        id: user.id,
+        name: user.name,
+        score: user.score,
+        avatarUrl: user.avatarUrl,
+        countryCode: user.countryCode,
+        statusText: user.statusText,
+        solves: user.solves.map(solve => ({ id: solve.id, solveTime: solve.createdAt })),
+        dynamicScores: user.dynamicScores,
+        division: user.division,
+        divisionPlace: user.divisionPlace ?? 0,
+        globalPlace: user.globalPlace,
+      },
+      index: (user.globalPlace ?? 1) - 1,
+    }
+  })
+
+  const captureScroll: Attachment<HTMLElement> = node => {
+    scrollRoot = node
+    return () => {
+      if (scrollRoot === node) scrollRoot = null
+    }
+  }
+
+  // Attached only to the virtualized row whose entry is the current user; tracks
+  // which viewport edge it leaves by so the overlay pins to that edge.
+  const observeSelfRow: Attachment<HTMLElement> = node => {
+    const root = scrollRoot
+    if (!root) return
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0]
+        if (!entry) return
+        const bounds = entry.rootBounds
+        if (entry.isIntersecting || !bounds) {
+          selfClip = 'visible'
+          return
+        }
+        selfClip = entry.boundingClientRect.top < bounds.top ? 'above' : 'below'
+      },
+      { root, threshold: 0 }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }
 </script>
 
 {#snippet teamRow(entry: LeaderboardEntry, index: number)}
@@ -143,6 +225,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <scores-scroll
     {@attach virtual.scrollContainer}
+    {@attach captureScroll}
     {@attach scrollFade}
     tabindex="-1"
     onpointermove={handlePointerMove}
@@ -180,6 +263,7 @@
             <virtual-row
               data-loading={entry ? undefined : true}
               style:--row-y={`${item.start - headerHeight}px`}
+              {@attach entry && data.currentUserId === entry.id ? observeSelfRow : undefined}
             >
               {#if entry}
                 {@render teamRow(entry, item.index)}
@@ -188,6 +272,19 @@
               {/if}
             </virtual-row>
           {/each}
+        {/if}
+
+        {#if selfEdge && selfRow}
+          <ScoresSelfRow
+            {data}
+            entry={selfRow.entry}
+            index={selfRow.index}
+            edge={selfEdge}
+            {headerHeight}
+            viewMode={urlState.viewMode}
+            {divisions}
+            {showDivision}
+          />
         {/if}
       </virtual-list>
     </scores-table>

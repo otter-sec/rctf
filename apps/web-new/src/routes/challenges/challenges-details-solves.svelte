@@ -8,6 +8,7 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { scrollFade } from '$lib/attachments/scroll-fade'
+  import { resolvePinnedEdge } from '$lib/components/pinned-self-row'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import { useChallengeSolvesInfinite, useChallengeSolvesSelf } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -62,11 +63,18 @@
 
   // Which edge to pin the self overlay to, decided by the self-position query —
   // not observation alone, so a solver on an unloaded page still gets pinned.
-  const pinnedEdge = $derived.by((): 'top' | 'bottom' | null => {
-    if (!currentUserSolve || mySolvePosition === null) return null
-    if (userSolveIndex === -1) return 'bottom'
-    return selfRowEdge
-  })
+  // The shared reducer maps the loaded index and the observed clip edge; here
+  // the plain paged list keeps every loaded row mounted, so a null `selfRowEdge`
+  // always means the real row is on screen (`visible`), never unobserved.
+  const pinnedEdge = $derived(
+    resolvePinnedEdge({
+      hasSelf: !!currentUserSolve && mySolvePosition !== null,
+      selfIndex: userSolveIndex === -1 ? null : userSolveIndex,
+      viewportClip:
+        selfRowEdge === 'top' ? 'above' : selfRowEdge === 'bottom' ? 'below' : 'visible',
+      searchActive: false,
+    })
+  )
 
   const captureScroll: Attachment<HTMLElement> = node => {
     scrollRoot = node
