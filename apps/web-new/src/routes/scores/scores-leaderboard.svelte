@@ -1,8 +1,10 @@
 <script lang="ts">
   import { scrollFade } from '$lib/attachments/scroll-fade'
+  import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
   import type { Attachment } from 'svelte/attachments'
+  import { resolveCellTooltip, type CellTooltip } from './scores-cell-tooltip'
   import {
     SCORE_LOADING_ROW_COUNT,
     SCORE_ROW_HEIGHT_FULL_PX,
@@ -10,15 +12,24 @@
   } from './scores-constants'
   import type { ScoresData } from './scores-data.svelte'
   import ScoresHeader from './scores-header.svelte'
-  import { getChallengeCellsInnerWidth } from './scores-transforms'
+  import ScoresSolveCells from './scores-solve-cells.svelte'
+  import ScoresTeamRow from './scores-team-row.svelte'
+  import {
+    getCategoryCellsInnerWidth,
+    getChallengeCellsInnerWidth,
+    getRankVariant,
+  } from './scores-transforms'
   import type { ScoresUrlState } from './scores-url-state.svelte'
 
   interface Props {
     data: ScoresData
     urlState: ScoresUrlState
+    divisions: Record<string, string>
   }
 
-  let { data, urlState }: Props = $props()
+  let { data, urlState, divisions }: Props = $props()
+
+  const showDivision = $derived(Object.keys(divisions).length > 1)
 
   let headerHeight = $state(0)
 
@@ -30,8 +41,50 @@
     getItemKey: index => data.entries[index]?.id ?? index,
   }))
 
-  const contentWidth = $derived(getChallengeCellsInnerWidth(data.challenges))
+  const contentWidth = $derived(
+    urlState.viewMode === 'categories'
+      ? getCategoryCellsInnerWidth(data.categoryGroups.length)
+      : getChallengeCellsInnerWidth(data.challenges)
+  )
   const loadingRows = Array.from({ length: SCORE_LOADING_ROW_COUNT }, (_, index) => index)
+
+  // One delegated pointer listener resolves the hovered cell's data-* into
+  // tooltip content, avoiding a tooltip instance per matrix cell. Suppressed
+  // while the virtualizer is scrolling so tooltips never chase streaming rows.
+  let activeTooltip = $state<CellTooltip | null>(null)
+  let tooltipX = $state(0)
+  let tooltipY = $state(0)
+
+  function clearTooltip() {
+    activeTooltip = null
+  }
+
+  function handlePointerMove(event: PointerEvent) {
+    if (virtual.isScrolling) {
+      clearTooltip()
+      return
+    }
+    const target = event.target
+    const cell =
+      target instanceof Element ? target.closest<HTMLElement>('[data-tooltip-cell]') : null
+    if (!cell) {
+      clearTooltip()
+      return
+    }
+    const resolved = resolveCellTooltip(cell.dataset)
+    if (!resolved) {
+      clearTooltip()
+      return
+    }
+    const rect = cell.getBoundingClientRect()
+    activeTooltip = resolved
+    tooltipX = rect.left + rect.width / 2
+    tooltipY = rect.top
+  }
+
+  // Suppress the tooltip while the list is scrolling without discarding the
+  // hovered state, so it reappears on settle if the pointer is still over a cell.
+  const displayedTooltip = $derived(virtual.isScrolling ? null : activeTooltip)
 
   // Measured header height feeds the virtualizer scrollMargin; on mobile the
   // header collapses to display:none, so offsetHeight naturally reports 0.
@@ -66,19 +119,15 @@
   })
 </script>
 
-<!--
-  Row slot filled by later units. U6 replaces the placeholder team markup inside
-  <row-team> with <ScoresTeamRow>; U7 mounts <ScoresSolveCells> inside
-  <row-content>. The two-region flex row (sticky team column + content pane) and
-  the surrounding shell stay fixed so those units slot components in without
-  restructuring.
--->
-{#snippet teamRow(entry: { id: string; name: string }, index: number)}
-  <row-team>
-    <team-rank>#{index + 1}</team-rank>
-    <team-name>{entry.name}</team-name>
+{#snippet teamRow(entry: LeaderboardEntry, index: number)}
+  {@const isSelf = data.currentUserId === entry.id}
+  {@const variant = getRankVariant(entry.globalPlace ?? index + 1, isSelf)}
+  <row-team data-rank={variant} data-current={isSelf || undefined}>
+    <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
-  <row-content></row-content>
+  <row-content data-current={isSelf || undefined}>
+    <ScoresSolveCells {data} {entry} viewMode={urlState.viewMode} />
+  </row-content>
 {/snippet}
 
 {#snippet skeletonRow()}
@@ -89,7 +138,16 @@
 {/snippet}
 
 <scores-shell style:--score-content-width={`${contentWidth}px`}>
-  <scores-scroll {@attach virtual.scrollContainer} {@attach scrollFade} tabindex="-1">
+  <!-- The pointer handlers only delegate hover-to-tooltip resolution for the
+       matrix cells; the scroll region itself carries no interactive semantics. -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <scores-scroll
+    {@attach virtual.scrollContainer}
+    {@attach scrollFade}
+    tabindex="-1"
+    onpointermove={handlePointerMove}
+    onpointerleave={clearTooltip}
+  >
     <scores-table>
       <header-row {@attach measureHeader}>
         <header-corner></header-corner>
@@ -134,6 +192,17 @@
       </virtual-list>
     </scores-table>
   </scores-scroll>
+
+  {#if displayedTooltip}
+    <cell-tooltip aria-hidden="true" style:left={`${tooltipX}px`} style:top={`${tooltipY}px`}>
+      <strong data-capitalize={displayedTooltip.capitalize || undefined}>
+        {displayedTooltip.title}
+      </strong>
+      {#each displayedTooltip.lines as line, index (index)}
+        <span data-trend={line.trend}>{line.text}</span>
+      {/each}
+    </cell-tooltip>
+  {/if}
 </scores-shell>
 
 <style>
@@ -188,27 +257,46 @@
   }
 
   row-team {
+    --rank-fg-l0: var(--foreground-l0);
+    --rank-fg-l1: var(--foreground-l3);
+    --rank-glow: transparent;
     display: flex;
     align-items: center;
-    gap: var(--space-xs);
+    gap: var(--space-2xs);
     flex-shrink: 0;
     inline-size: var(--score-team-column-width);
     block-size: var(--score-row-height);
     padding-inline: var(--space-m);
     background: var(--background-l1);
     border-radius: var(--radius-lg);
-  }
 
-  team-rank {
-    color: var(--foreground-l3);
-    font-variant-numeric: tabular-nums;
-  }
+    &[data-rank='first'] {
+      --rank-fg-l0: var(--foreground-gold-l0);
+      --rank-fg-l1: var(--foreground-gold-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-gold-l0) 15%, transparent);
+    }
 
-  team-name {
-    overflow: hidden;
-    color: var(--foreground-l0);
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    &[data-rank='second'] {
+      --rank-fg-l0: var(--foreground-silver-l0);
+      --rank-fg-l1: var(--foreground-silver-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-silver-l0) 15%, transparent);
+    }
+
+    &[data-rank='third'] {
+      --rank-fg-l0: var(--foreground-bronze-l0);
+      --rank-fg-l1: var(--foreground-bronze-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-bronze-l0) 15%, transparent);
+    }
+
+    &[data-rank='self'] {
+      --rank-fg-l0: var(--foreground-self-l0);
+      --rank-fg-l1: var(--foreground-self-l1);
+      --rank-glow: color-mix(in oklab, var(--foreground-self-l0) 15%, transparent);
+    }
+
+    &[data-current] {
+      background: var(--background-self-l0);
+    }
   }
 
   team-skeleton {
@@ -267,8 +355,8 @@
       position: sticky;
       inset-inline-start: 0;
       z-index: 10;
-      background: var(--background-l0);
-      border-radius: 0;
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
     }
 
     row-content {
@@ -276,6 +364,52 @@
       flex-shrink: 0;
       inline-size: var(--score-content-width);
       block-size: var(--score-row-height);
+      background: var(--background-l1);
+      border-start-end-radius: var(--radius-lg);
+      border-end-end-radius: var(--radius-lg);
+
+      &[data-current] {
+        background: var(--background-self-l0);
+      }
+    }
+  }
+
+  cell-tooltip {
+    position: fixed;
+    z-index: var(--layer-popover);
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    max-inline-size: 16rem;
+    padding: var(--space-3xs) var(--space-2xs);
+    background: var(--background-l2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
+    pointer-events: none;
+    translate: -50% calc(-100% - 0.625rem);
+
+    strong {
+      color: var(--foreground-l1);
+      font-size: var(--step--1);
+      font-weight: 400;
+
+      &[data-capitalize] {
+        text-transform: capitalize;
+      }
+    }
+
+    span {
+      color: var(--foreground-l3);
+      font-size: var(--step--1);
+      white-space: nowrap;
+
+      &[data-trend='positive'] {
+        color: var(--foreground-success);
+      }
+
+      &[data-trend='negative'] {
+        color: var(--foreground-destructive);
+      }
     }
   }
 

@@ -11,6 +11,7 @@ import {
 } from './scores-constants'
 import {
   getBloodIndex,
+  getCategoryCellsInnerWidth,
   getCategoryGroups,
   getCategoryStatsForSolves,
   getChallengeCellsInnerWidth,
@@ -23,11 +24,13 @@ import {
   getGraphVisibility,
   getRankColorForPosition,
   getRankDeltaByTeam,
+  getRankVariant,
   getSolvesAndTimesByTeam,
   getSparklineDataByTeam,
   getStableRankColor,
   getTeamColorMap,
   getTeamRanks,
+  getVisibleSolveCount,
   isDynamicChallenge,
   mergeWithSelfGraph,
   type ChallengeInfo,
@@ -456,5 +459,45 @@ describe('getGraphVisibility', () => {
     expect(visibleTeamIds.size).toBe(10)
     expect(visibleTeamIds.has('t1')).toBe(true)
     expect(visibleTeamIds.has('t11')).toBe(false)
+  })
+})
+
+describe('getRankVariant', () => {
+  test('maps the podium, self, and default ranks', () => {
+    expect(getRankVariant(1, false)).toBe('first')
+    expect(getRankVariant(2, false)).toBe('second')
+    expect(getRankVariant(3, false)).toBe('third')
+    expect(getRankVariant(4, true)).toBe('self')
+    expect(getRankVariant(4, false)).toBe('nth')
+  })
+
+  test('podium wins over the self accent', () => {
+    expect(getRankVariant(1, true)).toBe('first')
+  })
+})
+
+describe('getVisibleSolveCount', () => {
+  const challengesData = {
+    'baby-rev': { scoringKind: 'decay' as const },
+    flappy: { scoringKind: 'dynamic' as const },
+  }
+
+  test('excludes dynamic-scoring challenges from the count', () => {
+    const solves = [{ id: 'baby-rev' }, { id: 'flappy' }, { id: 'unknown' }]
+    expect(getVisibleSolveCount(solves, challengesData)).toBe(2)
+  })
+
+  test('is zero for an empty solve list', () => {
+    expect(getVisibleSolveCount([], challengesData)).toBe(0)
+  })
+})
+
+describe('getCategoryCellsInnerWidth', () => {
+  test('sums fixed-width cells minus the trailing gap', () => {
+    expect(getCategoryCellsInnerWidth(0)).toBe(0)
+    expect(getCategoryCellsInnerWidth(1)).toBe(SCORE_CELL_WIDTH_PX)
+    expect(getCategoryCellsInnerWidth(3)).toBe(
+      3 * SCORE_CELL_WIDTH_PX + 2 * SCORE_ROW_GAP_PX
+    )
   })
 })

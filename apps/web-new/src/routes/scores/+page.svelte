@@ -14,6 +14,7 @@
 
   const configQuery = useClientConfig()
   const ctfName = $derived(configQuery.data?.ctfName)
+  const divisions = $derived(configQuery.data?.divisions ?? {})
 
   const urlState = createScoresRouteState()
 
@@ -68,7 +69,7 @@
     </scores-toolbar>
 
     {#if hasBoard}
-      <ScoresLeaderboard {data} {urlState} />
+      <ScoresLeaderboard {data} {urlState} {divisions} />
     {:else}
       <scores-leaderboard-slot>
         {#if urlState.search}

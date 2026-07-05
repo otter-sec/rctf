@@ -143,6 +143,35 @@ export function getChallengeCellsInnerWidth(
   return width === 0 ? 0 : width - SCORE_ROW_GAP_PX
 }
 
+export function getCategoryCellsInnerWidth(count: number): number {
+  if (count <= 0) return 0
+  return count * SCORE_CELL_WIDTH_PX + (count - 1) * SCORE_ROW_GAP_PX
+}
+
+export type RankVariant = 'first' | 'second' | 'third' | 'self' | 'nth'
+
+export function getRankVariant(
+  rank: number,
+  isCurrentUser: boolean
+): RankVariant {
+  if (rank === 1) return 'first'
+  if (rank === 2) return 'second'
+  if (rank === 3) return 'third'
+  if (isCurrentUser) return 'self'
+  return 'nth'
+}
+
+export function getVisibleSolveCount(
+  solves: readonly { id: string }[],
+  challengesData: Record<string, { scoringKind?: 'decay' | 'dynamic' }>
+): number {
+  let count = 0
+  for (const solve of solves) {
+    if (challengesData[solve.id]?.scoringKind !== 'dynamic') count += 1
+  }
+  return count
+}
+
 export function getCategoryGroups(
   challenges: ChallengeInfo[]
 ): CategoryGroup[] {
