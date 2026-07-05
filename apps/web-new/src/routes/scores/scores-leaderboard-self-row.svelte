@@ -12,8 +12,8 @@
   import type { PinnedEdge } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import type { ScoresData } from './scores-data.svelte'
-  import ScoresSolveCells from './scores-solve-cells.svelte'
-  import ScoresTeamRow from './scores-team-row.svelte'
+  import ScoresSolveCells from './scores-leaderboard-solve-cells.svelte'
+  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
   import type { SortMode, ViewMode } from './scores-url-params'
 
   interface Props {

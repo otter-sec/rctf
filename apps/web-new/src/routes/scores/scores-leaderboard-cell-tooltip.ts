@@ -148,7 +148,7 @@ function formatPointDelta(delta: number): string {
   return '0 pts'
 }
 
-function pointDeltaTrend(delta: number): TooltipLine['trend'] {
+export function pointDeltaTrend(delta: number): TooltipLine['trend'] {
   if (delta > 0) return 'positive'
   if (delta < 0) return 'negative'
   return 'neutral'

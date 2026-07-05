@@ -3,8 +3,8 @@
   import Avatar from '$lib/ui/avatar.svelte'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import type { ScoresData } from './scores-data.svelte'
-  import ScoresDelta from './scores-delta.svelte'
-  import ScoresSparkline from './scores-sparkline.svelte'
+  import ScoresDelta from './scores-leaderboard-team-row-delta.svelte'
+  import ScoresSparkline from './scores-leaderboard-team-row-sparkline.svelte'
   import { getVisibleSolveCount } from './scores-transforms'
 
   interface Props {

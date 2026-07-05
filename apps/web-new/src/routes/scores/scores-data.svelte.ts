@@ -13,7 +13,6 @@ import {
   getChallengesByCategory,
   getChallengesBySolves,
   getRankDeltaByTeam,
-  getSolvesAndTimesByTeam,
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
@@ -67,7 +66,6 @@ export function createScoresData(config: ScoresDataConfig) {
 
   const teamColorMap = $derived(getTeamColorMap(entries, currentUser))
   const teamRanks = $derived(getTeamRanks(entries))
-  const solvesAndTimes = $derived(getSolvesAndTimesByTeam(entries))
   const sparklineDataByTeam = $derived(
     getSparklineDataByTeam(allGraphData, selfGraphQuery.data)
   )
@@ -105,12 +103,6 @@ export function createScoresData(config: ScoresDataConfig) {
     get challenges() {
       return challenges
     },
-    get challengesByCategory() {
-      return challengesByCategory
-    },
-    get challengesBySolves() {
-      return challengesBySolves
-    },
     get categoryGroups() {
       return categoryGroups
     },
@@ -119,18 +111,6 @@ export function createScoresData(config: ScoresDataConfig) {
     },
     get teamRanks() {
       return teamRanks
-    },
-    get solvesByTeam() {
-      return solvesAndTimes.solvesByTeam
-    },
-    get solveTimesByTeam() {
-      return solvesAndTimes.solveTimesByTeam
-    },
-    get challengePointsByTeam() {
-      return solvesAndTimes.challengePointsByTeam
-    },
-    get challengePointDeltasByTeam() {
-      return solvesAndTimes.challengePointDeltasByTeam
     },
     get sparklineDataByTeam() {
       return sparklineDataByTeam

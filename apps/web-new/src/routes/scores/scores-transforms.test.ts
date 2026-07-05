@@ -20,16 +20,14 @@ import {
   getChallengesByCategory,
   getChallengesBySolves,
   getEmptyGraphVisibility,
-  getFixedCellsWidth,
   getGraphVisibility,
   getRankColorForPosition,
   getRankDeltaByTeam,
   getRankVariant,
-  getSolvesAndTimesByTeam,
   getSparklineDataByTeam,
-  getStableRankColor,
   getTeamColorMap,
   getTeamRanks,
+  getTeamSolveLookups,
   getVisibleSolveCount,
   isDynamicChallenge,
   mergeWithSelfGraph,
@@ -121,12 +119,6 @@ describe('cell geometry', () => {
     )
   })
 
-  test('fixed-cell total includes the gap per cell', () => {
-    expect(getFixedCellsWidth(3)).toBe(
-      3 * (SCORE_CELL_WIDTH_PX + SCORE_ROW_GAP_PX)
-    )
-  })
-
   test('mixed-width total and inner width', () => {
     const cells = [
       { scoringKind: 'decay' as const },
@@ -158,41 +150,32 @@ describe('getCategoryGroups — contiguous runs', () => {
   })
 })
 
-describe('getSolvesAndTimesByTeam — two-team fixture', () => {
-  const entries = [
-    {
-      id: 't1',
-      solves: [
-        { id: 'c1', solveTime: 100 },
-        { id: 'c2', solveTime: 200 },
-      ],
-      dynamicScores: [{ id: 'c3', points: 480, pointDelta: -20 }],
-    },
-    {
+describe('getTeamSolveLookups', () => {
+  const entry = {
+    id: 't1',
+    solves: [
+      { id: 'c1', solveTime: 100 },
+      { id: 'c2', solveTime: 200 },
+    ],
+    dynamicScores: [{ id: 'c3', points: 480, pointDelta: -20 }],
+  }
+
+  test('assembles solve ids, times, and dynamic points/deltas', () => {
+    const lookups = getTeamSolveLookups(entry)
+    expect([...lookups.solvedIds]).toEqual(['c1', 'c2'])
+    expect(lookups.solveTimes.get('c2')).toBe(200)
+    expect(lookups.dynamicPoints.get('c3')).toBe(480)
+    expect(lookups.dynamicPointDeltas.get('c3')).toBe(-20)
+  })
+
+  test('empty entry yields empty lookups', () => {
+    const lookups = getTeamSolveLookups({
       id: 't2',
-      solves: [{ id: 'c1', solveTime: 150 }],
+      solves: [],
       dynamicScores: [],
-    },
-  ]
-
-  test('assembles solve id sets', () => {
-    const { solvesByTeam } = getSolvesAndTimesByTeam(entries)
-    expect([...solvesByTeam.get('t1')!]).toEqual(['c1', 'c2'])
-    expect([...solvesByTeam.get('t2')!]).toEqual(['c1'])
-  })
-
-  test('assembles solve times', () => {
-    const { solveTimesByTeam } = getSolvesAndTimesByTeam(entries)
-    expect(solveTimesByTeam.get('t1')!.get('c2')).toBe(200)
-    expect(solveTimesByTeam.get('t2')!.get('c1')).toBe(150)
-  })
-
-  test('assembles dynamic points and deltas', () => {
-    const { challengePointsByTeam, challengePointDeltasByTeam } =
-      getSolvesAndTimesByTeam(entries)
-    expect(challengePointsByTeam.get('t1')!.get('c3')).toBe(480)
-    expect(challengePointDeltasByTeam.get('t1')!.get('c3')).toBe(-20)
-    expect(challengePointsByTeam.get('t2')!.size).toBe(0)
+    })
+    expect(lookups.solvedIds.size).toBe(0)
+    expect(lookups.dynamicPoints.size).toBe(0)
   })
 })
 
@@ -281,8 +264,8 @@ describe('getRankColorForPosition + getTeamColorMap', () => {
 
   test('unranked teams fall back to a stable hashed color', () => {
     const first = getRankColorForPosition(null, false, 'abc')
-    expect(first).toBe(getStableRankColor('abc'))
     expect(first).toBe(getRankColorForPosition(null, false, 'abc'))
+    expect(RANK_COLORS as readonly string[]).toContain(first)
   })
 
   test('color map applies palette order and self override', () => {
@@ -297,7 +280,7 @@ describe('getRankColorForPosition + getTeamColorMap', () => {
     expect(map.get('t1')).toBe(MEDAL_COLORS[0])
     expect(map.get('t5')).toBe(RANK_COLORS[4])
     expect(map.get('me')).toBe(SELF_COLOR)
-    expect(map.get('ghost')).toBe(getStableRankColor('ghost'))
+    expect(map.get('ghost')).toBe(getRankColorForPosition(null, false, 'ghost'))
   })
 })
 

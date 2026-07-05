@@ -5,8 +5,6 @@
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
   import { untrack } from 'svelte'
-  import { BLOOD_PATHS } from './scores-cell-icons'
-  import { CELL_KIND, resolveCellTooltip, type CellTooltip } from './scores-cell-tooltip'
   import {
     SCORE_DIAGONAL_OVERFLOW_PX,
     SCORE_HEADER_HEIGHT_PX,
@@ -17,12 +15,18 @@
   } from './scores-constants'
   import type { ScoresData } from './scores-data.svelte'
   import ScoresGraph from './scores-graph.svelte'
-  import ScoresHeader from './scores-header.svelte'
-  import { createScrollGeometry } from './scores-scroll-geometry.svelte'
-  import ScoresScrollbars from './scores-scrollbars.svelte'
-  import ScoresSelfRow from './scores-self-row.svelte'
-  import ScoresSolveCells from './scores-solve-cells.svelte'
-  import ScoresTeamRow from './scores-team-row.svelte'
+  import { BLOOD_PATHS } from './scores-leaderboard-cell-icons'
+  import {
+    CELL_KIND,
+    resolveCellTooltip,
+    type CellTooltip,
+  } from './scores-leaderboard-cell-tooltip'
+  import ScoresHeader from './scores-leaderboard-header.svelte'
+  import { createScrollGeometry } from './scores-leaderboard-scroll-geometry.svelte'
+  import ScoresScrollbars from './scores-leaderboard-scrollbars.svelte'
+  import ScoresSelfRow from './scores-leaderboard-self-row.svelte'
+  import ScoresSolveCells from './scores-leaderboard-solve-cells.svelte'
+  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
   import {
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
@@ -312,8 +316,8 @@
   // The overlay's row model: the loaded entry when self is on a loaded page,
   // otherwise a row synthesized from the current-user query so the pin still
   // renders while self sits beyond the loaded pages (or the first page is still
-  // loading). In the synthesized case the solve maps hold no entry for self, so
-  // the solve strip renders empty until the page carrying self arrives.
+  // loading). The synthesized entry carries the user's own solves/dynamicScores,
+  // so the solve strip renders either way.
   const selfRow = $derived.by((): { entry: LeaderboardEntry; index: number } | null => {
     const user = data.currentUser
     if (!user) return null

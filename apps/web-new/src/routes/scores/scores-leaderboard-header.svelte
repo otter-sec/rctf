@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { CELL_KIND } from './scores-cell-tooltip'
   import { SCORE_CELL_WIDTH_PX } from './scores-constants'
+  import { CELL_KIND } from './scores-leaderboard-cell-tooltip'
   import {
     getChallengeCellsInnerWidth,
     getChallengeCellWidth,

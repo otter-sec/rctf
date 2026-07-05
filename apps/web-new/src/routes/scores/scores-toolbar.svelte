@@ -10,8 +10,8 @@
   import type { Component } from 'svelte'
   import type { Attachment } from 'svelte/attachments'
   import type { ScoresData } from './scores-data.svelte'
-  import ScoresSearch from './scores-search.svelte'
   import { moveRovingIndex } from './scores-toolbar-roving'
+  import ScoresSearch from './scores-toolbar-search.svelte'
   import type { ScoresUrlState } from './scores-url-state.svelte'
 
   interface Props {

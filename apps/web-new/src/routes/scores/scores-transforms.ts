@@ -55,11 +55,11 @@ export interface TeamSolvesEntry {
   dynamicScores: { id: string; points: number; pointDelta: number }[]
 }
 
-export interface SolvesAndTimesByTeam {
-  solvesByTeam: Map<string, Set<string>>
-  solveTimesByTeam: Map<string, Map<string, number>>
-  challengePointsByTeam: Map<string, Map<string, number>>
-  challengePointDeltasByTeam: Map<string, Map<string, number>>
+export interface TeamSolveLookups {
+  solvedIds: Set<string>
+  solveTimes: Map<string, number>
+  dynamicPoints: Map<string, number>
+  dynamicPointDeltas: Map<string, number>
 }
 
 export interface GraphPoint {
@@ -120,10 +120,6 @@ export function getChallengeCellWidth(challenge: ScoringKind): number {
   return isDynamicChallenge(challenge)
     ? SCORE_DYNAMIC_CELL_WIDTH_PX
     : SCORE_CELL_WIDTH_PX
-}
-
-export function getFixedCellsWidth(cellCount: number): number {
-  return cellCount * (SCORE_CELL_WIDTH_PX + SCORE_ROW_GAP_PX)
 }
 
 export function getChallengeCellsWidth(
@@ -191,37 +187,23 @@ export function getCategoryGroups(
   return groups
 }
 
-export function getSolvesAndTimesByTeam(
-  entries: TeamSolvesEntry[]
-): SolvesAndTimesByTeam {
-  const solvesByTeam = new Map<string, Set<string>>()
-  const solveTimesByTeam = new Map<string, Map<string, number>>()
-  const challengePointsByTeam = new Map<string, Map<string, number>>()
-  const challengePointDeltasByTeam = new Map<string, Map<string, number>>()
-  for (const entry of entries) {
-    const ids = new Set<string>()
-    const times = new Map<string, number>()
-    const points = new Map<string, number>()
-    const pointDeltas = new Map<string, number>()
-    for (const solve of entry.solves) {
-      ids.add(solve.id)
-      times.set(solve.id, solve.solveTime)
-    }
-    for (const score of entry.dynamicScores) {
-      points.set(score.id, score.points)
-      pointDeltas.set(score.id, score.pointDelta)
-    }
-    solvesByTeam.set(entry.id, ids)
-    solveTimesByTeam.set(entry.id, times)
-    challengePointsByTeam.set(entry.id, points)
-    challengePointDeltasByTeam.set(entry.id, pointDeltas)
+// Per-entry, not board-wide: only the virtualized rows actually rendered need
+// these lookups, so each row derives its own from the entry it already holds
+// instead of the data layer rebuilding maps for every loaded team per poll.
+export function getTeamSolveLookups(entry: TeamSolvesEntry): TeamSolveLookups {
+  const solvedIds = new Set<string>()
+  const solveTimes = new Map<string, number>()
+  const dynamicPoints = new Map<string, number>()
+  const dynamicPointDeltas = new Map<string, number>()
+  for (const solve of entry.solves) {
+    solvedIds.add(solve.id)
+    solveTimes.set(solve.id, solve.solveTime)
   }
-  return {
-    solvesByTeam,
-    solveTimesByTeam,
-    challengePointsByTeam,
-    challengePointDeltasByTeam,
+  for (const score of entry.dynamicScores) {
+    dynamicPoints.set(score.id, score.points)
+    dynamicPointDeltas.set(score.id, score.pointDelta)
   }
+  return { solvedIds, solveTimes, dynamicPoints, dynamicPointDeltas }
 }
 
 export function getBloodIndex(
@@ -280,10 +262,6 @@ const TIER_COLORS: Record<string, string> = {
   gold: MEDAL_COLORS[0],
   silver: MEDAL_COLORS[1],
   bronze: MEDAL_COLORS[2],
-}
-
-export function getStableRankColor(id: string): string {
-  return tierColor(getRankTier(false, null, id))
 }
 
 export function getRankColorForPosition(
@@ -446,10 +424,6 @@ function compareChallengesByCategory(
   }
   if (a.category !== b.category) return a.category.localeCompare(b.category)
   return b.points - a.points || a.name.localeCompare(b.name)
-}
-
-function filterPoints(points: GraphPoint[], minTime: number): GraphPoint[] {
-  return points.filter(point => point.time >= minTime)
 }
 
 function getScoresAt(

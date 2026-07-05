@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { resolveCellTooltip } from './scores-cell-tooltip'
+import { resolveCellTooltip } from './scores-leaderboard-cell-tooltip'
 
 const START_TIME = 1_710_000_000_000
 

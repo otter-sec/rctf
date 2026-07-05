@@ -1,7 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite'
 import { defineConfig } from 'vite'
 
-const DEV_API_URL = 'http://127.0.0.1:3000'
+const DEV_API_URL = 'https://ctf.sekai.team'
 
 export default defineConfig({
   plugins: [sveltekit()],

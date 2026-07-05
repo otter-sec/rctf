@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
-  import { BLOOD_PATHS, CHECK_PATH } from './scores-cell-icons'
-  import { CELL_KIND } from './scores-cell-tooltip'
   import type { ScoresData } from './scores-data.svelte'
+  import { BLOOD_PATHS, CHECK_PATH } from './scores-leaderboard-cell-icons'
+  import { CELL_KIND, pointDeltaTrend } from './scores-leaderboard-cell-tooltip'
   import {
     getChallengeCellWidth,
+    getTeamSolveLookups,
     isDynamicChallenge,
     type CategoryGroup,
     type ChallengeInfo,
@@ -23,10 +24,7 @@
   const RING_RADIUS = 8.75
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 
-  const solves = $derived(data.solvesByTeam.get(entry.id) ?? null)
-  const solveTimes = $derived(data.solveTimesByTeam.get(entry.id) ?? null)
-  const points = $derived(data.challengePointsByTeam.get(entry.id) ?? null)
-  const pointDeltas = $derived(data.challengePointDeltasByTeam.get(entry.id) ?? null)
+  const lookups = $derived(getTeamSolveLookups(entry))
 
   interface ChallengeCell {
     id: string
@@ -50,11 +48,11 @@
         points: challenge.points,
         width: getChallengeCellWidth(challenge),
         dynamic,
-        solved: solves?.has(challenge.id) ?? false,
+        solved: lookups.solvedIds.has(challenge.id),
         blood: dynamic ? -1 : data.getBloodIndex(challenge.id, entry.id),
-        solveTime: solveTimes?.get(challenge.id),
-        teamPoints: points?.get(challenge.id) ?? 0,
-        pointDelta: pointDeltas?.get(challenge.id) ?? 0,
+        solveTime: lookups.solveTimes.get(challenge.id),
+        teamPoints: lookups.dynamicPoints.get(challenge.id) ?? 0,
+        pointDelta: lookups.dynamicPointDeltas.get(challenge.id) ?? 0,
       }
     })
   )
@@ -70,7 +68,7 @@
 
   const categoryCells = $derived.by((): CategoryCell[] =>
     data.categoryGroups.map((group: CategoryGroup) => {
-      const stats = data.getCategoryStatsForSolves(solves, group)
+      const stats = data.getCategoryStatsForSolves(lookups.solvedIds, group)
       return {
         key: group.category,
         name: group.config.name,
@@ -81,12 +79,6 @@
       }
     })
   )
-
-  function deltaTrend(delta: number): 'positive' | 'negative' | 'neutral' {
-    if (delta > 0) return 'positive'
-    if (delta < 0) return 'negative'
-    return 'neutral'
-  }
 
   // Category-grouped challenge cells share one faint background stripe per
   // group (the old app's per-category rects); ungrouped modes stripe per cell.
@@ -120,7 +112,7 @@
     >
       <dyn-points>
         <dyn-value>{cell.teamPoints.toLocaleString()} <span>pts</span></dyn-value>
-        <dyn-delta data-trend={deltaTrend(cell.pointDelta)}>
+        <dyn-delta data-trend={pointDeltaTrend(cell.pointDelta)}>
           {#if cell.pointDelta > 0}&#9650;{:else if cell.pointDelta < 0}&#9660;{/if}
           {Math.abs(cell.pointDelta).toLocaleString()} pts
         </dyn-delta>
