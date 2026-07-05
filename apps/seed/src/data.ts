@@ -33,6 +33,31 @@ export type SeedData = {
 const HOUR = 60 * 60 * 1000
 const DAY = 24 * HOUR
 export const SEED_TEAM_COUNT = 250
+
+/**
+ * Resolves the number of teams to seed.
+ *
+ * Reads `SEED_TEAM_COUNT` from the environment (used by the perf fixture to
+ * generate a ~5k-team board) and falls back to {@link SEED_TEAM_COUNT} when
+ * unset. Throws on a non-positive-integer value rather than silently seeding a
+ * degenerate board.
+ */
+export function resolveSeedTeamCount(): number {
+  const raw = process.env.SEED_TEAM_COUNT
+  if (raw === undefined || raw.trim() === '') {
+    return SEED_TEAM_COUNT
+  }
+
+  const parsed = Number(raw.trim())
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new Error(
+      `SEED_TEAM_COUNT must be a positive integer, got: ${JSON.stringify(raw)}`
+    )
+  }
+
+  return parsed
+}
+
 const SEED_GENERATED_CHALLENGE_COUNT = 18
 // Generated flag challenges + 2 koth + instancer-playground + admin-bot-playground
 export const SEED_CHALLENGE_COUNT = SEED_GENERATED_CHALLENGE_COUNT + 4
@@ -787,7 +812,7 @@ function buildSettings(config: ServerConfig, timing: SeedTiming): Settings {
 export function buildSeedData(config: ServerConfig): SeedData {
   const timing = buildSeedTiming(config)
   const admin = buildAdmin()
-  const teams = buildTeams(config, SEED_TEAM_COUNT)
+  const teams = buildTeams(config, resolveSeedTeamCount())
   const challenges = buildChallenges()
   const generatedFlagChallenges = challenges.filter(isGeneratedFlagChallenge)
   const flagSolves = buildSolves(timing, teams, generatedFlagChallenges)
