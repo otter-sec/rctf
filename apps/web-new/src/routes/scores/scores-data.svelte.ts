@@ -78,6 +78,12 @@ export function createScoresData(config: ScoresDataConfig) {
   const isLoading = $derived(
     leaderboardQuery.isLoading || challengesQuery.isLoading
   )
+  // A filter-change refetch (search/division) keeps the previous board on screen
+  // via keepPreviousData, so isPlaceholderData distinguishes it from the silent
+  // 30s background poll — the toolbar's search spinner reads this.
+  const isBoardFetching = $derived(
+    leaderboardQuery.isFetching && leaderboardQuery.isPlaceholderData
+  )
   const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
 
   return {
@@ -143,6 +149,9 @@ export function createScoresData(config: ScoresDataConfig) {
     },
     get isLoading() {
       return isLoading
+    },
+    get isBoardFetching() {
+      return isBoardFetching
     },
     get isNotStarted() {
       return isNotStarted

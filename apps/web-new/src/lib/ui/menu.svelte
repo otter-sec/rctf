@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as menu from '@zag-js/menu'
   import { normalizeProps, useMachine } from '@zag-js/svelte'
+  import IconCheck from '$lib/icons/icon-check.svelte'
   import Portal from '$lib/ui/portal.svelte'
   import type { Component, Snippet } from 'svelte'
 
@@ -10,6 +11,9 @@
     icon?: Component
     href?: string
     onSelect?: () => void
+    // When set, the item renders as a single-select radio option (aria-checked +
+    // a trailing check mark). Leave undefined for a plain action item.
+    checked?: boolean
   }
 
   type Props = {
@@ -51,6 +55,18 @@
             {#if Icon}<Icon />{/if}
             {item.label}
           </a>
+        {:else if item.checked !== undefined}
+          <div
+            {...api.getOptionItemProps({
+              type: 'radio',
+              value: item.value,
+              checked: item.checked,
+            })}
+          >
+            {#if Icon}<Icon />{/if}
+            <span>{item.label}</span>
+            <option-check aria-hidden="true"><IconCheck /></option-check>
+          </div>
         {:else}
           <div {...api.getItemProps({ value: item.value })}>
             {#if Icon}<Icon />{/if}
@@ -97,6 +113,25 @@
       inline-size: 1em;
       block-size: 1em;
       flex-shrink: 0;
+    }
+  }
+
+  [data-part='item'][role='menuitemradio'] {
+    span {
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+
+  option-check {
+    display: flex;
+    margin-inline-start: auto;
+    padding-inline-start: var(--space-2xs);
+    color: var(--foreground-accent);
+
+    [data-part='item'][data-state='unchecked'] & {
+      visibility: hidden;
     }
   }
 </style>
