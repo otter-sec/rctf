@@ -8,27 +8,24 @@
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import type { Component } from 'svelte'
+  import { createScoresData } from './scores-data.svelte'
+  import ScoresLeaderboard from './scores-leaderboard.svelte'
   import { createScoresRouteState } from './scores-url-state.svelte'
-
-  type LeaderboardState = 'not-started' | 'empty' | 'search-empty'
 
   const configQuery = useClientConfig()
   const ctfName = $derived(configQuery.data?.ctfName)
-  const startTime = $derived(configQuery.data?.startTime ?? 0)
 
   const urlState = createScoresRouteState()
 
-  // Placeholder for the leaderboard region. U5 replaces this with the real
-  // with-graph query: not-started from ApiError.isNotStarted, and
-  // empty/search-empty from the flat-mapped results. The slot markup below is
-  // structured so U5 drops the virtualized table in alongside these states.
-  const leaderboardState = $derived<LeaderboardState>(
-    startTime > 0 && Date.now() < startTime
-      ? 'not-started'
-      : urlState.search
-        ? 'search-empty'
-        : 'empty'
-  )
+  const data = createScoresData({
+    division: () => urlState.division,
+    search: () => urlState.search,
+    sortMode: () => urlState.sortMode,
+    showTop3Context: () => urlState.showTop3Context,
+    showSelfContext: () => urlState.showSelfContext,
+  })
+
+  const hasBoard = $derived(data.isLoading || data.entries.length > 0)
 </script>
 
 <svelte:head>
@@ -44,7 +41,7 @@
   </button>
 {/snippet}
 
-{#if leaderboardState === 'not-started'}
+{#if data.isNotStarted}
   <CtfNotStarted />
 {:else}
   <scores-page>
@@ -70,22 +67,25 @@
       {/if}
     </scores-toolbar>
 
-    <!-- U5 wires the virtualized leaderboard table + graph into this region. -->
-    <scores-leaderboard-slot>
-      {#if leaderboardState === 'search-empty'}
-        <EmptyState
-          icon={IconSearch}
-          title="No teams found"
-          subtitle="Try a different search term."
-        />
-      {:else}
-        <EmptyState
-          icon={IconTrophy}
-          title="No scores yet"
-          subtitle="Check back once teams start solving."
-        />
-      {/if}
-    </scores-leaderboard-slot>
+    {#if hasBoard}
+      <ScoresLeaderboard {data} {urlState} />
+    {:else}
+      <scores-leaderboard-slot>
+        {#if urlState.search}
+          <EmptyState
+            icon={IconSearch}
+            title="No teams found"
+            subtitle="Try a different search term."
+          />
+        {:else}
+          <EmptyState
+            icon={IconTrophy}
+            title="No scores yet"
+            subtitle="Check back once teams start solving."
+          />
+        {/if}
+      </scores-leaderboard-slot>
+    {/if}
   </scores-page>
 {/if}
 
@@ -95,7 +95,12 @@
     flex: 1;
     flex-direction: column;
     min-block-size: 0;
+    /* Hard-cap the page to the viewport so the leaderboard's inner scroll
+       region is bounded; the app shell only sets min-block-size: 100dvh, so
+       flex:1 alone would let the tall virtual list grow the page instead. */
     block-size: calc(100dvh - var(--header-height));
+    max-block-size: calc(100dvh - var(--header-height));
+    overflow: hidden;
   }
 
   scores-toolbar {

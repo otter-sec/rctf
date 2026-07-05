@@ -63,7 +63,13 @@ export function createVirtualizer(
     }
   }
 
-  $effect.pre(() => {
+  // Must be $effect, not $effect.pre: mirroring virtualizer state into $state
+  // from a pre-effect (which also tracks `scrollElement` via `_willUpdate`)
+  // stalls @tanstack/svelte-query's fetch commits once the scroll container is
+  // attached, leaving every query stuck `fetching`. Post-render is fine here —
+  // scroll updates arrive through the virtualizer's own onChange, and this
+  // effect only pushes count/scrollMargin/getItemKey changes.
+  $effect(() => {
     const c = config()
     rowHeight = c.rowHeight
     instance.setOptions({
