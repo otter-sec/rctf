@@ -12,6 +12,7 @@
     SCORE_VIRTUAL_OVERSCAN,
   } from './scores-constants'
   import type { ScoresData } from './scores-data.svelte'
+  import ScoresGraph from './scores-graph.svelte'
   import ScoresHeader from './scores-header.svelte'
   import ScoresSelfRow from './scores-self-row.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
@@ -19,6 +20,8 @@
   import {
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
+    getEmptyGraphVisibility,
+    getGraphVisibility,
     getRankVariant,
   } from './scores-transforms'
   import type { ScoresUrlState } from './scores-url-state.svelte'
@@ -27,9 +30,10 @@
     data: ScoresData
     urlState: ScoresUrlState
     divisions: Record<string, string>
+    startTime: number
   }
 
-  let { data, urlState, divisions }: Props = $props()
+  let { data, urlState, divisions, startTime }: Props = $props()
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
 
@@ -57,19 +61,35 @@
   let tooltipX = $state(0)
   let tooltipY = $state(0)
 
+  // Shared hover state read by the graph (R15). Hovering any row (or its
+  // sparkline) highlights that team's line; hovering a solved challenge cell
+  // additionally drops a crosshair on that team's line at the solve time. The
+  // same delegated listener resolves both from data-* on the hovered elements.
+  let hoveredTeamId = $state<string | null>(null)
+  let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
+
   function clearTooltip() {
     activeTooltip = null
   }
 
+  function clearHover() {
+    clearTooltip()
+    hoveredTeamId = null
+    solveHighlight = null
+  }
+
   function handlePointerMove(event: PointerEvent) {
-    if (virtual.isScrolling) {
-      clearTooltip()
-      return
-    }
-    const target = event.target
-    const cell =
-      target instanceof Element ? target.closest<HTMLElement>('[data-tooltip-cell]') : null
-    if (!cell) {
+    const target = event.target instanceof Element ? event.target : null
+    const row = target?.closest<HTMLElement>('[data-team-id]') ?? null
+    const cell = target?.closest<HTMLElement>('[data-tooltip-cell]') ?? null
+
+    hoveredTeamId = row?.dataset.teamId ?? null
+    solveHighlight =
+      row?.dataset.teamId && cell?.dataset.kind === 'challenge' && cell.dataset.solveTime
+        ? { teamId: row.dataset.teamId, time: Number(cell.dataset.solveTime) }
+        : null
+
+    if (virtual.isScrolling || !cell) {
       clearTooltip()
       return
     }
@@ -83,6 +103,41 @@
     tooltipX = rect.left + rect.width / 2
     tooltipY = rect.top
   }
+
+  // Windowed graph series (R12/R14). The window is the min→max rank of the
+  // rendered virtual rows; getGraphVisibility caps it to a 15-team span and adds
+  // the top-3/self pins. The resolved set is frozen while the list scrolls and
+  // re-adopted only once scrolling settles (AE5), so the lines hold steady
+  // through a flick instead of thrashing.
+  const liveWindow = $derived.by(() => {
+    let min = Infinity
+    let max = -Infinity
+    for (const item of virtual.virtualItems) {
+      if (item.index >= data.entries.length) continue
+      if (item.index < min) min = item.index
+      if (item.index > max) max = item.index
+    }
+    if (min === Infinity) return { minRank: 0, maxRank: 0 }
+    return { minRank: min + 1, maxRank: max + 1 }
+  })
+
+  const liveVisibility = $derived(
+    getGraphVisibility({
+      entries: data.entries,
+      isLoading: data.isLoading,
+      minRank: liveWindow.minRank,
+      maxRank: liveWindow.maxRank,
+      showTop3Context: data.showTop3Context,
+      showSelfContext: data.showSelfContext,
+      currentUserId: data.currentUserId,
+      teamRanks: data.teamRanks,
+    })
+  )
+
+  let graphVisibility = $state(getEmptyGraphVisibility())
+  $effect(() => {
+    if (!virtual.isScrolling) graphVisibility = liveVisibility
+  })
 
   // Suppress the tooltip while the list is scrolling without discarding the
   // hovered state, so it reappears on settle if the pointer is still over a cell.
@@ -219,7 +274,28 @@
   <row-content></row-content>
 {/snippet}
 
+{#snippet graphPanel()}
+  <ScoresGraph
+    graphData={data.graphData}
+    visibleTeamIds={graphVisibility.visibleTeamIds}
+    contextTeamIds={graphVisibility.contextTeamIds}
+    teamRanks={data.teamRanks}
+    selfId={data.currentUserId}
+    {startTime}
+    {hoveredTeamId}
+    {solveHighlight}
+    showTop3Context={data.showTop3Context}
+    showSelfContext={data.showSelfContext}
+    onToggleTop3={() => urlState.setShowTop3Context(!data.showTop3Context)}
+    onToggleSelf={() => urlState.setShowSelfContext(!data.showSelfContext)}
+  />
+{/snippet}
+
 <scores-shell style:--score-content-width={`${contentWidth}px`}>
+  <mobile-graph>
+    {@render graphPanel()}
+  </mobile-graph>
+
   <!-- The pointer handlers only delegate hover-to-tooltip resolution for the
        matrix cells; the scroll region itself carries no interactive semantics. -->
   <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -229,11 +305,15 @@
     {@attach scrollFade}
     tabindex="-1"
     onpointermove={handlePointerMove}
-    onpointerleave={clearTooltip}
+    onpointerleave={clearHover}
   >
     <scores-table>
       <header-row {@attach measureHeader}>
-        <header-corner></header-corner>
+        <header-corner>
+          <graph-panel>
+            {@render graphPanel()}
+          </graph-panel>
+        </header-corner>
         <header-content>
           {#if data.challenges.length > 0}
             <ScoresHeader
@@ -262,6 +342,7 @@
             {@const entry = data.entries[item.index]}
             <virtual-row
               data-loading={entry ? undefined : true}
+              data-team-id={entry?.id}
               style:--row-y={`${item.start - headerHeight}px`}
               {@attach entry && data.currentUserId === entry.id ? observeSelfRow : undefined}
             >
@@ -312,8 +393,23 @@
     --score-team-column-width: 100%;
     display: flex;
     flex: 1;
+    flex-direction: column;
     min-block-size: 0;
     inline-size: 100%;
+  }
+
+  mobile-graph {
+    display: block;
+    flex-shrink: 0;
+    block-size: 12rem;
+    margin-block-end: var(--space-xs);
+    background: var(--background-l1);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+  }
+
+  graph-panel {
+    display: none;
   }
 
   scores-scroll {
@@ -413,6 +509,10 @@
       --score-team-column-width: 20rem;
     }
 
+    mobile-graph {
+      display: none;
+    }
+
     scores-table {
       inline-size: max-content;
     }
@@ -432,6 +532,17 @@
       flex-shrink: 0;
       inline-size: var(--score-team-column-width);
       background: var(--background-l0);
+    }
+
+    graph-panel {
+      display: block;
+      block-size: 100%;
+      min-block-size: 8rem;
+      background: var(--background-l1);
+      border-start-start-radius: var(--radius-lg);
+      border-start-end-radius: var(--radius-lg);
+      border-end-start-radius: var(--radius-lg);
+      overflow: hidden;
     }
 
     header-content {

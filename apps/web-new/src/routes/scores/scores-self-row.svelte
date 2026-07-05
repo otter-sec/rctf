@@ -29,7 +29,7 @@
     $props()
 </script>
 
-<self-row data-edge={edge} style:--self-header-height={`${headerHeight}px`}>
+<self-row data-edge={edge} data-team-id={entry.id} style:--self-header-height={`${headerHeight}px`}>
   <row-team data-current>
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
