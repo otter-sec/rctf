@@ -23,6 +23,9 @@
 {#if api.open}
   <Portal>
     <div {...api.getPositionerProps()}>
+      <div {...api.getArrowProps()}>
+        <div {...api.getArrowTipProps()}></div>
+      </div>
       <div {...api.getContentProps()}>{label}</div>
     </div>
   </Portal>
@@ -30,6 +33,7 @@
 
 <style>
   [data-part='content'] {
+    position: relative;
     z-index: var(--layer-popover);
     padding: var(--space-3xs) var(--space-2xs);
     font-size: var(--step--1);
@@ -37,5 +41,25 @@
     background: var(--background-l2);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
+  }
+
+  /* The tip is a rotated square painted above the content: its background
+     opens a notch in the content's border, and only the two outward-facing
+     edges carry the matching 2px border (which pair depends on the side the
+     tooltip landed on). */
+  [data-part='arrow'] {
+    --arrow-size: 0.625rem;
+    --arrow-background: var(--background-l2);
+    z-index: calc(var(--layer-popover) + 1);
+  }
+
+  [data-part='arrow']:has(+ [data-part='content'][data-side='top']) [data-part='arrow-tip'] {
+    border-inline-end: 2px solid var(--border);
+    border-block-end: 2px solid var(--border);
+  }
+
+  [data-part='arrow']:has(+ [data-part='content'][data-side='bottom']) [data-part='arrow-tip'] {
+    border-inline-start: 2px solid var(--border);
+    border-block-start: 2px solid var(--border);
   }
 </style>

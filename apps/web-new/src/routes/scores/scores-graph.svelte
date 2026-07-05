@@ -15,7 +15,6 @@
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
-  import YAxis from '$lib/chart/y-axis.svelte'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import type { LeaderboardGraphSeries } from '$lib/query/leaderboard'
   import GraphControls from './scores-graph-controls.svelte'
@@ -214,7 +213,6 @@
       onpointermove={handleMove}
       onpointerleave={handleLeave}
     >
-      <YAxis values={yTicks.values} scale={yScale} left={innerLeft} right={innerRight} />
       <Axis ticks={xTicks} scale={xScale} y={innerBottom} left={innerLeft} right={innerRight} />
 
       {#each renderSeries as series (series.id)}

@@ -1,10 +1,7 @@
 /* Edge fades for scrollable regions. The scrollFade attachment
    ($lib/attachments/scroll-fade) applies data-scroll-fade and keeps
-   data-fade-top / data-fade-bottom / data-fade-left / data-fade-right in sync
-   with the scroll position; the registered properties let the mask ease in and
-   out instead of popping. A vertical and a horizontal gradient are intersected
-   so all four edges fade independently — a vertical-only list never triggers the
-   horizontal layer because its scrollWidth never exceeds its clientWidth. */
+   data-fade-top / data-fade-bottom in sync with the scroll position; the
+   registered properties let the mask ease in and out instead of popping. */
 
 @property --scroll-fade-top {
   syntax: '<length>';
@@ -18,45 +15,21 @@
   initial-value: 0px;
 }
 
-@property --scroll-fade-left {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --scroll-fade-right {
-  syntax: '<length>';
-  inherits: false;
-  initial-value: 0px;
-}
-
 [data-scroll-fade] {
   --scroll-fade-size: 0.75rem;
   --scroll-fade-top: 0px;
   --scroll-fade-bottom: 0px;
-  --scroll-fade-left: 0px;
-  --scroll-fade-right: 0px;
 
   mask-image: linear-gradient(
-      to bottom,
-      transparent,
-      black var(--scroll-fade-top),
-      black calc(100% - var(--scroll-fade-bottom)),
-      transparent
-    ),
-    linear-gradient(
-      to right,
-      transparent,
-      black var(--scroll-fade-left),
-      black calc(100% - var(--scroll-fade-right)),
-      transparent
-    );
-  mask-composite: intersect;
+    to bottom,
+    transparent,
+    black var(--scroll-fade-top),
+    black calc(100% - var(--scroll-fade-bottom)),
+    transparent
+  );
   transition:
     --scroll-fade-top 0.15s ease,
-    --scroll-fade-bottom 0.15s ease,
-    --scroll-fade-left 0.15s ease,
-    --scroll-fade-right 0.15s ease;
+    --scroll-fade-bottom 0.15s ease;
 }
 
 [data-scroll-fade][data-fade-top] {
@@ -65,12 +38,4 @@
 
 [data-scroll-fade][data-fade-bottom] {
   --scroll-fade-bottom: var(--scroll-fade-size);
-}
-
-[data-scroll-fade][data-fade-left] {
-  --scroll-fade-left: var(--scroll-fade-size);
-}
-
-[data-scroll-fade][data-fade-right] {
-  --scroll-fade-right: var(--scroll-fade-size);
 }

@@ -1,8 +1,15 @@
-import { formatLocalTime } from '$lib/utils/time'
+import { formatRelativeHoursMinutes } from '$lib/utils/time'
+
+export type TooltipIcon =
+  | { kind: 'solved' }
+  | { kind: 'blood'; medal: 1 | 2 | 3 }
 
 export interface TooltipLine {
   text: string
   trend?: 'positive' | 'negative' | 'neutral'
+  // Rendered after `text`, followed by `iconLabel` (e.g. "50 pts ·" [icon] "Solved")
+  icon?: TooltipIcon
+  iconLabel?: string
 }
 
 export interface CellTooltip {
@@ -26,12 +33,17 @@ export const CELL_KIND = {
 
 export type CellKind = (typeof CELL_KIND)[keyof typeof CELL_KIND]
 
-const BLOOD_LABELS = ['First blood!', 'Second blood!', 'Third blood!'] as const
+const BLOOD_LABELS = ['First blood', 'Second blood', 'Third blood'] as const
 
-export function resolveCellTooltip(dataset: CellDataset): CellTooltip | null {
+// `startTime` (CTF start) anchors solve times as "+3h 24m" offsets, matching
+// the graph axis and tooltips.
+export function resolveCellTooltip(
+  dataset: CellDataset,
+  startTime: number
+): CellTooltip | null {
   switch (dataset.kind) {
     case CELL_KIND.challenge:
-      return resolveChallengeCell(dataset)
+      return resolveChallengeCell(dataset, startTime)
     case CELL_KIND.category:
       return resolveCategoryCell(dataset)
     case CELL_KIND.headerChallenge:
@@ -43,7 +55,10 @@ export function resolveCellTooltip(dataset: CellDataset): CellTooltip | null {
   }
 }
 
-function resolveChallengeCell(dataset: CellDataset): CellTooltip | null {
+function resolveChallengeCell(
+  dataset: CellDataset,
+  startTime: number
+): CellTooltip | null {
   const title = dataset.name
   if (title === undefined) return null
 
@@ -64,13 +79,28 @@ function resolveChallengeCell(dataset: CellDataset): CellTooltip | null {
   }
 
   const bloodIndex = dataset.blood ? Number(dataset.blood) - 1 : -1
-  const status =
-    BLOOD_LABELS[bloodIndex] ??
-    (dataset.state === 'solved' ? 'Solved!' : 'Unsolved')
+  const bloodLabel = BLOOD_LABELS[bloodIndex]
   const points = Number(dataset.points ?? 0)
-  const lines: TooltipLine[] = [{ text: `${points} pts · ${status}` }]
+  const lines: TooltipLine[] = []
+  if (bloodLabel) {
+    lines.push({
+      text: `${points} pts ·`,
+      icon: { kind: 'blood', medal: (bloodIndex + 1) as 1 | 2 | 3 },
+      iconLabel: bloodLabel,
+    })
+  } else if (dataset.state === 'solved') {
+    lines.push({
+      text: `${points} pts ·`,
+      icon: { kind: 'solved' },
+      iconLabel: 'Solved',
+    })
+  } else {
+    lines.push({ text: `${points} pts · Unsolved` })
+  }
   if (dataset.solveTime) {
-    lines.push({ text: formatLocalTime(Number(dataset.solveTime)) })
+    lines.push({
+      text: formatRelativeHoursMinutes(Number(dataset.solveTime), startTime),
+    })
   }
   return { title, capitalize: false, lines }
 }

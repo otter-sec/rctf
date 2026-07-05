@@ -330,6 +330,13 @@ export function mergeWithSelfGraph<T extends { id: string }>(
     : data
 }
 
+// Windows each team's series to the last 12h (anchored to the newest data
+// point, not Date.now()). Teams with real activity in the window keep their
+// raw windowed points (the sparkline stretches to their own time range, like
+// the old app). A team that would otherwise render nothing — idle across the
+// window — instead gets a flat synthesized line carrying its last known score,
+// so every team on the graph also has a sparkline. No point is fabricated
+// before a team's first-ever event.
 export function getSparklineDataByTeam(
   allGraphData: GraphSeries[],
   selfGraphData: GraphSeries | null | undefined
@@ -342,9 +349,30 @@ export function getSparklineDataByTeam(
     }
   }
   const windowStart = maxTime - SPARKLINE_WINDOW
-  return new Map(
-    allTeams.map(team => [team.id, filterPoints(team.points, windowStart)])
-  )
+  const map = new Map<string, GraphPoint[]>()
+  for (const team of allTeams) {
+    let carry: GraphPoint | null = null
+    const windowed: GraphPoint[] = []
+    for (const point of team.points) {
+      if (point.time < windowStart) {
+        if (!carry || point.time > carry.time) carry = point
+      } else {
+        windowed.push(point)
+      }
+    }
+    if (windowed.length >= 2) {
+      map.set(team.id, windowed)
+      continue
+    }
+    const points: GraphPoint[] = carry
+      ? [{ time: windowStart, score: carry.score }, ...windowed]
+      : windowed
+    const last = points.at(-1)
+    if (last && last.time < maxTime)
+      points.push({ time: maxTime, score: last.score })
+    map.set(team.id, points)
+  }
+  return map
 }
 
 export function getRankDeltaByTeam(

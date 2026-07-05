@@ -40,7 +40,9 @@
     <ScoresToolbar {data} {urlState} {divisions} />
 
     {#if hasBoard}
-      <ScoresLeaderboard {data} {urlState} {divisions} {startTime} />
+      <scores-frame>
+        <ScoresLeaderboard {data} {urlState} {divisions} {startTime} />
+      </scores-frame>
     {:else}
       <scores-leaderboard-slot>
         {#if urlState.search}
@@ -73,6 +75,20 @@
     block-size: calc(100dvh - var(--header-height));
     max-block-size: calc(100dvh - var(--header-height));
     overflow: hidden;
+    padding-block-end: 1rem;
+  }
+
+  scores-frame {
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    min-block-size: 0;
+    max-inline-size: 100%;
+    padding-inline: 1rem;
+
+    @media (width >= 48rem) {
+      padding-inline: 2.25rem;
+    }
   }
 
   scores-leaderboard-slot {

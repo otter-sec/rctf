@@ -338,11 +338,42 @@ describe('getSparklineDataByTeam — window anchored to newest data point', () =
     { id: 'b', points: [{ time: MAX, score: 5 }] },
   ]
 
-  test('drops points older than 12h before the global newest point', () => {
+  test('teams with in-window activity keep their raw windowed points', () => {
     const map = getSparklineDataByTeam(allGraphData, null)
-    // window start = MAX - 12h = 56_800_000; only the two recent points survive.
+    // window start = MAX - 12h = 56_800_000; only the two recent points
+    // survive, with no synthesized endpoints (the sparkline stretches to the
+    // team's own activity range).
     expect(map.get('a')!.map(p => p.time)).toEqual([60_000_000, 99_000_000])
+    // A single point exactly at the window end has no history to draw.
     expect(map.get('b')!).toHaveLength(1)
+  })
+
+  test('a team idle across the whole window gets a flat two-point line', () => {
+    const map = getSparklineDataByTeam(
+      [
+        { id: 'idle', points: [{ time: 1_000, score: 7 }] },
+        { id: 'fresh', points: [{ time: MAX, score: 5 }] },
+      ],
+      null
+    )
+    expect(map.get('idle')!).toEqual([
+      { time: MAX - 12 * 60 * 60 * 1000, score: 7 },
+      { time: MAX, score: 7 },
+    ])
+  })
+
+  test('no point is fabricated before a team first-ever event', () => {
+    const map = getSparklineDataByTeam(
+      [
+        { id: 'late', points: [{ time: MAX - 1_000, score: 4 }] },
+        { id: 'anchor', points: [{ time: MAX, score: 5 }] },
+      ],
+      null
+    )
+    expect(map.get('late')!).toEqual([
+      { time: MAX - 1_000, score: 4 },
+      { time: MAX, score: 4 },
+    ])
   })
 
   test('merges the self series when it is absent from the board', () => {

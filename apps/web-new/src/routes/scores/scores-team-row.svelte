@@ -95,16 +95,21 @@
     flex-shrink: 0;
   }
 
+  rank-cluster {
+    gap: 0.5rem;
+  }
+
   delta-slot {
     display: none;
-    inline-size: 1.5rem;
+    justify-content: flex-end;
+    inline-size: 2rem;
   }
 
   team-rank {
     display: flex;
     flex-direction: column;
     align-items: center;
-    inline-size: 2.5rem;
+    inline-size: 2rem;
     line-height: 1;
 
     strong {
@@ -121,7 +126,7 @@
   }
 
   team-avatar {
-    --avatar-size: 2.75rem;
+    --avatar-size: 2.5rem;
     flex-shrink: 0;
   }
 
@@ -206,11 +211,35 @@
 
   spark-slot {
     display: none;
+    inline-size: 6rem;
+    block-size: 2.5rem;
+  }
+
+  @media (width >= 40rem) {
+    team-rank {
+      inline-size: 2.5rem;
+    }
+
+    team-avatar {
+      --avatar-size: 3rem;
+    }
+
+    team-rank strong,
+    team-name a,
+    score-points strong {
+      font-size: var(--step-1);
+    }
+  }
+
+  @media (width >= 64rem) {
+    team-rank {
+      inline-size: 4rem;
+    }
   }
 
   @media (width >= 80rem) {
     delta-slot {
-      display: block;
+      display: flex;
     }
 
     spark-slot {

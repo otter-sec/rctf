@@ -1,20 +1,25 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
-  import { scrollFade } from '$lib/attachments/scroll-fade'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
-  import type { Attachment } from 'svelte/attachments'
-  import { resolveCellTooltip, type CellTooltip } from './scores-cell-tooltip'
+  import { untrack } from 'svelte'
+  import { BLOOD_PATHS } from './scores-cell-icons'
+  import { CELL_KIND, resolveCellTooltip, type CellTooltip } from './scores-cell-tooltip'
   import {
+    SCORE_DIAGONAL_OVERFLOW_PX,
+    SCORE_HEADER_HEIGHT_PX,
     SCORE_LOADING_ROW_COUNT,
+    SCORE_ROW_GAP_PX,
     SCORE_ROW_HEIGHT_FULL_PX,
     SCORE_VIRTUAL_OVERSCAN,
   } from './scores-constants'
   import type { ScoresData } from './scores-data.svelte'
   import ScoresGraph from './scores-graph.svelte'
   import ScoresHeader from './scores-header.svelte'
+  import { createScrollGeometry } from './scores-scroll-geometry.svelte'
+  import ScoresScrollbars from './scores-scrollbars.svelte'
   import ScoresSelfRow from './scores-self-row.svelte'
   import ScoresSolveCells from './scores-solve-cells.svelte'
   import ScoresTeamRow from './scores-team-row.svelte'
@@ -38,20 +43,37 @@
 
   const showDivision = $derived(Object.keys(divisions).length > 1)
 
-  let headerHeight = $state(0)
+  // The header is a fixed 192px block on desktop and display:none on mobile, so
+  // the virtualizer's scroll margin is a constant per breakpoint — never a
+  // measurement. (A measured margin drifted across viewport resizes.)
+  let isDesktop = $state(false)
+  $effect(() => {
+    const query = window.matchMedia('(width >= 48rem)')
+    const update = () => (isDesktop = query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  })
+  const headerOffset = $derived(isDesktop ? SCORE_HEADER_HEIGHT_PX : 0)
 
   const virtual = createVirtualizer(() => ({
     count: data.entries.length,
     rowHeight: SCORE_ROW_HEIGHT_FULL_PX,
     overscan: SCORE_VIRTUAL_OVERSCAN,
-    scrollMargin: headerHeight,
+    scrollMargin: headerOffset,
     getItemKey: index => data.entries[index]?.id ?? index,
   }))
 
+  // The row surface spans the cells' lead-in gap (solve-cells padding-start,
+  // mirrored by header-bars' margin-start) plus the trailing diagonal-overflow
+  // region where rotated header labels overhang, so the cards end flush with
+  // the header at the scroll extent.
   const contentWidth = $derived(
-    urlState.viewMode === 'categories'
+    (urlState.viewMode === 'categories'
       ? getCategoryCellsInnerWidth(data.categoryGroups.length)
-      : getChallengeCellsInnerWidth(data.challenges)
+      : getChallengeCellsInnerWidth(data.challenges)) +
+      SCORE_ROW_GAP_PX +
+      SCORE_DIAGONAL_OVERFLOW_PX
   )
   const loadingRows = Array.from({ length: SCORE_LOADING_ROW_COUNT }, (_, index) => index)
 
@@ -61,6 +83,29 @@
   let activeTooltip = $state<CellTooltip | null>(null)
   let tooltipX = $state(0)
   let tooltipY = $state(0)
+  let tooltipPlace = $state<'top' | 'bottom'>('top')
+
+  // Native-tooltip timing: the first tooltip opens after a delay; while one is
+  // "warm" (recently shown), moving between cells opens instantly. Warmth
+  // cools down shortly after the pointer leaves all cells.
+  const TOOLTIP_OPEN_DELAY_MS = 400
+  const TOOLTIP_COOLDOWN_MS = 300
+  let tooltipWarm = false
+  let openTimer: ReturnType<typeof setTimeout> | undefined
+  let coolTimer: ReturnType<typeof setTimeout> | undefined
+  let pendingCell: Element | null = null
+  let tooltipCell: Element | null = null
+
+  function cancelOpenTimer() {
+    clearTimeout(openTimer)
+    openTimer = undefined
+    pendingCell = null
+  }
+
+  $effect(() => () => {
+    clearTimeout(openTimer)
+    clearTimeout(coolTimer)
+  })
 
   // Shared hover state read by the graph (R15). Hovering any row (or its
   // sparkline) highlights that team's line; hovering a solved challenge cell
@@ -70,7 +115,15 @@
   let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
 
   function clearTooltip() {
-    activeTooltip = null
+    cancelOpenTimer()
+    if (activeTooltip) {
+      activeTooltip = null
+      tooltipCell = null
+      clearTimeout(coolTimer)
+      coolTimer = setTimeout(() => {
+        tooltipWarm = false
+      }, TOOLTIP_COOLDOWN_MS)
+    }
   }
 
   function clearHover() {
@@ -83,43 +136,82 @@
     const target = event.target instanceof Element ? event.target : null
     const row = target?.closest<HTMLElement>('[data-team-id]') ?? null
     const cell = target?.closest<HTMLElement>('[data-tooltip-cell]') ?? null
+    const spark = target?.closest('spark-slot')
 
-    hoveredTeamId = row?.dataset.teamId ?? null
-    solveHighlight =
-      row?.dataset.teamId && cell?.dataset.kind === 'challenge' && cell.dataset.solveTime
-        ? { teamId: row.dataset.teamId, time: Number(cell.dataset.solveTime) }
-        : null
+    // Only a sparkline or a solve cell highlights the team's graph line —
+    // sweeping the pointer across whole rows must not flicker the graph. A
+    // sparkline (no tooltip) highlights immediately; a cell's highlight is
+    // applied inside show() so it lands together with the tooltip.
+    const teamId = row?.dataset.teamId ?? null
+    if (spark) {
+      hoveredTeamId = teamId
+      solveHighlight = null
+    } else if (!cell) {
+      hoveredTeamId = null
+      solveHighlight = null
+    }
 
     if (virtual.isScrolling || !cell) {
       clearTooltip()
       return
     }
-    const resolved = resolveCellTooltip(cell.dataset)
+    if (cell === pendingCell || (activeTooltip && cell === tooltipCell)) return
+    const resolved = resolveCellTooltip(cell.dataset, startTime)
     if (!resolved) {
       clearTooltip()
       return
     }
-    const rect = cell.getBoundingClientRect()
-    activeTooltip = resolved
-    tooltipX = rect.left + rect.width / 2
-    tooltipY = rect.top
+    const kind = cell.dataset.kind
+    const isHeader = kind === CELL_KIND.headerChallenge || kind === CELL_KIND.headerCategory
+    const show = () => {
+      const rect = cell.getBoundingClientRect()
+      activeTooltip = resolved
+      tooltipCell = cell
+      tooltipX = rect.left + rect.width / 2
+      tooltipY = isHeader ? rect.bottom : rect.top
+      tooltipPlace = isHeader ? 'bottom' : 'top'
+      tooltipWarm = true
+      clearTimeout(coolTimer)
+      hoveredTeamId = teamId
+      solveHighlight =
+        teamId && kind === CELL_KIND.challenge && cell.dataset.solveTime
+          ? { teamId, time: Number(cell.dataset.solveTime) }
+          : null
+    }
+    cancelOpenTimer()
+    // Warmth only fast-tracks header tooltips; matrix cells always wait out
+    // the delay so sweeping across the board doesn't strobe tooltips.
+    if (tooltipWarm && isHeader) {
+      show()
+      return
+    }
+    activeTooltip = null
+    pendingCell = cell
+    openTimer = setTimeout(show, TOOLTIP_OPEN_DELAY_MS)
   }
 
-  // Windowed graph series (R12/R14). The window is the min→max rank of the
-  // rendered virtual rows; getGraphVisibility caps it to a 15-team span and adds
-  // the top-3/self pins. The resolved set is frozen while the list scrolls and
-  // re-adopted only once scrolling settles (AE5), so the lines hold steady
-  // through a flick instead of thrashing.
+  // Windowed graph series (R12/R14). The window is the rows actually visible in
+  // the scroll viewport — from scroll geometry, not the rendered virtual range
+  // (which includes overscan), and excluding the band occluded by the sticky
+  // header. getGraphVisibility caps it to a 15-team span and adds the
+  // top-3/self pins. The resolved set is frozen while the list scrolls and
+  // re-adopted once scrolling settles (AE5).
   const liveWindow = $derived.by(() => {
-    let min = Infinity
-    let max = -Infinity
-    for (const item of virtual.virtualItems) {
-      if (item.index >= data.entries.length) continue
-      if (item.index < min) min = item.index
-      if (item.index > max) max = item.index
-    }
-    if (min === Infinity) return { minRank: 0, maxRank: 0 }
-    return { minRank: min + 1, maxRank: max + 1 }
+    const loaded = data.entries.length
+    if (loaded === 0 || geometry.clientHeight === 0) return { minRank: 0, maxRank: 0 }
+    const bandTop = geometry.scrollTop + headerOffset
+    const bandBottom = geometry.scrollTop + geometry.clientHeight
+    const rowTop = (index: number) => headerOffset + index * SCORE_ROW_HEIGHT_FULL_PX
+    const first = Math.max(
+      0,
+      Math.ceil((bandTop - rowTop(0) - SCORE_ROW_HEIGHT_FULL_PX + 1) / SCORE_ROW_HEIGHT_FULL_PX)
+    )
+    const last = Math.min(
+      loaded - 1,
+      Math.ceil((bandBottom - rowTop(0)) / SCORE_ROW_HEIGHT_FULL_PX) - 1
+    )
+    if (last < first) return { minRank: 0, maxRank: 0 }
+    return { minRank: first + 1, maxRank: last + 1 }
   })
 
   const liveVisibility = $derived(
@@ -147,20 +239,12 @@
   // A poll or filter refetch can reorder rows under a stationary pointer; the
   // cached tooltip/highlight snapshot would then describe a row that moved.
   // Clear on data change — the next pointermove re-resolves from the fresh DOM.
+  // untrack: clearTooltip reads `activeTooltip`; tracked, this effect would
+  // re-run on every show and wipe the tooltip the instant it appears.
   $effect(() => {
     void data.entries
-    clearHover()
+    untrack(clearHover)
   })
-
-  // Measured header height feeds the virtualizer scrollMargin; on mobile the
-  // header collapses to display:none, so offsetHeight naturally reports 0.
-  const measureHeader: Attachment<HTMLElement> = node => {
-    const update = () => (headerHeight = node.offsetHeight)
-    const observer = new ResizeObserver(update)
-    observer.observe(node)
-    update()
-    return () => observer.disconnect()
-  }
 
   // Fetch the next page as the virtual range nears the loaded end. The latch is
   // plain control-flow state (not reactive) so it never re-triggers the effect;
@@ -184,18 +268,36 @@
     if (result.shouldFetch) void data.fetchNextPage()
   })
 
-  // Self-row pinning (R11). The scroll container is captured so an
-  // IntersectionObserver on the real self row can use it as its root; the
-  // observed clip plus the self index feed the shared pinned-edge reducer.
+  // Self-row pinning (R11). The clip comes from scroll geometry, edge-exact:
+  // the bottom pin engages the instant the real row's bottom edge crosses the
+  // viewport bottom (and the top pin when its top edge slides under the sticky
+  // header), so the pinned copy takes over exactly where the real row sits —
+  // a seamless handoff rather than a pop-in after the row fully exits.
   let scrollRoot = $state<HTMLElement | null>(null)
-  // 'visible' while the real row is on screen; 'above'/'below' the edge it left
-  // by. Deliberately not reset on the observer's teardown: when a virtual row
-  // unmounts far off screen its last known edge is the correct one to keep.
-  let selfClip = $state<ViewportClip>(null)
+  const geometry = createScrollGeometry(() => scrollRoot)
+
+  // Edge fades (clipped-content hints). Orthogonal state: four scrollable
+  // directions as shell attributes, plus data-self-edge shifting the vertical
+  // bands past the opaque pinned row — no enumerated per-region variants.
+  const fadeTop = $derived(geometry.scrollTop > 1)
+  const fadeBottom = $derived(
+    geometry.scrollTop < geometry.scrollHeight - geometry.clientHeight - 1
+  )
+  const fadeLeft = $derived(geometry.scrollLeft > 1)
+  const fadeRight = $derived(geometry.scrollLeft < geometry.scrollWidth - geometry.clientWidth - 1)
 
   const selfIndex = $derived(
     data.currentUserId ? (data.teamRanks.get(data.currentUserId) ?? 0) - 1 : -1
   )
+
+  const selfClip = $derived.by((): ViewportClip => {
+    if (selfIndex === -1 || geometry.clientHeight === 0) return null
+    const rowTop = headerOffset + selfIndex * SCORE_ROW_HEIGHT_FULL_PX
+    const rowBottom = rowTop + SCORE_ROW_HEIGHT_FULL_PX
+    if (rowTop < geometry.scrollTop + headerOffset) return 'above'
+    if (rowBottom > geometry.scrollTop + geometry.clientHeight) return 'below'
+    return 'visible'
+  })
   const searchActive = $derived(!!urlState.search)
 
   const selfEdge = $derived(
@@ -236,38 +338,20 @@
   })
 
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
-
-  // Attached only to the virtualized row whose entry is the current user; tracks
-  // which viewport edge it leaves by so the overlay pins to that edge.
-  const observeSelfRow: Attachment<HTMLElement> = node => {
-    const root = scrollRoot
-    if (!root) return
-    const observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0]
-        if (!entry) return
-        const bounds = entry.rootBounds
-        if (entry.isIntersecting || !bounds) {
-          selfClip = 'visible'
-          return
-        }
-        selfClip = entry.boundingClientRect.top < bounds.top ? 'above' : 'below'
-      },
-      { root, threshold: 0 }
-    )
-    observer.observe(node)
-    return () => observer.disconnect()
-  }
 </script>
 
 {#snippet teamRow(entry: LeaderboardEntry, index: number)}
   {@const isSelf = data.currentUserId === entry.id}
   {@const variant = getRankVariant(entry.globalPlace ?? index + 1, isSelf)}
-  <row-team data-rank={variant} data-current={isSelf || undefined}>
+  <row-team
+    data-rank={variant}
+    data-ranked={variant !== 'nth' || undefined}
+    data-current={isSelf || undefined}
+  >
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
   <row-content data-current={isSelf || undefined}>
-    <ScoresSolveCells {data} {entry} viewMode={urlState.viewMode} />
+    <ScoresSolveCells {data} {entry} viewMode={urlState.viewMode} sortMode={urlState.sortMode} />
   </row-content>
 {/snippet}
 
@@ -295,7 +379,14 @@
   />
 {/snippet}
 
-<scores-shell style:--score-content-width={`${contentWidth}px`}>
+<scores-shell
+  style:--score-content-width={`${contentWidth}px`}
+  data-fade-top={fadeTop || undefined}
+  data-fade-bottom={fadeBottom || undefined}
+  data-fade-left={fadeLeft || undefined}
+  data-fade-right={fadeRight || undefined}
+  data-self-edge={selfEdge ?? undefined}
+>
   <mobile-graph>
     {@render graphPanel()}
   </mobile-graph>
@@ -306,13 +397,12 @@
   <scores-scroll
     {@attach virtual.scrollContainer}
     {@attach captureScroll}
-    {@attach scrollFade}
     tabindex="-1"
     onpointermove={handlePointerMove}
     onpointerleave={clearHover}
   >
     <scores-table>
-      <header-row {@attach measureHeader}>
+      <header-row>
         <header-corner>
           <graph-panel>
             {@render graphPanel()}
@@ -330,10 +420,23 @@
         </header-content>
       </header-row>
 
+      {#if selfEdge === 'top' && selfRow}
+        <ScoresSelfRow
+          {data}
+          entry={selfRow.entry}
+          index={selfRow.index}
+          edge="top"
+          viewMode={urlState.viewMode}
+          sortMode={urlState.sortMode}
+          {divisions}
+          {showDivision}
+        />
+      {/if}
+
       <virtual-list
         style:block-size={data.isLoading
           ? `${SCORE_LOADING_ROW_COUNT * SCORE_ROW_HEIGHT_FULL_PX}px`
-          : `${virtual.totalSize}px`}
+          : `${virtual.totalSize - headerOffset}px`}
       >
         {#if data.isLoading}
           {#each loadingRows as index (index)}
@@ -347,8 +450,7 @@
             <virtual-row
               data-loading={entry ? undefined : true}
               data-team-id={entry?.id}
-              style:--row-y={`${item.start - headerHeight}px`}
-              {@attach entry && data.currentUserId === entry.id ? observeSelfRow : undefined}
+              style:--row-y={`${item.start - headerOffset}px`}
             >
               {#if entry}
                 {@render teamRow(entry, item.index)}
@@ -358,30 +460,56 @@
             </virtual-row>
           {/each}
         {/if}
-
-        {#if selfEdge && selfRow}
-          <ScoresSelfRow
-            {data}
-            entry={selfRow.entry}
-            index={selfRow.index}
-            edge={selfEdge}
-            {headerHeight}
-            viewMode={urlState.viewMode}
-            {divisions}
-            {showDivision}
-          />
-        {/if}
       </virtual-list>
+
+      {#if selfEdge === 'bottom' && selfRow}
+        <ScoresSelfRow
+          {data}
+          entry={selfRow.entry}
+          index={selfRow.index}
+          edge="bottom"
+          viewMode={urlState.viewMode}
+          sortMode={urlState.sortMode}
+          {divisions}
+          {showDivision}
+        />
+      {/if}
     </scores-table>
   </scores-scroll>
 
+  <ScoresScrollbars root={scrollRoot} {geometry} />
+
+  <edge-fade data-edge="top" aria-hidden="true"></edge-fade>
+  <edge-fade data-edge="bottom" aria-hidden="true"></edge-fade>
+  <edge-fade data-edge="left" aria-hidden="true"></edge-fade>
+  <edge-fade data-edge="right" aria-hidden="true"></edge-fade>
+
   {#if displayedTooltip}
-    <cell-tooltip aria-hidden="true" style:left={`${tooltipX}px`} style:top={`${tooltipY}px`}>
+    <cell-tooltip
+      aria-hidden="true"
+      data-place={tooltipPlace}
+      style:left={`${tooltipX}px`}
+      style:top={`${tooltipY}px`}
+    >
       <strong data-capitalize={displayedTooltip.capitalize || undefined}>
         {displayedTooltip.title}
       </strong>
       {#each displayedTooltip.lines as line, index (index)}
-        <span data-trend={line.trend}>{line.text}</span>
+        <span data-trend={line.trend}>
+          {line.text}
+          {#if line.icon}
+            {#if line.icon.kind === 'blood'}
+              <svg viewBox="0 0 24 24" data-icon="blood" data-medal={line.icon.medal}>
+                <path fill="currentColor" d={BLOOD_PATHS[line.icon.medal - 1]} />
+              </svg>
+            {:else}
+              <svg viewBox="0 0 24 24" data-icon="solved">
+                <circle cx="12" cy="12" r="10.5" />
+              </svg>
+            {/if}
+            {line.iconLabel}
+          {/if}
+        </span>
       {/each}
     </cell-tooltip>
   {/if}
@@ -392,21 +520,77 @@
     --score-row-gap: 4px;
     --score-row-height-full: 68px;
     --score-row-height: calc(var(--score-row-height-full) - var(--score-row-gap));
+    --score-header-height: 192px;
     --score-name-row-height: 128px;
     --score-diagonal-overflow: 96px;
     --score-team-column-width: 100%;
+    --score-mobile-graph-height: 12rem;
+    --score-fade-size: 1.5rem;
+    --score-fade-inset-top: 0px;
+    --score-fade-inset-bottom: 0px;
+    /* Where the scroll region starts/ends within the shell: below the mobile
+       graph on small screens, below the sticky header on desktop; the rail is
+       the horizontal-scrollbar band reserved by padding-block-end. */
+    --score-fade-region-top: calc(var(--score-mobile-graph-height) + var(--space-3xs));
+    --score-fade-rail: 0px;
+    position: relative;
     display: flex;
-    flex: 1;
     flex-direction: column;
     min-block-size: 0;
     inline-size: 100%;
+    max-inline-size: 100%;
+
+    /* The pinned self-row is opaque, so the vertical fade bands simply start
+       or end past it instead of needing per-region fade variants. */
+    &[data-self-edge='top'] {
+      --score-fade-inset-top: var(--score-row-height-full);
+    }
+
+    &[data-self-edge='bottom'] {
+      --score-fade-inset-bottom: var(--score-row-height-full);
+    }
+  }
+
+  edge-fade {
+    position: absolute;
+    z-index: 20;
+    display: block;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+
+  scores-shell[data-fade-top] edge-fade[data-edge='top'],
+  scores-shell[data-fade-bottom] edge-fade[data-edge='bottom'],
+  scores-shell[data-fade-left] edge-fade[data-edge='left'],
+  scores-shell[data-fade-right] edge-fade[data-edge='right'] {
+    opacity: 1;
+  }
+
+  edge-fade[data-edge='top'] {
+    inset-block-start: calc(var(--score-fade-region-top) + var(--score-fade-inset-top));
+    inset-inline: 0;
+    block-size: var(--score-fade-size);
+    background: linear-gradient(to bottom, var(--background-l0), transparent);
+  }
+
+  edge-fade[data-edge='bottom'] {
+    inset-block-end: calc(var(--score-fade-rail) + var(--score-fade-inset-bottom));
+    inset-inline: 0;
+    block-size: var(--score-fade-size);
+    background: linear-gradient(to top, var(--background-l0), transparent);
+  }
+
+  edge-fade[data-edge='left'],
+  edge-fade[data-edge='right'] {
+    display: none;
   }
 
   mobile-graph {
     display: block;
     flex-shrink: 0;
-    block-size: 12rem;
-    margin-block-end: var(--space-xs);
+    block-size: var(--score-mobile-graph-height);
+    margin-block-end: var(--space-3xs);
     background: var(--background-l1);
     border-radius: var(--radius-lg);
     overflow: hidden;
@@ -422,12 +606,15 @@
     inline-size: 100%;
     overflow: auto;
     outline: none;
-    scrollbar-width: thin;
+    overscroll-behavior: none;
+    scrollbar-width: none;
   }
 
   scores-table {
-    display: block;
+    display: flex;
+    flex-direction: column;
     position: relative;
+    min-block-size: 100%;
     inline-size: 100%;
   }
 
@@ -453,19 +640,42 @@
     contain: layout style paint;
   }
 
+  /* Two paint layers like the old app: the element itself is opaque page
+     background (a sticky column must fully occlude cells passing beneath its
+     rounded corners), ::before is the rounded card surface, ::after the rank
+     glow. */
   row-team {
     --rank-fg-l0: var(--foreground-l0);
     --rank-fg-l1: var(--foreground-l3);
     --rank-glow: transparent;
+    position: relative;
+    z-index: 0;
     display: flex;
     align-items: center;
     gap: var(--space-2xs);
     flex-shrink: 0;
     inline-size: var(--score-team-column-width);
     block-size: var(--score-row-height);
-    padding-inline: var(--space-m);
-    background: var(--background-l1);
-    border-radius: var(--radius-lg);
+    padding-inline: 1rem;
+    background: var(--background-l0);
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: var(--radius-lg);
+    }
+
+    &::before {
+      background: var(--background-l2);
+    }
+
+    &[data-ranked]::after {
+      inline-size: min(24rem, 100%);
+      background: linear-gradient(to right, var(--rank-glow), transparent);
+    }
 
     &[data-rank='first'] {
       --rank-fg-l0: var(--foreground-gold-l0);
@@ -491,7 +701,7 @@
       --rank-glow: color-mix(in oklab, var(--foreground-self-l0) 15%, transparent);
     }
 
-    &[data-current] {
+    &[data-current]::before {
       background: var(--background-self-l0);
     }
   }
@@ -510,7 +720,34 @@
 
   @media (width >= 48rem) {
     scores-shell {
-      --score-team-column-width: 20rem;
+      /* Capped so mid-size viewports don't hand the team column dead space the
+         name/score never use. */
+      --score-team-column-width: min(60vw - 4.5rem, 26rem);
+      --score-fade-region-top: var(--score-header-height);
+      --score-fade-rail: 0.5rem;
+      inline-size: fit-content;
+      margin-inline: auto;
+      /* Dedicated rail for the horizontal scrollbar: 0.375rem track + 0.125rem
+         gap below the scroll region, so it never overlays the bottom row. */
+      padding-block-end: var(--score-fade-rail);
+    }
+
+    edge-fade[data-edge='left'],
+    edge-fade[data-edge='right'] {
+      display: block;
+      inset-block-start: 0;
+      inset-block-end: var(--score-fade-rail);
+      inline-size: var(--score-fade-size);
+    }
+
+    edge-fade[data-edge='left'] {
+      inset-inline-start: var(--score-team-column-width);
+      background: linear-gradient(to right, var(--background-l0), transparent);
+    }
+
+    edge-fade[data-edge='right'] {
+      inset-inline-end: 0;
+      background: linear-gradient(to left, var(--background-l0), transparent);
     }
 
     mobile-graph {
@@ -519,6 +756,7 @@
 
     scores-table {
       inline-size: max-content;
+      min-inline-size: 100%;
     }
 
     header-row {
@@ -526,6 +764,7 @@
       position: sticky;
       inset-block-start: 0;
       z-index: 20;
+      block-size: var(--score-header-height);
       background: var(--background-l0);
     }
 
@@ -535,13 +774,13 @@
       z-index: 1;
       flex-shrink: 0;
       inline-size: var(--score-team-column-width);
+      block-size: 100%;
       background: var(--background-l0);
     }
 
     graph-panel {
       display: block;
       block-size: 100%;
-      min-block-size: 8rem;
       background: var(--background-l1);
       border-start-start-radius: var(--radius-lg);
       border-start-end-radius: var(--radius-lg);
@@ -552,11 +791,12 @@
     header-content {
       display: block;
       flex: 1;
+      block-size: 100%;
       inline-size: max-content;
     }
 
     virtual-list {
-      inline-size: max-content;
+      inline-size: 100%;
     }
 
     virtual-row {
@@ -567,8 +807,12 @@
       position: sticky;
       inset-inline-start: 0;
       z-index: 10;
-      border-start-end-radius: 0;
-      border-end-end-radius: 0;
+
+      &::before,
+      &::after {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+      }
     }
 
     row-content {
@@ -576,7 +820,7 @@
       flex-shrink: 0;
       inline-size: var(--score-content-width);
       block-size: var(--score-row-height);
-      background: var(--background-l1);
+      background: var(--background-l2);
       border-start-end-radius: var(--radius-lg);
       border-end-end-radius: var(--radius-lg);
 
@@ -591,18 +835,48 @@
     z-index: var(--layer-popover);
     display: flex;
     flex-direction: column;
-    gap: 0.125rem;
     max-inline-size: 16rem;
-    padding: var(--space-3xs) var(--space-2xs);
+    padding: 0.375rem 0.625rem;
     background: var(--background-l2);
     border: 2px solid var(--border);
     border-radius: var(--radius-sm);
     pointer-events: none;
+    line-height: 1.35;
     translate: -50% calc(-100% - 0.625rem);
+
+    &[data-place='bottom'] {
+      translate: -50% 0.625rem;
+    }
+
+    /* Arrow: a rotated square sharing the tooltip's background, with the two
+       outward-facing edges borrowing its border. It overlaps the tooltip's own
+       border to open a notch into the bubble. */
+    &::after {
+      content: '';
+      position: absolute;
+      inset-inline-start: 50%;
+      inline-size: 0.625rem;
+      block-size: 0.625rem;
+      background: var(--background-l2);
+      translate: -50%;
+      rotate: 45deg;
+    }
+
+    &[data-place='top']::after {
+      inset-block-end: -0.4375rem;
+      border-inline-end: 2px solid var(--border);
+      border-block-end: 2px solid var(--border);
+    }
+
+    &[data-place='bottom']::after {
+      inset-block-start: -0.4375rem;
+      border-inline-start: 2px solid var(--border);
+      border-block-start: 2px solid var(--border);
+    }
 
     strong {
       color: var(--foreground-l1);
-      font-size: var(--step--1);
+      font-size: var(--step--2);
       font-weight: 400;
 
       &[data-capitalize] {
@@ -611,8 +885,11 @@
     }
 
     span {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
       color: var(--foreground-l3);
-      font-size: var(--step--1);
+      font-size: var(--step--2);
       white-space: nowrap;
 
       &[data-trend='positive'] {
@@ -623,11 +900,40 @@
         color: var(--foreground-destructive);
       }
     }
+
+    svg[data-icon] {
+      inline-size: 0.875rem;
+      block-size: 0.875rem;
+    }
+
+    /* Mirrors the matrix's cell-circle[data-solved]: hollow ring, translucent
+       success stroke (2px border at 1.25rem ≈ 3 viewBox units). */
+    svg[data-icon='solved'] circle {
+      fill: none;
+      stroke: color-mix(in oklab, var(--foreground-success) 75%, transparent);
+      stroke-width: 3;
+    }
+
+    svg[data-icon='blood'][data-medal='1'] {
+      color: var(--foreground-gold-l0);
+    }
+
+    svg[data-icon='blood'][data-medal='2'] {
+      color: var(--foreground-silver-l0);
+    }
+
+    svg[data-icon='blood'][data-medal='3'] {
+      color: var(--foreground-bronze-l0);
+    }
   }
 
   @media (width >= 80rem) {
     scores-shell {
-      --score-team-column-width: 28rem;
+      /* The sparkline (6rem), delta slot (2rem), and wider rank (+1.5rem)
+         mount at this breakpoint — the 36rem floor absorbs them so the team
+         name keeps roughly the same room as below 80rem instead of paying for
+         the new columns. */
+      --score-team-column-width: clamp(36rem, 45vw - 4.5rem, 44rem);
     }
   }
 </style>

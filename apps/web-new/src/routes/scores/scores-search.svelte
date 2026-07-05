@@ -36,7 +36,6 @@
   {/if}
   <input
     {@attach captureInput}
-    data-roving
     type="text"
     aria-label="Search teams"
     placeholder="Search teams..."
@@ -46,7 +45,6 @@
   <button
     type="button"
     aria-label="Clear team search"
-    data-roving={value ? '' : undefined}
     data-empty={!value || undefined}
     tabindex={value ? undefined : -1}
     onclick={onclear}
@@ -59,6 +57,7 @@
   search-box {
     display: flex;
     align-items: center;
+    inline-size: 100%;
     gap: var(--space-2xs);
     block-size: 2.25rem;
     padding-inline: var(--space-s);
@@ -86,10 +85,6 @@
     outline: none;
     background: transparent;
     color: var(--foreground-l0);
-
-    @media (width >= 48rem) {
-      inline-size: 12rem;
-    }
 
     &::placeholder {
       color: var(--foreground-l1);

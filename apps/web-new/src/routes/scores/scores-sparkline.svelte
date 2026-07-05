@@ -34,13 +34,15 @@
     }
 
     const tRange = maxT - minT || 1
-    const sRange = maxS - minS || 1
+    const sRange = maxS - minS
     const innerW = WIDTH - PAD_X * 2
     const innerH = HEIGHT - PAD_Y * 2
 
+    // A plateaued series has no vertical extent; center it instead of pinning
+    // it to the bottom edge.
     const points: Point[] = data.map(point => ({
       x: PAD_X + ((point.time - minT) / tRange) * innerW,
-      y: PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
+      y: sRange === 0 ? HEIGHT / 2 : PAD_Y + (1 - (point.score - minS) / sRange) * innerH,
     }))
     return monotoneCubicPath(points)
   })
@@ -50,7 +52,16 @@
   <score-sparkline>
     <svg viewBox="0 0 {WIDTH} {HEIGHT}" preserveAspectRatio="none" aria-hidden="true">
       <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+        <!-- userSpaceOnUse: a flat series has a zero-height bounding box, and
+             objectBoundingBox gradients on zero-area boxes render nothing. -->
+        <linearGradient
+          id={gradientId}
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1="0"
+          x2={WIDTH}
+          y2="0"
+        >
           <stop offset="0%" stop-color={color} stop-opacity="0" />
           <stop offset="100%" stop-color={color} stop-opacity="1" />
         </linearGradient>

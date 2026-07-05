@@ -111,12 +111,6 @@
           <category-block
             data-category-color={group.config.color}
             style:--block-width={`${SCORE_CELL_WIDTH_PX}px`}
-            data-tooltip-cell
-            data-kind={CELL_KIND.headerCategory}
-            data-name={group.config.name}
-            data-count={group.challenges.length}
-            data-points={points}
-            data-dynamic-count={dynamicCount(group) || undefined}
           >
             <category-points>
               {@render pointsBadge(points, dynamicOnly)}
@@ -133,14 +127,7 @@
         >
           <category-points data-challenge>
             {#each group.challenges as challenge (challenge.id)}
-              <challenge-point
-                style:--point-width={`${getChallengeCellWidth(challenge)}px`}
-                data-tooltip-cell
-                data-kind={CELL_KIND.headerChallenge}
-                data-name={challenge.name}
-                data-points={challenge.points}
-                data-dynamic={isDynamicChallenge(challenge) ? '' : undefined}
-              >
+              <challenge-point style:--point-width={`${getChallengeCellWidth(challenge)}px`}>
                 {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
               </challenge-point>
             {/each}
@@ -156,11 +143,6 @@
         <category-block
           data-category-color={challenge.config.color}
           style:--block-width={`${getChallengeCellWidth(challenge)}px`}
-          data-tooltip-cell
-          data-kind={CELL_KIND.headerChallenge}
-          data-name={challenge.name}
-          data-points={challenge.points}
-          data-dynamic={isDynamicChallenge(challenge) ? '' : undefined}
         >
           <category-points>
             {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
@@ -176,6 +158,7 @@
   challenge-header {
     display: flex;
     flex-direction: column;
+    block-size: 100%;
     margin-inline-end: var(--score-diagonal-overflow);
   }
 
@@ -219,6 +202,8 @@
 
   header-bars {
     display: flex;
+    flex: 1;
+    min-block-size: 0;
     align-items: stretch;
     margin-inline-start: 0.25rem;
 
@@ -277,11 +262,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    inline-size: 1.25rem;
+    min-inline-size: 1.25rem;
     block-size: 1.25rem;
     color: var(--category-foreground-l1);
     font-size: var(--step--1);
     line-height: 1;
+    white-space: nowrap;
     opacity: 0.75;
 
     &[data-dynamic] {
