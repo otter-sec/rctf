@@ -29,11 +29,8 @@ export const queryKeys = {
     offset: number
     division?: string
   }) => ['leaderboard', 'graph', params] as const,
-  leaderboardWithGraph: (params: {
-    limit: number
-    offset: number
-    division?: string
-  }) => ['leaderboard', 'with-graph', params] as const,
+  leaderboardWithGraph: (params: { division?: string; search?: string }) =>
+    ['leaderboard', 'with-graph', params] as const,
   selfUserGraph: (globalPlace: number | null, userId: string | null = null) =>
     ['leaderboard', 'graph', 'self', userId, globalPlace] as const,
   challengeSolves: (id: string, params: { limit: number; offset: number }) =>
