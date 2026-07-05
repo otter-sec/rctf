@@ -17,6 +17,7 @@
     "@rctf/types": "workspace:*",
     "@rctf/util": "workspace:*",
     "@tanstack/svelte-query": "6.1.0",
+    "@tanstack/virtual-core": "3.17.2",
     "@zag-js/accordion": "1.41.2",
     "@zag-js/avatar": "1.41.2",
     "@zag-js/dialog": "1.41.2",
