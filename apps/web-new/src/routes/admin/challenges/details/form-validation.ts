@@ -1,6 +1,6 @@
 import { ChallengeScoringKind, UpdateChallengeRouteV2 } from '@rctf/types'
 import type { InlineArgs } from '$lib/api'
-import type { EditorForm } from '../editor/editor-state'
+import type { EditorForm } from '../model/editor-state'
 
 /** Per-field validation messages, keyed by the form field they belong to. */
 export interface FormErrors {

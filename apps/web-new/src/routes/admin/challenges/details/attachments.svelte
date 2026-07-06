@@ -17,7 +17,7 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import { formatFileSize } from '$lib/utils/filesize'
-  import type { EditorForm } from '../editor/editor-state'
+  import type { EditorForm } from '../model/editor-state'
 
   interface Props {
     files: EditorForm['files']

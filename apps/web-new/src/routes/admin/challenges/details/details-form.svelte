@@ -29,7 +29,7 @@
   import AdminChallengesDetailsAttachments from './attachments.svelte'
   import AdminChallengesDetailsInstancer from './instancer.svelte'
   import AdminChallengesDetailsSolves from './solves.svelte'
-  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../editor/editor-state'
+  import type { AdminBotConfig, EditorForm, ScoringConfig } from '../model/editor-state'
   import FieldSelect from './field-select.svelte'
   import {
     detailsTabInvalid,

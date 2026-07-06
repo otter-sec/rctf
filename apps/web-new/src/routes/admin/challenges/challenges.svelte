@@ -12,7 +12,7 @@
   import Splitter from '$lib/ui/splitter.svelte'
   import AdminChallengesDetails from './details/details.svelte'
   import AdminChallengesList from './list/list.svelte'
-  import { create, createEditorState, detailLoaded, select, type EditorState } from './editor/editor-state'
+  import { create, createEditorState, detailLoaded, select, type EditorState } from './model/editor-state'
 
   const DESKTOP_MIN_WIDTH = 768
   const WIDE_MIN_WIDTH = 1280

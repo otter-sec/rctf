@@ -14,7 +14,7 @@
   import Section from '$lib/ui/section.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import Textarea from '$lib/ui/textarea.svelte'
-  import type { AdminBotConfig } from '../editor/editor-state'
+  import type { AdminBotConfig } from '../model/editor-state'
   import FieldSelect from './field-select.svelte'
 
   interface Props {

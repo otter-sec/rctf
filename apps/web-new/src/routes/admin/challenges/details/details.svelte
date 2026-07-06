@@ -57,7 +57,7 @@
     type EditorForm,
     type EditorState,
     type ScoringConfig,
-  } from '../editor/editor-state'
+  } from '../model/editor-state'
   import { buildSavePayload, formErrors, hasFormErrors } from './form-validation'
 
   interface Props {
