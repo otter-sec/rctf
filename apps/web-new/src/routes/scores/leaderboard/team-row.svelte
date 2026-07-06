@@ -3,9 +3,9 @@
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import Avatar from '$lib/ui/avatar.svelte'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
-  import type { ScoresData } from './scores-data.svelte'
-  import ScoresDelta from './scores-leaderboard-team-row-delta.svelte'
-  import { getVisibleSolveCount } from './scores-transforms'
+  import type { ScoresData } from '../model/data.svelte'
+  import ScoresDelta from './team-row-delta.svelte'
+  import { getVisibleSolveCount } from '../model/transforms'
 
   interface Props {
     data: ScoresData

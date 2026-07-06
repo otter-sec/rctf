@@ -14,7 +14,7 @@ import {
   SCORE_ROW_GAP_PX,
   SELF_COLOR,
   SPARKLINE_WINDOW,
-} from './scores-constants'
+} from '../leaderboard/constants'
 
 export interface ChallengeSource {
   name: string

@@ -24,7 +24,7 @@
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
   import type { Attachment } from 'svelte/attachments'
-  import { getRankTier, getSparklineDataByTeam } from '../../scores/scores-transforms'
+  import { getRankTier, getSparklineDataByTeam } from '../../scores/model/transforms'
   import ChallengeDetailsRow from './details-row.svelte'
   import ScoreTrailing from './score-trailing.svelte'
   import ChallengeDetailsScoresGraph from './scores-graph.svelte'

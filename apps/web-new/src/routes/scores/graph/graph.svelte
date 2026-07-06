@@ -17,8 +17,8 @@
   import { ctfRelativeTicks } from '$lib/chart/ticks'
   import { niceLinearTicks } from '$lib/chart/y-ticks'
   import type { LeaderboardGraphSeries } from '$lib/query/leaderboard'
-  import GraphControls from './scores-graph-controls.svelte'
-  import { getRankTier } from './scores-transforms'
+  import GraphControls from './graph-controls.svelte'
+  import { getRankTier } from '../model/transforms'
 
   interface Props {
     graphData: LeaderboardGraphSeries[]

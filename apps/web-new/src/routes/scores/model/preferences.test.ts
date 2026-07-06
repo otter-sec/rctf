@@ -4,7 +4,7 @@ import {
   parseScoresPreferences,
   saveScoresPreferences,
   type ScoresPreferences,
-} from './scores-preferences'
+} from './preferences'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 

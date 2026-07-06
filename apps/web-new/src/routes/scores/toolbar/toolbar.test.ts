@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { moveRovingIndex } from './scores-toolbar-roving'
+import { moveRovingIndex } from './roving'
 
 describe('moveRovingIndex', () => {
   test('ArrowRight advances and wraps past the end', () => {

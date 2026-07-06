@@ -9,10 +9,10 @@
   import Tooltip from '$lib/ui/tooltip.svelte'
   import type { Component } from 'svelte'
   import type { Attachment } from 'svelte/attachments'
-  import type { ScoresData } from './scores-data.svelte'
-  import { moveRovingIndex } from './scores-toolbar-roving'
-  import ScoresSearch from './scores-toolbar-search.svelte'
-  import type { ScoresUrlState } from './scores-url-state.svelte'
+  import type { ScoresData } from '../model/data.svelte'
+  import { moveRovingIndex } from './roving'
+  import ScoresSearch from './toolbar-search.svelte'
+  import type { ScoresUrlState } from '../model/url-state.svelte'
 
   interface Props {
     data: ScoresData

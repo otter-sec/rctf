@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { SCORE_CELL_WIDTH_PX, SCORE_ROW_GAP_PX } from './scores-constants'
-  import { CELL_KIND } from './scores-leaderboard-cell-tooltip'
+  import { SCORE_CELL_WIDTH_PX, SCORE_ROW_GAP_PX } from './constants'
+  import { CELL_KIND } from './cell-tooltip'
   import {
     getChallengeCellsInnerWidth,
     getChallengeCellWidth,
     isDynamicChallenge,
     type CategoryGroup,
     type ChallengeInfo,
-  } from './scores-transforms'
-  import type { SortMode, ViewMode } from './scores-url-params'
+  } from '../model/transforms'
+  import type { SortMode, ViewMode } from './url-params'
 
   interface Props {
     viewMode: ViewMode

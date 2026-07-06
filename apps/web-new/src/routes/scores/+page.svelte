@@ -5,10 +5,10 @@
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
   import Spinner from '$lib/ui/spinner.svelte'
-  import { createScoresData } from './scores-data.svelte'
-  import ScoresLeaderboard from './scores-leaderboard.svelte'
-  import ScoresToolbar from './scores-toolbar.svelte'
-  import { createScoresRouteState } from './scores-url-state.svelte'
+  import { createScoresData } from './model/data.svelte'
+  import ScoresLeaderboard from './leaderboard/leaderboard.svelte'
+  import ScoresToolbar from './toolbar/toolbar.svelte'
+  import { createScoresRouteState } from './model/url-state.svelte'
 
   const configQuery = useClientConfig()
   const ctfName = $derived(configQuery.data?.ctfName)

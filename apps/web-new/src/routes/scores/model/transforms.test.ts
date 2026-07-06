@@ -8,7 +8,7 @@ import {
   SCORE_DYNAMIC_CELL_WIDTH_PX,
   SCORE_ROW_GAP_PX,
   SELF_COLOR,
-} from './scores-constants'
+} from '../leaderboard/constants'
 import {
   getBloodIndex,
   getCategoryCellsInnerWidth,
@@ -33,7 +33,7 @@ import {
   mergeWithSelfGraph,
   type ChallengeInfo,
   type ChallengeSource,
-} from './scores-transforms'
+} from './transforms'
 
 function makeSource(overrides: Partial<ChallengeSource>): ChallengeSource {
   return {

@@ -4,7 +4,7 @@ import { onDestroy } from 'svelte'
 import {
   loadScoresPreferences,
   saveScoresPreferences,
-} from './scores-preferences'
+} from './preferences'
 import {
   getActiveSearch,
   MIN_SEARCH_LENGTH,
@@ -17,7 +17,7 @@ import {
   withScoresViewMode,
   type SortMode,
   type ViewMode,
-} from './scores-url-params'
+} from '../leaderboard/url-params'
 
 // Exported so the toolbar (U10) shares the exact debounce window.
 export const SEARCH_DEBOUNCE_MS = 400

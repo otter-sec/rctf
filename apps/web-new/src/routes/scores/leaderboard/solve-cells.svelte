@@ -2,17 +2,17 @@
   import IconTriangleFilled from '$lib/icons/icon-triangle-filled.svelte'
   import IconTriangleInvertedFilled from '$lib/icons/icon-triangle-inverted-filled.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
-  import type { ScoresData } from './scores-data.svelte'
-  import { BLOOD_PATHS, CHECK_PATH } from './scores-leaderboard-cell-icons'
-  import { CELL_KIND, pointDeltaTrend } from './scores-leaderboard-cell-tooltip'
+  import type { ScoresData } from '../model/data.svelte'
+  import { BLOOD_PATHS, CHECK_PATH } from './cell-icons'
+  import { CELL_KIND, pointDeltaTrend } from './cell-tooltip'
   import {
     getChallengeCellWidth,
     getTeamSolveLookups,
     isDynamicChallenge,
     type CategoryGroup,
     type ChallengeInfo,
-  } from './scores-transforms'
-  import type { SortMode, ViewMode } from './scores-url-params'
+  } from '../model/transforms'
+  import type { SortMode, ViewMode } from './url-params'
 
   interface Props {
     data: ScoresData

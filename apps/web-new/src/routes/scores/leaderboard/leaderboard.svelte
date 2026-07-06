@@ -12,27 +12,27 @@
     SCORE_ROW_GAP_PX,
     SCORE_ROW_HEIGHT_FULL_PX,
     SCORE_VIRTUAL_OVERSCAN,
-  } from './scores-constants'
-  import type { ScoresData } from './scores-data.svelte'
-  import ScoresGraph from './scores-graph.svelte'
-  import { BLOOD_PATHS } from './scores-leaderboard-cell-icons'
+  } from './constants'
+  import type { ScoresData } from '../model/data.svelte'
+  import ScoresGraph from '../graph/graph.svelte'
+  import { BLOOD_PATHS } from './cell-icons'
   import {
     CELL_KIND,
     resolveCellTooltip,
     type CellTooltip,
-  } from './scores-leaderboard-cell-tooltip'
-  import ScoresHeader from './scores-leaderboard-header.svelte'
-  import ScoresScrollbars from './scores-leaderboard-scrollbars.svelte'
-  import ScoresSelfRow from './scores-leaderboard-self-row.svelte'
-  import ScoresSolveCells from './scores-leaderboard-solve-cells.svelte'
-  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
+  } from './cell-tooltip'
+  import ScoresHeader from './leaderboard-header.svelte'
+  import ScoresScrollbars from './scrollbars.svelte'
+  import ScoresSelfRow from './self-row.svelte'
+  import ScoresSolveCells from './solve-cells.svelte'
+  import ScoresTeamRow from './team-row.svelte'
   import {
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
     getGraphVisibility,
     getRankVariant,
-  } from './scores-transforms'
-  import type { ScoresUrlState } from './scores-url-state.svelte'
+  } from '../model/transforms'
+  import type { ScoresUrlState } from '../model/url-state.svelte'
 
   interface Props {
     data: ScoresData

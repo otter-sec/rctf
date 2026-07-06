@@ -1,6 +1,6 @@
 import { isRecord } from '$lib/utils/is-record'
-import { isSortMode, isViewMode } from './scores-url-params'
-import type { SortMode, ViewMode } from './scores-url-params'
+import { isSortMode, isViewMode } from '../leaderboard/url-params'
+import type { SortMode, ViewMode } from '../leaderboard/url-params'
 
 const STORAGE_KEY = 'rctf:scores:preferences'
 

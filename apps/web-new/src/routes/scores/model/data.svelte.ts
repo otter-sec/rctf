@@ -16,8 +16,8 @@ import {
   getSparklineDataByTeam,
   getTeamColorMap,
   getTeamRanks,
-} from './scores-transforms'
-import type { SortMode } from './scores-url-params'
+} from './transforms'
+import type { SortMode } from '../leaderboard/url-params'
 
 export type ScoresData = ReturnType<typeof createScoresData>
 

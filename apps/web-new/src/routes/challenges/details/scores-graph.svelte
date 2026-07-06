@@ -13,7 +13,7 @@
   import { nearestPoint, type Series } from '$lib/chart/nearest'
   import { createLinearScale, createTimeScale } from '$lib/chart/scale'
   import { ctfRelativeTicks } from '$lib/chart/ticks'
-  import { getRankTier } from '../../scores/scores-transforms'
+  import { getRankTier } from '../../scores/model/transforms'
   import GraphControls from './scores-graph-controls.svelte'
 
   interface GraphEntry {

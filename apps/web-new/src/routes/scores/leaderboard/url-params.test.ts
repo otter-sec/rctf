@@ -9,7 +9,7 @@ import {
   withScoresSearch,
   withScoresSortMode,
   withScoresViewMode,
-} from './scores-url-params'
+} from './url-params'
 
 const BASE = 'https://ctf.example/scores'
 

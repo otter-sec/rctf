@@ -11,10 +11,10 @@
 <script lang="ts">
   import type { PinnedEdge } from '$lib/components/pinned-self-row'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
-  import type { ScoresData } from './scores-data.svelte'
-  import ScoresSolveCells from './scores-leaderboard-solve-cells.svelte'
-  import ScoresTeamRow from './scores-leaderboard-team-row.svelte'
-  import type { SortMode, ViewMode } from './scores-url-params'
+  import type { ScoresData } from '../model/data.svelte'
+  import ScoresSolveCells from './solve-cells.svelte'
+  import ScoresTeamRow from './team-row.svelte'
+  import type { SortMode, ViewMode } from './url-params'
 
   interface Props {
     data: ScoresData
