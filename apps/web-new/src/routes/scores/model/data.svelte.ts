@@ -85,6 +85,11 @@ export function createScoresData(config: ScoresDataConfig) {
     leaderboardQuery.isFetching && leaderboardQuery.isPlaceholderData
   )
   const isNotStarted = $derived(ApiError.isNotStarted(leaderboardQuery.error))
+  const loadError = $derived(
+    isNotStarted
+      ? null
+      : (leaderboardQuery.error ?? challengesQuery.error ?? null)
+  )
 
   // FIXME(es3n1n): Challenge focus can only know which teams solved a challenge
   // once every leaderboard page is loaded, so we chain-fetch the whole board
@@ -151,6 +156,9 @@ export function createScoresData(config: ScoresDataConfig) {
     },
     get isNotStarted() {
       return isNotStarted
+    },
+    get loadError() {
+      return loadError
     },
     get hasNextPage() {
       return leaderboardQuery.hasNextPage

@@ -118,6 +118,14 @@
       <scores-leaderboard-slot>
         <Spinner />
       </scores-leaderboard-slot>
+    {:else if data.loadError && data.entries.length === 0}
+      <scores-leaderboard-slot>
+        <EmptyState
+          icon={IconTrophy}
+          title="Couldn't load the scoreboard"
+          subtitle={data.loadError.message}
+        />
+      </scores-leaderboard-slot>
     {:else if data.entries.length > 0}
       <scores-frame data-reveal={revealAfterLoading || undefined}>
         <ScoresLeaderboard {data} {urlState} {divisions} {startTime} />
