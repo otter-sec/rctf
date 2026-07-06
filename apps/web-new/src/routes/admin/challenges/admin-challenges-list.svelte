@@ -274,15 +274,6 @@
     background: var(--background-l4);
     cursor: pointer;
 
-    /* Pill group with the search box: inner edges tight, outer edge rounded.
-       The last control carries the pill end — the New button when it renders,
-       otherwise the collapse toggle. */
-    border-radius: var(--radius-sm);
-
-    &:last-child {
-      border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
-    }
-
     @container admin-challenges-list (width >= 24rem) {
       flex: initial;
     }

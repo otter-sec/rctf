@@ -101,6 +101,22 @@
   const geometry = createScrollGeometry(() => scrollRoot)
   const fades = deriveEdgeFades(geometry)
 
+  // Hovering a row's sparkline highlights that team's line in the graph
+  // (matching /scores' cross-highlight); any other surface clears it. One
+  // delegated listener on the viewport covers the list and the pinned overlay.
+  let hoveredTeamId = $state<string | null>(null)
+
+  function handleSparkHover(event: PointerEvent) {
+    const target = event.target instanceof Element ? event.target : null
+    hoveredTeamId = target?.closest('spark-slot')
+      ? (target.closest<HTMLElement>('[data-team-id]')?.dataset.teamId ?? null)
+      : null
+  }
+
+  function clearSparkHover() {
+    hoveredTeamId = null
+  }
+
   // The current user's real row, captured so the shared clip can read its
   // layout position.
   let selfRowNode = $state<HTMLElement | null>(null)
@@ -214,19 +230,27 @@
       <ChallengeDetailsScoresGraph
         {graph}
         {visibleTeamIds}
+        {hoveredTeamId}
         selfId={currentUser?.id ?? null}
         {startTime}
         {endTime}
       />
     </scores-graph>
 
-    <scores-viewport data-reveal={revealAfterLoading || undefined}>
+    <!-- The pointer handlers only delegate sparkline hover to the graph
+         highlight; the viewport itself carries no interactive semantics. -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <scores-viewport
+      data-reveal={revealAfterLoading || undefined}
+      onpointermove={handleSparkHover}
+      onpointerleave={clearSparkHover}
+    >
       <scores-scroll {@attach captureScroll} tabindex="-1">
         <scores-list {@attach captureList}>
           {#each allScores as score, index (score.userId)}
             {@const rank = index + 1}
             {@const isSelf = !!(currentUser && score.userId === currentUser.id)}
-            <row-slot {@attach isSelf && captureSelfRow}>
+            <row-slot data-team-id={score.userId} {@attach isSelf && captureSelfRow}>
               <ChallengeDetailsRow
                 variant={rankVariant(rank, isSelf)}
                 {rank}
@@ -262,7 +286,11 @@
       </scores-scroll>
 
       {#if pinnedEdge && myPosition !== null}
-        <self-overlay data-edge={pinnedEdge} {@attach captureOverlay}>
+        <self-overlay
+          data-edge={pinnedEdge}
+          data-team-id={currentUser?.id}
+          {@attach captureOverlay}
+        >
           <ChallengeDetailsScoresSelf
             {challenge}
             rank={myPosition}

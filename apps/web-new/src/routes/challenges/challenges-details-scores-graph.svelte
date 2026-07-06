@@ -27,6 +27,8 @@
     graph: GraphEntry[]
     /** Teams currently scrolled into view in the ranked list. */
     visibleTeamIds: Set<string>
+    /** Sparkline-hovered team; its line is highlighted and the rest dim. */
+    hoveredTeamId?: string | null
     selfId?: string | null
     startTime: number
     endTime: number
@@ -37,6 +39,7 @@
   let {
     graph,
     visibleTeamIds,
+    hoveredTeamId = null,
     selfId = null,
     startTime,
     endTime,
@@ -125,19 +128,24 @@
     const out: RenderSeries[] = []
     for (const entry of rendered) {
       const isSelf = entry.id === selfId
+      // A sparkline hover dims every other line, like /scores' cross-highlight.
+      const dimmed = hoveredTeamId !== null && hoveredTeamId !== entry.id && !isSelf
       out.push({
         id: entry.id,
         name: entry.name,
         role: getRankTier(isSelf, entry.rank, entry.id),
         rank: entry.rank,
         width: isSelf ? 3 : 2,
-        opacity: isSelf ? 1 : focusIds.has(entry.id) ? 1 : 0.3,
+        opacity: dimmed ? 0.15 : isSelf ? 1 : focusIds.has(entry.id) ? 1 : 0.3,
         scaled: entry.points.map(p => ({ x: xScale(p.time), y: yScale(p.score) })),
         data: entry.points.map(p => ({ x: p.time, y: p.score })),
       })
     }
-    // draw higher ranks (and self) last so they sit on top of the pack
+    // draw order: the hovered line on top, then self, then higher ranks
     return out.sort((a, b) => {
+      const ah = a.id === hoveredTeamId
+      const bh = b.id === hoveredTeamId
+      if (ah !== bh) return ah ? 1 : -1
       if ((a.id === selfId) !== (b.id === selfId)) return a.id === selfId ? 1 : -1
       return b.rank - a.rank
     })

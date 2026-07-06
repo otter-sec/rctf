@@ -43,6 +43,9 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
+    inline-size: 100%;
+    max-inline-size: var(--page-max-width);
+    margin-inline: auto;
   }
 
   sponsor-grid {
