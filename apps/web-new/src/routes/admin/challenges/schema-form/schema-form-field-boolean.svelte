@@ -1,6 +1,6 @@
 <script lang="ts">
-  import Checkbox from '$lib/ui/checkbox.svelte'
   import Field from '$lib/ui/field.svelte'
+  import SchemaFormSelect from './schema-form-select.svelte'
   import type { FieldProps } from './types'
   import { fieldLabel, resolveValue } from './utils'
 
@@ -26,14 +26,17 @@
 
 <Field
   label={showLabel && label ? `${label}${required ? ' *' : ''}` : undefined}
-  description={showLabel ? description : undefined}
+  hint={showLabel ? description : undefined}
 >
-  {#snippet children({ id, describedBy })}
-    <Checkbox
-      {id}
-      aria-describedby={describedBy}
-      checked={displayValue}
-      onchange={event => onChange(path, event.currentTarget.checked)}
+  {#snippet children()}
+    <SchemaFormSelect
+      options={[
+        { value: 'true', label: 'true' },
+        { value: 'false', label: 'false' },
+      ]}
+      value={displayValue ? 'true' : 'false'}
+      onValueChange={v => onChange(path, v === 'true')}
+      {label}
       {disabled}
     />
   {/snippet}

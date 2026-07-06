@@ -1,5 +1,4 @@
 export { default as SchemaForm } from './schema-form.svelte'
-export { default as SchemaFormField } from './schema-form-field.svelte'
 export { validateValue } from './validate'
 export type { ValidationResult } from './validate'
 export type { FieldProps, JsonSchema } from './types'

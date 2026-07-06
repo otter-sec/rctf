@@ -39,7 +39,7 @@
   }
 </script>
 
-<Field {label} {description}>
+<Field {label} hint={description}>
   {#snippet children({ id, describedBy })}
     {#if enumValues}
       <checkbox-group aria-describedby={describedBy}>

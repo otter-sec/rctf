@@ -38,6 +38,7 @@ export interface FieldProps {
   path: string[]
   onChange: (path: string[], value: unknown) => void
   onError?: ErrorReporter
+  onNavigate?: (path: string[]) => void
   disabled?: boolean
   required?: boolean
 }

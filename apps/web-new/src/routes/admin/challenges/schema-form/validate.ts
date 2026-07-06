@@ -117,8 +117,7 @@ export function validateValue(
               : 'Invalid format',
           }
         }
-      } catch {
-      }
+      } catch {}
     }
   }
 

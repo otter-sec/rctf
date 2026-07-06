@@ -154,6 +154,49 @@ export function renameRecordEntry(
   return renameRecordKey(record, oldKey, newKey)
 }
 
+export function isRecordSchema(schema: JsonSchema): boolean {
+  const effective = getEffectiveSchema(schema)
+  return (
+    getPrimaryType(schema) === 'object' &&
+    !effective.properties &&
+    Boolean(effective.additionalProperties)
+  )
+}
+
+export function schemaAtPath(
+  schema: JsonSchema,
+  path: string[]
+): JsonSchema | null {
+  let current = schema
+  for (const segment of path) {
+    const effective = getEffectiveSchema(current)
+    const primary = getPrimaryType(effective)
+    if (primary === 'object' && effective.properties) {
+      const next = effective.properties[segment]
+      if (!next) return null
+      current = next
+    } else if (primary === 'object' && effective.additionalProperties) {
+      current = recordValueSchema(effective)
+    } else if (primary === 'array') {
+      current = effective.items ?? ({ type: 'string' } as JsonSchema)
+    } else {
+      return null
+    }
+  }
+  return current
+}
+
+export function valueAtPath(value: unknown, path: string[]): unknown {
+  let current = value
+  for (const segment of path) {
+    if (typeof current !== 'object' || current === null) return undefined
+    current = Array.isArray(current)
+      ? current[Number(segment)]
+      : (current as Record<string, unknown>)[segment]
+  }
+  return current
+}
+
 export function parseNumber(str: string): number | undefined {
   if (str === '') return undefined
   const num = Number(str)

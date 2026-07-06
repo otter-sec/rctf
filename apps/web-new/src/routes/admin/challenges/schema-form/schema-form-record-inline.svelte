@@ -1,7 +1,6 @@
 <script lang="ts">
   import IconX from '$lib/icons/icon-x.svelte'
   import Button from '$lib/ui/button.svelte'
-  import Checkbox from '$lib/ui/checkbox.svelte'
   import Input from '$lib/ui/input.svelte'
   import { SvelteMap } from 'svelte/reactivity'
   import SchemaFormSelect from './schema-form-select.svelte'
@@ -177,9 +176,14 @@
           <record-eq>=</record-eq>
           {#if isBoolean}
             <record-value>
-              <Checkbox
-                checked={Boolean(val)}
-                onchange={event => onChange([...path, key], event.currentTarget.checked)}
+              <SchemaFormSelect
+                options={[
+                  { value: 'true', label: 'true' },
+                  { value: 'false', label: 'false' },
+                ]}
+                value={Boolean(val) ? 'true' : 'false'}
+                onValueChange={v => onChange([...path, key], v === 'true')}
+                label={key}
                 {disabled}
               />
             </record-value>

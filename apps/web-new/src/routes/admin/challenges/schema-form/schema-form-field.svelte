@@ -6,11 +6,19 @@
   import SchemaFormFieldUnknown from './schema-form-field-unknown.svelte'
   import SchemaFormObject from './schema-form-object.svelte'
   import SchemaFormRecord from './schema-form-record.svelte'
-  import type { FieldProps } from './types'
-  import { isNullable as checkNullable, getEffectiveSchema, getPrimaryType } from './utils'
+  import SchemaFormSummaryRow from './schema-form-summary-row.svelte'
+  import type { FieldProps, JsonSchema } from './types'
+  import {
+    isNullable as checkNullable,
+    getEffectiveSchema,
+    getPrimaryType,
+    isTypeOneOf,
+    recordValueSchema,
+  } from './utils'
 
   interface Props extends FieldProps {
     showLabel?: boolean
+    root?: boolean
   }
 
   let {
@@ -19,9 +27,11 @@
     path,
     onChange,
     onError,
+    onNavigate,
     disabled = false,
     showLabel = true,
     required = false,
+    root = false,
   }: Props = $props()
 
   const effectiveSchema = $derived(getEffectiveSchema(schema))
@@ -31,10 +41,44 @@
   const isRecord = $derived(
     primaryType === 'object' && !effectiveSchema.properties && effectiveSchema.additionalProperties
   )
+
+  const isDrillTarget = $derived.by(() => {
+    if (isRecord) {
+      return !isTypeOneOf(recordValueSchema(effectiveSchema).type, [
+        'string',
+        'number',
+        'integer',
+        'boolean',
+      ])
+    }
+    if (primaryType === 'object') return Boolean(effectiveSchema.properties)
+    if (primaryType === 'array') {
+      const itemSchema = effectiveSchema.items ?? ({ type: 'string' } as JsonSchema)
+      return !isTypeOneOf(itemSchema.type, ['string', 'number', 'integer'])
+    }
+    return false
+  })
 </script>
 
-{#if isRecord}
-  <SchemaFormRecord schema={effectiveSchema} {value} {path} {onChange} {onError} {disabled} />
+{#if !root && isDrillTarget && onNavigate}
+  <SchemaFormSummaryRow
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {required}
+    {isNullable}
+    {onNavigate}
+  />
+{:else if isRecord}
+  <SchemaFormRecord
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {onError}
+    {onNavigate}
+    {disabled}
+  />
 {:else if primaryType === 'object' && effectiveSchema.properties}
   <SchemaFormObject
     schema={effectiveSchema}
@@ -42,12 +86,20 @@
     {path}
     {onChange}
     {onError}
+    {onNavigate}
     {disabled}
-    {showLabel}
     {isNullable}
   />
 {:else if primaryType === 'array'}
-  <SchemaFormArray schema={effectiveSchema} {value} {path} {onChange} {onError} {disabled} />
+  <SchemaFormArray
+    schema={effectiveSchema}
+    {value}
+    {path}
+    {onChange}
+    {onError}
+    {onNavigate}
+    {disabled}
+  />
 {:else if primaryType === 'string' || effectiveSchema.enum}
   <SchemaFormFieldString
     schema={effectiveSchema}

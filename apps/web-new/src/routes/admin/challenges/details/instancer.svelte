@@ -11,7 +11,7 @@
   import Textarea from '$lib/ui/textarea.svelte'
   import * as yaml from 'yaml'
   import ChallengesDetailsOverviewInstancer from '../../../challenges/details/overview-instancer.svelte'
-  import AdminChallengesDetailsInstancerExpose from './instancer-expose.svelte'
+  import { SchemaForm, type JsonSchema } from '../schema-form'
   import FieldSelect from './field-select.svelte'
   import {
     defaultInstancerConfig,
@@ -22,7 +22,7 @@
     timeoutToSeconds,
     type ExposeConfig,
   } from './instancer-config'
-  import { SchemaForm, type JsonSchema } from '../schema-form'
+  import AdminChallengesDetailsInstancerExpose from './instancer-expose.svelte'
 
   interface Props {
     config: InstancerConfig | null
@@ -46,6 +46,7 @@
   let yamlText = $state('')
   let yamlError = $state<string | null>(null)
   let schemaFormValid = $state(true)
+  let schemaDrilled = $state(false)
 
   $effect(() => {
     valid = resolveInstancerValidity({
@@ -120,6 +121,7 @@
       yamlError = null
     }
     advanced = true
+    schemaDrilled = false
   }
 
   function exitAdvanced() {
@@ -154,70 +156,74 @@
     />
   {:else}
     <instancer-reveal data-reveal={revealAfterLoading || undefined}>
-      <Section title="Configuration">
-        <config-fields>
-          <form-field>
-            <field-label>Enable instancer</field-label>
-            <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
-          </form-field>
+      {#if !schemaDrilled}
+        <Section title="Configuration">
+          <config-fields>
+            <form-field>
+              <field-label>Enable instancer</field-label>
+              <FieldSelect label={config ? 'Enabled' : 'Disabled'} items={enableItems} {disabled} />
+            </form-field>
 
-          {#if config}
-            {#if hasMultiple}
+            {#if config}
+              {#if hasMultiple}
+                <form-field>
+                  <field-label>Instancer</field-label>
+                  <FieldSelect
+                    label={active?.name ?? 'Select instancer'}
+                    items={instancerItems}
+                    {disabled}
+                  />
+                </form-field>
+              {/if}
+
+              <field-grid>
+                <form-field>
+                  <field-label>Integration ID</field-label>
+                  <Input
+                    type="text"
+                    data-mono
+                    placeholder="challenge-id"
+                    value={config.challengeIntegrationId}
+                    {disabled}
+                    oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
+                  />
+                </form-field>
+                <form-field>
+                  <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={timeoutToSeconds(config.timeoutMilliseconds)}
+                    {disabled}
+                    oninput={e =>
+                      patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
+                  />
+                </form-field>
+              </field-grid>
+
               <form-field>
-                <field-label>Instancer</field-label>
+                <field-label>Allow extending</field-label>
                 <FieldSelect
-                  label={active?.name ?? 'Select instancer'}
-                  items={instancerItems}
+                  label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
+                  items={extendItems}
                   {disabled}
                 />
               </form-field>
             {/if}
-
-            <field-grid>
-              <form-field>
-                <field-label>Integration ID</field-label>
-                <Input
-                  type="text"
-                  data-mono
-                  placeholder="challenge-id"
-                  value={config.challengeIntegrationId}
-                  {disabled}
-                  oninput={e => patch({ challengeIntegrationId: e.currentTarget.value })}
-                />
-              </form-field>
-              <form-field>
-                <field-label>Timeout <field-hint>(seconds)</field-hint></field-label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={timeoutToSeconds(config.timeoutMilliseconds)}
-                  {disabled}
-                  oninput={e =>
-                    patch({ timeoutMilliseconds: secondsToTimeout(+e.currentTarget.value) })}
-                />
-              </form-field>
-            </field-grid>
-
-            <form-field>
-              <field-label>Allow extending</field-label>
-              <FieldSelect
-                label={(config.extendable ?? true) ? 'Enabled' : 'Disabled'}
-                items={extendItems}
-                {disabled}
-              />
-            </form-field>
-          {/if}
-        </config-fields>
-      </Section>
+          </config-fields>
+        </Section>
+      {/if}
 
       {#if config}
         <Section title="Provider config">
-          <provider-config>
+          {#snippet actions()}
             <provider-toolbar>
               <button type="button" onclick={() => (advanced ? exitAdvanced() : enterAdvanced())}>
                 {advanced ? 'Form editor' : 'Advanced (YAML)'}
               </button>
             </provider-toolbar>
+          {/snippet}
+          <provider-config>
             {#if advanced}
               <Textarea
                 data-mono
@@ -236,6 +242,7 @@
                 onChange={next => patch({ config: next })}
                 {disabled}
                 bind:valid={schemaFormValid}
+                bind:drilled={schemaDrilled}
               />
             {:else}
               <provider-empty>No provider schema available.</provider-empty>
@@ -243,25 +250,27 @@
           </provider-config>
         </Section>
 
-        <Section title="Exposed ports">
-          <AdminChallengesDetailsInstancerExpose
-            expose={config.expose ?? []}
-            {disabled}
-            onChange={onExposeChange}
-          />
-        </Section>
-
-        {#if challengeId}
-          <Section title="Instance management">
-            <ChallengesDetailsOverviewInstancer
-              {challengeId}
-              instancerLifetime={config.timeoutMilliseconds}
-              instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
-              instancerStoppable={active?.canStop ?? true}
-              instancerActions={[]}
-              onSolve={() => {}}
+        {#if !schemaDrilled}
+          <Section title="Exposed ports">
+            <AdminChallengesDetailsInstancerExpose
+              expose={config.expose ?? []}
+              {disabled}
+              onChange={onExposeChange}
             />
           </Section>
+
+          {#if challengeId}
+            <Section title="Instance management">
+              <ChallengesDetailsOverviewInstancer
+                {challengeId}
+                instancerLifetime={config.timeoutMilliseconds}
+                instancerExtendable={(config.extendable ?? true) && (active?.canExtend ?? true)}
+                instancerStoppable={active?.canStop ?? true}
+                instancerActions={[]}
+                onSolve={() => {}}
+              />
+            </Section>
+          {/if}
         {/if}
       {/if}
     </instancer-reveal>
@@ -307,7 +316,6 @@
 
   provider-toolbar {
     display: flex;
-    justify-content: flex-end;
 
     button {
       color: var(--foreground-l3);

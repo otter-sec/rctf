@@ -6,9 +6,12 @@ import {
   getEffectiveSchema,
   getPrimaryType,
   isNullable,
+  isRecordSchema,
   isTypeOneOf,
   resolveRefs,
+  schemaAtPath,
   setValueAtPath,
+  valueAtPath,
 } from './utils'
 import { validateValue } from './validate'
 
@@ -181,6 +184,107 @@ describe('defaultValue', () => {
 
   it('uses null for nullable primitives', () => {
     expect(defaultValue({ type: 'string', nullable: true })).toBeNull()
+  })
+})
+
+describe('isRecordSchema', () => {
+  it('matches objects with additionalProperties and no properties', () => {
+    expect(
+      isRecordSchema({
+        type: 'object',
+        additionalProperties: { type: 'string' },
+      })
+    ).toBe(true)
+    expect(isRecordSchema({ type: 'object', additionalProperties: true })).toBe(
+      true
+    )
+    expect(
+      isRecordSchema({ type: 'object', properties: { a: { type: 'string' } } })
+    ).toBe(false)
+    expect(isRecordSchema({ type: 'array' })).toBe(false)
+  })
+})
+
+describe('schemaAtPath', () => {
+  const schema: JsonSchema = {
+    type: 'object',
+    properties: {
+      pods: {
+        type: 'object',
+        additionalProperties: {
+          type: 'object',
+          properties: {
+            containers: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: { image: { type: 'string' } },
+              },
+            },
+          },
+        },
+      },
+      limits: {
+        anyOf: [
+          { type: 'null' },
+          { type: 'object', properties: { cpu: { type: 'integer' } } },
+        ],
+      },
+    },
+  }
+
+  it('returns the root schema for an empty path', () => {
+    expect(schemaAtPath(schema, [])).toBe(schema)
+  })
+
+  it('walks properties, record values, and array items', () => {
+    expect(
+      schemaAtPath(schema, ['pods', 'app', 'containers', '0', 'image'])
+    ).toEqual({
+      type: 'string',
+    })
+  })
+
+  it('walks through anyOf-nullable branches', () => {
+    expect(schemaAtPath(schema, ['limits', 'cpu'])).toEqual({ type: 'integer' })
+  })
+
+  it('returns null for unknown properties and paths through leaves', () => {
+    expect(schemaAtPath(schema, ['nope'])).toBeNull()
+    expect(
+      schemaAtPath(schema, [
+        'pods',
+        'app',
+        'containers',
+        '0',
+        'image',
+        'deeper',
+      ])
+    ).toBeNull()
+  })
+})
+
+describe('valueAtPath', () => {
+  const value = { pods: { app: { containers: [{ image: 'nginx' }] } } }
+
+  it('returns the root value for an empty path', () => {
+    expect(valueAtPath(value, [])).toBe(value)
+  })
+
+  it('walks objects and arrays by segment', () => {
+    expect(
+      valueAtPath(value, ['pods', 'app', 'containers', '0', 'image'])
+    ).toBe('nginx')
+  })
+
+  it('returns undefined when a segment is missing or the node is not a container', () => {
+    expect(
+      valueAtPath(value, ['pods', 'missing', 'containers'])
+    ).toBeUndefined()
+    expect(
+      valueAtPath(value, ['pods', 'app', 'containers', '0', 'image', 'x'])
+    ).toBeUndefined()
+    expect(valueAtPath(null, ['pods'])).toBeUndefined()
   })
 })
 

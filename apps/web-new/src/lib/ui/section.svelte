@@ -3,14 +3,18 @@
 
   type Props = {
     title: string
+    actions?: Snippet
     children: Snippet
   }
 
-  let { title, children }: Props = $props()
+  let { title, actions, children }: Props = $props()
 </script>
 
 <ui-section>
-  <section-header>{title}</section-header>
+  <section-header>
+    {title}
+    {#if actions}{@render actions()}{/if}
+  </section-header>
   <section-content>{@render children()}</section-content>
 </ui-section>
 
@@ -23,7 +27,10 @@
   }
 
   section-header {
-    display: block;
+    display: flex;
+    gap: var(--space-2xs);
+    align-items: center;
+    justify-content: space-between;
     padding: 0.375rem 1rem;
     color: var(--foreground-l3);
     background: var(--background-l3);

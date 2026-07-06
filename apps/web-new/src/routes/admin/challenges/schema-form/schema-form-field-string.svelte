@@ -76,7 +76,7 @@
 
 <Field
   label={showLabel && label ? `${label}${required ? ' *' : ''}` : undefined}
-  description={showLabel ? description : undefined}
+  hint={showLabel ? description : undefined}
   {error}
 >
   {#snippet children({ id, describedBy })}

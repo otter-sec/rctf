@@ -2,10 +2,9 @@
   import Button from '$lib/ui/button.svelte'
   import SchemaFormField from './schema-form-field.svelte'
   import type { FieldProps } from './types'
-  import { defaultValue, fieldLabel } from './utils'
+  import { defaultValue } from './utils'
 
   interface Props extends FieldProps {
-    showLabel?: boolean
     isNullable?: boolean
   }
 
@@ -15,8 +14,8 @@
     path,
     onChange,
     onError,
+    onNavigate,
     disabled = false,
-    showLabel = true,
     isNullable = false,
   }: Props = $props()
 
@@ -24,7 +23,6 @@
   const obj = $derived((value ?? {}) as Record<string, unknown>)
   const entries = $derived(Object.entries(schema.properties ?? {}))
   const requiredFields = $derived(new Set(schema.required ?? []))
-  const label = $derived(fieldLabel(schema, path))
 
   function enableObject() {
     onChange(path, defaultValue(schema))
@@ -35,77 +33,48 @@
   }
 </script>
 
-{#snippet fields()}
-  {#each entries as [key, propSchema] (key)}
-    <SchemaFormField
-      schema={propSchema}
-      value={obj[key]}
-      path={[...path, key]}
-      {onChange}
-      {onError}
-      {disabled}
-      required={requiredFields.has(key)}
-    />
-  {/each}
-{/snippet}
-
 {#if isNullable && isNull}
-  <sf-section>
-    <sf-section-header>
-      <span>{label || 'Object'}</span>
-      <Button size="sm" onclick={enableObject} {disabled}>Enable</Button>
-    </sf-section-header>
-    <sf-section-content>
-      <sf-empty>Not configured</sf-empty>
-    </sf-section-content>
-  </sf-section>
-{:else if showLabel && label && path.length > 0}
-  <sf-section>
-    <sf-section-header>
-      <span>{label}</span>
-      {#if isNullable}
-        <Button size="sm" variant="ghost" onclick={disableObject} {disabled}>Disable</Button>
-      {/if}
-    </sf-section-header>
-    <sf-section-content>
-      {@render fields()}
-    </sf-section-content>
-  </sf-section>
+  <sf-nullable>
+    <sf-empty>Not configured</sf-empty>
+    <Button size="sm" onclick={enableObject} {disabled}>Enable</Button>
+  </sf-nullable>
 {:else}
   <sf-fields>
-    {@render fields()}
+    {#each entries as [key, propSchema] (key)}
+      <SchemaFormField
+        schema={propSchema}
+        value={obj[key]}
+        path={[...path, key]}
+        {onChange}
+        {onError}
+        {onNavigate}
+        {disabled}
+        required={requiredFields.has(key)}
+      />
+    {/each}
+    {#if isNullable}
+      <sf-nullable-actions>
+        <Button size="sm" variant="ghost" onclick={disableObject} {disabled}>Disable</Button>
+      </sf-nullable-actions>
+    {/if}
   </sf-fields>
 {/if}
 
 <style>
-  sf-section {
-    display: block;
-    overflow: clip;
-    border: 2px solid var(--border);
-    border-radius: var(--radius-lg);
-  }
-
-  sf-section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2xs);
-    padding: 0.375rem 1rem;
-    color: var(--foreground-l3);
-    background: var(--background-l3);
-  }
-
-  sf-section-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-s);
-    padding: var(--space-s) 1rem;
-  }
-
   sf-fields {
     display: flex;
     flex-direction: column;
     gap: var(--space-s);
+  }
+
+  sf-nullable {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  sf-nullable-actions {
+    display: flex;
   }
 
   sf-empty {

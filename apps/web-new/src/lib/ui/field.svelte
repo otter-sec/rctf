@@ -4,11 +4,12 @@
   type Props = {
     label?: string
     description?: string
+    hint?: string
     error?: string | null
     children: Snippet<[{ id: string; describedBy: string | undefined }]>
   }
 
-  let { label, description, error = null, children }: Props = $props()
+  let { label, description, hint, error = null, children }: Props = $props()
 
   const uid = $props.id()
   const describedBy = $derived(
@@ -19,7 +20,10 @@
 
 <form-field data-invalid={error ? '' : undefined}>
   {#if label}
-    <label for={uid}>{label}</label>
+    <label for={uid}>
+      {label}
+      {#if hint}<field-hint>({hint})</field-hint>{/if}
+    </label>
   {/if}
   {@render children({ id: uid, describedBy })}
   {#if description}
@@ -40,6 +44,11 @@
     &[data-invalid] label {
       color: var(--foreground-destructive);
     }
+  }
+
+  field-hint {
+    font-size: var(--step--1);
+    color: var(--foreground-l4);
   }
 
   field-description {
