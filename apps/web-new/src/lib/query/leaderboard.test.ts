@@ -1,3 +1,4 @@
+import { GoodLeaderboardGraph } from '@rctf/types'
 import { hashKey } from '@tanstack/svelte-query'
 import { queryKeys } from '$lib/query/keys'
 import { beforeAll, describe, expect, mock, test } from 'bun:test'
@@ -6,6 +7,13 @@ import { beforeAll, describe, expect, mock, test } from 'bun:test'
 // $app/environment. bun test can't resolve that, so stub it before the modules
 // are dynamically imported below.
 mock.module('$app/environment', () => ({ browser: false }))
+
+// The graph queryFn calls apiRequest; stub the whole client so tests can drive
+// its response without a network round-trip.
+let graphResponse: unknown = null
+mock.module('$lib/api', () => ({
+  apiRequest: async () => graphResponse,
+}))
 
 let leaderboard!: typeof import('./leaderboard')
 let challenges!: typeof import('./challenges')
@@ -142,5 +150,87 @@ describe('leaderboardWithGraph query key', () => {
         })
       )
     ).toBe(hashKey(queryKeys.leaderboardWithGraph({})))
+  })
+})
+
+describe('selfUserGraphQueryOptions (offset-hack graph)', () => {
+  const goodGraph = (id: string) => ({
+    kind: GoodLeaderboardGraph.kind,
+    data: { graph: [{ id }] },
+  })
+
+  // queryFn is typed as `skipToken | QueryFunction`; narrow off the symbol
+  // before calling. The function ignores its context, so pass a placeholder.
+  const runQueryFn = (
+    globalPlace: number | null,
+    userId: string | null,
+    caching?: Parameters<typeof leaderboard.selfUserGraphQueryOptions>[2]
+  ) => {
+    const fn = leaderboard.selfUserGraphQueryOptions(
+      globalPlace,
+      userId,
+      caching
+    ).queryFn
+    if (typeof fn !== 'function') {
+      throw new Error('expected a callable queryFn')
+    }
+    return fn(undefined as never)
+  }
+
+  test('disabled when globalPlace is null', () => {
+    expect(leaderboard.selfUserGraphQueryOptions(null, 'u1').enabled).toBe(
+      false
+    )
+  })
+
+  test('disabled when globalPlace is 0', () => {
+    expect(leaderboard.selfUserGraphQueryOptions(0, 'u1').enabled).toBe(false)
+  })
+
+  test('enabled when globalPlace is a real rank', () => {
+    expect(leaderboard.selfUserGraphQueryOptions(3, 'u1').enabled).toBe(true)
+  })
+
+  test('returns the entry when its id matches the user', async () => {
+    graphResponse = goodGraph('u1')
+    expect((await runQueryFn(3, 'u1'))?.id).toBe('u1')
+  })
+
+  test('returns null when the probed entry belongs to another team', async () => {
+    graphResponse = goodGraph('other-team')
+    expect(await runQueryFn(3, 'u1')).toBeNull()
+  })
+
+  test('returns null when the graph page is empty', async () => {
+    graphResponse = { kind: GoodLeaderboardGraph.kind, data: { graph: [] } }
+    expect(await runQueryFn(3, 'u1')).toBeNull()
+  })
+
+  test('returns the entry unconditionally when userId is null', async () => {
+    graphResponse = goodGraph('whoever')
+    expect((await runQueryFn(3, null))?.id).toBe('whoever')
+  })
+
+  test('default caching polls every 30s with no staleTime override', () => {
+    const options = leaderboard.selfUserGraphQueryOptions(3, 'u1')
+    expect(options.refetchInterval).toBe(30 * 1000)
+    expect(options.staleTime).toBeUndefined()
+  })
+
+  test('public caching drops the poll and staggers a 5-minute staleTime', () => {
+    const options = leaderboard.selfUserGraphQueryOptions(
+      3,
+      'u1',
+      leaderboard.PUBLIC_GRAPH_CACHING
+    )
+    expect(options.refetchInterval).toBe(false)
+    expect(options.staleTime).toBe(5 * 60 * 1000)
+  })
+
+  test('id-mismatch behavior is unchanged by the caching parameter', async () => {
+    graphResponse = goodGraph('other-team')
+    expect(
+      await runQueryFn(3, 'u1', leaderboard.PUBLIC_GRAPH_CACHING)
+    ).toBeNull()
   })
 })

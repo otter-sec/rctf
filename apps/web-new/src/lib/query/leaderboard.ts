@@ -141,12 +141,30 @@ export function useLeaderboard(params: () => LeaderboardParams) {
   return createQuery(() => leaderboardQueryOptions(params()))
 }
 
+/**
+ * Caching policy for the offset-hack graph query. Own-profile usage polls every
+ * 30s; public-profile usage drops the poll and lets the entry go stale over five
+ * minutes, since another team's rank is effectively static for a page view.
+ */
+export type GraphCachingPolicy = {
+  refetchInterval: number | false
+  staleTime?: number
+}
+
+const SELF_GRAPH_CACHING: GraphCachingPolicy = { refetchInterval: 30 * 1000 }
+
+export const PUBLIC_GRAPH_CACHING: GraphCachingPolicy = {
+  refetchInterval: false,
+  staleTime: 5 * 60 * 1000,
+}
+
 // offset = globalPlace - 1 until the API grows a per-team graph endpoint; the
 // entry is validated against our own id in case the place shifted between
 // /users/me and this request
 export function selfUserGraphQueryOptions(
   globalPlace: number | null,
-  userId: string | null
+  userId: string | null,
+  caching: GraphCachingPolicy = SELF_GRAPH_CACHING
 ) {
   return queryOptions({
     queryKey: queryKeys.selfUserGraph(globalPlace, userId),
@@ -165,13 +183,16 @@ export function selfUserGraphQueryOptions(
       return userId === null || entry.id === userId ? entry : null
     },
     enabled: globalPlace !== null && globalPlace >= 1,
-    refetchInterval: 30 * 1000,
+    ...caching,
   })
 }
 
 export function useSelfUserGraph(
   globalPlace: () => number | null,
-  userId: () => string | null
+  userId: () => string | null,
+  caching: GraphCachingPolicy = SELF_GRAPH_CACHING
 ) {
-  return createQuery(() => selfUserGraphQueryOptions(globalPlace(), userId()))
+  return createQuery(() =>
+    selfUserGraphQueryOptions(globalPlace(), userId(), caching)
+  )
 }

@@ -1,6 +1,14 @@
-import { GetUserSelfRouteV2, GoodUserSelfDataV2 } from '@rctf/types'
+import {
+  GetMembersRoute,
+  GetUserRouteV2,
+  GetUserSelfRouteV2,
+  GoodMemberData,
+  GoodUserDataV2,
+  GoodUserSelfDataV2,
+} from '@rctf/types'
 import { createQuery, queryOptions } from '@tanstack/svelte-query'
 import { apiRequest, isAuthenticated } from '$lib/api'
+import { ApiError } from '$lib/query/core'
 import { queryKeys } from '$lib/query/keys'
 
 export const userSelfQueryOptions = queryOptions({
@@ -21,4 +29,43 @@ export const userSelfQueryOptions = queryOptions({
 
 export function useCurrentUser() {
   return createQuery(() => userSelfQueryOptions)
+}
+
+// Public team profile; served without auth per the API contract so the page
+// works logged-out.
+export function userByIdQueryOptions(id: string) {
+  return queryOptions({
+    queryKey: queryKeys.userById(id),
+    queryFn: async () => {
+      const response = await apiRequest(GetUserRouteV2, { id })
+      if (response.kind === GoodUserDataV2.kind) {
+        return response.data
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+  })
+}
+
+export function useUserById(id: () => string) {
+  return createQuery(() => userByIdQueryOptions(id()))
+}
+
+// Team members is a V1-only route; the caller gates it on
+// `clientConfig.userMembers`, since deployments without it 404 the endpoint.
+export function membersQueryOptions(enabled: boolean) {
+  return queryOptions({
+    queryKey: queryKeys.members,
+    queryFn: async () => {
+      const response = await apiRequest(GetMembersRoute)
+      if (response.kind === GoodMemberData.kind) {
+        return response.data
+      }
+      throw new ApiError(response.kind, response.message)
+    },
+    enabled,
+  })
+}
+
+export function useMembers(enabled: () => boolean) {
+  return createQuery(() => membersQueryOptions(enabled()))
 }
