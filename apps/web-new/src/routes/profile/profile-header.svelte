@@ -21,74 +21,82 @@
 </script>
 
 <profile-header>
-  <profile-identity>
-    <profile-avatar>
-      {#key user.avatarUrl}
-        <Avatar src={user.avatarUrl} name={user.name} />
-      {/key}
-    </profile-avatar>
+  <header-layout>
+    <profile-identity>
+      <profile-avatar>
+        {#key user.avatarUrl}
+          <Avatar src={user.avatarUrl} name={user.name} />
+        {/key}
+      </profile-avatar>
 
-    <profile-body>
-      <profile-name>{user.name}</profile-name>
+      <profile-body>
+        <profile-name>{user.name}</profile-name>
 
-      <dl>
-        <dt>Division</dt>
-        <dd>{divisionLabel}</dd>
+        <dl>
+          <dt>Division</dt>
+          <dd>{divisionLabel}</dd>
 
-        <dt>Country</dt>
-        {#if flagFilename && countryName}
-          <dd data-value="country">
-            <img src="/flags/{flagFilename}" alt="{user.countryCode} flag" />
-            <span>{countryName}</span>
-          </dd>
-        {:else}
-          <dd data-value="unspecified">(unspecified)</dd>
+          <dt>Country</dt>
+          {#if flagFilename && countryName}
+            <dd data-value="country">
+              <img src="/flags/{flagFilename}" alt="{user.countryCode} flag" />
+              <span>{countryName}</span>
+            </dd>
+          {:else}
+            <dd data-value="unspecified">(unspecified)</dd>
+          {/if}
+
+          <dt>Status</dt>
+          {#if user.statusText}
+            <dd>{user.statusText}</dd>
+          {:else}
+            <dd data-value="unspecified">(unspecified)</dd>
+          {/if}
+
+          {#if user.ctftimeId}
+            <dt>CTFtime</dt>
+            <dd>
+              <a
+                href="https://ctftime.org/team/{user.ctftimeId}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Team #{user.ctftimeId}
+              </a>
+            </dd>
+          {/if}
+        </dl>
+      </profile-body>
+    </profile-identity>
+
+    {#if user.globalPlace !== null || user.divisionPlace !== null}
+      <profile-ranks>
+        {#if user.globalPlace !== null}
+          <profile-rank>
+            <rank-place>#{user.globalPlace}</rank-place>
+            <rank-label>global</rank-label>
+          </profile-rank>
         {/if}
-
-        <dt>Status</dt>
-        {#if user.statusText}
-          <dd>{user.statusText}</dd>
-        {:else}
-          <dd data-value="unspecified">(unspecified)</dd>
+        {#if user.divisionPlace !== null}
+          <profile-rank>
+            <rank-place>#{user.divisionPlace}</rank-place>
+            <rank-label>division</rank-label>
+          </profile-rank>
         {/if}
-
-        {#if user.ctftimeId}
-          <dt>CTFtime</dt>
-          <dd>
-            <a
-              href="https://ctftime.org/team/{user.ctftimeId}"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Team #{user.ctftimeId}
-            </a>
-          </dd>
-        {/if}
-      </dl>
-    </profile-body>
-  </profile-identity>
-
-  {#if user.globalPlace !== null || user.divisionPlace !== null}
-    <profile-ranks>
-      {#if user.globalPlace !== null}
-        <profile-rank>
-          <rank-place>#{user.globalPlace}</rank-place>
-          <rank-label>global</rank-label>
-        </profile-rank>
-      {/if}
-      {#if user.divisionPlace !== null}
-        <profile-rank>
-          <rank-place>#{user.divisionPlace}</rank-place>
-          <rank-label>division</rank-label>
-        </profile-rank>
-      {/if}
-    </profile-ranks>
-  {/if}
+      </profile-ranks>
+    {/if}
+  </header-layout>
 </profile-header>
 
 <style>
+  /* The custom element is the size container; the inner layout element is what
+     the query restyles — an element cannot match a query against itself. */
   profile-header {
     container-type: inline-size;
+    display: block;
+  }
+
+  header-layout {
     display: flex;
     flex-direction: column;
     gap: var(--space-2xs);
@@ -189,7 +197,7 @@
   }
 
   @container (min-inline-size: 30rem) {
-    profile-header {
+    header-layout {
       flex-direction: row;
       align-items: flex-start;
       justify-content: space-between;

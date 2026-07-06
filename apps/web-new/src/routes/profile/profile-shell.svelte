@@ -66,6 +66,12 @@
     data-desktop-column={desktopColumn}
     data-hide-tablist={hideTablistOnDesktop || undefined}
   >
+    <!-- Paint layers: the rounded-top card surfaces behind each column (old
+         app's bg-l1 + rounded-t-3xl panes). Grid items paint in DOM order, so
+         these sit under the content without z-index. -->
+    <column-surface data-main></column-surface>
+    <column-surface data-aside></column-surface>
+
     <profile-header-slot>
       {@render header()}
     </profile-header-slot>
@@ -116,39 +122,57 @@
       'tabbar' auto
       'content' 1fr
       / minmax(0, 1fr);
-    gap: var(--space-s);
+    row-gap: var(--space-s);
     inline-size: 100%;
     max-inline-size: 48rem;
     margin-inline: auto;
     padding-inline: var(--space-m);
-    padding-block-end: var(--space-m);
     block-size: calc(100dvh - var(--header-height));
     max-block-size: calc(100dvh - var(--header-height));
     overflow: hidden;
   }
 
+  /* The card surface behind the whole column: rounded top, flush bottom. */
+  column-surface {
+    display: block;
+    background: var(--background-l1);
+    border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+  }
+
+  column-surface[data-main] {
+    grid-area: 1 / 1 / -1 / 2;
+  }
+
+  /* The aside card exists only in the desktop two-column layout. */
+  column-surface[data-aside] {
+    display: none;
+  }
+
   profile-header-slot {
     grid-area: header;
     display: block;
+    padding-block-start: var(--space-m);
+    padding-inline: var(--space-l);
   }
 
   profile-tabbar {
     grid-area: tabbar;
     display: flex;
     gap: var(--space-3xs);
+    padding-inline: var(--space-s);
   }
 
   profile-tabbar button {
     flex: 1;
     padding-block: var(--space-2xs);
     color: var(--foreground-l2);
-    background: var(--background-l1);
+    background: var(--background-l2);
     cursor: pointer;
     border-radius: var(--radius-md);
 
     &[data-selected] {
       color: var(--foreground-l0);
-      background: var(--background-l2);
+      background: var(--background-l3);
     }
   }
 
@@ -166,6 +190,8 @@
   profile-panel[data-tab='analytics'],
   profile-panel[data-tab='settings'] {
     gap: var(--space-m);
+    padding-inline: var(--space-m);
+    padding-block-end: var(--space-m);
     overflow-y: auto;
   }
 
@@ -185,6 +211,22 @@
         'content aside' 1fr
         / minmax(0, 1fr) minmax(0, 1fr);
       column-gap: var(--space-m);
+    }
+
+    /* Two cards: one behind each column, page background in the gap. */
+    column-surface[data-main] {
+      grid-area: 1 / 1 / -1 / 2;
+    }
+
+    column-surface[data-aside] {
+      display: block;
+      grid-area: 1 / 2 / -1 / 3;
+    }
+
+    /* The aside panel starts at the card's rounded top edge. */
+    profile-page[data-desktop-column='settings'] profile-panel[data-tab='settings'],
+    profile-page[data-desktop-column='analytics'] profile-panel[data-tab='analytics'] {
+      padding-block-start: var(--space-m);
     }
 
     /* Public hides the whole tablist; own keeps it and hides only the settings
