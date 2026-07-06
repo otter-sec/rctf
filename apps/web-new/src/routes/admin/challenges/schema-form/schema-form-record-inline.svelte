@@ -200,6 +200,7 @@
               type="button"
               size="icon-sm"
               variant="destructive"
+              aria-label="Remove {key}"
               onclick={() => removeEntry(key)}
             >
               <IconX />

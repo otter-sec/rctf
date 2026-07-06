@@ -405,6 +405,7 @@
                     <Button
                       size="sm"
                       variant="destructive"
+                      aria-label="Remove {target.label} logo"
                       onclick={() => removeLogo(target.key)}
                       disabled={logoUploading}
                     >
@@ -623,16 +624,16 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-l);
-  }
 
-  settings-status :global(ui-card) {
-    inline-size: 100%;
-    max-inline-size: 28rem;
-  }
+    :global(ui-card) {
+      inline-size: 100%;
+      max-inline-size: 28rem;
+    }
 
-  settings-status p {
-    margin: 0;
-    color: var(--foreground-l3);
+    p {
+      margin: 0;
+      color: var(--foreground-l3);
+    }
   }
 
   settings-page {
