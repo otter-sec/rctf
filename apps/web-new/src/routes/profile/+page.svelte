@@ -53,7 +53,7 @@
     () => user?.globalPlace ?? null,
     () => user?.id ?? null
   )
-  const graphData = $derived<GraphSampleInput>(graphQuery.data ?? { points: [] })
+  const graphData = $derived<GraphSampleInput | null>(graphQuery.data ?? null)
 
   type ProfileTab = 'challenges' | 'analytics' | 'settings'
   const tabs: { value: ProfileTab; label: string }[] = [

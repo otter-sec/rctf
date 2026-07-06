@@ -34,7 +34,10 @@
   type Props = {
     solves: ProfileSolve[]
     dynamicScores: ProfileDynamicScore[]
-    graphData: GraphSampleInput
+    // null = the leaderboard graph probe failed (unranked team or offset
+    // mismatch): the score graph shows its empty state instead of drawing a
+    // line from the solve progression alone.
+    graphData: GraphSampleInput | null
     clientConfig: ClientConfig
     challenges?: ChallengeInfo[] | null
     splitDynamicScore?: boolean
@@ -79,8 +82,8 @@
   <Section title="Score over time">
     <graph-frame>
       <ProfileGraph
-        {graphData}
-        solves={sortedSolves}
+        graphData={graphData ?? { points: [] }}
+        solves={graphData ? sortedSolves : []}
         {dynamicScores}
         {startTime}
         {endTime}

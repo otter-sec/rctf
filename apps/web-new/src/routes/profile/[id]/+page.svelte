@@ -58,7 +58,7 @@
     () => userId,
     PUBLIC_GRAPH_CACHING
   )
-  const graphData = $derived<GraphSampleInput>(graphQuery.data ?? { points: [] })
+  const graphData = $derived<GraphSampleInput | null>(graphQuery.data ?? null)
 
   type ProfileTab = 'challenges' | 'analytics'
   const tabs: { value: ProfileTab; label: string }[] = [
