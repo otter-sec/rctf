@@ -10,6 +10,7 @@
   import '../styles/reveal.css'
   import { QueryClientProvider } from '@tanstack/svelte-query'
   import favicon from '$lib/assets/favicon.svg'
+  import Brainrot from '$lib/components/brainrot.svelte'
   import Navigation from '$lib/components/navigation.svelte'
   import ToastHost from '$lib/ui/toast-host.svelte'
   import { initAnalytics } from '$lib/utils/analytics'
@@ -63,6 +64,8 @@
 </QueryClientProvider>
 
 <ToastHost />
+
+<Brainrot />
 
 <style>
   app-shell {
