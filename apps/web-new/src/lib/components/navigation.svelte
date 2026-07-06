@@ -26,6 +26,9 @@
   import { copyLoginUrl, logout } from '$lib/utils/auth'
   import { countryCodeToFlagFilename } from '$lib/utils/flags'
   import { hasPermissions } from '$lib/utils/permissions'
+  import { createRovingFocus } from '$lib/utils/roving'
+
+  const rovingFocus = createRovingFocus()
 
   const queryClient = useQueryClient()
   const configQuery = useClientConfig()
@@ -85,16 +88,24 @@
       <logo-light><img src={lightLogo} alt={clientConfig?.ctfName} /></logo-light>
       <logo-dark><img src={darkLogo} alt={clientConfig?.ctfName} /></logo-dark>
     </a>
-    <nav aria-label="Main">
+    <nav aria-label="Main" {@attach rovingFocus}>
       <Tooltip label="Home">
         {#snippet children({ props })}
-          <NavigationButton {...props} href="/" activePath="/" label="Home" icon={IconHomeFilled} />
+          <NavigationButton
+            {...props}
+            data-roving
+            href="/"
+            activePath="/"
+            label="Home"
+            icon={IconHomeFilled}
+          />
         {/snippet}
       </Tooltip>
       <Tooltip label="Challenges">
         {#snippet children({ props })}
           <NavigationButton
             {...props}
+            data-roving
             href="/challenges"
             activePath="/challenges"
             label="Challenges"
@@ -106,6 +117,7 @@
         {#snippet children({ props })}
           <NavigationButton
             {...props}
+            data-roving
             href="/scores"
             activePath="/scores"
             label="Scoreboard"
@@ -120,6 +132,7 @@
               {#snippet trigger({ props: menuProps })}
                 <NavigationButton
                   {...mergeProps(tooltipProps, menuProps)}
+                  data-roving
                   activePath="/admin"
                   label="Admin menu"
                   icon={IconGavel}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import Spinner from '$lib/ui/spinner.svelte'
+  import { createRovingFocus } from '$lib/utils/roving'
   import { untrack, type Snippet } from 'svelte'
 
   type Tab = { value: string; label: string }
@@ -27,6 +28,8 @@
   let activeTab = $state(untrack(() => tabs[0]?.value ?? ''))
 
   const revealAfterLoading = untrack(() => status) === 'loading'
+
+  const rovingFocus = createRovingFocus()
 </script>
 
 {#if status === 'loading'}
@@ -51,11 +54,12 @@
       {@render header()}
     </profile-header-slot>
 
-    <profile-tabbar role="tablist" aria-label="Profile sections">
+    <profile-tabbar role="tablist" aria-label="Profile sections" {@attach rovingFocus}>
       {#each tabs as tab (tab.value)}
         <button
           type="button"
           role="tab"
+          data-roving
           id="profile-tab-{tab.value}"
           aria-controls="profile-panel-{tab.value}"
           aria-selected={activeTab === tab.value}

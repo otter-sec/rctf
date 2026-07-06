@@ -7,12 +7,11 @@
   import IconUsersGroup from '$lib/icons/icon-users-group.svelte'
   import Menu, { type MenuItem } from '$lib/ui/menu.svelte'
   import Tooltip from '$lib/ui/tooltip.svelte'
+  import { createRovingFocus } from '$lib/utils/roving'
   import type { Component } from 'svelte'
-  import type { Attachment } from 'svelte/attachments'
   import type { ScoresData } from '../model/data.svelte'
-  import { moveRovingIndex } from './roving'
-  import ScoresSearch from './toolbar-search.svelte'
   import type { ScoresUrlState } from '../model/url-state.svelte'
+  import ScoresSearch from './toolbar-search.svelte'
 
   interface Props {
     data: ScoresData
@@ -22,15 +21,13 @@
 
   let { data, urlState, divisions }: Props = $props()
 
-  const ALL_DIVISIONS = '__all__'
-
   const showDivision = $derived(Object.keys(divisions).length > 1)
   const divisionLabel = $derived(
     urlState.division ? (divisions[urlState.division] ?? urlState.division) : 'All divisions'
   )
   const divisionItems = $derived<MenuItem[]>([
     {
-      value: ALL_DIVISIONS,
+      value: '',
       label: 'All divisions',
       checked: !urlState.division,
       onSelect: () => urlState.setDivision(undefined),
@@ -55,40 +52,7 @@
     { value: 'solves', icon: IconSortAscendingNumbers, label: 'Difficulty' },
   ] as const
 
-  const rovingFocus: Attachment<HTMLElement> = node => {
-    const items = () => [...node.querySelectorAll<HTMLElement>('[data-roving]')]
-
-    const setTabStops = (active: HTMLElement | null) => {
-      const list = items()
-      const current = active && list.includes(active) ? active : list[0]
-      for (const item of list) item.tabIndex = item === current ? 0 : -1
-    }
-
-    const onKeydown = (event: KeyboardEvent) => {
-      const list = items()
-      const active = document.activeElement
-      const current = list.indexOf(active as HTMLElement)
-      if (current === -1) return
-      const next = moveRovingIndex(current, list.length, event.key)
-      if (next === null) return
-      event.preventDefault()
-      list[next]?.focus()
-    }
-
-    const onFocusin = (event: FocusEvent) => setTabStops(event.target as HTMLElement)
-
-    setTabStops(null)
-    node.addEventListener('keydown', onKeydown)
-    node.addEventListener('focusin', onFocusin)
-    const observer = new MutationObserver(() => setTabStops(document.activeElement as HTMLElement))
-    observer.observe(node, { childList: true, subtree: true })
-
-    return () => {
-      node.removeEventListener('keydown', onKeydown)
-      node.removeEventListener('focusin', onFocusin)
-      observer.disconnect()
-    }
-  }
+  const rovingFocus = createRovingFocus()
 </script>
 
 {#snippet iconToggle(label: string, Icon: Component, active: boolean, onclick: () => void)}

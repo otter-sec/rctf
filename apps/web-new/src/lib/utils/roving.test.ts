@@ -28,4 +28,13 @@ describe('moveRovingIndex', () => {
     expect(moveRovingIndex(0, 0, 'ArrowRight')).toBeNull()
     expect(moveRovingIndex(0, 0, 'Home')).toBeNull()
   })
+
+  test('rtl swaps ArrowLeft and ArrowRight, leaves Home/End untouched', () => {
+    expect(moveRovingIndex(0, 4, 'ArrowLeft', true)).toBe(1)
+    expect(moveRovingIndex(3, 4, 'ArrowLeft', true)).toBe(0)
+    expect(moveRovingIndex(2, 4, 'ArrowRight', true)).toBe(1)
+    expect(moveRovingIndex(0, 4, 'ArrowRight', true)).toBe(3)
+    expect(moveRovingIndex(2, 4, 'Home', true)).toBe(0)
+    expect(moveRovingIndex(1, 4, 'End', true)).toBe(3)
+  })
 })
