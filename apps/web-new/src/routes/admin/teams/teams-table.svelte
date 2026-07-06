@@ -281,6 +281,7 @@
   <AdminTable
     {rows}
     rowHeight={ROW_HEIGHT}
+    headerHeight={42}
     overscan={12}
     minTableWidth={376}
     {fingerprint}
@@ -370,6 +371,8 @@
   }
 
   teams-head {
+    /* Fills the shell's fixed-height sticky header (the constant scroll margin). */
+    block-size: 100%;
     border-block-end: 2px solid var(--border);
     background: var(--background-l2);
   }

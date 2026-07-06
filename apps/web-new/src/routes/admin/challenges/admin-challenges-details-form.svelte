@@ -533,7 +533,7 @@
     flex-direction: column;
     gap: var(--space-s);
     min-block-size: 0;
-    padding: var(--space-l);
+    padding: var(--space-2xs) var(--space-s) var(--space-s);
     overflow-y: auto;
 
     &[data-mode='view'] {

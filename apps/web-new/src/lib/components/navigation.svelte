@@ -118,8 +118,11 @@
           {#snippet children({ props: tooltipProps })}
             <Menu label="Admin menu" items={adminMenuItems}>
               {#snippet trigger({ props: menuProps })}
+                <!-- Menu props last: both machines locate their trigger by the
+                     element id, and the menu's popper needs it to anchor the
+                     dropdown (the tooltip degrades gracefully without it). -->
                 <NavigationButton
-                  {...mergeProps(menuProps, tooltipProps)}
+                  {...mergeProps(tooltipProps, menuProps)}
                   activePath="/admin"
                   label="Admin menu"
                   icon={IconGavel}

@@ -28,7 +28,9 @@
 </script>
 
 <panel-item data-active={active || undefined} data-mono={mono || undefined}>
-  <button type="button" class="pick" onclick={onSelect}>{label}</button>
+  <button type="button" class="pick" data-empty={label.trim() ? undefined : ''} onclick={onSelect}>
+    {label.trim() || '(unnamed)'}
+  </button>
   <button type="button" class="remove" aria-label={removeLabel} onclick={onRemove} {disabled}>
     <IconX />
   </button>
@@ -68,6 +70,11 @@
 
     panel-item[data-mono] & {
       font-family: var(--font-mono);
+    }
+
+    &[data-empty] {
+      color: var(--foreground-l5);
+      font-style: italic;
     }
   }
 

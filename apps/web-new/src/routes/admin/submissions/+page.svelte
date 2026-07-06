@@ -184,6 +184,7 @@
     <AdminTable
       rows={submissions}
       rowHeight={48}
+      headerHeight={42}
       overscan={6}
       {fingerprint}
       hasNextPage={submissionsQuery.hasNextPage ?? false}

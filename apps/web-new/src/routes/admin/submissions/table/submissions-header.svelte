@@ -43,6 +43,9 @@
     display: grid;
     grid-template-columns: 2.75rem 16rem 14rem minmax(11rem, 1fr) 11rem 9rem 10rem;
     inline-size: 100%;
+    /* Fills the shell's fixed-height sticky header (the virtualizer's constant
+       scroll margin) — never taller, never shorter. */
+    block-size: 100%;
     background: var(--background-l3);
     border-block-end: 2px solid var(--border);
     color: var(--foreground-l3);

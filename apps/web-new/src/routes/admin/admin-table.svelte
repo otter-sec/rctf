@@ -1,3 +1,14 @@
+<!--
+  Shared virtualized table shell for the admin data tables (teams, submissions):
+  a toolbar pinned above the scroll area, a sticky sortable column header inside
+  it, absolutely-positioned recycled rows, fingerprint-driven resets, and an
+  optional spliced detail row.
+
+  Like /scores, the virtualizer's scroll margin is a CONSTANT — the consumer
+  passes the exact rendered height of its header row. A measured margin (the
+  earlier ResizeObserver design) re-layouts every row whenever the header
+  reflows, which reads as the whole list bouncing.
+-->
 <script lang="ts" generics="T">
   import { captureElement } from '$lib/attachments/capture-element'
   import Spinner from '$lib/ui/spinner.svelte'
@@ -15,6 +26,8 @@
   interface Props {
     rows: T[]
     rowHeight: number
+    /** Exact rendered height of the header snippet, in px — the scroll margin. */
+    headerHeight: number
     overscan?: number
     /** Changes whenever the query params change; resets scroll and collapses the detail row. */
     fingerprint: string
@@ -40,6 +53,7 @@
   let {
     rows,
     rowHeight,
+    headerHeight,
     overscan = 6,
     fingerprint,
     hasNextPage,
@@ -69,41 +83,7 @@
     if (resolved !== expandedId) expandedId = resolved
   })
 
-  // The sticky header's measured height feeds the virtualizer's scroll margin so
-  // rows lay out below it; a plain $effect + ResizeObserver, never $effect.pre.
-  let headerEl = $state<HTMLElement | null>(null)
-  let headerHeight = $state(0)
-  $effect(() => {
-    const el = headerEl
-    if (!el) {
-      headerHeight = 0
-      return
-    }
-    const observer = new ResizeObserver(entries => {
-      headerHeight = Math.round(entries[0]?.contentRect.height ?? 0)
-    })
-    observer.observe(el)
-    headerHeight = Math.round(el.getBoundingClientRect().height)
-    return () => observer.disconnect()
-  })
-
-  // The pinned toolbar spans the viewport width, not the (wider) table content,
-  // so its controls stay put while the table scrolls horizontally beneath it.
   let scrollRoot = $state<HTMLElement | null>(null)
-  let toolbarWidth = $state(0)
-  $effect(() => {
-    const el = scrollRoot
-    if (!el) {
-      toolbarWidth = 0
-      return
-    }
-    const observer = new ResizeObserver(entries => {
-      toolbarWidth = Math.round(entries[0]?.contentRect.width ?? 0)
-    })
-    observer.observe(el)
-    toolbarWidth = Math.round(el.clientWidth)
-    return () => observer.disconnect()
-  })
 
   const virtual = createVirtualizer(() => ({
     count: visibleCount + (hasNextPage ? 1 : 0),
@@ -141,44 +121,45 @@
   })
 
   const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
-  const captureHeader = captureElement<HTMLElement>(node => (headerEl = node))
 </script>
 
 <admin-table data-scrolling={virtual.isScrolling || undefined}>
+  <admin-toolbar>
+    {@render toolbar()}
+  </admin-toolbar>
+
   <admin-scroll {@attach virtual.scrollContainer} {@attach captureScroll} tabindex="-1">
     <admin-min style:--admin-min-width={minTableWidth ? `${minTableWidth}px` : undefined}>
-      <admin-flex>
-        <admin-header {@attach captureHeader}>
-          <admin-toolbar style:--admin-toolbar-width={toolbarWidth ? `${toolbarWidth}px` : '100%'}>
-            {@render toolbar()}
-          </admin-toolbar>
-          {@render header()}
-        </admin-header>
+      <admin-header style:block-size={`${headerHeight}px`}>
+        {@render header()}
+      </admin-header>
 
-        {#if rows.length === 0}
-          <admin-empty>
-            {@render emptyState?.(filtered)}
-          </admin-empty>
-        {:else}
-          <!-- Unkeyed so the virtualizer recycles row nodes across large scroll jumps. -->
-          <admin-list style:block-size={`${virtual.totalSize - headerHeight}px`}>
-            {#each virtual.virtualItems as item}
-              <admin-row style:--row-y={`${item.start - headerHeight}px`}>
-                {#if item.index >= visibleCount}
-                  {#if hasNextPage}
-                    <admin-spinner><Spinner /></admin-spinner>
-                  {/if}
-                {:else if expandable && detailRow && isDetailRowIndex(item.index, expandedIndex)}
-                  {@render detailRow(rows[expandedIndex] as T)}
-                {:else}
-                  {@const index = rowIndexForVirtualRow(item.index, expandedIndex)}
-                  {@render row(rows[index] as T, index)}
+      {#if rows.length === 0}
+        <admin-empty>
+          {@render emptyState?.(filtered)}
+        </admin-empty>
+      {:else}
+        <!-- Unkeyed so the virtualizer recycles row nodes across large scroll jumps. -->
+        <admin-list style:block-size={`${virtual.totalSize - headerHeight}px`}>
+          {#each virtual.virtualItems as item}
+            <admin-row
+              style:--row-y={`${item.start - headerHeight}px`}
+              style:block-size={`${rowHeight}px`}
+            >
+              {#if item.index >= visibleCount}
+                {#if hasNextPage}
+                  <admin-spinner><Spinner /></admin-spinner>
                 {/if}
-              </admin-row>
-            {/each}
-          </admin-list>
-        {/if}
-      </admin-flex>
+              {:else if expandable && detailRow && isDetailRowIndex(item.index, expandedIndex)}
+                {@render detailRow(rows[expandedIndex] as T)}
+              {:else}
+                {@const index = rowIndexForVirtualRow(item.index, expandedIndex)}
+                {@render row(rows[index] as T, index)}
+              {/if}
+            </admin-row>
+          {/each}
+        </admin-list>
+      {/if}
     </admin-min>
   </admin-scroll>
 </admin-table>
@@ -186,7 +167,8 @@
 <style>
   admin-table {
     position: relative;
-    display: block;
+    display: flex;
+    flex-direction: column;
     block-size: 100%;
     inline-size: 100%;
     background: var(--background-l1);
@@ -195,9 +177,15 @@
     overflow: hidden;
   }
 
+  admin-toolbar {
+    display: block;
+    flex-shrink: 0;
+  }
+
   admin-scroll {
     display: block;
-    block-size: 100%;
+    flex: 1;
+    min-block-size: 0;
     inline-size: 100%;
     overflow: auto;
     outline: none;
@@ -205,17 +193,11 @@
   }
 
   admin-min {
-    display: block;
-    min-block-size: 100%;
-    inline-size: 100%;
-    min-inline-size: var(--admin-min-width, 0);
-  }
-
-  admin-flex {
     display: flex;
     flex-direction: column;
     min-block-size: 100%;
     inline-size: 100%;
+    min-inline-size: var(--admin-min-width, 0);
   }
 
   admin-header {
@@ -223,15 +205,8 @@
     inset-block-start: 0;
     z-index: 20;
     display: block;
+    flex-shrink: 0;
     background: var(--background-l1);
-  }
-
-  admin-toolbar {
-    position: sticky;
-    inset-inline-start: 0;
-    z-index: 1;
-    display: block;
-    inline-size: var(--admin-toolbar-width, 100%);
   }
 
   admin-empty {

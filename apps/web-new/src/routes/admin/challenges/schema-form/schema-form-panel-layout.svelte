@@ -81,6 +81,10 @@
     }
 
     panel-side {
+      /* Keep the picker in view while a long entry form scrolls beneath it. */
+      position: sticky;
+      inset-block-start: 0;
+      align-self: flex-start;
       inline-size: 11rem;
       border-block-end: none;
       border-inline-end: 2px solid var(--border);
