@@ -314,13 +314,19 @@
     border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
   }
 
+  /* Wide layout joins the search pill: inner seams stay small, the trailing
+     control keeps the full pill end (matching the player list's group). */
   @container admin-challenges-list (width >= 24rem) {
+    [data-slot='collapse'] {
+      border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
+    }
+
     toggle-group[data-can-write] [data-slot='collapse'] {
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+      border-radius: var(--radius-sm);
     }
 
     [data-slot='new'] {
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      border-radius: var(--radius-sm) 20px 20px var(--radius-sm);
     }
   }
 

@@ -63,6 +63,7 @@
   interface CategoryCell {
     key: string
     name: string
+    color: CategoryGroup['config']['color']
     solved: number
     total: number
     percent: number
@@ -75,6 +76,7 @@
       return {
         key: group.category,
         name: group.config.name,
+        color: group.config.color,
         solved: stats.solved,
         total: stats.total,
         percent: stats.percent,
@@ -163,6 +165,7 @@
         data-col={cell.key}
         data-col-hover={hoveredColumnId === cell.key || undefined}
         data-name={cell.name}
+        data-category-color={cell.color}
         data-solved={cell.solved}
         data-total={cell.total}
         data-cat-state={cell.state}

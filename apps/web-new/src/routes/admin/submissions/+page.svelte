@@ -202,15 +202,17 @@
         minTableWidth={296}
       >
         {#snippet toolbar()}
-          <FilterBar
-            {families}
-            {filterFor}
-            timeFilter={filters.time}
-            ctfStartTime={ctfStartTime ?? null}
-            hasActiveFilters={hasFilters}
-            onClearAll={() => clearSubmissionFilters(filters)}
-            fetching={submissionsQuery.isFetching}
-          />
+          <submissions-toolbar>
+            <FilterBar
+              {families}
+              {filterFor}
+              timeFilter={filters.time}
+              ctfStartTime={ctfStartTime ?? null}
+              hasActiveFilters={hasFilters}
+              onClearAll={() => clearSubmissionFilters(filters)}
+              fetching={submissionsQuery.isFetching}
+            />
+          </submissions-toolbar>
         {/snippet}
 
         {#snippet header()}
@@ -248,6 +250,14 @@
 <style>
   /* The app shell only guarantees min-block-size: 100dvh, so bound the height
      here — the table shell scrolls internally. */
+  submissions-toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-2xs) var(--space-xs);
+    border-block-end: 2px solid var(--border);
+  }
+
   submissions-reveal {
     display: flex;
     flex: 1;
