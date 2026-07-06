@@ -1,12 +1,22 @@
 import type {
   FilterAdminSubmissionsRouteV2,
+  FilterAdminUsersRouteV2,
   RouteBody,
   RouteQuery,
 } from '@rctf/types'
 
+// Infinite-list params carry `limit` plus the filters, but not `offset` — the
+// offset is the page cursor, so keeping it out of the key keeps every page of a
+// filter under a single cache entry.
+export type AdminUsersQueryParams = Pick<
+  RouteQuery<typeof FilterAdminUsersRouteV2>,
+  'limit' | 'search' | 'sortBy' | 'sortOrder'
+> &
+  RouteBody<typeof FilterAdminUsersRouteV2>
+
 export type AdminSubmissionsQueryParams = Pick<
   RouteQuery<typeof FilterAdminSubmissionsRouteV2>,
-  'sortBy' | 'sortOrder' | 'challengeSearch' | 'teamSearch'
+  'limit' | 'sortBy' | 'sortOrder' | 'challengeSearch' | 'teamSearch'
 > &
   RouteBody<typeof FilterAdminSubmissionsRouteV2>
 
@@ -18,6 +28,8 @@ export const queryKeys = {
   challenges: ['challenges'] as const,
   adminChallenges: ['admin', 'challenges'] as const,
   adminChallenge: (id: string) => ['admin', 'challenges', id] as const,
+  adminUsers: (params: AdminUsersQueryParams) =>
+    ['admin', 'users', 'list', params] as const,
   adminUser: (id: string) => ['admin', 'users', id] as const,
   adminUserVerifications: ['admin', 'user-verifications'] as const,
   fullLeaderboard: ['leaderboard'] as const,
@@ -54,7 +66,6 @@ export const queryKeys = {
   adminBotStatus: ['admin', 'admin-bot', 'status'] as const,
   adminExternalAuthClients: ['admin', 'external-auth', 'clients'] as const,
   adminSettings: ['admin', 'settings'] as const,
-  adminSubmissions: (
-    params: { limit: number; offset: number } & AdminSubmissionsQueryParams
-  ) => ['admin', 'submissions', params] as const,
+  adminSubmissions: (params: AdminSubmissionsQueryParams) =>
+    ['admin', 'submissions', 'list', params] as const,
 }
