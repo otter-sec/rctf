@@ -25,9 +25,20 @@
     sortMode: SortMode
     divisions: Record<string, string>
     showDivision: boolean
+    hoveredColumnId: string | null
   }
 
-  let { data, entry, index, edge, viewMode, sortMode, divisions, showDivision }: Props = $props()
+  let {
+    data,
+    entry,
+    index,
+    edge,
+    viewMode,
+    sortMode,
+    divisions,
+    showDivision,
+    hoveredColumnId,
+  }: Props = $props()
 </script>
 
 <self-row data-edge={edge} data-team-id={entry.id}>
@@ -35,7 +46,7 @@
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
   <row-content data-current>
-    <ScoresSolveCells {data} {entry} {viewMode} {sortMode} />
+    <ScoresSolveCells {data} {entry} {viewMode} {sortMode} {hoveredColumnId} />
   </row-content>
 </self-row>
 

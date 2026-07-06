@@ -4,6 +4,7 @@
   import IconTrophy from '$lib/icons/icon-trophy-filled.svelte'
   import { useClientConfig } from '$lib/query/config'
   import EmptyState from '$lib/ui/empty-state.svelte'
+  import Spinner from '$lib/ui/spinner.svelte'
   import { createScoresData } from './scores-data.svelte'
   import ScoresLeaderboard from './scores-leaderboard.svelte'
   import ScoresToolbar from './scores-toolbar.svelte'
@@ -24,7 +25,10 @@
     showSelfContext: () => urlState.showSelfContext,
   })
 
-  const hasBoard = $derived(data.isLoading || data.entries.length > 0)
+  // Non-reactive read: true only when this visit actually starts behind the
+  // spinner. A revisit with warm cache mounts the board directly and should
+  // not replay the reveal fade.
+  const revealAfterLoading = data.isLoading
 </script>
 
 <svelte:head>
@@ -39,8 +43,14 @@
   <scores-page>
     <ScoresToolbar {data} {urlState} {divisions} />
 
-    {#if hasBoard}
-      <scores-frame>
+    {#if data.isLoading}
+      <!-- Everything (rows, cells, graph) loads behind one spinner — the old
+           app's behavior; no progressively-filling skeleton. -->
+      <scores-leaderboard-slot>
+        <Spinner />
+      </scores-leaderboard-slot>
+    {:else if data.entries.length > 0}
+      <scores-frame data-reveal={revealAfterLoading || undefined}>
         <ScoresLeaderboard {data} {urlState} {divisions} {startTime} />
       </scores-frame>
     {:else}
@@ -86,8 +96,26 @@
     max-inline-size: 100%;
     padding-inline: 1rem;
 
+    /* Fade the board in only when this visit started behind the spinner; a
+       warm-cache revisit mounts it without replaying the reveal. */
+    &[data-reveal] {
+      animation: scores-fade-in 300ms ease;
+    }
+
     @media (width >= 48rem) {
       padding-inline: 2.25rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      &[data-reveal] {
+        animation: none;
+      }
+    }
+  }
+
+  @keyframes scores-fade-in {
+    from {
+      opacity: 0;
     }
   }
 

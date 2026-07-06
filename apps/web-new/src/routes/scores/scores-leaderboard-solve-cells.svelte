@@ -17,9 +17,10 @@
     entry: LeaderboardEntry
     viewMode: ViewMode
     sortMode: SortMode
+    hoveredColumnId: string | null
   }
 
-  let { data, entry, viewMode, sortMode }: Props = $props()
+  let { data, entry, viewMode, sortMode, hoveredColumnId }: Props = $props()
 
   const RING_RADIUS = 8.75
   const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
@@ -102,6 +103,8 @@
     <solve-cell
       data-tooltip-cell
       data-kind={CELL_KIND.challenge}
+      data-col={cell.id}
+      data-col-hover={hoveredColumnId === cell.id || undefined}
       data-dynamic
       data-name={cell.name}
       data-points={cell.points}
@@ -122,6 +125,8 @@
     <solve-cell
       data-tooltip-cell
       data-kind={CELL_KIND.challenge}
+      data-col={cell.id}
+      data-col-hover={hoveredColumnId === cell.id || undefined}
       data-name={cell.name}
       data-points={cell.points}
       data-state={cell.solved ? 'solved' : 'unsolved'}
@@ -149,6 +154,8 @@
       <solve-cell
         data-tooltip-cell
         data-kind={CELL_KIND.category}
+        data-col={cell.key}
+        data-col-hover={hoveredColumnId === cell.key || undefined}
         data-name={cell.name}
         data-solved={cell.solved}
         data-total={cell.total}
@@ -230,11 +237,18 @@
       background: color-mix(in oklab, var(--foreground-l0) 4%, transparent);
     }
 
-    /* One tone above the 4% stripe tint so the hovered cell reads on both
-       striped and unstriped columns. [data-tooltip-cell] keeps this selector's
-       specificity above the stripe rule. */
-    &[data-tooltip-cell]:hover {
+    /* Column echo: every cell sharing the hovered cell's column lights one
+       tone above the stripe, so the eye can trace up to the header label.
+       [data-tooltip-cell] ties this selector's specificity with the stripe
+       rule; source order lets it win. */
+    &[data-tooltip-cell][data-col-hover] {
       background: color-mix(in oklab, var(--foreground-l0) 8%, transparent);
+    }
+
+    /* One tone above the column echo so the hovered cell itself still reads
+       inside a lit column. */
+    &[data-tooltip-cell]:hover {
+      background: color-mix(in oklab, var(--foreground-l0) 12%, transparent);
     }
   }
 

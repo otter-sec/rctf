@@ -10,6 +10,12 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
+  import EdgeFades from '$lib/components/edge-fades.svelte'
+  import {
+    createScrollGeometry,
+    deriveEdgeFades,
+    deriveSelfRowClip,
+  } from '$lib/components/scroll-geometry.svelte'
   import IconChartAreaLineFilled from '$lib/icons/icon-chart-area-line-filled.svelte'
   import { useChallengeScores, useChallengeScoresInfinite } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -77,21 +83,27 @@
   )
   const selfRankDelta = $derived(currentUser ? rankDeltas.get(currentUser.id) : undefined)
 
-  // The scroll container, captured by an attachment so the observers below can
-  // use it as their IntersectionObserver root.
+  // The scroll container, captured by an attachment so scroll geometry and the
+  // load-more observer below can use it.
   let scrollRoot = $state<HTMLElement | null>(null)
-  // null = the user's real row is on screen; 'top'/'bottom' = the edge it left by.
-  let selfRowEdge = $state<'top' | 'bottom' | null>(null)
+  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
+
+  const geometry = createScrollGeometry(() => scrollRoot)
+  const fades = deriveEdgeFades(geometry)
+
+  // The current user's real row, captured so the shared clip can read its
+  // layout position.
+  let selfRowNode = $state<HTMLElement | null>(null)
+  const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
+  const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
 
   // Which edge to pin the self overlay to, decided by the self-position query —
-  // not observation alone, so a scorer on an unloaded page still gets pinned.
+  // not geometry alone, so a scorer on an unloaded page still gets pinned.
   const pinnedEdge = $derived.by((): 'top' | 'bottom' | null => {
     if (myPosition === null || !currentUser) return null
     if (userScoreIndex === -1) return 'bottom'
-    return selfRowEdge
+    return selfClip.edge
   })
-
-  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {
@@ -109,31 +121,6 @@
     )
     observer.observe(node)
     return () => observer.disconnect()
-  }
-
-  // Attached only to the current user's row (via `isSelf && observeSelfRow`);
-  // reports which edge the row left by so the overlay can pin to it.
-  const observeSelfRow: Attachment<HTMLElement> = node => {
-    const root = scrollRoot
-    if (!root) return
-    const observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0]
-        if (!entry) return
-        const rootBounds = entry.rootBounds
-        if (entry.isIntersecting || !rootBounds) {
-          selfRowEdge = null
-          return
-        }
-        selfRowEdge = entry.boundingClientRect.top < rootBounds.top ? 'top' : 'bottom'
-      },
-      { root, threshold: 0 }
-    )
-    observer.observe(node)
-    return () => {
-      observer.disconnect()
-      selfRowEdge = null
-    }
   }
 
   $effect(() => {
@@ -163,7 +150,7 @@
           {#each allScores as score, index (score.userId)}
             {@const rank = index + 1}
             {@const isSelf = !!(currentUser && score.userId === currentUser.id)}
-            <row-slot {@attach isSelf && observeSelfRow}>
+            <row-slot {@attach isSelf && captureSelfRow}>
               <ChallengeDetailsRow
                 variant={rankVariant(rank, isSelf)}
                 {rank}
@@ -203,6 +190,12 @@
           />
         </self-overlay>
       {/if}
+
+      <EdgeFades
+        top={fades.top}
+        bottom={fades.bottom}
+        selfEdge={(myPosition !== null && pinnedEdge) || null}
+      />
     </scores-viewport>
   {/if}
 </scores>
@@ -250,10 +243,14 @@
     padding: 0.75rem 1.25rem 1rem;
   }
 
+  /* The intrinsic estimate must equal the real slot height (a 4rem row; the
+     4px row gap is the list's flex gap, outside the slot). An overestimate
+     makes never-rendered slots taller than rendered ones, so positions shift
+     as slots render/skip and scroll anchoring visibly nudges the list. */
   row-slot {
     display: block;
     content-visibility: auto;
-    contain-intrinsic-size: auto 68px;
+    contain-intrinsic-size: auto 4rem;
   }
 
   score-points {
@@ -292,8 +289,12 @@
     pointer-events: none;
     background: var(--background-l2);
 
+    /* The top pin keeps a 1rem breathing gap (matching the list's block
+       padding) instead of sitting flush against the viewport edge; the gap is
+       part of the overlay's opaque surface so rows scroll beneath it. */
     &[data-edge='top'] {
       inset-block-start: 0;
+      padding-block-start: 1rem;
       padding-block-end: var(--space-3xs);
     }
 

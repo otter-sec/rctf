@@ -7,7 +7,7 @@
 -->
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
-  import type { ScrollGeometry } from './scores-leaderboard-scroll-geometry.svelte'
+  import type { ScrollGeometry } from '$lib/components/scroll-geometry.svelte'
 
   interface Props {
     root: HTMLElement | null

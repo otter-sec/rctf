@@ -1,9 +1,9 @@
 /**
- * Live scroll geometry for the leaderboard scroll region — one scroll listener
- * plus one ResizeObserver shared by every consumer (self-row pinning, the graph
- * window, the custom scrollbars, and the edge fades). Per-event, because the
- * virtualizer's mirrored offset only updates when the rendered range shifts,
- * which is too coarse for edge-exact UI.
+ * Live scroll geometry for a scroll region — one scroll listener plus one
+ * ResizeObserver shared by every consumer (self-row pinning, graph windows,
+ * custom scrollbars, and edge fades). Per-event, because coarser signals (like
+ * a virtualizer's mirrored offset, which only updates when the rendered range
+ * shifts) are too coarse for edge-exact UI.
  */
 export interface ScrollGeometry {
   readonly scrollTop: number
@@ -66,6 +66,56 @@ export function createScrollGeometry(
     },
     get clientWidth() {
       return clientWidth
+    },
+  }
+}
+
+export interface EdgeFades {
+  readonly top: boolean
+  readonly bottom: boolean
+}
+
+/** Whether rows are clipped past each vertical edge (1px slack absorbs rounding). */
+export function deriveEdgeFades(geometry: ScrollGeometry): EdgeFades {
+  const top = $derived(geometry.scrollTop > 1)
+  const bottom = $derived(
+    geometry.scrollTop < geometry.scrollHeight - geometry.clientHeight - 1
+  )
+  return {
+    get top() {
+      return top
+    },
+    get bottom() {
+      return bottom
+    },
+  }
+}
+
+/**
+ * Edge-exact clip of a tracked row (the current user's), derived from live
+ * scroll geometry: 'top' the instant the row's top slides past the viewport
+ * top, 'bottom' the instant its bottom crosses the viewport bottom. Derived
+ * per scroll event — not an IntersectionObserver, whose threshold crossings
+ * wait for full exit and can be skipped entirely by fast scrolls (momentum,
+ * scrollbar drags), leaving a stale edge. Offsets are content coordinates —
+ * unaffected by scroll.
+ */
+export function deriveSelfRowClip(
+  geometry: ScrollGeometry,
+  getNode: () => HTMLElement | null
+): { readonly edge: 'top' | 'bottom' | null } {
+  const edge = $derived.by((): 'top' | 'bottom' | null => {
+    const node = getNode()
+    if (!node || geometry.clientHeight === 0) return null
+    const rowTop = node.offsetTop
+    const rowBottom = rowTop + node.offsetHeight
+    if (rowTop < geometry.scrollTop) return 'top'
+    if (rowBottom > geometry.scrollTop + geometry.clientHeight) return 'bottom'
+    return null
+  })
+  return {
+    get edge() {
+      return edge
     },
   }
 }

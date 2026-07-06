@@ -1,6 +1,7 @@
 <script lang="ts">
   import { captureElement } from '$lib/attachments/capture-element'
   import { resolvePinnedEdge, type ViewportClip } from '$lib/components/pinned-self-row'
+  import { createScrollGeometry, deriveEdgeFades } from '$lib/components/scroll-geometry.svelte'
   import type { LeaderboardEntry } from '$lib/query/leaderboard'
   import { evaluateLoadMore } from '$lib/virtual/load-more'
   import { createVirtualizer } from '$lib/virtual/virtualizer.svelte'
@@ -8,7 +9,6 @@
   import {
     SCORE_DIAGONAL_OVERFLOW_PX,
     SCORE_HEADER_HEIGHT_PX,
-    SCORE_LOADING_ROW_COUNT,
     SCORE_ROW_GAP_PX,
     SCORE_ROW_HEIGHT_FULL_PX,
     SCORE_VIRTUAL_OVERSCAN,
@@ -22,7 +22,6 @@
     type CellTooltip,
   } from './scores-leaderboard-cell-tooltip'
   import ScoresHeader from './scores-leaderboard-header.svelte'
-  import { createScrollGeometry } from './scores-leaderboard-scroll-geometry.svelte'
   import ScoresScrollbars from './scores-leaderboard-scrollbars.svelte'
   import ScoresSelfRow from './scores-leaderboard-self-row.svelte'
   import ScoresSolveCells from './scores-leaderboard-solve-cells.svelte'
@@ -30,7 +29,6 @@
   import {
     getCategoryCellsInnerWidth,
     getChallengeCellsInnerWidth,
-    getEmptyGraphVisibility,
     getGraphVisibility,
     getRankVariant,
   } from './scores-transforms'
@@ -79,7 +77,6 @@
       SCORE_ROW_GAP_PX +
       SCORE_DIAGONAL_OVERFLOW_PX
   )
-  const loadingRows = Array.from({ length: SCORE_LOADING_ROW_COUNT }, (_, index) => index)
 
   // One delegated pointer listener resolves the hovered cell's data-* into
   // tooltip content, avoiding a tooltip instance per matrix cell. Suppressed
@@ -118,6 +115,12 @@
   let hoveredTeamId = $state<string | null>(null)
   let solveHighlight = $state<{ teamId: string; time: number } | null>(null)
 
+  // Cross-highlight for the hovered matrix cell: its column echoes in every
+  // rendered row and its row card tints, making the team/challenge pair easy
+  // to scan. Unlike the tooltip these update instantly — no open delay.
+  let hoveredColumnId = $state<string | null>(null)
+  let hoveredRowId = $state<string | null>(null)
+
   function clearTooltip() {
     cancelOpenTimer()
     if (activeTooltip) {
@@ -134,6 +137,8 @@
     clearTooltip()
     hoveredTeamId = null
     solveHighlight = null
+    hoveredColumnId = null
+    hoveredRowId = null
   }
 
   function handlePointerMove(event: PointerEvent) {
@@ -147,6 +152,18 @@
     // sparkline (no tooltip) highlights immediately; a cell's highlight is
     // applied inside show() so it lands together with the tooltip.
     const teamId = row?.dataset.teamId ?? null
+    // The cross-highlight sticks while the pointer crosses the 4px gaps
+    // between cells/rows (clearing there strobes it off/on with every cell
+    // change). It only clears on a genuinely non-matrix surface: the team
+    // card, the graph corner, or leaving the scroll region (pointerleave).
+    const overMatrixGap = row ? !target?.closest('row-team') : !!target?.closest('challenge-header')
+    if (cell) {
+      hoveredColumnId = cell.dataset.col ?? null
+      hoveredRowId = teamId
+    } else if (!overMatrixGap) {
+      hoveredColumnId = null
+      hoveredRowId = null
+    }
     if (spark) {
       hoveredTeamId = teamId
       solveHighlight = null
@@ -194,31 +211,47 @@
     openTimer = setTimeout(show, TOOLTIP_OPEN_DELAY_MS)
   }
 
-  // Windowed graph series (R12/R14). The window is the rows actually visible in
+  // Windowed graph series (R12). The window is the rows actually visible in
   // the scroll viewport — from scroll geometry, not the rendered virtual range
   // (which includes overscan), and excluding the band occluded by the sticky
   // header. getGraphVisibility caps it to a 15-team span and adds the
-  // top-3/self pins. The resolved set is frozen while the list scrolls and
-  // re-adopted once scrolling settles (AE5).
+  // top-3/self pins. The set tracks the scroll live (conscious deviation from
+  // the plan's freeze-on-scroll R14/AE5): per-frame cost is one window
+  // recompute plus re-projecting ~15 capped series, well within budget.
+  // Identity-stable across sub-row scroll deltas: the derived re-runs on every
+  // scroll event, but downstream (getGraphVisibility's Sets, the graph's
+  // re-projection) must only recompute when the window actually crosses a row
+  // boundary, so an unchanged window returns the previous object.
+  let lastWindow = { minRank: 0, maxRank: 0 }
   const liveWindow = $derived.by(() => {
+    let minRank = 0
+    let maxRank = 0
     const loaded = data.entries.length
-    if (loaded === 0 || geometry.clientHeight === 0) return { minRank: 0, maxRank: 0 }
-    const bandTop = geometry.scrollTop + headerOffset
-    const bandBottom = geometry.scrollTop + geometry.clientHeight
-    const rowTop = (index: number) => headerOffset + index * SCORE_ROW_HEIGHT_FULL_PX
-    const first = Math.max(
-      0,
-      Math.ceil((bandTop - rowTop(0) - SCORE_ROW_HEIGHT_FULL_PX + 1) / SCORE_ROW_HEIGHT_FULL_PX)
-    )
-    const last = Math.min(
-      loaded - 1,
-      Math.ceil((bandBottom - rowTop(0)) / SCORE_ROW_HEIGHT_FULL_PX) - 1
-    )
-    if (last < first) return { minRank: 0, maxRank: 0 }
-    return { minRank: first + 1, maxRank: last + 1 }
+    if (loaded > 0 && geometry.clientHeight > 0) {
+      const bandTop = geometry.scrollTop + headerOffset
+      const bandBottom = geometry.scrollTop + geometry.clientHeight
+      // A row counts as visible only while its midpoint is inside the band, so
+      // a sliver peeking out from behind the sticky header/graph (or clipped
+      // at the bottom edge) doesn't hold the row in the graph window.
+      const rowMid = (index: number) =>
+        headerOffset + index * SCORE_ROW_HEIGHT_FULL_PX + SCORE_ROW_HEIGHT_FULL_PX / 2
+      const first = Math.max(0, Math.ceil((bandTop - rowMid(0)) / SCORE_ROW_HEIGHT_FULL_PX))
+      const last = Math.min(
+        loaded - 1,
+        Math.ceil((bandBottom - rowMid(0)) / SCORE_ROW_HEIGHT_FULL_PX) - 1
+      )
+      if (last >= first) {
+        minRank = first + 1
+        maxRank = last + 1
+      }
+    }
+    if (lastWindow.minRank !== minRank || lastWindow.maxRank !== maxRank) {
+      lastWindow = { minRank, maxRank }
+    }
+    return lastWindow
   })
 
-  const liveVisibility = $derived(
+  const graphVisibility = $derived(
     getGraphVisibility({
       entries: data.entries,
       isLoading: data.isLoading,
@@ -230,11 +263,6 @@
       teamRanks: data.teamRanks,
     })
   )
-
-  let graphVisibility = $state(getEmptyGraphVisibility())
-  $effect(() => {
-    if (!virtual.isScrolling) graphVisibility = liveVisibility
-  })
 
   // Suppress the tooltip while the list is scrolling without discarding the
   // hovered state, so it reappears on settle if the pointer is still over a cell.
@@ -282,11 +310,10 @@
 
   // Edge fades (clipped-content hints). Orthogonal state: four scrollable
   // directions as shell attributes, plus data-self-edge shifting the vertical
-  // bands past the opaque pinned row — no enumerated per-region variants.
-  const fadeTop = $derived(geometry.scrollTop > 1)
-  const fadeBottom = $derived(
-    geometry.scrollTop < geometry.scrollHeight - geometry.clientHeight - 1
-  )
+  // bands past the opaque pinned row — no enumerated per-region variants. The
+  // vertical pair comes from the shared derivation; the horizontal pair is
+  // this scroll region's own (the matrix is the app's only x-scrolling list).
+  const fades = deriveEdgeFades(geometry)
   const fadeLeft = $derived(geometry.scrollLeft > 1)
   const fadeRight = $derived(geometry.scrollLeft < geometry.scrollWidth - geometry.clientWidth - 1)
 
@@ -351,18 +378,26 @@
     data-rank={variant}
     data-ranked={variant !== 'nth' || undefined}
     data-current={isSelf || undefined}
+    data-hovered={hoveredRowId === entry.id || undefined}
   >
     <ScoresTeamRow {data} {entry} {index} {divisions} {showDivision} />
   </row-team>
-  <row-content data-current={isSelf || undefined}>
-    <ScoresSolveCells {data} {entry} viewMode={urlState.viewMode} sortMode={urlState.sortMode} />
+  <row-content
+    data-current={isSelf || undefined}
+    data-hovered={hoveredRowId === entry.id || undefined}
+  >
+    <ScoresSolveCells
+      {data}
+      {entry}
+      viewMode={urlState.viewMode}
+      sortMode={urlState.sortMode}
+      {hoveredColumnId}
+    />
   </row-content>
 {/snippet}
 
 {#snippet skeletonRow()}
-  <row-team>
-    <team-skeleton></team-skeleton>
-  </row-team>
+  <row-team></row-team>
   <row-content></row-content>
 {/snippet}
 
@@ -385,8 +420,8 @@
 
 <scores-shell
   style:--score-content-width={`${contentWidth}px`}
-  data-fade-top={fadeTop || undefined}
-  data-fade-bottom={fadeBottom || undefined}
+  data-fade-top={fades.top || undefined}
+  data-fade-bottom={fades.bottom || undefined}
   data-fade-left={fadeLeft || undefined}
   data-fade-right={fadeRight || undefined}
   data-self-edge={selfEdge ?? undefined}
@@ -419,6 +454,7 @@
               sortMode={urlState.sortMode}
               categoryGroups={data.categoryGroups}
               challenges={data.challenges}
+              {hoveredColumnId}
             />
           {/if}
         </header-content>
@@ -434,36 +470,25 @@
           sortMode={urlState.sortMode}
           {divisions}
           {showDivision}
+          {hoveredColumnId}
         />
       {/if}
 
-      <virtual-list
-        style:block-size={data.isLoading
-          ? `${SCORE_LOADING_ROW_COUNT * SCORE_ROW_HEIGHT_FULL_PX}px`
-          : `${virtual.totalSize - headerOffset}px`}
-      >
-        {#if data.isLoading}
-          {#each loadingRows as index (index)}
-            <virtual-row data-loading style:--row-y={`${index * SCORE_ROW_HEIGHT_FULL_PX}px`}>
+      <virtual-list style:block-size={`${virtual.totalSize - headerOffset}px`}>
+        {#each virtual.virtualItems as item (item.key)}
+          {@const entry = data.entries[item.index]}
+          <virtual-row
+            data-loading={entry ? undefined : true}
+            data-team-id={entry?.id}
+            style:--row-y={`${item.start - headerOffset}px`}
+          >
+            {#if entry}
+              {@render teamRow(entry, item.index)}
+            {:else}
               {@render skeletonRow()}
-            </virtual-row>
-          {/each}
-        {:else}
-          {#each virtual.virtualItems as item (item.key)}
-            {@const entry = data.entries[item.index]}
-            <virtual-row
-              data-loading={entry ? undefined : true}
-              data-team-id={entry?.id}
-              style:--row-y={`${item.start - headerOffset}px`}
-            >
-              {#if entry}
-                {@render teamRow(entry, item.index)}
-              {:else}
-                {@render skeletonRow()}
-              {/if}
-            </virtual-row>
-          {/each}
-        {/if}
+            {/if}
+          </virtual-row>
+        {/each}
       </virtual-list>
 
       {#if selfEdge === 'bottom' && selfRow}
@@ -476,6 +501,7 @@
           sortMode={urlState.sortMode}
           {divisions}
           {showDivision}
+          {hoveredColumnId}
         />
       {/if}
     </scores-table>
@@ -676,6 +702,12 @@
       background: var(--background-l2);
     }
 
+    /* Row echo for the hovered solve cell's team card. Declared before the
+       self rule so the self tint wins on the current user's row. */
+    &[data-hovered]::before {
+      background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l2));
+    }
+
     &[data-ranked]::after {
       inline-size: min(24rem, 100%);
       background: linear-gradient(to right, var(--rank-glow), transparent);
@@ -708,14 +740,6 @@
     &[data-current]::before {
       background: var(--background-self-l0);
     }
-  }
-
-  team-skeleton {
-    display: block;
-    inline-size: 60%;
-    block-size: 1rem;
-    background: var(--background-l3);
-    border-radius: var(--radius-sm);
   }
 
   row-content {
@@ -827,6 +851,10 @@
       background: var(--background-l2);
       border-start-end-radius: var(--radius-lg);
       border-end-end-radius: var(--radius-lg);
+
+      &[data-hovered] {
+        background: color-mix(in oklab, var(--foreground-l0) 4%, var(--background-l2));
+      }
 
       &[data-current] {
         background: var(--background-self-l0);

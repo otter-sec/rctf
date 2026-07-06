@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SCORE_CELL_WIDTH_PX } from './scores-constants'
+  import { SCORE_CELL_WIDTH_PX, SCORE_ROW_GAP_PX } from './scores-constants'
   import { CELL_KIND } from './scores-leaderboard-cell-tooltip'
   import {
     getChallengeCellsInnerWidth,
@@ -15,9 +15,10 @@
     sortMode: SortMode
     categoryGroups: CategoryGroup[]
     challenges: ChallengeInfo[]
+    hoveredColumnId: string | null
   }
 
-  let { viewMode, sortMode, categoryGroups, challenges }: Props = $props()
+  let { viewMode, sortMode, categoryGroups, challenges, hoveredColumnId }: Props = $props()
 
   type HeaderItem =
     | { type: 'category'; group: CategoryGroup }
@@ -49,6 +50,18 @@
   function dynamicCount(group: CategoryGroup): number {
     return group.challenges.filter(isDynamicChallenge).length
   }
+
+  // Where the hovered column's stripe sits inside a grouped category block, so
+  // the column echo continues up through the shared points/footer band.
+  function groupColumnHighlight(group: CategoryGroup): { x: number; width: number } | null {
+    let x = 0
+    for (const challenge of group.challenges) {
+      const width = getChallengeCellWidth(challenge)
+      if (challenge.id === hoveredColumnId) return { x, width }
+      x += width + SCORE_ROW_GAP_PX
+    }
+    return null
+  }
 </script>
 
 {#snippet nameLabel(item: HeaderItem, width: number, stackIndex: number)}
@@ -59,6 +72,7 @@
     style:z-index={stackIndex}
     data-tooltip-cell
     data-kind={isCategory ? CELL_KIND.headerCategory : CELL_KIND.headerChallenge}
+    data-col={isCategory ? item.group.category : item.challenge.id}
     data-name={isCategory ? item.group.config.name : item.challenge.name}
     data-points={isCategory ? fixedCategoryPoints(item.group) : item.challenge.points}
     data-count={isCategory ? item.group.challenges.length : undefined}
@@ -112,6 +126,9 @@
             data-category-color={group.config.color}
             style:--block-width={`${SCORE_CELL_WIDTH_PX}px`}
           >
+            {#if hoveredColumnId === group.category}
+              <col-highlight></col-highlight>
+            {/if}
             <category-points>
               {@render pointsBadge(points, dynamicOnly)}
             </category-points>
@@ -121,10 +138,17 @@
       </category-row>
     {:else if sortMode === 'categories'}
       {#each categoryGroups as group (group.category)}
+        {@const highlight = groupColumnHighlight(group)}
         <category-block
           data-category-color={group.config.color}
           style:--block-width={`${getChallengeCellsInnerWidth(group.challenges)}px`}
         >
+          {#if highlight}
+            <col-highlight
+              style:--highlight-x={`${highlight.x}px`}
+              style:--highlight-width={`${highlight.width}px`}
+            ></col-highlight>
+          {/if}
           <category-points data-challenge>
             {#each group.challenges as challenge (challenge.id)}
               <challenge-point style:--point-width={`${getChallengeCellWidth(challenge)}px`}>
@@ -144,6 +168,9 @@
           data-category-color={challenge.config.color}
           style:--block-width={`${getChallengeCellWidth(challenge)}px`}
         >
+          {#if hoveredColumnId === challenge.id}
+            <col-highlight></col-highlight>
+          {/if}
           <category-points>
             {@render pointsBadge(challenge.points, isDynamicChallenge(challenge))}
           </category-points>
@@ -221,6 +248,20 @@
   category-row,
   category-points[data-challenge] {
     gap: 0.25rem;
+  }
+
+  /* Column echo continuation: a stripe over the block's points/footer band,
+     matching the 8% tint of the body cells below. Defaults cover the whole
+     block (single-challenge and category blocks); grouped blocks position it
+     over the hovered challenge's slot. */
+  col-highlight {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--highlight-x, 0);
+    inline-size: var(--highlight-width, 100%);
+    background: color-mix(in oklab, var(--foreground-l0) 8%, transparent);
+    border-radius: inherit;
+    pointer-events: none;
   }
 
   category-block {

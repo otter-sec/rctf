@@ -8,8 +8,13 @@
 <script lang="ts">
   import type { Challenge } from '@rctf/types'
   import { captureElement } from '$lib/attachments/capture-element'
-  import { scrollFade } from '$lib/attachments/scroll-fade'
+  import EdgeFades from '$lib/components/edge-fades.svelte'
   import { resolvePinnedEdge } from '$lib/components/pinned-self-row'
+  import {
+    createScrollGeometry,
+    deriveEdgeFades,
+    deriveSelfRowClip,
+  } from '$lib/components/scroll-geometry.svelte'
   import IconAwardFilled from '$lib/icons/icon-award-filled.svelte'
   import { useChallengeSolvesInfinite, useChallengeSolvesSelf } from '$lib/query/challenges'
   import { useClientConfig } from '$lib/query/config'
@@ -56,28 +61,33 @@
     currentUser ? allSolves.findIndex(solve => solve.userId === currentUser.id) : -1
   )
 
-  // The scroll container, captured by an attachment so the observers below can
-  // use it as their IntersectionObserver root.
+  // The scroll container, captured by an attachment so scroll geometry and the
+  // load-more observer below can use it.
   let scrollRoot = $state<HTMLElement | null>(null)
-  // null = the user's real row is on screen; 'top'/'bottom' = the edge it left by.
-  let selfRowEdge = $state<'top' | 'bottom' | null>(null)
+  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
+
+  const geometry = createScrollGeometry(() => scrollRoot)
+  const fades = deriveEdgeFades(geometry)
+
+  // The current user's real row, captured so the shared clip can read its
+  // layout position.
+  let selfRowNode = $state<HTMLElement | null>(null)
+  const captureSelfRow = captureElement<HTMLElement>(node => (selfRowNode = node))
+  const selfClip = deriveSelfRowClip(geometry, () => selfRowNode)
 
   // Which edge to pin the self overlay to, decided by the self-position query —
-  // not observation alone, so a solver on an unloaded page still gets pinned.
-  // The shared reducer maps the loaded index and the observed clip edge; here
-  // the plain paged list keeps every loaded row mounted, so a null `selfRowEdge`
-  // always means the real row is on screen (`visible`), never unobserved.
+  // not geometry alone, so a solver on an unloaded page still gets pinned.
+  // The plain paged list keeps every loaded row mounted, so a null
+  // `selfRowEdge` always means the real row is on screen (`visible`).
   const pinnedEdge = $derived(
     resolvePinnedEdge({
       hasSelf: !!currentUserSolve && mySolvePosition !== null,
       selfIndex: userSolveIndex === -1 ? null : userSolveIndex,
       viewportClip:
-        selfRowEdge === 'top' ? 'above' : selfRowEdge === 'bottom' ? 'below' : 'visible',
+        selfClip.edge === 'top' ? 'above' : selfClip.edge === 'bottom' ? 'below' : 'visible',
       searchActive: false,
     })
   )
-
-  const captureScroll = captureElement<HTMLElement>(node => (scrollRoot = node))
 
   // Fetch the next page as the sentinel nears the viewport.
   const loadMore: Attachment<HTMLElement> = node => {
@@ -95,31 +105,6 @@
     )
     observer.observe(node)
     return () => observer.disconnect()
-  }
-
-  // Attached only to the current user's row (via `isCurrentUser && observeSelfRow`);
-  // reports which edge the row left by so the overlay can pin to it.
-  const observeSelfRow: Attachment<HTMLElement> = node => {
-    const root = scrollRoot
-    if (!root) return
-    const observer = new IntersectionObserver(
-      entries => {
-        const entry = entries[0]
-        if (!entry) return
-        const rootBounds = entry.rootBounds
-        if (entry.isIntersecting || !rootBounds) {
-          selfRowEdge = null
-          return
-        }
-        selfRowEdge = entry.boundingClientRect.top < rootBounds.top ? 'top' : 'bottom'
-      },
-      { root, threshold: 0 }
-    )
-    observer.observe(node)
-    return () => {
-      observer.disconnect()
-      selfRowEdge = null
-    }
   }
 
   $effect(() => {
@@ -140,7 +125,7 @@
     />
   {:else}
     <solves-viewport>
-      <solves-scroll {@attach captureScroll} {@attach scrollFade} tabindex="-1">
+      <solves-scroll {@attach captureScroll} tabindex="-1">
         <solves-list>
           {#each allSolves as solve, index (solve.id)}
             {@const rank = index + 1}
@@ -151,7 +136,7 @@
               ctfStartTime,
               firstBloodTime,
             })}
-            <row-slot {@attach isCurrentUser && observeSelfRow}>
+            <row-slot {@attach isCurrentUser && captureSelfRow}>
               <ChallengeDetailsRow
                 variant={rankVariant(rank, isCurrentUser)}
                 {rank}
@@ -188,6 +173,12 @@
           />
         </self-overlay>
       {/if}
+
+      <EdgeFades
+        top={fades.top}
+        bottom={fades.bottom}
+        selfEdge={(currentUserSolve && mySolvePosition !== null && pinnedEdge) || null}
+      />
     </solves-viewport>
   {/if}
 </solves>
@@ -229,10 +220,14 @@
     padding: 1rem 1.25rem;
   }
 
+  /* The intrinsic estimate must equal the real slot height (a 4rem row; the
+     4px row gap is the list's flex gap, outside the slot). An overestimate
+     makes never-rendered slots taller than rendered ones, so positions shift
+     as slots render/skip and scroll anchoring visibly nudges the list. */
   row-slot {
     display: block;
     content-visibility: auto;
-    contain-intrinsic-size: auto 68px;
+    contain-intrinsic-size: auto 4rem;
   }
 
   solves-loading {
@@ -260,8 +255,12 @@
     pointer-events: none;
     background: var(--background-l2);
 
+    /* The top pin keeps a 1rem breathing gap (matching the list's block
+       padding) instead of sitting flush against the viewport edge; the gap is
+       part of the overlay's opaque surface so rows scroll beneath it. */
     &[data-edge='top'] {
       inset-block-start: 0;
+      padding-block-start: 1rem;
       padding-block-end: var(--space-3xs);
     }
 
