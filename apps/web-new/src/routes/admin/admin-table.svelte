@@ -140,7 +140,9 @@
         </admin-empty>
       {:else}
         <!-- Unkeyed so the virtualizer recycles row nodes across large scroll jumps. -->
-        <admin-list style:block-size={`${virtual.totalSize - headerHeight}px`}>
+        <!-- getTotalSize() already excludes the scrollMargin; item.start includes
+             it, so only the row translate subtracts headerHeight. -->
+        <admin-list style:block-size={`${virtual.totalSize}px`}>
           {#each virtual.virtualItems as item}
             <admin-row
               style:--row-y={`${item.start - headerHeight}px`}

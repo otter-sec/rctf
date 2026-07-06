@@ -474,7 +474,9 @@
         />
       {/if}
 
-      <virtual-list style:block-size={`${virtual.totalSize - headerOffset}px`}>
+      <!-- getTotalSize() already excludes the scrollMargin; item.start includes
+           it, so only the row translate subtracts headerOffset. -->
+      <virtual-list style:block-size={`${virtual.totalSize}px`}>
         {#each virtual.virtualItems as item (item.key)}
           {@const entry = data.entries[item.index]}
           <virtual-row
