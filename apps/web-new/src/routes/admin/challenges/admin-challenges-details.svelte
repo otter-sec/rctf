@@ -1,73 +1,326 @@
 <!--
-  PLACEHOLDER — replaced by U11 (form tabs, header actions, save/delete dialogs).
-
-  This unit (U10) only builds the shell + list pane. The real detail pane owns
-  the six-tab editor form and the save/delete plumbing; it is wired here against
-  the committed editor-state module so U11 can drop in without touching the
-  orchestrator. `editor` is the current EditorState; `onEditorChange` applies a
-  transition produced by an editor-state reducer (edit/cancel/save/...).
+  Editor pane: header (title/author/category pill), the view/edit/create action
+  buttons, the six-tab form, and the three editor dialogs. Owns the save/delete
+  plumbing — mutations run as `apiRequest` calls with the editor mode acting as
+  the in-flight pending state, followed by explicit cache invalidation. Every
+  state change is dispatched back through `onEditorChange` (a pure editor-state
+  reducer); this component never mutates the editor object directly. Create and
+  update share one endpoint (PUT with a client-generated UUID for create; AE10).
 -->
 <script lang="ts">
+  import {
+    BadAdminBotConfig,
+    BadBody,
+    BadInstancerConfig,
+    DeleteChallengeRoute,
+    GoodChallengeDelete,
+    GoodChallengeUpdateV2,
+    Permissions,
+    UpdateChallengeRouteV2,
+  } from '@rctf/types'
+  import { useQueryClient } from '@tanstack/svelte-query'
+  import { apiRequest, showApiError } from '$lib/api'
   import IconFlag3Filled from '$lib/icons/icon-flag3-filled.svelte'
+  import IconTrashFilled from '$lib/icons/icon-trash-filled.svelte'
+  import { useChallenges } from '$lib/query/challenges'
+  import { queryKeys } from '$lib/query/keys'
+  import { useCurrentUser } from '$lib/query/user'
+  import { toast } from '$lib/toast'
+  import Button from '$lib/ui/button.svelte'
   import EmptyState from '$lib/ui/empty-state.svelte'
-  import type { EditorState } from './editor-state'
+  import Spinner from '$lib/ui/spinner.svelte'
+  import Tooltip from '$lib/ui/tooltip.svelte'
+  import { getCategoryConfig } from '$lib/utils/categories'
+  import { hasPermissions } from '$lib/utils/permissions'
+  import AdminChallengesDetailsDialogs from './admin-challenges-details-dialogs.svelte'
+  import AdminChallengesDetailsForm from './admin-challenges-details-form.svelte'
+  import {
+    cancel,
+    del,
+    deleteCancel,
+    deleteConfirm,
+    deleteError,
+    deleteSuccess,
+    discard,
+    edit,
+    keepEditing,
+    save,
+    saveError,
+    saveSuccess,
+    updateForm,
+    updateScoring,
+    type EditorForm,
+    type EditorState,
+    type ScoringConfig,
+  } from './editor-state'
+  import { buildSavePayload, formErrors, hasFormErrors } from './form-validation'
 
   interface Props {
     editor: EditorState
     onEditorChange: (next: EditorState) => void
   }
 
-  // onEditorChange is unused by the placeholder; U11 dispatches transitions
-  // through it (see the file header).
-  let { editor }: Props = $props()
+  let { editor, onEditorChange }: Props = $props()
+
+  const queryClient = useQueryClient()
+  const userQuery = useCurrentUser()
+  const canWrite = $derived(hasPermissions(userQuery.data, Permissions.challsWrite))
+
+  const challengesQuery = useChallenges()
+  const totalSolves = $derived(
+    challengesQuery.data?.find(c => c.id === editor.challenge?.id)?.solves ?? 0
+  )
+
+  const isEditMode = $derived(editor.mode === 'editing' || editor.mode === 'creating')
+  const disabled = $derived(!isEditMode)
+  const isSaving = $derived(editor.mode === 'saving')
+  const isDeleting = $derived(editor.mode === 'deleting')
+
+  const errors = $derived(formErrors(editor.form))
+  const invalid = $derived(hasFormErrors(errors))
 
   const heading = $derived(
-    editor.mode === 'creating' ? 'New Challenge' : (editor.challenge?.name ?? 'Untitled')
+    editor.mode === 'creating' ? 'New Challenge' : editor.form.name || 'Untitled'
   )
+  const categoryConfig = $derived(
+    editor.form.category ? getCategoryConfig(editor.form.category) : null
+  )
+
+  let showPreview = $state(false)
+
+  function onFieldChange<K extends keyof EditorForm>(field: K, value: EditorForm[K]) {
+    onEditorChange(updateForm(editor, field, value))
+  }
+
+  function onScoringChange(scoring: ScoringConfig) {
+    onEditorChange(updateScoring(editor, scoring))
+  }
+
+  async function handleSave() {
+    if (!canWrite) {
+      toast.error('You do not have permission to edit challenges')
+      return
+    }
+    // Freeze the pre-save snapshot: the async continuation must not read a
+    // later editor prop, or the success/error transition would compose wrong.
+    const current = editor
+    const wasCreating = current.mode === 'creating'
+    const id = wasCreating ? crypto.randomUUID() : current.challenge!.id
+    onEditorChange(save(current))
+
+    try {
+      const response = await apiRequest(UpdateChallengeRouteV2, buildSavePayload(current.form, id))
+      if (response.kind === GoodChallengeUpdateV2.kind) {
+        toast.success(wasCreating ? 'Challenge created!' : 'Challenge saved!')
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+        if (!wasCreating) {
+          queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenge(id) })
+        }
+        onEditorChange(saveSuccess(save(current), response.data))
+      } else if (response.kind === BadAdminBotConfig.kind) {
+        toast.error(`Admin bot config error: ${response.data.error}`)
+        onEditorChange(saveError(save(current)))
+      } else if (response.kind === BadInstancerConfig.kind) {
+        toast.error(`Instancer config error: ${response.data.error}`)
+        onEditorChange(saveError(save(current)))
+      } else if (response.kind === BadBody.kind) {
+        toast.error(response.data.reason)
+        onEditorChange(saveError(save(current)))
+      } else {
+        showApiError(response)
+        onEditorChange(saveError(save(current)))
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save challenge')
+      onEditorChange(saveError(save(current)))
+    }
+  }
+
+  async function handleDeleteConfirm() {
+    const current = editor
+    if (!current.challenge) return
+    const id = current.challenge.id
+    onEditorChange(deleteConfirm(current))
+
+    try {
+      const response = await apiRequest(DeleteChallengeRoute, { id })
+      if (response.kind === GoodChallengeDelete.kind) {
+        toast.success('Challenge deleted!')
+        queryClient.invalidateQueries({ queryKey: queryKeys.adminChallenges })
+        onEditorChange(deleteSuccess(deleteConfirm(current)))
+      } else {
+        showApiError(response)
+        onEditorChange(deleteError(deleteConfirm(current)))
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete challenge')
+      onEditorChange(deleteError(deleteConfirm(current)))
+    }
+  }
 </script>
+
+{#snippet actionButtons()}
+  {#if isEditMode}
+    {#if editor.mode === 'editing' && editor.challenge}
+      <Button
+        variant="destructive"
+        disabled={isDeleting}
+        onclick={() => onEditorChange(del(editor))}
+      >
+        {#if isDeleting}<Spinner />{:else}<IconTrashFilled />{/if}
+        Delete
+      </Button>
+    {/if}
+    <Button variant="secondary" onclick={() => onEditorChange(cancel(editor))}>Cancel</Button>
+    {#if invalid}
+      <Tooltip label="Resolve all issues to save">
+        {#snippet children({ props })}
+          <span {...props}>
+            <Button disabled>
+              {editor.mode === 'creating' ? 'Create' : 'Save'}
+            </Button>
+          </span>
+        {/snippet}
+      </Tooltip>
+    {:else}
+      <Button disabled={isSaving} onclick={handleSave}>
+        {#if isSaving}<Spinner />{/if}
+        {editor.mode === 'creating' ? 'Create' : 'Save'}
+      </Button>
+    {/if}
+  {:else if canWrite}
+    <Button onclick={() => onEditorChange(edit(editor))}>Edit</Button>
+  {/if}
+{/snippet}
 
 <admin-challenges-details>
   {#if editor.mode === 'idle'}
-    <EmptyState
-      icon={IconFlag3Filled}
-      title="Select a challenge"
-      subtitle="Choose a challenge from the list to view or edit it."
-    />
+    <details-empty>
+      <EmptyState
+        icon={IconFlag3Filled}
+        title="Select a challenge"
+        subtitle="Choose a challenge from the list to view or edit it."
+      />
+    </details-empty>
   {:else}
-    <details-body>
-      <h1>{heading}</h1>
-      <p>The challenge editor form lands in a later unit (U11).</p>
-    </details-body>
+    <details-header>
+      <header-info>
+        <h1>{heading}</h1>
+        <header-meta>
+          <span>by {editor.form.author || 'Unknown'}</span>
+          {#if categoryConfig}
+            <category-pill data-category-color={categoryConfig.color}>
+              <categoryConfig.icon />
+              {categoryConfig.name}
+            </category-pill>
+          {:else}
+            <category-pill data-empty>No category</category-pill>
+          {/if}
+        </header-meta>
+      </header-info>
+      <header-actions>{@render actionButtons()}</header-actions>
+    </details-header>
+
+    <AdminChallengesDetailsForm
+      form={editor.form}
+      {disabled}
+      autofocusName={editor.mode === 'creating'}
+      {totalSolves}
+      {errors}
+      {onFieldChange}
+      {onScoringChange}
+      onShowPreview={() => (showPreview = true)}
+    />
   {/if}
 </admin-challenges-details>
+
+<AdminChallengesDetailsDialogs
+  unsavedOpen={editor.mode === 'confirmDiscard'}
+  previewOpen={showPreview}
+  deleteOpen={editor.mode === 'confirmDelete'}
+  description={editor.form.description}
+  challengeName={editor.form.name}
+  deleting={isDeleting}
+  onKeepEditing={() => onEditorChange(keepEditing(editor))}
+  onDiscard={() => onEditorChange(discard(editor))}
+  onClosePreview={() => (showPreview = false)}
+  onDeleteConfirm={handleDeleteConfirm}
+  onDeleteCancel={() => onEditorChange(deleteCancel(editor))}
+/>
 
 <style>
   admin-challenges-details {
     display: flex;
     flex: 1;
     flex-direction: column;
+    min-block-size: 0;
+    inline-size: 100%;
+  }
+
+  details-empty {
+    display: flex;
+    flex: 1;
     align-items: center;
     justify-content: center;
     min-block-size: 0;
-    inline-size: 100%;
     padding: var(--space-l);
   }
 
-  details-body {
+  details-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-m);
+    flex-wrap: wrap;
+    padding: var(--space-m) var(--space-l);
+  }
+
+  header-info {
     display: flex;
     flex-direction: column;
-    gap: var(--space-2xs);
-    text-align: center;
+    gap: var(--space-3xs);
+    min-inline-size: 0;
   }
 
   h1 {
     margin: 0;
     font-size: var(--step-2);
     color: var(--foreground-l0);
+    overflow-wrap: anywhere;
   }
 
-  p {
-    margin: 0;
-    color: var(--foreground-l4);
+  header-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    color: var(--foreground-l3);
+  }
+
+  category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding: 0.125rem var(--space-2xs);
+    font-size: var(--step--1);
+    color: var(--category-foreground-l1);
+    background: var(--category-background-l0);
+    border-radius: var(--radius-md);
+
+    &[data-empty] {
+      color: var(--foreground-l4);
+      background: var(--background-l2);
+    }
+
+    :global(svg) {
+      inline-size: 1em;
+      block-size: 1em;
+    }
+  }
+
+  header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
   }
 </style>

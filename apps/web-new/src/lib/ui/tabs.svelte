@@ -13,7 +13,15 @@
   import * as tabs from '@zag-js/tabs'
   import type { Component, Snippet } from 'svelte'
 
-  type Tab = { value: string; label: string; count?: number; icon?: Component }
+  type Tab = {
+    value: string
+    label: string
+    count?: number
+    icon?: Component
+    // Renders an error dot on the trigger (data-invalid). Distinct from count:
+    // it flags a panel whose fields need attention, not a quantity.
+    invalid?: boolean
+  }
 
   type Props = {
     value?: string | null
@@ -40,11 +48,15 @@
 <div {...api.getRootProps()}>
   <div {...api.getListProps()}>
     {#each items as tab (tab.value)}
-      <button {...api.getTriggerProps({ value: tab.value })}>
+      <button
+        {...api.getTriggerProps({ value: tab.value })}
+        data-invalid={tab.invalid ? '' : undefined}
+      >
         {#if tab.icon}
           <tab.icon data-slot="tab-icon" />
         {/if}
-        {tab.label}{#if tab.count !== undefined}<tab-count>({tab.count})</tab-count>{/if}
+        {tab.label}{#if tab.count !== undefined}<tab-count>({tab.count})</tab-count
+          >{/if}{#if tab.invalid}<tab-invalid aria-hidden="true"></tab-invalid>{/if}
       </button>
     {/each}
   </div>
@@ -82,6 +94,14 @@
 
   tab-count {
     white-space: nowrap;
+  }
+
+  tab-invalid {
+    display: inline-block;
+    inline-size: 0.375rem;
+    block-size: 0.375rem;
+    border-radius: var(--radius-full);
+    background: var(--foreground-destructive);
   }
 
   [data-part='content'] {
