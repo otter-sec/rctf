@@ -14,7 +14,7 @@
 </script>
 
 <script lang="ts">
-  import { clampBoxPosition } from '$lib/chart/tooltip-position'
+  import { clampBoxPosition, truncateLabel } from '$lib/chart/tooltip-position'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
 
   interface Props {
@@ -37,7 +37,6 @@
   const ROWS_TOP = LOCAL_Y + 8
   const ROW_H = 16
   const SWATCH = 8
-  const NAME_MAX = 22
 
   const height = $derived(ROWS_TOP + rows.length * ROW_H + PAD - 4)
 
@@ -51,10 +50,6 @@
   )
 
   const headerTime = $derived(rows[0]?.time ?? startTime)
-
-  function truncate(name: string): string {
-    return name.length > NAME_MAX ? `${name.slice(0, NAME_MAX - 1)}…` : name
-  }
 </script>
 
 <g data-chart-tooltip transform="translate({box.x},{box.y})">
@@ -75,7 +70,7 @@
       rx="2"
       fill="currentColor"
     />
-    <text data-tt-name x={PAD + SWATCH + 6} y={rowY + SWATCH}>{truncate(row.name)}</text>
+    <text data-tt-name x={PAD + SWATCH + 6} y={rowY + SWATCH}>{truncateLabel(row.name)}</text>
     <text data-tt-score x={WIDTH - PAD} y={rowY + SWATCH} text-anchor="end">
       {row.score.toLocaleString()} pts
     </text>

@@ -41,3 +41,8 @@ export function clampBoxPosition(
   )
   return { x, y }
 }
+
+/** Ellipsizes a tooltip label to the width the fixed-size boxes were tuned for. */
+export function truncateLabel(value: string, max = 22): string {
+  return value.length > max ? `${value.slice(0, max - 1)}…` : value
+}

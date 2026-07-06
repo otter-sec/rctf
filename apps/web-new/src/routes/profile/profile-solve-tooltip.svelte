@@ -6,7 +6,7 @@
   Category tokens come from `data-category-color` on the group.
 -->
 <script lang="ts">
-  import { clampBoxPosition } from '$lib/chart/tooltip-position'
+  import { clampBoxPosition, truncateLabel } from '$lib/chart/tooltip-position'
   import type { CategoryColor, CategoryConfig } from '$lib/utils/categories'
   import { formatLocalTime, formatRelativeHoursMinutes } from '$lib/utils/time'
 
@@ -53,7 +53,6 @@
   const CHAL_Y = LOCAL_Y + 22
   const SEP_Y = CHAL_Y + 12
   const MATH_Y = SEP_Y + 18
-  const NAME_MAX = 22
 
   const box = $derived(
     clampBoxPosition(
@@ -65,10 +64,6 @@
   )
 
   const deltaLabel = $derived(points === null ? '+n/a' : `+${points.toLocaleString()}`)
-
-  function truncate(value: string): string {
-    return value.length > NAME_MAX ? `${value.slice(0, NAME_MAX - 1)}…` : value
-  }
 </script>
 
 <g data-solve-tooltip data-category-color={color} transform="translate({box.x},{box.y})">
@@ -79,7 +74,7 @@
   <CategoryIcon x={PAD} y={CHAL_Y - 12} width={ICON} height={ICON} />
   <text x={PAD + ICON + 6} y={CHAL_Y}>
     <tspan data-tt-cat>{catShort} /</tspan>
-    <tspan data-tt-name dx="4">{truncate(name)}</tspan>
+    <tspan data-tt-name dx="4">{truncateLabel(name)}</tspan>
   </text>
 
   <line data-tt-sep x1={PAD} y1={SEP_Y} x2={WIDTH - PAD} y2={SEP_Y} />
